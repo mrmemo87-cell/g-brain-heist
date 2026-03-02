@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
-  <title>AS Biology Ch14 � Inherited change</title>
+  <title>AS Biology Ch14 — Inherited change</title>
   <script src="../examguard.js?v=2"></script>
   <style>
     :root {
@@ -413,23 +413,23 @@
       <img src="/logo.png" alt="Brains Heist" onerror="this.style.display='none';" />
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
-        <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Biology Ch14 � Inherited change</h1>
-        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 14 � multiple-choice questions</div>
+        <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Biology Ch14 — Inherited change</h1>
+        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 14 — multiple-choice questions</div>
       </div>
     </div>
 
     <div class="badge-row">
-      <span class="badge">?? Category: Science</span>
-      <span class="badge">?? Difficulty: Advanced</span>
-      <span class="badge">?? Format: Multiple Choice (A�D)</span>
+      <span class="badge">🧬 Category: Science</span>
+      <span class="badge">🎯 Difficulty: Advanced</span>
+      <span class="badge">📝 Format: Multiple Choice (A–D)</span>
       <span class="badge" id="partBadge"></span>
       <span class="badge" id="timeBadge"></span>
     </div>
 
     <div class="status">
-      ? Auto-marked: your score stays hidden until your teacher releases it.
+      ✅ Auto-marked: your score stays hidden until your teacher releases it.
     </div>
-    <div id="timer" class="timer-box floating">? Time remaining: 00:00</div>
+    <div id="timer" class="timer-box floating">⏳ Time remaining: 00:00</div>
 
     <div class="student-info">
       <input type="text" id="studentName" placeholder="Student Name" autocomplete="name" />
@@ -465,14 +465,14 @@
         <li>Three violations will auto-submit your test immediately.</li>
         <li>Copy, cut, paste, right-click, and drag-and-drop are all disabled.</li>
         <li>Screenshots, screen recording, and printing are blocked.</li>
-        <li>Your timer starts only after you click "I understand".</li>
+        <li>Your timer starts only after you click “I understand”.</li>
       </ul>
       <div class="modal-actions">
         <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
       </div>
     </div>
   </div>
-  <div id="antiCheatToast" class="anti-cheat-toast">?? Tab switching detected. Please stay on this test.</div>
+  <div id="antiCheatToast" class="anti-cheat-toast">⚠️ Tab switching detected. Please stay on this test.</div>
 
   <script>
     // Supabase helpers (fetch-based, no external SDK)
@@ -619,11 +619,11 @@
       const subtitleEl = document.getElementById('quizSubtitle');
       const timeBadge = document.getElementById('timeBadge');
       const partBadge = document.getElementById('partBadge');
-      if (titleEl) titleEl.textContent = `${title} � Part ${part}`;
-      if (subtitleEl) subtitleEl.textContent = `${subtitle} � ${totalQuestions} questions`;
-      if (timeBadge) timeBadge.textContent = `?? Suggested time: ${formatDuration(durationSeconds)}`;
-      if (partBadge) partBadge.textContent = `?? Part ${part} of 2`;
-      document.title = `${title} � Part ${part}`;
+      if (titleEl) titleEl.textContent = `${title} — Part ${part}`;
+      if (subtitleEl) subtitleEl.textContent = `${subtitle} • ${totalQuestions} questions`;
+      if (timeBadge) timeBadge.textContent = `⏱️ Suggested time: ${formatDuration(durationSeconds)}`;
+      if (partBadge) partBadge.textContent = `📌 Part ${part} of 2`;
+      document.title = `${title} — Part ${part}`;
     }
 
     function showToast(message, options = {}) {
@@ -640,7 +640,7 @@
 
 
     // =====================================================
-    // QUIZ CONSTANTS � Edit these for each chapter
+    // QUIZ CONSTANTS — Edit these for each chapter
     // =====================================================
     const QUIZ_BASE_ID = 'as_biology_ch14_inherited_change';
     const QUIZ_PART = getQuizPart();
@@ -650,7 +650,7 @@
     const QUIZ_NAME = `${QUIZ_BASE_NAME} (Part ${QUIZ_PART.part})`;
 
     // =====================================================
-    // QUESTIONS � Paste your questions array here
+    // QUESTIONS — Paste your questions array here
     // Each question object: { number, code, prompt, options/table/simpleOptions }
     // =====================================================
     let QUESTIONS = [
@@ -670,7 +670,7 @@
     ];
 
     // =====================================================
-    // ANSWER KEY � Paste answers here: { 1: 'A', 2: 'C', ... }
+    // ANSWER KEY — Paste answers here: { 1: 'A', 2: 'C', ... }
     // =====================================================
     let ANSWER_KEY = {
       // PASTE ANSWER KEY HERE
@@ -706,7 +706,7 @@
       const update = () => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         const remaining = Math.max(TEST_DURATION_SECONDS - elapsed, 0);
-        timerEl.textContent = `? Time remaining: ${formatTimer(remaining)}`;
+        timerEl.textContent = `⏳ Time remaining: ${formatTimer(remaining)}`;
         if (remaining === 0) {
           timerEl.classList.add('timer-expired');
           clearInterval(timerInterval);
@@ -853,7 +853,7 @@
       document.querySelectorAll('input').forEach(i => i.disabled = true);
       const btn = document.getElementById('submitBtn');
       btn.disabled = true;
-      btn.textContent = '? Submitted';
+      btn.textContent = '✓ Submitted';
       const status = document.getElementById('status');
       status.textContent = `You submitted this test on ${new Date(data.submittedAt).toLocaleString()}.`;
       const scoreDiv = document.getElementById('score');
@@ -950,19 +950,19 @@
 
         if (data.scores_released) {
           const timeTaken = typeof data.time_taken_seconds === 'number'
-            ? ` � ?? Time: ${formatTimer(data.time_taken_seconds)}` : '';
-          scoreDiv.textContent = `? Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
+            ? ` • ⏱️ Time: ${formatTimer(data.time_taken_seconds)}` : '';
+          scoreDiv.textContent = `✅ Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
           hideTimer();
           const responses = (data.answers && typeof data.answers === "string" ? JSON.parse(data.answers) : data.answers)?.responses || {};
           applyReviewMode(responses);
         } else {
-          scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+          scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
           scoreDiv.className = 'score-box pending';
         }
       } catch (err) {
         console.error('Failed to check score release status:', err);
-        scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+        scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
         scoreDiv.className = 'score-box pending';
       }
     }
@@ -993,12 +993,12 @@
       let cls = document.getElementById('studentClass').value.trim();
 
       const isForced = options.force === true;
-      const autoSubmitReason = options.reason || '';
+      const autoSubmitReason = options.autoSubmitReason || options.reason || '';
       if (!name) {
-        if (isForced) { name = 'Unknown Student'; } else { status.textContent = '?? Please enter your name.'; return; }
+        if (isForced) { name = 'Unknown Student'; } else { status.textContent = '⚠️ Please enter your name.'; return; }
       }
       if (!cls) {
-        if (isForced) { cls = 'Unknown Class'; } else { status.textContent = '?? Please enter your class.'; return; }
+        if (isForced) { cls = 'Unknown Class'; } else { status.textContent = '⚠️ Please enter your class.'; return; }
       }
 
       const responses = {};
@@ -1012,7 +1012,7 @@
       const result = calculateScore(responses);
 
       btn.disabled = true;
-      status.textContent = '?? Submitting...';
+      status.textContent = '📤 Submitting...';
 
       const payload = {
         student_name: name,
@@ -1035,13 +1035,13 @@
         console.error(error);
         if (error.message && (error.message.includes('duplicate') || error.message.includes('unique') || error.message.includes('already exists'))) {
           hasSubmitted = true;
-          btn.textContent = '? Already Submitted';
-          status.textContent = '?? You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
+          btn.textContent = '✅ Already Submitted';
+          status.textContent = '🚨 You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
           document.querySelectorAll('input').forEach(i => i.disabled = true);
           lockQuestions();
           return;
         }
-        status.textContent = '? Failed to submit. Please try again.';
+        status.textContent = '❌ Failed to submit. Please try again.';
         btn.disabled = false;
         return;
       }
@@ -1056,13 +1056,13 @@
       }));
 
       document.querySelectorAll('input').forEach(i => i.disabled = true);
-      btn.textContent = '? Submitted';
-      status.textContent = isForced ? `?? Auto-submitted: ${autoSubmitReason}` : '? Submitted successfully! Your teacher will release your score soon.';
+      btn.textContent = '✓ Submitted';
+      status.textContent = isForced ? `⚠️ Auto-submitted: ${autoSubmitReason}` : '✅ Submitted successfully! Your teacher will release your score soon.';
 
       const scoreDiv = document.getElementById('score');
       scoreDiv.style.display = 'block';
       lockQuestions();
-      scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+      scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
       scoreDiv.className = 'score-box pending';
 
       try {
@@ -1166,10 +1166,10 @@
         const review = document.createElement('div');
         review.className = 'review-answer';
         if (studentAnswer && studentAnswer === correctAnswer) {
-          review.textContent = `? Correct: ${correctAnswer}`;
+          review.textContent = `✅ Correct: ${correctAnswer}`;
         } else {
           review.classList.add('incorrect');
-          review.textContent = `? Your answer: ${studentAnswer || '�'} | ? Correct: ${correctAnswer}`;
+          review.textContent = `❌ Your answer: ${studentAnswer || '—'} | ✅ Correct: ${correctAnswer}`;
         }
         card.appendChild(review);
       });
@@ -1183,7 +1183,7 @@
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('�')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('—')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
@@ -1211,7 +1211,7 @@
               handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'ExamGuard violation limit reached' });
             },
             onViolation: (event) => {
-              console.warn('ExamGuard violation (AS Biology - Ch1 Cell structure):', event);
+              console.warn('ExamGuard violation (AS Biology - Ch14 Inherited change):', event);
               if (event.violationsCount >= 3) {
                 if (!autoSubmitTriggered && !hasSubmitted) {
                   autoSubmitTriggered = true;
@@ -1235,8 +1235,9 @@
 
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
+        if (e.origin !== window.location.origin) return;
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test � auto-submitted' });
+          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test — auto-submitted' });
         }
       });
     });

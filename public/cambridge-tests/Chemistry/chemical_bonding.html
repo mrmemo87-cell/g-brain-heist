@@ -614,10 +614,10 @@
   <!--
   <div class="prime-overlay" id="primeOverlay">
     <div class="prime-card">
-      <div class="prime-icon">??</div>
+      <div class="prime-icon">👑</div>
       <h2 class="prime-title">GET PRIME</h2>
       <p class="prime-subtitle">This AS Chemistry content is exclusive to Prime members. Upgrade to unlock all advanced materials.</p>
-      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">? Upgrade to Prime</button>
+      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">✨ Upgrade to Prime</button>
       <div class="prime-divider">or enter activation code</div>
       <input type="text" class="prime-code-input" id="primeCodeInput" placeholder="Enter code..." autocomplete="off" />
       <button class="prime-unlock-btn" id="primeUnlockBtn">Unlock</button>
@@ -632,22 +632,22 @@
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
         <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch3 (Chemical bonding)</h1>
-        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 2 � 64 multiple-choice questions</div>
+        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 3 • 64 multiple-choice questions</div>
       </div>
     </div>
 
     <div class="badge-row">
-      <span class="badge">?? Category: Science</span>
-      <span class="badge">?? Difficulty: Advanced</span>
-      <span class="badge">?? Format: Multiple Choice (A�D)</span>
+      <span class="badge">🧪 Category: Science</span>
+      <span class="badge">🎯 Difficulty: Advanced</span>
+      <span class="badge">📝 Format: Multiple Choice (A–D)</span>
       <span class="badge" id="partBadge"></span>
       <span class="badge" id="timeBadge"></span>
     </div>
 
     <div class="status">
-      ? Auto-marked: your score stays hidden until your teacher releases it.
+      ✅ Auto-marked: your score stays hidden until your teacher releases it.
     </div>
-    <div id="timer" class="timer-box floating">? Time remaining: 00:00</div>
+    <div id="timer" class="timer-box floating">⏳ Time remaining: 00:00</div>
 
 
     <div class="student-info">
@@ -685,14 +685,14 @@
         <li>Three violations will auto-submit your test immediately.</li>
         <li>Copy, cut, paste, right-click, and drag-and-drop are all disabled.</li>
         <li>Screenshots, screen recording, and printing are blocked.</li>
-        <li>Your timer starts only after you click "I understand".</li>
+        <li>Your timer starts only after you click “I understand”.</li>
       </ul>
       <div class="modal-actions">
         <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
       </div>
     </div>
   </div>
-  <div id="antiCheatToast" class="anti-cheat-toast">?? Tab switching detected. Please stay on this test.</div>
+  <div id="antiCheatToast" class="anti-cheat-toast">⚠️ Tab switching detected. Please stay on this test.</div>
 
   <script>
     // Supabase helpers (fetch-based, no external SDK)
@@ -839,11 +839,11 @@
       const subtitleEl = document.getElementById('quizSubtitle');
       const timeBadge = document.getElementById('timeBadge');
       const partBadge = document.getElementById('partBadge');
-      if (titleEl) titleEl.textContent = `${title} � Part ${part}`;
-      if (subtitleEl) subtitleEl.textContent = `${subtitle} � ${totalQuestions} questions`;
-      if (timeBadge) timeBadge.textContent = `?? Suggested time: ${formatDuration(durationSeconds)}`;
-      if (partBadge) partBadge.textContent = `?? Part ${part} of 2`;
-      document.title = `${title} � Part ${part}`;
+      if (titleEl) titleEl.textContent = `${title} — Part ${part}`;
+      if (subtitleEl) subtitleEl.textContent = `${subtitle} • ${totalQuestions} questions`;
+      if (timeBadge) timeBadge.textContent = `⏱️ Suggested time: ${formatDuration(durationSeconds)}`;
+      if (partBadge) partBadge.textContent = `📌 Part ${part} of 2`;
+      document.title = `${title} — Part ${part}`;
     }
 
     function showToast(message, options = {}) {
@@ -863,6 +863,8 @@
     const QUIZ_PART = getQuizPart();
 
     const QUIZ_BASE_NAME = 'AS Chemistry Ch3 (Chemical bonding)';
+    const QUIZ_SUBTITLE = 'Chapter 3';
+    const PENDING_SCORE_MESSAGE = '📊 Score submitted. Waiting for teacher to release results.';
     const QUIZ_ID = `${QUIZ_BASE_ID}_part${QUIZ_PART.part}`;
     const QUIZ_NAME = `${QUIZ_BASE_NAME} (Part ${QUIZ_PART.part})`;
 
@@ -881,12 +883,12 @@
       {
         number: 2,
         code: '9701_s21_qp_12 Q: 8',
-        prompt: 'Nitrogen and oxygen can react together to form nitrogen monoxide, NO.<br><br>N<sub>2</sub> + O<sub>2</sub> > 2NO &nbsp;&nbsp;&nbsp; ?H = +180 kJ mol<sup>?1</sup><br><br>What is the bond energy of the bond between the atoms in NO?',
+        prompt: 'Nitrogen and oxygen can react together to form nitrogen monoxide, NO.<br><br>N<sub>2</sub> + O<sub>2</sub> → 2NO &nbsp;&nbsp;&nbsp; ΔH = +180 kJ mol<sup>−1</sup><br><br>What is the bond energy of the bond between the atoms in NO?',
         options: {
-          A: '630 kJ mol<sup>?1</sup>',
-          B: '810 kJ mol<sup>?1</sup>',
-          C: '1260 kJ mol<sup>?1</sup>',
-          D: '1620 kJ mol<sup>?1</sup>',
+          A: '630 kJ mol<sup>−1</sup>',
+          B: '810 kJ mol<sup>−1</sup>',
+          C: '1260 kJ mol<sup>−1</sup>',
+          D: '1620 kJ mol<sup>−1</sup>',
         }
       },
       {
@@ -896,28 +898,28 @@
         optionTable: {
           headers: ['hybridisation', 'bonding'],
           rows: [
-            { label: 'A', values: ['sp<sup>2</sup>', '4 ? bonds 1 ? bond'] },
-            { label: 'B', values: ['sp<sup>2</sup>', '5 ? bonds 1 ? bond'] },
-            { label: 'C', values: ['sp<sup>3</sup>', '4 ? bonds 1 ? bond'] },
-            { label: 'D', values: ['sp<sup>3</sup>', '5 ? bonds 1 ? bond'] },
+            { label: 'A', values: ['sp<sup>2</sup>', '4 σ bonds 1 π bond'] },
+            { label: 'B', values: ['sp<sup>2</sup>', '5 σ bonds 1 π bond'] },
+            { label: 'C', values: ['sp<sup>3</sup>', '4 σ bonds 1 π bond'] },
+            { label: 'D', values: ['sp<sup>3</sup>', '5 σ bonds 1 π bond'] },
           ]
         }
       },
       {
         number: 4,
         code: '9701_s19_qp_12 Q: 4',
-        prompt: 'A ? bond is made between two carbon atoms in a molecule of ethene.<br><br>Which description shows the orbital overlap that occurs to form this bond?',
+        prompt: 'A σ bond is made between two carbon atoms in a molecule of ethene.<br><br>Which description shows the orbital overlap that occurs to form this bond?',
         options: {
-          A: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/115a.svg" alt="sp? lobes rotated 45� for ? overlap" class="option-graphic" loading="lazy" />',
-          B: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/115b.svg" alt="sp? lobes aligned head-on (0� rotation)" class="option-graphic" loading="lazy" />',
-          C: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/115c.svg" alt="sp? lobes rotated about 90� to each other" class="option-graphic" loading="lazy" />',
-          D: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/115d.svg" alt="sp? lobes skewed with 135� rotation" class="option-graphic" loading="lazy" />',
+          A: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/115a.svg" alt="sp² lobes rotated 45° for σ overlap" class="option-graphic" loading="lazy" />',
+          B: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/115b.svg" alt="sp² lobes aligned head-on (0° rotation)" class="option-graphic" loading="lazy" />',
+          C: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/115c.svg" alt="sp² lobes rotated about 90° to each other" class="option-graphic" loading="lazy" />',
+          D: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/115d.svg" alt="sp² lobes skewed with 135° rotation" class="option-graphic" loading="lazy" />',
         }
       },
       {
         number: 5,
         code: '9701_m18_qp_12 Q: 6',
-        prompt: 'Sodium hydroxide neutralises acid.<br><br>H<sup>+</sup> + OH<sup>?</sup> > H<sub>2</sub>O<br><br>In a 11 000 dm<sup>3</sup> sample of an aqueous solution, the concentration of acid, [H<sup>+</sup>], is 1.26 ? 10<sup>?3</sup> mol dm<sup>?3</sup>.<br><br>Which mass of solid sodium hydroxide neutralises the acid?',
+        prompt: 'Sodium hydroxide neutralises acid.<br><br>H<sup>+</sup> + OH<sup>−</sup> → H<sub>2</sub>O<br><br>In a 11 000 dm<sup>3</sup> sample of an aqueous solution, the concentration of acid, [H<sup>+</sup>], is 1.26 × 10<sup>−3</sup> mol dm<sup>−3</sup>.<br><br>Which mass of solid sodium hydroxide neutralises the acid?',
         options: {
           A: '0.0214 g',
           B: '0.0504 g',
@@ -930,10 +932,10 @@
         code: '9701_s18_qp_13 Q: 4',
         prompt: 'Which statement describes the bond between carbon and hydrogen in an ethene molecule?',
         options: {
-          A: 'a ? bond between an s orbital and an sp<sup>2</sup> orbital',
-          B: 'a ? bond between an s orbital and an sp<sup>3</sup> orbital',
-          C: 'a ? bond between an s orbital and an sp<sup>2</sup> orbital',
-          D: 'a ? bond between an s orbital and an sp<sup>3</sup> orbital',
+          A: 'a π bond between an s orbital and an sp<sup>2</sup> orbital',
+          B: 'a π bond between an s orbital and an sp<sup>3</sup> orbital',
+          C: 'a σ bond between an s orbital and an sp<sup>2</sup> orbital',
+          D: 'a σ bond between an s orbital and an sp<sup>3</sup> orbital',
         }
       },
       {
@@ -964,14 +966,14 @@
       {
         number: 9,
         code: '9701_s15_qp_11 Q: 10',
-        prompt: 'The double bond between the two carbon atoms in an ethene molecule consists of one ? bond and one ? bond.<br><br>Which orbitals overlap to form each of these bonds?',
+        prompt: 'The double bond between the two carbon atoms in an ethene molecule consists of one σ bond and one π bond.<br><br>Which orbitals overlap to form each of these bonds?',
         optionTable: {
-          headers: ['? bond', '? bond'],
+          headers: ['σ bond', 'π bond'],
           rows: [
-            { label: 'A', values: ['sp<sup>2</sup>�sp<sup>2</sup>', 'p�p'] },
-            { label: 'B', values: ['sp<sup>2</sup>�sp<sup>2</sup>', 'sp<sup>2</sup>�sp<sup>2</sup>'] },
-            { label: 'C', values: ['sp<sup>3</sup>�sp<sup>3</sup>', 'p�p'] },
-            { label: 'D', values: ['sp<sup>3</sup>�sp<sup>3</sup>', 'sp<sup>2</sup>�sp<sup>2</sup>'] },
+            { label: 'A', values: ['sp<sup>2</sup>–sp<sup>2</sup>', 'p–p'] },
+            { label: 'B', values: ['sp<sup>2</sup>–sp<sup>2</sup>', 'sp<sup>2</sup>–sp<sup>2</sup>'] },
+            { label: 'C', values: ['sp<sup>3</sup>–sp<sup>3</sup>', 'p–p'] },
+            { label: 'D', values: ['sp<sup>3</sup>–sp<sup>3</sup>', 'sp<sup>2</sup>–sp<sup>2</sup>'] },
           ]
         }
       },
@@ -991,7 +993,7 @@
         code: '9701_m22_qp_12 Q: 25',
         prompt: 'When ammonia, NH<sub>3</sub>, is dissolved in water, a small concentration of ammonium ions, NH<sub>4</sub><sup>+</sup>, is formed.<br><br>Which row is correct?',
         optionTable: {
-          headers: ['number of electrons in one ammonium ion', 'change of the H�N�H angle from ammonia to the ammonium ion'],
+          headers: ['number of electrons in one ammonium ion', 'change of the H–N–H angle from ammonia to the ammonium ion'],
           rows: [
             { label: 'A', values: ['8', 'decreases'] },
             { label: 'B', values: ['8', 'increases'] },
@@ -1017,7 +1019,7 @@
       {
         number: 13,
         code: '9701_s21_qp_13 Q: 4',
-        prompt: 'Ethanal reacts with hydroxylamine, NH<sub>2</sub>OH, to form the molecule shown.<br><div style="margin: 12px 0; text-align: center;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/124.svg" alt="Ethanal with hydroxylamine showing bond angles x, y, z" loading="lazy" style="max-width: 320px; border:1px solid var(--border); border-radius:12px;" /></div><div style="text-align:center; color: var(--text-muted); font-size:13px; margin-bottom:6px;">Angles: y &gt; 120�, z &lt; 120�.</div>What is the order of <strong>increasing</strong> bond angle in this structure from smallest to largest?',
+        prompt: 'Ethanal reacts with hydroxylamine, NH<sub>2</sub>OH, to form the molecule shown.<br><div style="margin: 12px 0; text-align: center;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/124.svg" alt="Ethanal with hydroxylamine showing bond angles x, y, z" loading="lazy" style="max-width: 320px; border:1px solid var(--border); border-radius:12px;" /></div><div style="text-align:center; color: var(--text-muted); font-size:13px; margin-bottom:6px;">Angles: y &gt; 120°, z &lt; 120°.</div>What is the order of <strong>increasing</strong> bond angle in this structure from smallest to largest?',
         options: {
           A: 'z, x, y',
           B: 'y, z, x',
@@ -1039,7 +1041,7 @@
       {
         number: 15,
         code: '9701_m20_qp_12 Q: 3',
-        prompt: 'Which molecule does <strong>not</strong> have any 90� or 180� bond angles?',
+        prompt: 'Which molecule does <strong>not</strong> have any 90° or 180° bond angles?',
         options: {
           A: 'C<sub>2</sub>H<sub>6</sub>',
           B: 'CO<sub>2</sub>',
@@ -1072,7 +1074,7 @@
       {
         number: 18,
         code: '9701_s20_qp_13 Q: 9',
-        prompt: 'At 200 �C aluminium chloride is a gas with M<sub>r</sub> = 267.<br><br>What is the number of covalent bonds, dative covalent bonds and lone pairs of electrons in one molecule of aluminium chloride at 200 �C?',
+        prompt: 'At 200 °C aluminium chloride is a gas with M<sub>r</sub> = 267.<br><br>What is the number of covalent bonds, dative covalent bonds and lone pairs of electrons in one molecule of aluminium chloride at 200 °C?',
         optionTable: {
           headers: ['covalent bonds', 'dative covalent bonds', 'lone pairs'],
           rows: [
@@ -1101,7 +1103,7 @@
         options: {
           A: 'CH<sub>3</sub>',
           B: 'CH<sub>3</sub><sup>+</sup>',
-          C: 'CH<sub>3</sub><sup>?</sup>',
+          C: 'CH<sub>3</sub><sup>−</sup>',
           D: 'CH<sub>4</sub>',
         }
       },
@@ -1130,7 +1132,7 @@
       {
         number: 23,
         code: '9701_s18_qp_12 Q: 18',
-        prompt: 'The dative covalent bond can be represented by an arrow, >. The arrow points towards the atom receiving the lone pair.<br><br>In the correct option, the arrow must point from the lone pair towards the atom that accepts it.<br><br>Which diagram of an ammonium ion is correct?',
+        prompt: 'The dative covalent bond can be represented by an arrow, →. The arrow points towards the atom receiving the lone pair.<br><br>In the correct option, the arrow must point from the lone pair towards the atom that accepts it.<br><br>Which diagram of an ammonium ion is correct?',
         options: {
           A: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/134a.svg" alt="Arrow down to nitrogen with positive charge" class="option-graphic" loading="lazy" style="width: 40px; height: auto;" />',
           B: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/134b.svg" alt="Arrow down to nitrogen with negative sign" class="option-graphic" loading="lazy" style="width: 40px; height: auto;" />',
@@ -1154,7 +1156,7 @@
         code: '9701_w17_qp_11 Q: 3',
         prompt: 'In which structure are three atoms bonded together in a straight line?',
         options: {
-          A: 'poly(ethene), �(CH<sub>2</sub>CH<sub>2</sub>)<sub>n</sub>�',
+          A: 'poly(ethene), −(CH<sub>2</sub>CH<sub>2</sub>)<sub>n</sub>−',
           B: 'propane, C<sub>3</sub>H<sub>8</sub>',
           C: 'silicon tetrachloride, SiCl<sub>4</sub>',
           D: 'sulfur hexafluoride, SF<sub>6</sub>',
@@ -1167,10 +1169,10 @@
         optionTable: {
           headers: ['ethane', 'combustion products'],
           rows: [
-            { label: 'A', values: ['90�', '104.5� and 180�'] },
-            { label: 'B', values: ['90�', '109.5� and 120�'] },
-            { label: 'C', values: ['109.5�', '104.5� and 180�'] },
-            { label: 'D', values: ['109.5�', '109.5� and 180�'] },
+            { label: 'A', values: ['90°', '104.5° and 180°'] },
+            { label: 'B', values: ['90°', '109.5° and 120°'] },
+            { label: 'C', values: ['109.5°', '104.5° and 180°'] },
+            { label: 'D', values: ['109.5°', '109.5° and 180°'] },
           ]
         }
       },
@@ -1179,10 +1181,10 @@
         code: '9701_m16_qp_12 Q: 6',
         prompt: 'Which series shows molecules in order of increasing bond angle?',
         options: {
-          A: 'CH<sub>4</sub> > BF<sub>3</sub> > NH<sub>3</sub>',
-          B: 'H<sub>2</sub>O > CO<sub>2</sub> > BF<sub>3</sub>',
-          C: 'NH<sub>3</sub> > CH<sub>4</sub> > CO<sub>2</sub>',
-          D: 'NH<sub>3</sub> > CH<sub>4</sub> > H<sub>2</sub>O',
+          A: 'CH<sub>4</sub> → BF<sub>3</sub> → NH<sub>3</sub>',
+          B: 'H<sub>2</sub>O → CO<sub>2</sub> → BF<sub>3</sub>',
+          C: 'NH<sub>3</sub> → CH<sub>4</sub> → CO<sub>2</sub>',
+          D: 'NH<sub>3</sub> → CH<sub>4</sub> → H<sub>2</sub>O',
         }
       },
       {
@@ -1192,10 +1194,10 @@
         optionTable: {
           headers: ['shape', '', 'bonds present', ''],
           rows: [
-            { label: 'A', values: ['ammonia molecule: pyramidal', 'ammonium ion: regular tetrahedral', 'ammonia molecule: ?', 'ammonium ion: ?'] },
-            { label: 'B', values: ['ammonia molecule: pyramidal', 'ammonium ion: regular tetrahedral', 'ammonia molecule: ?', 'ammonium ion: ?'] },
-            { label: 'C', values: ['ammonia molecule: regular tetrahedral', 'ammonium ion: pyramidal', 'ammonia molecule: ?', 'ammonium ion: ?'] },
-            { label: 'D', values: ['ammonia molecule: regular tetrahedral', 'ammonium ion: pyramidal', 'ammonia molecule: ?', 'ammonium ion: ?'] },
+            { label: 'A', values: ['ammonia molecule: pyramidal', 'ammonium ion: regular tetrahedral', 'ammonia molecule: σ', 'ammonium ion: σ'] },
+            { label: 'B', values: ['ammonia molecule: pyramidal', 'ammonium ion: regular tetrahedral', 'ammonia molecule: σ', 'ammonium ion: π'] },
+            { label: 'C', values: ['ammonia molecule: regular tetrahedral', 'ammonium ion: pyramidal', 'ammonia molecule: σ', 'ammonium ion: σ'] },
+            { label: 'D', values: ['ammonia molecule: regular tetrahedral', 'ammonium ion: pyramidal', 'ammonia molecule: π', 'ammonium ion: σ'] },
           ]
         }
       },
@@ -1226,16 +1228,16 @@
         code: '9701_s16_qp_13 Q: 7',
         prompt: 'Methyl isocyanate, CH<sub>3</sub>NCO, is a toxic liquid which is used in the manufacture of some pesticides.<br><br>What is the approximate angle between the bonds formed by the N atom in a molecule of methyl isocyanate?',
         options: {
-          A: '104�',
-          B: '109�',
-          C: '120�',
-          D: '180�',
+          A: '104°',
+          B: '109°',
+          C: '120°',
+          D: '180°',
         }
       },
       {
         number: 32,
         code: '9701_w16_qp_12 Q: 7',
-        prompt: 'In which hydride is the H�X�H bond angle the smallest?',
+        prompt: 'In which hydride is the H–X–H bond angle the smallest?',
         options: {
           A: 'BH<sub>3</sub>',
           B: 'CH<sub>4</sub>',
@@ -1318,7 +1320,7 @@
         prompt: 'The strength of hydrogen bonding increases as the electronegativity of the element bonded to hydrogen increases.<br><br>Some information for a range of hydrides is given.<br><br><table style=\"border-collapse: collapse; text-align:center; margin: 12px auto; min-width: 220px;\"><thead><tr><th style=\"border:1px solid var(--border); padding:6px;\">hydride</th><th style=\"border:1px solid var(--border); padding:6px;\">boiling point / K</th></tr></thead><tbody><tr><td style=\"border:1px solid var(--border); padding:6px;\">PH<sub>3</sub></td><td style=\"border:1px solid var(--border); padding:6px;\">185</td></tr><tr><td style=\"border:1px solid var(--border); padding:6px;\">HCl</td><td style=\"border:1px solid var(--border); padding:6px;\">188</td></tr><tr><td style=\"border:1px solid var(--border); padding:6px;\">HF</td><td style=\"border:1px solid var(--border); padding:6px;\">293</td></tr><tr><td style=\"border:1px solid var(--border); padding:6px;\">H<sub>2</sub>O</td><td style=\"border:1px solid var(--border); padding:6px;\">373</td></tr></tbody></table>Which statement and reason about these hydrides is correct?',
         options: {
           A: 'The boiling point of PH<sub>3</sub> is much lower than the boiling point of H<sub>2</sub>O because PH<sub>3</sub> does not form hydrogen bonds or instantaneous dipole-induced dipole forces between its molecules.',
-          B: 'The boiling point of HF is higher than the boiling point of HCl because the bond energy of H�F is greater than the bond energy of H�Cl.',
+          B: 'The boiling point of HF is higher than the boiling point of HCl because the bond energy of H–F is greater than the bond energy of H–Cl.',
           C: 'The boiling point of H<sub>2</sub>O is higher than the boiling point of HF because each hydrogen bond between the H<sub>2</sub>O molecules is stronger than each hydrogen bond between HF molecules.',
           D: 'The boiling points of PH<sub>3</sub> and HCl are similar because the molecules of PH<sub>3</sub> and HCl have the same number of electrons and similar intermolecular forces.',
         }
@@ -1339,10 +1341,10 @@
         code: '9701_s20_qp_12 Q: 8',
         prompt: 'In which change are only temporary dipole-induced dipole forces overcome?',
         options: {
-          A: 'C<sub>2</sub>H<sub>5</sub>OH(l) > C<sub>2</sub>H<sub>5</sub>OH(g)',
-          B: 'H<sub>2</sub>O(s) > H<sub>2</sub>O(l)',
-          C: 'O<sub>2</sub>(s) > O<sub>2</sub>(l)',
-          D: 'C<sub>4</sub>H<sub>10</sub>(l) > C<sub>4</sub>H<sub>10</sub>(g)',
+          A: 'C<sub>2</sub>H<sub>5</sub>OH(l) → C<sub>2</sub>H<sub>5</sub>OH(g)',
+          B: 'H<sub>2</sub>O(s) → H<sub>2</sub>O(l)',
+          C: 'O<sub>2</sub>(s) → O<sub>2</sub>(l)',
+          D: 'C<sub>4</sub>H<sub>10</sub>(l) → C<sub>4</sub>H<sub>10</sub>(g)',
         }
       },
       {
@@ -1414,7 +1416,7 @@
       {
         number: 48,
         code: '9701_s16_qp_13 Q: 6',
-        prompt: 'Carbon and silicon have the same outer electronic structure.<br><br>Why is a Si�Si bond weaker than a C�C bond?',
+        prompt: 'Carbon and silicon have the same outer electronic structure.<br><br>Why is a Si–Si bond weaker than a C–C bond?',
         options: {
           A: 'Silicon atoms have a larger atomic radius than carbon atoms.',
           B: 'Silicon has a greater nuclear charge than carbon.',
@@ -1461,8 +1463,8 @@
         prompt: 'Nitrogen, N<sub>2</sub>, and carbon monoxide, CO, both have M<sub>r</sub> = 28.<br><br>The boiling point of N<sub>2</sub> is 77 K.<br>The boiling point of CO is 82 K.<br><br>What could be responsible for this difference in boiling points?',
         options: {
           A: 'CO molecules have a permanent dipole, the N<sub>2</sub> molecules are not polar.',
-          B: 'N<sub>2</sub> has ? and ? bonding, CO has ? bonding only.',
-          C: 'N<sub>2</sub> has a strong N?N bond, CO has a C=O bond.',
+          B: 'N<sub>2</sub> has σ and π bonding, CO has σ bonding only.',
+          C: 'N<sub>2</sub> has a strong N–N bond, CO has a C=O bond.',
           D: 'The CO molecule has more electrons than the N<sub>2</sub> molecule.',
         }
       },
@@ -1474,13 +1476,13 @@
           A: 'covalent',
           B: 'ionic',
           C: 'metallic',
-          D: 'van der Waals� forces',
+          D: 'van der Waals\' forces',
         }
       },
       {
         number: 54,
         code: '9701_m22_qp_12 Q: 5',
-        prompt: 'Which dot-and-cross diagram shows Al<sub>2</sub>Cl<sub>6</sub> with <strong>two</strong> bridging chlorines? Dashed bonds mark bridges and each chlorine is labelled A�F in the options.',
+        prompt: 'Which dot-and-cross diagram shows Al<sub>2</sub>Cl<sub>6</sub> with <strong>two</strong> bridging chlorines? Dashed bonds mark bridges and each chlorine is labelled A–F in the options.',
         options: {
           A: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/165a.svg" alt="Al2Cl6 option A with all six chlorine atoms labelled" class="option-graphic" loading="lazy" />',
           B: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/165b.svg" alt="Al2Cl6 option B with all six chlorine atoms labelled" class="option-graphic" loading="lazy" />',
@@ -1497,7 +1499,7 @@
           A: 'covalent',
           B: 'ionic',
           C: 'metallic',
-          D: 'van der Waals� forces',
+          D: 'van der Waals\' forces',
         }
       },
     ];
@@ -1559,7 +1561,7 @@
       const update = () => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         const remaining = Math.max(TEST_DURATION_SECONDS - elapsed, 0);
-        timerEl.textContent = `? Time remaining: ${formatTimer(remaining)}`;
+        timerEl.textContent = `⏳ Time remaining: ${formatTimer(remaining)}`;
         if (remaining === 0) {
           timerEl.classList.add('timer-expired');
           clearInterval(timerInterval);
@@ -1675,7 +1677,18 @@
       img.dataset.fallbackApplied = 'true';
       const fallback = document.createElement('div');
       fallback.className = 'svg-fallback';
-      fallback.innerHTML = `?? <a href="${originalSrc}" target="_blank" rel="noopener noreferrer">Open diagram</a>${img.alt ? `<small>${img.alt}</small>` : ''}`;
+      fallback.textContent = '🔗 ';
+      const link = document.createElement('a');
+      link.href = originalSrc;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = 'Open diagram';
+      fallback.appendChild(link);
+      if (img.alt) {
+        const altEl = document.createElement('small');
+        altEl.textContent = img.alt;
+        fallback.appendChild(altEl);
+      }
       img.insertAdjacentElement('afterend', fallback);
       img.style.display = 'none';
     }
@@ -1874,7 +1887,7 @@
       document.querySelectorAll('input').forEach(i => i.disabled = true);
       const btn = document.getElementById('submitBtn');
       btn.disabled = true;
-      btn.textContent = '? Submitted';
+      btn.textContent = '✓ Submitted';
       const status = document.getElementById('status');
       status.textContent = `You submitted this test on ${new Date(data.submittedAt).toLocaleString()}.`;
       const scoreDiv = document.getElementById('score');
@@ -2004,20 +2017,20 @@
         
         if (data.scores_released) {
           const timeTaken = typeof data.time_taken_seconds === 'number'
-            ? ` � ?? Time: ${formatTimer(data.time_taken_seconds)}`
+            ? ` • ⏱️ Time: ${formatTimer(data.time_taken_seconds)}`
             : '';
-          scoreDiv.textContent = `? Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
+          scoreDiv.textContent = `✅ Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
           hideTimer();
           const responses = (data.answers && typeof data.answers === "string" ? JSON.parse(data.answers) : data.answers)?.responses || {};
           applyReviewMode(responses);
         } else {
-          scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+          scoreDiv.textContent = PENDING_SCORE_MESSAGE;
           scoreDiv.className = 'score-box pending';
         }
       } catch (err) {
         console.error('Failed to check score release status:', err);
-        scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+        scoreDiv.textContent = PENDING_SCORE_MESSAGE;
         scoreDiv.className = 'score-box pending';
       }
     }
@@ -2048,12 +2061,12 @@
       let cls = document.getElementById('studentClass').value.trim();
 
       const isForced = options.force === true;
-      const autoSubmitReason = options.reason || '';
+      const autoSubmitReason = options.autoSubmitReason || options.reason || '';
       if (!name) {
         if (isForced) {
           name = 'Unknown Student';
         } else {
-          status.textContent = '?? Please enter your name.';
+          status.textContent = '⚠️ Please enter your name.';
           return;
         }
       }
@@ -2061,7 +2074,7 @@
         if (isForced) {
           cls = 'Unknown Class';
         } else {
-          status.textContent = '?? Please enter your class.';
+          status.textContent = '⚠️ Please enter your class.';
           return;
         }
       }
@@ -2077,7 +2090,7 @@
       const result = calculateScore(responses);
 
       btn.disabled = true;
-      status.textContent = '?? Submitting...';
+      status.textContent = '📤 Submitting...';
 
       const payload = {
         student_name: name,
@@ -2100,13 +2113,13 @@
         console.error(error);
         if (error.message && (error.message.includes('duplicate') || error.message.includes('unique') || error.message.includes('already exists'))) {
           hasSubmitted = true;
-          btn.textContent = '? Already Submitted';
-          status.textContent = '?? You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
+          btn.textContent = '✅ Already Submitted';
+          status.textContent = '🚨 You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
           document.querySelectorAll('input').forEach(i => i.disabled = true);
           lockQuestions();
           return;
         }
-        status.textContent = '? Failed to submit. Please try again.';
+        status.textContent = '❌ Failed to submit. Please try again.';
         btn.disabled = false;
         return;
       }
@@ -2121,13 +2134,13 @@
       }));
 
       document.querySelectorAll('input').forEach(i => i.disabled = true);
-      btn.textContent = '? Submitted';
-      status.textContent = isForced ? `?? Auto-submitted: ${autoSubmitReason}` : '? Submitted successfully! Your teacher will release your score soon.';
+      btn.textContent = '✓ Submitted';
+      status.textContent = isForced ? `⚠️ Auto-submitted: ${autoSubmitReason}` : '✅ Submitted successfully! Your teacher will release your score soon.';
 
       const scoreDiv = document.getElementById('score');
       scoreDiv.style.display = 'block';
       lockQuestions();
-      scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+      scoreDiv.textContent = PENDING_SCORE_MESSAGE;
       scoreDiv.className = 'score-box pending';
 
       try {
@@ -2244,10 +2257,10 @@
         const review = document.createElement('div');
         review.className = 'review-answer';
         if (studentAnswer && studentAnswer === correctAnswer) {
-          review.textContent = `? Correct: ${correctAnswer}`;
+          review.textContent = `✅ Correct: ${correctAnswer}`;
         } else {
           review.classList.add('incorrect');
-          review.textContent = `? Your answer: ${studentAnswer || '�'} | ? Correct: ${correctAnswer}`;
+          review.textContent = `❌ Your answer: ${studentAnswer || '—'} | ✅ Correct: ${correctAnswer}`;
         }
         card.appendChild(review);
       });
@@ -2303,7 +2316,7 @@
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('�')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, QUIZ_SUBTITLE, QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
@@ -2357,8 +2370,9 @@
 
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
+        if (e.origin !== window.location.origin) return;
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test � auto-submitted' });
+          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test — auto-submitted' });
         }
       });
 

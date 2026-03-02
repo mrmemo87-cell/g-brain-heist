@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
-  <title>AS Chemistry � Atomic Structure</title>
+  <title>AS Chemistry — Atomic Structure</title>
   <script src="../examguard.js?v=2"></script>
   <style>
     :root {
@@ -552,10 +552,10 @@
   <!--
   <div class="prime-overlay" id="primeOverlay">
     <div class="prime-card">
-      <div class="prime-icon">??</div>
+      <div class="prime-icon">👑</div>
       <h2 class="prime-title">GET PRIME</h2>
       <p class="prime-subtitle">This AS Chemistry content is exclusive to Prime members. Upgrade to unlock all advanced materials.</p>
-      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">? Upgrade to Prime</button>
+      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">✨ Upgrade to Prime</button>
       <div class="prime-divider">or enter activation code</div>
       <input type="text" class="prime-code-input" id="primeCodeInput" placeholder="Enter code..." autocomplete="off" />
       <button class="prime-unlock-btn" id="primeUnlockBtn">Unlock</button>
@@ -569,23 +569,23 @@
       <img src="/logo.png" alt="Brains Heist" onerror="this.style.display='none';" />
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
-        <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry � Atomic Structure</h1>
-        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 1 ? 49 multiple-choice questions</div>
+        <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry — Atomic Structure</h1>
+        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 1 • 49 multiple-choice questions</div>
       </div>
     </div>
 
     <div class="badge-row">
-      <span class="badge">?? Category: Science</span>
-      <span class="badge">?? Difficulty: Advanced</span>
-      <span class="badge">?? Format: Multiple Choice (A?D)</span>
+      <span class="badge">🧪 Category: Science</span>
+      <span class="badge">🎯 Difficulty: Advanced</span>
+      <span class="badge">📝 Format: Multiple Choice (A–D)</span>
       <span class="badge" id="partBadge"></span>
       <span class="badge" id="timeBadge"></span>
     </div>
 
     <div class="status">
-      ? Auto-marked: your score stays hidden until your teacher releases it.
+      ✅ Auto-marked: your score stays hidden until your teacher releases it.
     </div>
-    <div id="timer" class="timer-box floating">? Time remaining: 00:00</div>
+    <div id="timer" class="timer-box floating">⏳ Time remaining: 00:00</div>
 
 
     <div class="student-info">
@@ -623,14 +623,14 @@
         <li>Three violations will auto-submit your test immediately.</li>
         <li>Copy, cut, paste, right-click, and drag-and-drop are all disabled.</li>
         <li>Screenshots, screen recording, and printing are blocked.</li>
-        <li>Your timer starts only after you click "I understand".</li>
+        <li>Your timer starts only after you click “I understand”.</li>
       </ul>
       <div class="modal-actions">
         <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
       </div>
     </div>
   </div>
-  <div id="antiCheatToast" class="anti-cheat-toast">?? Tab switching detected. Please stay on this test.</div>
+  <div id="antiCheatToast" class="anti-cheat-toast">⚠️ Tab switching detected. Please stay on this test.</div>
 
   <script>
     // Supabase helpers (fetch-based, no external SDK)
@@ -777,11 +777,11 @@
       const subtitleEl = document.getElementById('quizSubtitle');
       const timeBadge = document.getElementById('timeBadge');
       const partBadge = document.getElementById('partBadge');
-      if (titleEl) titleEl.textContent = `${title} ? Part ${part}`;
-      if (subtitleEl) subtitleEl.textContent = `${subtitle} ? ${totalQuestions} questions`;
-      if (timeBadge) timeBadge.textContent = `?? Suggested time: ${formatDuration(durationSeconds)}`;
-      if (partBadge) partBadge.textContent = `?? Part ${part} of 2`;
-      document.title = `${title} ? Part ${part}`;
+      if (titleEl) titleEl.textContent = `${title} — Part ${part}`;
+      if (subtitleEl) subtitleEl.textContent = `${subtitle} • ${totalQuestions} questions`;
+      if (timeBadge) timeBadge.textContent = `⏱️ Suggested time: ${formatDuration(durationSeconds)}`;
+      if (partBadge) partBadge.textContent = `📌 Part ${part} of 2`;
+      document.title = `${title} — Part ${part}`;
     }
 
     function showToast(message, options = {}) {
@@ -800,7 +800,7 @@
     const QUIZ_BASE_ID = 'as_chemistry_atomic_structure';
     const QUIZ_PART = getQuizPart();
 
-    const QUIZ_BASE_NAME = 'AS Chemistry � Atomic Structure';
+    const QUIZ_BASE_NAME = 'AS Chemistry — Atomic Structure';
     const QUIZ_ID = `${QUIZ_BASE_ID}_part${QUIZ_PART.part}`;
     const QUIZ_NAME = `${QUIZ_BASE_NAME} (Part ${QUIZ_PART.part})`;
 
@@ -858,10 +858,10 @@
       {
         number: 5,
         code: '9701_w18_qp_12 Q: 2',
-        prompt: 'Beams of charged particles are deflected by an electrical field. The angle of deflection of a particle is proportional to its charge/mass ratio.<br><br>In an experiment protons are deflected by an angle of +15?. In another experiment under identical conditions <span class="nuclide"><sup>2</sup><sub>1</sub>H<sup>?</sup></span> ions are deflected by an angle of Y?. <br><br>What is the value of Y?',
+        prompt: 'Beams of charged particles are deflected by an electrical field. The angle of deflection of a particle is proportional to its charge/mass ratio.<br><br>In an experiment protons are deflected by an angle of +15°. In another experiment under identical conditions <span class="nuclide"><sup>2</sup><sub>1</sub>H<sup>−</sup></span> ions are deflected by an angle of Y°. <br><br>What is the value of Y?',
         options: {
-          A: '?30.0',
-          B: '?7.5',
+          A: '−30.0',
+          B: '−7.5',
           C: '+7.5',
           D: '+30.0',
         }
@@ -871,16 +871,16 @@
         code: '9701_s17_qp_12 Q: 1',
         prompt: 'In which species are the numbers of protons, neutrons and electrons all different?',
         options: {
-          A: '<span class="nuclide"><sup>19</sup><sub>9</sub>F<sup>?</sup></span>',
+          A: '<span class="nuclide"><sup>19</sup><sub>9</sub>F<sup>−</sup></span>',
           B: '<span class="nuclide"><sup>23</sup><sub>11</sub>Na<sup>+</sup></span>',
           C: '<span class="nuclide"><sup>31</sup><sub>15</sub>P</span>',
-          D: '<span class="nuclide"><sup>32</sup><sub>16</sub>S<sup>2?</sup></span>',
+          D: '<span class="nuclide"><sup>32</sup><sub>16</sub>S<sup>2−</sup></span>',
         }
       },
       {
         number: 7,
         code: '9701_s17_qp_13 Q: 1',
-        prompt: 'The ion Y<sup>3?</sup> contains 18 electrons and has a mass number of 31.<br><br>How many protons and neutrons does Y<sup>3?</sup> contain?',
+        prompt: 'The ion Y<sup>3−</sup> contains 18 electrons and has a mass number of 31.<br><br>How many protons and neutrons does Y<sup>3−</sup> contain?',
         table: {
           headers: ['protons', 'neutrons'],
           rows: [
@@ -907,10 +907,10 @@
         code: '9701_m16_qp_12 Q: 3',
         prompt: 'Which ion has both more electrons than protons and more protons than neutrons?<br><br>[H = <span class="nuclide"><sup>1</sup><sub>1</sub>H</span>; D = <span class="nuclide"><sup>2</sup><sub>1</sub>H</span>; O = <span class="nuclide"><sup>16</sup><sub>8</sub>O</span>]',
         options: {
-          A: '<span class="nuclide">D<sup>?</sup></span>',
+          A: '<span class="nuclide">D<sup>−</sup></span>',
           B: '<span class="nuclide">H<sub>3</sub>O<sup>+</sup></span>',
-          C: '<span class="nuclide">OD<sup>?</sup></span>',
-          D: '<span class="nuclide">OH<sup>?</sup></span>',
+          C: '<span class="nuclide">OD<sup>−</sup></span>',
+          D: '<span class="nuclide">OH<sup>−</sup></span>',
         }
       },
       {
@@ -920,7 +920,7 @@
         options: {
           A: '<span class="nuclide">B<sup>3+</sup></span>',
           B: '<span class="nuclide">Be<sup>2+</sup></span>',
-          C: '<span class="nuclide">H<sup>?</sup></span>',
+          C: '<span class="nuclide">H<sup>−</sup></span>',
           D: '<span class="nuclide">He<sup>+</sup></span>',
         }
       },
@@ -972,7 +972,7 @@
       {
         number: 14,
         code: '9701_s16_qp_11 Q: 4',
-        prompt: 'When nuclear reactions take place, the elements produced are different from the elements that reacted. Nuclear equations, such as the one below, are used to represent the changes that occur.<br><br><span class="nuclide"><sup>235</sup><sub>92</sub>U</span> + <span class="nuclide"><sup>1</sup><sub>0</sub>n</span> > <span class="nuclide"><sup>144</sup><sub>56</sub>Ba</span> + <span class="nuclide"><sup>89</sup><sub>36</sub>Kr</span> + 3<span class="nuclide"><sup>1</sup><sub>0</sub>n</span><br><br>The nucleon (mass) number total is constant at 236 and the proton number total is constant at 92.<br><br>In another nuclear reaction, uranium-238 is reacted with deuterium atoms, <span class="nuclide"><sup>2</sup><sub>1</sub>H</span>. An isotope of a new element, J, is formed as well as two neutrons.<br><br><span class="nuclide"><sup>238</sup><sub>92</sub>U</span> + <span class="nuclide"><sup>2</sup><sub>1</sub>H</span> > J + 2<span class="nuclide"><sup>1</sup><sub>0</sub>n</span><br><br>What is isotope J?',
+        prompt: 'When nuclear reactions take place, the elements produced are different from the elements that reacted. Nuclear equations, such as the one below, are used to represent the changes that occur.<br><br><span class="nuclide"><sup>235</sup><sub>92</sub>U</span> + <span class="nuclide"><sup>1</sup><sub>0</sub>n</span> → <span class="nuclide"><sup>144</sup><sub>56</sub>Ba</span> + <span class="nuclide"><sup>89</sup><sub>36</sub>Kr</span> + 3<span class="nuclide"><sup>1</sup><sub>0</sub>n</span><br><br>The nucleon (mass) number total is constant at 236 and the proton number total is constant at 92.<br><br>In another nuclear reaction, uranium-238 is reacted with deuterium atoms, <span class="nuclide"><sup>2</sup><sub>1</sub>H</span>. An isotope of a new element, J, is formed as well as two neutrons.<br><br><span class="nuclide"><sup>238</sup><sub>92</sub>U</span> + <span class="nuclide"><sup>2</sup><sub>1</sub>H</span> → J + 2<span class="nuclide"><sup>1</sup><sub>0</sub>n</span><br><br>What is isotope J?',
         options: {
           A: '<span class="nuclide"><sup>238</sup>Np</span>',
           B: '<span class="nuclide"><sup>238</sup>Pu</span>',
@@ -1021,10 +1021,10 @@
         code: '9701_s21_qp_11 Q: 2',
         prompt: 'In which pair of species do both species have only one unpaired p electron?',
         options: {
-          A: 'Ar<sup>+</sup> and C<sup>?</sup>',
+          A: 'Ar<sup>+</sup> and C<sup>−</sup>',
           B: 'B and Ti<sup>+</sup>',
           C: 'F and Ga',
-          D: 'Se<sup>?</sup> and Si<sup>?</sup>',
+          D: 'Se<sup>−</sup> and Si<sup>−</sup>',
         }
       },
       {
@@ -1068,7 +1068,7 @@
           A: 'Al and Cu<sup>2+</sup>',
           B: 'Ca and Cr<sup>3+</sup>',
           C: 'Ca and Ni<sup>2+</sup>',
-          D: 'Fe<sup>3+</sup> and O<sup>2?</sup>',
+          D: 'Fe<sup>3+</sup> and O<sup>2−</sup>',
         }
       },
       {
@@ -1078,7 +1078,7 @@
         options: {
           A: '<span class="nuclide"><sup>39</sup><sub>18</sub>Ar</span>',
           B: '<span class="nuclide"><sup>40</sup><sub>20</sub>Ca<sup>2+</sup></span>',
-          C: '<span class="nuclide"><sup>16</sup><sub>8</sub>O<sup>2?</sup></span>',
+          C: '<span class="nuclide"><sup>16</sup><sub>8</sub>O<sup>2−</sup></span>',
           D: '<span class="nuclide"><sup>32</sup><sub>16</sub>S</span>',
         }
       },
@@ -1133,10 +1133,10 @@
         table: {
           headers: ['energy of orbital relative to other occupied orbitals', 'shape of orbital'],
           rows: [
-            { label: 'A', values: ['higher or equal', '<span aria-label="p orbital" style="font-size:28px; display:inline-block;">?</span>'] },
-            { label: 'B', values: ['higher or equal', '<span aria-label="s orbital" style="font-size:24px; display:inline-block;">?</span>'] },
-            { label: 'C', values: ['lower or equal', '<span aria-label="p orbital" style="font-size:28px; display:inline-block;">?</span>'] },
-            { label: 'D', values: ['lower or equal', '<span aria-label="s orbital" style="font-size:24px; display:inline-block;">?</span>'] },
+            { label: 'A', values: ['higher or equal', '<span aria-label="p orbital" style="font-size:28px; display:inline-block;">∞</span>'] },
+            { label: 'B', values: ['higher or equal', '<span aria-label="s orbital" style="font-size:24px; display:inline-block;">●</span>'] },
+            { label: 'C', values: ['lower or equal', '<span aria-label="p orbital" style="font-size:28px; display:inline-block;">∞</span>'] },
+            { label: 'D', values: ['lower or equal', '<span aria-label="s orbital" style="font-size:24px; display:inline-block;">●</span>'] },
           ]
         }
       },
@@ -1205,19 +1205,19 @@
         table: {
           headers: ['orbital shape', 'orbital type', 'number of electrons', 'orbital shape', 'orbital type', 'number of electrons'],
           rows: [
-            { label: 'A', values: ['<span aria-label="p orbital" style="font-size:28px; display:inline-block;">?</span>', 'p', '2', '<span aria-label="s orbital" style="font-size:24px; display:inline-block;">?</span>', 's', '4'] },
-            { label: 'B', values: ['<span aria-label="p orbital" style="font-size:28px; display:inline-block;">?</span>', 'p', '4', '<span aria-label="s orbital" style="font-size:24px; display:inline-block;">?</span>', 's', '2'] },
-            { label: 'C', values: ['<span aria-label="s orbital" style="font-size:24px; display:inline-block;">?</span>', 's', '2', '<span aria-label="p orbital" style="font-size:28px; display:inline-block;">?</span>', 'p', '4'] },
-            { label: 'D', values: ['<span aria-label="s orbital" style="font-size:24px; display:inline-block;">?</span>', 's', '4', '<span aria-label="p orbital" style="font-size:28px; display:inline-block;">?</span>', 'p', '2'] },
+            { label: 'A', values: ['<span aria-label="p orbital" style="font-size:28px; display:inline-block;">∞</span>', 'p', '2', '<span aria-label="s orbital" style="font-size:24px; display:inline-block;">●</span>', 's', '4'] },
+            { label: 'B', values: ['<span aria-label="p orbital" style="font-size:28px; display:inline-block;">∞</span>', 'p', '4', '<span aria-label="s orbital" style="font-size:24px; display:inline-block;">●</span>', 's', '2'] },
+            { label: 'C', values: ['<span aria-label="s orbital" style="font-size:24px; display:inline-block;">●</span>', 's', '2', '<span aria-label="p orbital" style="font-size:28px; display:inline-block;">∞</span>', 'p', '4'] },
+            { label: 'D', values: ['<span aria-label="s orbital" style="font-size:24px; display:inline-block;">●</span>', 's', '4', '<span aria-label="p orbital" style="font-size:28px; display:inline-block;">∞</span>', 'p', '2'] },
           ]
         }
       },
       {
         number: 35,
         code: '9701_m17_qp_12 Q: 1',
-        prompt: 'Which ion has the same electronic configuration as Cl<sup>?</sup>?',
+        prompt: 'Which ion has the same electronic configuration as Cl<sup>−</sup>?',
         options: {
-          A: 'F<sup>?</sup>',
+          A: 'F<sup>−</sup>',
           B: 'P<sup>+</sup>',
           C: 'Sc<sup>3+</sup>',
           D: 'Si<sup>4+</sup>',
@@ -1250,16 +1250,16 @@
         code: '9701_s15_qp_12 Q: 1',
         prompt: 'In which option do all three particles have the same electronic configuration and the same number of neutrons?',
         options: {
-          A: '<span class="nuclide"><sup>15</sup>N<sup>3?</sup></span>, <span class="nuclide"><sup>16</sup>O<sup>2?</sup></span>, <span class="nuclide"><sup>19</sup>F<sup>?</sup></span>',
-          B: '<span class="nuclide"><sup>18</sup>O<sup>2?</sup></span>, <span class="nuclide"><sup>19</sup>F<sup>?</sup></span>, <span class="nuclide"><sup>20</sup>Ne</span>',
-          C: '<span class="nuclide"><sup>19</sup>F<sup>?</sup></span>, <span class="nuclide"><sup>20</sup>Ne</span>, <span class="nuclide"><sup>23</sup>Na<sup>+</sup></span>',
+          A: '<span class="nuclide"><sup>15</sup>N<sup>3−</sup></span>, <span class="nuclide"><sup>16</sup>O<sup>2−</sup></span>, <span class="nuclide"><sup>19</sup>F<sup>−</sup></span>',
+          B: '<span class="nuclide"><sup>18</sup>O<sup>2−</sup></span>, <span class="nuclide"><sup>19</sup>F<sup>−</sup></span>, <span class="nuclide"><sup>20</sup>Ne</span>',
+          C: '<span class="nuclide"><sup>19</sup>F<sup>−</sup></span>, <span class="nuclide"><sup>20</sup>Ne</span>, <span class="nuclide"><sup>23</sup>Na<sup>+</sup></span>',
           D: '<span class="nuclide"><sup>22</sup>Ne</span>, <span class="nuclide"><sup>23</sup>Na</span>, <span class="nuclide"><sup>24</sup>Mg<sup>2+</sup></span>',
         }
       },
       {
         number: 39,
         code: '9701_m22_qp_12 Q: 1',
-        prompt: 'The first ionisation energy of potassium, K, is 418 kJ mol<sup>?1</sup>. The first ionisation energy of strontium, Sr, is 548 kJ mol<sup>?1</sup>.<br><br>Which statement helps to explain why Sr has a greater first ionisation energy than K?',
+        prompt: 'The first ionisation energy of potassium, K, is 418 kJ mol<sup>−1</sup>. The first ionisation energy of strontium, Sr, is 548 kJ mol<sup>−1</sup>.<br><br>Which statement helps to explain why Sr has a greater first ionisation energy than K?',
         options: {
           A: 'The charge on a Sr nucleus is greater than the charge on a K nucleus.',
           B: 'The outer electron in a Sr atom experiences greater shielding than the outer electron in a K atom.',
@@ -1283,10 +1283,10 @@
         code: '9701_s21_qp_12 Q: 2',
         prompt: 'Which equation represents the first ionisation energy of iodine?',
         options: {
-          A: '<span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span> I<sub>2</sub>(g) + e<sup>?</sup> > I<sup>?</sup>(g)',
-          B: 'I(g) + e<sup>?</sup> > I<sup>?</sup>(g)',
-          C: '<span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span> I<sub>2</sub>(g) > I<sup>+</sup>(g) + e<sup>?</sup>',
-          D: 'I(g) > I<sup>+</sup>(g) + e<sup>?</sup>',
+          A: '<span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span> I<sub>2</sub>(g) + e<sup>−</sup> → I<sup>−</sup>(g)',
+          B: 'I(g) + e<sup>−</sup> → I<sup>−</sup>(g)',
+          C: '<span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span> I<sub>2</sub>(g) → I<sup>+</sup>(g) + e<sup>−</sup>',
+          D: 'I(g) → I<sup>+</sup>(g) + e<sup>−</sup>',
         }
       },
       {
@@ -1307,7 +1307,7 @@
         table: {
           headers: [
             '<span style="display:block;">&nbsp;</span>',
-            'ionisation energies / kJ mol<sup>?1</sup>',
+            'ionisation energies / kJ mol<sup>−1</sup>',
             '',
             '',
             ''
@@ -1324,7 +1324,7 @@
       {
         number: 44,
         code: '9701_s19_qp_12 Q: 13',
-        prompt: 'The eight elements sodium to argon are in the same period of the Periodic Table. The equation corresponding to the first ionisation energy is shown.<br><br>X(g) > X<sup>+</sup>(g) + e<sup>?</sup><br><br>For which of these eight elements is the electron in this equation removed from a filled orbital?',
+        prompt: 'The eight elements sodium to argon are in the same period of the Periodic Table. The equation corresponding to the first ionisation energy is shown.<br><br>X(g) → X<sup>+</sup>(g) + e<sup>−</sup><br><br>For which of these eight elements is the electron in this equation removed from a filled orbital?',
         options: {
           A: 'Mg, Al, Si, P, S, Cl and Ar',
           B: 'Al, Si, P, S, Cl and Ar only',
@@ -1335,7 +1335,7 @@
       {
         number: 45,
         code: '9701_w18_qp_11 Q: 1',
-        prompt: 'The first four ionisation energies for element X are shown in the table.<br><br><table style="border-collapse: collapse; margin: 10px 0; text-align: center;"><thead><tr><th style="border:1px solid #ccc; padding:6px;">ionisation energy</th><th style="border:1px solid #ccc; padding:6px;">1st</th><th style="border:1px solid #ccc; padding:6px;">2nd</th><th style="border:1px solid #ccc; padding:6px;">3rd</th><th style="border:1px solid #ccc; padding:6px;">4th</th></tr></thead><tbody><tr><td style="border:1px solid #ccc; padding:6px;">value / kJ mol<sup>?1</sup></td><td style="border:1px solid #ccc; padding:6px;">577</td><td style="border:1px solid #ccc; padding:6px;">1980</td><td style="border:1px solid #ccc; padding:6px;">2960</td><td style="border:1px solid #ccc; padding:6px;">6190</td></tr></tbody></table>Which ion of X is produced by removing an electron from a filled shell?',
+        prompt: 'The first four ionisation energies for element X are shown in the table.<br><br><table style="border-collapse: collapse; margin: 10px 0; text-align: center;"><thead><tr><th style="border:1px solid #ccc; padding:6px;">ionisation energy</th><th style="border:1px solid #ccc; padding:6px;">1st</th><th style="border:1px solid #ccc; padding:6px;">2nd</th><th style="border:1px solid #ccc; padding:6px;">3rd</th><th style="border:1px solid #ccc; padding:6px;">4th</th></tr></thead><tbody><tr><td style="border:1px solid #ccc; padding:6px;">value / kJ mol<sup>−1</sup></td><td style="border:1px solid #ccc; padding:6px;">577</td><td style="border:1px solid #ccc; padding:6px;">1980</td><td style="border:1px solid #ccc; padding:6px;">2960</td><td style="border:1px solid #ccc; padding:6px;">6190</td></tr></tbody></table>Which ion of X is produced by removing an electron from a filled shell?',
         options: {
           A: 'X<sup>+</sup>',
           B: 'X<sup>2+</sup>',
@@ -1379,7 +1379,7 @@
       {
         number: 49,
         code: '9701_s16_qp_12 Q: 3',
-        prompt: 'Elements X and Y are in the same group of the Periodic Table. The table shows the first six ionisation energies of X and Y in kJ mol<sup>?1</sup>.<br><br><table style="border-collapse: collapse; margin: 10px 0; text-align: center;"><thead><tr><th style="border:1px solid #ccc; padding:6px;"></th><th style="border:1px solid #ccc; padding:6px;">1st</th><th style="border:1px solid #ccc; padding:6px;">2nd</th><th style="border:1px solid #ccc; padding:6px;">3rd</th><th style="border:1px solid #ccc; padding:6px;">4th</th><th style="border:1px solid #ccc; padding:6px;">5th</th><th style="border:1px solid #ccc; padding:6px;">6th</th></tr></thead><tbody><tr><td style="border:1px solid #ccc; padding:6px;">X</td><td style="border:1px solid #ccc; padding:6px;">800</td><td style="border:1px solid #ccc; padding:6px;">1600</td><td style="border:1px solid #ccc; padding:6px;">2400</td><td style="border:1px solid #ccc; padding:6px;">4300</td><td style="border:1px solid #ccc; padding:6px;">5400</td><td style="border:1px solid #ccc; padding:6px;">10400</td></tr><tr><td style="border:1px solid #ccc; padding:6px;">Y</td><td style="border:1px solid #ccc; padding:6px;">1000</td><td style="border:1px solid #ccc; padding:6px;">1800</td><td style="border:1px solid #ccc; padding:6px;">2700</td><td style="border:1px solid #ccc; padding:6px;">4800</td><td style="border:1px solid #ccc; padding:6px;">6000</td><td style="border:1px solid #ccc; padding:6px;">12300</td></tr></tbody></table><br>What could be the identities of X and Y?',
+        prompt: 'Elements X and Y are in the same group of the Periodic Table. The table shows the first six ionisation energies of X and Y in kJ mol<sup>−1</sup>.<br><br><table style="border-collapse: collapse; margin: 10px 0; text-align: center;"><thead><tr><th style="border:1px solid #ccc; padding:6px;"></th><th style="border:1px solid #ccc; padding:6px;">1st</th><th style="border:1px solid #ccc; padding:6px;">2nd</th><th style="border:1px solid #ccc; padding:6px;">3rd</th><th style="border:1px solid #ccc; padding:6px;">4th</th><th style="border:1px solid #ccc; padding:6px;">5th</th><th style="border:1px solid #ccc; padding:6px;">6th</th></tr></thead><tbody><tr><td style="border:1px solid #ccc; padding:6px;">X</td><td style="border:1px solid #ccc; padding:6px;">800</td><td style="border:1px solid #ccc; padding:6px;">1600</td><td style="border:1px solid #ccc; padding:6px;">2400</td><td style="border:1px solid #ccc; padding:6px;">4300</td><td style="border:1px solid #ccc; padding:6px;">5400</td><td style="border:1px solid #ccc; padding:6px;">10400</td></tr><tr><td style="border:1px solid #ccc; padding:6px;">Y</td><td style="border:1px solid #ccc; padding:6px;">1000</td><td style="border:1px solid #ccc; padding:6px;">1800</td><td style="border:1px solid #ccc; padding:6px;">2700</td><td style="border:1px solid #ccc; padding:6px;">4800</td><td style="border:1px solid #ccc; padding:6px;">6000</td><td style="border:1px solid #ccc; padding:6px;">12300</td></tr></tbody></table><br>What could be the identities of X and Y?',
         optionTable: {
           headers: ['X', 'Y'],
           rows: [
@@ -1449,7 +1449,7 @@
       const update = () => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         const remaining = Math.max(TEST_DURATION_SECONDS - elapsed, 0);
-        timerEl.textContent = `? Time remaining: ${formatTimer(remaining)}`;
+        timerEl.textContent = `⏳ Time remaining: ${formatTimer(remaining)}`;
         if (remaining === 0) {
           timerEl.classList.add('timer-expired');
           clearInterval(timerInterval);
@@ -1598,7 +1598,7 @@
       document.querySelectorAll('input').forEach(i => i.disabled = true);
       const btn = document.getElementById('submitBtn');
       btn.disabled = true;
-      btn.textContent = '? Submitted';
+      btn.textContent = '✓ Submitted';
       const status = document.getElementById('status');
       status.textContent = `You submitted this test on ${new Date(data.submittedAt).toLocaleString()}.`;
       const scoreDiv = document.getElementById('score');
@@ -1724,20 +1724,20 @@
         
         if (data.scores_released) {
           const timeTaken = typeof data.time_taken_seconds === 'number'
-            ? ` ? ?? Time: ${formatTimer(data.time_taken_seconds)}`
+            ? ` • ⏱️ Time: ${formatTimer(data.time_taken_seconds)}`
             : '';
-          scoreDiv.textContent = `? Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
+          scoreDiv.textContent = `✅ Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
           hideTimer();
           const responses = (data.answers && typeof data.answers === "string" ? JSON.parse(data.answers) : data.answers)?.responses || {};
           applyReviewMode(responses);
         } else {
-          scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+          scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
           scoreDiv.className = 'score-box pending';
         }
       } catch (err) {
         console.error('Failed to check score release status:', err);
-        scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+        scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
         scoreDiv.className = 'score-box pending';
       }
     }
@@ -1768,12 +1768,12 @@
       let cls = document.getElementById('studentClass').value.trim();
 
       const isForced = options.force === true;
-      const autoSubmitReason = options.reason || '';
+      const autoSubmitReason = options.autoSubmitReason || options.reason || '';
       if (!name) {
         if (isForced) {
           name = 'Unknown Student';
         } else {
-          status.textContent = '?? Please enter your name.';
+          status.textContent = '⚠️ Please enter your name.';
           return;
         }
       }
@@ -1781,7 +1781,7 @@
         if (isForced) {
           cls = 'Unknown Class';
         } else {
-          status.textContent = '?? Please enter your class.';
+          status.textContent = '⚠️ Please enter your class.';
           return;
         }
       }
@@ -1797,7 +1797,7 @@
       const result = calculateScore(responses);
 
       btn.disabled = true;
-      status.textContent = '?? Submitting...';
+      status.textContent = '📤 Submitting...';
 
       const payload = {
         student_name: name,
@@ -1820,13 +1820,13 @@
         console.error(error);
         if (error.message && (error.message.includes('duplicate') || error.message.includes('unique') || error.message.includes('already exists'))) {
           hasSubmitted = true;
-          btn.textContent = '? Already Submitted';
-          status.textContent = '?? You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
+          btn.textContent = '✅ Already Submitted';
+          status.textContent = '🚨 You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
           document.querySelectorAll('input').forEach(i => i.disabled = true);
           lockQuestions();
           return;
         }
-        status.textContent = '? Failed to submit. Please try again.';
+        status.textContent = '❌ Failed to submit. Please try again.';
         btn.disabled = false;
         return;
       }
@@ -1842,13 +1842,13 @@
       }));
 
       document.querySelectorAll('input').forEach(i => i.disabled = true);
-      btn.textContent = '? Submitted';
-      status.textContent = isForced ? `?? Auto-submitted: ${autoSubmitReason}` : '? Submitted successfully! Your teacher will release your score soon.';
+      btn.textContent = '✓ Submitted';
+      status.textContent = isForced ? `⚠️ Auto-submitted: ${autoSubmitReason}` : '✅ Submitted successfully! Your teacher will release your score soon.';
 
       const scoreDiv = document.getElementById('score');
       scoreDiv.style.display = 'block';
       lockQuestions();
-      scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+      scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
       scoreDiv.className = 'score-box pending';
 
       try {
@@ -1963,10 +1963,10 @@
         const review = document.createElement('div');
         review.className = 'review-answer';
         if (studentAnswer && studentAnswer === correctAnswer) {
-          review.textContent = `? Correct: ${correctAnswer}`;
+          review.textContent = `✅ Correct: ${correctAnswer}`;
         } else {
           review.classList.add('incorrect');
-          review.textContent = `? Your answer: ${studentAnswer || '?'} | ? Correct: ${correctAnswer}`;
+          review.textContent = `❌ Your answer: ${studentAnswer || '—'} | ✅ Correct: ${correctAnswer}`;
         }
         card.appendChild(review);
       });
@@ -2022,7 +2022,7 @@
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('?')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('•')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
@@ -2067,8 +2067,9 @@
 
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
+        if (e.origin !== window.location.origin) return;
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test ? auto-submitted' });
+          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test — auto-submitted' });
         }
       });
     });

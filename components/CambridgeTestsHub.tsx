@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../services/supabaseClient';
 import { tryConsumePilotQuota } from '../services/tierService';
 import type { Profile } from '../types';
@@ -149,7 +149,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/atoms_molecules_stoichiometry.html?part=2',
   },
-  // Ch3 � Chemical bonding
+  // Ch3 — Chemical bonding
   {
     id: 'as-chemistry-ch3-chemical-bonding-part-1',
     name: 'AS Chemistry Ch3 (Chemical bonding) (Part 1)',
@@ -172,7 +172,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/chemical_bonding.html?part=2',
   },
-  // Ch4 � States of matter
+  // Ch4 — States of matter
   {
     id: 'as-chemistry-ch4-states-of-matter-part-1',
     name: 'AS Chemistry Ch4 (States of matter) (Part 1)',
@@ -195,7 +195,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/states_of_matter.html?part=2',
   },
-  // Ch5 � Chemical Energetics
+  // Ch5 — Chemical Energetics
   {
     id: 'as-chemistry-ch5-chemical-energetics-part-1',
     name: 'AS Chemistry Ch5 (Chemical Energetics) (Part 1)',
@@ -218,7 +218,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/chemical_energetics.html?part=2',
   },
-  // Ch6 � Electrochemistry
+  // Ch6 — Electrochemistry
   {
     id: 'as-chemistry-ch6-electrochemistry-part-1',
     name: 'AS Chemistry Ch6 (Electrochemistry) (Part 1)',
@@ -241,7 +241,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/electrochemistry.html?part=2',
   },
-  // Ch7 � Equilibria
+  // Ch7 — Equilibria
   {
     id: 'as-chemistry-ch7-equilibria-part-1',
     name: 'AS Chemistry Ch7 (Equilibria) (Part 1)',
@@ -264,7 +264,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/equilibria.html?part=2',
   },
-  // Ch8 � Reaction kinetics
+  // Ch8 — Reaction kinetics
   {
     id: 'as-chemistry-ch8-reaction-kinetics-part-1',
     name: 'AS Chemistry Ch8 (Reaction kinetics) (Part 1)',
@@ -287,7 +287,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/reaction_kinetics.html?part=2',
   },
-  // Ch9 � Chemical Periodicity
+  // Ch9 — Chemical Periodicity
   {
     id: 'as-chemistry-ch9-chemical-periodicity-part-1',
     name: 'AS Chemistry Ch9 (Chemical Periodicity) (Part 1)',
@@ -310,7 +310,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/chemical_periodicity.html?part=2',
   },
-  // Ch10 � Group 2
+  // Ch10 — Group 2
   {
     id: 'as-chemistry-ch10-group-2-part-1',
     name: 'AS Chemistry Ch10 (Group 2) (Part 1)',
@@ -333,7 +333,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/group_2.html?part=2',
   },
-  // Ch11 � Group 17
+  // Ch11 — Group 17
   {
     id: 'as-chemistry-ch11-group-17-part-1',
     name: 'AS Chemistry Ch11 ( Group 17 ) (Part 1)',
@@ -356,7 +356,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/group_17.html?part=2',
   },
-  // Ch12 � Nitrogen and sulfur
+  // Ch12 — Nitrogen and sulfur
   {
     id: 'as-chemistry-ch12-nitrogen-sulfur-part-1',
     name: 'AS Chemistry Ch12 ( Nitrogen and sulfur ) (Part 1)',
@@ -379,7 +379,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/nitrogen_sulfur.html?part=2',
   },
-  // Ch13 � An introduction to AS Level organic chemistry
+  // Ch13 — An introduction to AS Level organic chemistry
   {
     id: 'as-chemistry-ch13-introduction-as-level-organic-chemistry-part-1',
     name: 'AS Chemistry Ch13 ( An introduction to AS Level organic chemistry ) (Part 1)',
@@ -402,7 +402,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/intro_as_level_organic_chemistry.html?part=2',
   },
-  // Ch14 � Hydrocarbons
+  // Ch14 — Hydrocarbons
   {
     id: 'as-chemistry-ch14-hydrocarbons-part-1',
     name: 'AS Chemistry Ch14 ( Hydrocarbons ) (Part 1)',
@@ -425,7 +425,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/hydrocarbons.html?part=2',
   },
-  // Ch15 � Halogen compounds
+  // Ch15 — Halogen compounds
   {
     id: 'as-chemistry-ch15-halogen-compounds-part-1',
     name: 'AS Chemistry Ch15 ( Halogen compounds ) (Part 1)',
@@ -448,7 +448,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/halogen_compounds.html?part=2',
   },
-  // Ch16 � Hydroxy compounds
+  // Ch16 — Hydroxy compounds
   {
     id: 'as-chemistry-ch16-hydroxy-compounds-part-1',
     name: 'AS Chemistry Ch16 ( Hydroxy compounds ) (Part 1)',
@@ -471,7 +471,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/hydroxy_compounds.html?part=2',
   },
-  // Ch17 � Carbonyl compounds
+  // Ch17 — Carbonyl compounds
   {
     id: 'as-chemistry-ch17-carbonyl-compounds-part-1',
     name: 'AS Chemistry Ch17 ( Carbonyl compounds ) (Part 1)',
@@ -494,7 +494,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/carbonyl_compounds.html?part=2',
   },
-  // Ch18 � Carboxylic acids and derivatives
+  // Ch18 — Carboxylic acids and derivatives
   {
     id: 'as-chemistry-ch18-carboxylic-acids-derivatives-part-1',
     name: 'AS Chemistry Ch18 ( Carboxylic acids and derivatives ) (Part 1)',
@@ -517,7 +517,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/carboxylic_acids_derivatives.html?part=2',
   },
-  // Ch19 � Nitrogen compounds
+  // Ch19 — Nitrogen compounds
   {
     id: 'as-chemistry-ch19-nitrogen-compounds-part-1',
     name: 'AS Chemistry Ch19 ( Nitrogen compounds ) (Part 1)',
@@ -540,7 +540,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/nitrogen_compounds.html?part=2',
   },
-  // Ch20 � Polymerisation
+  // Ch20 — Polymerisation
   {
     id: 'as-chemistry-ch20-polymerisation-part-1',
     name: 'AS Chemistry Ch20 ( Polymerisation ) (Part 1)',
@@ -563,7 +563,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/polymerisation.html?part=2',
   },
-  // Ch21 � Analytical techniques
+  // Ch21 — Analytical techniques
   {
     id: 'as-chemistry-ch21-analytical-techniques-part-1',
     name: 'AS Chemistry Ch21 ( Analytical techniques ) (Part 1)',
@@ -1702,7 +1702,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
           zIndex: 10,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1, overflow: 'hidden' }}>
-            <span style={{ fontSize: '24px', flexShrink: 0 }}>??</span>
+            <span style={{ fontSize: '24px', flexShrink: 0 }}>🧠</span>
             <div style={{ minWidth: 0, overflow: 'hidden' }}>
               <h2 style={{ margin: 0, color: '#fff', fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {activeTest.name}
@@ -2023,7 +2023,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginBottom: '14px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ fontSize: '22px' }}>�</span>
+                      <span style={{ fontSize: '22px' }}>{subject === 'Chemistry' ? '🧪' : subject === 'Biology' ? '🧬' : '📖'}</span>
                       <div>
                         <h3 style={{ margin: 0, fontSize: '16px', color: '#fff' }}>{subject}</h3>
                         <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>
@@ -2047,7 +2047,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       const chemistryReportReady = isChemistryTest && test.isCompleted && test.scoresReleased;
                       const chemistryLocked = isChemistryTest && test.isCompleted && !test.scoresReleased;
                       const actionLabel = test.isCompleted
-                        ? (isChemistryTest ? (chemistryReportReady ? '� View Detailed Answers' : '✅ Submitted') : '📄 Retake Test')
+                        ? (isChemistryTest ? (chemistryReportReady ? '📊 View Detailed Answers' : '✅ Submitted') : '📄 Retake Test')
                         : '▶️ Start Test';
                       return (
                       <div
@@ -2135,7 +2135,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                             fontSize: '12px',
                             color: 'rgba(255,255,255,0.6)',
                           }}>
-                            <span>?? {test.duration}</span>
+                            <span>⏱️ {test.duration}</span>
                             <span>📝 {test.category === 'Writing' ? '2 parts' : `${test.totalQuestions} questions`}</span>
                           </div>
 
@@ -2275,7 +2275,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
           borderRadius: '16px',
           border: '1px dashed rgba(255,255,255,0.2)',
         }}>
-          <span style={{ fontSize: '32px' }}>??</span>
+          <span style={{ fontSize: '32px' }}>🚀</span>
           <h4 style={{ margin: '10px 0 5px', color: '#fff', fontSize: '16px' }}>More Tests Coming Soon!</h4>
           <p style={{ margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
             We're adding new Cambridge tests regularly. Check back for more practice opportunities!
@@ -2581,7 +2581,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                     marginBottom: '15px',
                     color: '#000',
                   }}>
-                    <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>?? Your Original Writing</h5>
+                    <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>📝 Your Original Writing</h5>
                     <div style={{
                       background: '#fff',
                       borderRadius: '8px',

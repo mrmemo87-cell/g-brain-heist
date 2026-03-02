@@ -917,7 +917,7 @@
 
   async function submitScore(options = {}) {
     const isForced = options.force === true;
-    const autoSubmitReason = options.reason || '';
+    const autoSubmitReason = options.autoSubmitReason || options.reason || '';
     let studentName = document.getElementById('studentName').value.trim();
     let studentClass = document.getElementById('studentClass').value.trim();
     const statusDiv = document.getElementById('submitStatus');
@@ -1070,6 +1070,7 @@
 
   // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
   window.addEventListener('message', (e) => {
+    if (e.origin !== window.location.origin) return;
     if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
       submitScore();
     }
