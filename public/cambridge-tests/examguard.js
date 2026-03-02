@@ -5,6 +5,9 @@
   const DEFAULT_SUSPICIOUS_MIN_CHARS = 80;
   const DEFAULT_SUSPICIOUS_MAX_MS = 1200;
   const STORAGE_PREFIX = 'ExamGuard';
+  // Dedup windows: prevent double-counting from related events
+  const VISIBILITY_DEDUP_MS = 600;
+  const CLIPBOARD_DEDUP_MS = 300;
 
   const state = {
     active: false,
@@ -22,6 +25,12 @@
     storedDisabled: new Map(),
     printStyleEl: null,
     blurOverlayEl: null,
+    // Dedup: last visibility/focus violation timestamp and event kind
+    lastVisibilityViolationAt: 0,
+    lastVisibilityEvent: null, // 'tab_hidden' | 'window_blur'
+    // Dedup: last clipboard-shortcut key and timestamp
+    lastShortcutKey: null,
+    lastShortcutAt: 0,
   };
 
   const toArray = (value) => {
@@ -243,19 +252,32 @@
     state.listeners.push(() => target.removeEventListener(type, handler, options));
   };
 
+  // Returns true (and clears the shortcut state) when the clipboard event
+  // duplicates a keyboard-shortcut violation that was already counted.
+  const ignoreRecentShortcut = (key) => {
+    if (state.lastShortcutKey === key && Date.now() - state.lastShortcutAt < CLIPBOARD_DEDUP_MS) {
+      state.lastShortcutKey = null;
+      return true;
+    }
+    return false;
+  };
+
   const handleCopy = (event) => {
     event.preventDefault();
+    if (ignoreRecentShortcut('c')) return;
     emitViolation('copy');
   };
 
   const handleCut = (event) => {
     event.preventDefault();
+    if (ignoreRecentShortcut('x')) return;
     emitViolation('cut');
   };
 
   const handlePaste = (event) => {
     event.preventDefault();
     const pastedText = event.clipboardData?.getData('text') || '';
+    if (ignoreRecentShortcut('v')) return;
     emitViolation('paste', { length: pastedText.length });
   };
 
@@ -272,6 +294,9 @@
     if (blockSelectAll) blockedKeys.push('a');
     if (blockedKeys.includes(key)) {
       event.preventDefault();
+      // Record shortcut so the subsequent clipboard event handler deduplicates
+      state.lastShortcutKey = key;
+      state.lastShortcutAt = Date.now();
       emitViolation('shortcut', { key });
     }
   };
@@ -377,13 +402,35 @@
 
   // ====== Visibility / blur handlers (deduplicated) ======
 
+  // Type-aware dedup: suppress an incoming visibility/blur violation only
+  // when the *same* event kind already fired within VISIBILITY_DEDUP_MS.
+  // This prevents a single tab-switch from double-counting (blur + hidden)
+  // while still allowing two rapid but genuinely distinct events through.
+  const shouldSuppressVisibility = (kind) => {
+    const now = Date.now();
+    if (
+      state.lastVisibilityEvent === kind &&
+      now - state.lastVisibilityViolationAt < VISIBILITY_DEDUP_MS
+    ) {
+      return true;
+    }
+    state.lastVisibilityEvent = kind;
+    state.lastVisibilityViolationAt = now;
+    return false;
+  };
+
   const handleVisibilityChange = () => {
     if (document.hidden) {
+      // Always cancel any pending blur timer — visibilitychange is authoritative
       if (state.blurTimer) {
         window.clearTimeout(state.blurTimer);
         state.blurTimer = null;
       }
       showBlurOverlay();
+      if (shouldSuppressVisibility('tab_hidden')) {
+        console.log('[ExamGuard] tab_hidden skipped — dedup with recent identical event');
+        return;
+      }
       console.log('[ExamGuard] tab_hidden violation — visibilitychange fired');
       emitViolation('tab_hidden');
     } else {
@@ -402,6 +449,7 @@
     const grace = state.config.blurGraceMs || DEFAULT_BLUR_GRACE_MS;
     if (grace <= 0) {
       if (!document.hidden) {
+        if (shouldSuppressVisibility('window_blur')) return;
         emitViolation('window_blur');
       }
       return;
@@ -409,6 +457,7 @@
     if (state.blurTimer) window.clearTimeout(state.blurTimer);
     state.blurTimer = window.setTimeout(() => {
       if (!document.hasFocus() && !document.hidden) {
+        if (shouldSuppressVisibility('window_blur')) return;
         emitViolation('window_blur');
       }
     }, grace);
@@ -588,8 +637,14 @@
     state.active = false;
     state.pending = false;
     state.config = null;
+    state.violationsCount = 0;
+    state.violationTimestamps = [];
     state.blurTimer = null;
     state.inputState = new WeakMap();
+    state.lastVisibilityViolationAt = 0;
+    state.lastVisibilityEvent = null;
+    state.lastShortcutKey = null;
+    state.lastShortcutAt = 0;
   };
 
   window.ExamGuard = { start, stop };
