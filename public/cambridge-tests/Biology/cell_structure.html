@@ -253,6 +253,16 @@
       color: #bbf7d0;
       font-weight: 700;
     }
+    .score-box.pending {
+      background: rgba(234, 179, 8, 0.12);
+      border-color: rgba(234, 179, 8, 0.4);
+      color: #fde68a;
+    }
+    .score-box.error {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+    }
     @media (max-width: 640px) {
       body { padding: 12px; }
       .container { padding: 16px; }
@@ -668,6 +678,7 @@
     const QUIZ_NAME = `${QUIZ_BASE_NAME} (Part ${QUIZ_PART.part})`;
     const QUIZ_SUBTITLE = 'Chapter 1';
     const PENDING_SCORE_MESSAGE = '📊 Score submitted. Waiting for teacher to release results.';
+    const SCORE_UNAVAILABLE_MESSAGE = '⚠️ Unable to check score status. Please try refreshing the page.';
 
     // =====================================================
     // QUESTIONS — Paste your questions array here
@@ -3356,8 +3367,8 @@
         }
       } catch (err) {
         console.error('Failed to check score release status:', err);
-        scoreDiv.textContent = PENDING_SCORE_MESSAGE;
-        scoreDiv.className = 'score-box pending';
+        scoreDiv.textContent = SCORE_UNAVAILABLE_MESSAGE;
+        scoreDiv.className = 'score-box error';
       }
     }
 
