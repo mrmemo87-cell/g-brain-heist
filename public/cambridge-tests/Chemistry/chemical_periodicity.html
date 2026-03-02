@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -782,6 +782,8 @@
     const QUIZ_BASE_NAME = 'AS Chemistry Ch9 (Chemical Periodicity)';
     const QUIZ_ID = `${QUIZ_BASE_ID}_part${QUIZ_PART.part}`;
     const QUIZ_NAME = `${QUIZ_BASE_NAME} (Part ${QUIZ_PART.part})`;
+    const QUIZ_SUBTITLE = 'Period 3 trends, ionisation energies, melting points, and ionic radii';
+    const PENDING_SCORE_MESSAGE = '📊 Score submitted. Waiting for teacher to release results.';
 
     let QUESTIONS = [
       {
@@ -1984,11 +1986,23 @@
       const btn = document.getElementById('submitBtn');
       const status = document.getElementById('status');
       let name = document.getElementById('studentName').value.trim();
-      const studentClass = document.getElementById('studentClass').value.trim();
+      let studentClass = document.getElementById('studentClass').value.trim();
 
-      if (!isForced && (!name || !studentClass)) {
-        status.textContent = 'Please enter your name and class before submitting.';
-        return;
+      if (!name) {
+        if (isForced) {
+          name = 'Unknown Student';
+        } else {
+          status.textContent = '⚠️ Please enter your name.';
+          return;
+        }
+      }
+      if (!studentClass) {
+        if (isForced) {
+          studentClass = 'Unknown Class';
+        } else {
+          status.textContent = '⚠️ Please enter your class.';
+          return;
+        }
       }
 
       const responses = {};
@@ -2064,7 +2078,7 @@
         scoreDiv.style.display = 'block';
       lockQuestions();
       stopTimer();
-        scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
+        scoreDiv.textContent = PENDING_SCORE_MESSAGE;
         scoreDiv.className = 'score-box pending';
 
         try {
@@ -2230,12 +2244,12 @@
           const responses = (data.answers && typeof data.answers === "string" ? JSON.parse(data.answers) : data.answers)?.responses || {};
           applyReviewMode(responses);
         } else {
-          scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
+          scoreDiv.textContent = PENDING_SCORE_MESSAGE;
           scoreDiv.className = 'score-box pending';
         }
       } catch (err) {
         console.error('Failed to check score release status:', err);
-        scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
+        scoreDiv.textContent = PENDING_SCORE_MESSAGE;
         scoreDiv.className = 'score-box pending';
       }
     }
@@ -2396,7 +2410,7 @@
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('•')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, QUIZ_SUBTITLE, QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
@@ -2441,6 +2455,7 @@
 
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
+        if (e.origin !== window.location.origin) return;
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
           handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test — auto-submitted' });
         }

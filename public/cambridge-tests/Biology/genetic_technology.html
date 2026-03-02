@@ -1216,7 +1216,7 @@
               handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'ExamGuard violation limit reached' });
             },
             onViolation: (event) => {
-              console.warn('ExamGuard violation (AS Biology - Ch1 Cell structure):', event);
+              console.warn('ExamGuard violation (AS Biology - Ch17 Genetic technology):', event);
               if (event.violationsCount >= 3) {
                 if (!autoSubmitTriggered && !hasSubmitted) {
                   autoSubmitTriggered = true;
@@ -1240,6 +1240,7 @@
 
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
+        if (e.origin !== window.location.origin) return;
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
           handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test — auto-submitted' });
         }

@@ -573,7 +573,12 @@
         if (infoDiv && user.name) {
           const badge = document.createElement('div');
           badge.style.cssText = 'width: 100%; text-align: center; color: #4caf50; font-size: 12px; margin-top: -10px; margin-bottom: 10px;';
-          badge.innerHTML = '✅ Logged in as <strong>' + user.name + '</strong> from Brains Heist';
+          badge.textContent = '';
+          badge.appendChild(document.createTextNode('✅ Logged in as '));
+          const strong = document.createElement('strong');
+          strong.textContent = user.name;
+          badge.appendChild(strong);
+          badge.appendChild(document.createTextNode(' from Brains Heist'));
           infoDiv.parentNode.insertBefore(badge, infoDiv.nextSibling);
         }
       }
@@ -873,7 +878,7 @@
       const floatingBtn = document.getElementById("floatingSubmitBtn");
       if (floatingBtn) {
         floatingBtn.disabled = false;
-        floatingBtn.textContent = "📤 Submit Test";
+        floatingBtn.textContent = "📤 Submit Answers";
       }
       
       // Re-enable inputs on error
@@ -1020,6 +1025,7 @@
 
   // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
   window.addEventListener('message', (e) => {
+    if (e.origin !== window.location.origin) return;
     if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
       submitScore();
     }
