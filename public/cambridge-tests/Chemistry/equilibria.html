@@ -143,16 +143,6 @@
       max-height: 300px;
       width: auto;
     }
-    .option .option-graphic img,
-    img.option-graphic {
-      max-width: 100%;
-      max-height: 300px;
-      width: 100%;
-      height: auto;
-      display: block;
-      margin: 0;
-      object-fit: contain;
-    }
     .option {
       display: flex;
       gap: 10px;
@@ -208,10 +198,17 @@
       height: auto;
       margin: 8px auto 0;
     }
-    .option-list {
-      display: grid;
-      gap: 10px;
-      margin-top: 12px;
+    /* Higher specificity to override .option img for option-graphic images */
+    .option img.option-graphic,
+    .option .option-graphic img,
+    img.option-graphic {
+      max-width: 100%;
+      max-height: 300px;
+      width: 100%;
+      height: auto;
+      display: block;
+      margin: 0;
+      object-fit: contain;
     }
     table {
       width: 100%;
