@@ -182,9 +182,89 @@
       height: auto;
       margin: 8px 0 0;
     }
+    /* SVG responsive styling for options */
+    .option svg,
+    .question-title svg {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      margin: 8px 0 0;
+      max-height: 300px;
+      width: auto;
+    }
     .option .option-graphic {
       max-width: 220px;
       width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: visible;
+    }
+    .option .option-graphic svg {
+      max-width: 100%;
+      max-height: 220px;
+      width: 100%;
+      height: auto;
+      margin: 0;
+    }
+    .option .option-graphic img {
+      max-width: 100%;
+      max-height: 220px;
+      width: 100%;
+      height: auto;
+      margin: 0;
+      object-fit: contain;
+    }
+    /* SVG container wrapper for consistent sizing */
+    .svg-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      width: 100%;
+      max-width: 220px;
+    }
+    .svg-container svg {
+      max-width: 100%;
+      max-height: 200px;
+      width: auto;
+      height: auto;
+    }
+    .svg-container img.responsive-svg,
+    .option-graphic .responsive-svg {
+      max-width: 100%;
+      max-height: 200px;
+      width: 100%;
+      height: auto;
+      display: block;
+      margin: 8px auto;
+      object-fit: contain;
+    }
+    .option-graphic .responsive-image {
+      max-width: 100%;
+      max-height: 200px;
+      width: 100%;
+      height: auto;
+      display: block;
+      margin: 8px auto;
+      object-fit: contain;
+    }
+    /* Ensure options with graphics don't cause overflow */
+    .option {
+      overflow: visible;
+      word-wrap: break-word;
+      min-height: auto;
+    }
+    /* Media query for mobile to ensure SVGs scale properly */
+    @media (max-width: 768px) {
+      .svg-container {
+        max-width: 100%;
+      }
+      .svg-container img.responsive-svg,
+      .option-graphic img.responsive-svg,
+      .option-graphic img.responsive-image {
+        max-height: 150px;
+      }
     }
     table {
       width: 100%;
@@ -798,6 +878,16 @@
       }
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 2600);
+    }
+
+    // Helper function to handle responsive SVG sizing (used if SVGs are embedded differently)
+    function resizeSVG(svgElement) {
+      if (!svgElement) return;
+      // SVG sizing is now handled via CSS for better responsiveness
+      // This function is kept for compatibility with potential embedded SVGs
+      svgElement.style.maxWidth = '100%';
+      svgElement.style.height = 'auto';
+      svgElement.style.maxHeight = '200px';
     }
 
 
@@ -1617,10 +1707,43 @@
         if (q.options) {
           const optionsWrap = document.createElement('div');
           optionsWrap.className = 'option-list';
-          Object.entries(q.options).forEach(([label, text]) => {
+          Object.entries(q.options).forEach(([label, content]) => {
             const opt = document.createElement('label');
             opt.className = 'option';
-            opt.innerHTML = `<input type="radio" name="q${q.number}" value="${label}"><strong>${label}</strong> <span>${text}</span>`;
+            
+            // Check if content is an object (contains imageUrl or svgUrl)
+            if (typeof content === 'object' && content !== null) {
+              const inputHtml = `<input type="radio" name="q${q.number}" value="${label}">`;
+              const labelSpan = `<strong>${label}</strong>`;
+              
+              // Generate descriptive alt text for accessibility
+              const altText = content.altText || content.description || `${label} option image`;
+              
+              // Build option content based on type
+              let contentHtml = '';
+              if (content.svgUrl) {
+                contentHtml = `<div class="option-graphic">
+                  <div class="svg-container">
+                    <img src="${content.svgUrl}" alt="${altText}" class="responsive-svg" />
+                  </div>
+                </div>`;
+              } else if (content.imageUrl) {
+                contentHtml = `<div class="option-graphic">
+                  <img src="${content.imageUrl}" alt="${altText}" class="responsive-image" />
+                </div>`;
+              } else if (content.text) {
+                contentHtml = `<span>${content.text}</span>`;
+              } else {
+                // Fallback for empty objects without svgUrl, imageUrl, or text
+                contentHtml = `<span class="option-content-placeholder">[Content unavailable]</span>`;
+              }
+              
+              opt.innerHTML = inputHtml + labelSpan + contentHtml;
+            } else {
+              // Simple text content (original behavior)
+              opt.innerHTML = `<input type="radio" name="q${q.number}" value="${label}"><strong>${label}</strong> <span>${content}</span>`;
+            }
+            
             optionsWrap.appendChild(opt);
           });
           card.appendChild(optionsWrap);
