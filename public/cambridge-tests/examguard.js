@@ -402,19 +402,23 @@
 
   // ====== Visibility / blur handlers (deduplicated) ======
 
-  // Type-aware dedup: suppress an incoming visibility/blur violation only
-  // when the *same* event kind already fired within VISIBILITY_DEDUP_MS.
-  // This prevents a single tab-switch from double-counting (blur + hidden)
-  // while still allowing two rapid but genuinely distinct events through.
+  // Canonical-group dedup: both "window_blur" and "tab_hidden" represent the
+  // same user action (leaving the tab), so we map them to a shared canonical
+  // key before comparing.  This prevents a single tab-switch from double-
+  // counting (blur + hidden) while still allowing two genuinely distinct
+  // visibility-loss events that are spaced further apart than VISIBILITY_DEDUP_MS.
+  const VISIBILITY_CANONICAL = { window_blur: 'visibility_loss', tab_hidden: 'visibility_loss' };
+
   const shouldSuppressVisibility = (kind) => {
+    const canonical = VISIBILITY_CANONICAL[kind] || kind;
     const now = Date.now();
     if (
-      state.lastVisibilityEvent === kind &&
+      state.lastVisibilityEvent === canonical &&
       now - state.lastVisibilityViolationAt < VISIBILITY_DEDUP_MS
     ) {
       return true;
     }
-    state.lastVisibilityEvent = kind;
+    state.lastVisibilityEvent = canonical;
     state.lastVisibilityViolationAt = now;
     return false;
   };
