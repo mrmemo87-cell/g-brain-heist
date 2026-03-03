@@ -6143,12 +6143,17 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
         /** Fix encoding-damaged placeholders in chemistry HTML:
          *  1) <span aria-label="p orbital" ...>?</span>  →  badge with label text (orbital shapes that were images)
-         *  2) <sup>?</sup>  →  <sup>−</sup>  (superscript minus signs lost to Windows-1252 encoding) */
+         *  2) <sup>N?</sup>  →  <sup>N−</sup>  (superscript minus/charge signs lost to Windows-1252 encoding)
+         *  3) <img ...>  →  normalized to consistent max size, centered */
         const fixChemHtml = (html: string) =>
           html
             .replace(/<span\s+aria-label="([^"]+)"[^>]*>\s*\?\s*<\/span>/gi,
               (_m: string, label: string) => `<span style="font-size:11px; background:#e0e7ff; color:#3730a3; padding:1px 5px; border-radius:4px; font-weight:600;">${label}</span>`)
-            .replace(/<sup>\?<\/sup>/g, '<sup>−</sup>');
+            .replace(/<sup>(\d*)\?<\/sup>/g, '<sup>$1\u2212</sup>')
+            .replace(/<img\b([^>]*?)(?:\s*\/)?>/gi, (_m: string, attrs: string) => {
+              const cleanAttrs = attrs.replace(/\s*(?:width|height|style)\s*=\s*(?:"[^"]*"|'[^']*'|\S+)/gi, '');
+              return `<img${cleanAttrs} style="max-width:100%;max-height:300px;height:auto;display:block;margin:8px auto;border-radius:3px;" />`;
+            });
         
         return createPortal(
           <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-2 sm:p-4 overflow-y-auto" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -6296,9 +6301,11 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
                           {/* Question prompt */}
                           {qData?.prompt && (
-                            <div className="text-sm text-slate-700 mb-3 leading-relaxed pl-1 border-l-2 border-slate-200 ml-1 py-1" style={{ paddingLeft: '10px' }}>
-                              <span dangerouslySetInnerHTML={{ __html: fixChemHtml(qData.prompt) }} />
-                            </div>
+                            <div
+                              className="text-sm text-slate-700 mb-3 leading-relaxed border-l-2 border-slate-200 ml-1 py-1"
+                              style={{ paddingLeft: '10px' }}
+                              dangerouslySetInnerHTML={{ __html: fixChemHtml(qData.prompt) }}
+                            />
                           )}
 
                           {/* Table-based options (e.g., chemistry tables) */}
