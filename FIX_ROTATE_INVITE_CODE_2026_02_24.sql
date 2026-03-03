@@ -10,7 +10,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
 
 CREATE OR REPLACE FUNCTION rotate_school_invite_code(p_school_id UUID DEFAULT NULL)
 RETURNS JSONB
-LANGUAGE plpgsql 
+LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$

@@ -13,14 +13,31 @@ lookup = {}   # { (paper, qnum_int): answer }
 with open(ANSWER_KEY_PATH, encoding='utf-8') as f:
     for line in f:
         parts = line.strip().split()
-        if len(parts) == 4:
-            _, paper, qnum, answer = parts
-            lookup[(paper, int(qnum))] = answer
+        if not parts or parts[0].startswith('#'):
+            continue  # skip blank lines and comments
+        if len(parts) != 4:
+            raise ValueError(
+                f'Malformed answer-key row (expected 4 fields, got {len(parts)}): {line.strip()!r}'
+            )
+        _, paper, qnum, answer = parts
+        try:
+            qnum_int = int(qnum)
+        except ValueError:
+            raise ValueError(
+                f'Non-integer question number in answer-key row: {line.strip()!r}'
+            )
+        key = (paper, qnum_int)
+        if key in lookup:
+            raise ValueError(
+                f'Duplicate answer-key entry for {key}: '
+                f'existing={lookup[key]!r}, new={answer!r}'
+            )
+        lookup[key] = answer
 
 print(f'Loaded {len(lookup)} answer entries from key file.')
 
 # ── 2. Load the HTML questions ────────────────────────────────────────────────
-HTML_PATH = r'public/cambridge-tests/Biology/cell_structure.html'
+HTML_PATH = r'public/cambridge-tests/Biology/svg/ch1/cell_structure.html'
 
 with open(HTML_PATH, encoding='utf-8') as f:
     html = f.read()
@@ -52,6 +69,8 @@ for num_str, code in questions:
     else:
         missing.append((seq_num, paper, orig_qnum))
 
+STRICT = True  # set to False to emit partial answers despite missing entries
+
 print(f'\nAnswers found:  {len(seq_answers)} / {len(questions)}')
 print(f'Missing:        {len(missing)}')
 if missing:
@@ -60,6 +79,11 @@ if missing:
         print(f'    Q{seq_num}: {paper} Q{qnum}')
     if len(missing) > 20:
         print(f'    ... and {len(missing)-20} more')
+    if STRICT:
+        raise SystemExit(
+            f'Aborting: {len(missing)} answer(s) missing from key file. '
+            'Set STRICT = False to emit a partial answer key.'
+        )
 
 # ── 4. Emit TypeScript snippet ────────────────────────────────────────────────
 lines = []
