@@ -6163,8 +6163,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               return `<img${cleanAttrs} style="max-width:100%;max-height:300px;height:auto;display:block;margin:8px auto;border-radius:3px;" />`;
             });
           return DOMPurify.sanitize(replaced, {
-            ADD_TAGS: ['sup', 'sub', 'span', 'img', 'br', 'div', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
-            ADD_ATTR: ['style', 'src', 'alt', 'class', 'aria-label'],
+            ALLOWED_TAGS: ['sup', 'sub', 'span', 'img', 'br', 'div', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
+            ALLOWED_ATTR: ['style', 'src', 'alt', 'class', 'aria-label'],
           });
         };
         

@@ -3,6 +3,7 @@ Build Ch1 Biology answer key for biologyAnswerKeys.ts
 by matching HTML question codes to the Biology_Answer_Key file.
 """
 import re
+from pathlib import Path
 
 # ── 1. Load the answer key file ──────────────────────────────────────────────
 #    Format: row_num  paper  question_num  answer
@@ -22,10 +23,10 @@ with open(ANSWER_KEY_PATH, encoding='utf-8') as f:
         _, paper, qnum, answer = parts
         try:
             qnum_int = int(qnum)
-        except ValueError:
+        except ValueError as err:
             raise ValueError(
                 f'Non-integer question number in answer-key row: {line.strip()!r}'
-            )
+            ) from err
         key = (paper, qnum_int)
         if key in lookup:
             raise ValueError(
@@ -94,7 +95,9 @@ ts_block = '\n'.join(lines)
 print('\n── TypeScript answer key block ──────────────────────────────────────────')
 print(ts_block)
 
-# Also save to a file for easy copy-paste
-with open('ch1_answer_key_block.txt', 'w') as out:
-    out.write(ts_block + '\n')
-print('\nSaved to ch1_answer_key_block.txt')
+# Also save to a file for easy copy-paste (always written next to this script)
+script_dir = Path(__file__).resolve().parent
+out_path = script_dir / 'ch1_answer_key_block.txt'
+out_path.parent.mkdir(parents=True, exist_ok=True)
+out_path.write_text(ts_block + '\n', encoding='utf-8')
+print(f'\nSaved to {out_path}')
