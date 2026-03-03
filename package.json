@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-   "typecheck": "tsc --noEmit -p tsconfig.ci.json",
+    "typecheck": "tsc --noEmit -p tsconfig.ci.json",
     "lint": "npm run typecheck",
     "test:clean": "rm -rf dist-tests",
     "test:build": "tsc --project tsconfig.tests.json",
@@ -21,6 +21,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.78.0",
     "@tanstack/react-query": "^5.90.12",
+    "dompurify": "^3.3.1",
     "fflate": "^0.8.2",
     "konva": "^10.0.12",
     "lottie-react": "^2.4.1",

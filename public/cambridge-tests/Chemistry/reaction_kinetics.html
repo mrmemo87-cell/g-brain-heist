@@ -1576,9 +1576,6 @@
     }
 
     function calculateScore(responses) {
-      if (!RELEASE_SCORES) {
-        return { score: 0, percentage: 0, pending: true };
-      }
       const answerKeyReady = Object.values(ANSWER_KEY).every(v => !!v);
       if (!answerKeyReady) {
         return { score: 0, percentage: 0, pending: true };
@@ -1592,7 +1589,7 @@
       return {
         score: correct,
         percentage: Math.round((correct / totalQuestions) * 100),
-        pending: false
+        pending: !RELEASE_SCORES
       };
     }
 
