@@ -165,6 +165,11 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
 
           // Update grade/batch / clear needs_setup after legacy join
           const currentUserId = (await AuthService.supabase.auth.getUser()).data.user?.id;
+          if (!currentUserId) {
+            setError('Session expired. Please sign in again.');
+            setStep('invite_code');
+            return;
+          }
           if (finalRole === 'student' && grade && batch) {
             const { error: updateError } = await AuthService.supabase
               .from('users')
@@ -178,6 +183,8 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
 
             if (updateError) {
               console.error('Failed to update student details:', updateError);
+              setError('Setup joined but profile update failed. Please try again.');
+              return;
             }
           } else if (finalRole !== 'student') {
             // Teachers (and other non-student roles) also need needs_setup cleared
@@ -191,6 +198,8 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
 
             if (updateError) {
               console.error('Failed to clear needs_setup for non-student role:', updateError);
+              setError('Setup joined but profile update failed. Please try again.');
+              return;
             }
           }
         }

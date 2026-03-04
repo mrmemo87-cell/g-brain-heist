@@ -1925,8 +1925,8 @@
       const responses = {};
       QUESTIONS.forEach((q) => {
         const selected = document.querySelector(`input[name='q${q.number}']:checked`);
-        // Use the original global question number so the TeacherPortal can match
-        // responses against the answer key (which uses original/global numbering).
+        // Use the shuffled q.number as the key — ANSWER_KEY and calculateScore/applyReviewMode
+        // all operate on the same shuffled index space after shuffling is applied.
         responses[q.number] = selected ? selected.value : '';
       });
 
