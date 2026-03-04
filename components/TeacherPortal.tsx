@@ -6148,23 +6148,43 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
-        /** Fix encoding-damaged placeholders in chemistry HTML:
-         *  1) <span aria-label="p orbital" ...>?</span>  →  sanitized badge with escaped label
-         *  2) <sup>N?</sup>  →  <sup>N−</sup>  (superscript minus/charge signs lost to Windows-1252 encoding)
-         *  3) <img ...>  →  normalized to consistent max size, centered; run through DOMPurify */
+        /** Fix encoding-damaged placeholders in chemistry HTML.
+         *  The question data was extracted from Windows-1252 HTML; non-ASCII chars
+         *  became bare `?`. Each rule below targets a specific known pattern:
+         *  1) <span aria-label="p orbital" ...>?</span>  →  badge with escaped label
+         *  2) <span class="supSym">?</span>  →  ° (standard-state symbol Δ/⊖)
+         *  3) <sup>?N</sup>  →  <sup>−N</sup>  (leading-minus then digit, e.g. mol⁻¹)
+         *  4) <sup>N?</sup>  →  <sup>N−</sup>  (trailing-minus, e.g. charge 2−)
+         *  5) space+?C  →  space+°C  (degree Celsius in temperature text)
+         *  6) ?H followed by span/space  →  ΔH  (enthalpy symbol)
+         *  7) ?<digit>  →  −<digit>  (negative numbers such as −394, −4.2)
+         *  8) <img>  →  normalised to consistent max size, centred */
         const fixChemHtml = (html: string) => {
           const replaced = html
+            // 1) aria-label orbital badge
             .replace(/<span\s+aria-label="([^"]+)"[^>]*>\s*\?\s*<\/span>/gi,
               (_m: string, label: string) => `<span style="font-size:11px; background:#e0e7ff; color:#3730a3; padding:1px 5px; border-radius:4px; font-weight:600;">${escapeHTML(label)}</span>`)
+            // 2) standard-state ° in supSym spans
+            .replace(/(<span\b[^>]*\bclass="[^"]*\bsupSym\b[^"]*"[^>]*>)\?(<\/span>)/gi, '$1\u00b0$2')
+            // 3) superscript: ? BEFORE digit(s) → −digit (mol?1 → mol⁻¹)
+            .replace(/<sup>\?(\d+)<\/sup>/g, '<sup>\u2212$1</sup>')
+            // 4) superscript: digit(s) BEFORE ? → digit− (existing bare-charge pattern)
             .replace(/<sup>(\d*)\?<\/sup>/g, '<sup>$1\u2212</sup>')
+            // 5) degree Celsius: (space|>)?C → °C
+            .replace(/([\s>])\?C\b/g, '$1\u00b0C')
+            // 6) delta H: ?H before a span or whitespace/end → ΔH
+            .replace(/\?H(?=<span\b|[\s,.<]|$)/g, '\u0394H')
+            // 7) negative numbers: ?<digit> → −<digit>  (runs after rules 3-4 so no double-fix)
+            .replace(/\?(\d)/g, '\u2212$1')
+            // 8) img normalisation
             .replace(/<img\b([^>]*?)(?:\s*\/)?>/gi, (_m: string, attrs: string) => {
-              // Strip any existing size/style attrs before applying our safe defaults
               const cleanAttrs = attrs.replace(/\s*(?:width|height|style)\s*=\s*(?:"[^"]*"|'[^']*'|\S+)/gi, '');
               return `<img${cleanAttrs} style="max-width:100%;max-height:300px;height:auto;display:block;margin:8px auto;border-radius:3px;" />`;
             });
           return DOMPurify.sanitize(replaced, {
-            ALLOWED_TAGS: ['sup', 'sub', 'span', 'img', 'br', 'div', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
-            ALLOWED_ATTR: ['style', 'src', 'alt', 'class', 'aria-label'],
+            ALLOWED_TAGS: ['sup', 'sub', 'span', 'img', 'br', 'div', 'ul', 'ol', 'li', 'p',
+                           'strong', 'em', 'b', 'i', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
+            ALLOWED_ATTR: ['style', 'src', 'alt', 'class', 'aria-label', 'loading'],
           });
         };
         

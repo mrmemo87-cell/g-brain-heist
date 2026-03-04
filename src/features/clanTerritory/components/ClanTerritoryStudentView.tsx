@@ -114,6 +114,33 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   const [questionIndex, setQuestionIndex] = useState(0);
   const [answerStartTime, setAnswerStartTime] = useState<number>(Date.now());
   const [feedback, setFeedback] = useState<"correct" | "incorrect" | null>(null);
+
+  // Optimistic zone override: immediately reflect zone selection/deselection in the UI
+  // without waiting for the Supabase realtime round-trip (client → host → client).
+  // undefined = no override (use server state)
+  // null      = optimistically deselected (show zone picker)
+  // ZoneId    = optimistically selected (show combat UI)
+  const [localZoneOverride, setLocalZoneOverride] = useState<ZoneId | null | undefined>(undefined);
+
+  // Clear the optimistic override once the server state has caught up
+  useEffect(() => {
+    if (localZoneOverride === undefined) return;
+    const serverZoneId = hydratedPlayer?.selectedZoneId ?? null;
+    if (serverZoneId === localZoneOverride) {
+      setLocalZoneOverride(undefined);
+    }
+  }, [hydratedPlayer?.selectedZoneId, localZoneOverride]);
+
+  // Always reset local override when leaving ACTIVE phase (game over / lobby)
+  useEffect(() => {
+    if (gameState.phase !== 'ACTIVE') {
+      setLocalZoneOverride(undefined);
+    }
+  }, [gameState.phase]);
+
+  // The authoritative zone used for rendering — local override takes priority
+  const effectiveZoneId: ZoneId | null =
+    localZoneOverride !== undefined ? localZoneOverride : (hydratedPlayer?.selectedZoneId ?? null);
   // Stable key for tracking whether rewards have been claimed for this game session.
   // Uses roomId (stable from join) + playerId. Falls back to gameStartTime if roomId unavailable.
   const rewardStorageKey = React.useMemo(() => {
@@ -414,7 +441,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   }
 
   // 2. Active Phase - Zone Selection
-  if (gameState.phase === "ACTIVE" && !hydratedPlayer.selectedZoneId) {
+  if (gameState.phase === "ACTIVE" && !effectiveZoneId) {
     return (
       <div className="flex flex-col h-full bg-gray-950 text-white overflow-hidden">
         <div className="p-4 border-b border-gray-800 shrink-0">
@@ -436,6 +463,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
                   key={zone.id}
                   onClick={() => {
                     console.log('[ZoneSelection] Zone clicked:', zone.id);
+                    setLocalZoneOverride(zone.id); // optimistic: switch UI immediately
                     onSelectZone(zone.id);
                   }}
                   className="relative bg-slate-900/70 border-2 border-slate-700 rounded-xl p-3 hover:border-yellow-400 hover:bg-slate-800/70 transition-all text-left cursor-pointer active:scale-95"
@@ -494,9 +522,9 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   }
 
   // 3. Active Phase - Combat (Answering Questions) - WITH LIVE MAP
-  if (gameState.phase === "ACTIVE" && hydratedPlayer.selectedZoneId) {
-    const zone = activeZones.find((z) => z.id === hydratedPlayer.selectedZoneId);
-    const zoneState = gameState.zones[hydratedPlayer.selectedZoneId];
+  if (gameState.phase === "ACTIVE" && effectiveZoneId) {
+    const zone = activeZones.find((z) => z.id === effectiveZoneId);
+    const zoneState = gameState.zones[effectiveZoneId];
     const zoneTotal = zoneState ? Object.values(zoneState.influence).reduce((a, b) => a + b, 0) : 0;
     
     return (
@@ -529,6 +557,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
             <button
               onClick={() => {
                 console.log('[StudentView] SWITCH ZONE clicked - deselecting zone');
+                setLocalZoneOverride(null); // optimistic: show zone picker immediately
                 onSelectZone(null as any);
               }}
               className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-bold transition cursor-pointer"
@@ -652,13 +681,14 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
                 <div className={`grid gap-1.5 ${activeZones.length > 6 ? 'grid-cols-3' : 'grid-cols-2'}`}>
                   {activeZones.map((z) => {
                     const snapshot = getZoneSnapshot(z.id);
-                    const isCurrentZone = z.id === hydratedPlayer.selectedZoneId;
+                    const isCurrentZone = z.id === effectiveZoneId;
                     const holder = snapshot.controller ? clanList.find((c) => c.id === snapshot.controller) : null;
                     return (
                       <button
                         key={z.id}
                         onClick={() => {
                           console.log('[StudentView] Quick Switch clicked:', z.id);
+                          setLocalZoneOverride(z.id); // optimistic: switch UI immediately
                           onSelectZone(z.id);
                         }}
                         disabled={isCurrentZone}
@@ -684,13 +714,14 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
           <div className="lg:hidden flex gap-1 bg-gray-900/50 border-b border-gray-800 p-2 overflow-x-auto shrink-0">
             {activeZones.map((z) => {
               const snapshot = getZoneSnapshot(z.id);
-              const isCurrentZone = z.id === hydratedPlayer.selectedZoneId;
+              const isCurrentZone = z.id === effectiveZoneId;
               const holder = snapshot.controller ? clanList.find((c) => c.id === snapshot.controller) : null;
               return (
                 <button
                   key={z.id}
                   onClick={() => {
                     console.log('[StudentView] Mobile Quick Switch clicked:', z.id);
+                    setLocalZoneOverride(z.id); // optimistic: switch UI immediately
                     onSelectZone(z.id);
                   }}
                   disabled={isCurrentZone}
