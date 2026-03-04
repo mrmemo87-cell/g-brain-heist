@@ -143,15 +143,15 @@ const MAP_CONFIGS: Record<string, MapConfig> = {
     svg: "",
     maxZones: 28,
     zoneToRegion: {
-      "zone-1": "EG-ALX", "zone-2": "EG-ASN",  "zone-3": "EG-AST",
-      "zone-4": "EG-BA",  "zone-5": "EG-BH",   "zone-6": "EG-BNS",
-      "zone-7": "EG-DK",  "zone-8": "EG-DT",   "zone-9": "EG-FYM",
-      "zone-10": "EG-GH", "zone-11": "EG-GZ",  "zone-12": "EG-IS",
-      "zone-13": "EG-JS", "zone-14": "EG-KB",  "zone-15": "EG-KFS",
-      "zone-16": "EG-KN", "zone-17": "EG-LX",  "zone-18": "EG-MN",
-      "zone-19": "EG-MNF","zone-20": "EG-MT",  "zone-21": "EG-PTS",
-      "zone-22": "EG-SHG","zone-23": "EG-SHR", "zone-24": "EG-SIN",
-      "zone-25": "EG-TER","zone-26": "EG-HT",  "zone-27": "EG-SUZ",
+      "zone-1":  "EG-ALX", "zone-2":  "EG-ASN", "zone-3":  "EG-AST",
+      "zone-4":  "EG-BA",  "zone-5":  "EG-BH",  "zone-6":  "EG-BNS",
+      "zone-7":  "EG-C",   "zone-8":  "EG-DK",  "zone-9":  "EG-DT",
+      "zone-10": "EG-FYM", "zone-11": "EG-GH",  "zone-12": "EG-GZ",
+      "zone-13": "EG-IS",  "zone-14": "EG-JS",  "zone-15": "EG-KB",
+      "zone-16": "EG-KFS", "zone-17": "EG-KN",  "zone-18": "EG-LX",
+      "zone-19": "EG-MN",  "zone-20": "EG-MNF", "zone-21": "EG-MT",
+      "zone-22": "EG-PTS", "zone-23": "EG-SHG", "zone-24": "EG-SHR",
+      "zone-25": "EG-SIN", "zone-26": "EG-TER", "zone-27": "EG-SUZ",
       "zone-28": "EG-WAD",
     },
     regionAliases: {},
@@ -501,6 +501,8 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   const [usaLoaded, setUsaLoaded] = useState(false);
   // Version counter that increments whenever a public country map finishes loading
   const [publicMapVersion, setPublicMapVersion] = useState(0);
+  // Non-null when the most recent fetch for the current mapId failed
+  const [publicMapLoadError, setPublicMapLoadError] = useState<string | null>(null);
 
   // Lazy-load city map
   useEffect(() => {
@@ -536,20 +538,29 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   useEffect(() => {
     if (!PUBLIC_MAP_IDS.has(mapId)) return;
     if (publicMapCache[mapId]) {
-      // Already cached — just make sure we re-render with the correct svg
+      // Already cached — clear any stale error and re-render with the cached svg
+      setPublicMapLoadError(null);
       setPublicMapVersion((v) => v + 1);
       return;
     }
+    setPublicMapLoadError(null);
     fetch(`/maps/${mapId}.svg`)
       .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status} loading /maps/${mapId}.svg`);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.text();
       })
       .then((svg) => {
         publicMapCache[mapId] = svg;
+        setPublicMapLoadError(null);
         setPublicMapVersion((v) => v + 1);
       })
-      .catch((e) => console.error(`[ClanTerritoryMap] Failed to load /maps/${mapId}.svg:`, e));
+      .catch((e) => {
+        // Remove any partial/stale entry so a retry triggers a fresh fetch
+        delete publicMapCache[mapId];
+        const msg = e instanceof Error ? e.message : String(e);
+        console.error(`[ClanTerritoryMap] Failed to load /maps/${mapId}.svg:`, msg);
+        setPublicMapLoadError(`Could not load map “${mapId}” (${msg})`);
+      });
   }, [mapId]);
 
   const mapConfig = useMemo(() => {
@@ -561,7 +572,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
     return cfg;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mapId, cityLoaded, usaLoaded, publicMapVersion]);
+  }, [mapId, cityLoaded, usaLoaded, publicMapVersion, publicMapLoadError]);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -754,6 +765,24 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
           <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">
             Territory Control
           </h3>
+        </div>
+      )}
+
+      {/* Fetch-error banner with Retry for public country maps */}
+      {publicMapLoadError && (
+        <div className="mx-4 mb-2 flex items-center justify-between gap-3 rounded-xl border border-rose-500/40 bg-rose-900/30 px-4 py-3">
+          <span className="text-sm text-rose-300">{publicMapLoadError}</span>
+          <button
+            onClick={() => {
+              // Wipe error + cached entry to force a fresh fetch on next effect run
+              delete publicMapCache[mapId];
+              setPublicMapLoadError(null);
+              setPublicMapVersion((v) => v + 1);
+            }}
+            className="shrink-0 rounded-lg border border-rose-500/50 bg-rose-800/50 px-3 py-1 text-xs font-bold text-rose-200 transition hover:bg-rose-700/60"
+          >
+            Retry
+          </button>
         </div>
       )}
 

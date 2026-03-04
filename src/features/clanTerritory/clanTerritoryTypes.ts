@@ -17,7 +17,7 @@ export interface Zone {
 }
 
 // Default zones for the default map
-export const ZONES: Zone[] = [
+export const ZONES: readonly Zone[] = [
   { id: "zone-1", name: "Server Room", baseValue: 100 },
   { id: "zone-2", name: "Mainframe", baseValue: 150 },
   { id: "zone-3", name: "Security Hub", baseValue: 120 },
@@ -29,7 +29,7 @@ export const ZONES: Zone[] = [
 ];
 
 // City map districts
-export const CITY_ZONES: Zone[] = [
+export const CITY_ZONES: readonly Zone[] = [
   { id: "zone-1", name: "1st District", baseValue: 100 },
   { id: "zone-2", name: "2nd District", baseValue: 150 },
   { id: "zone-3", name: "3rd District", baseValue: 120 },
@@ -43,7 +43,7 @@ export const CITY_ZONES: Zone[] = [
 ];
 
 // Kyrgyzstan map regions (oblasts)
-export const KYRGYZSTAN_ZONES: Zone[] = [
+export const KYRGYZSTAN_ZONES: readonly Zone[] = [
   { id: "zone-1", name: "Batken", baseValue: 120 },
   { id: "zone-2", name: "Chuy", baseValue: 200 },
   { id: "zone-3", name: "Jalal-Abad", baseValue: 180 },
@@ -54,7 +54,7 @@ export const KYRGYZSTAN_ZONES: Zone[] = [
 ];
 
 // USA map states + DC
-export const USA_ZONES: Zone[] = [
+export const USA_ZONES: readonly Zone[] = [
   { id: "zone-1", name: "Alabama", baseValue: 150 },
   { id: "zone-2", name: "Alaska", baseValue: 150 },
   { id: "zone-3", name: "Arizona", baseValue: 150 },
@@ -109,7 +109,7 @@ export const USA_ZONES: Zone[] = [
 ];
 
 // United Kingdom map regions
-export const UNITED_KINGDOM_ZONES: Zone[] = [
+export const UNITED_KINGDOM_ZONES: readonly Zone[] = [
   { id: "zone-1", name: "Ireland", baseValue: 150 },
   { id: "zone-2", name: "Isle of Man", baseValue: 150 },
   { id: "zone-3", name: "Jersey", baseValue: 150 },
@@ -130,7 +130,7 @@ export const UNITED_KINGDOM_ZONES: Zone[] = [
 
 // ── Country maps (public/maps/*.svg) ────────────────────────────────────────
 
-export const BAHRAIN_ZONES: Zone[] = [
+export const BAHRAIN_ZONES: readonly Zone[] = [
   { id: "zone-1", name: "Capital Governorate", baseValue: 150 },
   { id: "zone-2", name: "Southern Governorate", baseValue: 150 },
   { id: "zone-3", name: "Muharraq Governorate", baseValue: 150 },
@@ -138,7 +138,7 @@ export const BAHRAIN_ZONES: Zone[] = [
   { id: "zone-5", name: "Northern Governorate", baseValue: 150 },
 ];
 
-export const BELGIUM_ZONES: Zone[] = [
+export const BELGIUM_ZONES: readonly Zone[] = [
   { id: "zone-1",  name: "Antwerp", baseValue: 150 },
   { id: "zone-2",  name: "Walloon Brabant", baseValue: 150 },
   { id: "zone-3",  name: "Brussels", baseValue: 150 },
@@ -152,7 +152,7 @@ export const BELGIUM_ZONES: Zone[] = [
   { id: "zone-11", name: "West Flanders", baseValue: 150 },
 ];
 
-export const CHINA_ZONES: Zone[] = [
+export const CHINA_ZONES: readonly Zone[] = [
   { id: "zone-1",  name: "Anhui", baseValue: 150 },
   { id: "zone-2",  name: "Beijing", baseValue: 150 },
   { id: "zone-3",  name: "Chongqing", baseValue: 150 },
@@ -189,7 +189,7 @@ export const CHINA_ZONES: Zone[] = [
   { id: "zone-34", name: "Zhejiang", baseValue: 150 },
 ];
 
-export const EGYPT_ZONES: Zone[] = [
+export const EGYPT_ZONES: readonly Zone[] = [
   { id: "zone-1",  name: "Alexandria", baseValue: 150 },
   { id: "zone-2",  name: "Aswan", baseValue: 150 },
   { id: "zone-3",  name: "Asyut", baseValue: 150 },
@@ -220,7 +220,7 @@ export const EGYPT_ZONES: Zone[] = [
   { id: "zone-28", name: "New Valley", baseValue: 150 },
 ];
 
-export const FRANCE_ZONES: Zone[] = [
+export const FRANCE_ZONES: readonly Zone[] = [
   { id: "zone-1",  name: "Alsace", baseValue: 150 },
   { id: "zone-2",  name: "Aquitaine", baseValue: 150 },
   { id: "zone-3",  name: "Auvergne", baseValue: 150 },
@@ -245,7 +245,7 @@ export const FRANCE_ZONES: Zone[] = [
   { id: "zone-22", name: "Rhône-Alpes", baseValue: 150 },
 ];
 
-export const INDONESIA_ZONES: Zone[] = [
+export const INDONESIA_ZONES: readonly Zone[] = [
   { id: "zone-1",  name: "Aceh", baseValue: 150 },
   { id: "zone-2",  name: "Bali", baseValue: 150 },
   { id: "zone-3",  name: "Bangka Belitung", baseValue: 150 },
@@ -282,7 +282,7 @@ export const INDONESIA_ZONES: Zone[] = [
   { id: "zone-34", name: "Yogyakarta", baseValue: 150 },
 ];
 
-export const ITALY_ZONES: Zone[] = [
+export const ITALY_ZONES: readonly Zone[] = [
   { id: "zone-1",  name: "Basilicata", baseValue: 150 },
   { id: "zone-2",  name: "Calabria", baseValue: 150 },
   { id: "zone-3",  name: "Campania", baseValue: 150 },
@@ -304,7 +304,7 @@ export const ITALY_ZONES: Zone[] = [
   { id: "zone-19", name: "Veneto", baseValue: 150 },
 ];
 
-export const JAPAN_ZONES: Zone[] = [
+export const JAPAN_ZONES: readonly Zone[] = [
   { id: "zone-1",  name: "Aichi", baseValue: 150 },
   { id: "zone-2",  name: "Akita", baseValue: 150 },
   { id: "zone-3",  name: "Aomori", baseValue: 150 },
@@ -354,7 +354,7 @@ export const JAPAN_ZONES: Zone[] = [
   { id: "zone-47", name: "Yamagata", baseValue: 150 },
 ];
 
-export const KAZAKHSTAN_ZONES: Zone[] = [
+export const KAZAKHSTAN_ZONES: readonly Zone[] = [
   { id: "zone-1",  name: "Aqmola", baseValue: 150 },
   { id: "zone-2",  name: "Aqtöbe", baseValue: 150 },
   { id: "zone-3",  name: "Almaty Oblast", baseValue: 150 },
@@ -371,7 +371,7 @@ export const KAZAKHSTAN_ZONES: Zone[] = [
   { id: "zone-14", name: "Zhambyl", baseValue: 150 },
 ];
 
-export const MALAYSIA_ZONES: Zone[] = [
+export const MALAYSIA_ZONES: readonly Zone[] = [
   { id: "zone-1",  name: "Johor", baseValue: 150 },
   { id: "zone-2",  name: "Kedah", baseValue: 150 },
   { id: "zone-3",  name: "Kelantan", baseValue: 150 },
@@ -388,7 +388,7 @@ export const MALAYSIA_ZONES: Zone[] = [
   { id: "zone-14", name: "Labuan", baseValue: 150 },
 ];
 
-export const NETHERLANDS_ZONES: Zone[] = [
+export const NETHERLANDS_ZONES: readonly Zone[] = [
   { id: "zone-1",  name: "Drenthe", baseValue: 150 },
   { id: "zone-2",  name: "Flevoland", baseValue: 150 },
   { id: "zone-3",  name: "Friesland", baseValue: 150 },
@@ -403,7 +403,7 @@ export const NETHERLANDS_ZONES: Zone[] = [
   { id: "zone-12", name: "Zuid-Holland", baseValue: 150 },
 ];
 
-export const OMAN_ZONES: Zone[] = [
+export const OMAN_ZONES: readonly Zone[] = [
   { id: "zone-1",  name: "Al Batinah North", baseValue: 150 },
   { id: "zone-2",  name: "Al Batinah South", baseValue: 150 },
   { id: "zone-3",  name: "Al Buraymi", baseValue: 150 },
@@ -417,7 +417,7 @@ export const OMAN_ZONES: Zone[] = [
   { id: "zone-11", name: "Dhofar", baseValue: 150 },
 ];
 
-export const QATAR_ZONES: Zone[] = [
+export const QATAR_ZONES: readonly Zone[] = [
   { id: "zone-1", name: "Ad Dawhah (Doha)", baseValue: 150 },
   { id: "zone-2", name: "Al Khawr", baseValue: 150 },
   { id: "zone-3", name: "Ash Shamal", baseValue: 150 },
@@ -427,7 +427,7 @@ export const QATAR_ZONES: Zone[] = [
   { id: "zone-7", name: "Az Za'ayin", baseValue: 150 },
 ];
 
-export const RUSSIA_ZONES: Zone[] = [
+export const RUSSIA_ZONES: readonly Zone[] = [
   { id: "zone-1",  name: "Adygea", baseValue: 150 },
   { id: "zone-2",  name: "Altai Krai", baseValue: 150 },
   { id: "zone-3",  name: "Amur Oblast", baseValue: 150 },
@@ -513,7 +513,7 @@ export const RUSSIA_ZONES: Zone[] = [
   { id: "zone-83", name: "Zabaykalsky Krai", baseValue: 150 },
 ];
 
-export const SAUDI_ARABIA_ZONES: Zone[] = [
+export const SAUDI_ARABIA_ZONES: readonly Zone[] = [
   { id: "zone-1",  name: "Riyadh", baseValue: 150 },
   { id: "zone-2",  name: "Makkah", baseValue: 150 },
   { id: "zone-3",  name: "Madinah", baseValue: 150 },
@@ -529,7 +529,7 @@ export const SAUDI_ARABIA_ZONES: Zone[] = [
   { id: "zone-13", name: "Asir", baseValue: 150 },
 ];
 
-export const SPAIN_ZONES: Zone[] = [
+export const SPAIN_ZONES: readonly Zone[] = [
   { id: "zone-1",  name: "Andalusia", baseValue: 150 },
   { id: "zone-2",  name: "Aragon", baseValue: 150 },
   { id: "zone-3",  name: "Asturias", baseValue: 150 },
@@ -550,7 +550,7 @@ export const SPAIN_ZONES: Zone[] = [
 ];
 
 // Map-specific zone configurations
-export const MAP_ZONES: Record<string, Zone[]> = {
+export const MAP_ZONES: Readonly<Record<string, readonly Zone[]>> = {
   default: ZONES,
   city: CITY_ZONES,
   kyrgyzstan: KYRGYZSTAN_ZONES,
@@ -576,7 +576,7 @@ export const MAP_ZONES: Record<string, Zone[]> = {
 };
 
 // Helper to get zones for a specific map
-export const getZonesForMap = (mapId: string = 'default'): Zone[] => {
+export const getZonesForMap = (mapId: string = 'default'): readonly Zone[] => {
   return MAP_ZONES[mapId] || ZONES;
 };
 
