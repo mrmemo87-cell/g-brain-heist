@@ -14,6 +14,7 @@ import { ClanSummary } from "../../../types";
 import * as SchoolAdminService from "../../../services/schoolAdminService";
 import { fetchLockdownLimits, type LockdownLimits, FREE_LOCKDOWN_LIMITS, tryConsumePilotQuota } from "../../../services/tierService";
 import { FreeTierWatermark } from "../../../components/FreeTierWatermark";
+import { MAP_CATALOG, MAP_ZONE_COUNTS } from "./mapCatalog";
 
 interface ClanTerritoryManagerProps {
   onExit: () => void;
@@ -32,14 +33,8 @@ const CLANLESS_CLAN_NAME = "Independent Agent";
 const AUTO_START_DELAY_MS = 2 * 60 * 1000;
 const FINISHED_ARENA_TTL_MS = 24 * 60 * 60 * 1000;
 
-// Map configuration with zone/territory counts
-const MAP_ZONE_CONFIG: Record<string, number> = {
-  default: 8,
-  city: 10,
-  kyrgyzstan: 7,
-  unitedkingdom: 16,
-  usa: 51,
-};
+// Map configuration with zone/territory counts — derived from the shared MapCatalog
+const MAP_ZONE_CONFIG = MAP_ZONE_COUNTS;
 
 type DiscoveredRoom = {
   id: string;
@@ -1005,13 +1000,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
             <div className="space-y-3">
               <label className="block text-sm font-bold text-white">Territory Map</label>
               <div className="grid grid-cols-2 gap-3">
-                {[
-                  { id: 'default', emoji: '🗺️', label: 'Default', desc: 'Standard 8-zone battlefield' },
-                  { id: 'city', emoji: '🏙️', label: 'City', desc: 'Urban warfare, 10 districts' },
-                  { id: 'kyrgyzstan', emoji: '🇰🇬', label: 'Kyrgyzstan', desc: 'Regional conquest, 7 oblasts' },
-                  { id: 'usa', emoji: '🇺🇸', label: 'USA', desc: 'States + DC, 51 zones' },
-                  { id: 'unitedkingdom', emoji: '🇬🇧', label: 'United Kingdom', desc: 'UK regions + isles, 16 zones' },
-                ].map(({ id, emoji, label, desc }) => {
+                {MAP_CATALOG.map(({ id, emoji, label, desc }) => {
                   const locked = isMapLocked(id);
                   return (
                     <button

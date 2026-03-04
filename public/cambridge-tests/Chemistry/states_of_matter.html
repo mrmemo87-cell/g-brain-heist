@@ -1531,6 +1531,7 @@
     const _shuffledAK = {};
     QUESTIONS.forEach((q, idx) => {
       _shuffledAK[idx + 1] = ANSWER_KEY[q.number];
+      q.originalNumber = q.number; // preserve global number before re-indexing
       q.number = idx + 1;
     });
     Object.keys(ANSWER_KEY).forEach(k => delete ANSWER_KEY[k]);
@@ -1924,6 +1925,8 @@
       const responses = {};
       QUESTIONS.forEach((q) => {
         const selected = document.querySelector(`input[name='q${q.number}']:checked`);
+        // Use the shuffled q.number as the key — ANSWER_KEY and calculateScore/applyReviewMode
+        // all operate on the same shuffled index space after shuffling is applied.
         responses[q.number] = selected ? selected.value : '';
       });
 

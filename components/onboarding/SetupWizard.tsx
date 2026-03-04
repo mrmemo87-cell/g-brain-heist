@@ -34,6 +34,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [schoolName, setSchoolName] = useState<string | null>(null);
+  const [schoolId, setSchoolId] = useState<string | null>(null);
   const [showRequestModal, setShowRequestModal] = useState(false);
 
   useEffect(() => {
@@ -101,6 +102,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
       }
 
       setSchoolName(result.school_name || 'School');
+      setSchoolId(result.school_id || null);
       setStep('role');
     } catch (err) {
       setError('Failed to validate invite code. Please try again.');
@@ -135,29 +137,70 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
 
     try {
       if (path === 'school') {
-        // Join school via invite code
-        const joinResult = await AuthService.joinSchoolByCode(inviteCodeNormalized, finalRole);
-        
-        if (!joinResult.success) {
-          setError(joinResult.error || 'Failed to join school');
-          setStep('invite_code');
-          return;
-        }
+        // Use profile_bootstrap which handles missing user rows and joins the school atomically.
+        // Falls back to invite code join if school_id is unavailable.
+        if (schoolId) {
+          const bootstrapResult = await AuthService.bootstrapProfile(
+            schoolId,
+            finalRole,
+            finalRole === 'student' ? (grade ?? undefined) : undefined,
+            finalRole === 'student' ? batch : undefined,
+            username || undefined,
+          );
 
-        // If student, update grade/batch
-        if (finalRole === 'student' && grade && batch) {
-          const { error: updateError } = await AuthService.supabase
-            .from('users')
-            .update({
-              grade: grade,
-              batch: batch,
-              needs_setup: false,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', (await AuthService.supabase.auth.getUser()).data.user?.id);
+          if (!bootstrapResult.success) {
+            setError(bootstrapResult.error || 'Failed to join school');
+            setStep('invite_code');
+            return;
+          }
+        } else {
+          // Fallback: direct code join (legacy path)
+          const joinResult = await AuthService.joinSchoolByCode(inviteCodeNormalized, finalRole);
 
-          if (updateError) {
-            console.error('Failed to update student details:', updateError);
+          if (!joinResult.success) {
+            setError(joinResult.error || 'Failed to join school');
+            setStep('invite_code');
+            return;
+          }
+
+          // Update grade/batch / clear needs_setup after legacy join
+          const currentUserId = (await AuthService.supabase.auth.getUser()).data.user?.id;
+          if (!currentUserId) {
+            setError('Session expired. Please sign in again.');
+            setStep('invite_code');
+            return;
+          }
+          if (finalRole === 'student' && grade && batch) {
+            const { error: updateError } = await AuthService.supabase
+              .from('users')
+              .update({
+                grade: grade,
+                batch: batch,
+                needs_setup: false,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', currentUserId);
+
+            if (updateError) {
+              console.error('Failed to update student details:', updateError);
+              setError('Setup joined but profile update failed. Please try again.');
+              return;
+            }
+          } else if (finalRole !== 'student') {
+            // Teachers (and other non-student roles) also need needs_setup cleared
+            const { error: updateError } = await AuthService.supabase
+              .from('users')
+              .update({
+                needs_setup: false,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', currentUserId);
+
+            if (updateError) {
+              console.error('Failed to clear needs_setup for non-student role:', updateError);
+              setError('Setup joined but profile update failed. Please try again.');
+              return;
+            }
           }
         }
       } else if (path === 'individual') {
