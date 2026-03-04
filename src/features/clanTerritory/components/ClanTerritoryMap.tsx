@@ -2,6 +2,7 @@ import React, { ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState
 
 // @ts-expect-error - Vite raw SVG imports
 import territoryMapSvgRaw from "../assets/territory_map.svg?raw";
+import { MAP_CATALOG } from "../mapCatalog";
 
 // Lazy maps (loaded via Vite dynamic import)
 let cityMapSvgRaw = "";
@@ -10,12 +11,12 @@ let usaMapSvgRaw = "";
 // Cache for country maps fetched from /maps/*.svg at runtime
 const publicMapCache: Record<string, string> = {};
 
-// All country map IDs that are served from /public/maps/
-const PUBLIC_MAP_IDS = new Set([
-  'bahrain', 'belgium', 'china', 'egypt', 'france', 'indonesia',
-  'italy', 'japan', 'kazakhstan', 'kyrgyzstan', 'malaysia', 'netherlands',
-  'oman', 'qatar', 'russia', 'saudi-arabia', 'spain', 'unitedkingdom',
-]);
+// IDs of maps served from /public/maps/ — derived from MAP_CATALOG so the list
+// never drifts from the catalog.  Asset-loaded maps (default, city, usa) are excluded.
+// Typed as Set<string> so .has(mapId) accepts a plain string argument.
+const PUBLIC_MAP_IDS = new Set<string>(
+  MAP_CATALOG.filter((m) => !(m as { assetMap?: true }).assetMap).map((m) => m.id)
+);
 
 import { ClanId, ClanMetadata, ZoneId, ZoneState } from "../clanTerritoryTypes";
 import { getClanColor } from "../../../utils/clanColors";
@@ -535,33 +536,48 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   }, [mapId]);
 
   // Fetch any country map SVG from /maps/*.svg (all maps in public/maps/)
+  // publicMapVersion in deps makes Retry (which increments it) trigger a refetch.
   useEffect(() => {
-    if (!PUBLIC_MAP_IDS.has(mapId)) return;
+    if (!PUBLIC_MAP_IDS.has(mapId)) {
+      // Switched away from a public-map — clear any stale error immediately
+      setPublicMapLoadError(null);
+      return;
+    }
+
     if (publicMapCache[mapId]) {
       // Already cached — clear any stale error and re-render with the cached svg
       setPublicMapLoadError(null);
       setPublicMapVersion((v) => v + 1);
       return;
     }
+
+    const controller = new AbortController();
+
     setPublicMapLoadError(null);
-    fetch(`/maps/${mapId}.svg`)
+    fetch(`/maps/${mapId}.svg`, { signal: controller.signal })
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.text();
       })
       .then((svg) => {
+        if (controller.signal.aborted) return;
         publicMapCache[mapId] = svg;
         setPublicMapLoadError(null);
         setPublicMapVersion((v) => v + 1);
       })
       .catch((e) => {
+        if (controller.signal.aborted) return;
         // Remove any partial/stale entry so a retry triggers a fresh fetch
         delete publicMapCache[mapId];
         const msg = e instanceof Error ? e.message : String(e);
         console.error(`[ClanTerritoryMap] Failed to load /maps/${mapId}.svg:`, msg);
-        setPublicMapLoadError(`Could not load map “${mapId}” (${msg})`);
+        setPublicMapLoadError(`Could not load map "${mapId}" (${msg})`);
       });
-  }, [mapId]);
+
+    return () => controller.abort();
+  // publicMapVersion is intentionally included so Retry (which increments it) triggers a refetch
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapId, publicMapVersion]);
 
   const mapConfig = useMemo(() => {
     let cfg = MAP_CONFIGS[mapId] || MAP_CONFIGS.default;

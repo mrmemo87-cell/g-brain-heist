@@ -1531,6 +1531,7 @@
     const _shuffledAK = {};
     QUESTIONS.forEach((q, idx) => {
       _shuffledAK[idx + 1] = ANSWER_KEY[q.number];
+      q.originalNumber = q.number; // preserve global number before re-indexing
       q.number = idx + 1;
     });
     Object.keys(ANSWER_KEY).forEach(k => delete ANSWER_KEY[k]);
@@ -1924,7 +1925,9 @@
       const responses = {};
       QUESTIONS.forEach((q) => {
         const selected = document.querySelector(`input[name='q${q.number}']:checked`);
-        responses[q.number] = selected ? selected.value : '';
+        // Use the original global question number so the TeacherPortal can match
+        // responses against the answer key (which uses original/global numbering).
+        responses[q.originalNumber ?? q.number] = selected ? selected.value : '';
       });
 
       const timeTaken = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
