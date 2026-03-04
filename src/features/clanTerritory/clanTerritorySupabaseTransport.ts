@@ -400,8 +400,8 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
 
         if (this.isHost) {
           if (action.type === "REQUEST_STATE") {
-            // Always send state when requested
-            this.broadcastState();
+            // Always send an authoritative snapshot immediately — never throttle.
+            this.broadcastState(true);
             if (this.onStateUpdate) this.onStateUpdate(this.state);
             return;
           }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   ClanId,
   ClanMetadata,
@@ -121,12 +121,30 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   // null      = optimistically deselected (show zone picker)
   // ZoneId    = optimistically selected (show combat UI)
   const [localZoneOverride, setLocalZoneOverride] = useState<ZoneId | null | undefined>(undefined);
+  const zoneOverrideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Apply an optimistic override and schedule an automatic rollback after 5 s.
+  // If the server confirms the change before that, the effect below cancels the timer.
+  const applyLocalZoneOverride = useCallback((id: ZoneId | null) => {
+    if (zoneOverrideTimeoutRef.current !== null) {
+      clearTimeout(zoneOverrideTimeoutRef.current);
+    }
+    setLocalZoneOverride(id);
+    zoneOverrideTimeoutRef.current = setTimeout(() => {
+      zoneOverrideTimeoutRef.current = null;
+      setLocalZoneOverride(undefined); // revert to server state on timeout (send failed/dropped)
+    }, 5000);
+  }, []);
 
   // Clear the optimistic override once the server state has caught up
   useEffect(() => {
     if (localZoneOverride === undefined) return;
     const serverZoneId = hydratedPlayer?.selectedZoneId ?? null;
     if (serverZoneId === localZoneOverride) {
+      if (zoneOverrideTimeoutRef.current !== null) {
+        clearTimeout(zoneOverrideTimeoutRef.current);
+        zoneOverrideTimeoutRef.current = null;
+      }
       setLocalZoneOverride(undefined);
     }
   }, [hydratedPlayer?.selectedZoneId, localZoneOverride]);
@@ -134,9 +152,22 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   // Always reset local override when leaving ACTIVE phase (game over / lobby)
   useEffect(() => {
     if (gameState.phase !== 'ACTIVE') {
+      if (zoneOverrideTimeoutRef.current !== null) {
+        clearTimeout(zoneOverrideTimeoutRef.current);
+        zoneOverrideTimeoutRef.current = null;
+      }
       setLocalZoneOverride(undefined);
     }
   }, [gameState.phase]);
+
+  // Cleanup rollback timer on unmount
+  useEffect(() => {
+    return () => {
+      if (zoneOverrideTimeoutRef.current !== null) {
+        clearTimeout(zoneOverrideTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // The authoritative zone used for rendering — local override takes priority
   const effectiveZoneId: ZoneId | null =
@@ -463,7 +494,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
                   key={zone.id}
                   onClick={() => {
                     console.log('[ZoneSelection] Zone clicked:', zone.id);
-                    setLocalZoneOverride(zone.id); // optimistic: switch UI immediately
+                    applyLocalZoneOverride(zone.id); // optimistic: switch UI immediately
                     onSelectZone(zone.id);
                   }}
                   className="relative bg-slate-900/70 border-2 border-slate-700 rounded-xl p-3 hover:border-yellow-400 hover:bg-slate-800/70 transition-all text-left cursor-pointer active:scale-95"
@@ -557,7 +588,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
             <button
               onClick={() => {
                 console.log('[StudentView] SWITCH ZONE clicked - deselecting zone');
-                setLocalZoneOverride(null); // optimistic: show zone picker immediately
+                applyLocalZoneOverride(null); // optimistic: show zone picker immediately
                 onSelectZone(null as any);
               }}
               className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-bold transition cursor-pointer"
@@ -688,7 +719,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
                         key={z.id}
                         onClick={() => {
                           console.log('[StudentView] Quick Switch clicked:', z.id);
-                          setLocalZoneOverride(z.id); // optimistic: switch UI immediately
+                          applyLocalZoneOverride(z.id); // optimistic: switch UI immediately
                           onSelectZone(z.id);
                         }}
                         disabled={isCurrentZone}
@@ -721,7 +752,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
                   key={z.id}
                   onClick={() => {
                     console.log('[StudentView] Mobile Quick Switch clicked:', z.id);
-                    setLocalZoneOverride(z.id); // optimistic: switch UI immediately
+                    applyLocalZoneOverride(z.id); // optimistic: switch UI immediately
                     onSelectZone(z.id);
                   }}
                   disabled={isCurrentZone}
