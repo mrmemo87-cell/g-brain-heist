@@ -39,6 +39,23 @@ const MAP_ZONE_CONFIG: Record<string, number> = {
   kyrgyzstan: 7,
   unitedkingdom: 16,
   usa: 51,
+  // Country maps
+  bahrain: 5,
+  belgium: 11,
+  china: 34,
+  egypt: 28,
+  france: 22,
+  indonesia: 34,
+  italy: 19,
+  japan: 47,
+  kazakhstan: 14,
+  malaysia: 14,
+  netherlands: 12,
+  oman: 11,
+  qatar: 7,
+  russia: 83,
+  'saudi-arabia': 13,
+  spain: 17,
 };
 
 type DiscoveredRoom = {
@@ -1006,11 +1023,27 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
               <label className="block text-sm font-bold text-white">Territory Map</label>
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { id: 'default', emoji: '🗺️', label: 'Default', desc: 'Standard 8-zone battlefield' },
-                  { id: 'city', emoji: '🏙️', label: 'City', desc: 'Urban warfare, 10 districts' },
-                  { id: 'kyrgyzstan', emoji: '🇰🇬', label: 'Kyrgyzstan', desc: 'Regional conquest, 7 oblasts' },
-                  { id: 'usa', emoji: '🇺🇸', label: 'USA', desc: 'States + DC, 51 zones' },
-                  { id: 'unitedkingdom', emoji: '🇬🇧', label: 'United Kingdom', desc: 'UK regions + isles, 16 zones' },
+                  { id: 'default',      emoji: '🗺️',  label: 'Default',        desc: 'Standard 8-zone battlefield' },
+                  { id: 'city',         emoji: '🏙️',  label: 'City',           desc: 'Urban warfare, 10 districts' },
+                  { id: 'kyrgyzstan',   emoji: '🇰🇬', label: 'Kyrgyzstan',     desc: 'Regional conquest, 7 oblasts' },
+                  { id: 'usa',          emoji: '🇺🇸', label: 'USA',            desc: 'States + DC, 51 zones' },
+                  { id: 'unitedkingdom',emoji: '🇬🇧', label: 'United Kingdom', desc: 'UK regions + isles, 16 zones' },
+                  { id: 'bahrain',      emoji: '🇧🇭', label: 'Bahrain',        desc: '5 governorates' },
+                  { id: 'belgium',      emoji: '🇧🇪', label: 'Belgium',        desc: '11 provinces' },
+                  { id: 'china',        emoji: '🇨🇳', label: 'China',          desc: '34 provinces & regions' },
+                  { id: 'egypt',        emoji: '🇪🇬', label: 'Egypt',          desc: '28 governorates' },
+                  { id: 'france',       emoji: '🇫🇷', label: 'France',         desc: '22 historic regions' },
+                  { id: 'indonesia',    emoji: '🇮🇩', label: 'Indonesia',      desc: '34 provinces' },
+                  { id: 'italy',        emoji: '🇮🇹', label: 'Italy',          desc: '19 regions' },
+                  { id: 'japan',        emoji: '🇯🇵', label: 'Japan',          desc: '47 prefectures' },
+                  { id: 'kazakhstan',   emoji: '🇰🇿', label: 'Kazakhstan',     desc: '14 regions' },
+                  { id: 'malaysia',     emoji: '🇲🇾', label: 'Malaysia',       desc: '14 states' },
+                  { id: 'netherlands',  emoji: '🇳🇱', label: 'Netherlands',    desc: '12 provinces' },
+                  { id: 'oman',         emoji: '🇴🇲', label: 'Oman',           desc: '11 governorates' },
+                  { id: 'qatar',        emoji: '🇶🇦', label: 'Qatar',          desc: '7 municipalities' },
+                  { id: 'russia',       emoji: '🇷🇺', label: 'Russia',         desc: '83 federal subjects' },
+                  { id: 'saudi-arabia', emoji: '🇸🇦', label: 'Saudi Arabia',   desc: '13 regions' },
+                  { id: 'spain',        emoji: '🇪🇸', label: 'Spain',          desc: '17 autonomous communities' },
                 ].map(({ id, emoji, label, desc }) => {
                   const locked = isMapLocked(id);
                   return (
