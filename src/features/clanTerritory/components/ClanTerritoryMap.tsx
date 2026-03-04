@@ -786,7 +786,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       )}
 
       {/* Fetch-error banner with Retry for public country maps */}
-      {publicMapLoadError && (
+      {publicMapLoadError && PUBLIC_MAP_IDS.has(mapId) && (
         <div className="mx-4 mb-2 flex items-center justify-between gap-3 rounded-xl border border-rose-500/40 bg-rose-900/30 px-4 py-3">
           <span className="text-sm text-rose-300">{publicMapLoadError}</span>
           <button
