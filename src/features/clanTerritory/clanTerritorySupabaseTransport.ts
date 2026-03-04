@@ -13,6 +13,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
   private discoveryBroadcastInterval: any;
   private tickInterval: any = null;
   private visibilityListener: (() => void) | null = null;
+  private scheduledBroadcastTimer: ReturnType<typeof setTimeout> | null = null;
 
   private state: ClanTerritoryGameState = INITIAL_STATE;
   private isHost: boolean = false;
@@ -92,7 +93,15 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     if (this.onStateUpdate) this.onStateUpdate(this.state);
 
     if (this.isHost) {
-      this.broadcastState();
+      // Schedule a deferred broadcast so that if multiple actions arrive in the
+      // same event-loop turn we coalesce them into one outbound message.
+      // This avoids the 30ms throttle silently swallowing mid-burst state changes.
+      if (this.scheduledBroadcastTimer === null) {
+        this.scheduledBroadcastTimer = setTimeout(() => {
+          this.scheduledBroadcastTimer = null;
+          this.broadcastState(true);
+        }, 0);
+      }
     }
   }
 
@@ -278,6 +287,11 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
   }
 
   cleanup() {
+    if (this.scheduledBroadcastTimer !== null) {
+      clearTimeout(this.scheduledBroadcastTimer);
+      this.scheduledBroadcastTimer = null;
+    }
+
     if (this.tickInterval) {
       clearInterval(this.tickInterval);
       this.tickInterval = null;
@@ -386,8 +400,8 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
 
         if (this.isHost) {
           if (action.type === "REQUEST_STATE") {
-            // Always send state when requested
-            this.broadcastState();
+            // Always send an authoritative snapshot immediately — never throttle.
+            this.broadcastState(true);
             if (this.onStateUpdate) this.onStateUpdate(this.state);
             return;
           }
@@ -425,12 +439,13 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
       });
   }
 
-  private broadcastState() {
+  private broadcastState(force: boolean = false) {
     if (!this.channel || !this.isHost || this.channel.state !== "joined") return;
 
-    // throttle a tiny bit to reduce spam if multiple actions land quickly
+    // Throttle only non-forced (tick/visibility) broadcasts to reduce spam.
+    // Action-driven calls pass force=true via the scheduled timer, so they always go out.
     const now = Date.now();
-    if (now - this.lastBroadcastAtMs < 30) return;
+    if (!force && now - this.lastBroadcastAtMs < 50) return;
     this.lastBroadcastAtMs = now;
 
     this.channel.send({
