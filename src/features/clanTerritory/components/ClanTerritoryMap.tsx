@@ -545,9 +545,10 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     }
 
     if (publicMapCache[mapId]) {
-      // Already cached — clear any stale error and re-render with the cached svg
+      // Already cached — just clear any stale error; useMemo reads the cache directly.
+      // Do NOT touch publicMapVersion here: it is a dep of this effect, so calling
+      // setPublicMapVersion here would re-trigger the effect and cause an infinite loop.
       setPublicMapLoadError(null);
-      setPublicMapVersion((v) => v + 1);
       return;
     }
 

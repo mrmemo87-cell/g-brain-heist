@@ -1883,7 +1883,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       const responses = {};
       QUESTIONS.forEach((q) => {
         const selected = document.querySelector(`input[name='q${q.number}']:checked`);
-        responses[q.originalNumber ?? q.number] = selected ? selected.value : '';
+        responses[q.number] = selected ? selected.value : '';
       });
 
       const timeTaken = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;

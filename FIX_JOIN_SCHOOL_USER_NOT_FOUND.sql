@@ -121,8 +121,13 @@ BEGIN
         RETURN jsonb_build_object('success', false, 'error', 'Student signup is disabled for this school');
     END IF;
 
+    -- Upsert membership atomically to avoid the race between the SELECT check above
+    -- and this INSERT (two concurrent requests could both pass the check then both INSERT).
+    -- ON CONFLICT DO NOTHING is safe here: if the unique constraint fires, the existing
+    -- membership is already valid and we fall through to the success return.
     INSERT INTO school_members (school_id, user_id, role_in_school, status)
-    VALUES (v_school.id, v_user_id, p_role, 'active');
+    VALUES (v_school.id, v_user_id, p_role, 'active')
+    ON CONFLICT (user_id, school_id) DO NOTHING;
 
     IF p_role = 'teacher' THEN
         UPDATE users SET role = 'teacher' WHERE id = v_user_id AND role = 'student';

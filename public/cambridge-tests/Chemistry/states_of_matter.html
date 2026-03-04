@@ -1927,7 +1927,7 @@
         const selected = document.querySelector(`input[name='q${q.number}']:checked`);
         // Use the original global question number so the TeacherPortal can match
         // responses against the answer key (which uses original/global numbering).
-        responses[q.originalNumber ?? q.number] = selected ? selected.value : '';
+        responses[q.number] = selected ? selected.value : '';
       });
 
       const timeTaken = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
