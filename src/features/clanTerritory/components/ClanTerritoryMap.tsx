@@ -577,6 +577,14 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
           setPublicMapLoadError(`Could not load map "${mapId}" (invalid SVG)`);
           return;
         }
+        const root = doc.documentElement;
+        if (
+          root.localName.toLowerCase() !== "svg" ||
+          root.namespaceURI !== "http://www.w3.org/2000/svg"
+        ) {
+          setPublicMapLoadError(`Could not load map "${mapId}" (invalid root element)`);
+          return;
+        }
         // Remove elements that can execute code.
         doc.querySelectorAll("script, foreignObject, iframe, object, embed").forEach((el) => { el.remove(); });
         // Remove event-handler attributes and javascript: URIs.
