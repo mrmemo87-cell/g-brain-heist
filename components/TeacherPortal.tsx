@@ -6180,6 +6180,20 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         const answerKey = isChemistryTest ? getScienceAnswerKey(quizName) : (correctAnswers[quizName] || {});
         const sections = testSections[quizName] || [];
         const summary = buildResponseSummary(selectedCambridgeStudent, answerKey);
+        const rawResponses = getStudentResponses(selectedCambridgeStudent);
+        const originalQuestionNumbers: Record<number, number> = selectedCambridgeStudent?.answers?.original_question_numbers ?? {};
+        const responseEntries = Object.entries(rawResponses || {})
+          .filter(([key]) => !Number.isNaN(Number(key)))
+          .map(([questionCode, studentAnswer]) => {
+            const localQuestion = Number(questionCode);
+            const mappedQuestion = originalQuestionNumbers[localQuestion];
+            return {
+              localQuestion,
+              questionCode: mappedQuestion ?? localQuestion,
+              studentAnswer: normalizeAnswer(studentAnswer) || '—',
+            };
+          })
+          .sort((a, b) => a.questionCode - b.questionCode);
         const questionBank = getQuestionsForQuiz(quizName);
         const questionMap = new Map<number, QuestionData>();
         questionBank.forEach(q => questionMap.set(q.number, q));
@@ -6510,10 +6524,26 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                     <p className="text-gray-700 mb-3">
                       Score: <strong>{selectedCambridgeStudent.score}</strong> out of <strong>{selectedCambridgeStudent.total_questions}</strong> ({selectedCambridgeStudent.percentage}%)
                     </p>
-                    <p className="text-gray-600 text-sm">
-                      Detailed answer review is not available for this test in the teacher portal yet.
-                      Students will be able to review their answers once the score is released.
-                    </p>
+
+                    {responseEntries.length > 0 ? (
+                      <div className="mt-4 space-y-2">
+                        <p className="text-sm text-gray-700 font-medium">
+                          Student submitted answers (same review source used in test page release mode):
+                        </p>
+                        <div className="rounded-xl border border-blue-200 bg-white divide-y divide-blue-100 max-h-72 overflow-y-auto">
+                          {responseEntries.map((entry) => (
+                            <div key={`${entry.localQuestion}-${entry.questionCode}`} className="px-3 py-2 text-sm flex items-center justify-between gap-3">
+                              <span className="font-semibold text-blue-800">Q{entry.questionCode}</span>
+                              <span className="text-gray-700 truncate">Submitted: <strong>{entry.studentAnswer}</strong></span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-gray-600 text-sm">
+                        No per-question responses were found in this submission payload.
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
