@@ -1,3 +1,16 @@
+-- Preflight: detect and deduplicate any user_id with more than one active membership
+-- before the unique index can be created.  Idempotent — safe to run even if no dupes exist.
+WITH ranked AS (
+    SELECT id,
+           user_id,
+           ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY created_at DESC, id DESC) AS rn
+    FROM school_members
+    WHERE status = 'active'
+)
+UPDATE school_members
+SET    status = 'inactive'
+WHERE  id IN (SELECT id FROM ranked WHERE rn > 1);
+
 -- Partial unique index: enforce at most one active membership per user DB-side.
 -- Create this once before (or after) deploying the function; IF NOT EXISTS is safe to re-run.
 CREATE UNIQUE INDEX IF NOT EXISTS school_members_one_active_per_user_idx
@@ -101,7 +114,7 @@ BEGIN
     END IF;
 
     v_rate_check := check_invite_rate_limit(v_user_id);
-    IF NOT (v_rate_check->>'allowed')::boolean THEN
+    IF (v_rate_check->>'allowed') IS DISTINCT FROM 'true' THEN
         RETURN v_rate_check;
     END IF;
 
@@ -151,12 +164,27 @@ BEGIN
         --    ON CONFLICT (user_id, school_id) DO UPDATE reactivates a same-school row
         --    that a concurrent transaction just inserted; the partial unique index
         --    (school_members_one_active_per_user_idx) enforces one active membership.
-        INSERT INTO school_members (school_id, user_id, role_in_school, status)
-        VALUES (v_school.id, v_user_id, p_role, 'active')
-        ON CONFLICT (user_id, school_id) DO UPDATE
-            SET status = 'active',
-                role_in_school = EXCLUDED.role_in_school,
-                updated_at = NOW();
+        BEGIN
+            INSERT INTO school_members (school_id, user_id, role_in_school, status)
+            VALUES (v_school.id, v_user_id, p_role, 'active')
+            ON CONFLICT (user_id, school_id) DO UPDATE
+                SET status = 'active',
+                    role_in_school = EXCLUDED.role_in_school,
+                    updated_at = NOW();
+        EXCEPTION WHEN unique_violation THEN
+            -- A concurrent cross-school join beat us past our SELECT FOR UPDATE window;
+            -- the partial unique index fired.  The user is now active in another school
+            -- so respond as if they were already a member.
+            SELECT INTO v_existing *
+            FROM school_members
+            WHERE user_id = v_user_id AND status = 'active'
+            LIMIT 1;
+            RETURN jsonb_build_object(
+                'success', false,
+                'error', 'You are already a member of a school. Leave your current school first.',
+                'current_school_id', COALESCE(v_existing.school_id, v_school.id)
+            );
+        END;
     END IF;
 
     IF p_role = 'teacher' THEN

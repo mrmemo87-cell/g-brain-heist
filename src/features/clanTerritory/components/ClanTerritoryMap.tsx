@@ -554,7 +554,8 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
     const controller = new AbortController();
     // Abort the fetch after 10 s so hung requests don't block the UI indefinitely.
-    const timeoutId = setTimeout(() => controller.abort(), 10_000);
+    let timeoutTriggered = false;
+    const timeoutId = setTimeout(() => { timeoutTriggered = true; controller.abort(); }, 10_000);
 
     setPublicMapLoadError(null);
     fetch(`/maps/${mapId}.svg`, { signal: controller.signal })
@@ -565,7 +566,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       .then((svg) => {
         clearTimeout(timeoutId);
         if (controller.signal.aborted) {
-          setPublicMapLoadError(`Could not load map "${mapId}" (timeout)`);
+          if (timeoutTriggered) setPublicMapLoadError(`Could not load map "${mapId}" (timeout)`);
           return;
         }
 
@@ -577,7 +578,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
           return;
         }
         // Remove elements that can execute code.
-        doc.querySelectorAll("script, foreignObject, iframe").forEach((el) => el.remove());
+        doc.querySelectorAll("script, foreignObject, iframe").forEach((el) => { el.remove(); });
         // Remove event-handler attributes and javascript: URIs.
         doc.querySelectorAll("*").forEach((el) => {
           for (const attr of Array.from(el.attributes)) {
@@ -604,7 +605,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       .catch((e) => {
         clearTimeout(timeoutId);
         if ((e instanceof DOMException && e.name === 'AbortError') || controller.signal.aborted) {
-          setPublicMapLoadError(`Could not load map "${mapId}" (timeout)`);
+          if (timeoutTriggered) setPublicMapLoadError(`Could not load map "${mapId}" (timeout)`);
           return;
         }
         // Remove any partial/stale entry so a retry triggers a fresh fetch

@@ -1270,9 +1270,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       // instead of global question numbers (before the originalNumber fix was deployed).
       const akKeys = Object.keys(answerKey).map(Number);
       const minAkKey = Math.min(...akKeys);
-      const responsesHaveAkKeys = akKeys.some(k => (responses[k] ?? '') !== '');
+      const responsesHaveAkKeys = akKeys.some(k => String(responses[k] ?? '').trim() !== '');
       const responsesHaveLocalKeys = Object.keys(responses).some(
-        k => Number(k) < minAkKey && (responses[k] ?? '') !== ''
+        k => Number(k) < minAkKey && String(responses[k] ?? '').trim() !== ''
       );
       const isLegacyLocalFormat = minAkKey > 1 && !responsesHaveAkKeys && responsesHaveLocalKeys;
 
