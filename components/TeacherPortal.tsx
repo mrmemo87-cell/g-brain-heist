@@ -1208,19 +1208,38 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   const getStudentResponses = (student: any) => {
     const answers = student?.answers || {};
-    if (student?.quiz_name?.toLowerCase().includes('chemistry') || student?.quiz_name?.toLowerCase().includes('biology')) {
-      const responses = answers.responses || answers || {};
-      if (typeof responses === 'string') {
-        try {
-          return JSON.parse(responses);
-        } catch (error) {
-          console.warn('Failed to parse chemistry responses:', error);
-          return {};
-        }
+    const responses = answers.responses || answers || {};
+
+    if (typeof responses === 'string') {
+      try {
+        return JSON.parse(responses);
+      } catch (error) {
+        console.warn('Failed to parse student responses:', error);
+        return {};
       }
-      return responses;
     }
-    return answers;
+
+    return responses;
+  };
+
+  const getOriginalQuestionNumbers = (student: any): Record<number, number> => {
+    const answers = student?.answers || {};
+    const mapping = answers.original_question_numbers
+      || answers.originalQuestionNumbers
+      || answers.responses?.original_question_numbers
+      || answers.responses?.originalQuestionNumbers
+      || {};
+
+    if (typeof mapping === 'string') {
+      try {
+        return JSON.parse(mapping);
+      } catch (error) {
+        console.warn('Failed to parse original question number mapping:', error);
+        return {};
+      }
+    }
+
+    return mapping;
   };
 
   /** Normalize dash-like characters so DB names (may contain U+FFFD from
@@ -1268,8 +1287,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     // to record the shuffled-position → global-question mapping), remap local
     // position keys back to global question numbers so the answer key (which uses
     // global keys) can correctly grade each response.
-    const originalNumbers: Record<number, number> =
-      student?.answers?.original_question_numbers ?? {};
+    const originalNumbers = getOriginalQuestionNumbers(student);
     if (Object.keys(originalNumbers).length > 0) {
       const remapped: Record<number, string> = {};
       Object.entries(responses).forEach(([localKey, ans]) => {
@@ -6181,7 +6199,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         const sections = testSections[quizName] || [];
         const summary = buildResponseSummary(selectedCambridgeStudent, answerKey);
         const rawResponses = getStudentResponses(selectedCambridgeStudent);
-        const originalQuestionNumbers: Record<number, number> = selectedCambridgeStudent?.answers?.original_question_numbers ?? {};
+        const originalQuestionNumbers = getOriginalQuestionNumbers(selectedCambridgeStudent);
         const responseEntries = Object.entries(rawResponses || {})
           .filter(([key]) => !Number.isNaN(Number(key)))
           .map(([questionCode, studentAnswer]) => {
