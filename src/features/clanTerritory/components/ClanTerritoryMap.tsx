@@ -553,6 +553,9 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     }
 
     const controller = new AbortController();
+    // Abort the fetch after 10 s so hung requests don't block the UI indefinitely.
+    let timeoutTriggered = false;
+    const timeoutId = setTimeout(() => { timeoutTriggered = true; controller.abort(); }, 10_000);
 
     setPublicMapLoadError(null);
     fetch(`/maps/${mapId}.svg`, { signal: controller.signal })
@@ -561,13 +564,58 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         return r.text();
       })
       .then((svg) => {
-        if (controller.signal.aborted) return;
-        publicMapCache[mapId] = svg;
+        clearTimeout(timeoutId);
+        if (controller.signal.aborted) {
+          if (timeoutTriggered) setPublicMapLoadError(`Could not load map "${mapId}" (timeout)`);
+          return;
+        }
+
+        // Sanitize the SVG before caching to prevent XSS via malicious content.
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(svg, "image/svg+xml");
+        if (doc.querySelector("parsererror")) {
+          setPublicMapLoadError(`Could not load map "${mapId}" (invalid SVG)`);
+          return;
+        }
+        const root = doc.documentElement;
+        if (
+          root.localName.toLowerCase() !== "svg" ||
+          root.namespaceURI !== "http://www.w3.org/2000/svg"
+        ) {
+          setPublicMapLoadError(`Could not load map "${mapId}" (invalid root element)`);
+          return;
+        }
+        // Remove elements that can execute code.
+        doc.querySelectorAll("script, foreignObject, iframe, object, embed").forEach((el) => { el.remove(); });
+        // Remove event-handler attributes and javascript: URIs.
+        doc.querySelectorAll("*").forEach((el) => {
+          for (const attr of Array.from(el.attributes)) {
+            if (/^on/i.test(attr.name)) {
+              el.removeAttribute(attr.name);
+            } else if (
+              (attr.name === "href" || attr.name === "xlink:href" || attr.name === "src") &&
+              /^\s*javascript:/i.test(attr.value)
+            ) {
+              el.removeAttribute(attr.name);
+            }
+          }
+        });
+        const sanitized = new XMLSerializer().serializeToString(doc.documentElement);
+        if (!sanitized) {
+          setPublicMapLoadError(`Could not load map "${mapId}" (sanitization produced empty output)`);
+          return;
+        }
+
+        publicMapCache[mapId] = sanitized;
         setPublicMapLoadError(null);
         setPublicMapVersion((v) => v + 1);
       })
       .catch((e) => {
-        if (controller.signal.aborted) return;
+        clearTimeout(timeoutId);
+        if ((e instanceof DOMException && e.name === 'AbortError') || controller.signal.aborted) {
+          if (timeoutTriggered) setPublicMapLoadError(`Could not load map "${mapId}" (timeout)`);
+          return;
+        }
         // Remove any partial/stale entry so a retry triggers a fresh fetch
         delete publicMapCache[mapId];
         const msg = e instanceof Error ? e.message : String(e);
@@ -575,7 +623,10 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         setPublicMapLoadError(`Could not load map "${mapId}" (${msg})`);
       });
 
-    return () => controller.abort();
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
   // publicMapVersion is intentionally included so Retry (which increments it) triggers a refetch
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapId, publicMapVersion]);
@@ -589,7 +640,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
     return cfg;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mapId, cityLoaded, usaLoaded, publicMapVersion, publicMapLoadError]);
+  }, [mapId, cityLoaded, usaLoaded, publicMapVersion]);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);

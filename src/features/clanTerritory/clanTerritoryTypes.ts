@@ -1,6 +1,8 @@
 export type ClanId = string;
 export type ZoneId = string;
 
+import type { MapId } from './mapCatalog';
+
 export interface ClanMetadata {
   id: ClanId;
   name: string;
@@ -550,7 +552,7 @@ export const SPAIN_ZONES: readonly Zone[] = [
 ];
 
 // Map-specific zone configurations
-export const MAP_ZONES: Readonly<Record<string, readonly Zone[]>> = {
+export const MAP_ZONES: Readonly<Record<MapId, readonly Zone[]>> = {
   default: ZONES,
   city: CITY_ZONES,
   kyrgyzstan: KYRGYZSTAN_ZONES,
@@ -576,7 +578,7 @@ export const MAP_ZONES: Readonly<Record<string, readonly Zone[]>> = {
 };
 
 // Helper to get zones for a specific map
-export const getZonesForMap = (mapId: string = 'default'): readonly Zone[] => {
+export const getZonesForMap = (mapId: MapId = 'default'): readonly Zone[] => {
   return MAP_ZONES[mapId] || ZONES;
 };
 

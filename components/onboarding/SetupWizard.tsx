@@ -182,9 +182,9 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
               .eq('id', currentUserId);
 
             if (updateError) {
-              console.error('Failed to update student details:', updateError);
-              setError('Setup joined but profile update failed. Please try again.');
-              return;
+              // Membership already created — log the failure but proceed to setup complete
+              // rather than blocking the user in a partial-success state.
+              console.error('Failed to update student details after joining school:', updateError);
             }
           } else if (finalRole !== 'student') {
             // Teachers (and other non-student roles) also need needs_setup cleared
@@ -197,9 +197,9 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
               .eq('id', currentUserId);
 
             if (updateError) {
+              // Membership already created — log the failure but proceed to setup complete
+              // rather than blocking the user in a partial-success state.
               console.error('Failed to clear needs_setup for non-student role:', updateError);
-              setError('Setup joined but profile update failed. Please try again.');
-              return;
             }
           }
         }
