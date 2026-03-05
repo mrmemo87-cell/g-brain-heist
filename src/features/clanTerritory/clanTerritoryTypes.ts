@@ -1,7 +1,7 @@
 export type ClanId = string;
 export type ZoneId = string;
 
-import type { MapId } from '../mapCatalog';
+import type { MapId } from './mapCatalog';
 
 export interface ClanMetadata {
   id: ClanId;
