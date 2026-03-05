@@ -578,7 +578,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
           return;
         }
         // Remove elements that can execute code.
-        doc.querySelectorAll("script, foreignObject, iframe").forEach((el) => { el.remove(); });
+        doc.querySelectorAll("script, foreignObject, iframe, object, embed").forEach((el) => { el.remove(); });
         // Remove event-handler attributes and javascript: URIs.
         doc.querySelectorAll("*").forEach((el) => {
           for (const attr of Array.from(el.attributes)) {

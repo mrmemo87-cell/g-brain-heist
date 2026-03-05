@@ -1,9 +1,14 @@
 -- Preflight: detect and deduplicate any user_id with more than one active membership
 -- before the unique index can be created.  Idempotent — safe to run even if no dupes exist.
+-- Wrapped in a transaction with an exclusive lock so no concurrent writes can sneak in
+-- between the dedupe UPDATE and the CREATE UNIQUE INDEX.
+BEGIN;
+LOCK TABLE school_members IN EXCLUSIVE MODE;
+
 WITH ranked AS (
     SELECT id,
            user_id,
-           ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY created_at DESC, id DESC) AS rn
+           ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY updated_at DESC, id DESC) AS rn
     FROM school_members
     WHERE status = 'active'
 )
@@ -16,6 +21,8 @@ WHERE  id IN (SELECT id FROM ranked WHERE rn > 1);
 CREATE UNIQUE INDEX IF NOT EXISTS school_members_one_active_per_user_idx
     ON school_members(user_id)
     WHERE status = 'active';
+
+COMMIT;
 
 -- ============================================================
 -- FIX: join_school_by_code returns "User not found" for new signups
