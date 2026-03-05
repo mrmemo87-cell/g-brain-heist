@@ -1266,27 +1266,49 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     const details: Array<{ q: number; studentAns: string; correctAns: string; status: 'correct' | 'wrong' | 'unanswered' | 'answered' }> = [];
 
     if (Object.keys(answerKey).length > 0) {
-      correctCount = 0;
-      Object.entries(answerKey).forEach(([qStr, correctAns]) => {
-        const q = Number(qStr);
-        const studentAns = normalizeAnswer(responses[q] ?? '');
-        const normalizedCorrect = normalizeAnswer(correctAns);
+      // Detect legacy submissions where Part 2 responses were stored with local 1-N keys
+      // instead of global question numbers (before the originalNumber fix was deployed).
+      const akKeys = Object.keys(answerKey).map(Number);
+      const minAkKey = Math.min(...akKeys);
+      const responsesHaveAkKeys = akKeys.some(k => (responses[k] ?? '') !== '');
+      const responsesHaveLocalKeys = Object.keys(responses).some(
+        k => Number(k) < minAkKey && (responses[k] ?? '') !== ''
+      );
+      const isLegacyLocalFormat = minAkKey > 1 && !responsesHaveAkKeys && responsesHaveLocalKeys;
 
-        if (!studentAns) {
-          unansweredCount++;
-          details.push({ q, studentAns: '—', correctAns: correctAns || '—', status: 'unanswered' });
-          return;
+      if (isLegacyLocalFormat) {
+        // Can't map local keys back to global questions (questions were shuffled randomly).
+        // Fall back to the stored score; show answers using local keys without per-question key.
+        correctCount = student?.score || 0;
+        wrongCount = Math.max(totalQuestions - correctCount, 0);
+        unansweredCount = 0;
+        for (let i = 1; i <= totalQuestions; i++) {
+          const studentAns = normalizeAnswer(responses[i] ?? '');
+          details.push({ q: i, studentAns: studentAns || '—', correctAns: '—', status: 'answered' });
         }
+      } else {
+        correctCount = 0;
+        Object.entries(answerKey).forEach(([qStr, correctAns]) => {
+          const q = Number(qStr);
+          const studentAns = normalizeAnswer(responses[q] ?? '');
+          const normalizedCorrect = normalizeAnswer(correctAns);
 
-        if (studentAns.toLowerCase() === normalizedCorrect.toLowerCase()) {
-          correctCount++;
-          details.push({ q, studentAns, correctAns: correctAns || '—', status: 'correct' });
-          return;
-        }
+          if (!studentAns) {
+            unansweredCount++;
+            details.push({ q, studentAns: '—', correctAns: correctAns || '—', status: 'unanswered' });
+            return;
+          }
 
-        wrongCount++;
-        details.push({ q, studentAns, correctAns: correctAns || '—', status: 'wrong' });
-      });
+          if (studentAns.toLowerCase() === normalizedCorrect.toLowerCase()) {
+            correctCount++;
+            details.push({ q, studentAns, correctAns: correctAns || '—', status: 'correct' });
+            return;
+          }
+
+          wrongCount++;
+          details.push({ q, studentAns, correctAns: correctAns || '—', status: 'wrong' });
+        });
+      }
     } else if (totalQuestions > 0) {
       for (let q = 1; q <= totalQuestions; q += 1) {
         const studentAns = normalizeAnswer(responses[q] ?? '');

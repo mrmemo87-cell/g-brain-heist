@@ -1,3 +1,9 @@
+-- Partial unique index: enforce at most one active membership per user DB-side.
+-- Create this once before (or after) deploying the function; IF NOT EXISTS is safe to re-run.
+CREATE UNIQUE INDEX IF NOT EXISTS school_members_one_active_per_user_idx
+    ON school_members(user_id)
+    WHERE status = 'active';
+
 -- ============================================================
 -- FIX: join_school_by_code returns "User not found" for new signups
 -- Root cause: the DB trigger that creates public.users is sometimes
@@ -21,6 +27,7 @@ DECLARE
     v_user RECORD;
     v_school RECORD;
     v_existing RECORD;
+    v_reactivated RECORD;
     v_rate_check JSONB;
     v_cleaned_code TEXT;
     v_auth_email TEXT;
@@ -73,10 +80,13 @@ BEGIN
         RETURN jsonb_build_object('success', false, 'error', 'Account is suspended');
     END IF;
 
+    -- Lock the user's membership rows for the duration of this transaction to
+    -- prevent concurrent join requests from both passing the active-check above.
     SELECT * INTO v_existing
     FROM school_members
     WHERE user_id = v_user_id AND status = 'active'
-    LIMIT 1;
+    LIMIT 1
+    FOR UPDATE;
 
     IF v_existing IS NOT NULL THEN
         RETURN jsonb_build_object(
@@ -121,13 +131,29 @@ BEGIN
         RETURN jsonb_build_object('success', false, 'error', 'Student signup is disabled for this school');
     END IF;
 
-    -- Upsert membership atomically to avoid the race between the SELECT check above
-    -- and this INSERT (two concurrent requests could both pass the check then both INSERT).
-    -- ON CONFLICT DO NOTHING is safe here: if the unique constraint fires, the existing
-    -- membership is already valid and we fall through to the success return.
-    INSERT INTO school_members (school_id, user_id, role_in_school, status)
-    VALUES (v_school.id, v_user_id, p_role, 'active')
-    ON CONFLICT (user_id, school_id) DO NOTHING;
+    -- Upsert membership:
+    -- 1. If an inactive row for the same school exists, reactivate it.
+    UPDATE school_members
+    SET status = 'active',
+        role_in_school = p_role,
+        updated_at = NOW()
+    WHERE user_id = v_user_id
+      AND school_id = v_school.id
+      AND status != 'active'
+    RETURNING * INTO v_reactivated;
+
+    IF v_reactivated IS NULL THEN
+        -- 2. No existing row to reactivate — insert a new active membership.
+        --    ON CONFLICT (user_id, school_id) DO UPDATE reactivates a same-school row
+        --    that a concurrent transaction just inserted; the partial unique index
+        --    (school_members_one_active_per_user_idx) enforces one active membership.
+        INSERT INTO school_members (school_id, user_id, role_in_school, status)
+        VALUES (v_school.id, v_user_id, p_role, 'active')
+        ON CONFLICT (user_id, school_id) DO UPDATE
+            SET status = 'active',
+                role_in_school = EXCLUDED.role_in_school,
+                updated_at = NOW();
+    END IF;
 
     IF p_role = 'teacher' THEN
         UPDATE users SET role = 'teacher' WHERE id = v_user_id AND role = 'student';

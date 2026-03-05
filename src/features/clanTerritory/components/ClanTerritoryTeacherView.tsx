@@ -12,6 +12,7 @@ import {
 } from "../clanTerritoryTypes";
 import { calculateClanTerritoryResults } from "../clanTerritoryRewards";
 import { ClanTerritoryMap } from "./ClanTerritoryMap";
+import type { MapId } from "../mapCatalog";
 
 interface ClanTerritoryTeacherViewProps {
   gameState: ClanTerritoryGameState;
@@ -115,7 +116,7 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
 
   // Get the correct zones based on mapId
   const activeZones = React.useMemo(() => {
-    return getZonesForMap(gameState.mapId);
+    return getZonesForMap((gameState.mapId || 'default') as MapId);
   }, [gameState.mapId]);
 
   const totalInfluence = React.useCallback(

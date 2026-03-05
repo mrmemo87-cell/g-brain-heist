@@ -13,6 +13,7 @@ import {
 } from "../clanTerritoryTypes";
 import { ClanTerritoryMap } from "./ClanTerritoryMap";
 import { calculateClanTerritoryResults } from "../clanTerritoryRewards";
+import type { MapId } from "../mapCatalog";
 
 // Helper to get option text (handles both string and BattleQuestionOption formats)
 const getOptionText = (option: string | BattleQuestionOption): string => {
@@ -179,7 +180,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
 
   // Get the correct zones based on mapId
   const activeZones = React.useMemo(() => {
-    return getZonesForMap(gameState.mapId);
+    return getZonesForMap((gameState.mapId || 'default') as MapId);
   }, [gameState.mapId]);
 
   const getZoneSnapshot = React.useCallback(

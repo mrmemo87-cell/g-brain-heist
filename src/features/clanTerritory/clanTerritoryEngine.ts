@@ -8,9 +8,10 @@ import {
   getUsedSessionColors,
   getZonesForMap,
 } from "./clanTerritoryTypes";
+import type { MapId } from "./mapCatalog";
 
 // Helper function to generate zones for a specific map
-const generateZonesForMap = (mapId: string = "default"): Record<ZoneId, any> => {
+const generateZonesForMap = (mapId: MapId = "default"): Record<ZoneId, any> => {
   return getZonesForMap(mapId).reduce<Record<ZoneId, any>>((acc, zone) => {
     acc[zone.id] = {
       id: zone.id,
@@ -51,7 +52,7 @@ export function clanTerritoryReducer(
         ...state,
         mapId: newMapId,
         // Regenerate zones for the new map
-        zones: generateZonesForMap(newMapId),
+        zones: generateZonesForMap(newMapId as MapId),
       };
     }
 
