@@ -56,6 +56,10 @@ BEGIN
             NULLIF(TRIM(v_auth_meta->>'username'), ''),
             split_part(v_auth_email, '@', 1)
         );
+        -- Append a short random suffix to avoid hitting the UNIQUE constraint on
+        -- users.username when two users derive the same base name (e.g. same email prefix).
+        v_fallback_username := LEFT(v_fallback_username, 20)
+            || '_' || LEFT(REPLACE(gen_random_uuid()::text, '-', ''), 6);
 
         INSERT INTO users (id, email, username, role, needs_setup, created_at, updated_at)
         VALUES (

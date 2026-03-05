@@ -9,6 +9,9 @@ import {
   getZonesForMap,
 } from "./clanTerritoryTypes";
 import type { MapId } from "./mapCatalog";
+import { MAP_CATALOG } from "./mapCatalog";
+
+const VALID_MAP_IDS = new Set<string>(MAP_CATALOG.map((e) => e.id));
 
 // Helper function to generate zones for a specific map
 const generateZonesForMap = (mapId: MapId = "default"): Record<ZoneId, any> => {
@@ -48,6 +51,10 @@ export function clanTerritoryReducer(
 
     case "SET_MAP": {
       const newMapId = action.payload.mapId;
+      if (!VALID_MAP_IDS.has(newMapId)) {
+        console.warn(`[ClanTerritoryEngine] Ignoring unknown mapId: "${newMapId}"`);
+        return state;
+      }
       return {
         ...state,
         mapId: newMapId,

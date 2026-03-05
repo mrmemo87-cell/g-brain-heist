@@ -564,7 +564,10 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       })
       .then((svg) => {
         clearTimeout(timeoutId);
-        if (controller.signal.aborted) return;
+        if (controller.signal.aborted) {
+          setPublicMapLoadError(`Could not load map "${mapId}" (timeout)`);
+          return;
+        }
 
         // Sanitize the SVG before caching to prevent XSS via malicious content.
         const parser = new DOMParser();
@@ -600,7 +603,10 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       })
       .catch((e) => {
         clearTimeout(timeoutId);
-        if (controller.signal.aborted) return;
+        if ((e instanceof DOMException && e.name === 'AbortError') || controller.signal.aborted) {
+          setPublicMapLoadError(`Could not load map "${mapId}" (timeout)`);
+          return;
+        }
         // Remove any partial/stale entry so a retry triggers a fresh fetch
         delete publicMapCache[mapId];
         const msg = e instanceof Error ? e.message : String(e);

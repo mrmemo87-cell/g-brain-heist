@@ -1280,12 +1280,17 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         // Can't map local keys back to global questions (questions were shuffled randomly).
         // Fall back to the stored score; show answers using local keys without per-question key.
         correctCount = student?.score || 0;
-        wrongCount = Math.max(totalQuestions - correctCount, 0);
         unansweredCount = 0;
         for (let i = 1; i <= totalQuestions; i++) {
           const studentAns = normalizeAnswer(responses[i] ?? '');
-          details.push({ q: i, studentAns: studentAns || '—', correctAns: '—', status: 'answered' });
+          if (!studentAns) {
+            unansweredCount++;
+            details.push({ q: i, studentAns: '—', correctAns: '—', status: 'unanswered' });
+          } else {
+            details.push({ q: i, studentAns, correctAns: '—', status: 'answered' });
+          }
         }
+        wrongCount = Math.max(totalQuestions - correctCount - unansweredCount, 0);
       } else {
         correctCount = 0;
         Object.entries(answerKey).forEach(([qStr, correctAns]) => {
