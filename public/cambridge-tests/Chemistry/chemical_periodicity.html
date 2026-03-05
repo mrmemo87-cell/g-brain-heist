@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -2031,6 +2031,7 @@
       }
 
       const responses = {};
+      const originalNumbers = {};
       let answered = 0;
       QUESTIONS.forEach(q => {
         const selected = document.querySelector(`input[name="q${q.number}"]:checked`);
@@ -2038,6 +2039,7 @@
           responses[q.number] = selected.value;
           answered++;
         }
+        originalNumbers[q.number] = q.originalNumber != null ? q.originalNumber : q.number;
       });
 
       if (!isForced && answered < totalQuestions) {
@@ -2063,6 +2065,7 @@
         submitted_at: new Date().toISOString(),
         answers: {
           responses,
+          original_question_numbers: originalNumbers,
           answer_key_ready: !result.pending,
           pending_answer_key: result.pending,
           quiz_version: 'v4-85q'

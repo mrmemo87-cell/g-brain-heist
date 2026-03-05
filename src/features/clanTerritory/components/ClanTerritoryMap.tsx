@@ -642,6 +642,22 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapId, cityLoaded, usaLoaded, publicMapVersion]);
 
+  // True when the loaded SVG actually contains at least one expected zone element.
+  // False means the SVG is a placeholder (no geographic paths), so we show an overlay.
+  const svgHasZones = useMemo(() => {
+    const svgContent = mapConfig.svg;
+    if (!svgContent) return false;
+    
+    // Collect all expected region IDs from both zoneToRegion and regionAliases
+    const zoneIds = (Object.values(mapConfig.zoneToRegion) as Array<string | string[]>).flat();
+    const aliasIds = Object.keys(mapConfig.regionAliases || {});
+    const expandedAliasIds = Object.values(mapConfig.regionAliases || {}).flat();
+    const allIds = new Set([...zoneIds, ...aliasIds, ...expandedAliasIds]);
+    
+    // Check if SVG contains any of these IDs
+    return Array.from(allIds).some((id) => svgContent.includes(`id="${id}"`));
+  }, [mapConfig]);
+
   const containerRef = useRef<HTMLDivElement | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
 
@@ -856,8 +872,16 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       )}
 
       {/* Flat map container: no zoom/pan transforms */}
-      <div className="w-full overflow-hidden aspect-[4/3] max-h-[55svh] sm:max-h-[70vh]">
+      <div className="relative w-full overflow-hidden aspect-[4/3] max-h-[55svh] sm:max-h-[70vh]">
         <div ref={containerRef} className="w-full h-full" />
+        {/* Overlay when the SVG loaded but contains no recognisable zone paths */}
+        {!publicMapLoadError && PUBLIC_MAP_IDS.has(mapId) && mapConfig.svg && !svgHasZones && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 z-20 pointer-events-none">
+            <span className="text-4xl mb-3">🚧</span>
+            <p className="text-slate-200 font-semibold text-sm">Map coming soon</p>
+            <p className="text-slate-500 text-xs mt-1">Zone data is not yet available for this map</p>
+          </div>
+        )}
       </div>
 
       {!hideLegend && (

@@ -253,7 +253,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   const subjectFilterOptions = useMemo(() => {
     const subjects = new Set<Subject>();
-    questions.forEach((q) => subjects.add(q.subject));
+    questions.forEach((zzq) => {
+      subjects.add(zzq.subject);
+    });
     return Array.from(subjects).sort();
   }, [questions]);
 
@@ -267,7 +269,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     const topics = new Set<string>();
     questions
       .filter((q) => questionSubjectFilter === 'all' || q.subject === questionSubjectFilter)
-      .forEach((q) => topics.add(getQuestionTopicLabel(q)));
+      .forEach((q) => {
+        topics.add(getQuestionTopicLabel(q));
+      });
     return Array.from(topics).sort();
   }, [questions, questionSubjectFilter]);
 
@@ -1258,7 +1262,27 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   };
 
   const buildResponseSummary = (student: any, answerKey: Record<number, string>) => {
-    const responses = getStudentResponses(student);
+    let responses = getStudentResponses(student);
+
+    // If the submission includes original_question_numbers (stored by the quiz HTML
+    // to record the shuffled-position → global-question mapping), remap local
+    // position keys back to global question numbers so the answer key (which uses
+    // global keys) can correctly grade each response.
+    const originalNumbers: Record<number, number> =
+      student?.answers?.original_question_numbers ?? {};
+    if (Object.keys(originalNumbers).length > 0) {
+      const remapped: Record<number, string> = {};
+      Object.entries(responses).forEach(([localKey, ans]) => {
+        // Only process numeric question keys; skip any spurious non-numeric entries
+        const numericKey = Number(localKey);
+        if (!Number.isNaN(numericKey)) {
+          const globalKey = originalNumbers[numericKey];
+          remapped[globalKey != null ? globalKey : numericKey] = ans as string;
+        }
+      });
+      responses = remapped;
+    }
+
     const totalQuestions = student?.total_questions || Object.keys(answerKey).length || 0;
     let correctCount = student?.score || 0;
     let unansweredCount = 0;
