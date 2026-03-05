@@ -14,5 +14,6 @@ Welcome to the documentation bundle for **Brains Heist** – a light-mode, spy/h
 | Teachers & Admins | [Teacher & School Systems Blueprint](./teacher-systems.md) | Content flows, analytics dashboards, assignments, events |
 | Students (Agents) | [Student Field Manual](./student-guide.md) | Missions, progress map, battles, scoring |
 | Content Editors | [Biology Question Import Workflow](./BIOLOGY_QUESTION_IMPORT_WORKFLOW.md) | Chapter-based import from image PDFs with max 30 questions per test part |
+| Data Owners & Operations | [Data, Business Logic & Functionality Guide](./DATA_BUSINESS_LOGIC_FUNCTIONALITY_GUIDE.md) | Domain ownership, rule integrity, KPI and stewardship routines |
 
 Each guide can be copied directly into a docs site. Update these files whenever schema, RPCs, or gameplay rules evolve so that onboarding stays frictionless.
