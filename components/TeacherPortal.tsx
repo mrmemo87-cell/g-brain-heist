@@ -253,7 +253,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   const subjectFilterOptions = useMemo(() => {
     const subjects = new Set<Subject>();
-    questions.forEach((zzq) => subjects.add(zzq.subject));
+    questions.forEach((zzq) => {
+      subjects.add(zzq.subject);
+    });
     return Array.from(subjects).sort();
   }, [questions]);
 
@@ -267,7 +269,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     const topics = new Set<string>();
     questions
       .filter((q) => questionSubjectFilter === 'all' || q.subject === questionSubjectFilter)
-      .forEach((q) => topics.add(getQuestionTopicLabel(q)));
+      .forEach((q) => {
+        topics.add(getQuestionTopicLabel(q));
+      });
     return Array.from(topics).sort();
   }, [questions, questionSubjectFilter]);
 
@@ -1269,8 +1273,12 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     if (Object.keys(originalNumbers).length > 0) {
       const remapped: Record<number, string> = {};
       Object.entries(responses).forEach(([localKey, ans]) => {
-        const globalKey = originalNumbers[Number(localKey)];
-        remapped[globalKey != null ? globalKey : Number(localKey)] = ans as string;
+        // Only process numeric question keys; skip any spurious non-numeric entries
+        const numericKey = Number(localKey);
+        if (!Number.isNaN(numericKey)) {
+          const globalKey = originalNumbers[numericKey];
+          remapped[globalKey != null ? globalKey : numericKey] = ans as string;
+        }
       });
       responses = remapped;
     }
