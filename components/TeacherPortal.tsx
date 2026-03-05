@@ -253,7 +253,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   const subjectFilterOptions = useMemo(() => {
     const subjects = new Set<Subject>();
-    questions.forEach((q) => subjects.add(q.subject));
+    questions.forEach((zzq) => subjects.add(q.subject));
     return Array.from(subjects).sort();
   }, [questions]);
 
@@ -1258,7 +1258,23 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   };
 
   const buildResponseSummary = (student: any, answerKey: Record<number, string>) => {
-    const responses = getStudentResponses(student);
+    let responses = getStudentResponses(student);
+
+    // If the submission includes original_question_numbers (stored by the quiz HTML
+    // to record the shuffled-position → global-question mapping), remap local
+    // position keys back to global question numbers so the answer key (which uses
+    // global keys) can correctly grade each response.
+    const originalNumbers: Record<number, number> =
+      student?.answers?.original_question_numbers ?? {};
+    if (Object.keys(originalNumbers).length > 0) {
+      const remapped: Record<number, string> = {};
+      Object.entries(responses).forEach(([localKey, ans]) => {
+        const globalKey = originalNumbers[Number(localKey)];
+        remapped[globalKey != null ? globalKey : Number(localKey)] = ans as string;
+      });
+      responses = remapped;
+    }
+
     const totalQuestions = student?.total_questions || Object.keys(answerKey).length || 0;
     let correctCount = student?.score || 0;
     let unansweredCount = 0;

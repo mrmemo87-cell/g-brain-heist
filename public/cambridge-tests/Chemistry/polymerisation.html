@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -1383,9 +1383,11 @@
       }
 
       const responses = {};
+      const originalNumbers = {};
       QUESTIONS.forEach((q) => {
         const selected = document.querySelector(`input[name="q${q.number}"]:checked`);
         responses[q.number] = selected ? selected.value : '';
+        originalNumbers[q.number] = q.originalNumber != null ? q.originalNumber : q.number;
       });
 
       const timeTaken = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
@@ -1404,6 +1406,7 @@
         percentage: result.percentage,
         answers: {
           responses,
+          original_question_numbers: originalNumbers,
           answer_key_ready: !result.pending,
           pending_answer_key: result.pending,
           quiz_version: `v1-${totalQuestions}q-part${QUIZ_PART.part}`
