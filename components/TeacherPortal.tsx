@@ -6175,23 +6175,65 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
-        /** Fix encoding-damaged placeholders in chemistry HTML:
-         *  1) <span aria-label="p orbital" ...>?</span>  →  sanitized badge with escaped label
-         *  2) <sup>N?</sup>  →  <sup>N−</sup>  (superscript minus/charge signs lost to Windows-1252 encoding)
-         *  3) <img ...>  →  normalized to consistent max size, centered; run through DOMPurify */
+        /** Fix encoding-damaged placeholders in chemistry HTML.
+         *  The question data was extracted from Windows-1252 HTML; non-ASCII chars
+         *  became bare `?`. Each rule below targets a specific known pattern:
+         *  1) <span aria-label="p orbital" ...>?</span>  →  badge with escaped label
+         *  2) <span class="supSym">?</span>  →  ° (standard-state symbol Δ/⊖)
+         *  3) <sup>?N</sup>  →  <sup>−N</sup>  (leading-minus then digit, e.g. mol⁻¹)
+         *  4) <sup>N?</sup>  →  <sup>N−</sup>  (trailing-minus, e.g. charge 2−)
+         *  5) space+?C  →  space+°C  (degree Celsius in temperature text)
+         *  6) ?H followed by span/space  →  ΔH  (enthalpy symbol)
+         *  7) ?<digit>  →  −<digit>  (negative numbers such as −394, −4.2)
+         *  8) <img>  →  normalised to consistent max size, centred */
         const fixChemHtml = (html: string) => {
-          const replaced = html
-            .replace(/<span\s+aria-label="([^"]+)"[^>]*>\s*\?\s*<\/span>/gi,
-              (_m: string, label: string) => `<span style="font-size:11px; background:#e0e7ff; color:#3730a3; padding:1px 5px; border-radius:4px; font-weight:600;">${escapeHTML(label)}</span>`)
-            .replace(/<sup>(\d*)\?<\/sup>/g, '<sup>$1\u2212</sup>')
+          // Phase 1 — element-level transforms applied to the raw HTML string.
+          // Rules 1 and 8 target specific element patterns and cannot corrupt URL
+          // attribute values, so they are safe to run on the full string.
+          let htmlStr = html
+            // 1) aria-label orbital badge — attribute-order-independent, single or double quotes
+            .replace(/<span\b[^>]*\baria-label=(["'])([^"']+)\1[^>]*>\s*\?\s*<\/span>/gi,
+              (_m: string, _q: string, label: string) =>
+                `<span style="font-size:11px; background:#e0e7ff; color:#3730a3; padding:1px 5px; border-radius:4px; font-weight:600;">${escapeHTML(label)}</span>`)
+            // 8) img normalisation
             .replace(/<img\b([^>]*?)(?:\s*\/)?>/gi, (_m: string, attrs: string) => {
-              // Strip any existing size/style attrs before applying our safe defaults
               const cleanAttrs = attrs.replace(/\s*(?:width|height|style)\s*=\s*(?:"[^"]*"|'[^']*'|\S+)/gi, '');
               return `<img${cleanAttrs} style="max-width:100%;max-height:300px;height:auto;display:block;margin:8px auto;border-radius:3px;" />`;
             });
+
+          // Phase 2 — text-node-only transforms via DOM so that attribute values
+          // (e.g. URLs containing ?digit) are never mutated by the ? → symbol rules.
+          const doc = new DOMParser().parseFromString(`<body>${htmlStr}</body>`, 'text/html');
+          const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+          let node: Text | null;
+          while ((node = walker.nextNode() as Text | null)) {
+            let t = node.nodeValue ?? '';
+            if (!t.includes('?')) continue; // fast-path: nothing to fix in this node
+            const parent = node.parentElement;
+            if (parent?.classList.contains('supSym')) {
+              // 2) standard-state ° inside supSym spans
+              node.nodeValue = t.replace(/\?/g, '\u00b0');
+            } else if (parent?.tagName === 'SUP') {
+              // 3) ? before digit(s) → − (mol?1 → mol⁻¹)
+              t = t.replace(/\?(\d+)/g, '\u2212$1');
+              // 4) digit(s) before ? → digit− (bare charge, e.g. 2? → 2−)
+              t = t.replace(/(\d*)\?/g, '$1\u2212');
+              node.nodeValue = t;
+            } else {
+              // 5) degree Celsius: ?C → °C
+              t = t.replace(/\?C\b/g, '\u00b0C');
+              // 6) delta H: ?H before whitespace / punctuation / end of text node → ΔH
+              t = t.replace(/\?H(?=[\s,.<]|$)/g, '\u0394H');
+              // 7) negative numbers: ?digit → −digit
+              t = t.replace(/\?(\d)/g, '\u2212$1');
+              node.nodeValue = t;
+            }
+          }
+          const replaced = doc.body.innerHTML;
           return DOMPurify.sanitize(replaced, {
-            ALLOWED_TAGS: ['sup', 'sub', 'span', 'img', 'br', 'div', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
-            ALLOWED_ATTR: ['style', 'src', 'alt', 'class', 'aria-label'],
+            ALLOWED_TAGS: ['sup', 'sub', 'span', 'img', 'br', 'div', 'ul', 'ol', 'li', 'p',
+                           'strong', 'em', 'b', 'i', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
+            ALLOWED_ATTR: ['style', 'src', 'alt', 'class', 'aria-label', 'loading'],
           });
         };
         
