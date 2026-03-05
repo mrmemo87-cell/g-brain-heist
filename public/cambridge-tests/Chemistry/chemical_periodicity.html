@@ -2031,6 +2031,7 @@
       }
 
       const responses = {};
+      const originalNumbers = {};
       let answered = 0;
       QUESTIONS.forEach(q => {
         const selected = document.querySelector(`input[name="q${q.number}"]:checked`);
@@ -2038,6 +2039,7 @@
           responses[q.number] = selected.value;
           answered++;
         }
+        originalNumbers[q.number] = q.originalNumber != null ? q.originalNumber : q.number;
       });
 
       if (!isForced && answered < totalQuestions) {

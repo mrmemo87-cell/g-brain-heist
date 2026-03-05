@@ -253,7 +253,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   const subjectFilterOptions = useMemo(() => {
     const subjects = new Set<Subject>();
-    questions.forEach((zzq) => subjects.add(q.subject));
+    questions.forEach((zzq) => subjects.add(zzq.subject));
     return Array.from(subjects).sort();
   }, [questions]);
 

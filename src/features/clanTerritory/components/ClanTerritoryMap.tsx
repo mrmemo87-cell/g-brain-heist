@@ -647,8 +647,15 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   const svgHasZones = useMemo(() => {
     const svgContent = mapConfig.svg;
     if (!svgContent) return false;
+    
+    // Collect all expected region IDs from both zoneToRegion and regionAliases
     const zoneIds = (Object.values(mapConfig.zoneToRegion) as Array<string | string[]>).flat();
-    return zoneIds.some((id) => svgContent.includes(`id="${id}"`));
+    const aliasIds = Object.keys(mapConfig.regionAliases || {});
+    const expandedAliasIds = Object.values(mapConfig.regionAliases || {}).flat();
+    const allIds = new Set([...zoneIds, ...aliasIds, ...expandedAliasIds]);
+    
+    // Check if SVG contains any of these IDs
+    return Array.from(allIds).some((id) => svgContent.includes(`id="${id}"`));
   }, [mapConfig]);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
