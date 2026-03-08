@@ -435,6 +435,8 @@ export interface Clan {
     notice: string;
     vault_metric: number; // This is total XP
     vault_coins: number;
+    member_limit: number;
+    extra_member_slots_purchased: number;
   members: ClanMember[];
   active_buffs: ActiveClanBuff[];
   clan_total_score?: number;
@@ -446,6 +448,7 @@ export interface ClanSummary {
     name: string;
     crest_url?: string;
     member_count: number;
+    member_limit: number;
     vault_metric: number;
   clan_total_score?: number;
   notice?: string;

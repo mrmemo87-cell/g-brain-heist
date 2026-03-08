@@ -1,7 +1,7 @@
 # Clan Competition - Quick Start
 
 ## What Is This?
-A **clan-based competition system** where teams of up to 5 players compete for the highest **total score**.
+A **clan-based competition system** where teams compete for the highest **total score** with a base capacity that can be expanded.
 
 ## How Scoring Works
 
@@ -78,11 +78,19 @@ clan_members (id, clan_id, player_id, role, joined_at)
 
 ### Constraints
 - Clan names are unique
-- Max 5 members per clan
+- Clan capacity starts at 5 members and can be expanded via vault slot purchases
 - Only one clan per player
 - Leader required to create clan
 
 ## Admin Verification
+
+### Apply slot-upgrade migration
+```sql
+-- Run this after CLAN_SCORING_SYSTEM.sql
+-- to enable purchasable member slots and dynamic member limits
+-- File: CLAN_MEMBER_SLOT_UPGRADE.sql
+```
+
 
 ### Check if migration worked
 ```sql
@@ -101,7 +109,7 @@ SELECT * FROM clan_scores ORDER BY clan_total_score DESC;
 
 ✅ PvP score tracking (+3 wins, +1 losses)  
 ✅ Clan creation and joining  
-✅ Max 5 members per clan  
+✅ Expandable clan capacity with vault slot purchases (base capacity: 5)  
 ✅ Automatic score calculation  
 ✅ Clan leaderboard  
 ✅ Member score breakdown  
@@ -126,7 +134,7 @@ console.log(result.success ? 'Clan created!' : result.error);
 ### Test Joining
 ```typescript
 const result = await joinClan(clanId);
-console.log(result.success ? `Joined! ${result.memberCount}/5 members` : result.error);
+console.log(result.success ? `Joined! ${result.memberCount} members` : result.error);
 ```
 
 ### Test Leaderboard
@@ -138,10 +146,11 @@ clans.forEach(c => console.log(`${c.clan_name}: ${c.clan_total_score}`));
 ## Important Notes
 
 1. **Score Updates**: Happen immediately after PvP battles
-2. **Clan Limit**: Max 5 members ensures balanced teams
-3. **Score Formula**: XP is primary, PvP is multiplier (×10)
-4. **Participation**: Even losses give +1 PvP score
-5. **Unique Names**: Clan names cannot be duplicated
+2. **Clan Capacity**: Starts at 5 members and can be expanded by leadership using clan vault coins
+3. **Slot Upgrade Cost**: First extra slot costs 10,000 vault coins; each next slot costs +10,000 more than previous
+4. **Score Formula**: XP is primary, PvP is multiplier (×10)
+5. **Participation**: Even losses give +1 PvP score
+6. **Unique Names**: Clan names cannot be duplicated
 
 ## Troubleshooting
 
@@ -149,7 +158,7 @@ clans.forEach(c => console.log(`${c.clan_name}: ${c.clan_total_score}`));
 A: Check if user already in a clan or if name is taken
 
 **Q: Can't join clan?**  
-A: Check if clan has space (max 5) or if user already in clan
+A: Check if clan has free capacity (base + purchased slot upgrades) or if user already in clan
 
 **Q: Scores not updating?**  
 A: Verify PvP battles are completing and `updatePvPScore()` is called
