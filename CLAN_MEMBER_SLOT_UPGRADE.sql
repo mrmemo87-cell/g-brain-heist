@@ -14,7 +14,7 @@ BEGIN
         FROM information_schema.columns
         WHERE table_name = 'clans' AND column_name = 'member_limit'
     ) THEN
-        ALTER TABLE clans ADD COLUMN member_limit INTEGER NOT NULL DEFAULT 5;
+        ALTER TABLE clans ADD COLUMN member_limit INTEGER;
     END IF;
 
     IF NOT EXISTS (
@@ -22,7 +22,7 @@ BEGIN
         FROM information_schema.columns
         WHERE table_name = 'clans' AND column_name = 'extra_member_slots_purchased'
     ) THEN
-        ALTER TABLE clans ADD COLUMN extra_member_slots_purchased INTEGER NOT NULL DEFAULT 0;
+        ALTER TABLE clans ADD COLUMN extra_member_slots_purchased INTEGER;
     END IF;
 END $$;
 
@@ -34,7 +34,38 @@ SET
 WHERE member_limit IS NULL
    OR extra_member_slots_purchased IS NULL;
 
--- 3) Update join RPC to respect dynamic member_limit
+-- 3) Repair defaults/nullability for partially-migrated installs
+ALTER TABLE clans ALTER COLUMN member_limit SET DEFAULT 5;
+ALTER TABLE clans ALTER COLUMN member_limit SET NOT NULL;
+ALTER TABLE clans ALTER COLUMN extra_member_slots_purchased SET DEFAULT 0;
+ALTER TABLE clans ALTER COLUMN extra_member_slots_purchased SET NOT NULL;
+
+-- 4) Enforce schema invariants
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'clans_member_limit_nonnegative_check'
+    ) THEN
+        ALTER TABLE clans
+        ADD CONSTRAINT clans_member_limit_nonnegative_check CHECK (member_limit >= 0);
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'clans_extra_slots_nonnegative_check'
+    ) THEN
+        ALTER TABLE clans
+        ADD CONSTRAINT clans_extra_slots_nonnegative_check CHECK (extra_member_slots_purchased >= 0);
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'clans_member_limit_consistency_check'
+    ) THEN
+        ALTER TABLE clans
+        ADD CONSTRAINT clans_member_limit_consistency_check CHECK (member_limit >= 5 + extra_member_slots_purchased);
+    END IF;
+END $$;
+
+-- 5) Update join RPC to respect dynamic member_limit and serialize concurrent joins
 CREATE OR REPLACE FUNCTION rpc_join_clan(p_clan_id UUID)
 RETURNS TABLE (
     success BOOLEAN,
@@ -52,21 +83,23 @@ BEGIN
         RETURN;
     END IF;
 
-    IF NOT EXISTS (SELECT 1 FROM clans WHERE id = p_clan_id) THEN
-        RETURN QUERY SELECT FALSE, 'Clan not found'::TEXT, 0;
-        RETURN;
-    END IF;
-
     IF EXISTS (SELECT 1 FROM clan_members WHERE user_id = v_user_id) THEN
         RETURN QUERY SELECT FALSE, 'User already in a clan'::TEXT, 0;
         RETURN;
     END IF;
 
-    SELECT COUNT(*), COALESCE(MAX(c.member_limit), 5)
-    INTO v_member_count, v_member_limit
-    FROM clan_members cm
-    JOIN clans c ON c.id = cm.clan_id
-    WHERE cm.clan_id = p_clan_id;
+    SELECT c.member_limit
+    INTO v_member_limit
+    FROM clans c
+    WHERE c.id = p_clan_id
+    FOR UPDATE;
+
+    IF v_member_limit IS NULL THEN
+        RETURN QUERY SELECT FALSE, 'Clan not found'::TEXT, 0;
+        RETURN;
+    END IF;
+
+    SELECT COUNT(*) INTO v_member_count FROM clan_members WHERE clan_id = p_clan_id;
 
     IF v_member_count >= v_member_limit THEN
         RETURN QUERY SELECT FALSE, 'Clan is full. Ask leader/officer/moderator to buy another slot from clan vault.'::TEXT, v_member_count;
@@ -80,7 +113,123 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 4) Add RPC to purchase one additional clan member slot
+-- 6) Add RPC to approve/reject join requests with role + member-limit checks
+CREATE OR REPLACE FUNCTION rpc_clan_join_request_decide(
+    p_request_id UUID,
+    p_action TEXT
+)
+RETURNS TABLE (
+    success BOOLEAN,
+    error_message TEXT,
+    request_status TEXT,
+    clan_id UUID,
+    member_count INTEGER
+) AS $$
+DECLARE
+    v_user_id UUID;
+    v_request RECORD;
+    v_action TEXT;
+    v_approver_clan_id UUID;
+    v_approver_role TEXT;
+    v_member_limit INTEGER;
+    v_member_count INTEGER;
+BEGIN
+    v_user_id := auth.uid();
+    IF v_user_id IS NULL THEN
+        RETURN QUERY SELECT FALSE, 'Not authenticated'::TEXT, NULL::TEXT, NULL::UUID, 0;
+        RETURN;
+    END IF;
+
+    v_action := lower(trim(p_action));
+    IF v_action = 'approve' THEN
+        v_action := 'approved';
+    ELSIF v_action = 'reject' THEN
+        v_action := 'rejected';
+    END IF;
+
+    IF v_action NOT IN ('approved', 'rejected') THEN
+        RETURN QUERY SELECT FALSE, 'Invalid action. Use approve/reject.'::TEXT, NULL::TEXT, NULL::UUID, 0;
+        RETURN;
+    END IF;
+
+    SELECT cjr.id, cjr.clan_id, cjr.user_id, cjr.status
+    INTO v_request
+    FROM clan_join_requests cjr
+    WHERE cjr.id = p_request_id
+    FOR UPDATE;
+
+    IF v_request.id IS NULL THEN
+        RETURN QUERY SELECT FALSE, 'Join request not found'::TEXT, NULL::TEXT, NULL::UUID, 0;
+        RETURN;
+    END IF;
+
+    IF v_request.status <> 'pending' THEN
+        RETURN QUERY SELECT FALSE, 'Join request already processed'::TEXT, v_request.status, v_request.clan_id, 0;
+        RETURN;
+    END IF;
+
+    SELECT cm.clan_id, cm.role
+    INTO v_approver_clan_id, v_approver_role
+    FROM clan_members cm
+    WHERE cm.user_id = v_user_id;
+
+    IF v_approver_clan_id IS NULL OR v_approver_clan_id <> v_request.clan_id THEN
+        RETURN QUERY SELECT FALSE, 'Not authorized for this clan request'::TEXT, NULL::TEXT, v_request.clan_id, 0;
+        RETURN;
+    END IF;
+
+    IF v_approver_role NOT IN ('leader', 'moderator') THEN
+        RETURN QUERY SELECT FALSE, 'Only leader/moderator can decide join requests'::TEXT, NULL::TEXT, v_request.clan_id, 0;
+        RETURN;
+    END IF;
+
+    IF v_action = 'approved' THEN
+        IF EXISTS (SELECT 1 FROM clan_members WHERE user_id = v_request.user_id) THEN
+            UPDATE clan_join_requests
+            SET status = 'rejected', approved_by = v_user_id, approved_at = NOW()
+            WHERE id = v_request.id;
+            RETURN QUERY SELECT FALSE, 'User is already in a clan'::TEXT, 'rejected'::TEXT, v_request.clan_id, 0;
+            RETURN;
+        END IF;
+
+        SELECT c.member_limit
+        INTO v_member_limit
+        FROM clans c
+        WHERE c.id = v_request.clan_id
+        FOR UPDATE;
+
+        IF v_member_limit IS NULL THEN
+            RETURN QUERY SELECT FALSE, 'Clan not found'::TEXT, NULL::TEXT, v_request.clan_id, 0;
+            RETURN;
+        END IF;
+
+        SELECT COUNT(*) INTO v_member_count FROM clan_members WHERE clan_id = v_request.clan_id;
+
+        IF v_member_count >= v_member_limit THEN
+            RETURN QUERY SELECT FALSE, 'Clan is full. Buy another member slot before approving.'::TEXT, NULL::TEXT, v_request.clan_id, v_member_count;
+            RETURN;
+        END IF;
+
+        INSERT INTO clan_members (clan_id, user_id, role)
+        VALUES (v_request.clan_id, v_request.user_id, 'member');
+
+        UPDATE clan_join_requests
+        SET status = 'approved', approved_by = v_user_id, approved_at = NOW()
+        WHERE id = v_request.id;
+
+        RETURN QUERY SELECT TRUE, NULL::TEXT, 'approved'::TEXT, v_request.clan_id, v_member_count + 1;
+        RETURN;
+    END IF;
+
+    UPDATE clan_join_requests
+    SET status = 'rejected', approved_by = v_user_id, approved_at = NOW()
+    WHERE id = v_request.id;
+
+    RETURN QUERY SELECT TRUE, NULL::TEXT, 'rejected'::TEXT, v_request.clan_id, 0;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 7) Add RPC to purchase one additional clan member slot
 CREATE OR REPLACE FUNCTION rpc_purchase_clan_member_slot()
 RETURNS TABLE (
     success BOOLEAN,

@@ -1,7 +1,7 @@
 # Clan Competition - Quick Start
 
 ## What Is This?
-A **clan-based competition system** where teams of up to 5 players compete for the highest **total score**.
+A **clan-based competition system** where teams compete for the highest **total score** with a base capacity that can be expanded.
 
 ## How Scoring Works
 
@@ -78,7 +78,7 @@ clan_members (id, clan_id, player_id, role, joined_at)
 
 ### Constraints
 - Clan names are unique
-- Base limit: 5 members per clan
+- Clan capacity starts at 5 members and can be expanded via vault slot purchases
 - Only one clan per player
 - Leader required to create clan
 
@@ -109,7 +109,7 @@ SELECT * FROM clan_scores ORDER BY clan_total_score DESC;
 
 ✅ PvP score tracking (+3 wins, +1 losses)  
 ✅ Clan creation and joining  
-✅ Base clan limit of 5 members, expandable with vault slot purchases  
+✅ Expandable clan capacity with vault slot purchases (base capacity: 5)  
 ✅ Automatic score calculation  
 ✅ Clan leaderboard  
 ✅ Member score breakdown  
@@ -146,7 +146,7 @@ clans.forEach(c => console.log(`${c.clan_name}: ${c.clan_total_score}`));
 ## Important Notes
 
 1. **Score Updates**: Happen immediately after PvP battles
-2. **Clan Limit**: Starts at 5 members; leadership can buy extra slots from clan vault
+2. **Clan Capacity**: Starts at 5 members and can be expanded by leadership using clan vault coins
 3. **Slot Upgrade Cost**: First extra slot costs 10,000 vault coins; each next slot costs +10,000 more than previous
 4. **Score Formula**: XP is primary, PvP is multiplier (×10)
 5. **Participation**: Even losses give +1 PvP score
@@ -158,7 +158,7 @@ clans.forEach(c => console.log(`${c.clan_name}: ${c.clan_total_score}`));
 A: Check if user already in a clan or if name is taken
 
 **Q: Can't join clan?**  
-A: Check if clan has free slots (base 5 + purchased upgrades) or if user already in clan
+A: Check if clan has free capacity (base + purchased slot upgrades) or if user already in clan
 
 **Q: Scores not updating?**  
 A: Verify PvP battles are completing and `updatePvPScore()` is called

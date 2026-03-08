@@ -3487,7 +3487,14 @@ export const clan_list = async (): Promise<ClanSummary[]> => {
             console.warn('Failed to load clan metadata:', metaError);
         } else if (clanMeta) {
             metaById = new Map(
-                clanMeta.map((clan: any) => [clan.id, { notice: clan.notice, crest_url: clan.crest_url, member_limit: clan.member_limit }])
+                clanMeta.map((clan: any) => [
+                    clan.id,
+                    {
+                        notice: clan.notice,
+                        crest_url: clan.crest_url,
+                        ...(clan.member_limit != null ? { member_limit: Number(clan.member_limit) } : {}),
+                    },
+                ])
             );
         }
     }
@@ -3502,7 +3509,7 @@ export const clan_list = async (): Promise<ClanSummary[]> => {
             notice: meta?.notice,
             crest_url: meta?.crest_url,
             member_count: Number(clan.member_count ?? 0),
-            member_limit: Number(meta?.member_limit ?? 5),
+            member_limit: Number(clan.member_limit ?? meta?.member_limit ?? 5),
             vault_metric: totalScore,
             clan_total_score: totalScore,
         };
@@ -3937,8 +3944,8 @@ export const clan_details = async (): Promise<Clan | null> => {
         crest_url: crestUrl,
         vault_metric: totalScore,
         vault_coins: clan.vault_coins || 0,
-        member_limit: clan.member_limit || 5,
-        extra_member_slots_purchased: clan.extra_member_slots_purchased || 0,
+        member_limit: clan.member_limit ?? 5,
+        extra_member_slots_purchased: clan.extra_member_slots_purchased ?? 0,
         members,
         active_buffs: activeBuffs,
         clan_total_score: totalScore,
