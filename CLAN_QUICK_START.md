@@ -78,11 +78,19 @@ clan_members (id, clan_id, player_id, role, joined_at)
 
 ### Constraints
 - Clan names are unique
-- Max 5 members per clan
+- Base limit: 5 members per clan
 - Only one clan per player
 - Leader required to create clan
 
 ## Admin Verification
+
+### Apply slot-upgrade migration
+```sql
+-- Run this after CLAN_SCORING_SYSTEM.sql
+-- to enable purchasable member slots and dynamic member limits
+-- File: CLAN_MEMBER_SLOT_UPGRADE.sql
+```
+
 
 ### Check if migration worked
 ```sql
@@ -101,7 +109,7 @@ SELECT * FROM clan_scores ORDER BY clan_total_score DESC;
 
 ✅ PvP score tracking (+3 wins, +1 losses)  
 ✅ Clan creation and joining  
-✅ Max 5 members per clan  
+✅ Base clan limit of 5 members, expandable with vault slot purchases  
 ✅ Automatic score calculation  
 ✅ Clan leaderboard  
 ✅ Member score breakdown  
@@ -126,7 +134,7 @@ console.log(result.success ? 'Clan created!' : result.error);
 ### Test Joining
 ```typescript
 const result = await joinClan(clanId);
-console.log(result.success ? `Joined! ${result.memberCount}/5 members` : result.error);
+console.log(result.success ? `Joined! ${result.memberCount} members` : result.error);
 ```
 
 ### Test Leaderboard
@@ -138,10 +146,11 @@ clans.forEach(c => console.log(`${c.clan_name}: ${c.clan_total_score}`));
 ## Important Notes
 
 1. **Score Updates**: Happen immediately after PvP battles
-2. **Clan Limit**: Max 5 members ensures balanced teams
-3. **Score Formula**: XP is primary, PvP is multiplier (×10)
-4. **Participation**: Even losses give +1 PvP score
-5. **Unique Names**: Clan names cannot be duplicated
+2. **Clan Limit**: Starts at 5 members; leadership can buy extra slots from clan vault
+3. **Slot Upgrade Cost**: First extra slot costs 10,000 vault coins; each next slot costs +10,000 more than previous
+4. **Score Formula**: XP is primary, PvP is multiplier (×10)
+5. **Participation**: Even losses give +1 PvP score
+6. **Unique Names**: Clan names cannot be duplicated
 
 ## Troubleshooting
 
@@ -149,7 +158,7 @@ clans.forEach(c => console.log(`${c.clan_name}: ${c.clan_total_score}`));
 A: Check if user already in a clan or if name is taken
 
 **Q: Can't join clan?**  
-A: Check if clan has space (max 5) or if user already in clan
+A: Check if clan has free slots (base 5 + purchased upgrades) or if user already in clan
 
 **Q: Scores not updating?**  
 A: Verify PvP battles are completing and `updatePvPScore()` is called

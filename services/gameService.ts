@@ -3475,19 +3475,19 @@ export const clan_list = async (): Promise<ClanSummary[]> => {
     }
 
     const clanIds = (clanScores || []).map((clan: any) => clan.id).filter(Boolean);
-    let metaById = new Map<string, { notice?: string; crest_url?: string }>();
+    let metaById = new Map<string, { notice?: string; crest_url?: string; member_limit?: number }>();
 
     if (clanIds.length > 0) {
         const { data: clanMeta, error: metaError } = await supabase
             .from('clans')
-            .select('id, notice, crest_url')
+            .select('id, notice, crest_url, member_limit')
             .in('id', clanIds);
 
         if (metaError) {
             console.warn('Failed to load clan metadata:', metaError);
         } else if (clanMeta) {
             metaById = new Map(
-                clanMeta.map((clan: any) => [clan.id, { notice: clan.notice, crest_url: clan.crest_url }])
+                clanMeta.map((clan: any) => [clan.id, { notice: clan.notice, crest_url: clan.crest_url, member_limit: clan.member_limit }])
             );
         }
     }
@@ -3502,6 +3502,7 @@ export const clan_list = async (): Promise<ClanSummary[]> => {
             notice: meta?.notice,
             crest_url: meta?.crest_url,
             member_count: Number(clan.member_count ?? 0),
+            member_limit: Number(meta?.member_limit ?? 5),
             vault_metric: totalScore,
             clan_total_score: totalScore,
         };
@@ -3936,6 +3937,8 @@ export const clan_details = async (): Promise<Clan | null> => {
         crest_url: crestUrl,
         vault_metric: totalScore,
         vault_coins: clan.vault_coins || 0,
+        member_limit: clan.member_limit || 5,
+        extra_member_slots_purchased: clan.extra_member_slots_purchased || 0,
         members,
         active_buffs: activeBuffs,
         clan_total_score: totalScore,
@@ -4028,6 +4031,8 @@ export const clan_create = async (name: string, notice: string): Promise<Clan> =
         crest_url: undefined,
         vault_metric: 0,
         vault_coins: 0,
+        member_limit: 5,
+        extra_member_slots_purchased: 0,
         members: [{
             user_id: user.id,
             username: username,
@@ -4273,6 +4278,26 @@ export const clan_buy_buff = async (buffCode: string): Promise<Clan> => {
 
     return await clan_details() as Clan;
 };
+
+
+export const clan_buy_member_slot = async (): Promise<Clan> => {
+    await getCurrentUser();
+
+    const { data, error } = await supabase.rpc('rpc_purchase_clan_member_slot');
+
+    if (error) {
+        console.error('Failed to purchase clan member slot:', error);
+        throw new Error(error.message || 'Failed to buy member slot.');
+    }
+
+    const result = getRpcSingleRow(data);
+    if (!result?.success) {
+        throw new Error(result?.error_message || 'Failed to buy member slot.');
+    }
+
+    return await clan_details() as Clan;
+};
+
 
 export const clan_transfer_leadership = async (targetUserId: string): Promise<Clan> => {
     await getCurrentUser();
