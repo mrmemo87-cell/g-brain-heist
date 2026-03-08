@@ -4,6 +4,8 @@ import { Profile } from '../types';
 import { getPublicProfile } from '../services/gameService';
 import { ShieldIcon, BrainIcon } from './icons';
 import AvatarWithFrame from './AvatarWithFrame';
+import DeveloperBadge from './DeveloperBadge';
+import { isDeveloperBadgeUser } from './developerBadge';
 
 interface ClickableUsernameProps {
   /** The user ID to fetch profile for */
@@ -65,6 +67,7 @@ const ProfileModal: React.FC<{ profile: Profile; onClose: () => void }> = ({ pro
     : 'No clan';
 
   const bioText = profile.bio?.trim() || 'No bio set.';
+  const showDeveloperBadge = isDeveloperBadgeUser(profile.id);
 
   return (
     <ModalPortal onClose={onClose}>
@@ -80,7 +83,10 @@ const ProfileModal: React.FC<{ profile: Profile; onClose: () => void }> = ({ pro
             fallbackFrameClassName="border-2 border-pink-400/60"
           />
           <div>
-            <h3 className="text-lg font-bold text-white">{profile.username}</h3>
+            <h3 className="text-lg font-bold text-white inline-flex items-center">
+              <span>{profile.username}</span>
+              {showDeveloperBadge && <DeveloperBadge />}
+            </h3>
             <p className="text-xs uppercase tracking-wide text-cyan-300">Level {profile.level}</p>
             {profile.batch && profile.batch !== 'N/A' && (
               <p className="text-xs text-slate-400">Batch {profile.batch}</p>
@@ -176,6 +182,7 @@ const ClickableUsername: React.FC<ClickableUsernameProps> = ({
   }, []);
 
   const defaultClassName = 'cursor-pointer hover:text-cyan-300 transition-colors underline decoration-dotted decoration-cyan-400/50 underline-offset-2';
+  const showDeveloperBadge = isDeveloperBadgeUser(userId);
 
   return (
     <>
@@ -184,7 +191,10 @@ const ClickableUsername: React.FC<ClickableUsernameProps> = ({
         onClick={handleClick}
         className={className || defaultClassName}
       >
-        {children || username}
+        <span className="inline-flex items-center">
+          {children || username}
+          {showDeveloperBadge && <DeveloperBadge />}
+        </span>
       </button>
 
       {showModal && (
