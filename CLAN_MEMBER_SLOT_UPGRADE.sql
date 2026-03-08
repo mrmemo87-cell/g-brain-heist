@@ -114,6 +114,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 6) Add RPC to approve/reject join requests with role + member-limit checks
+DROP FUNCTION IF EXISTS rpc_clan_join_request_decide(UUID, TEXT);
 CREATE OR REPLACE FUNCTION rpc_clan_join_request_decide(
     p_request_id UUID,
     p_action TEXT
