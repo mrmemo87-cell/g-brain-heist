@@ -86,6 +86,13 @@ import {
 
 const MOCK_DELAY = 500;
 
+const formatLocalDateKey = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 type BootNonCriticalKey = 'tasks' | 'caps' | 'news' | 'assignment' | 'sessionStatus';
 type BootNonCriticalTimeouts = Partial<Record<BootNonCriticalKey, number>>;
 
@@ -2013,6 +2020,22 @@ export const tasks_list = async (): Promise<Task[]> => {
       .lte('created_at', todayEnd.toISOString());
     
     dailyQuestsCompleted = questData?.length || 0;
+
+    // Fallback: derive completed quests from teacher-system quest sessions when activities are not logged
+    if (dailyQuestsCompleted === 0) {
+      const { data: questSessionRows } = await supabase
+        .from('question_attempts')
+        .select('quest_session_id')
+        .eq('student_id', user.id)
+        .gte('created_at', todayStart.toISOString())
+        .lte('created_at', todayEnd.toISOString())
+        .not('quest_session_id', 'is', null);
+
+      const uniqueQuestSessions = new Set((questSessionRows || [])
+        .map((row: any) => row.quest_session_id)
+        .filter(Boolean));
+      dailyQuestsCompleted = uniqueQuestSessions.size;
+    }
     
     // Query database for today's PvP wins
     const { data: pvpData } = await supabase
@@ -2051,12 +2074,32 @@ export const tasks_list = async (): Promise<Task[]> => {
     progress.daily_quests_completed = dailyQuestsCompleted;
     progress.daily_pvp_wins = dailyPvpWins;
     progress.weekly_tasks_completed = weeklyTasksCompleted;
+    saveToStorage(STORAGE_KEYS.TASK_PROGRESS, progress);
   }
+
+  // Keep counters responsive even when DB activity writes are delayed
+  dailyQuestsCompleted = Math.max(dailyQuestsCompleted, progress.daily_quests_completed);
+  dailyPvpWins = Math.max(dailyPvpWins, progress.daily_pvp_wins);
+  weeklyTasksCompleted = Math.max(weeklyTasksCompleted, progress.weekly_tasks_completed);
   
-  // Get claimed tasks for today from localStorage (still needed for claim tracking)
+  // Build storage keys for claim tracking
   const today = new Date().toISOString().split('T')[0];
-  const claimedKey = `task_claims_${today}`;
-  const claimedTasks = JSON.parse(localStorage.getItem(claimedKey) || '[]') as string[];
+  const claimedDailyKey = `task_claims_daily_${today}`;
+
+  const weekStartForClaims = new Date();
+  const weekDayForClaims = weekStartForClaims.getDay();
+  weekStartForClaims.setDate(weekStartForClaims.getDate() - weekDayForClaims);
+  weekStartForClaims.setHours(0, 0, 0, 0);
+  const weekStartDateKey = formatLocalDateKey(weekStartForClaims);
+  const claimedWeeklyKey = `task_claims_weekly_${weekStartDateKey}`;
+  const weekStartForClaimsIso = weekStartForClaims.toISOString();
+
+  // Legacy key kept for backward compatibility (older builds stored all claims per-day)
+  const legacyClaimedKey = `task_claims_${today}`;
+
+  const claimedDailyTasks = JSON.parse(localStorage.getItem(claimedDailyKey) || '[]') as string[];
+  const claimedWeeklyTasks = JSON.parse(localStorage.getItem(claimedWeeklyKey) || '[]') as string[];
+  const legacyClaimedTasks = JSON.parse(localStorage.getItem(legacyClaimedKey) || '[]') as string[];
   
   // Calculate time until midnight for daily reset
   const now = new Date();
@@ -2075,27 +2118,42 @@ export const tasks_list = async (): Promise<Task[]> => {
   const weeklyExpiry = daysUntilSunday === 1 ? '1d' : `${daysUntilSunday}d`;
   
   // Also check database for claimed status
-  let claimedFromDb: string[] = [];
+  let claimedDailyFromDb: string[] = [];
+  let claimedWeeklyFromDb: string[] = [];
   try {
     const user = await getCurrentUser();
     const todayStart = new Date(now);
     todayStart.setHours(0, 0, 0, 0);
-    
-    const { data: claimedData } = await supabase
+
+    const { data: claimedDailyData } = await supabase
       .from('activities')
       .select('data')
       .eq('actor_id', user.id)
       .eq('kind', 'task_claimed')
+      .eq('data->>task_kind', 'daily')
       .gte('created_at', todayStart.toISOString());
-    
-    claimedFromDb = (claimedData || [])
+
+    claimedDailyFromDb = (claimedDailyData || [])
+      .map((d: any) => d.data?.task_id)
+      .filter(Boolean);
+
+    const { data: claimedWeeklyData } = await supabase
+      .from('activities')
+      .select('data')
+      .eq('actor_id', user.id)
+      .eq('kind', 'task_claimed')
+      .eq('data->>task_kind', 'weekly')
+      .gte('created_at', weekStartForClaimsIso);
+
+    claimedWeeklyFromDb = (claimedWeeklyData || [])
       .map((d: any) => d.data?.task_id)
       .filter(Boolean);
   } catch {
     // Ignore errors, use localStorage
   }
-  
-  const allClaimedTasks = [...new Set([...claimedTasks, ...claimedFromDb])];
+
+  const allClaimedDailyTasks = [...new Set([...claimedDailyTasks, ...claimedDailyFromDb, ...legacyClaimedTasks])];
+  const allClaimedWeeklyTasks = [...new Set([...claimedWeeklyTasks, ...claimedWeeklyFromDb])];
   
   const tasks: Task[] = [
     {
@@ -2106,7 +2164,7 @@ export const tasks_list = async (): Promise<Task[]> => {
       target: 3,
       reward_preview: '175 XP, 350 Coins, +1 Gemstone',
       expires_at: dailyExpiry,
-      claimed: allClaimedTasks.includes('task_d1'),
+      claimed: allClaimedDailyTasks.includes('task_d1'),
       reward: { xp: 175, coins: 350, gemstones: 1 },
     },
     {
@@ -2117,7 +2175,7 @@ export const tasks_list = async (): Promise<Task[]> => {
       target: 1,
       reward_preview: '100 XP, 50 Coins, +1 Gemstone',
       expires_at: dailyExpiry,
-      claimed: allClaimedTasks.includes('task_d2'),
+      claimed: allClaimedDailyTasks.includes('task_d2'),
       reward: { xp: 100, coins: 50, gemstones: 1 },
     },
     {
@@ -2128,7 +2186,7 @@ export const tasks_list = async (): Promise<Task[]> => {
       target: 15,
       reward_preview: '500 XP, 400 Coins, +1 Item Crate, +5 Gemstones',
       expires_at: weeklyExpiry,
-      claimed: allClaimedTasks.includes('task_w1'),
+      claimed: allClaimedWeeklyTasks.includes('task_w1'),
       reward: { xp: 500, coins: 400, gemstones: 5, items: ['mystery_crate'] },
     },
   ];
@@ -2169,7 +2227,17 @@ export const task_claim = async (task_id: string): Promise<{ xp: number; coins: 
   
   // Mark as claimed in localStorage
   const today = new Date().toISOString().split('T')[0];
-  const claimedKey = `task_claims_${today}`;
+  const now = new Date();
+  const weekStart = new Date(now);
+  const dayOfWeek = weekStart.getDay();
+  weekStart.setDate(weekStart.getDate() - dayOfWeek);
+  weekStart.setHours(0, 0, 0, 0);
+  const weekStartDateKey = formatLocalDateKey(weekStart);
+
+  const claimedKey = task.kind === 'weekly'
+    ? `task_claims_weekly_${weekStartDateKey}`
+    : `task_claims_daily_${today}`;
+
   const claimedTasks = JSON.parse(localStorage.getItem(claimedKey) || '[]') as string[];
   claimedTasks.push(task_id);
   localStorage.setItem(claimedKey, JSON.stringify(claimedTasks));
@@ -2180,7 +2248,7 @@ export const task_claim = async (task_id: string): Promise<{ xp: number; coins: 
       actor_id: user.id,
       actor_username: (await whoami()).username,
       kind: 'task_claimed',
-      data: { task_id, reward: task.reward },
+      data: { task_id, task_kind: task.kind, reward: task.reward },
     });
   } catch (error) {
     console.warn('Failed to record task claim in database:', error);
