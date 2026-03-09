@@ -86,6 +86,13 @@ import {
 
 const MOCK_DELAY = 500;
 
+const formatLocalDateKey = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 type BootNonCriticalKey = 'tasks' | 'caps' | 'news' | 'assignment' | 'sessionStatus';
 type BootNonCriticalTimeouts = Partial<Record<BootNonCriticalKey, number>>;
 
@@ -2083,8 +2090,9 @@ export const tasks_list = async (): Promise<Task[]> => {
   const weekDayForClaims = weekStartForClaims.getDay();
   weekStartForClaims.setDate(weekStartForClaims.getDate() - weekDayForClaims);
   weekStartForClaims.setHours(0, 0, 0, 0);
-  const weekStartIsoDate = weekStartForClaims.toISOString().split('T')[0];
-  const claimedWeeklyKey = `task_claims_weekly_${weekStartIsoDate}`;
+  const weekStartDateKey = formatLocalDateKey(weekStartForClaims);
+  const claimedWeeklyKey = `task_claims_weekly_${weekStartDateKey}`;
+  const weekStartForClaimsIso = weekStartForClaims.toISOString();
 
   // Legacy key kept for backward compatibility (older builds stored all claims per-day)
   const legacyClaimedKey = `task_claims_${today}`;
@@ -2135,7 +2143,7 @@ export const tasks_list = async (): Promise<Task[]> => {
       .eq('actor_id', user.id)
       .eq('kind', 'task_claimed')
       .eq('data->>task_kind', 'weekly')
-      .gte('created_at', weekStartIsoDate);
+      .gte('created_at', weekStartForClaimsIso);
 
     claimedWeeklyFromDb = (claimedWeeklyData || [])
       .map((d: any) => d.data?.task_id)
@@ -2224,10 +2232,10 @@ export const task_claim = async (task_id: string): Promise<{ xp: number; coins: 
   const dayOfWeek = weekStart.getDay();
   weekStart.setDate(weekStart.getDate() - dayOfWeek);
   weekStart.setHours(0, 0, 0, 0);
-  const weekStartIsoDate = weekStart.toISOString().split('T')[0];
+  const weekStartDateKey = formatLocalDateKey(weekStart);
 
   const claimedKey = task.kind === 'weekly'
-    ? `task_claims_weekly_${weekStartIsoDate}`
+    ? `task_claims_weekly_${weekStartDateKey}`
     : `task_claims_daily_${today}`;
 
   const claimedTasks = JSON.parse(localStorage.getItem(claimedKey) || '[]') as string[];
