@@ -298,6 +298,18 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
         void loadPendingJoinRequests();
     }, [isPrivileged, clan?.id]);
 
+    useEffect(() => {
+        if (!capacityUpgradePrompt?.requestId) return;
+
+        const stillPending = pendingApprovals.some(
+            (request) => request.id === capacityUpgradePrompt.requestId && request.status === 'pending'
+        );
+
+        if (!stillPending) {
+            setCapacityUpgradePrompt(null);
+        }
+    }, [capacityUpgradePrompt?.requestId, pendingApprovals]);
+
     useLayoutEffect(() => {
         if (approvalsScrollRef.current) {
             approvalsScrollRef.current.scrollTop = approvalsScrollTop.current;
@@ -481,6 +493,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
               onPendingCountChange?.(next.length);
               return next;
           });
+          setCapacityUpgradePrompt(null);
           if (clan?.id) {
               const members = await GameService.clan_get_members_by_id(clan.id);
               setClan((prev) => (prev ? { ...prev, members } : prev));
@@ -513,6 +526,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
               onPendingCountChange?.(next.length);
               return next;
           });
+          setCapacityUpgradePrompt(null);
           addToast("Join request rejected.", "info");
       } catch (error: any) {
           addToast(error?.message || "Failed to reject request.", "error");
@@ -543,10 +557,16 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
 
       setIsUpgradingCapacity(true);
       try {
+          const prevLevel = clan ? getClanLevel(clan.member_limit, clan.extra_member_slots_purchased) : 0;
           const updatedClan = await GameService.clan_buy_member_slot();
+          const nextLevel = getClanLevel(updatedClan.member_limit, updatedClan.extra_member_slots_purchased);
           setClan(updatedClan);
           setCapacityUpgradePrompt(null);
-          addToast('Clan leveled up! Member capacity increased.', 'success');
+          if (nextLevel > prevLevel) {
+              addToast('Clan leveled up! New benefits unlocked.', 'success');
+          } else {
+              addToast('Member capacity increased.', 'success');
+          }
       } catch (error: any) {
           addToast(error?.message || 'Failed to level up clan.', 'error');
       } finally {

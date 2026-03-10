@@ -3826,7 +3826,13 @@ export const clan_approve_join_request = async (requestId: string): Promise<bool
         if (error.message?.includes('404') || error.code === 'PGRST116') {
             throw new Error('clan_join_requests table not found. Please run the migration SQL.');
         }
-        throw new Error(error.message || error.details || error.hint || 'Failed to approve request.');
+
+        const reasonParts = [error.details, error.hint, error.message, error.code]
+            .map((part) => (typeof part === 'string' ? part.trim() : ''))
+            .filter((part, index, arr) => part.length > 0 && arr.indexOf(part) === index);
+        const combinedReason = reasonParts.length > 0 ? reasonParts.join(' | ') : 'Failed to approve request.';
+
+        throw new Error(`Failed to approve request: ${combinedReason}`);
     }
 
     return mockApiCall(true);
