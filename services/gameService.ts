@@ -3625,6 +3625,22 @@ export interface ClanJoinResult {
     message?: string;
 }
 
+const maskEmailForDisplay = (email?: string | null): string | null => {
+    const trimmed = email?.trim();
+    if (!trimmed || !trimmed.includes('@')) return null;
+
+    const [rawLocal, rawDomain] = trimmed.split('@');
+    if (!rawLocal || !rawDomain) return null;
+
+    const maskedLocal = rawLocal.length <= 1 ? `${rawLocal[0] || '*'}***` : `${rawLocal[0]}***`;
+    const domainParts = rawDomain.split('.');
+    const domainRoot = domainParts[0] || '';
+    const tld = domainParts.slice(1).join('.');
+    const maskedDomainRoot = domainRoot ? `${domainRoot[0]}****` : 'd****';
+
+    return tld ? `${maskedLocal}@${maskedDomainRoot}.${tld}` : `${maskedLocal}@${maskedDomainRoot}`;
+};
+
 const mapJoinRequest = (row: any): ClanJoinRequest => ({
     id: row.id,
     clan_id: row.clan_id,
@@ -3635,8 +3651,8 @@ const mapJoinRequest = (row: any): ClanJoinRequest => ({
     approver_id: row.approved_by ?? null,
     clan_name: row.clans?.name ?? row.clan_name,
     username: row.username ?? row.users?.username,
-    full_name: row.full_name ?? row.users?.full_name,
-    email: row.email ?? row.users?.email,
+    full_name: row.full_name ?? row.users?.full_name ?? null,
+    email: maskEmailForDisplay(row.email ?? row.users?.email) ?? null,
     avatar_url: row.avatar_url ?? row.users?.avatar_url,
 });
 
@@ -3789,16 +3805,22 @@ export const clan_get_pending_join_requests = async (): Promise<ClanJoinRequest[
     const userIds = [...new Set(data.map(r => r.user_id))];
     const { data: usersData } = await supabase
         .from('users')
-        .select('id, username, full_name, email, avatar_url')
+        .select('id, username, full_name, avatar_url')
         .in('id', userIds);
 
     const usersMap = new Map((usersData || []).map(u => [u.id, u]));
 
     const enrichedData = data.map(r => {
         const user = usersMap.get(r.user_id);
+        const safeUsername = user?.username?.trim() || null;
+        const safeFullName = user?.full_name?.trim() || null;
+        const maskedEmail = maskEmailForDisplay(safeUsername && safeUsername.includes('@') ? safeUsername : null);
+
         return {
             ...r,
-            users: user || { username: 'Unknown agent', avatar_url: null },
+            users: user || { username: 'Unknown agent', full_name: null, email: null, avatar_url: null },
+            full_name: safeFullName,
+            email: maskedEmail,
         };
     });
 

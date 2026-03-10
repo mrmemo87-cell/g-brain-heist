@@ -1218,9 +1218,9 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                                 onClick={handleClanLevelUp}
                                                 disabled={isUpgradingCapacity}
                                                 className="rounded-md border border-cyan-300/60 px-3 py-1.5 text-xs font-semibold text-cyan-100 bg-cyan-500/20 hover:bg-cyan-500/30 disabled:opacity-50"
-                                                title="Upgrade clan level and unlock more seats"
+                                                title="Upgrade clan member capacity"
                                             >
-                                                {isUpgradingCapacity ? 'Upgrading...' : '⚡ Upgrade Level'}
+                                                {isUpgradingCapacity ? 'Upgrading...' : '⚡ Upgrade Capacity'}
                                             </button>
                                         )}
                                     </div>
@@ -1504,9 +1504,9 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                                                  {formatRequestName(request).slice(0, 2).toUpperCase()}
                                                              </div>
                                                          )}
-                                                         <div>
-                                                             <p className="font-semibold text-white">{formatRequestName(request)}</p>
-                                                             <p className="text-xs text-gray-400">
+                                                         <div className="min-w-0">
+                                                             <p className="font-semibold text-white truncate">{formatRequestName(request)}</p>
+                                                             <p className="text-xs text-gray-400 truncate">
                                                                  Requested at {request.requested_at ? new Date(request.requested_at).toLocaleString() : request.created_at ? new Date(request.created_at).toLocaleString() : 'unknown time'}
                                                              </p>
                                                          </div>
@@ -1566,13 +1566,13 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                         </div>
                                         <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex sm:items-center sm:space-x-2">
                                             {myPower > targetPower && member.role === 'member' && (
-                                                <button onClick={() => handlePromote(member.user_id)} className="p-2 rounded-md hover:bg-green-500/20 text-green-400" title="Promote to Officer"><PromoteIcon className="w-5 h-5"/></button>
+                                                <button onClick={() => handlePromote(member.user_id)} aria-label="Promote member to Officer" className="p-2 rounded-md hover:bg-green-500/20 text-green-400 inline-flex items-center gap-1.5" title="Promote to Officer"><PromoteIcon className="w-5 h-5"/><span className="sm:hidden text-xs font-semibold">Promote</span></button>
                                             )}
                                             {myPower > targetPower && member.role === 'officer' && myMemberInfo.role === 'leader' && (
-                                                <button onClick={() => handleDemote(member.user_id)} className="p-2 rounded-md hover:bg-amber-500/20 text-amber-400" title="Demote to Member"><DemoteIcon className="w-5 h-5"/></button>
+                                                <button onClick={() => handleDemote(member.user_id)} aria-label="Demote officer to Member" className="p-2 rounded-md hover:bg-amber-500/20 text-amber-400 inline-flex items-center gap-1.5" title="Demote to Member"><DemoteIcon className="w-5 h-5"/><span className="sm:hidden text-xs font-semibold">Demote</span></button>
                                             )}
                                              {myPower > targetPower && (
-                                                <button onClick={() => { setMemberToKick(member); setModal('confirm_kick'); }} className="p-2 rounded-md hover:bg-red-500/20 text-red-400" title="Kick Member"><KickIcon className="w-5 h-5"/></button>
+                                                <button onClick={() => { setMemberToKick(member); setModal('confirm_kick'); }} aria-label="Kick member from clan" className="p-2 rounded-md hover:bg-red-500/20 text-red-400 inline-flex items-center gap-1.5" title="Kick Member"><KickIcon className="w-5 h-5"/><span className="sm:hidden text-xs font-semibold">Kick</span></button>
                                             )}
                                         </div>
                                     </li>
