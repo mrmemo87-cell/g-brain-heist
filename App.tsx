@@ -611,8 +611,11 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       if (!profileData) {
         const { session, profile: fullProfile } = await GameService.getCriticalBootData({
           signal: criticalController.signal,
-          timeoutMs: 12000,
-          retryOnTimeout: 1,
+          // whoami performs several post-profile hydration calls (AP, streak,
+          // cosmetics, school metadata). Fresh accounts can run slower,
+          // especially cross-region, so keep a more tolerant boot window.
+          timeoutMs: 25000,
+          retryOnTimeout: 2,
         });
 
         if (!session) {

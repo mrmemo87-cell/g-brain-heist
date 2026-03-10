@@ -158,7 +158,9 @@ const Main: React.FC = () => {
             
             // Check if user needs to complete profile setup - use short timeout
             try {
-              const status = await withTimeout(AuthService.checkUserSetupStatus(), 3000, 'check_user_setup_status');
+              // New accounts can take a few extra seconds while profile bootstrap
+              // queries settle across regions; avoid noisy false timeout warnings.
+              const status = await withTimeout(AuthService.checkUserSetupStatus(), 6000, 'check_user_setup_status');
               setNeedsSetup(status.needs_setup);
               if (status.has_username) {
                 setSetupUsername(status.username);
