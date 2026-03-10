@@ -92,6 +92,55 @@ const formatExpiresIn = (expiresAt?: string | null): string => {
     return `${days}d ${(hours % 24)}h left`;
 };
 
+const getClanLevel = (memberLimit: number, extraSlots: number): number => {
+    const inferred = Math.max(1, Math.floor((memberLimit - 5) / 2) + 1);
+    const bySlots = Math.max(1, Math.floor(extraSlots / 2) + 1);
+    return Math.max(inferred, bySlots);
+};
+
+const getClanLevelTheme = (level: number): { badge: string; panel: string; glow: string } => {
+    if (level >= 6) {
+        return {
+            badge: 'bg-gradient-to-r from-fuchsia-500/80 via-purple-500/80 to-cyan-400/80 border-fuchsia-200/80 text-white',
+            panel: 'from-fuchsia-500/20 via-purple-500/15 to-cyan-500/20 border-fuchsia-300/40',
+            glow: 'shadow-[0_0_25px_rgba(217,70,239,0.35)]',
+        };
+    }
+    if (level >= 4) {
+        return {
+            badge: 'bg-gradient-to-r from-cyan-500/80 to-blue-500/80 border-cyan-200/80 text-white',
+            panel: 'from-cyan-500/20 to-blue-500/20 border-cyan-300/40',
+            glow: 'shadow-[0_0_20px_rgba(34,211,238,0.30)]',
+        };
+    }
+    if (level >= 2) {
+        return {
+            badge: 'bg-gradient-to-r from-amber-500/80 to-orange-500/80 border-amber-200/80 text-ink-900',
+            panel: 'from-amber-500/20 to-orange-500/20 border-amber-300/40',
+            glow: 'shadow-[0_0_16px_rgba(245,158,11,0.28)]',
+        };
+    }
+
+    return {
+        badge: 'bg-white/10 border-white/30 text-gray-100',
+        panel: 'from-white/5 to-white/0 border-white/15',
+        glow: '',
+    };
+};
+
+const getClanLevelBenefits = (level: number): string[] => {
+    const benefitTable = [
+        'Recruitment unlocked and clan management controls',
+        '+2 member capacity and Tactical Signals board',
+        '+4 member capacity and Vanguard buff synergy',
+        '+6 member capacity and elite role aura styling',
+        '+8 member capacity and advanced battlefield intel feed',
+        '+10 member capacity and mythic war-room visual effects',
+    ];
+
+    return benefitTable.slice(0, Math.min(level, benefitTable.length));
+};
+
 
 const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfile, addToast, onPendingCountChange }) => {
   const [stage, setStage] = useState<ClanViewStage>('loading');
@@ -118,6 +167,8 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
   const [isLoadingRequests, setIsLoadingRequests] = useState(false);
   const [processingRequestId, setProcessingRequestId] = useState<string | null>(null);
   const [isCancelingRequest, setIsCancelingRequest] = useState(false);
+  const [capacityUpgradePrompt, setCapacityUpgradePrompt] = useState<{ message: string; requestId: string } | null>(null);
+  const [isUpgradingCapacity, setIsUpgradingCapacity] = useState(false);
   const [isBioExpanded, setIsBioExpanded] = useState(false);
   const approvalsScrollRef = useRef<HTMLUListElement | null>(null);
   const approvalsScrollTop = useRef(0);
@@ -145,9 +196,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
   const formatRequestName = (request: ClanJoinRequest) => {
       const username = request.username?.trim();
       if (username) return username;
-      const userId = request.user_id;
-      if (!userId) return 'Unknown agent';
-      return `${userId.slice(0, 8)}…`;
+      return 'Unknown agent';
   };
 
   const fetchClanDetails = async (options?: { showLoading?: boolean }) => {
@@ -248,6 +297,18 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
         if (!isPrivileged || !clan?.id) return;
         void loadPendingJoinRequests();
     }, [isPrivileged, clan?.id]);
+
+    useEffect(() => {
+        if (!capacityUpgradePrompt?.requestId) return;
+
+        const stillPending = pendingApprovals.some(
+            (request) => request.id === capacityUpgradePrompt.requestId && request.status === 'pending'
+        );
+
+        if (!stillPending) {
+            setCapacityUpgradePrompt(null);
+        }
+    }, [capacityUpgradePrompt?.requestId, pendingApprovals]);
 
     useLayoutEffect(() => {
         if (approvalsScrollRef.current) {
@@ -424,6 +485,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
 
   const handleApproveJoinRequest = async (requestId: string) => {
       setProcessingRequestId(requestId);
+      setCapacityUpgradePrompt(null);
       try {
           await GameService.clan_approve_join_request(requestId);
           setPendingApprovals((prev) => {
@@ -431,6 +493,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
               onPendingCountChange?.(next.length);
               return next;
           });
+          setCapacityUpgradePrompt(null);
           if (clan?.id) {
               const members = await GameService.clan_get_members_by_id(clan.id);
               setClan((prev) => (prev ? { ...prev, members } : prev));
@@ -438,7 +501,17 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
           addToast("Join request approved.", "success");
       } catch (error: any) {
           console.error('Error approving request:', error);
-          addToast(error?.message || "Failed to approve request.", "error");
+          const message = error?.message || "Failed to approve request.";
+          const isCapacityIssue = /full|capacity|limit|member slots?/i.test(message);
+          if (isCapacityIssue) {
+              setCapacityUpgradePrompt({
+                  requestId,
+                  message: `Clan is at full capacity (${clan?.members.length ?? 0}/${clan?.member_limit ?? 0}). Level up your clan to unlock more seats and approve this request.`,
+              });
+              addToast('Clan capacity reached. Level up to unlock more member slots.', 'info');
+          } else {
+              addToast(message, "error");
+          }
       } finally {
           setProcessingRequestId(null);
       }
@@ -453,6 +526,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
               onPendingCountChange?.(next.length);
               return next;
           });
+          setCapacityUpgradePrompt(null);
           addToast("Join request rejected.", "info");
       } catch (error: any) {
           addToast(error?.message || "Failed to reject request.", "error");
@@ -472,6 +546,31 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
           addToast(error?.message || "Failed to cancel request.", "error");
       } finally {
           setIsCancelingRequest(false);
+      }
+  };
+
+  const handleClanLevelUp = async () => {
+      if (!isPrivileged) {
+          addToast('Only clan leadership can level up clan capacity.', 'error');
+          return;
+      }
+
+      setIsUpgradingCapacity(true);
+      try {
+          const prevLevel = clan ? getClanLevel(clan.member_limit, clan.extra_member_slots_purchased) : 0;
+          const updatedClan = await GameService.clan_buy_member_slot();
+          const nextLevel = getClanLevel(updatedClan.member_limit, updatedClan.extra_member_slots_purchased);
+          setClan(updatedClan);
+          setCapacityUpgradePrompt(null);
+          if (nextLevel > prevLevel) {
+              addToast('Clan leveled up! New benefits unlocked.', 'success');
+          } else {
+              addToast('Member capacity increased.', 'success');
+          }
+      } catch (error: any) {
+          addToast(error?.message || 'Failed to level up clan.', 'error');
+      } finally {
+          setIsUpgradingCapacity(false);
       }
   };
 
@@ -597,7 +696,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                     {clan.name}
                                 </button>
                                 <p className="text-xs text-gray-500">View members</p>
-                                <p className="text-sm text-gray-400">{clan.member_count} members | {clan.vault_metric.toLocaleString()} XP</p>
+                                <p className="text-sm text-gray-400">Lv.{getClanLevel(clan.member_limit, Math.max(0, clan.member_limit - 5))} • {clan.member_count}/{clan.member_limit} members | {clan.vault_metric.toLocaleString()} XP</p>
                                 {clan.notice && <p className="text-xs text-gray-400 mt-1 line-clamp-2">{clan.notice}</p>}
                             </div>
                         </div>
@@ -790,7 +889,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                     </button>
                                     <p className="text-xs text-gray-500">View members</p>
                                     <p className="text-sm text-gray-400">
-                                        {clanItem.member_count} members | {clanItem.vault_metric.toLocaleString()} Total XP
+                                        Lv.{getClanLevel(clanItem.member_limit, Math.max(0, clanItem.member_limit - 5))} • {clanItem.member_count}/{clanItem.member_limit} members | {clanItem.vault_metric.toLocaleString()} Total XP
                                     </p>
                                     {clanItem.notice && <p className="text-xs text-gray-400 mt-1 line-clamp-2">{clanItem.notice}</p>}
                                 </div>
@@ -1051,16 +1150,22 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
 
         return acc;
     }, {}));
+    const clanLevel = getClanLevel(clan.member_limit, clan.extra_member_slots_purchased);
+    const clanTheme = getClanLevelTheme(clanLevel);
+    const clanBenefits = getClanLevelBenefits(clanLevel);
     const bioText = clan.notice || 'No bio added yet. Let the world know what makes your clan special.';
     const canExpandBio = bioText.length > 160;
 
     return (
         <div>
-             <div className="flex items-center space-x-4 mb-6 max-w-4xl mx-auto">
+             <div className={`flex items-center space-x-4 mb-6 max-w-4xl mx-auto rounded-2xl border bg-gradient-to-r p-4 ${clanTheme.panel} ${clanTheme.glow}`}>
                 <img src={clan.crest_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${clan.name}`} alt={`${clan.name} Crest`} className="w-24 h-24 rounded-full border-4 border-amber-400" />
                 <div>
-                    <h2 className="font-heading text-4xl text-amber-400">{clan.name}</h2>
-                    <p className="text-gray-300 mt-1 capitalize">{myMemberInfo.role} • {memberCount} agents enlisted</p>
+                    <div className="flex items-center gap-3 flex-wrap">
+                        <h2 className="font-heading text-4xl text-amber-400">{clan.name}</h2>
+                        <span className={`text-xs font-bold px-3 py-1 rounded-full border tracking-wide uppercase ${clanTheme.badge}`}>Clan Lv.{clanLevel}</span>
+                    </div>
+                    <p className="text-gray-300 mt-1 capitalize">{myMemberInfo.role} • {memberCount}/{clan.member_limit} agents enlisted</p>
                 </div>
             </div>
 
@@ -1081,12 +1186,29 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                 <div className="p-4">
                     {activeTab === 'home' && (
                         <div className="space-y-6">
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                                <StatCard label="Clan Level" value={clanLevel} subtitle="Power tier" accent="var(--cyan-accent)" />
                                 <StatCard label="Clan Score" value={clanScoreValue.toLocaleString()} subtitle="Sum of top operatives" />
                                 <StatCard label="Vault Coins" value={clan.vault_coins.toLocaleString()} subtitle="Shared funds" />
-                                <StatCard label="My Score" value={myScoreValue.toLocaleString()} subtitle="XP + PvP" />
+                                <StatCard label="Capacity" value={`${memberCount}/${clan.member_limit}`} subtitle="Member seats" />
                                 <StatCard label="Active Effects" value={groupedBuffs.length} subtitle="Live clan buffs" />
                             </div>
+
+                            <div className={`rounded-xl border bg-gradient-to-r p-4 ${clanTheme.panel}`}>
+                                <div className="flex items-center justify-between gap-3 mb-3">
+                                    <h3 className="font-heading text-xl text-amber-300">Clan Level Progression</h3>
+                                    <span className={`text-xs font-bold px-3 py-1 rounded-full border ${clanTheme.badge}`}>Lv.{clanLevel}</span>
+                                </div>
+                                <ul className="space-y-2 text-sm">
+                                    {clanBenefits.map((benefit, index) => (
+                                        <li key={benefit} className={`rounded-lg px-3 py-2 ${index + 1 === clanLevel ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'bg-black/20 text-gray-300 border border-white/5'}`}>
+                                            <span className="font-semibold mr-2">Lv.{index + 1}</span>
+                                            {benefit}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="bg-black/20 p-4 rounded-lg border border-white/5">
@@ -1317,6 +1439,19 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                              {isLoadingRequests ? 'Refreshing...' : 'Refresh'}
                                          </button>
                                      </div>
+                                     {capacityUpgradePrompt && (
+                                         <div className="mb-4 rounded-lg border border-fuchsia-400/40 bg-fuchsia-500/10 p-4">
+                                             <p className="text-sm text-fuchsia-100 mb-3">{capacityUpgradePrompt.message}</p>
+                                             <button
+                                                 type="button"
+                                                 onClick={handleClanLevelUp}
+                                                 disabled={isUpgradingCapacity}
+                                                 className="rounded-md border border-fuchsia-300 px-4 py-2 text-sm font-semibold text-white bg-fuchsia-500/30 hover:bg-fuchsia-500/40 disabled:opacity-50"
+                                             >
+                                                 {isUpgradingCapacity ? 'Leveling up...' : '⚡ Level Up Clan (+1 Member Slot)'}
+                                             </button>
+                                         </div>
+                                     )}
                                      {isLoadingRequests ? (
                                          <p className="text-gray-400">Loading requests...</p>
                                      ) : pendingApprovals.length === 0 ? (
