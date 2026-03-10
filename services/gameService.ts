@@ -3635,6 +3635,8 @@ const mapJoinRequest = (row: any): ClanJoinRequest => ({
     approver_id: row.approved_by ?? null,
     clan_name: row.clans?.name ?? row.clan_name,
     username: row.username ?? row.users?.username,
+    full_name: row.full_name ?? row.users?.full_name,
+    email: row.email ?? row.users?.email,
     avatar_url: row.avatar_url ?? row.users?.avatar_url,
 });
 
@@ -3787,7 +3789,7 @@ export const clan_get_pending_join_requests = async (): Promise<ClanJoinRequest[
     const userIds = [...new Set(data.map(r => r.user_id))];
     const { data: usersData } = await supabase
         .from('users')
-        .select('id, username, avatar_url')
+        .select('id, username, full_name, email, avatar_url')
         .in('id', userIds);
 
     const usersMap = new Map((usersData || []).map(u => [u.id, u]));
