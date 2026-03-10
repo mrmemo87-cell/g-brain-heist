@@ -116,7 +116,7 @@ type CriticalBootResult = {
 const getBaseProfileForBoot = async (userId: string): Promise<Profile> => {
   const { data: profile, error } = await supabase
     .from('users')
-    .select('*')
+    .select('id, email, username, role, grade, batch, xp, coins, gemstones, level, streak, avatar_url, ap_now, ap_max, last_ap_update, is_admin, is_banned, pvp_score, tutorial_completed, school_id, clan_id, clan_role, clan_custom_title, clan_name, clan_total_score, last_seen, attack_power, defense_power')
     .eq('id', userId)
     .single();
 
@@ -124,23 +124,30 @@ const getBaseProfileForBoot = async (userId: string): Promise<Profile> => {
     throw new Error(`Failed to load base profile: ${error?.message || 'null profile'}`);
   }
 
-  if (typeof profile.gemstones !== 'number') {
-    profile.gemstones = 0;
+  const normalizedProfile = profile as any;
+
+  if (typeof normalizedProfile.gemstones !== 'number') {
+    normalizedProfile.gemstones = 0;
   }
 
-  profile.is_admin = typeof profile.is_admin === 'boolean'
-    ? profile.is_admin
-    : profile.role === 'admin';
-  profile.is_banned = isBannedFlag(profile.is_banned);
-  profile.total_score = calculateTotalScore(profile.xp ?? 0, profile.pvp_score ?? 0);
+  normalizedProfile.is_admin = typeof normalizedProfile.is_admin === 'boolean'
+    ? normalizedProfile.is_admin
+    : normalizedProfile.role === 'admin';
+  normalizedProfile.is_banned = isBannedFlag(normalizedProfile.is_banned);
+  if (normalizedProfile.is_banned) {
+    storeBanMessage(BAN_MESSAGE);
+    await supabase.auth.signOut();
+    throw new Error(BAN_MESSAGE);
+  }
+  normalizedProfile.total_score = calculateTotalScore(normalizedProfile.xp ?? 0, normalizedProfile.pvp_score ?? 0);
 
   // Keep boot resilient: avoid extra RPCs/joins here. App can hydrate richer data after first paint.
-  if (profile.role !== 'student') {
-    profile.ap_now = profile.ap_max || 100;
-    profile.last_ap_update = new Date().toISOString();
+  if (normalizedProfile.role !== 'student') {
+    normalizedProfile.ap_now = normalizedProfile.ap_max || 100;
+    normalizedProfile.last_ap_update = new Date().toISOString();
   }
 
-  return profile as Profile;
+  return normalizedProfile as Profile;
 };
 
 const createAbortError = (message = 'Request aborted') => {
@@ -1850,6 +1857,10 @@ export const getCriticalBootData = async ({
     return { session: null, profile: null };
   }
 
+  const resetWhoamiInFlight = () => {
+    whoamiInFlight = null;
+  };
+
   const attemptWhoami = async () => withTimeout(whoami(), timeoutMs, signal, 'whoami');
 
   try {
@@ -1857,11 +1868,13 @@ export const getCriticalBootData = async ({
     return { session: data.session, profile };
   } catch (error) {
     if (isTimeoutError(error) && retryOnTimeout > 0) {
+      resetWhoamiInFlight();
       try {
         const profile = await attemptWhoami();
         return { session: data.session, profile };
       } catch (retryError) {
         if (isTimeoutError(retryError)) {
+          resetWhoamiInFlight();
           console.warn('[boot] whoami timed out twice, falling back to base profile');
           const fallbackProfile = await withTimeout(
             getBaseProfileForBoot(data.session.user.id),
