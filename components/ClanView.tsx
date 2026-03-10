@@ -957,7 +957,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
     useEffect(() => {
         let isMounted = true;
 
-        GameService.clan_chat_recent().then((data) => {
+        GameService.clan_chat_recent(clanId).then((data) => {
             if (isMounted) {
                 setMessages(data);
             }
@@ -1045,7 +1045,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
         setNewMessage('');
         
         try {
-            const sentMessage = await GameService.clan_chat_post(newMessage);
+            const sentMessage = await GameService.clan_chat_post(newMessage, clanId);
             const mergedMessage: ChatMessage = { ...sentMessage, user_id: profile.id };
             setMessages(prev => prev.map(m => m.id === tempId ? mergedMessage : m));
         } catch {
@@ -1411,7 +1411,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                             </div>
                         </div>
                     )}
-                    {activeTab === 'chat' && <ClanChat clanId={clan.id} />}
+                    {activeTab === 'chat' && <ClanChat key={`clan-chat-${clan.id}`} clanId={clan.id} />}
                     {activeTab === 'browse' && (
                         <BrowseClansTab 
                             currentClanId={clan.id} 

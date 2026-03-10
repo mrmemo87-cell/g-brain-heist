@@ -4137,31 +4137,31 @@ export const clan_create = async (name: string, notice: string): Promise<Clan> =
     return immediateClan;
 };
 
-export const clan_chat_recent = async (): Promise<ClanChatMessage[]> => {
+export const clan_chat_recent = async (clanId?: string): Promise<ClanChatMessage[]> => {
     const user = await getCurrentUser();
-    
-    // Get user's clan
-    const { data: membership } = await supabase
-        .from('clan_members')
-        .select('clan_id')
-        .eq('user_id', user.id)
-        .single();
-    
-    if (!membership) {
+
+    let targetClanId = clanId;
+
+    if (!targetClanId) {
+        // Fallback to the player's active clan when clan id isn't provided
+        const { data: membership } = await supabase
+            .from('clan_members')
+            .select('clan_id')
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+        targetClanId = membership?.clan_id;
+    }
+
+    if (!targetClanId) {
         return mockApiCall([]);
     }
-    
+
     // Fetch recent chat messages
     const { data: messages, error } = await supabase
         .from('clan_chat')
-        .select(`
-            id,
-            message,
-            created_at,
-            user_id,
-            users!inner (username)
-        `)
-        .eq('clan_id', membership.clan_id)
+        .select('id, message, created_at, user_id, username')
+        .eq('clan_id', targetClanId)
         .order('created_at', { ascending: false })
         .limit(20);
     
@@ -4172,7 +4172,7 @@ export const clan_chat_recent = async (): Promise<ClanChatMessage[]> => {
     
     const chatMessages: ClanChatMessage[] = (messages || []).map((m: any) => ({
         id: m.id,
-        user: m.users.username,
+        user: m.username || 'Unknown',
         message: m.message,
         created_at: getTimeAgo(new Date(m.created_at)),
         is_self: m.user_id === user.id,
@@ -4191,7 +4191,7 @@ const toxicityFilter = (message: string): string => {
     return cleanMessage;
 };
 
-export const clan_chat_post = async (message: string): Promise<ClanChatMessage> => {
+export const clan_chat_post = async (message: string, clanId?: string): Promise<ClanChatMessage> => {
     const user = await getCurrentUser();
     const cleanMessage = toxicityFilter(message);
     
@@ -4206,14 +4206,20 @@ export const clan_chat_post = async (message: string): Promise<ClanChatMessage> 
         throw new Error('User profile not found.');
     }
     
-    // Get user's clan
-    const { data: membership } = await supabase
-        .from('clan_members')
-        .select('clan_id')
-        .eq('user_id', user.id)
-        .single();
-    
-    if (!membership) {
+    let targetClanId = clanId;
+
+    if (!targetClanId) {
+        // Fallback to the player's active clan when clan id isn't provided
+        const { data: membership } = await supabase
+            .from('clan_members')
+            .select('clan_id')
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+        targetClanId = membership?.clan_id;
+    }
+
+    if (!targetClanId) {
         throw new Error('You are not in a clan.');
     }
     
@@ -4221,7 +4227,7 @@ export const clan_chat_post = async (message: string): Promise<ClanChatMessage> 
     const { data: newMessage, error } = await supabase
         .from('clan_chat')
         .insert({
-            clan_id: membership.clan_id,
+            clan_id: targetClanId,
             user_id: user.id,
             username: profile.username,
             message: cleanMessage,
