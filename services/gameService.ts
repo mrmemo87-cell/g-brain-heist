@@ -113,6 +113,36 @@ type CriticalBootResult = {
   profile: Profile | null;
 };
 
+const getBaseProfileForBoot = async (userId: string): Promise<Profile> => {
+  const { data: profile, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', userId)
+    .single();
+
+  if (error || !profile) {
+    throw new Error(`Failed to load base profile: ${error?.message || 'null profile'}`);
+  }
+
+  if (typeof profile.gemstones !== 'number') {
+    profile.gemstones = 0;
+  }
+
+  profile.is_admin = typeof profile.is_admin === 'boolean'
+    ? profile.is_admin
+    : profile.role === 'admin';
+  profile.is_banned = isBannedFlag(profile.is_banned);
+  profile.total_score = calculateTotalScore(profile.xp ?? 0, profile.pvp_score ?? 0);
+
+  // Keep boot resilient: avoid extra RPCs/joins here. App can hydrate richer data after first paint.
+  if (profile.role !== 'student') {
+    profile.ap_now = profile.ap_max || 100;
+    profile.last_ap_update = new Date().toISOString();
+  }
+
+  return profile as Profile;
+};
+
 const createAbortError = (message = 'Request aborted') => {
   const error = new Error(message) as Error & { name: string };
   error.name = 'AbortError';
@@ -1827,8 +1857,22 @@ export const getCriticalBootData = async ({
     return { session: data.session, profile };
   } catch (error) {
     if (isTimeoutError(error) && retryOnTimeout > 0) {
-      const profile = await attemptWhoami();
-      return { session: data.session, profile };
+      try {
+        const profile = await attemptWhoami();
+        return { session: data.session, profile };
+      } catch (retryError) {
+        if (isTimeoutError(retryError)) {
+          console.warn('[boot] whoami timed out twice, falling back to base profile');
+          const fallbackProfile = await withTimeout(
+            getBaseProfileForBoot(data.session.user.id),
+            Math.max(5000, Math.floor(timeoutMs / 2)),
+            signal,
+            'base profile bootstrap'
+          );
+          return { session: data.session, profile: fallbackProfile };
+        }
+        throw retryError;
+      }
     }
     throw error;
   }
