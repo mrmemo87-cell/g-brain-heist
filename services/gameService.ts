@@ -1879,25 +1879,19 @@ export const getCriticalBootData = async ({
     whoamiInFlight = null;
   };
 
-  const attemptWhoami = () => {
-    const inFlight = whoami();
-    return {
-      inFlight,
-      timed: withTimeout(inFlight, timeoutMs, signal, 'whoami'),
-    };
-  };
+  const attemptWhoami = () => withTimeout(whoami(), timeoutMs, signal, 'whoami');
 
   const firstAttempt = attemptWhoami();
 
   try {
-    const profile = await firstAttempt.timed;
+    const profile = await firstAttempt;
     return { session: data.session, profile };
   } catch (error) {
     if (isTimeoutError(error) && retryOnTimeout > 0) {
       resetWhoamiInFlight();
       const retryAttempt = attemptWhoami();
       try {
-        const profile = await retryAttempt.timed;
+        const profile = await retryAttempt;
         return { session: data.session, profile };
       } catch (retryError) {
         if (isTimeoutError(retryError)) {
