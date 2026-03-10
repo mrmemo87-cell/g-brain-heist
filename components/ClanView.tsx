@@ -200,8 +200,8 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
       const fullName = request.full_name?.trim();
       if (fullName) return fullName;
 
-      const emailHandle = request.email?.split('@')[0]?.trim();
-      if (emailHandle) return emailHandle;
+      const maskedId = request.user_id ? `Agent ${request.user_id.slice(0, 6)}` : null;
+      if (maskedId) return maskedId;
 
       return 'Unknown agent';
   };
@@ -1505,7 +1505,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                                              </p>
                                                          </div>
                                                      </div>
-                                                     <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex sm:items-center sm:space-x-2">
+                                                     <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                                                          <button
                                                              onClick={() => handleApproveJoinRequest(request.id)}
                                                              disabled={processingRequestId === request.id}
@@ -1558,7 +1558,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                                 {member.custom_title && <p className="text-[11px] text-gray-400">{member.custom_title}</p>}
                                             </div>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex sm:items-center sm:space-x-2">
+                                        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                                             {myPower > targetPower && member.role === 'member' && (
                                                 <button onClick={() => handlePromote(member.user_id)} className="p-2 rounded-md hover:bg-green-500/20 text-green-400" title="Promote to Officer"><PromoteIcon className="w-5 h-5"/></button>
                                             )}

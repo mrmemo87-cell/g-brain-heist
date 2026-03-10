@@ -462,10 +462,9 @@ export interface ClanJoinRequest {
   created_at?: string;
   requested_at?: string;
   clan_name?: string;
-  username?: string;
-  full_name?: string;
-  email?: string;
-  avatar_url?: string;
+  username?: string | null;
+  full_name?: string | null;
+  avatar_url?: string | null;
   approver_id?: string | null;
 }
 
