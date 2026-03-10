@@ -1875,10 +1875,8 @@ export const getCriticalBootData = async ({
     return { session: null, profile: null };
   }
 
-  const resetWhoamiInFlight = (expectedPromise: Promise<Profile> | null | undefined) => {
-    if (expectedPromise && whoamiInFlight === expectedPromise) {
-      whoamiInFlight = null;
-    }
+  const resetWhoamiInFlight = () => {
+    whoamiInFlight = null;
   };
 
   const attemptWhoami = () => {
@@ -1896,14 +1894,14 @@ export const getCriticalBootData = async ({
     return { session: data.session, profile };
   } catch (error) {
     if (isTimeoutError(error) && retryOnTimeout > 0) {
-      resetWhoamiInFlight(firstAttempt.inFlight);
+      resetWhoamiInFlight();
       const retryAttempt = attemptWhoami();
       try {
         const profile = await retryAttempt.timed;
         return { session: data.session, profile };
       } catch (retryError) {
         if (isTimeoutError(retryError)) {
-          resetWhoamiInFlight(retryAttempt.inFlight);
+          resetWhoamiInFlight();
           console.warn('[boot] whoami timed out twice, falling back to base profile');
           const fallbackProfile = await withTimeout(
             getBaseProfileForBoot(data.session.user),
