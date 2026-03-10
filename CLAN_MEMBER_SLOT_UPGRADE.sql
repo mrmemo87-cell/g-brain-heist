@@ -204,7 +204,10 @@ BEGIN
             RETURN;
         END IF;
 
-        SELECT COUNT(*) INTO v_member_count FROM clan_members WHERE clan_id = v_request.clan_id;
+        SELECT COUNT(*)
+        INTO v_member_count
+        FROM clan_members cm
+        WHERE cm.clan_id = v_request.clan_id;
 
         IF v_member_count >= v_member_limit THEN
             RETURN QUERY SELECT FALSE, 'Clan is full. Buy another member slot before approving.'::TEXT, NULL::TEXT, v_request.clan_id, v_member_count;
