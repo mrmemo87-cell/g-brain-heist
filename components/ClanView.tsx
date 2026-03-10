@@ -196,6 +196,19 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
   const formatRequestName = (request: ClanJoinRequest) => {
       const username = request.username?.trim();
       if (username) return username;
+
+      const fullName = request.full_name?.trim();
+      if (fullName) return fullName;
+
+      const email = request.email?.trim();
+      if (email) return email;
+
+      const userId = request.user_id?.trim();
+      if (userId) {
+          const maskedId = userId.slice(0, 6);
+          return `Agent ${maskedId}`;
+      }
+
       return 'Unknown agent';
   };
 
@@ -1195,9 +1208,22 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                             </div>
 
                             <div className={`rounded-xl border bg-gradient-to-r p-4 ${clanTheme.panel}`}>
-                                <div className="flex items-center justify-between gap-3 mb-3">
+                                <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
                                     <h3 className="font-heading text-xl text-amber-300">Clan Level Progression</h3>
-                                    <span className={`text-xs font-bold px-3 py-1 rounded-full border ${clanTheme.badge}`}>Lv.{clanLevel}</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className={`text-xs font-bold px-3 py-1 rounded-full border ${clanTheme.badge}`}>Lv.{clanLevel}</span>
+                                        {isPrivileged && (
+                                            <button
+                                                type="button"
+                                                onClick={handleClanLevelUp}
+                                                disabled={isUpgradingCapacity}
+                                                className="rounded-md border border-cyan-300/60 px-3 py-1.5 text-xs font-semibold text-cyan-100 bg-cyan-500/20 hover:bg-cyan-500/30 disabled:opacity-50"
+                                                title="Upgrade clan member capacity"
+                                            >
+                                                {isUpgradingCapacity ? 'Upgrading...' : '⚡ Upgrade Capacity'}
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                                 <ul className="space-y-2 text-sm">
                                     {clanBenefits.map((benefit, index) => (
@@ -1465,7 +1491,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                              }}
                                          >
                                              {pendingApprovals.map(request => (
-                                                 <li key={request.id} className="flex items-center justify-between bg-black/20 p-3 rounded-lg">
+                                                 <li key={request.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-black/20 p-3 rounded-lg border border-white/5">
                                                      <div className="flex items-center space-x-3">
                                                          {request.avatar_url ? (
                                                              <img
@@ -1478,25 +1504,25 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                                                  {formatRequestName(request).slice(0, 2).toUpperCase()}
                                                              </div>
                                                          )}
-                                                         <div>
-                                                             <p className="font-semibold text-white">{formatRequestName(request)}</p>
-                                                             <p className="text-xs text-gray-400">
+                                                         <div className="min-w-0">
+                                                             <p className="font-semibold text-white truncate">{formatRequestName(request)}</p>
+                                                             <p className="text-xs text-gray-400 truncate">
                                                                  Requested at {request.requested_at ? new Date(request.requested_at).toLocaleString() : request.created_at ? new Date(request.created_at).toLocaleString() : 'unknown time'}
                                                              </p>
                                                          </div>
                                                      </div>
-                                                     <div className="flex items-center space-x-2">
+                                                     <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex sm:items-center sm:space-x-2">
                                                          <button
                                                              onClick={() => handleApproveJoinRequest(request.id)}
                                                              disabled={processingRequestId === request.id}
-                                                             className="px-3 py-1 rounded-md bg-green-500/20 border border-green-400 text-green-200 hover:bg-green-500/30 disabled:opacity-50"
+                                                             className="px-3 py-2 rounded-md bg-green-500/20 border border-green-400 text-green-200 hover:bg-green-500/30 disabled:opacity-50 w-full sm:w-auto"
                                                          >
                                                              {processingRequestId === request.id ? 'Approving...' : 'Approve'}
                                                          </button>
                                                          <button
                                                              onClick={() => handleRejectJoinRequest(request.id)}
                                                              disabled={processingRequestId === request.id}
-                                                             className="px-3 py-1 rounded-md bg-red-500/20 border border-red-400 text-red-200 hover:bg-red-500/30 disabled:opacity-50"
+                                                             className="px-3 py-2 rounded-md bg-red-500/20 border border-red-400 text-red-200 hover:bg-red-500/30 disabled:opacity-50 w-full sm:w-auto"
                                                          >
                                                              {processingRequestId === request.id ? 'Processing...' : 'Reject'}
                                                          </button>
@@ -1518,7 +1544,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                 {clan.members.map(member => {
                                     const targetPower = getRolePower(member.role);
                                     return (
-                                    <li key={member.user_id} className="flex items-center justify-between bg-black/20 p-3 rounded-lg">
+                                    <li key={member.user_id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-black/20 p-3 rounded-lg border border-white/5">
                                         <div className="flex items-center space-x-3">
                                             <AvatarWithFrame
                                                 src={member.avatar_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${member.username}`}
@@ -1538,15 +1564,15 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                                 {member.custom_title && <p className="text-[11px] text-gray-400">{member.custom_title}</p>}
                                             </div>
                                         </div>
-                                        <div className="flex items-center space-x-2">
+                                        <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex sm:items-center sm:space-x-2">
                                             {myPower > targetPower && member.role === 'member' && (
-                                                <button onClick={() => handlePromote(member.user_id)} className="p-2 rounded-md hover:bg-green-500/20 text-green-400" title="Promote to Officer"><PromoteIcon className="w-5 h-5"/></button>
+                                                <button onClick={() => handlePromote(member.user_id)} aria-label="Promote member to Officer" className="p-2 rounded-md hover:bg-green-500/20 text-green-400 inline-flex items-center gap-1.5" title="Promote to Officer"><PromoteIcon className="w-5 h-5"/><span className="sm:hidden text-xs font-semibold">Promote</span></button>
                                             )}
                                             {myPower > targetPower && member.role === 'officer' && myMemberInfo.role === 'leader' && (
-                                                <button onClick={() => handleDemote(member.user_id)} className="p-2 rounded-md hover:bg-amber-500/20 text-amber-400" title="Demote to Member"><DemoteIcon className="w-5 h-5"/></button>
+                                                <button onClick={() => handleDemote(member.user_id)} aria-label="Demote officer to Member" className="p-2 rounded-md hover:bg-amber-500/20 text-amber-400 inline-flex items-center gap-1.5" title="Demote to Member"><DemoteIcon className="w-5 h-5"/><span className="sm:hidden text-xs font-semibold">Demote</span></button>
                                             )}
                                              {myPower > targetPower && (
-                                                <button onClick={() => { setMemberToKick(member); setModal('confirm_kick'); }} className="p-2 rounded-md hover:bg-red-500/20 text-red-400" title="Kick Member"><KickIcon className="w-5 h-5"/></button>
+                                                <button onClick={() => { setMemberToKick(member); setModal('confirm_kick'); }} aria-label="Kick member from clan" className="p-2 rounded-md hover:bg-red-500/20 text-red-400 inline-flex items-center gap-1.5" title="Kick Member"><KickIcon className="w-5 h-5"/><span className="sm:hidden text-xs font-semibold">Kick</span></button>
                                             )}
                                         </div>
                                     </li>
