@@ -3796,7 +3796,7 @@ export const clan_get_pending_join_requests = async (): Promise<ClanJoinRequest[
         const user = usersMap.get(r.user_id);
         return {
             ...r,
-            users: user || { username: r.user_id.substring(0, 8), avatar_url: null }, // Fallback to ID prefix if user not found
+            users: user || { username: 'Unknown agent', avatar_url: null },
         };
     });
 
@@ -3826,7 +3826,7 @@ export const clan_approve_join_request = async (requestId: string): Promise<bool
         if (error.message?.includes('404') || error.code === 'PGRST116') {
             throw new Error('clan_join_requests table not found. Please run the migration SQL.');
         }
-        throw new Error('Failed to approve request.');
+        throw new Error(error.message || error.details || error.hint || 'Failed to approve request.');
     }
 
     return mockApiCall(true);
