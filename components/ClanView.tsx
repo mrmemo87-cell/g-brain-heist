@@ -1411,7 +1411,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                             </div>
                         </div>
                     )}
-                    {activeTab === 'chat' && <ClanChat clanId={clan.id} />}
+                    {activeTab === 'chat' && <ClanChat key={`clan-chat-${clan.id}`} clanId={clan.id} />}
                     {activeTab === 'browse' && (
                         <BrowseClansTab 
                             currentClanId={clan.id} 
