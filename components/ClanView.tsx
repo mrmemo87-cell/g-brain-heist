@@ -529,12 +529,19 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
   const handleApproveJoinRequest = async (requestId: string) => {
       setProcessingRequestId(requestId);
       setCapacityUpgradePrompt(null);
+      const memberCount = clan?.members.length ?? 0;
+      const memberLimit = clan?.member_limit ?? 0;
+      const atCapacity = memberCount >= memberLimit;
+      if (atCapacity) {
+          setCapacityUpgradePrompt({
+              requestId,
+              message: `Clan is at full capacity (${memberCount}/${memberLimit}). Level up your clan to unlock more seats and approve this request.`,
+          });
+          addToast('Clan capacity reached. Level up to unlock more member slots.', 'info');
+          setProcessingRequestId(null);
+          return;
+      }
       try {
-          const atCapacity = (clan?.members.length ?? 0) >= (clan?.member_limit ?? 0);
-          if (atCapacity) {
-              throw new Error(`Clan is at full capacity (${clan?.members.length ?? 0}/${clan?.member_limit ?? 0}). Upgrade level to unlock more seats.`);
-          }
-
           await GameService.clan_approve_join_request(requestId);
           setPendingApprovals((prev) => {
               const next = prev.filter((request) => request.id !== requestId);
@@ -548,13 +555,12 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
           }
           addToast("Join request approved.", "success");
       } catch (error: any) {
-          console.error('Error approving request:', error);
           const message = error?.message || "Failed to approve request.";
           const isCapacityIssue = /full|capacity|limit|member slots?/i.test(message);
           if (isCapacityIssue) {
               setCapacityUpgradePrompt({
                   requestId,
-                  message: `Clan is at full capacity (${clan?.members.length ?? 0}/${clan?.member_limit ?? 0}). Level up your clan to unlock more seats and approve this request.`,
+                  message: `Clan is at full capacity (${memberCount}/${memberLimit}). Level up your clan to unlock more seats and approve this request.`,
               });
               addToast('Clan capacity reached. Level up to unlock more member slots.', 'info');
           } else {
