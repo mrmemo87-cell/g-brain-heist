@@ -227,6 +227,12 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
       const username = request.username?.trim();
       if (username) return username;
 
+<<<<<<< HEAD
+=======
+      const email = request.email?.trim();
+      if (email) return email;
+
+>>>>>>> 8c80c08f603b4ac573e40b22d1a11683ff4c875d
       const userId = request.user_id?.trim();
       if (userId) {
           const maskedId = userId.slice(0, 6);
