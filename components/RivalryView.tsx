@@ -5,6 +5,26 @@ import { RivalryClanOption, rivalryService } from '../services/rivalryService';
 import RivalryHub from './rivalry/RivalryHub';
 import RivalryWarDetail from './rivalry/RivalryWarDetail';
 
+const DECLARE_ERROR_MESSAGES: Record<string, string> = {
+  min_clan_size_not_met:
+    'War declaration blocked: both clans must have at least 5 members before a rivalry war can be created.',
+  declaration_cap_reached:
+    'War declaration cap reached: your clan has already sent the maximum declarations in the last 24 hours.',
+  active_war_conflict:
+    'War declaration blocked: one of the clans is already in an active rivalry war.',
+  pair_cooldown_active:
+    'This matchup is cooling down. You must wait until the clan-pair cooldown ends before declaring again.',
+  insufficient_permissions:
+    'Only clan leaders, officers, or moderators can declare rivalry wars.',
+  invalid_target_clan:
+    'Invalid target clan selected. Choose a different clan and try again.',
+};
+
+const getFriendlyDeclareError = (rawError: unknown): string => {
+  if (typeof rawError !== 'string') return 'Failed to declare war.';
+  return DECLARE_ERROR_MESSAGES[rawError] || rawError.replaceAll('_', ' ');
+};
+
 interface RivalryViewProps {
   profile: Profile;
   onComplete: () => void;
@@ -22,6 +42,7 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
   const [clanTargetsLoading, setClanTargetsLoading] = React.useState(false);
   const [clanTargetsError, setClanTargetsError] = React.useState<string | null>(null);
   const [targetSearch, setTargetSearch] = React.useState('');
+  const [declareFeedback, setDeclareFeedback] = React.useState<string | null>(null);
   const canDeclare = Boolean(profile.clan_id);
 
   const loadWars = React.useCallback(async () => {
@@ -70,8 +91,12 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
   }, [targetSearch, loadClanTargets, canDeclare]);
 
   const handleDeclare = async (targetClanId: string) => {
+    setDeclareFeedback(null);
+
     if (!canDeclare) {
-      addToast('You must be in a clan to declare a rivalry war.', 'warning');
+      const message = 'You must be in a clan to declare a rivalry war.';
+      setDeclareFeedback(message);
+      addToast(message, 'warning');
       return;
     }
 
@@ -91,7 +116,9 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
 
     const resolvedTargetClanId = normalizeTargetClanId(targetClanId);
     if (!resolvedTargetClanId) {
-      addToast('Please select a valid clan target from the list before declaring war.', 'warning');
+      const message = 'Please select a valid clan target from the list before declaring war.';
+      setDeclareFeedback(message);
+      addToast(message, 'warning');
       return;
     }
 
@@ -101,13 +128,16 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
       if (!res.success) {
         throw new Error(String(res.error || 'Failed to declare war'));
       }
+      setDeclareFeedback(null);
       addToast('War declaration sent.', 'success');
       await loadWars();
       if (typeof res.war_id === 'string') {
         setSelectedWarId(res.war_id);
       }
     } catch (err) {
-      addToast(err instanceof Error ? err.message : 'Failed to declare war', 'error');
+      const friendlyError = getFriendlyDeclareError(err instanceof Error ? err.message : err);
+      setDeclareFeedback(friendlyError);
+      addToast(friendlyError, 'error');
     } finally {
       setDeclaring(false);
     }
@@ -148,6 +178,7 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
             if (!canDeclare) return;
             void loadClanTargets(targetSearch);
           }}
+          declareFeedback={declareFeedback}
         />
       ) : (
         <div className="space-y-4">

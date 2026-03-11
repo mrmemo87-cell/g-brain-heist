@@ -16,6 +16,7 @@ interface RivalryHubProps {
   clanTargetsError: string | null;
   onSearchClanTargets: (search: string) => void;
   onReloadClanTargets: () => void;
+  declareFeedback?: string | null;
 }
 
 const statusClass: Record<string, string> = {
@@ -44,6 +45,7 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
   clanTargetsError,
   onSearchClanTargets,
   onReloadClanTargets,
+  declareFeedback,
 }) => {
   const [search, setSearch] = React.useState('');
   const [selectedTarget, setSelectedTarget] = React.useState<RivalryClanOption | null>(null);
@@ -63,6 +65,24 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
         <h3 className="font-heading text-lg text-cyan-100 drop-shadow-[0_0_8px_rgba(34,211,238,0.35)]">Declare Rivalry</h3>
         <p className="text-sm text-gray-300 mt-1">Search and select a clan target to send a challenge.</p>
         {!canDeclare ? <p className="text-xs text-amber-200 mt-1">Join a clan to declare rivalry wars.</p> : null}
+
+        <div className="mt-3 rounded-xl border border-cyan-400/25 bg-cyan-950/30 p-3">
+          <p className="text-xs uppercase tracking-wide text-cyan-200/90">Declaration Requirements</p>
+          <ul className="mt-2 space-y-1 text-xs text-cyan-100/90 list-disc list-inside">
+            <li>You must be in a clan and have Leader, Officer, or Moderator permissions.</li>
+            <li>Both clans need at least 5 members to start a rivalry war.</li>
+            <li>Your clan can declare up to 2 wars per rolling 24-hour window.</li>
+            <li>Clans already in an active war cannot start another one.</li>
+            <li>The same clan matchup has a cooldown before it can be declared again.</li>
+          </ul>
+        </div>
+
+        {declareFeedback ? (
+          <div className="mt-3 rounded-xl border border-amber-300/50 bg-amber-900/35 p-3 shadow-[0_0_12px_rgba(251,191,36,0.2)]">
+            <p className="text-[11px] uppercase tracking-wide text-amber-200">Declaration blocked</p>
+            <p className="mt-1 text-sm text-amber-100">{declareFeedback}</p>
+          </div>
+        ) : null}
 
         <div className="mt-3 space-y-2">
           <div className="flex gap-2">
