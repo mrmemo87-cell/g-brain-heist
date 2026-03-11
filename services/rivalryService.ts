@@ -6,7 +6,6 @@ export type RivalryActionType = 'strike' | 'sabotage' | 'repair';
 export type RivalryStructureCode = 'relay_core' | 'cipher_vault' | 'sentinel_grid';
 export type RivalryWarStatus = 'pending_response' | 'prep' | 'live' | 'blackout' | 'settled' | 'expired' | 'declined' | 'canceled';
 
-
 export interface RivalryClanOption {
   id: string;
   name: string;
