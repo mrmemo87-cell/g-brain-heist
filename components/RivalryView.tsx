@@ -52,15 +52,22 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
 
   React.useEffect(() => {
     void loadWars();
-    void loadClanTargets('');
-  }, [loadWars, loadClanTargets]);
+    if (canDeclare) {
+      void loadClanTargets('');
+    } else {
+      setClanTargets([]);
+      setTargetSearch('');
+      setClanTargetsError(null);
+    }
+  }, [loadWars, loadClanTargets, canDeclare]);
 
   React.useEffect(() => {
+    if (!canDeclare) return;
     const t = window.setTimeout(() => {
       void loadClanTargets(targetSearch);
     }, 220);
     return () => window.clearTimeout(t);
-  }, [targetSearch, loadClanTargets]);
+  }, [targetSearch, loadClanTargets, canDeclare]);
 
   const handleDeclare = async (targetClanId: string) => {
     if (!canDeclare) {
@@ -130,7 +137,10 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
           clanTargetsLoading={clanTargetsLoading}
           clanTargetsError={clanTargetsError}
           onSearchClanTargets={(search) => setTargetSearch(search)}
-          onReloadClanTargets={() => void loadClanTargets(targetSearch)}
+          onReloadClanTargets={() => {
+            if (!canDeclare) return;
+            void loadClanTargets(targetSearch);
+          }}
         />
       ) : (
         <div className="space-y-4">

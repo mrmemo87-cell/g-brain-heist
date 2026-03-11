@@ -55,6 +55,8 @@ const bandClass = (band: string): string => {
   return 'border-white/10 bg-black/20';
 };
 
+type RivalryLogsCursor = { created_at: string; id: string } | null;
+
 const normalizeActionFeedback = (actionType: RivalryActionType, result: RivalryRpcResult): string => {
   const grade = typeof result.result_grade === 'string' ? result.result_grade.toUpperCase() : 'OK';
   const damage = typeof result.damage === 'number' ? `DMG ${result.damage}` : null;
@@ -71,11 +73,11 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
   const [logs, setLogs] = React.useState<RivalryLogEntry[]>([]);
   const [loadingLogs, setLoadingLogs] = React.useState(false);
   const [hasMoreLogs, setHasMoreLogs] = React.useState(true);
-  const [, setLastCursor] = React.useState<string | null>(null);
-  const lastCursorRef = React.useRef<string | null>(null);
+  const [, setLastCursor] = React.useState<RivalryLogsCursor>(null);
+  const lastCursorRef = React.useRef<RivalryLogsCursor>(null);
   const [nowTick, setNowTick] = React.useState<number>(Date.now());
 
-  const updateLastCursor = React.useCallback((cursor: string | null) => {
+  const updateLastCursor = React.useCallback((cursor: RivalryLogsCursor) => {
     lastCursorRef.current = cursor;
     setLastCursor(cursor);
   }, []);
@@ -100,7 +102,7 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
       const next = res.logs || [];
       setLogs((prev) => (reset ? next : [...prev, ...next]));
       setHasMoreLogs(next.length >= 30);
-      updateLastCursor(next.length ? next[next.length - 1].created_at : (reset ? null : lastCursorRef.current));
+      updateLastCursor(next.length ? { created_at: next[next.length - 1].created_at, id: next[next.length - 1].id } : (reset ? null : lastCursorRef.current));
     } catch (error) {
       addToast(error instanceof Error ? error.message : 'Failed to load logs', 'error');
     } finally {
@@ -146,6 +148,7 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
   const attackerClanId = (war.attacker_clan_id as string | undefined) || null;
   const defenderClanId = (war.defender_clan_id as string | undefined) || null;
   const isParticipant = state?.scope === 'participant';
+  const showParticipantTelemetryPanels = isParticipant || state?.scope !== 'public';
   const derivedClanId = myClanId || (state?.rosters || []).find((r) => r.user_id === myUserId)?.clan_id || null;
   const enemyClanId = derivedClanId && attackerClanId && defenderClanId
     ? (derivedClanId === attackerClanId ? defenderClanId : attackerClanId)
@@ -198,61 +201,67 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="card-glass p-4">
-          <h3 className="font-heading text-white mb-2">Score</h3>
-          <div className="text-sm text-gray-300">
-            Attacker: {isParticipant ? (state?.score?.attacker_visible ?? (state?.score?.blackout ? 'Hidden' : '—')) : (state?.score ? 'Hidden' : 'Unknown')}
-          </div>
-          <div className="text-sm text-gray-300">
-            Defender: {isParticipant ? (state?.score?.defender_visible ?? (state?.score?.blackout ? 'Hidden' : '—')) : (state?.score ? 'Hidden' : 'Unknown')}
-          </div>
-          {state?.score?.blackout && <div className="text-xs text-fuchsia-300 mt-2">Blackout phase active.</div>}
-          {isParticipant && myRoster && (
-            <div className="mt-2 inline-flex rounded-full border border-cyan-400/40 bg-cyan-900/20 px-2 py-0.5 text-xs text-cyan-100">
-              You: {myRoster.role_pref} • {myRoster.is_locked_in ? 'Roster locked' : 'Not locked'}
+      {showParticipantTelemetryPanels ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="card-glass p-4">
+            <h3 className="font-heading text-white mb-2">Score</h3>
+            <div className="text-sm text-gray-300">
+              Attacker: {isParticipant ? (state?.score?.attacker_visible ?? (state?.score?.blackout ? 'Hidden' : '—')) : (state?.score ? 'Hidden' : 'Unknown')}
             </div>
-          )}
-        </div>
-
-        <div className="card-glass p-4">
-          <h3 className="font-heading text-white mb-2">Structures</h3>
-          <div className="space-y-3">
-            {structureGroups.map((group) => (
-              <div key={group.title}>
-                <p className="text-xs uppercase text-gray-400 mb-1">{group.title}</p>
-                <div className="space-y-2">
-                  {group.items.map((s) => {
-                    const pct = Math.max(0, Math.min(100, Math.round((s.current_integrity / Math.max(1, s.max_integrity)) * 100)));
-                    const publicBand = s.state_band === 'critical' || s.state_band === 'down'
-                      ? 'Low'
-                      : s.state_band === 'strained'
-                        ? 'Medium'
-                        : 'High';
-                    const barWidth = isParticipant
-                      ? pct
-                      : (publicBand === 'Low' ? 25 : publicBand === 'Medium' ? 55 : 85);
-                    return (
-                      <div key={`${s.owner_clan_id}-${s.structure_code}`} className={`rounded-lg border px-3 py-2 text-sm ${bandClass(s.state_band)}`}>
-                        <div className="flex justify-between">
-                          <span>{s.structure_code}</span>
-                          <span className="uppercase text-xs">{isParticipant ? s.state_band : publicBand}</span>
-                        </div>
-                        <div className="mt-1 h-2 w-full rounded bg-black/40 overflow-hidden">
-                          <div className="h-2 bg-cyan-400/80" style={{ width: `${barWidth}%` }} />
-                        </div>
-                        <div className="text-xs text-gray-300 mt-1">
-                          {isParticipant ? `${s.current_integrity}/${s.max_integrity} (${pct}%)` : `Integrity: ${publicBand}`}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+            <div className="text-sm text-gray-300">
+              Defender: {isParticipant ? (state?.score?.defender_visible ?? (state?.score?.blackout ? 'Hidden' : '—')) : (state?.score ? 'Hidden' : 'Unknown')}
+            </div>
+            {state?.score?.blackout && <div className="text-xs text-fuchsia-300 mt-2">Blackout phase active.</div>}
+            {isParticipant && myRoster && (
+              <div className="mt-2 inline-flex rounded-full border border-cyan-400/40 bg-cyan-900/20 px-2 py-0.5 text-xs text-cyan-100">
+                You: {myRoster.role_pref} • {myRoster.is_locked_in ? 'Roster locked' : 'Not locked'}
               </div>
-            ))}
+            )}
+          </div>
+
+          <div className="card-glass p-4">
+            <h3 className="font-heading text-white mb-2">Structures</h3>
+            <div className="space-y-3">
+              {structureGroups.map((group) => (
+                <div key={group.title}>
+                  <p className="text-xs uppercase text-gray-400 mb-1">{group.title}</p>
+                  <div className="space-y-2">
+                    {group.items.map((s) => {
+                      const pct = Math.max(0, Math.min(100, Math.round((s.current_integrity / Math.max(1, s.max_integrity)) * 100)));
+                      const publicBand = s.state_band === 'critical' || s.state_band === 'down'
+                        ? 'Low'
+                        : s.state_band === 'strained'
+                          ? 'Medium'
+                          : 'High';
+                      const barWidth = isParticipant
+                        ? pct
+                        : (publicBand === 'Low' ? 25 : publicBand === 'Medium' ? 55 : 85);
+                      return (
+                        <div key={`${s.owner_clan_id}-${s.structure_code}`} className={`rounded-lg border px-3 py-2 text-sm ${bandClass(s.state_band)}`}>
+                          <div className="flex justify-between">
+                            <span>{s.structure_code}</span>
+                            <span className="uppercase text-xs">{isParticipant ? s.state_band : publicBand}</span>
+                          </div>
+                          <div className="mt-1 h-2 w-full rounded bg-black/40 overflow-hidden">
+                            <div className="h-2 bg-cyan-400/80" style={{ width: `${barWidth}%` }} />
+                          </div>
+                          <div className="text-xs text-gray-300 mt-1">
+                            {isParticipant ? `${s.current_integrity}/${s.max_integrity} (${pct}%)` : `Integrity: ${publicBand}`}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="card-glass p-4 text-sm text-gray-400">
+          Score and structure telemetry are only available to participating clans.
+        </div>
+      )}
 
       {isParticipant && status === 'pending_response' && (
         <div className="card-glass p-4">

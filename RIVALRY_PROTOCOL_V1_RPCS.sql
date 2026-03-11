@@ -1227,7 +1227,7 @@ $$;
 CREATE OR REPLACE FUNCTION public.rpc_rivalry_get_war_logs(
   p_war_id uuid,
   p_limit integer DEFAULT 50,
-  p_before timestamptz DEFAULT NULL
+  p_before jsonb DEFAULT NULL
 )
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -1238,6 +1238,8 @@ DECLARE
   v_user_id uuid := auth.uid();
   v_war public.rivalry_wars%rowtype;
   v_involved boolean;
+  v_before_created_at timestamptz;
+  v_before_id uuid;
 BEGIN
   IF v_user_id IS NULL THEN
     RETURN jsonb_build_object('success', false, 'error', 'not_authenticated');
@@ -1246,6 +1248,19 @@ BEGIN
   SELECT * INTO v_war FROM public.rivalry_wars WHERE id = p_war_id;
   IF NOT FOUND THEN
     RETURN jsonb_build_object('success', false, 'error', 'war_not_found');
+  END IF;
+
+  IF p_before IS NOT NULL THEN
+    BEGIN
+      v_before_created_at := NULLIF(p_before->>'created_at', '')::timestamptz;
+      v_before_id := NULLIF(p_before->>'id', '')::uuid;
+      IF v_before_created_at IS NULL OR v_before_id IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'error', 'invalid_cursor');
+      END IF;
+    EXCEPTION
+      WHEN OTHERS THEN
+        RETURN jsonb_build_object('success', false, 'error', 'invalid_cursor');
+    END;
   END IF;
 
   SELECT EXISTS (
@@ -1259,13 +1274,16 @@ BEGIN
       'success', true,
       'scope', 'participant',
       'logs', (
-        SELECT COALESCE(jsonb_agg(to_jsonb(a) ORDER BY a.created_at DESC), '[]'::jsonb)
+        SELECT COALESCE(jsonb_agg(to_jsonb(a) ORDER BY a.created_at DESC, a.id DESC), '[]'::jsonb)
         FROM (
           SELECT *
           FROM public.rivalry_war_actions
           WHERE war_id = p_war_id
-            AND (p_before IS NULL OR created_at < p_before)
-          ORDER BY created_at DESC
+            AND (
+              p_before IS NULL
+              OR (created_at, id) < (v_before_created_at, v_before_id)
+            )
+          ORDER BY created_at DESC, id DESC
           LIMIT GREATEST(1, LEAST(COALESCE(p_limit, 50), 200))
         ) a
       )
@@ -1275,14 +1293,17 @@ BEGIN
       'success', true,
       'scope', 'public',
       'logs', (
-        SELECT COALESCE(jsonb_agg(to_jsonb(x) ORDER BY x.created_at DESC), '[]'::jsonb)
+        SELECT COALESCE(jsonb_agg(to_jsonb(x) ORDER BY x.created_at DESC, x.id DESC), '[]'::jsonb)
         FROM (
           SELECT id, war_id, action_type, target_structure_code, result_grade, created_at
           FROM public.rivalry_war_actions
           WHERE war_id = p_war_id
             AND result_grade IN ('strong','critical')
-            AND (p_before IS NULL OR created_at < p_before)
-          ORDER BY created_at DESC
+            AND (
+              p_before IS NULL
+              OR (created_at, id) < (v_before_created_at, v_before_id)
+            )
+          ORDER BY created_at DESC, id DESC
           LIMIT GREATEST(1, LEAST(COALESCE(p_limit, 50), 100))
         ) x
       )
@@ -1485,7 +1506,7 @@ $$;
 GRANT EXECUTE ON FUNCTION public.rivalry_constants() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.rpc_rivalry_get_public_wars(integer) TO authenticated, anon;
 GRANT EXECUTE ON FUNCTION public.rpc_rivalry_get_war_state(uuid) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.rpc_rivalry_get_war_logs(uuid, integer, timestamptz) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.rpc_rivalry_get_war_logs(uuid, integer, jsonb) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.rpc_rivalry_declare_war(uuid, uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.rpc_rivalry_respond_war(uuid, text, uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.rpc_rivalry_set_doctrine(uuid, text) TO authenticated;
