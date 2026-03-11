@@ -79,7 +79,12 @@ CREATE TABLE IF NOT EXISTS public.rivalry_wars (
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
 
-  CONSTRAINT rivalry_wars_attacker_defender_diff CHECK (attacker_clan_id <> defender_clan_id)
+  CONSTRAINT rivalry_wars_attacker_defender_diff CHECK (attacker_clan_id <> defender_clan_id),
+  CONSTRAINT rivalry_wars_winner_participant_check CHECK (
+    winner_clan_id IS NULL
+    OR winner_clan_id = attacker_clan_id
+    OR winner_clan_id = defender_clan_id
+  )
 );
 
 COMMENT ON TABLE public.rivalry_wars IS 'Rivalry Protocol war lifecycle root table.';
@@ -385,7 +390,7 @@ CREATE TABLE IF NOT EXISTS public.rivalry_war_member_state (
   user_id uuid NOT NULL REFERENCES public.users(id) ON DELETE RESTRICT,
   clan_id uuid NOT NULL REFERENCES public.clans(id) ON DELETE RESTRICT,
 
-  current_oe integer NOT NULL DEFAULT 0 CHECK (current_oe >= 0 AND current_oe <= 100),
+  current_oe integer NOT NULL DEFAULT 0 CHECK (current_oe >= 0 AND current_oe <= 10),
   oe_updated_at timestamptz NOT NULL DEFAULT now(),
 
   last_action_at timestamptz,

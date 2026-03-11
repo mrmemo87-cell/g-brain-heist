@@ -244,7 +244,7 @@ BEGIN
 EXCEPTION
   WHEN OTHERS THEN
     -- Keep gameplay path resilient if activities schema differs.
-    NULL;
+    RAISE WARNING 'rivalry_mirror_activity_milestone failed: % (SQLSTATE %)', SQLERRM, SQLSTATE;
 END;
 $$;
 

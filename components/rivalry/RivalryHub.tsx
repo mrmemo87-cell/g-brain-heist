@@ -8,6 +8,7 @@ interface RivalryHubProps {
   onRefresh: () => void;
   onOpenWar: (warId: string) => void;
   onDeclare: (targetClanId: string) => void;
+  canDeclare: boolean;
   declaring: boolean;
   myClanId?: string | null;
   clanTargets: RivalryClanOption[];
@@ -35,6 +36,7 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
   onRefresh,
   onOpenWar,
   onDeclare,
+  canDeclare,
   declaring,
   myClanId,
   clanTargets,
@@ -60,6 +62,7 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
       <div className="card-glass p-4">
         <h3 className="font-heading text-lg text-cyan-200">Declare Rivalry</h3>
         <p className="text-sm text-gray-400 mt-1">Search and select a clan target to send a challenge.</p>
+        {!canDeclare ? <p className="text-xs text-amber-300 mt-1">Join a clan to declare rivalry wars.</p> : null}
 
         <div className="mt-3 space-y-2">
           <div className="flex gap-2">
@@ -72,11 +75,13 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
                 onSearchClanTargets(v);
               }}
               placeholder="Search clan name"
-              className="flex-1 rounded-lg bg-black/40 border border-white/10 px-3 py-2 text-sm text-white"
+              disabled={!canDeclare}
+              className="flex-1 rounded-lg bg-black/40 border border-white/10 px-3 py-2 text-sm text-white disabled:opacity-50"
             />
             <button
               onClick={onReloadClanTargets}
-              className="rounded-lg px-3 py-2 bg-white/10 hover:bg-white/20 text-xs"
+              disabled={!canDeclare}
+              className="rounded-lg px-3 py-2 bg-white/10 hover:bg-white/20 text-xs disabled:opacity-50"
               type="button"
             >
               Reload
@@ -115,6 +120,7 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
                   key={target.id}
                   type="button"
                   onClick={() => handleSelect(target)}
+                  disabled={!canDeclare}
                   className={`w-full text-left rounded px-2 py-1.5 text-sm border ${selectedTarget?.id === target.id ? 'border-cyan-400/60 bg-cyan-900/30' : 'border-transparent hover:border-white/10 hover:bg-white/5'}`}
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -127,7 +133,7 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
           </div>
 
           <button
-            disabled={declaring || !selectedTarget?.id}
+            disabled={!canDeclare || declaring || !selectedTarget?.id}
             onClick={() => selectedTarget?.id && onDeclare(selectedTarget.id)}
             className="w-full rounded-lg px-4 py-2 bg-red-600/80 hover:bg-red-500 disabled:opacity-50 text-white text-sm"
           >

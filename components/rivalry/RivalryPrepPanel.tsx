@@ -15,6 +15,12 @@ const RivalryPrepPanel: React.FC<RivalryPrepPanelProps> = ({ mode, canManage, on
   const [memberId, setMemberId] = React.useState('');
   const [role, setRole] = React.useState<RivalryRolePref>('striker');
 
+  const handleLockClick = () => {
+    if (busy) return;
+    if (!window.confirm('Lock the roster now? This cannot be undone for this war phase.')) return;
+    onLockRoster();
+  };
+
   if (!canManage) {
     return <div className="text-sm text-gray-400">Leadership controls are available to leader/officer/moderator only.</div>;
   }
@@ -57,7 +63,7 @@ const RivalryPrepPanel: React.FC<RivalryPrepPanelProps> = ({ mode, canManage, on
         <div className="flex gap-2">
           <button disabled={busy || !memberId.trim()} onClick={() => onUpdateRoster(memberId.trim(), role, true)} className="rounded-lg px-3 py-2 text-xs bg-cyan-600/70 hover:bg-cyan-500 disabled:opacity-50">Add/Update</button>
           <button disabled={busy || !memberId.trim()} onClick={() => onUpdateRoster(memberId.trim(), role, false)} className="rounded-lg px-3 py-2 text-xs bg-slate-600/70 hover:bg-slate-500 disabled:opacity-50">Remove</button>
-          <button disabled={busy} onClick={onLockRoster} className="rounded-lg px-3 py-2 text-xs bg-amber-600/80 hover:bg-amber-500 disabled:opacity-50">Lock Roster</button>
+          <button disabled={busy} onClick={handleLockClick} className="rounded-lg px-3 py-2 text-xs bg-amber-600/80 hover:bg-amber-500 disabled:opacity-50">Lock Roster</button>
         </div>
       </div>
     </div>

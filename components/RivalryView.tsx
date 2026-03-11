@@ -22,6 +22,7 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
   const [clanTargetsLoading, setClanTargetsLoading] = React.useState(false);
   const [clanTargetsError, setClanTargetsError] = React.useState<string | null>(null);
   const [targetSearch, setTargetSearch] = React.useState('');
+  const canDeclare = Boolean(profile.clan_id);
 
   const loadWars = React.useCallback(async () => {
     setLoading(true);
@@ -62,6 +63,11 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
   }, [targetSearch, loadClanTargets]);
 
   const handleDeclare = async (targetClanId: string) => {
+    if (!canDeclare) {
+      addToast('You must be in a clan to declare a rivalry war.', 'warning');
+      return;
+    }
+
     const normalizeTargetClanId = (raw: string): string | null => {
       const value = raw.trim();
       const uuidLike = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -117,6 +123,7 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
           onRefresh={() => void loadWars()}
           onOpenWar={setSelectedWarId}
           onDeclare={(targetClanId) => void handleDeclare(targetClanId)}
+          canDeclare={canDeclare}
           declaring={declaring}
           myClanId={profile.clan_id || null}
           clanTargets={clanTargets}
