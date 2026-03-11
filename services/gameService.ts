@@ -3779,17 +3779,63 @@ export const clan_get_pending_join_requests = async (): Promise<ClanJoinRequest[
 
     console.log('Fetching pending join requests for clan:', membership.clan_id);
 
-    // Try query without embedding users first to avoid PGRST201 ambiguous relationship error
-    // (clan_join_requests has multiple FKs to users: user_id and approved_by)
+    // Try to fetch with user relationship embedded
+    // If this fails due to ambiguous relationship, fall back to separate query
     const { data, error } = await supabase
         .from('clan_join_requests')
-        .select('id, clan_id, user_id, status, created_at, clans(name)')
+        .select(`id, clan_id, user_id, status, created_at, requested_at, 
+                 clans!inner(name),
+                 users!user_id(id, username, email, avatar_url)`)
         .eq('clan_id', membership.clan_id)
         .eq('status', 'pending')
         .order('created_at', { ascending: true });
 
     if (error) {
-        console.error('Failed to fetch join requests:', error);
+        console.error('Failed to fetch join requests with users relationship:', error.message);
+        // Fall back to fetching without relationship if ambiguous FK error
+        if (error.message?.includes('ambiguous') || error.code === 'PGRST201') {
+            console.log('Falling back to separate users query...');
+            const { data: fallbackData, error: fallbackError } = await supabase
+                .from('clan_join_requests')
+                .select('id, clan_id, user_id, status, created_at, requested_at, clans(name)')
+                .eq('clan_id', membership.clan_id)
+                .eq('status', 'pending')
+                .order('created_at', { ascending: true });
+
+            if (fallbackError) {
+                console.error('Fallback query also failed:', fallbackError);
+                return mockApiCall([]);
+            }
+
+            if (!fallbackData || fallbackData.length === 0) {
+                return mockApiCall([]);
+            }
+
+            // Fetch usernames separately
+            const userIds = [...new Set(fallbackData.map(r => r.user_id))];
+            const { data: usersData, error: usersError } = await supabase
+                .from('users')
+                .select('id, username, email, avatar_url')
+                .in('id', userIds);
+
+            if (usersError) {
+                console.warn('Failed to enrich join requests with user profile data:', usersError.message);
+            }
+
+            const usersMap = new Map((usersData || []).map(u => [u.id, u]));
+
+            const enrichedData = fallbackData.map(r => {
+                const user = usersMap.get(r.user_id);
+                return {
+                    ...r,
+                    users: user || { username: 'Unknown agent', avatar_url: null, email: null },
+                };
+            });
+
+            console.log('Successfully fetched join requests (via fallback):', enrichedData.length);
+            return mockApiCall(enrichedData.map(mapJoinRequest));
+        }
+
         // If table doesn't exist (404/PGRST116), return empty array instead of throwing
         if (error.code === 'PGRST116' || error.code === '42P01' || error.message?.includes('404') || error.message?.includes('not found')) {
             console.warn('clan_join_requests table may not exist. Please run the migration SQL: FIX_CLAN_JOIN_REQUESTS_RLS.sql');
@@ -3804,29 +3850,9 @@ export const clan_get_pending_join_requests = async (): Promise<ClanJoinRequest[
         return mockApiCall([]);
     }
 
-    // Fetch usernames separately to avoid ambiguous relationship
-    const userIds = [...new Set(data.map(r => r.user_id))];
-    const { data: usersData, error: usersError } = await supabase
-        .from('users')
-        .select('id, username, email, avatar_url, full_name')
-        .in('id', userIds);
-
-    if (usersError) {
-        console.warn('Failed to enrich join requests with user profile data:', usersError.message);
-    }
-
-    const usersMap = new Map((usersData || []).map(u => [u.id, u]));
-
-    const enrichedData = data.map(r => {
-        const user = usersMap.get(r.user_id);
-        return {
-            ...r,
-            users: user || { username: 'Unknown agent', avatar_url: null },
-        };
-    });
-
-    console.log('Successfully fetched join requests:', enrichedData.length);
-    return mockApiCall(enrichedData.map(mapJoinRequest));
+    // If the first query succeeded with users relationship embedded, use it directly
+    console.log('Successfully fetched join requests with users relationship embedded:', data.length);
+    return mockApiCall(data.map(mapJoinRequest));
 };
 
 export const clan_approve_join_request = async (requestId: string): Promise<boolean> => {
