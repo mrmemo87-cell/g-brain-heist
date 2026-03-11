@@ -117,9 +117,16 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
     <main className="mt-6 space-y-5">
       <BackButton onClick={onComplete} label="Back to Dashboard" />
 
-      <div className="card-glass p-4">
-        <h1 className="font-heading text-2xl text-white">Rivalry Protocol</h1>
-        <p className="text-sm text-gray-400 mt-1">Clan Wars V1 Command Center</p>
+      <div className="card-glass p-4 relative overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-fuchsia-500/10 to-red-500/10" />
+        <div className="relative">
+          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-900/20 px-2.5 py-1 text-[11px] uppercase tracking-[0.2em] text-cyan-200">
+            <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 animate-pulse" />
+            Tactical Interface
+          </div>
+          <h1 className="mt-2 font-heading text-2xl text-white drop-shadow-[0_0_10px_rgba(34,211,238,0.35)]">Rivalry Protocol</h1>
+          <p className="text-sm text-gray-300 mt-1">Clan Wars V1 Command Center</p>
+        </div>
       </div>
 
       {!selectedWarId ? (
@@ -144,7 +151,7 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
         />
       ) : (
         <div className="space-y-4">
-          <button onClick={() => setSelectedWarId(null)} className="rounded-lg px-3 py-2 bg-white/10 hover:bg-white/20 text-sm">← Back to hub</button>
+          <button onClick={() => setSelectedWarId(null)} className="rounded-lg px-3 py-2 bg-white/10 hover:bg-white/20 text-sm transition-colors">← Back to hub</button>
           <RivalryWarDetail
             warId={selectedWarId}
             myUserId={profile.id}
