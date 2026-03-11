@@ -1,5 +1,6 @@
 import React from 'react';
 import { RivalryClanOption, RivalryWarSummary } from '../../services/rivalryService';
+import { RIVALRY_DECLARATION_REQUIREMENTS } from '../../services/rivalryRules';
 
 interface RivalryHubProps {
   wars: RivalryWarSummary[];
@@ -16,6 +17,7 @@ interface RivalryHubProps {
   clanTargetsError: string | null;
   onSearchClanTargets: (search: string) => void;
   onReloadClanTargets: () => void;
+  onTargetChange?: () => void;
   declareFeedback?: string | null;
 }
 
@@ -45,6 +47,7 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
   clanTargetsError,
   onSearchClanTargets,
   onReloadClanTargets,
+  onTargetChange,
   declareFeedback,
 }) => {
   const [search, setSearch] = React.useState('');
@@ -57,6 +60,7 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
   const handleSelect = (target: RivalryClanOption) => {
     setSelectedTarget(target);
     setSearch(target.name);
+    onTargetChange?.();
   };
 
   return (
@@ -69,16 +73,19 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
         <div className="mt-3 rounded-xl border border-cyan-400/25 bg-cyan-950/30 p-3">
           <p className="text-xs uppercase tracking-wide text-cyan-200/90">Declaration Requirements</p>
           <ul className="mt-2 space-y-1 text-xs text-cyan-100/90 list-disc list-inside">
-            <li>You must be in a clan and have Leader, Officer, or Moderator permissions.</li>
-            <li>Both clans need at least 5 members to start a rivalry war.</li>
-            <li>Your clan can declare up to 2 wars per rolling 24-hour window.</li>
-            <li>Clans already in an active war cannot start another one.</li>
-            <li>The same clan matchup has a cooldown before it can be declared again.</li>
+            {RIVALRY_DECLARATION_REQUIREMENTS.map((rule) => (
+              <li key={rule}>{rule}</li>
+            ))}
           </ul>
         </div>
 
         {declareFeedback ? (
-          <div className="mt-3 rounded-xl border border-amber-300/50 bg-amber-900/35 p-3 shadow-[0_0_12px_rgba(251,191,36,0.2)]">
+          <div
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+            className="mt-3 rounded-xl border border-amber-300/50 bg-amber-900/35 p-3 shadow-[0_0_12px_rgba(251,191,36,0.2)]"
+          >
             <p className="text-[11px] uppercase tracking-wide text-amber-200">Declaration blocked</p>
             <p className="mt-1 text-sm text-amber-100">{declareFeedback}</p>
           </div>
@@ -93,6 +100,7 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
                 setSearch(v);
                 setSelectedTarget(null);
                 onSearchClanTargets(v);
+                onTargetChange?.();
               }}
               placeholder="Search clan name"
               disabled={!canDeclare}
@@ -120,6 +128,7 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
                   setSelectedTarget(null);
                   setSearch('');
                   onSearchClanTargets('');
+                  onTargetChange?.();
                 }}
                 className="text-xs px-2 py-1 rounded bg-black/30 hover:bg-black/50 transition-colors"
               >

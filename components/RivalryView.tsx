@@ -4,25 +4,29 @@ import { Profile, ToastMessage } from '../types';
 import { RivalryClanOption, rivalryService } from '../services/rivalryService';
 import RivalryHub from './rivalry/RivalryHub';
 import RivalryWarDetail from './rivalry/RivalryWarDetail';
+import { RIVALRY_RULES } from '../services/rivalryRules';
 
 const DECLARE_ERROR_MESSAGES: Record<string, string> = {
   min_clan_size_not_met:
-    'War declaration blocked: both clans must have at least 5 members before a rivalry war can be created.',
+    `War declaration blocked: both clans must have at least ${RIVALRY_RULES.minClanSizeToDeclare} members before a rivalry war can be created.`,
   declaration_cap_reached:
-    'War declaration cap reached: your clan has already sent the maximum declarations in the last 24 hours.',
+    `War declaration cap reached: your clan has already sent the maximum ${RIVALRY_RULES.declarationCapPer24h} declarations in the last 24 hours.`,
   active_war_conflict:
     'War declaration blocked: one of the clans is already in an active rivalry war.',
   pair_cooldown_active:
     'This matchup is cooling down. You must wait until the clan-pair cooldown ends before declaring again.',
   insufficient_permissions:
-    'Only clan leaders, officers, or moderators can declare rivalry wars.',
+    `Only clan ${RIVALRY_RULES.declarationRoles.join(', ')} can declare rivalry wars.`,
   invalid_target_clan:
     'Invalid target clan selected. Choose a different clan and try again.',
 };
 
 const getFriendlyDeclareError = (rawError: unknown): string => {
   if (typeof rawError !== 'string') return 'Failed to declare war.';
-  return DECLARE_ERROR_MESSAGES[rawError] || rawError.replaceAll('_', ' ');
+  const mapped = DECLARE_ERROR_MESSAGES[rawError];
+  if (mapped) return mapped;
+  console.warn('Unhandled rivalry declare error code:', rawError);
+  return 'Failed to declare war.';
 };
 
 interface RivalryViewProps {
@@ -178,6 +182,7 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
             if (!canDeclare) return;
             void loadClanTargets(targetSearch);
           }}
+          onTargetChange={() => setDeclareFeedback(null)}
           declareFeedback={declareFeedback}
         />
       ) : (
