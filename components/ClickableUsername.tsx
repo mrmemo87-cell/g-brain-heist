@@ -5,7 +5,7 @@ import { getPublicProfile } from '../services/gameService';
 import { ShieldIcon, BrainIcon } from './icons';
 import AvatarWithFrame from './AvatarWithFrame';
 import DeveloperBadge from './DeveloperBadge';
-import { isDeveloperBadgeUser } from './developerBadge';
+import { isDeveloperBadgeUser } from './DeveloperBadge';
 
 interface ClickableUsernameProps {
   /** The user ID to fetch profile for */
