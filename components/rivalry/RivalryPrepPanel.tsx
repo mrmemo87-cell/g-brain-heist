@@ -1,0 +1,67 @@
+import React from 'react';
+import { RivalryDoctrine, RivalryRolePref } from '../../services/rivalryService';
+
+interface RivalryPrepPanelProps {
+  mode: 'pending_response' | 'prep';
+  canManage: boolean;
+  onSetDoctrine: (doctrine: RivalryDoctrine) => void;
+  onUpdateRoster: (memberUserId: string, role: RivalryRolePref, include: boolean) => void;
+  onLockRoster: () => void;
+  onRespond: (response: 'accept' | 'decline') => void;
+  busy: boolean;
+}
+
+const RivalryPrepPanel: React.FC<RivalryPrepPanelProps> = ({ mode, canManage, onSetDoctrine, onUpdateRoster, onLockRoster, onRespond, busy }) => {
+  const [memberId, setMemberId] = React.useState('');
+  const [role, setRole] = React.useState<RivalryRolePref>('striker');
+
+  if (!canManage) {
+    return <div className="text-sm text-gray-400">Leadership controls are available to leader/officer/moderator only.</div>;
+  }
+
+  if (mode === 'pending_response') {
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-gray-300">Incoming challenge detected. Respond to continue.</p>
+        <div className="flex flex-wrap gap-2">
+          <button disabled={busy} onClick={() => onRespond('accept')} className="rounded-lg px-3 py-2 text-xs bg-emerald-600/80 hover:bg-emerald-500 disabled:opacity-50">Accept War</button>
+          <button disabled={busy} onClick={() => onRespond('decline')} className="rounded-lg px-3 py-2 text-xs bg-red-700/80 hover:bg-red-600 disabled:opacity-50">Decline War</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <div className="text-sm text-gray-300 mb-2">Doctrine</div>
+        <div className="grid grid-cols-3 gap-2">
+          {(['breach', 'fortress', 'disruption'] as RivalryDoctrine[]).map((doc) => (
+            <button key={doc} onClick={() => onSetDoctrine(doc)} disabled={busy} className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs uppercase hover:bg-white/10 disabled:opacity-50">
+              {doc}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-white/10 p-3 bg-black/20 space-y-2">
+        <div className="text-sm text-gray-300">Roster Management</div>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <input value={memberId} onChange={(e) => setMemberId(e.target.value)} placeholder="member user UUID" className="flex-1 rounded-lg bg-black/40 border border-white/10 px-3 py-2 text-sm" />
+          <select value={role} onChange={(e) => setRole(e.target.value as RivalryRolePref)} className="rounded-lg bg-black/40 border border-white/10 px-3 py-2 text-sm">
+            <option value="striker">striker</option>
+            <option value="saboteur">saboteur</option>
+            <option value="engineer">engineer</option>
+          </select>
+        </div>
+        <div className="flex gap-2">
+          <button disabled={busy || !memberId.trim()} onClick={() => onUpdateRoster(memberId.trim(), role, true)} className="rounded-lg px-3 py-2 text-xs bg-cyan-600/70 hover:bg-cyan-500 disabled:opacity-50">Add/Update</button>
+          <button disabled={busy || !memberId.trim()} onClick={() => onUpdateRoster(memberId.trim(), role, false)} className="rounded-lg px-3 py-2 text-xs bg-slate-600/70 hover:bg-slate-500 disabled:opacity-50">Remove</button>
+          <button disabled={busy} onClick={onLockRoster} className="rounded-lg px-3 py-2 text-xs bg-amber-600/80 hover:bg-amber-500 disabled:opacity-50">Lock Roster</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default RivalryPrepPanel;

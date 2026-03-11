@@ -39,6 +39,7 @@ const QuestView = lazyRetry(() => import('./components/QuestView'), 'QuestView')
 const PvPView = lazyRetry(() => import('./components/PvPView'), 'PvPView');
 const ShopView = lazyRetry(() => import('./components/ShopView'), 'ShopView');
 const ClanView = lazyRetry(() => import('./components/ClanView'), 'ClanView');
+const RivalryView = lazyRetry(() => import('./components/RivalryView'), 'RivalryView');
 const InventoryView = lazyRetry(() => import('./components/InventoryView'), 'InventoryView');
 const LeaderboardView = lazyRetry(() => import('./components/LeaderboardView'), 'LeaderboardView');
 const AchievementView = lazyRetry(() => import('./components/AchievementView'), 'AchievementView');
@@ -119,7 +120,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [news, setNews] = useState<NewsEvent[]>(() => readCache<NewsEvent[]>(CACHE_KEYS.news) ?? []);
   const [activeAssignment, setActiveAssignment] = useState<StudentAssignmentTask | null>(null);
   const [criticalLoading, setCriticalLoading] = useState(true);
-  const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts' | 'lockdown' | 'cambridge' | 'school_admin' | 'admissions'>('dashboard');
+  const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'rivalry' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts' | 'lockdown' | 'cambridge' | 'school_admin' | 'admissions'>('dashboard');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [levelUpData, setLevelUpData] = useState<{ newLevel: number; rewards: any } | null>(null);
@@ -1628,6 +1629,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                 onPendingCountChange={setPendingClanRequests}
               />
             );
+        case 'rivalry':
+            return renderLazy(
+              <RivalryView
+                onComplete={handleViewComplete}
+                profile={profile}
+                addToast={addToast}
+              />
+            );
         case 'inventory':
             return renderLazy(
               <InventoryView
@@ -1853,6 +1862,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                         onOpenRaid={!isStudent ? () => handleViewChange('raids') : undefined}
                         onVisitShop={() => handleViewChange('shop')}
                         onGoToClan={hasSchool ? () => handleViewChange('clan') : undefined}
+                        onOpenRivalry={hasSchool ? () => handleViewChange('rivalry') : undefined}
                         onVisitInventory={() => handleViewChange('inventory')}
                         onViewLeaderboard={hasSchool ? () => handleViewChange('leaderboard') : undefined}
                         onViewAchievements={() => handleViewChange('achievements')}
