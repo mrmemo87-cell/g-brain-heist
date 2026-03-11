@@ -3808,7 +3808,7 @@ export const clan_get_pending_join_requests = async (): Promise<ClanJoinRequest[
     const userIds = [...new Set(data.map(r => r.user_id))];
     const { data: usersData, error: usersError } = await supabase
         .from('users')
-        .select('id, username, email, avatar_url')
+        .select('id, username, email, avatar_url, full_name')
         .in('id', userIds);
 
     if (usersError) {
