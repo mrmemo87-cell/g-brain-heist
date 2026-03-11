@@ -232,9 +232,9 @@ export const rivalryService: RivalryService = {
 
   async listClanTargets(search = '', limit = 60): Promise<RivalryClanOption[]> {
     let query = supabase
-      .from('clans')
-      .select('id, name, member_count, total_score')
-      .order('total_score', { ascending: false })
+      .from('clan_scores')
+      .select('id, name, member_count, clan_total_score')
+      .order('clan_total_score', { ascending: false })
       .limit(Math.max(10, Math.min(limit, 120)));
 
     const term = search.trim();
@@ -260,7 +260,7 @@ export const rivalryService: RivalryService = {
         id,
         name,
         member_count: typeof row.member_count === 'number' ? row.member_count : null,
-        total_score: typeof row.total_score === 'number' ? row.total_score : null,
+        total_score: typeof row.clan_total_score === 'number' ? row.clan_total_score : null,
       });
     }
 
