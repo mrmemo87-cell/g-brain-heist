@@ -3795,7 +3795,7 @@ export const clan_get_pending_join_requests = async (): Promise<ClanJoinRequest[
             console.log('Falling back to separate users query...');
             const { data: fallbackData, error: fallbackError } = await supabase
                 .from('clan_join_requests')
-                .select('id, clan_id, user_id, status, created_at, clans(name)')
+                .select('id, clan_id, user_id, status, created_at, clans!inner(name)')
                 .eq('clan_id', membership.clan_id)
                 .eq('status', 'pending')
                 .order('created_at', { ascending: true });
