@@ -3649,12 +3649,10 @@ const mapJoinRequest = (row: any): ClanJoinRequest => ({
     clan_id: row.clan_id,
     user_id: row.user_id,
     status: row.status,
-    created_at: row.created_at ?? row.requested_at,
-    requested_at: row.requested_at ?? row.created_at,
+    created_at: row.created_at,
     approver_id: row.approved_by ?? null,
     clan_name: row.clans?.name ?? row.clan_name,
     username: row.username ?? row.users?.username,
-    full_name: row.full_name ?? row.users?.full_name,
     email: maskEmail(row.email ?? row.users?.email),
     avatar_url: row.avatar_url ?? row.users?.avatar_url,
 });

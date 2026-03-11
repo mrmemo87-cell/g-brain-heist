@@ -460,10 +460,8 @@ export interface ClanJoinRequest {
   user_id: string;
   status: 'pending' | 'approved' | 'rejected';
   created_at?: string;
-  requested_at?: string;
   clan_name?: string;
   username?: string;
-  full_name?: string | null;
   email?: string | null;
   avatar_url?: string;
   approver_id?: string | null;
