@@ -6,14 +6,6 @@ export type RivalryActionType = 'strike' | 'sabotage' | 'repair';
 export type RivalryStructureCode = 'relay_core' | 'cipher_vault' | 'sentinel_grid';
 export type RivalryWarStatus = 'pending_response' | 'prep' | 'live' | 'blackout' | 'settled' | 'expired' | 'declined' | 'canceled';
 
-
-export interface RivalryClanOption {
-  id: string;
-  name: string;
-  member_count?: number | null;
-  total_score?: number | null;
-}
-
 export interface RivalryWarSummary {
   war_id: string;
   attacker_clan_id: string;
@@ -125,7 +117,6 @@ export interface RivalryService {
   lockRoster: (warId: string) => Promise<RivalryRpcResult>;
   submitAction: (warId: string, actionType: RivalryActionType, targetClanId: string, targetStructureCode: RivalryStructureCode, idempotencyKey?: string) => Promise<RivalryRpcResult>;
   claimReward: (warId: string) => Promise<RivalryRpcResult>;
-  listClanTargets: (search?: string, limit?: number) => Promise<RivalryClanOption[]>;
 }
 
 export const rivalryService: RivalryService = {
@@ -224,43 +215,4 @@ export const rivalryService: RivalryService = {
       })
     );
   },
-
-
-  async listClanTargets(search = '', limit = 60): Promise<RivalryClanOption[]> {
-    let query = supabase
-      .from('clans')
-      .select('id, name, member_count, total_score')
-      .order('total_score', { ascending: false })
-      .limit(Math.max(10, Math.min(limit, 120)));
-
-    const term = search.trim();
-    if (term.length > 0) {
-      query = query.ilike('name', `%${term}%`);
-    }
-
-    const { data, error } = await query;
-    if (error) {
-      throw new Error(error.message || 'Failed to fetch clans');
-    }
-
-    const rows = Array.isArray(data) ? data : [];
-    const seen = new Set<string>();
-    const out: RivalryClanOption[] = [];
-
-    for (const row of rows) {
-      const id = typeof row.id === 'string' ? row.id : '';
-      const name = typeof row.name === 'string' ? row.name.trim() : '';
-      if (!id || !name || seen.has(id)) continue;
-      seen.add(id);
-      out.push({
-        id,
-        name,
-        member_count: typeof row.member_count === 'number' ? row.member_count : null,
-        total_score: typeof row.total_score === 'number' ? row.total_score : null,
-      });
-    }
-
-    return out;
-  },
-
 };

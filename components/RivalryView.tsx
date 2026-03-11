@@ -1,7 +1,7 @@
 import React from 'react';
 import BackButton from './BackButton';
 import { Profile, ToastMessage } from '../types';
-import { RivalryClanOption, rivalryService } from '../services/rivalryService';
+import { rivalryService } from '../services/rivalryService';
 import RivalryHub from './rivalry/RivalryHub';
 import RivalryWarDetail from './rivalry/RivalryWarDetail';
 
@@ -18,11 +18,6 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
   const [declaring, setDeclaring] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  const [clanTargets, setClanTargets] = React.useState<RivalryClanOption[]>([]);
-  const [clanTargetsLoading, setClanTargetsLoading] = React.useState(false);
-  const [clanTargetsError, setClanTargetsError] = React.useState<string | null>(null);
-  const [targetSearch, setTargetSearch] = React.useState('');
-
   const loadWars = React.useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -36,30 +31,9 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
     }
   }, []);
 
-  const loadClanTargets = React.useCallback(async (search: string) => {
-    setClanTargetsLoading(true);
-    setClanTargetsError(null);
-    try {
-      const data = await rivalryService.listClanTargets(search, 80);
-      setClanTargets(data);
-    } catch (err) {
-      setClanTargetsError(err instanceof Error ? err.message : 'Failed to load clan targets');
-    } finally {
-      setClanTargetsLoading(false);
-    }
-  }, []);
-
   React.useEffect(() => {
     void loadWars();
-    void loadClanTargets('');
-  }, [loadWars, loadClanTargets]);
-
-  React.useEffect(() => {
-    const t = window.setTimeout(() => {
-      void loadClanTargets(targetSearch);
-    }, 220);
-    return () => window.clearTimeout(t);
-  }, [targetSearch, loadClanTargets]);
+  }, [loadWars]);
 
   const handleDeclare = async (targetClanId: string) => {
     setDeclaring(true);
@@ -98,12 +72,6 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
           onOpenWar={setSelectedWarId}
           onDeclare={(targetClanId) => void handleDeclare(targetClanId)}
           declaring={declaring}
-          myClanId={profile.clan_id || null}
-          clanTargets={clanTargets}
-          clanTargetsLoading={clanTargetsLoading}
-          clanTargetsError={clanTargetsError}
-          onSearchClanTargets={(search) => setTargetSearch(search)}
-          onReloadClanTargets={() => void loadClanTargets(targetSearch)}
         />
       ) : (
         <div className="space-y-4">
