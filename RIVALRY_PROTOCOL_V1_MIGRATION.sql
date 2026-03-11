@@ -438,7 +438,11 @@ BEGIN
     FROM pg_constraint c
     WHERE c.conrelid = 'public.rivalry_war_member_state'::regclass
       AND c.contype = 'c'
-      AND pg_get_constraintdef(c.oid) ILIKE '%current_oe%'
+      AND c.conname <> 'rivalry_war_member_state_current_oe_check'
+      AND lower(regexp_replace(pg_get_constraintdef(c.oid), '\s+', '', 'g')) IN (
+        'check((current_oe>=0)and(current_oe<=100))',
+        'check((current_oe>=0)and(current_oe<=10))'
+      )
   LOOP
     EXECUTE format('ALTER TABLE public.rivalry_war_member_state DROP CONSTRAINT IF EXISTS %I', v_constraint_name);
   END LOOP;
