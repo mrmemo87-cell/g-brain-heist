@@ -3806,10 +3806,14 @@ export const clan_get_pending_join_requests = async (): Promise<ClanJoinRequest[
 
     // Fetch usernames separately to avoid ambiguous relationship
     const userIds = [...new Set(data.map(r => r.user_id))];
-    const { data: usersData } = await supabase
+    const { data: usersData, error: usersError } = await supabase
         .from('users')
-        .select('id, username, full_name, email, avatar_url')
+        .select('id, username, email, avatar_url')
         .in('id', userIds);
+
+    if (usersError) {
+        console.warn('Failed to enrich join requests with user profile data:', usersError.message);
+    }
 
     const usersMap = new Map((usersData || []).map(u => [u.id, u]));
 
@@ -4278,9 +4282,9 @@ export const clan_chat_post = async (message: string, clanId?: string): Promise<
 
 export const clan_get_available_buffs = async (): Promise<ClanBuffTemplate[]> => {
     try {
-        // Add 2-second timeout to prevent long loading delays
+        // Keep a timeout guard, but allow slower environments enough time to respond.
         const timeoutPromise = new Promise<never>((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout')), 2000)
+            setTimeout(() => reject(new Error('Timeout')), 6000)
         );
         
         const queryPromise = supabase
@@ -4304,7 +4308,9 @@ export const clan_get_available_buffs = async (): Promise<ClanBuffTemplate[]> =>
 
         return data.map(mapBuffTemplateRow);
     } catch (err) {
-        console.warn('Exception loading clan buff templates (timeout or error), using defaults');
+        if (!(err instanceof Error && err.message === 'Timeout')) {
+            console.warn('Exception loading clan buff templates, using defaults');
+        }
         return MOCK_AVAILABLE_BUFFS;
     }
 };

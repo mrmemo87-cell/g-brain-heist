@@ -141,6 +141,36 @@ const getClanLevelBenefits = (level: number): string[] => {
     return benefitTable.slice(0, Math.min(level, benefitTable.length));
 };
 
+const MAX_CLAN_LEVEL = 6;
+
+const getClanUpgradeConditions = (clan: Clan | null, isPrivileged: boolean): { canUpgrade: boolean; reasons: string[]; nextCost: number; nextLevel: number } => {
+    const currentLevel = clan ? getClanLevel(clan.member_limit, clan.extra_member_slots_purchased) : 1;
+    const nextLevel = Math.min(MAX_CLAN_LEVEL, currentLevel + 1);
+    const extraSlots = clan?.extra_member_slots_purchased ?? Math.max(0, (clan?.member_limit ?? 5) - 5);
+    const nextCost = 10000 * (extraSlots + 1);
+    const reasons: string[] = [];
+
+    if (!isPrivileged) {
+        reasons.push('Leader or moderator role required');
+    }
+
+    if (currentLevel >= MAX_CLAN_LEVEL) {
+        reasons.push(`Max level reached (Lv.${MAX_CLAN_LEVEL})`);
+    }
+
+    if ((clan?.vault_coins ?? 0) < nextCost) {
+        const needed = nextCost - (clan?.vault_coins ?? 0);
+        reasons.push(`Need ${needed.toLocaleString()} more vault coins`);
+    }
+
+    return {
+        canUpgrade: reasons.length === 0,
+        reasons,
+        nextCost,
+        nextLevel,
+    };
+};
+
 
 const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfile, addToast, onPendingCountChange }) => {
   const [stage, setStage] = useState<ClanViewStage>('loading');
@@ -500,6 +530,11 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
       setProcessingRequestId(requestId);
       setCapacityUpgradePrompt(null);
       try {
+          const atCapacity = (clan?.members.length ?? 0) >= (clan?.member_limit ?? 0);
+          if (atCapacity) {
+              throw new Error(`Clan is at full capacity (${clan?.members.length ?? 0}/${clan?.member_limit ?? 0}). Upgrade level to unlock more seats.`);
+          }
+
           await GameService.clan_approve_join_request(requestId);
           setPendingApprovals((prev) => {
               const next = prev.filter((request) => request.id !== requestId);
@@ -563,8 +598,9 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
   };
 
   const handleClanLevelUp = async () => {
-      if (!isPrivileged) {
-          addToast('Only clan leadership can level up clan capacity.', 'error');
+      const upgradeConditions = getClanUpgradeConditions(clan, isPrivileged);
+      if (!upgradeConditions.canUpgrade) {
+          addToast(upgradeConditions.reasons[0] || 'Upgrade unavailable right now.', 'info');
           return;
       }
 
@@ -1166,6 +1202,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
     const clanLevel = getClanLevel(clan.member_limit, clan.extra_member_slots_purchased);
     const clanTheme = getClanLevelTheme(clanLevel);
     const clanBenefits = getClanLevelBenefits(clanLevel);
+    const upgradeConditions = getClanUpgradeConditions(clan, isPrivileged);
     const bioText = clan.notice || 'No bio added yet. Let the world know what makes your clan special.';
     const canExpandBio = bioText.length > 160;
 
@@ -1212,17 +1249,22 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                     <h3 className="font-heading text-xl text-amber-300">Clan Level Progression</h3>
                                     <div className="flex items-center gap-2">
                                         <span className={`text-xs font-bold px-3 py-1 rounded-full border ${clanTheme.badge}`}>Lv.{clanLevel}</span>
-                                        {isPrivileged && (
+                                        <div className="text-right">
                                             <button
                                                 type="button"
                                                 onClick={handleClanLevelUp}
-                                                disabled={isUpgradingCapacity}
+                                                disabled={isUpgradingCapacity || !upgradeConditions.canUpgrade}
                                                 className="rounded-md border border-cyan-300/60 px-3 py-1.5 text-xs font-semibold text-cyan-100 bg-cyan-500/20 hover:bg-cyan-500/30 disabled:opacity-50"
                                                 title="Upgrade clan level and unlock more seats"
                                             >
                                                 {isUpgradingCapacity ? 'Upgrading...' : '⚡ Upgrade Level'}
                                             </button>
-                                        )}
+                                            <p className="mt-1 text-[11px] text-gray-300">
+                                                {upgradeConditions.reasons.length > 0
+                                                    ? `Requirements: ${upgradeConditions.reasons.join(' • ')}`
+                                                    : `Ready: Lv.${clanLevel} → Lv.${upgradeConditions.nextLevel} (${upgradeConditions.nextCost.toLocaleString()} vault coins)`}
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                                 <ul className="space-y-2 text-sm">
