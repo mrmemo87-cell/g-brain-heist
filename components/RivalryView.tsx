@@ -1,7 +1,7 @@
 import React from 'react';
 import BackButton from './BackButton';
 import { Profile, ToastMessage } from '../types';
-import { rivalryService } from '../services/rivalryService';
+import { RivalryClanOption, rivalryService } from '../services/rivalryService';
 import RivalryHub from './rivalry/RivalryHub';
 import RivalryWarDetail from './rivalry/RivalryWarDetail';
 
@@ -18,6 +18,11 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
   const [declaring, setDeclaring] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
+  const [clanTargets, setClanTargets] = React.useState<RivalryClanOption[]>([]);
+  const [clanTargetsLoading, setClanTargetsLoading] = React.useState(false);
+  const [clanTargetsError, setClanTargetsError] = React.useState<string | null>(null);
+  const [targetSearch, setTargetSearch] = React.useState('');
+
   const loadWars = React.useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -31,14 +36,55 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
     }
   }, []);
 
+  const loadClanTargets = React.useCallback(async (search: string) => {
+    setClanTargetsLoading(true);
+    setClanTargetsError(null);
+    try {
+      const data = await rivalryService.listClanTargets(search, 80);
+      setClanTargets(data);
+    } catch (err) {
+      setClanTargetsError(err instanceof Error ? err.message : 'Failed to load clan targets');
+    } finally {
+      setClanTargetsLoading(false);
+    }
+  }, []);
+
   React.useEffect(() => {
     void loadWars();
-  }, [loadWars]);
+    void loadClanTargets('');
+  }, [loadWars, loadClanTargets]);
+
+  React.useEffect(() => {
+    const t = window.setTimeout(() => {
+      void loadClanTargets(targetSearch);
+    }, 220);
+    return () => window.clearTimeout(t);
+  }, [targetSearch, loadClanTargets]);
 
   const handleDeclare = async (targetClanId: string) => {
+    const normalizeTargetClanId = (raw: string): string | null => {
+      const value = raw.trim();
+      const uuidLike = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (uuidLike.test(value)) return value;
+
+      const exactByName = clanTargets.find((c) => c.name.toLowerCase() === value.toLowerCase());
+      if (exactByName) return exactByName.id;
+
+      const prefixMatches = clanTargets.filter((c) => c.name.toLowerCase().startsWith(value.toLowerCase()));
+      if (prefixMatches.length === 1) return prefixMatches[0].id;
+
+      return null;
+    };
+
+    const resolvedTargetClanId = normalizeTargetClanId(targetClanId);
+    if (!resolvedTargetClanId) {
+      addToast('Please select a valid clan target from the list before declaring war.', 'warning');
+      return;
+    }
+
     setDeclaring(true);
     try {
-      const res = await rivalryService.declareWar(targetClanId);
+      const res = await rivalryService.declareWar(resolvedTargetClanId);
       if (!res.success) {
         throw new Error(String(res.error || 'Failed to declare war'));
       }
@@ -72,6 +118,12 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
           onOpenWar={setSelectedWarId}
           onDeclare={(targetClanId) => void handleDeclare(targetClanId)}
           declaring={declaring}
+          myClanId={profile.clan_id || null}
+          clanTargets={clanTargets}
+          clanTargetsLoading={clanTargetsLoading}
+          clanTargetsError={clanTargetsError}
+          onSearchClanTargets={(search) => setTargetSearch(search)}
+          onReloadClanTargets={() => void loadClanTargets(targetSearch)}
         />
       ) : (
         <div className="space-y-4">
