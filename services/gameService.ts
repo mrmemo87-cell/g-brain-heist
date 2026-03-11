@@ -3625,25 +3625,6 @@ export interface ClanJoinResult {
     message?: string;
 }
 
-const maskEmail = (email?: string | null): string | null => {
-    const raw = email?.trim();
-    if (!raw) return null;
-
-    const [localPart, domainPart] = raw.split('@');
-    if (!localPart || !domainPart) return null;
-
-    const localVisible = localPart.slice(0, 2);
-    const maskedLocal = `${localVisible}${'*'.repeat(Math.max(1, localPart.length - localVisible.length))}`;
-
-    const domainSegments = domainPart.split('.');
-    const domainName = domainSegments[0] || '';
-    const topLevel = domainSegments.slice(1).join('.');
-    const domainVisible = domainName.slice(0, 1);
-    const maskedDomain = `${domainVisible}${'*'.repeat(Math.max(1, domainName.length - domainVisible.length))}`;
-
-    return topLevel ? `${maskedLocal}@${maskedDomain}.${topLevel}` : `${maskedLocal}@${maskedDomain}`;
-};
-
 const mapJoinRequest = (row: any): ClanJoinRequest => ({
     id: row.id,
     clan_id: row.clan_id,
@@ -3653,7 +3634,6 @@ const mapJoinRequest = (row: any): ClanJoinRequest => ({
     approver_id: row.approved_by ?? null,
     clan_name: row.clans?.name ?? row.clan_name,
     username: row.username ?? row.users?.username,
-    email: maskEmail(row.email ?? row.users?.email),
     avatar_url: row.avatar_url ?? row.users?.avatar_url,
 });
 

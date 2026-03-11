@@ -19,14 +19,14 @@ interface RivalryHubProps {
 }
 
 const statusClass: Record<string, string> = {
-  pending_response: 'text-amber-300',
-  prep: 'text-cyan-300',
-  live: 'text-red-300',
-  blackout: 'text-fuchsia-300',
-  settled: 'text-emerald-300',
-  declined: 'text-slate-300',
-  expired: 'text-slate-400',
-  canceled: 'text-slate-400',
+  pending_response: 'text-amber-200 border-amber-400/40 bg-amber-900/30',
+  prep: 'text-cyan-200 border-cyan-400/40 bg-cyan-900/25',
+  live: 'text-red-100 border-red-400/50 bg-red-900/35 animate-pulse',
+  blackout: 'text-fuchsia-100 border-fuchsia-300/50 bg-fuchsia-900/45 shadow-[0_0_16px_rgba(217,70,239,0.35)]',
+  settled: 'text-emerald-200 border-emerald-400/40 bg-emerald-900/30',
+  declined: 'text-slate-200 border-slate-400/40 bg-slate-900/35',
+  expired: 'text-slate-300 border-slate-500/40 bg-slate-900/30',
+  canceled: 'text-slate-300 border-slate-500/40 bg-slate-900/30',
 };
 
 const RivalryHub: React.FC<RivalryHubProps> = ({
@@ -58,11 +58,11 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
   };
 
   return (
-    <div className="space-y-5">
-      <div className="card-glass p-4">
-        <h3 className="font-heading text-lg text-cyan-200">Declare Rivalry</h3>
-        <p className="text-sm text-gray-400 mt-1">Search and select a clan target to send a challenge.</p>
-        {!canDeclare ? <p className="text-xs text-amber-300 mt-1">Join a clan to declare rivalry wars.</p> : null}
+    <div className="space-y-5 animate-fade-in-up">
+      <div className="card-glass p-4 border border-cyan-400/20">
+        <h3 className="font-heading text-lg text-cyan-100 drop-shadow-[0_0_8px_rgba(34,211,238,0.35)]">Declare Rivalry</h3>
+        <p className="text-sm text-gray-300 mt-1">Search and select a clan target to send a challenge.</p>
+        {!canDeclare ? <p className="text-xs text-amber-200 mt-1">Join a clan to declare rivalry wars.</p> : null}
 
         <div className="mt-3 space-y-2">
           <div className="flex gap-2">
@@ -76,12 +76,12 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
               }}
               placeholder="Search clan name"
               disabled={!canDeclare}
-              className="flex-1 rounded-lg bg-black/40 border border-white/10 px-3 py-2 text-sm text-white disabled:opacity-50"
+              className="flex-1 rounded-lg bg-black/50 border border-white/15 px-3 py-2 text-sm text-white disabled:opacity-50 focus:outline-none focus:border-cyan-400/60 transition-colors"
             />
             <button
               onClick={onReloadClanTargets}
               disabled={!canDeclare}
-              className="rounded-lg px-3 py-2 bg-white/10 hover:bg-white/20 text-xs disabled:opacity-50"
+              className="rounded-lg px-3 py-2 bg-white/10 hover:bg-white/20 text-xs disabled:opacity-50 transition-colors"
               type="button"
             >
               Reload
@@ -91,7 +91,7 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
           {selectedTarget ? (
             <div className="rounded-lg border border-emerald-400/40 bg-emerald-900/20 p-2 text-sm flex items-center justify-between gap-2">
               <div>
-                <div className="text-emerald-100 font-semibold">Target: {selectedTarget.name}</div>
+                <div className="text-emerald-100 font-semibold">Target Locked: {selectedTarget.name}</div>
                 <div className="text-xs text-emerald-200/80">{selectedTarget.id.slice(0, 8)}… • Members: {selectedTarget.member_count ?? '—'} • Score: {selectedTarget.total_score ?? '—'}</div>
               </div>
               <button
@@ -101,14 +101,14 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
                   setSearch('');
                   onSearchClanTargets('');
                 }}
-                className="text-xs px-2 py-1 rounded bg-black/30 hover:bg-black/50"
+                className="text-xs px-2 py-1 rounded bg-black/30 hover:bg-black/50 transition-colors"
               >
                 Clear
               </button>
             </div>
           ) : null}
 
-          <div className="rounded-lg border border-white/10 bg-black/20 p-2 max-h-48 overflow-auto">
+          <div className="rounded-lg border border-white/10 bg-black/30 p-2 max-h-48 overflow-auto">
             {clanTargetsLoading ? <p className="text-sm text-gray-400">Loading clan targets…</p> : null}
             {clanTargetsError ? <p className="text-sm text-red-300">{clanTargetsError}</p> : null}
             {!clanTargetsLoading && !clanTargetsError && filteredTargets.length === 0 ? (
@@ -121,7 +121,7 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
                   type="button"
                   onClick={() => handleSelect(target)}
                   disabled={!canDeclare}
-                  className={`w-full text-left rounded px-2 py-1.5 text-sm border ${selectedTarget?.id === target.id ? 'border-cyan-400/60 bg-cyan-900/30' : 'border-transparent hover:border-white/10 hover:bg-white/5'}`}
+                  className={`w-full text-left rounded px-2 py-1.5 text-sm border transition-all duration-200 ${selectedTarget?.id === target.id ? 'border-cyan-400/70 bg-cyan-900/35 shadow-[0_0_10px_rgba(34,211,238,0.2)]' : 'border-transparent hover:border-white/15 hover:bg-white/5'}`}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-white font-medium">{target.name}</span>
@@ -135,7 +135,7 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
           <button
             disabled={!canDeclare || declaring || !selectedTarget?.id}
             onClick={() => selectedTarget?.id && onDeclare(selectedTarget.id)}
-            className="w-full rounded-lg px-4 py-2 bg-red-600/80 hover:bg-red-500 disabled:opacity-50 text-white text-sm"
+            className="w-full rounded-lg px-4 py-2 bg-red-600/85 hover:bg-red-500 disabled:opacity-50 text-white text-sm transition-all duration-200 hover:shadow-[0_0_16px_rgba(239,68,68,0.35)]"
           >
             {declaring ? 'Sending…' : selectedTarget ? `Declare vs ${selectedTarget.name}` : 'Select target to declare'}
           </button>
@@ -145,7 +145,7 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
       <div className="card-glass p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-heading text-lg text-white">Public Wars</h3>
-          <button onClick={onRefresh} className="text-xs px-3 py-1 rounded bg-white/10 hover:bg-white/20">Refresh</button>
+          <button onClick={onRefresh} className="text-xs px-3 py-1 rounded bg-white/10 hover:bg-white/20 transition-colors">Refresh</button>
         </div>
         {loading && <p className="text-sm text-gray-400">Loading wars…</p>}
         {error && <p className="text-sm text-red-300">{error}</p>}
@@ -155,13 +155,13 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
             <button
               key={war.war_id}
               onClick={() => onOpenWar(war.war_id)}
-              className="w-full text-left rounded-xl border border-white/10 bg-black/30 p-3 hover:bg-black/45"
+              className="w-full text-left rounded-xl border border-white/10 bg-black/35 p-3 hover:bg-black/55 transition-all duration-200 hover:border-cyan-400/30"
             >
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center gap-2">
                 <div className="font-semibold text-sm text-white">
-                  {war.attacker_clan_name || war.attacker_clan_id.slice(0, 8)} vs {war.defender_clan_name || war.defender_clan_id.slice(0, 8)}
+                  {war.attacker_clan_name || war.attacker_clan_id.slice(0, 8)} <span className="text-red-300">⚔</span> {war.defender_clan_name || war.defender_clan_id.slice(0, 8)}
                 </div>
-                <span className={`text-xs uppercase ${statusClass[war.status] || 'text-gray-300'}`}>{war.status}</span>
+                <span className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide ${statusClass[war.status] || 'text-gray-300 border-white/20 bg-white/10'}`}>{war.status}</span>
               </div>
               <div className="mt-1 text-xs text-gray-400">Created: {new Date(war.created_at).toLocaleString()}</div>
             </button>
