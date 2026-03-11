@@ -3779,29 +3779,17 @@ export const clan_get_pending_join_requests = async (): Promise<ClanJoinRequest[
 
     console.log('Fetching pending join requests for clan:', membership.clan_id);
 
-<<<<<<< Updated upstream
-    // Try query without embedding users first to avoid PGRST201 ambiguous relationship error
-    // (clan_join_requests has multiple FKs to users: user_id and approved_by)
-    const { data, error } = await supabase
-        .from('clan_join_requests')
-        .select('id, clan_id, user_id, status, created_at, clans(name)')
-=======
     // Fetch join requests without attempting embedded users relationship
     // (ambiguous FK: both user_id and approved_by reference users table)
     const { data, error } = await supabase
         .from('clan_join_requests')
         .select('id, clan_id, user_id, status, created_at, clans!inner(name)')
->>>>>>> Stashed changes
         .eq('clan_id', membership.clan_id)
         .eq('status', 'pending')
         .order('created_at', { ascending: true });
 
     if (error) {
-<<<<<<< Updated upstream
-        console.error('Failed to fetch join requests:', error);
-=======
         console.error('Failed to fetch join requests:', error.message);
->>>>>>> Stashed changes
         // If table doesn't exist (404/PGRST116), return empty array instead of throwing
         if (error.code === 'PGRST116' || error.code === '42P01' || error.message?.includes('404') || error.message?.includes('not found')) {
             console.warn('clan_join_requests table may not exist. Please run the migration SQL: FIX_CLAN_JOIN_REQUESTS_RLS.sql');
@@ -3820,11 +3808,7 @@ export const clan_get_pending_join_requests = async (): Promise<ClanJoinRequest[
     const userIds = [...new Set(data.map(r => r.user_id))];
     const { data: usersData, error: usersError } = await supabase
         .from('users')
-<<<<<<< Updated upstream
-        .select('id, username, email, avatar_url, full_name')
-=======
         .select('id, username, email, avatar_url')
->>>>>>> Stashed changes
         .in('id', userIds);
 
     if (usersError) {
@@ -3837,11 +3821,7 @@ export const clan_get_pending_join_requests = async (): Promise<ClanJoinRequest[
         const user = usersMap.get(r.user_id);
         return {
             ...r,
-<<<<<<< Updated upstream
-            users: user || { username: 'Unknown agent', avatar_url: null },
-=======
             users: user || { username: 'Unknown agent', avatar_url: null, email: null },
->>>>>>> Stashed changes
         };
     });
 
