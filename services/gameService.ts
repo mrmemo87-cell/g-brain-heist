@@ -3757,11 +3757,11 @@ export const clan_get_pending_join_requests = async (): Promise<ClanJoinRequest[
 
     console.log('Fetching pending join requests for clan:', membership.clan_id);
 
-    // Fetch join requests without attempting embedded users relationship
-    // (ambiguous FK: both user_id and approved_by reference users table)
+    // Fetch join requests with user data using explicit foreign key relationship
+    // (ambiguous FK: both user_id and approved_by reference users table, so we specify user_id)
     const { data, error } = await supabase
         .from('clan_join_requests')
-        .select('id, clan_id, user_id, status, created_at, clans!inner(name)')
+        .select('id, clan_id, user_id, status, created_at, clans!inner(name), users!user_id(username, avatar_url)')
         .eq('clan_id', membership.clan_id)
         .eq('status', 'pending')
         .order('created_at', { ascending: true });
@@ -3782,29 +3782,8 @@ export const clan_get_pending_join_requests = async (): Promise<ClanJoinRequest[
         return mockApiCall([]);
     }
 
-    // Fetch usernames separately to avoid ambiguous relationship
-    const userIds = [...new Set(data.map(r => r.user_id))];
-    const { data: usersData, error: usersError } = await supabase
-        .from('users')
-        .select('id, username, avatar_url')
-        .in('id', userIds);
-
-    if (usersError) {
-        console.warn('Failed to enrich join requests with user profile data:', usersError.message);
-    }
-
-    const usersMap = new Map((usersData || []).map(u => [u.id, u]));
-
-    const enrichedData = data.map(r => {
-        const user = usersMap.get(r.user_id);
-        return {
-            ...r,
-            users: user || { username: 'Unknown agent', avatar_url: null },
-        };
-    });
-
-    console.log('Successfully fetched join requests:', enrichedData.length);
-    return mockApiCall(enrichedData.map(mapJoinRequest));
+    console.log('Successfully fetched join requests:', data.length);
+    return mockApiCall(data.map(mapJoinRequest));
 };
 
 export const clan_approve_join_request = async (requestId: string): Promise<boolean> => {
