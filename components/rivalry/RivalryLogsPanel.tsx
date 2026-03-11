@@ -20,7 +20,7 @@ const RivalryLogsPanel: React.FC<RivalryLogsPanelProps> = ({ logs, loading, hasM
           <div key={log.id} className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm">
             <div className="flex justify-between gap-2">
               <span className="text-gray-200 uppercase">{log.action_type}</span>
-              <span className="text-xs text-gray-400">{new Date(log.created_at).toLocaleTimeString()}</span>
+              <span className="text-xs text-gray-400">{new Date(log.created_at).toLocaleString()}</span>
             </div>
             <div className="text-xs text-gray-400 mt-1">
               Target: {log.target_structure_code} • Grade: {log.result_grade}

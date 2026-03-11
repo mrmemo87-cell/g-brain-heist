@@ -79,8 +79,36 @@ CREATE TABLE IF NOT EXISTS public.rivalry_wars (
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
 
-  CONSTRAINT rivalry_wars_attacker_defender_diff CHECK (attacker_clan_id <> defender_clan_id)
+  CONSTRAINT rivalry_wars_attacker_defender_diff CHECK (attacker_clan_id <> defender_clan_id),
+  CONSTRAINT rivalry_wars_winner_participant_check CHECK (
+    winner_clan_id IS NULL
+    OR winner_clan_id = attacker_clan_id
+    OR winner_clan_id = defender_clan_id
+  )
 );
+
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conrelid = 'public.rivalry_wars'::regclass
+      AND conname = 'rivalry_wars_winner_participant_check'
+  ) THEN
+    ALTER TABLE public.rivalry_wars
+      ADD CONSTRAINT rivalry_wars_winner_participant_check
+      CHECK (
+        winner_clan_id IS NULL
+        OR winner_clan_id = attacker_clan_id
+        OR winner_clan_id = defender_clan_id
+      ) NOT VALID;
+  END IF;
+
+  ALTER TABLE public.rivalry_wars
+    VALIDATE CONSTRAINT rivalry_wars_winner_participant_check;
+END;
+$$;
 
 COMMENT ON TABLE public.rivalry_wars IS 'Rivalry Protocol war lifecycle root table.';
 COMMENT ON COLUMN public.rivalry_wars.status IS 'War phase/state machine status.';
@@ -385,7 +413,7 @@ CREATE TABLE IF NOT EXISTS public.rivalry_war_member_state (
   user_id uuid NOT NULL REFERENCES public.users(id) ON DELETE RESTRICT,
   clan_id uuid NOT NULL REFERENCES public.clans(id) ON DELETE RESTRICT,
 
-  current_oe integer NOT NULL DEFAULT 0 CHECK (current_oe >= 0 AND current_oe <= 100),
+  current_oe integer NOT NULL DEFAULT 0 CHECK (current_oe >= 0 AND current_oe <= 10),
   oe_updated_at timestamptz NOT NULL DEFAULT now(),
 
   last_action_at timestamptz,
@@ -399,6 +427,41 @@ CREATE TABLE IF NOT EXISTS public.rivalry_war_member_state (
 
   PRIMARY KEY (war_id, user_id)
 );
+
+
+DO $$
+DECLARE
+  v_constraint_name text;
+BEGIN
+  FOR v_constraint_name IN
+    SELECT c.conname
+    FROM pg_constraint c
+    WHERE c.conrelid = 'public.rivalry_war_member_state'::regclass
+      AND c.contype = 'c'
+      AND c.conname <> 'rivalry_war_member_state_current_oe_check'
+      AND lower(regexp_replace(pg_get_constraintdef(c.oid), '\s+', '', 'g')) IN (
+        'check((current_oe>=0)and(current_oe<=100))',
+        'check((current_oe>=0)and(current_oe<=10))'
+      )
+  LOOP
+    EXECUTE format('ALTER TABLE public.rivalry_war_member_state DROP CONSTRAINT IF EXISTS %I', v_constraint_name);
+  END LOOP;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conrelid = 'public.rivalry_war_member_state'::regclass
+      AND conname = 'rivalry_war_member_state_current_oe_check'
+  ) THEN
+    ALTER TABLE public.rivalry_war_member_state
+      ADD CONSTRAINT rivalry_war_member_state_current_oe_check
+      CHECK (current_oe >= 0 AND current_oe <= 10) NOT VALID;
+  END IF;
+
+  ALTER TABLE public.rivalry_war_member_state
+    VALIDATE CONSTRAINT rivalry_war_member_state_current_oe_check;
+END;
+$$;
 
 COMMENT ON TABLE public.rivalry_war_member_state IS 'Per-war participant runtime state (OE, cooldowns, counters).';
 COMMENT ON COLUMN public.rivalry_war_member_state.current_oe IS 'Operation Energy for this member in this war.';

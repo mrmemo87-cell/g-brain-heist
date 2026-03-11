@@ -69,6 +69,11 @@ export interface RivalryRosterRow {
   locked_at?: string | null;
 }
 
+export interface RivalryLogsCursor {
+  created_at: string;
+  id: string;
+}
+
 export interface RivalryLogEntry {
   id: string;
   war_id: string;
@@ -116,7 +121,7 @@ const unwrapRpc = async <T>(promise: PromiseLike<{ data: unknown; error: { messa
 export interface RivalryService {
   getPublicWars: (limit?: number) => Promise<RivalryWarSummary[]>;
   getWarState: (warId: string) => Promise<RivalryWarStateResponse>;
-  getWarLogs: (warId: string, limit?: number, before?: string | null) => Promise<RivalryLogsResponse>;
+  getWarLogs: (warId: string, limit?: number, before?: RivalryLogsCursor | null) => Promise<RivalryLogsResponse>;
   declareWar: (targetClanId: string, idempotencyKey?: string) => Promise<RivalryRpcResult>;
   respondWar: (warId: string, response: 'accept' | 'decline', idempotencyKey?: string) => Promise<RivalryRpcResult>;
   setDoctrine: (warId: string, doctrine: RivalryDoctrine) => Promise<RivalryRpcResult>;
@@ -141,7 +146,7 @@ export const rivalryService: RivalryService = {
     );
   },
 
-  async getWarLogs(warId: string, limit = 50, before: string | null = null): Promise<RivalryLogsResponse> {
+  async getWarLogs(warId: string, limit = 50, before: RivalryLogsCursor | null = null): Promise<RivalryLogsResponse> {
     return unwrapRpc<RivalryLogsResponse>(
       supabase.rpc('rpc_rivalry_get_war_logs', {
         p_war_id: warId,
