@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import gsap from 'gsap';
 import { GoogleIcon } from './icons';
 import * as AuthService from '../services/authService';
 import { consumeBanMessage } from '../services/banMessage';
@@ -48,12 +49,69 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     const [success, setSuccess] = useState<string | null>(null);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
+    // Refs for GSAP animations
+    const cardRef = useRef<HTMLDivElement>(null);
+    const logoRef = useRef<HTMLImageElement>(null);
+    const titleRef = useRef<HTMLHeadingElement>(null);
+    const subtitleRef = useRef<HTMLParagraphElement>(null);
+    const bulletsRef = useRef<HTMLUListElement>(null);
+    const submitBtnRef = useRef<HTMLButtonElement>(null);
+    const emailInputRef = useRef<HTMLInputElement>(null);
+    const passwordInputRef = useRef<HTMLInputElement>(null);
+    const usernameInputRef = useRef<HTMLInputElement>(null);
+
     useEffect(() => {
         const persisted = consumeBanMessage();
         if (persisted) {
             setMode('login');
             setError(persisted);
         }
+    }, []);
+
+    // GSAP entrance animation
+    useEffect(() => {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+        // Only animate refs guaranteed to exist on initial render (login mode)
+        const hero = [cardRef, logoRef, titleRef, subtitleRef, bulletsRef].map(r => r.current).filter(Boolean);
+        const inputs = [emailInputRef, passwordInputRef].map(r => r.current).filter(Boolean);
+        const btn = submitBtnRef.current;
+        if (!hero.length) return;
+
+        gsap.set(hero, { opacity: 0 });
+        gsap.set(cardRef.current!, { y: 40 });
+        gsap.set(logoRef.current!, { scale: 0.8 });
+        if (inputs.length) gsap.set(inputs, { opacity: 0, y: 14 });
+        if (btn) gsap.set(btn, { opacity: 0, y: 8 });
+
+        const tl = gsap.timeline();
+        tl.to(cardRef.current, { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, 0)
+          .to(logoRef.current, { opacity: 1, scale: 1, duration: 0.55, ease: 'back.out(1.4)' }, 0.15)
+          .to(titleRef.current, { opacity: 1, duration: 0.5, ease: 'power2.out' }, 0.3)
+          .to(subtitleRef.current, { opacity: 1, duration: 0.5, ease: 'power2.out' }, 0.45)
+          .to(bulletsRef.current, { opacity: 1, duration: 0.5, ease: 'power2.out' }, 0.6);
+        if (inputs.length) {
+            tl.to(inputs, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out', stagger: 0.1 }, 0.75);
+        }
+        if (btn) {
+            tl.to(btn, { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out' }, 1.0);
+        }
+
+        const pulse = btn ? gsap.to(btn, {
+            boxShadow: '0 0 22px rgba(34,211,238,0.55), inset 0 0 22px rgba(34,211,238,0.15)',
+            duration: 1.8,
+            ease: 'sine.inOut',
+            repeat: -1,
+            yoyo: true,
+            delay: 1.6,
+        }) : null;
+
+        return () => {
+            tl.kill();
+            if (pulse) pulse.kill();
+            // Reset inline styles so Strict Mode re-mount starts clean
+            gsap.set([...hero, ...inputs, btn].filter(Boolean), { clearProps: 'all' });
+        };
     }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -113,7 +171,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
 
     /* ─── Auth form card (reused in both mobile & desktop) ─────────────── */
     const authCard = (
-        <div className="bg-ink-900/50 backdrop-blur-sm border border-white/10 rounded-2xl p-5 sm:p-8 shadow-xl">
+        <div ref={cardRef} className="bg-ink-900/50 backdrop-blur-sm border border-white/10 rounded-2xl p-5 sm:p-8 shadow-xl">
             {error && (
                 <div className="mb-4 rounded-md border border-red-500/60 bg-red-500/10 px-4 py-3 text-sm text-red-200">
                     ⚠️ {error}
@@ -166,6 +224,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     <div>
                         <label htmlFor="username" className="block text-sm font-medium text-gray-300">Username</label>
                         <input
+                            ref={usernameInputRef}
                             id="username"
                             type="text"
                             required
@@ -181,6 +240,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                 <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-300">Email</label>
                     <input
+                        ref={emailInputRef}
                         id="email"
                         type="email"
                         required
@@ -195,6 +255,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     <div>
                         <label htmlFor="password" className="block text-sm font-medium text-gray-300">Password</label>
                         <input
+                            ref={passwordInputRef}
                             id="password"
                             type="password"
                             required
@@ -219,6 +280,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                 )}
 
                 <button
+                    ref={submitBtnRef}
                     type="submit"
                     disabled={isLoading || (mode === 'signup' && !username.trim())}
                     className="w-full py-3 px-4 rounded-md font-bold transition-all bg-ion-blue text-ink-900 hover:bg-cyan-300 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -262,21 +324,33 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     <div className="text-center lg:text-left order-1">
                         <div className="flex items-center justify-center lg:justify-start gap-3 mb-5">
                             <img
+                                ref={logoRef}
                                 src="/logo.png"
                                 alt="Brains Heist"
                                 className="w-14 h-14 sm:w-16 sm:h-16 drop-shadow-[0_0_18px_rgba(44,246,200,0.45)]"
                             />
-                            <h1 className="font-heading text-3xl sm:text-4xl font-bold tracking-wide" style={{ color: 'var(--ion-blue)' }}>
+                            <h1
+                                ref={titleRef}
+                                className="font-heading text-3xl sm:text-4xl font-bold tracking-wide"
+                                style={{ color: 'var(--ion-blue)' }}
+                            >
                                 Brains Heist
                             </h1>
                         </div>
 
-                        <p className="text-lg sm:text-xl text-gray-200 leading-relaxed max-w-lg mx-auto lg:mx-0">
+                        <p
+                            ref={subtitleRef}
+                            className="text-lg sm:text-xl text-gray-200 leading-relaxed max-w-lg mx-auto lg:mx-0"
+                        >
                             A gamified English &amp; Math platform for schools — assessments, leaderboards, and class battle modes.
                         </p>
 
                         {/* value bullets */}
-                        <ul className="mt-6 space-y-3 text-sm sm:text-base text-gray-300 max-w-lg mx-auto lg:mx-0" role="list">
+                        <ul
+                            ref={bulletsRef}
+                            className="mt-6 space-y-3 text-sm sm:text-base text-gray-300 max-w-lg mx-auto lg:mx-0"
+                            role="list"
+                        >
                             {VALUE_BULLETS.map((b) => (
                                 <li key={b} className="flex items-start gap-2.5">
                                     <CheckBadge />
