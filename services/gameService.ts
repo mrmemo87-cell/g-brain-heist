@@ -5414,6 +5414,10 @@ export const submit_question_answer = async (
     const xpDelta = Math.max(0, result.points_earned || 0);
     const coinDelta = result.is_correct ? Math.trunc(xpDelta / 2) : 0;
 
+    if (result.is_correct && xpDelta === 0) {
+        result.explanation = '✓ Correct! Rewards for this question were already claimed in the last 24 hours. Try again after 24 hours or answer a new question.';
+    }
+
     if (xpDelta > 0 || coinDelta > 0) {
         const rewardResult = await applyRewardDelta({
             xpDelta,

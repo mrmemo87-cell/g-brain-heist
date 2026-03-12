@@ -618,6 +618,7 @@ AS $$
 DECLARE
   v_question RECORD;
   v_is_correct BOOLEAN;
+  v_recent_correct_reward BOOLEAN := FALSE;
   v_points_earned INTEGER := 0;
 BEGIN
   -- Get question details
@@ -632,22 +633,28 @@ BEGIN
 
   -- Calculate points
   IF v_is_correct THEN
-    v_points_earned := v_question.points;
+    SELECT EXISTS (
+      SELECT 1
+      FROM question_attempts qa
+      WHERE qa.student_id = auth.uid()
+        AND qa.question_id = p_question_id
+        AND qa.is_correct = true
+        AND qa.attempted_at > NOW() - INTERVAL '24 hours'
+    ) INTO v_recent_correct_reward;
+
+    IF NOT v_recent_correct_reward THEN
+      v_points_earned := v_question.points;
+    END IF;
   END IF;
 
-  -- Record the attempt (handle duplicate correct answers gracefully)
-  BEGIN
-    INSERT INTO question_attempts (
-      student_id, question_id, quest_session_id,
-      answer_given, is_correct, time_taken, points_earned
-    ) VALUES (
-      auth.uid(), p_question_id, p_quest_session_id,
-      p_answer_given, v_is_correct, p_time_taken, v_points_earned
-    );
-  EXCEPTION WHEN unique_violation THEN
-    -- Already answered correctly before; zero out rewards to prevent duplicates
-    v_points_earned := 0;
-  END;
+  -- Record the attempt
+  INSERT INTO question_attempts (
+    student_id, question_id, quest_session_id,
+    answer_given, is_correct, time_taken, points_earned
+  ) VALUES (
+    auth.uid(), p_question_id, p_quest_session_id,
+    p_answer_given, v_is_correct, p_time_taken, v_points_earned
+  );
 
   -- Update question stats
   UPDATE questions
@@ -666,4 +673,3 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION record_question_attempt TO authenticated;
-
