@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
 import { GoogleIcon } from './icons';
 import * as AuthService from '../services/authService';
 import { consumeBanMessage } from '../services/banMessage';
@@ -59,6 +60,12 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     const emailInputRef = useRef<HTMLInputElement>(null);
     const passwordInputRef = useRef<HTMLInputElement>(null);
     const usernameInputRef = useRef<HTMLInputElement>(null);
+    const pageRef = useRef<HTMLDivElement>(null);
+    const heroColRef = useRef<HTMLDivElement>(null);
+    const howItWorksRef = useRef<HTMLElement>(null);
+    const audienceRef = useRef<HTMLElement>(null);
+    const orbOneRef = useRef<HTMLDivElement>(null);
+    const orbTwoRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const persisted = consumeBanMessage();
@@ -72,46 +79,103 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     useEffect(() => {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-        // Only animate refs guaranteed to exist on initial render (login mode)
-        const hero = [cardRef, logoRef, titleRef, subtitleRef, bulletsRef].map(r => r.current).filter(Boolean);
-        const inputs = [emailInputRef, passwordInputRef].map(r => r.current).filter(Boolean);
-        const btn = submitBtnRef.current;
-        if (!hero.length) return;
+        gsap.registerPlugin(ScrollTrigger);
 
-        gsap.set(hero, { opacity: 0 });
-        gsap.set(cardRef.current!, { y: 40 });
-        gsap.set(logoRef.current!, { scale: 0.8 });
-        if (inputs.length) gsap.set(inputs, { opacity: 0, y: 14 });
-        if (btn) gsap.set(btn, { opacity: 0, y: 8 });
+        const ctx = gsap.context(() => {
+            // Only animate refs guaranteed to exist on initial render (login mode)
+            const hero = [cardRef, logoRef, titleRef, subtitleRef, bulletsRef].map(r => r.current).filter(Boolean);
+            const inputs = [emailInputRef, passwordInputRef].map(r => r.current).filter(Boolean);
+            const btn = submitBtnRef.current;
+            if (!hero.length) return;
 
-        const tl = gsap.timeline();
-        tl.to(cardRef.current, { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, 0)
-          .to(logoRef.current, { opacity: 1, scale: 1, duration: 0.55, ease: 'back.out(1.4)' }, 0.15)
-          .to(titleRef.current, { opacity: 1, duration: 0.5, ease: 'power2.out' }, 0.3)
-          .to(subtitleRef.current, { opacity: 1, duration: 0.5, ease: 'power2.out' }, 0.45)
-          .to(bulletsRef.current, { opacity: 1, duration: 0.5, ease: 'power2.out' }, 0.6);
-        if (inputs.length) {
-            tl.to(inputs, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out', stagger: 0.1 }, 0.75);
-        }
-        if (btn) {
-            tl.to(btn, { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out' }, 1.0);
-        }
+            gsap.set(hero, { opacity: 0 });
+            gsap.set(cardRef.current!, { y: 56, scale: 0.98, filter: 'blur(5px)' });
+            gsap.set(logoRef.current!, { scale: 0.72, y: -16, rotate: -8, filter: 'blur(3px)' });
+            gsap.set([titleRef.current!, subtitleRef.current!, bulletsRef.current!], { y: 18 });
+            if (inputs.length) gsap.set(inputs, { opacity: 0, y: 20 });
+            if (btn) gsap.set(btn, { opacity: 0, y: 12 });
 
-        const pulse = btn ? gsap.to(btn, {
-            boxShadow: '0 0 22px rgba(34,211,238,0.55), inset 0 0 22px rgba(34,211,238,0.15)',
-            duration: 1.8,
-            ease: 'sine.inOut',
-            repeat: -1,
-            yoyo: true,
-            delay: 1.6,
-        }) : null;
+            const tl = gsap.timeline();
+            tl.to(cardRef.current, { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)', duration: 0.95, ease: 'power4.out' }, 0)
+                .to(logoRef.current, { opacity: 1, scale: 1, y: 0, rotate: 0, filter: 'blur(0px)', duration: 0.85, ease: 'back.out(1.45)' }, 0.1)
+                .to(titleRef.current, { opacity: 1, y: 0, duration: 0.62, ease: 'power3.out' }, 0.28)
+                .to(subtitleRef.current, { opacity: 1, y: 0, duration: 0.58, ease: 'power2.out' }, 0.4)
+                .to(bulletsRef.current, { opacity: 1, y: 0, duration: 0.56, ease: 'power2.out' }, 0.54);
+            if (inputs.length) {
+                tl.to(inputs, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out', stagger: 0.1 }, 0.7);
+            }
+            if (btn) {
+                tl.to(btn, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, 0.95);
+            }
 
-        return () => {
-            tl.kill();
-            if (pulse) pulse.kill();
-            // Reset inline styles so Strict Mode re-mount starts clean
-            gsap.set([...hero, ...inputs, btn].filter(Boolean), { clearProps: 'all' });
-        };
+            const pulse = btn ? gsap.to(btn, {
+                boxShadow: '0 0 24px rgba(34,211,238,0.58), inset 0 0 20px rgba(34,211,238,0.18)',
+                duration: 1.8,
+                ease: 'sine.inOut',
+                repeat: -1,
+                yoyo: true,
+                delay: 1.4,
+            }) : null;
+
+            const ambientTweens = [
+                heroColRef.current && gsap.to(heroColRef.current, {
+                    y: -8,
+                    duration: 4.6,
+                    ease: 'sine.inOut',
+                    repeat: -1,
+                    yoyo: true,
+                    delay: 1.1,
+                }),
+                logoRef.current && gsap.to(logoRef.current, {
+                    rotate: 2.5,
+                    scale: 1.03,
+                    duration: 3.8,
+                    ease: 'sine.inOut',
+                    repeat: -1,
+                    yoyo: true,
+                    delay: 1.2,
+                }),
+                orbOneRef.current && gsap.to(orbOneRef.current, {
+                    xPercent: 10,
+                    yPercent: -14,
+                    opacity: 0.55,
+                    duration: 7,
+                    ease: 'sine.inOut',
+                    repeat: -1,
+                    yoyo: true,
+                }),
+                orbTwoRef.current && gsap.to(orbTwoRef.current, {
+                    xPercent: -11,
+                    yPercent: 10,
+                    opacity: 0.6,
+                    duration: 8.5,
+                    ease: 'sine.inOut',
+                    repeat: -1,
+                    yoyo: true,
+                }),
+            ].filter(Boolean);
+
+            [howItWorksRef.current, audienceRef.current].filter(Boolean).forEach((section) => {
+                const revealItems = Array.from((section as HTMLElement).querySelectorAll<HTMLElement>('[data-reveal]'));
+                if (!revealItems.length) return;
+
+                gsap.set(revealItems, { opacity: 0, y: 34 });
+                gsap.to(revealItems, {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.7,
+                    ease: 'power3.out',
+                    stagger: 0.12,
+                    scrollTrigger: {
+                        trigger: section,
+                        start: 'top 80%',
+                        toggleActions: 'play none none reverse',
+                    },
+                });
+            });
+        }, pageRef);
+
+        return () => ctx.revert();
     }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -315,13 +379,24 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     );
 
     return (
-        <div className="min-h-screen flex flex-col">
+        <div ref={pageRef} className="min-h-screen flex flex-col relative overflow-hidden">
+
+            <div
+                ref={orbOneRef}
+                className="pointer-events-none absolute -top-28 -left-20 h-64 w-64 rounded-full bg-cyan-400/15 blur-3xl"
+                aria-hidden="true"
+            />
+            <div
+                ref={orbTwoRef}
+                className="pointer-events-none absolute top-1/3 -right-24 h-72 w-72 rounded-full bg-emerald-400/10 blur-3xl"
+                aria-hidden="true"
+            />
             {/* ── HERO + AUTH (above the fold) ─────────────────────────────── */}
             <section className="flex-1 flex items-center justify-center px-4 py-10 sm:py-16">
                 <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
 
                     {/* ── Left: hero / value props ──────────────────────────── */}
-                    <div className="text-center lg:text-left order-1">
+                    <div ref={heroColRef} className="text-center lg:text-left order-1">
                         <div className="flex items-center justify-center lg:justify-start gap-3 mb-5">
                             <img
                                 ref={logoRef}
@@ -390,7 +465,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
             </section>
 
             {/* ── HOW IT WORKS ─────────────────────────────────────────────── */}
-            <section className="px-4 py-12 sm:py-16 border-t border-white/5">
+            <section ref={howItWorksRef} className="px-4 py-12 sm:py-16 border-t border-white/5">
                 <div className="max-w-4xl mx-auto text-center">
                     <h2 className="font-heading text-2xl sm:text-3xl font-bold mb-8" style={{ color: 'var(--ion-blue)' }}>
                         How it works
@@ -400,6 +475,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                             <div
                                 key={item.step}
                                 className="relative bg-white/[0.03] border border-white/10 rounded-2xl p-6 backdrop-blur-sm"
+                                data-reveal
                             >
                                 <span
                                     className="inline-flex items-center justify-center w-10 h-10 rounded-full text-lg font-bold mb-4"
@@ -416,9 +492,9 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
             </section>
 
             {/* ── FOR SCHOOLS / FOR STUDENTS ────────────────────────────────── */}
-            <section className="px-4 py-12 sm:py-16 border-t border-white/5">
+            <section ref={audienceRef} className="px-4 py-12 sm:py-16 border-t border-white/5">
                 <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 sm:p-8">
+                    <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 sm:p-8" data-reveal>
                         <h3 className="font-heading text-lg font-bold text-white mb-2">🏫 For Schools</h3>
                         <ul className="space-y-2 text-sm text-gray-300">
                             <li>• Cambridge-aligned admission tests</li>
@@ -436,7 +512,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                             View pricing →
                         </a>
                     </div>
-                    <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 sm:p-8">
+                    <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 sm:p-8" data-reveal>
                         <h3 className="font-heading text-lg font-bold text-white mb-2">🎮 For Students</h3>
                         <ul className="space-y-2 text-sm text-gray-300">
                             <li>• Earn XP, coins &amp; gems through quests</li>
