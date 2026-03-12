@@ -5398,6 +5398,20 @@ export const submit_question_answer = async (
     });
 
     if (error) {
+        // Security hardening can reject legacy XP writes in record_question_attempt.
+        // Fall back to the newer RPC path so answering still works.
+        if ((error as any)?.message?.includes('Direct XP/level updates are not allowed')) {
+            const fallbackResponse = await mcq_answer_submit({ id: questionId, correct_answer: '' } as Question, answer);
+            return {
+                is_correct: fallbackResponse.correct,
+                points_earned: fallbackResponse.deltas?.xp ?? 0,
+                correct_answer: fallbackResponse.correct ? answer : '',
+                explanation: fallbackResponse.explanation,
+                duplicate_reward: (fallbackResponse.deltas?.xp ?? 0) === 0 && fallbackResponse.correct,
+                final_profile_values: fallbackResponse.finalProfileValues,
+            } as QuestionAttemptResult;
+        }
+
         // Handle duplicate correct-answer constraint gracefully
         if (error.message?.includes('unique') || ('code' in error && (error as any).code === '23505')) {
             return {

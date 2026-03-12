@@ -542,14 +542,18 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
       // Add timeout to prevent infinite loading
       const assignmentPromise = GameService.get_student_pending_assignments();
-      const timeoutPromise = new Promise<null>((resolve) => 
-        setTimeout(() => {
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
+      const timeoutPromise = new Promise<null>((resolve) => {
+        timeoutId = setTimeout(() => {
           console.warn('[QuestView] Assignment fetch timed out after 15s');
           resolve(null);
-        }, 15000)
-      );
-      
+        }, 15000);
+      });
+
       const assignment = await Promise.race([assignmentPromise, timeoutPromise]);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
       const assignments = Array.isArray(assignment) ? assignment : assignment ? [assignment] : [];
       setPendingAssignments(assignments);
       const preferredId = options.preferredId ?? preferredAssignmentId ?? initialAssignment?.assignment_id ?? null;
