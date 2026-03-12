@@ -3042,6 +3042,9 @@ export const raid_attack = async (
     const { data, error } = await performHackAttempt(defender_id, requestId);
 
     if (error) {
+        if (error.message?.includes('Direct XP/level updates are not allowed') || error.message?.includes('Direct XP/Level updates are not allowed')) {
+            throw new Error('PvP battle is blocked by database security configuration. Apply the rpc_hack_attempt XP-write patch (see FIX_HACK_ATTEMPT_XP_WRITE.sql) so the function sets app.allow_xp_level_write before updating users.xp/users.level.');
+        }
         throw new Error(error.message || 'Failed to execute raid attack.');
     }
 
