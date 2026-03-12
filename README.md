@@ -18,6 +18,7 @@
 - [Game Features](#-game-features)
 - [Getting Started](#-getting-started)
 - [How to Play](#-how-to-play)
+- [Help & Guide](#-help--guide)
 - [For Students](#-for-students)
 - [For Educators](#-for-educators)
 - [Technical Details](#-technical-details)
@@ -146,6 +147,17 @@ This creates an optimized production build in the `dist/` folder. You can serve 
 - 🎯 Target lower-level players for higher win rates
 - 💰 Save coins for clan creation or expensive items
 - ⚡ Complete daily tasks before they reset
+
+---
+
+## 🧭 Help & Guide
+
+Need quick onboarding or role-based walkthroughs?
+
+- **Student Guide:** `docs/student-guide.md` — mission loop, progression labels, AP, PvP, and feedback flow.
+- **Teacher Guide:** `docs/teacher-guide.md` — mission authoring, assignments, analytics, and classroom workflows.
+
+If you're new to the project, start with the student guide first, then use the teacher guide to set up curriculum-aligned content.
 
 ---
 
@@ -376,4 +388,3 @@ This project is part of an educational initiative. See the repository for licens
 <div align="center">
 Made with 💙 for learning | Star ⭐ this repo if you find it useful!
 </div>
-

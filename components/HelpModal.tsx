@@ -8,6 +8,7 @@ type HelpSection =
   | 'overview'
   | 'quests'
   | 'cambridge'
+  | 'rivalry'
   | 'pvp'
   | 'clans'
   | 'lockdown'
@@ -24,6 +25,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
     { id: 'overview', icon: '📖', title: 'Game Overview' },
     { id: 'quests', icon: '📚', title: 'Quests & Questions' },
     { id: 'cambridge', icon: '🧪', title: 'Cambridge Tests' },
+    { id: 'rivalry', icon: '🛰️', title: 'Rivalry Protocol' },
     { id: 'pvp', icon: '⚔️', title: 'PvP Raids' },
     { id: 'clans', icon: '🏰', title: 'Clans' },
     { id: 'lockdown', icon: '🔒', title: 'Lockdown Mode' },
@@ -152,6 +154,52 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
       </div>
     ),
 
+    rivalry: (
+      <div className="space-y-3 sm:space-y-4">
+        <h2 className="text-xl sm:text-2xl font-bold text-fuchsia-300">🛰️ Rivalry Protocol</h2>
+        <div className="space-y-2 sm:space-y-3 text-sm sm:text-base text-gray-300">
+
+          <div className="bg-fuchsia-500/10 border border-fuchsia-500/30 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-bold text-fuchsia-300 mb-2">⚔️ What is Rivalry?</h3>
+            <p>A structured <strong>clan-vs-clan war mode</strong> with declared battles, prep strategy, live actions, and final settlement rewards.</p>
+            <p className="mt-2">Unlike quick PvP raids, Rivalry wars run in phases and require coordinated clan participation.</p>
+          </div>
+
+          <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-bold text-cyan-300 mb-2">📋 Declare Requirements</h3>
+            <ul className="list-disc list-inside space-y-1">
+              <li>You must be in a clan and have a management role (Leader/Officer/Moderator).</li>
+              <li>Both clans need at least <strong>5 members</strong>.</li>
+              <li>Each clan can declare up to <strong>2 wars per 24 hours</strong>.</li>
+              <li>Clans already in an active war cannot start another.</li>
+              <li>The same clan matchup has a <strong>72-hour cooldown</strong> before redeclaring.</li>
+            </ul>
+          </div>
+
+          <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-bold text-purple-300 mb-2">🧭 War Phases</h3>
+            <ul className="list-disc list-inside space-y-1">
+              <li><strong>Pending Response:</strong> target clan accepts or declines the challenge.</li>
+              <li><strong>Prep:</strong> set doctrine, assign roster roles, and lock participants.</li>
+              <li><strong>Live:</strong> execute combat actions to damage enemy structures.</li>
+              <li><strong>Blackout:</strong> actions still count, but exact scores are hidden.</li>
+              <li><strong>Settled:</strong> war ends and rewards/claims become available.</li>
+            </ul>
+          </div>
+
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-bold text-red-300 mb-2">🎯 Live Actions</h3>
+            <ul className="list-disc list-inside space-y-1">
+              <li><strong>Strike</strong> (2 OE): direct damage on enemy structures.</li>
+              <li><strong>Sabotage</strong> (3 OE): stronger disruption play.</li>
+              <li><strong>Repair</strong> (2 OE): restore your clan's structures.</li>
+            </ul>
+            <p className="mt-2 text-xs sm:text-sm">Actions require you to be rostered and locked in while the war is in <strong>live/blackout</strong> status.</p>
+          </div>
+        </div>
+      </div>
+    ),
+
     pvp: (
       <div className="space-y-3 sm:space-y-4">
         <h2 className="text-xl sm:text-2xl font-bold text-red-400">⚔️ PvP Raids</h2>
@@ -160,8 +208,8 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
           <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 sm:p-4">
             <h3 className="text-base sm:text-lg font-bold text-red-400 mb-2">🎯 What is PvP?</h3>
             <p>Player vs Player battles where you raid other students to steal their coins!</p>
-            <p className="mt-2"><strong>Costs:</strong> 3 AP per raid attempt</p>
-            <p><strong>Cooldown:</strong> 30 minutes between raids on same target</p>
+            <p className="mt-2"><strong>Costs:</strong> 2 AP per raid attempt</p>
+            <p><strong>Cooldown:</strong> 5 minutes between raids on the same target</p>
           </div>
 
           <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3 sm:p-4">
@@ -169,7 +217,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
             <ol className="list-decimal list-inside space-y-2">
               <li>Go to PvP Raids section</li>
               <li>Choose a target (check their level and coins)</li>
-              <li>Spend 3 AP to launch the raid</li>
+              <li>Spend 2 AP to launch the raid</li>
               <li>Win chance based on your Attack vs their Defense</li>
               <li>Steal coins if you win, or get blocked if they defend!</li>
             </ol>
@@ -218,7 +266,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
 
           <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 sm:p-4">
             <h3 className="text-base sm:text-lg font-bold text-blue-400 mb-2">🎯 How to Join/Create</h3>
-            <p><strong>Create Clan:</strong> Costs 5,000 coins - choose a unique name</p>
+            <p><strong>Create Clan:</strong> Costs 1,000 coins - choose a unique name</p>
             <p><strong>Join Clan:</strong> Search for clans and request to join</p>
             <p><strong>Approval:</strong> Leaders/officers review your request</p>
             <p><strong>Cancel Request:</strong> If you change your mind, cancel your pending request from the clan list</p>
@@ -454,7 +502,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
             <h3 className="text-base sm:text-lg font-bold text-blue-400 mb-2">⚙️ How It Works</h3>
             <ul className="list-disc list-inside space-y-2">
               <li><strong>Starting AP:</strong> 18/20 when you join</li>
-              <li><strong>Raid Cost:</strong> 3 AP per raid attempt</li>
+              <li><strong>Raid Cost:</strong> 2 AP per raid attempt</li>
               <li><strong>Regeneration:</strong> +1 AP every 10 minutes</li>
               <li><strong>Maximum:</strong> 20 AP (can't go higher)</li>
             </ul>
@@ -534,8 +582,8 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
             <h3 className="text-base sm:text-lg font-bold text-orange-400 mb-2">📈 Daily/Weekly Caps</h3>
             <p>To keep the game fair, there are limits:</p>
             <ul className="list-disc list-inside mt-2">
-              <li><strong>Daily XP Cap:</strong> 500 XP per day</li>
-              <li><strong>Weekly XP Cap:</strong> 2,000 XP per week</li>
+              <li><strong>Daily XP Cap:</strong> 1,000 XP per day</li>
+              <li><strong>Weekly XP Cap:</strong> 6,500 XP per week</li>
               <li>Prevents grinding - encourages steady learning</li>
               <li>Resets automatically</li>
             </ul>
@@ -570,7 +618,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
             <h3 className="text-base sm:text-lg font-bold text-red-400 mb-2">💸 Spending Coins</h3>
             <div className="space-y-2">
               <p><strong>🛒 Shop Items:</strong> Boosters, shields, upgrades</p>
-              <p><strong>🏰 Create Clan:</strong> 5,000 coins to start</p>
+              <p><strong>🏰 Create Clan:</strong> 1,000 coins to start</p>
               <p><strong>💎 Clan Vault:</strong> Donate to your clan</p>
               <p><strong>⚡ Premium Items:</strong> Special shop purchases</p>
             </div>
@@ -590,8 +638,8 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
           <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 sm:p-4">
             <h3 className="text-base sm:text-lg font-bold text-blue-400 mb-2">📊 Daily/Weekly Caps</h3>
             <ul className="list-disc list-inside">
-              <li><strong>Daily Coin Cap:</strong> 300 coins per day</li>
-              <li><strong>Weekly Coin Cap:</strong> 1,000 coins per week</li>
+              <li><strong>Daily Coin Cap:</strong> 2,000 coins per day</li>
+              <li><strong>Weekly Coin Cap:</strong> 10,000 coins per week</li>
               <li>Encourages balanced gameplay</li>
               <li>Resets automatically</li>
             </ul>
