@@ -153,29 +153,30 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                 });
             }
 
-            if (btn) {
-                gsap.to(btn, {
-                boxShadow: '0 0 38px rgba(34,211,238,0.62), 0 0 76px rgba(34,211,238,0.22), inset 0 0 22px rgba(34,211,238,0.24)',
-                duration: 2.2,
-                ease: 'sine.inOut',
-                repeat: -1,
-                yoyo: true,
-                delay: 1.25,
+            if (btn && ctaShimmerRef.current && pageRef.current) {
+                gsap.set(btn, {
+                    boxShadow: '0 0 18px rgba(34,211,238,0.18), 0 0 34px rgba(34,211,238,0.08), inset 0 0 12px rgba(34,211,238,0.1)',
                 });
-            }
+                gsap.set(ctaShimmerRef.current, { xPercent: -165, opacity: 0.24 });
 
-            if (ctaShimmerRef.current) {
-                gsap.fromTo(ctaShimmerRef.current,
-                    { xPercent: -180, opacity: 0 },
-                    {
-                        xPercent: 210,
-                        opacity: 0.75,
-                        duration: 1.45,
-                        ease: 'power2.inOut',
-                        repeat: -1,
-                        repeatDelay: 1.6,
-                        delay: 1.7,
-                    });
+                gsap.timeline({
+                    scrollTrigger: {
+                        trigger: pageRef.current,
+                        start: 'top top',
+                        end: 'bottom bottom',
+                        scrub: 0.45,
+                        invalidateOnRefresh: true,
+                    },
+                })
+                    .to(ctaShimmerRef.current, {
+                        xPercent: 190,
+                        opacity: 0.72,
+                        ease: 'none',
+                    }, 0)
+                    .to(btn, {
+                        boxShadow: '0 0 30px rgba(34,211,238,0.38), 0 0 58px rgba(34,211,238,0.16), inset 0 0 20px rgba(34,211,238,0.2)',
+                        ease: 'none',
+                    }, 0);
             }
 
             [
