@@ -66,6 +66,10 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     const audienceRef = useRef<HTMLElement>(null);
     const orbOneRef = useRef<HTMLDivElement>(null);
     const orbTwoRef = useRef<HTMLDivElement>(null);
+    const orbThreeRef = useRef<HTMLDivElement>(null);
+    const heroSweepRef = useRef<HTMLDivElement>(null);
+    const heroGridRef = useRef<HTMLDivElement>(null);
+    const ctaShimmerRef = useRef<HTMLSpanElement>(null);
 
     useEffect(() => {
         const persisted = consumeBanMessage();
@@ -88,67 +92,144 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
             const btn = submitBtnRef.current;
             if (!hero.length) return;
 
+            const heroHeading = titleRef.current;
+            const headingText = heroHeading?.dataset.text || 'Brains Heist';
+
             gsap.set(hero, { opacity: 0 });
-            gsap.set(cardRef.current!, { y: 56, scale: 0.98, filter: 'blur(5px)' });
-            gsap.set(logoRef.current!, { scale: 0.72, y: -16, rotate: -8, filter: 'blur(3px)' });
-            gsap.set([titleRef.current!, subtitleRef.current!, bulletsRef.current!], { y: 18 });
-            if (inputs.length) gsap.set(inputs, { opacity: 0, y: 20 });
-            if (btn) gsap.set(btn, { opacity: 0, y: 12 });
+            gsap.set(cardRef.current!, { y: 92, scale: 0.93, filter: 'blur(14px)' });
+            gsap.set(logoRef.current!, { scale: 0.52, y: -28, rotate: -18, filter: 'blur(7px)', transformOrigin: '50% 50%' });
+            gsap.set([titleRef.current!, subtitleRef.current!, bulletsRef.current!], { y: 38, filter: 'blur(8px)' });
+            if (inputs.length) gsap.set(inputs, { opacity: 0, y: 32, filter: 'blur(6px)' });
+            if (btn) gsap.set(btn, { opacity: 0, y: 24, filter: 'blur(5px)' });
+            if (heroSweepRef.current) gsap.set(heroSweepRef.current, { opacity: 0, scaleX: 0, xPercent: -20, transformOrigin: '0% 50%' });
+            if (heroGridRef.current) gsap.set(heroGridRef.current, { opacity: 0.1 });
+
+            if (heroHeading) {
+                heroHeading.textContent = '███████████';
+                gsap.set(heroHeading, { letterSpacing: '0.18em', textShadow: '0 0 36px rgba(34,211,238,0.28)' });
+            }
 
             const tl = gsap.timeline();
-            tl.to(cardRef.current, { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)', duration: 0.95, ease: 'power4.out' }, 0)
-                .to(logoRef.current, { opacity: 1, scale: 1, y: 0, rotate: 0, filter: 'blur(0px)', duration: 0.85, ease: 'back.out(1.45)' }, 0.1)
-                .to(titleRef.current, { opacity: 1, y: 0, duration: 0.62, ease: 'power3.out' }, 0.28)
-                .to(subtitleRef.current, { opacity: 1, y: 0, duration: 0.58, ease: 'power2.out' }, 0.4)
-                .to(bulletsRef.current, { opacity: 1, y: 0, duration: 0.56, ease: 'power2.out' }, 0.54);
+            tl.to(heroGridRef.current, { opacity: 0.34, duration: 0.5, ease: 'power2.out' }, 0)
+                .to(heroSweepRef.current, { opacity: 0.8, scaleX: 1, xPercent: 0, duration: 0.45, ease: 'power2.out' }, 0.05)
+                .to(heroSweepRef.current, { xPercent: 125, duration: 0.78, ease: 'power4.inOut' }, 0.4)
+                .to(heroSweepRef.current, { opacity: 0, duration: 0.24, ease: 'power1.out' }, 0.94)
+                .to(cardRef.current, { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)', duration: 1.12, ease: 'expo.out' }, 0.16)
+                .to(logoRef.current, { opacity: 1, scale: 1, y: 0, rotate: 0, filter: 'blur(0px)', duration: 1, ease: 'expo.out' }, 0.08)
+                .to(titleRef.current, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.75, ease: 'power3.out' }, 0.34)
+                .to(subtitleRef.current, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.65, ease: 'power3.out' }, 0.56)
+                .to(bulletsRef.current, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.64, ease: 'power3.out' }, 0.68);
             if (inputs.length) {
-                tl.to(inputs, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out', stagger: 0.1 }, 0.7);
+                tl.to(inputs, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.58, ease: 'power3.out', stagger: 0.09 }, 0.84);
             }
             if (btn) {
-                tl.to(btn, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, 0.95);
+                tl.to(btn, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.62, ease: 'power3.out' }, 1.03)
+                    .fromTo(btn, { boxShadow: '0 0 0px rgba(34,211,238,0)' }, { boxShadow: '0 0 38px rgba(34,211,238,0.65)', duration: 0.52, ease: 'power2.out' }, 1.09);
             }
 
-            const pulse = btn ? gsap.to(btn, {
-                boxShadow: '0 0 24px rgba(34,211,238,0.58), inset 0 0 20px rgba(34,211,238,0.18)',
-                duration: 1.8,
+            if (heroHeading) {
+                const glyphs = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@$%&*';
+                const reveal = { frame: 0 };
+                gsap.to(reveal, {
+                    frame: headingText.length + 7,
+                    duration: 1.1,
+                    ease: 'power2.out',
+                    delay: 0.38,
+                    onUpdate: () => {
+                        const settled = Math.floor(reveal.frame - 7);
+                        heroHeading.textContent = headingText
+                            .split('')
+                            .map((char, idx) => {
+                                if (char === ' ') return ' ';
+                                if (idx <= settled) return char;
+                                return glyphs[Math.floor(Math.random() * glyphs.length)];
+                            })
+                            .join('');
+                    },
+                    onComplete: () => {
+                        heroHeading.textContent = headingText;
+                        gsap.to(heroHeading, { letterSpacing: '0.04em', duration: 0.5, ease: 'power2.out' });
+                    },
+                });
+            }
+
+            if (btn) {
+                gsap.to(btn, {
+                boxShadow: '0 0 38px rgba(34,211,238,0.62), 0 0 76px rgba(34,211,238,0.22), inset 0 0 22px rgba(34,211,238,0.24)',
+                duration: 2.2,
                 ease: 'sine.inOut',
                 repeat: -1,
                 yoyo: true,
-                delay: 1.4,
-            }) : null;
+                delay: 1.25,
+                });
+            }
 
-            const ambientTweens = [
+            if (ctaShimmerRef.current) {
+                gsap.fromTo(ctaShimmerRef.current,
+                    { xPercent: -180, opacity: 0 },
+                    {
+                        xPercent: 210,
+                        opacity: 0.75,
+                        duration: 1.45,
+                        ease: 'power2.inOut',
+                        repeat: -1,
+                        repeatDelay: 1.6,
+                        delay: 1.7,
+                    });
+            }
+
+            [
                 heroColRef.current && gsap.to(heroColRef.current, {
-                    y: -8,
-                    duration: 4.6,
+                    y: -14,
+                    duration: 5.8,
                     ease: 'sine.inOut',
                     repeat: -1,
                     yoyo: true,
                     delay: 1.1,
                 }),
                 logoRef.current && gsap.to(logoRef.current, {
-                    rotate: 2.5,
-                    scale: 1.03,
-                    duration: 3.8,
+                    rotate: 4,
+                    scale: 1.06,
+                    filter: 'drop-shadow(0 0 24px rgba(44,246,200,0.62))',
+                    duration: 4.4,
                     ease: 'sine.inOut',
                     repeat: -1,
                     yoyo: true,
                     delay: 1.2,
                 }),
                 orbOneRef.current && gsap.to(orbOneRef.current, {
-                    xPercent: 10,
-                    yPercent: -14,
-                    opacity: 0.55,
-                    duration: 7,
+                    xPercent: 18,
+                    yPercent: -18,
+                    opacity: 0.62,
+                    scale: 1.14,
+                    duration: 8,
                     ease: 'sine.inOut',
                     repeat: -1,
                     yoyo: true,
                 }),
                 orbTwoRef.current && gsap.to(orbTwoRef.current, {
-                    xPercent: -11,
-                    yPercent: 10,
-                    opacity: 0.6,
-                    duration: 8.5,
+                    xPercent: -16,
+                    yPercent: 14,
+                    opacity: 0.66,
+                    scale: 1.18,
+                    duration: 10,
+                    ease: 'sine.inOut',
+                    repeat: -1,
+                    yoyo: true,
+                }),
+                orbThreeRef.current && gsap.to(orbThreeRef.current, {
+                    xPercent: -12,
+                    yPercent: -12,
+                    opacity: 0.48,
+                    scale: 1.22,
+                    duration: 9.2,
+                    ease: 'sine.inOut',
+                    repeat: -1,
+                    yoyo: true,
+                }),
+                heroGridRef.current && gsap.to(heroGridRef.current, {
+                    backgroundPosition: '0px 58px',
+                    duration: 9,
                     ease: 'sine.inOut',
                     repeat: -1,
                     yoyo: true,
@@ -157,22 +238,50 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
 
             [howItWorksRef.current, audienceRef.current].filter(Boolean).forEach((section) => {
                 const revealItems = Array.from((section as HTMLElement).querySelectorAll<HTMLElement>('[data-reveal]'));
+                const heading = (section as HTMLElement).querySelector<HTMLElement>('[data-reveal-heading]');
                 if (!revealItems.length) return;
 
-                gsap.set(revealItems, { opacity: 0, y: 34 });
-                gsap.to(revealItems, {
-                    opacity: 1,
-                    y: 0,
-                    duration: 0.7,
-                    ease: 'power3.out',
-                    stagger: 0.12,
+                if (heading) gsap.set(heading, { opacity: 0, y: 28, filter: 'blur(5px)' });
+                gsap.set(revealItems, { opacity: 0, y: 56, z: -60, rotateX: 10, filter: 'blur(8px)' });
+
+                const sectionTl = gsap.timeline({
                     scrollTrigger: {
                         trigger: section,
-                        start: 'top 80%',
+                        start: 'top 78%',
                         toggleActions: 'play none none reverse',
                     },
                 });
+
+                if (heading) {
+                    sectionTl.to(heading, {
+                        opacity: 1,
+                        y: 0,
+                        filter: 'blur(0px)',
+                        duration: 0.58,
+                        ease: 'power3.out',
+                    }, 0);
+                }
+
+                sectionTl.to(revealItems, {
+                    opacity: 1,
+                    y: 0,
+                    z: 0,
+                    rotateX: 0,
+                    filter: 'blur(0px)',
+                    duration: 0.78,
+                    ease: 'power3.out',
+                    stagger: 0.13,
+                }, heading ? 0.12 : 0)
+                    .fromTo(revealItems, {
+                        boxShadow: '0 0 0px rgba(34,211,238,0)',
+                    }, {
+                        boxShadow: '0 0 22px rgba(34,211,238,0.22)',
+                        duration: 0.45,
+                        stagger: 0.1,
+                        ease: 'power2.out',
+                    }, heading ? 0.24 : 0.1);
             });
+
         }, pageRef);
 
         return () => ctx.revert();
@@ -347,8 +456,13 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     ref={submitBtnRef}
                     type="submit"
                     disabled={isLoading || (mode === 'signup' && !username.trim())}
-                    className="w-full py-3 px-4 rounded-md font-bold transition-all bg-ion-blue text-ink-900 hover:bg-cyan-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="group relative isolate overflow-hidden w-full py-3 px-4 rounded-md font-bold transition-all bg-ion-blue text-ink-900 hover:bg-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
+                    <span
+                        ref={ctaShimmerRef}
+                        className="pointer-events-none absolute -inset-y-3 left-[-30%] w-[42%] -skew-x-12 bg-gradient-to-r from-transparent via-white/70 to-transparent mix-blend-soft-light"
+                        aria-hidden="true"
+                    />
                     {isLoading ? 'Loading...' : mode === 'login' ? 'Sign in' : mode === 'signup' ? 'Create account' : 'Send reset link'}
                 </button>
             </form>
@@ -380,15 +494,37 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
 
     return (
         <div ref={pageRef} className="min-h-screen flex flex-col relative overflow-hidden">
+            <div
+                ref={heroGridRef}
+                className="pointer-events-none absolute inset-0 opacity-20"
+                style={{
+                    backgroundImage: 'linear-gradient(rgba(34,211,238,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(34,211,238,0.08) 1px, transparent 1px)',
+                    backgroundSize: '72px 72px',
+                    maskImage: 'radial-gradient(circle at 40% 22%, black, transparent 72%)',
+                    WebkitMaskImage: 'radial-gradient(circle at 40% 22%, black, transparent 72%)',
+                }}
+                aria-hidden="true"
+            />
+
+            <div
+                ref={heroSweepRef}
+                className="pointer-events-none absolute top-[16%] left-[-20%] h-24 w-[64%] bg-gradient-to-r from-transparent via-cyan-300/75 to-transparent blur-xl"
+                aria-hidden="true"
+            />
 
             <div
                 ref={orbOneRef}
-                className="pointer-events-none absolute -top-28 -left-20 h-64 w-64 rounded-full bg-cyan-400/15 blur-3xl"
+                className="pointer-events-none absolute -top-28 -left-20 h-64 w-64 rounded-full bg-cyan-400/20 blur-3xl"
                 aria-hidden="true"
             />
             <div
                 ref={orbTwoRef}
-                className="pointer-events-none absolute top-1/3 -right-24 h-72 w-72 rounded-full bg-emerald-400/10 blur-3xl"
+                className="pointer-events-none absolute top-1/3 -right-24 h-72 w-72 rounded-full bg-emerald-400/16 blur-3xl"
+                aria-hidden="true"
+            />
+            <div
+                ref={orbThreeRef}
+                className="pointer-events-none absolute bottom-16 left-1/4 h-56 w-56 rounded-full bg-violet-400/12 blur-3xl"
                 aria-hidden="true"
             />
             {/* ── HERO + AUTH (above the fold) ─────────────────────────────── */}
@@ -407,6 +543,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                             <h1
                                 ref={titleRef}
                                 className="font-heading text-3xl sm:text-4xl font-bold tracking-wide"
+                                data-text="Brains Heist"
                                 style={{ color: 'var(--ion-blue)' }}
                             >
                                 Brains Heist
@@ -467,7 +604,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
             {/* ── HOW IT WORKS ─────────────────────────────────────────────── */}
             <section ref={howItWorksRef} className="px-4 py-12 sm:py-16 border-t border-white/5">
                 <div className="max-w-4xl mx-auto text-center">
-                    <h2 className="font-heading text-2xl sm:text-3xl font-bold mb-8" style={{ color: 'var(--ion-blue)' }}>
+                    <h2 data-reveal-heading className="font-heading text-2xl sm:text-3xl font-bold mb-8" style={{ color: 'var(--ion-blue)' }}>
                         How it works
                     </h2>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
