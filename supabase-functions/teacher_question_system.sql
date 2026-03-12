@@ -616,14 +616,23 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 DECLARE
+  v_user_id UUID := auth.uid();
   v_question RECORD;
   v_is_correct BOOLEAN;
   v_recent_correct_reward BOOLEAN := FALSE;
   v_points_earned INTEGER := 0;
+  v_coins_earned INTEGER := 0;
+  v_duplicate_reward BOOLEAN := FALSE;
+  v_profile RECORD;
+  v_xp_status JSONB := NULL;
 BEGIN
+  IF v_user_id IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
   -- Get question details
   SELECT * INTO v_question FROM questions WHERE id = p_question_id;
-  
+
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Question not found';
   END IF;
@@ -631,19 +640,27 @@ BEGIN
   -- Check if answer is correct (case-insensitive comparison)
   v_is_correct := LOWER(TRIM(p_answer_given)) = LOWER(TRIM(v_question.correct_answer));
 
-  -- Calculate points
+  -- Calculate rewards atomically under per-user/question lock
   IF v_is_correct THEN
+    PERFORM pg_advisory_xact_lock(
+      hashtext(v_user_id::text),
+      hashtext(p_question_id::text)
+    );
+
     SELECT EXISTS (
       SELECT 1
       FROM question_attempts qa
-      WHERE qa.student_id = auth.uid()
+      WHERE qa.student_id = v_user_id
         AND qa.question_id = p_question_id
         AND qa.is_correct = true
         AND qa.attempted_at > NOW() - INTERVAL '24 hours'
     ) INTO v_recent_correct_reward;
 
     IF NOT v_recent_correct_reward THEN
-      v_points_earned := v_question.points;
+      v_points_earned := COALESCE(v_question.points, 0);
+      v_coins_earned := GREATEST(0, FLOOR(COALESCE(v_question.points, 0) / 2.0)::INT);
+    ELSE
+      v_duplicate_reward := TRUE;
     END IF;
   END IF;
 
@@ -652,9 +669,26 @@ BEGIN
     student_id, question_id, quest_session_id,
     answer_given, is_correct, time_taken, points_earned
   ) VALUES (
-    auth.uid(), p_question_id, p_quest_session_id,
+    v_user_id, p_question_id, p_quest_session_id,
     p_answer_given, v_is_correct, p_time_taken, v_points_earned
   );
+
+  -- Update rewards in same transaction to avoid race with client-side reward application
+  SELECT xp, coins, level, gemstones
+  INTO v_profile
+  FROM users
+  WHERE id = v_user_id
+  FOR UPDATE;
+
+  IF v_points_earned <> 0 OR v_coins_earned <> 0 THEN
+    UPDATE users
+    SET xp = GREATEST(0, xp + v_points_earned),
+        coins = GREATEST(0, coins + v_coins_earned),
+        updated_at = NOW()
+    WHERE id = v_user_id
+    RETURNING xp, coins, level, gemstones
+    INTO v_profile;
+  END IF;
 
   -- Update question stats
   UPDATE questions
@@ -662,12 +696,22 @@ BEGIN
       times_correct = times_correct + (CASE WHEN v_is_correct THEN 1 ELSE 0 END)
   WHERE id = p_question_id;
 
+  SELECT to_jsonb(xp_status(p_xp => v_profile.xp)) INTO v_xp_status;
+
   -- Return result
   RETURN jsonb_build_object(
     'is_correct', v_is_correct,
     'points_earned', v_points_earned,
     'correct_answer', v_question.correct_answer,
-    'explanation', v_question.explanation
+    'duplicate_reward', v_duplicate_reward,
+    'explanation', v_question.explanation,
+    'final_profile_values', jsonb_build_object(
+      'xp', v_profile.xp,
+      'coins', v_profile.coins,
+      'level', v_profile.level,
+      'gemstones', v_profile.gemstones,
+      'xp_status', v_xp_status
+    )
   );
 END;
 $$;

@@ -5411,28 +5411,9 @@ export const submit_question_answer = async (
     }
 
     const result = data as QuestionAttemptResult;
-    const xpDelta = Math.max(0, result.points_earned || 0);
-    const coinDelta = result.is_correct ? Math.trunc(xpDelta / 2) : 0;
 
-    if (result.is_correct && xpDelta === 0) {
+    if (result.duplicate_reward) {
         result.explanation = '✓ Correct! Rewards for this question were already claimed in the last 24 hours. Try again after 24 hours or answer a new question.';
-    }
-
-    if (xpDelta > 0 || coinDelta > 0) {
-        const rewardResult = await applyRewardDelta({
-            xpDelta,
-            coinsDelta: coinDelta,
-            gemstonesDelta: 0,
-            applyLevelMilestone: true,
-        });
-
-        result.final_profile_values = {
-            xp: rewardResult.profile.xp,
-            coins: rewardResult.profile.coins,
-            level: rewardResult.profile.level,
-            gemstones: rewardResult.profile.gemstones,
-            xp_status: rewardResult.xpStatus ?? undefined,
-        };
     }
 
     return result;

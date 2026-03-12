@@ -54,6 +54,11 @@ begin
   v_reward_coins := floor(v_reward_xp * 1.5);
 
   if v_is_correct then
+    perform pg_advisory_xact_lock(
+      hashtext(v_user_id::text),
+      hashtext(p_question_id::text)
+    );
+
     select exists (
       select 1
       from public.question_attempts qa
