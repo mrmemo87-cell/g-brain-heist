@@ -9,6 +9,7 @@ import {
   RivalryStructureCode,
   RivalryStructureState,
   RivalryWarStateResponse,
+  subscribeToRivalryWarRealtime,
 } from '../../services/rivalryService';
 import RivalryPrepPanel from './RivalryPrepPanel';
 import RivalryActionPanel from './RivalryActionPanel';
@@ -84,6 +85,8 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
   const lastCursorRef = React.useRef<RivalryLogsCursor>(null);
   const [nowTick, setNowTick] = React.useState<number>(Date.now());
   const [lastActionFeedback, setLastActionFeedback] = React.useState<string | null>(null);
+  const [isLiveSyncConnected, setIsLiveSyncConnected] = React.useState(false);
+  const realtimeUnavailableToastRef = React.useRef(false);
 
   const updateLastCursor = React.useCallback((cursor: RivalryLogsCursor) => {
     lastCursorRef.current = cursor;
@@ -124,14 +127,53 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
   }, [loadState, loadLogs]);
 
   const statusForRefresh = String(state?.war?.status || 'unknown');
+  const realtimeEligible = statusForRefresh === 'live' || statusForRefresh === 'blackout' || statusForRefresh === 'prep';
+
   React.useEffect(() => {
-    const refreshMs = statusForRefresh === 'live' || statusForRefresh === 'blackout' ? 9000 : 20000;
+    if (!realtimeEligible) {
+      setIsLiveSyncConnected(false);
+      return;
+    }
+
+    let disposed = false;
+    const unsubscribe = subscribeToRivalryWarRealtime(
+      warId,
+      (event) => {
+        if (disposed) return;
+        if (event.topic === 'logs') {
+          void loadLogs(true);
+          void loadState();
+          return;
+        }
+        if (event.topic === 'structures' || event.topic === 'score' || event.topic === 'war' || event.topic === 'member_state') {
+          void loadState();
+        }
+      },
+      (status) => {
+        if (disposed) return;
+        const connected = status === 'SUBSCRIBED';
+        setIsLiveSyncConnected(connected);
+        if ((status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') && !realtimeUnavailableToastRef.current) {
+          realtimeUnavailableToastRef.current = true;
+          addToast('Live sync unavailable. Falling back to polling.', 'warning');
+        }
+      }
+    );
+
+    return () => {
+      disposed = true;
+      setIsLiveSyncConnected(false);
+      unsubscribe();
+    };
+  }, [warId, realtimeEligible, loadState, loadLogs, addToast]);
+  React.useEffect(() => {
+    const refreshMs = statusForRefresh === 'live' || statusForRefresh === 'blackout' ? (isLiveSyncConnected ? 18000 : 9000) : statusForRefresh === 'prep' ? (isLiveSyncConnected ? 22000 : 14000) : 20000;
     const t = window.setInterval(() => {
       void loadState();
       setNowTick(Date.now());
     }, refreshMs);
     return () => window.clearInterval(t);
-  }, [loadState, statusForRefresh]);
+  }, [loadState, statusForRefresh, isLiveSyncConnected]);
 
   const withBusy = async (op: () => Promise<RivalryRpcResult>, successText: string | ((result: RivalryRpcResult) => string)) => {
     setBusy(true);
@@ -199,7 +241,15 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
         <div className="relative">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-heading text-xl text-white drop-shadow-[0_0_10px_rgba(34,211,238,0.3)]">War #{warId.slice(0, 8)}</h2>
-            <span className={`rounded-full px-3 py-1 text-xs uppercase border tracking-wide ${phaseColor(status)}`}>{status}</span>
+            <div className="flex items-center gap-2">
+              {realtimeEligible && isLiveSyncConnected ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/40 bg-emerald-900/20 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-100">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 animate-pulse" />
+                  Live Sync
+                </span>
+              ) : null}
+              <span className={`rounded-full px-3 py-1 text-xs uppercase border tracking-wide ${phaseColor(status)}`}>{status}</span>
+            </div>
           </div>
           <div className="mt-2 text-sm text-gray-300 flex flex-wrap items-center gap-2">
             <span className="rounded-md border border-red-400/30 bg-red-950/30 px-2 py-0.5 text-red-100">ATK {attackerClanId?.slice(0, 8)}</span>

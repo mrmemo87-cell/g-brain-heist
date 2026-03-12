@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
 export type RivalryDoctrine = 'breach' | 'fortress' | 'disruption';
 export type RivalryRolePref = 'striker' | 'saboteur' | 'engineer';
@@ -131,6 +132,62 @@ export interface RivalryService {
   claimReward: (warId: string) => Promise<RivalryRpcResult>;
   listClanTargets: (search?: string, limit?: number) => Promise<RivalryClanOption[]>;
 }
+
+export type RivalryRealtimeTopic = 'logs' | 'structures' | 'score' | 'war' | 'member_state';
+
+export interface RivalryRealtimeEvent {
+  topic: RivalryRealtimeTopic;
+  payload: RealtimePostgresChangesPayload<Record<string, unknown>>;
+}
+
+const getStringField = (value: unknown, key: string): string | null => {
+  if (!value || typeof value !== 'object') return null;
+  const next = (value as Record<string, unknown>)[key];
+  return typeof next === 'string' ? next : null;
+};
+
+const payloadWarId = (payload: RealtimePostgresChangesPayload<Record<string, unknown>>): string | null => {
+  const nextWarId = getStringField(payload.new, 'war_id');
+  if (nextWarId) return nextWarId;
+  const oldWarId = getStringField(payload.old, 'war_id');
+  if (oldWarId) return oldWarId;
+  const nextId = getStringField(payload.new, 'id');
+  if (nextId) return nextId;
+  const oldId = getStringField(payload.old, 'id');
+  return oldId;
+};
+
+export const subscribeToRivalryWarRealtime = (
+  warId: string,
+  onEvent: (event: RivalryRealtimeEvent) => void,
+  onStatus?: (status: string) => void
+): (() => void) => {
+  const channel: RealtimeChannel = supabase.channel(`rivalry-war-${warId}`);
+
+  const bind = (topic: RivalryRealtimeTopic, table: string, filter = `war_id=eq.${warId}`) => {
+    channel.on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table, filter },
+      (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
+        const changedWarId = payloadWarId(payload);
+        if (changedWarId && changedWarId !== warId) return;
+        onEvent({ topic, payload });
+      }
+    );
+  };
+
+  bind('logs', 'rivalry_war_actions');
+  bind('structures', 'rivalry_war_structures');
+  bind('score', 'rivalry_war_scores');
+  bind('member_state', 'rivalry_war_member_state');
+  bind('war', 'rivalry_wars', `id=eq.${warId}`);
+
+  channel.subscribe((status) => onStatus?.(status));
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+};
 
 export const rivalryService: RivalryService = {
   async getPublicWars(limit = 50): Promise<RivalryWarSummary[]> {
