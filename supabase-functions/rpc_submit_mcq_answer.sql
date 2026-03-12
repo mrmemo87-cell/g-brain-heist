@@ -14,6 +14,7 @@ declare
   v_user_id uuid := auth.uid();
   v_question record;
   v_is_correct boolean := false;
+  v_recent_correct_reward boolean := false;
   v_reward_xp int := 0;
   v_reward_coins int := 0;
   v_xp_delta int := 0;
@@ -53,34 +54,47 @@ begin
   v_reward_coins := floor(v_reward_xp * 1.5);
 
   if v_is_correct then
+    perform pg_advisory_xact_lock(
+      hashtext(v_user_id::text),
+      hashtext(p_question_id::text)
+    );
+
+    select exists (
+      select 1
+      from public.question_attempts qa
+      where qa.student_id = v_user_id
+        and qa.question_id = p_question_id
+        and qa.is_correct = true
+        and qa.attempted_at > now() - interval '24 hours'
+    )
+    into v_recent_correct_reward;
+  end if;
+
+  if v_is_correct and not v_recent_correct_reward then
     v_xp_delta := v_reward_xp;
     v_coins_delta := v_reward_coins;
+  elsif v_is_correct and v_recent_correct_reward then
+    v_duplicate := true;
+    v_xp_delta := 0;
+    v_coins_delta := 0;
   else
     v_xp_delta := -5;
     v_coins_delta := 0;
   end if;
 
-  begin
-    insert into public.question_attempts (
-      student_id,
-      question_id,
-      answer_given,
-      is_correct,
-      points_earned
-    ) values (
-      v_user_id,
-      p_question_id,
-      p_answer,
-      v_is_correct,
-      case when v_is_correct then v_reward_xp else 0 end
-    );
-  exception when unique_violation then
-    if v_is_correct then
-      v_duplicate := true;
-      v_xp_delta := 0;
-      v_coins_delta := 0;
-    end if;
-  end;
+  insert into public.question_attempts (
+    student_id,
+    question_id,
+    answer_given,
+    is_correct,
+    points_earned
+  ) values (
+    v_user_id,
+    p_question_id,
+    p_answer,
+    v_is_correct,
+    case when v_is_correct and not v_recent_correct_reward then v_reward_xp else 0 end
+  );
 
   update public.questions
   set times_answered = coalesce(times_answered, 0) + 1,

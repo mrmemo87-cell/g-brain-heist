@@ -1093,6 +1093,7 @@ export interface QuestionAttemptResult {
   points_earned: number;
   correct_answer: string;
   explanation?: string;
+  duplicate_reward?: boolean;
   final_profile_values?: { xp: number; coins: number; level: number; gemstones: number; xp_status?: XpStatus };
 }
 
