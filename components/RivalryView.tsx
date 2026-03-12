@@ -21,11 +21,15 @@ const DECLARE_ERROR_MESSAGES: Record<string, string> = {
     'Invalid target clan selected. Choose a different clan and try again.',
 };
 
+const reportRivalryDeclareDiagnostic = (tag: 'unmapped-declare-error'): void => {
+  console.info('[rivalry-declare-diagnostic]', tag);
+};
+
 const getFriendlyDeclareError = (rawError: unknown): string => {
   if (typeof rawError !== 'string') return 'Failed to declare war.';
   const mapped = DECLARE_ERROR_MESSAGES[rawError];
   if (mapped) return mapped;
-  console.warn('Unhandled rivalry declare error code:', rawError);
+  reportRivalryDeclareDiagnostic('unmapped-declare-error');
   return 'Failed to declare war.';
 };
 
@@ -47,6 +51,7 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
   const [clanTargetsError, setClanTargetsError] = React.useState<string | null>(null);
   const [targetSearch, setTargetSearch] = React.useState('');
   const [declareFeedback, setDeclareFeedback] = React.useState<string | null>(null);
+  const declaringRef = React.useRef(false);
   const canDeclare = Boolean(profile.clan_id);
 
   const loadWars = React.useCallback(async () => {
@@ -96,6 +101,8 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
   }, [targetSearch, loadClanTargets, canDeclare]);
 
   const handleDeclare = async (targetClanId: string) => {
+    if (declaringRef.current) return;
+
     setDeclareFeedback(null);
 
     if (!canDeclare) {
@@ -127,6 +134,7 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
       return;
     }
 
+    declaringRef.current = true;
     setDeclaring(true);
     try {
       const res = await rivalryService.declareWar(resolvedTargetClanId);
@@ -144,6 +152,7 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
       setDeclareFeedback(friendlyError);
       addToast(friendlyError, 'error');
     } finally {
+      declaringRef.current = false;
       setDeclaring(false);
     }
   };
