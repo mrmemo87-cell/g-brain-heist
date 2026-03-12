@@ -83,6 +83,7 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
       setClanTargets([]);
       setTargetSearch('');
       setClanTargetsError(null);
+      setDeclareFeedback(null);
     }
   }, [loadWars, loadClanTargets, canDeclare]);
 
@@ -179,7 +180,10 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
           clanTargetsError={clanTargetsError}
           onSearchClanTargets={(search) => setTargetSearch(search)}
           onReloadClanTargets={() => {
-            if (!canDeclare) return;
+            if (!canDeclare) {
+              setDeclareFeedback(null);
+              return;
+            }
             void loadClanTargets(targetSearch);
           }}
           onTargetChange={() => setDeclareFeedback(null)}
