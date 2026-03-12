@@ -5388,49 +5388,59 @@ export const submit_question_answer = async (
     timeTaken?: number,
     questSessionId?: string
 ): Promise<QuestionAttemptResult> => {
-    const user = await getCurrentUser();
-
-    const { data, error } = await recordQuestionAttempt({
-        p_question_id: questionId,
-        p_answer_given: answer,
-        p_time_taken: timeTaken,
-        p_quest_session_id: questSessionId
-    });
-
-    if (error) {
-        // Security hardening can reject legacy XP writes in record_question_attempt.
-        // Fall back to the newer RPC path so answering still works.
-        if ((error as any)?.message?.includes('Direct XP/level updates are not allowed')) {
-            const fallbackResponse = await mcq_answer_submit({ id: questionId, correct_answer: '' } as Question, answer);
-            return {
-                is_correct: fallbackResponse.correct,
-                points_earned: fallbackResponse.deltas?.xp ?? 0,
-                correct_answer: fallbackResponse.correct ? answer : '',
-                explanation: fallbackResponse.explanation,
-                duplicate_reward: (fallbackResponse.deltas?.xp ?? 0) === 0 && fallbackResponse.correct,
-                final_profile_values: fallbackResponse.finalProfileValues,
-            } as QuestionAttemptResult;
+    // Prefer the modern submit RPC path first.
+    // It is the canonical path after reward/security hardening.
+    try {
+        const fallbackResponse = await mcq_answer_submit({ id: questionId, correct_answer: '' } as Question, answer);
+        return {
+            is_correct: fallbackResponse.correct,
+            points_earned: fallbackResponse.deltas?.xp ?? 0,
+            correct_answer: fallbackResponse.correct ? answer : '',
+            explanation: fallbackResponse.explanation,
+            duplicate_reward: (fallbackResponse.deltas?.xp ?? 0) === 0 && fallbackResponse.correct,
+            final_profile_values: fallbackResponse.finalProfileValues,
+        } as QuestionAttemptResult;
+    } catch (mcqError: any) {
+        // If DB trigger hardening is still misconfigured, this RPC can fail too.
+        // Surface a clear action-oriented error while still trying legacy fallback.
+        if (mcqError?.message?.includes('Direct XP/level updates are not allowed')) {
+            console.error('[submit_question_answer] rpc_submit_mcq_answer blocked by XP trigger policy. Database migration is required.', mcqError);
         }
 
-        // Handle duplicate correct-answer constraint gracefully
-        if (error.message?.includes('unique') || ('code' in error && (error as any).code === '23505')) {
-            return {
-                is_correct: true,
-                points_earned: 0,
-                correct_answer: answer,
-                explanation: 'Already answered correctly!',
-            } as QuestionAttemptResult;
+        // Legacy fallback path for older deployments that still rely on record_question_attempt.
+        const { data, error } = await recordQuestionAttempt({
+            p_question_id: questionId,
+            p_answer_given: answer,
+            p_time_taken: timeTaken,
+            p_quest_session_id: questSessionId
+        });
+
+        if (error) {
+            // Handle duplicate correct-answer constraint gracefully
+            if (error.message?.includes('unique') || ('code' in error && (error as any).code === '23505')) {
+                return {
+                    is_correct: true,
+                    points_earned: 0,
+                    correct_answer: answer,
+                    explanation: 'Already answered correctly!',
+                } as QuestionAttemptResult;
+            }
+
+            if ((error as any)?.message?.includes('Direct XP/level updates are not allowed')) {
+                throw new Error('Answer submission is blocked by database security configuration. Please apply the migration that patches rpc_submit_mcq_answer/record_question_attempt to set app.allow_xp_level_write.');
+            }
+
+            throw error;
         }
-        throw error;
+
+        const result = data as QuestionAttemptResult;
+
+        if (result.duplicate_reward) {
+            result.explanation = '✓ Correct! Rewards for this question were already claimed in the last 24 hours. Try again after 24 hours or answer a new question.';
+        }
+
+        return result;
     }
-
-    const result = data as QuestionAttemptResult;
-
-    if (result.duplicate_reward) {
-        result.explanation = '✓ Correct! Rewards for this question were already claimed in the last 24 hours. Try again after 24 hours or answer a new question.';
-    }
-
-    return result;
 };
 
 /**
