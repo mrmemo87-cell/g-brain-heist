@@ -1,5 +1,6 @@
 import React from 'react';
 import { RivalryClanOption, RivalryWarSummary } from '../../services/rivalryService';
+import { RIVALRY_DECLARATION_REQUIREMENTS } from '../../services/rivalryRules';
 
 interface RivalryHubProps {
   wars: RivalryWarSummary[];
@@ -16,6 +17,8 @@ interface RivalryHubProps {
   clanTargetsError: string | null;
   onSearchClanTargets: (search: string) => void;
   onReloadClanTargets: () => void;
+  onTargetChange?: () => void;
+  declareFeedback?: string | null;
 }
 
 const statusClass: Record<string, string> = {
@@ -44,6 +47,8 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
   clanTargetsError,
   onSearchClanTargets,
   onReloadClanTargets,
+  onTargetChange,
+  declareFeedback,
 }) => {
   const [search, setSearch] = React.useState('');
   const [selectedTarget, setSelectedTarget] = React.useState<RivalryClanOption | null>(null);
@@ -55,6 +60,7 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
   const handleSelect = (target: RivalryClanOption) => {
     setSelectedTarget(target);
     setSearch(target.name);
+    onTargetChange?.();
   };
 
   return (
@@ -63,6 +69,27 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
         <h3 className="font-heading text-lg text-cyan-100 drop-shadow-[0_0_8px_rgba(34,211,238,0.35)]">Declare Rivalry</h3>
         <p className="text-sm text-gray-300 mt-1">Search and select a clan target to send a challenge.</p>
         {!canDeclare ? <p className="text-xs text-amber-200 mt-1">Join a clan to declare rivalry wars.</p> : null}
+
+        <div className="mt-3 rounded-xl border border-cyan-400/25 bg-cyan-950/30 p-3">
+          <p className="text-xs uppercase tracking-wide text-cyan-200/90">Declaration Requirements</p>
+          <ul className="mt-2 space-y-1 text-xs text-cyan-100/90 list-disc list-inside">
+            {RIVALRY_DECLARATION_REQUIREMENTS.map((rule) => (
+              <li key={rule}>{rule}</li>
+            ))}
+          </ul>
+        </div>
+
+        {declareFeedback ? (
+          <div
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+            className="mt-3 rounded-xl border border-amber-300/50 bg-amber-900/35 p-3 shadow-[0_0_12px_rgba(251,191,36,0.2)]"
+          >
+            <p className="text-[11px] uppercase tracking-wide text-amber-200">Declaration blocked</p>
+            <p className="mt-1 text-sm text-amber-100">{declareFeedback}</p>
+          </div>
+        ) : null}
 
         <div className="mt-3 space-y-2">
           <div className="flex gap-2">
@@ -73,6 +100,7 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
                 setSearch(v);
                 setSelectedTarget(null);
                 onSearchClanTargets(v);
+                onTargetChange?.();
               }}
               placeholder="Search clan name"
               disabled={!canDeclare}
@@ -100,6 +128,7 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
                   setSelectedTarget(null);
                   setSearch('');
                   onSearchClanTargets('');
+                  onTargetChange?.();
                 }}
                 className="text-xs px-2 py-1 rounded bg-black/30 hover:bg-black/50 transition-colors"
               >
