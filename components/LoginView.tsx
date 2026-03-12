@@ -157,7 +157,12 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                 gsap.set(btn, {
                     boxShadow: '0 0 18px rgba(34,211,238,0.18), 0 0 34px rgba(34,211,238,0.08), inset 0 0 12px rgba(34,211,238,0.1)',
                 });
-                gsap.set(ctaShimmerRef.current, { xPercent: -165, opacity: 0.24 });
+                gsap.set(ctaShimmerRef.current, {
+                    xPercent: -220,
+                    opacity: 0.22,
+                    filter: 'blur(0px)',
+                    willChange: 'transform, opacity, filter',
+                });
 
                 gsap.timeline({
                     scrollTrigger: {
@@ -169,8 +174,9 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     },
                 })
                     .to(ctaShimmerRef.current, {
-                        xPercent: 190,
-                        opacity: 0.72,
+                        xPercent: 240,
+                        opacity: 0.86,
+                        filter: 'blur(0.2px)',
                         ease: 'none',
                     }, 0)
                     .to(btn, {
@@ -461,7 +467,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                 >
                     <span
                         ref={ctaShimmerRef}
-                        className="pointer-events-none absolute -inset-y-3 left-[-30%] w-[42%] -skew-x-12 bg-gradient-to-r from-transparent via-white/70 to-transparent mix-blend-soft-light"
+                        className="pointer-events-none absolute -inset-y-2 left-[-45%] z-10 w-[55%] -skew-x-12 bg-gradient-to-r from-transparent via-white/95 via-50% to-transparent mix-blend-screen opacity-70"
                         aria-hidden="true"
                     />
                     {isLoading ? 'Loading...' : mode === 'login' ? 'Sign in' : mode === 'signup' ? 'Create account' : 'Send reset link'}
