@@ -1,5 +1,6 @@
 import React from 'react';
 import { RivalryDoctrine, RivalryRolePref } from '../../services/rivalryService';
+import { doctrineAssetMap, rivalryAssets } from './rivalryAssets';
 
 interface RivalryMemberOption {
   user_id: string;
@@ -128,7 +129,10 @@ const RivalryPrepPanel: React.FC<RivalryPrepPanelProps> = ({
         <p className="text-xs text-cyan-100">Next: {nextStepSummary}</p>
       </div>
 
-      <div className="rounded-xl border border-white/15 bg-black/30 p-3">
+      <div className="rounded-xl border border-white/15 bg-black/30 p-3 relative overflow-hidden">
+        <img src={rivalryAssets.backgrounds.prep} alt="squad atmosphere" className="absolute inset-0 h-full w-full object-cover opacity-15" />
+        <div className="absolute inset-0 bg-black/60" />
+        <div className="relative">
         <div className="flex items-center justify-between mb-2">
           <h4 className="font-heading text-white">Squad Builder</h4>
           <span className="text-xs text-cyan-200">{readyCount} / {minRequired} squad ready</span>
@@ -136,12 +140,12 @@ const RivalryPrepPanel: React.FC<RivalryPrepPanelProps> = ({
         <p className="text-xs text-gray-300 mb-3">{needCount > 0 ? `Need ${needCount} more members before lock-in.` : 'Squad requirement met. You can lock in.'}</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
           {slots.map((member, idx) => (
-            <button key={member?.user_id || `slot-${idx}`} type="button" onClick={() => handleSelectSlot(idx)} className={`rounded-lg border p-2 text-left transition ${selectedSlot === idx ? 'border-cyan-400/60 bg-cyan-900/30' : 'border-white/10 bg-black/20'}`}>
+            <button key={member?.user_id || `slot-${idx}`} type="button" onClick={() => handleSelectSlot(idx)} className={`rounded-lg border p-2 text-left transition-all duration-300 ${selectedSlot === idx ? 'border-cyan-400/60 bg-cyan-900/35 shadow-[0_0_20px_rgba(34,211,238,0.25)]' : 'border-white/10 bg-black/40 hover:border-cyan-300/40'}`}>
               <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-white/15 flex items-center justify-center text-xs">{member?.username?.slice(0, 1).toUpperCase() || '👤'}</div>
+                <div className="h-9 w-9 rounded-full bg-gradient-to-br from-cyan-500/40 to-fuchsia-500/30 border border-white/20 flex items-center justify-center text-xs font-semibold">{member?.username?.slice(0, 1).toUpperCase() || '👤'}</div>
                 <div>
                   <div className="text-sm text-white">{member?.username || 'Empty Slot'}</div>
-                  <div className="text-[11px] text-gray-300">{member ? member.role_pref : 'Choose member'}</div>
+                  <div className="text-[11px] text-gray-300">{member ? member.role_pref : 'Locked slot waiting for member'}</div>
                 </div>
               </div>
             </button>
@@ -162,18 +166,23 @@ const RivalryPrepPanel: React.FC<RivalryPrepPanelProps> = ({
           <button disabled={busy || selectedSlot === null || !memberId} onClick={handleFillSlot} className="rounded-lg px-3 py-2 text-xs bg-cyan-600/80 hover:bg-cyan-500 disabled:opacity-50">Fill Slot</button>
           <button disabled={busy || selectedSlot === null || (!selectedMember && !memberId)} onClick={handleRemoveFromSlot} className="rounded-lg px-3 py-2 text-xs bg-slate-600/80 hover:bg-slate-500 disabled:opacity-50">Remove</button>
         </div>
+        </div>
       </div>
 
       <div className="rounded-xl border border-fuchsia-400/25 bg-fuchsia-950/20 p-3">
         <h4 className="font-heading text-white mb-2">Pick Strategy</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
           {(Object.keys(DOCTRINE_META) as RivalryDoctrine[]).map((doc) => (
-            <button key={doc} onClick={() => onSetDoctrine(doc)} disabled={busy} className={`rounded-lg border p-3 text-left ${selectedDoctrine === doc ? 'border-fuchsia-300/70 bg-fuchsia-900/35' : 'border-white/15 bg-black/30'} disabled:opacity-50`}>
-              <div className="text-xl">{DOCTRINE_META[doc].icon}</div>
-              <p className="text-sm text-white font-semibold mt-1">{DOCTRINE_META[doc].title}</p>
-              <p className="text-xs text-emerald-200 mt-1">+ {DOCTRINE_META[doc].plus}</p>
-              <p className="text-xs text-amber-200">− {DOCTRINE_META[doc].minus}</p>
-              <p className="text-xs text-gray-200 mt-1">{DOCTRINE_META[doc].best}</p>
+            <button key={doc} onClick={() => onSetDoctrine(doc)} disabled={busy} className={`rounded-lg border p-3 text-left relative overflow-hidden transition-all duration-300 ${selectedDoctrine === doc ? 'border-fuchsia-300/70 bg-fuchsia-900/35 shadow-[0_0_30px_rgba(217,70,239,0.25)] -translate-y-0.5' : 'border-white/15 bg-black/30 hover:border-fuchsia-300/35 hover:-translate-y-0.5'} disabled:opacity-50`}>
+              <img src={doctrineAssetMap[doc]} alt={DOCTRINE_META[doc].title} className="absolute inset-0 h-full w-full object-cover opacity-35" />
+              <div className="absolute inset-0 bg-black/60" />
+              <div className="relative">
+                <div className="text-xl">{DOCTRINE_META[doc].icon}</div>
+                <p className="text-sm text-white font-semibold mt-1">{DOCTRINE_META[doc].title}</p>
+                <p className="text-xs text-emerald-200 mt-1">+ {DOCTRINE_META[doc].plus}</p>
+                <p className="text-xs text-amber-200">− {DOCTRINE_META[doc].minus}</p>
+                <p className="text-xs text-gray-200 mt-1">{DOCTRINE_META[doc].best}</p>
+              </div>
             </button>
           ))}
         </div>

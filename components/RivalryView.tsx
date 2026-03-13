@@ -5,6 +5,7 @@ import { RivalryClanOption, rivalryService } from '../services/rivalryService';
 import RivalryHub from './rivalry/RivalryHub';
 import RivalryWarDetail from './rivalry/RivalryWarDetail';
 import { RIVALRY_RULES } from '../services/rivalryRules';
+import { rivalryAssets } from './rivalry/rivalryAssets';
 
 const ONBOARDING_STORAGE_KEY = 'rivalry_protocol_onboarding_seen_v2';
 
@@ -44,40 +45,40 @@ interface RivalryViewProps {
 interface OnboardingSlide {
   title: string;
   body: string;
-  icon: string;
-  accent: string;
+  helper: string;
+  image: string;
 }
 
 const onboardingSlides: OnboardingSlide[] = [
   {
     title: 'What is Rivalry Protocol?',
-    body: 'Clan vs clan mission. Build your squad, then battle the enemy clan together.',
-    icon: '⚔️',
-    accent: 'from-red-500/30 to-fuchsia-500/30',
+    body: 'Rivalry is a clan vs clan mission where your team fights over three structures for points and rewards.',
+    helper: 'Think of it as a tactical school tournament with live team actions.',
+    image: rivalryAssets.onboarding[0],
   },
   {
     title: 'Build Your Squad',
-    body: 'Fill at least 5 squad slots. Every selected member gets a role in your team plan.',
-    icon: '🧩',
-    accent: 'from-cyan-500/30 to-blue-500/30',
+    body: 'Leaders pick at least 5 squad members. Everyone gets a role: striker, saboteur, or engineer.',
+    helper: 'More organized squads perform better once the war turns live.',
+    image: rivalryAssets.onboarding[1],
   },
   {
     title: 'Pick Your Strategy',
-    body: 'Choose one strategy card. Each one boosts a different playstyle for your clan.',
-    icon: '🛡️',
-    accent: 'from-emerald-500/30 to-cyan-500/30',
+    body: 'Your clan chooses one doctrine that changes strengths and weaknesses during the match.',
+    helper: 'Breach hits hard, Fortress defends, Disruption controls enemy flow.',
+    image: rivalryAssets.onboarding[2],
   },
   {
     title: 'Fight the War',
-    body: 'Strike, sabotage, and repair to control structures and earn points for your clan.',
-    icon: '🔥',
-    accent: 'from-orange-500/30 to-red-500/30',
+    body: 'In live war, rostered members use strike, sabotage, and repair on target structures.',
+    helper: 'Watch health bars, cooldown, and timing to outplay the rival clan.',
+    image: rivalryAssets.onboarding[3],
   },
   {
     title: 'Blackout + Rewards',
-    body: 'Final phase hides exact score. After settlement, eligible players can claim rewards.',
-    icon: '🌑',
-    accent: 'from-fuchsia-500/30 to-indigo-500/30',
+    body: 'Blackout hides exact scores. After settlement, winners, MVPs, and rewards are revealed.',
+    helper: 'Stay active until the end — final moments can flip the entire war.',
+    image: rivalryAssets.onboarding[4],
   },
 ];
 
@@ -87,7 +88,8 @@ const RivalryOnboardingCarousel: React.FC<{ onClose: () => void }> = ({ onClose 
 
   return (
     <div className="card-glass p-5 border border-cyan-400/30 relative overflow-hidden">
-      <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${current.accent}`} />
+      <img src={rivalryAssets.backgrounds.prep} alt="Rivalry onboarding backdrop" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-25" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-950/90 via-slate-950/80 to-cyan-950/70" />
       <div className="relative space-y-4">
         <div className="flex items-center justify-between gap-2">
           <h2 className="font-heading text-2xl text-white">Welcome to Rivalry Protocol</h2>
@@ -95,11 +97,19 @@ const RivalryOnboardingCarousel: React.FC<{ onClose: () => void }> = ({ onClose 
             Skip
           </button>
         </div>
-        <div className="rounded-2xl border border-white/20 bg-black/30 p-5 min-h-52 flex flex-col justify-between">
-          <div className="text-4xl">{current.icon}</div>
-          <div>
-            <h3 className="font-heading text-xl text-white">{current.title}</h3>
-            <p className="mt-2 text-sm text-gray-200 max-w-xl">{current.body}</p>
+        <div className="rounded-2xl border border-cyan-300/30 bg-black/35 p-3 min-h-52">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-stretch">
+            <div className="md:col-span-3 rounded-xl overflow-hidden border border-white/20 shadow-[0_0_30px_rgba(56,189,248,0.2)]">
+              <img src={current.image} alt={current.title} className="h-56 w-full object-cover md:h-full transition-all duration-500" />
+            </div>
+            <div className="md:col-span-2 flex flex-col justify-between rounded-xl border border-white/10 bg-black/40 p-4">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.2em] text-cyan-200">Step {index + 1}</p>
+                <h3 className="font-heading text-xl text-white mt-1">{current.title}</h3>
+                <p className="mt-2 text-sm text-gray-200">{current.body}</p>
+                <p className="mt-2 text-xs text-cyan-100/90">{current.helper}</p>
+              </div>
+            </div>
           </div>
           <div className="mt-4 flex items-center gap-2">
             {onboardingSlides.map((_, dot) => (
@@ -258,6 +268,15 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
           </div>
           <h1 className="mt-2 font-heading text-2xl text-white drop-shadow-[0_0_10px_rgba(34,211,238,0.35)]">Rivalry Protocol</h1>
           <p className="text-sm text-gray-300 mt-1">A guided clan-vs-clan mission flow for students.</p>
+          {!showOnboarding ? (
+            <button
+              type="button"
+              onClick={() => setShowOnboarding(true)}
+              className="mt-3 rounded-lg border border-cyan-300/40 bg-cyan-500/15 px-3 py-1.5 text-xs font-semibold text-cyan-100 hover:bg-cyan-500/25"
+            >
+              Replay Rivalry Guide
+            </button>
+          ) : null}
         </div>
       </div>
 
