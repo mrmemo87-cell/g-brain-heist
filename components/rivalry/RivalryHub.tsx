@@ -2,6 +2,7 @@ import React from 'react';
 import { RivalryClanOption, RivalryWarSummary } from '../../services/rivalryService';
 import { RIVALRY_DECLARATION_REQUIREMENTS } from '../../services/rivalryRules';
 import { rivalryAssets } from './rivalryAssets';
+import RivalryImage from './RivalryImage';
 
 interface RivalryHubProps {
   wars: RivalryWarSummary[];
@@ -93,7 +94,7 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
       onClick={() => onOpenWar(war.war_id)}
       className="group w-full text-left rounded-xl border border-white/15 bg-black/35 p-3 hover:bg-black/55 transition-all duration-300 hover:border-cyan-400/40 hover:-translate-y-0.5 relative overflow-hidden"
     >
-      <img src={war.status === 'settled' ? rivalryAssets.banners.victory : rivalryAssets.banners.rival} alt="War banner" className="absolute inset-0 h-full w-full object-cover opacity-25 group-hover:opacity-35 transition-opacity" />
+      <RivalryImage src={war.status === 'settled' ? rivalryAssets.banners.victory : rivalryAssets.banners.rival} alt="War banner" className="absolute inset-0 h-full w-full object-cover opacity-25 group-hover:opacity-35 transition-opacity" lowPriority />
       <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-black/80" />
       <div className="relative">
       <div className="flex justify-between items-center gap-2">
@@ -112,7 +113,7 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
     <div className="space-y-5 animate-fade-in-up">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="card-glass p-4 border border-amber-400/20 relative overflow-hidden">
-          <img src={rivalryAssets.backgrounds.prep} alt="prep atmosphere" className="absolute inset-0 h-full w-full object-cover opacity-20" />
+          <RivalryImage src={rivalryAssets.backgrounds.prep} alt="prep atmosphere" className="absolute inset-0 h-full w-full object-cover opacity-20" lowPriority />
           <div className="absolute inset-0 bg-black/65" />
           <div className="relative">
           <h3 className="font-heading text-lg text-amber-100">Incoming Challenge</h3>
@@ -122,7 +123,7 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
         </div>
 
         <div className="card-glass p-4 border border-red-400/20 relative overflow-hidden">
-          <img src={rivalryAssets.banners.rival} alt="rival banner" className="absolute inset-0 h-full w-full object-cover opacity-20" />
+          <RivalryImage src={rivalryAssets.banners.rival} alt="rival banner" className="absolute inset-0 h-full w-full object-cover opacity-20" lowPriority />
           <div className="absolute inset-0 bg-black/70" />
           <div className="relative">
           <h3 className="font-heading text-lg text-red-100">Active War</h3>
@@ -132,7 +133,7 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
         </div>
 
         <div className="card-glass p-4 border border-cyan-400/20 relative overflow-hidden">
-          <img src={rivalryAssets.banners.neutral} alt="neutral banner" className="absolute inset-0 h-full w-full object-cover opacity-20" />
+          <RivalryImage src={rivalryAssets.banners.neutral} alt="neutral banner" className="absolute inset-0 h-full w-full object-cover opacity-20" lowPriority />
           <div className="absolute inset-0 bg-black/70" />
           <div className="relative">
           <h3 className="font-heading text-lg text-cyan-100">Declare New War</h3>

@@ -15,6 +15,7 @@ import {
 import RivalryPrepPanel from './RivalryPrepPanel';
 import RivalryActionPanel from './RivalryActionPanel';
 import RivalryLogsPanel from './RivalryLogsPanel';
+import RivalryImage from './RivalryImage';
 import { RIVALRY_STRUCTURE_LABELS } from './rivalryLabels';
 import { actionFxAssetMap, rivalryAssets, structureAssetMap } from './rivalryAssets';
 
@@ -331,7 +332,7 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
       {isParticipant && (status === 'live' || status === 'blackout') && (
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
           <div className="xl:col-span-2 card-glass p-4 border border-red-500/25 relative overflow-hidden">
-            <img src={status === 'blackout' ? rivalryAssets.backgrounds.blackout : rivalryAssets.backgrounds.live} alt="live battle" className="absolute inset-0 h-full w-full object-cover opacity-25" />
+            <RivalryImage src={status === 'blackout' ? rivalryAssets.backgrounds.blackout : rivalryAssets.backgrounds.live} alt="live battle" className="absolute inset-0 h-full w-full object-cover opacity-25" lowPriority />
             <div className="absolute inset-0 bg-black/65" />
             <div className="relative">
             <h3 className="font-heading text-white mb-2">Live Battle Board</h3>
@@ -348,9 +349,9 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
                       const fxImage = fxActive ? actionFxAssetMap[structureFx.action] : null;
                       return (
                         <div key={`${s.owner_clan_id}-${s.structure_code}`} className={`rounded-lg border border-white/10 p-2 relative overflow-hidden transition-all duration-500 ${stateLabel === 'Down' ? 'bg-red-950/50' : stateLabel === 'Critical' ? 'bg-red-900/30' : stateLabel === 'Strained' ? 'bg-amber-900/25' : 'bg-emerald-900/20'}`}>
-                          <img src={structureAssetMap[s.structure_code as RivalryStructureCode]} alt={RIVALRY_STRUCTURE_LABELS[s.structure_code as RivalryStructureCode]} className="absolute inset-0 h-full w-full object-cover opacity-35" />
+                          <RivalryImage src={structureAssetMap[s.structure_code as RivalryStructureCode]} alt={RIVALRY_STRUCTURE_LABELS[s.structure_code as RivalryStructureCode]} className="absolute inset-0 h-full w-full object-cover opacity-35" lowPriority />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/35" />
-                          {fxImage ? <img src={fxImage} alt="Action effect" className="absolute inset-0 h-full w-full object-cover opacity-80 [animation:ping_700ms_ease-out_1]" /> : null}
+                          {fxImage ? <RivalryImage src={fxImage} alt="Action effect" className="absolute inset-0 h-full w-full object-cover opacity-80 [animation:ping_700ms_ease-out_1]" /> : null}
                           <div className="relative">
                           <div className="flex justify-between text-sm"><span>{RIVALRY_STRUCTURE_LABELS[s.structure_code as RivalryStructureCode] || 'Structure'}</span><span className="text-xs text-gray-300">{stateLabel}</span></div>
                           <div className="mt-1 h-2.5 w-full rounded bg-black/50 overflow-hidden"><div className={`h-full transition-all duration-500 ${pct < 20 ? 'bg-red-500' : pct < 50 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${pct}%` }} /></div>
@@ -398,21 +399,21 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
 
       {status === 'settled' && (
         <div className="card-glass p-4 space-y-2 border border-emerald-400/30 relative overflow-hidden">
-          <img src={didViewerWin ? rivalryAssets.backgrounds.victory : rivalryAssets.backgrounds.defeat} alt="results atmosphere" className="absolute inset-0 h-full w-full object-cover opacity-30" />
+          <RivalryImage src={didViewerWin ? rivalryAssets.backgrounds.victory : rivalryAssets.backgrounds.defeat} alt="results atmosphere" className="absolute inset-0 h-full w-full object-cover opacity-30" lowPriority />
           <div className="absolute inset-0 bg-black/70" />
           <div className="relative">
           <h3 className="font-heading text-emerald-100">Results Recap</h3>
-          <img src={rivalryAssets.banners.victory} alt="victory banner" className="h-16 w-full object-cover rounded-lg border border-white/15" />
+          <RivalryImage src={rivalryAssets.banners.victory} alt="victory banner" className="h-16 w-full object-cover rounded-lg border border-white/15" />
           <p className="text-sm text-gray-200">Winner: {winnerClanName}</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-            <img src={rivalryAssets.rewards.card} alt="Reward card" className="rounded-lg border border-white/20" />
-            <img src={rivalryAssets.rewards.chest} alt="Reward chest" className="rounded-lg border border-white/20" />
-            <img src={rivalryAssets.rewards.panel} alt="Reward panel" className="rounded-lg border border-white/20" />
+            <RivalryImage src={rivalryAssets.rewards.card} alt="Reward card" className="rounded-lg border border-white/20 object-cover w-full h-full" lowPriority />
+            <RivalryImage src={rivalryAssets.rewards.chest} alt="Reward chest" className="rounded-lg border border-white/20 object-cover w-full h-full" lowPriority />
+            <RivalryImage src={rivalryAssets.rewards.panel} alt="Reward panel" className="rounded-lg border border-white/20 object-cover w-full h-full" lowPriority />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            <img src={rivalryAssets.mvp.breaker} alt="Breaker MVP" className="rounded-lg border border-white/15" />
-            <img src={rivalryAssets.mvp.operator} alt="Operator MVP" className="rounded-lg border border-white/15" />
-            <img src={rivalryAssets.mvp.guardian} alt="Guardian MVP" className="rounded-lg border border-white/15" />
+            <RivalryImage src={rivalryAssets.mvp.breaker} alt="Breaker MVP" className="rounded-lg border border-white/15 object-cover w-full h-full" lowPriority />
+            <RivalryImage src={rivalryAssets.mvp.operator} alt="Operator MVP" className="rounded-lg border border-white/15 object-cover w-full h-full" lowPriority />
+            <RivalryImage src={rivalryAssets.mvp.guardian} alt="Guardian MVP" className="rounded-lg border border-white/15 object-cover w-full h-full" lowPriority />
           </div>
           <p className="text-xs text-gray-200">Thanks for participating. Your actions helped your clan during the mission.</p>
           {isParticipant ? <button onClick={() => void withBusy(() => service.claimReward(warId), 'Reward claim completed')} disabled={busy} className="rounded-lg px-4 py-2 bg-emerald-600/85 hover:bg-emerald-500 disabled:opacity-50 text-white">Claim Reward</button> : <p className="text-sm text-gray-400">Public viewer mode: rewards are for participants only.</p>}

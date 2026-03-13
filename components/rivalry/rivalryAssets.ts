@@ -58,3 +58,44 @@ export const actionFxAssetMap: Record<RivalryActionType, string> = {
   sabotage: `${BASE}/fx/sabodage.png`,
   repair: `${BASE}/fx/repair.png`,
 };
+
+const webpSupportCache = new Map<string, Promise<boolean>>();
+
+const webpCandidate = (src: string): string => src.replace(/\.png$/i, '.webp');
+
+const checkWebpExists = (src: string): Promise<boolean> => {
+  if (typeof window === 'undefined') return Promise.resolve(false);
+  const next = webpCandidate(src);
+  const cached = webpSupportCache.get(next);
+  if (cached) return cached;
+
+  const probe = new Promise<boolean>((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(true);
+    img.onerror = () => resolve(false);
+    img.src = next;
+  });
+
+  webpSupportCache.set(next, probe);
+  return probe;
+};
+
+export const resolveRivalryAssetSrc = async (src: string): Promise<string> => {
+  if (!/\.png$/i.test(src)) return src;
+  const hasWebp = await checkWebpExists(src);
+  return hasWebp ? webpCandidate(src) : src;
+};
+
+export const scheduleRivalryAssetProbe = (src: string): void => {
+  if (typeof window === 'undefined' || !/\.png$/i.test(src)) return;
+
+  const run = () => {
+    void checkWebpExists(src);
+  };
+
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(run, { timeout: 1200 });
+    return;
+  }
+  setTimeout(run, 100);
+};

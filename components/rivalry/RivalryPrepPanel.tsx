@@ -1,6 +1,7 @@
 import React from 'react';
 import { RivalryDoctrine, RivalryRolePref } from '../../services/rivalryService';
 import { doctrineAssetMap, rivalryAssets } from './rivalryAssets';
+import RivalryImage from './RivalryImage';
 
 interface RivalryMemberOption {
   user_id: string;
@@ -130,7 +131,7 @@ const RivalryPrepPanel: React.FC<RivalryPrepPanelProps> = ({
       </div>
 
       <div className="rounded-xl border border-white/15 bg-black/30 p-3 relative overflow-hidden">
-        <img src={rivalryAssets.backgrounds.prep} alt="squad atmosphere" className="absolute inset-0 h-full w-full object-cover opacity-15" />
+        <RivalryImage src={rivalryAssets.backgrounds.prep} alt="squad atmosphere" className="absolute inset-0 h-full w-full object-cover opacity-15" lowPriority />
         <div className="absolute inset-0 bg-black/60" />
         <div className="relative">
         <div className="flex items-center justify-between mb-2">
@@ -174,7 +175,7 @@ const RivalryPrepPanel: React.FC<RivalryPrepPanelProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
           {(Object.keys(DOCTRINE_META) as RivalryDoctrine[]).map((doc) => (
             <button key={doc} onClick={() => onSetDoctrine(doc)} disabled={busy} className={`rounded-lg border p-3 text-left relative overflow-hidden transition-all duration-300 ${selectedDoctrine === doc ? 'border-fuchsia-300/70 bg-fuchsia-900/35 shadow-[0_0_30px_rgba(217,70,239,0.25)] -translate-y-0.5' : 'border-white/15 bg-black/30 hover:border-fuchsia-300/35 hover:-translate-y-0.5'} disabled:opacity-50`}>
-              <img src={doctrineAssetMap[doc]} alt={DOCTRINE_META[doc].title} className="absolute inset-0 h-full w-full object-cover opacity-35" />
+              <RivalryImage src={doctrineAssetMap[doc]} alt={DOCTRINE_META[doc].title} className="absolute inset-0 h-full w-full object-cover opacity-35" lowPriority />
               <div className="absolute inset-0 bg-black/60" />
               <div className="relative">
                 <div className="text-xl">{DOCTRINE_META[doc].icon}</div>
