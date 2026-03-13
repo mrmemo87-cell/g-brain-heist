@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   RivalryActionType,
+  RivalryClanMemberOption,
   RivalryDoctrine,
   RivalryLogEntry,
   RivalryRolePref,
@@ -86,6 +87,8 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
   const [nowTick, setNowTick] = React.useState<number>(Date.now());
   const [lastActionFeedback, setLastActionFeedback] = React.useState<string | null>(null);
   const [isLiveSyncConnected, setIsLiveSyncConnected] = React.useState(false);
+  const [clanMemberOptions, setClanMemberOptions] = React.useState<RivalryClanMemberOption[]>([]);
+  const [loadingClanMembers, setLoadingClanMembers] = React.useState(false);
   const realtimeUnavailableToastRef = React.useRef(false);
 
   const updateLastCursor = React.useCallback((cursor: RivalryLogsCursor) => {
@@ -207,6 +210,36 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
 
   const myRoster = (state?.rosters || []).find((r) => r.user_id === myUserId);
   const canManagePrep = Boolean(isParticipant && isPrivileged(myClanRole));
+
+  React.useEffect(() => {
+    if (!canManagePrep || !derivedClanId) {
+      setClanMemberOptions([]);
+      setLoadingClanMembers(false);
+      return;
+    }
+
+    let cancelled = false;
+    setLoadingClanMembers(true);
+    service
+      .listClanMembers(derivedClanId)
+      .then((members) => {
+        if (cancelled) return;
+        setClanMemberOptions(members);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        setClanMemberOptions([]);
+        addToast(error instanceof Error ? error.message : 'Failed to load clan members', 'error');
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setLoadingClanMembers(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [canManagePrep, derivedClanId, service, addToast]);
 
   const ownStructures = (state?.structures || []).filter((s) => s.owner_clan_id === derivedClanId);
   const enemyStructures = (state?.structures || []).filter((s) => s.owner_clan_id !== derivedClanId);
@@ -334,6 +367,8 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
           <RivalryPrepPanel
             mode="pending_response"
             canManage={canManagePrep}
+            memberOptions={clanMemberOptions}
+            membersLoading={loadingClanMembers}
             busy={busy}
             onRespond={(response) => withBusy(() => service.respondWar(warId, response), `War ${response}ed`)}
             onSetDoctrine={() => Promise.resolve()}
@@ -349,6 +384,8 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
           <RivalryPrepPanel
             mode="prep"
             canManage={canManagePrep}
+            memberOptions={clanMemberOptions}
+            membersLoading={loadingClanMembers}
             busy={busy}
             onRespond={() => Promise.resolve()}
             onSetDoctrine={(doctrine: RivalryDoctrine) => void withBusy(() => service.setDoctrine(warId, doctrine), 'Doctrine updated')}
