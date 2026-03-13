@@ -51,7 +51,8 @@ const normalizeActionFeedback = (actionType: RivalryActionType, result: RivalryR
 
 const phaseStep = (status: string): number => {
   if (status === 'pending_response') return 1;
-  if (status === 'prep') return 3;
+  if (status === 'prep') return 2;
+  if (status === 'lock_in' || status === 'locked') return 4;
   if (status === 'live') return 5;
   if (status === 'blackout') return 5;
   if (status === 'settled') return 6;
@@ -244,7 +245,7 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
         </div>
       </div>
 
-      {!isParticipant ? <div className="card-glass p-4 text-sm text-gray-300">Public viewer mode. Participant controls are hidden.</div> : <div className="card-glass p-4 text-sm text-cyan-100">You are part of this war.</div>}
+      {!isParticipant ? <div className="card-glass p-4 text-sm text-gray-300">Public viewer mode. Participant controls are hidden.</div> : status === 'settled' ? <div className="card-glass p-4 text-sm text-emerald-100">Results are ready for your war.</div> : <div className="card-glass p-4 text-sm text-cyan-100">You are part of this war.</div>}
 
       {isParticipant && status === 'pending_response' ? (
         <div className="card-glass p-4">
@@ -288,7 +289,7 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
             busy={busy}
             onRespond={() => Promise.resolve()}
             onSetDoctrine={(doctrine) => void withBusy(() => service.setDoctrine(warId, doctrine), 'Strategy updated')}
-            onUpdateRoster={(memberUserId: string, role: RivalryRolePref, include: boolean) => void withBusy(() => service.updateRosterMember(warId, memberUserId, role, include), include ? 'Squad updated' : 'Member removed')}
+            onUpdateRoster={(memberUserId: string, role: RivalryRolePref, include: boolean) => withBusy(() => service.updateRosterMember(warId, memberUserId, role, include), include ? 'Squad updated' : 'Member removed')}
             onLockRoster={() => void withBusy(() => service.lockRoster(warId), 'Your squad is locked')}
           />
         </div>
@@ -360,7 +361,7 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
 
       {(status === 'expired' || status === 'declined' || status === 'canceled') ? <div className="card-glass p-4 text-sm text-gray-300">This mission is closed: {phaseText(status)}.</div> : null}
 
-      <RivalryLogsPanel logs={logs} loading={loadingLogs} hasMore={hasMoreLogs} onLoadMore={() => void loadLogs(false)} actorNamesById={actorNamesById} />
+      <RivalryLogsPanel logs={logs} loading={loadingLogs} hasMore={hasMoreLogs} onLoadMore={() => void loadLogs(false)} actorNamesById={actorNamesById} viewerClanId={participantClanId} />
     </div>
   );
 };

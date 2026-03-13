@@ -89,7 +89,6 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
 
   const WarCard = ({ war, cta }: { war: RivalryWarSummary; cta: string }) => (
     <button
-      key={war.war_id}
       onClick={() => onOpenWar(war.war_id)}
       className="w-full text-left rounded-xl border border-white/15 bg-black/35 p-3 hover:bg-black/55 transition-all duration-200 hover:border-cyan-400/30"
     >

@@ -8,6 +8,7 @@ interface RivalryLogsPanelProps {
   hasMore: boolean;
   onLoadMore: () => void;
   actorNamesById?: Record<string, string>;
+  viewerClanId?: string | null;
 }
 
 const badgeClass = (actionType: string): string => {
@@ -19,9 +20,11 @@ const badgeClass = (actionType: string): string => {
 
 const structureLabel = (code: string): string => RIVALRY_STRUCTURE_LABELS[code as keyof typeof RIVALRY_STRUCTURE_LABELS] || 'Structure';
 
-const renderEventLine = (log: RivalryLogEntry, actorNamesById: Record<string, string>): string => {
+const renderEventLine = (log: RivalryLogEntry, actorNamesById: Record<string, string>, viewerClanId?: string | null): string => {
   const actorName = log.actor_user_id ? actorNamesById[log.actor_user_id] : null;
-  const fallbackActor = log.actor_clan_id ? 'an opposing player' : 'an anonymous player';
+  const fallbackActor = !log.actor_clan_id
+    ? 'an anonymous player'
+    : (viewerClanId && log.actor_clan_id === viewerClanId ? 'a friendly player' : 'an opposing player');
   const actor = actorName || fallbackActor;
   if (log.action_type === 'strike') return `${actor} landed a ${log.result_grade?.toLowerCase() || 'solid'} strike on ${structureLabel(log.target_structure_code)}`;
   if (log.action_type === 'sabotage') return `${actor} sabotaged ${structureLabel(log.target_structure_code)}`;
@@ -29,7 +32,7 @@ const renderEventLine = (log: RivalryLogEntry, actorNamesById: Record<string, st
   return `${actor} made a tactical move.`;
 };
 
-const RivalryLogsPanel: React.FC<RivalryLogsPanelProps> = ({ logs, loading, hasMore, onLoadMore, actorNamesById = {} }) => {
+const RivalryLogsPanel: React.FC<RivalryLogsPanelProps> = ({ logs, loading, hasMore, onLoadMore, actorNamesById = {}, viewerClanId = null }) => {
   return (
     <div className="card-glass p-4">
       <div className="flex items-center justify-between mb-3">
@@ -43,11 +46,10 @@ const RivalryLogsPanel: React.FC<RivalryLogsPanelProps> = ({ logs, loading, hasM
               <span className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide ${badgeClass(log.action_type)}`}>{log.action_type}</span>
               <span className="text-[11px] text-gray-500">{new Date(log.created_at).toLocaleString()}</span>
             </div>
-            <div className="text-sm text-gray-100 mt-1">{renderEventLine(log, actorNamesById)}</div>
+            <div className="text-sm text-gray-100 mt-1">{renderEventLine(log, actorNamesById, viewerClanId)}</div>
             <div className="text-xs text-gray-300 mt-1">
               {typeof log.damage_amount === 'number' ? `DMG ${log.damage_amount}` : ''}
               {typeof log.repair_amount === 'number' ? `${typeof log.damage_amount === 'number' ? ' • ' : ''}REP ${log.repair_amount}` : ''}
-              {log.result_grade ? ` • ${log.result_grade}` : ''}
             </div>
           </div>
         ))}

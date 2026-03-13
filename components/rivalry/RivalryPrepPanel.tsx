@@ -27,7 +27,7 @@ interface RivalryPrepPanelProps {
   myClanName: string;
   enemyClanName: string;
   onSetDoctrine: (doctrine: RivalryDoctrine) => void;
-  onUpdateRoster: (memberUserId: string, role: RivalryRolePref, include: boolean) => void;
+  onUpdateRoster: (memberUserId: string, role: RivalryRolePref, include: boolean) => Promise<void>;
   onLockRoster: () => void;
   onRespond: (response: 'accept' | 'decline') => void;
   busy: boolean;
@@ -79,21 +79,25 @@ const RivalryPrepPanel: React.FC<RivalryPrepPanelProps> = ({
     setMemberId('');
   };
 
-  const handleFillSlot = () => {
+  const handleFillSlot = async () => {
     if (selectedSlot === null || !memberId) return;
-    onUpdateRoster(memberId, role, true);
+    await onUpdateRoster(memberId, role, true);
+    setSelectedSlot(null);
+    setMemberId('');
   };
 
-  const handleRemoveFromSlot = () => {
+  const handleRemoveFromSlot = async () => {
     if (selectedSlot === null) return;
     const selectedMemberId = slots[selectedSlot]?.user_id || memberId;
     if (!selectedMemberId) return;
-    onUpdateRoster(selectedMemberId, role, false);
+    await onUpdateRoster(selectedMemberId, role, false);
+    setSelectedSlot(null);
     setMemberId('');
   };
 
   const handleLockClick = () => {
     if (busy) return;
+    if (!selectedDoctrine) return;
     if (!window.confirm('Lock in your squad now? This step cannot be undone during this war.')) return;
     onLockRoster();
   };
@@ -179,7 +183,7 @@ const RivalryPrepPanel: React.FC<RivalryPrepPanelProps> = ({
         <h4 className="font-heading text-white">Lock-In Summary</h4>
         <p className="text-xs text-gray-200 mt-1">Squad selected: {readyCount} • Strategy: {selectedDoctrine ? DOCTRINE_META[selectedDoctrine].title : 'Not selected yet'}</p>
         <p className="text-xs text-gray-200">When both clans lock in, live war begins.</p>
-        <button disabled={busy || readyCount < minRequired} onClick={handleLockClick} className="mt-3 rounded-lg px-4 py-2 bg-amber-500 hover:bg-amber-400 text-sm font-semibold text-slate-900 disabled:opacity-50">
+        <button disabled={busy || readyCount < minRequired || !selectedDoctrine} onClick={handleLockClick} className="mt-3 rounded-lg px-4 py-2 bg-amber-500 hover:bg-amber-400 text-sm font-semibold text-slate-900 disabled:opacity-50">
           Lock In Squad
         </button>
       </div>
