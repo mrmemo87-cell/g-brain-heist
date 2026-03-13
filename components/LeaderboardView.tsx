@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { gsap } from 'gsap';
 import { supabase } from '../services/supabaseClient';
 import BackButton from './BackButton';
 import { ClanMember } from '../types';
@@ -75,6 +76,17 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
     loading: boolean;
     error: string | null;
   } | null>(null);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const modalOverlayRef = useRef<HTMLDivElement | null>(null);
+  const modalPanelRef = useRef<HTMLDivElement | null>(null);
+  const initialAnimatedRef = useRef(false);
+  const previousTabRef = useRef(tab);
+  const reduceMotionRef = useRef(false);
+
+  useEffect(() => {
+    reduceMotionRef.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }, []);
 
   useEffect(() => {
     if (!schoolId) {
@@ -239,6 +251,125 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
     }
   };
 
+  useEffect(() => {
+    if (!rootRef.current || loading || reduceMotionRef.current || initialAnimatedRef.current) return;
+
+    const ctx = gsap.context(() => {
+      gsap.set('[data-lb-title], [data-lb-tab]', { willChange: 'transform, opacity' });
+      gsap.from('[data-lb-title]', {
+        opacity: 0,
+        y: -20,
+        duration: 0.5,
+        ease: 'power3.out',
+      });
+      gsap.from('[data-lb-title-icon]', {
+        opacity: 0,
+        scale: 0.6,
+        rotate: -25,
+        duration: 0.6,
+        ease: 'back.out(1.6)',
+        delay: 0.08,
+      });
+      gsap.from('[data-lb-tab]', {
+        opacity: 0,
+        y: 14,
+        stagger: 0.06,
+        duration: 0.45,
+        ease: 'power2.out',
+        delay: 0.12,
+        clearProps: 'willChange',
+      });
+    }, rootRef);
+
+    initialAnimatedRef.current = true;
+    return () => ctx.revert();
+  }, [loading]);
+
+  useEffect(() => {
+    if (!contentRef.current || loading || reduceMotionRef.current) {
+      previousTabRef.current = tab;
+      return;
+    }
+
+    const rows = Array.from(contentRef.current.querySelectorAll('[data-lb-row]'));
+    if (rows.length === 0) {
+      previousTabRef.current = tab;
+      return;
+    }
+
+    const isTabSwitch = previousTabRef.current !== tab;
+    const topRows = rows.filter(row => Number(row.getAttribute('data-lb-rank')) <= 3);
+    const otherRows = rows.filter(row => Number(row.getAttribute('data-lb-rank')) > 3);
+
+    const tl = gsap.timeline();
+    tl.set(rows, { willChange: 'transform, opacity' });
+    tl.from(rows, {
+      opacity: 0,
+      y: isTabSwitch ? 12 : 18,
+      duration: isTabSwitch ? 0.3 : 0.4,
+      stagger: 0.035,
+      ease: 'power2.out',
+    });
+
+    if (topRows.length) {
+      tl.from(
+        topRows,
+        {
+          scale: 0.97,
+          filter: 'brightness(1.35)',
+          duration: 0.45,
+          stagger: 0.04,
+          ease: 'power2.out',
+        },
+        '<0.05'
+      );
+    }
+
+    if (otherRows.length) {
+      tl.from(
+        otherRows,
+        {
+          opacity: 0.92,
+          duration: 0.2,
+          stagger: 0.02,
+          ease: 'none',
+        },
+        '<'
+      );
+    }
+
+    tl.set(rows, { clearProps: 'willChange' });
+    previousTabRef.current = tab;
+
+    return () => tl.kill();
+  }, [tab, loading, scoreLeaderboard, xpLeaderboard, pvpLeaderboard, clanLeaderboard]);
+
+  useEffect(() => {
+    if (!clanMembersModal || reduceMotionRef.current) return;
+
+    const overlay = modalOverlayRef.current;
+    const panel = modalPanelRef.current;
+    if (!overlay || !panel) return;
+
+    const memberRows = Array.from(panel.querySelectorAll('[data-clan-member-row]'));
+    const tl = gsap.timeline();
+    tl.set([overlay, panel], { willChange: 'transform, opacity' });
+    tl.fromTo(overlay, { opacity: 0 }, { opacity: 1, duration: 0.22, ease: 'power2.out' });
+    tl.fromTo(panel, { opacity: 0, y: 18, scale: 0.98 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: 'power3.out' }, '<0.02');
+    if (memberRows.length > 0 && !clanMembersModal.loading && !clanMembersModal.error) {
+      tl.from(memberRows, {
+        opacity: 0,
+        y: 10,
+        duration: 0.24,
+        stagger: 0.035,
+        ease: 'power2.out',
+      }, '<0.06');
+    }
+    tl.set([overlay, panel], { clearProps: 'willChange' });
+
+    return () => tl.kill();
+  }, [clanMembersModal]);
+
   const renderPlayerRow = (entry: RankedPlayerEntry) => {
     const rankColors: Record<number, string> = {
       1: 'text-yellow-400',
@@ -269,6 +400,8 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
     return (
       <div
         key={`${entry.rank}-${entry.id}`}
+        data-lb-row
+        data-lb-rank={entry.rank}
         className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
           entry.is_self
             ? 'bg-cyan-500/20 border border-cyan-400'
@@ -319,6 +452,8 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
     return (
       <button
         key={clan.id}
+        data-lb-row
+        data-lb-rank={clan.rank}
         type="button"
         onClick={() => openClanMembers(clan)}
         className="flex w-full items-center gap-3 p-3 rounded-lg bg-black/20 hover:bg-black/30 transition-all text-left"
@@ -369,16 +504,17 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
   }
 
   return (
-    <div className="mt-6 max-w-4xl mx-auto">
+    <div ref={rootRef} className="mt-6 max-w-4xl mx-auto">
       <BackButton onClick={onComplete} />
-      <h2 className="font-heading text-3xl text-center mb-6 flex items-center justify-center gap-3" style={{ color: 'var(--amber-warn)' }}>
-        <TrophyIcon className="w-8 h-8" />
+      <h2 data-lb-title className="font-heading text-3xl text-center mb-6 flex items-center justify-center gap-3" style={{ color: 'var(--amber-warn)' }}>
+        <TrophyIcon data-lb-title-icon className="w-8 h-8" />
         Leaderboards
       </h2>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6 justify-center flex-wrap">
         <button
+          data-lb-tab
           onClick={() => setTab('score')}
           className={`px-6 py-2 rounded-lg font-heading transition-all ${
             tab === 'score'
@@ -389,6 +525,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
           Total Score
         </button>
         <button
+          data-lb-tab
           onClick={() => setTab('xp')}
           className={`px-6 py-2 rounded-lg font-heading transition-all ${
             tab === 'xp'
@@ -399,6 +536,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
           Top XP
         </button>
         <button
+          data-lb-tab
           onClick={() => setTab('pvp')}
           className={`px-6 py-2 rounded-lg font-heading transition-all ${
             tab === 'pvp'
@@ -409,6 +547,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
           PvP Champions
         </button>
         <button
+          data-lb-tab
           onClick={() => setTab('clans')}
           className={`px-6 py-2 rounded-lg font-heading transition-all ${
             tab === 'clans'
@@ -422,7 +561,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
 
       {/* Leaderboard Content */}
       <div className="card-glass p-6 max-h-[70vh] md:max-h-[600px] flex flex-col">
-        <div className="space-y-2 overflow-y-auto pr-1 flex-1 min-h-0">
+        <div ref={contentRef} className="space-y-2 overflow-y-auto pr-1 flex-1 min-h-0">
           {tab === 'score' && scoreLeaderboard.map(renderPlayerRow)}
           {tab === 'xp' && xpLeaderboard.map(renderPlayerRow)}
           {tab === 'pvp' && pvpLeaderboard.map(renderPlayerRow)}
@@ -436,8 +575,8 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
       </div>
 
       {clanMembersModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="card-glass w-full max-w-lg m-4 p-6 border border-amber-400/50">
+        <div ref={modalOverlayRef} className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <div ref={modalPanelRef} className="card-glass w-full max-w-lg m-4 p-6 border border-amber-400/50">
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h3 className="font-heading text-2xl text-amber-300">{clanMembersModal.clan.name}</h3>
@@ -464,7 +603,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
                   <li className="text-center text-gray-300 py-4">No members yet.</li>
                 ) : (
                   clanMembersModal.members.map(member => (
-                    <li key={member.user_id} className="flex items-start justify-between bg-black/20 p-3 rounded-lg">
+                    <li key={member.user_id} data-clan-member-row className="flex items-start justify-between bg-black/20 p-3 rounded-lg">
                       <div className="flex items-start gap-3">
                         <AvatarWithFrame
                           src={member.avatar_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${member.username}`}
