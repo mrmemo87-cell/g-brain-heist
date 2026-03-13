@@ -1,9 +1,16 @@
 import React from 'react';
 import { RivalryDoctrine, RivalryRolePref } from '../../services/rivalryService';
 
+interface RivalryMemberOption {
+  user_id: string;
+  username: string;
+}
+
 interface RivalryPrepPanelProps {
   mode: 'pending_response' | 'prep';
   canManage: boolean;
+  memberOptions: RivalryMemberOption[];
+  membersLoading: boolean;
   onSetDoctrine: (doctrine: RivalryDoctrine) => void;
   onUpdateRoster: (memberUserId: string, role: RivalryRolePref, include: boolean) => void;
   onLockRoster: () => void;
@@ -11,7 +18,7 @@ interface RivalryPrepPanelProps {
   busy: boolean;
 }
 
-const RivalryPrepPanel: React.FC<RivalryPrepPanelProps> = ({ mode, canManage, onSetDoctrine, onUpdateRoster, onLockRoster, onRespond, busy }) => {
+const RivalryPrepPanel: React.FC<RivalryPrepPanelProps> = ({ mode, canManage, memberOptions, membersLoading, onSetDoctrine, onUpdateRoster, onLockRoster, onRespond, busy }) => {
   const [memberId, setMemberId] = React.useState('');
   const [role, setRole] = React.useState<RivalryRolePref>('striker');
 
@@ -53,7 +60,16 @@ const RivalryPrepPanel: React.FC<RivalryPrepPanelProps> = ({ mode, canManage, on
       <div className="rounded-lg border border-white/10 p-3 bg-black/30 space-y-2">
         <div className="text-sm text-gray-300">Roster Management</div>
         <div className="flex flex-col sm:flex-row gap-2">
-          <input value={memberId} onChange={(e) => setMemberId(e.target.value)} placeholder="member user UUID" className="flex-1 rounded-lg bg-black/40 border border-white/10 px-3 py-2 text-sm focus:outline-none focus:border-cyan-400/50 transition-colors" />
+          <select
+            value={memberId}
+            onChange={(e) => setMemberId(e.target.value)}
+            className="flex-1 rounded-lg bg-black/40 border border-white/10 px-3 py-2 text-sm focus:outline-none focus:border-cyan-400/50 transition-colors"
+          >
+            <option value="">{membersLoading ? 'Loading members…' : 'Select participating member username'}</option>
+            {memberOptions.map((member) => (
+              <option key={member.user_id} value={member.user_id}>{member.username}</option>
+            ))}
+          </select>
           <select value={role} onChange={(e) => setRole(e.target.value as RivalryRolePref)} className="rounded-lg bg-black/40 border border-white/10 px-3 py-2 text-sm focus:outline-none focus:border-cyan-400/50 transition-colors">
             <option value="striker">striker</option>
             <option value="saboteur">saboteur</option>

@@ -14,6 +14,11 @@ export interface RivalryClanOption {
   total_score?: number | null;
 }
 
+export interface RivalryClanMemberOption {
+  user_id: string;
+  username: string;
+}
+
 export interface RivalryWarSummary {
   war_id: string;
   attacker_clan_id: string;
@@ -131,6 +136,7 @@ export interface RivalryService {
   submitAction: (warId: string, actionType: RivalryActionType, targetClanId: string, targetStructureCode: RivalryStructureCode, idempotencyKey?: string) => Promise<RivalryRpcResult>;
   claimReward: (warId: string) => Promise<RivalryRpcResult>;
   listClanTargets: (search?: string, limit?: number) => Promise<RivalryClanOption[]>;
+  listClanMembers: (clanId: string) => Promise<RivalryClanMemberOption[]>;
 }
 
 export type RivalryRealtimeTopic = 'logs' | 'structures' | 'score' | 'war' | 'member_state';
@@ -321,6 +327,31 @@ export const rivalryService: RivalryService = {
       });
     }
 
+    return out;
+  },
+
+  async listClanMembers(clanId: string): Promise<RivalryClanMemberOption[]> {
+    const { data, error } = await supabase.rpc('rpc_get_clan_members', {
+      p_clan_id: clanId,
+    });
+
+    if (error) {
+      throw new Error(error.message || 'Failed to fetch clan members');
+    }
+
+    const rows = Array.isArray(data) ? data : [];
+    const seen = new Set<string>();
+    const out: RivalryClanMemberOption[] = [];
+
+    for (const row of rows) {
+      const userId = typeof row.player_id === 'string' ? row.player_id : '';
+      const username = typeof row.username === 'string' && row.username.trim() ? row.username.trim() : 'Unknown agent';
+      if (!userId || seen.has(userId)) continue;
+      seen.add(userId);
+      out.push({ user_id: userId, username });
+    }
+
+    out.sort((a, b) => a.username.localeCompare(b.username));
     return out;
   },
 
