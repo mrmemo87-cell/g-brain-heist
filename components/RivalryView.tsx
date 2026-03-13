@@ -132,7 +132,7 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
   const [loading, setLoading] = React.useState(false);
   const [declaring, setDeclaring] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [showOnboarding, setShowOnboarding] = React.useState(false);
+  const [showOnboarding, setShowOnboarding] = React.useState<boolean | null>(null);
 
   const [clanTargets, setClanTargets] = React.useState<RivalryClanOption[]>([]);
   const [clanTargetsLoading, setClanTargetsLoading] = React.useState(false);
@@ -205,19 +205,8 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
       return;
     }
 
-    const normalizeTargetClanId = (raw: string): string | null => {
-      const value = raw.trim();
-      const exactByName = clanTargets.find((c) => c.name.toLowerCase() === value.toLowerCase());
-      if (exactByName) return exactByName.id;
-
-      const prefixMatches = clanTargets.filter((c) => c.name.toLowerCase().startsWith(value.toLowerCase()));
-      if (prefixMatches.length === 1) return prefixMatches[0].id;
-
-      return null;
-    };
-
-    const resolvedTargetClanId = normalizeTargetClanId(targetClanId);
-    if (!resolvedTargetClanId) {
+    const selectedTarget = clanTargets.find((clan) => clan.id === targetClanId);
+    if (!selectedTarget) {
       const message = 'Please select a valid clan target from the list before declaring war.';
       setDeclareFeedback(message);
       addToast(message, 'warning');
@@ -227,7 +216,7 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
     declaringRef.current = true;
     setDeclaring(true);
     try {
-      const res = await rivalryService.declareWar(resolvedTargetClanId);
+      const res = await rivalryService.declareWar(selectedTarget.id);
       if (!res.success) {
         throw new Error(String(res.error || 'Failed to declare war'));
       }
@@ -247,6 +236,15 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
     }
   };
 
+  if (showOnboarding === null) {
+    return (
+      <main className="mt-6 space-y-5">
+        <BackButton onClick={onComplete} label="Back to Dashboard" />
+        <div className="card-glass p-4 text-sm text-gray-300">Loading Rivalry Protocol…</div>
+      </main>
+    );
+  }
+
   return (
     <main className="mt-6 space-y-5">
       <BackButton onClick={onComplete} label="Back to Dashboard" />
@@ -263,7 +261,7 @@ const RivalryView: React.FC<RivalryViewProps> = ({ profile, onComplete, addToast
         </div>
       </div>
 
-      {showOnboarding ? <RivalryOnboardingCarousel onClose={() => {
+      {showOnboarding !== null && showOnboarding ? <RivalryOnboardingCarousel onClose={() => {
         window.localStorage.setItem(ONBOARDING_STORAGE_KEY, '1');
         setShowOnboarding(false);
       }} /> : null}

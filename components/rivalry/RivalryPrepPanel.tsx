@@ -58,7 +58,7 @@ const RivalryPrepPanel: React.FC<RivalryPrepPanelProps> = ({
   onRespond,
   busy,
 }) => {
-  const [selectedSlot, setSelectedSlot] = React.useState<number>(0);
+  const [selectedSlot, setSelectedSlot] = React.useState<number | null>(null);
   const [memberId, setMemberId] = React.useState('');
   const [role, setRole] = React.useState<RivalryRolePref>('striker');
   const minRequired = 5;
@@ -66,6 +66,31 @@ const RivalryPrepPanel: React.FC<RivalryPrepPanelProps> = ({
   const needCount = Math.max(0, minRequired - readyCount);
 
   const slots = Array.from({ length: Math.max(minRequired, rosterMembers.length) }, (_, idx) => rosterMembers[idx] || null);
+  const selectedMember = selectedSlot !== null ? slots[selectedSlot] : null;
+
+  const handleSelectSlot = (idx: number) => {
+    setSelectedSlot(idx);
+    const slotMember = slots[idx];
+    if (slotMember) {
+      setMemberId(slotMember.user_id);
+      setRole(slotMember.role_pref);
+      return;
+    }
+    setMemberId('');
+  };
+
+  const handleFillSlot = () => {
+    if (selectedSlot === null || !memberId) return;
+    onUpdateRoster(memberId, role, true);
+  };
+
+  const handleRemoveFromSlot = () => {
+    if (selectedSlot === null) return;
+    const selectedMemberId = slots[selectedSlot]?.user_id || memberId;
+    if (!selectedMemberId) return;
+    onUpdateRoster(selectedMemberId, role, false);
+    setMemberId('');
+  };
 
   const handleLockClick = () => {
     if (busy) return;
@@ -107,7 +132,7 @@ const RivalryPrepPanel: React.FC<RivalryPrepPanelProps> = ({
         <p className="text-xs text-gray-300 mb-3">{needCount > 0 ? `Need ${needCount} more members before lock-in.` : 'Squad requirement met. You can lock in.'}</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
           {slots.map((member, idx) => (
-            <button key={member?.user_id || `slot-${idx}`} type="button" onClick={() => setSelectedSlot(idx)} className={`rounded-lg border p-2 text-left transition ${selectedSlot === idx ? 'border-cyan-400/60 bg-cyan-900/30' : 'border-white/10 bg-black/20'}`}>
+            <button key={member?.user_id || `slot-${idx}`} type="button" onClick={() => handleSelectSlot(idx)} className={`rounded-lg border p-2 text-left transition ${selectedSlot === idx ? 'border-cyan-400/60 bg-cyan-900/30' : 'border-white/10 bg-black/20'}`}>
               <div className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-full bg-white/15 flex items-center justify-center text-xs">{member?.username?.slice(0, 1).toUpperCase() || '👤'}</div>
                 <div>
@@ -130,8 +155,8 @@ const RivalryPrepPanel: React.FC<RivalryPrepPanelProps> = ({
             <option value="saboteur">Saboteur</option>
             <option value="engineer">Engineer</option>
           </select>
-          <button disabled={busy || !memberId} onClick={() => onUpdateRoster(memberId, role, true)} className="rounded-lg px-3 py-2 text-xs bg-cyan-600/80 hover:bg-cyan-500 disabled:opacity-50">Fill Slot</button>
-          <button disabled={busy || !memberId} onClick={() => onUpdateRoster(memberId, role, false)} className="rounded-lg px-3 py-2 text-xs bg-slate-600/80 hover:bg-slate-500 disabled:opacity-50">Remove</button>
+          <button disabled={busy || selectedSlot === null || !memberId} onClick={handleFillSlot} className="rounded-lg px-3 py-2 text-xs bg-cyan-600/80 hover:bg-cyan-500 disabled:opacity-50">Fill Slot</button>
+          <button disabled={busy || selectedSlot === null || (!selectedMember && !memberId)} onClick={handleRemoveFromSlot} className="rounded-lg px-3 py-2 text-xs bg-slate-600/80 hover:bg-slate-500 disabled:opacity-50">Remove</button>
         </div>
       </div>
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import { RivalryActionType, RivalryStructureCode } from '../../services/rivalryService';
+import { RIVALRY_STRUCTURE_LABELS } from './rivalryLabels';
 
 interface RivalryActionPanelProps {
   isParticipant: boolean;
@@ -12,12 +13,6 @@ interface RivalryActionPanelProps {
   cooldownUntil?: string | null;
   onSubmit: (actionType: RivalryActionType, targetClanId: string, target: RivalryStructureCode) => void;
 }
-
-const LABELS: Record<RivalryStructureCode, string> = {
-  relay_core: 'Relay Core',
-  cipher_vault: 'Cipher Vault',
-  sentinel_grid: 'Sentinel Grid',
-};
 
 const RivalryActionPanel: React.FC<RivalryActionPanelProps> = ({ isParticipant, isRostered, status, enemyClanId, ownClanId, blackout, busy, cooldownUntil, onSubmit }) => {
   const [targetStructure, setTargetStructure] = React.useState<RivalryStructureCode>('relay_core');
@@ -60,11 +55,11 @@ const RivalryActionPanel: React.FC<RivalryActionPanelProps> = ({ isParticipant, 
               disabled={!canAct || busy}
               className={`rounded-lg px-3 py-1.5 text-xs border ${targetStructure === code ? 'border-cyan-300/80 bg-cyan-500/20 text-cyan-100' : 'border-white/10 bg-white/5 text-gray-200'} disabled:opacity-50`}
             >
-              {LABELS[code]}
+              {RIVALRY_STRUCTURE_LABELS[code]}
             </button>
           ))}
         </div>
-        <p className="text-xs text-gray-300 mt-2">Selected target: <span className="text-white font-semibold">{LABELS[targetStructure]}</span></p>
+        <p className="text-xs text-gray-300 mt-2">Selected target: <span className="text-white font-semibold">{RIVALRY_STRUCTURE_LABELS[targetStructure]}</span></p>
       </div>
 
       {blackout ? <div className="rounded-lg bg-fuchsia-900/45 border border-fuchsia-400/40 p-2 text-xs text-fuchsia-100">⚠ Final phase: exact score is hidden until results.</div> : null}

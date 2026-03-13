@@ -15,6 +15,7 @@ import {
 import RivalryPrepPanel from './RivalryPrepPanel';
 import RivalryActionPanel from './RivalryActionPanel';
 import RivalryLogsPanel from './RivalryLogsPanel';
+import { RIVALRY_STRUCTURE_LABELS } from './rivalryLabels';
 
 interface RivalryWarDetailProps {
   warId: string;
@@ -26,8 +27,6 @@ interface RivalryWarDetailProps {
 }
 
 const isPrivileged = (role?: string | null): boolean => ['leader', 'officer', 'moderator'].includes(role || '');
-const structureName: Record<RivalryStructureCode, string> = { relay_core: 'Relay Core', cipher_vault: 'Cipher Vault', sentinel_grid: 'Sentinel Grid' };
-
 type RivalryLogsCursor = { created_at: string; id: string } | null;
 
 const fmtRemaining = (iso?: string | null): string => {
@@ -170,22 +169,24 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
   const defenderClanId = (war.defender_clan_id as string | undefined) || null;
   const attackerClanName = typeof war.attacker_clan_name === 'string' ? war.attacker_clan_name : 'Attacker Clan';
   const defenderClanName = typeof war.defender_clan_name === 'string' ? war.defender_clan_name : 'Defender Clan';
-  const derivedClanId = myClanId || (state?.rosters || []).find((r) => r.user_id === myUserId)?.clan_id || null;
-  const myClanName = derivedClanId === attackerClanId ? attackerClanName : defenderClanName;
-  const enemyClanName = derivedClanId === attackerClanId ? defenderClanName : attackerClanName;
-  const enemyClanId = derivedClanId && attackerClanId && defenderClanId ? (derivedClanId === attackerClanId ? defenderClanId : attackerClanId) : null;
+  const participantClanId = isParticipant
+    ? (myClanId || (state?.rosters || []).find((r) => r.user_id === myUserId)?.clan_id || null)
+    : null;
+  const myClanName = participantClanId === attackerClanId ? attackerClanName : defenderClanName;
+  const enemyClanName = participantClanId === attackerClanId ? defenderClanName : attackerClanName;
+  const enemyClanId = participantClanId && attackerClanId && defenderClanId ? (participantClanId === attackerClanId ? defenderClanId : attackerClanId) : null;
 
   const myRoster = (state?.rosters || []).find((r) => r.user_id === myUserId);
   const canManagePrep = Boolean(isParticipant && isPrivileged(myClanRole));
 
   React.useEffect(() => {
-    if (!canManagePrep || !derivedClanId) {
+    if (!participantClanId) {
       setClanMemberOptions([]);
       return;
     }
     setLoadingClanMembers(true);
-    service.listClanMembers(derivedClanId).then(setClanMemberOptions).catch(() => setClanMemberOptions([])).finally(() => setLoadingClanMembers(false));
-  }, [canManagePrep, derivedClanId, service]);
+    service.listClanMembers(participantClanId).then(setClanMemberOptions).catch(() => setClanMemberOptions([])).finally(() => setLoadingClanMembers(false));
+  }, [participantClanId, service]);
 
   const actorNamesById = React.useMemo(() => {
     const map: Record<string, string> = {};
@@ -193,15 +194,15 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
     return map;
   }, [clanMemberOptions]);
 
-  const ownStructures = (state?.structures || []).filter((s) => s.owner_clan_id === derivedClanId);
-  const enemyStructures = (state?.structures || []).filter((s) => s.owner_clan_id !== derivedClanId);
+  const ownStructures = isParticipant ? (state?.structures || []).filter((s) => s.owner_clan_id === participantClanId) : [];
+  const enemyStructures = isParticipant ? (state?.structures || []).filter((s) => s.owner_clan_id !== participantClanId) : [];
   const rosterMembers = (state?.rosters || [])
-    .filter((r) => r.clan_id === derivedClanId)
+    .filter((r) => r.clan_id === participantClanId)
     .map((r) => ({ user_id: r.user_id, username: actorNamesById[r.user_id] || 'Squad Member', role_pref: r.role_pref, is_locked_in: r.is_locked_in }));
 
-  const selectedDoctrine = typeof war.attacker_doctrine === 'string' && derivedClanId === attackerClanId
+  const selectedDoctrine = typeof war.attacker_doctrine === 'string' && participantClanId === attackerClanId
     ? war.attacker_doctrine as RivalryDoctrine
-    : typeof war.defender_doctrine === 'string' && derivedClanId === defenderClanId
+    : typeof war.defender_doctrine === 'string' && participantClanId === defenderClanId
       ? war.defender_doctrine as RivalryDoctrine
       : null;
 
@@ -293,7 +294,7 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
         </div>
       ) : null}
 
-      {(status === 'live' || status === 'blackout') && (
+      {isParticipant && (status === 'live' || status === 'blackout') && (
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
           <div className="xl:col-span-2 card-glass p-4 border border-red-500/25">
             <h3 className="font-heading text-white mb-2">Live Battle Board</h3>
@@ -308,7 +309,7 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
                       const stateLabel = s.state_band === 'down' ? 'Down' : s.state_band === 'critical' ? 'Critical' : s.state_band === 'strained' ? 'Strained' : 'Healthy';
                       return (
                         <div key={`${s.owner_clan_id}-${s.structure_code}`} className="rounded-lg border border-white/10 p-2">
-                          <div className="flex justify-between text-sm"><span>{structureName[s.structure_code as RivalryStructureCode] || 'Structure'}</span><span className="text-xs text-gray-300">{stateLabel}</span></div>
+                          <div className="flex justify-between text-sm"><span>{RIVALRY_STRUCTURE_LABELS[s.structure_code as RivalryStructureCode] || 'Structure'}</span><span className="text-xs text-gray-300">{stateLabel}</span></div>
                           <div className="mt-1 h-2.5 w-full rounded bg-black/50 overflow-hidden"><div className={`h-full transition-all duration-500 ${pct < 20 ? 'bg-red-500' : pct < 50 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${pct}%` }} /></div>
                           <div className="text-xs text-gray-300 mt-1">{pct}% integrity</div>
                         </div>
@@ -326,7 +327,7 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
               isRostered={Boolean(myRoster?.is_locked_in)}
               status={status}
               enemyClanId={enemyClanId}
-              ownClanId={derivedClanId || null}
+              ownClanId={participantClanId || null}
               blackout={Boolean(state?.score?.blackout)}
               busy={busy}
               cooldownUntil={state?.member_state?.cooldown_until ?? null}
@@ -338,10 +339,20 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
         </div>
       )}
 
+      {(status === 'live' || status === 'blackout') && !isParticipant ? (
+        <div className="card-glass p-4 text-sm text-gray-300">Public viewer mode. Participant battle controls are hidden.</div>
+      ) : null}
+
       {status === 'settled' && (
         <div className="card-glass p-4 space-y-2 border border-emerald-400/30">
           <h3 className="font-heading text-emerald-100">Results Recap</h3>
-          <p className="text-sm text-gray-200">Winner: {(war.winner_clan_id && war.winner_clan_id === attackerClanId) ? attackerClanName : defenderClanName}</p>
+          <p className="text-sm text-gray-200">Winner: {war.winner_clan_id == null
+            ? 'No winner declared'
+            : war.winner_clan_id === attackerClanId
+              ? attackerClanName
+              : war.winner_clan_id === defenderClanId
+                ? defenderClanName
+                : 'Unknown winner'}</p>
           <p className="text-xs text-gray-300">Thanks for participating. Your actions helped your clan during the mission.</p>
           {isParticipant ? <button onClick={() => void withBusy(() => service.claimReward(warId), 'Reward claim completed')} disabled={busy} className="rounded-lg px-4 py-2 bg-emerald-600/85 hover:bg-emerald-500 disabled:opacity-50 text-white">Claim Reward</button> : <p className="text-sm text-gray-400">Public viewer mode: rewards are for participants only.</p>}
         </div>

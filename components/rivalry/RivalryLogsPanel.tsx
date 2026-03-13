@@ -1,5 +1,6 @@
 import React from 'react';
 import { RivalryLogEntry } from '../../services/rivalryService';
+import { RIVALRY_STRUCTURE_LABELS } from './rivalryLabels';
 
 interface RivalryLogsPanelProps {
   logs: RivalryLogEntry[];
@@ -16,15 +17,12 @@ const badgeClass = (actionType: string): string => {
   return 'border-white/20 bg-white/10 text-gray-100';
 };
 
-const structureLabel = (code: string): string => {
-  if (code === 'relay_core') return 'Relay Core';
-  if (code === 'cipher_vault') return 'Cipher Vault';
-  if (code === 'sentinel_grid') return 'Sentinel Grid';
-  return 'Structure';
-};
+const structureLabel = (code: string): string => RIVALRY_STRUCTURE_LABELS[code as keyof typeof RIVALRY_STRUCTURE_LABELS] || 'Structure';
 
 const renderEventLine = (log: RivalryLogEntry, actorNamesById: Record<string, string>): string => {
-  const actor = (log.actor_user_id && actorNamesById[log.actor_user_id]) || 'A teammate';
+  const actorName = log.actor_user_id ? actorNamesById[log.actor_user_id] : null;
+  const fallbackActor = log.actor_clan_id ? 'an opposing player' : 'an anonymous player';
+  const actor = actorName || fallbackActor;
   if (log.action_type === 'strike') return `${actor} landed a ${log.result_grade?.toLowerCase() || 'solid'} strike on ${structureLabel(log.target_structure_code)}`;
   if (log.action_type === 'sabotage') return `${actor} sabotaged ${structureLabel(log.target_structure_code)}`;
   if (log.action_type === 'repair') return `${actor} repaired ${structureLabel(log.target_structure_code)}`;

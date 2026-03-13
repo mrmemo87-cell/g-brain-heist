@@ -166,7 +166,7 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
             </div>
             <button
               disabled={!canDeclare || declaring || !selectedTarget?.id}
-              onClick={() => selectedTarget?.id && onDeclare(selectedTarget.name)}
+              onClick={() => selectedTarget?.id && onDeclare(selectedTarget.id)}
               className="w-full rounded-lg px-4 py-2 bg-red-600/85 hover:bg-red-500 disabled:opacity-50 text-white text-sm"
             >
               {declaring ? 'Sending challenge…' : selectedTarget ? `Declare war vs ${selectedTarget.name}` : 'Select a target clan'}
