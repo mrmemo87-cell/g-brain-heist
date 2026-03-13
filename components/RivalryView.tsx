@@ -6,6 +6,7 @@ import RivalryHub from './rivalry/RivalryHub';
 import RivalryWarDetail from './rivalry/RivalryWarDetail';
 import { RIVALRY_RULES } from '../services/rivalryRules';
 import { rivalryAssets } from './rivalry/rivalryAssets';
+import RivalryImage from './rivalry/RivalryImage';
 
 const ONBOARDING_STORAGE_KEY = 'rivalry_protocol_onboarding_seen_v2';
 
@@ -85,10 +86,12 @@ const onboardingSlides: OnboardingSlide[] = [
 const RivalryOnboardingCarousel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [index, setIndex] = React.useState(0);
   const current = onboardingSlides[index];
+  const prev = onboardingSlides[index - 1];
+  const next = onboardingSlides[index + 1];
 
   return (
     <div className="card-glass p-5 border border-cyan-400/30 relative overflow-hidden">
-      <img src={rivalryAssets.backgrounds.prep} alt="Rivalry onboarding backdrop" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-25" />
+      <RivalryImage src={rivalryAssets.backgrounds.prep} alt="Rivalry onboarding backdrop" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-25" lowPriority />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-950/90 via-slate-950/80 to-cyan-950/70" />
       <div className="relative space-y-4">
         <div className="flex items-center justify-between gap-2">
@@ -100,7 +103,7 @@ const RivalryOnboardingCarousel: React.FC<{ onClose: () => void }> = ({ onClose 
         <div className="rounded-2xl border border-cyan-300/30 bg-black/35 p-3 min-h-52">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-stretch">
             <div className="md:col-span-3 rounded-xl overflow-hidden border border-white/20 shadow-[0_0_30px_rgba(56,189,248,0.2)]">
-              <img src={current.image} alt={current.title} className="h-56 w-full object-cover md:h-full transition-all duration-500" />
+              <RivalryImage src={current.image} alt={current.title} className="h-56 w-full object-cover md:h-full transition-all duration-500" eager />
             </div>
             <div className="md:col-span-2 flex flex-col justify-between rounded-xl border border-white/10 bg-black/40 p-4">
               <div>
@@ -130,6 +133,10 @@ const RivalryOnboardingCarousel: React.FC<{ onClose: () => void }> = ({ onClose 
               Next
             </button>
           )}
+        </div>
+        <div className="sr-only" aria-hidden="true">
+          {prev ? <RivalryImage src={prev.image} alt="" lowPriority /> : null}
+          {next ? <RivalryImage src={next.image} alt="" lowPriority /> : null}
         </div>
       </div>
     </div>

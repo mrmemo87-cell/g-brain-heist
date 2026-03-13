@@ -2,6 +2,7 @@ import React from 'react';
 import { RivalryActionType, RivalryStructureCode } from '../../services/rivalryService';
 import { RIVALRY_STRUCTURE_LABELS } from './rivalryLabels';
 import { actionBadgeAssetMap } from './rivalryAssets';
+import RivalryImage from './RivalryImage';
 
 interface RivalryActionPanelProps {
   isParticipant: boolean;
@@ -83,17 +84,17 @@ const RivalryActionPanel: React.FC<RivalryActionPanelProps> = ({ isParticipant, 
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <button disabled={!canAct || busy || !enemyClanId} onClick={() => submit('strike')} className={`rounded-lg px-3 py-2 disabled:opacity-50 text-sm text-white border transition-all ${selectedAction === 'strike' ? 'bg-red-500 border-red-200/70 shadow-[0_0_20px_rgba(239,68,68,0.55)]' : 'bg-red-600/85 border-red-300/25 hover:bg-red-500 hover:-translate-y-0.5'}`}>
-          <img src={actionBadgeAssetMap.strike} alt="Strike" className="h-8 w-8 mx-auto mb-1" />
+          <RivalryImage src={actionBadgeAssetMap.strike} alt="Strike" className="h-8 w-8 mx-auto mb-1 object-contain" />
           Strike
           <div className="text-[11px] text-red-100/90">Damage enemy structures</div>
         </button>
         <button disabled={!canAct || busy || !enemyClanId} onClick={() => submit('sabotage')} className={`rounded-lg px-3 py-2 disabled:opacity-50 text-sm text-white border transition-all ${selectedAction === 'sabotage' ? 'bg-purple-500 border-purple-200/70 shadow-[0_0_20px_rgba(168,85,247,0.55)]' : 'bg-purple-600/85 border-purple-300/25 hover:bg-purple-500 hover:-translate-y-0.5'}`}>
-          <img src={actionBadgeAssetMap.sabotage} alt="Sabotage" className="h-8 w-8 mx-auto mb-1" />
+          <RivalryImage src={actionBadgeAssetMap.sabotage} alt="Sabotage" className="h-8 w-8 mx-auto mb-1 object-contain" />
           Sabotage
           <div className="text-[11px] text-purple-100/90">Disrupt enemy systems</div>
         </button>
         <button disabled={!canAct || busy || !ownClanId} onClick={() => submit('repair')} className={`rounded-lg px-3 py-2 disabled:opacity-50 text-sm text-white border transition-all ${selectedAction === 'repair' ? 'bg-emerald-500 border-emerald-200/70 shadow-[0_0_20px_rgba(16,185,129,0.55)]' : 'bg-emerald-600/85 border-emerald-300/25 hover:bg-emerald-500 hover:-translate-y-0.5'}`}>
-          <img src={actionBadgeAssetMap.repair} alt="Repair" className="h-8 w-8 mx-auto mb-1" />
+          <RivalryImage src={actionBadgeAssetMap.repair} alt="Repair" className="h-8 w-8 mx-auto mb-1 object-contain" />
           Repair
           <div className="text-[11px] text-emerald-100/90">Restore your structures</div>
         </button>
