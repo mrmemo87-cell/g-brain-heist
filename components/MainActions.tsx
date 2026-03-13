@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { BattleIcon, TrophyIcon, SyndicateRune } from './icons';
 import { fetchPilotQuotas, getQuotaForFeature, QUOTA_LABELS, FEATURE_TO_QUOTA, type PilotQuotaStatus, type PilotQuota } from '../services/tierService';
 
 // Default school icon as SVG data URL
@@ -39,7 +38,12 @@ interface MainActionsProps {
 
 type ActionButtonProps = {
   icon: React.ReactNode;
+  iconBare?: boolean;
   label: string;
+  hideLabel?: boolean;
+  ariaLabel?: string;
+  containerBare?: boolean;
+  circleIcon?: boolean;
   color: string;
   glowClass: string;
   onClick?: () => void;
@@ -53,7 +57,12 @@ type ActionButtonProps = {
 
 const ActionButton: React.FC<ActionButtonProps> = ({
   icon,
+  iconBare = false,
   label,
+  hideLabel = false,
+  ariaLabel,
+  containerBare = false,
+  circleIcon = false,
   color,
   glowClass,
   onClick,
@@ -72,26 +81,33 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   const iconPanel = isLocked
     ? 'linear-gradient(135deg, rgba(100, 116, 139, 0.4), rgba(100, 116, 139, 0.15))'
     : `linear-gradient(135deg, rgba(${color}, 0.6), rgba(${color}, 0.22))`;
+  const containerBackground = containerBare
+    ? 'rgba(15, 23, 42, 0.38)'
+    : `radial-gradient(circle at 18% 16%, rgba(255,255,255,0.06), transparent 30%), radial-gradient(circle at 82% 12%, rgba(255,255,255,0.05), transparent 26%), linear-gradient(150deg, ${panel}, rgba(15, 23, 42, 0.7))`;
+  const containerBoxShadow = containerBare ? 'none' : `0 18px 30px -22px ${accent}`;
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`dashboard-action group relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-2xl border px-4 py-5 text-center transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_-22px_rgba(0,0,0,0.75)] active:scale-[0.99] sm:px-5 sm:py-6 ${isLocked ? 'opacity-60' : glowClass} ${className ?? ''}`}
+      aria-label={ariaLabel ?? label}
+      className={`dashboard-action group relative flex h-full w-full flex-col items-center justify-center overflow-hidden text-center transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 active:scale-[0.99] ${containerBare ? 'rounded-none border-0 bg-transparent px-0 py-0 shadow-none hover:translate-y-0 hover:shadow-none sm:px-0 sm:py-0' : 'rounded-2xl border px-4 py-5 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_-22px_rgba(0,0,0,0.75)] sm:px-5 sm:py-6'} ${isLocked ? 'opacity-60' : glowClass} ${className ?? ''}`}
       style={{
-        background: `radial-gradient(circle at 18% 16%, rgba(255,255,255,0.06), transparent 30%), radial-gradient(circle at 82% 12%, rgba(255,255,255,0.05), transparent 26%), linear-gradient(150deg, ${panel}, rgba(15, 23, 42, 0.7))`,
-        borderColor: border,
-        boxShadow: `0 18px 30px -22px ${accent}`,
+        background: containerBare ? 'transparent' : containerBackground,
+        borderColor: containerBare ? 'transparent' : border,
+        boxShadow: containerBare ? 'none' : containerBoxShadow,
       }}
     >
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-50 transition-opacity duration-500 group-hover:opacity-80"
-        style={{
-          background:
-            'radial-gradient(circle at 20% 40%, rgba(255,255,255,0.04) 0 30%, transparent 45%), radial-gradient(circle at 80% 60%, rgba(255,255,255,0.04) 0 26%, transparent 50%)',
-        }}
-      />
+      {!containerBare && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-50 transition-opacity duration-500 group-hover:opacity-80"
+          style={{
+            background:
+              'radial-gradient(circle at 20% 40%, rgba(255,255,255,0.04) 0 30%, transparent 45%), radial-gradient(circle at 80% 60%, rgba(255,255,255,0.04) 0 26%, transparent 50%)',
+          }}
+        />
+      )}
       {/* PRO lock badge (not on pilot — pilot users see quota badge instead) */}
       {locked && !quotaInfo && (
           <span className="absolute top-2 right-2 z-10 inline-flex items-center gap-1 rounded-full border border-amber-400/40 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-amber-300 shadow-sm shadow-amber-400/10">
@@ -116,19 +132,21 @@ const ActionButton: React.FC<ActionButtonProps> = ({
         </span>
       )}
       <div
-        className="dashboard-action__icon relative z-[1] mb-2 flex h-12 w-12 items-center justify-center rounded-2xl text-3xl shadow-inner shadow-slate-950/60 ring-1 ring-white/10 sm:h-14 sm:w-14"
+        className={`dashboard-action__icon relative z-[1] flex items-center justify-center ${circleIcon ? 'h-full w-full mb-0' : 'mb-2 h-12 w-12 text-3xl sm:h-14 sm:w-14'} ${iconBare ? '' : 'rounded-2xl shadow-inner shadow-slate-950/60 ring-1 ring-white/10'}`}
         style={{
-          background: iconPanel,
+          background: iconBare ? 'transparent' : iconPanel,
           color: '#030712',
-          boxShadow: `inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 22px -14px ${accent}`,
+          boxShadow: iconBare ? 'none' : `inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 22px -14px ${accent}`,
         }}
       >
         {icon}
       </div>
-      <span className="dashboard-action__label relative z-[1] font-heading text-sm font-semibold tracking-wide text-white sm:text-base">
-        {label}
-      </span>
-      {subtitle && (
+      {!hideLabel && (
+        <span className="dashboard-action__label relative z-[1] font-heading text-sm font-semibold tracking-wide text-white sm:text-base">
+          {label}
+        </span>
+      )}
+      {!hideLabel && subtitle && (
         <span className="dashboard-action__subtitle relative z-[1] mt-2 max-w-[160px] text-xs leading-snug text-slate-200/90 sm:text-sm">
           {subtitle}
         </span>
@@ -241,6 +259,7 @@ const MainActions: React.FC<MainActionsProps> = ({
   };
   const displaySchoolName = schoolName || 'My School';
   const displaySchoolLogo = schoolLogoUrl || defaultSchoolIcon;
+  const missionIconClass = 'h-full w-full rounded-full object-cover drop-shadow-[0_0_26px_rgba(255,255,255,0.45)] brightness-110 contrast-110 saturate-125';
   
   return (
     <section className="dashboard-panel relative overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-950/60 p-4 shadow-2xl shadow-slate-950/50 backdrop-blur sm:p-6">
@@ -338,8 +357,13 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={locked ? handleLocked('Launch Attack') : handlePilotClick('Launch Attack', onStartPvp)}
-              icon={<span aria-hidden className="text-3xl">⚔️</span>}
+              icon={<img src="/mission-console-images/attack.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
+              iconBare
               label="Launch Attack"
+              circleIcon
+              hideLabel
+              className="min-h-[18rem]"
+              containerBare
               color="255, 45, 145"
               glowClass="glow-plasma animate-pulse-glow"
               locked={locked}
@@ -358,20 +382,28 @@ const MainActions: React.FC<MainActionsProps> = ({
             {onOpenLockdown && (
               <ActionButton
                 onClick={handlePilotClick('Lockdown Mode', onOpenLockdown)}
-                icon={<span aria-hidden className="text-3xl">🔒</span>}
+                icon={<img src="/mission-console-images/lockdown.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
+                iconBare
                 label="Lockdown Mode"
+                circleIcon
+                hideLabel
+                className="col-span-2 min-h-[18rem]"
+                containerBare
                 color="255, 69, 58"
                 glowClass="glow-plasma"
-                subtitle="Countdown ops sandbox"
-                className="col-span-2"
                 quotaInfo={q('Lockdown Mode')}
                 quotaLabel={ql('Lockdown Mode')}
               />
             )}
             <ActionButton
               onClick={locked ? handleLocked('Visit Shop') : handlePilotClick('Visit Shop', onVisitShop)}
-              icon={<span aria-hidden className="text-3xl">🛍️</span>}
+              icon={<img src="/mission-console-images/shop.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
+              iconBare
               label="Visit Shop"
+              circleIcon
+              hideLabel
+              className="min-h-[18rem]"
+              containerBare
               color="22, 226, 161"
               glowClass="glow-success"
               locked={locked}
@@ -380,8 +412,14 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={locked ? handleLocked('Tournaments') : handlePilotClick('Tournament', onOpenTournament)}
-              icon={<span aria-hidden className="text-3xl">🥇</span>}
+              icon={<img src="/mission-console-images/tournament.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
+              iconBare
               label="Tournament"
+              circleIcon
+              hideLabel
+              className="min-h-[18rem]"
+              containerBare
+              ariaLabel="Tournament"
               color="255, 140, 0"
               glowClass="glow-warn"
               locked={locked}
@@ -390,8 +428,14 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={locked ? handleLocked('Clans') : handlePilotClick('Clan', onGoToClan)}
-              icon={<SyndicateRune className="w-8 h-8 text-amber-400" aria-hidden />}
+              icon={<img src="/mission-console-images/clan.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
+              iconBare
               label="Clan"
+              circleIcon
+              hideLabel
+              className="min-h-[18rem]"
+              containerBare
+              ariaLabel="Clan"
               color="255, 176, 32"
               glowClass="glow-warn"
               badgeText={!locked && clanBadgeCount && clanBadgeCount > 0 ? String(Math.min(clanBadgeCount, 99)) : undefined}
@@ -427,8 +471,14 @@ const MainActions: React.FC<MainActionsProps> = ({
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
             <ActionButton
               onClick={locked ? handleLocked('Inventory') : handlePilotClick('Inventory', onVisitInventory)}
-              icon={<span aria-hidden className="text-3xl">🎒</span>}
+              icon={<img src="/mission-console-images/inventory.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
+              iconBare
               label="Inventory"
+              circleIcon
+              hideLabel
+              className="min-h-[18rem]"
+              containerBare
+              ariaLabel="Inventory"
               color="158, 93, 255"
               glowClass="glow-purple"
               locked={locked}
@@ -437,8 +487,14 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={locked ? handleLocked('Leaderboard') : handlePilotClick('Leaderboard', onViewLeaderboard)}
-              icon={<TrophyIcon className="w-8 h-8" aria-hidden />}
+              icon={<img src="/mission-console-images/leaderboard.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
+              iconBare
               label="Leaderboard"
+              circleIcon
+              hideLabel
+              className="min-h-[18rem]"
+              containerBare
+              ariaLabel="Leaderboard"
               color="255, 215, 0"
               glowClass="glow-warn"
               locked={locked}
@@ -447,8 +503,14 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={locked ? handleLocked('Achievements') : handlePilotClick('Achievements', onViewAchievements)}
-              icon={<span aria-hidden className="text-3xl">🎖️</span>}
+              icon={<img src="/mission-console-images/achievements.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
+              iconBare
               label="Achievements"
+              circleIcon
+              hideLabel
+              className="min-h-[18rem]"
+              containerBare
+              ariaLabel="Achievements"
               color="255, 100, 200"
               glowClass="glow-plasma"
               locked={locked}
@@ -457,23 +519,33 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={locked ? handleLocked('IELTS Prep') : handlePilotClick('IELTS Prep', onOpenIeltsPrep)}
-              icon={<span aria-hidden className="text-3xl">🎯</span>}
+              icon={<img src="/mission-console-images/ielts-prep.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
+              iconBare
               label="IELTS Prep"
+              circleIcon
+              hideLabel
+              containerBare
+              ariaLabel="IELTS Prep"
               color="0, 191, 255"
               glowClass="glow-ion"
-              className="col-span-2"
+              className="col-span-2 min-h-[18rem]"
               locked={locked}
               quotaInfo={q('IELTS Prep')}
               quotaLabel={ql('IELTS Prep')}
             />
             <ActionButton
               onClick={locked ? handleLocked('Cambridge Tests') : handlePilotClick('Cambridge Tests', onOpenCambridgeTests)}
-              icon={<span aria-hidden className="text-3xl">📚</span>}
+              icon={<img src="/mission-console-images/cambridge-tests.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
+              iconBare
               label="Cambridge Tests"
+              circleIcon
+              hideLabel
+              containerBare
+              ariaLabel="Cambridge Tests"
               subtitle="Practice reading & grammar"
               color="102, 126, 234"
               glowClass="glow-ion"
-              className="col-span-2"
+              className="col-span-2 min-h-[18rem]"
               locked={locked}
               quotaInfo={q('Cambridge Tests')}
               quotaLabel={ql('Cambridge Tests')}
