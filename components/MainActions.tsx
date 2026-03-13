@@ -43,6 +43,7 @@ type ActionButtonProps = {
   hideLabel?: boolean;
   ariaLabel?: string;
   containerBare?: boolean;
+  circleIcon?: boolean;
   color: string;
   glowClass: string;
   onClick?: () => void;
@@ -61,6 +62,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   hideLabel = false,
   ariaLabel,
   containerBare = false,
+  circleIcon = false,
   color,
   glowClass,
   onClick,
@@ -89,21 +91,23 @@ const ActionButton: React.FC<ActionButtonProps> = ({
       type="button"
       onClick={onClick}
       aria-label={ariaLabel ?? label}
-      className={`dashboard-action group relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-2xl border px-4 py-5 text-center transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_-22px_rgba(0,0,0,0.75)] active:scale-[0.99] sm:px-5 sm:py-6 ${isLocked ? 'opacity-60' : glowClass} ${className ?? ''}`}
+      className={`dashboard-action group relative flex h-full w-full flex-col items-center justify-center overflow-hidden text-center transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 active:scale-[0.99] ${containerBare ? 'rounded-none border-0 bg-transparent px-0 py-0 shadow-none hover:translate-y-0 hover:shadow-none sm:px-0 sm:py-0' : 'rounded-2xl border px-4 py-5 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_-22px_rgba(0,0,0,0.75)] sm:px-5 sm:py-6'} ${isLocked ? 'opacity-60' : glowClass} ${className ?? ''}`}
       style={{
-        background: containerBackground,
-        borderColor: border,
-        boxShadow: containerBoxShadow,
+        background: containerBare ? 'transparent' : containerBackground,
+        borderColor: containerBare ? 'transparent' : border,
+        boxShadow: containerBare ? 'none' : containerBoxShadow,
       }}
     >
-      <span
-        aria-hidden
-        className={`pointer-events-none absolute inset-0 transition-opacity duration-500 group-hover:opacity-80 ${containerBare ? "opacity-0" : "opacity-50"}` }
-        style={{
-          background:
-            'radial-gradient(circle at 20% 40%, rgba(255,255,255,0.04) 0 30%, transparent 45%), radial-gradient(circle at 80% 60%, rgba(255,255,255,0.04) 0 26%, transparent 50%)',
-        }}
-      />
+      {!containerBare && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-50 transition-opacity duration-500 group-hover:opacity-80"
+          style={{
+            background:
+              'radial-gradient(circle at 20% 40%, rgba(255,255,255,0.04) 0 30%, transparent 45%), radial-gradient(circle at 80% 60%, rgba(255,255,255,0.04) 0 26%, transparent 50%)',
+          }}
+        />
+      )}
       {/* PRO lock badge (not on pilot — pilot users see quota badge instead) */}
       {locked && !quotaInfo && (
           <span className="absolute top-2 right-2 z-10 inline-flex items-center gap-1 rounded-full border border-amber-400/40 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-amber-300 shadow-sm shadow-amber-400/10">
@@ -128,7 +132,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
         </span>
       )}
       <div
-        className={`dashboard-action__icon relative z-[1] mb-2 flex h-12 w-12 items-center justify-center text-3xl sm:h-14 sm:w-14 ${iconBare ? '' : 'rounded-2xl shadow-inner shadow-slate-950/60 ring-1 ring-white/10'}`}
+        className={`dashboard-action__icon relative z-[1] flex items-center justify-center ${circleIcon ? 'h-full w-full mb-0' : 'mb-2 h-12 w-12 text-3xl sm:h-14 sm:w-14'} ${iconBare ? '' : 'rounded-2xl shadow-inner shadow-slate-950/60 ring-1 ring-white/10'}`}
         style={{
           background: iconBare ? 'transparent' : iconPanel,
           color: '#030712',
@@ -255,7 +259,7 @@ const MainActions: React.FC<MainActionsProps> = ({
   };
   const displaySchoolName = schoolName || 'My School';
   const displaySchoolLogo = schoolLogoUrl || defaultSchoolIcon;
-  const missionIconClass = 'h-[17.5rem] w-[17.5rem] object-contain drop-shadow-[0_0_16px_rgba(255,255,255,0.32)] brightness-110 contrast-110 saturate-125';
+  const missionIconClass = 'h-full w-full rounded-full object-cover drop-shadow-[0_0_26px_rgba(255,255,255,0.45)] brightness-110 contrast-110 saturate-125';
   
   return (
     <section className="dashboard-panel relative overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-950/60 p-4 shadow-2xl shadow-slate-950/50 backdrop-blur sm:p-6">
@@ -356,6 +360,9 @@ const MainActions: React.FC<MainActionsProps> = ({
               icon={<img src="/mission-console-images/attack.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
               label="Launch Attack"
+              circleIcon
+              hideLabel
+              className="min-h-[18rem]"
               containerBare
               color="255, 45, 145"
               glowClass="glow-plasma animate-pulse-glow"
@@ -378,10 +385,12 @@ const MainActions: React.FC<MainActionsProps> = ({
                 icon={<img src="/mission-console-images/lockdown.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
                 iconBare
                 label="Lockdown Mode"
-              containerBare
+                circleIcon
+                hideLabel
+                className="col-span-2 min-h-[18rem]"
+                containerBare
                 color="255, 69, 58"
                 glowClass="glow-plasma"
-                className="col-span-2"
                 quotaInfo={q('Lockdown Mode')}
                 quotaLabel={ql('Lockdown Mode')}
               />
@@ -391,6 +400,9 @@ const MainActions: React.FC<MainActionsProps> = ({
               icon={<img src="/mission-console-images/shop.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
               label="Visit Shop"
+              circleIcon
+              hideLabel
+              className="min-h-[18rem]"
               containerBare
               color="22, 226, 161"
               glowClass="glow-success"
@@ -403,8 +415,10 @@ const MainActions: React.FC<MainActionsProps> = ({
               icon={<img src="/mission-console-images/tournament.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
               label="Tournament"
-              containerBare
+              circleIcon
               hideLabel
+              className="min-h-[18rem]"
+              containerBare
               ariaLabel="Tournament"
               color="255, 140, 0"
               glowClass="glow-warn"
@@ -417,8 +431,10 @@ const MainActions: React.FC<MainActionsProps> = ({
               icon={<img src="/mission-console-images/clan.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
               label="Clan"
-              containerBare
+              circleIcon
               hideLabel
+              className="min-h-[18rem]"
+              containerBare
               ariaLabel="Clan"
               color="255, 176, 32"
               glowClass="glow-warn"
@@ -458,8 +474,10 @@ const MainActions: React.FC<MainActionsProps> = ({
               icon={<img src="/mission-console-images/inventory.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
               label="Inventory"
-              containerBare
+              circleIcon
               hideLabel
+              className="min-h-[18rem]"
+              containerBare
               ariaLabel="Inventory"
               color="158, 93, 255"
               glowClass="glow-purple"
@@ -472,8 +490,10 @@ const MainActions: React.FC<MainActionsProps> = ({
               icon={<img src="/mission-console-images/leaderboard.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
               label="Leaderboard"
-              containerBare
+              circleIcon
               hideLabel
+              className="min-h-[18rem]"
+              containerBare
               ariaLabel="Leaderboard"
               color="255, 215, 0"
               glowClass="glow-warn"
@@ -486,8 +506,10 @@ const MainActions: React.FC<MainActionsProps> = ({
               icon={<img src="/mission-console-images/achievements.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
               label="Achievements"
-              containerBare
+              circleIcon
               hideLabel
+              className="min-h-[18rem]"
+              containerBare
               ariaLabel="Achievements"
               color="255, 100, 200"
               glowClass="glow-plasma"
@@ -500,12 +522,13 @@ const MainActions: React.FC<MainActionsProps> = ({
               icon={<img src="/mission-console-images/ielts-prep.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
               label="IELTS Prep"
-              containerBare
+              circleIcon
               hideLabel
+              containerBare
               ariaLabel="IELTS Prep"
               color="0, 191, 255"
               glowClass="glow-ion"
-              className="col-span-2"
+              className="col-span-2 min-h-[18rem]"
               locked={locked}
               quotaInfo={q('IELTS Prep')}
               quotaLabel={ql('IELTS Prep')}
@@ -515,13 +538,14 @@ const MainActions: React.FC<MainActionsProps> = ({
               icon={<img src="/mission-console-images/cambridge-tests.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
               label="Cambridge Tests"
-              containerBare
+              circleIcon
               hideLabel
+              containerBare
               ariaLabel="Cambridge Tests"
               subtitle="Practice reading & grammar"
               color="102, 126, 234"
               glowClass="glow-ion"
-              className="col-span-2"
+              className="col-span-2 min-h-[18rem]"
               locked={locked}
               quotaInfo={q('Cambridge Tests')}
               quotaLabel={ql('Cambridge Tests')}
