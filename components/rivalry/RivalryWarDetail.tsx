@@ -16,6 +16,7 @@ import RivalryPrepPanel from './RivalryPrepPanel';
 import RivalryActionPanel from './RivalryActionPanel';
 import RivalryLogsPanel from './RivalryLogsPanel';
 import { RIVALRY_STRUCTURE_LABELS } from './rivalryLabels';
+import { actionFxAssetMap, rivalryAssets, structureAssetMap } from './rivalryAssets';
 
 interface RivalryWarDetailProps {
   warId: string;
@@ -28,6 +29,12 @@ interface RivalryWarDetailProps {
 
 const isPrivileged = (role?: string | null): boolean => ['leader', 'officer', 'moderator'].includes(role || '');
 type RivalryLogsCursor = { created_at: string; id: string } | null;
+type StructureFxState = {
+  action: RivalryActionType;
+  targetClanId: string;
+  targetStructure: RivalryStructureCode;
+  id: number;
+};
 
 const fmtRemaining = (iso?: string | null): string => {
   if (!iso) return '—';
@@ -85,6 +92,8 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
   const [isLiveSyncConnected, setIsLiveSyncConnected] = React.useState(false);
   const [clanMemberOptions, setClanMemberOptions] = React.useState<RivalryClanMemberOption[]>([]);
   const [loadingClanMembers, setLoadingClanMembers] = React.useState(false);
+  const [structureFx, setStructureFx] = React.useState<StructureFxState | null>(null);
+  const fxTimeoutRef = React.useRef<number | null>(null);
 
   const updateLastCursor = React.useCallback((cursor: RivalryLogsCursor) => {
     lastCursorRef.current = cursor;
@@ -146,6 +155,12 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
     }, statusForRefresh === 'live' || statusForRefresh === 'blackout' ? 9000 : 18000);
     return () => window.clearInterval(t);
   }, [loadState, statusForRefresh]);
+
+  React.useEffect(() => () => {
+    if (fxTimeoutRef.current) {
+      window.clearTimeout(fxTimeoutRef.current);
+    }
+  }, []);
 
   const withBusy = async (op: () => Promise<RivalryRpcResult>, successText: string | ((result: RivalryRpcResult) => string)) => {
     setBusy(true);
@@ -222,15 +237,33 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
 
   if (loadingState && !state) return <div className="card-glass p-6 text-gray-300">Loading war state…</div>;
 
+  const winnerClanName = war.winner_clan_id == null
+    ? 'No winner declared'
+    : war.winner_clan_id === attackerClanId
+      ? attackerClanName
+      : war.winner_clan_id === defenderClanId
+        ? defenderClanName
+        : 'Unknown winner';
+  const didViewerWin = Boolean(isParticipant && participantClanId && war.winner_clan_id === participantClanId);
+
   return (
     <div className="space-y-4 animate-fade-in-up" data-now={nowTick}>
-      <div className="card-glass p-4">
+      <div className="card-glass p-4 relative overflow-hidden">
+        <img src={status === 'live' ? rivalryAssets.backgrounds.live : status === 'blackout' ? rivalryAssets.backgrounds.blackout : rivalryAssets.backgrounds.prep} alt="war atmosphere" className="absolute inset-0 h-full w-full object-cover opacity-25" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/85" />
+        <div className="relative">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="font-heading text-xl text-white">{attackerClanName} <span className="text-red-300">⚔</span> {defenderClanName}</h2>
           <span className="rounded-full px-3 py-1 text-xs border border-cyan-400/40 bg-cyan-900/20 text-cyan-100">{phaseText(status)}</span>
         </div>
         <div className="mt-2 text-xs text-gray-300">{timerLabel}: <span className="font-semibold text-white">{timerValue}</span> {realtimeEligible && isLiveSyncConnected ? '• Live sync on' : ''}</div>
+        {status === 'blackout' ? (
+          <div className="mt-2 inline-flex items-center gap-2 rounded-md border border-fuchsia-300/50 bg-fuchsia-900/50 px-2 py-1 text-xs font-semibold text-fuchsia-100">
+            <span className="h-2 w-2 rounded-full bg-fuchsia-200 animate-pulse" /> Blackout phase: exact score is hidden until settlement.
+          </div>
+        ) : null}
         {lastActionFeedback ? <div className="mt-2 inline-flex rounded-md border border-cyan-400/40 bg-cyan-900/20 px-2 py-1 text-xs text-cyan-100">LAST ACTION • {lastActionFeedback}</div> : null}
+        </div>
       </div>
 
       <div className="card-glass p-4">
@@ -297,7 +330,10 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
 
       {isParticipant && (status === 'live' || status === 'blackout') && (
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-          <div className="xl:col-span-2 card-glass p-4 border border-red-500/25">
+          <div className="xl:col-span-2 card-glass p-4 border border-red-500/25 relative overflow-hidden">
+            <img src={status === 'blackout' ? rivalryAssets.backgrounds.blackout : rivalryAssets.backgrounds.live} alt="live battle" className="absolute inset-0 h-full w-full object-cover opacity-25" />
+            <div className="absolute inset-0 bg-black/65" />
+            <div className="relative">
             <h3 className="font-heading text-white mb-2">Live Battle Board</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {[{ title: 'Your Clan Structures', items: ownStructures, helper: 'Protect these to keep your side strong.' }, { title: 'Enemy Structures', items: enemyStructures, helper: 'Damaging these earns major points.' }].map((group) => (
@@ -308,17 +344,25 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
                     {group.items.map((s: RivalryStructureState) => {
                       const pct = Math.max(0, Math.min(100, Math.round((s.current_integrity / Math.max(1, s.max_integrity)) * 100)));
                       const stateLabel = s.state_band === 'down' ? 'Down' : s.state_band === 'critical' ? 'Critical' : s.state_band === 'strained' ? 'Strained' : 'Healthy';
+                      const fxActive = structureFx && structureFx.targetClanId === s.owner_clan_id && structureFx.targetStructure === s.structure_code;
+                      const fxImage = fxActive ? actionFxAssetMap[structureFx.action] : null;
                       return (
-                        <div key={`${s.owner_clan_id}-${s.structure_code}`} className="rounded-lg border border-white/10 p-2">
+                        <div key={`${s.owner_clan_id}-${s.structure_code}`} className={`rounded-lg border border-white/10 p-2 relative overflow-hidden transition-all duration-500 ${stateLabel === 'Down' ? 'bg-red-950/50' : stateLabel === 'Critical' ? 'bg-red-900/30' : stateLabel === 'Strained' ? 'bg-amber-900/25' : 'bg-emerald-900/20'}`}>
+                          <img src={structureAssetMap[s.structure_code as RivalryStructureCode]} alt={RIVALRY_STRUCTURE_LABELS[s.structure_code as RivalryStructureCode]} className="absolute inset-0 h-full w-full object-cover opacity-35" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/35" />
+                          {fxImage ? <img src={fxImage} alt="Action effect" className="absolute inset-0 h-full w-full object-cover opacity-80 [animation:ping_700ms_ease-out_1]" /> : null}
+                          <div className="relative">
                           <div className="flex justify-between text-sm"><span>{RIVALRY_STRUCTURE_LABELS[s.structure_code as RivalryStructureCode] || 'Structure'}</span><span className="text-xs text-gray-300">{stateLabel}</span></div>
                           <div className="mt-1 h-2.5 w-full rounded bg-black/50 overflow-hidden"><div className={`h-full transition-all duration-500 ${pct < 20 ? 'bg-red-500' : pct < 50 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${pct}%` }} /></div>
                           <div className="text-xs text-gray-300 mt-1">{pct}% integrity</div>
+                          </div>
                         </div>
                       );
                     })}
                   </div>
                 </div>
               ))}
+            </div>
             </div>
           </div>
           <div className="card-glass p-4 border border-cyan-400/20">
@@ -333,7 +377,15 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
               busy={busy}
               cooldownUntil={state?.member_state?.cooldown_until ?? null}
               onSubmit={(actionType: RivalryActionType, targetClanId: string, target: RivalryStructureCode) => {
-                void withBusy(() => service.submitAction(warId, actionType, targetClanId, target), (result) => normalizeActionFeedback(actionType, result));
+                void withBusy(() => service.submitAction(warId, actionType, targetClanId, target), (result) => {
+                  setStructureFx({ action: actionType, targetClanId, targetStructure: target, id: Date.now() });
+                  if (fxTimeoutRef.current) window.clearTimeout(fxTimeoutRef.current);
+                  fxTimeoutRef.current = window.setTimeout(() => {
+                    setStructureFx(null);
+                    fxTimeoutRef.current = null;
+                  }, 800);
+                  return normalizeActionFeedback(actionType, result);
+                });
               }}
             />
           </div>
@@ -345,17 +397,26 @@ const RivalryWarDetail: React.FC<RivalryWarDetailProps> = ({ warId, myUserId, my
       ) : null}
 
       {status === 'settled' && (
-        <div className="card-glass p-4 space-y-2 border border-emerald-400/30">
+        <div className="card-glass p-4 space-y-2 border border-emerald-400/30 relative overflow-hidden">
+          <img src={didViewerWin ? rivalryAssets.backgrounds.victory : rivalryAssets.backgrounds.defeat} alt="results atmosphere" className="absolute inset-0 h-full w-full object-cover opacity-30" />
+          <div className="absolute inset-0 bg-black/70" />
+          <div className="relative">
           <h3 className="font-heading text-emerald-100">Results Recap</h3>
-          <p className="text-sm text-gray-200">Winner: {war.winner_clan_id == null
-            ? 'No winner declared'
-            : war.winner_clan_id === attackerClanId
-              ? attackerClanName
-              : war.winner_clan_id === defenderClanId
-                ? defenderClanName
-                : 'Unknown winner'}</p>
-          <p className="text-xs text-gray-300">Thanks for participating. Your actions helped your clan during the mission.</p>
+          <img src={rivalryAssets.banners.victory} alt="victory banner" className="h-16 w-full object-cover rounded-lg border border-white/15" />
+          <p className="text-sm text-gray-200">Winner: {winnerClanName}</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <img src={rivalryAssets.rewards.card} alt="Reward card" className="rounded-lg border border-white/20" />
+            <img src={rivalryAssets.rewards.chest} alt="Reward chest" className="rounded-lg border border-white/20" />
+            <img src={rivalryAssets.rewards.panel} alt="Reward panel" className="rounded-lg border border-white/20" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <img src={rivalryAssets.mvp.breaker} alt="Breaker MVP" className="rounded-lg border border-white/15" />
+            <img src={rivalryAssets.mvp.operator} alt="Operator MVP" className="rounded-lg border border-white/15" />
+            <img src={rivalryAssets.mvp.guardian} alt="Guardian MVP" className="rounded-lg border border-white/15" />
+          </div>
+          <p className="text-xs text-gray-200">Thanks for participating. Your actions helped your clan during the mission.</p>
           {isParticipant ? <button onClick={() => void withBusy(() => service.claimReward(warId), 'Reward claim completed')} disabled={busy} className="rounded-lg px-4 py-2 bg-emerald-600/85 hover:bg-emerald-500 disabled:opacity-50 text-white">Claim Reward</button> : <p className="text-sm text-gray-400">Public viewer mode: rewards are for participants only.</p>}
+          </div>
         </div>
       )}
 

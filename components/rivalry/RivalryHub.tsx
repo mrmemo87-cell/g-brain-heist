@@ -1,6 +1,7 @@
 import React from 'react';
 import { RivalryClanOption, RivalryWarSummary } from '../../services/rivalryService';
 import { RIVALRY_DECLARATION_REQUIREMENTS } from '../../services/rivalryRules';
+import { rivalryAssets } from './rivalryAssets';
 
 interface RivalryHubProps {
   wars: RivalryWarSummary[];
@@ -90,8 +91,11 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
   const WarCard = ({ war, cta }: { war: RivalryWarSummary; cta: string }) => (
     <button
       onClick={() => onOpenWar(war.war_id)}
-      className="w-full text-left rounded-xl border border-white/15 bg-black/35 p-3 hover:bg-black/55 transition-all duration-200 hover:border-cyan-400/30"
+      className="group w-full text-left rounded-xl border border-white/15 bg-black/35 p-3 hover:bg-black/55 transition-all duration-300 hover:border-cyan-400/40 hover:-translate-y-0.5 relative overflow-hidden"
     >
+      <img src={war.status === 'settled' ? rivalryAssets.banners.victory : rivalryAssets.banners.rival} alt="War banner" className="absolute inset-0 h-full w-full object-cover opacity-25 group-hover:opacity-35 transition-opacity" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-black/80" />
+      <div className="relative">
       <div className="flex justify-between items-center gap-2">
         <div className="font-semibold text-sm text-white">{war.attacker_clan_name || 'Attacker Clan'} <span className="text-red-300">⚔</span> {war.defender_clan_name || 'Defender Clan'}</div>
         <span className={`rounded-full border px-2 py-0.5 text-[10px] ${statusClass[war.status] || 'text-gray-300 border-white/20 bg-white/10'}`}>
@@ -100,25 +104,37 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
       </div>
       <div className="mt-2 text-xs text-gray-300">{fmtWarTimer(war)}</div>
       <div className="mt-3 inline-flex rounded-md bg-cyan-500/20 border border-cyan-300/40 text-cyan-100 text-xs px-2 py-1">{cta}</div>
+      </div>
     </button>
   );
 
   return (
     <div className="space-y-5 animate-fade-in-up">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="card-glass p-4 border border-amber-400/20">
+        <div className="card-glass p-4 border border-amber-400/20 relative overflow-hidden">
+          <img src={rivalryAssets.backgrounds.prep} alt="prep atmosphere" className="absolute inset-0 h-full w-full object-cover opacity-20" />
+          <div className="absolute inset-0 bg-black/65" />
+          <div className="relative">
           <h3 className="font-heading text-lg text-amber-100">Incoming Challenge</h3>
           <p className="text-xs text-gray-300 mt-1">Respond fast to begin your mission setup.</p>
-          <div className="mt-3">{incomingChallenge ? <WarCard war={incomingChallenge} cta="Open Mission" /> : <p className="text-sm text-gray-400">No incoming challenge right now.</p>}</div>
+          <div className="mt-3">{incomingChallenge ? <WarCard war={incomingChallenge} cta="Open Mission" /> : <p className="text-sm text-gray-300">No incoming challenge right now.</p>}</div>
+          </div>
         </div>
 
-        <div className="card-glass p-4 border border-red-400/20">
+        <div className="card-glass p-4 border border-red-400/20 relative overflow-hidden">
+          <img src={rivalryAssets.banners.rival} alt="rival banner" className="absolute inset-0 h-full w-full object-cover opacity-20" />
+          <div className="absolute inset-0 bg-black/70" />
+          <div className="relative">
           <h3 className="font-heading text-lg text-red-100">Active War</h3>
           <p className="text-xs text-gray-300 mt-1">Jump back in and keep your clan on top.</p>
-          <div className="mt-3">{activeWar ? <WarCard war={activeWar} cta="Open War" /> : <p className="text-sm text-gray-400">No active war for your clan.</p>}</div>
+          <div className="mt-3">{activeWar ? <WarCard war={activeWar} cta="Open War" /> : <p className="text-sm text-gray-300">No active war for your clan.</p>}</div>
+          </div>
         </div>
 
-        <div className="card-glass p-4 border border-cyan-400/20">
+        <div className="card-glass p-4 border border-cyan-400/20 relative overflow-hidden">
+          <img src={rivalryAssets.banners.neutral} alt="neutral banner" className="absolute inset-0 h-full w-full object-cover opacity-20" />
+          <div className="absolute inset-0 bg-black/70" />
+          <div className="relative">
           <h3 className="font-heading text-lg text-cyan-100">Declare New War</h3>
           <p className="text-xs text-gray-300 mt-1">Search by clan name and send a challenge.</p>
           {!canDeclare ? <p className="text-xs text-amber-200 mt-1">Join a clan to declare rivalry wars.</p> : null}
@@ -171,6 +187,7 @@ const RivalryHub: React.FC<RivalryHubProps> = ({
               {declaring ? 'Sending challenge…' : selectedTarget ? `Declare war vs ${selectedTarget.name}` : 'Select a target clan'}
             </button>
             {declareFeedback ? <p className="text-xs text-amber-100">{declareFeedback}</p> : null}
+          </div>
           </div>
         </div>
       </div>
