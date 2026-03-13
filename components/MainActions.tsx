@@ -40,6 +40,8 @@ type ActionButtonProps = {
   icon: React.ReactNode;
   iconBare?: boolean;
   label: string;
+  hideLabel?: boolean;
+  ariaLabel?: string;
   color: string;
   glowClass: string;
   onClick?: () => void;
@@ -55,6 +57,8 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   icon,
   iconBare = false,
   label,
+  hideLabel = false,
+  ariaLabel,
   color,
   glowClass,
   onClick,
@@ -78,6 +82,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
     <button
       type="button"
       onClick={onClick}
+      aria-label={ariaLabel ?? label}
       className={`dashboard-action group relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-2xl border px-4 py-5 text-center transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_-22px_rgba(0,0,0,0.75)] active:scale-[0.99] sm:px-5 sm:py-6 ${isLocked ? 'opacity-60' : glowClass} ${className ?? ''}`}
       style={{
         background: `radial-gradient(circle at 18% 16%, rgba(255,255,255,0.06), transparent 30%), radial-gradient(circle at 82% 12%, rgba(255,255,255,0.05), transparent 26%), linear-gradient(150deg, ${panel}, rgba(15, 23, 42, 0.7))`,
@@ -126,10 +131,12 @@ const ActionButton: React.FC<ActionButtonProps> = ({
       >
         {icon}
       </div>
-      <span className="dashboard-action__label relative z-[1] font-heading text-sm font-semibold tracking-wide text-white sm:text-base">
-        {label}
-      </span>
-      {subtitle && (
+      {!hideLabel && (
+        <span className="dashboard-action__label relative z-[1] font-heading text-sm font-semibold tracking-wide text-white sm:text-base">
+          {label}
+        </span>
+      )}
+      {!hideLabel && subtitle && (
         <span className="dashboard-action__subtitle relative z-[1] mt-2 max-w-[160px] text-xs leading-snug text-slate-200/90 sm:text-sm">
           {subtitle}
         </span>
@@ -242,6 +249,7 @@ const MainActions: React.FC<MainActionsProps> = ({
   };
   const displaySchoolName = schoolName || 'My School';
   const displaySchoolLogo = schoolLogoUrl || defaultSchoolIcon;
+  const missionIconClass = 'h-28 w-28 object-contain sm:h-32 sm:w-32';
   
   return (
     <section className="dashboard-panel relative overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-950/60 p-4 shadow-2xl shadow-slate-950/50 backdrop-blur sm:p-6">
@@ -339,7 +347,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={locked ? handleLocked('Launch Attack') : handlePilotClick('Launch Attack', onStartPvp)}
-              icon={<img src="/mission-console-images/attack.webp" alt="" className="h-11 w-11 object-contain sm:h-12 sm:w-12" aria-hidden />}
+              icon={<img src="/mission-console-images/attack.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
               label="Launch Attack"
               color="255, 45, 145"
@@ -360,12 +368,11 @@ const MainActions: React.FC<MainActionsProps> = ({
             {onOpenLockdown && (
               <ActionButton
                 onClick={handlePilotClick('Lockdown Mode', onOpenLockdown)}
-                icon={<img src="/mission-console-images/lockdown.webp" alt="" className="h-11 w-11 object-contain sm:h-12 sm:w-12" aria-hidden />}
+                icon={<img src="/mission-console-images/lockdown.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
                 iconBare
                 label="Lockdown Mode"
                 color="255, 69, 58"
                 glowClass="glow-plasma"
-                subtitle="Countdown ops sandbox"
                 className="col-span-2"
                 quotaInfo={q('Lockdown Mode')}
                 quotaLabel={ql('Lockdown Mode')}
@@ -373,7 +380,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             )}
             <ActionButton
               onClick={locked ? handleLocked('Visit Shop') : handlePilotClick('Visit Shop', onVisitShop)}
-              icon={<img src="/mission-console-images/shop.webp" alt="" className="h-11 w-11 object-contain sm:h-12 sm:w-12" aria-hidden />}
+              icon={<img src="/mission-console-images/shop.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
               label="Visit Shop"
               color="22, 226, 161"
@@ -384,9 +391,11 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={locked ? handleLocked('Tournaments') : handlePilotClick('Tournament', onOpenTournament)}
-              icon={<img src="/mission-console-images/tournament.webp" alt="" className="h-11 w-11 object-contain sm:h-12 sm:w-12" aria-hidden />}
+              icon={<img src="/mission-console-images/tournament.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
               label="Tournament"
+              hideLabel
+              ariaLabel="Tournament"
               color="255, 140, 0"
               glowClass="glow-warn"
               locked={locked}
@@ -395,9 +404,11 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={locked ? handleLocked('Clans') : handlePilotClick('Clan', onGoToClan)}
-              icon={<img src="/mission-console-images/clan.webp" alt="" className="h-11 w-11 object-contain sm:h-12 sm:w-12" aria-hidden />}
+              icon={<img src="/mission-console-images/clan.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
               label="Clan"
+              hideLabel
+              ariaLabel="Clan"
               color="255, 176, 32"
               glowClass="glow-warn"
               badgeText={!locked && clanBadgeCount && clanBadgeCount > 0 ? String(Math.min(clanBadgeCount, 99)) : undefined}
@@ -433,9 +444,11 @@ const MainActions: React.FC<MainActionsProps> = ({
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
             <ActionButton
               onClick={locked ? handleLocked('Inventory') : handlePilotClick('Inventory', onVisitInventory)}
-              icon={<img src="/mission-console-images/inventory.webp" alt="" className="h-11 w-11 object-contain sm:h-12 sm:w-12" aria-hidden />}
+              icon={<img src="/mission-console-images/inventory.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
               label="Inventory"
+              hideLabel
+              ariaLabel="Inventory"
               color="158, 93, 255"
               glowClass="glow-purple"
               locked={locked}
@@ -444,9 +457,11 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={locked ? handleLocked('Leaderboard') : handlePilotClick('Leaderboard', onViewLeaderboard)}
-              icon={<img src="/mission-console-images/leaderboard.webp" alt="" className="h-11 w-11 object-contain sm:h-12 sm:w-12" aria-hidden />}
+              icon={<img src="/mission-console-images/leaderboard.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
               label="Leaderboard"
+              hideLabel
+              ariaLabel="Leaderboard"
               color="255, 215, 0"
               glowClass="glow-warn"
               locked={locked}
@@ -455,9 +470,11 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={locked ? handleLocked('Achievements') : handlePilotClick('Achievements', onViewAchievements)}
-              icon={<img src="/mission-console-images/achievements.webp" alt="" className="h-11 w-11 object-contain sm:h-12 sm:w-12" aria-hidden />}
+              icon={<img src="/mission-console-images/achievements.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
               label="Achievements"
+              hideLabel
+              ariaLabel="Achievements"
               color="255, 100, 200"
               glowClass="glow-plasma"
               locked={locked}
@@ -466,9 +483,11 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={locked ? handleLocked('IELTS Prep') : handlePilotClick('IELTS Prep', onOpenIeltsPrep)}
-              icon={<img src="/mission-console-images/ielts-prep.webp" alt="" className="h-11 w-11 object-contain sm:h-12 sm:w-12" aria-hidden />}
+              icon={<img src="/mission-console-images/ielts-prep.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
               label="IELTS Prep"
+              hideLabel
+              ariaLabel="IELTS Prep"
               color="0, 191, 255"
               glowClass="glow-ion"
               className="col-span-2"
@@ -478,9 +497,11 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={locked ? handleLocked('Cambridge Tests') : handlePilotClick('Cambridge Tests', onOpenCambridgeTests)}
-              icon={<img src="/mission-console-images/cambridge-tests.webp" alt="" className="h-11 w-11 object-contain sm:h-12 sm:w-12" aria-hidden />}
+              icon={<img src="/mission-console-images/cambridge-tests.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
               label="Cambridge Tests"
+              hideLabel
+              ariaLabel="Cambridge Tests"
               subtitle="Practice reading & grammar"
               color="102, 126, 234"
               glowClass="glow-ion"
