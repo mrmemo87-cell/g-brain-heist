@@ -1493,7 +1493,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
   const renderCompleted = () => {
     const totalQuestions = mode === 'practice' ? questions.length : teacherQuestions.length;
-    const missionTotal = missionSummary?.missionScore ?? Math.round(calculateMissionScore(questionScores));
+    const missionTotal = Math.round(missionSummary?.missionScore ?? calculateMissionScore(questionScores));
     const accuracyPercent = missionSummary
       ? Math.round(missionSummary.accuracy * 100)
       : questionPerformances.length
