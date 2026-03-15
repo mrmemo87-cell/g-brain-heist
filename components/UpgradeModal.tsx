@@ -8,6 +8,7 @@ import {
   PRO_FEATURES,
   type PlanInfo,
 } from '../services/tierService';
+import VisualFallbackImage from './VisualFallbackImage';
 
 // ============================================================================
 // UpgradeModal — School subscription pricing
@@ -132,6 +133,22 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
               </p>
             )}
           </div>
+
+          <VisualFallbackImage
+            src="/visuals/Upgrade-to-Prime.png"
+            alt="Upgrade visual"
+            className="mb-5 h-24 overflow-hidden rounded-2xl border border-emerald-500/20"
+            imgClassName="h-full w-full object-cover"
+            fallback={(
+              <div className="mb-5 flex h-24 items-center justify-between rounded-2xl border border-emerald-500/20 bg-gradient-to-r from-emerald-500/10 via-cyan-500/10 to-blue-500/10 px-4">
+                <div>
+                  <p className="text-sm font-semibold text-white">Unlock premium school features</p>
+                  <p className="text-xs text-emerald-200">More seats, more tools, better engagement</p>
+                </div>
+                <span className="text-2xl" aria-hidden>⭐</span>
+              </div>
+            )}
+          />
 
           {/* Pilot banner */}
           {!planLoading && (

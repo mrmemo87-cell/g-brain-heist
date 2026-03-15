@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchPilotQuotas, getQuotaForFeature, QUOTA_LABELS, FEATURE_TO_QUOTA, type PilotQuotaStatus, type PilotQuota } from '../services/tierService';
+import VisualFallbackImage from './VisualFallbackImage';
 
 // Default school icon as SVG data URL
 const defaultSchoolIcon = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMjIgMTBWNkwxMiAyIDIgNnY0Yy4zNC0uMDguNjUtLjEgMS0uMWg1LjFsMi40NSAzLjA2YTEgMSAwIDAgMCAxLjU2IDBMMTQuNTUgOS45SDE5Ljljey4zNSAwIC42Ny4wMiAxIC4xWiIvPjxwYXRoIGQ9Ik0xMiAyMnYtNiIvPjxwYXRoIGQ9Ik00IDEwdjEwYzAgLjU1LjQ1IDEgMSAxaDE0Yy41NSAwIDEtLjQ1IDEtMVYxMCIvPjwvc3ZnPg==';
@@ -272,6 +273,25 @@ const MainActions: React.FC<MainActionsProps> = ({
         }}
       />
       <div className="relative flex flex-col gap-5">
+        <div className="rounded-2xl border border-cyan-500/20 bg-slate-900/60 p-2">
+          <VisualFallbackImage
+            src="/visuals/Today’s-3-Moves.png"
+            alt="Today's 3 Moves"
+            className="h-24 overflow-hidden rounded-xl sm:h-28"
+            imgClassName="h-full w-full object-cover"
+            fallback={(
+              <div className="flex h-24 items-center justify-between rounded-xl border border-cyan-400/20 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10 px-4 sm:h-28">
+                <span className="text-xs font-semibold uppercase tracking-wider text-cyan-200">Today&apos;s 3 Moves</span>
+                <div className="flex items-center gap-2 text-lg sm:text-xl" aria-hidden>
+                  <span>🎯</span>
+                  <span>🎁</span>
+                  <span>🤝</span>
+                </div>
+              </div>
+            )}
+          />
+        </div>
+
         <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900/70 shadow-inner shadow-slate-900/60">
