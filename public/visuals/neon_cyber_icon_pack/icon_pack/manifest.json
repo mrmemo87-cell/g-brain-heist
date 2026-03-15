@@ -1,0 +1,18 @@
+{
+  "icons": [
+    "quest",
+    "reward_chest",
+    "streak",
+    "invite_friend",
+    "invite_teacher",
+    "school_unlock",
+    "leaderboard",
+    "clan",
+    "assignment",
+    "premium"
+  ],
+  "variants": [
+    "white",
+    "accent"
+  ]
+}
