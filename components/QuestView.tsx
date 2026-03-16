@@ -885,12 +885,14 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         audioService.play('wrong');
       }
 
+      const hasRewards = response.deltas.xp > 0 || response.deltas.coins > 0 || (response.deltas.gemstones || 0) > 0;
+
       // Check if this is a duplicate answer (no rewards given)
-      const isDuplicate = response.correct && response.deltas.xp === 0 && response.deltas.coins === 0;
+      const isDuplicate = response.correct && !hasRewards;
       
       if (isDuplicate) {
         // Show prominent duplicate warning
-        response.explanation = '✓ Correct! But you already earned rewards for this question.\n\n💡 Tip: Try a different subject or difficulty to earn more rewards!';
+        response.explanation = 'Try a different subject or difficulty to earn more rewards.';
       }
 
       onGrantReward(response.deltas, response.finalProfileValues);
@@ -1288,15 +1290,15 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         </div>
         {answerResponse && (
             <div ref={answerFeedbackRef} className={`mt-6 p-6 rounded-2xl text-center border-2 shadow-2xl ${
-              answerResponse.correct && answerResponse.deltas.xp > 0
+              answerResponse.correct && (answerResponse.deltas.xp > 0 || answerResponse.deltas.coins > 0 || (answerResponse.deltas.gemstones || 0) > 0)
                 ? 'bg-gradient-to-br from-green-900/30 to-emerald-900/20 border-green-400/60 shadow-green-500/20'
-                : answerResponse.correct && answerResponse.deltas.xp === 0
+                : answerResponse.correct
                 ? 'bg-gradient-to-br from-amber-900/30 to-yellow-900/20 border-amber-400/60 shadow-amber-500/20'
                 : 'bg-gradient-to-br from-red-900/30 to-rose-900/20 border-red-400/60 shadow-red-500/20'
             }`}>
                 {answerResponse.correct ? (
                   <div className="flex flex-col items-center">
-                    {answerResponse.deltas.xp > 0 ? (
+                    {answerResponse.deltas.xp > 0 || answerResponse.deltas.coins > 0 || (answerResponse.deltas.gemstones || 0) > 0 ? (
                       <>
                         <div className="text-7xl mb-3 animate-bounce filter drop-shadow-[0_0_12px_rgba(34,197,94,0.6)]">✓</div>
                         <h3 className="font-bold text-2xl text-green-300 mb-2 animate-pulse">Correct!</h3>
@@ -1491,7 +1493,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
   const renderCompleted = () => {
     const totalQuestions = mode === 'practice' ? questions.length : teacherQuestions.length;
-    const missionTotal = missionSummary?.missionScore ?? Math.round(calculateMissionScore(questionScores));
+    const missionTotal = Math.round(missionSummary?.missionScore ?? calculateMissionScore(questionScores));
     const accuracyPercent = missionSummary
       ? Math.round(missionSummary.accuracy * 100)
       : questionPerformances.length

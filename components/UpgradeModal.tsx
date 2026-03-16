@@ -40,8 +40,12 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
       return;
     }
     fetchSchoolPlanDetails().then((details) => {
-      // Pilot was already used if trial_ends_at was ever set, or school is currently on pilot
-      const alreadyUsed = details.plan === 'pilot' || details.trial_ends_at !== null;
+      // Avoid false positives for users not attached to a school yet.
+      // A school-level pilot can be considered "already used" only when this
+      // user has a real school context (plan is not 'none').
+      const hasSchoolContext = details.plan !== 'none';
+      const alreadyUsed = hasSchoolContext
+        && (details.plan === 'pilot' || details.trial_ends_at !== null);
       setPilotAlreadyUsed(alreadyUsed);
       setPlanLoading(false);
     }).catch(() => setPlanLoading(false));
