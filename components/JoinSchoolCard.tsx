@@ -96,7 +96,7 @@ const JoinSchoolCard: React.FC<JoinSchoolCardProps> = ({ onJoined }) => {
         {/* Expanded content */}
         <div 
           className={`transition-all duration-300 ease-in-out ${
-            isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+            isExpanded ? 'max-h-[1200px] opacity-100' : 'max-h-0 opacity-0'
           }`}
         >
           <div className="p-4 pt-0 space-y-4 border-t border-gray-800/50">
