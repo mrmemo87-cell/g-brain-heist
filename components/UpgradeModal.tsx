@@ -9,6 +9,7 @@ import {
   type PlanInfo,
 } from '../services/tierService';
 import VisualFallbackImage from './VisualFallbackImage';
+import { visualAssets, neonIcon } from './visualAssets';
 
 // ============================================================================
 // UpgradeModal — School subscription pricing
@@ -124,7 +125,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
           {/* Title */}
           <div className="mb-5 text-center">
             <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-4 py-1.5 text-sm font-semibold text-emerald-300">
-              <img src="/logo.png" alt="Brains Heist" className="h-5 w-5 object-contain" />
+              <img src={neonIcon('premium')} alt="" className="h-5 w-5 object-contain" />
               Brains Heist
             </div>
             <h2 className="text-xl font-bold text-white sm:text-2xl">
@@ -139,7 +140,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
           </div>
 
           <VisualFallbackImage
-            src="/visuals/Upgrade-to-Prime.png"
+            src={visualAssets.prime.upgrade}
             alt="Upgrade visual"
             className="mb-5 w-full overflow-hidden rounded-2xl border border-emerald-500/20"
             imgClassName="block w-full h-auto object-contain"
@@ -155,6 +156,12 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
           />
 
           {/* Pilot banner */}
+          {featureLabel && (
+            <div className="mb-4 flex items-center gap-3 rounded-xl border border-amber-400/20 bg-amber-500/5 p-3">
+              <img src={visualAssets.prime.onlyPrime} alt="" className="h-10 w-10 object-contain flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              <p className="text-xs text-amber-200">This feature is available exclusively for Prime users.</p>
+            </div>
+          )}
           {!planLoading && (
             <div className={`mb-5 rounded-2xl border p-4 ${
               pilotAlreadyUsed

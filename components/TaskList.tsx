@@ -4,6 +4,7 @@ import * as GameService from '../services/gameService';
 import { audioService } from '../services/audioService';
 import { CoinIcon, GemIcon, XPIcon } from './icons';
 import CoinAnimation from './CoinAnimation';
+import { neonIcon } from './visualAssets';
 
 interface TaskItemProps {
   task: Task;
@@ -125,7 +126,10 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onTasksUpdate }) => {
   return (
     <div className="card-glass p-5">
       <div className="mb-6">
-        <h3 className="font-heading text-xl mb-3" style={{ color: 'var(--ion-blue)' }}>Daily Tasks</h3>
+        <h3 className="font-heading text-xl mb-3 flex items-center gap-2" style={{ color: 'var(--ion-blue)' }}>
+          <img src={neonIcon('reward_chest')} alt="" className="h-6 w-6 object-contain" />
+          Daily Tasks
+        </h3>
         <div className="space-y-3">
           {dailyTasks.map(task => (
             <TaskItem 
@@ -138,7 +142,10 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onTasksUpdate }) => {
         </div>
       </div>
       <div>
-        <h3 className="font-heading text-xl mb-3" style={{ color: 'var(--plasma-pink)' }}>Weekly Tasks</h3>
+        <h3 className="font-heading text-xl mb-3 flex items-center gap-2" style={{ color: 'var(--plasma-pink)' }}>
+          <img src={neonIcon('quest')} alt="" className="h-6 w-6 object-contain" />
+          Weekly Tasks
+        </h3>
         <div className="space-y-3">
           {weeklyTasks.map(task => (
             <TaskItem 

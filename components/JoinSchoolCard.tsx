@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import * as AuthService from '../services/authService';
 import SchoolRequestModal from './SchoolRequestModal';
 import VisualFallbackImage from './VisualFallbackImage';
+import { visualAssets, neonIcon } from './visualAssets';
 
 interface JoinSchoolCardProps {
   onJoined?: () => void;
@@ -72,8 +73,8 @@ const JoinSchoolCard: React.FC<JoinSchoolCardProps> = ({ onJoined }) => {
           className="w-full p-4 flex items-center justify-between text-left transition-all duration-200 hover:bg-white/5"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center border border-cyan-500/40">
-              <span className="text-xl">🏫</span>
+            <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center border border-cyan-500/40 p-1.5">
+              <img src={neonIcon('school_unlock')} alt="" className="w-full h-full object-contain" />
             </div>
             <div>
               <h3 className="font-semibold text-white text-sm">Join Your School</h3>
@@ -118,31 +119,35 @@ const JoinSchoolCard: React.FC<JoinSchoolCardProps> = ({ onJoined }) => {
 
             {/* Benefits list */}
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="flex items-center gap-2 text-gray-300">
-                <svg className="w-4 h-4 text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                <span>School leaderboards</span>
-              </div>
-              <div className="flex items-center gap-2 text-gray-300">
-                <svg className="w-4 h-4 text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                <span>Join school clans</span>
-              </div>
-              <div className="flex items-center gap-2 text-gray-300">
-                <svg className="w-4 h-4 text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                <span>School competitions</span>
-              </div>
-              <div className="flex items-center gap-2 text-gray-300">
-                <svg className="w-4 h-4 text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                <span>Teacher assignments</span>
-              </div>
+              {[
+                { img: visualAssets.schoolUnlock.leaderboards, label: 'School leaderboards' },
+                { img: visualAssets.schoolUnlock.clans, label: 'Join school clans' },
+                { img: visualAssets.schoolUnlock.competitions, label: 'School competitions' },
+                { img: visualAssets.schoolUnlock.assignments, label: 'Teacher assignments' },
+              ].map((b) => (
+                <div key={b.label} className="flex items-center gap-2 text-gray-300 rounded-lg bg-white/[0.03] border border-white/5 p-1.5">
+                  <img src={b.img} alt="" className="w-8 h-8 rounded object-cover flex-shrink-0" loading="lazy" />
+                  <span>{b.label}</span>
+                </div>
+              ))}
             </div>
+
+            {/* Teacher invite hero */}
+            <img
+              src={visualAssets.social.teacherInviteHero}
+              alt="Invite your teacher"
+              className="w-full rounded-xl object-cover max-h-32"
+              loading="lazy"
+            />
+
+            {/* Class activation prompt */}
+            <img
+              src={visualAssets.social.activateClass}
+              alt="We need our teacher to activate class"
+              className="w-full rounded-xl object-contain max-h-28"
+              loading="lazy"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
 
             {/* Invite code input */}
             <div className="space-y-2">
@@ -180,8 +185,9 @@ const JoinSchoolCard: React.FC<JoinSchoolCardProps> = ({ onJoined }) => {
             <div className="pt-2 border-t border-gray-800/50">
               <button
                 onClick={() => setShowRequestModal(true)}
-                className="w-full text-center text-xs text-gray-400 hover:text-cyan-400 transition-colors"
+                className="w-full text-center text-xs text-gray-400 hover:text-cyan-400 transition-colors inline-flex items-center justify-center gap-1.5"
               >
+                <img src={neonIcon('invite_teacher')} alt="" className="h-4 w-4 object-contain" />
                 Don't have a code? Request school access →
               </button>
             </div>

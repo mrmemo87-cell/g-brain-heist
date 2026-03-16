@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Profile } from '../types';
 import { APIcon, CoinIcon, GemIcon, ShieldIcon, StreakIcon, XPIcon, BrainIcon, TrophyIcon } from './icons';
+import { visualAssets } from './visualAssets';
 import { supabase } from '../services/supabaseClient';
 
 interface UserAchievement {
@@ -132,7 +133,12 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ profile, apValue, o
             </div>
             <div>
               <h3 className="text-lg font-bold text-white">{profile.username}</h3>
-              <p className="text-xs uppercase tracking-wide text-cyan-300">{roleLabel}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-xs uppercase tracking-wide text-cyan-300">{roleLabel}</p>
+                {isStaff && (
+                  <img src={visualAssets.badges.teacherConnector} alt="Teacher" className="h-5 w-5 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                )}
+              </div>
             </div>
           </div>
           <button
@@ -172,7 +178,17 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ profile, apValue, o
               <StatPill
                 label="Streak"
                 value={`${profile.streak || 0} days`}
-                icon={<StreakIcon className="h-5 w-5 text-orange-300 drop-shadow-[0_0_6px_rgba(251,146,60,0.6)]" />}
+                icon={
+                  profile.streak >= 7 ? (
+                    <img
+                      src={profile.streak >= 30 ? visualAssets.streak.day30 : profile.streak >= 14 ? visualAssets.streak.day14 : visualAssets.streak.day7}
+                      alt=""
+                      className="h-6 w-6 rounded object-contain"
+                    />
+                  ) : (
+                    <StreakIcon className="h-5 w-5 text-orange-300 drop-shadow-[0_0_6px_rgba(251,146,60,0.6)]" />
+                  )
+                }
               />
               <StatPill
                 label="PvP Score"

@@ -10,6 +10,18 @@ import { isAdmin } from '../services/adminService';
 import SettingsModal from './SettingsModal';
 import UserProfileModal from './UserProfileModal';
 import { fetchSchoolPlanDetails, type SchoolPlanDetails, type SchoolPlan } from '../services/tierService';
+import { visualAssets, neonIcon } from './visualAssets';
+
+/** Returns the streak badge PNG for the highest achieved tier, or null. */
+const getStreakBadge = (streak: number): string | null => {
+  if (streak >= 30) return visualAssets.streak.day30;
+  if (streak >= 14) return visualAssets.streak.day14;
+  if (streak >= 7)  return visualAssets.streak.day7;
+  if (streak >= 5)  return visualAssets.streak.day5;
+  if (streak >= 3)  return visualAssets.streak.day3;
+  if (streak >= 1)  return visualAssets.streak.day1;
+  return null;
+};
 
 // Custom hook for animating number changes
 const useAnimatedValue = (endValue: number, duration: number = 500) => {
@@ -555,9 +567,11 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                 <div className={`flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 ${
                   profile.streak >= 7 ? 'border-orange-500/50 bg-orange-500/15' : 'border-slate-700 bg-slate-800/40'
                 }`}>
-                  <div className={`h-4 w-4 ${profile.streak >= 7 ? 'text-orange-300' : 'text-slate-400'}`}>
-                    <StreakIcon />
-                  </div>
+                  {getStreakBadge(profile.streak) ? (
+                    <img src={getStreakBadge(profile.streak)!} alt="" className="h-5 w-5 rounded object-contain" />
+                  ) : (
+                    <img src={neonIcon('streak')} alt="" className="h-4 w-4 object-contain" />
+                  )}
                   <span id="streak-hud" className={`font-mono text-xs font-bold ${profile.streak >= 7 ? 'text-orange-200' : 'text-white'}`}>
                     {profile.streak || 0}
                   </span>

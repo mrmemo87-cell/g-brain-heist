@@ -35,6 +35,7 @@ import DifficultyPicker from './DifficultyPicker';
 import UnifiedSubjectPlay from './UnifiedSubjectPlay';
 import type { QuestProgress } from '../types';
 import QuestionBank from './teacher/QuestionBank';
+import { visualAssets, neonIcon } from './visualAssets';
 
 // Helper to get option text (handles both string and QuestionOption formats)
 const getOptionText = (option: string | QuestionOption): string => {
@@ -1090,9 +1091,10 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-3">
             <img
-              src="/BRAINS.svg"
-              alt="Brains Heist logo"
-              className="w-12 h-12 drop-shadow-[0_0_12px_rgba(34,211,238,0.4)]"
+              src={visualAssets.mission.quickQuest}
+              alt="Quick Quest"
+              className="w-14 h-14 rounded-xl object-contain drop-shadow-[0_0_12px_rgba(34,211,238,0.4)]"
+              onError={(e) => { (e.target as HTMLImageElement).src = '/BRAINS.svg'; }}
             />
             <div>
               <h2 className="font-heading text-2xl text-white">Explore the Question Bank</h2>
@@ -1237,7 +1239,10 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           </div>
           <div className="card-glass p-4 text-center">
             <p className="text-xs uppercase tracking-widest text-gray-400">Streak</p>
-            <p className="font-heading text-2xl text-white mt-1">{soloStreak}</p>
+            <p className="font-heading text-2xl text-white mt-1 flex items-center justify-center gap-2">
+              <img src={neonIcon('streak')} alt="" className="h-6 w-6 object-contain" />
+              {soloStreak}
+            </p>
           </div>
         </div>
         <div className="card-glass p-6 mb-6">
@@ -1558,11 +1563,18 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
     return (
       <div className="text-center max-w-2xl mx-auto">
-        <h2 className="font-heading text-4xl mb-4 animate-fade-in-up" style={{ color: 'var(--amber-warn)' }}>
+        <h2 className="font-heading text-4xl mb-4 animate-fade-in-up flex items-center justify-center gap-3" style={{ color: 'var(--amber-warn)' }}>
+          <img src={neonIcon('quest')} alt="" className="h-9 w-9 object-contain" />
           Quest Complete!
         </h2>
         <div className="card-glass glow-warn p-8 animate-fade-in-up" style={{ borderColor: 'rgba(255, 176, 32, 0.3)' }}>
           <div className="text-6xl mb-4 animate-bounce">🎉</div>
+          <img
+            src={visualAssets.share.missionComplete}
+            alt="Mission Complete"
+            className="mx-auto mb-4 w-40 sm:w-52 object-contain drop-shadow-[0_0_16px_rgba(217,70,239,0.3)]"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
           <p className="text-lg mb-6">
             You answered <span className="font-bold text-white">{score.correct}</span> out of{' '}
             <span className="font-bold text-white">{totalQuestions}</span> questions correctly.
@@ -1610,7 +1622,15 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-fuchsia-400/20 blur-xl" />
             <div className="absolute -left-8 -bottom-8 h-28 w-28 rounded-full bg-cyan-400/20 blur-xl" />
             <p className="text-xs uppercase tracking-[0.25em] text-fuchsia-200/80 mb-2">Share Preview</p>
-            <h3 className="font-heading text-2xl text-white mb-1">{selectedSubject?.name || assignmentContext?.subject_name || 'Brains Heist'} Quest</h3>
+            <div className="flex items-center gap-3 mb-1">
+              <img
+                src={visualAssets.share.streakBrag}
+                alt=""
+                className="h-10 w-10 rounded-lg object-contain"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              />
+              <h3 className="font-heading text-2xl text-white">{selectedSubject?.name || assignmentContext?.subject_name || 'Brains Heist'} Quest</h3>
+            </div>
             <p className="text-sm text-cyan-100/90 mb-4">Flex your result and challenge friends to beat it.</p>
             <div className="grid grid-cols-3 gap-2 text-center">
               <div className="rounded-lg bg-black/25 p-2 border border-white/10">

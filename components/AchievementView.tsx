@@ -2,6 +2,24 @@ import React, { useState, useEffect, useMemo } from 'react';
 import * as GameService from '../services/gameService';
 import BackButton from './BackButton';
 import { CompletedAssignment, MyAssignmentAnswer } from '../types';
+import { visualAssets } from './visualAssets';
+
+/** Map achievement name patterns to badge illustration PNGs. */
+const BADGE_IMAGE_MAP: Record<string, string> = {
+  'class builder': visualAssets.badges.classBuilder,
+  'recruiter i': visualAssets.badges.recruiterI,
+  'recruiter ii': visualAssets.badges.recruiterII,
+  'recruiter iii': visualAssets.badges.recruiterIII,
+  'teacher connector': visualAssets.badges.teacherConnector,
+};
+
+const getBadgeImage = (name: string): string | null => {
+  const key = name.toLowerCase();
+  for (const [pattern, src] of Object.entries(BADGE_IMAGE_MAP)) {
+    if (key.includes(pattern)) return src;
+  }
+  return null;
+};
 
 interface Achievement {
   id: string;
@@ -181,6 +199,15 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
           <div className="flex items-start gap-4">
             {/* Icon with glow effect */}
             <div className="relative">
+              {getBadgeImage(achievement.name) ? (
+                <img
+                  src={getBadgeImage(achievement.name)!}
+                  alt={achievement.name}
+                  className={`w-14 h-14 object-contain flex-shrink-0 transition-all ${
+                    achievement.is_earned ? 'drop-shadow-lg' : 'grayscale opacity-50'
+                  }`}
+                />
+              ) : (
               <div
                 className={`text-5xl flex-shrink-0 transition-all ${
                   achievement.is_earned 
@@ -190,6 +217,7 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
               >
                 {achievement.icon}
               </div>
+              )}
               {achievement.is_earned && (
                 <div className="absolute -bottom-1 -right-1 text-lg bg-green-500 rounded-full w-6 h-6 flex items-center justify-center shadow-lg">
                   ✓

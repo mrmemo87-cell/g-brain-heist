@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { fetchPilotQuotas, getQuotaForFeature, QUOTA_LABELS, FEATURE_TO_QUOTA, type PilotQuotaStatus, type PilotQuota } from '../services/tierService';
 import VisualFallbackImage from './VisualFallbackImage';
+import { visualAssets, neonIcon } from './visualAssets';
 
 // Default school icon as SVG data URL
 const defaultSchoolIcon = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMjIgMTBWNkwxMiAyIDIgNnY0Yy4zNC0uMDguNjUtLjEgMS0uMWg1LjFsMi40NSAzLjA2YTEgMSAwIDAgMCAxLjU2IDBMMTQuNTUgOS45SDE5Ljljey4zNSAwIC42Ny4wMiAxIC4xWiIvPjxwYXRoIGQ9Ik0xMiAyMnYtNiIvPjxwYXRoIGQ9Ik00IDEwdjEwYzAgLjU1LjQ1IDEgMSAxaDE0Yy41NSAwIDEtLjQ1IDEtMVYxMCIvPjwvc3ZnPg==';
@@ -112,8 +113,16 @@ const ActionButton: React.FC<ActionButtonProps> = ({
       {/* PRO lock badge (not on pilot — pilot users see quota badge instead) */}
       {locked && !quotaInfo && (
           <span className="absolute top-2 right-2 z-10 inline-flex items-center gap-1 rounded-full border border-amber-400/40 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-amber-300 shadow-sm shadow-amber-400/10">
-            🔒 PRO
+            <img src={neonIcon('premium', 'accent', 'svg')} alt="" className="h-3.5 w-3.5" /> PRO
           </span>
+      )}
+      {/* Soft-lock dim overlay for locked cards */}
+      {locked && (
+        <img
+          src={visualAssets.prime.softLock}
+          alt=""
+          className="pointer-events-none absolute inset-0 z-[1] h-full w-full rounded-2xl object-cover opacity-[0.08]"
+        />
       )}
       {/* Quota exhausted badge (pilot users who ran out) */}
       {quotaExhausted && (
@@ -275,7 +284,7 @@ const MainActions: React.FC<MainActionsProps> = ({
       <div className="relative flex flex-col gap-5">
         <div className="rounded-2xl border border-cyan-500/20 bg-slate-900/60 p-2">
           <VisualFallbackImage
-            src="/visuals/Today’s-3-Moves.png"
+            src={visualAssets.mission.todaysMoves}
             alt="Today's 3 Moves"
             className="w-full overflow-hidden rounded-xl"
             imgClassName="block w-full h-auto object-contain"
@@ -291,7 +300,25 @@ const MainActions: React.FC<MainActionsProps> = ({
             )}
           />
         </div>
-
+        {/* ── Day-of-week engagement banner ── */}
+        {(() => {
+          const day = new Date().getDay();
+          const banner = day === 1 ? { src: visualAssets.engagement.mondayBoost, alt: 'Monday Boost', border: 'border-amber-400/20' }
+            : day === 3 ? { src: visualAssets.engagement.midweekChallenge, alt: 'Midweek Challenge', border: 'border-purple-400/20' }
+            : day === 5 ? { src: visualAssets.engagement.fridayBattle, alt: 'Friday School Battle', border: 'border-red-400/20' }
+            : { src: visualAssets.engagement.dailyReward, alt: 'Daily Reward', border: 'border-emerald-400/20' };
+          return (
+            <div className={`rounded-2xl border ${banner.border} bg-slate-900/60 p-2`}>
+              <VisualFallbackImage
+                src={banner.src}
+                alt={banner.alt}
+                className="w-full overflow-hidden rounded-xl"
+                imgClassName="block w-full h-auto object-contain"
+                fallback={<div className="h-16 rounded-xl bg-gradient-to-r from-emerald-500/10 to-cyan-500/10" />}
+              />
+            </div>
+          );
+        })()}
         <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900/70 shadow-inner shadow-slate-900/60">
@@ -320,7 +347,8 @@ const MainActions: React.FC<MainActionsProps> = ({
             </div>
           </div>
           {hasPendingAssignment && (
-            <span className="inline-flex items-center justify-center rounded-full border border-amber-400/70 bg-amber-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-100 shadow shadow-amber-400/20">
+            <span className="inline-flex items-center justify-center gap-1.5 rounded-full border border-amber-400/70 bg-amber-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-100 shadow shadow-amber-400/20">
+              <img src={neonIcon('assignment')} alt="" className="h-4 w-4 object-contain" />
               Assignment Required
             </span>
           )}
@@ -570,6 +598,32 @@ const MainActions: React.FC<MainActionsProps> = ({
               quotaInfo={q('Cambridge Tests')}
               quotaLabel={ql('Cambridge Tests')}
             />
+
+            {/* ── Social: invite friends ── */}
+            <div className="col-span-2 sm:col-span-3 rounded-2xl border border-purple-500/20 bg-gradient-to-r from-purple-900/30 via-fuchsia-900/20 to-pink-900/20 p-4 flex items-center gap-4">
+              <img
+                src={visualAssets.social.inviteFriend}
+                alt="Invite a friend"
+                className="h-20 w-20 rounded-xl object-contain flex-shrink-0"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              />
+              <div className="flex-1 min-w-0">
+                <p className="font-heading text-lg text-white mb-1">Invite Friends</p>
+                <p className="text-xs text-gray-400 mb-2">Bring a friend to Brains Heist and unlock recruiter badges together.</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const text = 'Join me on Brains Heist — the gamified learning platform! 🧠⚡';
+                    if (navigator.share) { void navigator.share({ title: 'Brains Heist', text }); }
+                    else if (navigator.clipboard?.writeText) { void navigator.clipboard.writeText(text); }
+                  }}
+                  className="rounded-lg border border-purple-400/40 bg-purple-500/20 px-4 py-1.5 text-xs font-semibold text-purple-200 transition hover:bg-purple-500/30"
+                >
+                  <img src={neonIcon('invite_friend')} alt="" className="inline h-4 w-4 mr-1 align-text-bottom" />
+                  Share Invite
+                </button>
+              </div>
+            </div>
 
             {/* ── Admin / staff actions ── */}
             {onOpenAdminPortal && (

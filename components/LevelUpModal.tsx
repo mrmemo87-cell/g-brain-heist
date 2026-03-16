@@ -1,5 +1,6 @@
 import React from 'react';
 import { audioService } from '../services/audioService';
+import { visualAssets } from './visualAssets';
 
 interface LevelUpModalProps {
   newLevel: number;
@@ -18,7 +19,14 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ newLevel, rewards, onClose 
 
   return (
     <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
-      <div className="card-glass glow-warn max-w-md w-full p-8 text-center transform animate-scaleIn" style={{ borderColor: 'rgba(255, 176, 32, 0.5)' }}>
+      {/* Celebration background */}
+      <img
+        src={visualAssets.mission.postCelebration}
+        alt=""
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-20"
+        aria-hidden="true"
+      />
+      <div className="card-glass glow-warn max-w-md w-full p-8 text-center transform animate-scaleIn relative z-10" style={{ borderColor: 'rgba(255, 176, 32, 0.5)' }}>
         <div className="text-6xl mb-4 animate-bounce">🎉</div>
         <h2 className="font-heading text-4xl mb-2" style={{ color: 'var(--amber-warn)' }}>
           LEVEL UP!

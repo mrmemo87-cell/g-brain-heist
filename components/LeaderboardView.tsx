@@ -5,7 +5,7 @@ import BackButton from './BackButton';
 import { ClanMember } from '../types';
 import AvatarWithFrame from './AvatarWithFrame';
 import { fetchNeonFrameOwners, fetchFlickerThemeOwners, fetchGlitchEffectOwners } from '../services/cosmeticService';
-import { TrophyIcon } from './icons';
+import { neonIcon } from './visualAssets';
 import ClickableUsername from './ClickableUsername';
 
 
@@ -507,7 +507,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
     <div ref={rootRef} className="mt-6 max-w-4xl mx-auto">
       <BackButton onClick={onComplete} />
       <h2 data-lb-title className="font-heading text-3xl text-center mb-6 flex items-center justify-center gap-3" style={{ color: 'var(--amber-warn)' }}>
-        <TrophyIcon data-lb-title-icon className="w-8 h-8" />
+        <img src={neonIcon('leaderboard')} alt="" className="w-8 h-8 object-contain" />
         Leaderboards
       </h2>
 

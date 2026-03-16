@@ -3,6 +3,7 @@ import * as AuthService from '../services/authService';
 import type { School } from '../services/authService';
 import type { Batch, Grade } from '../types';
 import SchoolRequestModal from './SchoolRequestModal';
+import { visualAssets } from './visualAssets';
 
 interface FinishSetupModalProps {
     onComplete: () => void;
