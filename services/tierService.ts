@@ -197,7 +197,20 @@ export async function fetchSchoolPlanDetails(): Promise<SchoolPlanDetails> {
         error: error?.message || data?.error,
       };
     }
-    const details = data as SchoolPlanDetails;
+    const raw = data as Partial<SchoolPlanDetails>;
+    const details: SchoolPlanDetails = {
+      success: true,
+      plan: raw.plan ?? 'none',
+      is_active: raw.is_active ?? false,
+      trial_ends_at: raw.trial_ends_at ?? null,
+      trial_expired: raw.trial_expired ?? false,
+      seats: {
+        cambridge: raw.seats?.cambridge ?? 0,
+        ielts: raw.seats?.ielts ?? 0,
+        game: raw.seats?.game ?? 0,
+      },
+      current_members: raw.current_members ?? 0,
+    };
 
     // Enrich with billing portal URLs (from billing_subscriptions)
     try {
