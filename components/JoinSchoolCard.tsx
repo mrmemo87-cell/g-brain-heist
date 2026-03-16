@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import * as AuthService from '../services/authService';
 import SchoolRequestModal from './SchoolRequestModal';
+import VisualFallbackImage from './VisualFallbackImage';
 
 interface JoinSchoolCardProps {
   onJoined?: () => void;
@@ -99,6 +100,22 @@ const JoinSchoolCard: React.FC<JoinSchoolCardProps> = ({ onJoined }) => {
           }`}
         >
           <div className="p-4 pt-0 space-y-4 border-t border-gray-800/50">
+            <VisualFallbackImage
+              src="/visuals/Unlock-School-Leaderboards.png"
+              alt="Unlock school features"
+              className="w-full overflow-hidden rounded-lg border border-cyan-500/20"
+              imgClassName="block w-full h-auto object-contain"
+              fallback={(
+                <div className="flex h-24 items-center justify-between rounded-lg border border-cyan-500/20 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10 px-3">
+                  <div>
+                    <p className="text-sm font-semibold text-white">Unlock school mode</p>
+                    <p className="text-xs text-cyan-200">Leaderboards • Clans • Competitions</p>
+                  </div>
+                  <span className="text-2xl" aria-hidden>🏆</span>
+                </div>
+              )}
+            />
+
             {/* Benefits list */}
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="flex items-center gap-2 text-gray-300">
