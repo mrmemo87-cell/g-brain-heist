@@ -191,32 +191,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [nextActionLabel, setNextActionLabel] = useState<string>('');
   const [freeformAnswer, setFreeformAnswer] = useState('');
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
-  const [canShareResults, setCanShareResults] = useState(false);
-
   const answerFeedbackRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const loadSharingEligibility = async () => {
-      try {
-        const profile = await GameService.whoami();
-        if (!mounted) {
-          return;
-        }
-        // Sharing cards are intended for individual users (no school tenancy).
-        setCanShareResults(!profile.school_id);
-      } catch (error) {
-        console.warn('[QuestView] Failed to resolve sharing eligibility:', error);
-      }
-    };
-
-    void loadSharingEligibility();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   const resolveDifficulty = (questionLike: Question | TeacherQuestion): SoloDifficulty => {
     const difficultyValue = (questionLike as TeacherQuestion).difficulty ?? (questionLike as Question).difficulty;
@@ -1630,6 +1605,28 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               <span style={{ color: 'var(--plasma-pink)' }}>{score.gemstones >= 0 ? `+${score.gemstones}` : score.gemstones}</span>
             </p>
           </div>
+
+          <div className="relative overflow-hidden rounded-2xl border border-fuchsia-400/40 bg-gradient-to-br from-fuchsia-900/60 via-indigo-900/40 to-sky-900/40 p-5 mb-6 text-left shadow-[0_0_40px_rgba(217,70,239,0.25)]">
+            <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-fuchsia-400/20 blur-xl" />
+            <div className="absolute -left-8 -bottom-8 h-28 w-28 rounded-full bg-cyan-400/20 blur-xl" />
+            <p className="text-xs uppercase tracking-[0.25em] text-fuchsia-200/80 mb-2">Share Preview</p>
+            <h3 className="font-heading text-2xl text-white mb-1">{selectedSubject?.name || assignmentContext?.subject_name || 'Brains Heist'} Quest</h3>
+            <p className="text-sm text-cyan-100/90 mb-4">Flex your result and challenge friends to beat it.</p>
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-lg bg-black/25 p-2 border border-white/10">
+                <p className="text-[10px] uppercase tracking-widest text-gray-300">Score</p>
+                <p className="font-heading text-lg text-white">{missionTotal}</p>
+              </div>
+              <div className="rounded-lg bg-black/25 p-2 border border-white/10">
+                <p className="text-[10px] uppercase tracking-widest text-gray-300">Accuracy</p>
+                <p className="font-heading text-lg text-white">{accuracyPercent}%</p>
+              </div>
+              <div className="rounded-lg bg-black/25 p-2 border border-white/10">
+                <p className="text-[10px] uppercase tracking-widest text-gray-300">XP</p>
+                <p className="font-heading text-lg text-white">+{score.xp}</p>
+              </div>
+            </div>
+          </div>
           {isAssignmentRun && assignmentContext && (
             <div className="card-glass p-4 border border-purple-500/40 text-left text-sm text-gray-200 mb-6">
               <p><span className="text-gray-400">Assigned by:</span> {assignmentContext.teacher_username}</p>
@@ -1639,16 +1636,14 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           )}
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-            {canShareResults && (
-              <button
-                onClick={() => {
-                  void handleShareResults();
-                }}
-                className="px-8 py-4 rounded-lg font-bold text-lg bg-gradient-to-r from-fuchsia-700 to-pink-600 hover:from-fuchsia-600 hover:to-pink-500 hover:scale-105 active:scale-95 transition-all shadow-lg"
-              >
-                📤 Share Results
-              </button>
-            )}
+            <button
+              onClick={() => {
+                void handleShareResults();
+              }}
+              className="px-8 py-4 rounded-lg font-bold text-lg bg-gradient-to-r from-fuchsia-700 to-pink-600 hover:from-fuchsia-600 hover:to-pink-500 hover:scale-105 active:scale-95 transition-all shadow-lg"
+            >
+              📤 Share Results
+            </button>
             <button
               disabled={isAssignmentSubmitting}
               onClick={() => {
