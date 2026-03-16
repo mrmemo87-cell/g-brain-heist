@@ -191,8 +191,32 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [nextActionLabel, setNextActionLabel] = useState<string>('');
   const [freeformAnswer, setFreeformAnswer] = useState('');
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  const [canShareResults, setCanShareResults] = useState(false);
 
   const answerFeedbackRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadSharingEligibility = async () => {
+      try {
+        const profile = await GameService.whoami();
+        if (!mounted) {
+          return;
+        }
+        // Sharing cards are intended for individual users (no school tenancy).
+        setCanShareResults(!profile.school_id);
+      } catch (error) {
+        console.warn('[QuestView] Failed to resolve sharing eligibility:', error);
+      }
+    };
+
+    void loadSharingEligibility();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const resolveDifficulty = (questionLike: Question | TeacherQuestion): SoloDifficulty => {
     const difficultyValue = (questionLike as TeacherQuestion).difficulty ?? (questionLike as Question).difficulty;
@@ -1529,6 +1553,34 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     const isAssignmentRun = Boolean(mode === 'assignment' || assignmentContext);
     const isAssignmentSubmitting = mode === 'assignment' && assignmentSubmissionState === 'submitting';
 
+    const handleShareResults = async () => {
+      const subjectName = selectedSubject?.name || assignmentContext?.subject_name || 'Brains Heist';
+      const shareTitle = 'My Brains Heist Quest Results';
+      const shareText = `🎯 ${subjectName} quest complete!\nScore: ${missionTotal}\nAccuracy: ${accuracyPercent}%\nRewards: +${score.xp} XP, +${score.coins} coins, +${score.gemstones} gems`;
+
+      try {
+        if (navigator.share) {
+          await navigator.share({
+            title: shareTitle,
+            text: shareText,
+          });
+          brainsAlert('Shared successfully!', 'success');
+          return;
+        }
+
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(shareText);
+          brainsAlert('Quest results copied. Paste it anywhere to share!', 'success');
+          return;
+        }
+
+        brainsAlert('Sharing is not supported on this device.', 'warning');
+      } catch (error) {
+        console.warn('[QuestView] Share flow failed:', error);
+        brainsAlert('Unable to share right now. Please try again.', 'error');
+      }
+    };
+
     return (
       <div className="text-center max-w-2xl mx-auto">
         <h2 className="font-heading text-4xl mb-4 animate-fade-in-up" style={{ color: 'var(--amber-warn)' }}>
@@ -1587,6 +1639,16 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           )}
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+            {canShareResults && (
+              <button
+                onClick={() => {
+                  void handleShareResults();
+                }}
+                className="px-8 py-4 rounded-lg font-bold text-lg bg-gradient-to-r from-fuchsia-700 to-pink-600 hover:from-fuchsia-600 hover:to-pink-500 hover:scale-105 active:scale-95 transition-all shadow-lg"
+              >
+                📤 Share Results
+              </button>
+            )}
             <button
               disabled={isAssignmentSubmitting}
               onClick={() => {
