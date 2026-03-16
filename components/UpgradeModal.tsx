@@ -141,8 +141,8 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
           <VisualFallbackImage
             src="/visuals/Upgrade-to-Prime.png"
             alt="Upgrade visual"
-            className="mb-5 h-24 overflow-hidden rounded-2xl border border-emerald-500/20"
-            imgClassName="h-full w-full object-contain bg-slate-950/80 p-1"
+            className="mb-5 w-full overflow-hidden rounded-2xl border border-emerald-500/20"
+            imgClassName="block w-full h-auto object-contain"
             fallback={(
               <div className="mb-5 flex h-24 items-center justify-between rounded-2xl border border-emerald-500/20 bg-gradient-to-r from-emerald-500/10 via-cyan-500/10 to-blue-500/10 px-4">
                 <div>

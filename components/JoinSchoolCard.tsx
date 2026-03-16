@@ -103,8 +103,8 @@ const JoinSchoolCard: React.FC<JoinSchoolCardProps> = ({ onJoined }) => {
             <VisualFallbackImage
               src="/visuals/Unlock-School-Leaderboards.png"
               alt="Unlock school features"
-              className="h-24 overflow-hidden rounded-lg border border-cyan-500/20"
-              imgClassName="h-full w-full object-contain bg-slate-950/80 p-1"
+              className="w-full overflow-hidden rounded-lg border border-cyan-500/20"
+              imgClassName="block w-full h-auto object-contain"
               fallback={(
                 <div className="flex h-24 items-center justify-between rounded-lg border border-cyan-500/20 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10 px-3">
                   <div>

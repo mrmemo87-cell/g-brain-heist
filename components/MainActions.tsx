@@ -277,8 +277,8 @@ const MainActions: React.FC<MainActionsProps> = ({
           <VisualFallbackImage
             src="/visuals/Today’s-3-Moves.png"
             alt="Today's 3 Moves"
-            className="h-24 overflow-hidden rounded-xl sm:h-28"
-            imgClassName="h-full w-full object-contain bg-slate-950/80 p-1"
+            className="w-full overflow-hidden rounded-xl"
+            imgClassName="block w-full h-auto object-contain"
             fallback={(
               <div className="flex h-24 items-center justify-between rounded-xl border border-cyan-400/20 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10 px-4 sm:h-28">
                 <span className="text-xs font-semibold uppercase tracking-wider text-cyan-200">Today&apos;s 3 Moves</span>
