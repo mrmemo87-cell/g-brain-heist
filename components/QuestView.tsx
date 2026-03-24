@@ -203,6 +203,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [availableMissions, setAvailableMissions] = useState<QuestMission[]>([]);
   /** Questions for client-side virtual quest runs (teacher question sets) */
   const [virtualQuestions, setVirtualQuestions] = useState<TeacherQuestion[] | null>(null);
+  const [isPracticeMissionSelected, setIsPracticeMissionSelected] = useState(false);
   const [missionsLoading, setMissionsLoading] = useState(false);
   const answerFeedbackRef = useRef<HTMLDivElement>(null);
 
@@ -718,6 +719,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         sort_order: 999,
       };
       setVirtualQuestions(picked);
+      setIsPracticeMissionSelected(true);
       setSelectedMission(virtualMission);
       setStage('mission_board');
     } catch (err) {
@@ -753,6 +755,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     };
     setSelectedSubject(matchedSubject);
     setVirtualQuestions(normalizedQuestions);
+    setIsPracticeMissionSelected(true);
     setSelectedMission(virtualMission);
     setStage('mission_board');
   };
@@ -1231,6 +1234,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                         mission={m}
                         onSelect={(mission) => {
                           setVirtualQuestions(null);
+                          setIsPracticeMissionSelected(false);
                           setSelectedMission(mission);
                           setStage('mission_preview');
                         }}
@@ -1897,7 +1901,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       }
       case 'mission_preview': {
         if (!selectedMission) return null;
-        const isIntentionalPracticeMission = selectedMission.code === 'teacher_virtual' && !!virtualQuestions;
+        const isIntentionalPracticeMission = isPracticeMissionSelected && !!virtualQuestions;
         return (
           <>
             {isIntentionalPracticeMission && (
@@ -1910,6 +1914,8 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               onStart={() => setStage('mission_board')}
               onBack={() => {
                 setSelectedMission(null);
+                setVirtualQuestions(null);
+                setIsPracticeMissionSelected(false);
                 setStage('subject_selection');
               }}
             />
@@ -1918,7 +1924,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       }
       case 'mission_board': {
         if (!selectedMission) return null;
-        const isIntentionalPracticeMission = selectedMission.code === 'teacher_virtual' && !!virtualQuestions;
+        const isIntentionalPracticeMission = isPracticeMissionSelected && !!virtualQuestions;
         return (
           <MissionBoard
             missionId={selectedMission.id}
@@ -1933,17 +1939,20 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             onComplete={(result) => {
               setMissionChestResult(result);
               setVirtualQuestions(null);
+              setIsPracticeMissionSelected(false);
               setStage('completed');
             }}
             onRetreat={() => {
               setSelectedMission(null);
               setVirtualQuestions(null);
+              setIsPracticeMissionSelected(false);
               setMissionChestResult(null);
               setStage('subject_selection');
             }}
             onBack={() => {
               setSelectedMission(null);
               setVirtualQuestions(null);
+              setIsPracticeMissionSelected(false);
               setMissionChestResult(null);
               setStage('subject_selection');
             }}
