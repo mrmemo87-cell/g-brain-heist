@@ -6,6 +6,8 @@ import BackButton from './BackButton';
 import { SyndicateRune, CoinIcon, DemoteIcon, KickIcon, LeaveIcon, ManageIcon, PromoteIcon } from './icons';
 import AvatarWithFrame from './AvatarWithFrame';
 import ClickableUsername from './ClickableUsername';
+import BrainsMasterBadge from './BrainsMasterBadge';
+import { neonIcon } from './visualAssets';
 
 type ClanViewStage = 'loading' | 'no_clan' | 'in_clan' | 'creating' | 'joining';
 type ClanTab = 'home' | 'chat' | 'management' | 'browse';
@@ -767,7 +769,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
 
   const renderNoClan = () => (
     <div className="text-center max-w-lg mx-auto">
-        <div className="w-24 h-24 mx-auto mb-4 text-amber-400/50"><SyndicateRune /></div>
+        <div className="w-24 h-24 mx-auto mb-4"><img src={neonIcon('clan')} alt="" className="w-full h-full object-contain drop-shadow-[0_0_12px_rgba(251,191,36,0.4)]" /></div>
         <h2 className="font-heading text-4xl mb-4 text-amber-400">Join the Syndicate</h2>
         <p className="text-gray-400 mb-8">You are not currently part of a clan. Create your own syndicate or join an existing one to collaborate with other agents.</p>
         {pendingJoinRequest && (
@@ -797,8 +799,9 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
             </button>
             <button
                 onClick={() => setStage('joining')}
-                className="w-full bg-gray-500/20 hover:bg-gray-500/30 border border-gray-400 text-white font-heading font-bold text-lg p-3 rounded-xl transition-all"
+                className="w-full bg-gray-500/20 hover:bg-gray-500/30 border border-gray-400 text-white font-heading font-bold text-lg p-3 rounded-xl transition-all inline-flex items-center justify-center gap-2"
             >
+                <img src={neonIcon('invite_friend')} alt="" className="h-5 w-5 object-contain" />
                 Join a Clan
             </button>
         </div>
@@ -1462,6 +1465,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                                             <ClickableUsername userId={member.user_id} username={member.username}>
                                                                 {member.username}
                                                             </ClickableUsername>
+                                                            <BrainsMasterBadge showBadge={member.brains_master_show_badge} until={member.brains_master_until} />
                                                             {member.custom_title && <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/10 text-amber-200">{member.custom_title}</span>}
                                                         </p>
                                                         <p className="text-xs text-gray-400 capitalize">{member.role}</p>
@@ -1601,6 +1605,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                                     <ClickableUsername userId={member.user_id} username={member.username}>
                                                         {member.username}
                                                     </ClickableUsername>
+                                                    <BrainsMasterBadge showBadge={member.brains_master_show_badge} until={member.brains_master_until} />
                                                 </p>
                                                 <p className="text-xs text-gray-400 capitalize">{member.role}</p>
                                                 {member.custom_title && <p className="text-[11px] text-gray-400">{member.custom_title}</p>}
@@ -1693,6 +1698,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                                         <ClickableUsername userId={member.user_id} username={member.username}>
                                                             {member.username}
                                                         </ClickableUsername>
+                                                        <BrainsMasterBadge showBadge={member.brains_master_show_badge} until={member.brains_master_until} />
                                                         {member.custom_title && <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/10 text-amber-200">{member.custom_title}</span>}
                                                 </p>
                                                 <p className="text-xs text-gray-400 capitalize">{member.role}</p>

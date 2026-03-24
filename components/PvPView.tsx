@@ -10,6 +10,7 @@ import AvatarWithFrame from './AvatarWithFrame';
 import { fetchNeonFrameOwners, fetchFlickerThemeOwners, fetchGlitchEffectOwners } from '../services/cosmeticService';
 import { tryConsumePilotQuota } from '../services/tierService';
 import ClickableUsername from './ClickableUsername';
+import BrainsMasterBadge from './BrainsMasterBadge';
 
 type PvPStage = 'loading' | 'targets' | 'cinematic' | 'result';
 type BreachPhase = 'lockon' | 'charge' | 'impact' | 'outcome';
@@ -99,6 +100,7 @@ const TargetCard: React.FC<{ target: RaidTarget, onSelect: (target: RaidTarget) 
         <ClickableUsername userId={target.user_id} username={target.username}>
           {target.username}
         </ClickableUsername>
+        <BrainsMasterBadge showBadge={target.brains_master_show_badge} until={target.brains_master_until} />
       </h3>
       <p className="text-sm text-gray-400">Lvl {target.level} | Batch {target.batch}</p>
       {target.clan_name && target.clan_id && (

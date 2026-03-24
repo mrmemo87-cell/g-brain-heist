@@ -33,7 +33,7 @@ interface TeacherPortalProps {
 let _cachedPlanDetails: SchoolPlanDetails | null = null;
 let _cachedTeacherTier: AccountTier | null = null;
 
-type PortalView = 'dashboard' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'geometry-diagrams' | 'cambridge-reports';
+type PortalView = 'dashboard' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'geometry-diagrams' | 'cambridge-reports' | 'quest-builder';
 
 // XP points based on difficulty: Easy=10, Medium=15, Hard=20
 const getDefaultPointsForDifficulty = (diff: QuestionDifficulty): number => {
@@ -163,6 +163,15 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [cambridgeNeedsMarkingOnly, setCambridgeNeedsMarkingOnly] = useState(false);
   const [cambridgeReleasedOnly, setCambridgeReleasedOnly] = useState(false);
   const [cambridgeSort, setCambridgeSort] = useState('newest');
+
+  // Quest Builder State
+  const [myQuests, setMyQuests] = useState<GameService.QuestMissionRow[]>([]);
+  const [myQuestsLoading, setMyQuestsLoading] = useState(false);
+  const [questBuilderTitle, setQuestBuilderTitle] = useState('');
+  const [questBuilderDifficulty, setQuestBuilderDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
+  const [questBuilderDescription, setQuestBuilderDescription] = useState('');
+  const [questBuilderQuestionIds, setQuestBuilderQuestionIds] = useState<string[]>([]);
+  const [questBuilderSaving, setQuestBuilderSaving] = useState(false);
   const [cambridgeFiltersOpen, setCambridgeFiltersOpen] = useState(false);
   const [cambridgeTestSearch, setCambridgeTestSearch] = useState('');
   const [cambridgeSelectedIds, setCambridgeSelectedIds] = useState<string[]>([]);
@@ -253,9 +262,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   const subjectFilterOptions = useMemo(() => {
     const subjects = new Set<Subject>();
-    questions.forEach((zzq) => {
-      subjects.add(zzq.subject);
-    });
+    questions.forEach((q) => subjects.add(q.subject));
     return Array.from(subjects).sort();
   }, [questions]);
 
@@ -269,9 +276,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     const topics = new Set<string>();
     questions
       .filter((q) => questionSubjectFilter === 'all' || q.subject === questionSubjectFilter)
-      .forEach((q) => {
-        topics.add(getQuestionTopicLabel(q));
-      });
+      .forEach((q) => topics.add(getQuestionTopicLabel(q)));
     return Array.from(topics).sort();
   }, [questions, questionSubjectFilter]);
 
@@ -377,15 +382,16 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       s.batch?.toLowerCase().includes(search)
     );
   }, [availableStudents, studentSearchTerm]);
-  const primarySection = useMemo<'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge'>(() => {
+  const primarySection = useMemo<'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge' | 'quests'>(() => {
     if (view === 'dashboard') return 'dashboard';
     if (view === 'question-bank' || view === 'create-question' || view === 'csv-upload') return 'questions';
     if (view === 'assignments' || view === 'create-assignment') return 'assignments';
     if (view === 'cambridge-reports') return 'cambridge';
+    if (view === 'quest-builder') return 'quests';
     return 'reports'; // catches 'reports', 'report-detail', 'report-analysis', 'collective-report'
   }, [view]);
 
-  const changeSection = (section: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge') => {
+  const changeSection = (section: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge' | 'quests') => {
     switch (section) {
       case 'dashboard':
         setView('dashboard');
@@ -405,6 +411,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       case 'cambridge':
         setView('cambridge-reports');
         loadCambridgeScores();
+        break;
+      case 'quests':
+        setView('quest-builder');
+        loadMyQuests();
         break;
       default:
         setView('dashboard');
@@ -619,7 +629,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   };
 
   // Load Cambridge test scores for teacher's school (school-isolated)
-  const loadCambridgeScores = async () => {
+  const loadMyQuests = async () => {\n    setMyQuestsLoading(true);\n    try {\n      const quests = await GameService.teacher_get_my_quests();\n      setMyQuests(quests);\n    } catch (err) {\n      console.error('Failed to load teacher quests:', err);\n    } finally {\n      setMyQuestsLoading(false);\n    }\n  };\n\n  const loadCambridgeScores = async () => {
     setCambridgeLoading(true);
     try {
       // Use school-scoped RPC to get only scores from teacher's school
@@ -1208,38 +1218,19 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   const getStudentResponses = (student: any) => {
     const answers = student?.answers || {};
-    const responses = answers.responses || answers || {};
-
-    if (typeof responses === 'string') {
-      try {
-        return JSON.parse(responses);
-      } catch (error) {
-        console.warn('Failed to parse student responses:', error);
-        return {};
+    if (student?.quiz_name?.toLowerCase().includes('chemistry') || student?.quiz_name?.toLowerCase().includes('biology')) {
+      const responses = answers.responses || answers || {};
+      if (typeof responses === 'string') {
+        try {
+          return JSON.parse(responses);
+        } catch (error) {
+          console.warn('Failed to parse chemistry responses:', error);
+          return {};
+        }
       }
+      return responses;
     }
-
-    return responses;
-  };
-
-  const getOriginalQuestionNumbers = (student: any): Record<number, number> => {
-    const answers = student?.answers || {};
-    const mapping = answers.original_question_numbers
-      || answers.originalQuestionNumbers
-      || answers.responses?.original_question_numbers
-      || answers.responses?.originalQuestionNumbers
-      || {};
-
-    if (typeof mapping === 'string') {
-      try {
-        return JSON.parse(mapping);
-      } catch (error) {
-        console.warn('Failed to parse original question number mapping:', error);
-        return {};
-      }
-    }
-
-    return mapping;
+    return answers;
   };
 
   /** Normalize dash-like characters so DB names (may contain U+FFFD from
@@ -1281,26 +1272,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   };
 
   const buildResponseSummary = (student: any, answerKey: Record<number, string>) => {
-    let responses = getStudentResponses(student);
-
-    // If the submission includes original_question_numbers (stored by the quiz HTML
-    // to record the shuffled-position → global-question mapping), remap local
-    // position keys back to global question numbers so the answer key (which uses
-    // global keys) can correctly grade each response.
-    const originalNumbers = getOriginalQuestionNumbers(student);
-    if (Object.keys(originalNumbers).length > 0) {
-      const remapped: Record<number, string> = {};
-      Object.entries(responses).forEach(([localKey, ans]) => {
-        // Only process numeric question keys; skip any spurious non-numeric entries
-        const numericKey = Number(localKey);
-        if (!Number.isNaN(numericKey)) {
-          const globalKey = originalNumbers[numericKey];
-          remapped[globalKey != null ? globalKey : numericKey] = ans as string;
-        }
-      });
-      responses = remapped;
-    }
-
+    const responses = getStudentResponses(student);
     const totalQuestions = student?.total_questions || Object.keys(answerKey).length || 0;
     let correctCount = student?.score || 0;
     let unansweredCount = 0;
@@ -1312,9 +1284,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       // instead of global question numbers (before the originalNumber fix was deployed).
       const akKeys = Object.keys(answerKey).map(Number);
       const minAkKey = Math.min(...akKeys);
-      const responsesHaveAkKeys = akKeys.some(k => String(responses[k] ?? '').trim() !== '');
+      const responsesHaveAkKeys = akKeys.some(k => (responses[k] ?? '') !== '');
       const responsesHaveLocalKeys = Object.keys(responses).some(
-        k => Number(k) < minAkKey && String(responses[k] ?? '').trim() !== ''
+        k => Number(k) < minAkKey && (responses[k] ?? '') !== ''
       );
       const isLegacyLocalFormat = minAkKey > 1 && !responsesHaveAkKeys && responsesHaveLocalKeys;
 
@@ -3045,6 +3017,202 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       // Reset file input
       e.target.value = '';
     }
+  };
+
+  // ── Quest Builder ──────────────────────────────────────────────────────────
+  const renderQuestBuilder = () => {
+    const myQ = questions.filter(q => q.teacher_id === teacher?.id);
+
+    const handleToggleQuestQuestion = (id: string) => {
+      setQuestBuilderQuestionIds(prev =>
+        prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+      );
+    };
+
+    const handleSaveQuest = async () => {
+      if (!questBuilderTitle.trim()) { brainsAlert('Please enter a quest title.', 'warning'); return; }
+      if (questBuilderQuestionIds.length < 1) { brainsAlert('Select at least 1 question.', 'warning'); return; }
+      if (questBuilderQuestionIds.length > 20) { brainsAlert('Maximum 20 questions per quest.', 'warning'); return; }
+      setQuestBuilderSaving(true);
+      try {
+        await GameService.teacher_create_quest_mission({
+          title: questBuilderTitle.trim(),
+          subject: questions.find(q => q.id === questBuilderQuestionIds[0])?.subject ?? 'General',
+          questionIds: questBuilderQuestionIds,
+          difficulty: questBuilderDifficulty,
+          description: questBuilderDescription.trim() || undefined,
+        });
+        brainsAlert('Quest mission created! Students will see it once you publish it.', 'success');
+        setQuestBuilderTitle('');
+        setQuestBuilderDescription('');
+        setQuestBuilderQuestionIds([]);
+        setQuestBuilderDifficulty('medium');
+        await loadMyQuests();
+      } catch (err: any) {
+        brainsAlert(err?.message ?? 'Failed to create quest.', 'error');
+      } finally {
+        setQuestBuilderSaving(false);
+      }
+    };
+
+    return (
+      <div className="space-y-8">
+        <div className="teacher-section-header">
+          <h2 className="teacher-section-title">
+            <span>🗺️</span> Quest Builder
+          </h2>
+          <p className="teacher-section-subtitle">
+            Build V2 route-based quest missions from your question bank. Students play them in the full Quest Mode 2.0 experience.
+          </p>
+        </div>
+
+        {/* Create new quest */}
+        <div className="card-glass p-6 space-y-4 border border-violet-500/30">
+          <h3 className="text-white font-heading text-lg">Create New Quest Mission</h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs text-slate-400 mb-1 uppercase tracking-wider">Quest Title *</label>
+              <input
+                type="text"
+                className="w-full bg-slate-800/70 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-violet-400"
+                placeholder="e.g. Algebra Spire Route"
+                value={questBuilderTitle}
+                onChange={e => setQuestBuilderTitle(e.target.value)}
+                maxLength={80}
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-400 mb-1 uppercase tracking-wider">Difficulty</label>
+              <select
+                className="w-full bg-slate-800/70 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-violet-400"
+                value={questBuilderDifficulty}
+                onChange={e => setQuestBuilderDifficulty(e.target.value as 'easy' | 'medium' | 'hard')}
+              >
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs text-slate-400 mb-1 uppercase tracking-wider">Description (optional)</label>
+            <textarea
+              className="w-full bg-slate-800/70 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-violet-400 resize-none"
+              rows={2}
+              placeholder="Brief description shown on the mission card"
+              value={questBuilderDescription}
+              onChange={e => setQuestBuilderDescription(e.target.value)}
+              maxLength={200}
+            />
+          </div>
+
+          {/* Question picker */}
+          <div>
+            <label className="block text-xs text-slate-400 mb-2 uppercase tracking-wider">
+              Select Questions ({questBuilderQuestionIds.length} selected)
+            </label>
+            {myQ.length === 0 ? (
+              <p className="text-slate-400 text-sm">You have no questions yet. Create some in the Question Bank first.</p>
+            ) : (
+              <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                {myQ.map(q => {
+                  const picked = questBuilderQuestionIds.includes(q.id);
+                  return (
+                    <button
+                      key={q.id}
+                      type="button"
+                      onClick={() => handleToggleQuestQuestion(q.id)}
+                      className={`w-full text-left p-3 rounded-lg border text-sm transition-colors ${
+                        picked
+                          ? 'bg-violet-600/30 border-violet-400 text-white'
+                          : 'bg-slate-800/50 border-slate-700 text-slate-300 hover:border-slate-500'
+                      }`}
+                    >
+                      <div className="flex items-start gap-2">
+                        <span className="mt-0.5 text-violet-400">{picked ? '✓' : '○'}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="truncate">{q.question_text}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">{q.subject} · {q.difficulty} · {q.topic_name || q.topic || 'General'}</p>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <p className="text-xs text-slate-500">
+            The route is auto-generated: Start node → your questions (last one becomes the Elite Station) → reward node → Final Chest.
+          </p>
+
+          <button
+            onClick={handleSaveQuest}
+            disabled={questBuilderSaving || !questBuilderTitle.trim() || questBuilderQuestionIds.length === 0}
+            className="px-6 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-sm transition-colors"
+          >
+            {questBuilderSaving ? 'Creating...' : 'Create Quest Mission'}
+          </button>
+        </div>
+
+        {/* My existing quests */}
+        <div>
+          <h3 className="text-white font-heading text-lg mb-3">My Quest Missions</h3>
+          {myQuestsLoading ? (
+            <p className="text-slate-400 text-sm animate-pulse">Loading...</p>
+          ) : myQuests.length === 0 ? (
+            <p className="text-slate-400 text-sm">No quest missions yet. Create one above.</p>
+          ) : (
+            <div className="space-y-3">
+              {myQuests.map(q => (
+                <div key={q.id} className="card-glass p-4 flex items-center gap-4 border border-slate-700/50">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white font-semibold truncate">{q.title}</p>
+                    <p className="text-xs text-slate-400">{q.subject} · {q.difficulty} · {(q.route_template?.length ?? 0)} nodes</p>
+                  </div>
+                  <span className={`text-xs px-2 py-1 rounded-full border ${
+                    q.is_active
+                      ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300'
+                      : 'bg-slate-700/40 border-slate-600 text-slate-400'
+                  }`}>
+                    {q.is_active ? 'Published' : 'Draft'}
+                  </span>
+                  <button
+                    onClick={async () => {
+                      try {
+                        await GameService.teacher_toggle_quest_active(q.id, !q.is_active);
+                        await loadMyQuests();
+                      } catch (err: any) {
+                        brainsAlert(err?.message ?? 'Failed to update quest.', 'error');
+                      }
+                    }}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white transition-colors"
+                  >
+                    {q.is_active ? 'Unpublish' : 'Publish'}
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (!confirm(`Delete "${q.title}"? This cannot be undone.`)) return;
+                      try {
+                        await GameService.teacher_delete_quest(q.id);
+                        await loadMyQuests();
+                      } catch (err: any) {
+                        brainsAlert(err?.message ?? 'Failed to delete quest.', 'error');
+                      }
+                    }}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-red-900/40 hover:bg-red-800/60 border border-red-700/50 text-red-300 transition-colors"
+                  >
+                    Delete
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   // Render Dashboard
@@ -6198,20 +6366,6 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         const answerKey = isChemistryTest ? getScienceAnswerKey(quizName) : (correctAnswers[quizName] || {});
         const sections = testSections[quizName] || [];
         const summary = buildResponseSummary(selectedCambridgeStudent, answerKey);
-        const rawResponses = getStudentResponses(selectedCambridgeStudent);
-        const originalQuestionNumbers = getOriginalQuestionNumbers(selectedCambridgeStudent);
-        const responseEntries = Object.entries(rawResponses || {})
-          .filter(([key]) => !Number.isNaN(Number(key)))
-          .map(([questionCode, studentAnswer]) => {
-            const localQuestion = Number(questionCode);
-            const mappedQuestion = originalQuestionNumbers[localQuestion];
-            return {
-              localQuestion,
-              questionCode: mappedQuestion ?? localQuestion,
-              studentAnswer: normalizeAnswer(studentAnswer) || '—',
-            };
-          })
-          .sort((a, b) => a.questionCode - b.questionCode);
         const questionBank = getQuestionsForQuiz(quizName);
         const questionMap = new Map<number, QuestionData>();
         questionBank.forEach(q => questionMap.set(q.number, q));
@@ -6231,65 +6385,23 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
-        /** Fix encoding-damaged placeholders in chemistry HTML.
-         *  The question data was extracted from Windows-1252 HTML; non-ASCII chars
-         *  became bare `?`. Each rule below targets a specific known pattern:
-         *  1) <span aria-label="p orbital" ...>?</span>  →  badge with escaped label
-         *  2) <span class="supSym">?</span>  →  ° (standard-state symbol Δ/⊖)
-         *  3) <sup>?N</sup>  →  <sup>−N</sup>  (leading-minus then digit, e.g. mol⁻¹)
-         *  4) <sup>N?</sup>  →  <sup>N−</sup>  (trailing-minus, e.g. charge 2−)
-         *  5) space+?C  →  space+°C  (degree Celsius in temperature text)
-         *  6) ?H followed by span/space  →  ΔH  (enthalpy symbol)
-         *  7) ?<digit>  →  −<digit>  (negative numbers such as −394, −4.2)
-         *  8) <img>  →  normalised to consistent max size, centred */
+        /** Fix encoding-damaged placeholders in chemistry HTML:
+         *  1) <span aria-label="p orbital" ...>?</span>  →  sanitized badge with escaped label
+         *  2) <sup>N?</sup>  →  <sup>N−</sup>  (superscript minus/charge signs lost to Windows-1252 encoding)
+         *  3) <img ...>  →  normalized to consistent max size, centered; run through DOMPurify */
         const fixChemHtml = (html: string) => {
-          // Phase 1 — element-level transforms applied to the raw HTML string.
-          // Rules 1 and 8 target specific element patterns and cannot corrupt URL
-          // attribute values, so they are safe to run on the full string.
-          let htmlStr = html
-            // 1) aria-label orbital badge — attribute-order-independent, single or double quotes
-            .replace(/<span\b[^>]*\baria-label=(["'])([^"']+)\1[^>]*>\s*\?\s*<\/span>/gi,
-              (_m: string, _q: string, label: string) =>
-                `<span style="font-size:11px; background:#e0e7ff; color:#3730a3; padding:1px 5px; border-radius:4px; font-weight:600;">${escapeHTML(label)}</span>`)
-            // 8) img normalisation
+          const replaced = html
+            .replace(/<span\s+aria-label="([^"]+)"[^>]*>\s*\?\s*<\/span>/gi,
+              (_m: string, label: string) => `<span style="font-size:11px; background:#e0e7ff; color:#3730a3; padding:1px 5px; border-radius:4px; font-weight:600;">${escapeHTML(label)}</span>`)
+            .replace(/<sup>(\d*)\?<\/sup>/g, '<sup>$1\u2212</sup>')
             .replace(/<img\b([^>]*?)(?:\s*\/)?>/gi, (_m: string, attrs: string) => {
+              // Strip any existing size/style attrs before applying our safe defaults
               const cleanAttrs = attrs.replace(/\s*(?:width|height|style)\s*=\s*(?:"[^"]*"|'[^']*'|\S+)/gi, '');
               return `<img${cleanAttrs} style="max-width:100%;max-height:300px;height:auto;display:block;margin:8px auto;border-radius:3px;" />`;
             });
-
-          // Phase 2 — text-node-only transforms via DOM so that attribute values
-          // (e.g. URLs containing ?digit) are never mutated by the ? → symbol rules.
-          const doc = new DOMParser().parseFromString(`<body>${htmlStr}</body>`, 'text/html');
-          const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
-          let node: Text | null;
-          while ((node = walker.nextNode() as Text | null)) {
-            let t = node.nodeValue ?? '';
-            if (!t.includes('?')) continue; // fast-path: nothing to fix in this node
-            const parent = node.parentElement;
-            if (parent?.classList.contains('supSym')) {
-              // 2) standard-state ° inside supSym spans
-              node.nodeValue = t.replace(/\?/g, '\u00b0');
-            } else if (parent?.tagName === 'SUP') {
-              // 3) ? before digit(s) → − (mol?1 → mol⁻¹)
-              t = t.replace(/\?(\d+)/g, '\u2212$1');
-              // 4) digit(s) before ? → digit− (bare charge, e.g. 2? → 2−)
-              t = t.replace(/(\d*)\?/g, '$1\u2212');
-              node.nodeValue = t;
-            } else {
-              // 5) degree Celsius: ?C → °C
-              t = t.replace(/\?C\b/g, '\u00b0C');
-              // 6) delta H: ?H before whitespace / punctuation / end of text node → ΔH
-              t = t.replace(/\?H(?=[\s,.<]|$)/g, '\u0394H');
-              // 7) negative numbers: ?digit → −digit
-              t = t.replace(/\?(\d)/g, '\u2212$1');
-              node.nodeValue = t;
-            }
-          }
-          const replaced = doc.body.innerHTML;
           return DOMPurify.sanitize(replaced, {
-            ALLOWED_TAGS: ['sup', 'sub', 'span', 'img', 'br', 'div', 'ul', 'ol', 'li', 'p',
-                           'strong', 'em', 'b', 'i', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
-            ALLOWED_ATTR: ['style', 'src', 'alt', 'class', 'aria-label', 'loading'],
+            ALLOWED_TAGS: ['sup', 'sub', 'span', 'img', 'br', 'div', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
+            ALLOWED_ATTR: ['style', 'src', 'alt', 'class', 'aria-label'],
           });
         };
         
@@ -6542,26 +6654,10 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                     <p className="text-gray-700 mb-3">
                       Score: <strong>{selectedCambridgeStudent.score}</strong> out of <strong>{selectedCambridgeStudent.total_questions}</strong> ({selectedCambridgeStudent.percentage}%)
                     </p>
-
-                    {responseEntries.length > 0 ? (
-                      <div className="mt-4 space-y-2">
-                        <p className="text-sm text-gray-700 font-medium">
-                          Student submitted answers (same review source used in test page release mode):
-                        </p>
-                        <div className="rounded-xl border border-blue-200 bg-white divide-y divide-blue-100 max-h-72 overflow-y-auto">
-                          {responseEntries.map((entry) => (
-                            <div key={`${entry.localQuestion}-${entry.questionCode}`} className="px-3 py-2 text-sm flex items-center justify-between gap-3">
-                              <span className="font-semibold text-blue-800">Q{entry.questionCode}</span>
-                              <span className="text-gray-700 truncate">Submitted: <strong>{entry.studentAnswer}</strong></span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="text-gray-600 text-sm">
-                        No per-question responses were found in this submission payload.
-                      </p>
-                    )}
+                    <p className="text-gray-600 text-sm">
+                      Detailed answer review is not available for this test in the teacher portal yet.
+                      Students will be able to review their answers once the score is released.
+                    </p>
                   </div>
                 )}
               </div>
@@ -7242,12 +7338,13 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     );
   }
 
-  const navTabs: Array<{ id: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge'; label: string; icon: string; description: string; proOnly?: boolean }> = [
+  const navTabs: Array<{ id: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge' | 'quests'; label: string; icon: string; description: string; proOnly?: boolean }> = [
     { id: 'dashboard', label: 'Dashboard', icon: '🏠', description: 'Overview & Quick Actions' },
     { id: 'questions', label: 'Question Bank', icon: '📚', description: 'Create & Manage Questions', proOnly: true },
     { id: 'assignments', label: 'Assignments', icon: '📋', description: 'Assign Work to Students', proOnly: true },
     { id: 'reports', label: 'Reports', icon: '📊', description: 'Student Performance', proOnly: true },
     { id: 'cambridge', label: 'Cambridge Tests', icon: '✍️', description: 'Writing & Test Results', proOnly: true },
+    { id: 'quests', label: 'Quest Builder', icon: '🗺️', description: 'Create V2 Quest Missions', proOnly: true },
   ];
 
   // Plan badge info for top bar
@@ -7494,6 +7591,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             />
           )}
           {view === 'cambridge-reports' && renderCambridgeReports()}
+          {view === 'quest-builder' && renderQuestBuilder()}
           {view === 'geometry-diagrams' && teacher && (
             <DiagramBuilder
               teacherId={teacher!.id}

@@ -35,7 +35,10 @@ interface MainActionsProps {
   schoolLogoUrl?: string | null;
   isPro?: boolean;
   isPilot?: boolean;
+  isIndividual?: boolean;
+  profile?: import('../types').Profile | null;
   onUpgrade?: (featureLabel?: string) => void;
+  onJoinSchool?: () => void;
 }
 
 type ActionButtonProps = {
@@ -227,6 +230,8 @@ const MainActions: React.FC<MainActionsProps> = ({
   schoolLogoUrl,
   isPro: isProUser = false,
   isPilot: isPilotPlan = false,
+  isIndividual = false,
+  profile: _profile,
   onUpgrade,
 }) => {
   const [pilotQuotas, setPilotQuotas] = useState<PilotQuotaStatus | null>(null);
@@ -240,7 +245,8 @@ const MainActions: React.FC<MainActionsProps> = ({
     return () => { cancelled = true; };
   }, [isPilotPlan]);
 
-  const locked = !isProUser;
+  // Individuals (no school) get free access to core competitive features
+  const locked = !isProUser && !isIndividual;
 
   // Get quota info for a feature label (only relevant for pilot)
   const q = (featureLabel: string): PilotQuota | null => {
@@ -459,20 +465,20 @@ const MainActions: React.FC<MainActionsProps> = ({
               quotaLabel={ql('Visit Shop')}
             />
             <ActionButton
-              onClick={locked ? handleLocked('Tournaments') : handlePilotClick('Tournament', onOpenTournament)}
-              icon={<img src="/mission-console-images/tournament.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
+              onClick={locked ? handleLocked('Leaderboard') : handlePilotClick('Leaderboard', onViewLeaderboard)}
+              icon={<img src="/mission-console-images/leaderboard.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
-              label="Tournament"
+              label="Leaderboard"
               circleIcon
               hideLabel
               className="min-h-[18rem]"
               containerBare
-              ariaLabel="Tournament"
-              color="255, 140, 0"
+              ariaLabel="Leaderboard"
+              color="255, 215, 0"
               glowClass="glow-warn"
               locked={locked}
-              quotaInfo={q('Tournament')}
-              quotaLabel={ql('Tournament')}
+              quotaInfo={q('Leaderboard')}
+              quotaLabel={ql('Leaderboard')}
             />
             <ActionButton
               onClick={locked ? handleLocked('Clans') : handlePilotClick('Clan', onGoToClan)}
@@ -534,20 +540,20 @@ const MainActions: React.FC<MainActionsProps> = ({
               quotaLabel={ql('Inventory')}
             />
             <ActionButton
-              onClick={locked ? handleLocked('Leaderboard') : handlePilotClick('Leaderboard', onViewLeaderboard)}
-              icon={<img src="/mission-console-images/leaderboard.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
+              onClick={locked ? handleLocked('Tournaments') : handlePilotClick('Tournament', onOpenTournament)}
+              icon={<img src="/mission-console-images/tournament.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
-              label="Leaderboard"
+              label="Tournament"
               circleIcon
               hideLabel
               className="min-h-[18rem]"
               containerBare
-              ariaLabel="Leaderboard"
-              color="255, 215, 0"
+              ariaLabel="Tournament"
+              color="255, 140, 0"
               glowClass="glow-warn"
               locked={locked}
-              quotaInfo={q('Leaderboard')}
-              quotaLabel={ql('Leaderboard')}
+              quotaInfo={q('Tournament')}
+              quotaLabel={ql('Tournament')}
             />
             <ActionButton
               onClick={locked ? handleLocked('Achievements') : handlePilotClick('Achievements', onViewAchievements)}
@@ -566,7 +572,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               quotaLabel={ql('Achievements')}
             />
             <ActionButton
-              onClick={locked ? handleLocked('IELTS Prep') : handlePilotClick('IELTS Prep', onOpenIeltsPrep)}
+              onClick={isIndividual ? undefined : (locked ? handleLocked('IELTS Prep') : handlePilotClick('IELTS Prep', onOpenIeltsPrep))}
               icon={<img src="/mission-console-images/ielts-prep.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
               label="IELTS Prep"
@@ -574,15 +580,16 @@ const MainActions: React.FC<MainActionsProps> = ({
               hideLabel
               containerBare
               ariaLabel="IELTS Prep"
+              subtitle={isIndividual ? '🏫 School Only' : undefined}
               color="0, 191, 255"
               glowClass="glow-ion"
-              className="col-span-2 min-h-[18rem]"
-              locked={locked}
+              className={`col-span-2 min-h-[18rem]${isIndividual ? ' opacity-50 pointer-events-none' : ''}`}
+              locked={locked || isIndividual}
               quotaInfo={q('IELTS Prep')}
               quotaLabel={ql('IELTS Prep')}
             />
             <ActionButton
-              onClick={locked ? handleLocked('Cambridge Tests') : handlePilotClick('Cambridge Tests', onOpenCambridgeTests)}
+              onClick={isIndividual ? undefined : (locked ? handleLocked('Cambridge Tests') : handlePilotClick('Cambridge Tests', onOpenCambridgeTests))}
               icon={<img src="/mission-console-images/cambridge-tests.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
               label="Cambridge Tests"
@@ -590,11 +597,11 @@ const MainActions: React.FC<MainActionsProps> = ({
               hideLabel
               containerBare
               ariaLabel="Cambridge Tests"
-              subtitle="Practice reading & grammar"
+              subtitle={isIndividual ? '🏫 School Only' : 'Practice reading & grammar'}
               color="102, 126, 234"
               glowClass="glow-ion"
-              className="col-span-2 min-h-[18rem]"
-              locked={locked}
+              className={`col-span-2 min-h-[18rem]${isIndividual ? ' opacity-50 pointer-events-none' : ''}`}
+              locked={locked || isIndividual}
               quotaInfo={q('Cambridge Tests')}
               quotaLabel={ql('Cambridge Tests')}
             />

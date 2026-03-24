@@ -43,6 +43,11 @@ import {
     CompletedAssignment,
     AssignmentAchievementEarned,
     MyAssignmentAnswer,
+    QuestRunState,
+    QuestAnswerResult,
+    QuestEventResult,
+    QuestChestResult,
+    BrainsMasterPurchaseResult,
 } from '../types';
 import * as RaidFeatureService from '../src/features/raids/raidService';
 import {
@@ -2291,7 +2296,26 @@ export const session_status = (): Promise<SessionStatus> => {
   return mockApiCall(status);
 };
 
-export const caps_status = (): Promise<Caps> => {
+export const caps_status = async (): Promise<Caps> => {
+  // Try to get effective caps from backend (accounts for Brains Master boost)
+  try {
+    const user = await getCurrentUser();
+    const { data, error } = await supabase.rpc('get_user_effective_caps', { p_user_id: user.id });
+    if (!error && data) {
+      return {
+        xp_daily_remaining: data.daily_xp_cap - (data.xp_earned_today ?? 0),
+        coins_daily_remaining: data.daily_coins_cap - (data.coins_earned_today ?? 0),
+        xp_weekly_remaining: data.weekly_xp_cap - (data.xp_earned_week ?? 0),
+        coins_weekly_remaining: data.weekly_coins_cap - (data.coins_earned_week ?? 0),
+        daily_xp_cap: data.daily_xp_cap,
+        daily_coins_cap: data.daily_coins_cap,
+        weekly_xp_cap: data.weekly_xp_cap,
+        weekly_coins_cap: data.weekly_coins_cap,
+      };
+    }
+  } catch { /* fall through to mock */ }
+
+  // Fallback: hardcoded caps (pre-migration)
   const caps: Caps = {
     xp_daily_remaining: 650,
     coins_daily_remaining: 1200,
@@ -3042,9 +3066,6 @@ export const raid_attack = async (
     const { data, error } = await performHackAttempt(defender_id, requestId);
 
     if (error) {
-        if (error.message?.includes('Direct XP/level updates are not allowed') || error.message?.includes('Direct XP/Level updates are not allowed')) {
-            throw new Error('PvP battle is blocked by database security configuration. Apply the rpc_hack_attempt XP-write patch (see FIX_HACK_ATTEMPT_XP_WRITE.sql) so the function sets app.allow_xp_level_write before updating users.xp/users.level.');
-        }
         throw new Error(error.message || 'Failed to execute raid attack.');
     }
 
@@ -5391,59 +5412,50 @@ export const submit_question_answer = async (
     timeTaken?: number,
     questSessionId?: string
 ): Promise<QuestionAttemptResult> => {
-    // Prefer the modern submit RPC path first.
-    // It is the canonical path after reward/security hardening.
-    try {
-        const fallbackResponse = await mcq_answer_submit({ id: questionId, correct_answer: '' } as Question, answer);
-        return {
-            is_correct: fallbackResponse.correct,
-            points_earned: fallbackResponse.deltas?.xp ?? 0,
-            correct_answer: fallbackResponse.correct ? answer : '',
-            explanation: fallbackResponse.explanation,
-            duplicate_reward: (fallbackResponse.deltas?.xp ?? 0) === 0 && fallbackResponse.correct,
-            final_profile_values: fallbackResponse.finalProfileValues,
-        } as QuestionAttemptResult;
-    } catch (mcqError: any) {
-        // If DB trigger hardening is still misconfigured, this RPC can fail too.
-        // Surface a clear action-oriented error while still trying legacy fallback.
-        if (mcqError?.message?.includes('Direct XP/level updates are not allowed')) {
-            console.error('[submit_question_answer] rpc_submit_mcq_answer blocked by XP trigger policy. Database migration is required.', mcqError);
-        }
+    const user = await getCurrentUser();
 
-        // Legacy fallback path for older deployments that still rely on record_question_attempt.
-        const { data, error } = await recordQuestionAttempt({
-            p_question_id: questionId,
-            p_answer_given: answer,
-            p_time_taken: timeTaken,
-            p_quest_session_id: questSessionId
+    const { data, error } = await recordQuestionAttempt({
+        p_question_id: questionId,
+        p_answer_given: answer,
+        p_time_taken: timeTaken,
+        p_quest_session_id: questSessionId
+    });
+
+    if (error) {
+        // Handle duplicate correct-answer constraint gracefully
+        if (error.message?.includes('unique') || ('code' in error && (error as any).code === '23505')) {
+            return {
+                is_correct: true,
+                points_earned: 0,
+                correct_answer: answer,
+                explanation: 'Already answered correctly!',
+            } as QuestionAttemptResult;
+        }
+        throw error;
+    }
+
+    const result = data as QuestionAttemptResult;
+    const xpDelta = Math.max(0, result.points_earned || 0);
+    const coinDelta = result.is_correct ? Math.trunc(xpDelta / 2) : 0;
+
+    if (xpDelta > 0 || coinDelta > 0) {
+        const rewardResult = await applyRewardDelta({
+            xpDelta,
+            coinsDelta: coinDelta,
+            gemstonesDelta: 0,
+            applyLevelMilestone: true,
         });
 
-        if (error) {
-            // Handle duplicate correct-answer constraint gracefully
-            if (error.message?.includes('unique') || ('code' in error && (error as any).code === '23505')) {
-                return {
-                    is_correct: true,
-                    points_earned: 0,
-                    correct_answer: answer,
-                    explanation: 'Already answered correctly!',
-                } as QuestionAttemptResult;
-            }
-
-            if ((error as any)?.message?.includes('Direct XP/level updates are not allowed')) {
-                throw new Error('Answer submission is blocked by database security configuration. Please apply the migration that patches rpc_submit_mcq_answer/record_question_attempt to set app.allow_xp_level_write.');
-            }
-
-            throw error;
-        }
-
-        const result = data as QuestionAttemptResult;
-
-        if (result.duplicate_reward) {
-            result.explanation = '✓ Correct! Rewards for this question were already claimed in the last 24 hours. Try again after 24 hours or answer a new question.';
-        }
-
-        return result;
+        result.final_profile_values = {
+            xp: rewardResult.profile.xp,
+            coins: rewardResult.profile.coins,
+            level: rewardResult.profile.level,
+            gemstones: rewardResult.profile.gemstones,
+            xp_status: rewardResult.xpStatus ?? undefined,
+        };
     }
+
+    return result;
 };
 
 /**
@@ -5625,6 +5637,32 @@ export const get_student_active_assignment = async (): Promise<StudentAssignment
         ...parsedRow,
         questions: normalizedQuestions,
     };
+};
+
+// ── Brains Master Premium ─────────────────────────────────────────────
+
+export const brains_master_purchase = async (): Promise<BrainsMasterPurchaseResult> => {
+    const { data, error } = await supabase.rpc('rpc_purchase_brains_master');
+    if (error) {
+        return {
+            success: false,
+            error: error.message || 'Purchase failed',
+            gemstones_spent: 0,
+            gemstones_granted: 0,
+            coins_granted: 0,
+            daily_coin_cap_at_purchase: 0,
+            was_already_active: false,
+            new_expiry: '',
+            new_gemstone_balance: 0,
+            new_coin_balance: 0,
+        };
+    }
+    return data as BrainsMasterPurchaseResult;
+};
+
+export const brains_master_toggle_badge = async (show: boolean): Promise<void> => {
+    const user = await getCurrentUser();
+    await updateProfile(user.id, { brains_master_show_badge: show });
 };
 
 export const get_student_pending_assignments = async (): Promise<StudentAssignmentTask[]> => {
@@ -6093,5 +6131,245 @@ export const generate_assignment_analysis = async (
     } catch (err) {
         console.error('Failed to generate assignment analysis:', err);
         throw err;
+    }
+};
+
+
+// ============================================================
+// QUEST MODE 2.0 — Route-Based Missions
+// ============================================================
+
+export interface QuestMissionRow {
+    id: string;
+    subject: string;
+    code: string;
+    title: string;
+    description?: string;
+    mission_type: 'standard' | 'risk' | 'daily';
+    difficulty: 'easy' | 'medium' | 'hard';
+    route_template: any[];
+    energy_cost: number;
+    sort_order: number;
+    best_run?: { chest_tier: string; perfect_run: boolean; rewards_xp: number; completed_at: string } | null;
+    active_run_id?: string | null;
+}
+
+export interface QuestRunStateRaw {
+    run_id: string;
+    mission_id: string;
+    mission_title: string;
+    mission_type: string;
+    status: string;
+    current_node: number;
+    streak: number;
+    rewards_xp: number;
+    rewards_coins: number;
+    route: any[];
+    started_at: string;
+}
+
+export interface QuestEventClaimResult {
+    event_title: string;
+    event_payload: { xp?: number; coins?: number; effect?: string };
+    deltas: { xp: number; coins: number };
+    next_node_index: number;
+    run_status: string;
+    final_profile_values?: { xp: number; coins: number; level: number; gemstones: number };
+}
+
+export interface QuestChestOpenResult {
+    chest_tier: 'bronze' | 'silver' | 'gold';
+    chest_rewards: { xp: number; coins: number };
+    total_run_xp: number;
+    total_run_coins: number;
+    streak_peak: number;
+    perfect_run: boolean;
+    nodes_cleared: number;
+    final_profile_values?: { xp: number; coins: number; level: number; gemstones: number };
+}
+
+/** Fetch available missions for a subject (or all if null). Includes best run & active run info. */
+export const quest_get_missions = async (subject?: string): Promise<QuestMissionRow[]> => {
+    const { data, error } = await supabase.rpc('rpc_quest_get_missions', {
+        p_subject: subject ?? null,
+    });
+
+    if (error) {
+        console.error('[quest_get_missions] Error:', error);
+        return [];
+    }
+
+    return (data as QuestMissionRow[]) || [];
+};
+
+/** Start a new quest run. Returns the full run state with hydrated route. */
+export const quest_start_run = async (missionId: string): Promise<QuestRunStateRaw> => {
+    const { data, error } = await supabase.rpc('rpc_quest_start_run', {
+        p_mission_id: missionId,
+    });
+
+    if (error) {
+        throw new Error(error.message || 'Failed to start quest run');
+    }
+
+    return data as QuestRunStateRaw;
+};
+
+/** Resume an existing active quest run (for page reload / reconnection). */
+export const quest_resume_run = async (runId: string): Promise<QuestRunStateRaw> => {
+    const { data, error } = await supabase.rpc('rpc_quest_resume_run', {
+        p_run_id: runId,
+    });
+
+    if (error) {
+        throw new Error(error.message || 'Failed to resume quest run');
+    }
+
+    if (data?.error) {
+        throw new Error(data.error);
+    }
+
+    return data as QuestRunStateRaw;
+};
+
+/** Submit an answer for a question node. */
+export const quest_answer_node = async (
+    runId: string, nodeIndex: number, answer: string
+): Promise<any> => {
+    const { data, error } = await supabase.rpc('rpc_quest_answer_node', {
+        p_run_id: runId,
+        p_node_index: nodeIndex,
+        p_answer: answer,
+    });
+
+    if (error) {
+        throw new Error(error.message || 'Failed to submit answer');
+    }
+
+    return data;
+};
+
+/** Claim a reward/surprise event node. */
+export const quest_claim_event = async (
+    runId: string, nodeIndex: number
+): Promise<QuestEventClaimResult> => {
+    const { data, error } = await supabase.rpc('rpc_quest_claim_event', {
+        p_run_id: runId,
+        p_node_index: nodeIndex,
+    });
+
+    if (error) {
+        throw new Error(error.message || 'Failed to claim event');
+    }
+
+    return data as QuestEventClaimResult;
+};
+
+/** Retreat from an active quest run. Keeps accumulated rewards but no chest. */
+export const quest_retreat = async (runId: string): Promise<{ status: string; rewards_xp: number; rewards_coins: number; nodes_cleared: number }> => {
+    const { data, error } = await supabase.rpc('rpc_quest_retreat', {
+        p_run_id: runId,
+    });
+
+    if (error) {
+        throw new Error(error.message || 'Failed to retreat');
+    }
+
+    return data as { status: string; rewards_xp: number; rewards_coins: number; nodes_cleared: number };
+};
+
+/** Open the final chest. Returns tier + rewards. */
+export const quest_open_chest = async (runId: string): Promise<QuestChestOpenResult> => {
+    const { data, error } = await supabase.rpc('rpc_quest_open_chest', {
+        p_run_id: runId,
+    });
+
+    if (error) {
+        throw new Error(error.message || 'Failed to open chest');
+    }
+
+    return data as QuestChestOpenResult;
+};
+
+/** Abandon an active quest run (forfeit all rewards). */
+export const quest_abandon = async (runId: string): Promise<void> => {
+    const { error } = await supabase.rpc('rpc_quest_abandon', {
+        p_run_id: runId,
+    });
+
+    if (error) {
+        throw new Error(error.message || 'Failed to abandon quest run');
+    }
+};
+
+// ─── Teacher Quest Creator ────────────────────────────────────────────────
+
+/**
+ * Create a new quest mission from a teacher's question bank.
+ * Calls rpc_teacher_create_quest_mission which builds the route automatically.
+ * Returns the new mission's UUID.
+ */
+export const teacher_create_quest_mission = async (params: {
+    title: string;
+    subject: string;
+    questionIds: string[];
+    difficulty: 'easy' | 'medium' | 'hard';
+    description?: string;
+}): Promise<string> => {
+    const { data, error } = await supabase.rpc('rpc_teacher_create_quest_mission', {
+        p_title: params.title,
+        p_subject: params.subject,
+        p_question_ids: params.questionIds,
+        p_difficulty: params.difficulty,
+        p_description: params.description ?? null,
+    });
+
+    if (error) {
+        throw new Error(error.message || 'Failed to create quest mission');
+    }
+
+    return data as string;
+};
+
+/** Fetch all quest missions created by the calling teacher (includes drafts). */
+export const teacher_get_my_quests = async (): Promise<QuestMissionRow[]> => {
+    const { data: userData } = await supabase.auth.getUser();
+    const uid = userData.user?.id;
+    if (!uid) throw new Error('Not authenticated');
+
+    const { data, error } = await supabase
+        .from('quest_missions')
+        .select('*')
+        .eq('created_by', uid)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        throw new Error(error.message || 'Failed to fetch teacher quests');
+    }
+
+    return (data || []) as QuestMissionRow[];
+};
+
+/** Toggle a teacher-created mission's published state (is_active). */
+export const teacher_toggle_quest_active = async (missionId: string, isActive: boolean): Promise<void> => {
+    const { error } = await supabase
+        .from('quest_missions')
+        .update({ is_active: isActive })
+        .eq('id', missionId);
+
+    if (error) {
+        throw new Error(error.message || 'Failed to update quest mission');
+    }
+};
+
+/** Delete a teacher-created quest mission. */
+export const teacher_delete_quest = async (missionId: string): Promise<void> => {
+    const { error } = await supabase
+        .from('quest_missions')
+        .delete()
+        .eq('id', missionId);
+
+    if (error) {
+        throw new Error(error.message || 'Failed to delete quest mission');
     }
 };

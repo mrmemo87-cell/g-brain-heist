@@ -1,5 +1,7 @@
 import React from 'react';
 import { Caps } from '../types';
+import type { Profile } from '../types';
+import { isBrainsMasterActive, BM_CAP_BOOST_FACTOR } from '../src/utils/premiumHelpers';
 
 interface ProgressBarProps {
     label: string;
@@ -28,12 +30,21 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ label, remaining, total, colo
 
 interface CapTrackerProps {
   caps: Caps;
+  profile?: Pick<Profile, 'brains_master_until'> | null;
 }
 
-const CapTracker: React.FC<CapTrackerProps> = ({ caps }) => {
+const CapTracker: React.FC<CapTrackerProps> = ({ caps, profile }) => {
+  const bmActive = profile ? isBrainsMasterActive(profile) : false;
   return (
     <div className="card-glass p-4">
-      <h3 className="font-heading text-lg text-gray-300 mb-4 text-center">Resource Caps</h3>
+      <h3 className="font-heading text-lg text-gray-300 mb-4 text-center">
+        Resource Caps
+        {bmActive && (
+          <span className="ml-2 text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30">
+            ⚡ {BM_CAP_BOOST_FACTOR}× Brains Master
+          </span>
+        )}
+      </h3>
       <div className="space-y-4">
         <ProgressBar label="Daily XP" remaining={caps.xp_daily_remaining} total={caps.daily_xp_cap} color="var(--ion-blue)" glowClass="progress-bar-glow-ion"/>
         <ProgressBar label="Daily Coins" remaining={caps.coins_daily_remaining} total={caps.daily_coins_cap} color="var(--amber-warn)" glowClass="progress-bar-glow-warn"/>

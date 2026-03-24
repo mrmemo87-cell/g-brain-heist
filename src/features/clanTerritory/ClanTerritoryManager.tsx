@@ -19,6 +19,7 @@ import { MAP_CATALOG, MAP_ZONE_COUNTS } from "./mapCatalog";
 interface ClanTerritoryManagerProps {
   onExit: () => void;
   isTeacher?: boolean;
+  canHost?: boolean;
   playerName?: string;
   clanId?: string | null;
   clanName?: string | null;
@@ -105,6 +106,7 @@ const EMPTY_CLASSES: SchoolAdminService.TeacherAssignedClass[] = [];
 const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   onExit,
   isTeacher = false,
+  canHost: canHostProp,
   playerName = "Agent",
   clanId,
   clanName,
@@ -112,6 +114,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   onGoToClan,
   assignedClasses,
 }) => {
+  const canHost = canHostProp ?? isTeacher;
   const [transport] = useState(() => new SupabaseClanTerritoryTransport());
   const [gameState, setGameState] = useState<ClanTerritoryGameState>(INITIAL_STATE);
   const [roomId, setRoomId] = useState<string | null>(null);
@@ -176,11 +179,11 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   }, [playerName, teacherName]);
 
   useEffect(() => {
-    if (!isTeacher) return;
+    if (!canHost) return;
     let m = true;
     fetchLockdownLimits().then(l => { if (m) setLockdownLimits(l); });
     return () => { m = false; };
-  }, [isTeacher]);
+  }, [canHost]);
 
   useEffect(() => {
     if (lockdownLimits.max_duration_minutes && durationMinutes > lockdownLimits.max_duration_minutes) {
@@ -190,19 +193,19 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   }, [lockdownLimits]);
 
   useEffect(() => {
-    if (!isTeacher) return;
+    if (!canHost) return;
 
     const loadTeacherId = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         setTeacherUserId(user?.id ?? null);
       } catch (error) {
-        console.warn("Failed to resolve teacher identity for host recovery:", error);
+        console.warn("Failed to resolve host identity for host recovery:", error);
       }
     };
 
     loadTeacherId();
-  }, [isTeacher]);
+  }, [canHost]);
 
   // Load teacher's assigned classes if not provided
   useEffect(() => {
@@ -253,7 +256,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   );
 
   useEffect(() => {
-    if (!isTeacher || !teacherUserId || typeof window === "undefined") {
+    if (!canHost || !teacherUserId || typeof window === "undefined") {
       setStoredHostRooms([]);
       return;
     }
@@ -275,10 +278,10 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       console.warn("Failed to parse stored host rooms:", error);
       setStoredHostRooms([]);
     }
-  }, [isTeacher, teacherUserId, persistHostRooms, pruneExpiredHostRooms]);
+  }, [canHost, teacherUserId, persistHostRooms, pruneExpiredHostRooms]);
 
   useEffect(() => {
-    if (!isTeacher || !teacherUserId) return;
+    if (!canHost || !teacherUserId) return;
     const interval = setInterval(() => {
       setStoredHostRooms((prev) => {
         const cleaned = pruneExpiredHostRooms(prev);
@@ -289,7 +292,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       });
     }, 60 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [isTeacher, teacherUserId, persistHostRooms, pruneExpiredHostRooms]);
+  }, [canHost, teacherUserId, persistHostRooms, pruneExpiredHostRooms]);
 
   const handleRefreshProfile = async () => {
     setIsRefreshingProfile(true);
@@ -503,9 +506,9 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     loadBatches();
   }, [isTeacher, studentBatch, assignedClassCount]);
 
-  // Fetch available clans for the teacher's school
+  // Fetch available clans for the host
   useEffect(() => {
-    if (!isTeacher) return;
+    if (!canHost) return;
     let cancelled = false;
     const loadClans = async () => {
       try {
@@ -517,7 +520,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     };
     loadClans();
     return () => { cancelled = true; };
-  }, [isTeacher]);
+  }, [canHost]);
 
   useEffect(() => {
     // Reactive update: whenever props change, update the resolved clan data
@@ -532,14 +535,14 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     const discoveredList = Object.values(discoveredRooms);
     const allowIndependentAgents =
       allowClanlessPlayers || gameState.allowClanlessPlayers || discoveredList.some((room) => room.allowClanlessPlayers);
-    if (!isTeacher && discoveredList.length > 0 && !resolvedClanId && !resolvedClanName && !allowIndependentAgents) {
+    if (!canHost && discoveredList.length > 0 && !resolvedClanId && !resolvedClanName && !allowIndependentAgents) {
       const timer = setTimeout(() => {
         setClanLoadTimeout(true);
       }, 8000); // Show timeout after 8 seconds of waiting
       return () => clearTimeout(timer);
     }
   }, [
-    isTeacher,
+    canHost,
     discoveredRooms,
     resolvedClanId,
     resolvedClanName,
@@ -549,7 +552,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
 
   // Discovery
   useEffect(() => {
-    if (!isTeacher && mode === "menu") {
+    if (!canHost && mode === "menu") {
       // Pass userSchoolId to only discover rooms from the same school
       transport.startDiscovery(userSchoolId, (id, metadata) => {
         setDiscoveredRooms((prev) => ({
@@ -570,14 +573,14 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       });
       return () => transport.stopDiscovery();
     }
-  }, [isTeacher, mode, transport, userSchoolId]);
+  }, [canHost, mode, transport, userSchoolId]);
 
   useEffect(() => {
     discoveredRoomsRef.current = discoveredRooms;
   }, [discoveredRooms]);
 
   useEffect(() => {
-    if (isTeacher || mode !== "menu") return;
+    if (canHost || mode !== "menu") return;
 
     const interval = setInterval(() => {
       setDiscoveredRooms((prev) => {
@@ -593,7 +596,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [isTeacher, mode]);
+  }, [canHost, mode]);
 
   useEffect(() => {
     // Set up state listener for all roles when roomId is available
@@ -875,7 +878,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   }, [activeScheduledStartAt, durationMinutes, gameState.phase, roomId, transport]);
 
   useEffect(() => {
-    if (!isTeacher || mode !== "host" || !roomId) return;
+    if (!canHost || mode !== "host" || !roomId) return;
     if (!teacherUserId) return;
 
     upsertHostRoom({
@@ -895,7 +898,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     allowClanlessPlayers,
     durationMinutes,
     gameState,
-    isTeacher,
+    canHost,
     mode,
     roomId,
     selectedBatches,
@@ -1384,7 +1387,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
         </div>
 
         <div className="grid gap-4">
-          {isTeacher && (
+          {canHost && (
             <>
               {storedHostRooms.length > 0 && (
                 <div className="card-glass p-5 space-y-4">
@@ -1464,7 +1467,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
             </>
           )}
 
-          {!isTeacher && (
+          {!canHost && (
             <div className="card-glass p-6 space-y-4">
               <h2 className="font-heading text-xl text-white flex items-center gap-2">
                 <span className="w-3 h-3 bg-cyan-400 rounded-full animate-pulse"></span>
@@ -1529,7 +1532,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
             </div>
           )}
 
-          {!isTeacher && (
+          {!canHost && (
             <div className="card-glass p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="font-heading text-xl text-white flex items-center gap-2">

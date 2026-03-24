@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useLightMode } from '../src/contexts/LightModeContext';
 import { Profile } from '../types';
-import { deactivate_neon_frame, deactivate_flicker_theme } from '../services/gameService';
+import { deactivate_neon_frame, deactivate_flicker_theme, brains_master_toggle_badge } from '../services/gameService';
+import { isBrainsMasterActive } from '../src/utils/premiumHelpers';
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -52,6 +53,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   const [usernameSaving, setUsernameSaving] = useState(false);
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const [usernameSuccess, setUsernameSuccess] = useState(false);
+
+  // Brains Master badge toggle
+  const bmActive = isBrainsMasterActive(profile);
+  const [bmShowBadge, setBmShowBadge] = useState(profile.brains_master_show_badge !== false);
+  const [bmBadgeBusy, setBmBadgeBusy] = useState(false);
 
   // Track whether the original username/avatar at open differs from current
   const [originalUsername] = useState(profile.username);
@@ -375,6 +381,46 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 <p>No flicker theme is currently active on this account.</p>
               </div>
             )}
+          </div>
+          )}
+
+          {/* Brains Master Badge Toggle */}
+          {bmActive && (
+          <div>
+            <h3 className="font-heading text-xl mb-3" style={{ color: 'var(--amber-warn)' }}>Brains Master</h3>
+            <div className="rounded-2xl border border-amber-400/50 bg-amber-500/10 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-amber-200">🧠 Public Badge Display</p>
+                  <p className="text-sm text-amber-100/80">
+                    Show the Brains Master badge next to your name on leaderboards, clans, and PvP.
+                  </p>
+                </div>
+                <button
+                  onClick={async () => {
+                    setBmBadgeBusy(true);
+                    try {
+                      const next = !bmShowBadge;
+                      await brains_master_toggle_badge(next);
+                      setBmShowBadge(next);
+                    } catch {} finally {
+                      setBmBadgeBusy(false);
+                    }
+                  }}
+                  disabled={bmBadgeBusy}
+                  className={`px-4 py-2 rounded-lg font-semibold text-sm transition ${
+                    bmShowBadge
+                      ? 'bg-amber-500/30 text-amber-200 border border-amber-400/50 hover:bg-amber-500/40'
+                      : 'bg-gray-700 text-gray-400 border border-gray-600 hover:bg-gray-600'
+                  } disabled:opacity-50`}
+                >
+                  {bmBadgeBusy ? '...' : bmShowBadge ? 'Visible' : 'Hidden'}
+                </button>
+              </div>
+              <p className="text-xs text-amber-100/60">
+                Premium benefits remain active regardless of badge visibility.
+              </p>
+            </div>
           </div>
           )}
 

@@ -36,6 +36,10 @@ import UnifiedSubjectPlay from './UnifiedSubjectPlay';
 import type { QuestProgress } from '../types';
 import QuestionBank from './teacher/QuestionBank';
 import { visualAssets, neonIcon } from './visualAssets';
+import type { QuestMission, QuestChestResult } from '../types';
+import MissionCard from './quest/MissionCard';
+import MissionPreview from './quest/MissionPreview';
+import MissionBoard from './quest/MissionBoard';
 
 // Helper to get option text (handles both string and QuestionOption formats)
 const getOptionText = (option: string | QuestionOption): string => {
@@ -77,7 +81,7 @@ const getOptionImageUrl = (option: string | QuestionOption): string | undefined 
   return resolveQuestionImageUrl(option.image_url);
 };
 
-type QuestStage = 'loading' | 'subject_selection' | 'unified_subject_play' | 'in_progress' | 'completed' | 'assignment_blocked';
+type QuestStage = 'loading' | 'subject_selection' | 'unified_subject_play' | 'mission_preview' | 'mission_board' | 'in_progress' | 'completed' | 'assignment_blocked';
 type QuestMode = 'practice' | 'teacher' | 'assignment';
 
 interface RewardParticleProps {
@@ -153,9 +157,11 @@ interface QuestViewProps {
    * Callback to refresh the global assignment state once the student completes it.
    */
   refreshAssignment?: () => Promise<void> | void;
+  /** User's avatar URL for the in-game avatar token */
+  avatarUrl?: string;
 }
 
-const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initialAssignment, refreshAssignment }) => {
+const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initialAssignment, refreshAssignment, avatarUrl }) => {
   const [stage, setStage] = useState<QuestStage>('loading');
   const [mode, setMode] = useState<QuestMode>('practice');
   const [subjects, setSubjects] = useState<SubjectData[]>([]);
@@ -192,7 +198,46 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [nextActionLabel, setNextActionLabel] = useState<string>('');
   const [freeformAnswer, setFreeformAnswer] = useState('');
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  const [selectedMission, setSelectedMission] = useState<QuestMission | null>(null);
+  const [missionChestResult, setMissionChestResult] = useState<QuestChestResult | null>(null);
+  const [availableMissions, setAvailableMissions] = useState<QuestMission[]>([]);
+  /** Questions for client-side virtual quest runs (teacher question sets) */
+  const [virtualQuestions, setVirtualQuestions] = useState<TeacherQuestion[] | null>(null);
+  const [missionsLoading, setMissionsLoading] = useState(false);
   const answerFeedbackRef = useRef<HTMLDivElement>(null);
+
+  // ── Fetch quest missions from DB ──
+  useEffect(() => {
+    let cancelled = false;
+    setMissionsLoading(true);
+    GameService.quest_get_missions()
+      .then((rows) => {
+        if (cancelled) return;
+        const missions: QuestMission[] = rows.map(r => ({
+          id: r.id,
+          subject: r.subject,
+          code: r.code,
+          title: r.title,
+          description: r.description,
+          mission_type: r.mission_type,
+          difficulty: (r.difficulty as SoloDifficulty) || 'medium',
+          route_template: r.route_template || [],
+          energy_cost: r.energy_cost,
+          is_active: true,
+          sort_order: r.sort_order,
+          best_run: r.best_run,
+          active_run_id: r.active_run_id,
+        }));
+        setAvailableMissions(missions);
+      })
+      .catch((err) => {
+        console.error('[QuestView] Failed to fetch missions:', err);
+      })
+      .finally(() => {
+        if (!cancelled) setMissionsLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   const resolveDifficulty = (questionLike: Question | TeacherQuestion): SoloDifficulty => {
     const difficultyValue = (questionLike as TeacherQuestion).difficulty ?? (questionLike as Question).difficulty;
@@ -645,17 +690,9 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   
   const handleQuestSelect = async (questId: string) => {
     if (!selectedSubject) return;
-    
-    setMode('teacher');
-    setSelectedTopic(null);
+
     setStage('loading');
-    setQuestionScores([]);
-    setQuestionPerformances([]);
-    setSoloStreak(0);
-    setMissionSummary(null);
-    setTopicSummary(null);
-    setQuestionStartTime(null);
-    
+
     try {
       const data = await GameService.get_public_questions(selectedSubject.name as any);
       if (data.length === 0) {
@@ -663,16 +700,26 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         setStage('unified_subject_play');
         return;
       }
-      
-      // Take up to 5 random questions
-      const shuffled = data.sort(() => Math.random() - 0.5);
-      setTeacherQuestions(shuffled.slice(0, Math.min(5, shuffled.length)));
-      setCurrentQuestionIndex(0);
-      setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
-      setSelectedOption(null);
-      setAnswerResponse(null);
-      setStage('in_progress');
-      setQuestionStartTime(Date.now());
+
+      // Take up to 7 random questions and send them through MissionBoard V2
+      const shuffled = [...data].sort(() => Math.random() - 0.5);
+      const picked = shuffled.slice(0, Math.min(7, shuffled.length));
+      const virtualMission: QuestMission = {
+        id: `virtual_${Date.now()}`,
+        subject: selectedSubject.name,
+        code: 'teacher_virtual',
+        title: `${selectedSubject.name} Quest`,
+        description: 'Teacher-curated questions',
+        mission_type: 'standard',
+        difficulty: 'medium',
+        route_template: [],
+        energy_cost: 0,
+        is_active: true,
+        sort_order: 999,
+      };
+      setVirtualQuestions(picked);
+      setSelectedMission(virtualMission);
+      setStage('mission_board');
     } catch (err) {
       console.error('Error loading teacher questions:', err);
       brainsAlert('Unable to load teacher questions.', 'error');
@@ -690,29 +737,24 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     }
 
     const normalizedQuestions = selectedQuestions.map(normalizeAssignmentQuestion);
-
-    setMode('teacher');
+    const questTitle = topic && topic !== 'General' ? `${topic} Quest` : `${matchedSubject.name} Quest`;
+    const virtualMission: QuestMission = {
+      id: `virtual_${Date.now()}`,
+      subject: matchedSubject.name,
+      code: 'teacher_virtual',
+      title: questTitle,
+      description: 'Teacher-curated questions',
+      mission_type: 'standard',
+      difficulty: 'medium',
+      route_template: [],
+      energy_cost: 0,
+      is_active: true,
+      sort_order: 999,
+    };
     setSelectedSubject(matchedSubject);
-    setSelectedTopic(topic || null);
-    setTeacherQuestions(normalizedQuestions);
-    setQuestions([]);
-    setCurrentQuestionIndex(0);
-    setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
-    setSelectedOption(null);
-    setAnswerResponse(null);
-    setQuestionScores([]);
-    setQuestionPerformances([]);
-    setSoloStreak(0);
-    setMissionSummary(null);
-    setTopicSummary(null);
-    setQuestionStartTime(Date.now());
-    setSelectedDifficulty(null);
-    setNextAction(null);
-    setNextActionLabel('');
-    setFreeformAnswer('');
-    setLastCompletedAssignment(null);
-    setIsAssignmentLate(false);
-    setStage('in_progress');
+    setVirtualQuestions(normalizedQuestions);
+    setSelectedMission(virtualMission);
+    setStage('mission_board');
   };
 
   const handleDifficultySelect = (difficulty: SoloDifficulty) => {
@@ -1146,6 +1188,39 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           />
         )}
       </div>
+
+      {/* ── Mission Cards Section ── */}
+      {(() => {
+        if (missionsLoading) return (
+          <div className="max-w-5xl mx-auto text-center py-6">
+            <span className="text-slate-400 text-sm animate-pulse">Loading quest missions...</span>
+          </div>
+        );
+        if (availableMissions.length === 0) return null;
+        return (
+          <div className="max-w-5xl mx-auto">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-2xl">🗺️</span>
+              <div>
+                <h2 className="font-heading text-xl text-white">Quest Missions</h2>
+                <p className="text-xs text-slate-400">Route-based adventures with rewards, surprises, and a final chest.</p>
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {availableMissions.map(m => (
+                <MissionCard
+                  key={m.id}
+                  mission={m}
+                  onSelect={(mission) => {
+                    setSelectedMission(mission);
+                    setStage('mission_preview');
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 
@@ -1737,6 +1812,50 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             onBack={() => {
               setSelectedSubject(null);
               setTeacherQuests([]);
+              setStage('subject_selection');
+            }}
+          />
+        );
+      }
+      case 'mission_preview': {
+        if (!selectedMission) return null;
+        return (
+          <MissionPreview
+            mission={selectedMission}
+            onStart={() => setStage('mission_board')}
+            onBack={() => {
+              setSelectedMission(null);
+              setStage('subject_selection');
+            }}
+          />
+        );
+      }
+      case 'mission_board': {
+        if (!selectedMission) return null;
+        return (
+          <MissionBoard
+            missionId={selectedMission.id}
+            missionTitle={selectedMission.title}
+            missionSubject={selectedMission.subject}
+            missionDifficulty={selectedMission.difficulty}
+            missionType={selectedMission.mission_type}
+            activeRunId={selectedMission.active_run_id}
+            avatarUrl={avatarUrl}
+            virtualRun={virtualQuestions ? { questions: virtualQuestions } : undefined}
+            onGrantReward={onGrantReward}
+            onComplete={(result) => {
+              setMissionChestResult(result);
+              setVirtualQuestions(null);
+              setStage('completed');
+            }}
+            onRetreat={() => {
+              setSelectedMission(null);
+              setVirtualQuestions(null);
+              setStage('subject_selection');
+            }}
+            onBack={() => {
+              setSelectedMission(null);
+              setVirtualQuestions(null);
               setStage('subject_selection');
             }}
           />

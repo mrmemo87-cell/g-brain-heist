@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../services/supabaseClient';
+import DotLottieAnimation from '../../../components/DotLottieAnimation';
 
 interface PrimeFormData {
   fullName: string;
@@ -197,17 +198,16 @@ const IeltsPrime: React.FC = () => {
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
         }}>
           <div style={{
-            width: '5rem',
-            height: '5rem',
-            background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-            borderRadius: '50%',
             display: 'flex',
-            alignItems: 'center',
             justifyContent: 'center',
-            margin: '0 auto 1.5rem',
-            fontSize: '2.5rem',
+            marginBottom: '1.5rem',
           }}>
-            ✓
+            <DotLottieAnimation
+              src="/lotties/Gift premium animation.lottie"
+              width={100}
+              height={100}
+              loop={false}
+            />
           </div>
           
           <h1 style={{ fontSize: '1.75rem', color: '#1e293b', marginBottom: '0.75rem', fontWeight: 'bold' }}>

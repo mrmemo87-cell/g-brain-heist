@@ -18,6 +18,7 @@ import {
   ShieldIcon,
 } from './icons';
 import ModalPortal from './ModalPortal';
+import { isBrainsMasterActive, formatBrainsMasterRemaining, BM_GEM_PRICE, BM_INSTANT_GEMS, BM_DURATION_DAYS, BM_CAP_BOOST_FACTOR } from '../src/utils/premiumHelpers';
 
 type ShopStage = 'loading' | 'idle' | 'purchasing';
 
@@ -295,6 +296,37 @@ const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, ad
   const [stage, setStage] = useState<ShopStage>('loading');
   const [items, setItems] = useState<ShopItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
+  const [bmPurchasing, setBmPurchasing] = useState(false);
+
+  const bmActive = isBrainsMasterActive(profile);
+
+  const handleBuyBrainsMaster = async () => {
+    if (profile.gemstones < BM_GEM_PRICE) {
+      addToast(`You need ${BM_GEM_PRICE} gemstones to purchase Brains Master (you have ${profile.gemstones}).`, 'error');
+      return;
+    }
+    setBmPurchasing(true);
+    try {
+      const result = await GameService.brains_master_purchase();
+      if (!result.success) {
+        addToast(result.error || 'Brains Master purchase failed', 'error');
+        return;
+      }
+      audioService.play('buy');
+      onPurchase({
+        gemstones: -(result.gemstones_spent - result.gemstones_granted),
+        coins: result.coins_granted,
+      });
+      addToast(
+        `🧠 Brains Master activated! +${result.gemstones_granted} gems, +${result.coins_granted} coins. Expires ${new Date(result.new_expiry).toLocaleDateString()}.`,
+        'success'
+      );
+    } catch (error: any) {
+      addToast(error.message || 'Brains Master purchase failed', 'error');
+    } finally {
+      setBmPurchasing(false);
+    }
+  };
 
   useEffect(() => {
     GameService.shop_list().then(data => {
@@ -398,6 +430,63 @@ const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, ad
         </div>
       </div>
       <h2 className="font-heading text-3xl text-center mb-8" style={{ color: 'var(--success-teal)' }}>Item Shop</h2>
+
+            {/* ── Brains Master Premium Card ── */}
+            <section className="mb-6 bg-gradient-to-br from-yellow-900/30 via-amber-950/20 to-orange-900/30 border border-yellow-500/30 rounded-3xl p-6 space-y-4 relative overflow-hidden">
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(251,191,36,0.08),transparent_60%)] pointer-events-none" />
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between relative z-10">
+                <div>
+                  <h3 className="font-heading text-2xl text-amber-300 flex items-center gap-2">
+                    🧠 Brains Master
+                    {bmActive && <span className="text-xs bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full border border-green-500/30">ACTIVE</span>}
+                  </h3>
+                  <p className="text-sm text-amber-200/70 mt-1">
+                    {bmActive
+                      ? formatBrainsMasterRemaining(profile)
+                      : `${BM_DURATION_DAYS}-day premium rank with instant rewards & boosted caps`}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4"><GemIcon /></div>
+                  <span className="font-mono text-rose-200 text-lg">{BM_GEM_PRICE}</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm relative z-10">
+                <div className="bg-black/30 rounded-xl p-3 border border-white/5">
+                  <span className="text-gray-400">Instant Reward</span>
+                  <p className="text-white font-heading">+{BM_INSTANT_GEMS} 💎 gems + 5× daily coin cap in coins</p>
+                </div>
+                <div className="bg-black/30 rounded-xl p-3 border border-white/5">
+                  <span className="text-gray-400">Cap Boost</span>
+                  <p className="text-white font-heading">{BM_CAP_BOOST_FACTOR}× all earning caps for {BM_DURATION_DAYS} days</p>
+                </div>
+                <div className="bg-black/30 rounded-xl p-3 border border-white/5">
+                  <span className="text-gray-400">Badge</span>
+                  <p className="text-white font-heading">🧠 Brains Master badge on leaderboard & clan</p>
+                </div>
+              </div>
+              <button
+                onClick={handleBuyBrainsMaster}
+                disabled={bmPurchasing || profile.gemstones < BM_GEM_PRICE}
+                className={`relative z-10 w-full py-3 rounded-xl font-heading text-lg transition-all ${
+                  bmPurchasing
+                    ? 'bg-gray-600/50 cursor-wait'
+                    : profile.gemstones < BM_GEM_PRICE
+                    ? 'bg-gray-700/50 text-gray-400 cursor-not-allowed'
+                    : bmActive
+                    ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white'
+                    : 'bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white'
+                }`}
+              >
+                {bmPurchasing ? 'Purchasing…' : bmActive ? 'Extend Brains Master' : 'Purchase Brains Master'}
+              </button>
+              {profile.gemstones < BM_GEM_PRICE && (
+                <p className="text-xs text-rose-400 text-center relative z-10">
+                  You need {BM_GEM_PRICE - profile.gemstones} more gemstones
+                </p>
+              )}
+            </section>
+
             <div className="space-y-6">
                 {sections.map(section => (
                     <section key={section.id} className="bg-black/40 border border-white/5 rounded-3xl p-6 space-y-4">

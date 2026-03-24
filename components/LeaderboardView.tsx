@@ -7,6 +7,7 @@ import AvatarWithFrame from './AvatarWithFrame';
 import { fetchNeonFrameOwners, fetchFlickerThemeOwners, fetchGlitchEffectOwners } from '../services/cosmeticService';
 import { neonIcon } from './visualAssets';
 import ClickableUsername from './ClickableUsername';
+import BrainsMasterBadge from './BrainsMasterBadge';
 
 
 
@@ -22,6 +23,8 @@ type PlayerLeaderboardEntry = {
   active_cosmetic_frame?: 'neon' | null;
   active_cosmetic_theme?: 'flicker' | null;
   active_cosmetic_effect?: 'glitch' | null;
+  brains_master_show_badge?: boolean;
+  brains_master_until?: string | null;
 };
 
 type RankedPlayerEntry = PlayerLeaderboardEntry & { rank: number };
@@ -89,11 +92,6 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
   }, []);
 
   useEffect(() => {
-    if (!schoolId) {
-      setLoading(false);
-      return;
-    }
-
     fetchLeaderboards();
 
     const handler = () => fetchLeaderboards();
@@ -104,10 +102,6 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
   }, [schoolId]);
 
   const fetchLeaderboards = async () => {
-    if (!schoolId) {
-      setLoading(false);
-      return;
-    }
     setLoading(true);
     try {
       // Use school-scoped RPCs to enforce tenant isolation
@@ -261,6 +255,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
         y: -20,
         duration: 0.5,
         ease: 'power3.out',
+        clearProps: 'all',
       });
       gsap.from('[data-lb-title-icon]', {
         opacity: 0,
@@ -269,6 +264,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
         duration: 0.6,
         ease: 'back.out(1.6)',
         delay: 0.08,
+        clearProps: 'all',
       });
       gsap.from('[data-lb-tab]', {
         opacity: 0,
@@ -277,7 +273,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
         duration: 0.45,
         ease: 'power2.out',
         delay: 0.12,
-        clearProps: 'willChange',
+        clearProps: 'all',
       });
     }, rootRef);
 
@@ -338,10 +334,10 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
       );
     }
 
-    tl.set(rows, { clearProps: 'willChange' });
+    tl.set(rows, { clearProps: 'all' });
     previousTabRef.current = tab;
 
-    return () => tl.kill();
+    return () => { tl.kill(); };
   }, [tab, loading, scoreLeaderboard, xpLeaderboard, pvpLeaderboard, clanLeaderboard]);
 
   useEffect(() => {
@@ -365,9 +361,9 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
         ease: 'power2.out',
       }, '<0.06');
     }
-    tl.set([overlay, panel], { clearProps: 'willChange' });
+    tl.set([overlay, panel], { clearProps: 'all' });
 
-    return () => tl.kill();
+    return () => { tl.kill(); };
   }, [clanMembersModal]);
 
   const renderPlayerRow = (entry: RankedPlayerEntry) => {
@@ -427,9 +423,10 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
         </div>
         <div className="flex-1">
           <p className="font-semibold text-white">
-            <ClickableUsername userId={entry.id} username={entry.username}>
+            <ClickableUsername userId={entry.id} username={entry.username} className="cursor-pointer text-cyan-300 hover:text-cyan-200 transition-colors underline decoration-dotted decoration-cyan-400/60 underline-offset-2">
               {entry.username}
             </ClickableUsername>
+            <BrainsMasterBadge showBadge={entry.brains_master_show_badge} until={entry.brains_master_until} />
             {entry.is_self && ' (You)'}
           </p>
           <p className="text-xs text-gray-400">Batch {entry.batch}</p>
@@ -481,14 +478,14 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
     );
   };
 
-  if (!schoolId) {
+  if (!schoolId && scoreLeaderboard.length === 0 && !loading) {
     return (
       <div className="mt-6 max-w-2xl mx-auto text-center">
         <BackButton onClick={onComplete} />
         <div className="card-glass p-6">
-          <h2 className="font-heading text-2xl text-white">Join a school to view leaderboards</h2>
+          <h2 className="font-heading text-2xl text-white">No players found</h2>
           <p className="mt-2 text-sm text-gray-400">
-            School leaderboards unlock once you join with an invite code or request approval.
+            There are no other individual players on the leaderboard yet. Keep playing to be the first!
           </p>
         </div>
       </div>
@@ -507,7 +504,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
     <div ref={rootRef} className="mt-6 max-w-4xl mx-auto">
       <BackButton onClick={onComplete} />
       <h2 data-lb-title className="font-heading text-3xl text-center mb-6 flex items-center justify-center gap-3" style={{ color: 'var(--amber-warn)' }}>
-        <img src={neonIcon('leaderboard')} alt="" className="w-8 h-8 object-contain" />
+        <img data-lb-title-icon src={neonIcon('leaderboard')} alt="" className="w-8 h-8 object-contain" />
         Leaderboards
       </h2>
 

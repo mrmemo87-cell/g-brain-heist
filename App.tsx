@@ -289,13 +289,21 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       setView('dashboard');
       return;
     }
-    if (!hasSchool && ['clan', 'leaderboard', 'phase1_play', 'phase1_leaderboard', 'phase1_admin', 'school_admin', 'admissions'].includes(nextView)) {
+    if (!hasSchool && ['phase1_play', 'phase1_leaderboard', 'phase1_admin', 'school_admin', 'admissions'].includes(nextView)) {
       addToast('Join a school to access school-based features.', 'info');
       return;
     }
+    // Individuals mode: academic features (Cambridge, IELTS) require school membership
+    if (!hasSchool && ['cambridge', 'ielts'].includes(nextView)) {
+      addToast('Cambridge and IELTS prep are available to school members. Join a school to unlock.', 'info');
+      return;
+    }
     // Pro-gated views: free users see upgrade modal instead
+    // Individuals (no school) get free access to core competitive features
+    const individualFreeViews = ['pvp', 'shop', 'clan', 'inventory', 'leaderboard', 'achievements', 'tournament', 'raids', 'quest'];
     const proOnlyViews = ['pvp', 'shop', 'clan', 'inventory', 'leaderboard', 'achievements', 'tournament', 'raids', 'cambridge', 'ielts'];
-    if (!isProUser && proOnlyViews.includes(nextView)) {
+    const isIndividual = !hasSchool;
+    if (!isProUser && proOnlyViews.includes(nextView) && !(isIndividual && individualFreeViews.includes(nextView))) {
       const labels: Record<string, string> = {
         pvp: 'Launch Attack', shop: 'Shop', clan: 'Clans', inventory: 'Inventory',
         leaderboard: 'Leaderboard', achievements: 'Achievements', tournament: 'Tournaments',
@@ -473,6 +481,12 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   useEffect(() => {
     if (!isPlayerMode) return;
     if (!profile || profile.role === 'teacher' || profile.role === 'admin' || profile.role === 'school_admin') {
+      setShowAcademicSetup(false);
+      return;
+    }
+
+    // Individuals (no school) skip the academic setup — grade/batch are school concepts
+    if (!profile.school_id) {
       setShowAcademicSetup(false);
       return;
     }
@@ -1304,6 +1318,16 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     }
   };
 
+  // Start recognition hold timer once peekedUser arrives (minimum 4s of personalised text)
+  useEffect(() => {
+    if (peekedUser && recognitionHold) {
+      recognitionTimerRef.current = window.setTimeout(() => {
+        setRecognitionHold(false);
+      }, 4000);
+      return () => { if (recognitionTimerRef.current) clearTimeout(recognitionTimerRef.current); };
+    }
+  }, [peekedUser, recognitionHold]);
+
 
   if (sessionMissing) {
     return null;
@@ -1484,7 +1508,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       );
     }
 
-    return <CapTracker caps={caps} />;
+    return <CapTracker caps={caps} profile={profile} />;
   };
 
   const renderTasksSection = () => {
@@ -1557,16 +1581,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     );
   };
 
-  // Start recognition hold timer once peekedUser arrives (minimum 4s of personalised text)
-  useEffect(() => {
-    if (peekedUser && recognitionHold) {
-      recognitionTimerRef.current = window.setTimeout(() => {
-        setRecognitionHold(false);
-      }, 4000);
-      return () => { if (recognitionTimerRef.current) clearTimeout(recognitionTimerRef.current); };
-    }
-  }, [peekedUser, recognitionHold]);
-
   const renderView = () => {
     // Phase 1: No role known yet → "Who are you?" text animation
     if (criticalLoading && !peekedRole && !profile) {
@@ -1605,6 +1619,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                 onGrantReward={handleGrantReward}
                 initialAssignment={activeAssignment}
                 refreshAssignment={() => refreshAssignment()}
+                avatarUrl={profile?.avatar_url ?? undefined}
               />
             );
         case 'pvp':
@@ -1724,6 +1739,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             <ClanTerritoryManager
               onExit={() => handleViewChange('dashboard')}
               isTeacher={profile?.role === 'teacher'}
+              canHost={profile?.role === 'teacher' || ['leader', 'officer', 'moderator'].includes(profile?.clan_role || '')}
               playerName={profile?.username || 'Agent'}
               clanId={profile?.clan_id}
               clanName={profile?.clan_name}
@@ -1861,10 +1877,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                         onStartPvp={() => handleViewChange('pvp')}
                         onOpenRaid={!isStudent ? () => handleViewChange('raids') : undefined}
                         onVisitShop={() => handleViewChange('shop')}
-                        onGoToClan={hasSchool ? () => handleViewChange('clan') : undefined}
-                        onOpenRivalry={hasSchool ? () => handleViewChange('rivalry') : undefined}
+                        onGoToClan={() => handleViewChange('clan')}
+                        onOpenRivalry={() => handleViewChange('rivalry')}
                         onVisitInventory={() => handleViewChange('inventory')}
-                        onViewLeaderboard={hasSchool ? () => handleViewChange('leaderboard') : undefined}
+                        onViewLeaderboard={() => handleViewChange('leaderboard')}
                         onViewAchievements={() => handleViewChange('achievements')}
                         onOpenRaidAdmin={isAdminUser ? () => handleViewChange('raid_admin') : undefined}
                         onOpenTournament={() => handleViewChange('tournament')}
@@ -1875,13 +1891,12 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                         onOpenCompetitionPlay={!isStudent && profile?.grade && !profile?.is_banned && hasSchool ? () => handleViewChange('phase1_play') : undefined}
                         onOpenCompetitionLeaderboard={hasSchool ? () => handleViewChange('phase1_leaderboard') : undefined}
                         onOpenCompetitionAdmin={isAdminUser && hasSchool ? () => handleViewChange('phase1_admin') : undefined}
-                        onOpenIeltsPrep={() => {
-                          window.location.href = '/ielts';
-                        }}
-                        onOpenCambridgeTests={() => handleViewChange('cambridge')}
+                        onOpenIeltsPrep={hasSchool ? () => { window.location.href = '/ielts'; } : undefined}
+                        onOpenCambridgeTests={hasSchool ? () => handleViewChange('cambridge') : undefined}
                         onOpenLockdown={() => handleViewChange('lockdown')}
                         onJoinSchool={undefined}
                         profile={profile}
+                        isIndividual={!hasSchool}
                         hasPendingAssignment={Boolean(activeAssignment)}
                         clanBadgeCount={pendingClanRequests}
                         schoolName={profile?.school_name}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { audioService } from '../services/audioService';
 import { visualAssets } from './visualAssets';
+import DotLottieAnimation from './DotLottieAnimation';
 
 interface LevelUpModalProps {
   newLevel: number;
@@ -27,7 +28,14 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ newLevel, rewards, onClose 
         aria-hidden="true"
       />
       <div className="card-glass glow-warn max-w-md w-full p-8 text-center transform animate-scaleIn relative z-10" style={{ borderColor: 'rgba(255, 176, 32, 0.5)' }}>
-        <div className="text-6xl mb-4 animate-bounce">🎉</div>
+        <div className="flex justify-center mb-4">
+          <DotLottieAnimation
+            src="/lotties/Trophy.lottie"
+            width={100}
+            height={100}
+            loop={false}
+          />
+        </div>
         <h2 className="font-heading text-4xl mb-2" style={{ color: 'var(--amber-warn)' }}>
           LEVEL UP!
         </h2>

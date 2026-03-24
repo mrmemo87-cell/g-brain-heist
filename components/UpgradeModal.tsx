@@ -10,6 +10,7 @@ import {
 } from '../services/tierService';
 import VisualFallbackImage from './VisualFallbackImage';
 import { visualAssets, neonIcon } from './visualAssets';
+import DotLottieAnimation from './DotLottieAnimation';
 
 // ============================================================================
 // UpgradeModal — School subscription pricing
@@ -124,6 +125,14 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
         <div className="relative p-5 sm:p-8">
           {/* Title */}
           <div className="mb-5 text-center">
+            <div className="flex justify-center mb-2">
+              <DotLottieAnimation
+                src="/lotties/Premium Gold.lottie"
+                width={80}
+                height={80}
+                loop
+              />
+            </div>
             <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-4 py-1.5 text-sm font-semibold text-emerald-300">
               <img src={neonIcon('premium')} alt="" className="h-5 w-5 object-contain" />
               Brains Heist
@@ -346,10 +355,18 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
           )}
 
           {/* Trust signals */}
-          <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-slate-500">
-            <span>🔒 Secure checkout via Paddle</span>
-            <span>↩️ Cancel anytime</span>
-            <span>⚡ Instant activation</span>
+          <div className="flex flex-col items-center gap-2">
+            <DotLottieAnimation
+              src="/lotties/Payment Card Security animation - Floating Cards Morphing into Padlock.lottie"
+              width={120}
+              height={80}
+              loop
+            />
+            <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-slate-500">
+              <span>🔒 Secure checkout via Paddle</span>
+              <span>↩️ Cancel anytime</span>
+              <span>⚡ Instant activation</span>
+            </div>
           </div>
 
           {/* Legal links */}

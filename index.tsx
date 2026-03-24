@@ -161,7 +161,11 @@ const Main: React.FC = () => {
               // New accounts can take a few extra seconds while profile bootstrap
               // queries settle across regions; avoid noisy false timeout warnings.
               const status = await withTimeout(AuthService.checkUserSetupStatus(), 6000, 'check_user_setup_status');
-              setNeedsSetup(status.needs_setup);
+              // Individuals (no school) who already completed setup have needs_setup=false in DB
+              // but the RPC may still flag them because school_id IS NULL.
+              // If the user has a role set, they've completed onboarding — don't force setup again.
+              const actuallyNeedsSetup = status.needs_setup && !(status.has_role && status.reason === 'incomplete_profile');
+              setNeedsSetup(actuallyNeedsSetup);
               if (status.has_username) {
                 setSetupUsername(status.username);
               }
@@ -224,7 +228,9 @@ const Main: React.FC = () => {
               // Setup check happens in background - don't block UI
               setNeedsSetup(false); // Default to no setup required
               AuthService.checkUserSetupStatus().then(status => {
-                setNeedsSetup(status.needs_setup);
+                // Individuals with a role set have completed onboarding — don't redirect
+                const actuallyNeedsSetup = status.needs_setup && !(status.has_role && status.reason === 'incomplete_profile');
+                setNeedsSetup(actuallyNeedsSetup);
                 if (status.has_username) {
                   setSetupUsername(status.username);
                 }

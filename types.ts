@@ -97,6 +97,22 @@ export interface Profile {
   xp_from_assignments?: number;
   coins_from_quests?: number;
   xp_from_quests?: number;
+  // Brains Master premium
+  brains_master_until?: string | null; // ISO timestamp — when BM expires, null = inactive
+  brains_master_show_badge?: boolean;  // Whether to publicly display BM badge (default true)
+}
+
+export interface BrainsMasterPurchaseResult {
+  success: boolean;
+  error?: string;
+  gemstones_spent: number;
+  gemstones_granted: number;
+  coins_granted: number;
+  daily_coin_cap_at_purchase: number;
+  was_already_active: boolean;
+  new_expiry: string; // ISO timestamp
+  new_gemstone_balance: number;
+  new_coin_balance: number;
 }
 
 export interface Task {
@@ -315,6 +331,8 @@ export interface RaidTarget {
   last_attacked_at?: string;
   total_score?: number;
   clan_total_score?: number;
+  brains_master_show_badge?: boolean;
+  brains_master_until?: string | null;
 }
 
 export interface RaidAttackResult {
@@ -377,6 +395,8 @@ export interface ClanMember {
   total_score?: number;
   xp?: number;
   pvp_score?: number;
+  brains_master_show_badge?: boolean;
+  brains_master_until?: string | null;
 }
 
 // NEW: Competition-based clan member with scores
@@ -1124,4 +1144,87 @@ export interface StudentAssignmentAnalysis {
 export interface AssignmentAnalysisRequest {
   assignmentId: string;
   studentId: string;
+}
+
+// ============================================================================
+// QUEST MODE 2.0 — Route-Based Mission Types
+// ============================================================================
+
+export type QuestNodeType = 'start' | 'question' | 'reward' | 'surprise' | 'elite_question' | 'final_chest';
+export type QuestNodeState = 'locked' | 'active' | 'cleared' | 'failed';
+export type QuestRunStatus = 'active' | 'completed' | 'retreated';
+
+export interface QuestNode {
+  index: number;
+  type: QuestNodeType;
+  label: string;
+  state: QuestNodeState;
+  difficulty?: SoloDifficulty;
+  // Hydrated question data (for question/elite_question nodes)
+  question_id?: string;
+  question_body?: string;
+  options?: string[];
+  correct_option?: string;
+  time_limit?: number;
+  explanation?: string;
+  // Hydrated event data (for reward/surprise nodes)
+  event_id?: string;
+  event_title?: string;
+  event_payload?: { xp?: number; coins?: number; effect?: string };
+}
+
+export interface QuestMission {
+  id: string;
+  subject: string;
+  code: string;
+  title: string;
+  description?: string;
+  mission_type: 'standard' | 'risk' | 'daily';
+  difficulty: SoloDifficulty;
+  route_template: Omit<QuestNode, 'state'>[];
+  energy_cost: number;
+  is_active: boolean;
+  sort_order: number;
+  best_run?: { chest_tier: string; perfect_run: boolean; rewards_xp: number; completed_at: string } | null;
+  active_run_id?: string | null;
+}
+
+export interface QuestRunState {
+  run_id: string;
+  mission_id: string;
+  mission_title: string;
+  mission_type: string;
+  status: QuestRunStatus;
+  current_node: number;
+  streak: number;
+  rewards_xp: number;
+  rewards_coins: number;
+  route: QuestNode[];
+  started_at: string;
+}
+
+export interface QuestAnswerResult {
+  is_correct: boolean;
+  deltas: { xp: number; coins: number };
+  streak: number;
+  next_node_index: number;
+  run_status: QuestRunStatus;
+  explanation?: string;
+}
+
+export interface QuestEventResult {
+  event_title: string;
+  event_payload: { xp?: number; coins?: number; effect?: string };
+  deltas: { xp: number; coins: number };
+  next_node_index: number;
+}
+
+export interface QuestChestResult {
+  chest_tier: 'bronze' | 'silver' | 'gold';
+  chest_rewards: { xp: number; coins: number };
+  total_run_xp: number;
+  total_run_coins: number;
+  streak_peak: number;
+  perfect_run: boolean;
+  nodes_cleared: number;
 }
