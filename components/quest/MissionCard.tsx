@@ -26,6 +26,7 @@ const CHEST_TIER_BADGE: Record<string, { icon: string; label: string; color: str
 
 const SUBJECT_ICON: Record<string, string> = {
   Geography: '🌍', Science: '🔬', Maths: '🧮', Mathematics: '🧮',
+  // Unicode uses the GB region code for the UK flag emoji (Union Jack).
   English: '🇬🇧', ICT: '💻', 'Global Perspective': '🌐',
   'Russian Language': '🇷🇺', 'German Language': '🇩🇪',
   'Kyrgyz Language': '🇰🇬', 'Kyrgyz History': '📜',
