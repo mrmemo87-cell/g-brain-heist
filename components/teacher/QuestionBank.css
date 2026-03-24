@@ -374,8 +374,8 @@
 
 .blooket-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: clamp(0.85rem, 2vw, 1.25rem);
 }
 
 /* ============================================================================
@@ -391,6 +391,7 @@
   transition: var(--qb-transition);
   position: relative;
   border: 1px solid rgba(34, 211, 238, 0.2);
+  isolation: isolate;
 }
 
 .blooket-card:hover {
@@ -406,32 +407,38 @@
 /* Card Cover - Refined Gradients */
 .blooket-card-cover {
   position: relative;
-  height: 180px;
+  min-height: clamp(150px, 26vw, 205px);
+  aspect-ratio: 16 / 10;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  background-image: url('/visuals/premium-folder-base.png');
+  background-size: cover;
+  background-position: center;
 }
 
 .blooket-card-cover::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2) 0%, transparent 60%);
+  background:
+    radial-gradient(circle at 50% 44%, rgba(56, 189, 248, 0.22), transparent 54%),
+    linear-gradient(180deg, rgba(3, 8, 20, 0.16) 0%, rgba(3, 8, 20, 0.62) 62%, rgba(2, 6, 23, 0.86) 100%);
 }
 
 .blooket-card-cover::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 40%, rgba(15, 23, 42, 0.35) 100%);
+  background: linear-gradient(145deg, rgba(56, 189, 248, 0.09), transparent 45%);
 }
 
 /* Verified Badge - Premium */
 .blooket-verified-badge {
   position: absolute;
-  top: 14px;
-  left: 14px;
+  top: 12px;
+  right: 12px;
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -442,7 +449,7 @@
   font-weight: 700;
   color: white;
   box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
-  z-index: 2;
+  z-index: 3;
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
@@ -457,8 +464,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
-  z-index: 1;
+  gap: 0.2rem;
+  z-index: 2;
   position: relative;
 }
 
@@ -467,43 +474,51 @@
 }
 
 .deco-emoji.main {
-  font-size: 4.5rem;
-  animation: float 3s ease-in-out infinite;
+  font-size: clamp(2.8rem, 9vw, 4.1rem);
+  line-height: 1;
 }
 
 .deco-emoji.secondary {
-  font-size: 1.25rem;
-  opacity: 0.7;
+  font-size: clamp(0.9rem, 2.6vw, 1.15rem);
+  opacity: 0.82;
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-
-/* Question Count Badge - Refined */
-.blooket-question-count {
+.blooket-state-badge {
   position: absolute;
-  bottom: 14px;
-  right: 14px;
-  padding: 0.45rem 0.9rem;
-  background: rgba(2, 6, 23, 0.85);
-  backdrop-filter: blur(8px);
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: white;
-  z-index: 2;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  top: 12px;
+  left: 12px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.33rem 0.58rem;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border: 1px solid transparent;
+}
+
+.blooket-state-badge.locked {
+  background: rgba(15, 23, 42, 0.88);
+  border-color: rgba(148, 163, 184, 0.5);
+  color: #e2e8f0;
+}
+
+.blooket-state-badge.completed {
+  background: rgba(16, 185, 129, 0.22);
+  border-color: rgba(16, 185, 129, 0.58);
+  color: #bbf7d0;
 }
 
 /* Card Info - Clean Typography */
 .blooket-card-info {
-  padding: 1.25rem 1.25rem 1rem;
+  padding: 0.9rem 0.9rem 0.78rem;
 }
 
 .blooket-card-title {
-  font-size: 1.1rem;
+  font-size: clamp(0.98rem, 2.6vw, 1.08rem);
   font-weight: 700;
   color: var(--qb-text);
   margin: 0 0 0.6rem 0;
@@ -515,11 +530,73 @@
   letter-spacing: -0.01em;
 }
 
+.blooket-card-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+  margin-bottom: 0.5rem;
+}
+
+.blooket-difficulty-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.66rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.blooket-difficulty-chip.difficulty-easy {
+  color: #86efac;
+  background: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.blooket-difficulty-chip.difficulty-medium {
+  color: #fcd34d;
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.blooket-difficulty-chip.difficulty-hard {
+  color: #fda4af;
+  background: rgba(244, 63, 94, 0.16);
+  border-color: rgba(244, 63, 94, 0.35);
+}
+
+.blooket-mini-verified {
+  font-size: 0.66rem;
+  color: #6ee7b7;
+  font-weight: 700;
+}
+
+.blooket-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.blooket-meta-pill {
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.26);
+  background: rgba(2, 6, 23, 0.5);
+  color: #dbeafe;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.18rem 0.52rem;
+}
+
 .blooket-card-meta {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
-  font-size: 0.85rem;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.95rem;
+  font-size: 0.78rem;
   color: var(--qb-text-muted);
   font-weight: 500;
 }
@@ -543,14 +620,11 @@
 
 /* Card Hover Actions */
 .blooket-card-actions {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  position: relative;
   display: flex;
-  gap: 0.6rem;
-  padding: 1.25rem;
-  background: linear-gradient(0deg, rgba(2, 6, 23, 0.95) 0%, rgba(15, 23, 42, 0.7) 70%, transparent 100%);
+  gap: 0.5rem;
+  padding: 0.2rem 0.9rem 0.88rem;
+  background: transparent;
   opacity: 1;
   transform: translateY(0);
   transition: var(--qb-transition);
@@ -590,6 +664,14 @@
 .blooket-action-btn.use:hover {
   transform: scale(1.02);
   box-shadow: 0 6px 16px rgba(99, 102, 241, 0.45);
+}
+
+.blooket-action-btn.use.disabled,
+.blooket-action-btn.use:disabled {
+  background: rgba(51, 65, 85, 0.82);
+  color: #94a3b8;
+  box-shadow: none;
+  cursor: not-allowed;
 }
 
 /* ============================================================================
