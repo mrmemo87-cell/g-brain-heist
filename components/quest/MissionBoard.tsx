@@ -152,7 +152,7 @@ interface MissionBoardProps {
   avatarUrl?: string;
   activeRunId?: string | null;
   /** When provided, the board runs entirely client-side — no DB run is created. */
-  virtualRun?: { questions: TeacherQuestion[] };
+  virtualRun?: { questions?: TeacherQuestion[]; route?: QuestNode[] };
   onGrantReward: (deltas: { xp: number; coins: number; gemstones?: number }, finalValues?: { xp: number; coins: number; level: number; gemstones: number; xp_status?: XpStatus }) => void;
   onComplete: (result: QuestChestResult) => void;
   onRetreat: (rewardsXp: number, rewardsCoins: number) => void;
@@ -253,7 +253,9 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
 
     // Virtual mode: build route client-side, no DB call
     if (isVirtual && virtualRun) {
-      const virtualRoute = buildVirtualRoute(virtualRun.questions);
+      const virtualRoute = Array.isArray(virtualRun.route) && virtualRun.route.length > 0
+        ? virtualRun.route
+        : buildVirtualRoute(virtualRun.questions ?? []);
       setRunId(null);
       setRoute(virtualRoute);
       setCurrentNode(0);

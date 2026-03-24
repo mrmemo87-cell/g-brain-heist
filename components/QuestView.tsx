@@ -36,7 +36,7 @@ import UnifiedSubjectPlay from './UnifiedSubjectPlay';
 import type { QuestProgress } from '../types';
 import QuestionBank from './teacher/QuestionBank';
 import { visualAssets, neonIcon } from './visualAssets';
-import type { QuestMission, QuestChestResult } from '../types';
+import type { QuestMission, QuestChestResult, QuestNode } from '../types';
 import MissionCard from './quest/MissionCard';
 import MissionPreview from './quest/MissionPreview';
 import MissionBoard from './quest/MissionBoard';
@@ -203,6 +203,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [availableMissions, setAvailableMissions] = useState<QuestMission[]>([]);
   /** Questions for client-side virtual quest runs (teacher question sets) */
   const [virtualQuestions, setVirtualQuestions] = useState<TeacherQuestion[] | null>(null);
+  const [virtualRouteTemplate, setVirtualRouteTemplate] = useState<QuestNode[] | null>(null);
   const [isPracticeMissionSelected, setIsPracticeMissionSelected] = useState(false);
   const [missionsLoading, setMissionsLoading] = useState(false);
   const answerFeedbackRef = useRef<HTMLDivElement>(null);
@@ -262,6 +263,36 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     }
     return 40;
   };
+
+  const isCodedTrialMission = (mission: QuestMission): boolean => {
+    const code = (mission.code || '').toLowerCase();
+    if (
+      code.startsWith('trial_') ||
+      code.startsWith('coded_') ||
+      code.startsWith('legacy_') ||
+      code.includes('_trial')
+    ) {
+      return true;
+    }
+
+    return mission.route_template.some((node: any) => {
+      if (node?.type !== 'question' && node?.type !== 'elite_question') {
+        return false;
+      }
+      return (
+        typeof node?.question_body === 'string' &&
+        Array.isArray(node?.options) &&
+        typeof node?.correct_option === 'string'
+      );
+    });
+  };
+
+  const buildVirtualRouteFromMission = (mission: QuestMission): QuestNode[] =>
+    mission.route_template.map((node: any, index: number) => ({
+      ...node,
+      index: typeof node?.index === 'number' ? node.index : index,
+      state: index === 0 ? 'active' : 'locked',
+    }));
 
   const computeMissionDifficulty = (performances: SoloQuestionPerformance[]): SoloDifficulty => {
     const weights: Record<SoloDifficulty, number> = { easy: 1, medium: 2, hard: 3 };
@@ -719,6 +750,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         sort_order: 999,
       };
       setVirtualQuestions(picked);
+      setVirtualRouteTemplate(null);
       setIsPracticeMissionSelected(true);
       setSelectedMission(virtualMission);
       setStage('mission_board');
@@ -755,6 +787,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     };
     setSelectedSubject(matchedSubject);
     setVirtualQuestions(normalizedQuestions);
+    setVirtualRouteTemplate(null);
     setIsPracticeMissionSelected(true);
     setSelectedMission(virtualMission);
     setStage('mission_board');
@@ -1234,7 +1267,9 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                         mission={m}
                         onSelect={(mission) => {
                           setVirtualQuestions(null);
-                          setIsPracticeMissionSelected(false);
+                          const shouldUsePracticeMode = isCodedTrialMission(mission);
+                          setVirtualRouteTemplate(shouldUsePracticeMode ? buildVirtualRouteFromMission(mission) : null);
+                          setIsPracticeMissionSelected(shouldUsePracticeMode);
                           setSelectedMission(mission);
                           setStage('mission_preview');
                         }}
@@ -1901,7 +1936,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       }
       case 'mission_preview': {
         if (!selectedMission) return null;
-        const isIntentionalPracticeMission = isPracticeMissionSelected && !!virtualQuestions;
+        const isIntentionalPracticeMission = isPracticeMissionSelected && (!!virtualQuestions || !!virtualRouteTemplate);
         return (
           <>
             {isIntentionalPracticeMission && (
@@ -1915,6 +1950,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               onBack={() => {
                 setSelectedMission(null);
                 setVirtualQuestions(null);
+                setVirtualRouteTemplate(null);
                 setIsPracticeMissionSelected(false);
                 setStage('subject_selection');
               }}
@@ -1924,7 +1960,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       }
       case 'mission_board': {
         if (!selectedMission) return null;
-        const isIntentionalPracticeMission = isPracticeMissionSelected && !!virtualQuestions;
+        const isIntentionalPracticeMission = isPracticeMissionSelected && (!!virtualQuestions || !!virtualRouteTemplate);
         return (
           <MissionBoard
             missionId={selectedMission.id}
@@ -1934,17 +1970,26 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             missionType={selectedMission.mission_type}
             activeRunId={selectedMission.active_run_id}
             avatarUrl={avatarUrl}
-            virtualRun={isIntentionalPracticeMission && virtualQuestions ? { questions: virtualQuestions } : undefined}
+            virtualRun={
+              isIntentionalPracticeMission
+                ? {
+                    questions: virtualQuestions ?? undefined,
+                    route: virtualRouteTemplate ?? undefined,
+                  }
+                : undefined
+            }
             onGrantReward={onGrantReward}
             onComplete={(result) => {
               setMissionChestResult(result);
               setVirtualQuestions(null);
+              setVirtualRouteTemplate(null);
               setIsPracticeMissionSelected(false);
               setStage('completed');
             }}
             onRetreat={() => {
               setSelectedMission(null);
               setVirtualQuestions(null);
+              setVirtualRouteTemplate(null);
               setIsPracticeMissionSelected(false);
               setMissionChestResult(null);
               setStage('subject_selection');
@@ -1952,6 +1997,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             onBack={() => {
               setSelectedMission(null);
               setVirtualQuestions(null);
+              setVirtualRouteTemplate(null);
               setIsPracticeMissionSelected(false);
               setMissionChestResult(null);
               setStage('subject_selection');
