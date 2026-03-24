@@ -503,15 +503,30 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
 
   // ── Claim spin wheel prize (surprise node) ──
   const handleSpinClaim = useCallback(async (prize: SpinPrize) => {
-    if (activeNodeIndex === null) return;
+    if (!runId || activeNodeIndex === null) return;
     setIsSubmitting(true);
 
     const xp = prize.reward.xp ?? 0;
     const coins = prize.reward.coins ?? 0;
 
     try {
+      const latestRun = await quest_resume_run(runId);
+      const serverNodeIndex = latestRun.current_node;
+      const serverNode = (Array.isArray(latestRun.route) ? latestRun.route : [])[serverNodeIndex] as QuestNode | undefined;
+
+      setRoute((Array.isArray(latestRun.route) ? latestRun.route : []) as QuestNode[]);
+      setCurrentNode(serverNodeIndex);
+      setStreak(latestRun.streak);
+      setRewardsXp(latestRun.rewards_xp);
+      setRewardsCoins(latestRun.rewards_coins);
+      setActiveNodeIndex(serverNodeIndex);
+
+      if (!serverNode || (serverNode.type !== 'surprise' && serverNode.type !== 'reward')) {
+        throw new Error('Mission state moved. Please reopen the active event node and try again.');
+      }
+
       // Fire event RPC to record on server
-      const result = await quest_claim_event(runId, activeNodeIndex);
+      const result = await quest_claim_event(runId, serverNodeIndex);
       setRewardsXp(prev => prev + Math.max(xp, result.deltas.xp));
       setRewardsCoins(prev => prev + Math.max(coins, result.deltas.coins));
       spawnParticles(xp || result.deltas.xp, coins || result.deltas.coins);
@@ -537,11 +552,26 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
 
   // ── Resolve event node (server RPC) ──
   const handleEventClaim = useCallback(async () => {
-    if (activeNodeIndex === null) return;
+    if (!runId || activeNodeIndex === null) return;
     setIsSubmitting(true);
 
     try {
-      const result = await quest_claim_event(runId, activeNodeIndex);
+      const latestRun = await quest_resume_run(runId);
+      const serverNodeIndex = latestRun.current_node;
+      const serverNode = (Array.isArray(latestRun.route) ? latestRun.route : [])[serverNodeIndex] as QuestNode | undefined;
+
+      setRoute((Array.isArray(latestRun.route) ? latestRun.route : []) as QuestNode[]);
+      setCurrentNode(serverNodeIndex);
+      setStreak(latestRun.streak);
+      setRewardsXp(latestRun.rewards_xp);
+      setRewardsCoins(latestRun.rewards_coins);
+      setActiveNodeIndex(serverNodeIndex);
+
+      if (!serverNode || (serverNode.type !== 'surprise' && serverNode.type !== 'reward')) {
+        throw new Error('Mission state moved. Please reopen the active event node and try again.');
+      }
+
+      const result = await quest_claim_event(runId, serverNodeIndex);
       const xpDelta = result.deltas.xp;
       const coinsDelta = result.deltas.coins;
 
@@ -598,6 +628,19 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
     }
 
     try {
+      const latestRun = await quest_resume_run(runId);
+      const serverNode = (Array.isArray(latestRun.route) ? latestRun.route : [])[latestRun.current_node] as QuestNode | undefined;
+
+      setRoute((Array.isArray(latestRun.route) ? latestRun.route : []) as QuestNode[]);
+      setCurrentNode(latestRun.current_node);
+      setStreak(latestRun.streak);
+      setRewardsXp(latestRun.rewards_xp);
+      setRewardsCoins(latestRun.rewards_coins);
+
+      if (!serverNode || serverNode.type !== 'final_chest') {
+        throw new Error('Current node is not the final chest');
+      }
+
       const result = await quest_open_chest(runId);
 
       const chestXp = result.chest_rewards.xp;
@@ -651,11 +694,18 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         setActiveModal('question');
         break;
       case 'elite_question':
-        // Funny riddle from local bank
-        setActiveRiddle(getRandomRiddle());
-        setRiddleResult(null);
-        setActiveModal('riddle');
-        playSound('riddleAppear');
+        if (runId) {
+          setQuestionResult(null);
+          setResolvedNextNodeIndex(null);
+          setQuestionStartTime(Date.now());
+          setActiveModal('question');
+        } else {
+          // Virtual-only fun riddle flow
+          setActiveRiddle(getRandomRiddle());
+          setRiddleResult(null);
+          setActiveModal('riddle');
+          playSound('riddleAppear');
+        }
         break;
       case 'reward':
         setEventResult(null);
@@ -668,7 +718,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         openChest();
         break;
     }
-  }, [route, advanceToNode, openChest]);
+  }, [route, advanceToNode, openChest, runId]);
 
   // ── Retreat (server RPC or local fallback for virtual runs) ──
   const handleRetreatConfirm = useCallback(async () => {
