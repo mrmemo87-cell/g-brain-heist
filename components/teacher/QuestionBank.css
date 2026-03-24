@@ -5,16 +5,16 @@
 
 /* CSS Variables for consistent theming */
 :root {
-  --qb-primary: #7c5cff;
-  --qb-primary-dark: #5a3bff;
+  --qb-primary: #00d4ff;
+  --qb-primary-dark: #0ea5e9;
   --qb-primary-light: #a78bfa;
-  --qb-accent: #22d3ee;
+  --qb-accent: #a855f7;
   --qb-accent-dark: #06b6d4;
   --qb-success: #22c55e;
   --qb-warning: #fbbf24;
   --qb-danger: #f43f5e;
-  --qb-bg: #0b1020;
-  --qb-bg-card: #111a2e;
+  --qb-bg: #050816;
+  --qb-bg-card: #0b1328;
   --qb-text: #e2e8f0;
   --qb-text-muted: #94a3b8;
   --qb-text-light: #64748b;
@@ -32,8 +32,15 @@
 .blooket-container {
   display: flex;
   min-height: 100vh;
-  background: radial-gradient(circle at top left, rgba(34, 211, 238, 0.15), transparent 45%),
-    radial-gradient(circle at top right, rgba(124, 92, 255, 0.2), transparent 45%),
+  background: radial-gradient(circle at top left, rgba(0, 212, 255, 0.2), transparent 40%),
+    radial-gradient(circle at top right, rgba(168, 85, 247, 0.25), transparent 50%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(59, 130, 246, 0.03) 0px,
+      rgba(59, 130, 246, 0.03) 1px,
+      transparent 1px,
+      transparent 42px
+    ),
     var(--qb-bg);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -47,14 +54,14 @@
 .blooket-sidebar {
   width: 240px;
   min-width: 240px;
-  background: linear-gradient(165deg, #0f172a 0%, #312e81 50%, #7c3aed 100%);
+  background: linear-gradient(180deg, #071023 0%, #101a3d 50%, #1f2e73 100%);
   padding: 1.5rem 1rem;
   display: flex;
   flex-direction: column;
   position: sticky;
   top: 0;
   height: 100vh;
-  box-shadow: 4px 0 24px rgba(15, 23, 42, 0.6);
+  box-shadow: 4px 0 28px rgba(2, 6, 23, 0.75), inset -1px 0 0 rgba(34, 211, 238, 0.15);
 }
 
 .blooket-logo {
@@ -88,12 +95,12 @@
   gap: 0.6rem;
   width: 100%;
   padding: 1rem 1.25rem;
-  background: rgba(255, 255, 255, 0.98);
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.95) 0%, rgba(14, 165, 233, 0.95) 100%);
   border: none;
   border-radius: var(--qb-radius);
   font-size: 1rem;
   font-weight: 700;
-  color: #1e1b4b;
+  color: #041022;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.5);
   transition: var(--qb-transition);
@@ -103,7 +110,7 @@
 .blooket-create-btn:hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  background: white;
+  background: linear-gradient(135deg, rgba(125, 211, 252, 0.95) 0%, rgba(34, 211, 238, 0.95) 100%);
 }
 
 .blooket-create-btn:active {
@@ -158,7 +165,7 @@
 }
 
 .blooket-nav-item.active {
-  background: rgba(124, 92, 255, 0.3);
+  background: linear-gradient(120deg, rgba(0, 212, 255, 0.25), rgba(168, 85, 247, 0.22));
   color: white;
 }
 
@@ -209,11 +216,33 @@
   overflow-y: auto;
   max-width: 1400px;
   color: var(--qb-text);
+  position: relative;
 }
 
 /* Header */
 .blooket-header {
   margin-bottom: 2rem;
+  background: linear-gradient(145deg, rgba(10, 18, 39, 0.8), rgba(13, 23, 49, 0.55));
+  border: 1px solid rgba(34, 211, 238, 0.22);
+  border-radius: 18px;
+  padding: 1.25rem 1.25rem 1rem;
+  box-shadow: 0 14px 32px rgba(2, 6, 23, 0.45);
+}
+
+.blooket-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  margin-bottom: 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(34, 211, 238, 0.5);
+  background: rgba(34, 211, 238, 0.16);
+  color: #7dd3fc;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  font-weight: 800;
 }
 
 .blooket-page-title {
@@ -222,6 +251,30 @@
   color: var(--qb-text);
   margin: 0;
   letter-spacing: -0.03em;
+  text-shadow: 0 0 18px rgba(0, 212, 255, 0.2);
+}
+
+.blooket-page-subtitle {
+  margin: 0.55rem 0 0;
+  color: var(--qb-text-muted);
+  font-size: 0.98rem;
+}
+
+.blooket-hero-stats {
+  margin-top: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.hero-chip {
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(15, 23, 42, 0.72);
+  padding: 0.3rem 0.7rem;
+  font-size: 0.75rem;
+  color: #cbd5e1;
+  font-weight: 600;
 }
 
 /* Search Bar - Premium Design */
@@ -231,10 +284,10 @@
 
 .blooket-search-wrapper {
   display: flex;
-  max-width: 600px;
+  max-width: 760px;
   background: var(--qb-bg-card);
   border-radius: var(--qb-radius);
-  border: 1px solid var(--qb-border);
+  border: 1px solid rgba(34, 211, 238, 0.26);
   overflow: hidden;
   transition: var(--qb-transition);
   box-shadow: var(--qb-shadow-sm);
@@ -263,7 +316,7 @@
 
 .blooket-search-btn {
   padding: 0 1.25rem;
-  background: var(--qb-primary);
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.9), rgba(124, 58, 237, 0.88));
   border: none;
   cursor: pointer;
   font-size: 1.2rem;
@@ -309,7 +362,7 @@
 }
 
 .filter-pill.active {
-  background: linear-gradient(135deg, var(--qb-primary) 0%, var(--qb-accent) 100%);
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.9) 0%, rgba(124, 58, 237, 0.9) 100%);
   border-color: transparent;
   color: #0f172a;
   box-shadow: 0 8px 20px rgba(34, 211, 238, 0.25);
@@ -337,12 +390,12 @@
   box-shadow: var(--qb-shadow);
   transition: var(--qb-transition);
   position: relative;
-  border: 1px solid rgba(148, 163, 184, 0.15);
+  border: 1px solid rgba(34, 211, 238, 0.2);
 }
 
 .blooket-card:hover {
   transform: translateY(-6px);
-  box-shadow: var(--qb-shadow-xl);
+  box-shadow: var(--qb-shadow-xl), 0 0 0 1px rgba(34, 211, 238, 0.26);
 }
 
 .blooket-card:hover .blooket-card-actions {
@@ -498,8 +551,8 @@
   gap: 0.6rem;
   padding: 1.25rem;
   background: linear-gradient(0deg, rgba(2, 6, 23, 0.95) 0%, rgba(15, 23, 42, 0.7) 70%, transparent 100%);
-  opacity: 0;
-  transform: translateY(8px);
+  opacity: 1;
+  transform: translateY(0);
   transition: var(--qb-transition);
 }
 
@@ -519,18 +572,18 @@
 }
 
 .blooket-action-btn.preview {
-  background: rgba(226, 232, 240, 0.95);
-  color: #0f172a;
+  background: rgba(15, 23, 42, 0.95);
+  color: #dbeafe;
 }
 
 .blooket-action-btn.preview:hover {
-  background: white;
+  background: rgba(30, 41, 59, 0.98);
   transform: scale(1.02);
 }
 
 .blooket-action-btn.use {
-  background: linear-gradient(135deg, var(--qb-primary) 0%, var(--qb-accent) 100%);
-  color: #0f172a;
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.92), rgba(14, 165, 233, 0.92));
+  color: #03142a;
   box-shadow: 0 6px 16px rgba(34, 211, 238, 0.35);
 }
 
@@ -549,7 +602,7 @@
   padding: 5rem 2rem;
   background: var(--qb-bg-card);
   border-radius: var(--qb-radius-lg);
-  border: 2px dashed rgba(148, 163, 184, 0.25);
+  border: 2px dashed rgba(34, 211, 238, 0.3);
 }
 
 .blooket-empty .empty-icon {

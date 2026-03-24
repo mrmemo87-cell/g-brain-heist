@@ -607,14 +607,14 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
             onClick={() => setActiveTab('discover')}
           >
             <span className="nav-icon">🔍</span>
-            <span>Discover</span>
+            <span>Mission Intel</span>
           </button>
           <button 
             className={`blooket-nav-item ${activeTab === 'my-sets' ? 'active' : ''}`}
             onClick={() => setActiveTab('my-sets')}
           >
-            <span className="nav-icon">📋</span>
-            <span>My Sets</span>
+            <span className="nav-icon">🎒</span>
+            <span>Loadouts</span>
             {mySetsCount > 0 && <span className="nav-badge">{mySetsCount}</span>}
           </button>
           <button 
@@ -622,7 +622,7 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
             onClick={() => setActiveTab('favorites')}
           >
             <span className="nav-icon">⭐</span>
-            <span>Favorites</span>
+            <span>Starred Ops</span>
             {favorites.size > 0 && <span className="nav-badge">{favorites.size}</span>}
           </button>
         </nav>
@@ -639,11 +639,20 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
       <main className="blooket-main">
         {/* Header */}
         <header className="blooket-header">
+          <div className="blooket-mode-badge">🎮 Mission Console</div>
           <h1 className="blooket-page-title">
-            {activeTab === 'discover' && 'Discover'}
-            {activeTab === 'my-sets' && 'My Sets'}
-            {activeTab === 'favorites' && 'Favorites'}
+            {activeTab === 'discover' && 'Mission Intel'}
+            {activeTab === 'my-sets' && 'My Loadouts'}
+            {activeTab === 'favorites' && 'Starred Ops'}
           </h1>
+          <p className="blooket-page-subtitle">
+            Build your run, lock your subject, and launch into a quest-ready question route.
+          </p>
+          <div className="blooket-hero-stats">
+            <span className="hero-chip">🧭 {subjects.length} subjects unlocked</span>
+            <span className="hero-chip">📦 {totalSets} sets in vault</span>
+            <span className="hero-chip">⚡ {questions.length} total questions</span>
+          </div>
         </header>
 
         {/* Search Bar */}
@@ -652,7 +661,7 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
             <input
               type="text"
               className="blooket-search"
-              placeholder="Search for a set..."
+              placeholder="Scan mission archive..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
