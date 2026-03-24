@@ -294,7 +294,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         setIsLoading(false);
         setBoardPhase('playing');
       } catch (err: any) {
-        setLoadError(err?.message || 'Failed to start quest run. Please try again.');
+        setLoadError(err?.message || 'Failed to create or resume a server mission run. Mission was not started. Please try again.');
         setIsLoading(false);
         setBoardPhase('playing'); // show error state
       }
@@ -990,6 +990,9 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
                 }
                 // Retry starting the mission
                 const runState = await quest_start_run(missionId);
+                if (!runState?.run_id) {
+                  throw new Error('Mission run could not be initialized. No rewards can be granted until a server run is created.');
+                }
                 setRunId(runState.run_id);
                 setRoute(runState.route as QuestNode[]);
                 setCurrentNode(runState.current_node);

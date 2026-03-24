@@ -1897,9 +1897,10 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       }
       case 'mission_preview': {
         if (!selectedMission) return null;
+        const isIntentionalPracticeMission = selectedMission.code === 'teacher_virtual' && !!virtualQuestions;
         return (
           <>
-            {virtualQuestions && (
+            {isIntentionalPracticeMission && (
               <div className="max-w-3xl mx-auto mb-4 rounded-xl border border-amber-400/50 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
                 🧪 Practice mission: this mode does not persist profile XP or coins.
               </div>
@@ -1917,6 +1918,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       }
       case 'mission_board': {
         if (!selectedMission) return null;
+        const isIntentionalPracticeMission = selectedMission.code === 'teacher_virtual' && !!virtualQuestions;
         return (
           <MissionBoard
             missionId={selectedMission.id}
@@ -1926,7 +1928,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             missionType={selectedMission.mission_type}
             activeRunId={selectedMission.active_run_id}
             avatarUrl={avatarUrl}
-            virtualRun={virtualQuestions ? { questions: virtualQuestions } : undefined}
+            virtualRun={isIntentionalPracticeMission && virtualQuestions ? { questions: virtualQuestions } : undefined}
             onGrantReward={onGrantReward}
             onComplete={(result) => {
               setMissionChestResult(result);
