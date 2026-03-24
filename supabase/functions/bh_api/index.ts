@@ -1,12 +1,13 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.78.0";
 
-type Role = "teacher" | "student";
+type Role = "teacher" | "student" | "admin" | "school_admin";
 
 type AuthContext = {
   userId: string;
   role: Role;
-  classId?: string;
+  schoolId?: string;
+  classIds: string[];
 };
 
 type Handler = (req: Request, context: AuthContext) => Promise<Response>;
@@ -167,7 +168,7 @@ const getAuthContext = async (req: Request): Promise<AuthContext> => {
 
   const { data: profile, error: profileError } = await supabaseAdmin
     .from("users")
-    .select("role, class_id")
+    .select("role, school_id")
     .eq("id", authData.user.id)
     .single();
 
@@ -175,11 +176,42 @@ const getAuthContext = async (req: Request): Promise<AuthContext> => {
     throw new ApiError("FORBIDDEN", "Unable to resolve user role", 403, profileError?.message);
   }
 
-  const headerClassId = req.headers.get("x-brains-class-id") ?? undefined;
+  let classIds: string[] = [];
+  const role = profile.role as Role;
+  if (role === "teacher") {
+    const { data: teacherProfile, error: teacherError } = await supabaseAdmin
+      .from("teachers")
+      .select("id")
+      .eq("user_id", authData.user.id)
+      .maybeSingle();
+    if (teacherError || !teacherProfile?.id) {
+      throw new ApiError("FORBIDDEN", "Teacher profile not found", 403, teacherError?.message);
+    }
+    const { data: classes, error: classesError } = await supabaseAdmin
+      .from("classes")
+      .select("id")
+      .eq("teacher_id", teacherProfile.id)
+      .eq("is_active", true);
+    if (classesError) {
+      throw new ApiError("FORBIDDEN", "Unable to resolve teacher classes", 403, classesError.message);
+    }
+    classIds = (classes ?? []).map((row) => String((row as { id: string }).id));
+  } else if (role === "student") {
+    const { data: classes, error: classesError } = await supabaseAdmin
+      .from("class_students")
+      .select("class_id")
+      .eq("student_id", authData.user.id);
+    if (classesError) {
+      throw new ApiError("FORBIDDEN", "Unable to resolve student classes", 403, classesError.message);
+    }
+    classIds = (classes ?? []).map((row) => String((row as { class_id: string }).class_id));
+  }
+
   return {
     userId: authData.user.id,
-    role: profile.role as Role,
-    classId: headerClassId ?? (profile as { class_id?: string | null }).class_id ?? undefined,
+    role,
+    schoolId: (profile as { school_id?: string | null }).school_id ?? undefined,
+    classIds,
   };
 };
 
@@ -197,6 +229,31 @@ const requireStudent = (context: AuthContext): AuthContext => {
   return context;
 };
 
+const requireTeacherClassAccess = (context: AuthContext, classId: string): string => {
+  if (!context.classIds.includes(classId)) {
+    throw new ApiError("FORBIDDEN", "Class not accessible for this teacher", 403);
+  }
+  return classId;
+};
+
+const resolveStudentClassScope = (context: AuthContext, req: Request): string => {
+  if (context.classIds.length === 0) {
+    throw new ApiError("FORBIDDEN", "Student is not enrolled in any class", 403);
+  }
+  const url = new URL(req.url);
+  const requested = getQueryValue(url, "classId");
+  if (requested) {
+    if (!context.classIds.includes(requested)) {
+      throw new ApiError("FORBIDDEN", "Class not accessible for this student", 403);
+    }
+    return requested;
+  }
+  if (context.classIds.length > 1) {
+    throw new ApiError("INVALID_QUERY", "classId is required when enrolled in multiple classes", 400);
+  }
+  return context.classIds[0];
+};
+
 const createCrudHandler = <TPayload extends Record<string, unknown>, TResult = TPayload>(
   options: {
     table: string;
@@ -204,9 +261,10 @@ const createCrudHandler = <TPayload extends Record<string, unknown>, TResult = T
     mapPayload: (payload: unknown, action: "create" | "update", context: AuthContext) => TPayload;
     mapResult?: (result: TResult | TResult[]) => unknown;
     idColumn?: string;
+    ownerColumn?: string;
   },
 ): Handler => {
-  const { table, select = "*", mapPayload, mapResult, idColumn = "id" } = options;
+  const { table, select = "*", mapPayload, mapResult, idColumn = "id", ownerColumn } = options;
 
   return async (req, context) => {
     try {
@@ -218,12 +276,20 @@ const createCrudHandler = <TPayload extends Record<string, unknown>, TResult = T
       switch (req.method) {
         case "GET": {
           if (id) {
-            const { data, error } = await supabaseAdmin.from(table).select(select).eq(idColumn, id).single();
+            let readQuery = supabaseAdmin.from(table).select(select).eq(idColumn, id);
+            if (ownerColumn) {
+              readQuery = readQuery.eq(ownerColumn, context.userId);
+            }
+            const { data, error } = await readQuery.single();
             if (error) throw new ApiError("DB_ERROR", error.message, 500);
             const normalized = data as TResult;
             return sendSuccess(mapResult ? mapResult(normalized) : normalized);
           }
-          const { data, error } = await supabaseAdmin.from(table).select(select).order("created_at", { ascending: true });
+          let listQuery = supabaseAdmin.from(table).select(select).order("created_at", { ascending: true });
+          if (ownerColumn) {
+            listQuery = listQuery.eq(ownerColumn, context.userId);
+          }
+          const { data, error } = await listQuery;
           if (error) throw new ApiError("DB_ERROR", error.message, 500);
           const normalized = data as TResult[];
           return sendSuccess(mapResult ? mapResult(normalized) : normalized);
@@ -238,14 +304,22 @@ const createCrudHandler = <TPayload extends Record<string, unknown>, TResult = T
         case "PUT": {
           if (!id) throw new ApiError("INVALID_QUERY", "Missing id for update");
           const payload = mapPayload(body, "update", context);
-          const { data, error } = await supabaseAdmin.from(table).update(payload).eq(idColumn, id).select(select).single();
+          let updateQuery = supabaseAdmin.from(table).update(payload).eq(idColumn, id);
+          if (ownerColumn) {
+            updateQuery = updateQuery.eq(ownerColumn, context.userId);
+          }
+          const { data, error } = await updateQuery.select(select).single();
           if (error) throw new ApiError("DB_ERROR", error.message, 500);
           const normalized = data as TResult;
           return sendSuccess(mapResult ? mapResult(normalized) : normalized);
         }
         case "DELETE": {
           if (!id) throw new ApiError("INVALID_QUERY", "Missing id for delete");
-          const { error } = await supabaseAdmin.from(table).delete().eq(idColumn, id);
+          let deleteQuery = supabaseAdmin.from(table).delete().eq(idColumn, id);
+          if (ownerColumn) {
+            deleteQuery = deleteQuery.eq(ownerColumn, context.userId);
+          }
+          const { error } = await deleteQuery;
           if (error) throw new ApiError("DB_ERROR", error.message, 500);
           return sendSuccess({ deleted: true });
         }
@@ -261,6 +335,7 @@ const createCrudHandler = <TPayload extends Record<string, unknown>, TResult = T
 const handlers: Record<string, Handler> = {
   "content/subjects": createCrudHandler({
     table: "bh_subjects",
+    ownerColumn: "owner_teacher_id",
     mapPayload: (payload, _action, context) => {
       const body = (payload ?? {}) as Record<string, unknown>;
       return {
@@ -273,6 +348,7 @@ const handlers: Record<string, Handler> = {
   }),
   "content/topics": createCrudHandler({
     table: "bh_topics",
+    ownerColumn: "owner_teacher_id",
     mapPayload: (payload, _action, context) => {
       const body = (payload ?? {}) as Record<string, unknown>;
       return {
@@ -286,6 +362,7 @@ const handlers: Record<string, Handler> = {
   }),
   "content/task-groups": createCrudHandler({
     table: "bh_task_groups",
+    ownerColumn: "owner_teacher_id",
     mapPayload: (payload, _action, context) => {
       const body = (payload ?? {}) as Record<string, unknown>;
       return {
@@ -299,6 +376,7 @@ const handlers: Record<string, Handler> = {
   }),
   "content/questions": createCrudHandler({
     table: "bh_questions",
+    ownerColumn: "owner_teacher_id",
     mapPayload: (payload, _action, context) => {
       const body = (payload ?? {}) as Record<string, unknown>;
       return {
@@ -550,7 +628,7 @@ const handlers: Record<string, Handler> = {
       }
       const teacher = requireTeacher(context);
       const url = new URL(req.url);
-      const classId = requireQueryValue(url, "classId");
+      const classId = requireTeacherClassAccess(teacher, requireQueryValue(url, "classId"));
       const [topics, taskGroups] = await Promise.all([
         supabaseAdmin.rpc("get_bh_class_topic_summary", {
           p_teacher_id: teacher.userId,
@@ -603,7 +681,7 @@ const handlers: Record<string, Handler> = {
       const body = (await parseJsonBody(req)) as Record<string, unknown>;
       const missionId = getQueryValue(url, "id");
       const payload = {
-        class_id: ensureString(body["classId"] ?? body["class_id"], "classId"),
+        class_id: requireTeacherClassAccess(teacher, ensureString(body["classId"] ?? body["class_id"], "classId")),
         topic_id: ensureOptionalString(body["topicId"] ?? body["topic_id"], "topicId"),
         task_group_id: ensureOptionalString(body["taskGroupId"] ?? body["task_group_id"], "taskGroupId"),
         starts_at: ensureString(body["startsAt"] ?? body["starts_at"], "startsAt"),
@@ -668,12 +746,9 @@ const handlers: Record<string, Handler> = {
         if (!classId) {
           throw new ApiError("INVALID_QUERY", "classId is required for teacher scheduling lookups");
         }
-        query.eq("class_id", classId).eq("owner_teacher_id", context.userId);
+        query.eq("class_id", requireTeacherClassAccess(context, classId)).eq("owner_teacher_id", context.userId);
       } else {
-        if (!context.classId) {
-          throw new ApiError("INVALID_CONTEXT", "Class id header required for students");
-        }
-        query.eq("class_id", context.classId);
+        query.eq("class_id", resolveStudentClassScope(context, req));
       }
 
       if (windowFilter === "active") {
@@ -698,64 +773,81 @@ const handlers: Record<string, Handler> = {
       }
       const student = requireStudent(context);
       const body = (await parseJsonBody(req)) as Record<string, unknown>;
-      const xpDelta = ensureOptionalNumber(body["xpDelta"] ?? body["xp_delta"], "xpDelta") ?? 0;
-      const coinsDelta = ensureOptionalNumber(body["coinsDelta"] ?? body["coins_delta"], "coinsDelta") ?? 0;
-      const gemstonesDelta = ensureOptionalNumber(body["gemstonesDelta"] ?? body["gemstones_delta"], "gemstonesDelta") ?? 0;
-      const applyLevelMilestone = Boolean(body["applyLevelMilestone"] ?? body["apply_level_milestone"]);
+      if (
+        body["xpDelta"] !== undefined || body["xp_delta"] !== undefined ||
+        body["coinsDelta"] !== undefined || body["coins_delta"] !== undefined ||
+        body["gemstonesDelta"] !== undefined || body["gemstones_delta"] !== undefined
+      ) {
+        throw new ApiError("INVALID_REWARD_SOURCE", "Reward deltas are not accepted. Submit event_type and event_id only.", 400);
+      }
 
-      const { data: currentProfile, error: profileError } = await supabaseAdmin
+      const eventType = ensureString(body["eventType"] ?? body["event_type"], "eventType");
+      const eventId = ensureString(body["eventId"] ?? body["event_id"], "eventId");
+      const idempotencyKey = ensureOptionalString(body["idempotencyKey"] ?? body["idempotency_key"], "idempotencyKey") ?? eventId;
+
+      if (eventType === "question_attempt") {
+        const { data: attempt, error: attemptError } = await supabaseAdmin
+          .from("question_attempts")
+          .select("id")
+          .eq("id", eventId)
+          .eq("student_id", student.userId)
+          .maybeSingle();
+        if (attemptError || !attempt) {
+          throw new ApiError("INVALID_EVENT_CONTEXT", "Question attempt event not found for this student", 403);
+        }
+      } else if (eventType === "pvp_attack") {
+        const { data: attack, error: attackError } = await supabaseAdmin
+          .from("pvp_attack_attempts")
+          .select("request_id")
+          .eq("request_id", eventId)
+          .or(`attacker_id.eq.${student.userId},defender_id.eq.${student.userId}`)
+          .maybeSingle();
+        if (attackError || !attack) {
+          throw new ApiError("INVALID_EVENT_CONTEXT", "PvP attack event not found for this user", 403);
+        }
+      } else if (eventType === "shop_purchase") {
+        const { data: purchase, error: purchaseError } = await supabaseAdmin
+          .from("shop_purchases")
+          .select("id")
+          .eq("id", eventId)
+          .eq("user_id", student.userId)
+          .maybeSingle();
+        if (purchaseError || !purchase) {
+          throw new ApiError("INVALID_EVENT_CONTEXT", "Shop purchase event not found for this user", 403);
+        }
+      } else {
+        throw new ApiError("EVENT_TYPE_UNSUPPORTED", "Unsupported reward event type", 400);
+      }
+
+      const { data: receipt, error: receiptError } = await supabaseAdmin
+        .from("reward_event_receipts")
+        .insert({
+          user_id: student.userId,
+          event_type: eventType,
+          event_id: eventId,
+          idempotency_key: idempotencyKey,
+        })
+        .select("id")
+        .maybeSingle();
+      if (receiptError && receiptError.code !== "23505") {
+        throw new ApiError("IDEMPOTENCY_ERROR", "Failed to record reward event receipt", 500, receiptError.message);
+      }
+
+      const { data: profile, error: profileError } = await supabaseAdmin
         .from("users")
-        .select("id, xp, coins, gemstones, level, username")
+        .select("xp, coins, level, gemstones, username")
         .eq("id", student.userId)
         .single();
-
-      if (profileError || !currentProfile) {
+      if (profileError || !profile) {
         throw new ApiError("PROFILE_NOT_FOUND", "Failed to load profile", 404, profileError);
       }
 
-      const previousLevel = currentProfile.level ?? 1;
-      const nextXp = Math.max(0, (currentProfile.xp ?? 0) + xpDelta);
-      const nextCoins = Math.max(0, (currentProfile.coins ?? 0) + coinsDelta);
-      let nextGemstones = Math.max(0, (currentProfile.gemstones ?? 0) + gemstonesDelta);
-
-      let xpStatus: Record<string, unknown> | null = null;
-      if (xpDelta !== 0) {
-        const { data: statusData } = await supabaseAdmin.rpc("xp_status", { p_xp: nextXp });
-        if (statusData && typeof statusData === "object" && "level" in statusData) {
-          xpStatus = statusData as Record<string, unknown>;
-        }
-      }
-
-      const LEVEL_MILESTONE_INTERVAL = 5;
-      const LEVEL_MILESTONE_GEMSTONE_REWARD = 3;
-
-      if (
-        applyLevelMilestone &&
-        xpStatus &&
-        typeof xpStatus["level"] === "number" &&
-        xpStatus["level"] > previousLevel
-      ) {
-        if (xpStatus["level"] % LEVEL_MILESTONE_INTERVAL === 0) {
-          nextGemstones += LEVEL_MILESTONE_GEMSTONE_REWARD;
-        }
-      }
-
-      const { data: updatedProfile, error: updateError } = await supabaseAdmin
-        .from("users")
-        .update({
-          xp: nextXp,
-          coins: nextCoins,
-          gemstones: nextGemstones,
-        })
-        .eq("id", student.userId)
-        .select("xp, coins, level, gemstones, username")
-        .single();
-
-      if (updateError || !updatedProfile) {
-        throw new ApiError("REWARD_UPDATE_FAILED", "Failed to apply rewards", 500, updateError);
-      }
-
-      return sendSuccess({ profile: updatedProfile, xpStatus, previousLevel });
+      return sendSuccess({
+        profile,
+        event_type: eventType,
+        event_id: eventId,
+        idempotent: !receipt,
+      });
     } catch (error) {
       return handleApiError(error);
     }

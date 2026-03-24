@@ -48,6 +48,7 @@ import {
     QuestEventResult,
     QuestChestResult,
     BrainsMasterPurchaseResult,
+    XpStatus,
 } from '../types';
 import * as RaidFeatureService from '../src/features/raids/raidService';
 import {
@@ -854,29 +855,16 @@ const applyRewardDelta = async ({
   coinsDelta?: number;
   gemstonesDelta?: number;
   applyLevelMilestone?: boolean;
-}) => {
-  const { data, error } = await supabase.rpc('rpc_apply_reward_delta', {
-    p_xp_delta: xpDelta,
-    p_coins_delta: coinsDelta,
-    p_gemstones_delta: gemstonesDelta,
-    p_apply_level_milestone: applyLevelMilestone,
-  });
-
-  if (error || !data) {
-    const message = error?.message || 'Failed to apply rewards';
-    throw new Error(message);
-  }
-
-  return {
-    profile: {
-      xp: data.profile?.xp ?? 0,
-      coins: data.profile?.coins ?? 0,
-      level: data.profile?.level ?? 1,
-      gemstones: data.profile?.gemstones ?? 0,
-    } as Pick<Profile, 'xp' | 'coins' | 'level' | 'gemstones'>,
-    xpStatus: data.xp_status ?? null,
-    previousLevel: data.previous_level ?? null,
-  };
+}): Promise<{
+  profile: Pick<Profile, 'xp' | 'coins' | 'level' | 'gemstones'>;
+  xpStatus: XpStatus | undefined;
+  previousLevel: number | null;
+}> => {
+  void xpDelta;
+  void coinsDelta;
+  void gemstonesDelta;
+  void applyLevelMilestone;
+  throw new Error('Reward minting RPC is disabled for clients pending server-verified reward events');
 };
 
 // Helper to update profile fields with retry logic and verification
@@ -1667,25 +1655,6 @@ export const whoami = async (): Promise<Profile> => {
   
       let resolvedMembership = membership;
   
-      // Fallback: use clan_member_scores view if the direct table query fails (e.g., RLS
-      // restrictions or table issues) OR if it returns no rows. This keeps clan info
-      // visible on the dashboard even when the primary table query is blocked.
-      if (!resolvedMembership || !resolvedMembership.clan_id) {
-          const { data: membershipFromScores, error: membershipScoresError } = await supabase
-              .from('clan_member_scores')
-              .select('clan_id, role, custom_title')
-              .eq('user_id', profile.id)
-              .maybeSingle();
-  
-          if (membershipScoresError && membershipScoresError.code !== 'PGRST116') {
-              console.warn('Fallback clan membership lookup failed:', membershipScoresError.message);
-          }
-  
-          if (membershipFromScores?.clan_id) {
-              resolvedMembership = membershipFromScores as unknown as typeof membership;
-          }
-      }
-  
       if (resolvedMembership && resolvedMembership.clan_id) {
           resolvedClanId = resolvedMembership.clan_id;
           resolvedClanRole = resolvedMembership.role as ClanRole;
@@ -2199,8 +2168,6 @@ export const tasks_list = async (): Promise<Task[]> => {
 };
 
 export const task_claim = async (task_id: string): Promise<{ xp: number; coins: number; gemstones?: number; items?: string[] }> => {
-  const user = await getCurrentUser();
-  
   // Get task details
   const tasks = await tasks_list();
   const task = tasks.find(t => t.id === task_id);
@@ -2220,70 +2187,8 @@ export const task_claim = async (task_id: string): Promise<{ xp: number; coins: 
   if (!task.reward) {
     throw new Error('No reward defined for this task');
   }
-  
-  const gemstonesEarned = task.reward.gemstones || 0;
 
-  await applyRewardDelta({
-    xpDelta: task.reward.xp,
-    coinsDelta: task.reward.coins,
-    gemstonesDelta: gemstonesEarned,
-    applyLevelMilestone: false,
-  });
-  
-  // Mark as claimed in localStorage
-  const today = new Date().toISOString().split('T')[0];
-  const now = new Date();
-  const weekStart = new Date(now);
-  const dayOfWeek = weekStart.getDay();
-  weekStart.setDate(weekStart.getDate() - dayOfWeek);
-  weekStart.setHours(0, 0, 0, 0);
-  const weekStartDateKey = formatLocalDateKey(weekStart);
-
-  const claimedKey = task.kind === 'weekly'
-    ? `task_claims_weekly_${weekStartDateKey}`
-    : `task_claims_daily_${today}`;
-
-  const claimedTasks = JSON.parse(localStorage.getItem(claimedKey) || '[]') as string[];
-  claimedTasks.push(task_id);
-  localStorage.setItem(claimedKey, JSON.stringify(claimedTasks));
-  
-  // Also record in database for cross-device sync (mobile support)
-  try {
-    await supabase.from('activities').insert({
-      actor_id: user.id,
-      actor_username: (await whoami()).username,
-      kind: 'task_claimed',
-      data: { task_id, task_kind: task.kind, reward: task.reward },
-    });
-  } catch (error) {
-    console.warn('Failed to record task claim in database:', error);
-    // Continue anyway - localStorage will be used as fallback
-  }
-  
-  // Grant items if any (add to inventory)
-  if (task.reward.items && task.reward.items.length > 0) {
-    const inventoryItems = task.reward.items.map(itemId => {
-      // Map item IDs to inventory entries
-      const itemInfo = MOCK_SHOP_ITEMS.find(i => i.id === itemId) || {
-        id: itemId,
-        name: itemId.replace('item_', '').replace(/_/g, ' '),
-        kind: 'mystery' as const,
-      };
-      return {
-        user_id: user.id,
-        item_id: itemInfo.id,
-        name: itemInfo.name,
-        kind: itemInfo.kind,
-        state: 'unused' as const,
-      };
-    });
-    
-    if (inventoryItems.length > 0) {
-      await supabase.from('inventory').insert(inventoryItems);
-    }
-  }
-  
-  return mockApiCall(task.reward);
+  throw new Error('Task reward claiming is temporarily disabled until server-verified event rewards are available.');
 };
 
 export const session_status = (): Promise<SessionStatus> => {
@@ -3004,16 +2909,8 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
         return timeB - timeA;
     });
 
-    const existingIds = new Set(prioritizedTargets.map(target => target.user_id));
-    // Add bots to fill gaps (but mark them as real players for display)
-    const MIN_TARGETS = 10;
-    const botsNeeded = Math.max(MIN_TARGETS - prioritizedTargets.length, 0);
-    const bots = generateKyrgyzBots(botsNeeded, existingIds).map(bot => ({ ...bot, is_bot: false })); // Hide bot status
-
-    // Return all targets (no artificial limit)
-    const combinedTargets = [...prioritizedTargets, ...bots];
-
-    return mockApiCall(combinedTargets);
+    // Competitive targets must be real server-returned players only.
+    return prioritizedTargets;
 };
 
 // Raid system integration -------------------------------------------------
@@ -3965,33 +3862,10 @@ export const clan_details = async (): Promise<Clan | null> => {
         .order('total_score', { ascending: false });
 
     if (membersError) {
-        console.error('Failed to fetch clan members from scores view, attempting fallback:', membersError);
-        const { data: fallbackMembers, error: fallbackError } = await supabase
-            .from('clan_members')
-            .select('user_id, role, joined_at, users(username, avatar_url, xp, pvp_score)')
-            .eq('clan_id', clan.id)
-            .order('joined_at', { ascending: true });
-
-        if (fallbackError) {
-            console.error('Fallback clan member fetch also failed:', fallbackError);
-            throw fallbackError;
-        }
-
-        memberRows = (fallbackMembers || []).map((member: any) => ({
-            user_id: member.user_id,
-            username: member.users?.username ?? 'Unknown Agent',
-            role: member.role,
-            contribution: 0,
-            avatar_url: member.users?.avatar_url,
-            custom_title: null,
-            bio: null,
-            total_score: calculateTotalScore(member.users?.xp ?? 0, member.users?.pvp_score ?? 0),
-            xp: member.users?.xp ?? 0,
-            pvp_score: member.users?.pvp_score ?? 0,
-        }));
-    } else {
-        memberRows = membersData || [];
+        console.error('Failed to fetch clan members from scores view:', membersError);
+        throw new Error('Unable to load clan members from authorized score view');
     }
+    memberRows = membersData || [];
 
     const neonOwners = await fetchNeonFrameOwners(memberRows.map((m: any) => m.user_id));
     const flickerOwners = await fetchFlickerThemeOwners(memberRows.map((m: any) => m.user_id));
@@ -4319,56 +4193,22 @@ export const clan_deposit_coins = async (amount: number): Promise<{ new_clan_vau
     if (amount <= 0) {
         throw new Error('Invalid amount.');
     }
-    
-    // Get user's current coins and clan membership
-    const { data: profile } = await supabase
-        .from('users')
-        .select('coins')
-        .eq('id', user.id)
-        .single();
-    
-    if (!profile || profile.coins < amount) {
-        throw new Error('Insufficient funds.');
+
+    const { data, error } = await supabase.rpc('rpc_clan_deposit_coins', {
+        p_amount: amount,
+    });
+
+    if (error) {
+        console.error('Failed to deposit clan coins:', error);
+        throw new Error(error.message || 'Failed to deposit coins.');
     }
-    
-    // Get user's clan
-    const { data: membership } = await supabase
-        .from('clan_members')
-        .select('clan_id')
-        .eq('user_id', user.id)
-        .single();
-    
-    if (!membership) {
-        throw new Error('Not in a clan.');
+
+    const result = getRpcSingleRow<{ new_clan_vault: number; new_user_coins: number }>(data);
+    if (!result) {
+        throw new Error('Failed to deposit coins.');
     }
-    
-    // Get clan current vault
-    const { data: clan } = await supabase
-        .from('clans')
-        .select('vault_coins')
-        .eq('id', membership.clan_id)
-        .single();
-    
-    if (!clan) {
-        throw new Error('Clan not found.');
-    }
-    
-    const newUserCoins = profile.coins - amount;
-    const newClanVault = clan.vault_coins + amount;
-    
-    // Update user coins
-    await supabase
-        .from('users')
-        .update({ coins: newUserCoins })
-        .eq('id', user.id);
-    
-    // Update clan vault
-    await supabase
-        .from('clans')
-        .update({ vault_coins: newClanVault })
-        .eq('id', membership.clan_id);
-    
-    return mockApiCall({ new_clan_vault: newClanVault, new_user_coins: newUserCoins });
+
+    return mockApiCall(result);
 };
 
 export const clan_buy_buff = async (buffCode: string): Promise<Clan> => {
@@ -5434,28 +5274,8 @@ export const submit_question_answer = async (
         throw error;
     }
 
-    const result = data as QuestionAttemptResult;
-    const xpDelta = Math.max(0, result.points_earned || 0);
-    const coinDelta = result.is_correct ? Math.trunc(xpDelta / 2) : 0;
-
-    if (xpDelta > 0 || coinDelta > 0) {
-        const rewardResult = await applyRewardDelta({
-            xpDelta,
-            coinsDelta: coinDelta,
-            gemstonesDelta: 0,
-            applyLevelMilestone: true,
-        });
-
-        result.final_profile_values = {
-            xp: rewardResult.profile.xp,
-            coins: rewardResult.profile.coins,
-            level: rewardResult.profile.level,
-            gemstones: rewardResult.profile.gemstones,
-            xp_status: rewardResult.xpStatus ?? undefined,
-        };
-    }
-
-    return result;
+    // Rewards are applied server-side by recordQuestionAttempt; do not apply client-side deltas.
+    return data as QuestionAttemptResult;
 };
 
 /**
@@ -5700,7 +5520,19 @@ export const submit_assignment_result = async (payload: AssignmentResultInput): 
         p_time_taken: payload.timeTakenSeconds,
     });
 
-    if (error) throw new Error(error.message || 'Failed to submit assignment');
+    if (error) {
+        const message = error.message || 'Failed to submit assignment';
+        if (message.includes('ASSIGNMENT_ALREADY_SUBMITTED')) {
+            throw new Error('Assignment was already submitted.');
+        }
+        if (message.includes('ASSIGNMENT_NOT_FOUND_OR_NOT_ASSIGNED')) {
+            throw new Error('Assignment is not available for this student.');
+        }
+        if (message.includes('ASSIGNMENT_NOT_SUBMITTABLE')) {
+            throw new Error('Assignment is no longer in a submittable state.');
+        }
+        throw new Error(message);
+    }
 };
 
 export const get_teacher_assignment_report = async (

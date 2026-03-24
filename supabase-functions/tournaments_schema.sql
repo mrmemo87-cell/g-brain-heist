@@ -81,6 +81,40 @@ create or replace view public.tournament_public_bracket as
   left join public.tournament_school_signups team_b on team_b.id = m.team_b_id
   left join public.tournament_seasons s on s.id = m.season_id;
 
+create or replace function public.is_tournament_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.users u
+    where u.id = auth.uid()
+      and (
+        coalesce(u.role, 'student') in ('admin', 'school_admin')
+        or coalesce(u.is_admin, false)
+      )
+  );
+$$;
+
+create or replace function public.require_tournament_admin()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'Not authenticated';
+  end if;
+  if not public.is_tournament_admin() then
+    raise exception 'Tournament admin authorization required';
+  end if;
+end;
+$$;
+
 -- RPC helper to approve a school signup
 create or replace function public.approve_tournament_signup(signup_id uuid)
 returns public.tournament_school_signups
@@ -91,6 +125,8 @@ as $$
 declare
   updated public.tournament_school_signups;
 begin
+  perform public.require_tournament_admin();
+
   update public.tournament_school_signups
     set status = 'approved'
   where id = signup_id
@@ -112,6 +148,8 @@ declare
   index integer := 1;
   match_record public.tournament_matches;
 begin
+  perform public.require_tournament_admin();
+
   select array_agg(id order by random())
   into approved_signups
   from public.tournament_school_signups
@@ -166,6 +204,8 @@ as $$
 declare
   updated public.tournament_matches;
 begin
+  perform public.require_tournament_admin();
+
   update public.tournament_matches
   set
     scheduled_at = update_match_schedule.scheduled_at,
@@ -193,6 +233,8 @@ as $$
 declare
   updated public.tournament_matches;
 begin
+  perform public.require_tournament_admin();
+
   update public.tournament_matches
   set
     winner_id = winner,
@@ -204,13 +246,70 @@ begin
 end;
 $$;
 
--- Basic RLS policies (disabled by default, enable if needed)
--- alter table public.tournament_seasons enable row level security;
--- alter table public.tournament_school_signups enable row level security;
--- alter table public.tournament_matches enable row level security;
+-- Basic tournament security baseline
+alter table public.tournament_seasons enable row level security;
+alter table public.tournament_school_signups enable row level security;
+alter table public.tournament_matches enable row level security;
 
--- Example policy stubs (customize to your needs)
--- create policy "Admins can manage tournament data" on public.tournament_seasons
---   for all using (auth.role() = 'authenticated')
---   with check (auth.uid() = created_by);
+drop policy if exists tournament_seasons_select_all on public.tournament_seasons;
+create policy tournament_seasons_select_all
+  on public.tournament_seasons for select to authenticated
+  using (true);
 
+drop policy if exists tournament_seasons_admin_insert on public.tournament_seasons;
+create policy tournament_seasons_admin_insert
+  on public.tournament_seasons for insert to authenticated
+  with check (public.is_tournament_admin());
+
+drop policy if exists tournament_seasons_admin_update on public.tournament_seasons;
+create policy tournament_seasons_admin_update
+  on public.tournament_seasons for update to authenticated
+  using (public.is_tournament_admin())
+  with check (public.is_tournament_admin());
+
+drop policy if exists tournament_seasons_admin_delete on public.tournament_seasons;
+create policy tournament_seasons_admin_delete
+  on public.tournament_seasons for delete to authenticated
+  using (public.is_tournament_admin());
+
+drop policy if exists tournament_signups_select_admin_only on public.tournament_school_signups;
+create policy tournament_signups_select_admin_only
+  on public.tournament_school_signups for select to authenticated
+  using (public.is_tournament_admin());
+
+drop policy if exists tournament_signups_insert_authenticated on public.tournament_school_signups;
+create policy tournament_signups_insert_authenticated
+  on public.tournament_school_signups for insert to authenticated
+  with check (auth.uid() is not null);
+
+drop policy if exists tournament_signups_admin_update on public.tournament_school_signups;
+create policy tournament_signups_admin_update
+  on public.tournament_school_signups for update to authenticated
+  using (public.is_tournament_admin())
+  with check (public.is_tournament_admin());
+
+drop policy if exists tournament_signups_admin_delete on public.tournament_school_signups;
+create policy tournament_signups_admin_delete
+  on public.tournament_school_signups for delete to authenticated
+  using (public.is_tournament_admin());
+
+drop policy if exists tournament_matches_select_all on public.tournament_matches;
+create policy tournament_matches_select_all
+  on public.tournament_matches for select to authenticated
+  using (true);
+
+drop policy if exists tournament_matches_admin_insert on public.tournament_matches;
+create policy tournament_matches_admin_insert
+  on public.tournament_matches for insert to authenticated
+  with check (public.is_tournament_admin());
+
+drop policy if exists tournament_matches_admin_update on public.tournament_matches;
+create policy tournament_matches_admin_update
+  on public.tournament_matches for update to authenticated
+  using (public.is_tournament_admin())
+  with check (public.is_tournament_admin());
+
+drop policy if exists tournament_matches_admin_delete on public.tournament_matches;
+create policy tournament_matches_admin_delete
+  on public.tournament_matches for delete to authenticated
+  using (public.is_tournament_admin());
