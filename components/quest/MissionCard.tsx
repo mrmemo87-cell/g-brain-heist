@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useRef } from 'react';
+import gsap from 'gsap';
 import type { QuestMission, SoloDifficulty } from '../../types';
 
 interface MissionCardProps {
@@ -41,6 +42,10 @@ const SUBJECT_BADGE: Record<string, SubjectBadge> = {
 };
 
 const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
+  const cardRef = useRef<HTMLButtonElement>(null);
+  const glowRef = useRef<HTMLDivElement>(null);
+  const badgeRowRef = useRef<HTMLDivElement>(null);
+
   const diff = DIFFICULTY_BADGE[mission.difficulty];
   const mType = TYPE_BADGE[mission.mission_type] ?? TYPE_BADGE.standard;
   const nodeCount = mission.route_template.length;
@@ -48,79 +53,176 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
   const hasActiveRun = !!mission.active_run_id;
   const tierBadge = bestRun?.chest_tier ? CHEST_TIER_BADGE[bestRun.chest_tier] : null;
   const subjectBadge = SUBJECT_BADGE[mission.subject] ?? { type: 'emoji', value: '📚' as const };
+  const cardTone = hasActiveRun
+    ? 'from-amber-600/25 via-cyan-900/35 to-slate-950'
+    : bestRun?.perfect_run
+      ? 'from-yellow-500/20 via-cyan-900/40 to-slate-950'
+      : 'from-cyan-500/15 via-blue-900/35 to-slate-950';
+
+  const handleHoverIn = () => {
+    if (!cardRef.current) return;
+    gsap.killTweensOf([cardRef.current, glowRef.current, badgeRowRef.current]);
+    gsap.to(cardRef.current, {
+      y: -6,
+      scale: 1.02,
+      rotateX: 4,
+      rotateY: -3,
+      boxShadow: '0 18px 38px rgba(8,145,178,0.32)',
+      duration: 0.28,
+      ease: 'power2.out',
+      transformPerspective: 1000,
+      transformOrigin: 'center',
+    });
+    if (glowRef.current) {
+      gsap.to(glowRef.current, { opacity: 1, duration: 0.25, ease: 'power2.out' });
+    }
+    if (badgeRowRef.current) {
+      gsap.to(badgeRowRef.current.children, {
+        y: -3,
+        stagger: 0.04,
+        duration: 0.2,
+        ease: 'power2.out',
+      });
+    }
+  };
+
+  const handleHoverOut = () => {
+    if (!cardRef.current) return;
+    gsap.killTweensOf([cardRef.current, glowRef.current, badgeRowRef.current]);
+    gsap.to(cardRef.current, {
+      y: 0,
+      scale: 1,
+      rotateX: 0,
+      rotateY: 0,
+      boxShadow: '0 0 0 rgba(0,0,0,0)',
+      duration: 0.26,
+      ease: 'power2.out',
+    });
+    if (glowRef.current) {
+      gsap.to(glowRef.current, { opacity: 0, duration: 0.22, ease: 'power2.out' });
+    }
+    if (badgeRowRef.current) {
+      gsap.to(badgeRowRef.current.children, { y: 0, duration: 0.18, ease: 'power2.out' });
+    }
+  };
+
+  const handleSelect = () => {
+    if (!cardRef.current) {
+      onSelect(mission);
+      return;
+    }
+    gsap.killTweensOf(cardRef.current);
+    gsap.timeline({
+      onComplete: () => onSelect(mission),
+    })
+      .to(cardRef.current, { scale: 0.96, duration: 0.09, ease: 'power2.out' })
+      .to(cardRef.current, {
+        scale: 1.03,
+        y: -2,
+        boxShadow: '0 0 30px rgba(14, 165, 233, 0.55)',
+        duration: 0.14,
+        ease: 'back.out(2.4)',
+      })
+      .to(cardRef.current, { scale: 1, y: 0, duration: 0.12, ease: 'power1.out' });
+  };
 
   return (
     <button
-      onClick={() => onSelect(mission)}
-      className={`w-full text-left card-glass rounded-xl border p-4 space-y-3 hover:scale-[1.02] active:scale-[0.98] transition-all group ${
+      ref={cardRef}
+      onClick={handleSelect}
+      onMouseEnter={handleHoverIn}
+      onMouseLeave={handleHoverOut}
+      onBlur={handleHoverOut}
+      className={`relative w-full text-left rounded-2xl border overflow-hidden group will-change-transform ${
         hasActiveRun
-          ? 'border-amber-400/40 hover:border-amber-400/70'
+          ? 'border-amber-400/45'
           : bestRun?.perfect_run
-            ? 'border-yellow-400/30 hover:border-yellow-400/60'
-            : 'border-cyan-400/20 hover:border-cyan-400/50'
+            ? 'border-yellow-400/35'
+            : 'border-cyan-400/30'
       }`}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          {subjectBadge.type === 'image' ? (
-            <img
-              src={subjectBadge.src}
-              alt={subjectBadge.alt}
-              className="h-5 w-5 rounded-sm object-cover"
-              loading="lazy"
-            />
-          ) : (
-            <span className="text-lg">{subjectBadge.value}</span>
-          )}
-          <h3 className="font-bold text-white text-lg group-hover:text-cyan-200 transition-colors">
-            {mission.title}
-          </h3>
-        </div>
-        <div className="flex items-center gap-2">
-          {hasActiveRun && (
-            <span className="text-[10px] font-bold uppercase tracking-widest text-amber-300 animate-pulse">
-              ▶ In Progress
-            </span>
-          )}
-          {tierBadge && !hasActiveRun && (
-            <span className={`text-sm ${tierBadge.color}`} title={`Best: ${tierBadge.label}`}>
-              {tierBadge.icon}
-            </span>
-          )}
-          <span className={`text-[10px] font-bold uppercase tracking-widest ${mType.color}`}>
-            {mType.label}
-          </span>
+      <div className={`relative h-64 bg-gradient-to-br ${cardTone}`}>
+        <img
+          src="/visuals/QUESTCARDMAINFRAME.svg"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover opacity-90 pointer-events-none select-none"
+          loading="lazy"
+        />
+        <div
+          ref={glowRef}
+          className="absolute inset-0 opacity-0 pointer-events-none"
+          style={{ background: 'radial-gradient(circle at 50% 40%, rgba(34,211,238,.25), rgba(2,6,23,0) 70%)' }}
+        />
+
+        <div className="absolute inset-0 p-3 sm:p-4 flex flex-col justify-between">
+          <div className="flex items-start justify-between gap-2">
+            <div ref={badgeRowRef} className="flex flex-wrap items-center gap-2">
+              <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border backdrop-blur-sm ${diff.color}`}>
+                {diff.text.toUpperCase()}
+              </span>
+              <span className={`text-[10px] font-bold uppercase tracking-widest ${mType.color}`}>
+                {mType.label}
+              </span>
+            </div>
+            {hasActiveRun ? (
+              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-200 bg-amber-500/20 border border-amber-300/40 px-2 py-1 rounded-full">
+                ▶ Resume
+              </span>
+            ) : tierBadge ? (
+              <span className={`text-sm ${tierBadge.color} bg-slate-950/65 px-2 py-1 rounded-full border border-white/10`} title={`Best: ${tierBadge.label}`}>
+                {tierBadge.icon} {tierBadge.label}
+              </span>
+            ) : null}
+          </div>
+
+          <div className="flex items-center justify-center">
+            <div className="h-20 w-20 rounded-full bg-slate-950/70 border border-cyan-300/35 shadow-[0_0_24px_rgba(34,211,238,0.35)] flex items-center justify-center">
+              {subjectBadge.type === 'image' ? (
+                <img
+                  src={subjectBadge.src}
+                  alt={subjectBadge.alt}
+                  className="h-12 w-12 rounded-full object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <span className="text-4xl leading-none">{subjectBadge.value}</span>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="font-bold text-white text-xl leading-tight text-shadow-sm group-hover:text-cyan-100 transition-colors">
+              {mission.title}
+            </h3>
+            <div className="flex flex-wrap items-center gap-2 text-[11px] sm:text-xs">
+              <span className="px-2 py-1 rounded-full bg-slate-900/80 border border-white/10 text-slate-200">
+                📍 {nodeCount} nodes
+              </span>
+              <span className="px-2 py-1 rounded-full bg-slate-900/80 border border-white/10 text-slate-200">
+                ⏱ ~3-5 min
+              </span>
+              {bestRun ? (
+                <span className="px-2 py-1 rounded-full bg-cyan-950/80 border border-cyan-400/30 text-cyan-200">
+                  ⭐ {bestRun.rewards_xp} XP best
+                </span>
+              ) : (
+                <span className="px-2 py-1 rounded-full bg-slate-900/80 border border-white/10 text-slate-300">
+                  🏆 Final chest
+                </span>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
       {mission.description && (
-        <p className="text-sm text-slate-300 leading-relaxed">{mission.description}</p>
+        <div className="px-4 py-3 bg-slate-950/80 border-t border-cyan-500/20">
+          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed line-clamp-2">{mission.description}</p>
+        </div>
       )}
 
-      <div className="flex items-center gap-3 flex-wrap">
-        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${diff.color}`}>
-          {diff.text}
-        </span>
-        <span className="text-xs text-slate-400">
-          📍 {nodeCount} nodes
-        </span>
-        <span className="text-xs text-slate-400">
-          ⏱ ~3-5 min
-        </span>
-        {bestRun && (
-          <span className="text-xs text-cyan-400">
-            ⭐ Best: {bestRun.rewards_xp} XP
-          </span>
-        )}
-        {!bestRun && (
-          <span className="text-xs text-slate-400">
-            🏆 Final Chest
-          </span>
-        )}
-      </div>
-
       {/* Mini route preview */}
-      <div className="flex items-center gap-1.5 pt-1">
+      <div className="flex items-center gap-1.5 px-4 py-3 bg-slate-950/75 border-t border-white/10">
         {mission.route_template.map((node, i) => {
           const icons: Record<string, string> = {
             start: '🚀', question: '❓', reward: '🎁',
@@ -128,7 +230,7 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
           };
           return (
             <React.Fragment key={i}>
-              <span className="text-sm opacity-70">{icons[node.type] ?? '•'}</span>
+              <span className="text-sm opacity-80">{icons[node.type] ?? '•'}</span>
               {i < mission.route_template.length - 1 && (
                 <span className="text-[8px] text-slate-600">─</span>
               )}
@@ -139,7 +241,7 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
 
       {/* Perfect run indicator */}
       {bestRun?.perfect_run && (
-        <div className="text-[10px] text-yellow-300/80 font-semibold tracking-wide">
+        <div className="px-4 pb-3 text-[10px] text-yellow-300/85 font-semibold tracking-wide">
           ✨ PERFECT RUN ACHIEVED
         </div>
       )}
