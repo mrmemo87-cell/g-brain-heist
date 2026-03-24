@@ -6150,6 +6150,8 @@ export interface QuestMissionRow {
     route_template: any[];
     energy_cost: number;
     sort_order: number;
+    is_active?: boolean;
+    created_by?: string | null;
     best_run?: { chest_tier: string; perfect_run: boolean; rewards_xp: number; completed_at: string } | null;
     active_run_id?: string | null;
 }

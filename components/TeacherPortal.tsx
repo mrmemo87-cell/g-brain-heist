@@ -629,7 +629,19 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   };
 
   // Load Cambridge test scores for teacher's school (school-isolated)
-  const loadMyQuests = async () => {\n    setMyQuestsLoading(true);\n    try {\n      const quests = await GameService.teacher_get_my_quests();\n      setMyQuests(quests);\n    } catch (err) {\n      console.error('Failed to load teacher quests:', err);\n    } finally {\n      setMyQuestsLoading(false);\n    }\n  };\n\n  const loadCambridgeScores = async () => {
+  const loadMyQuests = async () => {
+    setMyQuestsLoading(true);
+    try {
+      const quests = await GameService.teacher_get_my_quests();
+      setMyQuests(quests);
+    } catch (err) {
+      console.error('Failed to load teacher quests:', err);
+    } finally {
+      setMyQuestsLoading(false);
+    }
+  };
+
+  const loadCambridgeScores = async () => {
     setCambridgeLoading(true);
     try {
       // Use school-scoped RPC to get only scores from teacher's school
@@ -3030,9 +3042,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     };
 
     const handleSaveQuest = async () => {
-      if (!questBuilderTitle.trim()) { brainsAlert('Please enter a quest title.', 'warning'); return; }
-      if (questBuilderQuestionIds.length < 1) { brainsAlert('Select at least 1 question.', 'warning'); return; }
-      if (questBuilderQuestionIds.length > 20) { brainsAlert('Maximum 20 questions per quest.', 'warning'); return; }
+      if (!questBuilderTitle.trim()) { brainsAlert('Please enter a quest title.', 'info'); return; }
+      if (questBuilderQuestionIds.length < 1) { brainsAlert('Select at least 1 question.', 'info'); return; }
+      if (questBuilderQuestionIds.length > 20) { brainsAlert('Maximum 20 questions per quest.', 'info'); return; }
       setQuestBuilderSaving(true);
       try {
         await GameService.teacher_create_quest_mission({
