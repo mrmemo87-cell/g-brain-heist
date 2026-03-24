@@ -21,6 +21,10 @@ declare
   v_xp_status jsonb;
   v_next_level int := 1;
 begin
+  if coalesce(auth.role(), '') <> 'service_role' then
+    raise exception 'rpc_apply_reward_delta is temporarily disabled for clients; use a server-verified reward flow';
+  end if;
+
   if v_user_id is null then
     raise exception 'Not authenticated';
   end if;
@@ -69,4 +73,7 @@ begin
 end;
 $$;
 
-grant execute on function public.rpc_apply_reward_delta(int, int, int, boolean) to authenticated;
+revoke execute on function public.rpc_apply_reward_delta(int, int, int, boolean) from public;
+revoke execute on function public.rpc_apply_reward_delta(int, int, int, boolean) from anon;
+revoke execute on function public.rpc_apply_reward_delta(int, int, int, boolean) from authenticated;
+grant execute on function public.rpc_apply_reward_delta(int, int, int, boolean) to service_role;

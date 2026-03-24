@@ -1118,21 +1118,17 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             (lastRewardedLevel === null || nextLevel > lastRewardedLevel)
           ) {
             lastRewardedLevelRef.current = nextLevel;
-            // Call RPC to grant level-up rewards
-            supabase.rpc('rpc_grant_levelup_rewards', { p_new_level: nextLevel })
-              .then(({ data, error }) => {
-                if (error) {
-                  console.error('Failed to grant level-up rewards:', error);
-                  return;
-                }
+            console.warn('Level-up reward grant is temporarily disabled pending server-verified flow');
+            const rewards = {
+              coins: 0,
+              ap_refill: false,
+              message: 'Level-up rewards are temporarily disabled pending server-verified flow',
+            };
+            setLevelUpData({ newLevel: nextLevel, rewards });
+            setShowLevelUpModal(true);
 
-                const rewards = data || { coins: 100 * nextLevel, ap_refill: true };
-                setLevelUpData({ newLevel: nextLevel, rewards });
-                setShowLevelUpModal(true);
-
-                // Refresh profile to show updated rewards
-                hydrateProfileFromServer(undefined, nextLevel);
-              });
+            // Refresh profile without reward RPC minting
+            hydrateProfileFromServer(undefined, nextLevel);
           } else {
             // Use the realtime payload directly instead of calling whoami()
             // This avoids triggering another last_seen update
