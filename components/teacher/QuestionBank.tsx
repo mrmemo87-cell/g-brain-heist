@@ -1,6 +1,7 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { TeacherQuestion, Subject, QuestionDifficulty, Teacher } from '../../types';
+import gsap from 'gsap';
 import './QuestionBank.css';
 
 // ============================================================================
@@ -22,6 +23,9 @@ export interface QuestionSet {
   isVerified: boolean;
   coverGradient: string;
   coverEmoji: string;
+  progressPercent?: number;
+  isLocked?: boolean;
+  isCompleted?: boolean;
 }
 
 type TabFilter = 'discover' | 'my-sets' | 'favorites';
@@ -167,16 +171,71 @@ interface QuestionSetCardProps {
   onPreview: () => void;
   onUseSet: () => void;
   useActionLabel: string;
+  index: number;
 }
 
-const QuestionSetCard: React.FC<QuestionSetCardProps> = ({ set, onPreview, onUseSet, useActionLabel }) => {
+const QuestionSetCard: React.FC<QuestionSetCardProps> = ({ set, onPreview, onUseSet, useActionLabel, index }) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const isLocked = Boolean(set.isLocked);
+  const isCompleted = Boolean(set.isCompleted);
+  const progress = typeof set.progressPercent === 'number' ? Math.max(0, Math.min(100, set.progressPercent)) : null;
+  const ctaLabel = isLocked
+    ? 'Locked'
+    : isCompleted
+      ? 'Review'
+      : progress && progress > 0
+        ? 'Continue'
+        : useActionLabel || 'Enter';
+
+  useEffect(() => {
+    if (!cardRef.current) return;
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        cardRef.current,
+        { autoAlpha: 0, y: 10, scale: 0.985 },
+        {
+          autoAlpha: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.34,
+          delay: Math.min(index * 0.025, 0.2),
+          ease: 'power2.out',
+          clearProps: 'opacity,visibility,transform',
+        }
+      );
+    }, cardRef);
+
+    return () => ctx.revert();
+  }, [index]);
+
   return (
-    <div className="blooket-card" onClick={onPreview}>
+    <div
+      ref={cardRef}
+      className={`blooket-card${isLocked ? ' is-locked' : ''}${isCompleted ? ' is-completed' : ''}`}
+      onClick={onPreview}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onPreview();
+        }
+      }}
+      aria-label={`${set.title} ${set.subject} set`}
+    >
       {/* Cover Image Area */}
-      <div 
-        className="blooket-card-cover"
-        style={{ background: set.coverGradient }}
-      >
+      <div className="blooket-card-cover">
+        {isLocked && (
+          <div className="blooket-state-badge locked" aria-label="Locked set">
+            🔒 Locked
+          </div>
+        )}
+        {isCompleted && !isLocked && (
+          <div className="blooket-state-badge completed" aria-label="Completed set">
+            ✅ Complete
+          </div>
+        )}
+
         {/* Verified Badge */}
         {set.isVerified && (
           <div className="blooket-verified-badge">
@@ -187,19 +246,24 @@ const QuestionSetCard: React.FC<QuestionSetCardProps> = ({ set, onPreview, onUse
         
         {/* Decorative Elements */}
         <div className="blooket-cover-deco">
-          <span className="deco-emoji main">{set.coverEmoji}</span>
-          <span className="deco-emoji secondary">{getSubjectEmoji(set.subject)}</span>
-        </div>
-        
-        {/* Question Count Badge */}
-        <div className="blooket-question-count">
-          {set.questionCount} Question{set.questionCount !== 1 ? 's' : ''}
+          <span className="deco-emoji main">{getSubjectEmoji(set.subject)}</span>
+          <span className="deco-emoji secondary">{set.coverEmoji}</span>
         </div>
       </div>
       
       {/* Card Info */}
       <div className="blooket-card-info">
         <h3 className="blooket-card-title">{set.title}</h3>
+        <div className="blooket-card-topline">
+          <span className={`blooket-difficulty-chip difficulty-${set.difficulty}`}>{set.difficulty}</span>
+          {set.isVerified && <span className="blooket-mini-verified">Verified</span>}
+        </div>
+        <div className="blooket-meta-row">
+          <span className="blooket-meta-pill">❓ {set.questionCount}</span>
+          {progress !== null && (
+            <span className="blooket-meta-pill">{isCompleted ? '✅ 100%' : `📈 ${progress}%`}</span>
+          )}
+        </div>
         <div className="blooket-card-meta">
           <span className="blooket-plays">
             <span className="play-icon">▶</span>
@@ -215,16 +279,14 @@ const QuestionSetCard: React.FC<QuestionSetCardProps> = ({ set, onPreview, onUse
       {/* Hover Actions */}
       <div className="blooket-card-actions">
         <button 
-          className="blooket-action-btn preview"
-          onClick={(e) => { e.stopPropagation(); onPreview(); }}
+          className={`blooket-action-btn use${isLocked ? ' disabled' : ''}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!isLocked) onUseSet();
+          }}
+          disabled={isLocked}
         >
-          👁️ Preview
-        </button>
-        <button 
-          className="blooket-action-btn use"
-          onClick={(e) => { e.stopPropagation(); onUseSet(); }}
-        >
-          ▶ {useActionLabel}
+          ▶ {ctaLabel}
         </button>
       </div>
     </div>
@@ -483,6 +545,9 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
       const totalCorrect = set.questions.reduce((sum, q) => sum + (q.times_correct || 0), 0);
       set.avgSuccessRate = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
       set.totalPlays = totalAnswered;
+      set.progressPercent = set.avgSuccessRate;
+      set.isCompleted = set.avgSuccessRate >= 90 && set.totalPlays >= Math.max(3, set.questionCount);
+      set.isLocked = false;
 
       const myQuestions = set.questions.filter(q => teacher && q.teacher_id === teacher.id);
       if (myQuestions.length === set.questions.length && teacher) {
@@ -710,13 +775,14 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
               )}
             </div>
           ) : (
-            filteredSets.map(set => (
+            filteredSets.map((set, index) => (
               <QuestionSetCard
                 key={set.id}
                 set={set}
                 onPreview={() => handlePreview(set)}
                 onUseSet={() => handleUseSet(set)}
                 useActionLabel={useActionLabel}
+                index={index}
               />
             ))
           )}
