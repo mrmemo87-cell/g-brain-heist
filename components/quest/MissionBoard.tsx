@@ -400,7 +400,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         openChest();
         break;
     }
-  }, [route, advanceToNode]);
+  }, [route, advanceToNode, openChest]);
 
   // ── Answer a question node (server RPC) ──
   const handleQuestionAnswer = useCallback(async (selectedOption: string) => {
