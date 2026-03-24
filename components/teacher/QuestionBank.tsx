@@ -72,8 +72,14 @@ const getSubjectLabel = (subject: Subject): string => {
   return subject;
 };
 
-const getSubjectEmoji = (subject: Subject | string): string => {
+type SubjectBadge = { kind: 'emoji'; value: string } | { kind: 'image'; src: string; alt: string };
+
+const getSubjectBadge = (subject: Subject | string): SubjectBadge => {
   const normalizedSubject = normalizeSubject(subject);
+  if (normalizedSubject === 'English') {
+    return { kind: 'image', src: '/visuals/UK-flag.png', alt: 'United Kingdom flag' };
+  }
+
   const emojis: Record<string, string> = {
     'Maths': '🔢',
     'Science': '🔬',
@@ -87,7 +93,21 @@ const getSubjectEmoji = (subject: Subject | string): string => {
     'Global Perspective': '🌐',
     'ICT': '💻',
   };
-  return emojis[normalizedSubject] || '📝';
+
+  return { kind: 'emoji', value: emojis[normalizedSubject] || '📝' };
+};
+
+const getSubjectEmoji = (subject: Subject | string): string => {
+  const badge = getSubjectBadge(subject);
+  return badge.kind === 'emoji' ? badge.value : '🇬🇧';
+};
+
+const renderSubjectBadge = (subject: Subject | string, className = ''): React.ReactNode => {
+  const badge = getSubjectBadge(subject);
+  if (badge.kind === 'image') {
+    return <img src={badge.src} alt={badge.alt} className={className} loading="lazy" />;
+  }
+  return <span className={className}>{badge.value}</span>;
 };
 
 const getSubjectGradient = (subject: Subject | string): string => {
@@ -251,7 +271,7 @@ const QuestionSetCard: React.FC<QuestionSetCardProps> = ({ set, onPreview, onUse
         
         {/* Decorative Elements */}
         <div className="blooket-cover-deco">
-          <span className="deco-emoji main">{getSubjectEmoji(set.subject)}</span>
+          {renderSubjectBadge(set.subject, 'deco-emoji main subject-badge-image')}
         </div>
       </div>
       
@@ -754,7 +774,7 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
               className={`filter-pill ${subjectFilter === subject ? 'active' : ''}`}
               onClick={() => setSubjectFilter(subject)}
             >
-              {getSubjectEmoji(subject)} {getSubjectLabel(subject)}
+              {renderSubjectBadge(subject, 'subject-pill-icon')} {getSubjectLabel(subject)}
             </button>
           ))}
         </div>
