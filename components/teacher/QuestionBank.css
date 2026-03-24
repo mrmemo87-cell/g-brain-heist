@@ -403,10 +403,11 @@
   position: relative;
   border: 1px solid rgba(34, 211, 238, 0.2);
   isolation: isolate;
+  transform-style: preserve-3d;
+  will-change: transform;
 }
 
 .blooket-card:hover {
-  transform: translateY(-6px);
   box-shadow: var(--qb-shadow-xl), 0 0 0 1px rgba(34, 211, 238, 0.26);
 }
 
@@ -419,7 +420,7 @@
 .blooket-card-cover {
   position: relative;
   min-height: clamp(150px, 26vw, 205px);
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 11;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -427,6 +428,7 @@
   background-image: url('/visuals/premium-folder-base.png');
   background-size: cover;
   background-position: center;
+  transform-origin: center;
 }
 
 .blooket-card-cover::before {
@@ -447,20 +449,18 @@
 
 /* Verified Badge - Premium */
 .blooket-verified-badge {
-  position: absolute;
-  top: 12px;
-  right: 12px;
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.4rem 0.85rem;
+  padding: 0.35rem 0.7rem;
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  border-radius: 8px;
-  font-size: 0.7rem;
+  border-radius: 999px;
+  font-size: 0.64rem;
   font-weight: 700;
   color: white;
   box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
-  z-index: 3;
+  z-index: 5;
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
@@ -478,6 +478,40 @@
   gap: 0.2rem;
   z-index: 2;
   position: relative;
+}
+
+.blooket-card-hover-glow {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 52%, rgba(45, 212, 191, 0.28), rgba(2, 6, 23, 0) 62%),
+    radial-gradient(circle at 82% 20%, rgba(125, 211, 252, 0.25), rgba(2, 6, 23, 0) 40%);
+}
+
+.blooket-cover-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.7rem;
+}
+
+.blooket-cover-topline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.blooket-cover-bottom {
+  display: grid;
+  gap: 0.45rem;
 }
 
 .deco-emoji {
@@ -539,7 +573,7 @@ img.deco-emoji.main.subject-badge-image {
   font-size: clamp(0.98rem, 2.6vw, 1.08rem);
   font-weight: 700;
   color: var(--qb-text);
-  margin: 0 0 0.6rem 0;
+  margin: 0;
   line-height: 1.35;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -599,14 +633,19 @@ img.deco-emoji.main.subject-badge-image {
   margin-bottom: 0.5rem;
 }
 
+.blooket-meta-row.on-cover {
+  margin-bottom: 0;
+}
+
 .blooket-meta-pill {
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.26);
-  background: rgba(2, 6, 23, 0.5);
-  color: #dbeafe;
+  border: 1px solid rgba(148, 163, 184, 0.38);
+  background: rgba(2, 6, 23, 0.72);
+  color: #e2e8f0;
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: 700;
   padding: 0.18rem 0.52rem;
+  backdrop-filter: blur(2px);
 }
 
 .blooket-card-meta {
