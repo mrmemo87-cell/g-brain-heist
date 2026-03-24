@@ -265,26 +265,13 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   };
 
   const isCodedTrialMission = (mission: QuestMission): boolean => {
-    const code = (mission.code || '').toLowerCase();
-    if (
-      code.startsWith('trial_') ||
-      code.startsWith('coded_') ||
-      code.startsWith('legacy_') ||
-      code.includes('_trial')
-    ) {
-      return true;
-    }
+    const code = (mission.code || '').toLowerCase().trim();
+    if (!code) return false;
 
-    return mission.route_template.some((node: any) => {
-      if (node?.type !== 'question' && node?.type !== 'elite_question') {
-        return false;
-      }
-      return (
-        typeof node?.question_body === 'string' &&
-        Array.isArray(node?.options) &&
-        typeof node?.correct_option === 'string'
-      );
-    });
+    // Practice/coded-trial routing is based on explicit mission code identity only.
+    // DB-backed persisted missions remain server-run unless code is explicitly trial-marked.
+    const trialCodePattern = /(?:^|[_-])(trial|coded|legacy)(?:[_-]|$)/;
+    return trialCodePattern.test(code);
   };
 
   const buildVirtualRouteFromMission = (mission: QuestMission): QuestNode[] =>
