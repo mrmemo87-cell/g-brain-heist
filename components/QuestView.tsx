@@ -1203,19 +1203,40 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               <span className="text-2xl">🗺️</span>
               <div>
                 <h2 className="font-heading text-xl text-white">Quest Missions</h2>
-                <p className="text-xs text-slate-400">Route-based adventures with rewards, surprises, and a final chest.</p>
+                <p className="text-xs text-slate-400">Pick a zone, clear its stages, unlock fun stations, then open the final chest.</p>
               </div>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {availableMissions.map(m => (
-                <MissionCard
-                  key={m.id}
-                  mission={m}
-                  onSelect={(mission) => {
-                    setSelectedMission(mission);
-                    setStage('mission_preview');
-                  }}
-                />
+            <div className="space-y-4">
+              {Object.entries(
+                availableMissions.reduce<Record<string, typeof availableMissions>>((acc, mission) => {
+                  const zone = mission.subject || 'Training Zone';
+                  if (!acc[zone]) acc[zone] = [];
+                  acc[zone].push(mission);
+                  return acc;
+                }, {})
+              ).map(([zone, missions]) => (
+                <section key={zone} className="rounded-2xl border border-cyan-400/20 bg-slate-900/35 p-3 sm:p-4">
+                  <div className="mb-3 flex items-center justify-between">
+                    <h3 className="font-heading text-sm sm:text-base text-cyan-100 tracking-wide">
+                      🧭 {zone} Zone
+                    </h3>
+                    <span className="text-[10px] uppercase tracking-wider text-slate-400">
+                      {missions.length} {missions.length === 1 ? 'Stage' : 'Stages'}
+                    </span>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {missions.map(m => (
+                      <MissionCard
+                        key={m.id}
+                        mission={m}
+                        onSelect={(mission) => {
+                          setSelectedMission(mission);
+                          setStage('mission_preview');
+                        }}
+                      />
+                    ))}
+                  </div>
+                </section>
               ))}
             </div>
           </div>

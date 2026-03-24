@@ -47,8 +47,10 @@ const RewardParticle: React.FC<RewardParticleProps> = ({ id, type, startRect, on
   useEffect(() => {
     const el = elRef.current;
     if (!el) return;
-    const destinationId = type === 'xp' ? 'xp-hud' : 'coin-hud';
-    const destination = document.getElementById(destinationId);
+    const destinationIds = type === 'xp' ? ['xp-hud', 'mission-xp'] : ['coin-hud', 'mission-coin'];
+    const destination = destinationIds
+      .map((destId) => document.getElementById(destId))
+      .find(Boolean);
     if (!destination) { onComplete(id); return; }
 
     const destRect = destination.getBoundingClientRect();
@@ -72,7 +74,7 @@ const RewardParticle: React.FC<RewardParticleProps> = ({ id, type, startRect, on
       position: 'fixed',
       left: startRect.left + (Math.random() - 0.5) * startRect.width,
       top: startRect.top + (Math.random() - 0.5) * startRect.height,
-      pointerEvents: 'none', zIndex: 100,
+      pointerEvents: 'none', zIndex: 420,
     }}>
       <div className="w-6 h-6" style={{ color: iconColor, filter: `drop-shadow(0 0 5px ${iconColor})` }}>
         {type === 'xp' ? <XPIcon /> : <CoinIcon />}
@@ -89,34 +91,50 @@ function buildVirtualRoute(questions: TeacherQuestion[]): QuestNode[] {
     typeof o === 'string' ? o : o.text;
 
   const route: QuestNode[] = [
-    { index: 0, type: 'start', label: 'Mission Start', state: 'cleared' },
+    { index: 0, type: 'start', label: 'Start Base', state: 'active' },
   ];
 
+  let nextIndex = 1;
   questions.forEach((q, i) => {
     const isLast = i === questions.length - 1;
+    const isElite = isLast || (i > 0 && i % 3 === 0);
+    const zone = Math.floor(i / 2) + 1;
+
     route.push({
-      index: i + 1,
-      type: isLast ? 'elite_question' : 'question',
-      label: `Station ${i + 1}`,
+      index: nextIndex,
+      type: isElite ? 'elite_question' : 'question',
+      label: `Zone ${zone} • Station ${i + 1}`,
       difficulty: (q.difficulty || 'medium') as SoloDifficulty,
-      state: i === 0 ? 'active' : 'locked',
+      state: 'locked',
       question_body: q.question_text,
       options: (q.options ?? []).map(optText),
       correct_option: q.correct_answer ?? '',
       explanation: q.explanation ?? '',
       time_limit: q.time_limit ?? 30,
     });
+    nextIndex += 1;
+
+    if (!isLast && (i + 1) % 2 === 0) {
+      route.push({
+        index: nextIndex,
+        type: 'surprise',
+        label: `Fun Station ${Math.floor((i + 1) / 2)}`,
+        state: 'locked',
+      });
+      nextIndex += 1;
+    }
   });
 
   route.push({
-    index: questions.length + 1,
+    index: nextIndex,
     type: 'reward',
     label: 'Supply Cache',
     state: 'locked',
     event_payload: { xp: 20, coins: 30 },
   });
+  nextIndex += 1;
   route.push({
-    index: questions.length + 2,
+    index: nextIndex,
     type: 'final_chest',
     label: 'Mission Vault',
     state: 'locked',
@@ -186,6 +204,19 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
   const startedRef = useRef(false);
   const playingRef = useRef<HTMLDivElement>(null);
 
+  const centerNodeInView = useCallback((nodeIndex: number, behavior: ScrollBehavior = 'smooth') => {
+    if (!playingRef.current) return;
+    const container = playingRef.current;
+    const target = container.querySelector<HTMLElement>(`[data-node-index="${nodeIndex}"]`);
+    if (!target) return;
+
+    const targetCenter = target.offsetTop + target.offsetHeight / 2;
+    const desiredScrollTop = targetCenter - container.clientHeight / 2;
+    const maxScroll = Math.max(0, container.scrollHeight - container.clientHeight);
+    const nextTop = Math.max(0, Math.min(desiredScrollTop, maxScroll));
+    container.scrollTo({ top: nextTop, behavior });
+  }, []);
+
   // ── Start game: request fullscreen then kick off run ──
   const handleStartGame = useCallback(async () => {
     try {
@@ -224,9 +255,6 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       setRewardsCoins(0);
       setIsLoading(false);
       setBoardPhase('playing');
-      setTimeout(() => {
-        playingRef.current?.scrollTo({ top: playingRef.current.scrollHeight, behavior: 'smooth' });
-      }, 300);
       return;
     }
 
@@ -236,19 +264,24 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
           ? await quest_resume_run(activeRunId)
           : await quest_start_run(missionId);
 
+        const serverRoute = runState.route as QuestNode[];
+        const shouldStartAtBase = !activeRunId && runState.current_node === 1 && serverRoute[0]?.type === 'start';
+        const normalizedRoute = shouldStartAtBase
+          ? serverRoute.map((node, idx) => {
+            if (idx === 0) return { ...node, state: 'active' as const };
+            if (idx === 1) return { ...node, state: 'locked' as const };
+            return node;
+          })
+          : serverRoute;
+
         setRunId(runState.run_id);
-        setRoute(runState.route as QuestNode[]);
-        setCurrentNode(runState.current_node);
+        setRoute(normalizedRoute);
+        setCurrentNode(shouldStartAtBase ? 0 : runState.current_node);
         setStreak(runState.streak);
         setRewardsXp(runState.rewards_xp);
         setRewardsCoins(runState.rewards_coins);
         setIsLoading(false);
         setBoardPhase('playing');
-
-        // Scroll to bottom of the playing area after transition
-        setTimeout(() => {
-          playingRef.current?.scrollTo({ top: playingRef.current.scrollHeight, behavior: 'smooth' });
-        }, 300);
       } catch (err: any) {
         setLoadError(err?.message || 'Failed to start quest run. Please try again.');
         setIsLoading(false);
@@ -256,6 +289,13 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       }
     })();
   }, [boardPhase, missionId, activeRunId, isVirtual, virtualRun]);
+
+  useEffect(() => {
+    if (boardPhase !== 'playing' || route.length === 0) return;
+    const behavior: ScrollBehavior = currentNode === 0 ? 'auto' : 'smooth';
+    const timer = window.setTimeout(() => centerNodeInView(currentNode, behavior), 80);
+    return () => window.clearTimeout(timer);
+  }, [boardPhase, route.length, currentNode, centerNodeInView]);
 
   // ── Route path illumination ──
   useEffect(() => {
@@ -1004,6 +1044,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
                   zIndex: 10,
                 }}
                 data-quest-node
+                data-node-index={i}
                 data-node-type={node.type}
               >
                 <RouteNode
@@ -1099,18 +1140,17 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
             <div className="flex-1" />
           )}
 
-          {/* Continue / Status button */}
-          <button
-            disabled
+          {/* Status panel */}
+          <div
             className="flex-1 py-3 rounded-xl font-bold text-sm border
-              bg-gradient-to-r from-emerald-600 to-cyan-600 border-emerald-400/40
-              text-white shadow-lg shadow-emerald-500/20"
+              bg-gradient-to-r from-slate-800/95 to-slate-700/95 border-cyan-400/30
+              text-cyan-100 shadow-lg shadow-cyan-500/10"
           >
-            <div className="text-xs">CONTINUE{streakBonusPct > 0 ? ` +${streakBonusPct}% BONUS` : ''}</div>
-            <div className="text-[10px] text-emerald-200 mt-0.5">
-              {'🔑'.repeat(Math.min(3, Math.floor(streak / 2)))}
+            <div className="text-xs text-center">Tap the glowing station to continue</div>
+            <div className="text-[10px] text-cyan-200/80 mt-0.5 text-center">
+              {streakBonusPct > 0 ? `Streak bonus ready +${streakBonusPct}%` : 'Keep your streak alive for bonus loot'}
             </div>
-          </button>
+          </div>
         </div>
       </div>
 
@@ -1118,7 +1158,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       <div className="relative z-10 flex items-center justify-around px-4 py-2 border-t border-slate-700/50 bg-slate-900/80">
         <div className="flex items-center gap-1 text-xs">
           <span className="text-amber-400">🪙</span>
-          <span className="text-amber-300 font-bold tabular-nums">{rewardsCoins}</span>
+          <span className="text-amber-300 font-bold tabular-nums" id="mission-coin">{rewardsCoins}</span>
         </div>
         <div className="flex items-center gap-1 text-xs">
           <span className="text-red-400">💎</span>
