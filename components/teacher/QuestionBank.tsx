@@ -196,6 +196,8 @@ interface QuestionSetCardProps {
 
 const QuestionSetCard: React.FC<QuestionSetCardProps> = ({ set, onPreview, onUseSet, useActionLabel, index }) => {
   const cardRef = useRef<HTMLDivElement>(null);
+  const coverRef = useRef<HTMLDivElement>(null);
+  const glowRef = useRef<HTMLDivElement>(null);
   const isLocked = Boolean(set.isLocked);
   const isCompleted = Boolean(set.isCompleted);
   const progress = typeof set.progressPercent === 'number' ? Math.max(0, Math.min(100, set.progressPercent)) : null;
@@ -233,23 +235,87 @@ const QuestionSetCard: React.FC<QuestionSetCardProps> = ({ set, onPreview, onUse
     return () => ctx.revert();
   }, [index]);
 
+  const animateHoverIn = useCallback(() => {
+    if (!cardRef.current) return;
+    gsap.killTweensOf([cardRef.current, coverRef.current, glowRef.current]);
+    gsap.to(cardRef.current, {
+      y: -7,
+      rotateX: 4,
+      rotateY: -3,
+      scale: 1.02,
+      duration: 0.26,
+      ease: 'power2.out',
+      transformPerspective: 1100,
+      transformOrigin: 'center',
+      boxShadow: '0 20px 40px rgba(8,145,178,0.32)',
+    });
+    if (coverRef.current) {
+      gsap.to(coverRef.current, { scale: 1.04, duration: 0.35, ease: 'power2.out' });
+    }
+    if (glowRef.current) {
+      gsap.to(glowRef.current, { autoAlpha: 1, duration: 0.25, ease: 'power2.out' });
+    }
+  }, []);
+
+  const animateHoverOut = useCallback(() => {
+    if (!cardRef.current) return;
+    gsap.killTweensOf([cardRef.current, coverRef.current, glowRef.current]);
+    gsap.to(cardRef.current, {
+      y: 0,
+      rotateX: 0,
+      rotateY: 0,
+      scale: 1,
+      duration: 0.24,
+      ease: 'power2.out',
+      boxShadow: '',
+    });
+    if (coverRef.current) {
+      gsap.to(coverRef.current, { scale: 1, duration: 0.24, ease: 'power2.out' });
+    }
+    if (glowRef.current) {
+      gsap.to(glowRef.current, { autoAlpha: 0, duration: 0.2, ease: 'power2.out' });
+    }
+  }, []);
+
+  const handleCardPreview = useCallback(() => {
+    if (!cardRef.current) {
+      onPreview();
+      return;
+    }
+    gsap.killTweensOf(cardRef.current);
+    gsap.timeline({ onComplete: onPreview })
+      .to(cardRef.current, { scale: 0.965, duration: 0.09, ease: 'power2.out' })
+      .to(cardRef.current, {
+        scale: 1.03,
+        y: -2,
+        duration: 0.15,
+        ease: 'back.out(2.4)',
+        boxShadow: '0 0 30px rgba(45,212,191,0.45)',
+      })
+      .to(cardRef.current, { scale: 1, y: 0, duration: 0.12, ease: 'power1.out' });
+  }, [onPreview]);
+
   return (
     <div
       ref={cardRef}
       className={`blooket-card${isLocked ? ' is-locked' : ''}${isCompleted ? ' is-completed' : ''}`}
-      onClick={onPreview}
+      onClick={handleCardPreview}
+      onMouseEnter={animateHoverIn}
+      onMouseLeave={animateHoverOut}
+      onBlur={animateHoverOut}
       role="button"
       tabIndex={0}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
-          onPreview();
+          handleCardPreview();
         }
       }}
       aria-label={`${set.title} ${set.subject} set`}
     >
       {/* Cover Image Area */}
-      <div className="blooket-card-cover">
+      <div ref={coverRef} className="blooket-card-cover">
+        <div ref={glowRef} className="blooket-card-hover-glow" />
         {isLocked && (
           <div className="blooket-state-badge locked" aria-label="Locked set">
             🔒 Locked
@@ -261,42 +327,32 @@ const QuestionSetCard: React.FC<QuestionSetCardProps> = ({ set, onPreview, onUse
           </div>
         )}
 
-        {/* Verified Badge */}
-        {set.isVerified && (
-          <div className="blooket-verified-badge">
-            <span className="verified-check">✓</span>
-            <span>Teacher Verified</span>
+        <div className="blooket-cover-overlay">
+          <div className="blooket-cover-topline">
+            <span className={`blooket-difficulty-chip difficulty-${set.difficulty}`}>{set.difficulty}</span>
+            {set.isVerified && (
+              <div className="blooket-verified-badge">
+                <span className="verified-check">✓</span>
+                <span>Teacher Verified</span>
+              </div>
+            )}
           </div>
-        )}
-        
-        {/* Decorative Elements */}
-        <div className="blooket-cover-deco">
-          {renderSubjectBadge(set.subject, 'deco-emoji main subject-badge-image')}
-        </div>
-      </div>
-      
-      {/* Card Info */}
-      <div className="blooket-card-info">
-        <h3 className="blooket-card-title">{set.title}</h3>
-        <div className="blooket-card-topline">
-          <span className={`blooket-difficulty-chip difficulty-${set.difficulty}`}>{set.difficulty}</span>
-          {set.isVerified && <span className="blooket-mini-verified">Verified</span>}
-        </div>
-        <div className="blooket-meta-row">
-          <span className="blooket-meta-pill">❓ {set.questionCount}</span>
-          {progress !== null && (
-            <span className="blooket-meta-pill">{isCompleted ? '✅ 100%' : `📈 ${progress}%`}</span>
-          )}
-        </div>
-        <div className="blooket-card-meta">
-          <span className="blooket-plays">
-            <span className="play-icon">▶</span>
-            {formatPlayCount(set.totalPlays)}
-          </span>
-          <span className="blooket-author">
-            <span className="author-icon">👤</span>
-            {set.authorName}
-          </span>
+
+          <div className="blooket-cover-deco">
+            {renderSubjectBadge(set.subject, 'deco-emoji main subject-badge-image')}
+          </div>
+
+          <div className="blooket-cover-bottom">
+            <h3 className="blooket-card-title">{set.title}</h3>
+            <div className="blooket-meta-row on-cover">
+              <span className="blooket-meta-pill">❓ {set.questionCount}</span>
+              {progress !== null && (
+                <span className="blooket-meta-pill">{isCompleted ? '✅ 100%' : `📈 ${progress}%`}</span>
+              )}
+              <span className="blooket-meta-pill">▶ {formatPlayCount(set.totalPlays)}</span>
+              <span className="blooket-meta-pill">👤 {set.authorName}</span>
+            </div>
+          </div>
         </div>
       </div>
       
