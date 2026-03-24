@@ -1227,4 +1227,11 @@ export interface QuestChestResult {
   streak_peak: number;
   perfect_run: boolean;
   nodes_cleared: number;
+  run_summary?: {
+    score?: number;
+    correct_answers?: number;
+    questions_answered?: number;
+    accuracy?: number;
+    avg_time_ratio?: number;
+  };
 }

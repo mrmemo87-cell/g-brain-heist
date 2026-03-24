@@ -1593,13 +1593,18 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
   const renderCompleted = () => {
     const missionOutcome = missionChestResult;
+    const missionRunSummary = missionOutcome?.run_summary;
     const totalQuestions = mode === 'practice' ? questions.length : teacherQuestions.length;
-    const missionTotal = Math.round(missionSummary?.missionScore ?? calculateMissionScore(questionScores));
-    const accuracyPercent = missionSummary
-      ? Math.round(missionSummary.accuracy * 100)
-      : questionPerformances.length
-        ? Math.round((questionPerformances.filter((item) => item.wasCorrect).length / questionPerformances.length) * 100)
-        : 0;
+    const missionTotal = missionOutcome
+      ? missionRunSummary?.score
+      : Math.round(missionSummary?.missionScore ?? calculateMissionScore(questionScores));
+    const accuracyPercent = missionOutcome
+      ? (typeof missionRunSummary?.accuracy === 'number' ? Math.round(missionRunSummary.accuracy * 100) : null)
+      : missionSummary
+        ? Math.round(missionSummary.accuracy * 100)
+        : questionPerformances.length
+          ? Math.round((questionPerformances.filter((item) => item.wasCorrect).length / questionPerformances.length) * 100)
+          : null;
     const fallbackTimeRatio = (() => {
       if (!questionPerformances.length) {
         return 0;
@@ -1611,8 +1616,12 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       }
       return totalTime / totalLimit;
     })();
-    const timeRatio = missionSummary?.avgTimeRatio ?? fallbackTimeRatio;
-    const avgTimePercent = Math.round(Math.min(Math.max(timeRatio, 0), 2) * 100);
+    const timeRatio = missionOutcome
+      ? missionRunSummary?.avg_time_ratio
+      : (missionSummary?.avgTimeRatio ?? fallbackTimeRatio);
+    const avgTimePercent = typeof timeRatio === 'number'
+      ? Math.round(Math.min(Math.max(timeRatio, 0), 2) * 100)
+      : null;
     const statusLabelMap: Record<TopicSummary['status'], string> = {
       CRUSHED: 'Crushed',
       AVERAGE: 'Holding Steady',
@@ -1629,8 +1638,12 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     const assignmentContext = mode === 'assignment' ? (activeAssignment || lastCompletedAssignment) : lastCompletedAssignment;
     const isAssignmentRun = Boolean(mode === 'assignment' || assignmentContext);
     const isAssignmentSubmitting = mode === 'assignment' && assignmentSubmissionState === 'submitting';
-    const displayedCorrectAnswers = missionOutcome ? missionOutcome.nodes_cleared : score.correct;
-    const displayedTotalQuestions = missionOutcome ? 7 : totalQuestions;
+    const displayedCorrectAnswers = missionOutcome
+      ? (missionRunSummary?.correct_answers ?? missionOutcome.nodes_cleared)
+      : score.correct;
+    const displayedTotalQuestions = missionOutcome
+      ? (missionRunSummary?.questions_answered ?? null)
+      : totalQuestions;
     const displayedXp = missionOutcome ? missionOutcome.total_run_xp : score.xp;
     const displayedCoins = missionOutcome ? missionOutcome.total_run_coins : score.coins;
     const displayedGems = missionOutcome ? 0 : score.gemstones;
@@ -1638,7 +1651,9 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     const handleShareResults = async () => {
       const subjectName = selectedSubject?.name || assignmentContext?.subject_name || 'Brains Heist';
       const shareTitle = 'My Brains Heist Quest Results';
-      const shareText = `🎯 ${subjectName} quest complete!\nScore: ${missionTotal}\nAccuracy: ${accuracyPercent}%\nRewards: +${displayedXp} XP, +${displayedCoins} coins, +${displayedGems} gems`;
+      const shareScoreLine = typeof missionTotal === 'number' ? `Score: ${missionTotal}\n` : '';
+      const shareAccuracyLine = typeof accuracyPercent === 'number' ? `Accuracy: ${accuracyPercent}%\n` : '';
+      const shareText = `🎯 ${subjectName} quest complete!\n${shareScoreLine}${shareAccuracyLine}Rewards: +${displayedXp} XP, +${displayedCoins} coins, +${displayedGems} gems`;
 
       try {
         if (navigator.share) {
@@ -1678,22 +1693,34 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
           <p className="text-lg mb-6">
-            You answered <span className="font-bold text-white">{displayedCorrectAnswers}</span> out of{' '}
-            <span className="font-bold text-white">{displayedTotalQuestions}</span> questions correctly.
+            You answered <span className="font-bold text-white">{displayedCorrectAnswers}</span>
+            {typeof displayedTotalQuestions === 'number' ? (
+              <>
+                {' '}out of <span className="font-bold text-white">{displayedTotalQuestions}</span> questions
+              </>
+            ) : (
+              ' questions'
+            )} correctly.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div className="card-glass p-4 border border-cyan-500/30">
-              <p className="text-xs uppercase tracking-widest text-gray-400">Mission Score</p>
-              <p className="font-heading text-2xl text-white mt-1">{missionTotal}</p>
-            </div>
-            <div className="card-glass p-4 border border-cyan-500/30">
-              <p className="text-xs uppercase tracking-widest text-gray-400">Accuracy</p>
-              <p className="font-heading text-2xl text-white mt-1">{accuracyPercent}%</p>
-            </div>
-            <div className="card-glass p-4 border border-cyan-500/30">
-              <p className="text-xs uppercase tracking-widest text-gray-400">Avg Time Used</p>
-              <p className="font-heading text-2xl text-white mt-1">{avgTimePercent}%</p>
-            </div>
+            {typeof missionTotal === 'number' && (
+              <div className="card-glass p-4 border border-cyan-500/30">
+                <p className="text-xs uppercase tracking-widest text-gray-400">Mission Score</p>
+                <p className="font-heading text-2xl text-white mt-1">{missionTotal}</p>
+              </div>
+            )}
+            {typeof accuracyPercent === 'number' && (
+              <div className="card-glass p-4 border border-cyan-500/30">
+                <p className="text-xs uppercase tracking-widest text-gray-400">Accuracy</p>
+                <p className="font-heading text-2xl text-white mt-1">{accuracyPercent}%</p>
+              </div>
+            )}
+            {typeof avgTimePercent === 'number' && (
+              <div className="card-glass p-4 border border-cyan-500/30">
+                <p className="text-xs uppercase tracking-widest text-gray-400">Avg Time Used</p>
+                <p className="font-heading text-2xl text-white mt-1">{avgTimePercent}%</p>
+              </div>
+            )}
             <div className="card-glass p-4 border border-cyan-500/30">
               <p className="text-xs uppercase tracking-widest text-gray-400">Current Classification</p>
               <p className="font-heading text-2xl text-white mt-1">{topicStatus}</p>
@@ -1737,11 +1764,11 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             <div className="grid grid-cols-3 gap-2 text-center">
               <div className="rounded-lg bg-black/25 p-2 border border-white/10">
                 <p className="text-[10px] uppercase tracking-widest text-gray-300">Score</p>
-                <p className="font-heading text-lg text-white">{missionTotal}</p>
+                <p className="font-heading text-lg text-white">{typeof missionTotal === 'number' ? missionTotal : '—'}</p>
               </div>
               <div className="rounded-lg bg-black/25 p-2 border border-white/10">
                 <p className="text-[10px] uppercase tracking-widest text-gray-300">Accuracy</p>
-                <p className="font-heading text-lg text-white">{accuracyPercent}%</p>
+                <p className="font-heading text-lg text-white">{typeof accuracyPercent === 'number' ? `${accuracyPercent}%` : '—'}</p>
               </div>
               <div className="rounded-lg bg-black/25 p-2 border border-white/10">
                 <p className="text-[10px] uppercase tracking-widest text-gray-300">XP</p>
