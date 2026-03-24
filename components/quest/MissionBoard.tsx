@@ -523,7 +523,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
 
   // ── Claim spin wheel prize (surprise node) ──
   const handleSpinClaim = useCallback(async (_prize: SpinPrize) => {
-    if (!runId || activeNodeIndex === null) return;
+    if (!runId) return;
     setIsSubmitting(true);
 
     try {
@@ -553,9 +553,8 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         { xp: xpDelta, coins: coinsDelta },
         result.final_profile_values as any,
       );
+      await syncRunStateFromServer();
       setActionError(null);
-      const nextNodeIndex = typeof result.next_node_index === 'number' ? result.next_node_index : serverNodeIndex + 1;
-      advanceToNode(nextNodeIndex);
     } catch (err) {
       console.error('[MissionBoard] quest_claim_event (spin) failed:', err);
       setActionError('Failed to claim surprise reward. Mission state re-synced from server.');
@@ -569,11 +568,11 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       return;
     }
     setIsSubmitting(false);
-  }, [activeNodeIndex, runId, spawnParticles, onGrantReward, advanceToNode, syncRunStateFromServer]);
+  }, [runId, spawnParticles, onGrantReward, syncRunStateFromServer]);
 
   // ── Resolve event node (server RPC) ──
   const handleEventClaim = useCallback(async () => {
-    if (!runId || activeNodeIndex === null) return;
+    if (!runId) return;
     setIsSubmitting(true);
 
     try {
@@ -605,12 +604,9 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         result.final_profile_values as any,
       );
       setActionError(null);
-
       setEventResult(result.event_payload);
+      await syncRunStateFromServer();
       setIsSubmitting(false);
-
-      // Auto-advance after short delay
-      setTimeout(() => advanceToNode(result.next_node_index), 600);
     } catch (err) {
       console.error('[MissionBoard] quest_claim_event failed:', err);
       setActionError('Failed to claim event reward. Mission state re-synced from server.');
@@ -622,7 +618,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         setIsSubmitting(false);
       }
     }
-  }, [activeNodeIndex, runId, spawnParticles, onGrantReward, advanceToNode, syncRunStateFromServer]);
+  }, [runId, spawnParticles, onGrantReward, syncRunStateFromServer]);
 
   // ── Open final chest (server RPC or local fallback for virtual runs) ──
   const openChest = useCallback(async () => {
