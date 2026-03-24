@@ -1224,6 +1224,8 @@ export interface QuestChestResult {
   chest_rewards: { xp: number; coins: number };
   total_run_xp: number;
   total_run_coins: number;
+  /** True only when rewards were confirmed persisted by backend RPC. */
+  rewards_persisted?: boolean;
   streak_peak: number;
   perfect_run: boolean;
   nodes_cleared: number;
