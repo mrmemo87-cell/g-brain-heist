@@ -1592,6 +1592,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   };
 
   const renderCompleted = () => {
+    const missionOutcome = missionChestResult;
     const totalQuestions = mode === 'practice' ? questions.length : teacherQuestions.length;
     const missionTotal = Math.round(missionSummary?.missionScore ?? calculateMissionScore(questionScores));
     const accuracyPercent = missionSummary
@@ -1628,11 +1629,16 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     const assignmentContext = mode === 'assignment' ? (activeAssignment || lastCompletedAssignment) : lastCompletedAssignment;
     const isAssignmentRun = Boolean(mode === 'assignment' || assignmentContext);
     const isAssignmentSubmitting = mode === 'assignment' && assignmentSubmissionState === 'submitting';
+    const displayedCorrectAnswers = missionOutcome ? missionOutcome.nodes_cleared : score.correct;
+    const displayedTotalQuestions = missionOutcome ? 7 : totalQuestions;
+    const displayedXp = missionOutcome ? missionOutcome.total_run_xp : score.xp;
+    const displayedCoins = missionOutcome ? missionOutcome.total_run_coins : score.coins;
+    const displayedGems = missionOutcome ? 0 : score.gemstones;
 
     const handleShareResults = async () => {
       const subjectName = selectedSubject?.name || assignmentContext?.subject_name || 'Brains Heist';
       const shareTitle = 'My Brains Heist Quest Results';
-      const shareText = `🎯 ${subjectName} quest complete!\nScore: ${missionTotal}\nAccuracy: ${accuracyPercent}%\nRewards: +${score.xp} XP, +${score.coins} coins, +${score.gemstones} gems`;
+      const shareText = `🎯 ${subjectName} quest complete!\nScore: ${missionTotal}\nAccuracy: ${accuracyPercent}%\nRewards: +${displayedXp} XP, +${displayedCoins} coins, +${displayedGems} gems`;
 
       try {
         if (navigator.share) {
@@ -1672,8 +1678,8 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
           <p className="text-lg mb-6">
-            You answered <span className="font-bold text-white">{score.correct}</span> out of{' '}
-            <span className="font-bold text-white">{totalQuestions}</span> questions correctly.
+            You answered <span className="font-bold text-white">{displayedCorrectAnswers}</span> out of{' '}
+            <span className="font-bold text-white">{displayedTotalQuestions}</span> questions correctly.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div className="card-glass p-4 border border-cyan-500/30">
@@ -1703,14 +1709,14 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           </div>
           <div className="text-2xl font-heading space-y-2 mb-6">
             <p>
-              XP Gained: <span style={{ color: 'var(--ion-blue)' }}>{score.xp >= 0 ? `+${score.xp}` : score.xp}</span>
+              XP Gained: <span style={{ color: 'var(--ion-blue)' }}>{displayedXp >= 0 ? `+${displayedXp}` : displayedXp}</span>
             </p>
             <p>
-              Coins Earned: <span style={{ color: 'var(--amber-warn)' }}>{score.coins >= 0 ? `+${score.coins}` : score.coins}</span>
+              Coins Earned: <span style={{ color: 'var(--amber-warn)' }}>{displayedCoins >= 0 ? `+${displayedCoins}` : displayedCoins}</span>
             </p>
             <p>
               Gemstones Found:{' '}
-              <span style={{ color: 'var(--plasma-pink)' }}>{score.gemstones >= 0 ? `+${score.gemstones}` : score.gemstones}</span>
+              <span style={{ color: 'var(--plasma-pink)' }}>{displayedGems >= 0 ? `+${displayedGems}` : displayedGems}</span>
             </p>
           </div>
 
@@ -1739,7 +1745,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               </div>
               <div className="rounded-lg bg-black/25 p-2 border border-white/10">
                 <p className="text-[10px] uppercase tracking-widest text-gray-300">XP</p>
-                <p className="font-heading text-lg text-white">+{score.xp}</p>
+                <p className="font-heading text-lg text-white">+{displayedXp}</p>
               </div>
             </div>
           </div>
@@ -1796,6 +1802,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                   setMissionSummary(null);
                   setTopicSummary(null);
                   setQuestionStartTime(null);
+                  setMissionChestResult(null);
                   // Reload subjects to refresh progress counts after answering questions
                   loadSubjects();
                 }
@@ -1872,11 +1879,13 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             onRetreat={() => {
               setSelectedMission(null);
               setVirtualQuestions(null);
+              setMissionChestResult(null);
               setStage('subject_selection');
             }}
             onBack={() => {
               setSelectedMission(null);
               setVirtualQuestions(null);
+              setMissionChestResult(null);
               setStage('subject_selection');
             }}
           />
