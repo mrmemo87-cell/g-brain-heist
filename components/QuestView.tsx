@@ -1638,14 +1638,19 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     const assignmentContext = mode === 'assignment' ? (activeAssignment || lastCompletedAssignment) : lastCompletedAssignment;
     const isAssignmentRun = Boolean(mode === 'assignment' || assignmentContext);
     const isAssignmentSubmitting = mode === 'assignment' && assignmentSubmissionState === 'submitting';
+    const missionRewardsPersisted = missionOutcome ? missionOutcome.rewards_persisted !== false : true;
     const displayedCorrectAnswers = missionOutcome
       ? (missionRunSummary?.correct_answers ?? missionOutcome.nodes_cleared)
       : score.correct;
     const displayedTotalQuestions = missionOutcome
       ? (missionRunSummary?.questions_answered ?? null)
       : totalQuestions;
-    const displayedXp = missionOutcome ? missionOutcome.total_run_xp : score.xp;
-    const displayedCoins = missionOutcome ? missionOutcome.total_run_coins : score.coins;
+    const displayedXp = missionOutcome
+      ? (missionRewardsPersisted ? missionOutcome.total_run_xp : 0)
+      : score.xp;
+    const displayedCoins = missionOutcome
+      ? (missionRewardsPersisted ? missionOutcome.total_run_coins : 0)
+      : score.coins;
     const displayedGems = missionOutcome ? 0 : score.gemstones;
 
     const handleShareResults = async () => {
@@ -1734,6 +1739,11 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               )}
             </div>
           </div>
+          {!missionRewardsPersisted && missionOutcome && (
+            <div className="mb-4 rounded-xl border border-amber-400/50 bg-amber-500/10 p-3 text-sm text-amber-100">
+              Rewards were not persisted for this practice mission, so no XP or coins were granted.
+            </div>
+          )}
           <div className="text-2xl font-heading space-y-2 mb-6">
             <p>
               XP Gained: <span style={{ color: 'var(--ion-blue)' }}>{displayedXp >= 0 ? `+${displayedXp}` : displayedXp}</span>

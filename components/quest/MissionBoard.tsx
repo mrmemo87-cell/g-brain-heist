@@ -426,8 +426,6 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       if (isCorrect) {
         setRewardsXp(prev => prev + xp);
         setRewardsCoins(prev => prev + coins);
-        spawnParticles(xp, coins);
-        onGrantReward({ xp, coins });
       }
       setQuestionResult({ is_correct: isCorrect, explanation: node.explanation });
       setResolvedNextNodeIndex(activeNodeIndex + 1);
@@ -517,8 +515,6 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       const coins = 15;
       setRewardsXp(prev => prev + xp);
       setRewardsCoins(prev => prev + coins);
-      spawnParticles(xp, coins);
-      onGrantReward({ xp, coins });
     }
 
     setRiddleResult({ correct: isCorrect, explanation: activeRiddle.explanation });
@@ -541,8 +537,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       if (xpDelta > 0) setRewardsXp(prev => prev + xpDelta);
       if (coinsDelta > 0) setRewardsCoins(prev => prev + coinsDelta);
       if (xpDelta > 0 || coinsDelta > 0) {
-        spawnParticles(xpDelta, coinsDelta);
-        onGrantReward({ xp: xpDelta, coins: coinsDelta, gemstones: prize.reward.gemstones ?? 0 });
+        // Virtual runs are practice-only and do not persist profile rewards.
       }
       advanceToNode(activeNodeIndex + 1);
       return;
@@ -604,8 +599,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       if (xpDelta > 0) setRewardsXp(prev => prev + xpDelta);
       if (coinsDelta > 0) setRewardsCoins(prev => prev + coinsDelta);
       if (xpDelta > 0 || coinsDelta > 0) {
-        spawnParticles(xpDelta, coinsDelta);
-        onGrantReward({ xp: xpDelta, coins: coinsDelta });
+        // Virtual runs are practice-only and do not persist profile rewards.
       }
       setEventResult(node?.event_payload ?? null);
       advanceToNode(activeNodeIndex + 1);
@@ -668,13 +662,12 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       const tier = streak >= 6 ? 'gold' : streak >= 3 ? 'silver' : 'bronze';
       const chestXp = Math.round(30 * streakBonus);
       const chestCoins = Math.round(60 * streakBonus);
-      onGrantReward({ xp: chestXp, coins: chestCoins });
-      spawnParticles(chestXp, chestCoins);
       setChestResult({
         chest_tier: tier as 'bronze' | 'silver' | 'gold',
-        chest_rewards: { xp: chestXp, coins: chestCoins },
-        total_run_xp: rewardsXp + chestXp,
-        total_run_coins: rewardsCoins + chestCoins,
+        chest_rewards: { xp: 0, coins: 0 },
+        total_run_xp: 0,
+        total_run_coins: 0,
+        rewards_persisted: false,
         streak_peak: streak,
         perfect_run: false,
         nodes_cleared: questionsCleared,
@@ -686,6 +679,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
           avg_time_ratio: totalTimeLimitSeconds > 0 ? totalAnswerTimeSeconds / totalTimeLimitSeconds : undefined,
         },
       });
+      setActionError('Practice mission rewards are preview-only and were not added to your profile.');
       setActiveModal('chest');
       return;
     }
@@ -722,6 +716,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         chest_rewards: result.chest_rewards,
         total_run_xp: result.total_run_xp,
         total_run_coins: result.total_run_coins,
+        rewards_persisted: true,
         streak_peak: result.streak_peak,
         perfect_run: result.perfect_run,
         nodes_cleared: result.nodes_cleared,
