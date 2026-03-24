@@ -44,7 +44,7 @@ const QUESTION_FETCH_MULTIPLIER = 3;
 let bhEnrollmentPromise: Promise<void> | null = null;
 
 type McqQuestionRow = {
-  id: number | string;
+  id: string;
   stem: string;
   opt1: string;
   opt2: string;
@@ -123,9 +123,9 @@ const selectMcqRows = async (
   }
 
   let query = supabase
-    .from('mcq_questions')
-    .select('id, stem, opt1, opt2, opt3, opt4, correct, difficulty, subject')
-    .eq('active', true)
+    .from('questions')
+    .select('id, question_text, options, correct_answer, difficulty, subject')
+    .eq('is_active', true)
     .in('difficulty', difficulties)
     .limit(limit);
 
@@ -139,7 +139,24 @@ const selectMcqRows = async (
     return [];
   }
 
-  return data ?? [];
+  return ((data ?? []) as any[]).map((row) => {
+    const options = Array.isArray(row.options) ? row.options : [];
+    const parsedCorrect = Number(row.correct_answer);
+    const correct = Number.isFinite(parsedCorrect) && parsedCorrect >= 1 && parsedCorrect <= 4
+      ? parsedCorrect
+      : 1;
+    return {
+      id: String(row.id),
+      stem: row.question_text ?? '',
+      opt1: options[0] ?? '',
+      opt2: options[1] ?? '',
+      opt3: options[2] ?? '',
+      opt4: options[3] ?? '',
+      correct,
+      difficulty: row.difficulty ?? null,
+      subject: row.subject ?? null,
+    } as McqQuestionRow;
+  });
 };
 
 const fetchMcqPool = async (

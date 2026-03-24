@@ -468,9 +468,29 @@ export const searchPlayers = async (query: string, limit = 20) => {
     return [];
   }
 
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+  if (authError || !authData?.user) {
+    throw new Error('Not authenticated');
+  }
+
+  const { data: me, error: meError } = await supabase
+    .from('users')
+    .select('school_id')
+    .eq('id', authData.user.id)
+    .single();
+
+  if (meError) {
+    throw new Error(meError.message || 'Failed to resolve caller tenant');
+  }
+
+  if (!me?.school_id) {
+    return [];
+  }
+
   const { data, error } = await supabase
-    .from('profiles')
+    .from('users')
     .select('id, username, grade, batch, xp, coins, streak, gemstones, updated_at, is_banned')
+    .eq('school_id', me.school_id)
     .ilike('username', `%${trimmed}%`)
     .limit(limit);
 
@@ -499,20 +519,27 @@ export const fetchPlayerLastAttempt = async (userId: string): Promise<string | n
 
 export const fetchQuestionBank = async () => {
   const { data, error } = await supabase
-    .from('mcq_questions')
-    .select('id, grade, difficulty, active, stem, lang');
+    .from('questions')
+    .select('id, grade, difficulty, is_active, question_text, lang');
 
   if (error) {
     throw new Error(error.message || 'Failed to load question bank');
   }
 
-  return data ?? [];
+  return (data ?? []).map((row: any) => ({
+    id: row.id,
+    grade: row.grade,
+    difficulty: row.difficulty,
+    active: row.is_active,
+    stem: row.question_text,
+    lang: row.lang,
+  }));
 };
 
-export const updateQuestionActiveState = async (questionId: number, active: boolean) => {
+export const updateQuestionActiveState = async (questionId: number | string, active: boolean) => {
   const { error } = await supabase
-    .from('mcq_questions')
-    .update({ active })
+    .from('questions')
+    .update({ is_active: active })
     .eq('id', questionId);
 
   if (error) {
