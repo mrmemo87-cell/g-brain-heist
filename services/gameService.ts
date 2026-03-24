@@ -2979,8 +2979,15 @@ export const raid_attack = async (
     };
     const attackerDeltas = payload.attacker_deltas ?? legacyAttackerDeltas;
 
+    const resolvedResult = (
+        payload.result ??
+        payload.result_kind ??
+        (payload.outcome === 'win' ? 'win' : payload.outcome === 'blocked' ? 'blocked' : payload.outcome === 'loss' ? 'lose' : null) ??
+        'lose'
+    ) as RaidAttackResult['result'];
+
     const response: RaidAttackResult = {
-        result: (payload.result ?? 'lose') as RaidAttackResult['result'],
+        result: resolvedResult,
         attacker_deltas: {
             xp: attackerDeltas?.xp ?? legacyAttackerDeltas.xp,
             coins: attackerDeltas?.coins ?? legacyAttackerDeltas.coins,
