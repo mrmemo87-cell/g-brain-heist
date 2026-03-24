@@ -186,6 +186,10 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
   const [rewardsXp, setRewardsXp] = useState(0);
   const [rewardsCoins, setRewardsCoins] = useState(0);
   const [questionStartTime, setQuestionStartTime] = useState<number | null>(null);
+  const [answeredCount, setAnsweredCount] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [totalAnswerTimeSeconds, setTotalAnswerTimeSeconds] = useState(0);
+  const [totalTimeLimitSeconds, setTotalTimeLimitSeconds] = useState(0);
 
   // ── Modal state ──
   const [activeModal, setActiveModal] = useState<'none' | 'question' | 'riddle' | 'event' | 'spin' | 'chest' | 'retreat'>('none');
@@ -384,6 +388,15 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
     setResolvedNextNodeIndex(null);
   }, [runId]);
 
+  const registerQuestionOutcome = useCallback((isCorrect: boolean, answerTimeSeconds: number, timeLimitSeconds: number) => {
+    setAnsweredCount(prev => prev + 1);
+    if (isCorrect) {
+      setCorrectCount(prev => prev + 1);
+    }
+    setTotalAnswerTimeSeconds(prev => prev + Math.max(0, answerTimeSeconds));
+    setTotalTimeLimitSeconds(prev => prev + Math.max(0, timeLimitSeconds));
+  }, []);
+
   // ── Answer a question node (server RPC) ──
   const handleQuestionAnswer = useCallback(async (selectedOption: string) => {
     if (activeNodeIndex === null) return;
@@ -395,8 +408,11 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       const isCorrect = selectedOption === node.correct_option;
       const xp = isCorrect ? (node.type === 'elite_question' ? 25 : 10) : 0;
       const coins = isCorrect ? (node.type === 'elite_question' ? 15 : 5) : 0;
+      const timeLimitSeconds = node.time_limit ?? 30;
+      const answerTimeSeconds = questionStartTime ? (Date.now() - questionStartTime) / 1000 : timeLimitSeconds;
       playSound(isCorrect ? 'correct' : 'wrong');
       setStreak(prev => isCorrect ? prev + 1 : 0);
+      registerQuestionOutcome(isCorrect, answerTimeSeconds, timeLimitSeconds);
       if (isCorrect) {
         setRewardsXp(prev => prev + xp);
         setRewardsCoins(prev => prev + coins);
@@ -421,6 +437,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
 
       playSound(isCorrect ? 'correct' : 'wrong');
       setStreak(result.streak);
+      registerQuestionOutcome(isCorrect, answerTimeSeconds, timeLimitSeconds);
       setRewardsXp(prev => prev + Math.max(0, xpDelta));
       setRewardsCoins(prev => prev + Math.max(0, coinsDelta));
 
@@ -463,7 +480,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
     } finally {
       setIsSubmitting(false);
     }
-  }, [activeNodeIndex, runId, route, questionStartTime, spawnParticles, onGrantReward, missionId, missionTitle, syncRunStateFromServer]);
+  }, [activeNodeIndex, runId, route, questionStartTime, spawnParticles, onGrantReward, missionId, missionTitle, syncRunStateFromServer, registerQuestionOutcome]);
 
   // ── Close question modal & advance ──
   const handleQuestionClose = useCallback(() => {
@@ -479,6 +496,9 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
     playSound(isCorrect ? 'correct' : 'wrong');
     // Update streak
     setStreak(prev => isCorrect ? prev + 1 : 0);
+    const timeLimitSeconds = 30;
+    const answerTimeSeconds = questionStartTime ? (Date.now() - questionStartTime) / 1000 : timeLimitSeconds;
+    registerQuestionOutcome(isCorrect, answerTimeSeconds, timeLimitSeconds);
 
     // Award XP/coins for riddles (more generous than normal questions)
     if (isCorrect) {
@@ -491,7 +511,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
     }
 
     setRiddleResult({ correct: isCorrect, explanation: activeRiddle.explanation });
-  }, [activeRiddle, spawnParticles, onGrantReward]);
+  }, [activeRiddle, spawnParticles, onGrantReward, questionStartTime, registerQuestionOutcome]);
 
   // ── Close riddle modal & advance ──
   const handleRiddleClose = useCallback(() => {
@@ -502,12 +522,9 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
   }, [activeNodeIndex, advanceToNode]);
 
   // ── Claim spin wheel prize (surprise node) ──
-  const handleSpinClaim = useCallback(async (prize: SpinPrize) => {
+  const handleSpinClaim = useCallback(async (_prize: SpinPrize) => {
     if (!runId || activeNodeIndex === null) return;
     setIsSubmitting(true);
-
-    const xp = prize.reward.xp ?? 0;
-    const coins = prize.reward.coins ?? 0;
 
     try {
       const latestRun = await quest_resume_run(runId);
@@ -527,16 +544,18 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
 
       // Fire event RPC to record on server
       const result = await quest_claim_event(runId, serverNodeIndex);
-      setRewardsXp(prev => prev + Math.max(xp, result.deltas.xp));
-      setRewardsCoins(prev => prev + Math.max(coins, result.deltas.coins));
-      spawnParticles(xp || result.deltas.xp, coins || result.deltas.coins);
+      const xpDelta = Math.max(0, result.deltas.xp);
+      const coinsDelta = Math.max(0, result.deltas.coins);
+      setRewardsXp(prev => prev + xpDelta);
+      setRewardsCoins(prev => prev + coinsDelta);
+      spawnParticles(xpDelta, coinsDelta);
       onGrantReward(
-        { xp: xp || result.deltas.xp, coins: coins || result.deltas.coins },
+        { xp: xpDelta, coins: coinsDelta },
         result.final_profile_values as any,
       );
       setActionError(null);
-      setIsSubmitting(false);
-      setTimeout(() => advanceToNode(result.next_node_index), 400);
+      const nextNodeIndex = typeof result.next_node_index === 'number' ? result.next_node_index : serverNodeIndex + 1;
+      advanceToNode(nextNodeIndex);
     } catch (err) {
       console.error('[MissionBoard] quest_claim_event (spin) failed:', err);
       setActionError('Failed to claim surprise reward. Mission state re-synced from server.');
@@ -547,7 +566,9 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       } finally {
         setIsSubmitting(false);
       }
+      return;
     }
+    setIsSubmitting(false);
   }, [activeNodeIndex, runId, spawnParticles, onGrantReward, advanceToNode, syncRunStateFromServer]);
 
   // ── Resolve event node (server RPC) ──
@@ -622,6 +643,13 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         streak_peak: streak,
         perfect_run: false,
         nodes_cleared: questionsCleared,
+        run_summary: {
+          score: correctCount * 100,
+          correct_answers: correctCount,
+          questions_answered: answeredCount,
+          accuracy: answeredCount > 0 ? correctCount / answeredCount : undefined,
+          avg_time_ratio: totalTimeLimitSeconds > 0 ? totalAnswerTimeSeconds / totalTimeLimitSeconds : undefined,
+        },
       });
       setActiveModal('chest');
       return;
@@ -660,6 +688,13 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         streak_peak: result.streak_peak,
         perfect_run: result.perfect_run,
         nodes_cleared: result.nodes_cleared,
+        run_summary: {
+          score: correctCount * 100,
+          correct_answers: correctCount,
+          questions_answered: answeredCount,
+          accuracy: answeredCount > 0 ? correctCount / answeredCount : undefined,
+          avg_time_ratio: totalTimeLimitSeconds > 0 ? totalAnswerTimeSeconds / totalTimeLimitSeconds : undefined,
+        },
       });
       setActionError(null);
       setActiveModal('chest');
@@ -672,7 +707,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         // keep local state if resume also fails
       }
     }
-  }, [runId, streak, rewardsXp, rewardsCoins, currentNode, onGrantReward, spawnParticles, syncRunStateFromServer]);
+  }, [runId, streak, rewardsXp, rewardsCoins, currentNode, onGrantReward, spawnParticles, syncRunStateFromServer, correctCount, answeredCount, totalTimeLimitSeconds, totalAnswerTimeSeconds]);
 
   // ── Node click handler ──
   const handleNodeClick = useCallback((index: number) => {
