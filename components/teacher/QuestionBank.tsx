@@ -77,7 +77,7 @@ const getSubjectEmoji = (subject: Subject | string): string => {
   const emojis: Record<string, string> = {
     'Maths': '🔢',
     'Science': '🔬',
-    'English': '📚',
+    'English': '🇬🇧',
     'Russian Language': '🇷🇺',
     'Russian Literature': '📖',
     'Kyrgyz Language': '🏔️',
@@ -186,6 +186,11 @@ const QuestionSetCard: React.FC<QuestionSetCardProps> = ({ set, onPreview, onUse
       : progress && progress > 0
         ? 'Continue'
         : useActionLabel || 'Enter';
+  const ctaTone = isCompleted
+    ? 'review'
+    : progress && progress > 0
+      ? 'continue'
+      : 'start';
 
   useEffect(() => {
     if (!cardRef.current) return;
@@ -247,7 +252,6 @@ const QuestionSetCard: React.FC<QuestionSetCardProps> = ({ set, onPreview, onUse
         {/* Decorative Elements */}
         <div className="blooket-cover-deco">
           <span className="deco-emoji main">{getSubjectEmoji(set.subject)}</span>
-          <span className="deco-emoji secondary">{set.coverEmoji}</span>
         </div>
       </div>
       
@@ -279,7 +283,7 @@ const QuestionSetCard: React.FC<QuestionSetCardProps> = ({ set, onPreview, onUse
       {/* Hover Actions */}
       <div className="blooket-card-actions">
         <button 
-          className={`blooket-action-btn use${isLocked ? ' disabled' : ''}`}
+          className={`blooket-action-btn use use--${ctaTone}${isLocked ? ' disabled' : ''}`}
           onClick={(e) => {
             e.stopPropagation();
             if (!isLocked) onUseSet();

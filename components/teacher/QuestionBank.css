@@ -666,6 +666,24 @@
   box-shadow: 0 6px 16px rgba(99, 102, 241, 0.45);
 }
 
+.blooket-action-btn.use.use--start {
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.95), rgba(14, 165, 233, 0.95));
+  color: #03142a;
+  box-shadow: 0 6px 16px rgba(34, 211, 238, 0.35);
+}
+
+.blooket-action-btn.use.use--continue {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(249, 115, 22, 0.95));
+  color: #1f1302;
+  box-shadow: 0 6px 16px rgba(249, 115, 22, 0.35);
+}
+
+.blooket-action-btn.use.use--review {
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.95), rgba(129, 140, 248, 0.95));
+  color: #140a2d;
+  box-shadow: 0 6px 16px rgba(129, 140, 248, 0.35);
+}
+
 .blooket-action-btn.use.disabled,
 .blooket-action-btn.use:disabled {
   background: rgba(51, 65, 85, 0.82);
