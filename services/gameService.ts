@@ -6170,6 +6170,38 @@ export interface QuestRunStateRaw {
     started_at: string;
 }
 
+const normalizeRpcPayload = <T>(payload: unknown): T => {
+    if (Array.isArray(payload)) {
+        return (payload[0] ?? null) as T;
+    }
+    return payload as T;
+};
+
+const normalizeQuestRunState = (payload: unknown): QuestRunStateRaw => {
+    const state = normalizeRpcPayload<QuestRunStateRaw | null>(payload);
+    if (!state) {
+        throw new Error('Quest run did not return any data');
+    }
+
+    const rawRoute = (state as any).route;
+    let normalizedRoute: any[] = [];
+    if (Array.isArray(rawRoute)) {
+        normalizedRoute = rawRoute;
+    } else if (typeof rawRoute === 'string') {
+        try {
+            const parsed = JSON.parse(rawRoute);
+            normalizedRoute = Array.isArray(parsed) ? parsed : [];
+        } catch {
+            normalizedRoute = [];
+        }
+    }
+
+    return {
+        ...state,
+        route: normalizedRoute,
+    };
+};
+
 export interface QuestEventClaimResult {
     event_title: string;
     event_payload: { xp?: number; coins?: number; effect?: string };
@@ -6214,7 +6246,7 @@ export const quest_start_run = async (missionId: string): Promise<QuestRunStateR
         throw new Error(error.message || 'Failed to start quest run');
     }
 
-    return data as QuestRunStateRaw;
+    return normalizeQuestRunState(data);
 };
 
 /** Resume an existing active quest run (for page reload / reconnection). */
@@ -6227,11 +6259,13 @@ export const quest_resume_run = async (runId: string): Promise<QuestRunStateRaw>
         throw new Error(error.message || 'Failed to resume quest run');
     }
 
-    if (data?.error) {
-        throw new Error(data.error);
+    const state = normalizeQuestRunState(data);
+
+    if ((state as any)?.error) {
+        throw new Error((state as any).error);
     }
 
-    return data as QuestRunStateRaw;
+    return state;
 };
 
 /** Submit an answer for a question node. */

@@ -264,7 +264,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
           ? await quest_resume_run(activeRunId)
           : await quest_start_run(missionId);
 
-        const serverRoute = runState.route as QuestNode[];
+        const serverRoute = (Array.isArray(runState.route) ? runState.route : []) as QuestNode[];
         const shouldStartAtBase = !activeRunId && runState.current_node === 1 && serverRoute[0]?.type === 'start';
         const normalizedRoute = shouldStartAtBase
           ? serverRoute.map((node, idx) => {
@@ -368,6 +368,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
   // ── Node click handler ──
   const handleNodeClick = useCallback((index: number) => {
     const node = route[index];
+    if (!node) return;
     if (node.state !== 'active') return;
 
     setActiveNodeIndex(index);
@@ -406,6 +407,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
   const handleQuestionAnswer = useCallback(async (selectedOption: string) => {
     if (activeNodeIndex === null) return;
     const node = route[activeNodeIndex];
+    if (!node) return;
 
     // Virtual mode: evaluate answer client-side
     if (!runId) {
