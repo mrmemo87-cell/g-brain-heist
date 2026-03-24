@@ -24,12 +24,20 @@ const CHEST_TIER_BADGE: Record<string, { icon: string; label: string; color: str
   bronze: { icon: '🥉', label: 'Bronze', color: 'text-amber-600' },
 };
 
-const SUBJECT_ICON: Record<string, string> = {
-  Geography: '🌍', Science: '🔬', Maths: '🧮', Mathematics: '🧮',
-  // Unicode uses the GB region code for the UK flag emoji (Union Jack).
-  English: '🇬🇧', ICT: '💻', 'Global Perspective': '🌐',
-  'Russian Language': '🇷🇺', 'German Language': '🇩🇪',
-  'Kyrgyz Language': '🇰🇬', 'Kyrgyz History': '📜',
+type SubjectBadge = { type: 'emoji'; value: string } | { type: 'image'; src: string; alt: string };
+
+const SUBJECT_BADGE: Record<string, SubjectBadge> = {
+  Geography: { type: 'emoji', value: '🌍' },
+  Science: { type: 'emoji', value: '🔬' },
+  Maths: { type: 'emoji', value: '🧮' },
+  Mathematics: { type: 'emoji', value: '🧮' },
+  English: { type: 'image', src: '/visuals/UK-flag.png', alt: 'United Kingdom flag' },
+  ICT: { type: 'emoji', value: '💻' },
+  'Global Perspective': { type: 'emoji', value: '🌐' },
+  'Russian Language': { type: 'emoji', value: '🇷🇺' },
+  'German Language': { type: 'emoji', value: '🇩🇪' },
+  'Kyrgyz Language': { type: 'emoji', value: '🇰🇬' },
+  'Kyrgyz History': { type: 'emoji', value: '📜' },
 };
 
 const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
@@ -39,7 +47,7 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
   const bestRun = mission.best_run;
   const hasActiveRun = !!mission.active_run_id;
   const tierBadge = bestRun?.chest_tier ? CHEST_TIER_BADGE[bestRun.chest_tier] : null;
-  const subjectIcon = SUBJECT_ICON[mission.subject] ?? '📚';
+  const subjectBadge = SUBJECT_BADGE[mission.subject] ?? { type: 'emoji', value: '📚' as const };
 
   return (
     <button
@@ -54,7 +62,16 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-lg">{subjectIcon}</span>
+          {subjectBadge.type === 'image' ? (
+            <img
+              src={subjectBadge.src}
+              alt={subjectBadge.alt}
+              className="h-5 w-5 rounded-sm object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <span className="text-lg">{subjectBadge.value}</span>
+          )}
           <h3 className="font-bold text-white text-lg group-hover:text-cyan-200 transition-colors">
             {mission.title}
           </h3>
