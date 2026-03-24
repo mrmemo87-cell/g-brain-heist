@@ -6163,7 +6163,12 @@ export const quest_open_chest = async (runId: string): Promise<QuestChestOpenRes
         throw new Error(error.message || 'Failed to open chest');
     }
 
-    return data as QuestChestOpenResult;
+    const result = data as QuestChestOpenResult;
+    if (!result?.final_profile_values) {
+        throw new Error('Quest rewards were computed but persistence could not be confirmed. Please try again.');
+    }
+
+    return result;
 };
 
 /** Abandon an active quest run (forfeit all rewards). */

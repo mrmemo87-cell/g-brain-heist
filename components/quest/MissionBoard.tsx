@@ -397,6 +397,16 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
     setTotalTimeLimitSeconds(prev => prev + Math.max(0, timeLimitSeconds));
   }, []);
 
+  const requireFinalProfileValues = useCallback(
+    (finalValues: { xp: number; coins: number; level: number; gemstones: number } | undefined, actionLabel: string) => {
+      if (!finalValues) {
+        throw new Error(`${actionLabel} rewards were not persisted. Please retry.`);
+      }
+      return finalValues;
+    },
+    [],
+  );
+
   // ── Answer a question node (server RPC) ──
   const handleQuestionAnswer = useCallback(async (selectedOption: string) => {
     if (activeNodeIndex === null) return;
@@ -446,9 +456,10 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       }
 
       // Sync parent HUD with server profile values
+      const finalValues = requireFinalProfileValues(result.final_profile_values as any, 'Question');
       onGrantReward(
         { xp: xpDelta, coins: coinsDelta },
-        result.final_profile_values as any,
+        finalValues as any,
       );
 
       // Record for adaptive tracking
@@ -480,7 +491,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
     } finally {
       setIsSubmitting(false);
     }
-  }, [activeNodeIndex, runId, route, questionStartTime, spawnParticles, onGrantReward, missionId, missionTitle, syncRunStateFromServer, registerQuestionOutcome]);
+  }, [activeNodeIndex, runId, route, questionStartTime, spawnParticles, onGrantReward, missionId, missionTitle, syncRunStateFromServer, registerQuestionOutcome, requireFinalProfileValues]);
 
   // ── Close question modal & advance ──
   const handleQuestionClose = useCallback(() => {
@@ -561,9 +572,10 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       setRewardsXp(prev => prev + xpDelta);
       setRewardsCoins(prev => prev + coinsDelta);
       spawnParticles(xpDelta, coinsDelta);
+      const finalValues = requireFinalProfileValues(result.final_profile_values as any, 'Surprise');
       onGrantReward(
         { xp: xpDelta, coins: coinsDelta },
-        result.final_profile_values as any,
+        finalValues as any,
       );
       await syncRunStateFromServer();
       setActionError(null);
@@ -580,7 +592,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       return;
     }
     setIsSubmitting(false);
-  }, [runId, activeNodeIndex, spawnParticles, onGrantReward, advanceToNode, syncRunStateFromServer]);
+  }, [runId, activeNodeIndex, spawnParticles, onGrantReward, advanceToNode, syncRunStateFromServer, requireFinalProfileValues]);
 
   // ── Resolve event node (server RPC) ──
   const handleEventClaim = useCallback(async () => {
@@ -625,9 +637,10 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       setRewardsCoins(prev => prev + coinsDelta);
       spawnParticles(xpDelta, coinsDelta);
 
+      const finalValues = requireFinalProfileValues(result.final_profile_values as any, 'Event');
       onGrantReward(
         { xp: xpDelta, coins: coinsDelta },
-        result.final_profile_values as any,
+        finalValues as any,
       );
       setActionError(null);
       setEventResult(result.event_payload);
@@ -644,7 +657,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         setIsSubmitting(false);
       }
     }
-  }, [runId, activeNodeIndex, route, spawnParticles, onGrantReward, advanceToNode, syncRunStateFromServer]);
+  }, [runId, activeNodeIndex, route, spawnParticles, onGrantReward, advanceToNode, syncRunStateFromServer, requireFinalProfileValues]);
 
   // ── Open final chest (server RPC or local fallback for virtual runs) ──
   const openChest = useCallback(async () => {
@@ -696,11 +709,13 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       const chestXp = result.chest_rewards.xp;
       const chestCoins = result.chest_rewards.coins;
 
+      const finalValues = requireFinalProfileValues(result.final_profile_values as any, 'Final chest');
       onGrantReward(
         { xp: chestXp, coins: chestCoins },
-        result.final_profile_values as any,
+        finalValues as any,
       );
       spawnParticles(chestXp, chestCoins);
+      await syncRunStateFromServer();
 
       setChestResult({
         chest_tier: result.chest_tier,
@@ -729,7 +744,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         // keep local state if resume also fails
       }
     }
-  }, [runId, streak, rewardsXp, rewardsCoins, currentNode, onGrantReward, spawnParticles, syncRunStateFromServer, correctCount, answeredCount, totalTimeLimitSeconds, totalAnswerTimeSeconds]);
+  }, [runId, streak, rewardsXp, rewardsCoins, currentNode, onGrantReward, spawnParticles, syncRunStateFromServer, correctCount, answeredCount, totalTimeLimitSeconds, totalAnswerTimeSeconds, requireFinalProfileValues]);
 
   // ── Node click handler ──
   const handleNodeClick = useCallback((index: number) => {
