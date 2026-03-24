@@ -522,8 +522,20 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
   }, [activeNodeIndex, advanceToNode]);
 
   // ── Claim spin wheel prize (surprise node) ──
-  const handleSpinClaim = useCallback(async (_prize: SpinPrize) => {
-    if (!runId) return;
+  const handleSpinClaim = useCallback(async (prize: SpinPrize) => {
+    if (!runId) {
+      if (activeNodeIndex === null) return;
+      const xpDelta = Math.max(0, prize.reward.xp ?? 0);
+      const coinsDelta = Math.max(0, prize.reward.coins ?? 0);
+      if (xpDelta > 0) setRewardsXp(prev => prev + xpDelta);
+      if (coinsDelta > 0) setRewardsCoins(prev => prev + coinsDelta);
+      if (xpDelta > 0 || coinsDelta > 0) {
+        spawnParticles(xpDelta, coinsDelta);
+        onGrantReward({ xp: xpDelta, coins: coinsDelta, gemstones: prize.reward.gemstones ?? 0 });
+      }
+      advanceToNode(activeNodeIndex + 1);
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -568,11 +580,25 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       return;
     }
     setIsSubmitting(false);
-  }, [runId, spawnParticles, onGrantReward, syncRunStateFromServer]);
+  }, [runId, activeNodeIndex, spawnParticles, onGrantReward, advanceToNode, syncRunStateFromServer]);
 
   // ── Resolve event node (server RPC) ──
   const handleEventClaim = useCallback(async () => {
-    if (!runId) return;
+    if (!runId) {
+      if (activeNodeIndex === null) return;
+      const node = route[activeNodeIndex];
+      const xpDelta = Math.max(0, node?.event_payload?.xp ?? 0);
+      const coinsDelta = Math.max(0, node?.event_payload?.coins ?? 0);
+      if (xpDelta > 0) setRewardsXp(prev => prev + xpDelta);
+      if (coinsDelta > 0) setRewardsCoins(prev => prev + coinsDelta);
+      if (xpDelta > 0 || coinsDelta > 0) {
+        spawnParticles(xpDelta, coinsDelta);
+        onGrantReward({ xp: xpDelta, coins: coinsDelta });
+      }
+      setEventResult(node?.event_payload ?? null);
+      advanceToNode(activeNodeIndex + 1);
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -618,7 +644,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         setIsSubmitting(false);
       }
     }
-  }, [runId, spawnParticles, onGrantReward, syncRunStateFromServer]);
+  }, [runId, activeNodeIndex, route, spawnParticles, onGrantReward, advanceToNode, syncRunStateFromServer]);
 
   // ── Open final chest (server RPC or local fallback for virtual runs) ──
   const openChest = useCallback(async () => {
