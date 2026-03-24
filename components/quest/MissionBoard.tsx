@@ -163,6 +163,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
   missionId, missionTitle, missionSubject, missionDifficulty, missionType,
   avatarUrl, activeRunId, virtualRun, onGrantReward, onComplete, onRetreat, onBack,
 }) => {  const isVirtual = !!virtualRun;
+  const practiceModeLabel = 'Practice Mode • Rewards preview only (no XP/coins granted)';
   // ── Board lifecycle phase ──
   const [boardPhase, setBoardPhase] = useState<'start' | 'loading' | 'playing'>('start');
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -269,6 +270,10 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         const runState = activeRunId
           ? await quest_resume_run(activeRunId)
           : await quest_start_run(missionId);
+
+        if (!runState?.run_id) {
+          throw new Error('Mission run could not be initialized. No rewards can be granted until a server run is created.');
+        }
 
         const serverRoute = (Array.isArray(runState.route) ? runState.route : []) as QuestNode[];
         const shouldStartAtBase = !activeRunId && runState.current_node === 1 && serverRoute[0]?.type === 'start';
@@ -415,6 +420,10 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
 
     // Virtual mode: evaluate answer client-side
     if (!runId) {
+      if (!isVirtual) {
+        setActionError('Mission run was not initialized. Exit and restart to avoid losing rewards.');
+        return;
+      }
       const isCorrect = selectedOption === node.correct_option;
       const xp = isCorrect ? (node.type === 'elite_question' ? 25 : 10) : 0;
       const coins = isCorrect ? (node.type === 'elite_question' ? 15 : 5) : 0;
@@ -489,7 +498,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
     } finally {
       setIsSubmitting(false);
     }
-  }, [activeNodeIndex, runId, route, questionStartTime, spawnParticles, onGrantReward, missionId, missionTitle, syncRunStateFromServer, registerQuestionOutcome, requireFinalProfileValues]);
+  }, [activeNodeIndex, runId, route, questionStartTime, spawnParticles, onGrantReward, missionId, missionTitle, syncRunStateFromServer, registerQuestionOutcome, requireFinalProfileValues, isVirtual]);
 
   // ── Close question modal & advance ──
   const handleQuestionClose = useCallback(() => {
@@ -531,6 +540,10 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
   // ── Claim spin wheel prize (surprise node) ──
   const handleSpinClaim = useCallback(async (prize: SpinPrize) => {
     if (!runId) {
+      if (!isVirtual) {
+        setActionError('Mission run was not initialized. Exit and restart to avoid losing rewards.');
+        return;
+      }
       if (activeNodeIndex === null) return;
       const xpDelta = Math.max(0, prize.reward.xp ?? 0);
       const coinsDelta = Math.max(0, prize.reward.coins ?? 0);
@@ -587,11 +600,15 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       return;
     }
     setIsSubmitting(false);
-  }, [runId, activeNodeIndex, spawnParticles, onGrantReward, advanceToNode, syncRunStateFromServer, requireFinalProfileValues]);
+  }, [runId, activeNodeIndex, spawnParticles, onGrantReward, advanceToNode, syncRunStateFromServer, requireFinalProfileValues, isVirtual]);
 
   // ── Resolve event node (server RPC) ──
   const handleEventClaim = useCallback(async () => {
     if (!runId) {
+      if (!isVirtual) {
+        setActionError('Mission run was not initialized. Exit and restart to avoid losing rewards.');
+        return;
+      }
       if (activeNodeIndex === null) return;
       const node = route[activeNodeIndex];
       const xpDelta = Math.max(0, node?.event_payload?.xp ?? 0);
@@ -651,11 +668,15 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         setIsSubmitting(false);
       }
     }
-  }, [runId, activeNodeIndex, route, spawnParticles, onGrantReward, advanceToNode, syncRunStateFromServer, requireFinalProfileValues]);
+  }, [runId, activeNodeIndex, route, spawnParticles, onGrantReward, advanceToNode, syncRunStateFromServer, requireFinalProfileValues, isVirtual]);
 
   // ── Open final chest (server RPC or local fallback for virtual runs) ──
   const openChest = useCallback(async () => {
     if (!runId) {
+      if (!isVirtual) {
+        setActionError('Mission run was not initialized. Exit and restart to avoid losing rewards.');
+        return;
+      }
       // Virtual mode: compute chest locally
       const questionsCleared = route.filter(n => n.type === 'question' || n.type === 'elite_question').length;
       const streakBonus = streak >= 6 ? 1.5 : streak >= 4 ? 1.25 : streak >= 2 ? 1.1 : 1.0;
@@ -739,7 +760,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         // keep local state if resume also fails
       }
     }
-  }, [runId, streak, rewardsXp, rewardsCoins, currentNode, onGrantReward, spawnParticles, syncRunStateFromServer, correctCount, answeredCount, totalTimeLimitSeconds, totalAnswerTimeSeconds, requireFinalProfileValues]);
+  }, [runId, streak, rewardsXp, rewardsCoins, currentNode, onGrantReward, spawnParticles, syncRunStateFromServer, correctCount, answeredCount, totalTimeLimitSeconds, totalAnswerTimeSeconds, requireFinalProfileValues, isVirtual]);
 
   // ── Node click handler ──
   const handleNodeClick = useCallback((index: number) => {
@@ -790,6 +811,11 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
   // ── Retreat (server RPC or local fallback for virtual runs) ──
   const handleRetreatConfirm = useCallback(async () => {
     if (!runId) {
+      if (!isVirtual) {
+        setActionError('Mission run was not initialized. Exit and restart to avoid losing rewards.');
+        setActiveModal('none');
+        return;
+      }
       setActiveModal('none');
       onRetreat(rewardsXp, rewardsCoins);
       return;
@@ -803,7 +829,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       setActiveModal('none');
       onRetreat(rewardsXp, rewardsCoins);
     }
-  }, [runId, rewardsXp, rewardsCoins, onRetreat]);
+  }, [runId, rewardsXp, rewardsCoins, onRetreat, isVirtual]);
 
   // ── Chest close ──
   const handleChestClose = useCallback(() => {
@@ -871,9 +897,14 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
               <span className="text-amber-300 font-bold text-xs">RISK: <span className="text-white">{riskLabel}</span></span>
             </div>
             <div className="px-3 py-1.5 rounded-xl bg-slate-900/70 border border-purple-500/30">
-              <span className="text-purple-300 font-bold text-xs">REWARD: <span className="text-white">~200+ XP</span></span>
+              <span className="text-purple-300 font-bold text-xs">REWARD: <span className="text-white">{isVirtual ? 'Practice only' : '~200+ XP'}</span></span>
             </div>
           </div>
+          {isVirtual && (
+            <p className="max-w-md rounded-xl border border-amber-400/50 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+              {practiceModeLabel}
+            </p>
+          )}
 
           {/* Decorative hex grid / map preview */}
           <div className="w-full max-w-xs opacity-30 pointer-events-none select-none" style={{ filter: 'blur(1px)' }}>
@@ -908,7 +939,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
               border: '1px solid rgba(255,255,255,0.2)',
             }}
           >
-            ⚡ START MISSION ⚡
+            {isVirtual ? '🧪 START PRACTICE MISSION' : '⚡ START MISSION ⚡'}
           </button>
           <button
             onClick={handleExit}
@@ -928,8 +959,8 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4"
         style={{ background: 'linear-gradient(180deg, #07051a 0%, #0e0730 50%, #07051a 100%)' }}>
         <div className="text-5xl animate-pulse">🛰️</div>
-        <p className="text-cyan-300 font-semibold">Loading mission intel...</p>
-        <p className="text-slate-500 text-sm">Fetching questions from HQ</p>
+        <p className="text-cyan-300 font-semibold">{isVirtual ? 'Preparing practice mission...' : 'Loading mission intel...'}</p>
+        <p className="text-slate-500 text-sm">{isVirtual ? 'Practice run is local and does not grant profile rewards' : 'Fetching questions from HQ'}</p>
       </div>,
       document.body
     );
@@ -1130,8 +1161,17 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       {/* ── Reward info banner ── */}
       <div className="relative z-10 mx-4 mb-1 flex items-center justify-between text-[10px]">
         <span className="text-slate-500 tracking-wider">— MISSION MAP —</span>
-        <span className="text-slate-500 tracking-wider">— REWARD: Approx. <span className="text-amber-300 font-bold">{Math.max(200, rewardsXp || 200)} XP</span> + Bonus Chest —</span>
+        <span className="text-slate-500 tracking-wider">
+          {isVirtual
+            ? '— PRACTICE RUN: No profile rewards granted —'
+            : <>— REWARD: Approx. <span className="text-amber-300 font-bold">{Math.max(200, rewardsXp || 200)} XP</span> + Bonus Chest —</>}
+        </span>
       </div>
+      {isVirtual && (
+        <div className="relative z-10 mx-4 mb-2 rounded-xl border border-amber-500/40 bg-amber-900/25 px-3 py-2 text-xs text-amber-100">
+          🧪 {practiceModeLabel}
+        </div>
+      )}
       {actionError && (
         <div className="relative z-10 mx-4 mb-2 rounded-xl border border-amber-500/40 bg-amber-900/30 px-3 py-2 text-xs text-amber-200">
           ⚠️ {actionError}
