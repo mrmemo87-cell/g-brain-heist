@@ -1230,6 +1230,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                         key={m.id}
                         mission={m}
                         onSelect={(mission) => {
+                          setVirtualQuestions(null);
                           setSelectedMission(mission);
                           setStage('mission_preview');
                         }}
@@ -1653,12 +1654,17 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       : score.coins;
     const displayedGems = missionOutcome ? 0 : score.gemstones;
 
+    const isPracticeOutcome = Boolean(missionOutcome && !missionRewardsPersisted);
+
     const handleShareResults = async () => {
       const subjectName = selectedSubject?.name || assignmentContext?.subject_name || 'Brains Heist';
       const shareTitle = 'My Brains Heist Quest Results';
       const shareScoreLine = typeof missionTotal === 'number' ? `Score: ${missionTotal}\n` : '';
       const shareAccuracyLine = typeof accuracyPercent === 'number' ? `Accuracy: ${accuracyPercent}%\n` : '';
-      const shareText = `🎯 ${subjectName} quest complete!\n${shareScoreLine}${shareAccuracyLine}Rewards: +${displayedXp} XP, +${displayedCoins} coins, +${displayedGems} gems`;
+      const rewardLine = isPracticeOutcome
+        ? 'Practice mode: no XP/coins granted to profile'
+        : `Rewards: +${displayedXp} XP, +${displayedCoins} coins, +${displayedGems} gems`;
+      const shareText = `🎯 ${subjectName} quest complete!\n${shareScoreLine}${shareAccuracyLine}${rewardLine}`;
 
       try {
         if (navigator.share) {
@@ -1687,7 +1693,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       <div className="text-center max-w-2xl mx-auto">
         <h2 className="font-heading text-4xl mb-4 animate-fade-in-up flex items-center justify-center gap-3" style={{ color: 'var(--amber-warn)' }}>
           <img src={neonIcon('quest')} alt="" className="h-9 w-9 object-contain" />
-          Quest Complete!
+          {isPracticeOutcome ? 'Practice Mission Complete!' : 'Quest Complete!'}
         </h2>
         <div className="card-glass glow-warn p-8 animate-fade-in-up" style={{ borderColor: 'rgba(255, 176, 32, 0.3)' }}>
           <div className="text-6xl mb-4 animate-bounce">🎉</div>
@@ -1744,18 +1750,25 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               Rewards were not persisted for this practice mission, so no XP or coins were granted.
             </div>
           )}
-          <div className="text-2xl font-heading space-y-2 mb-6">
-            <p>
-              XP Gained: <span style={{ color: 'var(--ion-blue)' }}>{displayedXp >= 0 ? `+${displayedXp}` : displayedXp}</span>
-            </p>
-            <p>
-              Coins Earned: <span style={{ color: 'var(--amber-warn)' }}>{displayedCoins >= 0 ? `+${displayedCoins}` : displayedCoins}</span>
-            </p>
-            <p>
-              Gemstones Found:{' '}
-              <span style={{ color: 'var(--plasma-pink)' }}>{displayedGems >= 0 ? `+${displayedGems}` : displayedGems}</span>
-            </p>
-          </div>
+          {isPracticeOutcome ? (
+            <div className="mb-6 rounded-xl border border-amber-400/50 bg-amber-500/10 p-4 text-left">
+              <p className="text-sm font-semibold text-amber-100">Practice run summary</p>
+              <p className="mt-1 text-sm text-amber-50">This mission was run in practice mode, so profile XP/coins were not awarded.</p>
+            </div>
+          ) : (
+            <div className="text-2xl font-heading space-y-2 mb-6">
+              <p>
+                XP Gained: <span style={{ color: 'var(--ion-blue)' }}>{displayedXp >= 0 ? `+${displayedXp}` : displayedXp}</span>
+              </p>
+              <p>
+                Coins Earned: <span style={{ color: 'var(--amber-warn)' }}>{displayedCoins >= 0 ? `+${displayedCoins}` : displayedCoins}</span>
+              </p>
+              <p>
+                Gemstones Found:{' '}
+                <span style={{ color: 'var(--plasma-pink)' }}>{displayedGems >= 0 ? `+${displayedGems}` : displayedGems}</span>
+              </p>
+            </div>
+          )}
 
           <div className="relative overflow-hidden rounded-2xl border border-fuchsia-400/40 bg-gradient-to-br from-fuchsia-900/60 via-indigo-900/40 to-sky-900/40 p-5 mb-6 text-left shadow-[0_0_40px_rgba(217,70,239,0.25)]">
             <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-fuchsia-400/20 blur-xl" />
@@ -1885,14 +1898,21 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       case 'mission_preview': {
         if (!selectedMission) return null;
         return (
-          <MissionPreview
-            mission={selectedMission}
-            onStart={() => setStage('mission_board')}
-            onBack={() => {
-              setSelectedMission(null);
-              setStage('subject_selection');
-            }}
-          />
+          <>
+            {virtualQuestions && (
+              <div className="max-w-3xl mx-auto mb-4 rounded-xl border border-amber-400/50 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                🧪 Practice mission: this mode does not persist profile XP or coins.
+              </div>
+            )}
+            <MissionPreview
+              mission={selectedMission}
+              onStart={() => setStage('mission_board')}
+              onBack={() => {
+                setSelectedMission(null);
+                setStage('subject_selection');
+              }}
+            />
+          </>
         );
       }
       case 'mission_board': {
