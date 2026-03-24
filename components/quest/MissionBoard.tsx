@@ -196,6 +196,8 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
   const [eventResult, setEventResult] = useState<{ xp?: number; coins?: number; effect?: string } | null>(null);
   const [chestResult, setChestResult] = useState<QuestChestResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [resolvedNextNodeIndex, setResolvedNextNodeIndex] = useState<number | null>(null);
 
   // ── Particles ──
   const [particles, setParticles] = useState<Omit<RewardParticleProps, 'onComplete'>[]>([]);
@@ -363,7 +365,24 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
     setActiveNodeIndex(null);
     setQuestionResult(null);
     setEventResult(null);
+    setResolvedNextNodeIndex(null);
+    setActionError(null);
   }, []);
+
+  const syncRunStateFromServer = useCallback(async () => {
+    if (!runId) return;
+    const runState = await quest_resume_run(runId);
+    setRoute((Array.isArray(runState.route) ? runState.route : []) as QuestNode[]);
+    setCurrentNode(runState.current_node);
+    setStreak(runState.streak);
+    setRewardsXp(runState.rewards_xp);
+    setRewardsCoins(runState.rewards_coins);
+    setActiveModal('none');
+    setActiveNodeIndex(null);
+    setQuestionResult(null);
+    setEventResult(null);
+    setResolvedNextNodeIndex(null);
+  }, [runId]);
 
   // ── Answer a question node (server RPC) ──
   const handleQuestionAnswer = useCallback(async (selectedOption: string) => {
@@ -385,6 +404,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         onGrantReward({ xp, coins });
       }
       setQuestionResult({ is_correct: isCorrect, explanation: node.explanation });
+      setResolvedNextNodeIndex(activeNodeIndex + 1);
       return;
     }
     setIsSubmitting(true);
@@ -426,22 +446,30 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       });
 
       setQuestionResult({ is_correct: isCorrect, explanation: result.explanation });
+      setResolvedNextNodeIndex(
+        typeof result?.next_node_index === 'number'
+          ? result.next_node_index
+          : activeNodeIndex + 1
+      );
+      setActionError(null);
     } catch (err) {
       console.error('[MissionBoard] quest_answer_node failed:', err);
-      // Graceful fallback so player isn't stuck
-      const isCorrect = selectedOption === node.correct_option;
-      setStreak(prev => isCorrect ? prev + 1 : 0);
-      setQuestionResult({ is_correct: isCorrect, explanation: node.explanation });
+      setActionError('Failed to submit answer. Mission state re-synced from server.');
+      try {
+        await syncRunStateFromServer();
+      } catch {
+        // keep local state if resume also fails
+      }
     } finally {
       setIsSubmitting(false);
     }
-  }, [activeNodeIndex, runId, route, questionStartTime, spawnParticles, onGrantReward, missionId, missionTitle]);
+  }, [activeNodeIndex, runId, route, questionStartTime, spawnParticles, onGrantReward, missionId, missionTitle, syncRunStateFromServer]);
 
   // ── Close question modal & advance ──
   const handleQuestionClose = useCallback(() => {
-    if (activeNodeIndex === null) return;
-    advanceToNode(activeNodeIndex + 1);
-  }, [activeNodeIndex, advanceToNode]);
+    if (resolvedNextNodeIndex === null) return;
+    advanceToNode(resolvedNextNodeIndex);
+  }, [resolvedNextNodeIndex, advanceToNode]);
 
   // ── Answer a funny riddle (elite_question — client-side) ──
   const handleRiddleAnswer = useCallback((selectedOption: string) => {
@@ -491,18 +519,21 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         { xp: xp || result.deltas.xp, coins: coins || result.deltas.coins },
         result.final_profile_values as any,
       );
+      setActionError(null);
       setIsSubmitting(false);
       setTimeout(() => advanceToNode(result.next_node_index), 400);
-    } catch {
-      // Fallback: apply spin reward locally
-      setRewardsXp(prev => prev + xp);
-      setRewardsCoins(prev => prev + coins);
-      if (xp > 0 || coins > 0) spawnParticles(xp, coins);
-      onGrantReward({ xp, coins });
-      setIsSubmitting(false);
-      setTimeout(() => advanceToNode(activeNodeIndex + 1), 400);
+    } catch (err) {
+      console.error('[MissionBoard] quest_claim_event (spin) failed:', err);
+      setActionError('Failed to claim surprise reward. Mission state re-synced from server.');
+      try {
+        await syncRunStateFromServer();
+      } catch {
+        // keep local state if resume also fails
+      } finally {
+        setIsSubmitting(false);
+      }
     }
-  }, [activeNodeIndex, runId, spawnParticles, onGrantReward, advanceToNode]);
+  }, [activeNodeIndex, runId, spawnParticles, onGrantReward, advanceToNode, syncRunStateFromServer]);
 
   // ── Resolve event node (server RPC) ──
   const handleEventClaim = useCallback(async () => {
@@ -522,6 +553,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         { xp: xpDelta, coins: coinsDelta },
         result.final_profile_values as any,
       );
+      setActionError(null);
 
       setEventResult(result.event_payload);
       setIsSubmitting(false);
@@ -530,22 +562,16 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       setTimeout(() => advanceToNode(result.next_node_index), 600);
     } catch (err) {
       console.error('[MissionBoard] quest_claim_event failed:', err);
-      // Fallback: use local payload
-      const node = route[activeNodeIndex];
-      const payload = node.event_payload ?? { xp: 15, coins: 20 };
-      const xpDelta = payload.xp ?? 0;
-      const coinsDelta = payload.coins ?? 0;
-
-      setRewardsXp(prev => prev + xpDelta);
-      setRewardsCoins(prev => prev + coinsDelta);
-      spawnParticles(xpDelta, coinsDelta);
-      onGrantReward({ xp: xpDelta, coins: coinsDelta });
-
-      setEventResult(payload);
-      setIsSubmitting(false);
-      setTimeout(() => advanceToNode(activeNodeIndex + 1), 600);
+      setActionError('Failed to claim event reward. Mission state re-synced from server.');
+      try {
+        await syncRunStateFromServer();
+      } catch {
+        // keep local state if resume also fails
+      } finally {
+        setIsSubmitting(false);
+      }
     }
-  }, [activeNodeIndex, runId, route, spawnParticles, onGrantReward, advanceToNode]);
+  }, [activeNodeIndex, runId, spawnParticles, onGrantReward, advanceToNode, syncRunStateFromServer]);
 
   // ── Open final chest (server RPC or local fallback for virtual runs) ──
   const openChest = useCallback(async () => {
@@ -592,29 +618,18 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         perfect_run: result.perfect_run,
         nodes_cleared: result.nodes_cleared,
       });
+      setActionError(null);
       setActiveModal('chest');
-    } catch (err) {
+    } catch (err: any) {
       console.error('[MissionBoard] quest_open_chest failed:', err);
-      // Fallback: compute locally
-      const streakBonus = streak >= 6 ? 1.2 : streak >= 4 ? 1.1 : 1.0;
-      const chestXp = Math.round(15 * streakBonus);
-      const chestCoins = Math.round(50 * streakBonus);
-
-      onGrantReward({ xp: chestXp, coins: chestCoins });
-      spawnParticles(chestXp, chestCoins);
-
-      setChestResult({
-        chest_tier: 'bronze',
-        chest_rewards: { xp: chestXp, coins: chestCoins },
-        total_run_xp: rewardsXp + chestXp,
-        total_run_coins: rewardsCoins + chestCoins,
-        streak_peak: streak,
-        perfect_run: false,
-        nodes_cleared: currentNode,
-      });
-      setActiveModal('chest');
+      setActionError(err?.message || 'Failed to open final chest. Mission state re-synced from server.');
+      try {
+        await syncRunStateFromServer();
+      } catch {
+        // keep local state if resume also fails
+      }
     }
-  }, [runId, streak, rewardsXp, rewardsCoins, currentNode, onGrantReward, spawnParticles]);
+  }, [runId, streak, rewardsXp, rewardsCoins, currentNode, onGrantReward, spawnParticles, syncRunStateFromServer]);
 
   // ── Node click handler ──
   const handleNodeClick = useCallback((index: number) => {
@@ -631,6 +646,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         break;
       case 'question':
         setQuestionResult(null);
+        setResolvedNextNodeIndex(null);
         setQuestionStartTime(Date.now());
         setActiveModal('question');
         break;
@@ -999,6 +1015,11 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         <span className="text-slate-500 tracking-wider">— MISSION MAP —</span>
         <span className="text-slate-500 tracking-wider">— REWARD: Approx. <span className="text-amber-300 font-bold">{Math.max(200, rewardsXp || 200)} XP</span> + Bonus Chest —</span>
       </div>
+      {actionError && (
+        <div className="relative z-10 mx-4 mb-2 rounded-xl border border-amber-500/40 bg-amber-900/30 px-3 py-2 text-xs text-amber-200">
+          ⚠️ {actionError}
+        </div>
+      )}
 
       {/* ── Route Map (S-curve layout) ── */}
       <div ref={playingRef} className="relative z-10 flex-1 px-4 py-2 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
