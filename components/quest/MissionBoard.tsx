@@ -365,44 +365,6 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
     setEventResult(null);
   }, []);
 
-  // ── Node click handler ──
-  const handleNodeClick = useCallback((index: number) => {
-    const node = route[index];
-    if (!node) return;
-    if (node.state !== 'active') return;
-
-    setActiveNodeIndex(index);
-
-    switch (node.type) {
-      case 'start':
-        // Immediately advance from start
-        advanceToNode(index + 1);
-        break;
-      case 'question':
-        setQuestionResult(null);
-        setQuestionStartTime(Date.now());
-        setActiveModal('question');
-        break;
-      case 'elite_question':
-        // Funny riddle from local bank
-        setActiveRiddle(getRandomRiddle());
-        setRiddleResult(null);
-        setActiveModal('riddle');
-        playSound('riddleAppear');
-        break;
-      case 'reward':
-        setEventResult(null);
-        setActiveModal('event');
-        break;
-      case 'surprise':
-        setActiveModal('spin');
-        break;
-      case 'final_chest':
-        openChest();
-        break;
-    }
-  }, [route, advanceToNode, openChest]);
-
   // ── Answer a question node (server RPC) ──
   const handleQuestionAnswer = useCallback(async (selectedOption: string) => {
     if (activeNodeIndex === null) return;
@@ -653,6 +615,44 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       setActiveModal('chest');
     }
   }, [runId, streak, rewardsXp, rewardsCoins, currentNode, onGrantReward, spawnParticles]);
+
+  // ── Node click handler ──
+  const handleNodeClick = useCallback((index: number) => {
+    const node = route[index];
+    if (!node) return;
+    if (node.state !== 'active') return;
+
+    setActiveNodeIndex(index);
+
+    switch (node.type) {
+      case 'start':
+        // Immediately advance from start
+        advanceToNode(index + 1);
+        break;
+      case 'question':
+        setQuestionResult(null);
+        setQuestionStartTime(Date.now());
+        setActiveModal('question');
+        break;
+      case 'elite_question':
+        // Funny riddle from local bank
+        setActiveRiddle(getRandomRiddle());
+        setRiddleResult(null);
+        setActiveModal('riddle');
+        playSound('riddleAppear');
+        break;
+      case 'reward':
+        setEventResult(null);
+        setActiveModal('event');
+        break;
+      case 'surprise':
+        setActiveModal('spin');
+        break;
+      case 'final_chest':
+        openChest();
+        break;
+    }
+  }, [route, advanceToNode, openChest]);
 
   // ── Retreat (server RPC or local fallback for virtual runs) ──
   const handleRetreatConfirm = useCallback(async () => {
