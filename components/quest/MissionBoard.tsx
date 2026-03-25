@@ -5,7 +5,6 @@ import type {
   QuestNode,
   QuestChestResult,
   SoloDifficulty,
-  TeacherQuestion,
   XpStatus,
 } from '../../types';
 import { recordSoloQuestion } from '../../services/adaptiveService';
@@ -27,8 +26,6 @@ import ChestRevealModal from './ChestRevealModal';
 import RetreatConfirmModal from './RetreatConfirmModal';
 import SpinWheelModal from './SpinWheelModal';
 import type { SpinPrize } from './SpinWheelModal';
-import { getRandomRiddle } from './riddles';
-import type { FunnyRiddle } from './riddles';
 import { playSound } from '../../services/soundManager';
 import { QUEST_BACKGROUND } from './nodeAssets';
 
@@ -85,64 +82,6 @@ const RewardParticle: React.FC<RewardParticleProps> = ({ id, type, startRect, on
 
 // ─── MissionBoard ─────────────────────────────────────────────────────────
 
-/** Build a fully-hydrated client-side route from teacher questions (no DB call). */
-function buildVirtualRoute(questions: TeacherQuestion[]): QuestNode[] {
-  const optText = (o: string | { text: string }): string =>
-    typeof o === 'string' ? o : o.text;
-
-  const route: QuestNode[] = [
-    { index: 0, type: 'start', label: 'Start Base', state: 'active' },
-  ];
-
-  let nextIndex = 1;
-  questions.forEach((q, i) => {
-    const isLast = i === questions.length - 1;
-    const isElite = isLast || (i > 0 && i % 3 === 0);
-    const zone = Math.floor(i / 2) + 1;
-
-    route.push({
-      index: nextIndex,
-      type: isElite ? 'elite_question' : 'question',
-      label: `Zone ${zone} • Station ${i + 1}`,
-      difficulty: (q.difficulty || 'medium') as SoloDifficulty,
-      state: 'locked',
-      question_body: q.question_text,
-      options: (q.options ?? []).map(optText),
-      correct_option: q.correct_answer ?? '',
-      explanation: q.explanation ?? '',
-      time_limit: q.time_limit ?? 30,
-    });
-    nextIndex += 1;
-
-    if (!isLast && (i + 1) % 2 === 0) {
-      route.push({
-        index: nextIndex,
-        type: 'surprise',
-        label: `Fun Station ${Math.floor((i + 1) / 2)}`,
-        state: 'locked',
-      });
-      nextIndex += 1;
-    }
-  });
-
-  route.push({
-    index: nextIndex,
-    type: 'reward',
-    label: 'Supply Cache',
-    state: 'locked',
-    event_payload: { xp: 20, coins: 30 },
-  });
-  nextIndex += 1;
-  route.push({
-    index: nextIndex,
-    type: 'final_chest',
-    label: 'Mission Vault',
-    state: 'locked',
-  });
-
-  return route;
-}
-
 interface MissionBoardProps {
   missionId: string;
   missionTitle: string;
@@ -151,8 +90,6 @@ interface MissionBoardProps {
   missionType?: string;
   avatarUrl?: string;
   activeRunId?: string | null;
-  /** When provided, the board runs entirely client-side — no DB run is created. */
-  virtualRun?: { questions?: TeacherQuestion[]; route?: QuestNode[] };
   onGrantReward: (deltas: { xp: number; coins: number; gemstones?: number }, finalValues?: { xp: number; coins: number; level: number; gemstones: number; xp_status?: XpStatus }) => void;
   onComplete: (result: QuestChestResult) => void;
   onRetreat: (rewardsXp: number, rewardsCoins: number) => void;
@@ -161,9 +98,8 @@ interface MissionBoardProps {
 
 const MissionBoard: React.FC<MissionBoardProps> = ({
   missionId, missionTitle, missionSubject, missionDifficulty, missionType,
-  avatarUrl, activeRunId, virtualRun, onGrantReward, onComplete, onRetreat, onBack,
-}) => {  const isVirtual = !!virtualRun;
-  const practiceModeLabel = 'Practice Mode • Rewards preview only (no XP/coins granted)';
+  avatarUrl, activeRunId, onGrantReward, onComplete, onRetreat, onBack,
+}) => {
   // ── Board lifecycle phase ──
   const [boardPhase, setBoardPhase] = useState<'start' | 'loading' | 'playing'>('start');
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -193,9 +129,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
   const [totalTimeLimitSeconds, setTotalTimeLimitSeconds] = useState(0);
 
   // ── Modal state ──
-  const [activeModal, setActiveModal] = useState<'none' | 'question' | 'riddle' | 'event' | 'spin' | 'chest' | 'retreat'>('none');
-  const [activeRiddle, setActiveRiddle] = useState<FunnyRiddle | null>(null);
-  const [riddleResult, setRiddleResult] = useState<{ correct: boolean; explanation: string } | null>(null);
+  const [activeModal, setActiveModal] = useState<'none' | 'question' | 'event' | 'spin' | 'chest' | 'retreat'>('none');
   const [activeNodeIndex, setActiveNodeIndex] = useState<number | null>(null);
   const [questionResult, setQuestionResult] = useState<{ is_correct: boolean; explanation?: string } | null>(null);
   const [eventResult, setEventResult] = useState<{ xp?: number; coins?: number; effect?: string } | null>(null);
@@ -251,22 +185,6 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
     if (startedRef.current) return;
     startedRef.current = true;
 
-    // Virtual mode: build route client-side, no DB call
-    if (isVirtual && virtualRun) {
-      const virtualRoute = Array.isArray(virtualRun.route) && virtualRun.route.length > 0
-        ? virtualRun.route
-        : buildVirtualRoute(virtualRun.questions ?? []);
-      setRunId(null);
-      setRoute(virtualRoute);
-      setCurrentNode(0);
-      setStreak(0);
-      setRewardsXp(0);
-      setRewardsCoins(0);
-      setIsLoading(false);
-      setBoardPhase('playing');
-      return;
-    }
-
     (async () => {
       try {
         const runState = activeRunId
@@ -301,7 +219,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         setBoardPhase('playing'); // show error state
       }
     })();
-  }, [boardPhase, missionId, activeRunId, isVirtual, virtualRun]);
+  }, [boardPhase, missionId, activeRunId]);
 
   useEffect(() => {
     if (boardPhase !== 'playing' || route.length === 0) return;
@@ -422,24 +340,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
 
     // Virtual mode: evaluate answer client-side
     if (!runId) {
-      if (!isVirtual) {
-        setActionError('Mission run was not initialized. Exit and restart to avoid losing rewards.');
-        return;
-      }
-      const isCorrect = selectedOption === node.correct_option;
-      const xp = isCorrect ? (node.type === 'elite_question' ? 25 : 10) : 0;
-      const coins = isCorrect ? (node.type === 'elite_question' ? 15 : 5) : 0;
-      const timeLimitSeconds = node.time_limit ?? 30;
-      const answerTimeSeconds = questionStartTime ? (Date.now() - questionStartTime) / 1000 : timeLimitSeconds;
-      playSound(isCorrect ? 'correct' : 'wrong');
-      setStreak(prev => isCorrect ? prev + 1 : 0);
-      registerQuestionOutcome(isCorrect, answerTimeSeconds, timeLimitSeconds);
-      if (isCorrect) {
-        setRewardsXp(prev => prev + xp);
-        setRewardsCoins(prev => prev + coins);
-      }
-      setQuestionResult({ is_correct: isCorrect, explanation: node.explanation });
-      setResolvedNextNodeIndex(activeNodeIndex + 1);
+      setActionError('Mission run was not initialized. Exit and restart to avoid losing rewards.');
       return;
     }
     setIsSubmitting(true);
@@ -500,7 +401,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
     } finally {
       setIsSubmitting(false);
     }
-  }, [activeNodeIndex, runId, route, questionStartTime, spawnParticles, onGrantReward, missionId, missionTitle, syncRunStateFromServer, registerQuestionOutcome, requireFinalProfileValues, isVirtual]);
+  }, [activeNodeIndex, runId, route, questionStartTime, spawnParticles, onGrantReward, missionId, missionTitle, syncRunStateFromServer, registerQuestionOutcome, requireFinalProfileValues]);
 
   // ── Close question modal & advance ──
   const handleQuestionClose = useCallback(() => {
@@ -508,53 +409,10 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
     advanceToNode(resolvedNextNodeIndex);
   }, [resolvedNextNodeIndex, advanceToNode]);
 
-  // ── Answer a funny riddle (elite_question — client-side) ──
-  const handleRiddleAnswer = useCallback((selectedOption: string) => {
-    if (!activeRiddle) return;
-    const isCorrect = selectedOption === activeRiddle.correct;
-
-    playSound(isCorrect ? 'correct' : 'wrong');
-    // Update streak
-    setStreak(prev => isCorrect ? prev + 1 : 0);
-    const timeLimitSeconds = 30;
-    const answerTimeSeconds = questionStartTime ? (Date.now() - questionStartTime) / 1000 : timeLimitSeconds;
-    registerQuestionOutcome(isCorrect, answerTimeSeconds, timeLimitSeconds);
-
-    // Award XP/coins for riddles (more generous than normal questions)
-    if (isCorrect) {
-      const xp = 25;
-      const coins = 15;
-      setRewardsXp(prev => prev + xp);
-      setRewardsCoins(prev => prev + coins);
-    }
-
-    setRiddleResult({ correct: isCorrect, explanation: activeRiddle.explanation });
-  }, [activeRiddle, spawnParticles, onGrantReward, questionStartTime, registerQuestionOutcome]);
-
-  // ── Close riddle modal & advance ──
-  const handleRiddleClose = useCallback(() => {
-    if (activeNodeIndex === null) return;
-    setActiveRiddle(null);
-    setRiddleResult(null);
-    advanceToNode(activeNodeIndex + 1);
-  }, [activeNodeIndex, advanceToNode]);
-
   // ── Claim spin wheel prize (surprise node) ──
   const handleSpinClaim = useCallback(async (prize: SpinPrize) => {
     if (!runId) {
-      if (!isVirtual) {
-        setActionError('Mission run was not initialized. Exit and restart to avoid losing rewards.');
-        return;
-      }
-      if (activeNodeIndex === null) return;
-      const xpDelta = Math.max(0, prize.reward.xp ?? 0);
-      const coinsDelta = Math.max(0, prize.reward.coins ?? 0);
-      if (xpDelta > 0) setRewardsXp(prev => prev + xpDelta);
-      if (coinsDelta > 0) setRewardsCoins(prev => prev + coinsDelta);
-      if (xpDelta > 0 || coinsDelta > 0) {
-        // Virtual runs are practice-only and do not persist profile rewards.
-      }
-      advanceToNode(activeNodeIndex + 1);
+      setActionError('Mission run was not initialized. Exit and restart to avoid losing rewards.');
       return;
     }
     setIsSubmitting(true);
@@ -602,26 +460,12 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       return;
     }
     setIsSubmitting(false);
-  }, [runId, activeNodeIndex, spawnParticles, onGrantReward, advanceToNode, syncRunStateFromServer, requireFinalProfileValues, isVirtual]);
+  }, [runId, activeNodeIndex, spawnParticles, onGrantReward, syncRunStateFromServer, requireFinalProfileValues]);
 
   // ── Resolve event node (server RPC) ──
   const handleEventClaim = useCallback(async () => {
     if (!runId) {
-      if (!isVirtual) {
-        setActionError('Mission run was not initialized. Exit and restart to avoid losing rewards.');
-        return;
-      }
-      if (activeNodeIndex === null) return;
-      const node = route[activeNodeIndex];
-      const xpDelta = Math.max(0, node?.event_payload?.xp ?? 0);
-      const coinsDelta = Math.max(0, node?.event_payload?.coins ?? 0);
-      if (xpDelta > 0) setRewardsXp(prev => prev + xpDelta);
-      if (coinsDelta > 0) setRewardsCoins(prev => prev + coinsDelta);
-      if (xpDelta > 0 || coinsDelta > 0) {
-        // Virtual runs are practice-only and do not persist profile rewards.
-      }
-      setEventResult(node?.event_payload ?? null);
-      advanceToNode(activeNodeIndex + 1);
+      setActionError('Mission run was not initialized. Exit and restart to avoid losing rewards.');
       return;
     }
     setIsSubmitting(true);
@@ -670,40 +514,12 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         setIsSubmitting(false);
       }
     }
-  }, [runId, activeNodeIndex, route, spawnParticles, onGrantReward, advanceToNode, syncRunStateFromServer, requireFinalProfileValues, isVirtual]);
+  }, [runId, activeNodeIndex, spawnParticles, onGrantReward, syncRunStateFromServer, requireFinalProfileValues]);
 
-  // ── Open final chest (server RPC or local fallback for virtual runs) ──
+  // ── Open final chest (server RPC) ──
   const openChest = useCallback(async () => {
     if (!runId) {
-      if (!isVirtual) {
-        setActionError('Mission run was not initialized. Exit and restart to avoid losing rewards.');
-        return;
-      }
-      // Virtual mode: compute chest locally
-      const questionsCleared = route.filter(n => n.type === 'question' || n.type === 'elite_question').length;
-      const streakBonus = streak >= 6 ? 1.5 : streak >= 4 ? 1.25 : streak >= 2 ? 1.1 : 1.0;
-      const tier = streak >= 6 ? 'gold' : streak >= 3 ? 'silver' : 'bronze';
-      const chestXp = Math.round(30 * streakBonus);
-      const chestCoins = Math.round(60 * streakBonus);
-      setChestResult({
-        chest_tier: tier as 'bronze' | 'silver' | 'gold',
-        chest_rewards: { xp: 0, coins: 0 },
-        total_run_xp: 0,
-        total_run_coins: 0,
-        rewards_persisted: false,
-        streak_peak: streak,
-        perfect_run: false,
-        nodes_cleared: questionsCleared,
-        run_summary: {
-          score: correctCount * 100,
-          correct_answers: correctCount,
-          questions_answered: answeredCount,
-          accuracy: answeredCount > 0 ? correctCount / answeredCount : undefined,
-          avg_time_ratio: totalTimeLimitSeconds > 0 ? totalAnswerTimeSeconds / totalTimeLimitSeconds : undefined,
-        },
-      });
-      setActionError('Practice mission rewards are preview-only and were not added to your profile.');
-      setActiveModal('chest');
+      setActionError('Mission run was not initialized. Exit and restart to avoid losing rewards.');
       return;
     }
 
@@ -762,7 +578,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         // keep local state if resume also fails
       }
     }
-  }, [runId, streak, rewardsXp, rewardsCoins, currentNode, onGrantReward, spawnParticles, syncRunStateFromServer, correctCount, answeredCount, totalTimeLimitSeconds, totalAnswerTimeSeconds, requireFinalProfileValues, isVirtual]);
+  }, [runId, onGrantReward, spawnParticles, syncRunStateFromServer, correctCount, answeredCount, totalTimeLimitSeconds, totalAnswerTimeSeconds, requireFinalProfileValues]);
 
   // ── Node click handler ──
   const handleNodeClick = useCallback((index: number) => {
@@ -784,18 +600,10 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         setActiveModal('question');
         break;
       case 'elite_question':
-        if (runId) {
-          setQuestionResult(null);
-          setResolvedNextNodeIndex(null);
-          setQuestionStartTime(Date.now());
-          setActiveModal('question');
-        } else {
-          // Virtual-only fun riddle flow
-          setActiveRiddle(getRandomRiddle());
-          setRiddleResult(null);
-          setActiveModal('riddle');
-          playSound('riddleAppear');
-        }
+        setQuestionResult(null);
+        setResolvedNextNodeIndex(null);
+        setQuestionStartTime(Date.now());
+        setActiveModal('question');
         break;
       case 'reward':
         setEventResult(null);
@@ -808,18 +616,13 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         openChest();
         break;
     }
-  }, [route, advanceToNode, openChest, runId]);
+  }, [route, advanceToNode, openChest]);
 
-  // ── Retreat (server RPC or local fallback for virtual runs) ──
+  // ── Retreat (server RPC) ──
   const handleRetreatConfirm = useCallback(async () => {
     if (!runId) {
-      if (!isVirtual) {
-        setActionError('Mission run was not initialized. Exit and restart to avoid losing rewards.');
-        setActiveModal('none');
-        return;
-      }
+      setActionError('Mission run was not initialized. Exit and restart to avoid losing rewards.');
       setActiveModal('none');
-      onRetreat(rewardsXp, rewardsCoins);
       return;
     }
     try {
@@ -831,7 +634,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       setActiveModal('none');
       onRetreat(rewardsXp, rewardsCoins);
     }
-  }, [runId, rewardsXp, rewardsCoins, onRetreat, isVirtual]);
+  }, [runId, rewardsXp, rewardsCoins, onRetreat]);
 
   // ── Chest close ──
   const handleChestClose = useCallback(() => {
@@ -899,14 +702,9 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
               <span className="text-amber-300 font-bold text-xs">RISK: <span className="text-white">{riskLabel}</span></span>
             </div>
             <div className="px-3 py-1.5 rounded-xl bg-slate-900/70 border border-purple-500/30">
-              <span className="text-purple-300 font-bold text-xs">REWARD: <span className="text-white">{isVirtual ? 'Practice only' : '~200+ XP'}</span></span>
+              <span className="text-purple-300 font-bold text-xs">REWARD: <span className="text-white">~200+ XP</span></span>
             </div>
           </div>
-          {isVirtual && (
-            <p className="max-w-md rounded-xl border border-amber-400/50 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
-              {practiceModeLabel}
-            </p>
-          )}
 
           {/* Decorative hex grid / map preview */}
           <div className="w-full max-w-xs opacity-30 pointer-events-none select-none" style={{ filter: 'blur(1px)' }}>
@@ -941,7 +739,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
               border: '1px solid rgba(255,255,255,0.2)',
             }}
           >
-            {isVirtual ? '🧪 START PRACTICE MISSION' : '⚡ START MISSION ⚡'}
+            ⚡ START MISSION ⚡
           </button>
           <button
             onClick={handleExit}
@@ -961,8 +759,8 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4"
         style={{ background: 'linear-gradient(180deg, #07051a 0%, #0e0730 50%, #07051a 100%)' }}>
         <div className="text-5xl animate-pulse">🛰️</div>
-        <p className="text-cyan-300 font-semibold">{isVirtual ? 'Preparing practice mission...' : 'Loading mission intel...'}</p>
-        <p className="text-slate-500 text-sm">{isVirtual ? 'Practice run is local and does not grant profile rewards' : 'Fetching questions from HQ'}</p>
+        <p className="text-cyan-300 font-semibold">Loading mission intel...</p>
+        <p className="text-slate-500 text-sm">Fetching questions from HQ</p>
       </div>,
       document.body
     );
@@ -1167,16 +965,9 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       <div className="relative z-10 mx-4 mb-1 flex items-center justify-between text-[10px]">
         <span className="text-slate-500 tracking-wider">— MISSION MAP —</span>
         <span className="text-slate-500 tracking-wider">
-          {isVirtual
-            ? '— PRACTICE RUN: No profile rewards granted —'
-            : <>— REWARD: Approx. <span className="text-amber-300 font-bold">{Math.max(200, rewardsXp || 200)} XP</span> + Bonus Chest —</>}
+          — REWARD: Approx. <span className="text-amber-300 font-bold">{Math.max(200, rewardsXp || 200)} XP</span> + Bonus Chest —
         </span>
       </div>
-      {isVirtual && (
-        <div className="relative z-10 mx-4 mb-2 rounded-xl border border-amber-500/40 bg-amber-900/25 px-3 py-2 text-xs text-amber-100">
-          🧪 {practiceModeLabel}
-        </div>
-      )}
       {actionError && (
         <div className="relative z-10 mx-4 mb-2 rounded-xl border border-amber-500/40 bg-amber-900/30 px-3 py-2 text-xs text-amber-200">
           ⚠️ {actionError}
@@ -1360,65 +1151,6 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       </div>
 
       {/* ── Modals ── */}
-
-      {/* Riddle modal (funny riddles for elite_question nodes) */}
-      {activeModal === 'riddle' && activeRiddle && createPortal(
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl border border-red-500/40 bg-gradient-to-br from-slate-900/98 via-red-950/90 to-slate-900/98 backdrop-blur-md p-5 space-y-4 shadow-2xl shadow-red-500/15">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">🤪</span>
-                <span className="text-xs font-black uppercase tracking-widest text-red-300">
-                  Riddle Challenge
-                </span>
-              </div>
-              <span className="text-amber-300 text-xs font-bold">+25 XP</span>
-            </div>
-            {/* Riddle */}
-            <p className="text-white font-semibold text-base leading-relaxed">{activeRiddle.question}</p>
-            {/* Options */}
-            <div className="space-y-2">
-              {activeRiddle.options.map((opt, i) => {
-                const isCorrect = opt === activeRiddle.correct;
-                const answered = !!riddleResult;
-                return (
-                  <button
-                    key={i}
-                    onClick={() => handleRiddleAnswer(opt)}
-                    disabled={answered}
-                    className={`w-full px-4 py-3 rounded-xl text-left text-sm font-semibold transition-all border ${
-                      answered
-                        ? isCorrect
-                          ? 'bg-green-500/25 border-green-400 text-green-100'
-                          : 'bg-slate-800/60 border-slate-600/40 text-slate-500'
-                        : 'bg-slate-800/80 border-slate-600/40 text-slate-200 hover:bg-red-900/30 hover:border-red-500/50 active:scale-[0.98]'
-                    }`}
-                  >
-                    <span className="text-slate-500 font-bold mr-2">{String.fromCharCode(65 + i)}.</span>
-                    {opt}
-                    {answered && isCorrect && <span className="ml-2 text-green-400">✓</span>}
-                  </button>
-                );
-              })}
-            </div>
-            {/* Result */}
-            {riddleResult && (
-              <div className="space-y-3 pt-1">
-                <p className={`text-sm font-medium ${riddleResult.correct ? 'text-green-300' : 'text-red-300'}`}>
-                  {riddleResult.correct ? '😂 Correct!' : '😅 Nope!'} — {riddleResult.explanation}
-                </p>
-                <button
-                  onClick={handleRiddleClose}
-                  className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-red-500 to-orange-500 text-white hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-red-500/30"
-                >
-                  Continue →
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      , document.body)}
 
       {/* Spin the Wheel (surprise nodes) */}
       {activeModal === 'spin' && (
