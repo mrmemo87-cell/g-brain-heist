@@ -54,6 +54,8 @@ const normalizeQuestionBankSubject = (subject?: string): string => {
   return subject.trim();
 };
 
+const normalizeMissionSubject = (subject?: string): string => subject?.trim().toLowerCase() ?? '';
+
 // Resolve Supabase storage-relative URLs to fully qualified public URLs
 const resolveQuestionImageUrl = (url?: string | null): string | undefined => {
   if (!url) return undefined;
@@ -693,7 +695,10 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
     try {
       const sortedMissions = [...availableMissions].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
-      const subjectMission = sortedMissions.find((mission) => mission.subject === selectedSubject.name);
+      const selectedSubjectName = normalizeMissionSubject(selectedSubject.name);
+      const subjectMission = sortedMissions.find(
+        (mission) => normalizeMissionSubject(mission.subject) === selectedSubjectName
+      );
       const mission = subjectMission ?? sortedMissions[0];
 
       if (!mission) {
@@ -725,7 +730,10 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     }
 
     const sortedMissions = [...availableMissions].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
-    const subjectMission = sortedMissions.find((mission) => mission.subject === matchedSubject.name);
+    const selectedSubjectName = normalizeMissionSubject(matchedSubject.name);
+    const subjectMission = sortedMissions.find(
+      (mission) => normalizeMissionSubject(mission.subject) === selectedSubjectName
+    );
     const mission = subjectMission ?? sortedMissions[0];
     if (!mission) {
       brainsAlert('No live missions are available right now. Please try again in a moment.', 'info');
