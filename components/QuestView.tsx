@@ -692,15 +692,18 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     setStage('loading');
 
     try {
-      const subjectMissions = availableMissions
-        .filter((mission) => mission.subject === selectedSubject.name)
-        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
-      const mission = subjectMissions[0];
+      const sortedMissions = [...availableMissions].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+      const subjectMission = sortedMissions.find((mission) => mission.subject === selectedSubject.name);
+      const mission = subjectMission ?? sortedMissions[0];
 
       if (!mission) {
-        brainsAlert('No live mission is available for this subject yet.', 'info');
+        brainsAlert('No live missions are available right now. Please try again in a moment.', 'info');
         setStage('unified_subject_play');
         return;
+      }
+
+      if (!subjectMission) {
+        brainsAlert('Launching the closest available live mission for now.', 'info');
       }
 
       setSelectedMission(mission);
@@ -712,7 +715,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     }
   };
 
-  const handleUseQuestionSet = (questionIds: string[], subject: Subject, topic: string) => {
+  const handleUseQuestionSet = (questionIds: string[], subject: Subject, _topic: string) => {
     const matchedSubject = subjects.find((s) => s.name === subject) || { id: subject, name: subject, difficulty: 1 };
     const selectedQuestions = publicQuestions.filter((question) => questionIds.includes(question.id));
 
@@ -721,13 +724,16 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       return;
     }
 
-    const subjectMissions = availableMissions
-      .filter((mission) => mission.subject === matchedSubject.name)
-      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
-    const mission = subjectMissions[0];
+    const sortedMissions = [...availableMissions].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    const subjectMission = sortedMissions.find((mission) => mission.subject === matchedSubject.name);
+    const mission = subjectMission ?? sortedMissions[0];
     if (!mission) {
-      brainsAlert('No live mission is available for this set yet.', 'info');
+      brainsAlert('No live missions are available right now. Please try again in a moment.', 'info');
       return;
+    }
+
+    if (!subjectMission) {
+      brainsAlert('No matching subject mission was found. Launching the closest available live mission.', 'info');
     }
 
     setSelectedSubject(matchedSubject);
