@@ -36,7 +36,7 @@ import UnifiedSubjectPlay from './UnifiedSubjectPlay';
 import type { QuestProgress } from '../types';
 import QuestionBank from './teacher/QuestionBank';
 import { visualAssets, neonIcon } from './visualAssets';
-import type { QuestMission, QuestChestResult, QuestNode } from '../types';
+import type { QuestMission, QuestChestResult } from '../types';
 import MissionCard from './quest/MissionCard';
 import MissionPreview from './quest/MissionPreview';
 import MissionBoard from './quest/MissionBoard';
@@ -201,10 +201,6 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [selectedMission, setSelectedMission] = useState<QuestMission | null>(null);
   const [missionChestResult, setMissionChestResult] = useState<QuestChestResult | null>(null);
   const [availableMissions, setAvailableMissions] = useState<QuestMission[]>([]);
-  /** Questions for client-side virtual quest runs (teacher question sets) */
-  const [virtualQuestions, setVirtualQuestions] = useState<TeacherQuestion[] | null>(null);
-  const [virtualRouteTemplate, setVirtualRouteTemplate] = useState<QuestNode[] | null>(null);
-  const [isPracticeMissionSelected, setIsPracticeMissionSelected] = useState(false);
   const [missionsLoading, setMissionsLoading] = useState(false);
   const answerFeedbackRef = useRef<HTMLDivElement>(null);
 
@@ -263,23 +259,6 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     }
     return 40;
   };
-
-  const isCodedTrialMission = (mission: QuestMission): boolean => {
-    const code = (mission.code || '').toLowerCase().trim();
-    if (!code) return false;
-
-    // Practice/coded-trial routing is based on explicit mission code identity only.
-    // DB-backed persisted missions remain server-run unless code is explicitly trial-marked.
-    const trialCodePattern = /(?:^|[_-])(trial|coded|legacy)(?:[_-]|$)/;
-    return trialCodePattern.test(code);
-  };
-
-  const buildVirtualRouteFromMission = (mission: QuestMission): QuestNode[] =>
-    mission.route_template.map((node: any, index: number) => ({
-      ...node,
-      index: typeof node?.index === 'number' ? node.index : index,
-      state: index === 0 ? 'active' : 'locked',
-    }));
 
   const computeMissionDifficulty = (performances: SoloQuestionPerformance[]): SoloDifficulty => {
     const weights: Record<SoloDifficulty, number> = { easy: 1, medium: 2, hard: 3 };
@@ -707,48 +686,36 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     }
   };
   
-  const handleQuestSelect = async (questId: string) => {
+  const handleQuestSelect = async (_questId: string) => {
     if (!selectedSubject) return;
 
     setStage('loading');
 
     try {
-      const data = await GameService.get_public_questions(selectedSubject.name as any);
-      if (data.length === 0) {
-        brainsAlert('No teacher questions available for this quest yet.', 'info');
+      const sortedMissions = [...availableMissions].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+      const subjectMission = sortedMissions.find((mission) => mission.subject === selectedSubject.name);
+      const mission = subjectMission ?? sortedMissions[0];
+
+      if (!mission) {
+        brainsAlert('No live missions are available right now. Please try again in a moment.', 'info');
         setStage('unified_subject_play');
         return;
       }
 
-      // Take up to 7 random questions and send them through MissionBoard V2
-      const shuffled = [...data].sort(() => Math.random() - 0.5);
-      const picked = shuffled.slice(0, Math.min(7, shuffled.length));
-      const virtualMission: QuestMission = {
-        id: `virtual_${Date.now()}`,
-        subject: selectedSubject.name,
-        code: 'teacher_virtual',
-        title: `${selectedSubject.name} Quest`,
-        description: 'Teacher-curated questions',
-        mission_type: 'standard',
-        difficulty: 'medium',
-        route_template: [],
-        energy_cost: 0,
-        is_active: true,
-        sort_order: 999,
-      };
-      setVirtualQuestions(picked);
-      setVirtualRouteTemplate(null);
-      setIsPracticeMissionSelected(true);
-      setSelectedMission(virtualMission);
-      setStage('mission_board');
+      if (!subjectMission) {
+        brainsAlert('Launching the closest available live mission for now.', 'info');
+      }
+
+      setSelectedMission(mission);
+      setStage('mission_preview');
     } catch (err) {
-      console.error('Error loading teacher questions:', err);
-      brainsAlert('Unable to load teacher questions.', 'error');
+      console.error('Error selecting mission:', err);
+      brainsAlert('Unable to open mission right now.', 'error');
       setStage('unified_subject_play');
     }
   };
 
-  const handleUseQuestionSet = (questionIds: string[], subject: Subject, topic: string) => {
+  const handleUseQuestionSet = (questionIds: string[], subject: Subject, _topic: string) => {
     const matchedSubject = subjects.find((s) => s.name === subject) || { id: subject, name: subject, difficulty: 1 };
     const selectedQuestions = publicQuestions.filter((question) => questionIds.includes(question.id));
 
@@ -757,27 +724,21 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       return;
     }
 
-    const normalizedQuestions = selectedQuestions.map(normalizeAssignmentQuestion);
-    const questTitle = topic && topic !== 'General' ? `${topic} Quest` : `${matchedSubject.name} Quest`;
-    const virtualMission: QuestMission = {
-      id: `virtual_${Date.now()}`,
-      subject: matchedSubject.name,
-      code: 'teacher_virtual',
-      title: questTitle,
-      description: 'Teacher-curated questions',
-      mission_type: 'standard',
-      difficulty: 'medium',
-      route_template: [],
-      energy_cost: 0,
-      is_active: true,
-      sort_order: 999,
-    };
+    const sortedMissions = [...availableMissions].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    const subjectMission = sortedMissions.find((mission) => mission.subject === matchedSubject.name);
+    const mission = subjectMission ?? sortedMissions[0];
+    if (!mission) {
+      brainsAlert('No live missions are available right now. Please try again in a moment.', 'info');
+      return;
+    }
+
+    if (!subjectMission) {
+      brainsAlert('No matching subject mission was found. Launching the closest available live mission.', 'info');
+    }
+
     setSelectedSubject(matchedSubject);
-    setVirtualQuestions(normalizedQuestions);
-    setVirtualRouteTemplate(null);
-    setIsPracticeMissionSelected(true);
-    setSelectedMission(virtualMission);
-    setStage('mission_board');
+    setSelectedMission(mission);
+    setStage('mission_preview');
   };
 
   const handleDifficultySelect = (difficulty: SoloDifficulty) => {
@@ -1253,10 +1214,6 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                         key={m.id}
                         mission={m}
                         onSelect={(mission) => {
-                          setVirtualQuestions(null);
-                          const shouldUsePracticeMode = isCodedTrialMission(mission);
-                          setVirtualRouteTemplate(shouldUsePracticeMode ? buildVirtualRouteFromMission(mission) : null);
-                          setIsPracticeMissionSelected(shouldUsePracticeMode);
                           setSelectedMission(mission);
                           setStage('mission_preview');
                         }}
@@ -1665,7 +1622,6 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     const assignmentContext = mode === 'assignment' ? (activeAssignment || lastCompletedAssignment) : lastCompletedAssignment;
     const isAssignmentRun = Boolean(mode === 'assignment' || assignmentContext);
     const isAssignmentSubmitting = mode === 'assignment' && assignmentSubmissionState === 'submitting';
-    const missionRewardsPersisted = missionOutcome ? missionOutcome.rewards_persisted !== false : true;
     const displayedCorrectAnswers = missionOutcome
       ? (missionRunSummary?.correct_answers ?? missionOutcome.nodes_cleared)
       : score.correct;
@@ -1673,23 +1629,19 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       ? (missionRunSummary?.questions_answered ?? null)
       : totalQuestions;
     const displayedXp = missionOutcome
-      ? (missionRewardsPersisted ? missionOutcome.total_run_xp : 0)
+      ? missionOutcome.total_run_xp
       : score.xp;
     const displayedCoins = missionOutcome
-      ? (missionRewardsPersisted ? missionOutcome.total_run_coins : 0)
+      ? missionOutcome.total_run_coins
       : score.coins;
     const displayedGems = missionOutcome ? 0 : score.gemstones;
-
-    const isPracticeOutcome = Boolean(missionOutcome && !missionRewardsPersisted);
 
     const handleShareResults = async () => {
       const subjectName = selectedSubject?.name || assignmentContext?.subject_name || 'Brains Heist';
       const shareTitle = 'My Brains Heist Quest Results';
       const shareScoreLine = typeof missionTotal === 'number' ? `Score: ${missionTotal}\n` : '';
       const shareAccuracyLine = typeof accuracyPercent === 'number' ? `Accuracy: ${accuracyPercent}%\n` : '';
-      const rewardLine = isPracticeOutcome
-        ? 'Practice mode: no XP/coins granted to profile'
-        : `Rewards: +${displayedXp} XP, +${displayedCoins} coins, +${displayedGems} gems`;
+      const rewardLine = `Rewards: +${displayedXp} XP, +${displayedCoins} coins, +${displayedGems} gems`;
       const shareText = `🎯 ${subjectName} quest complete!\n${shareScoreLine}${shareAccuracyLine}${rewardLine}`;
 
       try {
@@ -1719,7 +1671,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       <div className="text-center max-w-2xl mx-auto">
         <h2 className="font-heading text-4xl mb-4 animate-fade-in-up flex items-center justify-center gap-3" style={{ color: 'var(--amber-warn)' }}>
           <img src={neonIcon('quest')} alt="" className="h-9 w-9 object-contain" />
-          {isPracticeOutcome ? 'Practice Mission Complete!' : 'Quest Complete!'}
+          Quest Complete!
         </h2>
         <div className="card-glass glow-warn p-8 animate-fade-in-up" style={{ borderColor: 'rgba(255, 176, 32, 0.3)' }}>
           <div className="text-6xl mb-4 animate-bounce">🎉</div>
@@ -1771,30 +1723,18 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               )}
             </div>
           </div>
-          {!missionRewardsPersisted && missionOutcome && (
-            <div className="mb-4 rounded-xl border border-amber-400/50 bg-amber-500/10 p-3 text-sm text-amber-100">
-              Rewards were not persisted for this practice mission, so no XP or coins were granted.
-            </div>
-          )}
-          {isPracticeOutcome ? (
-            <div className="mb-6 rounded-xl border border-amber-400/50 bg-amber-500/10 p-4 text-left">
-              <p className="text-sm font-semibold text-amber-100">Practice run summary</p>
-              <p className="mt-1 text-sm text-amber-50">This mission was run in practice mode, so profile XP/coins were not awarded.</p>
-            </div>
-          ) : (
-            <div className="text-2xl font-heading space-y-2 mb-6">
-              <p>
-                XP Gained: <span style={{ color: 'var(--ion-blue)' }}>{displayedXp >= 0 ? `+${displayedXp}` : displayedXp}</span>
-              </p>
-              <p>
-                Coins Earned: <span style={{ color: 'var(--amber-warn)' }}>{displayedCoins >= 0 ? `+${displayedCoins}` : displayedCoins}</span>
-              </p>
-              <p>
-                Gemstones Found:{' '}
-                <span style={{ color: 'var(--plasma-pink)' }}>{displayedGems >= 0 ? `+${displayedGems}` : displayedGems}</span>
-              </p>
-            </div>
-          )}
+          <div className="text-2xl font-heading space-y-2 mb-6">
+            <p>
+              XP Gained: <span style={{ color: 'var(--ion-blue)' }}>{displayedXp >= 0 ? `+${displayedXp}` : displayedXp}</span>
+            </p>
+            <p>
+              Coins Earned: <span style={{ color: 'var(--amber-warn)' }}>{displayedCoins >= 0 ? `+${displayedCoins}` : displayedCoins}</span>
+            </p>
+            <p>
+              Gemstones Found:{' '}
+              <span style={{ color: 'var(--plasma-pink)' }}>{displayedGems >= 0 ? `+${displayedGems}` : displayedGems}</span>
+            </p>
+          </div>
 
           <div className="relative overflow-hidden rounded-2xl border border-fuchsia-400/40 bg-gradient-to-br from-fuchsia-900/60 via-indigo-900/40 to-sky-900/40 p-5 mb-6 text-left shadow-[0_0_40px_rgba(217,70,239,0.25)]">
             <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-fuchsia-400/20 blur-xl" />
@@ -1923,31 +1863,19 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       }
       case 'mission_preview': {
         if (!selectedMission) return null;
-        const isIntentionalPracticeMission = isPracticeMissionSelected && (!!virtualQuestions || !!virtualRouteTemplate);
         return (
-          <>
-            {isIntentionalPracticeMission && (
-              <div className="max-w-3xl mx-auto mb-4 rounded-xl border border-amber-400/50 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-                🧪 Practice mission: this mode does not persist profile XP or coins.
-              </div>
-            )}
-            <MissionPreview
-              mission={selectedMission}
-              onStart={() => setStage('mission_board')}
-              onBack={() => {
-                setSelectedMission(null);
-                setVirtualQuestions(null);
-                setVirtualRouteTemplate(null);
-                setIsPracticeMissionSelected(false);
-                setStage('subject_selection');
-              }}
-            />
-          </>
+          <MissionPreview
+            mission={selectedMission}
+            onStart={() => setStage('mission_board')}
+            onBack={() => {
+              setSelectedMission(null);
+              setStage('subject_selection');
+            }}
+          />
         );
       }
       case 'mission_board': {
         if (!selectedMission) return null;
-        const isIntentionalPracticeMission = isPracticeMissionSelected && (!!virtualQuestions || !!virtualRouteTemplate);
         return (
           <MissionBoard
             missionId={selectedMission.id}
@@ -1957,35 +1885,18 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             missionType={selectedMission.mission_type}
             activeRunId={selectedMission.active_run_id}
             avatarUrl={avatarUrl}
-            virtualRun={
-              isIntentionalPracticeMission
-                ? {
-                    questions: virtualQuestions ?? undefined,
-                    route: virtualRouteTemplate ?? undefined,
-                  }
-                : undefined
-            }
             onGrantReward={onGrantReward}
             onComplete={(result) => {
               setMissionChestResult(result);
-              setVirtualQuestions(null);
-              setVirtualRouteTemplate(null);
-              setIsPracticeMissionSelected(false);
               setStage('completed');
             }}
             onRetreat={() => {
               setSelectedMission(null);
-              setVirtualQuestions(null);
-              setVirtualRouteTemplate(null);
-              setIsPracticeMissionSelected(false);
               setMissionChestResult(null);
               setStage('subject_selection');
             }}
             onBack={() => {
               setSelectedMission(null);
-              setVirtualQuestions(null);
-              setVirtualRouteTemplate(null);
-              setIsPracticeMissionSelected(false);
               setMissionChestResult(null);
               setStage('subject_selection');
             }}
