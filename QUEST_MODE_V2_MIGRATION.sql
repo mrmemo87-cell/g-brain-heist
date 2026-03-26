@@ -31,23 +31,27 @@ CREATE TABLE IF NOT EXISTS quest_missions (
 ALTER TABLE quest_missions ENABLE ROW LEVEL SECURITY;
 
 -- Everyone can read active missions
+DROP POLICY IF EXISTS quest_missions_select ON quest_missions;
 CREATE POLICY quest_missions_select ON quest_missions
   FOR SELECT TO authenticated
   USING (is_active = true);
 
 -- Only admins can insert/update/delete
+DROP POLICY IF EXISTS quest_missions_admin_insert ON quest_missions;
 CREATE POLICY quest_missions_admin_insert ON quest_missions
   FOR INSERT TO authenticated
   WITH CHECK (
     EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin')
   );
 
+DROP POLICY IF EXISTS quest_missions_admin_update ON quest_missions;
 CREATE POLICY quest_missions_admin_update ON quest_missions
   FOR UPDATE TO authenticated
   USING (
     EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin')
   );
 
+DROP POLICY IF EXISTS quest_missions_admin_delete ON quest_missions;
 CREATE POLICY quest_missions_admin_delete ON quest_missions
   FOR DELETE TO authenticated
   USING (
@@ -76,16 +80,19 @@ CREATE TABLE IF NOT EXISTS quest_events (
 
 ALTER TABLE quest_events ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS quest_events_select ON quest_events;
 CREATE POLICY quest_events_select ON quest_events
   FOR SELECT TO authenticated
   USING (is_active = true);
 
+DROP POLICY IF EXISTS quest_events_admin_insert ON quest_events;
 CREATE POLICY quest_events_admin_insert ON quest_events
   FOR INSERT TO authenticated
   WITH CHECK (
     EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin')
   );
 
+DROP POLICY IF EXISTS quest_events_admin_update ON quest_events;
 CREATE POLICY quest_events_admin_update ON quest_events
   FOR UPDATE TO authenticated
   USING (
@@ -118,15 +125,18 @@ CREATE TABLE IF NOT EXISTS quest_runs (
 ALTER TABLE quest_runs ENABLE ROW LEVEL SECURITY;
 
 -- Players can only see their own runs
+DROP POLICY IF EXISTS quest_runs_select ON quest_runs;
 CREATE POLICY quest_runs_select ON quest_runs
   FOR SELECT TO authenticated
   USING (user_id = auth.uid());
 
 -- Inserts/updates only via RPCs (security definer), but add base policies
+DROP POLICY IF EXISTS quest_runs_insert ON quest_runs;
 CREATE POLICY quest_runs_insert ON quest_runs
   FOR INSERT TO authenticated
   WITH CHECK (user_id = auth.uid());
 
+DROP POLICY IF EXISTS quest_runs_update ON quest_runs;
 CREATE POLICY quest_runs_update ON quest_runs
   FOR UPDATE TO authenticated
   USING (user_id = auth.uid());
@@ -156,12 +166,14 @@ CREATE TABLE IF NOT EXISTS quest_run_nodes (
 
 ALTER TABLE quest_run_nodes ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS quest_run_nodes_select ON quest_run_nodes;
 CREATE POLICY quest_run_nodes_select ON quest_run_nodes
   FOR SELECT TO authenticated
   USING (
     EXISTS (SELECT 1 FROM quest_runs WHERE id = run_id AND user_id = auth.uid())
   );
 
+DROP POLICY IF EXISTS quest_run_nodes_insert ON quest_run_nodes;
 CREATE POLICY quest_run_nodes_insert ON quest_run_nodes
   FOR INSERT TO authenticated
   WITH CHECK (
