@@ -79,6 +79,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [loading, setLoading] = useState(true);
   const initCalledRef = useRef(false);
   const [uploading, setUploading] = useState(false);
+  const [backfillingQuestMissions, setBackfillingQuestMissions] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
   const [editingQuestion, setEditingQuestion] = useState<TeacherQuestion | null>(null);
   const [isProPlan, setIsProPlan] = useState(() => isPro(_cachedTeacherTier));
@@ -3092,6 +3093,26 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     }
   };
 
+  const handleBackfillQuestMissions = async () => {
+    setBackfillingQuestMissions(true);
+    try {
+      const result = await GameService.teacher_backfill_quest_missions_from_questions();
+      brainsAlert(
+        `Quest mission backfill complete\n\n` +
+        `Groups scanned: ${result.groups_scanned}\n` +
+        `Created missions: ${result.created_missions}\n` +
+        `Skipped missions: ${result.skipped_missions}\n` +
+        `Published missions: ${result.published_missions}`,
+        'success'
+      );
+      await loadMyQuests();
+    } catch (err: any) {
+      brainsAlert(err?.message || 'Failed to backfill quest missions.', 'error');
+    } finally {
+      setBackfillingQuestMissions(false);
+    }
+  };
+
   // ── Quest Builder ──────────────────────────────────────────────────────────
   const renderQuestBuilder = () => {
     const myQ = questions.filter(q => q.teacher_id === teacher?.id);
@@ -4203,6 +4224,23 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               </div>
             </div>
           )}
+        </div>
+
+        {/* Backfill Existing Uploaded Questions */}
+        <div className="mt-6 bg-indigo-50 border border-indigo-200 rounded-xl p-6">
+          <h4 className="font-bold text-indigo-700 mb-2 flex items-center gap-2">
+            <span>🛠️</span> Backfill Older Uploaded Questions
+          </h4>
+          <p className="text-sm text-slate-600 mb-4">
+            If you uploaded questions before auto-mission creation existed, run this once to create missing live quest missions from your existing question bank.
+          </p>
+          <button
+            onClick={handleBackfillQuestMissions}
+            disabled={backfillingQuestMissions || uploading}
+            className="teacher-btn teacher-btn-primary w-full py-3"
+          >
+            {backfillingQuestMissions ? 'Backfilling missions…' : 'Generate Missing Quest Missions'}
+          </button>
         </div>
 
         {/* Tips */}
