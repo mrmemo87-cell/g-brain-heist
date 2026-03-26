@@ -271,6 +271,7 @@ DECLARE
   v_question RECORD;
   v_event RECORD;
   v_questions UUID[] := '{}';
+  v_fallback_question_count INTEGER := 0;
   v_node_type TEXT;
   v_node_diff TEXT;
   v_subject_name TEXT;
@@ -278,6 +279,7 @@ DECLARE
   v_i INTEGER;
   v_node_count INTEGER;
   v_active_run_count INTEGER;
+  v_template_question_id UUID;
 BEGIN
   IF v_user_id IS NULL THEN
     RAISE EXCEPTION 'Not authenticated';
@@ -305,15 +307,15 @@ BEGIN
   v_node_count := jsonb_array_length(v_route);
   v_subject_name := v_mission.subject;
 
-  -- Collect question IDs for question nodes
-  -- We fetch all needed questions in one query, ordered randomly
+  -- Collect fallback random questions only for template nodes that do not
+  -- already pin an explicit question_id.
   WITH question_needs AS (
     SELECT
       ordinality - 1 AS idx,
-      elem->>'type' AS ntype,
-      COALESCE(elem->>'difficulty', 'medium') AS diff
+      elem->>'type' AS ntype
     FROM jsonb_array_elements(v_route) WITH ORDINALITY AS t(elem, ordinality)
     WHERE elem->>'type' IN ('question', 'elite_question')
+      AND NULLIF(elem->>'question_id', '') IS NULL
   ),
   available_questions AS (
     SELECT q.id, q.question_text, q.options, q.correct_answer, q.explanation,
@@ -329,10 +331,14 @@ BEGIN
   FROM available_questions aq
   LIMIT (SELECT COUNT(*) FROM question_needs);
 
-  IF array_length(v_questions, 1) IS NULL OR
-     array_length(v_questions, 1) < (
-       SELECT COUNT(*) FROM jsonb_array_elements(v_route) AS elem
-       WHERE elem->>'type' IN ('question', 'elite_question')
+  SELECT COUNT(*) INTO v_fallback_question_count
+  FROM jsonb_array_elements(v_route) AS elem
+  WHERE elem->>'type' IN ('question', 'elite_question')
+    AND NULLIF(elem->>'question_id', '') IS NULL;
+
+  IF v_fallback_question_count > 0 AND (
+       array_length(v_questions, 1) IS NULL OR
+       array_length(v_questions, 1) < v_fallback_question_count
      ) THEN
     RAISE EXCEPTION 'Not enough questions available for this mission. Need more % questions.', v_subject_name;
   END IF;
@@ -356,11 +362,26 @@ BEGIN
 
       -- Hydrate question nodes
       IF v_node_type IN ('question', 'elite_question') THEN
+        v_template_question_id := NULLIF(v_node->>'question_id', '')::uuid;
+
+        IF v_template_question_id IS NOT NULL THEN
+          SELECT q.id, q.question_text, q.options, q.correct_answer,
+                 q.explanation, q.difficulty, q.time_limit
+          INTO v_question
+          FROM questions q
+          WHERE q.id = v_template_question_id
+            AND q.is_active = true;
+
+          IF NOT FOUND THEN
+            RAISE EXCEPTION 'Mission template question % was not found or inactive', v_template_question_id;
+          END IF;
+        ELSE
         SELECT q.id, q.question_text, q.options, q.correct_answer,
                q.explanation, q.difficulty, q.time_limit
         INTO v_question
         FROM questions q
         WHERE q.id = v_questions[v_q_cursor];
+        END IF;
 
         v_node := v_node || jsonb_build_object(
           'question_id', v_question.id,
@@ -374,7 +395,9 @@ BEGIN
             COALESCE(v_node->>'difficulty', 'medium'))
         );
 
-        v_q_cursor := v_q_cursor + 1;
+        IF v_template_question_id IS NULL THEN
+          v_q_cursor := v_q_cursor + 1;
+        END IF;
 
       -- Hydrate event nodes (random from pool)
       ELSIF v_node_type IN ('reward', 'surprise') THEN
@@ -1047,10 +1070,12 @@ BEGIN
 
   SELECT * INTO v_run
   FROM quest_runs
-  WHERE id = p_run_id AND user_id = v_user_id AND status = 'active';
+  WHERE id = p_run_id
+    AND user_id = v_user_id
+    AND status IN ('active', 'completed');
 
   IF NOT FOUND THEN
-    RETURN jsonb_build_object('error', 'No active run found');
+    RETURN jsonb_build_object('error', 'Run not found');
   END IF;
 
   SELECT title, mission_type INTO v_mission

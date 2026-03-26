@@ -445,7 +445,14 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         { xp: xpDelta, coins: coinsDelta },
         finalValues as any,
       );
-      await syncRunStateFromServer();
+      try {
+        await syncRunStateFromServer();
+      } catch (syncErr: any) {
+        const msg = syncErr?.message || '';
+        if (!/No active run found/i.test(msg) && !/Run not found/i.test(msg)) {
+          throw syncErr;
+        }
+      }
       setActionError(null);
     } catch (err) {
       console.error('[MissionBoard] quest_claim_event (spin) failed:', err);
@@ -548,7 +555,14 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         finalValues as any,
       );
       spawnParticles(chestXp, chestCoins);
-      await syncRunStateFromServer();
+      try {
+        await syncRunStateFromServer();
+      } catch (syncErr: any) {
+        const msg = syncErr?.message || '';
+        if (!/No active run found/i.test(msg) && !/Run not found/i.test(msg)) {
+          throw syncErr;
+        }
+      }
 
       setChestResult({
         chest_tier: result.chest_tier,
