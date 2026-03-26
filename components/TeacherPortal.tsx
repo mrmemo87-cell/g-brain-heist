@@ -2778,7 +2778,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
       if (assignmentMode === 'batch') {
         // Create one assignment per selected batch/class
-        const batchesToAssign = assignmentBatches;
+        const batchesToAssign = assignmentBatches.includes('All')
+          ? availableBatches
+          : assignmentBatches.filter((batch) => batch !== 'All');
         const results: string[] = [];
         const errors: string[] = [];
 
@@ -2824,7 +2826,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         });
       }
 
-      const classCount = assignmentMode === 'batch' ? assignmentBatches.length : 1;
+      const classCount = assignmentMode === 'batch'
+        ? (assignmentBatches.includes('All')
+            ? availableBatches.length
+            : assignmentBatches.filter((batch) => batch !== 'All').length)
+        : 1;
       brainsAlert(`Assignment created and sent to ${assignmentMode === 'batch' ? `${classCount} class${classCount !== 1 ? 'es' : ''}` : `${selectedStudentIds.length} student${selectedStudentIds.length !== 1 ? 's' : ''}`}.`, 'success');
       setAssignmentQuestionIds([]);
       setAssignmentTitle('');
@@ -2954,6 +2960,88 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     window.URL.revokeObjectURL(url);
   };
 
+  const parseCSVRows = (csvText: string): string[][] => {
+    const rows: string[][] = [];
+    let currentRow: string[] = [];
+    let currentValue = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < csvText.length; i++) {
+      const char = csvText[i];
+      const next = csvText[i + 1];
+
+      if (char === '"') {
+        if (inQuotes && next === '"') {
+          currentValue += '"';
+          i++;
+          continue;
+        }
+        inQuotes = !inQuotes;
+        continue;
+      }
+
+      if (char === ',' && !inQuotes) {
+        currentRow.push(currentValue.trim());
+        currentValue = '';
+        continue;
+      }
+
+      if ((char === '\n' || char === '\r') && !inQuotes) {
+        if (char === '\r' && next === '\n') i++;
+        currentRow.push(currentValue.trim());
+        currentValue = '';
+        rows.push(currentRow);
+        currentRow = [];
+        continue;
+      }
+
+      currentValue += char;
+    }
+
+    if (currentValue.length > 0 || currentRow.length > 0) {
+      currentRow.push(currentValue.trim());
+      rows.push(currentRow);
+    }
+
+    return rows;
+  };
+
+  const normalizeSubjectValue = (value: string): Subject | null => {
+    const normalized = value.trim().toLowerCase();
+    const map: Record<string, Subject> = {
+      maths: 'Maths',
+      math: 'Maths',
+      science: 'Science',
+      english: 'English',
+      russian: 'Russian Language',
+      'russian language': 'Russian Language',
+      kyrgyz: 'Kyrgyz Language',
+      'kyrgyz language': 'Kyrgyz Language',
+      german: 'German Language',
+      'german language': 'German Language',
+      geography: 'Geography',
+      'global perspective': 'Global Perspective',
+      ict: 'ICT',
+    };
+    return map[normalized] ?? null;
+  };
+
+  const normalizeDifficultyValue = (value: string): QuestionDifficulty | null => {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'easy' || normalized === 'medium' || normalized === 'hard') {
+      return normalized;
+    }
+    return null;
+  };
+
+  const normalizeQuestionTypeValue = (value: string): 'multiple_choice' | 'true_false' | 'short_answer' | null => {
+    const normalized = value.trim().toLowerCase().replace(/[\s-]+/g, '_');
+    if (normalized === 'multiple_choice' || normalized === 'mcq') return 'multiple_choice';
+    if (normalized === 'true_false' || normalized === 'boolean') return 'true_false';
+    if (normalized === 'short_answer' || normalized === 'shortanswer') return 'short_answer';
+    return null;
+  };
+
   // Parse and upload CSV
   const handleCSVUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -2964,50 +3052,104 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
     try {
       const text = await file.text();
-      const lines = text.split('\n').filter(line => line.trim());
-      
-      // Skip header row
-      const dataLines = lines.slice(1);
-      setUploadProgress({ current: 0, total: dataLines.length });
+      const cleanedText = text.replace(/^\uFEFF/, '');
+      const csvRows = parseCSVRows(cleanedText);
+
+      if (csvRows.length < 2) {
+        throw new Error('CSV must include a header row and at least one data row.');
+      }
+
+      const header = csvRows[0].map((value) => value.trim().toLowerCase());
+      const getColumnIndex = (...aliases: string[]) =>
+        aliases
+          .map((alias) => header.indexOf(alias))
+          .find((index) => index >= 0) ?? -1;
+
+      const columnIndex = {
+        subject: getColumnIndex('subject'),
+        topic: getColumnIndex('topic', 'topic_name'),
+        difficulty: getColumnIndex('difficulty'),
+        questionType: getColumnIndex('question_type', 'questiontype'),
+        questionText: getColumnIndex('question_text', 'question'),
+        option1: getColumnIndex('option1', 'option_1'),
+        option2: getColumnIndex('option2', 'option_2'),
+        option3: getColumnIndex('option3', 'option_3'),
+        option4: getColumnIndex('option4', 'option_4'),
+        correctAnswer: getColumnIndex('correct_answer', 'answer'),
+        explanation: getColumnIndex('explanation'),
+        points: getColumnIndex('points', 'xp'),
+      };
+
+      if (
+        columnIndex.subject < 0 ||
+        columnIndex.difficulty < 0 ||
+        columnIndex.questionType < 0 ||
+        columnIndex.questionText < 0 ||
+        columnIndex.correctAnswer < 0
+      ) {
+        throw new Error('Missing required columns. Required: subject, difficulty, question_type, question_text, correct_answer.');
+      }
+
+      const dataRows = csvRows.slice(1).filter((row) => row.some((cell) => cell.trim() !== ''));
+      setUploadProgress({ current: 0, total: dataRows.length });
 
       let successCount = 0;
       let errorCount = 0;
       const errors: string[] = [];
       const uploadedQuestions: TeacherQuestion[] = [];
 
-      for (let i = 0; i < dataLines.length; i++) {
-        const line = dataLines[i];
+      for (let i = 0; i < dataRows.length; i++) {
+        const row = dataRows[i];
         try {
-          // Parse CSV line (handle quoted values)
-          const values = line.match(/(".*?"|[^,]+)(?=\s*,|\s*$)/g)?.map(v => v.replace(/^"|"$/g, '').trim()) || [];
-          
-          if (values.length < 12) {
-            errors.push(`Row ${i + 2}: Insufficient columns`);
-            errorCount++;
-            continue;
+          const read = (index: number): string => (index >= 0 ? (row[index] ?? '').trim() : '');
+
+          const subjectStr = normalizeSubjectValue(read(columnIndex.subject));
+          const topicStr = read(columnIndex.topic);
+          const difficultyStr = normalizeDifficultyValue(read(columnIndex.difficulty));
+          const questionType = normalizeQuestionTypeValue(read(columnIndex.questionType));
+          const questionText = read(columnIndex.questionText);
+          const opt1 = read(columnIndex.option1);
+          const opt2 = read(columnIndex.option2);
+          const opt3 = read(columnIndex.option3);
+          const opt4 = read(columnIndex.option4);
+          const correctAnswer = read(columnIndex.correctAnswer);
+          const explanation = read(columnIndex.explanation);
+          const pointsStr = read(columnIndex.points);
+
+          if (!subjectStr) throw new Error('Invalid or missing subject');
+          if (!difficultyStr) throw new Error('Invalid or missing difficulty');
+          if (!questionType) throw new Error('Invalid or missing question_type');
+          if (!questionText) throw new Error('Missing question_text');
+          if (!correctAnswer) throw new Error('Missing correct_answer');
+
+          const options = questionType === 'multiple_choice'
+            ? [opt1, opt2, opt3, opt4].filter(Boolean)
+            : questionType === 'true_false'
+              ? ['True', 'False']
+              : undefined;
+
+          if (questionType === 'multiple_choice' && options.length < 2) {
+            throw new Error('multiple_choice rows require at least 2 options');
           }
 
-          const [subjectStr, topicStr, difficultyStr, questionType, questionText, opt1, opt2, opt3, opt4, correctAnswer, explanation, pointsStr] = values;
-
           const questionData = {
-            subject: subjectStr as Subject,
+            subject: subjectStr,
             topic: topicStr || 'General',
             topic_name: topicStr || 'General',
-            difficulty: difficultyStr as QuestionDifficulty,
+            difficulty: difficultyStr,
             question_text: questionText,
-            question_type: questionType as 'multiple_choice' | 'true_false' | 'short_answer',
-            options: questionType === 'multiple_choice' ? [opt1, opt2, opt3, opt4].filter(Boolean) : 
-                     questionType === 'true_false' ? ['True', 'False'] : undefined,
+            question_type: questionType,
+            options,
             correct_answer: correctAnswer,
             explanation: explanation || '',
-            points: parseInt(pointsStr) || 10,
+            points: Math.min(Math.max(Number.parseInt(pointsStr, 10) || 10, 1), 30),
             is_public: true
           };
 
           const createdQuestion = await GameService.create_question(questionData);
           uploadedQuestions.push(createdQuestion);
           successCount++;
-          setUploadProgress({ current: i + 1, total: dataLines.length });
+          setUploadProgress({ current: i + 1, total: dataRows.length });
         } catch (err) {
           errors.push(`Row ${i + 2}: ${(err as Error).message}`);
           errorCount++;
@@ -3085,8 +3227,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       }
 
       // Show results
-      const message = `CSV Upload Complete\n\nSuccess: ${successCount} questions\nFailed: ${errorCount} questions\nCreated missions: ${createdMissionCount}\nSkipped missions (already exist): ${skippedMissionCount}${errors.length > 0 ? '\n\nErrors:\n' + errors.slice(0, 5).join('\n') + (errors.length > 5 ? `\n... and ${errors.length - 5} more` : '') : ''}`;
-      brainsAlert(message, 'success');
+      const message = `CSV Upload Complete\n\nCreated questions: ${successCount}\nSkipped/failed rows: ${errorCount}\nCreated missions: ${createdMissionCount}\nSkipped missions (already exist): ${skippedMissionCount}\nPublished missions: ${createdMissionCount}${errors.length > 0 ? '\n\nRow issues:\n' + errors.slice(0, 5).join('\n') + (errors.length > 5 ? `\n... and ${errors.length - 5} more` : '') : ''}`;
+      const alertTone = successCount === 0 ? 'error' : (errorCount > 0 ? 'info' : 'success');
+      brainsAlert(message, alertTone);
       
       setView('question-bank');
     } catch (error) {
@@ -3104,13 +3247,14 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     setBackfillingQuestMissions(true);
     try {
       const result = await GameService.teacher_backfill_quest_missions_from_questions();
+      const hasChanges = result.created_missions > 0 || result.published_missions > 0;
       brainsAlert(
         `Quest mission backfill complete\n\n` +
         `Groups scanned: ${result.groups_scanned}\n` +
         `Created missions: ${result.created_missions}\n` +
         `Skipped missions: ${result.skipped_missions}\n` +
         `Published missions: ${result.published_missions}`,
-        'success'
+        hasChanges ? 'success' : 'info'
       );
       await loadMyQuests();
     } catch (err: any) {
@@ -4535,7 +4679,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   <span className="teacher-student-selector-title">
                     {assignmentBatches.length === 0
                       ? 'No class selected'
-                      : `${assignmentBatches.length} class${assignmentBatches.length !== 1 ? 'es' : ''} selected`}
+                      : `${assignmentBatches.includes('All') ? availableBatches.length : assignmentBatches.filter((batch) => batch !== 'All').length} class${(assignmentBatches.includes('All') ? availableBatches.length : assignmentBatches.filter((batch) => batch !== 'All').length) !== 1 ? 'es' : ''} selected`}
                   </span>
                   <div className="teacher-student-selector-actions">
                     <button
@@ -4894,8 +5038,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           >
             {assignmentSubmitting
               ? 'Creating Assignment...'
-              : assignmentMode === 'batch' && assignmentBatches.length > 1
-                ? `Create Assignment for ${assignmentBatches.length} Classes (${assignmentQuestionIds.length} questions)`
+              : assignmentMode === 'batch' && (assignmentBatches.includes('All') ? availableBatches.length : assignmentBatches.filter((batch) => batch !== 'All').length) > 1
+                ? `Create Assignment for ${assignmentBatches.includes('All') ? availableBatches.length : assignmentBatches.filter((batch) => batch !== 'All').length} Classes (${assignmentQuestionIds.length} questions)`
                 : `Create Assignment (${assignmentQuestionIds.length} questions)`}
           </button>
         </form>
