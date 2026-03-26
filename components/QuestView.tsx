@@ -14,6 +14,7 @@ import {
   SubjectProgress,
   DifficultyProgress,
   Subject,
+  UserRole,
   XpStatus,
 } from '../types';
 import * as GameService from '../services/gameService';
@@ -151,6 +152,7 @@ const RewardParticle: React.FC<RewardParticleProps> = ({ id, type, startRect, on
 interface QuestViewProps {
   onComplete: () => void;
   onGrantReward: (deltas: { xp: number; coins: number; gemstones?: number }, finalValues?: { xp: number; coins: number; level: number; gemstones: number; xp_status?: XpStatus }) => void;
+  viewerRole?: UserRole;
   /**
    * Optional pre-fetched assignment supplied by the parent so we can avoid double loading.
    */
@@ -163,7 +165,7 @@ interface QuestViewProps {
   avatarUrl?: string;
 }
 
-const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initialAssignment, refreshAssignment, avatarUrl }) => {
+const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initialAssignment, refreshAssignment, avatarUrl, viewerRole = 'student' }) => {
   const [stage, setStage] = useState<QuestStage>('loading');
   const [mode, setMode] = useState<QuestMode>('practice');
   const [subjects, setSubjects] = useState<SubjectData[]>([]);
@@ -206,6 +208,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [availableMissions, setAvailableMissions] = useState<QuestMission[]>([]);
   const [missionsLoading, setMissionsLoading] = useState(false);
   const answerFeedbackRef = useRef<HTMLDivElement>(null);
+  const canViewQuestionBank = viewerRole === 'teacher' || viewerRole === 'admin' || viewerRole === 'school_admin';
 
   // ── Fetch quest missions from DB ──
   useEffect(() => {
@@ -1141,65 +1144,69 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           </div>
         </div>
       )}
-      <div className="max-w-5xl mx-auto p-6 rounded-2xl bg-gradient-to-r from-slate-900/70 via-indigo-900/50 to-fuchsia-900/50 border border-cyan-400/30 shadow-[0_0_32px_rgba(34,211,238,0.18)]">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <img
-              src={visualAssets.mission.quickQuest}
-              alt="Quick Quest"
-              className="w-14 h-14 rounded-xl object-contain drop-shadow-[0_0_12px_rgba(34,211,238,0.4)]"
-              onError={(e) => { (e.target as HTMLImageElement).src = '/BRAINS.svg'; }}
-            />
-            <div>
-              <h2 className="font-heading text-2xl text-white">Explore the Question Bank</h2>
-              <p className="text-sm text-slate-200">Browse every subject and topic just like your teacher.</p>
+      {canViewQuestionBank && (
+        <>
+          <div className="max-w-5xl mx-auto p-6 rounded-2xl bg-gradient-to-r from-slate-900/70 via-indigo-900/50 to-fuchsia-900/50 border border-cyan-400/30 shadow-[0_0_32px_rgba(34,211,238,0.18)]">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <img
+                  src={visualAssets.mission.quickQuest}
+                  alt="Quick Quest"
+                  className="w-14 h-14 rounded-xl object-contain drop-shadow-[0_0_12px_rgba(34,211,238,0.4)]"
+                  onError={(e) => { (e.target as HTMLImageElement).src = '/BRAINS.svg'; }}
+                />
+                <div>
+                  <h2 className="font-heading text-2xl text-white">Explore the Question Bank</h2>
+                  <p className="text-sm text-slate-200">Browse every subject and topic just like your teacher.</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-3 text-sm text-slate-200">
+                <div className="card-glass p-3 border border-cyan-400/30 text-center">
+                  <p className="text-xs uppercase tracking-widest text-slate-400">Subjects</p>
+                  <p className="font-heading text-xl text-white">
+                    {new Set(publicQuestions.map((question) => normalizeQuestionBankSubject(question.subject))).size || '—'}
+                  </p>
+                </div>
+                <div className="card-glass p-3 border border-indigo-400/30 text-center">
+                  <p className="text-xs uppercase tracking-widest text-slate-400">Topics</p>
+                  <p className="font-heading text-xl text-white">
+                    {new Set(publicQuestions.map((question) => question.topic_name || question.topic || 'General')).size || '—'}
+                  </p>
+                </div>
+                <div className="card-glass p-3 border border-fuchsia-400/30 text-center">
+                  <p className="text-xs uppercase tracking-widest text-slate-400">Questions</p>
+                  <p className="font-heading text-xl text-white">{publicQuestions.length || '—'}</p>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-3 text-sm text-slate-200">
-            <div className="card-glass p-3 border border-cyan-400/30 text-center">
-              <p className="text-xs uppercase tracking-widest text-slate-400">Subjects</p>
-              <p className="font-heading text-xl text-white">
-                {new Set(publicQuestions.map((question) => normalizeQuestionBankSubject(question.subject))).size || '—'}
-              </p>
-            </div>
-            <div className="card-glass p-3 border border-indigo-400/30 text-center">
-              <p className="text-xs uppercase tracking-widest text-slate-400">Topics</p>
-              <p className="font-heading text-xl text-white">
-                {new Set(publicQuestions.map((question) => question.topic_name || question.topic || 'General')).size || '—'}
-              </p>
-            </div>
-            <div className="card-glass p-3 border border-fuchsia-400/30 text-center">
-              <p className="text-xs uppercase tracking-widest text-slate-400">Questions</p>
-              <p className="font-heading text-xl text-white">{publicQuestions.length || '—'}</p>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <div className="max-w-6xl mx-auto w-full">
-        {questionBankLoading ? (
-          <div className="flex justify-center mt-10">
-            <img src="/BRAINS.svg" alt="Loading..." className="w-28 h-28 animate-pulse" style={{ filter: 'drop-shadow(0 0 30px rgba(0, 212, 255, 0.6))' }} />
+          <div className="max-w-6xl mx-auto w-full">
+            {questionBankLoading ? (
+              <div className="flex justify-center mt-10">
+                <img src="/BRAINS.svg" alt="Loading..." className="w-28 h-28 animate-pulse" style={{ filter: 'drop-shadow(0 0 30px rgba(0, 212, 255, 0.6))' }} />
+              </div>
+            ) : questionBankError ? (
+              <div className="card-glass p-6 text-center border border-red-500/40">
+                <p className="text-red-300 font-semibold mb-2">We hit a snag loading the question bank.</p>
+                <p className="text-gray-300 text-sm">{questionBankError}</p>
+              </div>
+            ) : publicQuestions.length === 0 ? (
+              <div className="card-glass p-6 text-center border border-cyan-500/30">
+                <p className="text-white font-heading text-xl mb-2">No questions are available yet.</p>
+                <p className="text-gray-300 text-sm">Once your teacher publishes questions, they will appear here for practice.</p>
+              </div>
+            ) : (
+              <QuestionBank
+                questions={publicQuestions}
+                teacher={null}
+                onUseSet={handleUseQuestionSet}
+                useActionLabel="Start Quest"
+              />
+            )}
           </div>
-        ) : questionBankError ? (
-          <div className="card-glass p-6 text-center border border-red-500/40">
-            <p className="text-red-300 font-semibold mb-2">We hit a snag loading the question bank.</p>
-            <p className="text-gray-300 text-sm">{questionBankError}</p>
-          </div>
-        ) : publicQuestions.length === 0 ? (
-          <div className="card-glass p-6 text-center border border-cyan-500/30">
-            <p className="text-white font-heading text-xl mb-2">No questions are available yet.</p>
-            <p className="text-gray-300 text-sm">Once your teacher publishes questions, they will appear here for practice.</p>
-          </div>
-        ) : (
-          <QuestionBank
-            questions={publicQuestions}
-            teacher={null}
-            onUseSet={handleUseQuestionSet}
-            useActionLabel="Start Quest"
-          />
-        )}
-      </div>
+        </>
+      )}
 
       {/* ── Mission Cards Section ── */}
       {(() => {

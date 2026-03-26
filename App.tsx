@@ -1616,6 +1616,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                 initialAssignment={activeAssignment}
                 refreshAssignment={() => refreshAssignment()}
                 avatarUrl={profile?.avatar_url ?? undefined}
+                viewerRole={profile?.is_admin ? 'admin' : profile?.role}
               />
             );
         case 'pvp':
