@@ -2188,7 +2188,29 @@ export const task_claim = async (task_id: string): Promise<{ xp: number; coins: 
     throw new Error('No reward defined for this task');
   }
 
-  throw new Error('Task reward claiming is temporarily disabled until server-verified event rewards are available.');
+  const { data: payload, error } = await supabase.functions.invoke('bh_api', {
+    body: { task_id },
+    headers: {
+      'x-bh-api-route': 'tasks/claim',
+    },
+  });
+
+  if (error || !payload?.success) {
+    const message = payload?.error?.message || error?.message || 'Failed to claim task reward';
+    throw new Error(message);
+  }
+
+  const reward = payload?.data?.reward;
+  if (!reward) {
+    return task.reward;
+  }
+
+  return {
+    xp: Number(reward.xp || 0),
+    coins: Number(reward.coins || 0),
+    gemstones: Number(reward.gemstones || 0),
+    items: task.reward.items,
+  };
 };
 
 export const session_status = (): Promise<SessionStatus> => {
