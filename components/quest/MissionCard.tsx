@@ -300,6 +300,15 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
               {bestRun?.perfect_run ? 'Perfect run on record. Can you repeat it?' : 'Temporal instability detected in this zone.'}
             </p>
             </div>
+            <div className="pt-1">
+              <span className={`inline-flex items-center justify-center rounded-xl px-3.5 py-1.5 text-xs font-black tracking-wide border ${
+                hasActiveRun
+                  ? 'bg-amber-500/20 border-amber-300/50 text-amber-100'
+                  : 'bg-orange-500/90 border-orange-200/40 text-slate-950'
+              }`}>
+                {ctaLabel}
+              </span>
+            </div>
           </div>
         </div>
       </div>
