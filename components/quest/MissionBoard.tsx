@@ -187,9 +187,14 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
 
     (async () => {
       try {
-        const runState = activeRunId
+        let runState = activeRunId
           ? await quest_resume_run(activeRunId)
           : await quest_start_run(missionId);
+
+        // Never allow a stale active run from another mission to hijack launch.
+        if (runState.mission_id !== missionId) {
+          runState = await quest_start_run(missionId);
+        }
 
         if (!runState?.run_id) {
           throw new Error('Mission run could not be initialized. No rewards can be granted until a server run is created.');
