@@ -688,27 +688,18 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     }
   };
   
-  const handleQuestSelect = async (_questId: string) => {
+  const handleQuestSelect = async (questId: string) => {
     if (!selectedSubject) return;
 
     setStage('loading');
 
     try {
-      const sortedMissions = [...availableMissions].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
-      const selectedSubjectName = normalizeMissionSubject(selectedSubject.name);
-      const subjectMission = sortedMissions.find(
-        (mission) => normalizeMissionSubject(mission.subject) === selectedSubjectName
-      );
-      const mission = subjectMission ?? sortedMissions[0];
+      const mission = availableMissions.find((candidate) => candidate.id === questId);
 
       if (!mission) {
-        brainsAlert('No live missions are available right now. Please try again in a moment.', 'info');
+        brainsAlert('That mission is no longer available. Please pick another mission card.', 'info');
         setStage('unified_subject_play');
         return;
-      }
-
-      if (!subjectMission) {
-        brainsAlert('Launching the closest available live mission for now.', 'info');
       }
 
       setSelectedMission(mission);
@@ -729,23 +720,17 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       return;
     }
 
-    const sortedMissions = [...availableMissions].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
     const selectedSubjectName = normalizeMissionSubject(matchedSubject.name);
-    const subjectMission = sortedMissions.find(
+    const subjectMission = availableMissions.find(
       (mission) => normalizeMissionSubject(mission.subject) === selectedSubjectName
     );
-    const mission = subjectMission ?? sortedMissions[0];
-    if (!mission) {
-      brainsAlert('No live missions are available right now. Please try again in a moment.', 'info');
+    if (!subjectMission) {
+      brainsAlert('No matching subject mission is available right now. Please pick a mission card.', 'info');
       return;
     }
 
-    if (!subjectMission) {
-      brainsAlert('No matching subject mission was found. Launching the closest available live mission.', 'info');
-    }
-
     setSelectedSubject(matchedSubject);
-    setSelectedMission(mission);
+    setSelectedMission(subjectMission);
     setStage('mission_preview');
   };
 
@@ -1873,6 +1858,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         if (!selectedMission) return null;
         return (
           <MissionPreview
+            key={selectedMission.id}
             mission={selectedMission}
             onStart={() => setStage('mission_board')}
             onBack={() => {
@@ -1886,6 +1872,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         if (!selectedMission) return null;
         return (
           <MissionBoard
+            key={selectedMission.id}
             missionId={selectedMission.id}
             missionTitle={selectedMission.title}
             missionSubject={selectedMission.subject}
