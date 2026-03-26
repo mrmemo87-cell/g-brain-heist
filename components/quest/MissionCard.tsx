@@ -58,6 +58,8 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
     : bestRun?.perfect_run
       ? 'from-yellow-500/20 via-cyan-900/40 to-slate-950'
       : 'from-cyan-500/15 via-blue-900/35 to-slate-950';
+  const objectiveText = mission.description?.trim() || 'Clear the route, keep your streak alive, and claim the final chest.';
+  const ctaLabel = hasActiveRun ? '▶ Continue Mission' : '🚀 Start Mission';
 
   const handleHoverIn = () => {
     if (!cardRef.current) return;
@@ -139,14 +141,18 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
           : bestRun?.perfect_run
             ? 'border-yellow-400/35'
             : 'border-cyan-400/30'
-      }`}
+      } focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70`}
     >
-      <div className={`relative h-64 bg-gradient-to-br ${cardTone}`}>
+      <div className={`relative h-[22rem] bg-gradient-to-br ${cardTone}`}>
         <img
           src="/visuals/QUESTCARDMAINFRAME.svg"
           alt=""
           className="absolute inset-0 h-full w-full object-cover opacity-90 pointer-events-none select-none"
           loading="lazy"
+        />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: 'linear-gradient(180deg, rgba(2,6,23,0.18) 0%, rgba(2,6,23,0.08) 35%, rgba(2,6,23,0.65) 70%, rgba(2,6,23,0.94) 100%)' }}
         />
         <div
           ref={glowRef}
@@ -175,7 +181,7 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
             ) : null}
           </div>
 
-          <div className="flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center gap-3">
             <div className="h-20 w-20 rounded-full bg-slate-950/70 border border-cyan-300/35 shadow-[0_0_24px_rgba(34,211,238,0.35)] flex items-center justify-center">
               {subjectBadge.type === 'image' ? (
                 <img
@@ -188,10 +194,16 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
                 <span className="text-4xl leading-none">{subjectBadge.value}</span>
               )}
             </div>
+            <span className="px-3 py-1 rounded-full border border-cyan-400/25 bg-cyan-950/40 text-[10px] uppercase tracking-[0.2em] text-cyan-100/90">
+              Mission Objective
+            </span>
+            <p className="max-w-[88%] text-center text-xs sm:text-sm text-slate-200/90 line-clamp-2">
+              {objectiveText}
+            </p>
           </div>
 
           <div className="space-y-2">
-            <h3 className="font-bold text-white text-xl leading-tight text-shadow-sm group-hover:text-cyan-100 transition-colors">
+            <h3 className="font-bold text-white text-2xl leading-tight text-shadow-sm group-hover:text-cyan-100 transition-colors">
               {mission.title}
             </h3>
             <div className="flex flex-wrap items-center gap-2 text-[11px] sm:text-xs">
@@ -211,15 +223,18 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
                 </span>
               )}
             </div>
+            <div className="pt-1">
+              <span className={`inline-flex items-center justify-center rounded-xl px-3.5 py-1.5 text-xs font-black tracking-wide border ${
+                hasActiveRun
+                  ? 'bg-amber-500/20 border-amber-300/50 text-amber-100'
+                  : 'bg-orange-500/90 border-orange-200/40 text-slate-950'
+              }`}>
+                {ctaLabel}
+              </span>
+            </div>
           </div>
         </div>
       </div>
-
-      {mission.description && (
-        <div className="px-4 py-3 bg-slate-950/80 border-t border-cyan-500/20">
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed line-clamp-2">{mission.description}</p>
-        </div>
-      )}
 
       {/* Mini route preview */}
       <div className="flex items-center gap-1.5 px-4 py-3 bg-slate-950/75 border-t border-white/10">
