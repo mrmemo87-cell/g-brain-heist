@@ -201,6 +201,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [freeformAnswer, setFreeformAnswer] = useState('');
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [selectedMission, setSelectedMission] = useState<QuestMission | null>(null);
+  const [launchMission, setLaunchMission] = useState<QuestMission | null>(null);
   const [missionChestResult, setMissionChestResult] = useState<QuestChestResult | null>(null);
   const [availableMissions, setAvailableMissions] = useState<QuestMission[]>([]);
   const [missionsLoading, setMissionsLoading] = useState(false);
@@ -671,6 +672,11 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     setStage('subject_selection');
   };
 
+  const clearMissionRunState = () => {
+    setLaunchMission(null);
+    setMissionChestResult(null);
+  };
+
   const handleSubjectSelect = async (subject: SubjectData) => {
     setSelectedSubject(subject);
     setSelectedTopic(null);
@@ -702,6 +708,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         return;
       }
 
+      clearMissionRunState();
       setSelectedMission(mission);
       setStage('mission_preview');
     } catch (err) {
@@ -730,6 +737,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     }
 
     setSelectedSubject(matchedSubject);
+    clearMissionRunState();
     setSelectedMission(subjectMission);
     setStage('mission_preview');
   };
@@ -1207,6 +1215,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                         key={m.id}
                         mission={m}
                         onSelect={(mission) => {
+                          clearMissionRunState();
                           setSelectedMission(mission);
                           setStage('mission_preview');
                         }}
@@ -1860,25 +1869,30 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           <MissionPreview
             key={selectedMission.id}
             mission={selectedMission}
-            onStart={() => setStage('mission_board')}
+            onStart={() => {
+              // Lock run creation to the mission explicitly started from preview.
+              setLaunchMission(selectedMission);
+              setStage('mission_board');
+            }}
             onBack={() => {
               setSelectedMission(null);
+              clearMissionRunState();
               setStage('subject_selection');
             }}
           />
         );
       }
       case 'mission_board': {
-        if (!selectedMission) return null;
+        if (!launchMission) return null;
         return (
           <MissionBoard
-            key={selectedMission.id}
-            missionId={selectedMission.id}
-            missionTitle={selectedMission.title}
-            missionSubject={selectedMission.subject}
-            missionDifficulty={selectedMission.difficulty}
-            missionType={selectedMission.mission_type}
-            activeRunId={selectedMission.active_run_id}
+            key={launchMission.id}
+            missionId={launchMission.id}
+            missionTitle={launchMission.title}
+            missionSubject={launchMission.subject}
+            missionDifficulty={launchMission.difficulty}
+            missionType={launchMission.mission_type}
+            activeRunId={launchMission.active_run_id}
             avatarUrl={avatarUrl}
             onGrantReward={onGrantReward}
             onComplete={(result) => {
@@ -1887,12 +1901,12 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             }}
             onRetreat={() => {
               setSelectedMission(null);
-              setMissionChestResult(null);
+              clearMissionRunState();
               setStage('subject_selection');
             }}
             onBack={() => {
               setSelectedMission(null);
-              setMissionChestResult(null);
+              clearMissionRunState();
               setStage('subject_selection');
             }}
           />
