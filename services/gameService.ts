@@ -6061,6 +6061,16 @@ export interface QuestChestOpenResult {
     final_profile_values?: { xp: number; coins: number; level: number; gemstones: number };
 }
 
+export interface TeacherQuestBackfillResult {
+    actor_id: string;
+    actor_role: string;
+    teachers_scanned: number;
+    groups_scanned: number;
+    created_missions: number;
+    skipped_missions: number;
+    published_missions: number;
+}
+
 /** Fetch available missions for a subject (or all if null). Includes best run & active run info. */
 export const quest_get_missions = async (subject?: string): Promise<QuestMissionRow[]> => {
     const { data, error } = await supabase.rpc('rpc_quest_get_missions', {
@@ -6209,6 +6219,24 @@ export const teacher_create_quest_mission = async (params: {
     }
 
     return data as string;
+};
+
+/**
+ * One-time/maintenance backfill:
+ * generates quest missions from already-existing teacher questions grouped by
+ * teacher + subject + topic/topic_name with deterministic mission titles.
+ */
+export const teacher_backfill_quest_missions_from_questions = async (teacherId?: string | null): Promise<TeacherQuestBackfillResult> => {
+    const { data, error } = await supabase.rpc('rpc_teacher_backfill_quest_missions_from_questions', {
+        p_teacher_id: teacherId ?? null,
+        p_publish: true,
+    });
+
+    if (error) {
+        throw new Error(error.message || 'Failed to backfill quest missions');
+    }
+
+    return (data || {}) as TeacherQuestBackfillResult;
 };
 
 /** Fetch all quest missions created by the calling teacher (includes drafts). */
