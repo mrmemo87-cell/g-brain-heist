@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import type { QuestMission, SoloDifficulty } from '../../types';
+import { formatMissionTitleForDisplay } from './missionDisplay';
 
 interface MissionCardProps {
   mission: QuestMission;
@@ -48,10 +49,10 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
   const scanlineRef = useRef<HTMLDivElement>(null);
   const coreRingRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
+  const isVisibleRef = useRef(true);
 
   const diff = DIFFICULTY_BADGE[mission.difficulty];
   const mType = TYPE_BADGE[mission.mission_type] ?? TYPE_BADGE.standard;
-  const nodeCount = mission.route_template.length;
   const bestRun = mission.best_run;
   const hasActiveRun = !!mission.active_run_id;
   const tierBadge = bestRun?.chest_tier ? CHEST_TIER_BADGE[bestRun.chest_tier] : null;
@@ -65,12 +66,23 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
   const ctaLabel = hasActiveRun ? '▶ Continue Mission' : '🚀 Start Mission';
   const questionNodes = mission.route_template.filter((node) => node.type === 'question' || node.type === 'elite_question').length;
   const rewardLabel = bestRun ? `${bestRun.rewards_xp} XP Best` : 'Final Chest Reward';
+  const displayTitle = formatMissionTitleForDisplay(mission.title);
 
   useEffect(() => {
     const scanline = scanlineRef.current;
     const coreRing = coreRingRef.current;
     const cta = ctaRef.current;
     if (!scanline || !coreRing || !cta) return;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisibleRef.current = entry?.isIntersecting ?? false;
+      },
+      { threshold: 0.2 }
+    );
+    if (cardRef.current) observer.observe(cardRef.current);
 
     const timeline = gsap.timeline({ repeat: -1 });
     timeline
@@ -94,6 +106,7 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
     });
 
     return () => {
+      observer.disconnect();
       timeline.kill();
       ringTween.kill();
       ctaTween.kill();
@@ -102,6 +115,7 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
 
   const handleHoverIn = () => {
     if (!cardRef.current) return;
+    if (!isVisibleRef.current) return;
     gsap.killTweensOf([cardRef.current, glowRef.current, badgeRowRef.current]);
     gsap.to(cardRef.current, {
       y: -6,
@@ -182,7 +196,7 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
             : 'border-cyan-400/30'
       } focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70`}
     >
-      <div className={`relative h-[28rem] bg-gradient-to-br ${cardTone}`}>
+      <div className={`relative h-[24rem] bg-gradient-to-br ${cardTone}`}>
         <img
           src="/visuals/QUESTCARDMAINFRAME.svg"
           alt=""
@@ -239,7 +253,7 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
           <div className="flex flex-col items-center justify-center gap-3">
             <div className="text-center space-y-1">
               <h3 className="font-black text-white text-[2.1rem] leading-none tracking-wide uppercase drop-shadow-[0_3px_8px_rgba(34,211,238,.35)]">
-                {mission.title}
+                {displayTitle}
               </h3>
               <p className="text-[0.7rem] uppercase tracking-[0.2em] text-amber-300/95 font-semibold">
                 Temporal Grammar Mission
@@ -271,12 +285,9 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
           </div>
 
           <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-2 text-[11px] sm:text-xs">
+            <div className="grid grid-cols-3 gap-2 text-[11px] sm:text-xs">
               <span className="px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-amber-400/35 text-amber-100 font-semibold">
                 ⚠ {questionNodes} Challenges
-              </span>
-              <span className="px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-cyan-400/35 text-cyan-100 font-semibold">
-                📍 {nodeCount} Route Nodes
               </span>
               <span className="px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-blue-400/35 text-blue-100 font-semibold">
                 ⏱ 3-5 min Run
@@ -299,35 +310,8 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
             <p className="text-center text-[11px] text-slate-300/90">
               {bestRun?.perfect_run ? 'Perfect run on record. Can you repeat it?' : 'Temporal instability detected in this zone.'}
             </p>
-            <div className="pt-1">
-              <span className={`inline-flex items-center justify-center rounded-xl px-3.5 py-1.5 text-xs font-black tracking-wide border ${
-                hasActiveRun
-                  ? 'bg-amber-500/20 border-amber-300/50 text-amber-100'
-                  : 'bg-orange-500/90 border-orange-200/40 text-slate-950'
-              }`}>
-                {ctaLabel}
-              </span>
-            </div>
           </div>
         </div>
-      </div>
-
-      {/* Mini route preview */}
-      <div className="flex items-center gap-1.5 px-4 py-3 bg-slate-950/75 border-t border-white/10">
-        {mission.route_template.map((node, i) => {
-          const icons: Record<string, string> = {
-            start: '🚀', question: '❓', reward: '🎁',
-            surprise: '✨', elite_question: '⚡', final_chest: '🏆',
-          };
-          return (
-            <React.Fragment key={i}>
-              <span className="text-sm opacity-80">{icons[node.type] ?? '•'}</span>
-              {i < mission.route_template.length - 1 && (
-                <span className="text-[8px] text-slate-600">─</span>
-              )}
-            </React.Fragment>
-          );
-        })}
       </div>
 
       {/* Perfect run indicator */}

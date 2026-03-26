@@ -207,6 +207,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [missionChestResult, setMissionChestResult] = useState<QuestChestResult | null>(null);
   const [availableMissions, setAvailableMissions] = useState<QuestMission[]>([]);
   const [missionsLoading, setMissionsLoading] = useState(false);
+  const [selectedMissionZone, setSelectedMissionZone] = useState<string | null>(null);
   const answerFeedbackRef = useRef<HTMLDivElement>(null);
   const canViewQuestionBank = viewerRole === 'teacher' || viewerRole === 'admin' || viewerRole === 'school_admin';
 
@@ -242,6 +243,15 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       });
     return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    const zones = Array.from(new Set(availableMissions.map((mission) => mission.subject || 'Training Zone')));
+    if (!zones.length) {
+      setSelectedMissionZone(null);
+      return;
+    }
+    setSelectedMissionZone((prev) => (prev && zones.includes(prev) ? prev : zones[0]));
+  }, [availableMissions]);
 
   const resolveDifficulty = (questionLike: Question | TeacherQuestion): SoloDifficulty => {
     const difficultyValue = (questionLike as TeacherQuestion).difficulty ?? (questionLike as Question).difficulty;
@@ -1216,6 +1226,17 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           </div>
         );
         if (availableMissions.length === 0) return null;
+        const groupedMissions = availableMissions.reduce<Record<string, typeof availableMissions>>((acc, mission) => {
+          const zone = mission.subject || 'Training Zone';
+          if (!acc[zone]) acc[zone] = [];
+          acc[zone].push(mission);
+          return acc;
+        }, {});
+        const zoneEntries = Object.entries(groupedMissions);
+        const activeZone = selectedMissionZone && groupedMissions[selectedMissionZone]
+          ? selectedMissionZone
+          : zoneEntries[0]?.[0];
+        const visibleMissions = activeZone ? groupedMissions[activeZone] : [];
         return (
           <div className="max-w-5xl mx-auto">
             <div className="flex items-center gap-3 mb-4">
@@ -1225,26 +1246,44 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                 <p className="text-xs text-slate-400">Pick a zone, clear its stages, unlock fun stations, then open the final chest.</p>
               </div>
             </div>
-            <div className="space-y-4">
-              {Object.entries(
-                availableMissions.reduce<Record<string, typeof availableMissions>>((acc, mission) => {
-                  const zone = mission.subject || 'Training Zone';
-                  if (!acc[zone]) acc[zone] = [];
-                  acc[zone].push(mission);
-                  return acc;
-                }, {})
-              ).map(([zone, missions]) => (
-                <section key={zone} className="rounded-2xl border border-cyan-400/20 bg-slate-900/35 p-3 sm:p-4">
-                  <div className="mb-3 flex items-center justify-between">
-                    <h3 className="font-heading text-sm sm:text-base text-cyan-100 tracking-wide">
-                      🧭 {zone} Zone
-                    </h3>
-                    <span className="text-[10px] uppercase tracking-wider text-slate-400">
-                      {missions.length} {missions.length === 1 ? 'Stage' : 'Stages'}
-                    </span>
-                  </div>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {missions.map(m => (
+            <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {zoneEntries.map(([zone, missions]) => {
+                const isActive = zone === activeZone;
+                return (
+                  <button
+                    key={zone}
+                    type="button"
+                    onClick={() => setSelectedMissionZone(zone)}
+                    className={`rounded-2xl border p-4 text-left transition ${
+                      isActive
+                        ? 'border-cyan-300/70 bg-cyan-500/15 shadow-[0_0_24px_rgba(56,189,248,0.18)]'
+                        : 'border-slate-600/40 bg-slate-900/30 hover:border-cyan-300/50 hover:bg-slate-900/55'
+                    }`}
+                  >
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Mission Zone</p>
+                    <h3 className="mt-1 text-base font-heading text-cyan-100">🧭 {zone}</h3>
+                    <div className="mt-3 flex items-center justify-between text-xs">
+                      <span className="rounded-full border border-cyan-400/30 bg-slate-950/60 px-2 py-1 text-cyan-100">
+                        {missions.length} {missions.length === 1 ? 'Mission' : 'Missions'}
+                      </span>
+                      <span className="text-slate-300">{isActive ? 'Selected' : 'Open zone'}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            {activeZone && (
+              <section className="rounded-2xl border border-cyan-400/20 bg-slate-900/35 p-3 sm:p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="font-heading text-sm sm:text-base text-cyan-100 tracking-wide">
+                    🧭 {activeZone} Zone
+                  </h3>
+                  <span className="text-[10px] uppercase tracking-wider text-slate-400">
+                    {visibleMissions.length} {visibleMissions.length === 1 ? 'Stage' : 'Stages'}
+                  </span>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {visibleMissions.map(m => (
                       <MissionCard
                         key={m.id}
                         mission={m}
@@ -1254,11 +1293,10 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                           setStage('mission_preview');
                         }}
                       />
-                    ))}
-                  </div>
-                </section>
-              ))}
-            </div>
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
         );
       })()}

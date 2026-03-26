@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import gsap from 'gsap';
 import type { QuestMission, SoloDifficulty } from '../../types';
+import { formatMissionTitleForDisplay } from './missionDisplay';
 
 interface MissionPreviewProps {
   mission: QuestMission;
@@ -40,6 +41,7 @@ const MissionPreview: React.FC<MissionPreviewProps> = ({ mission, onStart, onBac
   }, []);
 
   const diff = DIFFICULTY_LABEL[mission.difficulty];
+  const displayTitle = formatMissionTitleForDisplay(mission.title);
 
   return (
     <div ref={containerRef} className="max-w-lg mx-auto space-y-6">
@@ -49,7 +51,7 @@ const MissionPreview: React.FC<MissionPreviewProps> = ({ mission, onStart, onBac
           ← Back to missions
         </button>
         <div>
-          <h2 className="text-2xl font-bold text-white">{mission.title}</h2>
+          <h2 className="text-2xl font-bold text-white">{displayTitle}</h2>
           {mission.description && (
             <p className="text-sm text-slate-300 mt-1">{mission.description}</p>
           )}
