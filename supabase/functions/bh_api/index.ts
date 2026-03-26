@@ -852,6 +852,184 @@ const handlers: Record<string, Handler> = {
       return handleApiError(error);
     }
   },
+  "tasks/claim": async (req, context) => {
+    try {
+      if (req.method !== "POST") {
+        throw new ApiError("METHOD_NOT_ALLOWED", "Use POST to claim task rewards", 405);
+      }
+      const student = requireStudent(context);
+      const body = (await parseJsonBody(req)) as Record<string, unknown>;
+      const taskId = ensureString(body["taskId"] ?? body["task_id"], "taskId");
+
+      const taskCatalog: Record<string, { kind: "daily" | "weekly"; target: number; xp: number; coins: number; gemstones: number }> = {
+        task_d1: { kind: "daily", target: 3, xp: 175, coins: 350, gemstones: 1 },
+        task_d2: { kind: "daily", target: 1, xp: 100, coins: 50, gemstones: 1 },
+        task_w1: { kind: "weekly", target: 15, xp: 500, coins: 400, gemstones: 5 },
+      };
+      const task = taskCatalog[taskId];
+      if (!task) {
+        throw new ApiError("TASK_NOT_FOUND", "Task not found", 404);
+      }
+
+      const now = new Date();
+      const todayStart = new Date(now);
+      todayStart.setHours(0, 0, 0, 0);
+      const todayEnd = new Date(now);
+      todayEnd.setHours(23, 59, 59, 999);
+      const weekStart = new Date(now);
+      weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+      weekStart.setHours(0, 0, 0, 0);
+
+      let progress = 0;
+      if (taskId === "task_d1") {
+        const { data: quests, error } = await supabaseAdmin
+          .from("activities")
+          .select("id")
+          .eq("actor_id", student.userId)
+          .eq("kind", "quest_complete")
+          .gte("created_at", todayStart.toISOString())
+          .lte("created_at", todayEnd.toISOString());
+        if (error) throw new ApiError("DB_ERROR", error.message, 500);
+        progress = quests?.length ?? 0;
+
+        if (progress === 0) {
+          const { data: attempts, error: attemptError } = await supabaseAdmin
+            .from("question_attempts")
+            .select("quest_session_id")
+            .eq("student_id", student.userId)
+            .gte("created_at", todayStart.toISOString())
+            .lte("created_at", todayEnd.toISOString())
+            .not("quest_session_id", "is", null);
+          if (attemptError) throw new ApiError("DB_ERROR", attemptError.message, 500);
+          progress = new Set((attempts ?? []).map((row) => (row as { quest_session_id?: string | null }).quest_session_id).filter(Boolean)).size;
+        }
+      } else if (taskId === "task_d2") {
+        const { data: wins, error } = await supabaseAdmin
+          .from("activities")
+          .select("id")
+          .eq("actor_id", student.userId)
+          .eq("kind", "pvp_win")
+          .gte("created_at", todayStart.toISOString())
+          .lte("created_at", todayEnd.toISOString());
+        if (error) throw new ApiError("DB_ERROR", error.message, 500);
+        progress = wins?.length ?? 0;
+      } else if (taskId === "task_w1") {
+        const { data: claims, error } = await supabaseAdmin
+          .from("activities")
+          .select("id")
+          .eq("actor_id", student.userId)
+          .eq("kind", "task_claimed")
+          .gte("created_at", weekStart.toISOString());
+        if (error) throw new ApiError("DB_ERROR", error.message, 500);
+        progress = claims?.length ?? 0;
+      }
+
+      if (progress < task.target) {
+        throw new ApiError("TASK_NOT_COMPLETED", "Task not completed yet", 400);
+      }
+
+      const claimWindowStart = task.kind === "daily" ? todayStart.toISOString() : weekStart.toISOString();
+      const { data: alreadyClaimed, error: claimLookupError } = await supabaseAdmin
+        .from("activities")
+        .select("id")
+        .eq("actor_id", student.userId)
+        .eq("kind", "task_claimed")
+        .eq("data->>task_id", taskId)
+        .eq("data->>task_kind", task.kind)
+        .gte("created_at", claimWindowStart)
+        .limit(1);
+      if (claimLookupError) throw new ApiError("DB_ERROR", claimLookupError.message, 500);
+      if ((alreadyClaimed?.length ?? 0) > 0) {
+        throw new ApiError("TASK_ALREADY_CLAIMED", "Task already claimed", 409);
+      }
+
+      const periodKey = task.kind === "daily"
+        ? todayStart.toISOString().slice(0, 10)
+        : weekStart.toISOString().slice(0, 10);
+      const eventId = `task:${taskId}:${periodKey}`;
+      const idempotencyKey = `task-claim:${student.userId}:${eventId}`;
+
+      const { data: receipt, error: receiptError } = await supabaseAdmin
+        .from("reward_event_receipts")
+        .insert({
+          user_id: student.userId,
+          event_type: "task_reward_claim",
+          event_id: eventId,
+          idempotency_key: idempotencyKey,
+        })
+        .select("id")
+        .maybeSingle();
+      if (receiptError && receiptError.code !== "23505") {
+        throw new ApiError("IDEMPOTENCY_ERROR", "Failed to record reward event receipt", 500, receiptError.message);
+      }
+
+      const { data: profileBefore, error: profileBeforeError } = await supabaseAdmin
+        .from("users")
+        .select("xp, coins, level, gemstones")
+        .eq("id", student.userId)
+        .single();
+      if (profileBeforeError || !profileBefore) {
+        throw new ApiError("PROFILE_NOT_FOUND", "Failed to load profile", 404, profileBeforeError?.message);
+      }
+
+      const alreadyProcessed = !receipt;
+      const nextXp = (profileBefore.xp ?? 0) + (alreadyProcessed ? 0 : task.xp);
+      const nextCoins = (profileBefore.coins ?? 0) + (alreadyProcessed ? 0 : task.coins);
+      const nextGemstones = (profileBefore.gemstones ?? 0) + (alreadyProcessed ? 0 : task.gemstones);
+
+      if (!alreadyProcessed) {
+        const { error: profileUpdateError } = await supabaseAdmin
+          .from("users")
+          .update({
+            xp: nextXp,
+            coins: nextCoins,
+            gemstones: nextGemstones,
+          })
+          .eq("id", student.userId);
+        if (profileUpdateError) {
+          throw new ApiError("DB_ERROR", "Failed to apply task reward", 500, profileUpdateError.message);
+        }
+
+        const { error: activityError } = await supabaseAdmin
+          .from("activities")
+          .insert({
+            actor_id: student.userId,
+            kind: "task_claimed",
+            data: {
+              task_id: taskId,
+              task_kind: task.kind,
+              event_id: eventId,
+              xp: task.xp,
+              coins: task.coins,
+              gemstones: task.gemstones,
+            },
+          });
+        if (activityError) {
+          throw new ApiError("DB_ERROR", "Failed to record task claim activity", 500, activityError.message);
+        }
+      }
+
+      return sendSuccess({
+        idempotent: alreadyProcessed,
+        event_type: "task_reward_claim",
+        event_id: eventId,
+        task_id: taskId,
+        profile: {
+          xp: nextXp,
+          coins: nextCoins,
+          level: profileBefore.level,
+          gemstones: nextGemstones,
+        },
+        reward: {
+          xp: task.xp,
+          coins: task.coins,
+          gemstones: task.gemstones,
+        },
+      });
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
   "clan-territory/finish": async (req, context) => {
     try {
       if (req.method !== "POST") {
@@ -888,7 +1066,9 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const path = url.pathname.replace(/^\/bh_api\/?/, "").replace(/\/$/, "");
+    const pathFromPathname = url.pathname.replace(/^\/bh_api\/?/, "").replace(/\/$/, "");
+    const pathFromQuery = (url.searchParams.get("route") ?? "").replace(/^\/+/, "").replace(/\/$/, "");
+    const path = pathFromPathname || pathFromQuery;
     if (!path) {
       return sendError("NOT_FOUND", "Route not found", 404);
     }
