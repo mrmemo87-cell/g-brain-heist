@@ -2194,7 +2194,7 @@ export const task_claim = async (task_id: string): Promise<{ xp: number; coins: 
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/bh_api/tasks/claim`, {
+  const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/bh_api?route=tasks/claim`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -1066,7 +1066,9 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const path = url.pathname.replace(/^\/bh_api\/?/, "").replace(/\/$/, "");
+    const pathFromPathname = url.pathname.replace(/^\/bh_api\/?/, "").replace(/\/$/, "");
+    const pathFromQuery = (url.searchParams.get("route") ?? "").replace(/^\/+/, "").replace(/\/$/, "");
+    const path = pathFromPathname || pathFromQuery;
     if (!path) {
       return sendError("NOT_FOUND", "Route not found", 404);
     }
