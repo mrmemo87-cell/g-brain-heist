@@ -98,6 +98,47 @@ $$;
 
 REVOKE ALL ON FUNCTION internal_compose_teacher_route(UUID[], TEXT) FROM PUBLIC, anon;
 
+CREATE OR REPLACE FUNCTION internal_compose_teacher_route_from_count(
+  p_question_count INTEGER,
+  p_difficulty TEXT DEFAULT 'medium'
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_question_ids UUID[] := ARRAY[]::UUID[];
+  v_i INTEGER;
+BEGIN
+  IF p_question_count IS NULL OR p_question_count <= 0 THEN
+    RAISE EXCEPTION 'At least one question is required';
+  END IF;
+
+  IF p_question_count > 20 THEN
+    RAISE EXCEPTION 'A quest may contain at most 20 question nodes';
+  END IF;
+
+  FOR v_i IN 1..p_question_count LOOP
+    v_question_ids := array_append(v_question_ids, NULL::UUID);
+  END LOOP;
+
+  RETURN (
+    SELECT jsonb_agg(
+      CASE
+        WHEN elem ? 'question_id' AND (elem->>'question_id') = '' THEN elem - 'question_id'
+        WHEN elem->'question_id' = 'null'::jsonb THEN elem - 'question_id'
+        ELSE elem
+      END
+      ORDER BY (elem->>'index')::int
+    )
+    FROM jsonb_array_elements(internal_compose_teacher_route(v_question_ids, p_difficulty)) AS elem
+  );
+END;
+$$;
+
+REVOKE ALL ON FUNCTION internal_compose_teacher_route_from_count(INTEGER, TEXT) FROM PUBLIC, anon;
+
 
 CREATE OR REPLACE FUNCTION internal_create_teacher_quest_mission(
   p_owner_id UUID,
@@ -244,26 +285,49 @@ GRANT EXECUTE ON FUNCTION rpc_teacher_create_quest_mission(TEXT, TEXT, UUID[], T
 
 
 -- Idempotent backfill/recomposition for existing auto-generated teacher missions.
--- Skips custom/manual missions by targeting auto-generated description patterns and teacher code prefix.
+-- Skips custom/manual missions by targeting teacher-generated markers.
 WITH existing_teacher_auto_missions AS (
   SELECT
     m.id,
     COALESCE(NULLIF(m.difficulty, ''), 'medium') AS difficulty,
-    array_agg((e.elem->>'question_id')::UUID ORDER BY e.ord) AS question_ids
+    array_agg((e.elem->>'question_id')::UUID ORDER BY e.ord)
+      FILTER (WHERE e.elem ? 'question_id' AND NULLIF(e.elem->>'question_id', '') IS NOT NULL) AS question_ids,
+    COUNT(*) FILTER (WHERE e.elem->>'type' IN ('question', 'elite_question'))::int AS question_count
   FROM quest_missions m
   JOIN LATERAL jsonb_array_elements(m.route_template) WITH ORDINALITY e(elem, ord) ON true
-  WHERE m.code LIKE 'teacher_%'
-    AND (
-      m.description = 'Teacher-created quest mission'
+  WHERE (
+      m.code LIKE 'teacher_%'
+      OR m.description = 'Teacher-created quest mission'
       OR m.description LIKE 'Auto-generated from existing uploaded questions%'
+      OR m.title LIKE 'CSV Upload:%'
     )
-    AND e.elem->>'type' IN ('question', 'elite_question')
-    AND e.elem ? 'question_id'
+    AND NOT EXISTS (
+      SELECT 1
+      FROM jsonb_array_elements(m.route_template) AS rt(elem)
+      WHERE COALESCE(rt.elem->>'type', '') NOT IN ('start', 'question', 'elite_question', 'reward', 'surprise', 'final_chest')
+    )
+    AND (
+      e.elem->>'type' IN ('question', 'elite_question')
+      OR e.elem->>'type' = 'start'
+      OR e.elem->>'type' = 'reward'
+      OR e.elem->>'type' = 'surprise'
+      OR e.elem->>'type' = 'final_chest'
+    )
   GROUP BY m.id, m.difficulty
 )
 UPDATE quest_missions m
-SET route_template = internal_compose_teacher_route(c.question_ids, c.difficulty)
+SET route_template = CASE
+  WHEN COALESCE(array_length(c.question_ids, 1), 0) = c.question_count
+    THEN internal_compose_teacher_route(c.question_ids, c.difficulty)
+  ELSE internal_compose_teacher_route_from_count(c.question_count, c.difficulty)
+END
 FROM existing_teacher_auto_missions c
 WHERE m.id = c.id
-  AND COALESCE(array_length(c.question_ids, 1), 0) > 0
-  AND m.route_template IS DISTINCT FROM internal_compose_teacher_route(c.question_ids, c.difficulty);
+  AND c.question_count > 0
+  AND m.route_template IS DISTINCT FROM (
+    CASE
+      WHEN COALESCE(array_length(c.question_ids, 1), 0) = c.question_count
+        THEN internal_compose_teacher_route(c.question_ids, c.difficulty)
+      ELSE internal_compose_teacher_route_from_count(c.question_count, c.difficulty)
+    END
+  );
