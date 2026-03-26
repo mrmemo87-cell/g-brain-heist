@@ -912,7 +912,7 @@ const handlers: Record<string, Handler> = {
           .from("activities")
           .select("id")
           .eq("actor_id", student.userId)
-          .eq("kind", "pvp_win")
+          .in("kind", ["pvp_win", "attack_success"])
           .gte("created_at", todayStart.toISOString())
           .lte("created_at", todayEnd.toISOString());
         if (error) throw new ApiError("DB_ERROR", error.message, 500);
