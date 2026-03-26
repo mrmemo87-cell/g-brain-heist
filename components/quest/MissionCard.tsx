@@ -299,7 +299,6 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
             <p className="text-center text-[11px] text-slate-300/90">
               {bestRun?.perfect_run ? 'Perfect run on record. Can you repeat it?' : 'Temporal instability detected in this zone.'}
             </p>
-            </div>
             <div className="pt-1">
               <span className={`inline-flex items-center justify-center rounded-xl px-3.5 py-1.5 text-xs font-black tracking-wide border ${
                 hasActiveRun
