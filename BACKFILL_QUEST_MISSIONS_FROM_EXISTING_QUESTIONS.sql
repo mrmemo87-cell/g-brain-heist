@@ -189,23 +189,42 @@ DECLARE
   v_teacher_filter UUID;
   r RECORD;
 BEGIN
-  SELECT role INTO v_actor_role FROM users WHERE id = v_actor_id;
-
-  IF v_actor_role IS NULL THEN
-    RAISE EXCEPTION 'Forbidden: user profile not found';
-  END IF;
-
-  IF v_actor_role NOT IN ('teacher', 'admin', 'school_admin', 'superadmin') THEN
-    RAISE EXCEPTION 'Forbidden: only teacher/admin roles can run quest backfill';
-  END IF;
-
-  IF v_actor_role = 'teacher' THEN
-    IF p_teacher_id IS NOT NULL AND p_teacher_id <> v_actor_id THEN
-      RAISE EXCEPTION 'Forbidden: teachers may only backfill their own questions';
-    END IF;
-    v_teacher_filter := v_actor_id;
-  ELSE
+  IF p_teacher_id IS NOT NULL THEN
+    -- Explicit teacher target (supports SQL editor/admin context with no auth profile).
     v_teacher_filter := p_teacher_id;
+
+    IF v_actor_id IS NOT NULL THEN
+      SELECT role INTO v_actor_role FROM users WHERE id = v_actor_id;
+
+      IF v_actor_role IS NULL THEN
+        RAISE EXCEPTION 'Forbidden: user profile not found';
+      END IF;
+
+      IF v_actor_role NOT IN ('teacher', 'admin', 'school_admin', 'superadmin') THEN
+        RAISE EXCEPTION 'Forbidden: only teacher/admin roles can run quest backfill';
+      END IF;
+
+      IF v_actor_role = 'teacher' AND p_teacher_id <> v_actor_id THEN
+        RAISE EXCEPTION 'Forbidden: teachers may only backfill their own questions';
+      END IF;
+    END IF;
+  ELSE
+    -- Self-service/admin bulk path requires current profile lookup.
+    SELECT role INTO v_actor_role FROM users WHERE id = v_actor_id;
+
+    IF v_actor_role IS NULL THEN
+      RAISE EXCEPTION 'Forbidden: user profile not found';
+    END IF;
+
+    IF v_actor_role NOT IN ('teacher', 'admin', 'school_admin', 'superadmin') THEN
+      RAISE EXCEPTION 'Forbidden: only teacher/admin roles can run quest backfill';
+    END IF;
+
+    IF v_actor_role = 'teacher' THEN
+      v_teacher_filter := v_actor_id;
+    ELSE
+      v_teacher_filter := NULL;
+    END IF;
   END IF;
 
   FOR r IN
