@@ -2972,6 +2972,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       let successCount = 0;
       let errorCount = 0;
       const errors: string[] = [];
+      const uploadedQuestions: TeacherQuestion[] = [];
 
       for (let i = 0; i < dataLines.length; i++) {
         const line = dataLines[i];
@@ -3002,7 +3003,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             is_public: true
           };
 
-          await GameService.create_question(questionData);
+          const createdQuestion = await GameService.create_question(questionData);
+          uploadedQuestions.push(createdQuestion);
           successCount++;
           setUploadProgress({ current: i + 1, total: dataLines.length });
         } catch (err) {
@@ -3015,8 +3017,67 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       const allQuestions = await GameService.get_all_questions();
       setQuestions(allQuestions);
 
+      // Auto-create live quest missions from successfully uploaded questions
+      // Group by subject + topic_name so each CSV set becomes a playable mission bucket.
+      let createdMissionCount = 0;
+      let skippedMissionCount = 0;
+      if (uploadedQuestions.length > 0) {
+        const grouped = uploadedQuestions.reduce<Map<string, TeacherQuestion[]>>((acc, q) => {
+          const subject = q.subject || 'General';
+          const topic = q.topic_name || q.topic || 'General';
+          const key = `${subject}|||${topic}`;
+          const list = acc.get(key) || [];
+          list.push(q);
+          acc.set(key, list);
+          return acc;
+        }, new Map());
+
+        const myQuests = await GameService.teacher_get_my_quests().catch(() => [] as typeof allQuestions);
+        const existingTitles = new Set(myQuests.map((m) => `${m.title}|||${m.subject}`));
+
+        const MAX_QUEST_QUESTIONS = 20;
+
+        for (const [key, groupQuestions] of grouped.entries()) {
+          const [subject, topic] = key.split('|||');
+          const groupDifficulty = groupQuestions[0]?.difficulty || 'medium';
+          const chunks: TeacherQuestion[][] = [];
+          for (let i = 0; i < groupQuestions.length; i += MAX_QUEST_QUESTIONS) {
+            chunks.push(groupQuestions.slice(i, i + MAX_QUEST_QUESTIONS));
+          }
+
+          for (let i = 0; i < chunks.length; i++) {
+            const chunk = chunks[i];
+            const missionTitle =
+              chunks.length > 1
+                ? `CSV Upload: ${subject} • ${topic} (Part ${i + 1})`
+                : `CSV Upload: ${subject} • ${topic}`;
+            const titleKey = `${missionTitle}|||${subject}`;
+
+            // Idempotency guard: if this deterministic mission title already exists for this teacher,
+            // skip creating a duplicate mission on repeated CSV imports.
+            if (existingTitles.has(titleKey)) {
+              skippedMissionCount++;
+              continue;
+            }
+
+            const missionId = await GameService.teacher_create_quest_mission({
+              title: missionTitle,
+              subject,
+              questionIds: chunk.map((q) => q.id),
+              difficulty: groupDifficulty,
+              description: `Auto-generated from CSV upload (${subject} / ${topic}).`,
+            });
+
+            // Auto-publish so students can launch these via normal live mission flow.
+            await GameService.teacher_toggle_quest_active(missionId, true);
+            existingTitles.add(titleKey);
+            createdMissionCount++;
+          }
+        }
+      }
+
       // Show results
-      const message = `CSV Upload Complete\n\nSuccess: ${successCount} questions\nFailed: ${errorCount} questions${errors.length > 0 ? '\n\nErrors:\n' + errors.slice(0, 5).join('\n') + (errors.length > 5 ? `\n... and ${errors.length - 5} more` : '') : ''}`;
+      const message = `CSV Upload Complete\n\nSuccess: ${successCount} questions\nFailed: ${errorCount} questions\nCreated missions: ${createdMissionCount}\nSkipped missions (already exist): ${skippedMissionCount}${errors.length > 0 ? '\n\nErrors:\n' + errors.slice(0, 5).join('\n') + (errors.length > 5 ? `\n... and ${errors.length - 5} more` : '') : ''}`;
       brainsAlert(message, 'success');
       
       setView('question-bank');
