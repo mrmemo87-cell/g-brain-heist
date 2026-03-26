@@ -15,7 +15,7 @@ type Handler = (req: Request, context: AuthContext) => Promise<Response>;
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-brains-class-id",
+    "authorization, x-client-info, apikey, content-type, x-brains-class-id, x-bh-api-route",
   "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
 };
 
@@ -1068,7 +1068,8 @@ serve(async (req) => {
     const url = new URL(req.url);
     const pathFromPathname = url.pathname.replace(/^\/bh_api\/?/, "").replace(/\/$/, "");
     const pathFromQuery = (url.searchParams.get("route") ?? "").replace(/^\/+/, "").replace(/\/$/, "");
-    const path = pathFromPathname || pathFromQuery;
+    const pathFromHeader = (req.headers.get("x-bh-api-route") ?? "").replace(/^\/+/, "").replace(/\/$/, "");
+    const path = pathFromPathname || pathFromQuery || pathFromHeader;
     if (!path) {
       return sendError("NOT_FOUND", "Route not found", 404);
     }
