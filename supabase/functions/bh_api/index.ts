@@ -15,7 +15,7 @@ type Handler = (req: Request, context: AuthContext) => Promise<Response>;
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-brains-class-id, x-bh-api-route",
+    "authorization, x-client-info, apikey, content-type, x-brains-class-id, x-bh-api-route, x-supabase-api-version",
   "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
 };
 
@@ -139,16 +139,18 @@ const requireQueryValue = (url: URL, key: string): string => {
   return value;
 };
 
-const getEnv = (key: string): string => {
-  const value = Deno.env.get(key);
-  if (!value) {
-    throw new Error(`Missing required environment variable: ${key}`);
+const getEnv = (keys: string[]): string => {
+  for (const key of keys) {
+    const value = Deno.env.get(key);
+    if (value) {
+      return value;
+    }
   }
-  return value;
+  throw new Error(`Missing required environment variables: ${keys.join(", ")}`);
 };
 
-const supabaseUrl = getEnv("SUPABASE_URL");
-const supabaseServiceRoleKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
+const supabaseUrl = getEnv(["SUPABASE_URL", "SUPABASE_PROJECT_URL"]);
+const supabaseServiceRoleKey = getEnv(["SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SERVICE_ROLE"]);
 
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
   auth: { persistSession: false },
@@ -1061,7 +1063,7 @@ const handlers: Record<string, Handler> = {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: corsHeaders });
+    return new Response("ok", { status: 200, headers: corsHeaders });
   }
 
   try {
