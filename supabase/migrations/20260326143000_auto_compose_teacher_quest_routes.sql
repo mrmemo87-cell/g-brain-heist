@@ -117,6 +117,7 @@ DECLARE
   v_qid UUID;
   v_code TEXT;
   v_route JSONB;
+  v_has_created_by BOOLEAN := false;
 BEGIN
   IF p_owner_id IS NULL THEN
     RAISE EXCEPTION 'Mission owner is required';
@@ -135,37 +136,73 @@ BEGIN
 
   v_route := internal_compose_teacher_route(p_question_ids, p_difficulty);
 
+  SELECT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'quest_missions'
+      AND column_name = 'created_by'
+  ) INTO v_has_created_by;
+
   v_code := 'teacher_' ||
     lower(regexp_replace(p_title, '[^a-zA-Z0-9]+', '_', 'g')) ||
     '_' || floor(random() * 9000 + 1000)::text;
 
-  INSERT INTO quest_missions (
-    subject,
-    code,
-    title,
-    description,
-    mission_type,
-    difficulty,
-    route_template,
-    energy_cost,
-    sort_order,
-    is_active,
-    created_by
-  )
-  VALUES (
-    p_subject,
-    v_code,
-    p_title,
-    COALESCE(p_description, 'Teacher-created quest mission'),
-    'standard',
-    p_difficulty,
-    v_route,
-    0,
-    999,
-    false,
-    p_owner_id
-  )
-  RETURNING id INTO v_mission_id;
+  IF v_has_created_by THEN
+    INSERT INTO quest_missions (
+      subject,
+      code,
+      title,
+      description,
+      mission_type,
+      difficulty,
+      route_template,
+      energy_cost,
+      sort_order,
+      is_active,
+      created_by
+    )
+    VALUES (
+      p_subject,
+      v_code,
+      p_title,
+      COALESCE(p_description, 'Teacher-created quest mission'),
+      'standard',
+      p_difficulty,
+      v_route,
+      0,
+      999,
+      false,
+      p_owner_id
+    )
+    RETURNING id INTO v_mission_id;
+  ELSE
+    INSERT INTO quest_missions (
+      subject,
+      code,
+      title,
+      description,
+      mission_type,
+      difficulty,
+      route_template,
+      energy_cost,
+      sort_order,
+      is_active
+    )
+    VALUES (
+      p_subject,
+      v_code,
+      p_title,
+      COALESCE(p_description, 'Teacher-created quest mission'),
+      'standard',
+      p_difficulty,
+      v_route,
+      0,
+      999,
+      false
+    )
+    RETURNING id INTO v_mission_id;
+  END IF;
 
   RETURN v_mission_id;
 END;
@@ -215,8 +252,7 @@ WITH existing_teacher_auto_missions AS (
     array_agg((e.elem->>'question_id')::UUID ORDER BY e.ord) AS question_ids
   FROM quest_missions m
   JOIN LATERAL jsonb_array_elements(m.route_template) WITH ORDINALITY e(elem, ord) ON true
-  WHERE m.created_by IS NOT NULL
-    AND m.code LIKE 'teacher_%'
+  WHERE m.code LIKE 'teacher_%'
     AND (
       m.description = 'Teacher-created quest mission'
       OR m.description LIKE 'Auto-generated from existing uploaded questions%'
