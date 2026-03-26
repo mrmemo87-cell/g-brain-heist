@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import type { QuestMission, SoloDifficulty } from '../../types';
 
@@ -45,6 +45,9 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
   const cardRef = useRef<HTMLButtonElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
   const badgeRowRef = useRef<HTMLDivElement>(null);
+  const scanlineRef = useRef<HTMLDivElement>(null);
+  const coreRingRef = useRef<HTMLDivElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
 
   const diff = DIFFICULTY_BADGE[mission.difficulty];
   const mType = TYPE_BADGE[mission.mission_type] ?? TYPE_BADGE.standard;
@@ -58,6 +61,44 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
     : bestRun?.perfect_run
       ? 'from-yellow-500/20 via-cyan-900/40 to-slate-950'
       : 'from-cyan-500/15 via-blue-900/35 to-slate-950';
+  const objectiveText = mission.description?.trim() || 'Clear the route, keep your streak alive, and claim the final chest.';
+  const ctaLabel = hasActiveRun ? '▶ Continue Mission' : '🚀 Start Mission';
+  const questionNodes = mission.route_template.filter((node) => node.type === 'question' || node.type === 'elite_question').length;
+  const rewardLabel = bestRun ? `${bestRun.rewards_xp} XP Best` : 'Final Chest Reward';
+
+  useEffect(() => {
+    const scanline = scanlineRef.current;
+    const coreRing = coreRingRef.current;
+    const cta = ctaRef.current;
+    if (!scanline || !coreRing || !cta) return;
+
+    const timeline = gsap.timeline({ repeat: -1 });
+    timeline
+      .fromTo(scanline, { yPercent: -120, opacity: 0 }, { yPercent: 120, opacity: 0.7, duration: 2.2, ease: 'none' })
+      .set(scanline, { opacity: 0 });
+
+    const ringTween = gsap.to(coreRing, {
+      rotate: 360,
+      duration: 16,
+      ease: 'none',
+      repeat: -1,
+      transformOrigin: 'center',
+    });
+
+    const ctaTween = gsap.to(cta, {
+      boxShadow: '0 0 22px rgba(249,115,22,.65), 0 0 42px rgba(251,191,36,.35)',
+      duration: 1.4,
+      yoyo: true,
+      repeat: -1,
+      ease: 'sine.inOut',
+    });
+
+    return () => {
+      timeline.kill();
+      ringTween.kill();
+      ctaTween.kill();
+    };
+  }, []);
 
   const handleHoverIn = () => {
     if (!cardRef.current) return;
@@ -139,14 +180,34 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
           : bestRun?.perfect_run
             ? 'border-yellow-400/35'
             : 'border-cyan-400/30'
-      }`}
+      } focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70`}
     >
-      <div className={`relative h-64 bg-gradient-to-br ${cardTone}`}>
+      <div className={`relative h-[28rem] bg-gradient-to-br ${cardTone}`}>
         <img
           src="/visuals/QUESTCARDMAINFRAME.svg"
           alt=""
           className="absolute inset-0 h-full w-full object-cover opacity-90 pointer-events-none select-none"
           loading="lazy"
+        />
+        <div
+          className="absolute inset-3 border border-cyan-300/20 rounded-xl pointer-events-none"
+          style={{ boxShadow: 'inset 0 0 35px rgba(56,189,248,.2), 0 0 20px rgba(15,23,42,.8)' }}
+        />
+        <div
+          className="absolute inset-0 pointer-events-none opacity-55"
+          style={{
+            backgroundImage: 'radial-gradient(circle at 20% 20%, rgba(251,146,60,0.18), transparent 35%), radial-gradient(circle at 80% 35%, rgba(56,189,248,0.2), transparent 38%), linear-gradient(transparent 97%, rgba(148,163,184,0.25) 98%), linear-gradient(90deg, transparent 97%, rgba(148,163,184,0.18) 98%)',
+            backgroundSize: '100% 100%, 100% 100%, 24px 24px, 24px 24px',
+          }}
+        />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: 'linear-gradient(180deg, rgba(2,6,23,0.18) 0%, rgba(2,6,23,0.08) 35%, rgba(2,6,23,0.65) 70%, rgba(2,6,23,0.94) 100%)' }}
+        />
+        <div
+          ref={scanlineRef}
+          className="absolute inset-x-6 top-12 h-10 pointer-events-none opacity-0"
+          style={{ background: 'linear-gradient(180deg, rgba(34,211,238,0), rgba(34,211,238,0.38), rgba(34,211,238,0))', filter: 'blur(2px)' }}
         />
         <div
           ref={glowRef}
@@ -157,11 +218,11 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
         <div className="absolute inset-0 p-3 sm:p-4 flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div ref={badgeRowRef} className="flex flex-wrap items-center gap-2">
-              <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border backdrop-blur-sm ${diff.color}`}>
-                {diff.text.toUpperCase()}
+              <span className={`text-[11px] font-semibold px-3 py-1 border backdrop-blur-sm ${diff.color}`} style={{ clipPath: 'polygon(8% 0, 100% 0, 92% 100%, 0 100%)' }}>
+                ⚠ THREAT: {diff.text.toUpperCase()}
               </span>
-              <span className={`text-[10px] font-bold uppercase tracking-widest ${mType.color}`}>
-                {mType.label}
+              <span className={`text-[10px] font-bold uppercase tracking-widest ${mType.color} bg-slate-900/70 border border-cyan-400/30 px-2.5 py-1`} style={{ clipPath: 'polygon(0 0, 92% 0, 100% 50%, 92% 100%, 0 100%)' }}>
+                {mType.label} Intel
               </span>
             </div>
             {hasActiveRun ? (
@@ -175,51 +236,73 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
             ) : null}
           </div>
 
-          <div className="flex items-center justify-center">
-            <div className="h-20 w-20 rounded-full bg-slate-950/70 border border-cyan-300/35 shadow-[0_0_24px_rgba(34,211,238,0.35)] flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center gap-3">
+            <div className="text-center space-y-1">
+              <h3 className="font-black text-white text-[2.1rem] leading-none tracking-wide uppercase drop-shadow-[0_3px_8px_rgba(34,211,238,.35)]">
+                {mission.title}
+              </h3>
+              <p className="text-[0.7rem] uppercase tracking-[0.2em] text-amber-300/95 font-semibold">
+                Temporal Grammar Mission
+              </p>
+            </div>
+            <div className="relative h-40 w-40 flex items-center justify-center">
+              <div ref={coreRingRef} className="absolute inset-0 rounded-full border border-cyan-300/45 border-dashed" />
+              <div className="absolute inset-2 rounded-full border border-blue-300/45" />
+              <div className="absolute inset-5 rounded-full border border-cyan-200/35" />
+              <div className="h-24 w-24 rounded-full bg-slate-950/80 border border-cyan-300/45 shadow-[0_0_24px_rgba(34,211,238,0.35)] flex items-center justify-center">
               {subjectBadge.type === 'image' ? (
                 <img
                   src={subjectBadge.src}
                   alt={subjectBadge.alt}
-                  className="h-12 w-12 rounded-full object-cover"
+                  className="h-16 w-16 rounded-full object-cover"
                   loading="lazy"
                 />
               ) : (
-                <span className="text-4xl leading-none">{subjectBadge.value}</span>
+                <span className="text-5xl leading-none">{subjectBadge.value}</span>
               )}
             </div>
+            </div>
+            <span className="px-3 py-1 rounded-full border border-cyan-400/25 bg-cyan-950/40 text-[10px] uppercase tracking-[0.2em] text-cyan-100/90">
+              Mission Objective
+            </span>
+            <p className="max-w-[88%] text-center text-sm text-slate-200/90 line-clamp-2">
+              {objectiveText}
+            </p>
           </div>
 
-          <div className="space-y-2">
-            <h3 className="font-bold text-white text-xl leading-tight text-shadow-sm group-hover:text-cyan-100 transition-colors">
-              {mission.title}
-            </h3>
-            <div className="flex flex-wrap items-center gap-2 text-[11px] sm:text-xs">
-              <span className="px-2 py-1 rounded-full bg-slate-900/80 border border-white/10 text-slate-200">
-                📍 {nodeCount} nodes
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2 text-[11px] sm:text-xs">
+              <span className="px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-amber-400/35 text-amber-100 font-semibold">
+                ⚠ {questionNodes} Challenges
               </span>
-              <span className="px-2 py-1 rounded-full bg-slate-900/80 border border-white/10 text-slate-200">
-                ⏱ ~3-5 min
+              <span className="px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-cyan-400/35 text-cyan-100 font-semibold">
+                📍 {nodeCount} Route Nodes
               </span>
-              {bestRun ? (
-                <span className="px-2 py-1 rounded-full bg-cyan-950/80 border border-cyan-400/30 text-cyan-200">
-                  ⭐ {bestRun.rewards_xp} XP best
-                </span>
-              ) : (
-                <span className="px-2 py-1 rounded-full bg-slate-900/80 border border-white/10 text-slate-300">
-                  🏆 Final chest
-                </span>
-              )}
+              <span className="px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-blue-400/35 text-blue-100 font-semibold">
+                ⏱ 3-5 min Run
+              </span>
+              <span className="px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-orange-400/35 text-orange-100 font-semibold">
+                ✦ {rewardLabel}
+              </span>
+            </div>
+            <div
+              ref={ctaRef}
+              className={`w-full inline-flex items-center justify-center rounded-xl px-3.5 py-2 text-sm font-black tracking-wide border ${
+                hasActiveRun
+                  ? 'bg-gradient-to-r from-amber-700/90 to-orange-500/90 border-amber-200/55 text-amber-50'
+                  : 'bg-gradient-to-r from-orange-500/95 to-amber-400/95 border-orange-100/50 text-slate-950'
+              }`}
+              style={{ textShadow: hasActiveRun ? '0 1px 3px rgba(0,0,0,0.45)' : 'none' }}
+            >
+                {ctaLabel}
+            </div>
+            <p className="text-center text-[11px] text-slate-300/90">
+              {bestRun?.perfect_run ? 'Perfect run on record. Can you repeat it?' : 'Temporal instability detected in this zone.'}
+            </p>
             </div>
           </div>
         </div>
       </div>
-
-      {mission.description && (
-        <div className="px-4 py-3 bg-slate-950/80 border-t border-cyan-500/20">
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed line-clamp-2">{mission.description}</p>
-        </div>
-      )}
 
       {/* Mini route preview */}
       <div className="flex items-center gap-1.5 px-4 py-3 bg-slate-950/75 border-t border-white/10">
