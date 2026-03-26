@@ -196,7 +196,7 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
             : 'border-cyan-400/30'
       } focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70`}
     >
-      <div className={`relative h-[24rem] bg-gradient-to-br ${cardTone}`}>
+      <div className={`relative min-h-[24rem] bg-gradient-to-br ${cardTone}`}>
         <img
           src="/visuals/QUESTCARDMAINFRAME.svg"
           alt=""
@@ -229,7 +229,7 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
           style={{ background: 'radial-gradient(circle at 50% 40%, rgba(34,211,238,.25), rgba(2,6,23,0) 70%)' }}
         />
 
-        <div className="absolute inset-0 p-3 sm:p-4 flex flex-col justify-between">
+        <div className="absolute inset-0 p-3 sm:p-4 grid grid-rows-[auto_1fr_auto] gap-3">
           <div className="flex items-start justify-between gap-2">
             <div ref={badgeRowRef} className="flex flex-wrap items-center gap-2">
               <span className={`text-[11px] font-semibold px-3 py-1 border backdrop-blur-sm ${diff.color}`} style={{ clipPath: 'polygon(8% 0, 100% 0, 92% 100%, 0 100%)' }}>
@@ -250,9 +250,17 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
             ) : null}
           </div>
 
-          <div className="flex flex-col items-center justify-center gap-3">
+          <div className="flex min-h-0 flex-col items-center justify-center gap-2 sm:gap-3">
             <div className="text-center space-y-1">
-              <h3 className="font-black text-white text-[2.1rem] leading-none tracking-wide uppercase drop-shadow-[0_3px_8px_rgba(34,211,238,.35)]">
+              <h3
+                className="font-black text-white text-2xl sm:text-[2.1rem] leading-[0.95] tracking-wide uppercase drop-shadow-[0_3px_8px_rgba(34,211,238,.35)] overflow-hidden"
+                style={{
+                  display: '-webkit-box',
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: 'vertical',
+                  wordBreak: 'break-word',
+                }}
+              >
                 {displayTitle}
               </h3>
               <p className="text-[0.7rem] uppercase tracking-[0.2em] text-amber-300/95 font-semibold">
@@ -279,12 +287,12 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
             <span className="px-3 py-1 rounded-full border border-cyan-400/25 bg-cyan-950/40 text-[10px] uppercase tracking-[0.2em] text-cyan-100/90">
               Mission Objective
             </span>
-            <p className="max-w-[88%] text-center text-sm text-slate-200/90 line-clamp-2">
+            <p className="max-w-[88%] text-center text-sm text-slate-200/90 line-clamp-2 min-h-[2.5rem]">
               {objectiveText}
             </p>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             <div className="grid grid-cols-3 gap-2 text-[11px] sm:text-xs">
               <span className="px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-amber-400/35 text-amber-100 font-semibold">
                 ⚠ {questionNodes} Challenges
@@ -307,7 +315,7 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
             >
                 {ctaLabel}
             </div>
-            <p className="text-center text-[11px] text-slate-300/90">
+            <p className="hidden sm:block text-center text-[11px] text-slate-300/90">
               {bestRun?.perfect_run ? 'Perfect run on record. Can you repeat it?' : 'Temporal instability detected in this zone.'}
             </p>
           </div>
@@ -316,7 +324,7 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
 
       {/* Perfect run indicator */}
       {bestRun?.perfect_run && (
-        <div className="px-4 pb-3 text-[10px] text-yellow-300/85 font-semibold tracking-wide">
+        <div className="px-4 pb-3 text-[10px] text-yellow-300/85 font-semibold tracking-wide hidden sm:block">
           ✨ PERFECT RUN ACHIEVED
         </div>
       )}
