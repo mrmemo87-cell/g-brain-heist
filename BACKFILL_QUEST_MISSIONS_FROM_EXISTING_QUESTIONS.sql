@@ -183,6 +183,9 @@ DECLARE
   v_total INTEGER;
   v_part_count INTEGER;
   v_part_idx INTEGER;
+  v_base_chunk_size INTEGER;
+  v_remainder INTEGER;
+  v_part_size INTEGER;
   v_start_idx INTEGER;
   v_end_idx INTEGER;
   v_chunk UUID[];
@@ -254,10 +257,13 @@ BEGIN
     END IF;
 
     v_part_count := CEIL(v_total / 20.0);
+    v_base_chunk_size := FLOOR(v_total::numeric / v_part_count);
+    v_remainder := MOD(v_total, v_part_count);
+    v_start_idx := 1;
 
     FOR v_part_idx IN 1..v_part_count LOOP
-      v_start_idx := ((v_part_idx - 1) * 20) + 1;
-      v_end_idx := LEAST(v_part_idx * 20, v_total);
+      v_part_size := v_base_chunk_size + CASE WHEN v_part_idx <= v_remainder THEN 1 ELSE 0 END;
+      v_end_idx := LEAST(v_start_idx + v_part_size - 1, v_total);
       v_chunk := r.question_ids[v_start_idx:v_end_idx];
 
       v_title := CASE
@@ -293,6 +299,8 @@ BEGIN
         WHERE id = v_mission_id;
         v_published_count := v_published_count + 1;
       END IF;
+
+      v_start_idx := v_end_idx + 1;
     END LOOP;
   END LOOP;
 

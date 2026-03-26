@@ -3042,8 +3042,15 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           const [subject, topic] = key.split('|||');
           const groupDifficulty = groupQuestions[0]?.difficulty || 'medium';
           const chunks: TeacherQuestion[][] = [];
-          for (let i = 0; i < groupQuestions.length; i += MAX_QUEST_QUESTIONS) {
-            chunks.push(groupQuestions.slice(i, i + MAX_QUEST_QUESTIONS));
+          const chunkCount = Math.ceil(groupQuestions.length / MAX_QUEST_QUESTIONS);
+          const baseChunkSize = Math.floor(groupQuestions.length / chunkCount);
+          const remainder = groupQuestions.length % chunkCount;
+          let cursor = 0;
+
+          for (let i = 0; i < chunkCount; i++) {
+            const size = baseChunkSize + (i < remainder ? 1 : 0);
+            chunks.push(groupQuestions.slice(cursor, cursor + size));
+            cursor += size;
           }
 
           for (let i = 0; i < chunks.length; i++) {

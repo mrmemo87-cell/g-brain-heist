@@ -736,7 +736,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         .replace(/^csv upload:\s*/i, '')
         .replace(/\s+/g, ' ');
 
-    const topicMission = availableMissions.find((mission) => {
+    const topicMissions = availableMissions.filter((mission) => {
       if (normalizeMissionSubject(mission.subject) !== selectedSubjectName) return false;
       const titleKey = normalizeMissionKey(mission.title);
       const codeKey = normalizeMissionKey(mission.code);
@@ -744,10 +744,24 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       return titleKey === topicKey || codeKey === topicKey || titleKey.includes(topicKey) || topicKey.includes(titleKey);
     });
 
-    if (!topicMission) {
+    if (topicMissions.length === 0) {
       brainsAlert('No exact mission matches this set right now. Please pick that mission card directly.', 'info');
       return;
     }
+
+    const extractPartNumber = (title: string): number => {
+      const match = title.match(/\(part\s+(\d+)\)/i);
+      return match ? Number(match[1]) : Number.POSITIVE_INFINITY;
+    };
+
+    const countQuestionNodes = (mission: typeof availableMissions[number]): number =>
+      mission.route_template.filter((node) => node.type === 'question' || node.type === 'elite_question').length;
+
+    const topicMission = [...topicMissions].sort((a, b) => {
+      const byQuestionCount = countQuestionNodes(b) - countQuestionNodes(a);
+      if (byQuestionCount !== 0) return byQuestionCount;
+      return extractPartNumber(a.title) - extractPartNumber(b.title);
+    })[0];
 
     setSelectedSubject(matchedSubject);
     clearMissionRunState();
