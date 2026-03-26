@@ -2012,11 +2012,13 @@ export const tasks_list = async (): Promise<Task[]> => {
     }
     
     // Query database for today's PvP wins
+    // Canonical win events are `pvp_win`; keep `attack_success` as a compatibility
+    // alias for environments that still emit the legacy kind.
     const { data: pvpData } = await supabase
       .from('activities')
       .select('id')
       .eq('actor_id', user.id)
-      .eq('kind', 'pvp_win')
+      .in('kind', ['pvp_win', 'attack_success'])
       .gte('created_at', todayStart.toISOString())
       .lte('created_at', todayEnd.toISOString());
     
