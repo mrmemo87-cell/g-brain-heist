@@ -27,6 +27,7 @@ const RAID_AP_COST = 2;
 interface PvPViewProps {
   profile: Profile;
   onComplete: () => void;
+  addToast: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
   onGrantReward: (
     deltas: { xp?: number; coins?: number; gemstones?: number; ap?: number },
     finalValues?: { xp: number; coins: number; level: number; gemstones: number; xp_status?: XpStatus }
@@ -146,9 +147,11 @@ interface ClanMember {
 
 type TargetFilter = 'all' | 'nearby' | 'easy' | 'challenge' | 'rivals';
 
-const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward }) => {
+const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward, addToast }) => {
   const [stage, setStage] = useState<PvPStage>('loading');
   const [targets, setTargets] = useState<RaidTarget[]>([]);
+  const [targetsError, setTargetsError] = useState<string | null>(null);
+  const [refreshingTargets, setRefreshingTargets] = useState(false);
   const [selectedTarget, setSelectedTarget] = useState<RaidTarget | null>(null);
   const [attackResult, setAttackResult] = useState<RaidAttackResult | null>(null);
   const [useCracker, setUseCracker] = useState(false);
@@ -179,14 +182,36 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
     return () => clearCinematicTimers();
   }, []);
 
-  useEffect(() => {
-    GameService.raid_targets().then(data => {
-      // Filter out admin users (they cannot be attacked)
+  const loadTargets = useCallback(async (options?: { preserveTargets?: boolean }) => {
+    const preserveTargets = options?.preserveTargets ?? false;
+    if (!preserveTargets) {
+      setStage('loading');
+    } else {
+      setRefreshingTargets(true);
+    }
+    setTargetsError(null);
+    try {
+      const data = await GameService.raid_targets();
       const attackableTargets = data.filter((target: any) => target.role !== 'admin');
       setTargets(attackableTargets);
       setStage('targets');
-    });
-  }, []);
+    } catch (error: any) {
+      const message = error?.message || 'Unable to load PvP targets.';
+      setTargetsError(message);
+      setStage('targets');
+      if (!preserveTargets || targets.length === 0) {
+        addToast(message, 'error');
+      } else {
+        addToast(`Refresh failed: ${message}`, 'warning');
+      }
+    } finally {
+      setRefreshingTargets(false);
+    }
+  }, [addToast, targets.length]);
+
+  useEffect(() => {
+    void loadTargets();
+  }, [loadTargets]);
 
   useEffect(() => {
     const handle = window.setTimeout(() => {
@@ -321,13 +346,13 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
     // Consume pilot quota if applicable
     const quota = await tryConsumePilotQuota('pvp_battles');
     if (!quota.proceed) {
-      alert(quota.error || 'You\'ve reached the PvP battle limit on the Pilot plan. Upgrade to continue.');
+      addToast(quota.error || 'You\'ve reached the PvP battle limit on the Pilot plan. Upgrade to continue.', 'warning');
       return;
     }
 
     if (profile.ap_now < RAID_AP_COST) {
       audioService.play('wrong');
-      alert('Not enough Action Points to launch a raid. Regain AP before attacking again.');
+      addToast('Not enough Action Points to launch a PvP battle. Regain AP before attacking again.', 'warning');
       return;
     }
 
@@ -391,19 +416,32 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
     } catch (error) {
       console.error('Battle attack error:', error);
       // Show error and go back to targets
-      alert('Battle failed and no action points were consumed: ' + (error as Error).message);
-      setStage('loading');
-      GameService.raid_targets().then(data => {
-        setTargets(data);
-        setStage('targets');
-      });
+      addToast(`Battle failed and no action points were consumed: ${(error as Error).message}`, 'error');
+      setSelectedTarget(null);
+      setAttackResult(null);
+      void loadTargets({ preserveTargets: true });
     }
   };
 
   const renderTargets = () => (
     <div className="w-full px-4 sm:px-6 py-6">
       <div className="max-w-full mx-auto">
-        <h2 className="font-heading text-3xl text-center mb-6 flex items-center justify-center gap-2" style={{ color: 'var(--plasma-pink)' }}><BattleIcon className="w-8 h-8" /> Choose Your Target</h2>
+        <h2 className="font-heading text-3xl text-center mb-4 flex items-center justify-center gap-2" style={{ color: 'var(--plasma-pink)' }}><BattleIcon className="w-8 h-8" /> Choose Your Target</h2>
+        <div className="mb-6 flex items-center justify-center">
+          <button
+            type="button"
+            onClick={() => void loadTargets({ preserveTargets: true })}
+            disabled={refreshingTargets}
+            className="rounded-lg border border-pink-400/60 px-4 py-2 text-sm font-semibold text-white hover:bg-pink-500/20 disabled:opacity-60"
+          >
+            {refreshingTargets ? 'Refreshing targets...' : 'Refresh targets'}
+          </button>
+        </div>
+        {targetsError && (
+          <div className="mb-4 rounded-xl border border-amber-400/50 bg-amber-900/30 p-3 text-center text-sm text-amber-100">
+            <p>{targetsError}</p>
+          </div>
+        )}
 
         {/* Filter Bar */}
         <div className="card-glass p-4 mb-6">
@@ -515,7 +553,19 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
         </div>
         
         {/* Targets Grid */}
-        {filteredTargets.length === 0 ? (
+        {targets.length === 0 && targetsError ? (
+          <div className="text-center text-gray-300 py-12">
+            <p className="text-xl">Unable to load opponents</p>
+            <p className="text-sm mt-2 text-amber-200">{targetsError}</p>
+            <button
+              type="button"
+              onClick={() => void loadTargets()}
+              className="mt-4 inline-flex items-center justify-center rounded-lg border border-pink-400 px-4 py-2 text-sm font-semibold text-white hover:bg-pink-500/20"
+            >
+              Retry
+            </button>
+          </div>
+        ) : filteredTargets.length === 0 ? (
           <div className="text-center text-gray-400 py-12">
             <p className="text-xl">No results found</p>
             <p className="text-sm mt-2">Try adjusting your filters or search.</p>
@@ -713,13 +763,9 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
     };
 
     const handleAttackAnother = () => {
-        setStage('loading');
         setSelectedTarget(null);
         setAttackResult(null);
-        GameService.raid_targets().then(data => {
-            setTargets(data);
-            setStage('targets');
-        });
+        void loadTargets({ preserveTargets: true });
     };
 
     return (

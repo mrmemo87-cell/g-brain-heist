@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   SubjectData,
   Question,
@@ -207,13 +207,15 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [missionChestResult, setMissionChestResult] = useState<QuestChestResult | null>(null);
   const [availableMissions, setAvailableMissions] = useState<QuestMission[]>([]);
   const [missionsLoading, setMissionsLoading] = useState(false);
+  const [missionsError, setMissionsError] = useState<string | null>(null);
   const [selectedMissionZone, setSelectedMissionZone] = useState<string | null>(null);
   const answerFeedbackRef = useRef<HTMLDivElement>(null);
   const canViewQuestionBank = viewerRole === 'teacher' || viewerRole === 'admin' || viewerRole === 'school_admin';
 
   // ── Fetch quest missions from DB ──
-  useEffect(() => {
+  const loadMissions = useCallback(() => {
     let cancelled = false;
+    setMissionsError(null);
     setMissionsLoading(true);
     GameService.quest_get_missions()
       .then((rows) => {
@@ -237,12 +239,20 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       })
       .catch((err) => {
         console.error('[QuestView] Failed to fetch missions:', err);
+        if (cancelled) return;
+        setAvailableMissions([]);
+        setMissionsError(err?.message || 'Failed to load missions.');
       })
       .finally(() => {
         if (!cancelled) setMissionsLoading(false);
       });
     return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    const cleanup = loadMissions();
+    return cleanup;
+  }, [loadMissions]);
 
   useEffect(() => {
     const zones = Array.from(new Set(availableMissions.map((mission) => mission.subject || 'Training Zone')));
@@ -1225,6 +1235,23 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             <span className="text-slate-400 text-sm animate-pulse">Loading quest missions...</span>
           </div>
         );
+        if (missionsError) {
+          return (
+            <div className="max-w-5xl mx-auto py-4">
+              <div className="rounded-2xl border border-amber-500/40 bg-amber-950/30 p-4 text-center">
+                <p className="text-sm font-semibold text-amber-200">Couldn’t load quest missions.</p>
+                <p className="mt-1 text-xs text-amber-100/90">{missionsError}</p>
+                <button
+                  type="button"
+                  onClick={loadMissions}
+                  className="mt-3 rounded-lg border border-amber-300/60 px-4 py-2 text-xs font-semibold text-amber-100 hover:bg-amber-500/10"
+                >
+                  Retry mission load
+                </button>
+              </div>
+            </div>
+          );
+        }
         if (availableMissions.length === 0) return null;
         const groupedMissions = availableMissions.reduce<Record<string, typeof availableMissions>>((acc, mission) => {
           const zone = mission.subject || 'Training Zone';

@@ -96,28 +96,52 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onClaim, claiming }) => {
 interface TaskListProps {
   tasks: Task[];
   onTasksUpdate: () => void;
+  addToast: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
 }
 
-const TaskList: React.FC<TaskListProps> = ({ tasks, onTasksUpdate }) => {
+const TaskList: React.FC<TaskListProps> = ({ tasks, onTasksUpdate, addToast }) => {
   const [claimingTaskId, setClaimingTaskId] = useState<string | null>(null);
   
   const dailyTasks = tasks.filter(t => t.kind === 'daily');
   const weeklyTasks = tasks.filter(t => t.kind === 'weekly');
 
   const handleClaim = async (task_id: string) => {
+    if (claimingTaskId) return;
+    const task = tasks.find((item) => item.id === task_id);
+    if (!task) {
+      addToast('Task not found. Refresh and try again.', 'error');
+      return;
+    }
+    if (task.claimed) {
+      addToast('Task already claimed.', 'warning');
+      return;
+    }
+
     setClaimingTaskId(task_id);
     try {
       const reward = await GameService.task_claim(task_id);
       audioService.play('tada');
-      
-      // Show toast or reward modal here (would need to pass addToast from parent)
-      console.log('Claimed reward:', reward);
-      
+
+      const rewardSummary = [
+        reward.xp ? `${reward.xp} XP` : null,
+        reward.coins ? `${reward.coins} Coins` : null,
+        reward.gemstones ? `${reward.gemstones} Gems` : null,
+      ].filter(Boolean).join(', ');
+      addToast(rewardSummary ? `Task claimed: ${rewardSummary}.` : 'Task claimed successfully.', 'success');
+
       // Refresh tasks to show claimed status
       onTasksUpdate();
     } catch (error: any) {
       audioService.play('wrong');
-      console.error('Failed to claim task:', error.message);
+      const message = error?.message || 'Failed to claim task.';
+      if (/already claimed/i.test(message)) {
+        addToast('Task already claimed.', 'warning');
+      } else if (/not completed/i.test(message)) {
+        addToast('Task is not complete yet.', 'info');
+      } else {
+        addToast(message, 'error');
+      }
+      console.error('Failed to claim task:', message);
     } finally {
       setClaimingTaskId(null);
     }
