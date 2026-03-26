@@ -354,26 +354,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
       const results = calculateClanTerritoryResults(gameState);
       const myReward = results.playerRewards.find((r) => r.playerId === playerId);
       if (myReward && (myReward.coins > 0 || myReward.xp > 0 || myReward.gems > 0)) {
-        console.log("Claiming rewards:", myReward);
         rewardClaimStartedRef.current = true;
-        setClaimingRewards(true);
-        
-        Promise.reject(new Error("Clan territory reward claim is temporarily disabled pending server-verified reward events"))
-          .then(() => {
-            setRewardsClaimed(true);
-            if (typeof window !== 'undefined' && rewardStorageKey) {
-              sessionStorage.setItem(rewardStorageKey, '1');
-            }
-            setClaimingRewards(false);
-            if (onRewardsClaimed) {
-              void Promise.resolve(onRewardsClaimed());
-            }
-          })
-          .catch((err) => {
-            console.error("Failed to claim rewards:", err);
-            rewardClaimStartedRef.current = false; // allow retry on error
-            setClaimingRewards(false);
-          });
       } else if (myReward) {
         console.log("No rewards to claim (zero amounts)");
         rewardClaimStartedRef.current = true;
@@ -934,7 +915,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
         <div className="grid gap-4 md:grid-cols-2">
           {wonRewards && myReward ? (
             <div className="bg-gradient-to-br from-yellow-500/20 to-amber-500/10 border border-yellow-500/40 rounded-2xl p-6 space-y-4">
-              <h2 className="text-2xl font-bold text-yellow-200">Rewards delivered</h2>
+              <h2 className="text-2xl font-bold text-yellow-200">Reward summary</h2>
               <div className="grid grid-cols-3 gap-4 text-center text-sm">
                 <div>
                   <p className="text-3xl font-black text-amber-300">{myReward.coins}</p>
@@ -949,8 +930,9 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
                   <p className="text-slate-400 uppercase tracking-widest text-[0.6rem]">Gems</p>
                 </div>
               </div>
-              {claimingRewards && <p className="text-xs text-yellow-200">Processing rewards...</p>}
-              {rewardsClaimed && <p className="text-xs text-emerald-300">✓ Added to your vault</p>}
+              <p className="text-xs text-yellow-100">
+                Rewards are posted after server verification. If your balance has not updated yet, refresh in a moment.
+              </p>
             </div>
           ) : (
             <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 space-y-2 text-slate-400">

@@ -984,7 +984,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       <div className="relative z-10 mx-4 mb-1 flex items-center justify-between text-[10px]">
         <span className="text-slate-500 tracking-wider">— MISSION MAP —</span>
         <span className="text-slate-500 tracking-wider">
-          — REWARD: Approx. <span className="text-amber-300 font-bold">{Math.max(200, rewardsXp || 200)} XP</span> + Bonus Chest —
+          — REWARDS UPDATE AFTER EACH NODE —
         </span>
       </div>
       {actionError && (
@@ -1154,10 +1154,6 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         <div className="flex items-center gap-1 text-xs">
           <span className="text-amber-400">🪙</span>
           <span className="text-amber-300 font-bold tabular-nums" id="mission-coin">{rewardsCoins}</span>
-        </div>
-        <div className="flex items-center gap-1 text-xs">
-          <span className="text-red-400">💎</span>
-          <span className="text-red-300 font-bold tabular-nums">196</span>
         </div>
         <div className="flex items-center gap-1 text-xs">
           <span className="text-blue-400">⚡</span>

@@ -1531,7 +1531,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       );
     }
 
-    return <TaskList tasks={tasks} onTasksUpdate={handleTasksRefresh} />;
+    return <TaskList tasks={tasks} onTasksUpdate={handleTasksRefresh} addToast={addToast} />;
   };
 
   const renderNewsSection = () => {
@@ -1620,7 +1620,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               />
             );
         case 'pvp':
-            return renderLazy(<PvPView onComplete={handleViewComplete} onGrantReward={handleGrantReward} profile={profile} />);
+            return renderLazy(<PvPView onComplete={handleViewComplete} onGrantReward={handleGrantReward} profile={profile} addToast={addToast} />);
         case 'shop':
             return renderLazy(
               <ShopView
