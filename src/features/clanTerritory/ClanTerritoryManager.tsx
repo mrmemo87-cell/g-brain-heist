@@ -114,7 +114,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   onGoToClan,
   assignedClasses,
 }) => {
-  const canHost = canHostProp ?? isTeacher;
+  const canHost = isTeacher && (canHostProp ?? true);
   const [transport] = useState(() => new SupabaseClanTerritoryTransport());
   const [gameState, setGameState] = useState<ClanTerritoryGameState>(INITIAL_STATE);
   const [roomId, setRoomId] = useState<string | null>(null);

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "../../../../services/supabaseClient";
 
 interface Question {
@@ -175,7 +176,7 @@ export const QuestionSelectionModal: React.FC<QuestionSelectionModalProps> = ({
     return true;
   });
 
-  return (
+  const modalContent = (
     <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
       <div className="bg-slate-900 rounded-2xl border border-slate-700 max-w-4xl w-full max-h-[90vh] flex flex-col">
         <div className="p-6 border-b border-slate-800">
@@ -342,4 +343,10 @@ export const QuestionSelectionModal: React.FC<QuestionSelectionModalProps> = ({
       </div>
     </div>
   );
+
+  if (typeof document === "undefined") {
+    return modalContent;
+  }
+
+  return createPortal(modalContent, document.body);
 };
