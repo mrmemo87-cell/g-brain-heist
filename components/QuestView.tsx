@@ -718,7 +718,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     }
   };
 
-  const handleUseQuestionSet = (questionIds: string[], subject: Subject, _topic: string) => {
+  const handleUseQuestionSet = (questionIds: string[], subject: Subject, topic: string) => {
     const matchedSubject = subjects.find((s) => s.name === subject) || { id: subject, name: subject, difficulty: 1 };
     const selectedQuestions = publicQuestions.filter((question) => questionIds.includes(question.id));
 
@@ -728,17 +728,30 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     }
 
     const selectedSubjectName = normalizeMissionSubject(matchedSubject.name);
-    const subjectMission = availableMissions.find(
-      (mission) => normalizeMissionSubject(mission.subject) === selectedSubjectName
-    );
-    if (!subjectMission) {
-      brainsAlert('No matching subject mission is available right now. Please pick a mission card.', 'info');
+    const normalizedTopic = topic.trim().toLowerCase();
+    const normalizeMissionKey = (value?: string | null): string =>
+      (value ?? '')
+        .trim()
+        .toLowerCase()
+        .replace(/^csv upload:\s*/i, '')
+        .replace(/\s+/g, ' ');
+
+    const topicMission = availableMissions.find((mission) => {
+      if (normalizeMissionSubject(mission.subject) !== selectedSubjectName) return false;
+      const titleKey = normalizeMissionKey(mission.title);
+      const codeKey = normalizeMissionKey(mission.code);
+      const topicKey = normalizeMissionKey(normalizedTopic);
+      return titleKey === topicKey || codeKey === topicKey || titleKey.includes(topicKey) || topicKey.includes(titleKey);
+    });
+
+    if (!topicMission) {
+      brainsAlert('No exact mission matches this set right now. Please pick that mission card directly.', 'info');
       return;
     }
 
     setSelectedSubject(matchedSubject);
     clearMissionRunState();
-    setSelectedMission(subjectMission);
+    setSelectedMission(topicMission);
     setStage('mission_preview');
   };
 
