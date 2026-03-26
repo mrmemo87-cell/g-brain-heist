@@ -13,10 +13,12 @@ type AuthContext = {
 type Handler = (req: Request, context: AuthContext) => Promise<Response>;
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": "https://www.brainsheist.com",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-brains-class-id, x-bh-api-route, x-supabase-api-version",
   "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+  "Access-Control-Allow-Credentials": "true",
+  "Access-Control-Max-Age": "86400",
 };
 
 const jsonResponse = (status: number, payload: unknown) =>
@@ -1063,7 +1065,7 @@ const handlers: Record<string, Handler> = {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { status: 200, headers: corsHeaders });
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
 
   try {
