@@ -2188,7 +2188,39 @@ export const task_claim = async (task_id: string): Promise<{ xp: number; coins: 
     throw new Error('No reward defined for this task');
   }
 
-  throw new Error('Task reward claiming is temporarily disabled until server-verified event rewards are available.');
+  const { data: { session } } = await supabase.auth.getSession();
+  const accessToken = session?.access_token;
+  if (!accessToken) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/bh_api/tasks/claim`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ task_id }),
+  });
+
+  const payload = await response.json().catch(() => null);
+  if (!response.ok || !payload?.success) {
+    const message = payload?.error?.message || 'Failed to claim task reward';
+    throw new Error(message);
+  }
+
+  const reward = payload?.data?.reward;
+  if (!reward) {
+    return task.reward;
+  }
+
+  return {
+    xp: Number(reward.xp || 0),
+    coins: Number(reward.coins || 0),
+    gemstones: Number(reward.gemstones || 0),
+    items: task.reward.items,
+  };
 };
 
 export const session_status = (): Promise<SessionStatus> => {
