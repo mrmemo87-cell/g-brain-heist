@@ -871,7 +871,10 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     const correctCount = score.correct;
     const incorrectCount = Math.max(0, totalQuestions - correctCount);
     const accuracyPercent = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
-    const missionTotal = Math.round(calculateMissionScore(questionScores));
+    // Canonical assignment submit score should be raw earned assignment points.
+    // In this flow, score.xp is the accumulated points_earned from submit_question_answer.
+    const assignmentScoreRaw = Math.round(score.xp);
+    const assignmentScore = Math.max(0, assignmentScoreRaw); // defensive fallback only (no semantic remap)
     const timeTakenSeconds = assignmentStartTime ? Math.max(0, Math.round((Date.now() - assignmentStartTime) / 1000)) : 0;
 
     setAssignmentSubmissionState('finalizing');
@@ -883,9 +886,16 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         correct: correctCount,
         incorrect: incorrectCount,
         accuracy: accuracyPercent,
-        score: missionTotal,
+        score: assignmentScore,
         timeTakenSeconds,
       });
+
+      if (assignmentScore !== assignmentScoreRaw) {
+        console.info('[QuestView] Normalized assignment submit score to non-negative value.', {
+          assignmentScoreRaw,
+          assignmentScore,
+        });
+      }
 
       // Check for assignment achievements after submission
       try {
