@@ -28,6 +28,7 @@ import SpinWheelModal from './SpinWheelModal';
 import type { SpinPrize } from './SpinWheelModal';
 import { playSound } from '../../services/soundManager';
 import { QUEST_BACKGROUND } from './nodeAssets';
+import { getRandomRiddle, resetRiddlePool, type FunnyRiddle } from './riddles';
 
 // ─── Reward Particle (reused from QuestView pattern) ──────────────────────
 
@@ -96,6 +97,32 @@ interface MissionBoardProps {
   onBack: () => void;
 }
 
+const optToText = (opt: unknown): string =>
+  typeof opt === 'string' ? opt : (opt as any)?.text ?? String(opt);
+
+const buildEliteAnswerBridge = (
+  node: QuestNode,
+  selectedOption: string,
+  riddle: FunnyRiddle | null
+): { submitAnswer: string; displayedCorrectOption: string } => {
+  const serverOptions = (node.options ?? []).map(optToText);
+  const fallbackCorrect = typeof node.correct_option === 'string' ? node.correct_option : serverOptions[0] ?? selectedOption;
+  if (!riddle || node.type !== 'elite_question' || serverOptions.length === 0) {
+    return { submitAnswer: selectedOption, displayedCorrectOption: fallbackCorrect };
+  }
+
+  const serverCorrect = fallbackCorrect;
+  const serverIncorrect = serverOptions.filter((option) => option !== serverCorrect);
+  const displayedCorrectOption = riddle.correct;
+  if (selectedOption === displayedCorrectOption) {
+    return { submitAnswer: serverCorrect, displayedCorrectOption };
+  }
+
+  const selectedIndex = Math.max(0, riddle.options.indexOf(selectedOption));
+  const mappedWrong = serverIncorrect[selectedIndex % Math.max(1, serverIncorrect.length)] ?? serverIncorrect[0] ?? serverCorrect;
+  return { submitAnswer: mappedWrong, displayedCorrectOption };
+};
+
 const MissionBoard: React.FC<MissionBoardProps> = ({
   missionId, missionTitle, missionSubject, missionDifficulty, missionType,
   avatarUrl, activeRunId, onGrantReward, onComplete, onRetreat, onBack,
@@ -137,6 +164,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [resolvedNextNodeIndex, setResolvedNextNodeIndex] = useState<number | null>(null);
+  const [eliteRiddlesByNodeIndex, setEliteRiddlesByNodeIndex] = useState<Record<number, FunnyRiddle>>({});
 
   // ── Particles ──
   const [particles, setParticles] = useState<Omit<RewardParticleProps, 'onComplete'>[]>([]);
@@ -184,6 +212,8 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
     if (boardPhase !== 'loading') return;
     if (startedRef.current) return;
     startedRef.current = true;
+    resetRiddlePool();
+    setEliteRiddlesByNodeIndex({});
 
     (async () => {
       try {
@@ -353,9 +383,11 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
     const difficulty = (node.difficulty ?? 'medium') as SoloDifficulty;
     const timeLimitSeconds = node.time_limit ?? 30;
     const answerTimeSeconds = questionStartTime ? (Date.now() - questionStartTime) / 1000 : timeLimitSeconds;
+    const activeRiddle = activeNodeIndex !== null ? eliteRiddlesByNodeIndex[activeNodeIndex] ?? null : null;
+    const { submitAnswer, displayedCorrectOption } = buildEliteAnswerBridge(node, selectedOption, activeRiddle);
 
     try {
-      const result = await quest_answer_node(runId, activeNodeIndex, selectedOption);
+      const result = await quest_answer_node(runId, activeNodeIndex, submitAnswer);
       const isCorrect = result.is_correct;
       const xpDelta = result.deltas.xp;
       const coinsDelta = result.deltas.coins;
@@ -388,7 +420,17 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         timestamp: new Date().toISOString(),
       });
 
-      setQuestionResult({ is_correct: isCorrect, explanation: result.explanation });
+      const explanation = node.type === 'elite_question' && activeRiddle
+        ? activeRiddle.explanation
+        : result.explanation;
+      setQuestionResult({ is_correct: isCorrect, explanation });
+      if (node.type === 'elite_question') {
+        setRoute(prev => prev.map((routeNode, idx) => (
+          idx === activeNodeIndex
+            ? { ...routeNode, correct_option: displayedCorrectOption }
+            : routeNode
+        )));
+      }
       setResolvedNextNodeIndex(
         typeof result?.next_node_index === 'number'
           ? result.next_node_index
@@ -406,7 +448,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
     } finally {
       setIsSubmitting(false);
     }
-  }, [activeNodeIndex, runId, route, questionStartTime, spawnParticles, onGrantReward, missionId, missionTitle, syncRunStateFromServer, registerQuestionOutcome, requireFinalProfileValues]);
+  }, [activeNodeIndex, runId, route, questionStartTime, spawnParticles, onGrantReward, missionId, missionTitle, syncRunStateFromServer, registerQuestionOutcome, requireFinalProfileValues, eliteRiddlesByNodeIndex]);
 
   // ── Close question modal & advance ──
   const handleQuestionClose = useCallback(() => {
@@ -619,6 +661,11 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         setActiveModal('question');
         break;
       case 'elite_question':
+        setEliteRiddlesByNodeIndex(prev => (
+          prev[index]
+            ? prev
+            : { ...prev, [index]: getRandomRiddle() }
+        ));
         setQuestionResult(null);
         setResolvedNextNodeIndex(null);
         setQuestionStartTime(Date.now());
@@ -662,6 +709,16 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
 
   const canRetreat = currentNode >= 3;
   const activeNode = activeNodeIndex !== null ? route[activeNodeIndex] : null;
+  const activeRiddle = activeNodeIndex !== null ? eliteRiddlesByNodeIndex[activeNodeIndex] ?? null : null;
+  const activeDisplayQuestion = activeNode?.type === 'elite_question' && activeRiddle
+    ? activeRiddle.question
+    : activeNode?.question_body;
+  const activeDisplayOptions = activeNode?.type === 'elite_question' && activeRiddle
+    ? activeRiddle.options
+    : (activeNode?.options ?? []).map(optToText);
+  const activeDisplayCorrectOption = activeNode?.type === 'elite_question' && activeRiddle
+    ? activeRiddle.correct
+    : activeNode?.correct_option;
 
   // ── Streak bonus display ──
   const streakBonusPct = streak >= 6 ? 54 : streak >= 4 ? 32 : streak >= 2 ? 15 : 0;
@@ -932,12 +989,11 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
               <span className="text-amber-300 text-xs font-bold">+{activeNode.type === 'elite_question' ? '×2' : '10'} XP</span>
             </div>
             {/* Question */}
-            <p className="text-white font-semibold text-base leading-relaxed">{activeNode.question_body}</p>
+            <p className="text-white font-semibold text-base leading-relaxed">{activeDisplayQuestion}</p>
             {/* Options */}
             <div className="space-y-2">
-              {(activeNode.options ?? []).map((opt: any, i: number) => {
-                const label = typeof opt === 'string' ? opt : (opt as any)?.text ?? String(opt);
-                const isCorrect = label === activeNode.correct_option;
+              {activeDisplayOptions.map((label: string, i: number) => {
+                const isCorrect = label === activeDisplayCorrectOption;
                 const answered = !!questionResult;
                 return (
                   <button
