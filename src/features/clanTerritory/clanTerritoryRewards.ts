@@ -81,8 +81,9 @@ export function calculateClanTerritoryResults(state: ClanTerritoryGameState): Cl
 
   // 3. Calculate Player Rewards
   const playerRewards: PlayerReward[] = [];
+  const officialRewardsEnabled = state.arenaMode === "official";
 
-  if (winningClanId) {
+  if (winningClanId && officialRewardsEnabled) {
     const winningPlayers = Object.values(state.players).filter(
       (p) => p.clanId === winningClanId && p.battleScore >= CONFIG.MIN_CONTRIBUTION_SCORE
     );
@@ -141,7 +142,7 @@ export function calculateClanTerritoryResults(state: ClanTerritoryGameState): Cl
       }
     }
   } else {
-    // No winner, no rewards (or maybe participation rewards? Prompt implies only winning clan gets loot)
+    // No official rewards in open arenas, and no rewards when no winner exists.
     for (const player of Object.values(state.players)) {
       playerRewards.push({
         playerId: player.id,

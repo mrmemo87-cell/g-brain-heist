@@ -19,6 +19,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
   private isHost: boolean = false;
 
   private allowClanlessPlayers: boolean = false;
+  private arenaMode: "official" | "open" = "official";
   private schoolId: string | null = null;
   private teacherName: string | null = null;
   private classCodes: string[] = [];
@@ -70,6 +71,9 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
       `start=${s.gameStartTime ?? ""}`,
       `end=${s.gameEndTime ?? ""}`,
       `map=${s.mapId ?? ""}`,
+      `arenaMode=${s.arenaMode}`,
+      `officialSchool=${s.officialSchoolId ?? ""}`,
+      `officialClasses=${(s.officialClassCodes ?? []).join(",")}`,
       `allowClanless=${s.allowClanlessPlayers ? "1" : "0"}`,
       `allowedClans=${(s.allowedClanIds ?? []).join(",")}`,
       `zones=${zonesSig}`,
@@ -108,6 +112,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
   // ---- public API ----
 
   async createRoom(options?: {
+    arenaMode?: "official" | "open";
     allowClanlessPlayers?: boolean;
     schoolId?: string;
     teacherName?: string;
@@ -118,6 +123,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     const roomId = Math.floor(1000 + Math.random() * 9000).toString();
 
     this.isHost = true;
+    this.arenaMode = options?.arenaMode ?? "official";
     this.allowClanlessPlayers = Boolean(options?.allowClanlessPlayers);
     this.schoolId = options?.schoolId || null;
     this.teacherName = options?.teacherName || null;
@@ -125,7 +131,13 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     this.allowedClanIds = options?.allowedClanIds || [];
     this.scheduledStartAt = options?.scheduledStartAt || null;
 
-    this.state = { ...INITIAL_STATE, allowClanlessPlayers: this.allowClanlessPlayers };
+    this.state = {
+      ...INITIAL_STATE,
+      arenaMode: this.arenaMode,
+      officialSchoolId: this.arenaMode === "official" ? this.schoolId ?? undefined : undefined,
+      officialClassCodes: this.arenaMode === "official" ? this.classCodes : undefined,
+      allowClanlessPlayers: this.allowClanlessPlayers,
+    };
     this.lastStateSignature = this.computeStateSignature(this.state);
 
     this.setupChannel(roomId);
@@ -138,6 +150,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     roomId: RoomId,
     options?: {
       state?: ClanTerritoryGameState;
+      arenaMode?: "official" | "open";
       allowClanlessPlayers?: boolean;
       schoolId?: string;
       teacherName?: string;
@@ -147,6 +160,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     }
   ): Promise<void> {
     this.isHost = true;
+    this.arenaMode = options?.arenaMode ?? "official";
     this.allowClanlessPlayers = Boolean(options?.allowClanlessPlayers);
     this.schoolId = options?.schoolId || null;
     this.teacherName = options?.teacherName || null;
@@ -154,10 +168,26 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     this.allowedClanIds = options?.allowedClanIds || [];
     this.scheduledStartAt = options?.scheduledStartAt || null;
 
-    const restoredState = options?.state ?? {
-      ...INITIAL_STATE,
-      allowClanlessPlayers: this.allowClanlessPlayers,
-    };
+    const restoredState = options?.state
+      ? {
+          ...options.state,
+          arenaMode: options.state.arenaMode ?? this.arenaMode,
+          officialSchoolId:
+            (options.state.arenaMode ?? this.arenaMode) === "official"
+              ? (options.state.officialSchoolId ?? this.schoolId ?? undefined)
+              : undefined,
+          officialClassCodes:
+            (options.state.arenaMode ?? this.arenaMode) === "official"
+              ? (options.state.officialClassCodes ?? this.classCodes)
+              : undefined,
+        }
+      : {
+          ...INITIAL_STATE,
+          arenaMode: this.arenaMode,
+          officialSchoolId: this.arenaMode === "official" ? this.schoolId ?? undefined : undefined,
+          officialClassCodes: this.arenaMode === "official" ? this.classCodes : undefined,
+          allowClanlessPlayers: this.allowClanlessPlayers,
+        };
 
     this.state = restoredState;
     this.lastStateSignature = this.computeStateSignature(this.state);
@@ -172,6 +202,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
       roomId: RoomId,
       metadata?: {
         allowClanlessPlayers?: boolean;
+        arenaMode?: "official" | "open";
         teacherName?: string;
         classCodes?: string[];
         allowedClanIds?: string[];
@@ -197,10 +228,12 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
       channel
         .on("broadcast", { event: "room_open" }, (payload: any) => {
           const roomPayload = payload.payload ?? {};
-          if (schoolId && roomPayload.schoolId && roomPayload.schoolId !== schoolId) return;
+          const discoveredMode: "official" | "open" = roomPayload.arenaMode === "open" ? "open" : "official";
+          if (discoveredMode === "official" && schoolId && roomPayload.schoolId && roomPayload.schoolId !== schoolId) return;
 
           onRoomFound(roomPayload.roomId, {
             allowClanlessPlayers: roomPayload.allowClanlessPlayers,
+            arenaMode: discoveredMode,
             teacherName: roomPayload.teacherName,
             classCodes: roomPayload.classCodes,
             allowedClanIds: roomPayload.allowedClanIds,
@@ -226,7 +259,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     playerName: string,
     clanId: string,
     clanName: string,
-    options?: { clanColor?: string; playerId?: string }
+    options?: { clanColor?: string; playerId?: string; schoolId?: string | null; batch?: string | null }
   ): Promise<PlayerId> {
     const playerId = options?.playerId ?? crypto.randomUUID();
     this.isHost = false;
@@ -267,7 +300,34 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
 
     await this.sendAction(roomId, {
       type: "JOIN",
-      payload: { player: { id: playerId, name: playerName, clanId, clanName, clanColor } },
+      payload: {
+        player: {
+          id: playerId,
+          name: playerName,
+          clanId,
+          clanName,
+          clanColor,
+          schoolId: options?.schoolId ?? null,
+          batch: options?.batch ?? null,
+        },
+      },
+    });
+
+    // Verify host accepted JOIN (official arenas may reject by school/class eligibility).
+    await this.sendAction(roomId, { type: "REQUEST_STATE" });
+    await new Promise<void>((resolve, reject) => {
+      const started = Date.now();
+      const timer = setInterval(() => {
+        if (this.state.players[playerId]) {
+          clearInterval(timer);
+          resolve();
+          return;
+        }
+        if (Date.now() - started > 3000) {
+          clearInterval(timer);
+          reject(new Error("Join rejected: this room has eligibility restrictions."));
+        }
+      }, 150);
     });
 
     return playerId;
@@ -479,6 +539,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
                   payload: {
                     roomId,
                     allowClanlessPlayers: this.allowClanlessPlayers,
+                    arenaMode: this.arenaMode,
                     schoolId: this.schoolId,
                     teacherName: this.teacherName,
                     classCodes: this.classCodes,

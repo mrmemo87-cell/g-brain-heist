@@ -857,6 +857,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   const results = gameState.phase === "ENDED" ? calculateClanTerritoryResults(gameState) : null;
   const myReward = results?.playerRewards.find((r) => r.playerId === playerId);
   const wonRewards = myReward && (myReward.coins > 0 || myReward.xp > 0 || myReward.gems > 0);
+  const arenaMode = gameState.arenaMode === "open" ? "open" : "official";
   const winningClan = results?.winningClanId
     ? clanList.find((c) => c.id === results.winningClanId) ?? gameState.clans[results.winningClanId]
     : null;
@@ -872,6 +873,9 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
       <div className="w-full max-w-4xl space-y-8">
         <div className="text-center space-y-3">
           <p className="text-xs uppercase tracking-[0.4em] text-slate-500">Operation Complete</p>
+          <p className={`text-sm font-bold ${arenaMode === "official" ? "text-emerald-300" : "text-cyan-300"}`}>
+            {arenaMode === "official" ? "✅ Official Arena" : "🌐 Open Arena"}
+          </p>
           <h1 className="text-4xl font-black tracking-tight">Battle debrief</h1>
           {winningClan ? (
             <p className="text-lg text-slate-300">
@@ -915,7 +919,9 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
         <div className="grid gap-4 md:grid-cols-2">
           {wonRewards && myReward ? (
             <div className="bg-gradient-to-br from-yellow-500/20 to-amber-500/10 border border-yellow-500/40 rounded-2xl p-6 space-y-4">
-              <h2 className="text-2xl font-bold text-yellow-200">Reward summary</h2>
+              <h2 className="text-2xl font-bold text-yellow-200">
+                {arenaMode === "official" ? "Official reward estimate" : "Reward summary"}
+              </h2>
               <div className="grid grid-cols-3 gap-4 text-center text-sm">
                 <div>
                   <p className="text-3xl font-black text-amber-300">{myReward.coins}</p>
@@ -931,13 +937,21 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
                 </div>
               </div>
               <p className="text-xs text-yellow-100">
-                Rewards are posted after server verification. If your balance has not updated yet, refresh in a moment.
+                {arenaMode === "official"
+                  ? "Official payout is processed only after server verification. This estimate is not final until posted."
+                  : "This arena does not grant official reward payout."}
               </p>
             </div>
           ) : (
             <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 space-y-2 text-slate-400">
-              <h2 className="text-xl font-bold text-white">No payout this time</h2>
-              <p>Stay ready. Bonus loot drops once you break the leaderboard.</p>
+              <h2 className="text-xl font-bold text-white">
+                {arenaMode === "open" ? "Open Arena complete" : "No payout this time"}
+              </h2>
+              <p>
+                {arenaMode === "open"
+                  ? "Open Arena allows broad participation but does not award official payouts."
+                  : "Stay ready. Official rewards require a winning clan contribution."}
+              </p>
             </div>
           )}
 

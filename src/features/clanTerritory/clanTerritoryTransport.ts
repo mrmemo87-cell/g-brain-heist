@@ -5,6 +5,7 @@ export type PlayerId = string;
 
 export interface ClanTerritoryTransport {
   createRoom(options?: {
+    arenaMode?: "official" | "open";
     allowClanlessPlayers?: boolean;
     schoolId?: string;
     teacherName?: string;
@@ -16,6 +17,7 @@ export interface ClanTerritoryTransport {
     roomId: RoomId,
     options?: {
       state?: ClanTerritoryGameState;
+      arenaMode?: "official" | "open";
       allowClanlessPlayers?: boolean;
       schoolId?: string;
       teacherName?: string;
@@ -29,7 +31,7 @@ export interface ClanTerritoryTransport {
     playerName: string,
     clanId: string,
     clanName: string,
-    options?: { clanColor?: string }
+    options?: { clanColor?: string; playerId?: string; schoolId?: string | null; batch?: string | null }
   ): Promise<PlayerId>;
   onGameState(roomId: RoomId, callback: (state: ClanTerritoryGameState) => void): () => void;
   sendAction(roomId: RoomId, action: GameAction): Promise<void>;
@@ -39,6 +41,7 @@ export interface ClanTerritoryTransport {
       roomId: RoomId,
       metadata?: {
         allowClanlessPlayers?: boolean;
+        arenaMode?: "official" | "open";
         teacherName?: string;
         classCodes?: string[];
         allowedClanIds?: string[];

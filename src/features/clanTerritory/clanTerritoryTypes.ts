@@ -643,11 +643,14 @@ export interface BattleQuestion {
 }
 
 export interface ClanTerritoryGameState {
+  arenaMode: "official" | "open";
   phase: GamePhase;
   timer: number; // Remaining seconds (computed from gameEndTime - now)
   gameStartTime?: number; // Unix timestamp when game started
   gameEndTime?: number; // Unix timestamp when game should end
   endReason?: "TIME_UP" | "TEACHER_ENDED" | "TEACHER_DISMISSED";
+  officialSchoolId?: string;
+  officialClassCodes?: string[];
   players: Record<string, PlayerStats>;
   zones: Record<ZoneId, ZoneState>;
   clans: Record<ClanId, ClanMetadata>;
@@ -662,7 +665,15 @@ export type GameAction =
   | {
       type: "JOIN";
       payload: {
-        player: { id: string; name: string; clanId: ClanId; clanName: string; clanColor?: string };
+        player: {
+          id: string;
+          name: string;
+          clanId: ClanId;
+          clanName: string;
+          clanColor?: string;
+          schoolId?: string | null;
+          batch?: string | null;
+        };
       };
     }
   | { type: "SET_QUESTIONS"; payload: { questions: BattleQuestion[] } }
