@@ -921,7 +921,6 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       setLastCompletedAssignment(activeAssignment);
       setActiveAssignment(null);
       await refreshAssignment?.();
-      hydrateAssignment({ showLoading: true });
     } catch (error) {
       console.error('Failed to submit assignment result:', error);
       const message = error instanceof Error ? error.message : 'Submission failed. Please retry now.';
