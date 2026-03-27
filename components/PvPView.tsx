@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { RaidTarget, RaidAttackResult, Profile, XpStatus } from '../types';
 import * as GameService from '../services/gameService';
 import { supabase } from '../services/supabaseClient';
