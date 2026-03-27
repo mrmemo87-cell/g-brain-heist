@@ -1469,71 +1469,6 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
 
           {!canHost && (
             <div className="card-glass p-6 space-y-4">
-              <h2 className="font-heading text-xl text-white flex items-center gap-2">
-                <span className="w-3 h-3 bg-cyan-400 rounded-full animate-pulse"></span>
-                Agent Briefing
-              </h2>
-
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Agent Name</label>
-                  <input
-                    type="text"
-                    value={playerName}
-                    readOnly
-                    className="w-full rounded-xl border border-gray-600 bg-black/30 px-4 py-3 text-white cursor-not-allowed opacity-75"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Assigned Clan</label>
-                  {resolvedClanId && resolvedClanName ? (
-                    <div
-                      className="p-3 rounded-xl border bg-black/30 text-center font-bold"
-                      style={{
-                        borderColor: gameState.clans[resolvedClanId]?.color || getClanColor(resolvedClanId),
-                        color: gameState.clans[resolvedClanId]?.color || getClanColor(resolvedClanId),
-                      }}
-                    >
-                      {resolvedClanName}
-                    </div>
-                  ) : clanLoadTimeout ? (
-                    <div className="space-y-3">
-                      <div className="p-3 rounded-xl border border-dashed border-red-400/60 bg-red-500/10 text-center text-red-300 text-sm">
-                        ⚠️ You must be in a clan to join the Arena. Go to the Clans section to join a clan first.
-                      </div>
-                      <div className="flex gap-2">
-                        {onGoToClan && (
-                          <button
-                            onClick={onGoToClan}
-                            className="flex-1 py-2 font-heading bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400 text-white rounded-xl text-sm transition-colors"
-                          >
-                            🥇 Go to Clans
-                          </button>
-                        )}
-                        {onRefreshProfile && (
-                          <button
-                            onClick={handleRefreshProfile}
-                            disabled={isRefreshingProfile}
-                            className="flex-1 py-2 font-heading bg-gray-600/30 hover:bg-gray-500/30 border border-gray-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm transition-colors"
-                          >
-                            {isRefreshingProfile ? "Refreshing..." : "🔄 Retry"}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="p-3 rounded-xl border border-dashed border-gray-600 bg-black/20 flex justify-center">
-                      <img src="/BRAINS.svg" alt="Loading..." className="w-12 h-12 animate-pulse" style={{ filter: 'drop-shadow(0 0 15px rgba(0, 212, 255, 0.6))' }} />
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {!canHost && (
-            <div className="card-glass p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="font-heading text-xl text-white flex items-center gap-2">
                   <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
@@ -1541,6 +1476,9 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                 </h2>
                 <span className="text-xs text-gray-400">{filteredRooms.length} available</span>
               </div>
+              <p className="text-sm text-gray-300">
+                Start here: join any live arena from the list below or enter a room code.
+              </p>
 
               {filteredRooms.length > 0 ? (
                 <div className="space-y-3">
@@ -1620,6 +1558,75 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                   >
                     Join
                   </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!canHost && (
+            <div className="card-glass p-6 space-y-4">
+              <h2 className="font-heading text-xl text-white flex items-center gap-2">
+                <span className="w-3 h-3 bg-cyan-400 rounded-full animate-pulse"></span>
+                Agent Briefing
+              </h2>
+              <p className="text-sm text-gray-400">
+                Reference only — your identity and clan assignment are shown here.
+              </p>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Agent Name</label>
+                  <input
+                    type="text"
+                    value={playerName}
+                    readOnly
+                    className="w-full rounded-xl border border-gray-600 bg-black/30 px-4 py-3 text-white cursor-not-allowed opacity-75"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Assigned Clan</label>
+                  {resolvedClanId && resolvedClanName ? (
+                    <div
+                      className="p-3 rounded-xl border bg-black/20 text-center font-bold pointer-events-none select-none"
+                      style={{
+                        borderColor: gameState.clans[resolvedClanId]?.color || getClanColor(resolvedClanId),
+                        color: gameState.clans[resolvedClanId]?.color || getClanColor(resolvedClanId),
+                      }}
+                      aria-label="Assigned clan (display only)"
+                    >
+                      {resolvedClanName}
+                    </div>
+                  ) : clanLoadTimeout ? (
+                    <div className="space-y-3">
+                      <div className="p-3 rounded-xl border border-dashed border-red-400/60 bg-red-500/10 text-center text-red-300 text-sm">
+                        ⚠️ You must be in a clan to join the Arena. Go to the Clans section to join a clan first.
+                      </div>
+                      <div className="flex gap-2">
+                        {onGoToClan && (
+                          <button
+                            onClick={onGoToClan}
+                            className="flex-1 py-2 font-heading bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400 text-white rounded-xl text-sm transition-colors"
+                          >
+                            🥇 Go to Clans
+                          </button>
+                        )}
+                        {onRefreshProfile && (
+                          <button
+                            onClick={handleRefreshProfile}
+                            disabled={isRefreshingProfile}
+                            className="flex-1 py-2 font-heading bg-gray-600/30 hover:bg-gray-500/30 border border-gray-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm transition-colors"
+                          >
+                            {isRefreshingProfile ? "Refreshing..." : "🔄 Retry"}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-3 rounded-xl border border-dashed border-gray-600 bg-black/20 flex justify-center">
+                      <img src="/BRAINS.svg" alt="Loading..." className="w-12 h-12 animate-pulse" style={{ filter: 'drop-shadow(0 0 15px rgba(0, 212, 255, 0.6))' }} />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
