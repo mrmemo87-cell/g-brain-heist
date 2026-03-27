@@ -928,6 +928,18 @@
   border-collapse: collapse;
 }
 
+@media (max-width: 767px) {
+  .teacher-stats-grid,
+  .teacher-dashboard-grid,
+  .teacher-dashboard-grid-bottom {
+    grid-template-columns: 1fr;
+  }
+
+  .teacher-table {
+    min-width: 560px;
+  }
+}
+
 .teacher-table th {
   background: var(--teacher-bg);
   padding: 0.875rem 1rem;

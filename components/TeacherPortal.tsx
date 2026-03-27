@@ -94,6 +94,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [assignedClasses, setAssignedClasses] = useState<SchoolAdminService.TeacherAssignedClass[]>([]);
   const [teacherHasClassAssignments, setTeacherHasClassAssignments] = useState(false);
   const [selectedClassFilter, setSelectedClassFilter] = useState<string>('all');
+  const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '/BRAINS.svg');
+  const [updatingAvatar, setUpdatingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement | null>(null);
 
   // Question form state
   const [questionText, setQuestionText] = useState('');
@@ -115,6 +118,28 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [points, setPoints] = useState(10);
   const [topicMode, setTopicMode] = useState<'general' | 'custom'>('general');
   const [customTopicName, setCustomTopicName] = useState('');
+
+  useEffect(() => {
+    setAvatarUrl(profile.avatar_url || '/BRAINS.svg');
+  }, [profile.avatar_url]);
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || updatingAvatar) return;
+    setUpdatingAvatar(true);
+    try {
+      const uploadedUrl = await GameService.upload_avatar_file(file);
+      const updated = await GameService.update_avatar(uploadedUrl);
+      setAvatarUrl(updated.avatar_url || uploadedUrl);
+      brainsAlert('Profile picture updated.', 'success');
+    } catch (error: any) {
+      console.error('Failed to update avatar from teacher portal:', error);
+      brainsAlert(error?.message || 'Unable to update profile picture.', 'error');
+    } finally {
+      setUpdatingAvatar(false);
+      event.target.value = '';
+    }
+  };
 
   // Assignment state
   const [assignments, setAssignments] = useState<TeacherAssignmentSummary[]>([]);
@@ -7717,7 +7742,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             {/* Username */}
             <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-black/40 rounded-full border border-cyan-500/30 backdrop-blur-sm">
               <img
-                src={profile.avatar_url || '/BRAINS.svg'}
+                src={avatarUrl}
                 alt={profile.username}
                 className="w-6 h-6 rounded-full border border-pink-500/70 object-cover"
               />
@@ -7766,6 +7791,36 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         <div className="teacher-header">
           <div className="teacher-header-content">
             <div className="teacher-header-info">
+              <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white/85 px-3 py-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <img
+                    src={avatarUrl}
+                    alt={profile.username}
+                    className="h-11 w-11 rounded-full border-2 border-sky-200 object-cover"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-xs text-slate-500">Signed in as</p>
+                    <p className="text-sm font-semibold text-slate-800 truncate">{profile.username}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={updatingAvatar}
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-60"
+                  title="Change profile picture"
+                >
+                  <span>⚙️</span>
+                  {updatingAvatar ? 'Updating...' : 'Settings'}
+                </button>
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarUpload}
+                />
+              </div>
               <div className="teacher-header-badge">
                 <span>🎓</span> Educator Workspace
               </div>
