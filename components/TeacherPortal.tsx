@@ -3234,7 +3234,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       setView('question-bank');
     } catch (error) {
       console.error('CSV upload error:', error);
-      brainsAlert('Unable to parse CSV: ' + (error as Error).message, 'error');
+      brainsAlert('CSV upload failed: ' + (error as Error).message, 'error');
     } finally {
       setUploading(false);
       setUploadProgress({ current: 0, total: 0 });

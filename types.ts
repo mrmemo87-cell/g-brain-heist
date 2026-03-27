@@ -1185,6 +1185,7 @@ export interface QuestMission {
   energy_cost: number;
   is_active: boolean;
   sort_order: number;
+  created_by?: string | null;
   best_run?: { chest_tier: string; perfect_run: boolean; rewards_xp: number; completed_at: string } | null;
   active_run_id?: string | null;
 }
