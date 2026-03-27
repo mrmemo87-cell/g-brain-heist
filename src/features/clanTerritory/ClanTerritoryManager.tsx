@@ -164,7 +164,17 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const autoStartTriggeredRef = useRef(false);
 
   const [lockdownLimits, setLockdownLimits] = useState<LockdownLimits>(FREE_LOCKDOWN_LIMITS);
-  const isMapLocked = (mapId: string) => lockdownLimits.allowed_maps !== null && !lockdownLimits.allowed_maps.includes(mapId);
+  const effectiveAllowedMaps = useMemo(() => {
+    if (lockdownLimits.allowed_maps === null) return null;
+    const allowed = new Set(lockdownLimits.allowed_maps);
+    if (isTeacher && !userSchoolId) {
+      allowed.add('default');
+      allowed.add('city');
+      allowed.add('unitedkingdom');
+    }
+    return Array.from(allowed);
+  }, [isTeacher, lockdownLimits.allowed_maps, userSchoolId]);
+  const isMapLocked = (mapId: string) => effectiveAllowedMaps !== null && !effectiveAllowedMaps.includes(mapId);
   const effectiveDurationMax = lockdownLimits.max_duration_minutes ?? 20;
 
   const durationPercentage = ((durationMinutes - 2) / (effectiveDurationMax - 2)) * 100;
@@ -194,7 +204,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       setDurationMinutes(lockdownLimits.max_duration_minutes);
     }
     if (isMapLocked(selectedMap)) setSelectedMap('default');
-  }, [lockdownLimits]);
+  }, [lockdownLimits, selectedMap, effectiveAllowedMaps]);
 
   useEffect(() => {
     if (!canHost) return;
@@ -982,9 +992,15 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
           <QuestionSelectionModal
             onConfirm={handleQuestionsSelected}
             onCancel={() => setShowQuestionSelection(false)}
-            restrictedSubjects={isTeacher && loadedAssignedClasses.length > 0 
-              ? [...new Set(loadedAssignedClasses.map(cls => cls.subject))] 
-              : []}
+            restrictedSubjects={
+              isTeacher
+                ? (userSchoolId
+                    ? (loadedAssignedClasses.length > 0
+                        ? [...new Set(loadedAssignedClasses.map((cls) => cls.subject))]
+                        : [])
+                    : undefined)
+                : undefined
+            }
           />
         )}
         <div className="min-h-screen bg-slate-950 flex items-start justify-center px-4 py-10 overflow-y-auto">
@@ -1460,9 +1476,13 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
         <QuestionSelectionModal
           onConfirm={handleQuestionsSelected}
           onCancel={() => setShowQuestionSelection(false)}
-          restrictedSubjects={isTeacher 
-            ? [...new Set(loadedAssignedClasses.map(cls => cls.subject))] 
-            : undefined}
+          restrictedSubjects={
+            isTeacher
+              ? (userSchoolId
+                  ? [...new Set(loadedAssignedClasses.map((cls) => cls.subject))]
+                  : undefined)
+              : undefined
+          }
         />
       )}
       <div className="min-h-screen flex items-center justify-center p-4">
