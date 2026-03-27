@@ -600,6 +600,16 @@ export const CONFIG = {
   WRONG_ANSWER_INFLUENCE_PENALTY_PERCENT: 0.1, // Percentage of current zone capture removed on wrong answers
   MIN_CONTRIBUTION_SCORE: 1,
   INFLUENCE_PER_POINT: 10,
+  // Open arena rewards are intentionally smaller to reduce abuse risk while still rewarding play.
+  OPEN_TOTAL_COIN_LOOT: 10000,
+  OPEN_TOTAL_XP_LOOT: 500,
+  OPEN_TOTAL_GEM_LOOT: 0,
+  OPEN_MAX_COINS_PER_PLAYER: 2000,
+  OPEN_MAX_XP_PER_PLAYER: 200,
+  OPEN_MAX_GEMS_PER_PLAYER: 0,
+  OPEN_GEM_ELIGIBILITY_MIN_QUESTIONS: 10,
+  OPEN_GEM_ELIGIBILITY_MIN_ACCURACY: 0.7,
+  OPEN_MIN_CONTRIBUTION_SCORE: 3,
 };
 
 export type GamePhase = "LOBBY" | "ACTIVE" | "ENDED";

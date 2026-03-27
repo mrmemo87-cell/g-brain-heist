@@ -1104,7 +1104,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                   }`}
                 >
                   <p className="font-bold text-cyan-200">🌐 Open Arena</p>
-                  <p className="mt-1 text-xs text-slate-300">Cross-class / cross-school friendly. No official reward payout.</p>
+                  <p className="mt-1 text-xs text-slate-300">Cross-class / cross-school friendly. Uses reduced reward caps.</p>
                 </button>
               </div>
             </div>
@@ -1665,7 +1665,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
               <div className="pt-3 border-t border-slate-700 space-y-2">
                 <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide">Join with Room Code</label>
                 <p className="text-xs text-slate-400">
-                  ✅ Official rooms enforce school/class eligibility. 🌐 Open rooms allow broader participation (no official payout).
+                  ✅ Official rooms enforce school/class eligibility. 🌐 Open rooms allow broader participation with reduced reward caps.
                 </p>
                 <div className="flex gap-2">
                   <input

@@ -81,11 +81,34 @@ export function calculateClanTerritoryResults(state: ClanTerritoryGameState): Cl
 
   // 3. Calculate Player Rewards
   const playerRewards: PlayerReward[] = [];
-  const officialRewardsEnabled = state.arenaMode === "official";
+  const isOfficialArena = state.arenaMode === "official";
+  const rewardPool = isOfficialArena
+    ? {
+        totalCoins: CONFIG.TOTAL_COIN_LOOT,
+        totalXp: CONFIG.TOTAL_XP_LOOT,
+        totalGems: CONFIG.TOTAL_GEM_LOOT,
+        maxCoinsPerPlayer: CONFIG.MAX_COINS_PER_PLAYER,
+        maxXpPerPlayer: CONFIG.MAX_XP_PER_PLAYER,
+        maxGemsPerPlayer: CONFIG.MAX_GEMS_PER_PLAYER,
+        gemEligibilityMinQuestions: CONFIG.GEM_ELIGIBILITY_MIN_QUESTIONS,
+        gemEligibilityMinAccuracy: CONFIG.GEM_ELIGIBILITY_MIN_ACCURACY,
+        minContributionScore: CONFIG.MIN_CONTRIBUTION_SCORE,
+      }
+    : {
+        totalCoins: CONFIG.OPEN_TOTAL_COIN_LOOT,
+        totalXp: CONFIG.OPEN_TOTAL_XP_LOOT,
+        totalGems: CONFIG.OPEN_TOTAL_GEM_LOOT,
+        maxCoinsPerPlayer: CONFIG.OPEN_MAX_COINS_PER_PLAYER,
+        maxXpPerPlayer: CONFIG.OPEN_MAX_XP_PER_PLAYER,
+        maxGemsPerPlayer: CONFIG.OPEN_MAX_GEMS_PER_PLAYER,
+        gemEligibilityMinQuestions: CONFIG.OPEN_GEM_ELIGIBILITY_MIN_QUESTIONS,
+        gemEligibilityMinAccuracy: CONFIG.OPEN_GEM_ELIGIBILITY_MIN_ACCURACY,
+        minContributionScore: CONFIG.OPEN_MIN_CONTRIBUTION_SCORE,
+      };
 
-  if (winningClanId && officialRewardsEnabled) {
+  if (winningClanId) {
     const winningPlayers = Object.values(state.players).filter(
-      (p) => p.clanId === winningClanId && p.battleScore >= CONFIG.MIN_CONTRIBUTION_SCORE
+      (p) => p.clanId === winningClanId && p.battleScore >= rewardPool.minContributionScore
     );
 
     const clanTotalScore = winningPlayers.reduce((sum, p) => sum + p.battleScore, 0);
@@ -99,20 +122,20 @@ export function calculateClanTerritoryResults(state: ClanTerritoryGameState): Cl
       if (
         player.clanId === winningClanId &&
         clanTotalScore > 0 &&
-        player.battleScore >= CONFIG.MIN_CONTRIBUTION_SCORE
+        player.battleScore >= rewardPool.minContributionScore
       ) {
         const share = player.battleScore / clanTotalScore;
-        const rawCoins = Math.floor(CONFIG.TOTAL_COIN_LOOT * share);
-        const rawXp = Math.floor(CONFIG.TOTAL_XP_LOOT * share);
+        const rawCoins = Math.floor(rewardPool.totalCoins * share);
+        const rawXp = Math.floor(rewardPool.totalXp * share);
         const rawGems =
-          player.questionsAnswered >= CONFIG.GEM_ELIGIBILITY_MIN_QUESTIONS &&
-          accuracy >= CONFIG.GEM_ELIGIBILITY_MIN_ACCURACY
-            ? Math.floor(CONFIG.TOTAL_GEM_LOOT * share)
+          player.questionsAnswered >= rewardPool.gemEligibilityMinQuestions &&
+          accuracy >= rewardPool.gemEligibilityMinAccuracy
+            ? Math.floor(rewardPool.totalGems * share)
             : 0;
 
-        const coins = Math.min(rawCoins, CONFIG.MAX_COINS_PER_PLAYER);
-        const xp = Math.min(rawXp, CONFIG.MAX_XP_PER_PLAYER);
-        const gems = Math.min(rawGems, CONFIG.MAX_GEMS_PER_PLAYER);
+        const coins = Math.min(rawCoins, rewardPool.maxCoinsPerPlayer);
+        const xp = Math.min(rawXp, rewardPool.maxXpPerPlayer);
+        const gems = Math.min(rawGems, rewardPool.maxGemsPerPlayer);
 
         playerRewards.push({
           playerId: player.id,
@@ -142,7 +165,7 @@ export function calculateClanTerritoryResults(state: ClanTerritoryGameState): Cl
       }
     }
   } else {
-    // No official rewards in open arenas, and no rewards when no winner exists.
+    // No rewards when no winner exists.
     for (const player of Object.values(state.players)) {
       playerRewards.push({
         playerId: player.id,
