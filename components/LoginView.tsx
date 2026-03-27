@@ -164,12 +164,24 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     willChange: 'transform, opacity, filter',
                 });
 
+                const getResponsiveStart = () => {
+                    if (window.innerWidth >= 1024) return 'top 58%';
+                    if (window.innerWidth >= 640) return 'top 68%';
+                    return 'top 78%';
+                };
+
+                const getResponsiveEnd = () => {
+                    if (window.innerWidth >= 1024) return 'top 12%';
+                    if (window.innerWidth >= 640) return 'top 18%';
+                    return 'top 26%';
+                };
+
                 gsap.timeline({
                     scrollTrigger: {
-                        trigger: pageRef.current,
-                        start: 'top top',
-                        end: 'bottom bottom',
-                        scrub: 0.45,
+                        trigger: btn,
+                        start: getResponsiveStart,
+                        end: getResponsiveEnd,
+                        scrub: 0.35,
                         invalidateOnRefresh: true,
                     },
                 })
