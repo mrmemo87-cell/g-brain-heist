@@ -14,6 +14,8 @@ import {
 import { ClanTerritoryMap } from "./ClanTerritoryMap";
 import { calculateClanTerritoryResults } from "../clanTerritoryRewards";
 import type { MapId } from "../mapCatalog";
+import { audioService } from "../../../../services/audioService";
+import { supabase } from "../../../../services/supabaseClient";
 
 // Helper to get option text (handles both string and BattleQuestionOption formats)
 const getOptionText = (option: string | BattleQuestionOption): string => {
@@ -200,6 +202,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
 
   // Ref guard to prevent double reward claiming across rapid re-renders
   const rewardClaimStartedRef = useRef(false);
+  const rewardCelebrationPlayedRef = useRef(false);
   const [claimingRewards, setClaimingRewards] = useState(false);
   const lastQuestionKeyRef = useRef<string | null>(null);
   const clanList = React.useMemo(() => {
@@ -355,6 +358,56 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
       const myReward = results.playerRewards.find((r) => r.playerId === playerId);
       if (myReward && (myReward.coins > 0 || myReward.xp > 0 || myReward.gems > 0)) {
         rewardClaimStartedRef.current = true;
+        setClaimingRewards(true);
+        void (async () => {
+          try {
+            const eventId = roomId ?? (gameState.gameStartTime ? String(gameState.gameStartTime) : `ct-${Date.now()}`);
+            const rewardClaimResponse = await supabase.functions.invoke('bh_api', {
+              body: {
+                room_id: roomId ?? null,
+                event_id: eventId,
+                arena_mode: gameState.arenaMode === "open" ? "open" : "official",
+                xp: myReward.xp,
+                coins: myReward.coins,
+                gemstones: myReward.gems,
+                idempotency_key: rewardStorageKey,
+              },
+              headers: {
+                'x-bh-api-route': 'clan-territory/claim-reward',
+              },
+            });
+
+            const rewardClaimError = rewardClaimResponse.error
+              ?? (rewardClaimResponse.data?.success === false
+                ? new Error(String(rewardClaimResponse.data?.error?.message ?? "Failed to claim clan territory reward"))
+                : null);
+
+            if (rewardClaimError) {
+              throw rewardClaimError;
+            }
+
+            await onRewardsClaimed?.();
+
+            // Celebrate once per session for winners with payout.
+            if (!rewardCelebrationPlayedRef.current) {
+              rewardCelebrationPlayedRef.current = true;
+              audioService.play("tada");
+              if (myReward.xp > 0) {
+                audioService.play("level_up");
+              }
+            }
+
+            setRewardsClaimed(true);
+            if (typeof window !== 'undefined' && rewardStorageKey) {
+              sessionStorage.setItem(rewardStorageKey, '1');
+            }
+          } catch (error) {
+            console.error("[ClanTerritoryStudentView] Failed to finalize rewards claim flow:", error);
+            rewardClaimStartedRef.current = false;
+          } finally {
+            setClaimingRewards(false);
+          }
+        })();
       } else if (myReward) {
         console.log("No rewards to claim (zero amounts)");
         rewardClaimStartedRef.current = true;
@@ -364,7 +417,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
         }
       }
     }
-  }, [gameState.phase, gameState.endReason, playerId, rewardsClaimed, claimingRewards, rewardStorageKey, hydratedPlayer]);
+  }, [gameState.phase, gameState.endReason, playerId, rewardsClaimed, claimingRewards, rewardStorageKey, hydratedPlayer, onRewardsClaimed]);
 
   const handleAnswerClick = (selectedAnswer: string) => {
     if (!currentQuestion) return;
@@ -939,7 +992,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
               <p className="text-xs text-yellow-100">
                 {arenaMode === "official"
                   ? "Official payout is processed only after server verification. This estimate is not final until posted."
-                  : "This arena does not grant official reward payout."}
+                  : "Open Arena payout is now processed automatically after server verification."}
               </p>
             </div>
           ) : (
@@ -949,7 +1002,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
               </h2>
               <p>
                 {arenaMode === "open"
-                  ? "Open Arena allows broad participation but does not award official payouts."
+                  ? "Open Arena allows broad participation with automatic post-match payout for winners."
                   : "Stay ready. Official rewards require a winning clan contribution."}
               </p>
             </div>
