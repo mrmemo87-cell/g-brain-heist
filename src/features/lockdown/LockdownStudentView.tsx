@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import {
   EntryRoute,
   GamePhase,
@@ -12,6 +12,8 @@ import {
 import { LockdownTransport, RoomId, PlayerId, createRoomClient, LockdownRoomClient } from "../../lib/lockdownTransport";
 import { LockdownMap } from "./LockdownMap";
 import { calculateRegionStats, REGION_NAMES } from "./regionCalculator";
+import DotLottieAnimation from "../../../components/DotLottieAnimation";
+import { audioService } from "../../../services/audioService";
 
 const entryRouteLabels: Record<EntryRoute, string> = {
   [EntryRoute.SAFE]: "Safe Access",
@@ -423,6 +425,82 @@ const renderActiveSection = () => {
   );
 };
 
+const battleResults = useMemo(() => {
+  const teamMap = new Map<string, {
+    id: string;
+    name: string;
+    members: number;
+    totalCoins: number;
+    territories: number;
+    color?: string;
+  }>();
+
+  Object.values(gameState.players).forEach((player) => {
+    const teamId = player.clanId ?? `solo-${player.id}`;
+    const existing = teamMap.get(teamId);
+    const label = player.clanName ?? player.name;
+    if (existing) {
+      existing.members += 1;
+      existing.totalCoins += player.coins;
+      if (!existing.color && player.color) existing.color = player.color;
+    } else {
+      teamMap.set(teamId, {
+        id: teamId,
+        name: label,
+        members: 1,
+        totalCoins: player.coins,
+        territories: 0,
+        color: player.color,
+      });
+    }
+  });
+
+  Object.values(regionStats).forEach((region) => {
+    if (!region.topClan?.clanId) return;
+    const winner = teamMap.get(region.topClan.clanId);
+    if (winner) {
+      winner.territories += 1;
+    }
+  });
+
+  const leaderboard = Array.from(teamMap.values()).sort((a, b) =>
+    b.territories - a.territories || b.totalCoins - a.totalCoins || a.name.localeCompare(b.name)
+  );
+
+  const winner = leaderboard[0] ?? null;
+  const myTeamId = myPlayer.clanId ?? `solo-${myPlayer.id}`;
+  const didWin = Boolean(winner && winner.id === myTeamId);
+
+  return { leaderboard, winner, didWin, myTeamId };
+}, [gameState.players, myPlayer.clanId, myPlayer.id, regionStats]);
+
+const winnerCelebrationPlayedRef = useRef(false);
+
+useEffect(() => {
+  if (!isFinished) {
+    winnerCelebrationPlayedRef.current = false;
+    return;
+  }
+
+  if (battleResults.didWin && !winnerCelebrationPlayedRef.current) {
+    winnerCelebrationPlayedRef.current = true;
+    audioService.play("tada");
+  }
+}, [isFinished, battleResults.didWin]);
+
+const confettiBits = useMemo(
+  () =>
+    Array.from({ length: 24 }).map((_, index) => ({
+      id: index,
+      left: ((index * 37) % 100),
+      delay: (index % 8) * 0.12,
+      duration: 2.4 + (index % 5) * 0.25,
+      rotate: ((index * 47) % 80) - 40,
+      size: 16 + (index % 3) * 5,
+    })),
+  []
+);
+
 const renderMobilePanelNav = () => (
   <div className="pointer-events-none fixed inset-x-0 bottom-4 z-20 flex justify-center sm:hidden">
     <div className="pointer-events-auto w-full max-w-sm px-4">
@@ -597,10 +675,71 @@ percent={
         )}
 
         {isFinished && (
-          <div className="flex flex-1 flex-col items-center justify-center gap-6 rounded-3xl border border-slate-800/70 bg-slate-900/60 p-8 text-center shadow-xl shadow-slate-950/40">
-            <h2 className="text-4xl font-black text-white">Heist Complete</h2>
-            <p className="text-xl font-semibold text-amber-300">Final haul: {myPlayer.coins} 🪙</p>
-            <p className="text-sm text-slate-400">Await debrief from your handler or exit the operation.</p>
+          <div className="relative flex flex-1 flex-col items-center justify-center gap-6 overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-900/60 p-8 text-center shadow-xl shadow-slate-950/40">
+            {battleResults.didWin && (
+              <>
+                <style>{`@keyframes lockdownConfettiDrop {0% {transform: translateY(-120%) rotate(0deg); opacity: 0;} 10% {opacity: 1;} 100% {transform: translateY(110vh) rotate(360deg); opacity: 0;}}`}</style>
+                <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+                  {confettiBits.map((bit) => (
+                    <span
+                      key={bit.id}
+                      className="absolute top-0"
+                      style={{
+                        left: `${bit.left}%`,
+                        fontSize: `${bit.size}px`,
+                        transform: `rotate(${bit.rotate}deg)`,
+                        animation: `lockdownConfettiDrop ${bit.duration}s linear ${bit.delay}s infinite`,
+                      }}
+                    >
+                      🎉
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
+
+            <h2 className="text-4xl font-black text-white">Territory Battle Complete</h2>
+
+            {battleResults.winner ? (
+              <div className={`w-full max-w-2xl rounded-2xl border p-5 ${battleResults.didWin ? 'border-emerald-400/60 bg-emerald-500/10' : 'border-rose-500/40 bg-rose-500/10'}`}>
+                <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Official Result</p>
+                <p className="mt-2 text-3xl font-black text-white">🏆 {battleResults.winner.name} won the territory battle</p>
+                <p className={`mt-2 text-base font-semibold ${battleResults.didWin ? 'text-emerald-200' : 'text-rose-200'}`}>
+                  {battleResults.didWin ? 'Victory! Your clan secured the crown.' : 'Defeat. Your clan lost this battle.'}
+                </p>
+                {battleResults.didWin && (
+                  <div className="mx-auto mt-4 w-fit rounded-2xl border border-amber-400/40 bg-amber-500/10 p-3">
+                    <DotLottieAnimation src="/lotties/Trophy.lottie" width={180} height={180} loop autoplay />
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-slate-300">No winning clan could be resolved from this round.</p>
+            )}
+
+            <div className="w-full max-w-2xl rounded-2xl border border-slate-800 bg-slate-950/50 p-4 text-left">
+              <p className="mb-3 text-xs uppercase tracking-[0.28em] text-slate-400">Clan standings</p>
+              <div className="space-y-2">
+                {battleResults.leaderboard.map((team, index) => {
+                  const isWinner = battleResults.winner?.id === team.id;
+                  const isMyTeam = battleResults.myTeamId === team.id;
+                  return (
+                    <div key={team.id} className={`flex items-center justify-between rounded-xl border px-3 py-2 ${isWinner ? 'border-emerald-500/50 bg-emerald-500/10' : 'border-slate-800 bg-slate-900/60'}`}>
+                      <div>
+                        <p className="font-semibold text-white">
+                          {index + 1}. {team.name} {isWinner ? '🏆' : ''} {isMyTeam ? '(You)' : ''}
+                        </p>
+                        <p className="text-xs text-slate-400">{team.members} players · {team.totalCoins} coins</p>
+                      </div>
+                      <p className={`text-sm font-bold ${isWinner ? 'text-emerald-200' : 'text-rose-200'}`}>
+                        {isWinner ? 'WINNER' : 'LOST'} · {team.territories} zones
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             <button
               onClick={onExit}
               className="rounded-xl border border-slate-700 bg-slate-900 px-6 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-500/50 hover:bg-emerald-600/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
