@@ -5541,7 +5541,11 @@ export const get_student_pending_assignments = async (): Promise<StudentAssignme
     });
 };
 
-export const submit_assignment_result = async (payload: AssignmentResultInput): Promise<void> => {
+export type AssignmentSubmissionResult = {
+    status: 'submitted' | 'already_submitted';
+};
+
+export const submit_assignment_result = async (payload: AssignmentResultInput): Promise<AssignmentSubmissionResult> => {
     const { error } = await rpcSubmitAssignmentResult({
         p_assignment_id: payload.assignmentId,
         p_correct: payload.correct,
@@ -5554,7 +5558,7 @@ export const submit_assignment_result = async (payload: AssignmentResultInput): 
     if (error) {
         const message = error.message || 'Failed to submit assignment';
         if (message.includes('ASSIGNMENT_ALREADY_SUBMITTED')) {
-            throw new Error('Assignment was already submitted.');
+            return { status: 'already_submitted' };
         }
         if (message.includes('ASSIGNMENT_NOT_FOUND_OR_NOT_ASSIGNED')) {
             throw new Error('Assignment is not available for this student.');
@@ -5564,6 +5568,8 @@ export const submit_assignment_result = async (payload: AssignmentResultInput): 
         }
         throw new Error(message);
     }
+
+    return { status: 'submitted' };
 };
 
 export const get_teacher_assignment_report = async (
