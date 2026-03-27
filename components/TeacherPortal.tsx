@@ -3461,7 +3461,36 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
   };
 
   // Render Dashboard
-  const renderDashboard = () => (
+  const renderDashboard = () => {
+    const myClasses = Array.from(new Set(assignedClasses.map((cls) => cls.class_code)));
+    const activeAssignments = assignments.filter((a) => a.completed_count < a.student_count).length;
+    const totalResponses = myQuestions.reduce((sum, q) => sum + (q.times_answered || 0), 0);
+    const successRate = myQuestions.length > 0
+      ? Math.round((myQuestions.reduce((sum, q) => sum + (q.times_correct || 0), 0) / Math.max(totalResponses, 1)) * 100)
+      : 0;
+
+    const priorityItems = [
+      activeAssignments > 0 ? `Review ${activeAssignments} assignment${activeAssignments > 1 ? 's' : ''} still in progress.` : 'No pending assignments — great pacing today.',
+      teacherHasClassAssignments
+        ? `Prepare next class for ${myClasses.slice(0, 2).join(' • ')}${myClasses.length > 2 ? '…' : ''}.`
+        : 'Coordinate with school admin to finalize class assignments.',
+      successRate < 65
+        ? 'Success rate is below 65% — prioritize revision and targeted support.'
+        : 'Success trend is healthy — keep momentum with formative checks.',
+    ];
+
+    const alertItems: Array<{ tone: 'warning' | 'info'; text: string }> = [];
+    if (activeAssignments > 0) {
+      alertItems.push({ tone: 'warning', text: `${activeAssignments} assignment${activeAssignments > 1 ? 's' : ''} need follow-up.` });
+    }
+    if (!teacherHasClassAssignments) {
+      alertItems.push({ tone: 'warning', text: 'No class assignments found for this teacher account.' });
+    }
+    if (successRate < 65) {
+      alertItems.push({ tone: 'info', text: `Current success rate is ${successRate}%. Consider intervention.` });
+    }
+
+    return (
     <div className="space-y-8">
       {/* Welcome Section */}
       <div className="teacher-section-header">
@@ -3476,54 +3505,65 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       <div className="teacher-stats-grid">
         <div className="teacher-dashboard-stat cyan">
           <div className="teacher-dashboard-stat-info">
-            <h4>My Questions</h4>
-            <div className="teacher-dashboard-stat-value">{myQuestions.length}</div>
-            <p className="teacher-dashboard-stat-sub">{questions.length} in global bank</p>
+            <h4>My Classes</h4>
+            <div className="teacher-dashboard-stat-value">{myClasses.length || 0}</div>
+            <p className="teacher-dashboard-stat-sub">{myClasses.slice(0, 3).join(' · ') || 'No classes assigned'}</p>
           </div>
-          <div className="teacher-dashboard-stat-icon">📝</div>
+          <div className="teacher-dashboard-stat-icon">🏫</div>
         </div>
         
         <div className="teacher-dashboard-stat green">
           <div className="teacher-dashboard-stat-info">
-            <h4>My Responses</h4>
+            <h4>Active Assignments</h4>
             <div className="teacher-dashboard-stat-value">
-              {myQuestions.reduce((sum, q) => sum + (q.times_answered || 0), 0)}
+              {assignments.length}
             </div>
+            <p className="teacher-dashboard-stat-sub">{activeAssignments} in progress</p>
           </div>
-          <div className="teacher-dashboard-stat-icon">✅</div>
+          <div className="teacher-dashboard-stat-icon">📋</div>
         </div>
         
         <div className="teacher-dashboard-stat amber">
           <div className="teacher-dashboard-stat-info">
-            <h4>My Success Rate</h4>
+            <h4>Student Responses</h4>
             <div className="teacher-dashboard-stat-value">
-              {myQuestions.length > 0
-                ? Math.round((myQuestions.reduce((sum, q) => sum + (q.times_correct || 0), 0) /
-                    Math.max(myQuestions.reduce((sum, q) => sum + (q.times_answered || 0), 0), 1)) * 100)
-                : 0}%
+              {totalResponses}
             </div>
+            <p className="teacher-dashboard-stat-sub">{myQuestions.length} questions in your bank</p>
           </div>
-          <div className="teacher-dashboard-stat-icon">📈</div>
+          <div className="teacher-dashboard-stat-icon">💬</div>
         </div>
         
         <div className="teacher-dashboard-stat purple">
           <div className="teacher-dashboard-stat-info">
-            <h4>Active Assignments</h4>
-            <div className="teacher-dashboard-stat-value">{assignments.length}</div>
+            <h4>Success Rate</h4>
+            <div className="teacher-dashboard-stat-value">{successRate}%</div>
             <p className="teacher-dashboard-stat-sub">
-              {assignments.filter((a) => a.completed_count < a.student_count).length} pending
+              {questions.length} in global bank
             </p>
           </div>
-          <div className="teacher-dashboard-stat-icon">📋</div>
+          <div className="teacher-dashboard-stat-icon">📈</div>
         </div>
       </div>
 
-      {/* Quick Actions Section */}
-      <div className="teacher-mb-8">
-        <h3 className="teacher-subsection-title">
-          <span>⚡</span> Quick Actions
-        </h3>
-        <div className="teacher-actions-grid">
+      <div className="teacher-dashboard-grid">
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>🎯</span> Today&apos;s Priorities
+          </h3>
+          <ul className="teacher-priority-list">
+            {priorityItems.map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Quick Actions Section */}
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>⚡</span> Quick Actions
+          </h3>
+          <div className="teacher-actions-grid teacher-actions-grid-compact">
           {(() => {
             // Pilot quota helper
             const tq = (label: string): PilotQuota | null => getQuotaForFeature(label, pilotQuotas);
@@ -3623,6 +3663,65 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           })()}
         </div>
       </div>
+      </div>
+
+      <div className="teacher-dashboard-grid teacher-dashboard-grid-bottom">
+        {/* Recent Activity Section */}
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>📅</span> Recent Assignments
+          </h3>
+          {assignments.length > 0 ? (
+            <div className="teacher-table-container">
+              <table className="teacher-table">
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Subject</th>
+                    <th style={{ textAlign: 'center' }}>Completed</th>
+                    <th style={{ textAlign: 'center' }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {assignments.slice(0, 5).map((a) => (
+                    <tr key={a.id}>
+                      <td style={{ fontWeight: 500 }}>{a.title}</td>
+                      <td>{a.subject_name}</td>
+                      <td style={{ textAlign: 'center' }}>{a.completed_count}/{a.student_count}</td>
+                      <td style={{ textAlign: 'center' }}>
+                        <span className={`teacher-badge ${
+                          a.completed_count >= a.student_count ? 'success' : 'warning'
+                        }`}>
+                          {a.completed_count >= a.student_count ? '✅ Complete' : '⏳ In Progress'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500">No assignments yet. Use Quick Actions to create your first one.</p>
+          )}
+        </div>
+
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>🚨</span> Student Alerts
+          </h3>
+          {alertItems.length > 0 ? (
+            <ul className="teacher-alert-list">
+              {alertItems.map((item, idx) => (
+                <li key={idx} className={`teacher-alert-item ${item.tone}`}>
+                  {item.text}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-slate-500">No critical alerts right now.</p>
+          )}
+        </div>
+      </div>
 
       {/* Tools Section */}
       <div className="teacher-mb-8">
@@ -3719,45 +3818,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           )}
         </div>
       </div>
-
-      {/* Recent Activity Section */}
-      {assignments.length > 0 && (
-        <div>
-          <h3 className="teacher-subsection-title">
-            <span>📅</span> Recent Assignments
-          </h3>
-          <div className="teacher-table-container">
-            <table className="teacher-table">
-              <thead>
-                <tr>
-                  <th>Title</th>
-                  <th>Subject</th>
-                  <th style={{ textAlign: 'center' }}>Completed</th>
-                  <th style={{ textAlign: 'center' }}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {assignments.slice(0, 5).map((a) => (
-                  <tr key={a.id}>
-                    <td style={{ fontWeight: 500 }}>{a.title}</td>
-                    <td>{a.subject_name}</td>
-                    <td style={{ textAlign: 'center' }}>{a.completed_count}/{a.student_count}</td>
-                    <td style={{ textAlign: 'center' }}>
-                      <span className={`teacher-badge ${
-                        a.completed_count >= a.student_count ? 'success' : 'warning'
-                      }`}>
-                        {a.completed_count >= a.student_count ? '✅ Complete' : '⏳ In Progress'}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
     </div>
   );
+  };
 
   // Render Create Question Form
   const renderCreateQuestion = () => {
@@ -7782,47 +7845,50 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           onOpenSchoolAdmin={onOpenSchoolAdmin}
         />
 
-        {/* Navigation */}
-        <div className="teacher-nav-container">
-          <div className="teacher-nav-grid">
-            {navTabs.map((tab) => {
-              const isPilot = pilotQuotas?.is_pilot && !pilotQuotas?.expired;
-              // Map nav tab IDs to feature labels for quota lookup
-              const tabQuotaMap: Record<string, string> = {
-                questions: 'Question Bank',
-                assignments: 'New Assignment',
-                reports: 'Performance Reports',
-                cambridge: 'Cambridge Marking',
-              };
-              const featureLabel = tabQuotaMap[tab.id];
-              const tq = featureLabel ? getQuotaForFeature(featureLabel, pilotQuotas) : null;
-              const pilotExhausted = isPilot && tq?.exhausted === true;
-              const locked = (tab.proOnly && !isProPlan) || pilotExhausted;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => !locked && changeSection(tab.id)}
-                  disabled={locked}
-                  className={`teacher-nav-btn ${primarySection === tab.id ? 'active' : ''} ${locked ? 'teacher-nav-locked' : ''}`}
-                >
-                  <span className="teacher-nav-icon">{tab.icon}</span>
-                  <div className="teacher-nav-text">
-                    <span className="teacher-nav-label">
-                      {tab.label}
-                      {locked && !isPilot && <span className="teacher-nav-pro-tag">PRO</span>}
-                      {pilotExhausted && <span className="teacher-nav-pro-tag" style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)' }}>⚡ UPGRADE</span>}
-                      {isPilot && tq && !tq.exhausted && <span className="teacher-nav-pro-tag" style={{ background: 'linear-gradient(135deg, #06b6d4, #3b82f6)' }}>{tq.remaining}/{tq.limit}</span>}
-                    </span>
-                    <span className="teacher-nav-desc">{tab.description}</span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <div className="teacher-workspace-shell">
+          {/* Navigation */}
+          <aside className="teacher-sidebar">
+            <div className="teacher-nav-container teacher-nav-container--sidebar">
+              <div className="teacher-nav-grid teacher-nav-grid--sidebar">
+                {navTabs.map((tab) => {
+                  const isPilot = pilotQuotas?.is_pilot && !pilotQuotas?.expired;
+                  // Map nav tab IDs to feature labels for quota lookup
+                  const tabQuotaMap: Record<string, string> = {
+                    questions: 'Question Bank',
+                    assignments: 'New Assignment',
+                    reports: 'Performance Reports',
+                    cambridge: 'Cambridge Marking',
+                  };
+                  const featureLabel = tabQuotaMap[tab.id];
+                  const tq = featureLabel ? getQuotaForFeature(featureLabel, pilotQuotas) : null;
+                  const pilotExhausted = isPilot && tq?.exhausted === true;
+                  const locked = (tab.proOnly && !isProPlan) || pilotExhausted;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => !locked && changeSection(tab.id)}
+                      disabled={locked}
+                      className={`teacher-nav-btn ${primarySection === tab.id ? 'active' : ''} ${locked ? 'teacher-nav-locked' : ''}`}
+                    >
+                      <span className="teacher-nav-icon">{tab.icon}</span>
+                      <div className="teacher-nav-text">
+                        <span className="teacher-nav-label">
+                          {tab.label}
+                          {locked && !isPilot && <span className="teacher-nav-pro-tag">PRO</span>}
+                          {pilotExhausted && <span className="teacher-nav-pro-tag" style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)' }}>⚡ UPGRADE</span>}
+                          {isPilot && tq && !tq.exhausted && <span className="teacher-nav-pro-tag" style={{ background: 'linear-gradient(135deg, #06b6d4, #3b82f6)' }}>{tq.remaining}/{tq.limit}</span>}
+                        </span>
+                        <span className="teacher-nav-desc">{tab.description}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </aside>
 
-        {/* Main Content Panel */}
-        <div className="teacher-main-panel min-h-0">
+          {/* Main Content Panel */}
+          <div className="teacher-main-panel min-h-0">
           {view === 'dashboard' && renderDashboard()}
           {view === 'create-question' && renderCreateQuestion()}
           {view === 'question-bank' && (
@@ -7860,6 +7926,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               onComplete={() => setView('dashboard')}
             />
           )}
+          </div>
         </div>
       </div>
     </div>
