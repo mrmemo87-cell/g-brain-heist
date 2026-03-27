@@ -383,7 +383,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       s.batch?.toLowerCase().includes(search)
     );
   }, [availableStudents, studentSearchTerm]);
-  const primarySection = useMemo<'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge' | 'quests'>(() => {
+  const primarySection = useMemo<'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge' | 'quests' | 'lockdown'>(() => {
     if (view === 'dashboard') return 'dashboard';
     if (view === 'question-bank' || view === 'create-question' || view === 'csv-upload') return 'questions';
     if (view === 'assignments' || view === 'create-assignment') return 'assignments';
@@ -392,7 +392,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     return 'reports'; // catches 'reports', 'report-detail', 'report-analysis', 'collective-report'
   }, [view]);
 
-  const changeSection = (section: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge' | 'quests') => {
+  const changeSection = (section: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge' | 'quests' | 'lockdown') => {
     switch (section) {
       case 'dashboard':
         setView('dashboard');
@@ -416,6 +416,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       case 'quests':
         setView('quest-builder');
         loadMyQuests();
+        break;
+      case 'lockdown':
+        if (onLockdown) onLockdown();
         break;
       default:
         setView('dashboard');
@@ -7663,11 +7666,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     );
   }
 
-  const navTabs: Array<{ id: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge' | 'quests'; label: string; icon: string; description: string; proOnly?: boolean }> = [
+  const navTabs: Array<{ id: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge' | 'quests' | 'lockdown'; label: string; icon: string; description: string; proOnly?: boolean }> = [
     { id: 'dashboard', label: 'Dashboard', icon: '🏠', description: 'Overview & Quick Actions' },
     { id: 'questions', label: 'Question Bank', icon: '📚', description: 'Create & Manage Questions', proOnly: true },
     { id: 'assignments', label: 'Assignments', icon: '📋', description: 'Assign Work to Students', proOnly: true },
     { id: 'reports', label: 'Reports', icon: '📊', description: 'Student Performance', proOnly: true },
+    { id: 'lockdown', label: 'Lockdown Mode', icon: '🔒', description: 'Host Live Classroom Sessions' },
     { id: 'cambridge', label: 'Cambridge Tests', icon: '✍️', description: 'Writing & Test Results', proOnly: true },
     { id: 'quests', label: 'Quest Builder', icon: '🗺️', description: 'Create V2 Quest Missions', proOnly: true },
   ];
@@ -7825,12 +7829,14 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                     questions: 'Question Bank',
                     assignments: 'New Assignment',
                     reports: 'Performance Reports',
+                    lockdown: 'Lockdown Mode',
                     cambridge: 'Cambridge Marking',
                   };
                   const featureLabel = tabQuotaMap[tab.id];
                   const tq = featureLabel ? getQuotaForFeature(featureLabel, pilotQuotas) : null;
                   const pilotExhausted = isPilot && tq?.exhausted === true;
-                  const locked = (tab.proOnly && !isProPlan) || pilotExhausted;
+                  const missingHandler = tab.id === 'lockdown' && !onLockdown;
+                  const locked = (tab.proOnly && !isProPlan) || pilotExhausted || missingHandler;
                   return (
                     <button
                       key={tab.id}
