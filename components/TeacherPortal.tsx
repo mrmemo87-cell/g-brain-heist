@@ -383,7 +383,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       s.batch?.toLowerCase().includes(search)
     );
   }, [availableStudents, studentSearchTerm]);
-  const primarySection = useMemo<'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge' | 'quests'>(() => {
+  const primarySection = useMemo<'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge' | 'quests' | 'lockdown'>(() => {
     if (view === 'dashboard') return 'dashboard';
     if (view === 'question-bank' || view === 'create-question' || view === 'csv-upload') return 'questions';
     if (view === 'assignments' || view === 'create-assignment') return 'assignments';
@@ -392,7 +392,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     return 'reports'; // catches 'reports', 'report-detail', 'report-analysis', 'collective-report'
   }, [view]);
 
-  const changeSection = (section: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge' | 'quests') => {
+  const changeSection = (section: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge' | 'quests' | 'lockdown') => {
     switch (section) {
       case 'dashboard':
         setView('dashboard');
@@ -416,6 +416,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       case 'quests':
         setView('quest-builder');
         loadMyQuests();
+        break;
+      case 'lockdown':
+        if (onLockdown) onLockdown();
         break;
       default:
         setView('dashboard');
@@ -3461,7 +3464,36 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
   };
 
   // Render Dashboard
-  const renderDashboard = () => (
+  const renderDashboard = () => {
+    const myClasses = Array.from(new Set(assignedClasses.map((cls) => cls.class_code)));
+    const activeAssignments = assignments.filter((a) => a.completed_count < a.student_count).length;
+    const totalResponses = myQuestions.reduce((sum, q) => sum + (q.times_answered || 0), 0);
+    const successRate = myQuestions.length > 0
+      ? Math.round((myQuestions.reduce((sum, q) => sum + (q.times_correct || 0), 0) / Math.max(totalResponses, 1)) * 100)
+      : 0;
+
+    const priorityItems = [
+      activeAssignments > 0 ? `Review ${activeAssignments} assignment${activeAssignments > 1 ? 's' : ''} still in progress.` : 'No pending assignments — great pacing today.',
+      teacherHasClassAssignments
+        ? `Prepare next class for ${myClasses.slice(0, 2).join(' • ')}${myClasses.length > 2 ? '…' : ''}.`
+        : 'Coordinate with school admin to finalize class assignments.',
+      successRate < 65
+        ? 'Success rate is below 65% — prioritize revision and targeted support.'
+        : 'Success trend is healthy — keep momentum with formative checks.',
+    ];
+
+    const alertItems: Array<{ tone: 'warning' | 'info'; text: string }> = [];
+    if (activeAssignments > 0) {
+      alertItems.push({ tone: 'warning', text: `${activeAssignments} assignment${activeAssignments > 1 ? 's' : ''} need follow-up.` });
+    }
+    if (!teacherHasClassAssignments) {
+      alertItems.push({ tone: 'warning', text: 'No class assignments found for this teacher account.' });
+    }
+    if (successRate < 65) {
+      alertItems.push({ tone: 'info', text: `Current success rate is ${successRate}%. Consider intervention.` });
+    }
+
+    return (
     <div className="space-y-8">
       {/* Welcome Section */}
       <div className="teacher-section-header">
@@ -3476,54 +3508,65 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       <div className="teacher-stats-grid">
         <div className="teacher-dashboard-stat cyan">
           <div className="teacher-dashboard-stat-info">
-            <h4>My Questions</h4>
-            <div className="teacher-dashboard-stat-value">{myQuestions.length}</div>
-            <p className="teacher-dashboard-stat-sub">{questions.length} in global bank</p>
+            <h4>My Classes</h4>
+            <div className="teacher-dashboard-stat-value">{myClasses.length || 0}</div>
+            <p className="teacher-dashboard-stat-sub">{myClasses.slice(0, 3).join(' · ') || 'No classes assigned'}</p>
           </div>
-          <div className="teacher-dashboard-stat-icon">📝</div>
+          <div className="teacher-dashboard-stat-icon">🏫</div>
         </div>
         
         <div className="teacher-dashboard-stat green">
           <div className="teacher-dashboard-stat-info">
-            <h4>My Responses</h4>
+            <h4>Active Assignments</h4>
             <div className="teacher-dashboard-stat-value">
-              {myQuestions.reduce((sum, q) => sum + (q.times_answered || 0), 0)}
+              {assignments.length}
             </div>
+            <p className="teacher-dashboard-stat-sub">{activeAssignments} in progress</p>
           </div>
-          <div className="teacher-dashboard-stat-icon">✅</div>
+          <div className="teacher-dashboard-stat-icon">📋</div>
         </div>
         
         <div className="teacher-dashboard-stat amber">
           <div className="teacher-dashboard-stat-info">
-            <h4>My Success Rate</h4>
+            <h4>Student Responses</h4>
             <div className="teacher-dashboard-stat-value">
-              {myQuestions.length > 0
-                ? Math.round((myQuestions.reduce((sum, q) => sum + (q.times_correct || 0), 0) /
-                    Math.max(myQuestions.reduce((sum, q) => sum + (q.times_answered || 0), 0), 1)) * 100)
-                : 0}%
+              {totalResponses}
             </div>
+            <p className="teacher-dashboard-stat-sub">{myQuestions.length} questions in your bank</p>
           </div>
-          <div className="teacher-dashboard-stat-icon">📈</div>
+          <div className="teacher-dashboard-stat-icon">💬</div>
         </div>
         
         <div className="teacher-dashboard-stat purple">
           <div className="teacher-dashboard-stat-info">
-            <h4>Active Assignments</h4>
-            <div className="teacher-dashboard-stat-value">{assignments.length}</div>
+            <h4>Success Rate</h4>
+            <div className="teacher-dashboard-stat-value">{successRate}%</div>
             <p className="teacher-dashboard-stat-sub">
-              {assignments.filter((a) => a.completed_count < a.student_count).length} pending
+              {questions.length} in global bank
             </p>
           </div>
-          <div className="teacher-dashboard-stat-icon">📋</div>
+          <div className="teacher-dashboard-stat-icon">📈</div>
         </div>
       </div>
 
-      {/* Quick Actions Section */}
-      <div className="teacher-mb-8">
-        <h3 className="teacher-subsection-title">
-          <span>⚡</span> Quick Actions
-        </h3>
-        <div className="teacher-actions-grid">
+      <div className="teacher-dashboard-grid">
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>🎯</span> Today&apos;s Priorities
+          </h3>
+          <ul className="teacher-priority-list">
+            {priorityItems.map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Quick Actions Section */}
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>⚡</span> Quick Actions
+          </h3>
+          <div className="teacher-actions-grid teacher-actions-grid-compact">
           {(() => {
             // Pilot quota helper
             const tq = (label: string): PilotQuota | null => getQuotaForFeature(label, pilotQuotas);
@@ -3542,7 +3585,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             return <>
           <button
             onClick={() => !isDisabled('Create Question') ? setView('create-question') : undefined}
-            className={`teacher-action-card ${isDisabled('Create Question') ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`teacher-action-card teacher-action-card--mini ${isDisabled('Create Question') ? 'opacity-50 cursor-not-allowed' : ''}`}
             data-color="pink"
             disabled={isDisabled('Create Question')}
           >
@@ -3555,7 +3598,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
           <button
             onClick={() => !isDisabled('Question Bank') ? setView('question-bank') : undefined}
-            className={`teacher-action-card ${isDisabled('Question Bank') ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`teacher-action-card teacher-action-card--mini ${isDisabled('Question Bank') ? 'opacity-50 cursor-not-allowed' : ''}`}
             data-color="cyan"
             disabled={isDisabled('Question Bank')}
           >
@@ -3568,7 +3611,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
           <button
             onClick={() => !isDisabled('Bulk Upload') ? setView('csv-upload') : undefined}
-            className={`teacher-action-card ${isDisabled('Bulk Upload') ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`teacher-action-card teacher-action-card--mini ${isDisabled('Bulk Upload') ? 'opacity-50 cursor-not-allowed' : ''}`}
             data-color="green"
             disabled={isDisabled('Bulk Upload')}
           >
@@ -3581,7 +3624,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
           <button
             onClick={() => !isDisabled('New Assignment') ? setView('create-assignment') : undefined}
-            className={`teacher-action-card ${isDisabled('New Assignment') ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`teacher-action-card teacher-action-card--mini ${isDisabled('New Assignment') ? 'opacity-50 cursor-not-allowed' : ''}`}
             data-color="purple"
             disabled={isDisabled('New Assignment')}
           >
@@ -3602,7 +3645,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             return (
               <button
                 onClick={() => !ldExhausted ? onLockdown() : undefined}
-                className={`teacher-action-card teacher-action-card-lockdown ${ldExhausted ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`teacher-action-card teacher-action-card-lockdown teacher-action-card--mini ${ldExhausted ? 'opacity-50 cursor-not-allowed' : ''}`}
                 data-color="emerald"
                 disabled={ldExhausted}
               >
@@ -3621,6 +3664,65 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               </button>
             );
           })()}
+        </div>
+      </div>
+      </div>
+
+      <div className="teacher-dashboard-grid teacher-dashboard-grid-bottom">
+        {/* Recent Activity Section */}
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>📅</span> Recent Assignments
+          </h3>
+          {assignments.length > 0 ? (
+            <div className="teacher-table-container">
+              <table className="teacher-table">
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Subject</th>
+                    <th style={{ textAlign: 'center' }}>Completed</th>
+                    <th style={{ textAlign: 'center' }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {assignments.slice(0, 5).map((a) => (
+                    <tr key={a.id}>
+                      <td style={{ fontWeight: 500 }}>{a.title}</td>
+                      <td>{a.subject_name}</td>
+                      <td style={{ textAlign: 'center' }}>{a.completed_count}/{a.student_count}</td>
+                      <td style={{ textAlign: 'center' }}>
+                        <span className={`teacher-badge ${
+                          a.completed_count >= a.student_count ? 'success' : 'warning'
+                        }`}>
+                          {a.completed_count >= a.student_count ? '✅ Complete' : '⏳ In Progress'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500">No assignments yet. Use Quick Actions to create your first one.</p>
+          )}
+        </div>
+
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>🚨</span> Student Alerts
+          </h3>
+          {alertItems.length > 0 ? (
+            <ul className="teacher-alert-list">
+              {alertItems.map((item, idx) => (
+                <li key={idx} className={`teacher-alert-item ${item.tone}`}>
+                  {item.text}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-slate-500">No critical alerts right now.</p>
+          )}
         </div>
       </div>
 
@@ -3719,45 +3821,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           )}
         </div>
       </div>
-
-      {/* Recent Activity Section */}
-      {assignments.length > 0 && (
-        <div>
-          <h3 className="teacher-subsection-title">
-            <span>📅</span> Recent Assignments
-          </h3>
-          <div className="teacher-table-container">
-            <table className="teacher-table">
-              <thead>
-                <tr>
-                  <th>Title</th>
-                  <th>Subject</th>
-                  <th style={{ textAlign: 'center' }}>Completed</th>
-                  <th style={{ textAlign: 'center' }}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {assignments.slice(0, 5).map((a) => (
-                  <tr key={a.id}>
-                    <td style={{ fontWeight: 500 }}>{a.title}</td>
-                    <td>{a.subject_name}</td>
-                    <td style={{ textAlign: 'center' }}>{a.completed_count}/{a.student_count}</td>
-                    <td style={{ textAlign: 'center' }}>
-                      <span className={`teacher-badge ${
-                        a.completed_count >= a.student_count ? 'success' : 'warning'
-                      }`}>
-                        {a.completed_count >= a.student_count ? '✅ Complete' : '⏳ In Progress'}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
     </div>
   );
+  };
 
   // Render Create Question Form
   const renderCreateQuestion = () => {
@@ -7600,11 +7666,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     );
   }
 
-  const navTabs: Array<{ id: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge' | 'quests'; label: string; icon: string; description: string; proOnly?: boolean }> = [
+  const navTabs: Array<{ id: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge' | 'quests' | 'lockdown'; label: string; icon: string; description: string; proOnly?: boolean }> = [
     { id: 'dashboard', label: 'Dashboard', icon: '🏠', description: 'Overview & Quick Actions' },
     { id: 'questions', label: 'Question Bank', icon: '📚', description: 'Create & Manage Questions', proOnly: true },
     { id: 'assignments', label: 'Assignments', icon: '📋', description: 'Assign Work to Students', proOnly: true },
     { id: 'reports', label: 'Reports', icon: '📊', description: 'Student Performance', proOnly: true },
+    { id: 'lockdown', label: 'Lockdown Mode', icon: '🔒', description: 'Host Live Classroom Sessions' },
     { id: 'cambridge', label: 'Cambridge Tests', icon: '✍️', description: 'Writing & Test Results', proOnly: true },
     { id: 'quests', label: 'Quest Builder', icon: '🗺️', description: 'Create V2 Quest Missions', proOnly: true },
   ];
@@ -7711,20 +7778,20 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               
               {/* Display Assigned Classes */}
               {teacherHasClassAssignments && assignedClasses.length > 0 && (
-                <div className="mt-3 rounded-lg border border-white/20 bg-white/5 px-4 py-3">
+                <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-cyan-400 font-semibold text-sm">📚 Your Assigned Classes ({assignedClasses.length})</span>
+                    <span className="text-sky-700 font-semibold text-sm">📚 Your Assigned Classes ({assignedClasses.length})</span>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {assignedClasses.slice(0, 6).map((cls, index) => (
-                      <div key={index} className="inline-flex items-center gap-1.5 rounded-full bg-cyan-500/20 border border-cyan-400/30 px-3 py-1 text-xs">
-                        <span className="font-semibold text-cyan-100">{cls.class_code}</span>
-                        <span className="text-cyan-200/70">•</span>
-                        <span className="text-cyan-200/90">{cls.subject}</span>
+                      <div key={index} className="inline-flex items-center gap-1.5 rounded-full bg-white border border-slate-200 px-3 py-1 text-xs">
+                        <span className="font-semibold text-slate-700">{cls.class_code}</span>
+                        <span className="text-slate-400">•</span>
+                        <span className="text-slate-600">{cls.subject}</span>
                       </div>
                     ))}
                     {assignedClasses.length > 6 && (
-                      <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs text-white/70">
+                      <span className="inline-flex items-center rounded-full bg-white border border-slate-200 px-3 py-1 text-xs text-slate-600">
                         +{assignedClasses.length - 6} more
                       </span>
                     )}
@@ -7740,38 +7807,6 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 </div>
               )}
 
-              <div className="mt-4 flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-1">
-                  <img
-                    src={profile.avatar_url || '/BRAINS.svg'}
-                    alt={`${profile.username} avatar`}
-                    className="h-8 w-8 rounded-full border border-white/20 object-cover"
-                  />
-                  <span className="text-sm font-semibold text-white">{profile.username}</span>
-                </div>
-                {isSchoolAdmin && onOpenSchoolAdmin && (
-                  <button
-                    onClick={onOpenSchoolAdmin}
-                    className="rounded-full border border-white/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white hover:bg-white/10"
-                  >
-                    School Admin
-                  </button>
-                )}
-              </div>
-            </div>
-            <div className="teacher-header-stats">
-              <div className="teacher-stat-card">
-                <div className="teacher-stat-label">My Questions</div>
-                <div className="teacher-stat-value cyan">{myQuestions.length}</div>
-              </div>
-              <div className="teacher-stat-card">
-                <div className="teacher-stat-label">Assignments</div>
-                <div className="teacher-stat-value emerald">{assignments.length}</div>
-              </div>
-              <div className="teacher-stat-card">
-                <div className="teacher-stat-label">My Responses</div>
-                <div className="teacher-stat-value purple">{myQuestions.reduce((sum, q) => sum + (q.times_answered || 0), 0)}</div>
-              </div>
             </div>
           </div>
         </div>
@@ -7782,47 +7817,52 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           onOpenSchoolAdmin={onOpenSchoolAdmin}
         />
 
-        {/* Navigation */}
-        <div className="teacher-nav-container">
-          <div className="teacher-nav-grid">
-            {navTabs.map((tab) => {
-              const isPilot = pilotQuotas?.is_pilot && !pilotQuotas?.expired;
-              // Map nav tab IDs to feature labels for quota lookup
-              const tabQuotaMap: Record<string, string> = {
-                questions: 'Question Bank',
-                assignments: 'New Assignment',
-                reports: 'Performance Reports',
-                cambridge: 'Cambridge Marking',
-              };
-              const featureLabel = tabQuotaMap[tab.id];
-              const tq = featureLabel ? getQuotaForFeature(featureLabel, pilotQuotas) : null;
-              const pilotExhausted = isPilot && tq?.exhausted === true;
-              const locked = (tab.proOnly && !isProPlan) || pilotExhausted;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => !locked && changeSection(tab.id)}
-                  disabled={locked}
-                  className={`teacher-nav-btn ${primarySection === tab.id ? 'active' : ''} ${locked ? 'teacher-nav-locked' : ''}`}
-                >
-                  <span className="teacher-nav-icon">{tab.icon}</span>
-                  <div className="teacher-nav-text">
-                    <span className="teacher-nav-label">
-                      {tab.label}
-                      {locked && !isPilot && <span className="teacher-nav-pro-tag">PRO</span>}
-                      {pilotExhausted && <span className="teacher-nav-pro-tag" style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)' }}>⚡ UPGRADE</span>}
-                      {isPilot && tq && !tq.exhausted && <span className="teacher-nav-pro-tag" style={{ background: 'linear-gradient(135deg, #06b6d4, #3b82f6)' }}>{tq.remaining}/{tq.limit}</span>}
-                    </span>
-                    <span className="teacher-nav-desc">{tab.description}</span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <div className="teacher-workspace-shell">
+          {/* Navigation */}
+          <aside className="teacher-sidebar">
+            <div className="teacher-nav-container teacher-nav-container--sidebar">
+              <div className="teacher-nav-grid teacher-nav-grid--sidebar">
+                {navTabs.map((tab) => {
+                  const isPilot = pilotQuotas?.is_pilot && !pilotQuotas?.expired;
+                  // Map nav tab IDs to feature labels for quota lookup
+                  const tabQuotaMap: Record<string, string> = {
+                    questions: 'Question Bank',
+                    assignments: 'New Assignment',
+                    reports: 'Performance Reports',
+                    lockdown: 'Lockdown Mode',
+                    cambridge: 'Cambridge Marking',
+                  };
+                  const featureLabel = tabQuotaMap[tab.id];
+                  const tq = featureLabel ? getQuotaForFeature(featureLabel, pilotQuotas) : null;
+                  const pilotExhausted = isPilot && tq?.exhausted === true;
+                  const missingHandler = tab.id === 'lockdown' && !onLockdown;
+                  const locked = (tab.proOnly && !isProPlan) || pilotExhausted || missingHandler;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => !locked && changeSection(tab.id)}
+                      disabled={locked}
+                      className={`teacher-nav-btn ${primarySection === tab.id ? 'active' : ''} ${locked ? 'teacher-nav-locked' : ''}`}
+                    >
+                      <span className="teacher-nav-icon">{tab.icon}</span>
+                      <div className="teacher-nav-text">
+                        <span className="teacher-nav-label">
+                          {tab.label}
+                          {locked && !isPilot && <span className="teacher-nav-pro-tag">PRO</span>}
+                          {pilotExhausted && <span className="teacher-nav-pro-tag" style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)' }}>⚡ UPGRADE</span>}
+                          {isPilot && tq && !tq.exhausted && <span className="teacher-nav-pro-tag" style={{ background: 'linear-gradient(135deg, #06b6d4, #3b82f6)' }}>{tq.remaining}/{tq.limit}</span>}
+                        </span>
+                        <span className="teacher-nav-desc">{tab.description}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </aside>
 
-        {/* Main Content Panel */}
-        <div className="teacher-main-panel min-h-0">
+          {/* Main Content Panel */}
+          <div className="teacher-main-panel min-h-0">
           {view === 'dashboard' && renderDashboard()}
           {view === 'create-question' && renderCreateQuestion()}
           {view === 'question-bank' && (
@@ -7860,6 +7900,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               onComplete={() => setView('dashboard')}
             />
           )}
+          </div>
         </div>
       </div>
     </div>

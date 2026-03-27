@@ -89,7 +89,7 @@
   max-width: 1600px;
   width: 100%;
   margin: 0 auto;
-  padding: 1.5rem 1rem 3rem;
+  padding: 1rem 0.85rem 2rem;
 }
 
 @media (min-width: 768px) {
@@ -177,14 +177,14 @@
    HEADER SECTION - Transparent Design
    ============================================================ */
 .teacher-header {
-  background: transparent;
-  border-radius: 0;
-  padding: 2rem 0 2.5rem;
-  margin-bottom: 1.5rem;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 24px;
+  padding: 1.5rem 1.5rem 1.75rem;
+  margin-bottom: 1.25rem;
   position: relative;
-  overflow: visible;
-  box-shadow: none;
-  border: none;
+  overflow: hidden;
+  box-shadow: 0 14px 30px -20px rgba(15, 23, 42, 0.35);
+  border: 1px solid rgba(226, 232, 240, 0.9);
 }
 
 .teacher-header::before {
@@ -200,13 +200,13 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1rem;
 }
 
 @media (min-width: 768px) {
   .teacher-header-content {
     flex-direction: row;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
   }
 }
@@ -223,7 +223,7 @@
   border-radius: 9999px;
   background: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%);
   border: 1px solid rgba(14, 165, 233, 0.3);
-  color: #7dd3fc;
+  color: #0369a1;
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -233,26 +233,26 @@
 }
 
 .teacher-header-title {
-  font-size: 2.25rem;
+  font-size: 2rem;
   font-weight: 800;
-  color: #ffffff;
+  color: #0f172a;
   display: flex;
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 0.75rem;
   line-height: 1.2;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  text-shadow: none;
 }
 
 .teacher-header-subtitle {
-  color: #94a3b8;
-  font-size: 1.0625rem;
-  line-height: 1.7;
+  color: #475569;
+  font-size: 1rem;
+  line-height: 1.65;
   max-width: 550px;
 }
 
 .teacher-header-subtitle strong {
-  color: #38bdf8;
+  color: #0369a1;
   font-weight: 600;
 }
 
@@ -267,15 +267,16 @@
   min-width: 110px;
   padding: 1rem 1.25rem;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(12px);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  backdrop-filter: blur(6px);
   text-align: center;
   transition: all 0.2s ease;
+  box-shadow: 0 6px 14px -12px rgba(15, 23, 42, 0.4);
 }
 
 .teacher-stat-card:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: #f8fafc;
   transform: translateY(-2px);
 }
 
@@ -284,7 +285,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: rgba(255, 255, 255, 0.6);
+  color: #64748b;
   margin-bottom: 0.375rem;
 }
 
@@ -322,6 +323,26 @@
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(20px);
+}
+
+.teacher-workspace-shell {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.teacher-sidebar {
+  position: sticky;
+  top: 88px;
+}
+
+.teacher-nav-container--sidebar {
+  margin-bottom: 0;
+}
+
+.teacher-nav-grid--sidebar {
+  grid-template-columns: 1fr;
 }
 
 .teacher-nav-container::before {
@@ -363,6 +384,11 @@
   background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
   box-shadow: 0 4px 12px -2px rgba(14, 165, 233, 0.15);
   transform: translateY(-2px);
+}
+
+.teacher-nav-btn:focus-visible {
+  outline: 3px solid rgba(14, 165, 233, 0.35);
+  outline-offset: 2px;
 }
 
 .teacher-nav-btn.active {
@@ -415,7 +441,7 @@
 .teacher-main-panel {
   background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
   border-radius: 24px;
-  padding: 2.5rem;
+  padding: 1.5rem;
   border: 1px solid rgba(226, 232, 240, 0.8);
   box-shadow: 
     0 10px 40px -10px rgba(0, 0, 0, 0.1),
@@ -425,7 +451,7 @@
 }
 
 .teacher-main-panel::before {
-  content: '';
+  content: none;
   position: absolute;
   top: -100px;
   right: -100px;
@@ -436,7 +462,7 @@
 }
 
 .teacher-main-panel::after {
-  content: '';
+  content: none;
   position: absolute;
   bottom: -100px;
   left: -100px;
@@ -451,13 +477,31 @@
   z-index: 1;
 }
 
+@media (max-width: 1024px) {
+  .teacher-workspace-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .teacher-sidebar {
+    position: static;
+  }
+
+  .teacher-nav-grid--sidebar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .teacher-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ============================================================
    SECTION HEADERS
    ============================================================ */
 .teacher-section-header {
   text-align: center;
-  padding-bottom: 1.5rem;
-  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  margin-bottom: 1.25rem;
   border-bottom: 1px solid var(--teacher-border);
 }
 
@@ -478,7 +522,7 @@
 }
 
 .teacher-subsection-title {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--teacher-text);
   margin-bottom: 1rem;
@@ -493,14 +537,56 @@
 .teacher-stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.25rem;
-  margin-bottom: 2.5rem;
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
 }
 
 @media (min-width: 1024px) {
   .teacher-stats-grid {
     grid-template-columns: repeat(4, 1fr);
   }
+}
+
+.teacher-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 0.85rem;
+}
+
+.teacher-dashboard-grid-bottom {
+  align-items: start;
+}
+
+.teacher-panel-card {
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: 0 6px 16px -10px rgba(15, 23, 42, 0.18);
+}
+
+.teacher-priority-list,
+.teacher-alert-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.teacher-priority-list li,
+.teacher-alert-item {
+  color: var(--teacher-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.teacher-alert-item.warning {
+  color: #92400e;
+}
+
+.teacher-alert-item.info {
+  color: #1e40af;
 }
 
 .teacher-dashboard-stat {
@@ -646,6 +732,12 @@
   transform: translateY(-2px);
 }
 
+.teacher-action-card:focus-visible,
+.teacher-tool-card:focus-visible {
+  outline: 3px solid rgba(14, 165, 233, 0.35);
+  outline-offset: 2px;
+}
+
 .teacher-action-card:hover .teacher-action-icon {
   transform: scale(1.1);
 }
@@ -702,6 +794,51 @@
 .teacher-action-card-lockdown:hover {
   border-color: #34d399;
   box-shadow: 0 0 24px -4px rgba(16, 185, 129, 0.4);
+}
+
+.teacher-actions-grid-compact {
+  margin-bottom: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.875rem;
+}
+
+.teacher-actions-grid-compact .teacher-action-card {
+  min-height: 0;
+  padding: 0.72rem 0.8rem;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.teacher-actions-grid-compact .teacher-action-icon {
+  font-size: 1rem;
+  margin-bottom: 0;
+  line-height: 1;
+}
+
+.teacher-actions-grid-compact .teacher-action-title {
+  font-size: 0.88rem;
+  line-height: 1.2;
+  margin-bottom: 0;
+}
+
+.teacher-actions-grid-compact .teacher-action-desc {
+  display: none;
+}
+
+.teacher-action-card--mini .teacher-pro-badge,
+.teacher-action-card--mini .teacher-free-badge {
+  top: 0.25rem;
+  right: 0.3rem;
+  font-size: 0.5rem;
+  padding: 0.08rem 0.3rem;
+}
+
+@media (max-width: 768px) {
+  .teacher-actions-grid-compact {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ============================================================
@@ -2329,12 +2466,14 @@
    LAYOUT FIX — Prevent overlapping on small screens
    ============================================================ */
 
-/* Ensure nav container doesn't overlap content */
-.teacher-nav-container {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  margin-bottom: 1.5rem;
+/* Ensure top nav remains visible only where needed (mobile stack mode) */
+@media (max-width: 1024px) {
+  .teacher-nav-container {
+    position: sticky;
+    top: 0.75rem;
+    z-index: 20;
+    margin-bottom: 1rem;
+  }
 }
 
 /* Make action cards not overlap on mobile */
@@ -2381,11 +2520,11 @@
   }
 }
 
-/* Ensure buttons inside cards don't overflow */
+/* Ensure card content remains readable */
 .teacher-action-card,
 .teacher-tool-card {
-  overflow: hidden;
-  word-break: break-word;
+  overflow: visible;
+  word-break: normal;
 }
 
 /* ============================================================
