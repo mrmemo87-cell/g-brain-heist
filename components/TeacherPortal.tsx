@@ -3582,7 +3582,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             return <>
           <button
             onClick={() => !isDisabled('Create Question') ? setView('create-question') : undefined}
-            className={`teacher-action-card ${isDisabled('Create Question') ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`teacher-action-card teacher-action-card--mini ${isDisabled('Create Question') ? 'opacity-50 cursor-not-allowed' : ''}`}
             data-color="pink"
             disabled={isDisabled('Create Question')}
           >
@@ -3595,7 +3595,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
           <button
             onClick={() => !isDisabled('Question Bank') ? setView('question-bank') : undefined}
-            className={`teacher-action-card ${isDisabled('Question Bank') ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`teacher-action-card teacher-action-card--mini ${isDisabled('Question Bank') ? 'opacity-50 cursor-not-allowed' : ''}`}
             data-color="cyan"
             disabled={isDisabled('Question Bank')}
           >
@@ -3608,7 +3608,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
           <button
             onClick={() => !isDisabled('Bulk Upload') ? setView('csv-upload') : undefined}
-            className={`teacher-action-card ${isDisabled('Bulk Upload') ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`teacher-action-card teacher-action-card--mini ${isDisabled('Bulk Upload') ? 'opacity-50 cursor-not-allowed' : ''}`}
             data-color="green"
             disabled={isDisabled('Bulk Upload')}
           >
@@ -3621,7 +3621,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
           <button
             onClick={() => !isDisabled('New Assignment') ? setView('create-assignment') : undefined}
-            className={`teacher-action-card ${isDisabled('New Assignment') ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`teacher-action-card teacher-action-card--mini ${isDisabled('New Assignment') ? 'opacity-50 cursor-not-allowed' : ''}`}
             data-color="purple"
             disabled={isDisabled('New Assignment')}
           >
@@ -3642,7 +3642,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             return (
               <button
                 onClick={() => !ldExhausted ? onLockdown() : undefined}
-                className={`teacher-action-card teacher-action-card-lockdown ${ldExhausted ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`teacher-action-card teacher-action-card-lockdown teacher-action-card--mini ${ldExhausted ? 'opacity-50 cursor-not-allowed' : ''}`}
                 data-color="emerald"
                 disabled={ldExhausted}
               >
@@ -7774,20 +7774,20 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               
               {/* Display Assigned Classes */}
               {teacherHasClassAssignments && assignedClasses.length > 0 && (
-                <div className="mt-3 rounded-lg border border-white/20 bg-white/5 px-4 py-3">
+                <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-cyan-400 font-semibold text-sm">📚 Your Assigned Classes ({assignedClasses.length})</span>
+                    <span className="text-sky-700 font-semibold text-sm">📚 Your Assigned Classes ({assignedClasses.length})</span>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {assignedClasses.slice(0, 6).map((cls, index) => (
-                      <div key={index} className="inline-flex items-center gap-1.5 rounded-full bg-cyan-500/20 border border-cyan-400/30 px-3 py-1 text-xs">
-                        <span className="font-semibold text-cyan-100">{cls.class_code}</span>
-                        <span className="text-cyan-200/70">•</span>
-                        <span className="text-cyan-200/90">{cls.subject}</span>
+                      <div key={index} className="inline-flex items-center gap-1.5 rounded-full bg-white border border-slate-200 px-3 py-1 text-xs">
+                        <span className="font-semibold text-slate-700">{cls.class_code}</span>
+                        <span className="text-slate-400">•</span>
+                        <span className="text-slate-600">{cls.subject}</span>
                       </div>
                     ))}
                     {assignedClasses.length > 6 && (
-                      <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs text-white/70">
+                      <span className="inline-flex items-center rounded-full bg-white border border-slate-200 px-3 py-1 text-xs text-slate-600">
                         +{assignedClasses.length - 6} more
                       </span>
                     )}
@@ -7803,38 +7803,6 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 </div>
               )}
 
-              <div className="mt-4 flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-1">
-                  <img
-                    src={profile.avatar_url || '/BRAINS.svg'}
-                    alt={`${profile.username} avatar`}
-                    className="h-8 w-8 rounded-full border border-white/20 object-cover"
-                  />
-                  <span className="text-sm font-semibold text-white">{profile.username}</span>
-                </div>
-                {isSchoolAdmin && onOpenSchoolAdmin && (
-                  <button
-                    onClick={onOpenSchoolAdmin}
-                    className="rounded-full border border-white/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white hover:bg-white/10"
-                  >
-                    School Admin
-                  </button>
-                )}
-              </div>
-            </div>
-            <div className="teacher-header-stats">
-              <div className="teacher-stat-card">
-                <div className="teacher-stat-label">My Questions</div>
-                <div className="teacher-stat-value cyan">{myQuestions.length}</div>
-              </div>
-              <div className="teacher-stat-card">
-                <div className="teacher-stat-label">Assignments</div>
-                <div className="teacher-stat-value emerald">{assignments.length}</div>
-              </div>
-              <div className="teacher-stat-card">
-                <div className="teacher-stat-label">My Responses</div>
-                <div className="teacher-stat-value purple">{myQuestions.reduce((sum, q) => sum + (q.times_answered || 0), 0)}</div>
-              </div>
             </div>
           </div>
         </div>
