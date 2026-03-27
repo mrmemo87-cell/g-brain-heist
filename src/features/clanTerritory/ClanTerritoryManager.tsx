@@ -15,6 +15,7 @@ import * as SchoolAdminService from "../../../services/schoolAdminService";
 import { fetchLockdownLimits, type LockdownLimits, FREE_LOCKDOWN_LIMITS, tryConsumePilotQuota } from "../../../services/tierService";
 import { FreeTierWatermark } from "../../../components/FreeTierWatermark";
 import { MAP_CATALOG, MAP_ZONE_COUNTS } from "./mapCatalog";
+type ArenaMode = "official" | "open";
 
 interface ClanTerritoryManagerProps {
   onExit: () => void;
@@ -39,6 +40,7 @@ const MAP_ZONE_CONFIG = MAP_ZONE_COUNTS;
 
 type DiscoveredRoom = {
   id: string;
+  arenaMode?: ArenaMode;
   allowClanlessPlayers?: boolean;
   teacherName?: string;
   classCodes?: string[];
@@ -53,6 +55,7 @@ type DiscoveredRoom = {
 type StoredHostRoom = {
   roomId: string;
   state: ClanTerritoryGameState;
+  arenaMode: ArenaMode;
   selectedMap: string;
   durationMinutes: number;
   allowClanlessPlayers: boolean;
@@ -138,6 +141,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const [clanLoadTimeout, setClanLoadTimeout] = useState(false);
   const [isRefreshingProfile, setIsRefreshingProfile] = useState(false);
   const [allowClanlessPlayers, setAllowClanlessPlayers] = useState(false);
+  const [arenaMode, setArenaMode] = useState<ArenaMode>("official");
   const [userSchoolId, setUserSchoolId] = useState<string | null>(null);
   const [studentBatch, setStudentBatch] = useState<string | null>(null);
   const [availableBatches, setAvailableBatches] = useState<SchoolBatchInfo[]>([]);
@@ -269,7 +273,11 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
 
     try {
       const parsed = JSON.parse(raw) as StoredHostRoom[];
-      const cleaned = pruneExpiredHostRooms(Array.isArray(parsed) ? parsed : []);
+      const normalized = (Array.isArray(parsed) ? parsed : []).map((room) => ({
+        ...room,
+        arenaMode: room.arenaMode === "open" ? "open" : "official",
+      }));
+      const cleaned = pruneExpiredHostRooms(normalized);
       setStoredHostRooms(cleaned);
       if (cleaned.length !== parsed.length) {
         persistHostRooms(cleaned);
@@ -557,9 +565,10 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       transport.startDiscovery(userSchoolId, (id, metadata) => {
         setDiscoveredRooms((prev) => ({
           ...prev,
-          [id]: {
-            id,
-            allowClanlessPlayers: metadata?.allowClanlessPlayers,
+              [id]: {
+                id,
+                arenaMode: metadata?.arenaMode === "open" ? "open" : "official",
+                allowClanlessPlayers: metadata?.allowClanlessPlayers,
             teacherName: metadata?.teacherName,
             classCodes: metadata?.classCodes,
             allowedClanIds: metadata?.allowedClanIds,
@@ -661,6 +670,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       }
 
       const id = await transport.createRoom({
+        arenaMode,
         allowClanlessPlayers,
         schoolId: userSchoolId || undefined,
         teacherName: teacherName || playerName,
@@ -688,6 +698,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       upsertHostRoom({
         roomId: id,
         state: gameState,
+        arenaMode,
         selectedMap,
         durationMinutes,
         allowClanlessPlayers,
@@ -703,6 +714,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     
     // Otherwise proceed with room creation (legacy flow)
     const id = await transport.createRoom({
+      arenaMode,
       allowClanlessPlayers,
       schoolId: userSchoolId || undefined,
       teacherName: teacherName || playerName,
@@ -728,6 +740,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     upsertHostRoom({
       roomId: id,
       state: gameState,
+      arenaMode,
       selectedMap,
       durationMinutes,
       allowClanlessPlayers,
@@ -769,6 +782,19 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     }
 
     const roomMetadata = discoveredRoomsRef.current[targetRoomId];
+    const roomArenaMode: ArenaMode = roomMetadata?.arenaMode === "open" ? "open" : "official";
+    if (roomArenaMode === "official") {
+      if (!userSchoolId) {
+        alert("🚫 Official Arena requires a verified school profile.");
+        return;
+      }
+      if (roomMetadata?.classCodes && roomMetadata.classCodes.length > 0) {
+        if (!studentBatch || !roomMetadata.classCodes.includes(studentBatch)) {
+          alert("🚫 Official Arena restricted: your class is not eligible for this room.");
+          return;
+        }
+      }
+    }
     const allowClanless = roomMetadata?.allowClanlessPlayers ?? gameState.allowClanlessPlayers ?? false;
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -796,6 +822,8 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
         {
           clanColor: activeClanColor,
           playerId: stablePlayerId,
+          schoolId: userSchoolId,
+          batch: studentBatch,
         }
       );
       setRoomId(targetRoomId);
@@ -840,10 +868,13 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   };
 
   const missingClanAssignment = !resolvedClanId || !resolvedClanName;
-  const canCreateRoom = selectedBatches.length > 0 && (!scheduleEnabled || Boolean(scheduledStartAt));
+  const canCreateRoom =
+    (arenaMode === "open" || selectedBatches.length > 0) &&
+    (!scheduleEnabled || Boolean(scheduledStartAt));
   const filteredRooms = useMemo(() => {
     const rooms = Object.values(discoveredRooms);
     return rooms.filter((room) => {
+      if (room.arenaMode === "open") return true;
       // Filter by class / batch
       if (studentBatch && !room.classCodes?.includes(studentBatch)) return false;
       // Filter by allowed clans (if the room restricts clans)
@@ -884,6 +915,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     upsertHostRoom({
       roomId,
       state: gameState,
+      arenaMode,
       selectedMap,
       durationMinutes,
       allowClanlessPlayers,
@@ -895,6 +927,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       lastUpdatedAt: Date.now(),
     });
   }, [
+    arenaMode,
     allowClanlessPlayers,
     durationMinutes,
     gameState,
@@ -915,6 +948,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     try {
       await transport.resumeRoom(room.roomId, {
         state: room.state,
+        arenaMode: room.arenaMode,
         allowClanlessPlayers: room.allowClanlessPlayers,
         schoolId: userSchoolId || undefined,
         teacherName: room.teacherName || teacherName || playerName,
@@ -926,6 +960,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       setRoomId(room.roomId);
       setSelectedMap(room.selectedMap);
       setDurationMinutes(room.durationMinutes);
+      setArenaMode(room.arenaMode === "open" ? "open" : "official");
       setAllowClanlessPlayers(room.allowClanlessPlayers);
       setSelectedQuestions(room.selectedQuestions);
       setSelectedBatches(room.selectedBatches || []);
@@ -1028,10 +1063,44 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
               </div>
             </div>
 
+            <div className="space-y-3">
+              <label className="block text-sm font-bold text-white">Arena Mode</label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={() => setArenaMode("official")}
+                  className={`rounded-xl border p-4 text-left transition ${
+                    arenaMode === "official"
+                      ? "border-emerald-400 bg-emerald-500/20"
+                      : "border-slate-700 bg-slate-800/50 hover:border-slate-600"
+                  }`}
+                >
+                  <p className="font-bold text-emerald-200">✅ Official Arena</p>
+                  <p className="mt-1 text-xs text-slate-300">Verified school/class match. Official rewards enabled.</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setArenaMode("open")}
+                  className={`rounded-xl border p-4 text-left transition ${
+                    arenaMode === "open"
+                      ? "border-cyan-400 bg-cyan-500/20"
+                      : "border-slate-700 bg-slate-800/50 hover:border-slate-600"
+                  }`}
+                >
+                  <p className="font-bold text-cyan-200">🌐 Open Arena</p>
+                  <p className="mt-1 text-xs text-slate-300">Cross-class / cross-school friendly. No official reward payout.</p>
+                </button>
+              </div>
+            </div>
+
             {/* Class Selection */}
             <div className="space-y-3">
               <label className="block text-sm font-bold text-white">Target Classes</label>
-              <p className="text-xs text-gray-400 -mt-1">Select one or more classes to compete against each other</p>
+              <p className="text-xs text-gray-400 -mt-1">
+                {arenaMode === "official"
+                  ? "Select one or more classes. Official Arena enforces these classes."
+                  : "Optional for Open Arena. Leave blank to allow broad join by room code."}
+              </p>
               {availableBatches.length > 0 ? (
                 <div className="space-y-2 max-h-48 overflow-y-auto rounded-xl border border-slate-700 bg-slate-900/60 p-3">
                   {availableBatches.map((batch) => {
@@ -1088,7 +1157,9 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                 <p className="text-xs text-gray-400">Only students from {selectedBatches[0] || 'the selected class'} can join this arena.</p>
               )}
               {selectedBatches.length === 0 && (
-                <p className="text-xs text-amber-400">Please select at least one class to continue.</p>
+                <p className="text-xs text-amber-400">
+                  {arenaMode === "official" ? "Please select at least one class for Official Arena." : "Open Arena with no class restriction."}
+                </p>
               )}
             </div>
 
@@ -1203,6 +1274,12 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                   <p className="text-white font-bold capitalize">{selectedMap}</p>
                 </div>
                 <div className="bg-slate-800/50 rounded-lg p-3">
+                  <p className="text-gray-400 text-xs mb-1">Mode</p>
+                  <p className={`font-bold ${arenaMode === "official" ? "text-emerald-300" : "text-cyan-300"}`}>
+                    {arenaMode === "official" ? "✅ Official Arena" : "🌐 Open Arena"}
+                  </p>
+                </div>
+                <div className="bg-slate-800/50 rounded-lg p-3">
                   <p className="text-gray-400 text-xs mb-1">Classes</p>
                   <p className="text-white font-bold">{selectedBatches.length > 0 ? selectedBatches.join(', ') : "Not selected"}</p>
                 </div>
@@ -1223,7 +1300,9 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                 <div className="bg-slate-800/50 rounded-lg p-3">
                   <p className="text-gray-400 text-xs mb-1">Access</p>
                   <p className="text-white font-bold">
-                    {allowClanlessPlayers ? "Clans + Independent agents" : "Clan members only"}
+                    {arenaMode === "official"
+                      ? (allowClanlessPlayers ? "Official classes · clans + independents" : "Official classes · clan members only")
+                      : (allowClanlessPlayers ? "Open join · clans + independents" : "Open join · clan members only")}
                   </p>
                 </div>
                 {selectedClanIds.length > 0 && (
@@ -1249,7 +1328,11 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
             </button>
             {!canCreateRoom && (
               <p className="text-xs text-amber-300 text-center">
-                {selectedBatches.length > 0 ? "Pick a scheduled start time before creating the arena." : "Select at least one class before creating the arena."}
+                {arenaMode === "open"
+                  ? "Pick a scheduled start time before creating the Open Arena."
+                  : (selectedBatches.length > 0
+                    ? "Pick a scheduled start time before creating the Official Arena."
+                    : "Select at least one class before creating the Official Arena.")}
               </p>
             )}
           </div>
@@ -1272,6 +1355,12 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
               <div className="text-left">
                 <span className="text-gray-400 text-xs uppercase tracking-wider block">Map</span>
                 <div className="text-sm font-bold text-cyan-400 capitalize">{selectedMap}</div>
+              </div>
+              <div className="text-left">
+                <span className="text-gray-400 text-xs uppercase tracking-wider block">Mode</span>
+                <div className={`text-sm font-bold ${arenaMode === "official" ? "text-emerald-300" : "text-cyan-300"}`}>
+                  {arenaMode === "official" ? "✅ Official" : "🌐 Open"}
+                </div>
               </div>
               <div className="text-left">
                 <span className="text-gray-400 text-xs uppercase tracking-wider block">Classes</span>
@@ -1429,6 +1518,12 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                         })()}
                         <div className="text-xs text-gray-400 space-y-1">
                           <p>
+                            Mode:{" "}
+                            <span className={room.arenaMode === "open" ? "text-cyan-300" : "text-emerald-300"}>
+                              {room.arenaMode === "open" ? "🌐 Open Arena" : "✅ Official Arena"}
+                            </span>
+                          </p>
+                          <p>
                             Map: <span className="text-white capitalize">{room.selectedMap}</span>
                           </p>
                           <p>
@@ -1472,7 +1567,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
               <div className="flex items-center justify-between">
                 <h2 className="font-heading text-xl text-white flex items-center gap-2">
                   <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
-                  Open Arenas
+                  Live Arenas
                 </h2>
                 <span className="text-xs text-gray-400">{filteredRooms.length} available</span>
               </div>
@@ -1511,6 +1606,12 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                           </div>
                         )}
                         <div className="text-xs text-gray-400 space-y-1">
+                          <p>
+                            Mode:{" "}
+                            <span className={room.arenaMode === "open" ? "text-cyan-300" : "text-emerald-300"}>
+                              {room.arenaMode === "open" ? "🌐 Open Arena" : "✅ Official Arena"}
+                            </span>
+                          </p>
                           <p>Teacher: <span className="text-white">{room.teacherName || "Teacher"}</span></p>
                           <p>Classes: <span className="text-white">{room.classCodes?.join(', ') || "—"}</span></p>
                           {room.scheduledStartAt && (
@@ -1543,6 +1644,9 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
 
               <div className="pt-3 border-t border-slate-700 space-y-2">
                 <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide">Join with Room Code</label>
+                <p className="text-xs text-slate-400">
+                  ✅ Official rooms enforce school/class eligibility. 🌐 Open rooms allow broader participation (no official payout).
+                </p>
                 <div className="flex gap-2">
                   <input
                     type="text"

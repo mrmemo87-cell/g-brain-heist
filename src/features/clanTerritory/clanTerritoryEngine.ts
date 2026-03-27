@@ -25,8 +25,11 @@ const generateZonesForMap = (mapId: MapId = "default"): Record<ZoneId, any> => {
 };
 
 export const INITIAL_STATE: ClanTerritoryGameState = {
+  arenaMode: "official",
   phase: "LOBBY",
   timer: 300, // 5 minutes default
+  officialSchoolId: undefined,
+  officialClassCodes: undefined,
   zones: generateZonesForMap("default"),
   players: {},
   clans: {},
@@ -86,6 +89,20 @@ export function clanTerritoryReducer(
     case "JOIN": {
       const { player } = action.payload;
       if (state.players[player.id]) return state; // Already joined
+
+      // Official arenas are school/class restricted by host configuration.
+      if (state.arenaMode === "official") {
+        if (!player.schoolId || (state.officialSchoolId && player.schoolId !== state.officialSchoolId)) {
+          console.log("[clanTerritoryEngine] JOIN rejected: school mismatch for official arena");
+          return state;
+        }
+        if (state.officialClassCodes && state.officialClassCodes.length > 0) {
+          if (!player.batch || !state.officialClassCodes.includes(player.batch)) {
+            console.log("[clanTerritoryEngine] JOIN rejected: class mismatch for official arena");
+            return state;
+          }
+        }
+      }
 
       // Filter by allowed clans if set
       if (state.allowedClanIds && state.allowedClanIds.length > 0) {
