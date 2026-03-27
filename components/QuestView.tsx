@@ -197,7 +197,8 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [isAssignmentLate, setIsAssignmentLate] = useState(false);
   const [lastCompletedAssignment, setLastCompletedAssignment] = useState<StudentAssignmentTask | null>(null);
   const [assignmentStartTime, setAssignmentStartTime] = useState<number | null>(null);
-  const [assignmentSubmissionState, setAssignmentSubmissionState] = useState<'idle' | 'submitting' | 'submitted'>('idle');
+  const [assignmentSubmissionState, setAssignmentSubmissionState] = useState<'idle' | 'finalizing' | 'failed' | 'submitted'>('idle');
+  const [assignmentSubmissionError, setAssignmentSubmissionError] = useState<string | null>(null);
   const [nextAction, setNextAction] = useState<(() => void) | null>(null);
   const [nextActionLabel, setNextActionLabel] = useState<string>('');
   const [freeformAnswer, setFreeformAnswer] = useState('');
@@ -598,6 +599,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     setMissionSummary(null);
     setTopicSummary(null);
     setAssignmentSubmissionState('idle');
+    setAssignmentSubmissionError(null);
     setAssignmentStartTime(null);
   };
 
@@ -860,59 +862,79 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialAssignment?.assignment_id]);
 
-  useEffect(() => {
-    const submitResult = async () => {
-      if (stage !== 'completed' || mode !== 'assignment' || !activeAssignment || assignmentSubmissionState !== 'idle') {
-        return;
-      }
+  const finalizeAssignmentSubmission = useCallback(async () => {
+    if (stage !== 'completed' || mode !== 'assignment' || !activeAssignment) {
+      return;
+    }
 
-      const totalQuestions = teacherQuestions.length;
-      const correctCount = score.correct;
-      const incorrectCount = Math.max(0, totalQuestions - correctCount);
-      const accuracyPercent = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
-      const missionTotal = Math.round(calculateMissionScore(questionScores));
-      const timeTakenSeconds = assignmentStartTime ? Math.max(0, Math.round((Date.now() - assignmentStartTime) / 1000)) : 0;
+    const totalQuestions = teacherQuestions.length;
+    const correctCount = score.correct;
+    const incorrectCount = Math.max(0, totalQuestions - correctCount);
+    const accuracyPercent = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+    const missionTotal = Math.round(calculateMissionScore(questionScores));
+    const timeTakenSeconds = assignmentStartTime ? Math.max(0, Math.round((Date.now() - assignmentStartTime) / 1000)) : 0;
 
+    setAssignmentSubmissionState('finalizing');
+    setAssignmentSubmissionError(null);
+
+    try {
+      const submissionResult = await GameService.submit_assignment_result({
+        assignmentId: activeAssignment.assignment_id,
+        correct: correctCount,
+        incorrect: incorrectCount,
+        accuracy: accuracyPercent,
+        score: missionTotal,
+        timeTakenSeconds,
+      });
+
+      // Check for assignment achievements after submission
       try {
-        setAssignmentSubmissionState('submitting');
-        await GameService.submit_assignment_result({
-          assignmentId: activeAssignment.assignment_id,
-          correct: correctCount,
-          incorrect: incorrectCount,
-          accuracy: accuracyPercent,
-          score: missionTotal,
-          timeTakenSeconds,
-        });
-        
-        // Check for assignment achievements after submission
-        try {
-          const user = await GameService.whoami();
-          if (user?.id) {
-            const newAchievements = await GameService.check_assignment_achievements(user.id);
-            if (newAchievements.length > 0) {
-              // Show achievement notification for each new achievement
-              newAchievements.forEach(ach => {
-                console.log(`🏆 Assignment Achievement Earned: ${ach.achievement_name}`);
-              });
-            }
+        const user = await GameService.whoami();
+        if (user?.id) {
+          const newAchievements = await GameService.check_assignment_achievements(user.id);
+          if (newAchievements.length > 0) {
+            // Show achievement notification for each new achievement
+            newAchievements.forEach(ach => {
+              console.log(`🏆 Assignment Achievement Earned: ${ach.achievement_name}`);
+            });
           }
-        } catch (achievementError) {
-          console.warn('Failed to check assignment achievements:', achievementError);
         }
-        
-        setAssignmentSubmissionState('submitted');
-        setLastCompletedAssignment(activeAssignment);
-        setActiveAssignment(null);
-        await refreshAssignment?.();
-        hydrateAssignment({ showLoading: true });
-      } catch (error) {
-        console.error('Failed to submit assignment result:', error);
-        setAssignmentSubmissionState('idle');
+      } catch (achievementError) {
+        console.warn('Failed to check assignment achievements:', achievementError);
       }
-    };
 
-    submitResult();
-  }, [stage, mode, activeAssignment, teacherQuestions.length, score.correct, questionScores, assignmentStartTime, assignmentSubmissionState]);
+      if (submissionResult.status === 'already_submitted') {
+        console.info('[QuestView] Assignment was already submitted on retry. Treating as success.');
+      }
+
+      setAssignmentSubmissionState('submitted');
+      setLastCompletedAssignment(activeAssignment);
+      setActiveAssignment(null);
+      await refreshAssignment?.();
+      hydrateAssignment({ showLoading: true });
+    } catch (error) {
+      console.error('Failed to submit assignment result:', error);
+      const message = error instanceof Error ? error.message : 'Submission failed. Please retry now.';
+      setAssignmentSubmissionError(message);
+      setAssignmentSubmissionState('failed');
+    }
+  }, [
+    stage,
+    mode,
+    activeAssignment,
+    teacherQuestions.length,
+    score.correct,
+    questionScores,
+    assignmentStartTime,
+    refreshAssignment,
+  ]);
+
+  useEffect(() => {
+    if (stage !== 'completed' || mode !== 'assignment' || !activeAssignment || assignmentSubmissionState !== 'idle') {
+      return;
+    }
+    void finalizeAssignmentSubmission();
+  }, [stage, mode, activeAssignment, assignmentSubmissionState, finalizeAssignmentSubmission]);
 
   const handleAnswerSubmit = async (option: string) => {
     if (answerResponse || isSubmitting) return;
@@ -1722,7 +1744,10 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
     const assignmentContext = mode === 'assignment' ? (activeAssignment || lastCompletedAssignment) : lastCompletedAssignment;
     const isAssignmentRun = Boolean(mode === 'assignment' || assignmentContext);
-    const isAssignmentSubmitting = mode === 'assignment' && assignmentSubmissionState === 'submitting';
+    const isAssignmentFinalizing = mode === 'assignment' && assignmentSubmissionState === 'finalizing';
+    const isAssignmentSubmissionFailed = mode === 'assignment' && assignmentSubmissionState === 'failed';
+    const isAssignmentSubmissionResolved = mode !== 'assignment' || assignmentSubmissionState === 'submitted';
+    const isAssignmentSubmissionBlocking = mode === 'assignment' && (assignmentSubmissionState === 'finalizing' || assignmentSubmissionState === 'failed');
     const displayedCorrectAnswers = missionOutcome
       ? (missionRunSummary?.correct_answers ?? missionOutcome.nodes_cleared)
       : score.correct;
@@ -1873,6 +1898,54 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               <p><span className="text-gray-400">Due:</span> {assignmentContext.due_at ? new Date(assignmentContext.due_at).toLocaleString() : 'No deadline'}</p>
             </div>
           )}
+          {mode === 'assignment' && (
+            <div className={`mb-6 rounded-xl border p-4 text-left ${
+              assignmentSubmissionState === 'submitted'
+                ? 'border-emerald-400/50 bg-emerald-500/10 text-emerald-100'
+                : assignmentSubmissionState === 'failed'
+                  ? 'border-red-400/60 bg-red-500/10 text-red-100'
+                  : 'border-amber-400/60 bg-amber-500/10 text-amber-100'
+            }`}>
+              {isAssignmentFinalizing && (
+                <>
+                  <p className="text-sm font-semibold uppercase tracking-wide">Finalizing submission…</p>
+                  <p className="mt-2 text-sm text-amber-100/90">
+                    Do not leave this page. We are submitting your assignment now.
+                  </p>
+                </>
+              )}
+              {isAssignmentSubmissionFailed && (
+                <>
+                  <p className="text-sm font-semibold uppercase tracking-wide">Submission failed — retry required</p>
+                  <p className="mt-2 text-sm text-red-100/90">
+                    Please do not leave this page. Your assignment is not submitted yet.
+                  </p>
+                  {assignmentSubmissionError && (
+                    <p className="mt-2 rounded bg-black/20 px-3 py-2 text-xs text-red-100/90">
+                      Error: {assignmentSubmissionError}
+                    </p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void finalizeAssignmentSubmission();
+                    }}
+                    className="mt-3 rounded-lg bg-red-500/25 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-red-100 transition hover:bg-red-500/35"
+                  >
+                    Retry submission now
+                  </button>
+                </>
+              )}
+              {assignmentSubmissionState === 'submitted' && (
+                <>
+                  <p className="text-sm font-semibold uppercase tracking-wide">Submission complete ✅</p>
+                  <p className="mt-2 text-sm text-emerald-100/90">
+                    Your assignment has been submitted successfully. You can safely continue.
+                  </p>
+                </>
+              )}
+            </div>
+          )}
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
             <button
@@ -1884,7 +1957,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               📤 Share Results
             </button>
             <button
-              disabled={isAssignmentSubmitting}
+              disabled={isAssignmentSubmissionBlocking || !isAssignmentSubmissionResolved}
               onClick={() => {
                 if (mode === 'assignment' || assignmentContext) {
                   setMode('practice');
@@ -1904,6 +1977,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                   loadSubjects();
                   setLastCompletedAssignment(null);
                   setAssignmentSubmissionState('idle');
+                  setAssignmentSubmissionError(null);
                   hydrateAssignment({ showLoading: true });
                 } else {
                   setStage('subject_selection');
@@ -1924,12 +1998,17 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                   loadSubjects();
                 }
               }}
-              className={`px-8 py-4 rounded-lg font-bold text-lg transition-all shadow-lg ${isAssignmentSubmitting ? 'opacity-60 cursor-not-allowed bg-gray-600 text-gray-300' : 'gradient-cyan hover:scale-105 active:scale-95 animate-pulse-glow'}`}
+              className={`px-8 py-4 rounded-lg font-bold text-lg transition-all shadow-lg ${
+                isAssignmentSubmissionBlocking || !isAssignmentSubmissionResolved
+                  ? 'opacity-60 cursor-not-allowed bg-gray-600 text-gray-300'
+                  : `gradient-cyan hover:scale-105 active:scale-95 ${mode === 'assignment' ? '' : 'animate-pulse-glow'}`
+              }`}
             >
-              {isAssignmentSubmitting ? 'Submitting...' : '🎯 Next Quest'}
+              {isAssignmentFinalizing ? 'Finalizing…' : isAssignmentSubmissionFailed ? 'Resolve submission first' : '🎯 Next Quest'}
             </button>
             <button
               onClick={onComplete}
+              disabled={isAssignmentSubmissionBlocking}
               className="px-8 py-4 rounded-lg font-bold text-lg bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 hover:scale-105 active:scale-95 transition-all shadow-lg"
             >
               ← Back to Dashboard
