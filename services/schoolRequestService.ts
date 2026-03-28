@@ -46,6 +46,8 @@ export interface SchoolRequestMessage {
   created_at?: string | null;
 }
 
+export type SchoolRequestViewerRole = 'admin' | 'applicant';
+
 const decodeTokenRole = (token?: string | null) => {
   if (!token) return null;
   const payload = token.split('.')[1];
@@ -63,10 +65,14 @@ const parseRequestResponse = (data: any): SchoolRequestResponse => {
     return { success: false, error: 'No response from server.' };
   }
 
-  if (data.success) {
+  const hasAcceptedRequestShape = Boolean(
+    data?.request_id || data?.requestId || (data?.status && !data?.error)
+  );
+
+  if (data.success || hasAcceptedRequestShape) {
     return {
       success: true,
-      message: data.message,
+      message: data.message ?? 'Your request has been submitted.',
       requestId: data.request_id ?? data.requestId,
       status: data.status ?? 'pending',
       suggestions: data.similar_schools ?? data.suggestions ?? [],
@@ -277,4 +283,68 @@ export const listSchoolRequestMessages = async (
   }
 
   return { success: true, messages: data ?? [] };
+};
+
+const SCHOOL_REQUEST_LAST_SEEN_PREFIX = 'school-request-last-seen:';
+
+const getSchoolRequestLastSeenKey = (requestId: string, viewerRole: SchoolRequestViewerRole) =>
+  `${SCHOOL_REQUEST_LAST_SEEN_PREFIX}${viewerRole}:${requestId}`;
+
+const safeLocalStorageGet = (key: string): string | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+const safeLocalStorageSet = (key: string, value: string) => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // Ignore storage failures (privacy mode, quota, etc.)
+  }
+};
+
+export const getSchoolRequestLastSeenAt = (
+  requestId: string,
+  viewerRole: SchoolRequestViewerRole
+): string | null => {
+  return safeLocalStorageGet(getSchoolRequestLastSeenKey(requestId, viewerRole));
+};
+
+export const markSchoolRequestThreadSeen = (
+  requestId: string,
+  viewerRole: SchoolRequestViewerRole,
+  seenAt = new Date().toISOString()
+) => {
+  safeLocalStorageSet(getSchoolRequestLastSeenKey(requestId, viewerRole), seenAt);
+};
+
+export const getUnreadSchoolRequestMessageCount = (
+  messages: SchoolRequestMessage[],
+  viewerRole: SchoolRequestViewerRole,
+  lastSeenAt: string | null
+): number => {
+  const lastSeenMs = lastSeenAt ? Date.parse(lastSeenAt) : 0;
+  const isAdminViewer = viewerRole === 'admin';
+
+  return messages.reduce((count, message) => {
+    const senderRole = (message.sender_role || '').toLowerCase();
+    const isIncomingForViewer = isAdminViewer ? senderRole !== 'admin' : senderRole === 'admin';
+    if (!isIncomingForViewer) return count;
+
+    if (!message.created_at) {
+      return count + 1;
+    }
+
+    const createdAtMs = Date.parse(message.created_at);
+    if (Number.isNaN(createdAtMs)) {
+      return count + 1;
+    }
+
+    return createdAtMs > lastSeenMs ? count + 1 : count;
+  }, 0);
 };

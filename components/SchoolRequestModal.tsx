@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import * as SchoolRequestService from '../services/schoolRequestService';
 import { supabase, type Session } from '../services/supabaseClient';
+import SchoolRequestConversation from './schoolRequests/SchoolRequestConversation';
 
 interface SchoolRequestModalProps {
   isOpen: boolean;
@@ -58,6 +59,7 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
   const [replySending, setReplySending] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [sessionChecked, setSessionChecked] = useState(false);
+  const [requestUnreadCounts, setRequestUnreadCounts] = useState<Record<string, number>>({});
 
   const isContactEmailValid = useMemo(() => /\S+@\S+\.\S+/.test(contactEmail.trim()), [contactEmail]);
   const isFormValid = useMemo(
@@ -90,6 +92,7 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
     setRequestMessages([]);
     setMessagesUnavailable(false);
     setReplyMessage('');
+    setRequestUnreadCounts({});
   };
 
   const handleClose = () => {
@@ -177,6 +180,24 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
 
     setRequests(result.requests);
     setSelectedRequestId(result.requests[0]?.id ?? null);
+
+    const unreadPairs = await Promise.all(
+      result.requests.map(async (request) => {
+        const threadResult = await SchoolRequestService.listSchoolRequestMessages(request.id);
+        if (!threadResult.success || threadResult.unavailable) {
+          return [request.id, 0] as const;
+        }
+        const lastSeenAt = SchoolRequestService.getSchoolRequestLastSeenAt(request.id, 'applicant');
+        const unreadCount = SchoolRequestService.getUnreadSchoolRequestMessageCount(
+          threadResult.messages,
+          'applicant',
+          lastSeenAt
+        );
+        return [request.id, unreadCount] as const;
+      })
+    );
+
+    setRequestUnreadCounts(Object.fromEntries(unreadPairs));
   }, []);
 
   const loadRequestMessages = useCallback(async (requestIdToLoad: string) => {
@@ -194,6 +215,9 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
 
     setRequestMessages(result.messages);
     setMessagesUnavailable(Boolean(result.unavailable));
+
+    SchoolRequestService.markSchoolRequestThreadSeen(requestIdToLoad, 'applicant');
+    setRequestUnreadCounts((prev) => ({ ...prev, [requestIdToLoad]: 0 }));
   }, []);
 
   const handleReply = async () => {
@@ -253,16 +277,16 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
 
   const suggestionButtons = suggestions.filter((suggestion) => suggestion?.name);
   const selectedRequest = requests.find((request) => request.id === selectedRequestId) ?? requests[0] ?? null;
+  const totalUnreadCount = useMemo(
+    () => Object.values(requestUnreadCounts).reduce((sum, count) => sum + count, 0),
+    [requestUnreadCounts]
+  );
   const latestAdminMessage = useMemo(() => {
     return [...requestMessages]
       .reverse()
       .find((threadMessage) => (threadMessage.sender_role || '').toLowerCase() === 'admin');
   }, [requestMessages]);
   const isAuthenticated = Boolean(session);
-  const formatSenderLabel = (senderRole?: string | null) => {
-    if (!senderRole) return 'Update';
-    return senderRole.toLowerCase() === 'admin' ? 'Admin' : 'You';
-  };
 
   if (!isOpen) return null;
   if (typeof document === 'undefined') return null;
@@ -305,13 +329,18 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
           <button
             type="button"
             onClick={() => setActiveView('applications')}
-            className={`rounded-full px-4 py-1 text-xs font-semibold ${
+            className={`relative rounded-full px-4 py-1 text-xs font-semibold ${
               activeView === 'applications'
                 ? 'bg-cyan-400 text-black'
                 : 'border border-white/10 text-white/70 hover:text-white'
             }`}
           >
             My applications
+            {totalUnreadCount > 0 && (
+              <span className="absolute -right-2 -top-2 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-lg">
+                {Math.min(totalUnreadCount, 99)}
+              </span>
+            )}
           </button>
         </div>
 
@@ -356,6 +385,11 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
                             'Pending'}
                         </span>
                       </div>
+                      {(requestUnreadCounts[request.id] ?? 0) > 0 && (
+                        <span className="mt-2 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-lg">
+                          {Math.min(requestUnreadCounts[request.id], 99)}
+                        </span>
+                      )}
                       {request.created_at && (
                         <p className="mt-1 text-xs text-slate-400">
                           Submitted {new Date(request.created_at).toLocaleDateString()}
@@ -416,22 +450,7 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
                         {messagesUnavailable ? 'No message history available.' : 'No messages yet.'}
                       </p>
                     ) : (
-                      <div className="mt-3 space-y-2">
-                        {requestMessages.map((threadMessage) => (
-                          <div
-                            key={threadMessage.id}
-                            className="rounded-lg border border-white/10 bg-black/40 p-3 text-sm text-slate-200"
-                          >
-                            <div className="flex items-center justify-between text-xs text-slate-400">
-                              <span>{formatSenderLabel(threadMessage.sender_role)}</span>
-                              {threadMessage.created_at && (
-                                <span>{new Date(threadMessage.created_at).toLocaleString()}</span>
-                              )}
-                            </div>
-                            <p className="mt-2 whitespace-pre-wrap">{threadMessage.message}</p>
-                          </div>
-                        ))}
-                      </div>
+                      <SchoolRequestConversation messages={requestMessages} viewerRole="applicant" />
                     )}
 
                     {selectedRequest.status === 'needs_more_info' && (
