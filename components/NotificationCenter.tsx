@@ -5,10 +5,11 @@ interface NotificationCenterProps {
   isOpen: boolean;
   onClose: () => void;
   onNavigate?: (view: 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher') => void;
+  onAction?: (notification: Notification) => void;
   userRole?: 'student' | 'teacher' | 'admin';
 }
 
-export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose, onNavigate, userRole = 'student' }) => {
+export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose, onNavigate, onAction, userRole = 'student' }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -100,6 +101,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
     const action = notification.action || NotificationService.getDefaultAction(notification.type);
     if (action?.view && onNavigate) {
       handleMarkAsRead(notification.id);
+      onAction?.(notification);
       onNavigate(action.view);
       onClose();
     }

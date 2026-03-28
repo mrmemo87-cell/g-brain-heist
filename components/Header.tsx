@@ -4,7 +4,7 @@ import { CoinIcon, XPIcon, APIcon, LogoutIcon, StreakIcon, GemIcon } from './ico
 import CoinAnimation from './CoinAnimation';
 import { audioService } from '../services/audioService';
 import { NotificationCenter } from './NotificationCenter';
-import { notificationService } from '../services/notificationService';
+import { notificationService, Notification } from '../services/notificationService';
 import { update_avatar, upload_avatar_file, update_username } from '../services/gameService';
 import { isAdmin } from '../services/adminService';
 import SettingsModal from './SettingsModal';
@@ -94,6 +94,7 @@ interface HeaderProps {
   onBackToDashboard?: () => void;
   onShowHelp?: () => void;
   onNavigate?: (view: 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'raids' | 'raid_admin') => void;
+  onNotificationAction?: (notification: Notification) => void;
   liteMode?: boolean;
   onToggleLiteMode?: () => void;
   onProfileAvatarChange?: (avatarUrl: string) => void;
@@ -103,7 +104,7 @@ interface HeaderProps {
   onOpenSchoolAdmin?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackToDashboard, onShowHelp, onNavigate, liteMode, onToggleLiteMode, onProfileAvatarChange, onProfileRefresh, isAdminMode, isSchoolAdmin, onOpenSchoolAdmin }) => {
+const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackToDashboard, onShowHelp, onNavigate, onNotificationAction, liteMode, onToggleLiteMode, onProfileAvatarChange, onProfileRefresh, isAdminMode, isSchoolAdmin, onOpenSchoolAdmin }) => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -809,6 +810,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
         isOpen={showNotifications}
         onClose={() => setShowNotifications(false)}
         onNavigate={onNavigate}
+        onAction={onNotificationAction}
         userRole={profile.role as 'student' | 'teacher' | 'admin' | undefined}
       />
     </>

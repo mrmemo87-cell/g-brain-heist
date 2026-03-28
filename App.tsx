@@ -21,7 +21,7 @@ import { isSchoolAdmin } from './services/schoolAdminService';
 import { audioService } from './services/audioService';
 import { aiHostService } from './services/aiHostService';
 import { fetchNextAnnouncement, markAnnouncementSeen } from './services/competitionService';
-import { notificationService } from './services/notificationService';
+import { notificationService, type Notification } from './services/notificationService';
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './services/banMessage';
 import { isEmailVerified } from './services/emailVerification';
 import EmailVerificationGate from './components/EmailVerificationGate';
@@ -142,6 +142,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [savingAcademic, setSavingAcademic] = useState(false);
   const [academicError, setAcademicError] = useState<string | null>(null);
   const [attackAlert, setAttackAlert] = useState(false);
+  const [pvpFocusTargetUserId, setPvpFocusTargetUserId] = useState<string | null>(null);
   const attackAlertTimeoutRef = useRef<number | null>(null);
   const lastRewardedLevelRef = useRef<number | null>(null);
   const cachedDataLoadedRef = useRef(false);
@@ -269,6 +270,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }, []);
 
   const handleViewChange = (nextView: typeof view) => {
+    if (nextView !== 'pvp' && pvpFocusTargetUserId) {
+      setPvpFocusTargetUserId(null);
+    }
     // School admin is a formal account — only allow admin/school views
     if (isSchoolAdminRole) {
       const allowedSchoolAdminViews = ['school_admin', 'admissions', 'cambridge', 'ielts'];
@@ -333,6 +337,16 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     }
     setView(nextView);
   };
+
+  const handleNotificationAction = useCallback((notification: Notification) => {
+    if (notification.type !== 'revenge_available') return;
+
+    const targetIdFromData = typeof notification.data?.target_id === 'string'
+      ? notification.data.target_id
+      : null;
+
+    setPvpFocusTargetUserId(targetIdFromData);
+  }, []);
 
   const removeToast = (id: number) => {
     setToasts((prevToasts: ToastMessage[]) => prevToasts.filter((toast: ToastMessage) => toast.id !== id));
@@ -1620,7 +1634,15 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               />
             );
         case 'pvp':
-            return renderLazy(<PvPView onComplete={handleViewComplete} onGrantReward={handleGrantReward} profile={profile} addToast={addToast} />);
+            return renderLazy(
+              <PvPView
+                onComplete={handleViewComplete}
+                onGrantReward={handleGrantReward}
+                profile={profile}
+                focusTargetUserId={pvpFocusTargetUserId}
+                addToast={addToast}
+              />
+            );
         case 'shop':
             return renderLazy(
               <ShopView
@@ -2030,6 +2052,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               onBackToDashboard={() => handleViewChange('dashboard')}
               onShowHelp={() => setShowHelp(true)}
               onNavigate={(targetView) => handleViewChange(targetView)}
+              onNotificationAction={handleNotificationAction}
               liteMode={isLiteMode}
               onToggleLiteMode={toggleLightMode}
               onProfileAvatarChange={(avatarUrl) => setProfile((p) => p ? { ...p, avatar_url: avatarUrl } : p)}
