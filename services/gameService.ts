@@ -4854,10 +4854,14 @@ export const achievements_list = async (): Promise<Achievement[]> => {
     try {
         const { data: assignmentResults, error: assignmentError } = await supabase
             .from('student_assignment_results')
-            .select('id, accuracy, completed_at', { count: 'exact', head: false })
+            // Only fetch the column we use to avoid 400s on older schemas
+            // where optional columns may be missing.
+            .select('accuracy', { count: 'exact', head: false })
             .eq('student_id', user.id);
 
-        if (!assignmentError && assignmentResults) {
+        if (assignmentError) {
+            console.warn('Could not fetch assignment results for achievements:', assignmentError.message);
+        } else if (assignmentResults) {
             assignmentsCompleted = assignmentResults.length;
             perfectScores = assignmentResults.filter((r: any) => r.accuracy === 100).length;
         }
