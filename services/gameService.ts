@@ -5465,21 +5465,29 @@ export const create_assignment = async (
     return assignment;
 };
 
-export const get_teacher_assignments = async (): Promise<TeacherAssignmentSummary[]> => {
-    const teacher = await get_teacher_profile();
-    if (!teacher) throw new Error('User is not a teacher');
+export const get_teacher_assignments = async (teacherId?: string): Promise<TeacherAssignmentSummary[]> => {
+    let resolvedTeacherId = teacherId;
+    if (!resolvedTeacherId) {
+        const teacher = await get_teacher_profile();
+        if (!teacher) throw new Error('User is not a teacher');
+        resolvedTeacherId = teacher.id;
+    }
 
-    const { data, error } = await rpcGetAssignmentsForTeacher({ p_teacher_id: teacher.id });
+    const { data, error } = await rpcGetAssignmentsForTeacher({ p_teacher_id: resolvedTeacherId });
     if (error) throw new Error(error.message || 'Failed to load assignments');
 
     return (data as TeacherAssignmentSummary[]) || [];
 };
 
-export const get_students_for_assignment = async (): Promise<StudentForAssignment[]> => {
-    const teacher = await get_teacher_profile();
-    if (!teacher) throw new Error('User is not a teacher');
+export const get_students_for_assignment = async (teacherId?: string): Promise<StudentForAssignment[]> => {
+    let resolvedTeacherId = teacherId;
+    if (!resolvedTeacherId) {
+        const teacher = await get_teacher_profile();
+        if (!teacher) throw new Error('User is not a teacher');
+        resolvedTeacherId = teacher.id;
+    }
 
-    const { data, error } = await rpcGetStudentsForAssignment({ p_teacher_id: teacher.id });
+    const { data, error } = await rpcGetStudentsForAssignment({ p_teacher_id: resolvedTeacherId });
     
     if (error) {
         console.error('RPC error getting students:', error);
