@@ -174,11 +174,26 @@ const checkUsersGemstonesColumn = async (): Promise<boolean> => {
   return usersGemstonesColumnSupported;
 };
 
-const shouldUseClanRewardFallback = (message: string): boolean => {
-  const normalized = message.toLowerCase();
-  return normalized.includes("rpc_claim_clan_territory_reward")
-    || normalized.includes("function xp_status")
-    || normalized.includes("does not exist");
+type SupabaseRpcErrorLike = {
+  code?: string;
+  message?: string;
+  details?: string;
+  hint?: string;
+};
+
+const shouldUseClanRewardFallback = (error: SupabaseRpcErrorLike): boolean => {
+  const message = (error.message ?? "").toLowerCase();
+  const details = (error.details ?? "").toLowerCase();
+  const hint = (error.hint ?? "").toLowerCase();
+  const combined = `${message} ${details} ${hint}`;
+  const code = error.code ?? "";
+
+  const missingCanonicalRpc =
+    (message.includes("rpc_claim_clan_territory_reward") && combined.includes("does not exist"))
+    || message.includes("could not find the function public.rpc_claim_clan_territory_reward")
+    || (code === "PGRST202" && combined.includes("rpc_claim_clan_territory_reward"));
+
+  return missingCanonicalRpc;
 };
 
 const fallbackClaimClanTerritoryReward = async (params: {
@@ -190,7 +205,12 @@ const fallbackClaimClanTerritoryReward = async (params: {
   coins: number;
   gemstones: number;
   idempotencyKey: string;
+  reason: "missing_canonical_rpc";
 }) => {
+  if (params.reason !== "missing_canonical_rpc") {
+    throw new ApiError("RPC_ERROR", "Unsafe fallback path blocked", 502);
+  }
+
   const supportsGemstones = await checkUsersGemstonesColumn();
   const gemstonesDelta = supportsGemstones ? params.gemstones : 0;
 
@@ -989,18 +1009,56 @@ const handlers: Record<string, Handler> = {
         p_idempotency_key: idempotencyKey,
       });
       if (error) {
-        if (shouldUseClanRewardFallback(error.message)) {
-          const fallbackData = await fallbackClaimClanTerritoryReward({
+        console.error("[bh_api] clan reward claim primary RPC failed", {
+          userId: student.userId,
+          eventId,
+          roomId,
+          arenaMode,
+          idempotencyKey,
+          rpcError: {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+          },
+        });
+
+        if (shouldUseClanRewardFallback(error)) {
+          console.warn("[bh_api] clan reward claim entering fallback", {
             userId: student.userId,
-            roomId,
             eventId,
+            roomId,
             arenaMode,
-            xp,
-            coins,
-            gemstones,
             idempotencyKey,
+            reason: "missing_canonical_rpc",
           });
-          return sendSuccess(fallbackData);
+
+          try {
+            const fallbackData = await fallbackClaimClanTerritoryReward({
+              userId: student.userId,
+              roomId,
+              eventId,
+              arenaMode,
+              xp,
+              coins,
+              gemstones,
+              idempotencyKey,
+              reason: "missing_canonical_rpc",
+            });
+            return sendSuccess(fallbackData);
+          } catch (fallbackError) {
+            console.error("[bh_api] clan reward claim fallback failed", {
+              userId: student.userId,
+              eventId,
+              roomId,
+              arenaMode,
+              idempotencyKey,
+              fallbackError: fallbackError instanceof Error
+                ? { name: fallbackError.name, message: fallbackError.message }
+                : fallbackError,
+            });
+            throw fallbackError;
+          }
         }
         throw new ApiError("RPC_ERROR", error.message, 502);
       }
