@@ -1036,22 +1036,36 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                         if (prev.some((msg) => msg.id === newRow.id)) {
                             return prev;
                         }
+
                         const fallbackName =
                             newRow.username ||
                             (newRow.user_id ? userLookupRef.current[newRow.user_id] : undefined) ||
                             (newRow.user_id === profile.id ? profile.username : undefined) ||
                             'Unknown';
-                        return [
-                            ...prev,
-                            {
-                                id: newRow.id,
-                                user: fallbackName,
-                                message: newRow.message,
-                                created_at: 'Just now',
-                                is_self: newRow.user_id === profile.id,
-                                user_id: newRow.user_id,
-                            },
-                        ];
+
+                        const normalizedMessage: ChatMessage = {
+                            id: newRow.id,
+                            user: fallbackName,
+                            message: newRow.message,
+                            created_at: 'Just now',
+                            is_self: newRow.user_id === profile.id,
+                            user_id: newRow.user_id,
+                        };
+
+                        const optimisticIndex = prev.findIndex((msg) =>
+                            msg.id.startsWith('temp_') &&
+                            msg.is_self &&
+                            msg.user_id === newRow.user_id &&
+                            msg.message === newRow.message
+                        );
+
+                        if (optimisticIndex >= 0) {
+                            const next = [...prev];
+                            next[optimisticIndex] = normalizedMessage;
+                            return next;
+                        }
+
+                        return [...prev, normalizedMessage];
                     });
                 }
             )
@@ -1099,7 +1113,17 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
         try {
             const sentMessage = await GameService.clan_chat_post(newMessage, clanId);
             const mergedMessage: ChatMessage = { ...sentMessage, user_id: profile.id };
-            setMessages(prev => prev.map(m => m.id === tempId ? mergedMessage : m));
+            setMessages(prev => {
+                const replaced = prev.map(m => m.id === tempId ? mergedMessage : m);
+                const deduped: ChatMessage[] = [];
+                const seen = new Set<string>();
+                for (const msg of replaced) {
+                    if (seen.has(msg.id)) continue;
+                    seen.add(msg.id);
+                    deduped.push(msg);
+                }
+                return deduped;
+            });
         } catch {
             addToast("Failed to send message.", "error");
             setMessages(prev => prev.filter(m => m.id !== tempId));
