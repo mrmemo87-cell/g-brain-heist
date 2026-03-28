@@ -61,6 +61,9 @@ declare
   defender_username text;
   
 begin
+  -- Allow trusted RPC-level XP/level writes under trigger hardening.
+  perform set_config('app.allow_xp_level_write', '1', true);
+
   if p_request_id is not null then
     select response
     into v_existing_response
