@@ -1740,7 +1740,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               playerName={profile?.username || 'Agent'}
               clanId={profile?.clan_id}
               clanName={profile?.clan_name}
-              onRefreshProfile={startCriticalBoot}
+              // Keep Clan Territory mounted during debrief reward sync (avoid full critical boot remount).
+              onRefreshProfile={refreshProfile}
               onGoToClan={() => handleViewChange('clan')}
             />
           );
