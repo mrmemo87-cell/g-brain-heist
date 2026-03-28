@@ -104,8 +104,8 @@ const ItemCard: React.FC<{ item: InventoryItem & any, onActivate: (inv_id: strin
         )}
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center rounded-xl bg-black/30 border border-white/5">
+      <div className="flex items-start gap-4">
+        <div className="w-32 h-32 sm:w-36 sm:h-36 flex shrink-0 items-center justify-center rounded-xl">
             {getItemIcon(item)}
           </div>
         <div className="flex-1 min-w-0">
