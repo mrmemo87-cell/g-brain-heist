@@ -1887,7 +1887,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
             return (
               <main className="mt-6 space-y-6">
-
+                {/* Join School Card - place directly under header for student dashboard visibility */}
+                {profile && !hasSchool && (
+                  <JoinSchoolCard onJoined={handleJoinSchoolSuccess} />
+                )}
                 <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
                   {/* Left Column */}
                   <div className="space-y-6 lg:col-span-4">
@@ -1935,10 +1938,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                       />
                     ) : (
                       <SectionPlaceholder title="Mission Console" lines={4} />
-                    )}
-                    {/* Join School Card - replaces the annoying banner */}
-                    {profile && !hasSchool && (
-                      <JoinSchoolCard onJoined={handleJoinSchoolSuccess} />
                     )}
                     {(!profile || isStudentRole) && renderTasksSection()}
                   </div>
