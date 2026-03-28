@@ -3073,6 +3073,14 @@ export const raid_attack = async (
         if (progress.daily_pvp_wins === 1) {
             incrementWeeklyTaskCompleted();
         }
+
+        // Keep PvP achievements in sync immediately after a win so
+        // unlock state is reflected without waiting for another action.
+        try {
+            await check_achievements();
+        } catch (achError) {
+            console.warn('Failed to check PvP achievements after raid win:', achError);
+        }
     }
 
     return mockApiCall(response);
