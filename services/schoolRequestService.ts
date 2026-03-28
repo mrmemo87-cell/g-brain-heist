@@ -235,9 +235,11 @@ export const reviewSchoolRequest = async (
 
 export const sendSchoolRequestMessage = async (
   requestId: string,
-  message: string
+  message: string,
+  senderRole: 'applicant' | 'admin' = 'applicant'
 ): Promise<{ success: boolean; error?: string }> => {
-  const { error } = await supabase.rpc('school_request_reply', {
+  const rpcName = senderRole === 'admin' ? 'admin_school_request_need_more_info' : 'school_request_reply';
+  const { error } = await supabase.rpc(rpcName, {
     p_request_id: requestId,
     p_message: message,
   });

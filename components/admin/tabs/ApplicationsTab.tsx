@@ -90,7 +90,7 @@ const ApplicationsTab: React.FC = () => {
     if (!draft) return;
 
     setReplySendingByRequestId((prev) => ({ ...prev, [requestId]: true }));
-    const result = await SchoolRequestService.sendSchoolRequestMessage(requestId, draft);
+    const result = await SchoolRequestService.sendSchoolRequestMessage(requestId, draft, 'admin');
     setReplySendingByRequestId((prev) => ({ ...prev, [requestId]: false }));
 
     if (!result.success) {
