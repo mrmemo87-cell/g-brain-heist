@@ -122,3 +122,59 @@ test('clan territory reward claim is client-direct and uses authenticated actor 
     'clan territory claim rpc must be invokable by authenticated clients',
   );
 });
+
+test('task reward claim is client-direct rpc and does not mutate rewards in TypeScript', () => {
+  const bhApi = read('supabase/functions/bh_api/index.ts');
+  const gameService = read('services/gameService.ts');
+  const taskClaimMigration = read('supabase/migrations/20260328130000_task_claim_rpc_client_safe.sql');
+  const taskClaimFnMatch = gameService.match(/export const task_claim[\s\S]*?^};$/m);
+  const taskClaimFn = taskClaimFnMatch?.[0] ?? '';
+
+  assert.doesNotMatch(
+    bhApi,
+    /"tasks\/claim"\s*:/i,
+    'bh_api must not expose tasks/claim route',
+  );
+
+  assert.doesNotMatch(
+    gameService,
+    /supabase\.functions\.invoke\(\s*['"]bh_api['"]/i,
+    'task claim flow must not invoke bh_api edge function',
+  );
+
+  expectPattern(
+    gameService,
+    /supabase\.rpc\(\s*['"]rpc_claim_task_reward['"]/i,
+    'task claim flow must call rpc_claim_task_reward directly',
+  );
+
+  assert.doesNotMatch(
+    taskClaimFn,
+    /\.from\(['"]users['"]\)\.update\(/i,
+    'task_claim function must not manually mutate user rewards in TypeScript',
+  );
+
+  expectPattern(
+    taskClaimMigration,
+    /v_user_id\s+uuid\s*:=\s*auth\.uid\(\)/i,
+    'task claim rpc must derive actor from auth.uid()',
+  );
+
+  assert.doesNotMatch(
+    taskClaimMigration,
+    /if\s+coalesce\(auth\.role\(\),\s*''\)\s*<>\s*'service_role'/i,
+    'task claim rpc must not enforce service_role-only runtime guard',
+  );
+
+  expectPattern(
+    taskClaimMigration,
+    /grant execute on function public\.rpc_claim_task_reward\(text, text, int, int, int, text\) to authenticated;/i,
+    'task claim rpc must be invokable by authenticated clients',
+  );
+
+  expectPattern(
+    taskClaimMigration,
+    /v_event_id\s*:=\s*'task:'\s*\|\|\s*p_task_id\s*\|\|\s*':'\s*\|\|\s*v_period_key/i,
+    'task claim rpc must force canonical event id instead of trusting caller input',
+  );
+});

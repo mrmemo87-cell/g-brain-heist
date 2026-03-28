@@ -2190,19 +2190,16 @@ export const task_claim = async (task_id: string): Promise<{ xp: number; coins: 
     throw new Error('No reward defined for this task');
   }
 
-  const { data: payload, error } = await supabase.functions.invoke('bh_api', {
-    body: { task_id },
-    headers: {
-      'x-bh-api-route': 'tasks/claim',
-    },
+  const { data: payload, error } = await supabase.rpc('rpc_claim_task_reward', {
+    p_task_id: task_id,
   });
 
-  if (error || !payload?.success) {
-    const message = payload?.error?.message || error?.message || 'Failed to claim task reward';
+  if (error || !payload) {
+    const message = error?.message || 'Failed to claim task reward';
     throw new Error(message);
   }
 
-  const reward = payload?.data?.reward;
+  const reward = payload?.reward;
   if (!reward) {
     return task.reward;
   }
