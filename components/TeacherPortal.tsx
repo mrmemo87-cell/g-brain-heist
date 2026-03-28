@@ -613,9 +613,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setAssignmentQuestionIds([]);
   }, [assignmentSubject]);
 
-  const loadAssignments = async () => {
+  const loadAssignments = async (teacherId?: string) => {
     try {
-      const rows = await GameService.get_teacher_assignments();
+      const rows = await GameService.get_teacher_assignments(teacherId);
       setAssignments(rows);
     } catch (error) {
       console.error('Error loading assignments:', error);
@@ -2542,41 +2542,60 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       setLoading(true);
       const teacherProfile = await GameService.get_teacher_profile();
       
+      let teacherId: string;
       if (!teacherProfile) {
         // User is not a teacher yet, create profile
         const newTeacher = await GameService.create_teacher_profile();
         setTeacher(newTeacher);
+        teacherId = newTeacher.id;
       } else {
         setTeacher(teacherProfile);
+        teacherId = teacherProfile.id;
       }
 
-      // Load teacher's assigned classes
-      try {
-        const classes = await SchoolAdminService.getTeacherAssignedClasses(profile.id);
+      // Run independent startup data fetches in parallel to reduce blocking time
+      const [classesResult, questionsResult, studentsResult, assignmentsResult] = await Promise.allSettled([
+        SchoolAdminService.getTeacherAssignedClasses(profile.id),
+        GameService.get_all_questions(),
+        GameService.get_students_for_assignment(teacherId),
+        GameService.get_teacher_assignments(teacherId),
+      ]);
+
+      if (classesResult.status === 'fulfilled') {
+        const classes = classesResult.value;
         setAssignedClasses(classes);
         setTeacherHasClassAssignments(classes.length > 0);
         console.log('Loaded assigned classes:', classes);
-      } catch (classError) {
-        console.error('Error loading assigned classes:', classError);
+      } else {
+        console.error('Error loading assigned classes:', classesResult.reason);
         setAssignedClasses([]);
         setTeacherHasClassAssignments(false);
       }
 
-      // Load ALL questions from global bank (not just teacher's own)
-      // Content = shared: Teachers see all questions from all schools
-      const allQuestions = await GameService.get_all_questions();
-      setQuestions(allQuestions);
-      
-      try {
-        const students = await GameService.get_students_for_assignment();
+      if (questionsResult.status === 'fulfilled') {
+        // Load ALL questions from global bank (not just teacher's own)
+        // Content = shared: Teachers see all questions from all schools
+        setQuestions(questionsResult.value);
+      } else {
+        console.error('Error loading global question bank:', questionsResult.reason);
+        setQuestions([]);
+      }
+
+      if (studentsResult.status === 'fulfilled') {
+        const students = studentsResult.value;
         console.log('Loaded students:', students);
         setAvailableStudents(students);
-      } catch (studentError) {
-        console.error('Error loading students:', studentError);
+      } else {
+        console.error('Error loading students:', studentsResult.reason);
         setAvailableStudents([]);
       }
-      
-      await loadAssignments();
+
+      if (assignmentsResult.status === 'fulfilled') {
+        setAssignments(assignmentsResult.value);
+      } else {
+        console.error('Error loading assignments:', assignmentsResult.reason);
+        setAssignments([]);
+      }
     } catch (error) {
       console.error('Error loading teacher data:', error);
     } finally {
