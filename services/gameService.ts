@@ -1984,7 +1984,7 @@ export const tasks_list = async (): Promise<Task[]> => {
     weekStart.setDate(weekStart.getDate() - dayOfWeek);
     weekStart.setHours(0, 0, 0, 0);
     
-    // Query canonical quest completions from quest_runs first (Quest Mode 2.0).
+    // Query canonical quest completions from quest_runs (Quest Mode 2.0).
     const { count: completedRunsCount, error: completedRunsError } = await supabase
       .from('quest_runs')
       .select('id', { count: 'exact', head: true })
@@ -1994,36 +1994,32 @@ export const tasks_list = async (): Promise<Task[]> => {
       .lte('completed_at', todayEnd.toISOString());
 
     // Backward compatibility: older builds recorded quest completion in activities.
-    if (completedRunsError || completedRunsCount === null) {
-      const { data: questData } = await supabase
-        .from('activities')
-        .select('id')
-        .eq('actor_id', user.id)
-        .eq('kind', 'quest_complete')
-        .gte('created_at', todayStart.toISOString())
-        .lte('created_at', todayEnd.toISOString());
+    const { data: questData } = await supabase
+      .from('activities')
+      .select('id')
+      .eq('actor_id', user.id)
+      .eq('kind', 'quest_complete')
+      .gte('created_at', todayStart.toISOString())
+      .lte('created_at', todayEnd.toISOString());
 
-      dailyQuestsCompleted = questData?.length || 0;
-    } else {
-      dailyQuestsCompleted = completedRunsCount || 0;
-    }
+    // Fallback source: derive completed quests from teacher-system quest sessions.
+    const { data: questSessionRows } = await supabase
+      .from('question_attempts')
+      .select('quest_session_id')
+      .eq('student_id', user.id)
+      .gte('created_at', todayStart.toISOString())
+      .lte('created_at', todayEnd.toISOString())
+      .not('quest_session_id', 'is', null);
 
-    // Fallback: derive completed quests from teacher-system quest sessions when
-    // activity and quest-run completion rows are both unavailable.
-    if (dailyQuestsCompleted === 0) {
-      const { data: questSessionRows } = await supabase
-        .from('question_attempts')
-        .select('quest_session_id')
-        .eq('student_id', user.id)
-        .gte('created_at', todayStart.toISOString())
-        .lte('created_at', todayEnd.toISOString())
-        .not('quest_session_id', 'is', null);
+    const uniqueQuestSessions = new Set((questSessionRows || [])
+      .map((row: any) => row.quest_session_id)
+      .filter(Boolean));
 
-      const uniqueQuestSessions = new Set((questSessionRows || [])
-        .map((row: any) => row.quest_session_id)
-        .filter(Boolean));
-      dailyQuestsCompleted = uniqueQuestSessions.size;
-    }
+    // Use the strongest signal to avoid undercounting across mixed quest systems.
+    const questRunsCompleted = completedRunsError || completedRunsCount === null ? 0 : completedRunsCount;
+    const legacyActivityCompletions = questData?.length || 0;
+    const sessionDerivedCompletions = uniqueQuestSessions.size;
+    dailyQuestsCompleted = Math.max(questRunsCompleted, legacyActivityCompletions, sessionDerivedCompletions);
     
     // Query database for today's PvP wins
     // Canonical win events are `pvp_win`; keep `attack_success` as a compatibility
@@ -2145,6 +2141,11 @@ export const tasks_list = async (): Promise<Task[]> => {
   const allClaimedDailyTasks = [...new Set([...claimedDailyTasks, ...claimedDailyFromDb, ...legacyClaimedTasks])];
   const allClaimedWeeklyTasks = [...new Set([...claimedWeeklyTasks, ...claimedWeeklyFromDb])];
   
+  const completedUnclaimedDailyTasks = [
+    dailyQuestsCompleted >= 3 && !allClaimedDailyTasks.includes('task_d1'),
+    dailyPvpWins >= 1 && !allClaimedDailyTasks.includes('task_d2'),
+  ].filter(Boolean).length;
+
   const tasks: Task[] = [
     {
       id: 'task_d1',
@@ -2172,7 +2173,7 @@ export const tasks_list = async (): Promise<Task[]> => {
       id: 'task_w1',
       title: 'Complete 15 Daily Tasks this week',
       kind: 'weekly',
-      progress: weeklyTasksCompleted,
+      progress: weeklyTasksCompleted + completedUnclaimedDailyTasks,
       target: 15,
       reward_preview: '500 XP, 400 Coins, +1 Item Crate, +5 Gemstones',
       expires_at: weeklyExpiry,
@@ -4818,13 +4819,21 @@ export const achievements_list = async (): Promise<Achievement[]> => {
         .eq('actor_id', user.id)
         .eq('kind', 'quest_complete');
 
+    const { data: questRunsCompleted } = await supabase
+        .from('quest_runs')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('status', 'completed');
+
     const { data: itemsPurchased } = await supabase
         .from('activities')
         .select('id', { count: 'exact', head: true })
         .eq('actor_id', user.id)
         .eq('kind', 'shop_purchase');
 
-    const questCount = (questsCompleted as any)?.count || 0;
+    const legacyQuestCount = (questsCompleted as any)?.count || 0;
+    const questRunsCount = (questRunsCompleted as any)?.count || 0;
+    const questCount = Math.max(legacyQuestCount, questRunsCount);
     const purchaseCount = (itemsPurchased as any)?.count || 0;
 
     // Calculate coins earned (current + spent)
