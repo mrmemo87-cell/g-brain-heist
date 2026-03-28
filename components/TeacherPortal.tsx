@@ -7,6 +7,7 @@ import * as AuthService from '../services/authService';
 import * as SchoolAdminService from '../services/schoolAdminService';
 import { supabase } from '../services/supabaseClient';
 import BackButton from './BackButton';
+import SettingsModal from './SettingsModal';
 import DiagramBuilder from './geometry/DiagramBuilder';
 import QuestionBank from './teacher/QuestionBank';
 import '../src/styles/teacher-theme.css';
@@ -95,8 +96,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [teacherHasClassAssignments, setTeacherHasClassAssignments] = useState(false);
   const [selectedClassFilter, setSelectedClassFilter] = useState<string>('all');
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '/BRAINS.svg');
-  const [updatingAvatar, setUpdatingAvatar] = useState(false);
-  const avatarInputRef = useRef<HTMLInputElement | null>(null);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState<string>(profile.avatar_url || '');
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarUploadError, setAvatarUploadError] = useState<string | null>(null);
+  const [avatarUploadSuccess, setAvatarUploadSuccess] = useState(false);
 
   // Question form state
   const [questionText, setQuestionText] = useState('');
@@ -121,24 +125,65 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   useEffect(() => {
     setAvatarUrl(profile.avatar_url || '/BRAINS.svg');
+    setSelectedAvatar(profile.avatar_url || '');
   }, [profile.avatar_url]);
+
+  const avatarPresets = [
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Shadow',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Cyber',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Ghost',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Matrix',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Glitch',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Hack'
+  ];
+
+  const applyAvatarChange = async (avatar: string) => {
+    try {
+      const updatedProfile = await GameService.update_avatar(avatar);
+      const nextAvatar = updatedProfile.avatar_url || avatar;
+      setAvatarUrl(nextAvatar);
+      setSelectedAvatar(nextAvatar);
+      setAvatarUploadSuccess(true);
+    } catch (error: any) {
+      console.error('Failed to apply avatar change from teacher portal:', error);
+      setAvatarUploadError(error?.message || 'Unable to update profile picture.');
+      throw error;
+    }
+  };
+
+  const handleAvatarSelect = async (avatar: string) => {
+    if (uploadingAvatar) return;
+    setUploadingAvatar(true);
+    setAvatarUploadError(null);
+    try {
+      await applyAvatarChange(avatar);
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || updatingAvatar) return;
-    setUpdatingAvatar(true);
+    if (!file || uploadingAvatar) return;
+    setUploadingAvatar(true);
+    setAvatarUploadError(null);
     try {
       const uploadedUrl = await GameService.upload_avatar_file(file);
-      const updated = await GameService.update_avatar(uploadedUrl);
-      setAvatarUrl(updated.avatar_url || uploadedUrl);
-      brainsAlert('Profile picture updated.', 'success');
+      await applyAvatarChange(uploadedUrl);
     } catch (error: any) {
-      console.error('Failed to update avatar from teacher portal:', error);
-      brainsAlert(error?.message || 'Unable to update profile picture.', 'error');
+      console.error('Failed to upload avatar from teacher portal:', error);
+      setAvatarUploadError(error?.message || 'Unable to upload profile picture.');
     } finally {
-      setUpdatingAvatar(false);
+      setUploadingAvatar(false);
       event.target.value = '';
     }
+  };
+
+  const handleUsernameChange = async (newUsername: string) => {
+    await GameService.update_username(newUsername);
+    brainsAlert('Username updated.', 'success');
   };
 
   // Assignment state
@@ -7763,20 +7808,18 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           <div className="flex items-center gap-1.5">
             <button
               type="button"
-              onClick={() => avatarInputRef.current?.click()}
-              disabled={updatingAvatar}
+              onClick={() => setShowSettingsModal(true)}
               className="flex items-center gap-1.5 rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-2 py-1.5 text-xs font-semibold text-cyan-100 transition-all hover:border-cyan-300 hover:bg-cyan-500/20 disabled:opacity-60"
-              title="Change profile picture"
+              title="Open settings"
             >
               <span>⚙️</span>
-              <span className="hidden sm:inline">{updatingAvatar ? 'Updating...' : 'Settings'}</span>
+              <span className="hidden sm:inline">Settings</span>
             </button>
             <button
               type="button"
-              onClick={() => avatarInputRef.current?.click()}
-              disabled={updatingAvatar}
+              onClick={() => setShowSettingsModal(true)}
               className="rounded-full border-2 border-pink-500/80 p-0.5 shadow-[0_0_20px_rgba(236,72,153,0.35)] transition-all hover:border-pink-300 disabled:opacity-60"
-              title={`${profile.username} avatar`}
+              title={`${profile.username} settings`}
             >
               <img
                 src={avatarUrl}
@@ -7784,13 +7827,6 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 className="h-9 w-9 rounded-full object-cover"
               />
             </button>
-            <input
-              ref={avatarInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleAvatarUpload}
-            />
             {isSchoolAdmin && onOpenSchoolAdmin && (
               <button
                 onClick={onOpenSchoolAdmin}
@@ -7815,6 +7851,22 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           </div>
         </div>
       </header>
+      {showSettingsModal && (
+        <SettingsModal
+          onClose={() => setShowSettingsModal(false)}
+          profile={profile}
+          isAdminMode={false}
+          avatarPresets={avatarPresets}
+          selectedAvatar={selectedAvatar}
+          uploadingAvatar={uploadingAvatar}
+          avatarUploadError={avatarUploadError || ''}
+          onAvatarSelect={handleAvatarSelect}
+          onAvatarUpload={handleAvatarUpload}
+          onUsernameChange={handleUsernameChange}
+          avatarUploadSuccess={avatarUploadSuccess}
+          requiredChanges={profile.required_changes as { username?: boolean; avatar?: boolean; reason?: string } | null}
+        />
+      )}
 
       <div className="teacher-portal-container">
         {/* Professional Header */}
