@@ -7868,7 +7868,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       <header
         ref={topNavRef}
         className="fixed left-0 right-0 top-0 z-50 border-b border-slate-800/60 bg-slate-950/90 backdrop-blur"
-        style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 12px)' }}
+        style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 20px)' }}
       >
         <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between px-3 py-2 sm:px-4 lg:px-6">
           {/* Left: Logo + Brand */}
@@ -8045,7 +8045,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
       <div
         aria-hidden
-        style={{ height: `${topNavHeight}px` }}
+        style={{ height: `calc(${topNavHeight}px + 1rem + env(safe-area-inset-top, 0px))` }}
       />
       <div className="teacher-portal-container">
         {/* Professional Header */}
