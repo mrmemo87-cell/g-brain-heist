@@ -6,11 +6,13 @@ import { visualAssets, neonIcon } from './visualAssets';
 
 interface JoinSchoolCardProps {
   onJoined?: () => void;
+  initialRole?: 'student' | 'teacher';
 }
 
-const JoinSchoolCard: React.FC<JoinSchoolCardProps> = ({ onJoined }) => {
+const JoinSchoolCard: React.FC<JoinSchoolCardProps> = ({ onJoined, initialRole = 'student' }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [inviteCode, setInviteCode] = useState('');
+  const [joinRole, setJoinRole] = useState<'student' | 'teacher'>(initialRole);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showRequestModal, setShowRequestModal] = useState(false);
@@ -45,8 +47,7 @@ const JoinSchoolCard: React.FC<JoinSchoolCardProps> = ({ onJoined }) => {
         return;
       }
 
-      // Join as student by default (they can change role in settings later)
-      const joinResult = await AuthService.joinSchoolByCode(inviteCodeNormalized, 'student');
+      const joinResult = await AuthService.joinSchoolByCode(inviteCodeNormalized, joinRole);
       
       if (!joinResult.success) {
         setError(joinResult.error || 'Failed to join school');
@@ -152,6 +153,35 @@ const JoinSchoolCard: React.FC<JoinSchoolCardProps> = ({ onJoined }) => {
             {/* Invite code input */}
             <div className="space-y-2">
               <label className="block text-xs font-medium text-gray-300">
+                Join as
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setJoinRole('student')}
+                  className={`rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${
+                    joinRole === 'student'
+                      ? 'border-cyan-400 bg-cyan-500/15 text-cyan-200'
+                      : 'border-gray-700 bg-gray-900/50 text-gray-300 hover:border-gray-600'
+                  }`}
+                  disabled={isLoading}
+                >
+                  Student
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setJoinRole('teacher')}
+                  className={`rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${
+                    joinRole === 'teacher'
+                      ? 'border-purple-400 bg-purple-500/15 text-purple-200'
+                      : 'border-gray-700 bg-gray-900/50 text-gray-300 hover:border-gray-600'
+                  }`}
+                  disabled={isLoading}
+                >
+                  Teacher
+                </button>
+              </div>
+              <label className="block text-xs font-medium text-gray-300">
                 Enter Invite Code
               </label>
               <div className="flex gap-2">
@@ -200,6 +230,7 @@ const JoinSchoolCard: React.FC<JoinSchoolCardProps> = ({ onJoined }) => {
         <SchoolRequestModal
           isOpen={showRequestModal}
           onClose={() => setShowRequestModal(false)}
+          requesterRole={joinRole}
         />
       )}
     </>

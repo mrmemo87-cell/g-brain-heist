@@ -1806,15 +1806,20 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             // Teacher goes directly to TeacherPortal - unified experience
             if (profile?.role === 'teacher') {
                 return renderLazy(
-                    <TeacherPortal
-                        profile={profile}
-                        onComplete={handleViewComplete}
-                        onLogout={onLogout}
-                        onLockdown={() => handleViewChange('lockdown')}
-                        isSchoolAdmin={isUserSchoolAdmin}
-                        onOpenSchoolAdmin={isUserSchoolAdmin && hasSchool ? () => handleViewChange('school_admin') : undefined}
-                        onOpenAdmissions={isUserSchoolAdmin && hasSchool ? () => handleViewChange('admissions') : undefined}
-                    />
+                    <div className="space-y-4">
+                      {!hasSchool && (
+                        <JoinSchoolCard onJoined={handleJoinSchoolSuccess} initialRole="teacher" />
+                      )}
+                      <TeacherPortal
+                          profile={profile}
+                          onComplete={handleViewComplete}
+                          onLogout={onLogout}
+                          onLockdown={() => handleViewChange('lockdown')}
+                          isSchoolAdmin={isUserSchoolAdmin}
+                          onOpenSchoolAdmin={isUserSchoolAdmin && hasSchool ? () => handleViewChange('school_admin') : undefined}
+                          onOpenAdmissions={isUserSchoolAdmin && hasSchool ? () => handleViewChange('admissions') : undefined}
+                      />
+                    </div>
                 );
             }
             
