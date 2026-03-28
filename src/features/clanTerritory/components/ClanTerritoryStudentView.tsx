@@ -16,6 +16,7 @@ import { calculateClanTerritoryResults } from "../clanTerritoryRewards";
 import type { MapId } from "../mapCatalog";
 import { audioService } from "../../../../services/audioService";
 import { supabase } from "../../../../services/supabaseClient";
+import DotLottieAnimation from "../../../../components/DotLottieAnimation";
 
 // Helper to get option text (handles both string and BattleQuestionOption formats)
 const getOptionText = (option: string | BattleQuestionOption): string => {
@@ -209,6 +210,10 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   const [claimingRewards, setClaimingRewards] = useState(false);
   const [rewardClaimError, setRewardClaimError] = useState<string | null>(null);
   const [rewardRetryTick, setRewardRetryTick] = useState(0);
+  const [showCelebrationScreen, setShowCelebrationScreen] = useState(false);
+  const [canContinueFromCelebration, setCanContinueFromCelebration] = useState(false);
+  const celebrationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const celebrationAnimationRunRef = useRef(0);
   const lastQuestionKeyRef = useRef<string | null>(null);
   const clanList = React.useMemo(() => {
     // Prefer clans from engine state (session-assigned colors)
@@ -362,8 +367,39 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
       if (rewardRetryTimerRef.current !== null) {
         clearTimeout(rewardRetryTimerRef.current);
       }
+      if (celebrationTimerRef.current !== null) {
+        clearTimeout(celebrationTimerRef.current);
+      }
     };
   }, []);
+
+  useEffect(() => {
+    if (
+      gameState.phase === "ENDED" &&
+      gameState.endReason !== "TEACHER_DISMISSED"
+    ) {
+      setShowCelebrationScreen(true);
+      setCanContinueFromCelebration(false);
+      celebrationAnimationRunRef.current += 1;
+      if (celebrationTimerRef.current !== null) {
+        clearTimeout(celebrationTimerRef.current);
+      }
+      celebrationTimerRef.current = setTimeout(() => {
+        celebrationTimerRef.current = null;
+        setCanContinueFromCelebration(true);
+      }, 3000);
+      return;
+    }
+
+    if (gameState.phase !== "ENDED") {
+      setShowCelebrationScreen(false);
+      setCanContinueFromCelebration(false);
+      if (celebrationTimerRef.current !== null) {
+        clearTimeout(celebrationTimerRef.current);
+        celebrationTimerRef.current = null;
+      }
+    }
+  }, [gameState.phase, gameState.endReason]);
 
   const clansWithColors = React.useMemo(() => {
     const map: Record<ClanId, ClanMetadata> = {};
@@ -505,6 +541,11 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
       window.location.reload();
     }
   }, [onExit]);
+
+  const handleContinueFromCelebration = React.useCallback(() => {
+    if (!canContinueFromCelebration) return;
+    handleBackToArenas();
+  }, [canContinueFromCelebration, handleBackToArenas]);
 
   // 1. Lobby Phase
   if (gameState.phase === "LOBBY") {
@@ -1025,6 +1066,15 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
         <div className="grid gap-4 md:grid-cols-2">
           {wonRewards && myReward ? (
             <div className="bg-gradient-to-br from-yellow-500/20 to-amber-500/10 border border-yellow-500/40 rounded-2xl p-6 space-y-4">
+              <div className="flex justify-center">
+                <DotLottieAnimation
+                  key={`ct-trophy-${celebrationAnimationRunRef.current}`}
+                  src="/lotties/Trophy.lottie"
+                  width={120}
+                  height={120}
+                  loop={false}
+                />
+              </div>
               <h2 className="text-2xl font-bold text-yellow-200">
                 {winningClan?.id === hydratedPlayer.clanId ? "🏆 " : ""}
                 {arenaMode === "official" ? "Official reward estimate" : "Reward summary"}
@@ -1079,8 +1129,19 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
           </div>
         </div>
 
-        <div className="text-center text-sm text-slate-500">
-          Awaiting next raid signal… keep the comms tab open.
+        <div className="text-center text-sm text-slate-500 space-y-3">
+          <p>Review your reward summary, then continue when ready.</p>
+          <button
+            onClick={handleContinueFromCelebration}
+            disabled={!showCelebrationScreen || !canContinueFromCelebration}
+            className={`px-6 py-3 rounded-xl font-bold transition ${
+              showCelebrationScreen && canContinueFromCelebration
+                ? "bg-white text-slate-900 hover:bg-slate-200"
+                : "bg-slate-700/70 text-slate-300 cursor-not-allowed"
+            }`}
+          >
+            {showCelebrationScreen && canContinueFromCelebration ? "Continue" : "Continue in 3s…"}
+          </button>
         </div>
       </div>
     </div>
