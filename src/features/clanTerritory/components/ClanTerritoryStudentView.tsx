@@ -204,6 +204,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   const rewardClaimStartedRef = useRef(false);
   const rewardCelebrationPlayedRef = useRef(false);
   const [claimingRewards, setClaimingRewards] = useState(false);
+  const [rewardClaimError, setRewardClaimError] = useState<string | null>(null);
   const lastQuestionKeyRef = useRef<string | null>(null);
   const clanList = React.useMemo(() => {
     // Prefer clans from engine state (session-assigned colors)
@@ -336,6 +337,15 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
     }
   }, [gameState.phase, gameState.questions.length]);
 
+  // Reset session-scoped reward flow guards for each new room/session key.
+  useEffect(() => {
+    rewardClaimStartedRef.current = false;
+    rewardCelebrationPlayedRef.current = false;
+    setClaimingRewards(false);
+    setRewardClaimError(null);
+    setRewardsClaimed(false);
+  }, [rewardStorageKey]);
+
   const clansWithColors = React.useMemo(() => {
     const map: Record<ClanId, ClanMetadata> = {};
     clanList.forEach((c) => {
@@ -343,6 +353,30 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
     });
     return map;
   }, [clanList]);
+
+  // Play celebration as soon as a winning player reaches the end screen.
+  useEffect(() => {
+    if (
+      gameState.phase !== "ENDED" ||
+      gameState.endReason === "TEACHER_DISMISSED" ||
+      rewardCelebrationPlayedRef.current
+    ) {
+      return;
+    }
+
+    const results = calculateClanTerritoryResults(gameState);
+    const myReward = results.playerRewards.find((r) => r.playerId === playerId);
+    const playerWon = Boolean(results.winningClanId && results.winningClanId === hydratedPlayer?.clanId);
+    const hasReward = Boolean(myReward && (myReward.coins > 0 || myReward.xp > 0 || myReward.gems > 0));
+
+    if (playerWon && hasReward) {
+      rewardCelebrationPlayedRef.current = true;
+      audioService.play("tada");
+      if ((myReward?.xp ?? 0) > 0) {
+        audioService.play("level_up");
+      }
+    }
+  }, [gameState, playerId, hydratedPlayer?.clanId]);
 
   useEffect(() => {
     if (
@@ -357,6 +391,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
       const results = calculateClanTerritoryResults(gameState);
       const myReward = results.playerRewards.find((r) => r.playerId === playerId);
       if (myReward && (myReward.coins > 0 || myReward.xp > 0 || myReward.gems > 0)) {
+        setRewardClaimError(null);
         rewardClaimStartedRef.current = true;
         setClaimingRewards(true);
         void (async () => {
@@ -388,21 +423,13 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
 
             await onRewardsClaimed?.();
 
-            // Celebrate once per session for winners with payout.
-            if (!rewardCelebrationPlayedRef.current) {
-              rewardCelebrationPlayedRef.current = true;
-              audioService.play("tada");
-              if (myReward.xp > 0) {
-                audioService.play("level_up");
-              }
-            }
-
             setRewardsClaimed(true);
             if (typeof window !== 'undefined' && rewardStorageKey) {
               sessionStorage.setItem(rewardStorageKey, '1');
             }
           } catch (error) {
             console.error("[ClanTerritoryStudentView] Failed to finalize rewards claim flow:", error);
+            setRewardClaimError("Reward payout is pending server verification. Please wait a moment and reopen this result screen.");
             rewardClaimStartedRef.current = false;
           } finally {
             setClaimingRewards(false);
@@ -417,7 +444,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
         }
       }
     }
-  }, [gameState.phase, gameState.endReason, playerId, rewardsClaimed, claimingRewards, rewardStorageKey, hydratedPlayer, onRewardsClaimed]);
+  }, [gameState.phase, gameState.endReason, gameState.arenaMode, gameState.gameStartTime, playerId, roomId, rewardsClaimed, claimingRewards, rewardStorageKey, hydratedPlayer, onRewardsClaimed]);
 
   const handleAnswerClick = (selectedAnswer: string) => {
     if (!currentQuestion) return;
@@ -973,6 +1000,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
           {wonRewards && myReward ? (
             <div className="bg-gradient-to-br from-yellow-500/20 to-amber-500/10 border border-yellow-500/40 rounded-2xl p-6 space-y-4">
               <h2 className="text-2xl font-bold text-yellow-200">
+                {winningClan?.id === hydratedPlayer.clanId ? "🏆 " : ""}
                 {arenaMode === "official" ? "Official reward estimate" : "Reward summary"}
               </h2>
               <div className="grid grid-cols-3 gap-4 text-center text-sm">
@@ -994,6 +1022,13 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
                   ? "Official payout is processed only after server verification. This estimate is not final until posted."
                   : "Open Arena payout is now processed automatically after server verification."}
               </p>
+              {claimingRewards ? (
+                <p className="text-xs text-cyan-200">Syncing reward payout…</p>
+              ) : rewardClaimError ? (
+                <p className="text-xs text-rose-200">{rewardClaimError}</p>
+              ) : rewardsClaimed ? (
+                <p className="text-xs text-emerald-200">Reward payout synced.</p>
+              ) : null}
             </div>
           ) : (
             <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 space-y-2 text-slate-400">
