@@ -19,6 +19,8 @@ interface SettingsModalProps {
   onUsernameChange?: (newUsername: string) => Promise<void>;
   avatarUploadSuccess?: boolean;
   requiredChanges?: { username?: boolean; avatar?: boolean; reason?: string } | null;
+  placement?: 'center' | 'header-bottom';
+  headerOffsetPx?: number;
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ 
@@ -35,7 +37,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   onFlickerThemeDeactivated,
   onUsernameChange,
   avatarUploadSuccess,
-  requiredChanges
+  requiredChanges,
+  placement = 'center',
+  headerOffsetPx = 80,
 }) => {
   const { isLightMode, toggleLightMode, autoEnabledReason, clearAutoEnabledReason } = useLightMode();
   const [hasNeonFrame, setHasNeonFrame] = useState(profile.active_cosmetic_frame === 'neon');
@@ -145,13 +149,26 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     }
   };
 
+  const isHeaderAnchored = placement === 'header-bottom';
+  const modalVerticalPadding = isHeaderAnchored ? `${Math.max(headerOffsetPx, 56)}px` : '16px';
+  const modalMaxHeight = isHeaderAnchored
+    ? `calc(100vh - ${Math.max(headerOffsetPx, 56) + 24}px)`
+    : '90vh';
+  const modalBodyMaxHeight = isHeaderAnchored
+    ? `calc(100vh - ${Math.max(headerOffsetPx, 56) + 104}px)`
+    : 'calc(90vh - 80px)';
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div
+      className={`fixed inset-0 z-[70] flex justify-center p-4 ${isHeaderAnchored ? 'items-start' : 'items-center'}`}
+      style={{ paddingTop: modalVerticalPadding }}
+      onClick={onClose}
+    >
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
       
       <div 
         className="relative w-full max-w-2xl bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden"
-        style={{ maxHeight: '90vh' }}
+        style={{ maxHeight: modalMaxHeight }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header - Fixed */}
@@ -170,7 +187,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         {/* Scrollable Content */}
         <div 
           className="overflow-y-auto p-6 space-y-6"
-          style={{ maxHeight: 'calc(90vh - 80px)' }}
+          style={{ maxHeight: modalBodyMaxHeight }}
         >
           {/* Required Changes Status Panel */}
           {requiredChanges && (requiredChanges.username || requiredChanges.avatar) && (
