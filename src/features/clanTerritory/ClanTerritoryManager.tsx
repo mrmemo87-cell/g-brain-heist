@@ -1362,8 +1362,8 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     return (
       <ClanTerritoryErrorBoundary onExit={onExit} fallbackTitle="Teacher View Error">
         <div className="h-screen text-white flex flex-col">
-          <div className="bg-black/40 backdrop-blur p-4 flex justify-between items-center border-b border-white/10 z-10">
-            <div className="flex items-center gap-6">
+          <div className="bg-black/40 backdrop-blur p-4 flex flex-wrap gap-3 justify-between items-start sm:items-center border-b border-white/10 z-10">
+            <div className="flex flex-wrap items-center gap-4 sm:gap-6 min-w-0">
               <div>
                 <span className="text-gray-400 text-sm uppercase tracking-wider">Room Code</span>
                 <div className="text-4xl font-mono font-bold text-amber-400 tracking-widest">{roomId}</div>
@@ -1393,7 +1393,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
               onClick={() => {
                 void handleTeacherExit();
               }}
-              className="text-gray-400 hover:text-white font-heading"
+              className="text-gray-400 hover:text-white font-heading shrink-0 self-start sm:self-center"
             >
               Exit
             </button>
