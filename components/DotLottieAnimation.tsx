@@ -22,6 +22,7 @@ const DotLottieAnimation: React.FC<DotLottieAnimationProps> = ({
   width = 200,
   height = 200,
   loop = true,
+  autoplay = true,
   className = '',
   style,
 }) => {
@@ -79,6 +80,7 @@ const DotLottieAnimation: React.FC<DotLottieAnimationProps> = ({
     <Lottie
       animationData={animationData}
       loop={loop}
+      autoplay={autoplay}
       className={className}
       style={{ width, height, ...style }}
     />
