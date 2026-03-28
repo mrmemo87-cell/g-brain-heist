@@ -2215,6 +2215,32 @@ export const task_claim = async (task_id: string): Promise<{ xp: number; coins: 
   }
 
   const reward = payload?.reward;
+  const now = new Date();
+  // Keep key formats exactly aligned with tasks_list() lookup logic.
+  const utcTodayKey = now.toISOString().split('T')[0];
+  const claimedDailyKey = `task_claims_daily_${utcTodayKey}`;
+  const weekStart = new Date(now);
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  weekStart.setHours(0, 0, 0, 0);
+  const claimedWeeklyKey = `task_claims_weekly_${formatLocalDateKey(weekStart)}`;
+  const legacyClaimedKey = `task_claims_${utcTodayKey}`;
+
+  const appendClaim = (storageKey: string) => {
+    const existing = JSON.parse(localStorage.getItem(storageKey) || '[]') as string[];
+    if (!existing.includes(task_id)) {
+      localStorage.setItem(storageKey, JSON.stringify([...existing, task_id]));
+    }
+  };
+
+  // Optimistically persist claim markers even when the RPC responds idempotently.
+  // This keeps the UI in sync for users whose older claim rows are missing in activities.
+  appendClaim(legacyClaimedKey);
+  if (task.kind === 'daily') {
+    appendClaim(claimedDailyKey);
+  } else if (task.kind === 'weekly') {
+    appendClaim(claimedWeeklyKey);
+  }
+
   if (!reward) {
     return task.reward;
   }
