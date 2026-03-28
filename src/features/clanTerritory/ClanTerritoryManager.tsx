@@ -1416,7 +1416,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   if (mode === "player" && playerId) {
     // Check if kicked (only during active play, NOT during ENDED phase)
     // During ENDED phase the student should see results even if the host cleaned up player data.
-    const isKicked = gameState.phase !== "ENDED"
+    const isKicked = gameState.phase === "ACTIVE"
       && Object.keys(gameState.players).length > 0
       && !gameState.players[playerId];
 
