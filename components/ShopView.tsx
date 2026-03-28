@@ -30,9 +30,27 @@ interface ShopViewProps {
   onNavigateToInventory?: () => void;
 }
 
-const getItemIcon = (kind: ShopItem['kind']) => {
+const SHOP_ITEM_ART_BY_ID: Partial<Record<string, string>> = {
+  item_quantum_cloak: '/visuals/shop-items/Quantum-Cloak.png',
+};
+
+const SHOP_ITEM_ART_BY_KIND: Partial<Record<ShopItem['kind'], string>> = {
+  shield: '/visuals/shop-items/Shield.png',
+  firewall: '/visuals/shop-items/Firewall.png',
+  encryption_key: '/visuals/shop-items/Encryption-Key.png',
+  exploit_kit: '/visuals/shop-items/Exploit-Kit.png',
+  booster: '/visuals/shop-items/Booster.png',
+  major_booster: '/visuals/shop-items/Major-Booster.png',
+};
+
+const getItemIcon = (item: ShopItem) => {
   const style = { width: '100%', height: '100%' };
-  switch (kind) {
+  const imageSrc = SHOP_ITEM_ART_BY_ID[item.id] || SHOP_ITEM_ART_BY_KIND[item.kind];
+  if (imageSrc) {
+    return <img src={imageSrc} alt={item.name} className="w-full h-full object-contain" loading="lazy" />;
+  }
+
+  switch (item.kind) {
     case 'shield':
     case 'firewall':
       return <div style={{ ...style, color: 'var(--ion-blue)' }}><ShieldIcon /></div>;
@@ -120,7 +138,7 @@ const ItemCard: React.FC<{
 
         <div className="flex items-center gap-3">
           <div className="w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center rounded-xl bg-black/30 border border-white/5">
-            {getItemIcon(item.kind)}
+            {getItemIcon(item)}
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="font-heading text-lg text-white truncate">{item.name}</h3>
@@ -434,6 +452,12 @@ const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, ad
             {/* ── Brains Master Premium Card ── */}
             <section className="mb-6 bg-gradient-to-br from-yellow-900/30 via-amber-950/20 to-orange-900/30 border border-yellow-500/30 rounded-3xl p-6 space-y-4 relative overflow-hidden">
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(251,191,36,0.08),transparent_60%)] pointer-events-none" />
+              <img
+                src="/visuals/shop-items/Brains-Master.png"
+                alt="Brains Master"
+                className="pointer-events-none absolute right-2 top-1 h-28 w-44 object-contain opacity-30 sm:h-32 sm:w-52"
+                loading="lazy"
+              />
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between relative z-10">
                 <div>
                   <h3 className="font-heading text-2xl text-amber-300 flex items-center gap-2">

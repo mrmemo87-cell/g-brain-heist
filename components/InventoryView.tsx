@@ -21,9 +21,27 @@ interface InventoryViewProps {
   onProfileUpdate?: (profile: Profile) => void;
 }
 
-const getItemIcon = (kind: InventoryItem['kind']) => {
+const INVENTORY_ITEM_ART_BY_ID: Partial<Record<string, string>> = {
+  item_quantum_cloak: '/visuals/shop-items/Quantum-Cloak.png',
+};
+
+const INVENTORY_ITEM_ART_BY_KIND: Partial<Record<InventoryItem['kind'], string>> = {
+  shield: '/visuals/shop-items/Shield.png',
+  firewall: '/visuals/shop-items/Firewall.png',
+  encryption_key: '/visuals/shop-items/Encryption-Key.png',
+  exploit_kit: '/visuals/shop-items/Exploit-Kit.png',
+  booster: '/visuals/shop-items/Booster.png',
+  major_booster: '/visuals/shop-items/Major-Booster.png',
+};
+
+const getItemIcon = (item: InventoryItem) => {
   const style = { width: '100%', height: '100%' };
-  switch (kind) {
+  const imageSrc = INVENTORY_ITEM_ART_BY_ID[item.item_id] || INVENTORY_ITEM_ART_BY_KIND[item.kind];
+  if (imageSrc) {
+    return <img src={imageSrc} alt={item.name} className="h-full w-full object-contain" loading="lazy" />;
+  }
+
+  switch (item.kind) {
     case 'shield':
     case 'firewall':
       return <div style={{ ...style, color: 'var(--ion-blue)' }}><ShieldIcon /></div>;
@@ -88,8 +106,8 @@ const ItemCard: React.FC<{ item: InventoryItem & any, onActivate: (inv_id: strin
 
       <div className="flex items-center gap-3">
         <div className="w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center rounded-xl bg-black/30 border border-white/5">
-          {getItemIcon(item.kind)}
-        </div>
+            {getItemIcon(item)}
+          </div>
         <div className="flex-1 min-w-0">
           <h3 className="font-heading text-lg text-white truncate">{item.name}</h3>
           <p className="text-sm text-gray-400 line-clamp-2">{item.description}</p>
