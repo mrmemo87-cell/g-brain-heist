@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useAdmin } from '../AdminContext';
+import * as SchoolRequestService from '../../../services/schoolRequestService';
+import SchoolRequestConversation from '../../schoolRequests/SchoolRequestConversation';
 
 const ApplicationsTab: React.FC = () => {
   const {
@@ -11,13 +13,55 @@ const ApplicationsTab: React.FC = () => {
     schoolRequestsLoading, setSchoolRequestDuplicates, setSchoolRequestMessagesOpen, 
     setSchoolRequestNotes, setSchoolRequestSearch, setSchoolRequestStatus,
   } = useAdmin();
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+
+  const unreadTotal = useMemo(
+    () => Object.values(unreadCounts).reduce((sum, value) => sum + value, 0),
+    [unreadCounts]
+  );
+
+  useEffect(() => {
+    const computeUnread = async () => {
+      const pairs = await Promise.all(
+        filteredSchoolRequests.map(async (request) => {
+          const existingMessages = schoolRequestMessages[request.id];
+          const messagesResult = existingMessages
+            ? { success: true as const, messages: existingMessages, unavailable: false }
+            : await SchoolRequestService.listSchoolRequestMessages(request.id);
+
+          if (!messagesResult.success || messagesResult.unavailable) {
+            return [request.id, 0] as const;
+          }
+
+          const lastSeenAt = SchoolRequestService.getSchoolRequestLastSeenAt(request.id, 'admin');
+          const unread = SchoolRequestService.getUnreadSchoolRequestMessageCount(
+            messagesResult.messages,
+            'admin',
+            lastSeenAt
+          );
+          return [request.id, unread] as const;
+        })
+      );
+
+      setUnreadCounts(Object.fromEntries(pairs));
+    };
+
+    void computeUnread();
+  }, [filteredSchoolRequests, schoolRequestMessages]);
 
   return (
     <div className="space-y-6">
       <div className="card-glass p-6 border-2 border-cyan-400/50">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h3 className="text-3xl font-heading font-bold text-cyan-300">🏫 School Applications</h3>
+            <h3 className="text-3xl font-heading font-bold text-cyan-300 flex items-center gap-2">
+              🏫 School Applications
+              {unreadTotal > 0 && (
+                <span className="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-red-500 px-1 text-xs font-bold text-white shadow-lg">
+                  {Math.min(unreadTotal, 99)}
+                </span>
+              )}
+            </h3>
             <p className="text-sm text-gray-400">Review school requests and keep duplicates down.</p>
           </div>
           <button
@@ -169,10 +213,19 @@ const ApplicationsTab: React.FC = () => {
                     if (nextOpen && !schoolRequestMessages[request.id] && !schoolRequestMessagesLoading[request.id]) {
                       void loadSchoolRequestMessages(request.id);
                     }
+                    if (nextOpen) {
+                      SchoolRequestService.markSchoolRequestThreadSeen(request.id, 'admin');
+                      setUnreadCounts((prev) => ({ ...prev, [request.id]: 0 }));
+                    }
                   }}
-                  className="rounded-lg border border-cyan-400/50 bg-cyan-500/10 px-4 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-500/20"
+                  className="relative rounded-lg border border-cyan-400/50 bg-cyan-500/10 px-4 py-2 pr-7 text-sm font-semibold text-cyan-100 hover:bg-cyan-500/20"
                 >
                   {isMessagesOpen ? 'Hide conversation' : 'View conversation'}
+                  {(unreadCounts[request.id] ?? 0) > 0 && (
+                    <span className="absolute -right-2 -top-2 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-lg">
+                      {Math.min(unreadCounts[request.id], 99)}
+                    </span>
+                  )}
                 </button>
               </div>
 
@@ -182,7 +235,11 @@ const ApplicationsTab: React.FC = () => {
                     <p className="text-sm font-semibold text-white">Conversation</p>
                     <button
                       type="button"
-                      onClick={() => loadSchoolRequestMessages(request.id)}
+                      onClick={() => {
+                        SchoolRequestService.markSchoolRequestThreadSeen(request.id, 'admin');
+                        setUnreadCounts((prev) => ({ ...prev, [request.id]: 0 }));
+                        void loadSchoolRequestMessages(request.id);
+                      }}
                       className="text-xs text-cyan-200 hover:text-cyan-100"
                     >
                       Refresh
@@ -197,22 +254,7 @@ const ApplicationsTab: React.FC = () => {
                   ) : messages.length === 0 ? (
                     <p className="mt-3 text-sm text-gray-400">No messages yet.</p>
                   ) : (
-                    <div className="mt-3 space-y-2">
-                      {messages.map((message) => (
-                        <div
-                          key={message.id}
-                          className="rounded-lg border border-white/10 bg-black/50 p-3 text-sm text-gray-100"
-                        >
-                          <div className="flex items-center justify-between text-xs text-gray-400">
-                            <span>{message.sender_role?.toLowerCase() === 'admin' ? 'Admin' : 'Applicant'}</span>
-                            {message.created_at && (
-                              <span>{new Date(message.created_at).toLocaleString()}</span>
-                            )}
-                          </div>
-                          <p className="mt-2 whitespace-pre-wrap">{message.message}</p>
-                        </div>
-                      ))}
-                    </div>
+                    <SchoolRequestConversation messages={messages} viewerRole="admin" />
                   )}
                 </div>
               )}
