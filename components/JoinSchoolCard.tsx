@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import * as AuthService from '../services/authService';
+import * as SchoolRequestService from '../services/schoolRequestService';
+import { supabase } from '../services/supabaseClient';
 import SchoolRequestModal from './SchoolRequestModal';
 import VisualFallbackImage from './VisualFallbackImage';
 import { visualAssets, neonIcon } from './visualAssets';
@@ -16,6 +18,7 @@ const JoinSchoolCard: React.FC<JoinSchoolCardProps> = ({ onJoined, initialRole =
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showRequestModal, setShowRequestModal] = useState(false);
+  const [requestUnreadCount, setRequestUnreadCount] = useState(0);
 
   const normalizeInviteCode = (code: string) => code.replace(/\s+/g, '').toUpperCase();
   const inviteCodeNormalized = normalizeInviteCode(inviteCode);
@@ -65,9 +68,57 @@ const JoinSchoolCard: React.FC<JoinSchoolCardProps> = ({ onJoined, initialRole =
     }
   };
 
+  useEffect(() => {
+    let isDisposed = false;
+
+    const refreshUnreadCount = async () => {
+      const requestsResult = await SchoolRequestService.listMySchoolRequests();
+      if (!requestsResult.success || isDisposed) {
+        if (!isDisposed) setRequestUnreadCount(0);
+        return;
+      }
+
+      const unreadByRequest = await Promise.all(
+        requestsResult.requests.map(async (request) => {
+          const messagesResult = await SchoolRequestService.listSchoolRequestMessages(request.id);
+          if (!messagesResult.success || messagesResult.unavailable) return 0;
+          const lastSeenAt = SchoolRequestService.getSchoolRequestLastSeenAt(request.id, 'applicant');
+          return SchoolRequestService.getUnreadSchoolRequestMessageCount(
+            messagesResult.messages,
+            'applicant',
+            lastSeenAt
+          );
+        })
+      );
+
+      if (!isDisposed) {
+        setRequestUnreadCount(unreadByRequest.reduce((total, count) => total + count, 0));
+      }
+    };
+
+    void refreshUnreadCount();
+
+    const channel = SchoolRequestService.subscribeToSchoolRequestMessageChanges(
+      'join-school-card-unread',
+      () => {
+        void refreshUnreadCount();
+      }
+    );
+
+    return () => {
+      isDisposed = true;
+      void supabase.removeChannel(channel);
+    };
+  }, []);
+
   return (
     <>
-      <div className="mb-4 overflow-hidden rounded-xl border border-cyan-500/30 bg-gradient-to-br from-slate-900/95 to-slate-800/95 shadow-lg backdrop-blur-sm transition-all duration-300 hover:border-cyan-400/50">
+      <div className="relative mb-4 overflow-hidden rounded-xl border border-cyan-500/30 bg-gradient-to-br from-slate-900/95 to-slate-800/95 shadow-lg backdrop-blur-sm transition-all duration-300 hover:border-cyan-400/50">
+        {requestUnreadCount > 0 && (
+          <span className="absolute right-2 top-2 z-10 inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-red-500 px-1 text-xs font-bold text-white shadow-lg ring-2 ring-slate-900">
+            {Math.min(requestUnreadCount, 99)}
+          </span>
+        )}
         {/* Collapsed state */}
         <button
           onClick={() => setIsExpanded(!isExpanded)}

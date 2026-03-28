@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export type SchoolRequestStatus = 'pending' | 'needs_more_info' | 'approved' | 'rejected' | 'duplicate';
 
@@ -44,6 +45,12 @@ export interface SchoolRequestMessage {
   message: string;
   sender_role?: string | null;
   created_at?: string | null;
+}
+
+export interface SchoolRequestMessageRealtimePayload {
+  eventType: 'INSERT' | 'UPDATE' | 'DELETE';
+  new: { request_id?: string | null } | null;
+  old: { request_id?: string | null } | null;
 }
 
 export type SchoolRequestViewerRole = 'admin' | 'applicant';
@@ -347,4 +354,26 @@ export const getUnreadSchoolRequestMessageCount = (
 
     return createdAtMs > lastSeenMs ? count + 1 : count;
   }, 0);
+};
+
+export const subscribeToSchoolRequestMessageChanges = (
+  channelName: string,
+  onMessageChange: (payload: SchoolRequestMessageRealtimePayload) => void
+): RealtimeChannel => {
+  const channel = supabase
+    .channel(channelName)
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'school_request_messages',
+      },
+      (payload) => {
+        onMessageChange(payload as SchoolRequestMessageRealtimePayload);
+      }
+    )
+    .subscribe();
+
+  return channel;
 };
