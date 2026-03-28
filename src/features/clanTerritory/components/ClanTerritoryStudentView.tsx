@@ -16,6 +16,7 @@ import { calculateClanTerritoryResults } from "../clanTerritoryRewards";
 import type { MapId } from "../mapCatalog";
 import { audioService } from "../../../../services/audioService";
 import { supabase } from "../../../../services/supabaseClient";
+import DotLottieAnimation from "../../../../components/DotLottieAnimation";
 
 // Helper to get option text (handles both string and BattleQuestionOption formats)
 const getOptionText = (option: string | BattleQuestionOption): string => {
@@ -95,6 +96,8 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   onRewardsClaimed,
   onExit,
 }) => {
+  const [persistedEndState, setPersistedEndState] = useState<ClanTerritoryGameState | null>(null);
+  const celebrationState = persistedEndState ?? gameState;
   const player = gameState.players[playerId];
   const hydratedPlayer: PlayerStats | undefined = player
     ? player
@@ -209,6 +212,10 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   const [claimingRewards, setClaimingRewards] = useState(false);
   const [rewardClaimError, setRewardClaimError] = useState<string | null>(null);
   const [rewardRetryTick, setRewardRetryTick] = useState(0);
+  const [showCelebrationScreen, setShowCelebrationScreen] = useState(false);
+  const [canContinueFromCelebration, setCanContinueFromCelebration] = useState(false);
+  const celebrationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const celebrationAnimationRunRef = useRef(0);
   const lastQuestionKeyRef = useRef<string | null>(null);
   const clanList = React.useMemo(() => {
     // Prefer clans from engine state (session-assigned colors)
@@ -355,15 +362,53 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
     setRewardClaimError(null);
     setRewardsClaimed(false);
     setRewardRetryTick(0);
+    setPersistedEndState(null);
   }, [rewardStorageKey]);
+
+  useEffect(() => {
+    if (gameState.phase === "ENDED" && gameState.endReason !== "TEACHER_DISMISSED") {
+      setPersistedEndState(gameState);
+    }
+  }, [gameState]);
 
   useEffect(() => {
     return () => {
       if (rewardRetryTimerRef.current !== null) {
         clearTimeout(rewardRetryTimerRef.current);
       }
+      if (celebrationTimerRef.current !== null) {
+        clearTimeout(celebrationTimerRef.current);
+      }
     };
   }, []);
+
+  useEffect(() => {
+    if (
+      celebrationState.phase === "ENDED" &&
+      celebrationState.endReason !== "TEACHER_DISMISSED"
+    ) {
+      setShowCelebrationScreen(true);
+      setCanContinueFromCelebration(false);
+      celebrationAnimationRunRef.current += 1;
+      if (celebrationTimerRef.current !== null) {
+        clearTimeout(celebrationTimerRef.current);
+      }
+      celebrationTimerRef.current = setTimeout(() => {
+        celebrationTimerRef.current = null;
+        setCanContinueFromCelebration(true);
+      }, 3000);
+      return;
+    }
+
+    if (celebrationState.phase !== "ENDED") {
+      setShowCelebrationScreen(false);
+      setCanContinueFromCelebration(false);
+      if (celebrationTimerRef.current !== null) {
+        clearTimeout(celebrationTimerRef.current);
+        celebrationTimerRef.current = null;
+      }
+    }
+  }, [celebrationState.phase, celebrationState.endReason]);
 
   const clansWithColors = React.useMemo(() => {
     const map: Record<ClanId, ClanMetadata> = {};
@@ -376,14 +421,14 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   // Play celebration as soon as a winning player reaches the end screen.
   useEffect(() => {
     if (
-      gameState.phase !== "ENDED" ||
-      gameState.endReason === "TEACHER_DISMISSED" ||
+      celebrationState.phase !== "ENDED" ||
+      celebrationState.endReason === "TEACHER_DISMISSED" ||
       rewardCelebrationPlayedRef.current
     ) {
       return;
     }
 
-    const results = calculateClanTerritoryResults(gameState);
+    const results = calculateClanTerritoryResults(celebrationState);
     const myReward = results.playerRewards.find((r) => r.playerId === playerId);
     const playerWon = Boolean(results.winningClanId && results.winningClanId === hydratedPlayer?.clanId);
     const hasReward = Boolean(myReward && (myReward.coins > 0 || myReward.xp > 0 || myReward.gems > 0));
@@ -395,7 +440,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
         audioService.play("level_up");
       }
     }
-  }, [gameState, playerId, hydratedPlayer?.clanId]);
+  }, [celebrationState, playerId, hydratedPlayer?.clanId]);
 
   useEffect(() => {
     const now = Date.now();
@@ -505,6 +550,11 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
       window.location.reload();
     }
   }, [onExit]);
+
+  const handleContinueFromCelebration = React.useCallback(() => {
+    if (!canContinueFromCelebration) return;
+    handleBackToArenas();
+  }, [canContinueFromCelebration, handleBackToArenas]);
 
   // 1. Lobby Phase
   if (gameState.phase === "LOBBY") {
@@ -937,7 +987,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   }
 
   // 4. Ended Phase
-  if (gameState.phase === "ENDED" && gameState.endReason === "TEACHER_DISMISSED") {
+  if (celebrationState.phase === "ENDED" && celebrationState.endReason === "TEACHER_DISMISSED") {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-6">
         <div className="w-full max-w-3xl">
@@ -960,18 +1010,23 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
     );
   }
 
-  const results = gameState.phase === "ENDED" ? calculateClanTerritoryResults(gameState) : null;
+  const endStateForDisplay = celebrationState.phase === "ENDED" ? celebrationState : null;
+  const displayPlayer = endStateForDisplay?.players[playerId];
+  const endHydratedPlayer: PlayerStats | undefined = displayPlayer
+    ? displayPlayer
+    : hydratedPlayer;
+  const results = endStateForDisplay ? calculateClanTerritoryResults(endStateForDisplay) : null;
   const myReward = results?.playerRewards.find((r) => r.playerId === playerId);
   const wonRewards = myReward && (myReward.coins > 0 || myReward.xp > 0 || myReward.gems > 0);
-  const arenaMode = gameState.arenaMode === "open" ? "open" : "official";
+  const arenaMode = (endStateForDisplay?.arenaMode ?? gameState.arenaMode) === "open" ? "open" : "official";
   const winningClan = results?.winningClanId
-    ? clanList.find((c) => c.id === results.winningClanId) ?? gameState.clans[results.winningClanId]
+    ? clanList.find((c) => c.id === results.winningClanId) ?? endStateForDisplay?.clans[results.winningClanId]
     : null;
-  const accuracy = hydratedPlayer.questionsAnswered > 0
-    ? Math.round((hydratedPlayer.questionsCorrect / hydratedPlayer.questionsAnswered) * 100)
+  const accuracy = (endHydratedPlayer?.questionsAnswered ?? 0) > 0
+    ? Math.round(((endHydratedPlayer?.questionsCorrect ?? 0) / (endHydratedPlayer?.questionsAnswered ?? 1)) * 100)
     : 0;
   const clanZoneCount = results
-    ? Object.values(results.zoneControl).filter((clanId) => clanId === hydratedPlayer.clanId).length
+    ? Object.values(results.zoneControl).filter((clanId) => clanId === endHydratedPlayer?.clanId).length
     : 0;
 
   return (
@@ -985,7 +1040,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
           <h1 className="text-4xl font-black tracking-tight">Battle debrief</h1>
           {winningClan ? (
             <p className="text-lg text-slate-300">
-              {winningClan.id === hydratedPlayer.clanId
+              {winningClan.id === endHydratedPlayer?.clanId
                 ? "Your clan secured the grid."
                 : `${winningClan.name} claimed the grid.`}
             </p>
@@ -997,13 +1052,13 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
         <div className="grid gap-4 md:grid-cols-3">
           <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 text-center space-y-2">
             <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Battle Score</p>
-            <p className="text-5xl font-black text-amber-300">{hydratedPlayer.battleScore}</p>
-            <p className="text-sm text-slate-400">Accuracy {accuracy}% - Best streak x{hydratedPlayer.streak}</p>
+            <p className="text-5xl font-black text-amber-300">{endHydratedPlayer?.battleScore ?? 0}</p>
+            <p className="text-sm text-slate-400">Accuracy {accuracy}% - Best streak x{endHydratedPlayer?.streak ?? 0}</p>
           </div>
           <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Zone Impact</p>
             <div className="text-4xl font-black text-emerald-300">{clanZoneCount}/{activeZones.length}</div>
-            <p className="text-sm text-slate-400">Territories held by {hydratedPlayer.clanName}</p>
+            <p className="text-sm text-slate-400">Territories held by {endHydratedPlayer?.clanName ?? hydratedPlayer.clanName}</p>
             <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
               <div
                 className="h-full bg-emerald-400"
@@ -1014,10 +1069,10 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
           <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 space-y-2">
             <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Intel</p>
             <p className="text-sm text-slate-300">
-              {hydratedPlayer.questionsAnswered} Questions - {hydratedPlayer.fastAnswers} speed bonuses
+              {endHydratedPlayer?.questionsAnswered ?? 0} Questions - {endHydratedPlayer?.fastAnswers ?? 0} speed bonuses
             </p>
             <p className="text-sm text-slate-400">
-              Total answer time {Math.round(hydratedPlayer.totalAnswerTimeMs / 1000)}s
+              Total answer time {Math.round((endHydratedPlayer?.totalAnswerTimeMs ?? 0) / 1000)}s
             </p>
           </div>
         </div>
@@ -1025,8 +1080,19 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
         <div className="grid gap-4 md:grid-cols-2">
           {wonRewards && myReward ? (
             <div className="bg-gradient-to-br from-yellow-500/20 to-amber-500/10 border border-yellow-500/40 rounded-2xl p-6 space-y-4">
+              <div className="flex justify-center">
+                <DotLottieAnimation
+                  key={`ct-trophy-${celebrationAnimationRunRef.current}`}
+                  src="/lotties/Trophy.lottie"
+                  width={120}
+                  height={120}
+                  loop={false}
+                  autoplay
+                  respectLightMode={false}
+                />
+              </div>
               <h2 className="text-2xl font-bold text-yellow-200">
-                {winningClan?.id === hydratedPlayer.clanId ? "🏆 " : ""}
+                {winningClan?.id === endHydratedPlayer?.clanId ? "🏆 " : ""}
                 {arenaMode === "official" ? "Official reward estimate" : "Reward summary"}
               </h2>
               <div className="grid grid-cols-3 gap-4 text-center text-sm">
@@ -1079,8 +1145,19 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
           </div>
         </div>
 
-        <div className="text-center text-sm text-slate-500">
-          Awaiting next raid signal… keep the comms tab open.
+        <div className="text-center text-sm text-slate-500 space-y-3">
+          <p>Review your reward summary, then continue when ready.</p>
+          <button
+            onClick={handleContinueFromCelebration}
+            disabled={!showCelebrationScreen || !canContinueFromCelebration}
+            className={`px-6 py-3 rounded-xl font-bold transition ${
+              showCelebrationScreen && canContinueFromCelebration
+                ? "bg-white text-slate-900 hover:bg-slate-200"
+                : "bg-slate-700/70 text-slate-300 cursor-not-allowed"
+            }`}
+          >
+            {showCelebrationScreen && canContinueFromCelebration ? "Continue" : "Continue in 3s…"}
+          </button>
         </div>
       </div>
     </div>

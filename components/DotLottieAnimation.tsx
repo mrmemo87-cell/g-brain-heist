@@ -9,6 +9,7 @@ interface DotLottieAnimationProps {
   height?: number;
   loop?: boolean;
   autoplay?: boolean;
+  respectLightMode?: boolean;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -22,6 +23,8 @@ const DotLottieAnimation: React.FC<DotLottieAnimationProps> = ({
   width = 200,
   height = 200,
   loop = true,
+  autoplay = true,
+  respectLightMode = true,
   className = '',
   style,
 }) => {
@@ -30,7 +33,7 @@ const DotLottieAnimation: React.FC<DotLottieAnimationProps> = ({
   const { isLightMode } = useLightMode();
 
   useEffect(() => {
-    if (isLightMode) return;
+    if (isLightMode && respectLightMode) return;
 
     let cancelled = false;
     const decoder = new TextDecoder();
@@ -71,14 +74,15 @@ const DotLottieAnimation: React.FC<DotLottieAnimationProps> = ({
 
     load();
     return () => { cancelled = true; };
-  }, [src, isLightMode]);
+  }, [src, isLightMode, respectLightMode]);
 
-  if (isLightMode || error || !animationData) return null;
+  if ((isLightMode && respectLightMode) || error || !animationData) return null;
 
   return (
     <Lottie
       animationData={animationData}
       loop={loop}
+      autoplay={autoplay}
       className={className}
       style={{ width, height, ...style }}
     />
