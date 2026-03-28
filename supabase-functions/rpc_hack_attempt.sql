@@ -56,6 +56,7 @@ declare
   pre_gemstones int;
   
   result_kind text;
+  canonical_activity_kind text;
   attacker_username text;
   defender_username text;
   
@@ -245,14 +246,17 @@ begin
       coins_stolen_from_def := 0;
       coins_delta := 0;
       result_kind := 'pvp_blocked';
+      canonical_activity_kind := 'attack_blocked';
     else
       result_kind := 'pvp_win';
+      canonical_activity_kind := 'attack_success';
     end if;
 
     -- Update attacker (including earnings tracking)
     update public.users
     set xp = xp + xp_delta,
         coins = coins + coins_delta,
+        pvp_score = coalesce(pvp_score, 0) + case when result_kind = 'pvp_win' then 1 else 0 end,
         xp_from_pvp = COALESCE(xp_from_pvp, 0) + GREATEST(0, xp_delta),
         coins_from_pvp = COALESCE(coins_from_pvp, 0) + GREATEST(0, coins_delta)
     where id = v_attacker_id
@@ -279,6 +283,7 @@ begin
     
     coins_delta := -coins_lost_to_def;  -- Negative because attacker loses coins
     result_kind := 'pvp_loss';
+    canonical_activity_kind := 'attack_failed';
 
     -- Update attacker (lose XP, lose coins to defender, and lose AP)
     update public.users
@@ -325,6 +330,26 @@ begin
     ),
     v_now
   );
+
+  if canonical_activity_kind is not null then
+    insert into public.activities (kind, actor_id, actor_username, target_id, target_username, data, created_at)
+    values (
+      canonical_activity_kind,
+      v_attacker_id,
+      attacker_username,
+      p_defender_id,
+      defender_username,
+      jsonb_build_object(
+        'legacy_kind', result_kind,
+        'xp_delta', xp_delta,
+        'coins_delta', coins_delta,
+        'coins_stolen', coins_stolen_from_def,
+        'coins_lost', coins_lost_to_def,
+        'defender_username', defender_username
+      ),
+      v_now
+    );
+  end if;
 
   -- ====== Return result ======
   select to_jsonb(xp_status(p_xp => attacker.xp)) into v_xp_status;
