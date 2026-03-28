@@ -158,6 +158,140 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
   auth: { persistSession: false },
 });
 
+let usersGemstonesColumnSupported: boolean | null = null;
+
+const checkUsersGemstonesColumn = async (): Promise<boolean> => {
+  if (usersGemstonesColumnSupported !== null) {
+    return usersGemstonesColumnSupported;
+  }
+
+  const { error } = await supabaseAdmin
+    .from("users")
+    .select("gemstones")
+    .limit(1);
+
+  usersGemstonesColumnSupported = !error;
+  return usersGemstonesColumnSupported;
+};
+
+const shouldUseClanRewardFallback = (message: string): boolean => {
+  const normalized = message.toLowerCase();
+  return normalized.includes("rpc_claim_clan_territory_reward")
+    || normalized.includes("function xp_status")
+    || normalized.includes("does not exist");
+};
+
+const fallbackClaimClanTerritoryReward = async (params: {
+  userId: string;
+  roomId: string;
+  eventId: string;
+  arenaMode: "official" | "open";
+  xp: number;
+  coins: number;
+  gemstones: number;
+  idempotencyKey: string;
+}) => {
+  const supportsGemstones = await checkUsersGemstonesColumn();
+  const gemstonesDelta = supportsGemstones ? params.gemstones : 0;
+
+  const { data: receiptRow, error: receiptError } = await supabaseAdmin
+    .from("reward_event_receipts")
+    .insert({
+      user_id: params.userId,
+      event_type: "clan_territory_reward_claim",
+      event_id: params.eventId,
+      idempotency_key: params.idempotencyKey,
+    })
+    .select("id")
+    .maybeSingle();
+
+  if (receiptError && receiptError.code !== "23505") {
+    throw new ApiError("RPC_ERROR", receiptError.message, 502);
+  }
+
+  const profileSelect = supportsGemstones ? "xp, coins, level, gemstones" : "xp, coins, level";
+  const { data: existingProfile, error: existingProfileError } = await supabaseAdmin
+    .from("users")
+    .select(profileSelect)
+    .eq("id", params.userId)
+    .single();
+
+  if (existingProfileError || !existingProfile) {
+    throw new ApiError("RPC_ERROR", existingProfileError?.message ?? "User profile not found", 502);
+  }
+
+  const currentXp = Number((existingProfile as Record<string, unknown>).xp ?? 0);
+  const currentCoins = Number((existingProfile as Record<string, unknown>).coins ?? 0);
+  const currentGemstones = Number((existingProfile as Record<string, unknown>).gemstones ?? 0);
+  const currentLevel = Number((existingProfile as Record<string, unknown>).level ?? 1);
+
+  if (!receiptRow) {
+    return {
+      idempotent: true,
+      event_type: "clan_territory_reward_claim",
+      event_id: params.eventId,
+      room_id: params.roomId,
+      arena_mode: params.arenaMode,
+      profile: {
+        xp: currentXp,
+        coins: currentCoins,
+        level: currentLevel,
+        gemstones: currentGemstones,
+      },
+      xp_status: {
+        current_xp: currentXp,
+        current_level: currentLevel,
+      },
+      warnings: supportsGemstones ? [] : ["gemstones_column_missing"],
+      fallback_used: true,
+    };
+  }
+
+  const nextXp = Math.max(0, currentXp + params.xp);
+  const nextCoins = Math.max(0, currentCoins + params.coins);
+  const nextGemstones = Math.max(0, currentGemstones + gemstonesDelta);
+
+  const updatePayload: Record<string, unknown> = {
+    xp: nextXp,
+    coins: nextCoins,
+  };
+  if (supportsGemstones) {
+    updatePayload.gemstones = nextGemstones;
+  }
+
+  const { data: updatedProfile, error: updatedProfileError } = await supabaseAdmin
+    .from("users")
+    .update(updatePayload)
+    .eq("id", params.userId)
+    .select(profileSelect)
+    .single();
+
+  if (updatedProfileError || !updatedProfile) {
+    throw new ApiError("RPC_ERROR", updatedProfileError?.message ?? "Failed to update user profile", 502);
+  }
+
+  return {
+    idempotent: false,
+    receipt_id: receiptRow.id,
+    event_type: "clan_territory_reward_claim",
+    event_id: params.eventId,
+    room_id: params.roomId,
+    arena_mode: params.arenaMode,
+    profile: {
+      xp: Number((updatedProfile as Record<string, unknown>).xp ?? nextXp),
+      coins: Number((updatedProfile as Record<string, unknown>).coins ?? nextCoins),
+      level: Number((updatedProfile as Record<string, unknown>).level ?? currentLevel),
+      gemstones: Number((updatedProfile as Record<string, unknown>).gemstones ?? nextGemstones),
+    },
+    xp_status: {
+      current_xp: Number((updatedProfile as Record<string, unknown>).xp ?? nextXp),
+      current_level: Number((updatedProfile as Record<string, unknown>).level ?? currentLevel),
+    },
+    warnings: supportsGemstones ? [] : ["gemstones_column_missing"],
+    fallback_used: true,
+  };
+};
+
 const getAuthContext = async (req: Request): Promise<AuthContext> => {
   const authHeader = req.headers.get("Authorization") ?? "";
   const token = authHeader.replace("Bearer ", "").trim();
@@ -854,7 +988,22 @@ const handlers: Record<string, Handler> = {
         p_arena_mode: arenaMode,
         p_idempotency_key: idempotencyKey,
       });
-      if (error) throw new ApiError("RPC_ERROR", error.message, 502);
+      if (error) {
+        if (shouldUseClanRewardFallback(error.message)) {
+          const fallbackData = await fallbackClaimClanTerritoryReward({
+            userId: student.userId,
+            roomId,
+            eventId,
+            arenaMode,
+            xp,
+            coins,
+            gemstones,
+            idempotencyKey,
+          });
+          return sendSuccess(fallbackData);
+        }
+        throw new ApiError("RPC_ERROR", error.message, 502);
+      }
 
       return sendSuccess(data ?? {});
     } catch (error) {

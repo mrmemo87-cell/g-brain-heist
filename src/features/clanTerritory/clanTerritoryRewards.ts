@@ -107,8 +107,17 @@ export function calculateClanTerritoryResults(state: ClanTerritoryGameState): Cl
       };
 
   if (winningClanId) {
-    const winningPlayers = Object.values(state.players).filter(
-      (p) => p.clanId === winningClanId && p.battleScore >= rewardPool.minContributionScore
+    const winningClanPlayers = Object.values(state.players).filter((p) => p.clanId === winningClanId);
+    const winningClanTopScore = winningClanPlayers.reduce(
+      (maxScore, player) => Math.max(maxScore, player.battleScore),
+      0
+    );
+    const minContributionScore = isOfficialArena
+      ? rewardPool.minContributionScore
+      : Math.min(rewardPool.minContributionScore, Math.max(1, winningClanTopScore));
+
+    const winningPlayers = winningClanPlayers.filter(
+      (p) => p.battleScore >= minContributionScore
     );
 
     const clanTotalScore = winningPlayers.reduce((sum, p) => sum + p.battleScore, 0);
@@ -122,7 +131,7 @@ export function calculateClanTerritoryResults(state: ClanTerritoryGameState): Cl
       if (
         player.clanId === winningClanId &&
         clanTotalScore > 0 &&
-        player.battleScore >= rewardPool.minContributionScore
+        player.battleScore >= minContributionScore
       ) {
         const share = player.battleScore / clanTotalScore;
         const rawCoins = Math.floor(rewardPool.totalCoins * share);

@@ -80,3 +80,25 @@ test('tenant-scope denials and reward-event idempotency schema exist', () => {
   expectPattern(rewardReceiptMigration, /unique \(user_id,\s*idempotency_key\)/i, 'reward receipts must dedupe by idempotency key');
   expectPattern(rewardReceiptMigration, /enable row level security/i, 'reward receipts must have RLS enabled');
 });
+
+test('bh_api clan territory claim route has fallback path for RPC schema drift', () => {
+  const bhApi = read('supabase/functions/bh_api/index.ts');
+
+  expectPattern(
+    bhApi,
+    /const\s+shouldUseClanRewardFallback\s*=\s*\(message:\s*string\)/i,
+    'bh_api should define RPC fallback detection',
+  );
+
+  expectPattern(
+    bhApi,
+    /const\s+fallbackClaimClanTerritoryReward\s*=\s*async\s*\(/i,
+    'bh_api should provide fallback reward claim logic',
+  );
+
+  expectPattern(
+    bhApi,
+    /if\s*\(shouldUseClanRewardFallback\(error\.message\)\)\s*\{[\s\S]*fallbackClaimClanTerritoryReward/is,
+    'clan territory claim route should invoke fallback when RPC fails',
+  );
+});

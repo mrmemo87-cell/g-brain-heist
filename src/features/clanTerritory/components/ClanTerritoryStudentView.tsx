@@ -203,8 +203,12 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   // Ref guard to prevent double reward claiming across rapid re-renders
   const rewardClaimStartedRef = useRef(false);
   const rewardCelebrationPlayedRef = useRef(false);
+  const rewardClaimRetryCountRef = useRef(0);
+  const rewardClaimRetryAtRef = useRef(0);
+  const rewardRetryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [claimingRewards, setClaimingRewards] = useState(false);
   const [rewardClaimError, setRewardClaimError] = useState<string | null>(null);
+  const [rewardRetryTick, setRewardRetryTick] = useState(0);
   const lastQuestionKeyRef = useRef<string | null>(null);
   const clanList = React.useMemo(() => {
     // Prefer clans from engine state (session-assigned colors)
@@ -339,12 +343,27 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
 
   // Reset session-scoped reward flow guards for each new room/session key.
   useEffect(() => {
+    if (rewardRetryTimerRef.current !== null) {
+      clearTimeout(rewardRetryTimerRef.current);
+      rewardRetryTimerRef.current = null;
+    }
     rewardClaimStartedRef.current = false;
     rewardCelebrationPlayedRef.current = false;
+    rewardClaimRetryCountRef.current = 0;
+    rewardClaimRetryAtRef.current = 0;
     setClaimingRewards(false);
     setRewardClaimError(null);
     setRewardsClaimed(false);
+    setRewardRetryTick(0);
   }, [rewardStorageKey]);
+
+  useEffect(() => {
+    return () => {
+      if (rewardRetryTimerRef.current !== null) {
+        clearTimeout(rewardRetryTimerRef.current);
+      }
+    };
+  }, []);
 
   const clansWithColors = React.useMemo(() => {
     const map: Record<ClanId, ClanMetadata> = {};
@@ -379,12 +398,14 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   }, [gameState, playerId, hydratedPlayer?.clanId]);
 
   useEffect(() => {
+    const now = Date.now();
     if (
       gameState.phase === "ENDED" &&
       gameState.endReason !== "TEACHER_DISMISSED" &&
       !rewardsClaimed &&
       !claimingRewards &&
       !rewardClaimStartedRef.current &&
+      now >= rewardClaimRetryAtRef.current &&
       rewardStorageKey &&
       hydratedPlayer
     ) {
@@ -429,8 +450,21 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
             }
           } catch (error) {
             console.error("[ClanTerritoryStudentView] Failed to finalize rewards claim flow:", error);
-            setRewardClaimError("Reward payout is pending server verification. Please wait a moment and reopen this result screen.");
-            rewardClaimStartedRef.current = false;
+            const retryCount = rewardClaimRetryCountRef.current + 1;
+            rewardClaimRetryCountRef.current = retryCount;
+
+            if (retryCount < 3) {
+              rewardClaimRetryAtRef.current = Date.now() + 5000;
+              setRewardClaimError("Reward payout server is busy. Retrying automatically…");
+              rewardClaimStartedRef.current = false;
+              rewardRetryTimerRef.current = setTimeout(() => {
+                rewardRetryTimerRef.current = null;
+                setRewardRetryTick((value) => value + 1);
+              }, 5000);
+            } else {
+              setRewardClaimError("Reward payout is pending server verification. Reopen this result screen to retry.");
+              rewardClaimStartedRef.current = true;
+            }
           } finally {
             setClaimingRewards(false);
           }
@@ -444,7 +478,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
         }
       }
     }
-  }, [gameState.phase, gameState.endReason, gameState.arenaMode, gameState.gameStartTime, playerId, roomId, rewardsClaimed, claimingRewards, rewardStorageKey, hydratedPlayer, onRewardsClaimed]);
+  }, [gameState.phase, gameState.endReason, gameState.arenaMode, gameState.gameStartTime, playerId, roomId, rewardsClaimed, claimingRewards, rewardStorageKey, hydratedPlayer, onRewardsClaimed, rewardRetryTick]);
 
   const handleAnswerClick = (selectedAnswer: string) => {
     if (!currentQuestion) return;
