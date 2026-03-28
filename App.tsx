@@ -1889,7 +1889,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               <main className="mt-6 space-y-6">
                 {/* Join School Card - place directly under header for student dashboard visibility */}
                 {profile && !hasSchool && (
-                  <JoinSchoolCard onJoined={handleJoinSchoolSuccess} />
+                  <div className="pt-3 sm:pt-4">
+                    <JoinSchoolCard onJoined={handleJoinSchoolSuccess} />
+                  </div>
                 )}
                 <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
                   {/* Left Column */}

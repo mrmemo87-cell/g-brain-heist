@@ -3,7 +3,6 @@ import * as AuthService from '../services/authService';
 import * as SchoolRequestService from '../services/schoolRequestService';
 import { supabase } from '../services/supabaseClient';
 import SchoolRequestModal from './SchoolRequestModal';
-import VisualFallbackImage from './VisualFallbackImage';
 import { visualAssets, neonIcon } from './visualAssets';
 
 interface JoinSchoolCardProps {
@@ -153,53 +152,32 @@ const JoinSchoolCard: React.FC<JoinSchoolCardProps> = ({ onJoined, initialRole =
           }`}
         >
           <div className="p-4 pt-0 space-y-4 border-t border-gray-800/50">
-            <VisualFallbackImage
-              src="/visuals/Unlock-School-Leaderboards.png"
-              alt="Unlock school features"
-              className="w-full overflow-hidden rounded-lg border border-cyan-500/20"
-              imgClassName="block w-full h-auto object-contain"
-              fallback={(
-                <div className="flex h-24 items-center justify-between rounded-lg border border-cyan-500/20 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10 px-3">
-                  <div>
-                    <p className="text-sm font-semibold text-white">Unlock school mode</p>
-                    <p className="text-xs text-cyan-200">Leaderboards • Clans • Competitions</p>
-                  </div>
-                  <span className="text-2xl" aria-hidden>🏆</span>
-                </div>
-              )}
-            />
+            <div className="rounded-xl border border-cyan-400/30 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10 p-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-200/90">
+                Unlock school privileges
+              </p>
+              <p className="mt-1 text-sm text-white/90">
+                Join with your class code to activate every school feature below.
+              </p>
+            </div>
 
             {/* Benefits list */}
-            <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
               {[
                 { img: visualAssets.schoolUnlock.leaderboards, label: 'School leaderboards' },
                 { img: visualAssets.schoolUnlock.clans, label: 'Join school clans' },
                 { img: visualAssets.schoolUnlock.competitions, label: 'School competitions' },
                 { img: visualAssets.schoolUnlock.assignments, label: 'Teacher assignments' },
               ].map((b) => (
-                <div key={b.label} className="flex items-center gap-2 text-gray-300 rounded-lg bg-white/[0.03] border border-white/5 p-1.5">
-                  <img src={b.img} alt="" className="w-8 h-8 rounded object-cover flex-shrink-0" loading="lazy" />
-                  <span>{b.label}</span>
+                <div
+                  key={b.label}
+                  className="flex items-center gap-2.5 rounded-xl border border-cyan-400/25 bg-slate-900/70 p-2.5 text-cyan-100 shadow-[0_0_18px_rgba(34,211,238,0.12)]"
+                >
+                  <img src={b.img} alt="" className="h-10 w-10 flex-shrink-0 rounded-lg object-cover ring-1 ring-cyan-300/30" loading="lazy" />
+                  <span className="text-sm font-semibold leading-tight text-white">{b.label}</span>
                 </div>
               ))}
             </div>
-
-            {/* Teacher invite hero */}
-            <img
-              src={visualAssets.social.teacherInviteHero}
-              alt="Invite your teacher"
-              className="w-full rounded-xl object-cover max-h-32"
-              loading="lazy"
-            />
-
-            {/* Class activation prompt */}
-            <img
-              src={visualAssets.social.activateClass}
-              alt="We need our teacher to activate class"
-              className="w-full rounded-xl object-contain max-h-28"
-              loading="lazy"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-            />
 
             {/* Invite code input */}
             <div className="space-y-2">
@@ -233,7 +211,7 @@ const JoinSchoolCard: React.FC<JoinSchoolCardProps> = ({ onJoined, initialRole =
                 </button>
               </div>
               <label className="block text-xs font-medium text-gray-300">
-                Enter Invite Code
+                Enter class code
               </label>
               <div className="flex gap-2">
                 <input
@@ -243,8 +221,8 @@ const JoinSchoolCard: React.FC<JoinSchoolCardProps> = ({ onJoined, initialRole =
                     setInviteCode(normalizeInviteCode(e.target.value));
                     setError(null);
                   }}
-                  placeholder="XXXXXXXX"
-                  className="flex-1 bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all"
+                  placeholder="Enter class code"
+                  className="flex-1 rounded-lg border border-cyan-400/35 bg-gray-900/80 px-3 py-2 text-sm uppercase tracking-wider text-white placeholder:text-gray-500 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all"
                   maxLength={10}
                   disabled={isLoading}
                 />
@@ -266,10 +244,10 @@ const JoinSchoolCard: React.FC<JoinSchoolCardProps> = ({ onJoined, initialRole =
             <div className="pt-2 border-t border-gray-800/50">
               <button
                 onClick={() => setShowRequestModal(true)}
-                className="w-full text-center text-xs text-gray-400 hover:text-cyan-400 transition-colors inline-flex items-center justify-center gap-1.5"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-purple-400/40 bg-purple-500/15 px-3 py-2 text-sm font-semibold text-purple-100 transition-colors hover:border-purple-300 hover:bg-purple-500/25"
               >
                 <img src={neonIcon('invite_teacher')} alt="" className="h-4 w-4 object-contain" />
-                Don't have a code? Request school access →
+                Make a request
               </button>
             </div>
           </div>
