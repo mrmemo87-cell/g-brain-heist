@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import DOMPurify from 'dompurify';
 import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, TeacherAssignmentSummary, TeacherAssignmentReportRow, StudentForAssignment, QuestionOption, StudentAssignmentAnswer, AssignmentQuestionAnalysis } from '../types';
@@ -101,7 +101,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '/BRAINS.svg');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [topNavMenuOpen, setTopNavMenuOpen] = useState(false);
+  const topNavRef = useRef<HTMLElement | null>(null);
   const topNavMenuRef = useRef<HTMLDivElement | null>(null);
+  const [topNavHeight, setTopNavHeight] = useState(96);
   const [selectedAvatar, setSelectedAvatar] = useState<string>(profile.avatar_url || '');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarUploadError, setAvatarUploadError] = useState<string | null>(null);
@@ -152,6 +154,32 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       document.removeEventListener('touchstart', handleDismiss);
     };
   }, [topNavMenuOpen]);
+
+  useLayoutEffect(() => {
+    if (!topNavRef.current) return;
+
+    const updateTopNavHeight = () => {
+      if (!topNavRef.current) return;
+      const measuredHeight = Math.ceil(topNavRef.current.getBoundingClientRect().height);
+      if (measuredHeight > 0) {
+        setTopNavHeight(measuredHeight);
+      }
+    };
+
+    updateTopNavHeight();
+
+    const resizeObserver = new ResizeObserver(() => updateTopNavHeight());
+    resizeObserver.observe(topNavRef.current);
+
+    window.addEventListener('resize', updateTopNavHeight);
+    window.addEventListener('orientationchange', updateTopNavHeight);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', updateTopNavHeight);
+      window.removeEventListener('orientationchange', updateTopNavHeight);
+    };
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -7838,8 +7866,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     <div className="teacher-portal">
       {/* Top Navigation Bar */}
       <header
+        ref={topNavRef}
         className="fixed left-0 right-0 top-0 z-50 border-b border-slate-800/60 bg-slate-950/90 backdrop-blur"
-        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+        style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 12px)' }}
       >
         <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between px-3 py-2 sm:px-4 lg:px-6">
           {/* Left: Logo + Brand */}
@@ -7998,14 +8027,14 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           avatarUploadSuccess={avatarUploadSuccess}
           requiredChanges={profile.required_changes as { username?: boolean; avatar?: boolean; reason?: string } | null}
           placement="header-bottom"
-          headerOffsetPx={76}
+          headerOffsetPx={topNavHeight}
         />
       )}
       {showHelp && (
         <HelpModal
           onClose={() => setShowHelp(false)}
           placement="header-bottom"
-          headerOffsetPx={76}
+          headerOffsetPx={topNavHeight}
         />
       )}
       <NotificationCenter
@@ -8016,8 +8045,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
       <div
         aria-hidden
-        style={{ height: 'calc(68px + env(safe-area-inset-top, 0px))' }}
-        className="sm:h-[calc(72px+env(safe-area-inset-top,0px))]"
+        style={{ height: `${topNavHeight}px` }}
       />
       <div className="teacher-portal-container">
         {/* Professional Header */}
