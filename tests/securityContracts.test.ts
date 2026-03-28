@@ -81,33 +81,44 @@ test('tenant-scope denials and reward-event idempotency schema exist', () => {
   expectPattern(rewardReceiptMigration, /enable row level security/i, 'reward receipts must have RLS enabled');
 });
 
-test('bh_api clan territory claim route is a thin transport to canonical RPC', () => {
+test('clan territory reward claim is client-direct and uses authenticated actor context', () => {
   const bhApi = read('supabase/functions/bh_api/index.ts');
-  const claimRouteBlock = bhApi.match(
-    /"clan-territory\/claim-reward":\s*async\s*\(req,\s*context\)\s*=>\s*\{[\s\S]*?\n\s*\},\n\s*"clan-territory\/finish"/i,
-  )?.[0] ?? '';
+  const studentViewTs = read('src/features/clanTerritory/components/ClanTerritoryStudentView.tsx');
+  const clanRewardRpcMigration = read('supabase/migrations/20260328110000_clan_territory_reward_claim_rpc_client_safe.sql');
 
-  expectPattern(
+  assert.doesNotMatch(
     bhApi,
-    /"clan-territory\/claim-reward":\s*async\s*\(req,\s*context\)\s*=>\s*\{[\s\S]*supabaseAdmin\.rpc\("rpc_claim_clan_territory_reward"/is,
-    'clan territory claim route must call canonical rpc_claim_clan_territory_reward',
-  );
-
-  expectPattern(
-    bhApi,
-    /throw new ApiError\("RPC_ERROR", error\.message, 502\)/i,
-    'route should surface RPC errors without a manual reward-crediting fallback',
+    /"clan-territory\/claim-reward"\s*:/i,
+    'bh_api must not expose clan-territory/claim-reward route',
   );
 
   assert.doesNotMatch(
-    claimRouteBlock,
-    /fallbackClaimClanTerritoryReward|shouldUseClanRewardFallback|reward_event_receipts[\s\S]*clan_territory_reward_claim/is,
-    'bh_api must not include TypeScript fallback reward-crediting logic for clan territory claims',
+    studentViewTs,
+    /supabase\.functions\.invoke\(\s*['"]bh_api['"]/i,
+    'clan territory reward flow must not invoke bh_api edge function',
+  );
+
+  expectPattern(
+    studentViewTs,
+    /supabase\.rpc\(\s*['"]rpc_claim_clan_territory_reward['"]/i,
+    'student view must call rpc_claim_clan_territory_reward directly',
+  );
+
+  expectPattern(
+    clanRewardRpcMigration,
+    /v_user_id\s+uuid\s*:=\s*auth\.uid\(\)/i,
+    'clan territory claim rpc must derive actor from auth.uid()',
   );
 
   assert.doesNotMatch(
-    claimRouteBlock,
-    /\.from\("users"\)\.update\(|\.from\('users'\)\.update\(/is,
-    'clan territory claim route must not manually mutate users rewards in TypeScript',
+    clanRewardRpcMigration,
+    /p_user_id/i,
+    'clan territory claim rpc must not accept caller-provided user id',
+  );
+
+  expectPattern(
+    clanRewardRpcMigration,
+    /grant execute on function public\.rpc_claim_clan_territory_reward\(text, text, int, int, int, text, text\) to authenticated;/i,
+    'clan territory claim rpc must be invokable by authenticated clients',
   );
 });

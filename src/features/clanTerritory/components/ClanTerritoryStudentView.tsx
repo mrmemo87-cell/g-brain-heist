@@ -418,25 +418,17 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
         void (async () => {
           try {
             const eventId = roomId ?? (gameState.gameStartTime ? String(gameState.gameStartTime) : `ct-${Date.now()}`);
-            const rewardClaimResponse = await supabase.functions.invoke('bh_api', {
-              body: {
-                room_id: roomId ?? null,
-                event_id: eventId,
-                arena_mode: gameState.arenaMode === "open" ? "open" : "official",
-                xp: myReward.xp,
-                coins: myReward.coins,
-                gemstones: myReward.gems,
-                idempotency_key: rewardStorageKey,
-              },
-              headers: {
-                'x-bh-api-route': 'clan-territory/claim-reward',
-              },
+            const rewardClaimResponse = await supabase.rpc('rpc_claim_clan_territory_reward', {
+              p_room_id: roomId ?? eventId,
+              p_event_id: eventId,
+              p_arena_mode: gameState.arenaMode === "open" ? "open" : "official",
+              p_xp_delta: myReward.xp,
+              p_coins_delta: myReward.coins,
+              p_gemstones_delta: myReward.gems,
+              p_idempotency_key: rewardStorageKey,
             });
 
-            const rewardClaimError = rewardClaimResponse.error
-              ?? (rewardClaimResponse.data?.success === false
-                ? new Error(String(rewardClaimResponse.data?.error?.message ?? "Failed to claim clan territory reward"))
-                : null);
+            const rewardClaimError = rewardClaimResponse.error ?? null;
 
             if (rewardClaimError) {
               throw rewardClaimError;

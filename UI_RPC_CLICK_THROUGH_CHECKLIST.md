@@ -342,7 +342,7 @@ The app uses a **single-page state machine** (no React Router). The top-level `v
 
 | # | RPC function | File | UI feature / test action |
 |---|---|---|---|
-| 171 | `rpc_apply_reward_delta` | `src/features/clanTerritory/components/ClanTerritoryStudentView.tsx` | Clan Territory → claim territory reward |
+| 171 | `rpc_claim_clan_territory_reward` | `src/features/clanTerritory/components/ClanTerritoryStudentView.tsx` | Clan Territory → claim territory reward |
 
 ---
 
