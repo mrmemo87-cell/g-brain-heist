@@ -8,6 +8,8 @@ import * as SchoolAdminService from '../services/schoolAdminService';
 import { supabase } from '../services/supabaseClient';
 import BackButton from './BackButton';
 import SettingsModal from './SettingsModal';
+import HelpModal from './HelpModal';
+import { NotificationCenter } from './NotificationCenter';
 import DiagramBuilder from './geometry/DiagramBuilder';
 import QuestionBank from './teacher/QuestionBank';
 import '../src/styles/teacher-theme.css';
@@ -19,6 +21,7 @@ import { fetchSchoolPlanDetails, fetchEffectiveTier, isPro, fetchPilotQuotas, ge
 import ProfessionalCambridgeReport, { generateSerialNumber, StudentOverviewReport, getGradeFromPercentage } from './ProfessionalCambridgeReport';
 import type { ProfessionalReportData, StudentOverviewReportData, StudentTestEntry } from './ProfessionalCambridgeReport';
 import CollectiveAssignmentReport from './CollectiveAssignmentReport';
+import { notificationService } from '../services/notificationService';
 
 interface TeacherPortalProps {
   profile: Profile;
@@ -103,6 +106,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarUploadError, setAvatarUploadError] = useState<string | null>(null);
   const [avatarUploadSuccess, setAvatarUploadSuccess] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showHelp, setShowHelp] = useState(false);
 
   // Question form state
   const [questionText, setQuestionText] = useState('');
@@ -146,6 +152,30 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       document.removeEventListener('touchstart', handleDismiss);
     };
   }, [topNavMenuOpen]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const updateUnreadCount = async () => {
+      try {
+        const count = await notificationService.getUnreadCount();
+        if (mounted) setUnreadCount(count);
+      } catch (error) {
+        console.warn('Failed to fetch teacher unread notification count:', error);
+      }
+    };
+
+    void updateUnreadCount();
+
+    const unsubscribe = notificationService.subscribe(() => {
+      void updateUnreadCount();
+    });
+
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
+  }, []);
 
   const avatarPresets = [
     'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
@@ -7846,6 +7876,32 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           <div className="relative flex items-center gap-2" ref={topNavMenuRef}>
             <button
               type="button"
+              onClick={() => {
+                setShowNotifications((prev) => !prev);
+                setUnreadCount(0);
+              }}
+              className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-700 bg-slate-900/70 text-lg text-slate-200 shadow-sm shadow-slate-950/40 transition hover:border-purple-500/60 hover:text-white"
+              aria-label="Open notifications"
+              title="Notifications"
+            >
+              🔔
+              {unreadCount > 0 && (
+                <span className="absolute -right-1 -top-1 min-w-[18px] rounded-full bg-red-500 px-1.5 py-0.5 text-[11px] font-bold text-white">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowHelp(true)}
+              className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-700 bg-slate-900/70 text-lg text-slate-200 shadow-sm shadow-slate-950/40 transition hover:border-cyan-500/60 hover:text-white"
+              aria-label="Open help and guide"
+              title="Guide & Help"
+            >
+              ❓
+            </button>
+            <button
+              type="button"
               onClick={() => setTopNavMenuOpen((prev) => !prev)}
               className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-700 bg-slate-900/70 text-2xl text-slate-200 shadow-sm shadow-slate-950/40 transition hover:border-cyan-500/60 hover:text-white"
               aria-label="Open quick menu"
@@ -7938,8 +7994,16 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           onUsernameChange={handleUsernameChange}
           avatarUploadSuccess={avatarUploadSuccess}
           requiredChanges={profile.required_changes as { username?: boolean; avatar?: boolean; reason?: string } | null}
+          placement="header-bottom"
+          headerOffsetPx={76}
         />
       )}
+      {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
+      <NotificationCenter
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
+        userRole="teacher"
+      />
 
       <div className="h-[68px] sm:h-[72px]" aria-hidden />
       <div className="teacher-portal-container">
