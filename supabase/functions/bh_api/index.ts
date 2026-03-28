@@ -785,33 +785,6 @@ const handlers: Record<string, Handler> = {
       return handleApiError(error);
     }
   },
-  "tasks/claim": async (req, context) => {
-    try {
-      if (req.method !== "POST") {
-        throw new ApiError("METHOD_NOT_ALLOWED", "Use POST to claim task rewards", 405);
-      }
-      requireStudent(context);
-      const body = (await parseJsonBody(req)) as Record<string, unknown>;
-      const taskId = ensureString(body["taskId"] ?? body["task_id"], "taskId");
-
-      const { data, error } = await supabaseAdmin.rpc("rpc_claim_task_reward", {
-        p_task_id: taskId,
-      });
-      if (error) {
-        if (error.message.includes("Task not found")) {
-          throw new ApiError("TASK_NOT_FOUND", "Task not found", 404);
-        }
-        if (error.message.includes("Task not completed yet")) {
-          throw new ApiError("TASK_NOT_COMPLETED", "Task not completed yet", 400);
-        }
-        throw new ApiError("RPC_ERROR", error.message, 502);
-      }
-
-      return sendSuccess(data ?? {});
-    } catch (error) {
-      return handleApiError(error);
-    }
-  },
   "clan-territory/finish": async (req, context) => {
     try {
       if (req.method !== "POST") {
