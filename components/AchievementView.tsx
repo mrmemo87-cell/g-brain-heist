@@ -118,6 +118,14 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
   const fetchAchievements = async () => {
     setLoading(true);
     try {
+      // Ensure server-side unlock stamps are up to date before rendering.
+      // This avoids cards that show full progress but remain dimmed.
+      try {
+        await GameService.check_achievements();
+      } catch (syncError) {
+        console.warn('Achievement sync check failed before listing:', syncError);
+      }
+
       const snapshot = await GameService.achievements_reference();
       setAchievements(snapshot.achievements || []);
       setAchievementTotals(snapshot.totals);
