@@ -214,6 +214,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   const [rewardRetryTick, setRewardRetryTick] = useState(0);
   const [showCelebrationScreen, setShowCelebrationScreen] = useState(false);
   const [canContinueFromCelebration, setCanContinueFromCelebration] = useState(false);
+  const [endScreenDismissed, setEndScreenDismissed] = useState(false);
   const celebrationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const celebrationAnimationRunRef = useRef(0);
   const lastQuestionKeyRef = useRef<string | null>(null);
@@ -363,11 +364,13 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
     setRewardsClaimed(false);
     setRewardRetryTick(0);
     setPersistedEndState(null);
+    setEndScreenDismissed(false);
   }, [rewardStorageKey]);
 
   useEffect(() => {
     if (gameState.phase === "ENDED" && gameState.endReason !== "TEACHER_DISMISSED") {
       setPersistedEndState(gameState);
+      setEndScreenDismissed(false);
     }
   }, [gameState]);
 
@@ -542,6 +545,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
     clanList.find((c) => c.id === hydratedPlayer.clanId) ?? gameState.clans[hydratedPlayer.clanId];
 
   const handleBackToArenas = React.useCallback(() => {
+    setEndScreenDismissed(true);
     if (onExit) {
       onExit();
       return;
@@ -556,8 +560,14 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
     handleBackToArenas();
   }, [canContinueFromCelebration, handleBackToArenas]);
 
+  const hasStickyDebrief = Boolean(
+    persistedEndState &&
+      persistedEndState.endReason !== "TEACHER_DISMISSED" &&
+      !endScreenDismissed
+  );
+
   // 1. Lobby Phase
-  if (gameState.phase === "LOBBY") {
+  if (gameState.phase === "LOBBY" && !hasStickyDebrief) {
     return (
       <div className="flex flex-col h-full bg-gray-950 text-white p-6 gap-6">
         <div className="text-center">
@@ -594,7 +604,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   }
 
   // 2. Active Phase - Zone Selection
-  if (gameState.phase === "ACTIVE" && !effectiveZoneId) {
+  if (gameState.phase === "ACTIVE" && !effectiveZoneId && !hasStickyDebrief) {
     return (
       <div className="flex flex-col h-full bg-gray-950 text-white overflow-hidden">
         <div className="p-4 border-b border-gray-800 shrink-0">
@@ -675,7 +685,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   }
 
   // 3. Active Phase - Combat (Answering Questions) - WITH LIVE MAP
-  if (gameState.phase === "ACTIVE" && effectiveZoneId) {
+  if (gameState.phase === "ACTIVE" && effectiveZoneId && !hasStickyDebrief) {
     const zone = activeZones.find((z) => z.id === effectiveZoneId);
     const zoneState = gameState.zones[effectiveZoneId];
     const zoneTotal = zoneState ? Object.values(zoneState.influence).reduce((a, b) => a + b, 0) : 0;
