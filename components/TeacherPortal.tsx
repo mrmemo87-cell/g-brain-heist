@@ -7856,7 +7856,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               
               {!teacherHasClassAssignments && (
                 <div className="mt-3 rounded-lg border border-amber-400/30 bg-amber-500/10 px-4 py-3">
-                  <p className="text-sm text-amber-200">
+                  <p className="text-sm text-amber-900">
                     ⚠️ No classes assigned yet. Contact your school admin to assign you to classes.
                   </p>
                 </div>
