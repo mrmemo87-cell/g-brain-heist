@@ -275,6 +275,41 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
     void loadRequestMessages(selectedRequestId);
   }, [loadRequestMessages, selectedRequestId]);
 
+  useEffect(() => {
+    if (!isOpen || activeView !== 'applications' || !session) return;
+
+    const channel = SchoolRequestService.subscribeToSchoolRequestMessageChanges(
+      `applicant-school-request-messages-${session?.user?.id ?? 'anon'}`,
+      async (payload) => {
+        const changedRequestId = payload.new?.request_id ?? payload.old?.request_id ?? null;
+        if (!changedRequestId) return;
+
+        const threadResult = await SchoolRequestService.listSchoolRequestMessages(changedRequestId);
+        if (!threadResult.success || threadResult.unavailable) return;
+
+        if (selectedRequestId === changedRequestId) {
+          setRequestMessages(threadResult.messages);
+          SchoolRequestService.markSchoolRequestThreadSeen(changedRequestId, 'applicant');
+          setRequestUnreadCounts((prev) => ({ ...prev, [changedRequestId]: 0 }));
+        } else {
+          const lastSeenAt = SchoolRequestService.getSchoolRequestLastSeenAt(changedRequestId, 'applicant');
+          const unreadCount = SchoolRequestService.getUnreadSchoolRequestMessageCount(
+            threadResult.messages,
+            'applicant',
+            lastSeenAt
+          );
+          setRequestUnreadCounts((prev) => ({ ...prev, [changedRequestId]: unreadCount }));
+        }
+
+        void loadMyRequests();
+      }
+    );
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [activeView, isOpen, loadMyRequests, selectedRequestId, session]);
+
   const suggestionButtons = suggestions.filter((suggestion) => suggestion?.name);
   const selectedRequest = requests.find((request) => request.id === selectedRequestId) ?? requests[0] ?? null;
   const totalUnreadCount = useMemo(
@@ -425,7 +460,10 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
                 {selectedRequest && (
                   <div className="rounded-lg border border-white/10 bg-black/30 p-4">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-white">Conversation</p>
+                      <div>
+                        <p className="text-sm font-semibold text-white">Conversation</p>
+                        <p className="text-xs text-slate-400">Live updates. New replies appear automatically.</p>
+                      </div>
                       {messagesUnavailable && (
                         <span className="text-xs text-slate-400">Messaging unavailable</span>
                       )}
@@ -453,14 +491,14 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
                       <SchoolRequestConversation messages={requestMessages} viewerRole="applicant" />
                     )}
 
-                    {selectedRequest.status === 'needs_more_info' && (
+                    {(selectedRequest.status === 'pending' || selectedRequest.status === 'needs_more_info') && (
                       <div className="mt-4 space-y-3">
                         <textarea
                           value={replyMessage}
                           onChange={(event) => setReplyMessage(event.target.value)}
                           rows={3}
                           className="w-full rounded-lg border border-amber-400/30 bg-black/30 p-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-300"
-                          placeholder="Reply with the details we requested."
+                          placeholder="Type your reply to continue the conversation."
                         />
                         <button
                           type="button"
@@ -468,7 +506,7 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
                           disabled={replySending || !replyMessage.trim()}
                           className="rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-black disabled:opacity-60"
                         >
-                          {replySending ? 'Sending...' : 'Send reply'}
+                          {replySending ? 'Sending...' : 'Send message'}
                         </button>
                       </div>
                     )}

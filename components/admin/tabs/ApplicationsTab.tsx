@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAdmin } from '../AdminContext';
 import * as SchoolRequestService from '../../../services/schoolRequestService';
+import { supabase } from '../../../services/supabaseClient';
 import SchoolRequestConversation from '../../schoolRequests/SchoolRequestConversation';
 
 const ApplicationsTab: React.FC = () => {
@@ -11,9 +12,11 @@ const ApplicationsTab: React.FC = () => {
     schoolRequestMessagesLoading, schoolRequestMessagesOpen, schoolRequestMessagesUnavailable, 
     schoolRequestNotes, schoolRequestSearch, schoolRequestStatus, schoolRequestsError, 
     schoolRequestsLoading, setSchoolRequestDuplicates, setSchoolRequestMessagesOpen, 
-    setSchoolRequestNotes, setSchoolRequestSearch, setSchoolRequestStatus,
+    setSchoolRequestNotes, setSchoolRequestSearch, setSchoolRequestStatus, addToast,
   } = useAdmin();
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
+  const [replySendingByRequestId, setReplySendingByRequestId] = useState<Record<string, boolean>>({});
 
   const unreadTotal = useMemo(
     () => Object.values(unreadCounts).reduce((sum, value) => sum + value, 0),
@@ -48,6 +51,59 @@ const ApplicationsTab: React.FC = () => {
 
     void computeUnread();
   }, [filteredSchoolRequests, schoolRequestMessages]);
+
+  useEffect(() => {
+    const channel = SchoolRequestService.subscribeToSchoolRequestMessageChanges(
+      'admin-applications-thread-stream',
+      (payload) => {
+        const changedRequestId = payload.new?.request_id ?? payload.old?.request_id ?? null;
+        if (!changedRequestId) return;
+
+        const isThreadOpen = Boolean(schoolRequestMessagesOpen[changedRequestId]);
+        if (isThreadOpen) {
+          void loadSchoolRequestMessages(changedRequestId);
+          SchoolRequestService.markSchoolRequestThreadSeen(changedRequestId, 'admin');
+          setUnreadCounts((prev) => ({ ...prev, [changedRequestId]: 0 }));
+          return;
+        }
+
+        void SchoolRequestService.listSchoolRequestMessages(changedRequestId).then((result) => {
+          if (!result.success || result.unavailable) return;
+          const lastSeenAt = SchoolRequestService.getSchoolRequestLastSeenAt(changedRequestId, 'admin');
+          const unread = SchoolRequestService.getUnreadSchoolRequestMessageCount(
+            result.messages,
+            'admin',
+            lastSeenAt
+          );
+          setUnreadCounts((prev) => ({ ...prev, [changedRequestId]: unread }));
+        });
+      }
+    );
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [loadSchoolRequestMessages, schoolRequestMessagesOpen]);
+
+  const handleAdminReply = async (requestId: string) => {
+    const draft = replyDrafts[requestId]?.trim();
+    if (!draft) return;
+
+    setReplySendingByRequestId((prev) => ({ ...prev, [requestId]: true }));
+    const result = await SchoolRequestService.sendSchoolRequestMessage(requestId, draft);
+    setReplySendingByRequestId((prev) => ({ ...prev, [requestId]: false }));
+
+    if (!result.success) {
+      addToast(result.error || 'Failed to send reply.', 'error');
+      return;
+    }
+
+    setReplyDrafts((prev) => ({ ...prev, [requestId]: '' }));
+    SchoolRequestService.markSchoolRequestThreadSeen(requestId, 'admin');
+    setUnreadCounts((prev) => ({ ...prev, [requestId]: 0 }));
+    await loadSchoolRequestMessages(requestId);
+    await loadSchoolRequests();
+  };
 
   return (
     <div className="space-y-6">
@@ -126,6 +182,7 @@ const ApplicationsTab: React.FC = () => {
           const isMessagesLoading = Boolean(schoolRequestMessagesLoading[request.id]);
           const messagesError = schoolRequestMessagesError[request.id];
           const messagesUnavailable = Boolean(schoolRequestMessagesUnavailable[request.id]);
+          const canContinueConversation = status === 'pending' || status === 'needs_more_info';
           return (
             <div key={request.id} className="card-glass p-6 border border-white/10">
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -232,7 +289,10 @@ const ApplicationsTab: React.FC = () => {
               {isMessagesOpen && (
                 <div className="mt-4 rounded-lg border border-white/10 bg-black/40 p-4">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-white">Conversation</p>
+                    <div>
+                      <p className="text-sm font-semibold text-white">Conversation</p>
+                      <p className="text-xs text-gray-400">Live thread. New replies appear automatically.</p>
+                    </div>
                     <button
                       type="button"
                       onClick={() => {
@@ -255,6 +315,28 @@ const ApplicationsTab: React.FC = () => {
                     <p className="mt-3 text-sm text-gray-400">No messages yet.</p>
                   ) : (
                     <SchoolRequestConversation messages={messages} viewerRole="admin" />
+                  )}
+
+                  {canContinueConversation && (
+                    <div className="mt-4 space-y-2">
+                      <textarea
+                        value={replyDrafts[request.id] || ''}
+                        onChange={(event) =>
+                          setReplyDrafts((prev) => ({ ...prev, [request.id]: event.target.value }))
+                        }
+                        rows={3}
+                        className="w-full rounded-lg border border-cyan-400/20 bg-black/30 p-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                        placeholder="Send a direct reply to keep this conversation moving."
+                      />
+                      <button
+                        type="button"
+                        onClick={() => void handleAdminReply(request.id)}
+                        disabled={Boolean(replySendingByRequestId[request.id]) || !(replyDrafts[request.id] || '').trim()}
+                        className="rounded-lg border border-cyan-400/40 bg-cyan-500/20 px-4 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-500/30 disabled:opacity-60"
+                      >
+                        {replySendingByRequestId[request.id] ? 'Sending...' : 'Send message'}
+                      </button>
+                    </div>
                   )}
                 </div>
               )}

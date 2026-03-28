@@ -60,6 +60,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   const [schoolRequestMessagesError, setSchoolRequestMessagesError] = useState<Record<string, string>>({});
   const [schoolRequestMessagesUnavailable, setSchoolRequestMessagesUnavailable] = useState<Record<string, boolean>>({});
   const [schoolRequestMessagesOpen, setSchoolRequestMessagesOpen] = useState<Record<string, boolean>>({});
+  const [applicationsUnreadTotal, setApplicationsUnreadTotal] = useState(0);
   const [schoolOptions, setSchoolOptions] = useState<{ id: string; name: string; school_plan?: string }[]>([]);
   const [schoolAdminSchoolId, setSchoolAdminSchoolId] = useState('');
   const [schoolMemberSearch, setSchoolMemberSearch] = useState('');
@@ -581,6 +582,48 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       loadSchoolOptions();
     }
   }, [activeTab, loadSchoolRequests, loadSchoolOptions]);
+
+  useEffect(() => {
+    let isDisposed = false;
+
+    const refreshApplicationsUnreadTotal = async () => {
+      if (schoolRequests.length === 0) {
+        if (!isDisposed) setApplicationsUnreadTotal(0);
+        return;
+      }
+
+      const unreadCounts = await Promise.all(
+        schoolRequests.map(async (request) => {
+          const result = await SchoolRequestService.listSchoolRequestMessages(request.id);
+          if (!result.success || result.unavailable) return 0;
+          const lastSeenAt = SchoolRequestService.getSchoolRequestLastSeenAt(request.id, 'admin');
+          return SchoolRequestService.getUnreadSchoolRequestMessageCount(
+            result.messages,
+            'admin',
+            lastSeenAt
+          );
+        })
+      );
+
+      if (!isDisposed) {
+        setApplicationsUnreadTotal(unreadCounts.reduce((sum, count) => sum + count, 0));
+      }
+    };
+
+    void refreshApplicationsUnreadTotal();
+
+    const channel = SchoolRequestService.subscribeToSchoolRequestMessageChanges(
+      'admin-applications-nav-unread',
+      () => {
+        void refreshApplicationsUnreadTotal();
+      }
+    );
+
+    return () => {
+      isDisposed = true;
+      void supabase.removeChannel(channel);
+    };
+  }, [schoolRequests]);
 
   // Load school options when announcement composer opens (needed for targeting)
   useEffect(() => {
@@ -1651,6 +1694,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     schoolRequestMessagesOpen, setSchoolRequestMessagesOpen,
     schoolRequestMessages, schoolRequestMessagesLoading,
     schoolRequestMessagesError, schoolRequestMessagesUnavailable,
+    applicationsUnreadTotal,
     existingAnnouncements, announcementsLoading,
     showCustomGrant, setShowCustomGrant,
     customCoinAmount, setCustomCoinAmount, customXpAmount, setCustomXpAmount,
@@ -1778,6 +1822,11 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                   <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-pink-500 blur-xl opacity-50 -z-10"></div>
                 )}
                 {tab.toUpperCase()}
+                {tab === 'applications' && applicationsUnreadTotal > 0 && (
+                  <span className="absolute -right-2 -top-2 inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-red-500 px-1 text-xs font-bold text-white shadow-lg">
+                    {Math.min(applicationsUnreadTotal, 99)}
+                  </span>
+                )}
               </button>
             ))}
           </div>
