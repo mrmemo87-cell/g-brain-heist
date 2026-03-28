@@ -136,8 +136,8 @@ const ItemCard: React.FC<{
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center rounded-xl bg-black/30 border border-white/5">
+        <div className="flex items-start gap-4">
+          <div className="w-32 h-32 sm:w-36 sm:h-36 flex shrink-0 items-center justify-center rounded-xl">
             {getItemIcon(item)}
           </div>
           <div className="flex-1 min-w-0">
@@ -455,10 +455,10 @@ const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, ad
               <img
                 src="/visuals/shop-items/Brains-Master.png"
                 alt="Brains Master"
-                className="pointer-events-none absolute right-2 top-1 h-28 w-44 object-contain opacity-30 sm:h-32 sm:w-52"
+                className="pointer-events-none absolute right-2 top-2 h-44 w-72 object-contain opacity-95 md:h-52 md:w-80 z-10"
                 loading="lazy"
               />
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between relative z-10">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between relative z-20 md:pr-64">
                 <div>
                   <h3 className="font-heading text-2xl text-amber-300 flex items-center gap-2">
                     🧠 Brains Master
@@ -475,7 +475,7 @@ const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, ad
                   <span className="font-mono text-rose-200 text-lg">{BM_GEM_PRICE}</span>
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm relative z-10">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm relative z-20 md:pr-64">
                 <div className="bg-black/30 rounded-xl p-3 border border-white/5">
                   <span className="text-gray-400">Instant Reward</span>
                   <p className="text-white font-heading">+{BM_INSTANT_GEMS} 💎 gems + 5× daily coin cap in coins</p>
@@ -492,7 +492,7 @@ const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, ad
               <button
                 onClick={handleBuyBrainsMaster}
                 disabled={bmPurchasing || profile.gemstones < BM_GEM_PRICE}
-                className={`relative z-10 w-full py-3 rounded-xl font-heading text-lg transition-all ${
+                className={`relative z-20 w-full py-3 rounded-xl font-heading text-lg transition-all ${
                   bmPurchasing
                     ? 'bg-gray-600/50 cursor-wait'
                     : profile.gemstones < BM_GEM_PRICE
@@ -505,7 +505,7 @@ const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, ad
                 {bmPurchasing ? 'Purchasing…' : bmActive ? 'Extend Brains Master' : 'Purchase Brains Master'}
               </button>
               {profile.gemstones < BM_GEM_PRICE && (
-                <p className="text-xs text-rose-400 text-center relative z-10">
+                <p className="text-xs text-rose-400 text-center relative z-20">
                   You need {BM_GEM_PRICE - profile.gemstones} more gemstones
                 </p>
               )}
