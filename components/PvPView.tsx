@@ -26,6 +26,7 @@ const RAID_AP_COST = 2;
 
 interface PvPViewProps {
   profile: Profile;
+  focusTargetUserId?: string | null;
   onComplete: () => void;
   addToast: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
   onGrantReward: (
@@ -147,7 +148,7 @@ interface ClanMember {
 
 type TargetFilter = 'all' | 'nearby' | 'easy' | 'challenge' | 'rivals';
 
-const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward, addToast }) => {
+const PvPView: React.FC<PvPViewProps> = ({ profile, focusTargetUserId, onComplete, onGrantReward, addToast }) => {
   const [stage, setStage] = useState<PvPStage>('loading');
   const [targets, setTargets] = useState<RaidTarget[]>([]);
   const [targetsError, setTargetsError] = useState<string | null>(null);
@@ -212,6 +213,16 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward, a
   useEffect(() => {
     void loadTargets();
   }, [loadTargets]);
+
+  useEffect(() => {
+    if (!focusTargetUserId || stage !== 'targets') return;
+    const target = targets.find((candidate) => candidate.user_id === focusTargetUserId);
+    if (!target) {
+      addToast('Revenge target is no longer available. Pick another opponent.', 'warning');
+      return;
+    }
+    setSelectedTarget(target);
+  }, [addToast, focusTargetUserId, stage, targets]);
 
   useEffect(() => {
     const handle = window.setTimeout(() => {
