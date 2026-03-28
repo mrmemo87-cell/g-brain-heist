@@ -81,24 +81,33 @@ test('tenant-scope denials and reward-event idempotency schema exist', () => {
   expectPattern(rewardReceiptMigration, /enable row level security/i, 'reward receipts must have RLS enabled');
 });
 
-test('bh_api clan territory claim route has fallback path for RPC schema drift', () => {
+test('bh_api clan territory claim route is a thin transport to canonical RPC', () => {
   const bhApi = read('supabase/functions/bh_api/index.ts');
+  const claimRouteBlock = bhApi.match(
+    /"clan-territory\/claim-reward":\s*async\s*\(req,\s*context\)\s*=>\s*\{[\s\S]*?\n\s*\},\n\s*"clan-territory\/finish"/i,
+  )?.[0] ?? '';
 
   expectPattern(
     bhApi,
-    /const\s+shouldUseClanRewardFallback\s*=\s*\(message:\s*string\)/i,
-    'bh_api should define RPC fallback detection',
+    /"clan-territory\/claim-reward":\s*async\s*\(req,\s*context\)\s*=>\s*\{[\s\S]*supabaseAdmin\.rpc\("rpc_claim_clan_territory_reward"/is,
+    'clan territory claim route must call canonical rpc_claim_clan_territory_reward',
   );
 
   expectPattern(
     bhApi,
-    /const\s+fallbackClaimClanTerritoryReward\s*=\s*async\s*\(/i,
-    'bh_api should provide fallback reward claim logic',
+    /throw new ApiError\("RPC_ERROR", error\.message, 502\)/i,
+    'route should surface RPC errors without a manual reward-crediting fallback',
   );
 
-  expectPattern(
-    bhApi,
-    /if\s*\(shouldUseClanRewardFallback\(error\.message\)\)\s*\{[\s\S]*fallbackClaimClanTerritoryReward/is,
-    'clan territory claim route should invoke fallback when RPC fails',
+  assert.doesNotMatch(
+    claimRouteBlock,
+    /fallbackClaimClanTerritoryReward|shouldUseClanRewardFallback|reward_event_receipts[\s\S]*clan_territory_reward_claim/is,
+    'bh_api must not include TypeScript fallback reward-crediting logic for clan territory claims',
+  );
+
+  assert.doesNotMatch(
+    claimRouteBlock,
+    /\.from\("users"\)\.update\(|\.from\('users'\)\.update\(/is,
+    'clan territory claim route must not manually mutate users rewards in TypeScript',
   );
 });
