@@ -1984,18 +1984,32 @@ export const tasks_list = async (): Promise<Task[]> => {
     weekStart.setDate(weekStart.getDate() - dayOfWeek);
     weekStart.setHours(0, 0, 0, 0);
     
-    // Query database for today's quest completions
-    const { data: questData } = await supabase
-      .from('activities')
-      .select('id')
-      .eq('actor_id', user.id)
-      .eq('kind', 'quest_complete')
-      .gte('created_at', todayStart.toISOString())
-      .lte('created_at', todayEnd.toISOString());
-    
-    dailyQuestsCompleted = questData?.length || 0;
+    // Query canonical quest completions from quest_runs first (Quest Mode 2.0).
+    const { count: completedRunsCount, error: completedRunsError } = await supabase
+      .from('quest_runs')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('status', 'completed')
+      .gte('completed_at', todayStart.toISOString())
+      .lte('completed_at', todayEnd.toISOString());
 
-    // Fallback: derive completed quests from teacher-system quest sessions when activities are not logged
+    // Backward compatibility: older builds recorded quest completion in activities.
+    if (completedRunsError || completedRunsCount === null) {
+      const { data: questData } = await supabase
+        .from('activities')
+        .select('id')
+        .eq('actor_id', user.id)
+        .eq('kind', 'quest_complete')
+        .gte('created_at', todayStart.toISOString())
+        .lte('created_at', todayEnd.toISOString());
+
+      dailyQuestsCompleted = questData?.length || 0;
+    } else {
+      dailyQuestsCompleted = completedRunsCount || 0;
+    }
+
+    // Fallback: derive completed quests from teacher-system quest sessions when
+    // activity and quest-run completion rows are both unavailable.
     if (dailyQuestsCompleted === 0) {
       const { data: questSessionRows } = await supabase
         .from('question_attempts')
