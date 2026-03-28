@@ -497,19 +497,6 @@ const MainActions: React.FC<MainActionsProps> = ({
               quotaInfo={q('Clan')}
               quotaLabel={ql('Clan')}
             />
-            {onOpenRivalry && (
-              <ActionButton
-                onClick={locked ? handleLocked('Rivalry Protocol') : handlePilotClick('Clan', onOpenRivalry)}
-                icon={<span aria-hidden className="text-3xl">🛡️</span>}
-                label="Rivalry"
-                color="220, 38, 38"
-                glowClass="glow-plasma"
-                subtitle="Clan Wars V1"
-                locked={locked}
-                quotaInfo={q('Clan')}
-                quotaLabel={ql('Clan')}
-              />
-            )}
           </div>
 
           {/* ── "More" collapsible section ── */}
