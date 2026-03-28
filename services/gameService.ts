@@ -4796,6 +4796,20 @@ export interface Achievement {
   progress?: number; // Current progress towards achievement
 }
 
+export interface AchievementReference {
+    achievements: Achievement[];
+    totals: {
+        totalDefined: number;
+        totalEarned: number;
+        xpFromAchievements: number;
+        coinsFromAchievements: number;
+        byRarity: Record<string, number>;
+        byCategory: Record<string, number>;
+    };
+    latestEarnedAt: string | null;
+    nextUnlocks: Achievement[];
+}
+
 export const achievements_list = async (): Promise<Achievement[]> => {
     const user = await getCurrentUser();
 
@@ -4841,46 +4855,51 @@ export const achievements_list = async (): Promise<Achievement[]> => {
 
     // Track total PvP participation from activities as a reliable fallback
     // for achievements that measure "first attack", "first match", etc.
-    const { data: pvpActivityRows } = await supabase
+    const { count: pvpBattleCountRaw } = await supabase
         .from('activities')
-        .select('id, kind')
+        .select('id', { count: 'exact', head: true })
         .eq('actor_id', user.id)
         .in('kind', ['pvp_win', 'pvp_loss', 'pvp_blocked']);
 
-    const pvpBattleCount = (pvpActivityRows || []).length;
+    const pvpBattleCount = pvpBattleCountRaw || 0;
 
-    const { data: questsCompleted } = await supabase
-        .from('activities')
-        .select('id', { count: 'exact', head: true })
-        .eq('actor_id', user.id)
-        .eq('kind', 'quest_complete');
+    const [
+        questsCompletedRes,
+        questRunsCompletedRes,
+        itemsPurchasedRes,
+        purchasesRes,
+    ] = await Promise.all([
+        supabase
+            .from('activities')
+            .select('id', { count: 'exact', head: true })
+            .eq('actor_id', user.id)
+            .eq('kind', 'quest_complete'),
+        supabase
+            .from('quest_runs')
+            .select('id', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .eq('status', 'completed'),
+        supabase
+            .from('activities')
+            .select('id', { count: 'exact', head: true })
+            .eq('actor_id', user.id)
+            .eq('kind', 'shop_purchase'),
+        supabase
+            .from('activities')
+            .select('data')
+            .eq('actor_id', user.id)
+            .eq('kind', 'shop_purchase')
+    ]);
 
-    const { data: questRunsCompleted } = await supabase
-        .from('quest_runs')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('status', 'completed');
-
-    const { data: itemsPurchased } = await supabase
-        .from('activities')
-        .select('id', { count: 'exact', head: true })
-        .eq('actor_id', user.id)
-        .eq('kind', 'shop_purchase');
-
-    const legacyQuestCount = (questsCompleted as any)?.count || 0;
-    const questRunsCount = (questRunsCompleted as any)?.count || 0;
+    const legacyQuestCount = (questsCompletedRes as any)?.count || 0;
+    const questRunsCount = (questRunsCompletedRes as any)?.count || 0;
     const questCount = Math.max(legacyQuestCount, questRunsCount);
-    const purchaseCount = (itemsPurchased as any)?.count || 0;
+    const purchaseCount = (itemsPurchasedRes as any)?.count || 0;
 
     // Calculate coins earned (current + spent)
     // Note: activities table uses 'data' JSONB column, not 'amount'
-    const { data: purchases } = await supabase
-        .from('activities')
-        .select('data')
-        .eq('actor_id', user.id)
-        .eq('kind', 'shop_purchase');
-
-    const coinsSpent = (purchases || []).reduce((sum: number, p: any) => sum + (p.data?.amount || p.data?.price || 0), 0);
+    const purchases = purchasesRes.data || [];
+    const coinsSpent = purchases.reduce((sum: number, p: any) => sum + (p.data?.amount || p.data?.price || 0), 0);
     const coinsEarned = (profile?.coins || 0) + coinsSpent;
 
     // Count assignments (with error handling for RLS issues)
@@ -4977,11 +4996,7 @@ export const achievements_list = async (): Promise<Achievement[]> => {
 
         const target = ach.condition_value || 0;
         const normalizedProgress = target > 0 ? Math.min(progress, target) : progress;
-        // Trustworthy UI fallback:
-        // If user has already met the target but the timestamp row is missing/stale,
-        // treat the card as earned to avoid showing impossible states like "1/1" while locked.
-        const inferredEarned = !hasEarnedTimestamp && target > 0 && normalizedProgress >= target;
-        const is_earned = hasEarnedTimestamp || inferredEarned;
+        const is_earned = hasEarnedTimestamp;
 
         return {
             ...ach,
@@ -4992,6 +5007,53 @@ export const achievements_list = async (): Promise<Achievement[]> => {
             progress: normalizedProgress,
         };
     });
+};
+
+export const achievements_reference = async (): Promise<AchievementReference> => {
+    const achievements = await achievements_list();
+    const earned = achievements.filter((a) => a.is_earned);
+
+    const totals = earned.reduce(
+        (acc, ach) => {
+            const rarityKey = ach.rarity || 'common';
+            const categoryKey = ach.category || 'general';
+            acc.xpFromAchievements += ach.reward_xp || 0;
+            acc.coinsFromAchievements += ach.reward_coins || 0;
+            acc.byRarity[rarityKey] = (acc.byRarity[rarityKey] || 0) + 1;
+            acc.byCategory[categoryKey] = (acc.byCategory[categoryKey] || 0) + 1;
+            return acc;
+        },
+        {
+            totalDefined: achievements.length,
+            totalEarned: earned.length,
+            xpFromAchievements: 0,
+            coinsFromAchievements: 0,
+            byRarity: {} as Record<string, number>,
+            byCategory: {} as Record<string, number>,
+        }
+    );
+
+    const latestEarnedAt = earned
+        .map((a) => a.earned_at)
+        .filter((value): value is string => Boolean(value))
+        .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0] || null;
+
+    const nextUnlocks = achievements
+        .filter((a) => !a.is_earned)
+        .map((a) => ({
+            ...a,
+            _remaining: Math.max((a.condition_value || 0) - (a.progress || 0), 0),
+        }))
+        .sort((a, b) => a._remaining - b._remaining)
+        .slice(0, 3)
+        .map(({ _remaining, ...achievement }) => achievement as Achievement);
+
+    return {
+        achievements,
+        totals,
+        latestEarnedAt,
+        nextUnlocks,
+    };
 };
 
 export const check_achievements = async (): Promise<Achievement[]> => {

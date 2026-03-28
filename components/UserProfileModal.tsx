@@ -82,7 +82,6 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ profile, apValue, o
             )
           `)
           .eq('user_id', profile.id)
-          .not('earned_at', 'is', null)
           .order('earned_at', { ascending: false });
 
         if (error) {
@@ -91,12 +90,14 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ profile, apValue, o
             .from('user_achievements')
             .select('achievement_id, earned_at, unlocked_at')
             .eq('user_id', profile.id)
-            .not('earned_at', 'is', null);
+            .or('earned_at.not.is.null,unlocked_at.not.is.null');
           
           setTotalEarned(fallbackData?.length || 0);
           setAchievements([]);
         } else {
-          const mapped = (data || []).map((row: any) => ({
+          const mapped = (data || [])
+            .filter((row: any) => row.earned_at || row.unlocked_at)
+            .map((row: any) => ({
             achievement_id: row.achievement_id,
             name: row.achievements?.name || row.achievement_id,
             description: row.achievements?.description || '',

@@ -37,6 +37,15 @@ interface Achievement {
   progress?: number;
 }
 
+interface AchievementTotals {
+  totalDefined: number;
+  totalEarned: number;
+  xpFromAchievements: number;
+  coinsFromAchievements: number;
+  byRarity: Record<string, number>;
+  byCategory: Record<string, number>;
+}
+
 interface AchievementViewProps {
   onComplete: () => void;
   addToast: (message: string, type: 'success' | 'error' | 'info') => void;
@@ -70,6 +79,9 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
   const [selectedAssignment, setSelectedAssignment] = useState<CompletedAssignment | null>(null);
   const [assignmentAnswers, setAssignmentAnswers] = useState<MyAssignmentAnswer[]>([]);
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
+  const [achievementTotals, setAchievementTotals] = useState<AchievementTotals | null>(null);
+  const [latestEarnedAt, setLatestEarnedAt] = useState<string | null>(null);
+  const [nextUnlocks, setNextUnlocks] = useState<Achievement[]>([]);
 
   useEffect(() => {
     fetchAchievements();
@@ -106,19 +118,11 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
   const fetchAchievements = async () => {
     setLoading(true);
     try {
-      const data = await GameService.achievements_list();
-      setAchievements(data);
-
-      // Check for newly earned achievements
-      const newlyEarned = await GameService.check_achievements();
-      if (newlyEarned && newlyEarned.length > 0) {
-        newlyEarned.forEach((ach: Achievement) => {
-          addToast(`🎉 Achievement Unlocked: ${ach.name}!`, 'success');
-        });
-        // Refresh achievements after checking
-        const refreshed = await GameService.achievements_list();
-        setAchievements(refreshed);
-      }
+      const snapshot = await GameService.achievements_reference();
+      setAchievements(snapshot.achievements || []);
+      setAchievementTotals(snapshot.totals);
+      setLatestEarnedAt(snapshot.latestEarnedAt);
+      setNextUnlocks(snapshot.nextUnlocks || []);
     } catch (error: any) {
       console.error('Failed to fetch achievements:', error);
       
@@ -128,6 +132,9 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
         addToast('Failed to load achievements. Please try again.', 'error');
       }
       setAchievements([]);
+      setAchievementTotals(null);
+      setLatestEarnedAt(null);
+      setNextUnlocks([]);
     } finally {
       setLoading(false);
     }
@@ -161,8 +168,8 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
     });
   }, [achievements, filter, categoryFilter]);
 
-  const earnedCount = achievements.filter(a => a.is_earned).length;
-  const totalCount = achievements.length;
+  const earnedCount = achievementTotals?.totalEarned ?? achievements.filter(a => a.is_earned).length;
+  const totalCount = achievementTotals?.totalDefined ?? achievements.length;
 
   const getRarityConfig = (rarity?: string) => {
     return RARITY_CONFIG[rarity as keyof typeof RARITY_CONFIG] || RARITY_CONFIG.common;
@@ -338,7 +345,7 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
         {/* Rarity Stats */}
         <div className="flex justify-center gap-4 flex-wrap mb-6">
           {Object.entries(RARITY_CONFIG).map(([key, config]) => {
-            const count = achievements.filter(a => a.is_earned && (a.rarity || 'common') === key).length;
+            const count = achievementTotals?.byRarity?.[key] ?? achievements.filter(a => a.is_earned && (a.rarity || 'common') === key).length;
             if (count === 0 && key !== 'common') return null;
             return (
               <div key={key} className={`px-3 py-1 rounded-full ${config.bg} ${config.color} text-sm`}>
@@ -347,6 +354,46 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
             );
           })}
         </div>
+
+        {/* Important Figures */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <div className="rounded-xl border border-cyan-500/30 bg-cyan-900/20 p-3">
+            <p className="text-xs uppercase tracking-wide text-cyan-300">Total Earned</p>
+            <p className="font-heading text-2xl text-white">{earnedCount}</p>
+          </div>
+          <div className="rounded-xl border border-blue-500/30 bg-blue-900/20 p-3">
+            <p className="text-xs uppercase tracking-wide text-blue-300">XP from Achievements</p>
+            <p className="font-heading text-2xl text-white">{(achievementTotals?.xpFromAchievements || 0).toLocaleString()}</p>
+          </div>
+          <div className="rounded-xl border border-yellow-500/30 bg-yellow-900/20 p-3">
+            <p className="text-xs uppercase tracking-wide text-yellow-300">Coins from Achievements</p>
+            <p className="font-heading text-2xl text-white">{(achievementTotals?.coinsFromAchievements || 0).toLocaleString()}</p>
+          </div>
+          <div className="rounded-xl border border-purple-500/30 bg-purple-900/20 p-3">
+            <p className="text-xs uppercase tracking-wide text-purple-300">Latest Unlock</p>
+            <p className="font-heading text-sm text-white mt-1">
+              {latestEarnedAt ? new Date(latestEarnedAt).toLocaleString() : 'No unlocks yet'}
+            </p>
+          </div>
+        </div>
+
+        {/* Next Targets */}
+        {nextUnlocks.length > 0 && (
+          <div className="rounded-xl border border-slate-700/60 bg-slate-900/40 p-4 mb-6">
+            <h3 className="font-heading text-lg text-cyan-300 mb-3">🎯 Closest Next Unlocks</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {nextUnlocks.map((achievement) => (
+                <div key={achievement.id} className="rounded-lg bg-slate-800/60 border border-slate-700 p-3 text-left">
+                  <p className="text-sm text-white font-semibold truncate">{achievement.icon} {achievement.name}</p>
+                  <p className="text-xs text-slate-400 mt-1 line-clamp-2">{achievement.description}</p>
+                  <p className="text-xs text-cyan-300 mt-2">
+                    Progress: {Math.min(achievement.progress || 0, achievement.condition_value || 0)}/{achievement.condition_value || 0}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Filter Tabs */}
