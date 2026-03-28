@@ -4812,6 +4812,17 @@ export const achievements_list = async (): Promise<Achievement[]> => {
 
     // PvP wins now stored directly in users table
     const pvpWinCount = profile?.pvp_wins || 0;
+    const pvpScore = profile?.pvp_score || 0;
+
+    // Track total PvP participation from activities as a reliable fallback
+    // for achievements that measure "first attack", "first match", etc.
+    const { data: pvpActivityRows } = await supabase
+        .from('activities')
+        .select('id, kind')
+        .eq('actor_id', user.id)
+        .in('kind', ['pvp_win', 'pvp_loss', 'pvp_blocked']);
+
+    const pvpBattleCount = (pvpActivityRows || []).length;
 
     const { data: questsCompleted } = await supabase
         .from('activities')
@@ -4873,15 +4884,23 @@ export const achievements_list = async (): Promise<Achievement[]> => {
     // Map achievements with earned status and progress
     return (allAchievements || []).map((ach: any) => {
         const earnedData = earnedMap[ach.id];
-        const is_earned = !!earnedData;
-        let progress = is_earned ? (earnedData?.progress || ach.condition_value) : 0;
+        const hasEarnedTimestamp = !!earnedData;
+        let progress = hasEarnedTimestamp ? (earnedData?.progress || ach.condition_value) : 0;
 
-        if (!is_earned && ach.condition_type && ach.condition_value) {
+        if (!hasEarnedTimestamp && ach.condition_type && ach.condition_value) {
             switch (ach.condition_type) {
                 // PvP - use actual count
                 case 'pvp_wins':
                 case 'pvp_wins_count':
                     progress = pvpWinCount;
+                    break;
+                case 'pvp_score':
+                    progress = pvpScore;
+                    break;
+                case 'pvp_battles':
+                case 'pvp_matches':
+                case 'pvp_attacks':
+                    progress = pvpBattleCount;
                     break;
                 // Level
                 case 'level':
@@ -4895,7 +4914,7 @@ export const achievements_list = async (): Promise<Achievement[]> => {
                 case 'coins_balance':
                 case 'coins_earned':
                 case 'total_coins_earned':
-                    progress = profile?.coins || 0;
+                    progress = coinsEarned;
                     break;
                 // XP
                 case 'total_xp':
@@ -4931,13 +4950,21 @@ export const achievements_list = async (): Promise<Achievement[]> => {
             }
         }
 
+        const target = ach.condition_value || 0;
+        const normalizedProgress = target > 0 ? Math.min(progress, target) : progress;
+        // Trustworthy UI fallback:
+        // If user has already met the target but the timestamp row is missing/stale,
+        // treat the card as earned to avoid showing impossible states like "1/1" while locked.
+        const inferredEarned = !hasEarnedTimestamp && target > 0 && normalizedProgress >= target;
+        const is_earned = hasEarnedTimestamp || inferredEarned;
+
         return {
             ...ach,
             category: ach.category || 'general',
             rarity: ach.rarity || 'common',
             is_earned,
             earned_at: earnedData?.earned_at || null,
-            progress: Math.min(progress, ach.condition_value || 0),
+            progress: normalizedProgress,
         };
     });
 };
