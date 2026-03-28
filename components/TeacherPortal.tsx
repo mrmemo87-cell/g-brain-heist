@@ -97,6 +97,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [selectedClassFilter, setSelectedClassFilter] = useState<string>('all');
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '/BRAINS.svg');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [topNavMenuOpen, setTopNavMenuOpen] = useState(false);
+  const topNavMenuRef = useRef<HTMLDivElement | null>(null);
   const [selectedAvatar, setSelectedAvatar] = useState<string>(profile.avatar_url || '');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarUploadError, setAvatarUploadError] = useState<string | null>(null);
@@ -127,6 +129,23 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setAvatarUrl(profile.avatar_url || '/BRAINS.svg');
     setSelectedAvatar(profile.avatar_url || '');
   }, [profile.avatar_url]);
+
+  useEffect(() => {
+    if (!topNavMenuOpen) return;
+
+    const handleDismiss = (event: MouseEvent | TouchEvent) => {
+      if (topNavMenuRef.current && !topNavMenuRef.current.contains(event.target as Node)) {
+        setTopNavMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleDismiss);
+    document.addEventListener('touchstart', handleDismiss, { passive: true });
+    return () => {
+      document.removeEventListener('mousedown', handleDismiss);
+      document.removeEventListener('touchstart', handleDismiss);
+    };
+  }, [topNavMenuOpen]);
 
   const avatarPresets = [
     'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
@@ -7769,7 +7788,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
   return (
     <div className="teacher-portal">
       {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-40 border-b border-slate-800/60 bg-slate-950/90 backdrop-blur">
+      <header className="fixed left-0 right-0 top-0 z-50 border-b border-slate-800/60 bg-slate-950/90 backdrop-blur">
         <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between px-3 py-2 sm:px-4 lg:px-6">
           {/* Left: Logo + Brand */}
           <div className="flex items-center gap-2 lg:gap-3 min-w-0">
@@ -7805,15 +7824,14 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           </div>
 
           {/* Right: Actions */}
-          <div className="flex items-center gap-1.5">
+          <div className="relative flex items-center gap-2" ref={topNavMenuRef}>
             <button
               type="button"
-              onClick={() => setShowSettingsModal(true)}
-              className="flex items-center gap-1.5 rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-2 py-1.5 text-xs font-semibold text-cyan-100 transition-all hover:border-cyan-300 hover:bg-cyan-500/20 disabled:opacity-60"
-              title="Open settings"
+              onClick={() => setTopNavMenuOpen((prev) => !prev)}
+              className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-700 bg-slate-900/70 text-2xl text-slate-200 shadow-sm shadow-slate-950/40 transition hover:border-cyan-500/60 hover:text-white"
+              aria-label="Open quick menu"
             >
-              <span>⚙️</span>
-              <span className="hidden sm:inline">Settings</span>
+              ☰
             </button>
             <button
               type="button"
@@ -7824,29 +7842,65 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               <img
                 src={avatarUrl}
                 alt={profile.username}
-                className="h-9 w-9 rounded-full object-cover"
+                className="h-10 w-10 rounded-full object-cover"
               />
             </button>
-            {isSchoolAdmin && onOpenSchoolAdmin && (
-              <button
-                onClick={onOpenSchoolAdmin}
-                className="p-1.5 lg:p-2 rounded-lg bg-gradient-to-br from-purple-600/40 to-indigo-600/40 border border-purple-500/80 hover:border-purple-400 hover:bg-purple-500/20 transition-all backdrop-blur-sm"
-                title="School Admin Portal"
-              >
-                <span className="text-sm lg:text-base">🏫</span>
-              </button>
-            )}
-            {onLogout && (
-              <button
-                onClick={onLogout}
-                className="flex p-1.5 lg:p-2 rounded-lg bg-black/40 border border-gray-600 hover:border-red-500 hover:bg-red-500/10 transition-all backdrop-blur-sm items-center gap-1.5"
-                title="Log Out"
-              >
-                <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                <span className="hidden sm:inline text-xs text-red-400 font-semibold">Logout</span>
-              </button>
+
+            {topNavMenuOpen && (
+              <div className="absolute right-0 top-14 z-[60] w-60 max-w-[90vw] rounded-2xl border border-slate-800/70 bg-slate-950/95 p-2 shadow-2xl shadow-slate-950/70">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowSettingsModal(true);
+                    setTopNavMenuOpen(false);
+                  }}
+                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-200 transition hover:bg-slate-800/60"
+                >
+                  <span className="text-lg">⚙️</span>
+                  Settings
+                </button>
+                {isSchoolAdmin && onOpenSchoolAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onOpenSchoolAdmin();
+                      setTopNavMenuOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-purple-200 transition hover:bg-purple-500/20"
+                  >
+                    <span className="text-lg">🏫</span>
+                    School Admin Portal
+                  </button>
+                )}
+                {isSchoolAdmin && onOpenAdmissions && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onOpenAdmissions();
+                      setTopNavMenuOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-indigo-200 transition hover:bg-indigo-500/20"
+                  >
+                    <span className="text-lg">📝</span>
+                    Admissions
+                  </button>
+                )}
+                {onLogout && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onLogout();
+                      setTopNavMenuOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-rose-200 transition hover:bg-rose-500/20"
+                  >
+                    <svg className="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Logout
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -7868,6 +7922,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         />
       )}
 
+      <div className="h-[68px] sm:h-[72px]" aria-hidden />
       <div className="teacher-portal-container">
         {/* Professional Header */}
         <div className="teacher-header">
