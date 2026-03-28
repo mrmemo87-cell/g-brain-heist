@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 
 interface HelpModalProps {
   onClose: () => void;
+  placement?: 'center' | 'header-bottom';
+  headerOffsetPx?: number;
 }
 
 type HelpSection = 
@@ -18,8 +20,23 @@ type HelpSection =
   | 'xp'
   | 'coins';
 
-const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
+const HelpModal: React.FC<HelpModalProps> = ({
+  onClose,
+  placement = 'center',
+  headerOffsetPx = 80,
+}) => {
   const [activeSection, setActiveSection] = useState<HelpSection>('overview');
+  const isHeaderAnchored = placement === 'header-bottom';
+  const safeTopOffsetPx = Math.max(headerOffsetPx, 56);
+  const modalTopPadding = isHeaderAnchored
+    ? `calc(${safeTopOffsetPx}px + env(safe-area-inset-top, 0px))`
+    : '16px';
+  const modalBottomPadding = isHeaderAnchored
+    ? 'max(12px, env(safe-area-inset-bottom, 0px))'
+    : '16px';
+  const modalMaxHeight = isHeaderAnchored
+    ? `calc(100vh - ${safeTopOffsetPx}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 12px)`
+    : '95vh';
 
   const sections: { id: HelpSection; icon: string; title: string }[] = [
     { id: 'overview', icon: '📖', title: 'Game Overview' },
@@ -650,8 +667,14 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-2 sm:p-4">
-      <div className="bg-gray-900 border-2 border-cyan-500/50 rounded-2xl w-full max-w-5xl max-h-[95vh] sm:max-h-[90vh] flex flex-col shadow-2xl">
+    <div
+      className={`fixed inset-0 z-50 flex justify-center bg-black/80 backdrop-blur-sm p-2 sm:p-4 ${isHeaderAnchored ? 'items-start' : 'items-center'}`}
+      style={{ paddingTop: modalTopPadding, paddingBottom: modalBottomPadding }}
+    >
+      <div
+        className="bg-gray-900 border-2 border-cyan-500/50 rounded-2xl w-full max-w-5xl flex flex-col shadow-2xl"
+        style={{ maxHeight: modalMaxHeight }}
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-700">
           <h1 className="text-xl sm:text-3xl font-bold font-heading text-cyan-400">📚 Help & Guide</h1>
