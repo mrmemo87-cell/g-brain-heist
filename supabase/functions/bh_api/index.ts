@@ -812,58 +812,6 @@ const handlers: Record<string, Handler> = {
       return handleApiError(error);
     }
   },
-  "clan-territory/claim-reward": async (req, context) => {
-    try {
-      if (req.method !== "POST") {
-        throw new ApiError("METHOD_NOT_ALLOWED", "Use POST to claim territory rewards", 405);
-      }
-      const student = requireStudent(context);
-      const body = (await parseJsonBody(req)) as Record<string, unknown>;
-
-      const eventId = ensureString(body["event_id"] ?? body["eventId"], "event_id");
-      const roomId = ensureOptionalString(body["room_id"] ?? body["roomId"], "room_id") ?? eventId;
-      const arenaModeRaw = ensureOptionalString(body["arena_mode"] ?? body["arenaMode"], "arena_mode") ?? "official";
-      const arenaMode = arenaModeRaw === "open" ? "open" : "official";
-      const xp = Math.floor(ensureNumber(body["xp"], "xp"));
-      const coins = Math.floor(ensureNumber(body["coins"], "coins"));
-      const gemstones = Math.floor(ensureNumber(body["gemstones"] ?? body["gems"] ?? 0, "gemstones"));
-      const idempotencyKey = ensureOptionalString(
-        body["idempotency_key"] ?? body["idempotencyKey"],
-        "idempotency_key",
-      ) ?? `clan-territory:${roomId}:${student.userId}`;
-
-      const { data, error } = await supabaseAdmin.rpc("rpc_claim_clan_territory_reward", {
-        p_user_id: student.userId,
-        p_room_id: roomId,
-        p_event_id: eventId,
-        p_xp_delta: xp,
-        p_coins_delta: coins,
-        p_gemstones_delta: gemstones,
-        p_arena_mode: arenaMode,
-        p_idempotency_key: idempotencyKey,
-      });
-      if (error) {
-        console.error("[bh_api] clan reward claim RPC failed", {
-          userId: student.userId,
-          eventId,
-          roomId,
-          arenaMode,
-          idempotencyKey,
-          rpcError: {
-            code: error.code,
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-          },
-        });
-        throw new ApiError("RPC_ERROR", error.message, 502);
-      }
-
-      return sendSuccess(data ?? {});
-    } catch (error) {
-      return handleApiError(error);
-    }
-  },
   "clan-territory/finish": async (req, context) => {
     try {
       if (req.method !== "POST") {

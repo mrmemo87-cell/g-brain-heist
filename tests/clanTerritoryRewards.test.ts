@@ -50,4 +50,16 @@ test('clan territory reward claim retries are throttled and capped', () => {
     /if\s*\(retryCount\s*<\s*3\)/,
     'student view should cap auto-retries to avoid infinite request loops',
   );
+
+  assert.doesNotMatch(
+    studentViewTs,
+    /supabase\.functions\.invoke\(\s*['"]bh_api['"]/i,
+    'student view should not use bh_api for clan territory reward claim',
+  );
+
+  assert.match(
+    studentViewTs,
+    /supabase\.rpc\(\s*['"]rpc_claim_clan_territory_reward['"]/i,
+    'student view should claim territory rewards via direct rpc_claim_clan_territory_reward call',
+  );
 });

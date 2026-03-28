@@ -1,0 +1,157 @@
+-- Fix runtime field-access error in rpc_claim_clan_territory_reward by using explicitly named cap variables.
+
+set check_function_bodies = off;
+
+create or replace function public.rpc_claim_clan_territory_reward(
+  p_room_id text,
+  p_event_id text,
+  p_xp_delta int default 0,
+  p_coins_delta int default 0,
+  p_gemstones_delta int default 0,
+  p_arena_mode text default 'official',
+  p_idempotency_key text default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_receipt_id uuid;
+  v_profile record;
+  v_xp_status jsonb;
+  v_next_xp int;
+  v_next_coins int;
+  v_next_gemstones int;
+  v_idempotency_key text;
+  v_arena_mode text := case when coalesce(lower(p_arena_mode), 'official') = 'open' then 'open' else 'official' end;
+  v_cap_xp int;
+  v_cap_coins int;
+  v_cap_gemstones int;
+begin
+  if v_user_id is null then
+    raise exception 'Authentication required';
+  end if;
+
+  if nullif(trim(coalesce(p_room_id, '')), '') is null then
+    raise exception 'Room id is required';
+  end if;
+
+  if nullif(trim(coalesce(p_event_id, '')), '') is null then
+    raise exception 'Event id is required';
+  end if;
+
+  if coalesce(p_xp_delta, 0) < 0
+     or coalesce(p_coins_delta, 0) < 0
+     or coalesce(p_gemstones_delta, 0) < 0 then
+    raise exception 'Negative reward deltas are not allowed';
+  end if;
+
+  if v_arena_mode = 'open' then
+    v_cap_xp := 1500;
+    v_cap_coins := 5000;
+    v_cap_gemstones := 10;
+  else
+    v_cap_xp := 2500;
+    v_cap_coins := 10000;
+    v_cap_gemstones := 30;
+  end if;
+
+  if coalesce(p_xp_delta, 0) > v_cap_xp
+     or coalesce(p_coins_delta, 0) > v_cap_coins
+     or coalesce(p_gemstones_delta, 0) > v_cap_gemstones then
+    raise exception 'Reward delta exceeds safety cap for arena mode %', v_arena_mode;
+  end if;
+
+  v_idempotency_key := coalesce(
+    nullif(trim(coalesce(p_idempotency_key, '')), ''),
+    'clan-territory:' || p_room_id || ':' || v_user_id::text
+  );
+
+  insert into public.reward_event_receipts (
+    user_id,
+    event_type,
+    event_id,
+    idempotency_key
+  )
+  values (
+    v_user_id,
+    'clan_territory_reward_claim',
+    p_event_id,
+    v_idempotency_key
+  )
+  on conflict do nothing
+  returning id into v_receipt_id;
+
+  if v_receipt_id is null then
+    select xp, coins, level, gemstones
+    into v_profile
+    from public.users
+    where id = v_user_id;
+
+    if not found then
+      raise exception 'User profile not found';
+    end if;
+
+    select to_jsonb(xp_status(p_xp => coalesce(v_profile.xp, 0))) into v_xp_status;
+
+    return jsonb_build_object(
+      'idempotent', true,
+      'event_type', 'clan_territory_reward_claim',
+      'event_id', p_event_id,
+      'room_id', p_room_id,
+      'arena_mode', v_arena_mode,
+      'profile', jsonb_build_object(
+        'xp', v_profile.xp,
+        'coins', v_profile.coins,
+        'level', v_profile.level,
+        'gemstones', v_profile.gemstones
+      ),
+      'xp_status', v_xp_status
+    );
+  end if;
+
+  perform set_config('app.allow_xp_level_write', '1', true);
+
+  select xp, coins, gemstones
+  into v_profile
+  from public.users
+  where id = v_user_id
+  for update;
+
+  if not found then
+    raise exception 'User profile not found';
+  end if;
+
+  v_next_xp := greatest(0, coalesce(v_profile.xp, 0) + coalesce(p_xp_delta, 0));
+  v_next_coins := greatest(0, coalesce(v_profile.coins, 0) + coalesce(p_coins_delta, 0));
+  v_next_gemstones := greatest(0, coalesce(v_profile.gemstones, 0) + coalesce(p_gemstones_delta, 0));
+
+  update public.users
+  set xp = v_next_xp,
+      coins = v_next_coins,
+      gemstones = v_next_gemstones
+  where id = v_user_id
+  returning xp, coins, level, gemstones
+  into v_profile;
+
+  select to_jsonb(xp_status(p_xp => coalesce(v_profile.xp, 0))) into v_xp_status;
+
+  return jsonb_build_object(
+    'idempotent', false,
+    'receipt_id', v_receipt_id,
+    'event_type', 'clan_territory_reward_claim',
+    'event_id', p_event_id,
+    'room_id', p_room_id,
+    'arena_mode', v_arena_mode,
+    'profile', jsonb_build_object(
+      'xp', v_profile.xp,
+      'coins', v_profile.coins,
+      'level', v_profile.level,
+      'gemstones', v_profile.gemstones
+    ),
+    'xp_status', v_xp_status
+  );
+end;
+$$;
