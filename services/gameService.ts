@@ -161,6 +161,7 @@ const withTimeout = async <T,>(
       })
     : null;
 
+  let progressReadFromDb = false;
   try {
     return await Promise.race([promise, timeoutPromise, ...(abortPromise ? [abortPromise] : [])]);
   } finally {
@@ -1989,6 +1990,7 @@ export const tasks_list = async (): Promise<Task[]> => {
   let dailyQuestsCompleted = 0;
   let dailyPvpWins = 0;
   let weeklyTasksCompleted = 0;
+  let progressReadFromDb = false;
   
   try {
     const user = await getCurrentUser();
@@ -2065,6 +2067,7 @@ export const tasks_list = async (): Promise<Task[]> => {
       .gte('created_at', weekStart.toISOString());
     
     weeklyTasksCompleted = weeklyData?.length || 0;
+    progressReadFromDb = true;
     
   } catch (error) {
     // Fall back to localStorage if database query fails
@@ -2075,20 +2078,19 @@ export const tasks_list = async (): Promise<Task[]> => {
     weeklyTasksCompleted = progress.weekly_tasks_completed;
   }
   
-  // Also sync localStorage for consistency
   const progress = getTaskProgress();
-  if (dailyQuestsCompleted > progress.daily_quests_completed) {
-    // Update localStorage to match database
+  if (progressReadFromDb) {
+    // DB is canonical: keep local cache aligned with server-side reset state.
     progress.daily_quests_completed = dailyQuestsCompleted;
     progress.daily_pvp_wins = dailyPvpWins;
     progress.weekly_tasks_completed = weeklyTasksCompleted;
     saveToStorage(STORAGE_KEYS.TASK_PROGRESS, progress);
+  } else {
+    // Keep counters responsive only when we had to fall back to local storage.
+    dailyQuestsCompleted = Math.max(dailyQuestsCompleted, progress.daily_quests_completed);
+    dailyPvpWins = Math.max(dailyPvpWins, progress.daily_pvp_wins);
+    weeklyTasksCompleted = Math.max(weeklyTasksCompleted, progress.weekly_tasks_completed);
   }
-
-  // Keep counters responsive even when DB activity writes are delayed
-  dailyQuestsCompleted = Math.max(dailyQuestsCompleted, progress.daily_quests_completed);
-  dailyPvpWins = Math.max(dailyPvpWins, progress.daily_pvp_wins);
-  weeklyTasksCompleted = Math.max(weeklyTasksCompleted, progress.weekly_tasks_completed);
   
   // Build storage keys for claim tracking
   const today = new Date().toISOString().split('T')[0];
@@ -2128,6 +2130,7 @@ export const tasks_list = async (): Promise<Task[]> => {
   // Also check database for claimed status
   let claimedDailyFromDb: string[] = [];
   let claimedWeeklyFromDb: string[] = [];
+  let claimedReadFromDb = false;
   try {
     const user = await getCurrentUser();
     const todayStart = new Date(now);
@@ -2156,12 +2159,17 @@ export const tasks_list = async (): Promise<Task[]> => {
     claimedWeeklyFromDb = (claimedWeeklyData || [])
       .map((d: any) => d.data?.task_id)
       .filter(Boolean);
+    claimedReadFromDb = true;
   } catch {
     // Ignore errors, use localStorage
   }
 
-  const allClaimedDailyTasks = [...new Set([...claimedDailyTasks, ...claimedDailyFromDb, ...legacyClaimedTasks])];
-  const allClaimedWeeklyTasks = [...new Set([...claimedWeeklyTasks, ...claimedWeeklyFromDb])];
+  const allClaimedDailyTasks = claimedReadFromDb
+    ? [...new Set([...claimedDailyFromDb])]
+    : [...new Set([...claimedDailyTasks, ...legacyClaimedTasks])];
+  const allClaimedWeeklyTasks = claimedReadFromDb
+    ? [...new Set([...claimedWeeklyFromDb])]
+    : [...new Set([...claimedWeeklyTasks])];
   
   const completedUnclaimedDailyTasks = [
     dailyQuestsCompleted >= 3 && !allClaimedDailyTasks.includes('task_d1'),
