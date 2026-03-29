@@ -103,7 +103,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [topNavMenuOpen, setTopNavMenuOpen] = useState(false);
   const topNavRef = useRef<HTMLElement | null>(null);
   const topNavMenuRef = useRef<HTMLDivElement | null>(null);
-  const [topNavHeight, setTopNavHeight] = useState(96);
+  const [topNavHeight, setTopNavHeight] = useState(0);
   const [selectedAvatar, setSelectedAvatar] = useState<string>(profile.avatar_url || '');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarUploadError, setAvatarUploadError] = useState<string | null>(null);
@@ -8045,7 +8045,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
       <div
         aria-hidden
-        style={{ height: `calc(${topNavHeight}px + 1rem + env(safe-area-inset-top, 0px))` }}
+        style={{ height: `${topNavHeight}px` }}
       />
       <div className="teacher-portal-container">
         {/* Professional Header */}
