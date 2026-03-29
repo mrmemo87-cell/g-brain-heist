@@ -1309,22 +1309,29 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
             </div>
 
             {/* Clanless Participation */}
-            <div className="flex items-center justify-between rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3">
-              <div className="space-y-1">
-                <p className="text-sm font-bold text-white">Allow independent agents</p>
-                <p className="text-xs text-gray-400">
-                  Let students without a clan join this battle as "{CLANLESS_CLAN_LABEL}"
-                </p>
+            <div className="space-y-3 rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-bold text-white">Allow independent agents</p>
+                  <p className="text-xs text-gray-400">
+                    Let students without a clan join this battle as "{CLANLESS_CLAN_LABEL}"
+                  </p>
+                </div>
+                <label className="inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={allowClanlessPlayers}
+                    onChange={(e) => setAllowClanlessPlayers(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="peer relative h-6 w-11 rounded-full bg-slate-600 after:absolute after:left-1 after:top-1 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition after:content-[''] peer-checked:bg-emerald-500 peer-checked:after:translate-x-full"></div>
+                </label>
               </div>
-              <label className="inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={allowClanlessPlayers}
-                  onChange={(e) => setAllowClanlessPlayers(e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="peer relative h-6 w-11 rounded-full bg-slate-600 after:absolute after:left-1 after:top-1 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition after:content-[''] peer-checked:bg-emerald-500 peer-checked:after:translate-x-full"></div>
-              </label>
+              <p className={`text-xs ${allowClanlessPlayers ? "text-emerald-300" : "text-amber-300"}`}>
+                {allowClanlessPlayers
+                  ? "Students without clans will see “Join as Independent” and can enter."
+                  : "Students without clans will be blocked from entering this arena."}
+              </p>
             </div>
 
             <div className="pt-4 border-t border-slate-700">
@@ -1598,6 +1605,12 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                           <p>
                             Classes: <span className="text-white">{room.selectedBatches?.join(', ') || "—"}</span>
                           </p>
+                          <p>
+                            Independent agents:{" "}
+                            <span className={room.allowClanlessPlayers ? "text-emerald-300" : "text-amber-300"}>
+                              {room.allowClanlessPlayers ? "Allowed" : "Blocked (clan required)"}
+                            </span>
+                          </p>
                           {room.scheduledStartAt && (
                             <p>
                               Scheduled:{" "}
@@ -1664,6 +1677,11 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
               <p className="text-sm text-gray-300">
                 Start here: join any live arena from the list below or enter a room code.
               </p>
+              {missingClanAssignment && (
+                <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-200">
+                  You are not assigned to a clan yet. You can only enter arenas that explicitly allow independent agents.
+                </div>
+              )}
 
               {filteredRooms.length > 0 ? (
                 <>
@@ -1688,7 +1706,11 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                               disabled={!allowIndependent && missingClanAssignment}
                               className="px-3 py-1.5 font-heading font-bold rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 disabled:bg-gray-600/30 disabled:border-gray-600 disabled:cursor-not-allowed text-white transition-colors text-xs"
                             >
-                              {allowIndependent && missingClanAssignment ? "Join as Independent" : "Enter Arena"}
+                              {!allowIndependent && missingClanAssignment
+                                ? "Clan Required"
+                                : allowIndependent && missingClanAssignment
+                                  ? "Join as Independent"
+                                  : "Enter Arena"}
                             </button>
                           </div>
                           {remainingSeconds !== null && (
@@ -1706,11 +1728,20 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                             </p>
                             <p>Teacher: <span className="text-white">{room.teacherName || "Teacher"}</span></p>
                             <p>Classes: <span className="text-white">{room.classCodes?.join(', ') || "—"}</span></p>
+                            <p>
+                              Access:{" "}
+                              <span className={allowIndependent ? "text-emerald-300" : "text-amber-300"}>
+                                {allowIndependent ? "Independents allowed" : "Clan members only"}
+                              </span>
+                            </p>
                             {room.scheduledStartAt && (
                               <p>Scheduled: <span className="text-white">{formatScheduleTime(room.scheduledStartAt)}</span></p>
                             )}
                             {allowIndependent && (
                               <p className="text-emerald-300">Independent agents allowed.</p>
+                            )}
+                            {!allowIndependent && missingClanAssignment && (
+                              <p className="text-amber-300">You cannot enter this room until you join a clan.</p>
                             )}
                           </div>
                         </div>
