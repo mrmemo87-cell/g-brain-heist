@@ -34,6 +34,7 @@ const CLANLESS_CLAN_LABEL = "Independent Agents";
 const CLANLESS_CLAN_NAME = "Independent Agent";
 const AUTO_START_DELAY_MS = 2 * 60 * 1000;
 const FINISHED_ARENA_TTL_MS = 24 * 60 * 60 * 1000;
+const ARENAS_PER_PAGE = 25;
 
 // Map configuration with zone/territory counts — derived from the shared MapCatalog
 const MAP_ZONE_CONFIG = MAP_ZONE_COUNTS;
@@ -155,6 +156,8 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const [roomCodeInput, setRoomCodeInput] = useState("");
   const [teacherUserId, setTeacherUserId] = useState<string | null>(null);
   const [storedHostRooms, setStoredHostRooms] = useState<StoredHostRoom[]>([]);
+  const [hostArenaPage, setHostArenaPage] = useState(1);
+  const [liveArenaPage, setLiveArenaPage] = useState(1);
   const stableAssignedClasses = assignedClasses && assignedClasses.length > 0 ? assignedClasses : EMPTY_CLASSES;
   const [loadedAssignedClasses, setLoadedAssignedClasses] = useState<SchoolAdminService.TeacherAssignedClass[]>(stableAssignedClasses);
   const assignedClassesLoadedRef = useRef(false);
@@ -895,6 +898,39 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     });
   }, [discoveredRooms, studentBatch, resolvedClanId]);
 
+  const totalHostArenaPages = Math.max(1, Math.ceil(storedHostRooms.length / ARENAS_PER_PAGE));
+  const totalLiveArenaPages = Math.max(1, Math.ceil(filteredRooms.length / ARENAS_PER_PAGE));
+
+  const pagedHostRooms = useMemo(() => {
+    const start = (hostArenaPage - 1) * ARENAS_PER_PAGE;
+    return storedHostRooms.slice(start, start + ARENAS_PER_PAGE);
+  }, [hostArenaPage, storedHostRooms]);
+
+  const pagedLiveRooms = useMemo(() => {
+    const start = (liveArenaPage - 1) * ARENAS_PER_PAGE;
+    return filteredRooms.slice(start, start + ARENAS_PER_PAGE);
+  }, [filteredRooms, liveArenaPage]);
+
+  useEffect(() => {
+    setHostArenaPage((current) => Math.min(current, totalHostArenaPages));
+  }, [totalHostArenaPages]);
+
+  useEffect(() => {
+    setLiveArenaPage((current) => Math.min(current, totalLiveArenaPages));
+  }, [totalLiveArenaPages]);
+
+  const hostArenaCardScaleClass = storedHostRooms.length > 20
+    ? "p-3 text-[0.72rem]"
+    : storedHostRooms.length > 10
+      ? "p-3 text-xs"
+      : "p-4 text-sm";
+
+  const liveArenaCardScaleClass = filteredRooms.length > 20
+    ? "p-3 text-[0.72rem]"
+    : filteredRooms.length > 10
+      ? "p-3 text-xs"
+      : "p-4 text-sm";
+
   useEffect(() => {
     if (!roomId || !activeScheduledStartAt || gameState.phase !== "LOBBY") {
       autoStartTriggeredRef.current = false;
@@ -1504,20 +1540,20 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                     <h2 className="font-heading text-lg text-white">Your Active Arenas</h2>
                     <span className="text-xs text-gray-400">{storedHostRooms.length} saved</span>
                   </div>
-                  <div className="space-y-3">
-                    {storedHostRooms.map((room) => (
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+                    {pagedHostRooms.map((room) => (
                       <div
                         key={room.roomId}
-                        className="rounded-xl border border-slate-700 bg-slate-900/60 p-4 space-y-2"
+                        className={`h-full rounded-xl border border-slate-700 bg-slate-900/60 space-y-2 ${hostArenaCardScaleClass}`}
                       >
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-xs uppercase tracking-wide text-gray-400">Room Code</p>
-                            <p className="text-2xl font-mono font-bold text-amber-400">{room.roomId}</p>
+                            <p className="text-xl font-mono font-bold text-amber-400">{room.roomId}</p>
                           </div>
                           <button
                             onClick={() => handleResumeHostRoom(room)}
-                            className="px-4 py-2 font-heading font-bold rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-white transition-colors text-sm"
+                            className="px-3 py-1.5 font-heading font-bold rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-white transition-colors text-xs"
                           >
                             Open Host View
                           </button>
@@ -1571,6 +1607,27 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                       </div>
                     ))}
                   </div>
+                  {totalHostArenaPages > 1 && (
+                    <div className="flex items-center justify-between gap-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setHostArenaPage((prev) => Math.max(1, prev - 1))}
+                        disabled={hostArenaPage === 1}
+                        className="rounded-lg border border-slate-600 bg-slate-900/50 px-3 py-1.5 text-xs text-white disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Previous
+                      </button>
+                      <p className="text-xs text-gray-400">Page {hostArenaPage} / {totalHostArenaPages}</p>
+                      <button
+                        type="button"
+                        onClick={() => setHostArenaPage((prev) => Math.min(totalHostArenaPages, prev + 1))}
+                        disabled={hostArenaPage === totalHostArenaPages}
+                        className="rounded-lg border border-slate-600 bg-slate-900/50 px-3 py-1.5 text-xs text-white disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
               <button
@@ -1596,8 +1653,8 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
               </p>
 
               {filteredRooms.length > 0 ? (
-                <div className="space-y-3">
-                  {filteredRooms.map((room) => {
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+                  {pagedLiveRooms.map((room) => {
                     const allowIndependent = Boolean(room.allowClanlessPlayers);
                     const remainingSeconds = getRemainingSeconds({
                       phase: room.phase,
@@ -1605,16 +1662,16 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                       gameEndTime: room.gameEndTime,
                     });
                     return (
-                      <div key={room.id} className="rounded-xl border border-slate-700 bg-slate-900/60 p-4 space-y-2">
+                      <div key={room.id} className={`h-full rounded-xl border border-slate-700 bg-slate-900/60 space-y-2 ${liveArenaCardScaleClass}`}>
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-xs uppercase tracking-wide text-gray-400">Room Code</p>
-                            <p className="text-2xl font-mono font-bold text-amber-400">{room.id}</p>
+                            <p className="text-xl font-mono font-bold text-amber-400">{room.id}</p>
                           </div>
                           <button
                             onClick={() => handleJoinRoom(room.id)}
                             disabled={!allowIndependent && missingClanAssignment}
-                            className="px-4 py-2 font-heading font-bold rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 disabled:bg-gray-600/30 disabled:border-gray-600 disabled:cursor-not-allowed text-white transition-colors text-sm"
+                            className="px-3 py-1.5 font-heading font-bold rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 disabled:bg-gray-600/30 disabled:border-gray-600 disabled:cursor-not-allowed text-white transition-colors text-xs"
                           >
                             {allowIndependent && missingClanAssignment ? "Join as Independent" : "Enter Arena"}
                           </button>
@@ -1645,6 +1702,27 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                     );
                   })}
                 </div>
+                {totalLiveArenaPages > 1 && (
+                  <div className="flex items-center justify-between gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setLiveArenaPage((prev) => Math.max(1, prev - 1))}
+                      disabled={liveArenaPage === 1}
+                      className="rounded-lg border border-slate-600 bg-slate-900/50 px-3 py-1.5 text-xs text-white disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Previous
+                    </button>
+                    <p className="text-xs text-gray-400">Page {liveArenaPage} / {totalLiveArenaPages}</p>
+                    <button
+                      type="button"
+                      onClick={() => setLiveArenaPage((prev) => Math.min(totalLiveArenaPages, prev + 1))}
+                      disabled={liveArenaPage === totalLiveArenaPages}
+                      className="rounded-lg border border-slate-600 bg-slate-900/50 px-3 py-1.5 text-xs text-white disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
               ) : (
                 <div className="text-center p-6 rounded-xl border border-dashed border-slate-700 bg-black/20">
                   <div className="text-3xl mb-2">📡</div>
