@@ -864,7 +864,20 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     });
   }, [zones, clans, mapId, mapConfig]);
 
-  const clanEntries = Object.values(clans);
+  const activeClanIds = useMemo(() => {
+    const ids = new Set<ClanId>();
+    Object.values(zones).forEach((zone) => {
+      Object.entries(zone.influence).forEach(([clanId, influence]) => {
+        if (influence > 0) ids.add(clanId as ClanId);
+      });
+    });
+    return ids;
+  }, [zones]);
+
+  const clanEntries = useMemo(
+    () => Object.values(clans).filter((clan) => activeClanIds.has(clan.id)),
+    [clans, activeClanIds],
+  );
   const maxLegendEntries = 6;
   const visibleClans = clanEntries.slice(0, maxLegendEntries);
   const hiddenClanCount = Math.max(0, clanEntries.length - visibleClans.length);
@@ -911,26 +924,28 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         )}
       </div>
 
-      {!hideLegend && (
-        <div className="absolute top-4 right-4 bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 p-3 space-y-2 max-h-60 w-44 overflow-y-auto z-10">
+      {overlay}
+
+      {!hideLegend && clanEntries.length > 0 && (
+        <div className="border-t border-slate-800/80 bg-slate-900/70 px-4 py-3">
           <h4 className="text-xs font-bold text-white uppercase tracking-wide">
             Active Clans
           </h4>
-          {visibleClans.map((clan) => (
-            <div key={clan.id} className="flex items-center gap-2 text-xs">
-              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: clan.color }} />
-              <span className="text-white font-semibold">{clan.name}</span>
-            </div>
-          ))}
+          <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {visibleClans.map((clan) => (
+              <div key={clan.id} className="flex items-center gap-2 text-xs rounded-lg bg-slate-800/50 px-2 py-1.5">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: clan.color }} />
+                <span className="text-white font-semibold truncate">{clan.name}</span>
+              </div>
+            ))}
+          </div>
           {hiddenClanCount > 0 && (
-            <div className="text-[11px] text-slate-400 font-semibold">
+            <div className="mt-2 text-[11px] text-slate-400 font-semibold">
               +{hiddenClanCount} more clans
             </div>
           )}
         </div>
       )}
-
-      {overlay}
     </div>
   );
 };

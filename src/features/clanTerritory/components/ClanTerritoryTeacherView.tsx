@@ -73,13 +73,16 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
   } | null>(null);
   const [mapWidthPct, setMapWidthPct] = React.useState(100);
   const clanList = React.useMemo(() => {
-    // Prefer clans from engine state (session-assigned colors)
-    const knownClans = Object.values(gameState.clans).map((clan) => ({
-      ...clan,
-      color: clan.color || getClanColor(clan.id),
-    }));
+    // Prefer clans from engine state while preserving session-unique colors.
+    const knownClans = Object.values(gameState.clans);
     if (knownClans.length > 0) {
-      return [...knownClans].sort((a, b) => a.name.localeCompare(b.name));
+      const usedColors = new Set<string>();
+      const withUniqueColors = knownClans.map((clan) => {
+        const color = assignSessionClanColor(clan.id, usedColors, clan.color ?? getClanColor(clan.id));
+        usedColors.add(color);
+        return { ...clan, color };
+      });
+      return withUniqueColors.sort((a, b) => a.name.localeCompare(b.name));
     }
 
     // Fallback: derive from players/zones with session-aware unique colors
