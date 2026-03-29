@@ -4858,8 +4858,8 @@ export const achievements_list = async (): Promise<Achievement[]> => {
         .eq('id', user.id)
         .single();
 
-    // PvP wins now stored directly in users table
-    const pvpWinCount = profile?.pvp_wins || 0;
+    // Prefer authoritative activity counts, keep profile counters only as fallback.
+    const profilePvpWins = profile?.pvp_wins || 0;
     const pvpScore = profile?.pvp_score || 0;
 
     // Track total PvP participation from activities as a reliable fallback
@@ -4872,11 +4872,22 @@ export const achievements_list = async (): Promise<Achievement[]> => {
 
     const pvpBattleCount = pvpBattleCountRaw || 0;
 
+    const { count: pvpWinsFromActivityRaw } = await supabase
+        .from('activities')
+        .select('id', { count: 'exact', head: true })
+        .eq('actor_id', user.id)
+        .eq('kind', 'pvp_win');
+
+    const pvpWinsFromActivity = pvpWinsFromActivityRaw || 0;
+    const pvpWinCount = Math.max(profilePvpWins, pvpWinsFromActivity);
+
     const [
         questsCompletedRes,
         questRunsCompletedRes,
         itemsPurchasedRes,
         purchasesRes,
+        clanMembershipRes,
+        correctAnswersRes,
     ] = await Promise.all([
         supabase
             .from('activities')
@@ -4897,13 +4908,25 @@ export const achievements_list = async (): Promise<Achievement[]> => {
             .from('activities')
             .select('data')
             .eq('actor_id', user.id)
-            .eq('kind', 'shop_purchase')
+            .eq('kind', 'shop_purchase'),
+        supabase
+            .from('clan_members')
+            .select('clan_id')
+            .eq('user_id', user.id)
+            .maybeSingle(),
+        supabase
+            .from('question_attempts')
+            .select('id', { count: 'exact', head: true })
+            .eq('student_id', user.id)
+            .eq('is_correct', true)
     ]);
 
     const legacyQuestCount = (questsCompletedRes as any)?.count || 0;
     const questRunsCount = (questRunsCompletedRes as any)?.count || 0;
     const questCount = Math.max(legacyQuestCount, questRunsCount);
     const purchaseCount = (itemsPurchasedRes as any)?.count || 0;
+    const hasClanMembership = Boolean((clanMembershipRes as any)?.data?.clan_id) || Boolean(profile?.clan_id);
+    const correctAnswersCount = (correctAnswersRes as any)?.count || 0;
 
     // Calculate coins earned (current + spent)
     // Note: activities table uses 'data' JSONB column, not 'amount'
@@ -4980,7 +5003,7 @@ export const achievements_list = async (): Promise<Achievement[]> => {
                 // Clan
                 case 'clan_member':
                 case 'clan_joined':
-                    progress = profile?.clan_id ? 1 : 0;
+                    progress = hasClanMembership ? 1 : 0;
                     break;
                 // Assignments
                 case 'assignments_completed':
@@ -4992,7 +5015,7 @@ export const achievements_list = async (): Promise<Achievement[]> => {
                     break;
                 // Correct answers
                 case 'correct_answers':
-                    progress = profile?.correct_answers || 0;
+                    progress = Math.max(profile?.correct_answers || 0, correctAnswersCount);
                     break;
                 // Login
                 case 'login_count':
