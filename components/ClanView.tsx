@@ -28,6 +28,7 @@ interface ClanViewProps {
   addToast: (message: string, type: ToastMessage['type']) => void;
   onPendingCountChange?: (count: number) => void;
   onChatUnreadCountChange?: (count: number) => void;
+  initialChatUnreadCount?: number;
 }
 
 const ConfirmationModal: React.FC<{ title: string, message: string, confirmText: string, onConfirm: () => void, onCancel: () => void }> = 
@@ -197,7 +198,7 @@ const getClanUpgradeConditions = (clan: Clan | null, isPrivileged: boolean): { c
 };
 
 
-const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfile, addToast, onPendingCountChange, onChatUnreadCountChange }) => {
+const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfile, addToast, onPendingCountChange, onChatUnreadCountChange, initialChatUnreadCount = 0 }) => {
   const [stage, setStage] = useState<ClanViewStage>('loading');
   const [clan, setClan] = useState<Clan | null>(null);
   const [activeTab, setActiveTab] = useState<ClanTab>('home');
@@ -219,7 +220,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
   const [isBrowseClansLoading, setIsBrowseClansLoading] = useState(false);
   const [pendingJoinRequest, setPendingJoinRequest] = useState<ClanJoinRequest | null>(null);
   const [pendingApprovals, setPendingApprovals] = useState<ClanJoinRequest[]>([]);
-  const [unreadChatCount, setUnreadChatCount] = useState(0);
+  const [unreadChatCount, setUnreadChatCount] = useState(initialChatUnreadCount);
   const [isLoadingRequests, setIsLoadingRequests] = useState(false);
   const [processingRequestId, setProcessingRequestId] = useState<string | null>(null);
   const [isCancelingRequest, setIsCancelingRequest] = useState(false);
@@ -381,7 +382,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
     }, [onChatUnreadCountChange, unreadChatCount]);
 
     useEffect(() => {
-        if (stage !== 'in_clan' || !clan?.id) {
+        if (!clan?.id) {
             setUnreadChatCount(0);
             return;
         }
@@ -403,7 +404,12 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
         return () => {
             void supabase.removeChannel(channel);
         };
-    }, [activeTab, clan?.id, profile.id, stage]);
+    }, [activeTab, clan?.id, profile.id]);
+
+    useEffect(() => {
+        if (activeTab === 'chat') return;
+        setUnreadChatCount(initialChatUnreadCount);
+    }, [activeTab, initialChatUnreadCount]);
 
     useEffect(() => {
         if (activeTab === 'chat' && unreadChatCount > 0) {

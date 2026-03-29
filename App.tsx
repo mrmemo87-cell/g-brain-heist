@@ -1732,6 +1732,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                 addToast={addToast}
                 onPendingCountChange={setPendingClanRequests}
                 onChatUnreadCountChange={setUnreadClanChatMessages}
+                initialChatUnreadCount={unreadClanChatMessages}
               />
             );
         case 'rivalry':
