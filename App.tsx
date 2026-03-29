@@ -1797,7 +1797,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         case 'lockdown':
           return renderLazy(
             <div className="relative">
-              <BackButton onClick={() => handleViewChange('dashboard')} />
+              <BackButton
+                onClick={() => handleViewChange('dashboard')}
+                containerClassName="sticky top-4 z-40 mb-6"
+              />
               <ClanTerritoryManager
                 onExit={() => handleViewChange('dashboard')}
                 isTeacher={profile?.role === 'teacher'}
