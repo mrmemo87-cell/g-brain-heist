@@ -767,15 +767,16 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   };
 
   const handleJoinRoom = async (targetRoomId: string) => {
-    if (!targetRoomId) return;
+    const normalizedRoomId = targetRoomId.trim().toUpperCase();
+    if (!normalizedRoomId) return;
     const waitForDiscovery = async () => {
-      const initialRoom = discoveredRoomsRef.current[targetRoomId];
+      const initialRoom = discoveredRoomsRef.current[normalizedRoomId] ?? discoveredRoomsRef.current[targetRoomId];
       if (initialRoom && Date.now() - initialRoom.lastSeen < 10000) {
         return true;
       }
       return new Promise<boolean>((resolve) => {
         const interval = setInterval(() => {
-          const room = discoveredRoomsRef.current[targetRoomId];
+          const room = discoveredRoomsRef.current[normalizedRoomId] ?? discoveredRoomsRef.current[targetRoomId];
           if (room && Date.now() - room.lastSeen < 10000) {
             clearInterval(interval);
             clearTimeout(timeout);
@@ -791,10 +792,10 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
 
     const roomAvailable = await waitForDiscovery();
     if (!roomAvailable) {
-      console.warn(`[ClanTerritory] Discovery did not confirm room ${targetRoomId} — attempting direct join`);
+      console.warn(`[ClanTerritory] Discovery did not confirm room ${normalizedRoomId} — attempting direct join`);
     }
 
-    const roomMetadata = discoveredRoomsRef.current[targetRoomId];
+    const roomMetadata = discoveredRoomsRef.current[normalizedRoomId] ?? discoveredRoomsRef.current[targetRoomId];
     const roomArenaMode: ArenaMode = roomMetadata?.arenaMode === "open" ? "open" : "official";
     if (roomArenaMode === "official") {
       if (!userSchoolId) {
@@ -811,7 +812,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     const allowClanless = roomMetadata?.allowClanlessPlayers ?? gameState.allowClanlessPlayers ?? false;
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      const storageKey = `clan-territory-player:${targetRoomId}`;
+      const storageKey = `clan-territory-player:${normalizedRoomId}`;
       const storedPlayerId = typeof window !== "undefined" ? sessionStorage.getItem(storageKey) : null;
       const stablePlayerId = user?.id ?? storedPlayerId ?? crypto.randomUUID();
       if (typeof window !== "undefined" && !storedPlayerId) {
@@ -828,7 +829,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       const activeClanName = clanlessAssigned ? clanlessIdentity!.clanName : (resolvedClanName as string);
       const activeClanColor = clanlessAssigned ? clanlessIdentity!.clanColor : undefined;
       const pid = await transport.joinRoom(
-        targetRoomId,
+        normalizedRoomId,
         playerName,
         activeClanId,
         activeClanName,
@@ -839,7 +840,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
           batch: studentBatch,
         }
       );
-      setRoomId(targetRoomId);
+      setRoomId(normalizedRoomId);
       setPlayerId(pid);
       setPlayerFallback({
         id: pid,
@@ -1670,7 +1671,8 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                               <p className="text-xl font-mono font-bold text-amber-400">{room.id}</p>
                             </div>
                             <button
-                              onClick={() => handleJoinRoom(room.id)}
+                              type="button"
+                              onClick={() => void handleJoinRoom(room.id)}
                               disabled={!allowIndependent && missingClanAssignment}
                               className="px-3 py-1.5 font-heading font-bold rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 disabled:bg-gray-600/30 disabled:border-gray-600 disabled:cursor-not-allowed text-white transition-colors text-xs"
                             >
@@ -1756,7 +1758,8 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                     className="flex-1 rounded-xl border border-slate-700 bg-black/30 px-3 py-2 text-white"
                   />
                   <button
-                    onClick={() => handleJoinRoom(roomCodeInput.trim())}
+                    type="button"
+                    onClick={() => void handleJoinRoom(roomCodeInput)}
                     disabled={!roomCodeInput.trim()}
                     className="px-4 py-2 font-heading font-bold rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400 disabled:bg-gray-600/30 disabled:border-gray-600 disabled:cursor-not-allowed text-white transition-colors text-sm"
                   >
