@@ -236,6 +236,7 @@ const MainActions: React.FC<MainActionsProps> = ({
 }) => {
   const [pilotQuotas, setPilotQuotas] = useState<PilotQuotaStatus | null>(null);
   const [showMore, setShowMore] = useState(false);
+  const [shareStatus, setShareStatus] = useState<'idle' | 'copied' | 'shared' | 'error'>('idle');
 
   // Fetch pilot quotas on mount (only if on pilot plan)
   useEffect(() => {
@@ -276,6 +277,41 @@ const MainActions: React.FC<MainActionsProps> = ({
   const displaySchoolName = schoolName || 'My School';
   const displaySchoolLogo = schoolLogoUrl || defaultSchoolIcon;
   const missionIconClass = 'h-full w-full rounded-full object-cover drop-shadow-[0_0_26px_rgba(255,255,255,0.45)] brightness-110 contrast-110 saturate-125';
+  const inviteText = 'Join me on Brains Heist — the gamified learning platform! 🧠⚡';
+  const inviteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://brainsheist.com';
+  const inviteMessage = `${inviteText} ${inviteUrl}`;
+
+  const resetShareStatusSoon = () => {
+    window.setTimeout(() => setShareStatus('idle'), 2200);
+  };
+
+  const handleShareInvite = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: 'Brains Heist',
+          text: inviteText,
+          url: inviteUrl,
+        });
+        setShareStatus('shared');
+        resetShareStatusSoon();
+        return;
+      }
+
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(inviteMessage);
+        setShareStatus('copied');
+        resetShareStatusSoon();
+        return;
+      }
+
+      setShareStatus('error');
+      resetShareStatusSoon();
+    } catch {
+      // User cancelled share sheet or browser blocked clipboard; do not throw.
+      setShareStatus('idle');
+    }
+  };
   
   return (
     <section className="dashboard-panel relative overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-950/60 p-4 shadow-2xl shadow-slate-950/50 backdrop-blur sm:p-6">
@@ -358,6 +394,33 @@ const MainActions: React.FC<MainActionsProps> = ({
               Assignment Required
             </span>
           )}
+        </div>
+
+        {/* ── Social: invite friends (always visible, phone-first) ── */}
+        <div className="rounded-2xl border border-purple-500/30 bg-gradient-to-r from-purple-900/35 via-fuchsia-900/25 to-pink-900/25 p-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <img
+              src={visualAssets.social.inviteFriend}
+              alt="Invite a friend"
+              className="h-16 w-16 rounded-xl object-contain flex-shrink-0 sm:h-20 sm:w-20"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+            <div className="min-w-0 flex-1">
+              <p className="font-heading text-lg text-white mb-1">Invite Friends</p>
+              <p className="text-xs text-gray-300 mb-3">Share in WhatsApp, iMessage, or any app from your phone.</p>
+              <button
+                type="button"
+                onClick={() => { void handleShareInvite(); }}
+                className="inline-flex items-center justify-center rounded-lg border border-purple-300/50 bg-purple-500/30 px-4 py-2 text-sm font-semibold text-purple-100 transition hover:bg-purple-500/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-300/70"
+              >
+                <img src={neonIcon('invite_friend')} alt="" className="inline h-4 w-4 mr-1.5 align-text-bottom" />
+                {shareStatus === 'copied' ? 'Copied Invite' : shareStatus === 'shared' ? 'Invite Shared' : 'Share Invite'}
+              </button>
+              {shareStatus === 'error' && (
+                <p className="mt-2 text-[11px] text-amber-200">Sharing not supported on this browser.</p>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
@@ -592,32 +655,6 @@ const MainActions: React.FC<MainActionsProps> = ({
               quotaInfo={q('Cambridge Tests')}
               quotaLabel={ql('Cambridge Tests')}
             />
-
-            {/* ── Social: invite friends ── */}
-            <div className="col-span-2 sm:col-span-3 rounded-2xl border border-purple-500/20 bg-gradient-to-r from-purple-900/30 via-fuchsia-900/20 to-pink-900/20 p-4 flex items-center gap-4">
-              <img
-                src={visualAssets.social.inviteFriend}
-                alt="Invite a friend"
-                className="h-20 w-20 rounded-xl object-contain flex-shrink-0"
-                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-              />
-              <div className="flex-1 min-w-0">
-                <p className="font-heading text-lg text-white mb-1">Invite Friends</p>
-                <p className="text-xs text-gray-400 mb-2">Bring a friend to Brains Heist and unlock recruiter badges together.</p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const text = 'Join me on Brains Heist — the gamified learning platform! 🧠⚡';
-                    if (navigator.share) { void navigator.share({ title: 'Brains Heist', text }); }
-                    else if (navigator.clipboard?.writeText) { void navigator.clipboard.writeText(text); }
-                  }}
-                  className="rounded-lg border border-purple-400/40 bg-purple-500/20 px-4 py-1.5 text-xs font-semibold text-purple-200 transition hover:bg-purple-500/30"
-                >
-                  <img src={neonIcon('invite_friend')} alt="" className="inline h-4 w-4 mr-1 align-text-bottom" />
-                  Share Invite
-                </button>
-              </div>
-            </div>
 
             {/* ── Admin / staff actions ── */}
             {onOpenAdminPortal && (
