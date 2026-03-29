@@ -129,6 +129,17 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onTasksUpdate, addToast }) =
       ].filter(Boolean).join(', ');
       addToast(rewardSummary ? `Task claimed: ${rewardSummary}.` : 'Task claimed successfully.', 'success');
 
+      if (reward.cap_impact?.capped) {
+        const blockedParts = [
+          reward.cap_impact.blocked_xp ? `${reward.cap_impact.blocked_xp} XP` : null,
+          reward.cap_impact.blocked_coins ? `${reward.cap_impact.blocked_coins} Coins` : null,
+        ].filter(Boolean).join(', ');
+        const blockedMessage = blockedParts
+          ? `Cap reached. ${blockedParts} did not count toward your balance.`
+          : 'Cap reached. Extra rewards did not count toward your balance.';
+        addToast(blockedMessage, 'warning');
+      }
+
       // Refresh tasks to show claimed status
       onTasksUpdate();
     } catch (error: any) {

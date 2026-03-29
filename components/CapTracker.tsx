@@ -14,16 +14,24 @@ interface ProgressBarProps {
 const ProgressBar: React.FC<ProgressBarProps> = ({ label, remaining, total, color, glowClass }) => {
     const used = total - remaining;
     const percent = total > 0 ? (used / total) * 100 : 0;
+    const atCap = remaining <= 0;
 
     return (
         <div>
             <div className="flex justify-between items-end mb-1">
                 <span className="text-sm font-medium">{label}</span>
-                <span className="text-xs font-mono" style={{ color: 'var(--mist-400)' }}>{used.toLocaleString()} / {total.toLocaleString()}</span>
+                <span className="text-xs font-mono" style={{ color: atCap ? 'var(--danger)' : 'var(--mist-400)' }}>
+                  {remaining.toLocaleString()} remaining · {used.toLocaleString()} / {total.toLocaleString()} used
+                </span>
             </div>
             <div className="w-full bg-black/30 rounded-full h-2">
                 <div className={`h-2 rounded-full ${glowClass}`} style={{ width: `${percent}%`, backgroundColor: color }}></div>
             </div>
+            {atCap && (
+              <p className="mt-1 text-[11px] text-rose-300">
+                Cap reached — additional rewards in this bucket will not count until reset.
+              </p>
+            )}
         </div>
     );
 };

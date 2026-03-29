@@ -48,6 +48,7 @@ import {
     QuestEventResult,
     QuestChestResult,
     BrainsMasterPurchaseResult,
+    TaskClaimReward,
     XpStatus,
 } from '../types';
 import * as RaidFeatureService from '../src/features/raids/raidService';
@@ -2205,7 +2206,7 @@ export const tasks_list = async (): Promise<Task[]> => {
   return tasks;
 };
 
-export const task_claim = async (task_id: string): Promise<{ xp: number; coins: number; gemstones?: number; items?: string[] }> => {
+export const task_claim = async (task_id: string): Promise<TaskClaimReward> => {
   // Get task details
   const tasks = await tasks_list();
   const task = tasks.find(t => t.id === task_id);
@@ -2236,6 +2237,8 @@ export const task_claim = async (task_id: string): Promise<{ xp: number; coins: 
   }
 
   const reward = payload?.reward;
+  const requestedReward = payload?.requested_reward;
+  const capImpact = payload?.cap_impact;
   const now = new Date();
   // Keep key formats exactly aligned with tasks_list() lookup logic.
   const utcTodayKey = now.toISOString().split('T')[0];
@@ -2271,6 +2274,17 @@ export const task_claim = async (task_id: string): Promise<{ xp: number; coins: 
     coins: Number(reward.coins || 0),
     gemstones: Number(reward.gemstones || 0),
     items: task.reward.items,
+    requested_xp: Number(requestedReward?.xp ?? task.reward.xp ?? 0),
+    requested_coins: Number(requestedReward?.coins ?? task.reward.coins ?? 0),
+    requested_gemstones: Number(requestedReward?.gemstones ?? task.reward.gemstones ?? 0),
+    cap_impact: capImpact
+      ? {
+          capped: Boolean(capImpact.capped),
+          blocked_xp: Number(capImpact.blocked_xp || 0),
+          blocked_coins: Number(capImpact.blocked_coins || 0),
+          reasons: Array.isArray(capImpact.reasons) ? capImpact.reasons.map(String) : [],
+        }
+      : undefined,
   };
 };
 
@@ -2290,15 +2304,19 @@ export const caps_status = async (): Promise<Caps> => {
     const user = await getCurrentUser();
     const { data, error } = await supabase.rpc('get_user_effective_caps', { p_user_id: user.id });
     if (!error && data) {
+      const xpDailyRemaining = Number(data.xp_daily_remaining ?? data.daily_xp_cap - (data.xp_earned_today ?? 0));
+      const coinsDailyRemaining = Number(data.coins_daily_remaining ?? data.daily_coins_cap - (data.coins_earned_today ?? 0));
+      const xpWeeklyRemaining = Number(data.xp_weekly_remaining ?? data.weekly_xp_cap - (data.xp_earned_week ?? 0));
+      const coinsWeeklyRemaining = Number(data.coins_weekly_remaining ?? data.weekly_coins_cap - (data.coins_earned_week ?? 0));
       return {
-        xp_daily_remaining: data.daily_xp_cap - (data.xp_earned_today ?? 0),
-        coins_daily_remaining: data.daily_coins_cap - (data.coins_earned_today ?? 0),
-        xp_weekly_remaining: data.weekly_xp_cap - (data.xp_earned_week ?? 0),
-        coins_weekly_remaining: data.weekly_coins_cap - (data.coins_earned_week ?? 0),
-        daily_xp_cap: data.daily_xp_cap,
-        daily_coins_cap: data.daily_coins_cap,
-        weekly_xp_cap: data.weekly_xp_cap,
-        weekly_coins_cap: data.weekly_coins_cap,
+        xp_daily_remaining: Math.max(0, xpDailyRemaining),
+        coins_daily_remaining: Math.max(0, coinsDailyRemaining),
+        xp_weekly_remaining: Math.max(0, xpWeeklyRemaining),
+        coins_weekly_remaining: Math.max(0, coinsWeeklyRemaining),
+        daily_xp_cap: Number(data.daily_xp_cap || 0),
+        daily_coins_cap: Number(data.daily_coins_cap || 0),
+        weekly_xp_cap: Number(data.weekly_xp_cap || 0),
+        weekly_coins_cap: Number(data.weekly_coins_cap || 0),
       };
     }
   } catch { /* fall through to mock */ }
