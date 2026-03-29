@@ -27,6 +27,8 @@ interface ClanViewProps {
   onUpdateProfile: React.Dispatch<React.SetStateAction<Profile | null>>;
   addToast: (message: string, type: ToastMessage['type']) => void;
   onPendingCountChange?: (count: number) => void;
+  onChatUnreadCountChange?: (count: number) => void;
+  initialChatUnreadCount?: number;
 }
 
 const ConfirmationModal: React.FC<{ title: string, message: string, confirmText: string, onConfirm: () => void, onCancel: () => void }> = 
@@ -196,7 +198,7 @@ const getClanUpgradeConditions = (clan: Clan | null, isPrivileged: boolean): { c
 };
 
 
-const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfile, addToast, onPendingCountChange }) => {
+const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfile, addToast, onPendingCountChange, onChatUnreadCountChange, initialChatUnreadCount = 0 }) => {
   const [stage, setStage] = useState<ClanViewStage>('loading');
   const [clan, setClan] = useState<Clan | null>(null);
   const [activeTab, setActiveTab] = useState<ClanTab>('home');
@@ -218,6 +220,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
   const [isBrowseClansLoading, setIsBrowseClansLoading] = useState(false);
   const [pendingJoinRequest, setPendingJoinRequest] = useState<ClanJoinRequest | null>(null);
   const [pendingApprovals, setPendingApprovals] = useState<ClanJoinRequest[]>([]);
+  const [unreadChatCount, setUnreadChatCount] = useState(initialChatUnreadCount);
   const [isLoadingRequests, setIsLoadingRequests] = useState(false);
   const [processingRequestId, setProcessingRequestId] = useState<string | null>(null);
   const [isCancelingRequest, setIsCancelingRequest] = useState(false);
@@ -373,6 +376,46 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
         if (!isPrivileged || !clan?.id) return;
         void loadPendingJoinRequests();
     }, [isPrivileged, clan?.id]);
+
+    useEffect(() => {
+        onChatUnreadCountChange?.(unreadChatCount);
+    }, [onChatUnreadCountChange, unreadChatCount]);
+
+    useEffect(() => {
+        if (!clan?.id) {
+            setUnreadChatCount(0);
+            return;
+        }
+
+        const channel = supabase
+            .channel(`clan-chat-unread-${clan.id}`)
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'clan_chat', filter: `clan_id=eq.${clan.id}` },
+                (payload) => {
+                    const newRow = payload.new as { user_id?: string };
+                    if (newRow.user_id === profile.id) return;
+                    if (activeTab === 'chat') return;
+                    setUnreadChatCount((prev) => prev + 1);
+                }
+            )
+            .subscribe();
+
+        return () => {
+            void supabase.removeChannel(channel);
+        };
+    }, [activeTab, clan?.id, profile.id]);
+
+    useEffect(() => {
+        if (activeTab === 'chat') return;
+        setUnreadChatCount(initialChatUnreadCount);
+    }, [activeTab, initialChatUnreadCount]);
+
+    useEffect(() => {
+        if (activeTab === 'chat' && unreadChatCount > 0) {
+            setUnreadChatCount(0);
+        }
+    }, [activeTab, unreadChatCount]);
 
     useEffect(() => {
         if (!capacityUpgradePrompt?.requestId) return;
@@ -1314,7 +1357,14 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
             <div className="max-w-4xl mx-auto card-glass p-2">
                 <div className="flex border-b border-white/10 mb-2 flex-wrap gap-2">
                     <button onClick={() => setActiveTab('home')} className={`px-4 py-2 font-heading ${activeTab === 'home' ? 'text-amber-300 border-b-2 border-amber-300' : 'text-gray-400'}`}>Home</button>
-                    <button onClick={() => setActiveTab('chat')} className={`px-4 py-2 font-heading ${activeTab === 'chat' ? 'text-amber-300 border-b-2 border-amber-300' : 'text-gray-400'}`}>Chat</button>
+                    <button onClick={() => setActiveTab('chat')} className={`relative px-4 py-2 font-heading ${activeTab === 'chat' ? 'text-amber-300 border-b-2 border-amber-300' : 'text-gray-400'}`}>
+                      Chat
+                      {unreadChatCount > 0 && (
+                        <span className="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white shadow-lg animate-pulse">
+                          {Math.min(unreadChatCount, 9)}
+                        </span>
+                      )}
+                    </button>
                     <button onClick={() => setActiveTab('browse')} className={`px-4 py-2 font-heading ${activeTab === 'browse' ? 'text-amber-300 border-b-2 border-amber-300' : 'text-gray-400'}`}>Browse Clans</button>
                     {isPrivileged && <button onClick={() => setActiveTab('management')} className={`relative px-4 py-2 font-heading ${activeTab === 'management' ? 'text-amber-300 border-b-2 border-amber-300' : 'text-gray-400'}`}>
                       Management

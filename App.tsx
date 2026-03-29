@@ -149,6 +149,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const cachedDataLoadedRef = useRef(false);
   const { isLightMode: isLiteMode, toggleLightMode } = useLightMode();
   const [pendingClanRequests, setPendingClanRequests] = useState(0);
+  const [unreadClanChatMessages, setUnreadClanChatMessages] = useState(0);
   const [isUserSchoolAdmin, setIsUserSchoolAdmin] = useState(false);
   const [sessionMissing, setSessionMissing] = useState(false);
   const [isInteractive, setIsInteractive] = useState(false);
@@ -525,6 +526,34 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     if (!isPlayerMode) return;
     void refreshPendingJoinRequests();
   }, [profile?.id, view, isPlayerMode]);
+
+  useEffect(() => {
+    if (!isPlayerMode || !profile?.id || !profile?.clan_id) {
+      setUnreadClanChatMessages(0);
+      return;
+    }
+
+    if (view === 'clan') {
+      return;
+    }
+
+    const channel = supabase
+      .channel(`app-clan-chat-unread-${profile.clan_id}-${profile.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'clan_chat', filter: `clan_id=eq.${profile.clan_id}` },
+        (payload) => {
+          const row = payload.new as { user_id?: string };
+          if (row.user_id === profile.id) return;
+          setUnreadClanChatMessages((prev) => prev + 1);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [isPlayerMode, profile?.clan_id, profile?.id, view]);
 
   useEffect(() => {
     if (!isPlayerMode) return;
@@ -1702,6 +1731,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                 onUpdateProfile={setProfile}
                 addToast={addToast}
                 onPendingCountChange={setPendingClanRequests}
+                onChatUnreadCountChange={setUnreadClanChatMessages}
+                initialChatUnreadCount={unreadClanChatMessages}
               />
             );
         case 'rivalry':
@@ -1970,7 +2001,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                         profile={profile}
                         isIndividual={!hasSchool}
                         hasPendingAssignment={Boolean(activeAssignment)}
-                        clanBadgeCount={pendingClanRequests}
+                        clanBadgeCount={pendingClanRequests + unreadClanChatMessages}
                         schoolName={profile?.school_name}
                         schoolLogoUrl={profile?.school_logo_url}
                         isPro={isProUser}
