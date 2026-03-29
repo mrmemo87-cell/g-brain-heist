@@ -429,7 +429,10 @@ const getZoneControl = (
   return { clanId: (leader as ClanId) ?? null, contested };
 };
 
-const adjustViewBoxToContent = (svgEl: SVGSVGElement) => {
+const adjustViewBoxToContent = (
+  svgEl: SVGSVGElement,
+  mapConfig?: Pick<MapConfig, "zoneToRegion" | "regionAliases">
+) => {
   const safeBBox = (el: SVGGraphicsElement) => {
     try {
       const b = el.getBBox();
@@ -441,11 +444,34 @@ const adjustViewBoxToContent = (svgEl: SVGSVGElement) => {
   };
 
   try {
-    const graphics = Array.from(
-      svgEl.querySelectorAll<SVGGraphicsElement>(
-        "path, rect, circle, ellipse, polygon, polyline, line, image, use, g"
-      )
-    );
+    const expectedRegionIds = new Set<string>();
+    if (mapConfig) {
+      Object.values(mapConfig.zoneToRegion).forEach((region) => {
+        if (Array.isArray(region)) region.forEach((id) => expectedRegionIds.add(id));
+        else expectedRegionIds.add(region);
+      });
+      Object.entries(mapConfig.regionAliases).forEach(([canonical, aliases]) => {
+        expectedRegionIds.add(canonical);
+        aliases.forEach((alias) => expectedRegionIds.add(alias));
+      });
+    }
+
+    let graphics: SVGGraphicsElement[] = [];
+    if (expectedRegionIds.size > 0) {
+      expectedRegionIds.forEach((id) => {
+        const escaped = typeof CSS !== "undefined" && CSS.escape ? CSS.escape(id) : id.replace(/"/g, '\\"');
+        const el = svgEl.querySelector<SVGGraphicsElement>(`#${escaped}`);
+        if (el) graphics.push(el);
+      });
+    }
+
+    if (graphics.length === 0) {
+      graphics = Array.from(
+        svgEl.querySelectorAll<SVGGraphicsElement>(
+          "path, rect, circle, ellipse, polygon, polyline, line, image, use, g"
+        )
+      );
+    }
 
     let minX = Number.POSITIVE_INFINITY;
     let minY = Number.POSITIVE_INFINITY;
@@ -689,8 +715,8 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
     // Normalize viewBox after paint (double RAF + retry)
     const normalize = () => {
-      const ok = adjustViewBoxToContent(svg);
-      if (!ok) setTimeout(() => adjustViewBoxToContent(svg), 50);
+      const ok = adjustViewBoxToContent(svg, mapConfig);
+      if (!ok) setTimeout(() => adjustViewBoxToContent(svg, mapConfig), 50);
     };
     requestAnimationFrame(() => requestAnimationFrame(normalize));
   }, [mapConfig.svg, mapId]);
@@ -710,8 +736,8 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
       raf1 = requestAnimationFrame(() => {
         raf2 = requestAnimationFrame(() => {
-          const ok = adjustViewBoxToContent(svg);
-          if (!ok) setTimeout(() => adjustViewBoxToContent(svg), 50);
+          const ok = adjustViewBoxToContent(svg, mapConfig);
+          if (!ok) setTimeout(() => adjustViewBoxToContent(svg, mapConfig), 50);
         });
       });
     };
