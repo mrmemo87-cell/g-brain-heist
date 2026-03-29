@@ -1044,6 +1044,7 @@ const saveClan = () => saveToStorage(STORAGE_KEYS.CLAN, MOCK_CLAN);
 const saveChat = () => saveToStorage(STORAGE_KEYS.CHAT, MOCK_CHAT);
 
 const calculateTotalScore = (xp: number = 0, pvpScore: number = 0): number => xp + pvpScore * 10;
+let hasClanContributionTable: boolean | null = null;
 
 const mapBuffTemplateRow = (row: any): ClanBuffTemplate => ({
     id: row.id,
@@ -1107,6 +1108,9 @@ const applyClanBuffsToProfile = (profile: Profile, buffs: ActiveClanBuff[]) => {
 
 const fetchClanDepositTotals = async (clanId: string, userIds: string[]): Promise<Map<string, number>> => {
     if (!userIds.length) return new Map();
+    if (hasClanContributionTable === false) {
+        return fetchClanDepositTotalsFromActivities(clanId, userIds);
+    }
 
     const { data, error } = await supabase
         .from('clan_member_coin_contributions')
@@ -1115,15 +1119,49 @@ const fetchClanDepositTotals = async (clanId: string, userIds: string[]): Promis
         .in('user_id', userIds);
 
     if (error || !data) {
+        if (error?.code === 'PGRST205' || error?.message?.includes('Could not find the table')) {
+            hasClanContributionTable = false;
+            return fetchClanDepositTotalsFromActivities(clanId, userIds);
+        }
+
         if (error) {
             console.warn('Failed to load clan deposit totals:', error.message);
         }
         return new Map();
     }
 
+    hasClanContributionTable = true;
+
     return new Map<string, number>(
         data.map((row: any) => [row.user_id, Number(row.total_deposited ?? 0)])
     );
+};
+
+const fetchClanDepositTotalsFromActivities = async (clanId: string, userIds: string[]): Promise<Map<string, number>> => {
+    const { data, error } = await supabase
+        .from('activities')
+        .select('actor_id, data')
+        .eq('kind', 'clan_deposit')
+        .eq('data->>clan_id', clanId)
+        .in('actor_id', userIds);
+
+    if (error || !data) {
+        if (error) {
+            console.warn('Failed to load fallback clan deposit totals:', error.message);
+        }
+        return new Map();
+    }
+
+    const totals = new Map<string, number>();
+    for (const row of data as Array<{ actor_id?: string; data?: any }>) {
+        const actorId = row.actor_id;
+        if (!actorId) continue;
+        const amount = Number(row?.data?.amount ?? 0);
+        if (!Number.isFinite(amount) || amount <= 0) continue;
+        totals.set(actorId, (totals.get(actorId) ?? 0) + amount);
+    }
+
+    return totals;
 };
 
 const fetchClanActiveBuffs = async (clanId: string): Promise<ActiveClanBuff[]> => {
@@ -4345,6 +4383,37 @@ export const clan_deposit_coins = async (amount: number): Promise<{ new_clan_vau
     if (!result) {
         throw new Error('Failed to deposit coins.');
     }
+
+    void (async () => {
+        try {
+            const [{ data: membership }, { data: actorProfile }] = await Promise.all([
+                supabase
+                    .from('clan_members')
+                    .select('clan_id')
+                    .eq('user_id', user.id)
+                    .maybeSingle(),
+                supabase
+                    .from('users')
+                    .select('username')
+                    .eq('id', user.id)
+                    .maybeSingle(),
+            ]);
+
+            if (!membership?.clan_id) return;
+
+            await supabase.from('activities').insert({
+                kind: 'clan_deposit',
+                actor_id: user.id,
+                actor_username: actorProfile?.username || null,
+                data: {
+                    clan_id: membership.clan_id,
+                    amount,
+                },
+            });
+        } catch (activityError) {
+            console.warn('Failed to record clan_deposit activity:', activityError);
+        }
+    })();
 
     return mockApiCall(result);
 };
