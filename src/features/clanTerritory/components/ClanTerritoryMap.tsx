@@ -685,6 +685,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     svg.style.width = "100%";
     svg.style.height = "100%";
     svg.style.display = "block";
+    svg.style.margin = "0 auto";
 
     // Normalize viewBox after paint (double RAF + retry)
     const normalize = () => {
@@ -873,7 +874,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
       {/* Flat map container: no zoom/pan transforms */}
       <div className="relative w-full overflow-hidden aspect-[4/3] max-h-[55svh] sm:max-h-[70vh]">
-        <div ref={containerRef} className="w-full h-full" />
+        <div ref={containerRef} className="flex h-full w-full items-center justify-center" />
         {/* Overlay when the SVG loaded but contains no recognisable zone paths */}
         {!publicMapLoadError && PUBLIC_MAP_IDS.has(mapId) && mapConfig.svg && !svgHasZones && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 z-20 pointer-events-none">
