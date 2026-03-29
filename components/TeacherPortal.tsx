@@ -12,6 +12,7 @@ import HelpModal from './HelpModal';
 import { NotificationCenter } from './NotificationCenter';
 import DiagramBuilder from './geometry/DiagramBuilder';
 import QuestionBank from './teacher/QuestionBank';
+import JoinSchoolCard from './JoinSchoolCard';
 import '../src/styles/teacher-theme.css';
 import { brainsAlert } from '../src/utils/brainsAlert';
 import { chemistryAnswerKeys, chemistryQuestionRanges } from './chemistryAnswerKeys';
@@ -37,7 +38,7 @@ interface TeacherPortalProps {
 let _cachedPlanDetails: SchoolPlanDetails | null = null;
 let _cachedTeacherTier: AccountTier | null = null;
 
-type PortalView = 'dashboard' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'geometry-diagrams' | 'cambridge-reports' | 'quest-builder';
+type PortalView = 'dashboard' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'geometry-diagrams' | 'cambridge-reports' | 'quest-builder' | 'join-school';
 
 // XP points based on difficulty: Easy=10, Medium=15, Hard=20
 const getDefaultPointsForDifficulty = (diff: QuestionDifficulty): number => {
@@ -530,8 +531,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       s.batch?.toLowerCase().includes(search)
     );
   }, [availableStudents, studentSearchTerm]);
-  const primarySection = useMemo<'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge' | 'quests' | 'lockdown'>(() => {
+  const primarySection = useMemo<'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge' | 'quests' | 'lockdown' | 'join-school'>(() => {
     if (view === 'dashboard') return 'dashboard';
+    if (view === 'join-school') return 'join-school';
     if (view === 'question-bank' || view === 'create-question' || view === 'csv-upload') return 'questions';
     if (view === 'assignments' || view === 'create-assignment') return 'assignments';
     if (view === 'cambridge-reports') return 'cambridge';
@@ -539,7 +541,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     return 'reports'; // catches 'reports', 'report-detail', 'report-analysis', 'collective-report'
   }, [view]);
 
-  const changeSection = (section: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge' | 'quests' | 'lockdown') => {
+  const changeSection = (section: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge' | 'quests' | 'lockdown' | 'join-school') => {
     switch (section) {
       case 'dashboard':
         setView('dashboard');
@@ -566,6 +568,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         break;
       case 'lockdown':
         if (onLockdown) onLockdown();
+        break;
+      case 'join-school':
+        setView('join-school');
         break;
       default:
         setView('dashboard');
@@ -7832,8 +7837,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     );
   }
 
-  const navTabs: Array<{ id: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge' | 'quests' | 'lockdown'; label: string; icon: string; description: string; proOnly?: boolean }> = [
+  const navTabs: Array<{ id: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge' | 'quests' | 'lockdown' | 'join-school'; label: string; icon: string; description: string; proOnly?: boolean; highlight?: boolean }> = [
     { id: 'dashboard', label: 'Dashboard', icon: '🏠', description: 'Overview & Quick Actions' },
+    ...(!profile.school_id ? [{ id: 'join-school' as const, label: 'Join Your School', icon: '🏫', description: 'Use your invite code to unlock school features', highlight: true }] : []),
     { id: 'questions', label: 'Question Bank', icon: '📚', description: 'Create & Manage Questions', proOnly: true },
     { id: 'assignments', label: 'Assignments', icon: '📋', description: 'Assign Work to Students', proOnly: true },
     { id: 'reports', label: 'Reports', icon: '📊', description: 'Student Performance', proOnly: true },
@@ -8133,7 +8139,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                       key={tab.id}
                       onClick={() => !locked && changeSection(tab.id)}
                       disabled={locked}
-                      className={`teacher-nav-btn ${primarySection === tab.id ? 'active' : ''} ${locked ? 'teacher-nav-locked' : ''}`}
+                      className={`teacher-nav-btn ${primarySection === tab.id ? 'active' : ''} ${locked ? 'teacher-nav-locked' : ''} ${tab.highlight ? 'teacher-nav-btn--highlight' : ''}`}
                     >
                       <span className="teacher-nav-icon">{tab.icon}</span>
                       <div className="teacher-nav-text">
@@ -8185,6 +8191,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           )}
           {view === 'cambridge-reports' && renderCambridgeReports()}
           {view === 'quest-builder' && renderQuestBuilder()}
+          {view === 'join-school' && (
+            <JoinSchoolCard onJoined={() => window.location.reload()} initialRole="teacher" />
+          )}
           {view === 'geometry-diagrams' && teacher && (
             <DiagramBuilder
               teacherId={teacher!.id}
