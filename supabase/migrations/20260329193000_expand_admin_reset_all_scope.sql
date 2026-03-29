@@ -183,7 +183,8 @@ BEGIN
         xp_weekly_earned = 0,
         coins_weekly_earned = 0,
         daily_reset_at = CURRENT_DATE,
-        weekly_reset_at = CURRENT_DATE;
+        weekly_reset_at = CURRENT_DATE
+    WHERE TRUE;
     GET DIAGNOSTICS v_caps_reset = ROW_COUNT;
   END IF;
 
