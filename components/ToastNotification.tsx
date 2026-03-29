@@ -5,6 +5,8 @@ interface ToastContainerProps {
   maxToasts?: number;
 }
 
+const LOGO_SRC = '/logo.png';
+
 export const ToastContainer: React.FC<ToastContainerProps> = ({ maxToasts = 3 }) => {
   const [toasts, setToasts] = useState<Notification[]>([]);
 
@@ -73,23 +75,35 @@ const Toast: React.FC<ToastProps> = ({ notification, onDismiss, index }) => {
   const getPriorityStyle = () => {
     switch (notification.priority) {
       case 'urgent':
-        return 'border-red-500 shadow-red-500/50 animate-pulse';
+        return 'border-red-500/70 shadow-red-500/40';
       case 'high':
-        return 'border-orange-500 shadow-orange-500/30';
+        return 'border-orange-500/70 shadow-orange-500/30';
       case 'medium':
-        return 'border-purple-500 shadow-purple-500/20';
+        return 'border-purple-500/70 shadow-purple-500/20';
       default:
-        return 'border-gray-500 shadow-gray-500/10';
+        return 'border-gray-500/70 shadow-gray-500/10';
     }
+  };
+
+  const getActionLabel = () => {
+    if (notification.action?.label) {
+      return notification.action.label;
+    }
+    if (notification.priority === 'urgent') {
+      return 'Review now';
+    }
+    return 'Got it';
   };
 
   return (
     <div
+      role="status"
+      aria-live="polite"
       className={`
-        w-96 bg-gray-900 border-2 rounded-lg shadow-2xl pointer-events-auto
+        w-[min(92vw,430px)] rounded-2xl border bg-slate-950/95 shadow-2xl backdrop-blur-md pointer-events-auto
         transform transition-all duration-300 ease-out
         ${getPriorityStyle()}
-        ${isExiting ? 'translate-x-[420px] opacity-0' : 'translate-x-0 opacity-100'}
+        ${isExiting ? 'translate-x-[460px] opacity-0 scale-[0.98]' : 'translate-x-0 opacity-100 scale-100'}
         ${index === 0 ? 'animate-slideIn' : ''}
       `}
       style={{
@@ -98,39 +112,59 @@ const Toast: React.FC<ToastProps> = ({ notification, onDismiss, index }) => {
     >
       <div className="p-4">
         <div className="flex items-start gap-3">
-          {/* Icon */}
-          <div className={`text-3xl flex-shrink-0 ${style.bgColor} p-2 rounded-lg`}>
-            {style.emoji}
-          </div>
+          <img
+            src={LOGO_SRC}
+            alt="Brains Heist"
+            className="h-11 w-11 rounded-xl border border-white/20 bg-black/30 p-1.5 shadow-md object-contain"
+            loading="lazy"
+          />
 
-          {/* Content */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2 mb-1">
-              <h3 className={`font-bold text-sm ${style.color}`}>
-                {notification.title}
-              </h3>
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <div className="min-w-0">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-white/60">Brains Heist</p>
+                <h3 className={`font-bold text-sm leading-tight ${style.color} break-words`}>
+                  {notification.title}
+                </h3>
+              </div>
               <button
                 onClick={handleDismiss}
-                className="text-gray-500 hover:text-white transition-colors flex-shrink-0"
+                className="rounded-lg px-2 py-1 text-xs font-bold text-gray-400 transition hover:bg-white/10 hover:text-white flex-shrink-0"
+                aria-label="Dismiss notification"
               >
                 ✕
               </button>
             </div>
-            <p className="text-sm text-gray-300 leading-relaxed">
+
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2.5 py-1">
+              <span className={`text-base leading-none ${style.color}`}>{style.emoji}</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-white/70">{notification.priority}</span>
+            </div>
+
+            <p className="text-sm text-gray-200 leading-relaxed break-words">
               {notification.message}
             </p>
-            {notification.priority === 'urgent' && (
-              <div className="mt-2 flex items-center gap-1 text-xs text-red-400">
-                <span className="animate-ping inline-block w-2 h-2 bg-red-500 rounded-full"></span>
-                <span className="font-semibold">URGENT</span>
-              </div>
-            )}
+
+            <div className="mt-3 flex items-center justify-between gap-2">
+              <button
+                onClick={handleDismiss}
+                className="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/20"
+              >
+                {getActionLabel()}
+              </button>
+              {notification.priority === 'urgent' && (
+                <div className="flex items-center gap-1 text-xs text-red-300">
+                  <span className="inline-block h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+                  <span className="font-semibold">URGENT</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Progress bar for auto-dismiss */}
-        <div className="mt-3 h-1 bg-gray-800 rounded-full overflow-hidden">
-          <div 
+        <div className="mt-3 h-1 bg-gray-800/80 rounded-full overflow-hidden">
+          <div
             className={`h-full ${style.bgColor} animate-shrink`}
             style={{
               animationDuration: notification.priority === 'urgent' ? '10s' : '5s'
