@@ -211,7 +211,15 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [missionsError, setMissionsError] = useState<string | null>(null);
   const [selectedMissionZone, setSelectedMissionZone] = useState<string | null>(null);
   const answerFeedbackRef = useRef<HTMLDivElement>(null);
+  const missionZonesRef = useRef<HTMLDivElement>(null);
+  const missionStagesRef = useRef<HTMLElement>(null);
   const canViewQuestionBank = viewerRole === 'teacher' || viewerRole === 'admin' || viewerRole === 'school_admin';
+
+  const scrollToMissionStages = useCallback(() => {
+    requestAnimationFrame(() => {
+      missionStagesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }, []);
 
   // ── Fetch quest missions from DB ──
   const loadMissions = useCallback(() => {
@@ -1304,14 +1312,17 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                 <p className="text-xs text-slate-400">Pick a zone, clear its stages, unlock fun stations, then open the final chest.</p>
               </div>
             </div>
-            <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div ref={missionZonesRef} className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {zoneEntries.map(([zone, missions]) => {
                 const isActive = zone === activeZone;
                 return (
                   <button
                     key={zone}
                     type="button"
-                    onClick={() => setSelectedMissionZone(zone)}
+                    onClick={() => {
+                      setSelectedMissionZone(zone);
+                      scrollToMissionStages();
+                    }}
                     className={`rounded-2xl border p-4 text-left transition ${
                       isActive
                         ? 'border-cyan-300/70 bg-cyan-500/15 shadow-[0_0_24px_rgba(56,189,248,0.18)]'
@@ -1331,7 +1342,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               })}
             </div>
             {activeZone && (
-              <section className="rounded-2xl border border-cyan-400/20 bg-slate-900/35 p-3 sm:p-4">
+              <section ref={missionStagesRef} className="rounded-2xl border border-cyan-400/20 bg-slate-900/35 p-3 sm:p-4">
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="font-heading text-sm sm:text-base text-cyan-100 tracking-wide">
                     🧭 {activeZone} Zone
