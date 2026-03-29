@@ -404,6 +404,10 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
         addToast("Please enter a valid amount.", "error");
         return;
     }
+    if (amount > (profile?.coins ?? 0)) {
+        addToast(`Insufficient funds. You only have ${(profile?.coins ?? 0).toLocaleString()} coins.`, "error");
+        return;
+    }
     try {
         const result = await GameService.clan_deposit_coins(amount);
         setClan(prev => {
