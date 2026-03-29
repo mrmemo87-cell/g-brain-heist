@@ -4376,6 +4376,9 @@ export const clan_deposit_coins = async (amount: number): Promise<{ new_clan_vau
 
     if (error) {
         console.error('Failed to deposit clan coins:', error);
+        if (error.code === 'P0001' && /Insufficient funds/i.test(error.message ?? '')) {
+            throw new Error('Insufficient funds. Add more coins before depositing.');
+        }
         throw new Error(error.message || 'Failed to deposit coins.');
     }
 
