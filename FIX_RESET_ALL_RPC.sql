@@ -109,6 +109,12 @@ BEGIN
     GET DIAGNOSTICS v_clan_buff_count = ROW_COUNT;
   END IF;
 
+  -- Rivalry Protocol root table references clans via ON DELETE RESTRICT.
+  -- Delete wars before clans so global reset cannot fail on FK constraints.
+  IF to_regclass('public.rivalry_wars') IS NOT NULL THEN
+    DELETE FROM rivalry_wars WHERE TRUE;
+  END IF;
+
   IF to_regclass('public.clans') IS NOT NULL THEN
     DELETE FROM clans WHERE TRUE;
     GET DIAGNOSTICS v_clan_count = ROW_COUNT;
