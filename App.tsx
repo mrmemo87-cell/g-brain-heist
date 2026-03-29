@@ -16,6 +16,7 @@ import CapTracker from './components/CapTracker';
 import Toast from './components/Toast';
 import LevelUpModal from './components/LevelUpModal';
 import { ToastContainer } from './components/ToastNotification';
+import BackButton from './components/BackButton';
 import { isSuperadmin } from './services/adminService';
 import { isSchoolAdmin } from './services/schoolAdminService';
 import { audioService } from './services/audioService';
@@ -1795,17 +1796,20 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             );
         case 'lockdown':
           return renderLazy(
-            <ClanTerritoryManager
-              onExit={() => handleViewChange('dashboard')}
-              isTeacher={profile?.role === 'teacher'}
-              canHost={profile?.role === 'teacher' || ['leader', 'officer', 'moderator'].includes(profile?.clan_role || '')}
-              playerName={profile?.username || 'Agent'}
-              clanId={profile?.clan_id}
-              clanName={profile?.clan_name}
-              // Keep Clan Territory mounted during debrief reward sync (avoid full critical boot remount).
-              onRefreshProfile={refreshProfile}
-              onGoToClan={() => handleViewChange('clan')}
-            />
+            <div className="relative">
+              <BackButton onClick={() => handleViewChange('dashboard')} />
+              <ClanTerritoryManager
+                onExit={() => handleViewChange('dashboard')}
+                isTeacher={profile?.role === 'teacher'}
+                canHost={profile?.role === 'teacher' || ['leader', 'officer', 'moderator'].includes(profile?.clan_role || '')}
+                playerName={profile?.username || 'Agent'}
+                clanId={profile?.clan_id}
+                clanName={profile?.clan_name}
+                // Keep Clan Territory mounted during debrief reward sync (avoid full critical boot remount).
+                onRefreshProfile={refreshProfile}
+                onGoToClan={() => handleViewChange('clan')}
+              />
+            </div>
           );
         case 'cambridge':
           return renderLazy(
