@@ -406,7 +406,18 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
     }
     try {
         const result = await GameService.clan_deposit_coins(amount);
-        setClan(prev => prev ? { ...prev, vault_coins: result.new_clan_vault } : null);
+        setClan(prev => {
+            if (!prev) return null;
+            return {
+                ...prev,
+                vault_coins: result.new_clan_vault,
+                members: prev.members.map(member => (
+                    member.user_id === profile.id
+                        ? { ...member, deposited_coins: (member.deposited_coins ?? 0) + amount }
+                        : member
+                )),
+            };
+        });
         onUpdateProfile(p => p ? { ...p, coins: result.new_user_coins } : null);
         addToast(`Successfully deposited ${amount} coins!`, "success");
         setDepositAmount('');
