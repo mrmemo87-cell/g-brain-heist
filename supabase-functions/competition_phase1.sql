@@ -550,7 +550,8 @@ $$;
 -- Admin: Grant XP/Coins
 -- ============================================
 -- Avoid "cannot change return type of existing function" on redeploys.
-drop function if exists rpc_admin_grant(uuid, int, int) cascade;
+drop function if exists public.rpc_admin_grant(uuid, integer, integer) cascade;
+drop function if exists rpc_admin_grant(uuid, integer, integer) cascade;
 create function rpc_admin_grant(p_user_id uuid, p_xp_delta int, p_coins_delta int)
 returns table (
   user_id uuid,
