@@ -95,9 +95,9 @@ const formatExpiresIn = (expiresAt?: string | null): string => {
 };
 
 const getClanLevel = (memberLimit: number, extraSlots: number): number => {
-    const inferred = Math.max(1, Math.floor((memberLimit - 5) / 2) + 1);
-    const bySlots = Math.max(1, Math.floor(extraSlots / 2) + 1);
-    return Math.max(inferred, bySlots);
+    const inferred = Math.max(0, memberLimit - 5);
+    const purchased = Math.max(0, extraSlots);
+    return Math.min(MAX_CLAN_LEVEL, Math.max(1, 1 + Math.max(inferred, purchased)));
 };
 
 const getClanLevelTheme = (level: number): { badge: string; panel: string; glow: string } => {
@@ -133,17 +133,39 @@ const getClanLevelTheme = (level: number): { badge: string; panel: string; glow:
 const getClanLevelBenefits = (level: number): string[] => {
     const benefitTable = [
         'Recruitment unlocked and clan management controls',
-        '+2 member capacity and Tactical Signals board',
-        '+4 member capacity and Vanguard buff synergy',
-        '+6 member capacity and elite role aura styling',
-        '+8 member capacity and advanced battlefield intel feed',
-        '+10 member capacity and mythic war-room visual effects',
+        '+1 member capacity and Tactical Signals board',
+        '+2 member capacity and Vanguard buff synergy',
+        '+3 member capacity and elite role aura styling',
+        '+4 member capacity and advanced battlefield intel feed',
+        '+5 member capacity and mythic war-room visual effects',
     ];
 
     return benefitTable.slice(0, Math.min(level, benefitTable.length));
 };
 
 const MAX_CLAN_LEVEL = 6;
+
+const combineClanBuffEffects = (buffs: ActiveClanBuff[]) => {
+    return buffs.reduce<NonNullable<Profile['clan_buff_effects']>>((acc, buff) => {
+        const effect = buff.effect || {};
+        if (effect.xp_multiplier != null) {
+            acc.xp_multiplier = (acc.xp_multiplier ?? 1) * effect.xp_multiplier;
+        }
+        if (effect.attack_multiplier != null) {
+            acc.attack_multiplier = (acc.attack_multiplier ?? 1) * effect.attack_multiplier;
+        }
+        if (effect.defense_multiplier != null) {
+            acc.defense_multiplier = (acc.defense_multiplier ?? 1) * effect.defense_multiplier;
+        }
+        if (effect.shield_bonus_percent != null) {
+            acc.shield_bonus_percent = (acc.shield_bonus_percent ?? 0) + effect.shield_bonus_percent;
+        }
+        if (effect.ap_bonus != null) {
+            acc.ap_bonus = (acc.ap_bonus ?? 0) + effect.ap_bonus;
+        }
+        return acc;
+    }, {});
+};
 
 const getClanUpgradeConditions = (clan: Clan | null, isPrivileged: boolean): { canUpgrade: boolean; reasons: string[]; nextCost: number; nextLevel: number } => {
     const currentLevel = clan ? getClanLevel(clan.member_limit, clan.extra_member_slots_purchased) : 1;
@@ -210,6 +232,20 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
   const myMemberInfo = clan?.members.find(m => m.user_id === profile.id);
     const isPrivileged = !!myMemberInfo && ['leader', 'officer', 'moderator'].includes(myMemberInfo.role);
 
+  const syncProfileBuffEffects = (activeBuffs: ActiveClanBuff[]) => {
+      onUpdateProfile(prev => {
+          if (!prev) return prev;
+          if (!activeBuffs.length) {
+              return { ...prev, active_clan_buffs: [], clan_buff_effects: undefined };
+          }
+          return {
+              ...prev,
+              active_clan_buffs: activeBuffs,
+              clan_buff_effects: combineClanBuffEffects(activeBuffs),
+          };
+      });
+  };
+
   const fetchAvailableBuffs = async () => {
       setIsLoadingBuffs(true);
       try {
@@ -245,6 +281,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
     try {
         const clanDetails = await GameService.clan_details();
         setClan(clanDetails);
+        syncProfileBuffEffects(clanDetails?.active_buffs ?? []);
         setStage(clanDetails ? 'in_clan' : 'no_clan');
 
         const results = await Promise.allSettled([
@@ -382,6 +419,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
       try {
           const updatedClan = await GameService.clan_buy_buff(buffCode);
           setClan(updatedClan);
+          syncProfileBuffEffects(updatedClan.active_buffs || []);
           addToast("Buff purchased successfully!", "success");
       } catch (error: any) {
           addToast(error.message || "Failed to buy buff.", "error");
@@ -417,6 +455,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
           }
           
           setClan(latestClan);
+          syncProfileBuffEffects(latestClan.active_buffs || []);
           
           if (successCount === availableBuffs.length) {
               addToast(`All ${successCount} buffs activated!`, "success");
@@ -453,6 +492,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
           await GameService.clan_leave();
           addToast("You have left the clan.", "success");
           setClan(null);
+          syncProfileBuffEffects([]);
           setStage('no_clan');
           setModal(null);
       } catch (error) {
@@ -465,6 +505,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
           await GameService.clan_delete();
           addToast("Clan has been deleted.", "success");
           setClan(null);
+          syncProfileBuffEffects([]);
           setStage('no_clan');
           setModal(null);
       } catch (error) {
@@ -978,6 +1019,11 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
         return distance < 120;
     };
 
+    const formatChatTimestamp = (date: Date) => {
+        const time = date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+        return `${time} · Just now`;
+    };
+
     const scrollToBottom = () => {
         const container = chatScrollRef.current;
         if (!container) return;
@@ -1047,7 +1093,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                             id: newRow.id,
                             user: fallbackName,
                             message: newRow.message,
-                            created_at: 'Just now',
+                            created_at: newRow.created_at ? formatChatTimestamp(new Date(newRow.created_at)) : formatChatTimestamp(new Date()),
                             is_self: newRow.user_id === profile.id,
                             user_id: newRow.user_id,
                         };
@@ -1103,7 +1149,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
             id: tempId,
             user: profile.username,
             message: newMessage,
-            created_at: 'Sending...',
+            created_at: 'Sending…',
             is_self: true,
             user_id: profile.id,
         };
@@ -1149,13 +1195,17 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                     {messages.map(msg => (
                         <div key={msg.id} className={`flex items-end gap-3 ${msg.is_self ? 'flex-row-reverse' : ''}`}>
                             <div className={`p-3 rounded-xl max-w-xs lg:max-w-md ${msg.is_self ? 'bg-ion-blue/20 rounded-br-none' : 'bg-gray-700/50 rounded-bl-none'}`}>
-                                {!msg.is_self && (
-                                    <p className="text-xs font-bold text-amber-300 mb-1">
-                                        {msg.user_id ? userLookup[msg.user_id] ?? msg.user : msg.user}
+                                <div className={`flex items-center gap-2 mb-1 ${msg.is_self ? 'justify-end' : 'justify-start'}`}>
+                                    <p className={`text-xs font-bold ${msg.is_self ? 'text-cyan-100' : 'text-amber-300'}`}>
+                                        {msg.is_self
+                                            ? 'You'
+                                            : (msg.user_id ? userLookup[msg.user_id] ?? msg.user : msg.user)}
                                     </p>
-                                )}
+                                    <p className={`text-[11px] ${msg.is_self ? 'text-cyan-200/70' : 'text-gray-400'}`}>
+                                        {msg.created_at}
+                                    </p>
+                                </div>
                                 <p className="text-white">{msg.message}</p>
-                                <p className={`text-xs mt-1 ${msg.is_self ? 'text-cyan-200/70' : 'text-gray-400'}`}>{msg.created_at}</p>
                             </div>
                         </div>
                     ))}
@@ -1202,7 +1252,11 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
     };
 
     const myPower = getRolePower(myMemberInfo.role);
-    const sortedMembers = [...clan.members].sort((a, b) => (b.total_score ?? b.contribution ?? 0) - (a.total_score ?? a.contribution ?? 0));
+    const sortedMembers = [...clan.members].sort((a, b) => {
+        const depositDiff = (b.deposited_coins ?? 0) - (a.deposited_coins ?? 0);
+        if (depositDiff !== 0) return depositDiff;
+        return (b.total_score ?? b.contribution ?? 0) - (a.total_score ?? a.contribution ?? 0);
+    });
     const clanScoreValue = clan.clan_total_score ?? clan.vault_metric ?? 0;
     const myScoreValue = myMemberInfo.total_score ?? profile.total_score ?? 0;
     const memberCount = clan.members?.length ?? 0;
@@ -1273,7 +1327,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
 
                             <div className={`rounded-xl border bg-gradient-to-r p-4 ${clanTheme.panel}`}>
                                 <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
-                                    <h3 className="font-heading text-xl text-amber-300">Clan Level Progression</h3>
+                                    <h3 className="font-heading text-xl text-cyan-300">Clan Level Progression</h3>
                                     <div className="flex items-center gap-2">
                                         <span className={`text-xs font-bold px-3 py-1 rounded-full border ${clanTheme.badge}`}>Lv.{clanLevel}</span>
                                         <div className="text-right">
@@ -1308,7 +1362,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="bg-black/20 p-4 rounded-lg border border-white/5">
                                     <div className="flex items-center justify-between mb-2">
-                                        <h3 className="font-heading text-xl text-amber-300">Clan Bio</h3>
+                                        <h3 className="font-heading text-xl text-cyan-300">Clan Bio</h3>
                                         {isPrivileged && (
                                             <button className="text-xs text-cyan-300 hover:text-white" onClick={() => {
                                                 setIsEditingNotice(prev => !prev);
@@ -1358,7 +1412,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                 </div>
 
                                 <div className="bg-black/20 p-4 rounded-lg border border-white/5">
-                                    <h3 className="font-heading text-xl mb-3 text-amber-300">Active Clan Effects</h3>
+                                    <h3 className="font-heading text-xl mb-3 text-cyan-300">Active Clan Effects</h3>
                                     {groupedBuffs.length === 0 ? (
                                         <p className="text-gray-400 text-sm">No buffs active. Purchase one to empower the whole team.</p>
                                     ) : (
@@ -1390,9 +1444,9 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <h3 className="font-heading text-xl mb-3 text-amber-300">Clan Vault</h3>
+                                    <h3 className="font-heading text-xl mb-3 text-cyan-300">Clan Vault</h3>
                                     <div className="bg-black/20 p-4 rounded-lg">
-                                        <div className="flex items-center justify-center space-x-2 text-3xl font-mono text-amber-300">
+                                        <div className="flex items-center justify-center space-x-2 text-3xl font-mono text-cyan-200">
                                             <span>{clan.vault_coins.toLocaleString()}</span>
                                             <CoinIcon />
                                         </div>
@@ -1404,7 +1458,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
 
                                     {isPrivileged && <div className="mt-6">
                                         <div className="flex items-center justify-between mb-3">
-                                            <h3 className="font-heading text-xl text-amber-300">Purchase Clan Buffs</h3>
+                                            <h3 className="font-heading text-xl text-cyan-300">Purchase Clan Buffs</h3>
                                             {availableBuffs.length > 1 && (
                                                 <button 
                                                     onClick={handleActivateAllBuffs}
@@ -1471,7 +1525,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                     )}
                                 </div>
                                  <div>
-                                    <h3 className="font-heading text-xl mb-3 text-amber-300">Top Contributors</h3>
+                                    <h3 className="font-heading text-xl mb-3 text-cyan-300">Top Contributors</h3>
                                     <ul className="space-y-3">
                                         {sortedMembers.map(member => (
                                             <li key={member.user_id} className="flex items-start justify-between bg-black/20 p-3 rounded-lg">
@@ -1497,8 +1551,8 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="font-mono text-amber-300 text-lg">{(member.total_score ?? member.contribution ?? 0).toLocaleString()} pts</p>
-                                                    <p className="text-xs text-gray-400">XP {(member.xp ?? 0).toLocaleString()} • PvP {member.pvp_score ?? 0}</p>
+                                                    <p className="font-mono text-cyan-200 text-lg">{(member.deposited_coins ?? 0).toLocaleString()} deposited</p>
+                                                    <p className="text-xs text-gray-400">Score {(member.total_score ?? member.contribution ?? 0).toLocaleString()} • XP {(member.xp ?? 0).toLocaleString()} • PvP {member.pvp_score ?? 0}</p>
                                                 </div>
                                             </li>
                                         ))}
@@ -1730,7 +1784,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                                <p className="font-semibold text-amber-300">{(member.total_score ?? member.contribution ?? 0).toLocaleString()} pts</p>
+                                                <p className="font-semibold text-cyan-300">{(member.total_score ?? member.contribution ?? 0).toLocaleString()} pts</p>
                                                 <p className="text-xs text-gray-400">XP {(member.xp ?? 0).toLocaleString()} • PvP {member.pvp_score ?? 0}</p>
                                         </div>
                                     </li>
