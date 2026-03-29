@@ -1653,76 +1653,78 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
               </p>
 
               {filteredRooms.length > 0 ? (
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
-                  {pagedLiveRooms.map((room) => {
-                    const allowIndependent = Boolean(room.allowClanlessPlayers);
-                    const remainingSeconds = getRemainingSeconds({
-                      phase: room.phase,
-                      timer: room.timer,
-                      gameEndTime: room.gameEndTime,
-                    });
-                    return (
-                      <div key={room.id} className={`h-full rounded-xl border border-slate-700 bg-slate-900/60 space-y-2 ${liveArenaCardScaleClass}`}>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-xs uppercase tracking-wide text-gray-400">Room Code</p>
-                            <p className="text-xl font-mono font-bold text-amber-400">{room.id}</p>
+                <>
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+                    {pagedLiveRooms.map((room) => {
+                      const allowIndependent = Boolean(room.allowClanlessPlayers);
+                      const remainingSeconds = getRemainingSeconds({
+                        phase: room.phase,
+                        timer: room.timer,
+                        gameEndTime: room.gameEndTime,
+                      });
+                      return (
+                        <div key={room.id} className={`h-full rounded-xl border border-slate-700 bg-slate-900/60 space-y-2 ${liveArenaCardScaleClass}`}>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-xs uppercase tracking-wide text-gray-400">Room Code</p>
+                              <p className="text-xl font-mono font-bold text-amber-400">{room.id}</p>
+                            </div>
+                            <button
+                              onClick={() => handleJoinRoom(room.id)}
+                              disabled={!allowIndependent && missingClanAssignment}
+                              className="px-3 py-1.5 font-heading font-bold rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 disabled:bg-gray-600/30 disabled:border-gray-600 disabled:cursor-not-allowed text-white transition-colors text-xs"
+                            >
+                              {allowIndependent && missingClanAssignment ? "Join as Independent" : "Enter Arena"}
+                            </button>
                           </div>
-                          <button
-                            onClick={() => handleJoinRoom(room.id)}
-                            disabled={!allowIndependent && missingClanAssignment}
-                            className="px-3 py-1.5 font-heading font-bold rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 disabled:bg-gray-600/30 disabled:border-gray-600 disabled:cursor-not-allowed text-white transition-colors text-xs"
-                          >
-                            {allowIndependent && missingClanAssignment ? "Join as Independent" : "Enter Arena"}
-                          </button>
-                        </div>
-                        {remainingSeconds !== null && (
-                          <div className="flex items-center gap-2 text-xs text-emerald-300 font-semibold">
-                            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                            Live · {formatTimer(remainingSeconds)} remaining
+                          {remainingSeconds !== null && (
+                            <div className="flex items-center gap-2 text-xs text-emerald-300 font-semibold">
+                              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                              Live · {formatTimer(remainingSeconds)} remaining
+                            </div>
+                          )}
+                          <div className="text-xs text-gray-400 space-y-1">
+                            <p>
+                              Mode:{" "}
+                              <span className={room.arenaMode === "open" ? "text-cyan-300" : "text-emerald-300"}>
+                                {room.arenaMode === "open" ? "🌐 Open Arena" : "✅ Official Arena"}
+                              </span>
+                            </p>
+                            <p>Teacher: <span className="text-white">{room.teacherName || "Teacher"}</span></p>
+                            <p>Classes: <span className="text-white">{room.classCodes?.join(', ') || "—"}</span></p>
+                            {room.scheduledStartAt && (
+                              <p>Scheduled: <span className="text-white">{formatScheduleTime(room.scheduledStartAt)}</span></p>
+                            )}
+                            {allowIndependent && (
+                              <p className="text-emerald-300">Independent agents allowed.</p>
+                            )}
                           </div>
-                        )}
-                        <div className="text-xs text-gray-400 space-y-1">
-                          <p>
-                            Mode:{" "}
-                            <span className={room.arenaMode === "open" ? "text-cyan-300" : "text-emerald-300"}>
-                              {room.arenaMode === "open" ? "🌐 Open Arena" : "✅ Official Arena"}
-                            </span>
-                          </p>
-                          <p>Teacher: <span className="text-white">{room.teacherName || "Teacher"}</span></p>
-                          <p>Classes: <span className="text-white">{room.classCodes?.join(', ') || "—"}</span></p>
-                          {room.scheduledStartAt && (
-                            <p>Scheduled: <span className="text-white">{formatScheduleTime(room.scheduledStartAt)}</span></p>
-                          )}
-                          {allowIndependent && (
-                            <p className="text-emerald-300">Independent agents allowed.</p>
-                          )}
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                {totalLiveArenaPages > 1 && (
-                  <div className="flex items-center justify-between gap-3 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setLiveArenaPage((prev) => Math.max(1, prev - 1))}
-                      disabled={liveArenaPage === 1}
-                      className="rounded-lg border border-slate-600 bg-slate-900/50 px-3 py-1.5 text-xs text-white disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      Previous
-                    </button>
-                    <p className="text-xs text-gray-400">Page {liveArenaPage} / {totalLiveArenaPages}</p>
-                    <button
-                      type="button"
-                      onClick={() => setLiveArenaPage((prev) => Math.min(totalLiveArenaPages, prev + 1))}
-                      disabled={liveArenaPage === totalLiveArenaPages}
-                      className="rounded-lg border border-slate-600 bg-slate-900/50 px-3 py-1.5 text-xs text-white disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      Next
-                    </button>
+                      );
+                    })}
                   </div>
-                )}
+                  {totalLiveArenaPages > 1 && (
+                    <div className="flex items-center justify-between gap-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setLiveArenaPage((prev) => Math.max(1, prev - 1))}
+                        disabled={liveArenaPage === 1}
+                        className="rounded-lg border border-slate-600 bg-slate-900/50 px-3 py-1.5 text-xs text-white disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Previous
+                      </button>
+                      <p className="text-xs text-gray-400">Page {liveArenaPage} / {totalLiveArenaPages}</p>
+                      <button
+                        type="button"
+                        onClick={() => setLiveArenaPage((prev) => Math.min(totalLiveArenaPages, prev + 1))}
+                        disabled={liveArenaPage === totalLiveArenaPages}
+                        className="rounded-lg border border-slate-600 bg-slate-900/50 px-3 py-1.5 text-xs text-white disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="text-center p-6 rounded-xl border border-dashed border-slate-700 bg-black/20">
                   <div className="text-3xl mb-2">📡</div>
