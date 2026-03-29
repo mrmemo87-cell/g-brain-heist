@@ -269,6 +269,46 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     setToasts((prevToasts: ToastMessage[]) => [...prevToasts, { id, message, type, retryAction }]);
   }, []);
 
+  useEffect(() => {
+    if (!caps || !isPlayerMode) return;
+
+    const now = new Date();
+    const todayKey = now.toISOString().split('T')[0];
+    const weekStart = new Date(now);
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+    weekStart.setHours(0, 0, 0, 0);
+    const weeklyKey = `${weekStart.getFullYear()}-${String(weekStart.getMonth() + 1).padStart(2, '0')}-${String(weekStart.getDate()).padStart(2, '0')}`;
+
+    const maybeNotify = (storageKey: string, condition: boolean, message: string) => {
+      if (!condition) return;
+      const alreadyNotified = localStorage.getItem(storageKey) === '1';
+      if (alreadyNotified) return;
+      localStorage.setItem(storageKey, '1');
+      addToast(message, 'warning');
+    };
+
+    maybeNotify(
+      `cap_notice_daily_xp_${todayKey}`,
+      caps.xp_daily_remaining <= 0,
+      'Daily XP cap reached. Additional XP rewards today will not count.'
+    );
+    maybeNotify(
+      `cap_notice_daily_coins_${todayKey}`,
+      caps.coins_daily_remaining <= 0,
+      'Daily coin cap reached. Additional coin rewards today will not count.'
+    );
+    maybeNotify(
+      `cap_notice_weekly_xp_${weeklyKey}`,
+      caps.xp_weekly_remaining <= 0,
+      'Weekly XP cap reached. Additional XP rewards this week will not count.'
+    );
+    maybeNotify(
+      `cap_notice_weekly_coins_${weeklyKey}`,
+      caps.coins_weekly_remaining <= 0,
+      'Weekly coin cap reached. Additional coin rewards this week will not count.'
+    );
+  }, [addToast, caps, isPlayerMode]);
+
   const handleViewChange = (nextView: typeof view) => {
     if (nextView !== 'pvp' && pvpFocusTargetUserId) {
       setPvpFocusTargetUserId(null);

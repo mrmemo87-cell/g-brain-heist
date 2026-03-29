@@ -150,6 +150,24 @@ export interface Caps {
   weekly_coins_cap: number;
 }
 
+export interface RewardCapImpact {
+  capped: boolean;
+  blocked_xp?: number;
+  blocked_coins?: number;
+  reasons?: string[];
+}
+
+export interface TaskClaimReward {
+  xp: number;
+  coins: number;
+  gemstones?: number;
+  items?: string[];
+  requested_xp?: number;
+  requested_coins?: number;
+  requested_gemstones?: number;
+  cap_impact?: RewardCapImpact;
+}
+
 export interface NewsEvent {
   id: string;
   kind: 'level_up' | 'quest_cleared' | 'weekly_claim' | 'purchase' | 'pvp_win' | 'pvp_blocked' | 'pvp_loss' | 'clan_create' | 'achievement_earned';
