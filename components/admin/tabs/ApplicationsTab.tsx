@@ -187,7 +187,12 @@ const ApplicationsTab: React.FC = () => {
             <div key={request.id} className="card-glass p-6 border border-white/10">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h4 className="text-xl font-semibold text-white">{request.requested_name}</h4>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-300/90">
+                    School Name
+                  </p>
+                  <h4 className="mt-1 inline-flex items-center rounded-lg border border-cyan-300/40 bg-cyan-500/10 px-3 py-1 text-2xl font-extrabold leading-tight text-cyan-100 shadow-[0_0_0_1px_rgba(34,211,238,0.25),0_8px_24px_rgba(34,211,238,0.2)]">
+                    🏫 {request.requested_name}
+                  </h4>
                   <p className="text-xs text-gray-400">
                     Requested by {request.requester_email || 'Unknown'} • {request.requester_role || 'student'}
                   </p>
