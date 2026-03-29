@@ -386,6 +386,7 @@ export interface ClanMember {
     username: string;
   role: ClanRole;
   contribution: number;
+  deposited_coins?: number;
   avatar_url: string;
   active_cosmetic_frame?: 'neon' | null;
   active_cosmetic_theme?: 'flicker' | null;

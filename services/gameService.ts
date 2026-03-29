@@ -1103,6 +1103,27 @@ const applyClanBuffsToProfile = (profile: Profile, buffs: ActiveClanBuff[]) => {
     profile.defense_power_effective = Math.round(profile.defense_power * (combined.defense_multiplier ?? 1));
 };
 
+const fetchClanDepositTotals = async (clanId: string, userIds: string[]): Promise<Map<string, number>> => {
+    if (!userIds.length) return new Map();
+
+    const { data, error } = await supabase
+        .from('clan_member_coin_contributions')
+        .select('user_id, total_deposited')
+        .eq('clan_id', clanId)
+        .in('user_id', userIds);
+
+    if (error || !data) {
+        if (error) {
+            console.warn('Failed to load clan deposit totals:', error.message);
+        }
+        return new Map();
+    }
+
+    return new Map<string, number>(
+        data.map((row: any) => [row.user_id, Number(row.total_deposited ?? 0)])
+    );
+};
+
 const fetchClanActiveBuffs = async (clanId: string): Promise<ActiveClanBuff[]> => {
     const { data, error } = await supabase
         .from('clan_active_buffs')
@@ -2428,6 +2449,11 @@ function getTimeAgo(date: Date): string {
   return `${Math.floor(seconds / 604800)}w ago`;
 }
 
+function formatChatTimestamp(date: Date): string {
+  const time = date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  return `${time} · ${getTimeAgo(date)}`;
+}
+
 export const activity_reaction_toggle = async (activity_id: string, emoji: string): Promise<{ added: boolean }> => {
   const user = await getCurrentUser();
 
@@ -3598,12 +3624,14 @@ export const clan_get_members_by_id = async (clanId: string): Promise<ClanMember
     const neonOwners = await fetchNeonFrameOwners((data || []).map((member: any) => member.user_id));
     const flickerOwners = await fetchFlickerThemeOwners((data || []).map((member: any) => member.user_id));
     const glitchOwners = await fetchGlitchEffectOwners((data || []).map((member: any) => member.user_id));
+    const depositTotals = await fetchClanDepositTotals(clanId, (data || []).map((member: any) => member.user_id));
 
     return (data || []).map((member: any) => ({
         user_id: member.user_id,
         username: member.username ?? 'Unknown agent',
         role: member.role || 'member',
         contribution: member.total_score || 0,
+        deposited_coins: depositTotals.get(member.user_id) ?? 0,
         avatar_url: member.avatar_url || '',
         active_cosmetic_frame: neonOwners.has(member.user_id) ? 'neon' : null,
         active_cosmetic_theme: flickerOwners.has(member.user_id) ? 'flicker' : null,
@@ -3947,12 +3975,14 @@ export const clan_details = async (): Promise<Clan | null> => {
     const neonOwners = await fetchNeonFrameOwners(memberRows.map((m: any) => m.user_id));
     const flickerOwners = await fetchFlickerThemeOwners(memberRows.map((m: any) => m.user_id));
     const glitchOwners = await fetchGlitchEffectOwners(memberRows.map((m: any) => m.user_id));
+    const depositTotals = await fetchClanDepositTotals(clan.id, memberRows.map((m: any) => m.user_id));
 
     const members = memberRows.map((m: any) => ({
         user_id: m.user_id,
         username: m.username,
         role: m.role,
         contribution: m.total_score || m.contribution || calculateTotalScore(m.xp ?? 0, m.pvp_score ?? 0),
+        deposited_coins: depositTotals.get(m.user_id) ?? 0,
         avatar_url: m.avatar_url,
         active_cosmetic_frame: neonOwners.has(m.user_id) ? 'neon' : null,
         active_cosmetic_theme: flickerOwners.has(m.user_id) ? 'flicker' : null,
@@ -4148,7 +4178,7 @@ export const clan_chat_recent = async (clanId?: string): Promise<ClanChatMessage
         id: m.id,
         user: m.username || 'Unknown',
         message: m.message,
-        created_at: getTimeAgo(new Date(m.created_at)),
+        created_at: formatChatTimestamp(new Date(m.created_at)),
         is_self: m.user_id === user.id,
     })).reverse(); // Reverse to show oldest first
     
@@ -4222,7 +4252,7 @@ export const clan_chat_post = async (message: string, clanId?: string): Promise<
         id: newMessage.id,
         user: newMessage.username,
         message: newMessage.message,
-        created_at: 'Just now',
+        created_at: formatChatTimestamp(new Date()),
         is_self: true,
     };
     
