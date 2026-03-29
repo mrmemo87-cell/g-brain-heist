@@ -203,6 +203,13 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   }, [canHost]);
 
   useEffect(() => {
+    if (!canHost) return;
+    if (!userSchoolId && arenaMode === "official") {
+      setArenaMode("open");
+    }
+  }, [canHost, userSchoolId, arenaMode]);
+
+  useEffect(() => {
     if (lockdownLimits.max_duration_minutes && durationMinutes > lockdownLimits.max_duration_minutes) {
       setDurationMinutes(lockdownLimits.max_duration_minutes);
     }
@@ -1122,14 +1129,19 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                 <button
                   type="button"
                   onClick={() => setArenaMode("official")}
+                  disabled={!userSchoolId}
                   className={`rounded-xl border p-4 text-left transition ${
                     arenaMode === "official"
                       ? "border-emerald-400 bg-emerald-500/20"
                       : "border-slate-700 bg-slate-800/50 hover:border-slate-600"
-                  }`}
+                  } ${!userSchoolId ? "cursor-not-allowed opacity-50 hover:border-slate-700" : ""}`}
                 >
                   <p className="font-bold text-emerald-200">✅ Official Arena</p>
-                  <p className="mt-1 text-xs text-slate-300">Verified school/class match. Official rewards enabled.</p>
+                  <p className="mt-1 text-xs text-slate-300">
+                    {!userSchoolId
+                      ? "Inactive: join a school to unlock Official Arena."
+                      : "Verified school/class match. Official rewards enabled."}
+                  </p>
                 </button>
                 <button
                   type="button"
@@ -1657,7 +1669,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                 <>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                     {pagedLiveRooms.map((room) => {
-                      const allowIndependent = Boolean(room.allowClanlessPlayers);
+                      const allowIndependent = Boolean(room.allowClanlessPlayers ?? gameState.allowClanlessPlayers);
                       const remainingSeconds = getRemainingSeconds({
                         phase: room.phase,
                         timer: room.timer,
