@@ -549,7 +549,10 @@ $$;
 -- ============================================
 -- Admin: Grant XP/Coins
 -- ============================================
-create or replace function rpc_admin_grant(p_user_id uuid, p_xp_delta int, p_coins_delta int)
+-- Avoid "cannot change return type of existing function" on redeploys.
+drop function if exists public.rpc_admin_grant(uuid, integer, integer) cascade;
+drop function if exists rpc_admin_grant(uuid, integer, integer) cascade;
+create function rpc_admin_grant(p_user_id uuid, p_xp_delta int, p_coins_delta int)
 returns table (
   user_id uuid,
   xp int,
@@ -972,6 +975,11 @@ begin
   end if;
   if to_regclass('public.clan_buffs') is not null then
     delete from clan_buffs where id is not null;
+  end if;
+  -- Rivalry protocol tables can hold RESTRICT FKs to clans (e.g. rivalry_wars.attacker_clan_id).
+  -- Clear wars first so clan deletes do not fail with FK violations.
+  if to_regclass('public.rivalry_wars') is not null then
+    delete from rivalry_wars where id is not null;
   end if;
   if to_regclass('public.clans') is not null then
     delete from clans where id is not null;

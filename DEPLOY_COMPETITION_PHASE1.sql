@@ -14,7 +14,8 @@ DROP FUNCTION IF EXISTS rpc_questions_next(int) CASCADE;
 DROP FUNCTION IF EXISTS rpc_submit_attempt(bigint, int) CASCADE;
 DROP FUNCTION IF EXISTS rpc_leaderboard_grade(int, int) CASCADE;
 DROP FUNCTION IF EXISTS rpc_leaderboard_batch(text, int) CASCADE;
-DROP FUNCTION IF EXISTS rpc_admin_grant(uuid, int, int) CASCADE;
+DROP FUNCTION IF EXISTS public.rpc_admin_grant(uuid, integer, integer) CASCADE;
+DROP FUNCTION IF EXISTS rpc_admin_grant(uuid, integer, integer) CASCADE;
 DROP FUNCTION IF EXISTS rpc_admin_reset_user(uuid) CASCADE;
 DROP FUNCTION IF EXISTS rpc_admin_ban_user(uuid, boolean) CASCADE;
 DROP FUNCTION IF EXISTS rpc_admin_set_user_academics(uuid, int, text) CASCADE;
@@ -341,7 +342,7 @@ $$;
 -- 7. ADMIN: GRANT XP/COINS
 -- ============================================
 
-CREATE OR REPLACE FUNCTION rpc_admin_grant(p_user_id UUID, p_xp_delta INT, p_coins_delta INT)
+CREATE FUNCTION rpc_admin_grant(p_user_id UUID, p_xp_delta INT, p_coins_delta INT)
 RETURNS TABLE (
   user_id UUID,
   xp INT,
