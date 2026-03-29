@@ -93,86 +93,86 @@ BEGIN
         last_attacked_at = NULL,
         last_seen = NOW(),
         updated_at = NOW()
-    WHERE TRUE;
+    WHERE ctid IS NOT NULL;
     GET DIAGNOSTICS v_bot_count = ROW_COUNT;
   END IF;
 
   IF to_regclass('public.user_achievements') IS NOT NULL THEN
-    DELETE FROM user_achievements WHERE TRUE;
+    DELETE FROM user_achievements WHERE ctid IS NOT NULL;
     GET DIAGNOSTICS v_achievements_cleared = ROW_COUNT;
   END IF;
 
   IF to_regclass('public.attempts') IS NOT NULL THEN
-    DELETE FROM attempts WHERE TRUE;
+    DELETE FROM attempts WHERE ctid IS NOT NULL;
     GET DIAGNOSTICS v_attempts_cleared = ROW_COUNT;
   END IF;
 
   IF to_regclass('public.pvp_attack_attempts') IS NOT NULL THEN
-    DELETE FROM pvp_attack_attempts WHERE TRUE;
+    DELETE FROM pvp_attack_attempts WHERE ctid IS NOT NULL;
     GET DIAGNOSTICS v_pvp_attempts_cleared = ROW_COUNT;
   END IF;
 
   IF to_regclass('public.brains_heist_battle_events') IS NOT NULL THEN
-    DELETE FROM brains_heist_battle_events WHERE TRUE;
+    DELETE FROM brains_heist_battle_events WHERE ctid IS NOT NULL;
     GET DIAGNOSTICS v_battle_events_cleared = ROW_COUNT;
   END IF;
 
   IF to_regclass('public.brains_heist_battles') IS NOT NULL THEN
-    DELETE FROM brains_heist_battles WHERE TRUE;
+    DELETE FROM brains_heist_battles WHERE ctid IS NOT NULL;
     GET DIAGNOSTICS v_battles_cleared = ROW_COUNT;
   END IF;
 
   IF to_regclass('public.activity_reactions') IS NOT NULL THEN
-    DELETE FROM activity_reactions WHERE TRUE;
+    DELETE FROM activity_reactions WHERE ctid IS NOT NULL;
     GET DIAGNOSTICS v_activity_reaction_count = ROW_COUNT;
   END IF;
 
   IF to_regclass('public.activities') IS NOT NULL THEN
-    DELETE FROM activities WHERE TRUE;
+    DELETE FROM activities WHERE ctid IS NOT NULL;
     GET DIAGNOSTICS v_activity_count = ROW_COUNT;
   END IF;
 
   IF to_regclass('public.inventory') IS NOT NULL THEN
-    DELETE FROM inventory WHERE TRUE;
+    DELETE FROM inventory WHERE ctid IS NOT NULL;
     GET DIAGNOSTICS v_inventory_count = ROW_COUNT;
   END IF;
 
   IF to_regclass('public.clan_chat') IS NOT NULL THEN
-    DELETE FROM clan_chat WHERE TRUE;
+    DELETE FROM clan_chat WHERE ctid IS NOT NULL;
     GET DIAGNOSTICS v_clan_chat_count = ROW_COUNT;
   END IF;
 
   IF to_regclass('public.clan_members') IS NOT NULL THEN
-    DELETE FROM clan_members WHERE TRUE;
+    DELETE FROM clan_members WHERE ctid IS NOT NULL;
     GET DIAGNOSTICS v_clan_member_count = ROW_COUNT;
   END IF;
 
   IF to_regclass('public.clan_buffs') IS NOT NULL THEN
-    DELETE FROM clan_buffs WHERE TRUE;
+    DELETE FROM clan_buffs WHERE ctid IS NOT NULL;
     GET DIAGNOSTICS v_clan_buff_count = ROW_COUNT;
   END IF;
 
   IF to_regclass('public.rivalry_wars') IS NOT NULL THEN
-    DELETE FROM rivalry_wars WHERE TRUE;
+    DELETE FROM rivalry_wars WHERE ctid IS NOT NULL;
   END IF;
 
   IF to_regclass('public.clans') IS NOT NULL THEN
-    DELETE FROM clans WHERE TRUE;
+    DELETE FROM clans WHERE ctid IS NOT NULL;
     GET DIAGNOSTICS v_clan_count = ROW_COUNT;
   END IF;
 
   IF to_regclass('public.tasks') IS NOT NULL THEN
-    DELETE FROM tasks WHERE TRUE;
+    DELETE FROM tasks WHERE ctid IS NOT NULL;
     GET DIAGNOSTICS v_task_count = ROW_COUNT;
   END IF;
 
   IF to_regclass('public.task_progress') IS NOT NULL THEN
-    DELETE FROM task_progress WHERE TRUE;
+    DELETE FROM task_progress WHERE ctid IS NOT NULL;
     GET DIAGNOSTICS v_task_progress_count = ROW_COUNT;
   END IF;
 
   IF to_regclass('public.sessions') IS NOT NULL THEN
-    DELETE FROM sessions WHERE TRUE;
+    DELETE FROM sessions WHERE ctid IS NOT NULL;
     GET DIAGNOSTICS v_session_count = ROW_COUNT;
   END IF;
 
@@ -184,12 +184,12 @@ BEGIN
         coins_weekly_earned = 0,
         daily_reset_at = CURRENT_DATE,
         weekly_reset_at = CURRENT_DATE
-    WHERE TRUE;
+    WHERE ctid IS NOT NULL;
     GET DIAGNOSTICS v_caps_reset = ROW_COUNT;
   END IF;
 
   IF to_regclass('public.shop_purchases') IS NOT NULL THEN
-    DELETE FROM shop_purchases WHERE TRUE;
+    DELETE FROM shop_purchases WHERE ctid IS NOT NULL;
     GET DIAGNOSTICS v_shop_purchase_count = ROW_COUNT;
   END IF;
 
