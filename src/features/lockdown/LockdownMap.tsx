@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { RegionStats } from "./lockdownTypes";
 import { REGION_NAMES } from "./regionCalculator";
 import { getClanColor, NEUTRAL_COLOR } from "../../utils/clanColors";
@@ -260,11 +260,61 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
     });
   }, [mounted, regionStats, mapMarkup]);
 
+  useLayoutEffect(() => {
+    if (!mounted || !containerRef.current) return;
+
+    const svg = containerRef.current.querySelector<SVGSVGElement>("svg");
+    if (!svg) return;
+
+    const normalizeViewBoxToContent = () => {
+      try {
+        const elements = svg.querySelectorAll<SVGGraphicsElement>(
+          "path, rect, circle, ellipse, polygon, polyline, line, g"
+        );
+        if (!elements.length) return;
+
+        let minX = Number.POSITIVE_INFINITY;
+        let minY = Number.POSITIVE_INFINITY;
+        let maxX = Number.NEGATIVE_INFINITY;
+        let maxY = Number.NEGATIVE_INFINITY;
+
+        elements.forEach((element) => {
+          const box = element.getBBox();
+          if (!Number.isFinite(box.x) || !Number.isFinite(box.y) || box.width <= 0 || box.height <= 0) return;
+          minX = Math.min(minX, box.x);
+          minY = Math.min(minY, box.y);
+          maxX = Math.max(maxX, box.x + box.width);
+          maxY = Math.max(maxY, box.y + box.height);
+        });
+
+        if (!Number.isFinite(minX) || !Number.isFinite(minY) || !Number.isFinite(maxX) || !Number.isFinite(maxY)) return;
+
+        const width = Math.max(1, maxX - minX);
+        const height = Math.max(1, maxY - minY);
+        const padding = Math.max(width, height) * 0.04;
+        svg.setAttribute(
+          "viewBox",
+          `${minX - padding} ${minY - padding} ${width + padding * 2} ${height + padding * 2}`
+        );
+      } catch (error) {
+        console.warn("LockdownMap: unable to normalize SVG viewBox", error);
+      }
+    };
+
+    normalizeViewBoxToContent();
+
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => normalizeViewBoxToContent());
+    observer.observe(containerRef.current);
+
+    return () => observer.disconnect();
+  }, [mounted, mapMarkup, mapId]);
+
   return (
     <div className={`relative ${className}`}>
       <div
         ref={containerRef}
-        className="w-full h-full flex items-center justify-center"
+        className="w-full h-full flex items-center justify-center overflow-hidden"
         dangerouslySetInnerHTML={{ __html: mapMarkup }}
       />
       {regionStats && (
