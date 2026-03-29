@@ -3696,11 +3696,13 @@ export const clan_join = async (clan_id: string): Promise<ClanJoinResult> => {
         .from('clans')
         .select('id, name')
         .eq('id', clan_id)
-        .single();
+        .maybeSingle();
 
-    if (clanError || !clanData) {
-        return Promise.reject({ message: 'Clan not found.' });
+    if (clanError && clanError.code !== 'PGRST116') {
+        return Promise.reject({ message: 'Unable to validate clan right now.' });
     }
+
+    const clanName = clanData?.name ?? undefined;
 
     const { data: existingMembership } = await supabase
         .from('clan_members')
@@ -3724,7 +3726,7 @@ export const clan_join = async (clan_id: string): Promise<ClanJoinResult> => {
     if (existingRequest && existingRequest.status === 'pending') {
         return mockApiCall({
             status: 'pending',
-            request: mapJoinRequest({ ...existingRequest, clan_id, user_id: user.id, clan_name: clanData.name }),
+            request: mapJoinRequest({ ...existingRequest, clan_id, user_id: user.id, clan_name: clanName }),
             message: 'Join request is awaiting approval.',
         });
     }
@@ -3736,13 +3738,16 @@ export const clan_join = async (clan_id: string): Promise<ClanJoinResult> => {
         .single();
 
     if (requestError || !requestInsert) {
+        if (requestError?.code === '23503') {
+            return Promise.reject({ message: 'Clan not found.' });
+        }
         console.error('Failed to create join request:', requestError);
         throw new Error('Failed to request to join clan.');
     }
 
     return mockApiCall({
         status: 'pending',
-        request: mapJoinRequest({ ...requestInsert, clan_id, user_id: user.id, clan_name: clanData.name }),
+        request: mapJoinRequest({ ...requestInsert, clan_id, user_id: user.id, clan_name: clanName }),
         message: 'Request submitted for approval.',
     });
 };
