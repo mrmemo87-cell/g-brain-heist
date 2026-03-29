@@ -1279,14 +1279,14 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
   const resetAllProgress = async () => {
     try {
-      const confirmReset = window.confirm('Reset progress for ALL players (excluding admins)? This action cannot be undone.');
+      const confirmReset = window.confirm('Reset ALL player records (excluding admins)? This clears achievements, PvP records, answered-question history, task records, and resets caps. This action cannot be undone.');
       if (!confirmReset) {
         return;
       }
 
       setIsResettingAll(true);
       const affected = await CompetitionService.resetAllPlayerProgress();
-      addToast(`🧨 Reset progress for ${affected} players`, 'success');
+      addToast(`🧨 Reset all records + caps for ${affected} players`, 'success');
       await refreshAdminData();
       window.dispatchEvent(new CustomEvent('leaderboards:refresh'));
     } catch (error) {
