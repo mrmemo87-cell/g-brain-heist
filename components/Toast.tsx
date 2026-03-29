@@ -5,6 +5,8 @@ interface ToastProps extends ToastMessage {
   onDismiss: (id: number) => void;
 }
 
+const LOGO_SRC = '/logo.png';
+
 const Toast: React.FC<ToastProps> = ({ id, message, type, retryAction, onDismiss }) => {
   const [exiting, setExiting] = useState(false);
 
@@ -29,33 +31,81 @@ const Toast: React.FC<ToastProps> = ({ id, message, type, retryAction, onDismiss
     }
   };
 
-  const baseClasses = "flex items-center justify-between gap-3 p-3 rounded-xl shadow-lg transition-all duration-300 min-h-[60px]";
-  const typeClasses = {
-    success: 'card-glass border-green-500/50 text-green-300 glow-success',
-    error: 'card-glass border-red-500/50 text-red-300',
-    info: 'card-glass border-blue-500/50 text-blue-300 glow-ion',
-  };
-  
-  const animationClasses = exiting ? 'opacity-0 translate-x-4' : 'opacity-100 translate-x-0';
+  const typeStyles = {
+    success: {
+      container: 'border-emerald-400/60 bg-emerald-950/90 text-emerald-100',
+      badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40',
+      title: 'Success update',
+      action: 'Got it',
+    },
+    error: {
+      container: 'border-rose-400/60 bg-rose-950/90 text-rose-100',
+      badge: 'bg-rose-500/20 text-rose-300 border-rose-400/40',
+      title: 'Action needed',
+      action: retryAction ? 'Retry now' : 'Dismiss',
+    },
+    info: {
+      container: 'border-sky-400/60 bg-sky-950/90 text-sky-100',
+      badge: 'bg-sky-500/20 text-sky-300 border-sky-400/40',
+      title: 'Heads up',
+      action: 'Understood',
+    },
+    warning: {
+      container: 'border-amber-400/60 bg-amber-950/90 text-amber-100',
+      badge: 'bg-amber-500/20 text-amber-300 border-amber-400/40',
+      title: 'Warning',
+      action: 'Review',
+    },
+  } as const;
+
+  const style = typeStyles[type];
+  const animationClasses = exiting ? 'opacity-0 translate-x-4 scale-[0.98]' : 'opacity-100 translate-x-0 scale-100';
 
   return (
-    <div className={`${baseClasses} ${typeClasses[type]} ${animationClasses}`}>
-      <p className="font-semibold text-sm flex-1">{message}</p>
-      <div className="flex gap-2">
-        {retryAction && type === 'error' && (
-          <button
-            onClick={handleRetry}
-            className="px-3 py-1 text-xs font-bold rounded bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 transition-all"
-          >
-            🔄 Retry
-          </button>
-        )}
-        <button
-          onClick={handleDismiss}
-          className="px-2 py-1 text-xs font-bold rounded hover:bg-white/10 transition-all"
-        >
-          ✕
-        </button>
+    <div
+      role="status"
+      aria-live="polite"
+      className={`w-[min(92vw,420px)] rounded-2xl border shadow-2xl backdrop-blur-md transition-all duration-300 ${style.container} ${animationClasses}`}
+    >
+      <div className="p-4">
+        <div className="flex items-start gap-3">
+          <img
+            src={LOGO_SRC}
+            alt="Brains Heist"
+            className="h-11 w-11 rounded-xl border border-white/20 bg-black/30 p-1.5 shadow-md object-contain"
+            loading="lazy"
+          />
+
+          <div className="min-w-0 flex-1">
+            <div className="mb-2 flex items-start justify-between gap-2">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.18em] text-white/70">Brains Heist</p>
+                <h4 className="text-sm font-bold leading-tight">{style.title}</h4>
+              </div>
+              <span className={`rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${style.badge}`}>
+                {type}
+              </span>
+            </div>
+
+            <p className="text-sm font-medium leading-relaxed text-white/95 break-words">{message}</p>
+
+            <div className="mt-3 flex items-center justify-between gap-2">
+              <button
+                onClick={retryAction && type === 'error' ? handleRetry : handleDismiss}
+                className="rounded-lg border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/20"
+              >
+                {style.action}
+              </button>
+              <button
+                onClick={handleDismiss}
+                className="rounded-lg px-2 py-1 text-xs font-bold text-white/80 transition hover:bg-white/10 hover:text-white"
+                aria-label="Dismiss notification"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
