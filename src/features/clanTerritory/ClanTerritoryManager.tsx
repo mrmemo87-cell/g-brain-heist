@@ -1523,7 +1523,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
         />
       )}
       <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-8">
+      <div className="w-full max-w-7xl space-y-8">
         <div className="text-center space-y-2">
           <span className="inline-flex items-center justify-center rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-amber-300">
             Territory Control
@@ -1541,20 +1541,20 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                     <h2 className="font-heading text-lg text-white">Your Active Arenas</h2>
                     <span className="text-xs text-gray-400">{storedHostRooms.length} saved</span>
                   </div>
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                     {pagedHostRooms.map((room) => (
                       <div
                         key={room.roomId}
                         className={`h-full rounded-xl border border-slate-700 bg-slate-900/60 space-y-2 ${hostArenaCardScaleClass}`}
                       >
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-start justify-between gap-2">
                           <div>
                             <p className="text-xs uppercase tracking-wide text-gray-400">Room Code</p>
                             <p className="text-xl font-mono font-bold text-amber-400">{room.roomId}</p>
                           </div>
                           <button
                             onClick={() => handleResumeHostRoom(room)}
-                            className="px-3 py-1.5 font-heading font-bold rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-white transition-colors text-xs"
+                            className="shrink-0 whitespace-nowrap px-3 py-1.5 font-heading font-bold rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-white transition-colors text-xs"
                           >
                             Open Host View
                           </button>
@@ -1655,7 +1655,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
 
               {filteredRooms.length > 0 ? (
                 <>
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                     {pagedLiveRooms.map((room) => {
                       const allowIndependent = Boolean(room.allowClanlessPlayers);
                       const remainingSeconds = getRemainingSeconds({
