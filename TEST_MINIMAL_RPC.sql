@@ -76,6 +76,9 @@ BEGIN
   IF to_regclass('public.clan_buffs') IS NOT NULL THEN
     DELETE FROM clan_buffs WHERE id IS NOT NULL;
   END IF;
+  IF to_regclass('public.rivalry_wars') IS NOT NULL THEN
+    DELETE FROM rivalry_wars WHERE id IS NOT NULL;
+  END IF;
   IF to_regclass('public.clans') IS NOT NULL THEN
     DELETE FROM clans WHERE id IS NOT NULL;
   END IF;
