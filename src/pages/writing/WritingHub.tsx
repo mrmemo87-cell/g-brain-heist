@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { type ChangeEvent, type CSSProperties, useMemo, useState } from 'react';
 import {
   getCurrentWeeklyPlan,
   getMonthlyWritingReport,
@@ -57,7 +57,7 @@ export const buildWritingDashboardSnapshot = (
   };
 };
 
-const cardStyle: React.CSSProperties = {
+const cardStyle: CSSProperties = {
   background: '#111827',
   borderRadius: 14,
   padding: 14,
@@ -177,16 +177,16 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
 
       <section style={cardStyle}>
         <h2 style={{ marginTop: 0 }}>Start / Reset Week</h2>
-        <textarea value={promptText} onChange={(e) => setPromptText(e.target.value)} style={{ width: '100%', minHeight: 80 }} />
+        <textarea value={promptText} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setPromptText(e.target.value)} style={{ width: '100%', minHeight: 80 }} />
         <input
           type="number"
           value={targetWordCount}
-          onChange={(e) => setTargetWordCount(Number(e.target.value) || 0)}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setTargetWordCount(Number(e.target.value) || 0)}
           style={{ width: '100%', marginTop: 8 }}
         />
         <textarea
           value={initialResponse}
-          onChange={(e) => setInitialResponse(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setInitialResponse(e.target.value)}
           placeholder="Paste your initial writing response"
           style={{ width: '100%', minHeight: 80, marginTop: 8 }}
         />
@@ -214,7 +214,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
             </ul>
             <textarea
               value={practiceResponse}
-              onChange={(e) => setPracticeResponse(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setPracticeResponse(e.target.value)}
               placeholder="Write your submission here"
               style={{ width: '100%', minHeight: 90 }}
             />
