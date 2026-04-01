@@ -151,9 +151,11 @@ const serializeStore = (): SerializedWritingPersistenceStore => ({
 
 let hydrationTriggered = false;
 let lastPersistenceMode: 'db' | 'fallback-local' | 'runtime-only' = 'runtime-only';
+let storeMutationVersion = 0;
 const hydrateStore = (): void => {
   if (hydrationTriggered) return;
   hydrationTriggered = true;
+  const hydrateStartVersion = storeMutationVersion;
   const storage = getStorage();
   if (storage) {
     try {
@@ -188,6 +190,10 @@ const hydrateStore = (): void => {
         }
         return;
       }
+      if (storeMutationVersion !== hydrateStartVersion) {
+        console.warn('[writingIntegrationService] Skipping DB hydration apply due to newer in-memory mutations.');
+        return;
+      }
       lastPersistenceMode = 'db';
       store.profiles = new Map(parsed.profiles as Array<[string, StudentWritingProfile]>);
       store.states = new Map(parsed.states as Array<[string, StudentWritingState]>);
@@ -208,6 +214,7 @@ const hydrateStore = (): void => {
 };
 
 const persistStore = (): void => {
+  storeMutationVersion += 1;
   const snapshot = serializeStore();
   if (getWritingRepositoryMode() !== 'db') {
     console.warn('[writingIntegrationService] DB persistence is disabled in current runtime; writes will use fallback/local cache only.');
@@ -220,6 +227,16 @@ const persistStore = (): void => {
     storage.setItem(WRITING_STORE_KEY, JSON.stringify(snapshot));
   }
 };
+
+const escapeHtml = (value: string): string =>
+  value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+
+const safeText = (value: string | null | undefined): string => escapeHtml(String(value ?? ''));
 
 hydrateStore();
 
@@ -780,13 +797,13 @@ export const exportStudentMonthlyWritingReport = (
   const html = `
     <article>
       <h1>Student Monthly Writing Report</h1>
-      <p>Student: ${studentId} | Month: ${month}</p>
-      <h2>Score history</h2><p>${scoreHistory.join(' · ') || 'No score history.'}</p>
-      <h2>Subscale progress</h2><p>${lines.subscale_progress.join(' · ') || 'None'}</p>
-      <h2>Repeated mistakes reduced</h2><p>${lines.repeated_mistakes_reduced.join(' · ') || 'None'}</p>
-      <h2>Strongest gains</h2><p>${lines.strongest_gains.join(' · ') || 'None'}</p>
-      <h2>Blockers</h2><p>${lines.blockers.join(' · ') || 'None'}</p>
-      <h2>Next priorities</h2><p>${lines.priorities.join(' · ') || 'None'}</p>
+      <p>Student: ${safeText(studentId)} | Month: ${safeText(month)}</p>
+      <h2>Score history</h2><p>${safeText(scoreHistory.join(' · ') || 'No score history.')}</p>
+      <h2>Subscale progress</h2><p>${safeText(lines.subscale_progress.join(' · ') || 'None')}</p>
+      <h2>Repeated mistakes reduced</h2><p>${safeText(lines.repeated_mistakes_reduced.join(' · ') || 'None')}</p>
+      <h2>Strongest gains</h2><p>${safeText(lines.strongest_gains.join(' · ') || 'None')}</p>
+      <h2>Blockers</h2><p>${safeText(lines.blockers.join(' · ') || 'None')}</p>
+      <h2>Next priorities</h2><p>${safeText(lines.priorities.join(' · ') || 'None')}</p>
     </article>
   `.trim();
 
@@ -825,13 +842,13 @@ export const exportTeacherWeeklyClassSummary = (
   const html = `
     <article>
       <h1>Teacher Weekly/Class Writing Summary</h1>
-      <p>Month key: ${month}</p>
+      <p>Month key: ${safeText(month)}</p>
       <h2>Students</h2>
-      <ul>${rows.map((line) => `<li>${line}</li>`).join('')}</ul>
-      <h2>Hotspots</h2><p>${overview.data.hotspot_tags.join(' · ') || 'None'}</p>
-      <h2>Stalled students</h2><p>${overview.data.stalled_students.join(', ') || 'None'}</p>
+      <ul>${rows.map((line) => `<li>${safeText(line)}</li>`).join('')}</ul>
+      <h2>Hotspots</h2><p>${safeText(overview.data.hotspot_tags.join(' · ') || 'None')}</p>
+      <h2>Stalled students</h2><p>${safeText(overview.data.stalled_students.join(', ') || 'None')}</p>
       <h2>Improving students</h2><p>${
-        overview.data.student_rows.filter((row) => row.improving).map((row) => row.student_id).join(', ') || 'None'
+        safeText(overview.data.student_rows.filter((row) => row.improving).map((row) => row.student_id).join(', ') || 'None')
       }</p>
     </article>
   `.trim();
@@ -867,19 +884,19 @@ export const exportAdminCalibrationReport = (
   const html = `
     <article>
       <h1>Admin Calibration Export</h1>
-      <p>${data.student_name} (${data.student_id}) Grade ${data.grade}</p>
-      <h2>Prompt</h2><p>${data.prompt_text ?? 'None'}</p>
-      <h2>Submission</h2><p>${data.student_submission ?? 'None'}</p>
-      <h2>Assessment</h2><p>Total score: ${data.latest_assessment?.total_score ?? '—'}</p>
-      <h2>Weaknesses</h2><p>${data.latest_assessment?.weakness_tags.join(' · ') || 'None'}</p>
-      <h2>Targets</h2><p>${data.weekly_targets?.primary_target ?? 'None'} | ${data.weekly_targets?.secondary_target ?? 'None'}</p>
-      <h2>Tasks</h2><p>${data.generated_daily_tasks.map((task) => `Day ${task.day_number}: ${task.title}`).join(' | ') || 'None'}</p>
+      <p>${safeText(data.student_name)} (${safeText(data.student_id)}) Grade ${safeText(String(data.grade))}</p>
+      <h2>Prompt</h2><p>${safeText(data.prompt_text ?? 'None')}</p>
+      <h2>Submission</h2><p>${safeText(data.student_submission ?? 'None')}</p>
+      <h2>Assessment</h2><p>Total score: ${safeText(String(data.latest_assessment?.total_score ?? '—'))}</p>
+      <h2>Weaknesses</h2><p>${safeText(data.latest_assessment?.weakness_tags.join(' · ') || 'None')}</p>
+      <h2>Targets</h2><p>${safeText(data.weekly_targets?.primary_target ?? 'None')} | ${safeText(data.weekly_targets?.secondary_target ?? 'None')}</p>
+      <h2>Tasks</h2><p>${safeText(data.generated_daily_tasks.map((task) => `Day ${task.day_number}: ${task.title}`).join(' | ') || 'None')}</p>
       <h2>Evaluations</h2><p>${
-        data.latest_practice_evaluations
+        safeText(data.latest_practice_evaluations
           .map((item) => `Day ${item.task_day_number}: ${item.evaluation.completion_status}/${item.evaluation.recommended_next_action}`)
-          .join(' | ') || 'None'
+          .join(' | ') || 'None')
       }</p>
-      <h2>Monthly snapshot</h2><p>${data.monthly_report_snapshot?.report.score_change ?? 'None'}</p>
+      <h2>Monthly snapshot</h2><p>${safeText(data.monthly_report_snapshot?.report.score_change ?? 'None')}</p>
     </article>
   `.trim();
 
@@ -1463,6 +1480,7 @@ export const __resetWritingIntegrationStoreForTests = (): void => {
   store.promptBank = [];
   store.reviewSignals = [];
   store.calibrationFollowUpByStudent = {};
+  storeMutationVersion = 0;
   hydrationTriggered = false;
   const storage = getStorage();
   if (storage) storage.removeItem(WRITING_STORE_KEY);

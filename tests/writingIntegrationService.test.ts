@@ -271,6 +271,25 @@ test('student/teacher/admin exports produce html and pdf-ready payloads', () => 
   assert.ok(adminExport.data!.html.includes('Admin Calibration Export'));
 });
 
+test('export html escapes user-controlled fields', () => {
+  __resetWritingIntegrationStoreForTests();
+  submitInitialWritingAssessment({
+    student_id: 'xss-1',
+    student_name: '<script>alert(1)</script>',
+    grade: 9,
+    genre: 'essay',
+    prompt_text: '<img src=x onerror=alert(2)>',
+    target_word_count: 120,
+    student_response: '<svg onload=alert(3)>x</svg>',
+    attempted_at: '2026-03-05T10:00:00.000Z',
+  });
+
+  const adminExport = exportAdminCalibrationReport('xss-1', '2026-03');
+  assert.strictEqual(adminExport.ok, true);
+  assert.ok(!adminExport.data!.html.includes('<script>'));
+  assert.ok(adminExport.data!.html.includes('&lt;script&gt;alert(1)&lt;/script&gt;'));
+});
+
 test('analytics aggregation and filter behavior', () => {
   __resetWritingIntegrationStoreForTests();
   submitInitialWritingAssessment({

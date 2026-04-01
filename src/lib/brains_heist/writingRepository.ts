@@ -29,6 +29,11 @@ const canUseSupabase = (): boolean => {
 };
 
 const safe = <T>(value: T): T => JSON.parse(JSON.stringify(value));
+const ensureNoError = (result: { error: { message: string } | null }, context: string): void => {
+  if (result.error) {
+    throw new Error(`[writingRepository] ${context}: ${result.error.message}`);
+  }
+};
 
 export const loadWritingStoreSnapshot = async (): Promise<SerializedWritingPersistenceStore | null> => {
   if (!canUseSupabase()) return null;
@@ -93,9 +98,14 @@ export const persistWritingStoreSnapshot = async (snapshot: SerializedWritingPer
   const profiles = snapshot.profiles.map(([student_id, profile]) => ({ student_id, profile: safe(profile) }));
   const states = snapshot.states.map(([student_id, state]) => ({ student_id, state: safe(state) }));
 
-  await Promise.all([
+  const [profilesRes, statesRes] = await Promise.all([
     supabase.from('bh_writing_student_profiles').upsert(profiles, { onConflict: 'student_id' }),
     supabase.from('bh_writing_student_states').upsert(states, { onConflict: 'student_id' }),
+  ]);
+  ensureNoError(profilesRes, 'upsert profiles failed');
+  ensureNoError(statesRes, 'upsert states failed');
+
+  await Promise.all([
     replaceTable('bh_writing_attempts', snapshot.attempts),
     replaceTable('bh_writing_weekly_plans', snapshot.weeklyPlans),
     replaceTable('bh_writing_daily_tasks', snapshot.dailyTasks),
@@ -112,16 +122,20 @@ export const persistWritingStoreSnapshot = async (snapshot: SerializedWritingPer
 export const getWritingRepositoryMode = (): 'db' | 'disabled' => (canUseSupabase() ? 'db' : 'disabled');
 
 const replaceTable = async (table: string, rows: unknown[]): Promise<void> => {
-  await supabase.from(table).delete().gt('created_at', '1900-01-01');
+  const deleteRes = await supabase.from(table).delete().gt('created_at', '1900-01-01');
+  ensureNoError(deleteRes, `delete ${table} failed`);
   if (!rows.length) return;
-  await supabase.from(table).insert(rows.map((payload) => ({ payload: safe(payload) })));
+  const insertRes = await supabase.from(table).insert(rows.map((payload) => ({ payload: safe(payload) })));
+  ensureNoError(insertRes, `insert ${table} failed`);
 };
 
 const replaceFollowups = async (
   map: Record<string, { flagged: boolean; note?: string; updated_at: string }>
 ): Promise<void> => {
-  await supabase.from('bh_writing_calibration_followups').delete().gt('updated_at', '1900-01-01');
+  const deleteRes = await supabase.from('bh_writing_calibration_followups').delete().gt('updated_at', '1900-01-01');
+  ensureNoError(deleteRes, 'delete calibration followups failed');
   const rows = Object.entries(map).map(([student_id, payload]) => ({ student_id, payload: safe(payload), updated_at: payload.updated_at }));
   if (!rows.length) return;
-  await supabase.from('bh_writing_calibration_followups').insert(rows);
+  const insertRes = await supabase.from('bh_writing_calibration_followups').insert(rows);
+  ensureNoError(insertRes, 'insert calibration followups failed');
 };
