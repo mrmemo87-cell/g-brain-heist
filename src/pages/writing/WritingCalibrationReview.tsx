@@ -1,4 +1,4 @@
-import React, { type CSSProperties } from 'react';
+import React from 'react';
 import { getWritingCalibrationCase, listAdminReviewSignals } from '../../lib/brains_heist/writingIntegrationService.js';
 import { parseAdminDrilldownFilters } from '../../lib/brains_heist/writingAdminFilters.js';
 import { WRITING_ADMIN_HELP } from '../../lib/brains_heist/writingAdminHelp.js';
@@ -11,7 +11,7 @@ interface WritingCalibrationReviewProps {
   filterQuery?: string;
 }
 
-const sectionStyle: CSSProperties = {
+const sectionStyle: React.CSSProperties = {
   border: '1px solid #334155',
   borderRadius: 10,
   background: '#0f172a',

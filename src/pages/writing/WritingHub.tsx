@@ -1,4 +1,4 @@
-import React, { type ChangeEvent, type CSSProperties, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   getCurrentWeeklyPlan,
   getMonthlyWritingReport,
@@ -57,7 +57,7 @@ export const buildWritingDashboardSnapshot = (
   };
 };
 
-const cardStyle: CSSProperties = {
+const cardStyle: React.CSSProperties = {
   background: '#111827',
   borderRadius: 14,
   padding: 14,
@@ -177,16 +177,16 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
 
       <section style={cardStyle}>
         <h2 style={{ marginTop: 0 }}>Start / Reset Week</h2>
-        <textarea value={promptText} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setPromptText(e.target.value)} style={{ width: '100%', minHeight: 80 }} />
+        <textarea value={promptText} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setPromptText(e.target.value)} style={{ width: '100%', minHeight: 80 }} />
         <input
           type="number"
           value={targetWordCount}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setTargetWordCount(Number(e.target.value) || 0)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTargetWordCount(Number(e.target.value) || 0)}
           style={{ width: '100%', marginTop: 8 }}
         />
         <textarea
           value={initialResponse}
-          onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setInitialResponse(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInitialResponse(e.target.value)}
           placeholder="Paste your initial writing response"
           style={{ width: '100%', minHeight: 80, marginTop: 8 }}
         />
@@ -214,7 +214,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
             </ul>
             <textarea
               value={practiceResponse}
-              onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setPracticeResponse(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setPracticeResponse(e.target.value)}
               placeholder="Write your submission here"
               style={{ width: '100%', minHeight: 90 }}
             />

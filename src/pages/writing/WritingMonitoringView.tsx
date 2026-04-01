@@ -1,4 +1,4 @@
-import React, { type CSSProperties } from 'react';
+import React from 'react';
 import { getWritingMonitoringOverview, listAdminReviewSignals } from '../../lib/brains_heist/writingIntegrationService.js';
 import { parseAdminDrilldownFilters } from '../../lib/brains_heist/writingAdminFilters.js';
 import { WRITING_ADMIN_HELP } from '../../lib/brains_heist/writingAdminHelp.js';
@@ -10,7 +10,7 @@ interface WritingMonitoringViewProps {
   filterQuery?: string;
 }
 
-const cardStyle: CSSProperties = {
+const cardStyle: React.CSSProperties = {
   border: '1px solid #334155',
   borderRadius: 10,
   padding: 10,
