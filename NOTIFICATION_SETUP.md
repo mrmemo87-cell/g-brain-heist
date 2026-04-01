@@ -181,6 +181,91 @@ if (profile.ap_now < 5) {
 }
 ```
 
+## New User Created Notifications
+
+Yes — you can notify "anywhere" when a new user is created by hooking into the existing `auth.users` creation flow.
+
+### ✅ If you specifically need EMAIL
+
+Use an **Edge Function relay** (recommended for email). Database triggers are great for DB-side events, but email delivery should happen in an HTTP-capable service layer.
+
+1. Create an Edge Function (for example `supabase/functions/new_user_email/index.ts`)
+2. Add provider credentials in secrets (Resend/SendGrid/Postmark)
+3. From your new-user path, call that function with:
+   - `user_id`
+   - `email`
+   - `username`
+   - `created_at`
+4. Send the email to:
+   - the new user (welcome email), and/or
+   - admin inbox (new signup alert)
+
+Implementation added in this repo:
+- `supabase/functions/new_user_email/index.ts`
+- expects auth-hook style payload containing `user.id`, `user.email`, metadata username
+- sends admin alert email using Resend
+
+Required secrets for the function:
+- `NEW_USER_EMAIL_HOOK_SECRET`
+- `RESEND_API_KEY`
+- `NEW_USER_EMAIL_FROM`
+- `NEW_USER_ALERT_TO`
+
+If `NEW_USER_ALERT_TO` is not set, the function currently falls back to:
+- `mr.memo87@gmail.com`
+
+Suggested deploy command:
+```bash
+supabase functions deploy new_user_email
+```
+
+Suggested Auth Hook target:
+- URL: `https://<project-ref>.supabase.co/functions/v1/new_user_email`
+- Event: `user.created`
+- Header: `x-hook-secret: <NEW_USER_EMAIL_HOOK_SECRET>`
+
+Example payload:
+
+```json
+{
+  "event": "user_created",
+  "user_id": "uuid",
+  "email": "student@example.com",
+  "username": "student1",
+  "created_at": "2026-04-01T13:00:00Z"
+}
+```
+
+### Option A (Recommended): DB trigger writes to `notifications`
+
+Create an additional trigger branch in `handle_new_user()` (or a separate trigger function) that inserts an internal/admin notification whenever `auth.users` receives a new row.
+
+```sql
+INSERT INTO public.notifications (
+  user_id,
+  type,
+  title,
+  body,
+  priority,
+  data
+) VALUES (
+  NEW.id,
+  'announcement',
+  'Welcome to Brains Heist',
+  'Your account is ready. Complete onboarding to get started.',
+  'low',
+  jsonb_build_object('source', 'auth_trigger')
+);
+```
+
+### Option B: Postgres `NOTIFY` for backend listeners
+
+If you want a backend worker / service (Discord bot, Slack relay, etc.) to receive events, emit `pg_notify(...)` from the trigger and consume it from your server process.
+
+### Option C: Edge Function / webhook relay
+
+Call a Supabase Edge Function (service role) from your backend trigger path to fan out to email, Discord, Slack, or push providers.
+
 ### 4. Achievement Unlocks
 **File:** Wherever achievements are checked
 
