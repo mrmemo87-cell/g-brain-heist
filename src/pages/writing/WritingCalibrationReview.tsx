@@ -11,7 +11,7 @@ interface WritingCalibrationReviewProps {
   filterQuery?: string;
 }
 
-const sectionStyle: React.CSSProperties = {
+const sectionStyle = {
   border: '1px solid #334155',
   borderRadius: 10,
   background: '#0f172a',

@@ -10,7 +10,7 @@ interface WritingMonitoringViewProps {
   filterQuery?: string;
 }
 
-const cardStyle: React.CSSProperties = {
+const cardStyle = {
   border: '1px solid #334155',
   borderRadius: 10,
   padding: 10,

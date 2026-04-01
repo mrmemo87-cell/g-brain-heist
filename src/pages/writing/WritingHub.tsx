@@ -57,7 +57,7 @@ export const buildWritingDashboardSnapshot = (
   };
 };
 
-const cardStyle: React.CSSProperties = {
+const cardStyle = {
   background: '#111827',
   borderRadius: 14,
   padding: 14,
@@ -177,16 +177,16 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
 
       <section style={cardStyle}>
         <h2 style={{ marginTop: 0 }}>Start / Reset Week</h2>
-        <textarea value={promptText} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setPromptText(e.target.value)} style={{ width: '100%', minHeight: 80 }} />
+        <textarea value={promptText} onChange={(e: { target: { value: string } }) => setPromptText(e.target.value)} style={{ width: '100%', minHeight: 80 }} />
         <input
           type="number"
           value={targetWordCount}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTargetWordCount(Number(e.target.value) || 0)}
+          onChange={(e: { target: { value: string } }) => setTargetWordCount(Number(e.target.value) || 0)}
           style={{ width: '100%', marginTop: 8 }}
         />
         <textarea
           value={initialResponse}
-          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInitialResponse(e.target.value)}
+          onChange={(e: { target: { value: string } }) => setInitialResponse(e.target.value)}
           placeholder="Paste your initial writing response"
           style={{ width: '100%', minHeight: 80, marginTop: 8 }}
         />
@@ -214,7 +214,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
             </ul>
             <textarea
               value={practiceResponse}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setPracticeResponse(e.target.value)}
+              onChange={(e: { target: { value: string } }) => setPracticeResponse(e.target.value)}
               placeholder="Write your submission here"
               style={{ width: '100%', minHeight: 90 }}
             />
