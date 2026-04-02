@@ -247,7 +247,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   const handleEnhancePrompt = async () => {
     setAiBusy(true);
     const response = await requestWritingAiAssist({
-      mode: 'plan_assist',
+      mode: 'prompt_rewrite',
       prompt_text: promptText,
       weaknesses: latestWeaknesses,
       grade,

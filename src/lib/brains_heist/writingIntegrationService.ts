@@ -1450,13 +1450,13 @@ export const runWritingPilotVerificationChecklist = (): ServiceResponse<{
 };
 
 export const requestWritingAiAssist = async (input: {
-  mode: 'feedback' | 'plan_assist';
+  mode: 'feedback' | 'plan_assist' | 'prompt_rewrite';
   prompt_text: string;
   student_response?: string;
   weaknesses?: string[];
   grade?: number;
   genre?: SupportedGenre;
-}): Promise<ServiceResponse<{ mode: 'feedback' | 'plan_assist'; result: unknown }>> => {
+}): Promise<ServiceResponse<{ mode: 'feedback' | 'plan_assist' | 'prompt_rewrite'; result: unknown }>> => {
   try {
     const { supabase } = await import('../../../services/supabaseClient.js');
     const {
@@ -1486,7 +1486,7 @@ export const requestWritingAiAssist = async (input: {
       return badRequest(error?.message ?? 'Unable to fetch writing AI assist.');
     }
 
-    return ok(data as { mode: 'feedback' | 'plan_assist'; result: unknown });
+    return ok(data as { mode: 'feedback' | 'plan_assist' | 'prompt_rewrite'; result: unknown });
   } catch (error) {
     return badRequest(error instanceof Error ? error.message : 'Unable to fetch writing AI assist.');
   }

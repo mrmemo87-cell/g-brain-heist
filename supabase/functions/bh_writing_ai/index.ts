@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.46.1";
 import OpenAI from "https://esm.sh/openai@4.52.3";
 
 type Payload = {
-  mode: "feedback" | "plan_assist";
+  mode: "feedback" | "plan_assist" | "prompt_rewrite";
   promptText: string;
   studentResponse?: string;
   weaknesses?: string[];
@@ -12,6 +12,7 @@ type Payload = {
 };
 
 type UserRole = "student" | "teacher" | "admin";
+type Mode = Payload["mode"];
 type AiResult = {
   strengths?: string[];
   weaknesses?: string[];
@@ -54,14 +55,14 @@ const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number): Promise<T
 
 const validatePayload = (payload: Payload | null): string | null => {
   if (!payload) return "Invalid payload";
-  if (payload.mode !== "feedback" && payload.mode !== "plan_assist") return "Invalid mode";
+  if (payload.mode !== "feedback" && payload.mode !== "plan_assist" && payload.mode !== "prompt_rewrite") return "Invalid mode";
   if (!payload.promptText || payload.promptText.trim().length < 12) return "Prompt text is required";
   if (payload.studentResponse && payload.studentResponse.length > 10000) return "studentResponse is too long";
   if (payload.weaknesses && payload.weaknesses.length > 20) return "Too many weaknesses";
   return null;
 };
 
-const normalizeAiResult = (mode: Payload["mode"], raw: unknown): AiResult | null => {
+const normalizeAiResult = (mode: Mode, raw: unknown): AiResult | null => {
   if (!raw || typeof raw !== "object") return null;
   const value = raw as Record<string, unknown>;
   if (mode === "feedback") {
@@ -71,11 +72,14 @@ const normalizeAiResult = (mode: Payload["mode"], raw: unknown): AiResult | null
     const monthly_report_summary = typeof value.monthly_report_summary === "string" ? value.monthly_report_summary : "";
     return { strengths, weaknesses, next_steps, monthly_report_summary };
   }
+  const rewritten_prompt = typeof value.rewritten_prompt === "string" ? value.rewritten_prompt : "";
+  if (mode === "prompt_rewrite") {
+    return { rewritten_prompt };
+  }
   const focus = typeof value.focus === "string" ? value.focus : "";
   const drills = Array.isArray(value.drills) ? value.drills.map(String) : [];
   const checkpoints = Array.isArray(value.checkpoints) ? value.checkpoints.map(String) : [];
   const coaching_points = Array.isArray(value.coaching_points) ? value.coaching_points.map(String) : [];
-  const rewritten_prompt = typeof value.rewritten_prompt === "string" ? value.rewritten_prompt : "";
   const daily_task = typeof value.daily_task === "string" ? value.daily_task : "";
   return { focus, drills, checkpoints, coaching_points, rewritten_prompt, daily_task };
 };
@@ -111,9 +115,13 @@ const getUserRole = async (
   return null;
 };
 
-const canUseMode = (role: UserRole, mode: Payload["mode"]): boolean => {
-  if (role === "student") return mode === "plan_assist";
-  return mode === "feedback" || mode === "plan_assist";
+const STUDENT_SAFE_MODES: ReadonlySet<Mode> = new Set(["plan_assist", "prompt_rewrite"]);
+const ADMIN_ONLY_MODES: ReadonlySet<Mode> = new Set(["feedback"]);
+
+const canUseMode = (role: UserRole, mode: Mode): boolean => {
+  if (ADMIN_ONLY_MODES.has(mode)) return role === "teacher" || role === "admin";
+  if (STUDENT_SAFE_MODES.has(mode)) return true;
+  return false;
 };
 
 serve(async (req) => {
@@ -152,7 +160,8 @@ serve(async (req) => {
       "- monthly_report_summary: 1 short examiner-style summary line for progress reporting",
       "Rules: keep it human, natural, and not robotic.",
     ].join("\n")
-    : [
+    : payload.mode === "plan_assist"
+    ? [
       `Grade: ${payload.grade ?? "unknown"}`,
       `Genre: ${payload.genre ?? "unknown"}`,
       `Known weaknesses: ${JSON.stringify(payload.weaknesses ?? [])}`,
@@ -165,6 +174,14 @@ serve(async (req) => {
       "- rewritten_prompt: a fuller contextualized writing prompt with clear purpose, audience, and context when suitable",
       "- daily_task: one realistic daily writing task instruction",
       "Rules: grade-sensitive, genre-sensitive, concise, and natural.",
+    ].join("\n")
+    : [
+      `Grade: ${payload.grade ?? "unknown"}`,
+      `Genre: ${payload.genre ?? "unknown"}`,
+      `Current prompt: ${payload.promptText}`,
+      "Return JSON keys:",
+      "- rewritten_prompt: rewrite the prompt so it is clearer, realistic, and student-friendly while preserving the same core task",
+      "Rules: concise, natural, clear instructions, and no extra keys.",
     ].join("\n");
 
   try {
