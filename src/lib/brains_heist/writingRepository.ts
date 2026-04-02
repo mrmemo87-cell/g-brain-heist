@@ -95,7 +95,14 @@ export const loadWritingStoreSnapshot = async (): Promise<SerializedWritingPersi
 export const persistWritingStoreSnapshot = async (snapshot: SerializedWritingPersistenceStore): Promise<void> => {
   if (!canUseSupabase()) return;
 
-  const profiles = snapshot.profiles.map(([student_id, profile]) => ({ student_id, profile: safe(profile) }));
+  const profiles = snapshot.profiles.map(([student_id, profile]: [string, any]) => ({
+    student_id,
+    grade: profile.grade,
+    genre: profile.current_genre,
+    profile: safe(profile),
+    created_at: profile.created_at,
+    updated_at: profile.updated_at,
+  }));
   const states = snapshot.states.map(([student_id, state]) => ({ student_id, state: safe(state) }));
 
   const [profilesRes, statesRes] = await Promise.all([
