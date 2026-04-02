@@ -4,6 +4,7 @@ import {
   getMonthlyWritingReport,
   requestWritingAiAssist,
   getStudentWritingState,
+  getStudentWritingHubSnapshot,
   getTodayWritingTask,
   getWeeklyWritingReview,
   submitDailyWritingPractice,
@@ -195,6 +196,23 @@ const weaknessTagToStudentTip = (tag: string): string => {
   return tipMap[tag] ?? `Focus on clearer ${tag.replaceAll('_', ' ')} in your next response.`;
 };
 
+const estimateWeeklyTargetScoreRange = (
+  baselineScore: number | null,
+  supportLevel: 'high' | 'medium' | 'low' | null
+): { low: number; high: number } | null => {
+  if (baselineScore == null) return null;
+  const growthBySupport: Record<'high' | 'medium' | 'low', { min: number; max: number }> = {
+    high: { min: 0.5, max: 1.2 },
+    medium: { min: 0.8, max: 1.8 },
+    low: { min: 1.0, max: 2.2 },
+  };
+  const growth = growthBySupport[supportLevel ?? 'medium'];
+  return {
+    low: Number((baselineScore + growth.min).toFixed(1)),
+    high: Number((baselineScore + growth.max).toFixed(1)),
+  };
+};
+
 export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre, month = new Date().toISOString().slice(0, 7) }) => {
   const [promptText, setPromptText] = useState('Write a response that includes:\n- describe the event\n- explain why it mattered\n- give one suggestion');
   const [targetWordCount] = useState(grade <= 7 ? 80 : grade <= 9 ? 120 : 160);
@@ -214,6 +232,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   const todayTask = getTodayWritingTask(studentId);
   const weeklyReview = getWeeklyWritingReview(studentId);
   const monthlyReport = getMonthlyWritingReport(studentId, month);
+  const hubSnapshot = getStudentWritingHubSnapshot(studentId);
   const totalPlannedTasks = stateRes.ok && stateRes.data ? stateRes.data.active_daily_tasks.length : 0;
   const completedTasksCount = stateRes.ok && stateRes.data ? stateRes.data.completed_daily_tasks.length : 0;
   const isEmptyWritingState = Boolean(
@@ -235,6 +254,16 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     ? stateRes.data.latest_assessment.weakness_tags.slice(0, 3)
     : [];
   const latestWeaknesses = latestWeaknessTags.map((tag) => tag.replaceAll('_', ' '));
+  const firstAttemptAssessment = hubSnapshot.ok ? hubSnapshot.data?.first_attempt_assessment ?? null : null;
+  const originalPromptText = hubSnapshot.ok ? hubSnapshot.data?.original_prompt_text ?? null : null;
+  const firstAttemptWeaknesses = firstAttemptAssessment?.weakness_tags.slice(0, 3) ?? [];
+  const studentFriendlyWeaknesses = (firstAttemptWeaknesses.length > 0 ? firstAttemptWeaknesses : latestWeaknessTags)
+    .slice(0, 3)
+    .map((tag) => weaknessTagToStudentTip(tag));
+  const primarySupportLevel = stateRes.ok && stateRes.data?.active_daily_tasks.length
+    ? stateRes.data.active_daily_tasks[0].support_level
+    : null;
+  const estimatedTargetRange = estimateWeeklyTargetScoreRange(firstAttemptAssessment?.total_score ?? null, primarySupportLevel);
   const focusCoachingPoints = (aiCoachingPoints.length > 0
     ? aiCoachingPoints.slice(0, 3)
     : latestWeaknessTags.slice(0, 3).map((tag) => weaknessTagToStudentTip(tag))).slice(0, 3);
@@ -534,6 +563,81 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
             })}
           </div>
         </section>
+      )}
+
+      {isActiveWeek && (
+        <>
+          <section className="writing-hub-card" style={shellCardStyle}>
+            <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 19, color: '#f8fafc' }}>Your original writing task</h3>
+            <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.55)', minHeight: 70, whiteSpace: 'pre-wrap', fontSize: 14 }}>
+              {originalPromptText ?? 'Your original task prompt will appear here after your first assessment.'}
+            </div>
+          </section>
+
+          <section className="writing-hub-card" style={shellCardStyle}>
+            <h3 style={{ marginTop: 0, marginBottom: 10, fontSize: 19, color: '#f8fafc' }}>Starting score</h3>
+            {!firstAttemptAssessment ? (
+              <p style={{ margin: 0, color: '#94a3b8' }}>Your first-attempt score appears after your week starts.</p>
+            ) : (
+              <>
+                <p style={{ margin: '0 0 10px', color: '#bfdbfe', fontSize: 15 }}>
+                  Total score: <strong style={{ color: '#f8fafc' }}>{firstAttemptAssessment.total_score}/20</strong>
+                </p>
+                {[
+                  ['Content', firstAttemptAssessment.subscores.content],
+                  ['Organisation', firstAttemptAssessment.subscores.organisation],
+                  ['Language', firstAttemptAssessment.subscores.language],
+                  ['Communicative', firstAttemptAssessment.subscores.communicative_achievement ?? 0],
+                ].map(([label, value]) => (
+                  <div key={String(label)} style={{ marginBottom: 6 }}>
+                    <div style={{ fontSize: 13, color: '#cbd5e1', marginBottom: 4 }}>
+                      {label}: {value}/5
+                    </div>
+                    <div style={progressTrackStyle}>
+                      <div
+                        className="progress-fill"
+                        style={{
+                          width: `${(Number(value) / 5) * 100}%`,
+                          height: '100%',
+                          background: 'linear-gradient(90deg, #22c55e 0%, #4ade80 100%)',
+                          borderRadius: 999,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+          </section>
+
+          <section className="writing-hub-card" style={shellCardStyle}>
+            <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 19, color: '#f8fafc' }}>Weekly improvement focus</h3>
+            <p style={{ margin: '0 0 8px', color: '#bfdbfe', fontSize: 14 }}>What to improve in plain English:</p>
+            <ul style={{ margin: 0, paddingLeft: 18, color: '#cbd5e1', fontSize: 14 }}>
+              {(studentFriendlyWeaknesses.length > 0
+                ? studentFriendlyWeaknesses
+                : ['Answer every part of the task.', 'Use clearer paragraph order.', 'Fix small grammar mistakes carefully.']).map((item) => (
+                <li key={item} style={{ marginBottom: 4 }}>{item}</li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(96, 165, 250, 0.6)' }}>
+            <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 19, color: '#f8fafc' }}>Your goal this week</h3>
+            <p style={{ margin: '0 0 4px', color: '#bfdbfe' }}>
+              Expected improvement: build stronger control in your focus skills through daily tasks.
+            </p>
+            <p style={{ margin: 0, color: '#e2e8f0', fontSize: 14 }}>
+              Target score range:{' '}
+              {estimatedTargetRange
+                ? `${estimatedTargetRange.low}–${estimatedTargetRange.high} / 20`
+                : 'Will appear after your first-assessment score is available.'}
+            </p>
+            <p style={{ margin: '8px 0 0', color: '#93c5fd', fontSize: 12 }}>
+              This is an estimate, not a guaranteed score.
+            </p>
+          </section>
+        </>
       )}
 
       {isActiveWeek && (

@@ -370,6 +370,24 @@ export const getStudentWritingState = (studentId: string): ServiceResponse<Stude
   return ok(state);
 };
 
+export interface StudentWritingHubSnapshot {
+  original_prompt_text: string | null;
+  first_attempt_assessment: WritingAssessmentResult | null;
+}
+
+export const getStudentWritingHubSnapshot = (studentId: string): ServiceResponse<StudentWritingHubSnapshot> => {
+  hydrateStore();
+  const studentAttempts = store.attempts
+    .filter((attempt) => attempt.student_id === studentId)
+    .sort((a, b) => a.created_at.localeCompare(b.created_at));
+
+  const firstInitialAttempt = studentAttempts.find((attempt) => attempt.attempt_type === 'initial_assessment') ?? null;
+  return ok({
+    original_prompt_text: firstInitialAttempt?.prompt_text ?? null,
+    first_attempt_assessment: firstInitialAttempt?.assessment ?? null,
+  });
+};
+
 export const getCurrentWeeklyPlan = (studentId: string): ServiceResponse<WeeklyImprovementPlan> => {
   hydrateStore();
   const state = store.states.get(studentId);
