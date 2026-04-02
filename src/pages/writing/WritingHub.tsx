@@ -240,7 +240,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   const [aiBusy, setAiBusy] = useState(false);
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState(false);
-  const [initializing, setInitializing] = useState(true);
+  const [initializing] = useState(false);
   const [isRefreshingProgress, setIsRefreshingProgress] = useState(false);
 
   const dashboard = useMemo(() => buildWritingDashboardSnapshot(studentId, month), [studentId, month, feedback]);
@@ -259,6 +259,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
       stateRes.data.active_daily_tasks.length === 0 &&
       stateRes.data.completed_daily_tasks.length === 0
   );
+  const showNoWritingState = !stateRes.ok || isEmptyWritingState;
   const hasActiveWeek = totalPlannedTasks > 0;
   const isWeekComplete = hasActiveWeek && completedTasksCount >= totalPlannedTasks && (!todayTask.ok || !todayTask.data);
   const hasStartedAnyWeek = Boolean(stateRes.ok && stateRes.data && (stateRes.data.latest_assessment || completedTasksCount > 0));
@@ -304,11 +305,6 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   ]
     .filter(Boolean)
     .slice(0, 3);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => setInitializing(false), 420);
-    return () => window.clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -494,6 +490,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
             <h1 style={{ margin: '6px 0 10px', color: '#f8fafc', fontSize: 30, lineHeight: 1.1 }}>
               {isPreWeek ? 'Start Your Writing Week' : 'Writing Hub'}
             </h1>
+            <p style={{ margin: '0 0 4px', color: '#cbd5e1', fontSize: 13 }}>Dashboard</p>
             <p style={{ margin: 0, color: '#e2e8f0', fontSize: 15 }}>
               {isPreWeek
                 ? 'Write one response. We’ll check it, find your weak areas, and build your personal writing plan for the week.'
@@ -501,6 +498,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                   ? 'You completed your week. Review your growth, then launch your next mission.'
                   : 'Your coach plan is active. Follow today’s task and build your score step by step.'}
             </p>
+            {showNoWritingState && <p style={{ margin: '8px 0 0', color: '#bfdbfe', fontSize: 13 }}>No writing state yet</p>}
             {!isWeekComplete && (
               <div style={{ marginTop: 12 }}>
                 <div className="mini-grid">
@@ -646,7 +644,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
               </section>
 
               <section className="writing-hub-card" style={shellCardStyle}>
-                <h3 style={{ marginTop: 0, marginBottom: 10, fontSize: 20, color: '#f8fafc' }}>Today’s goal</h3>
+                <h3 style={{ marginTop: 0, marginBottom: 10, fontSize: 20, color: '#f8fafc' }}>Today’s Task</h3>
                 {!todayTask.ok || !todayTask.data ? (
                   <div>
                     <p style={{ margin: 0, color: '#cbd5e1' }}>Preparing today’s task…</p>
@@ -659,7 +657,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                       {simplifyStudentLanguage(aiTaskWording || taskTypeToFriendlyInstruction(todayTask.data.task_type))}
                     </p>
                     <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 13 }}>
-                      Word count: {computeWordCountRange(todayTask.data.expected_word_count).min}–{computeWordCountRange(todayTask.data.expected_word_count).max} words
+                      Expected word count: {computeWordCountRange(todayTask.data.expected_word_count).min}–{computeWordCountRange(todayTask.data.expected_word_count).max} words
                     </p>
                     <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12 }}>Try to stay close to this range.</p>
                     <ul style={{ margin: '0 0 10px', paddingLeft: 18, color: '#cbd5e1', fontSize: 14 }}>
@@ -698,7 +696,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
           {isWeekComplete && (
             <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(250, 204, 21, 0.45)', background: 'linear-gradient(175deg,#1f2937 0%, #0b1224 80%)' }}>
               <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 22, color: '#fde68a' }}>Week complete 🎯</h3>
-              <p style={{ margin: '0 0 8px', color: '#fef3c7', fontSize: 15 }}>You finished your writing mission. Nice consistency and progress.</p>
+              <p style={{ margin: '0 0 8px', color: '#fef3c7', fontSize: 15 }}>You finished your writing mission. Nice consistency and progress. All tasks submitted for now.</p>
               <p style={{ margin: '0 0 8px', color: '#dbeafe', fontSize: 14 }}>Tasks completed: {completedTasksCount}/{totalPlannedTasks}</p>
               <p style={{ margin: '0 0 8px', color: '#bfdbfe', fontSize: 14 }}>
                 What improved: {studentFriendlyWeaknesses.length > 0 ? studentFriendlyWeaknesses.slice(0, 2).join(' · ') : 'Your writing control and task focus improved.'}
@@ -718,6 +716,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
           <details className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(148, 163, 184, 0.28)' }}>
             <summary style={{ cursor: 'pointer', fontWeight: 700, color: '#e2e8f0' }}>View detailed progress</summary>
             <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+              <p style={{ margin: 0, color: '#bfdbfe' }}>Primary: {dashboard.data?.weekly_plan_summary?.primary ?? 'Not set yet'}</p>
               {!weeklyReview.ok || !weeklyReview.data ? (
                 <p style={{ margin: 0, color: '#94a3b8' }}>Weekly review will appear after more submissions.</p>
               ) : (
@@ -727,6 +726,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                   <p style={{ margin: 0, color: '#94a3b8' }}>
                     Keep improving: {weeklyReview.data.weekly_review_summary.top_remaining_weaknesses.map((item) => simplifyStudentLanguage(item)).join(', ') || 'No major blockers right now.'}
                   </p>
+                  <p style={{ margin: 0, color: '#93c5fd' }}>Carry-forward primary: {weeklyReview.data.next_week_planning_inputs.carry_forward_primary_target}</p>
                 </>
               )}
 
@@ -739,6 +739,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                   {aiMonthlyWording && <p style={{ margin: 0, color: '#bfdbfe' }}>{aiMonthlyWording}</p>}
                   <p style={{ margin: 0, color: '#94a3b8' }}>Subscale progress: {monthlyReport.data.student_facing_monthly_report.subscale_progress.join(' | ')}</p>
                   <p style={{ margin: 0, color: '#86efac' }}>Strongest gains: {monthlyReport.data.student_facing_monthly_report.strongest_gains.join(', ')}</p>
+                  <p style={{ margin: 0, color: '#fca5a5' }}>Biggest blocker: {monthlyReport.data.student_facing_monthly_report.remaining_blockers[0] ?? 'None'}</p>
                 </>
               )}
             </div>
@@ -769,7 +770,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
             </section>
           )}
 
-          {isEmptyWritingState && !isPreWeek && (
+          {showNoWritingState && !isPreWeek && (
             <section className="writing-hub-card" style={shellCardStyle}>
               <h3 style={{ marginTop: 0, marginBottom: 8, color: '#f8fafc' }}>No active writing task yet</h3>
               <p style={{ margin: 0, color: '#cbd5e1' }}>Start your first week to unlock your mission board and daily coaching.</p>
