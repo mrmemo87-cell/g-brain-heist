@@ -134,8 +134,56 @@ const computeWordCountRange = (targetWords: number): { min: number; max: number 
   max: Math.ceil(targetWords * 1.1),
 });
 
+const simplifyStudentLanguage = (text: string): string => {
+  const replacements: Array<[RegExp, string]> = [
+    [/genre convention task/gi, 'writing style task'],
+    [/missed content point/gi, 'missed part of the question'],
+    [/partial content coverage/gi, 'only answered part of the question'],
+    [/viewpoint \+ support \+ progression/gi, 'clear opinion, good reasons, and clear structure'],
+    [/genre focus:/gi, 'remember to:'],
+    [/focus on/gi, 'work on'],
+  ];
+  return replacements.reduce((acc, [pattern, replacement]) => acc.replace(pattern, replacement), text);
+};
+
+const taskTypeToFriendlyTitle = (taskType: string, day: number): string => {
+  const map: Record<string, string> = {
+    'sentence correction': 'Fix and improve sentences',
+    'error spotting': 'Find and fix mistakes',
+    'sentence combining': 'Join ideas clearly',
+    'paragraph ordering': 'Put paragraphs in order',
+    'linking words insertion': 'Add linking words',
+    'paragraph writing': 'Build a strong paragraph',
+    'guided writing': 'Guided writing practice',
+    'rewrite from feedback': 'Improve using feedback',
+    'full exam-style response': 'Full writing practice',
+    'genre convention task': 'Write in the right style',
+    'word-count control task': 'Stay close to word target',
+  };
+  return `Day ${day}: ${map[taskType] ?? 'Writing practice'}`;
+};
+
+const taskTypeToFriendlyInstruction = (taskType: string): string => {
+  const map: Record<string, string> = {
+    'sentence correction': 'Today, fix grammar and wording so each sentence is clear.',
+    'error spotting': 'Today, find small mistakes and correct them carefully.',
+    'sentence combining': 'Today, connect short ideas into smoother sentences.',
+    'paragraph ordering': 'Today, put ideas in a clear order from start to finish.',
+    'linking words insertion': 'Today, add linking words to guide your reader.',
+    'paragraph writing': 'Today, write one paragraph with a clear main idea and detail.',
+    'guided writing': 'Today, follow the steps and answer every part of the question.',
+    'rewrite from feedback': 'Today, improve your last response using feedback.',
+    'full exam-style response': 'Today, complete a full response like your real writing task.',
+    'genre convention task': 'Today, write in the correct style for this task.',
+    'word-count control task': 'Today, keep your writing close to the word target.',
+  };
+  return map[taskType] ?? 'Today, focus on clear and complete writing.';
+};
+
 const weaknessTagToStudentTip = (tag: string): string => {
   const tipMap: Record<string, string> = {
+    missed_content_point: 'Answer every part of the task question.',
+    partial_content_coverage: 'Check that all key points are included.',
     tense_error: 'Check your verb tense so time is clear and consistent.',
     agreement_error: 'Match subjects and verbs (for example: “they were”, not “they was”).',
     weak_paragraphing: 'Split ideas into clear paragraphs so each paragraph has one main point.',
@@ -179,6 +227,9 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   const hasActiveWeek = totalPlannedTasks > 0;
   const isWeekComplete = hasActiveWeek && completedTasksCount >= totalPlannedTasks && (!todayTask.ok || !todayTask.data);
   const canStartOrResetWeek = !hasActiveWeek || isWeekComplete;
+  const hasStartedAnyWeek = Boolean(stateRes.ok && stateRes.data && (stateRes.data.latest_assessment || completedTasksCount > 0));
+  const isPreWeek = !hasActiveWeek && !hasStartedAnyWeek;
+  const isActiveWeek = hasActiveWeek && !isWeekComplete;
   const hasTaskToday = Boolean(todayTask.ok && todayTask.data);
   const latestWeaknessTags = stateRes.ok && stateRes.data?.latest_assessment
     ? stateRes.data.latest_assessment.weakness_tags.slice(0, 3)
@@ -193,6 +244,24 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     stateRes.ok && stateRes.data && stateRes.data.active_daily_tasks.length > 0
       ? stateRes.data.completed_daily_tasks.length / stateRes.data.active_daily_tasks.length
       : 0;
+  const weeklyPlanStages = [
+    { key: 'start', label: 'Start week' },
+    { key: 'practice', label: 'Daily practice' },
+    { key: 'feedback', label: 'Feedback' },
+    { key: 'complete', label: 'Week complete' },
+  ];
+  const currentStageIndex = isWeekComplete ? 3 : isActiveWeek ? (hasTaskToday ? 1 : 2) : 0;
+  const motivationalLine = isWeekComplete
+    ? 'Excellent work — you finished this week.'
+    : completedTasksCount > 0
+      ? `You’re getting closer to finishing this week. ${completedTasksCount} task${completedTasksCount === 1 ? '' : 's'} completed.`
+      : 'Great start — your progress will grow with each task you submit.';
+  const weeklyGoals = [
+    ...focusCoachingPoints.map((item) => simplifyStudentLanguage(item)),
+    simplifyStudentLanguage(dashboard.data?.weekly_plan_summary?.primary ?? ''),
+  ]
+    .filter(Boolean)
+    .slice(0, 3);
 
   const missionStateMeta = canStartOrResetWeek
     ? {
@@ -393,7 +462,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
         )}
       </section>
 
-      {canStartOrResetWeek && !isWeekComplete && (
+      {isPreWeek && (
         <section className="writing-hub-card" style={shellCardStyle}>
           <h3 style={{ marginTop: 0, marginBottom: 10, fontSize: 20, color: '#f8fafc' }}>Start Writing Week</h3>
           <label style={{ display: 'block', fontSize: 13, color: '#bfdbfe', marginBottom: 6 }}>Task prompt</label>
@@ -433,6 +502,54 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
         </section>
       )}
 
+      {(isActiveWeek || isWeekComplete) && (
+        <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(147, 197, 253, 0.45)' }}>
+          <h3 style={{ marginTop: 0, marginBottom: 10, fontSize: 20, color: '#f8fafc' }}>Your weekly path</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 8 }}>
+            {weeklyPlanStages.map((stage, index) => {
+              const isCurrent = index === currentStageIndex;
+              const isDone = index < currentStageIndex || (isWeekComplete && index === 3);
+              return (
+                <div
+                  key={stage.key}
+                  style={{
+                    padding: '10px 8px',
+                    borderRadius: 12,
+                    textAlign: 'center',
+                    border: `1px solid ${isCurrent ? 'rgba(125, 211, 252, 0.95)' : 'rgba(148, 163, 184, 0.35)'}`,
+                    background: isCurrent
+                      ? 'linear-gradient(145deg, rgba(30, 64, 175, 0.6), rgba(15, 23, 42, 0.85))'
+                      : isDone
+                        ? 'rgba(16, 185, 129, 0.16)'
+                        : 'rgba(15, 23, 42, 0.7)',
+                    color: isCurrent ? '#dbeafe' : '#cbd5e1',
+                    fontSize: 12,
+                    fontWeight: 700,
+                  }}
+                >
+                  <div style={{ fontSize: 16, marginBottom: 4 }}>{isDone ? '✅' : isCurrent ? '👉' : '•'}</div>
+                  <div>{stage.label}</div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {isActiveWeek && (
+        <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(125, 211, 252, 0.7)', background: 'linear-gradient(160deg, #0f172a 0%, #0b1737 55%, #0b1224 100%)' }}>
+          <h3 style={{ marginTop: 0, marginBottom: 6, fontSize: 20, color: '#f8fafc' }}>Your focus this week</h3>
+          <p style={{ margin: '0 0 10px', color: '#bfdbfe', fontSize: 15 }}>
+            {aiWeeklyFocus || 'You’re improving your idea development and writing control this week.'}
+          </p>
+          <ul style={{ margin: 0, paddingLeft: 18, color: '#cbd5e1', fontSize: 14 }}>
+            {(weeklyGoals.length > 0 ? weeklyGoals : ['Answer all parts of the task.', 'Add clear support for your ideas.', 'Check small grammar mistakes before submitting.']).map((item) => (
+              <li key={item} style={{ marginBottom: 4 }}>{item}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {!canStartOrResetWeek && (
         <section className="writing-hub-card" style={shellCardStyle}>
           <h3 style={{ marginTop: 0, marginBottom: 10, fontSize: 20, color: '#f8fafc' }}>Today’s Active Task</h3>
@@ -440,14 +557,16 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
             <p style={{ margin: 0, color: '#cbd5e1' }}>No task to submit right now. Check back tomorrow.</p>
           ) : (
             <>
-              <h4 style={{ margin: '0 0 8px', color: '#f8fafc', fontSize: 19 }}>{todayTask.data.title}</h4>
-              <p style={{ margin: '0 0 8px', color: '#e2e8f0', fontSize: 15 }}>{aiTaskWording || todayTask.data.instructions}</p>
+              <h4 style={{ margin: '0 0 8px', color: '#f8fafc', fontSize: 19 }}>{taskTypeToFriendlyTitle(todayTask.data.task_type, todayTask.data.day_number)}</h4>
+              <p style={{ margin: '0 0 8px', color: '#e2e8f0', fontSize: 15 }}>
+                {simplifyStudentLanguage(aiTaskWording || taskTypeToFriendlyInstruction(todayTask.data.task_type))}
+              </p>
               <p style={{ margin: '0 0 8px', color: '#94a3b8', fontSize: 13 }}>
                 Word count: {computeWordCountRange(todayTask.data.expected_word_count).min}–{computeWordCountRange(todayTask.data.expected_word_count).max} words
               </p>
               <ul style={{ margin: '0 0 10px', paddingLeft: 18, color: '#cbd5e1', fontSize: 14 }}>
                 {todayTask.data.success_criteria.map((item) => (
-                  <li key={item} style={{ marginBottom: 4 }}>{item}</li>
+                  <li key={item} style={{ marginBottom: 4 }}>{simplifyStudentLanguage(item)}</li>
                 ))}
               </ul>
               <textarea
@@ -462,24 +581,10 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
       )}
 
       {!isWeekComplete && (
-        <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(125, 211, 252, 0.35)' }}>
-          <h3 style={{ marginTop: 0, marginBottom: 6, fontSize: 19, color: '#f8fafc' }}>Your focus this week</h3>
-          <p style={{ margin: '0 0 8px', color: '#bfdbfe', fontSize: 15 }}>
-            {aiWeeklyFocus || dashboard.data?.weekly_plan_summary?.primary || 'Build clearer control in your weakest writing area.'}
-          </p>
-          <ul style={{ margin: 0, paddingLeft: 18, color: '#cbd5e1', fontSize: 14 }}>
-            {focusCoachingPoints.map((item) => (
-              <li key={item} style={{ marginBottom: 4 }}>{item}</li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {!isWeekComplete && (
         <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(16, 185, 129, 0.32)' }}>
           <h3 style={{ marginTop: 0, marginBottom: 6, fontSize: 19, color: '#f8fafc' }}>Feedback & Momentum</h3>
           <p style={{ margin: 0, color: feedback ? '#a7f3d0' : '#94a3b8', fontSize: 15 }}>
-            {feedback || 'Submit today’s task to reveal your feedback and next coaching step.'}
+            {feedback || motivationalLine}
           </p>
         </section>
       )}
@@ -521,7 +626,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
               <p style={{ margin: 0, color: '#bfdbfe' }}>Weekly Review</p>
               <p style={{ margin: 0 }}>Weekly completed tasks: {weeklyReview.data.weekly_review_summary.completed_tasks}</p>
               <p style={{ margin: 0, color: '#94a3b8' }}>
-                Stuck areas: {weeklyReview.data.weekly_review_summary.top_remaining_weaknesses.join(', ') || 'None'}
+                Keep improving: {weeklyReview.data.weekly_review_summary.top_remaining_weaknesses.map((item) => simplifyStudentLanguage(item)).join(', ') || 'None'}
               </p>
               <p style={{ margin: 0, color: '#93c5fd' }}>Carry-forward primary: {weeklyReview.data.next_week_planning_inputs.carry_forward_primary_target}</p>
               <p style={{ margin: 0, color: '#93c5fd' }}>Next focus 2: {weeklyReview.data.next_week_planning_inputs.carry_forward_secondary_target}</p>
