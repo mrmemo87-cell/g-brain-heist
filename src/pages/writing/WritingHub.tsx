@@ -150,6 +150,14 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   const monthlyReport = getMonthlyWritingReport(studentId, month);
   const totalPlannedTasks = stateRes.ok && stateRes.data ? stateRes.data.active_daily_tasks.length : 0;
   const completedTasksCount = stateRes.ok && stateRes.data ? stateRes.data.completed_daily_tasks.length : 0;
+  const isEmptyWritingState = Boolean(
+    stateRes.ok &&
+      stateRes.data &&
+      !stateRes.data.latest_assessment &&
+      stateRes.data.active_daily_tasks.length === 0 &&
+      stateRes.data.completed_daily_tasks.length === 0
+  );
+  const showNoWritingState = !stateRes.ok || isEmptyWritingState;
   const hasActiveWeek = totalPlannedTasks > 0;
   const isWeekComplete = hasActiveWeek && completedTasksCount >= totalPlannedTasks && (!todayTask.ok || !todayTask.data);
   const canStartOrResetWeek = !hasActiveWeek || isWeekComplete;
@@ -340,8 +348,10 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
       <section className="writing-hub-card" style={missionCardStyle}>
         <p style={{ margin: 0, color: missionStateMeta.toneColor, fontWeight: 700, letterSpacing: 0.3, fontSize: 13 }}>{missionStateMeta.badge}</p>
         <h1 style={{ margin: '6px 0 8px', color: '#f8fafc', fontSize: 30, lineHeight: 1.1 }}>Writing Hub</h1>
+        <p style={{ margin: '0 0 4px', color: '#cbd5e1', fontSize: 13 }}>Dashboard</p>
         <h2 style={{ margin: '0 0 10px', color: '#e2e8f0', fontSize: 22, lineHeight: 1.2 }}>{missionStateMeta.title}</h2>
         <p style={{ margin: 0, color: '#cbd5e1', fontSize: 15 }}>{missionStateMeta.subtitle}</p>
+        {showNoWritingState && <p style={{ margin: '8px 0 0', color: '#bfdbfe', fontSize: 13 }}>No writing state yet</p>}
 
         <div style={{ marginTop: 14, display: 'grid', gap: 8 }}>
           <p style={{ margin: 0, color: '#dbeafe', fontSize: 13, fontWeight: 700 }}>
@@ -402,10 +412,11 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
 
       <section className="writing-hub-card" style={shellCardStyle}>
         <h3 style={{ marginTop: 0, marginBottom: 10, fontSize: 20, color: '#f8fafc' }}>2) Complete Today’s Task</h3>
+        <p style={{ marginTop: 0, color: '#94a3b8', fontSize: 13 }}>Today’s Task</p>
         {!todayTask.ok || !todayTask.data ? (
           <p style={{ margin: 0, color: '#cbd5e1' }}>
             {isWeekComplete
-              ? 'Week complete. Start a new week when you are ready.'
+              ? 'Week complete. All tasks submitted for now. Start a new week when you are ready.'
               : stateRes.ok && stateRes.data?.active_daily_tasks.length
                 ? 'No task to submit right now. Check back tomorrow.'
                 : 'Start your writing week to get today’s task.'}
@@ -415,7 +426,9 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
             <p style={{ margin: 0, color: '#7dd3fc', fontWeight: 700, fontSize: 13 }}>Active objective</p>
             <h4 style={{ margin: '6px 0 8px', color: '#f8fafc', fontSize: 19 }}>{todayTask.data.title}</h4>
             <p style={{ margin: '0 0 8px', color: '#e2e8f0', fontSize: 15 }}>{aiTaskWording || todayTask.data.instructions}</p>
-            <p style={{ margin: '0 0 8px', color: '#94a3b8', fontSize: 13 }}>Target length: about {todayTask.data.expected_word_count} words.</p>
+            <p style={{ margin: '0 0 8px', color: '#94a3b8', fontSize: 13 }}>
+              Target length: about {todayTask.data.expected_word_count} words. Expected word count: {todayTask.data.expected_word_count}.
+            </p>
             <ul style={{ margin: '0 0 10px', paddingLeft: 18, color: '#cbd5e1', fontSize: 14 }}>
               {todayTask.data.success_criteria.map((item) => (
                 <li key={item} style={{ marginBottom: 4 }}>{item}</li>
@@ -480,15 +493,17 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
       <details className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(148, 163, 184, 0.28)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 700, color: '#e2e8f0' }}>View progress details</summary>
         <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+          <p style={{ margin: 0, color: '#bfdbfe' }}>Primary: {dashboard.data?.weekly_plan_summary?.primary ?? 'N/A'}</p>
           {!weeklyReview.ok || !weeklyReview.data ? (
             <p style={{ margin: 0, color: '#94a3b8' }}>Weekly summary appears after more task submissions.</p>
           ) : (
             <>
+              <p style={{ margin: 0, color: '#bfdbfe' }}>Weekly Review</p>
               <p style={{ margin: 0 }}>Weekly completed tasks: {weeklyReview.data.weekly_review_summary.completed_tasks}</p>
               <p style={{ margin: 0, color: '#94a3b8' }}>
                 Stuck areas: {weeklyReview.data.weekly_review_summary.top_remaining_weaknesses.join(', ') || 'None'}
               </p>
-              <p style={{ margin: 0, color: '#93c5fd' }}>Next focus 1: {weeklyReview.data.next_week_planning_inputs.carry_forward_primary_target}</p>
+              <p style={{ margin: 0, color: '#93c5fd' }}>Carry-forward primary: {weeklyReview.data.next_week_planning_inputs.carry_forward_primary_target}</p>
               <p style={{ margin: 0, color: '#93c5fd' }}>Next focus 2: {weeklyReview.data.next_week_planning_inputs.carry_forward_secondary_target}</p>
             </>
           )}
@@ -497,12 +512,13 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
             <p style={{ margin: 0, color: '#94a3b8' }}>Monthly growth details will appear after enough attempts.</p>
           ) : (
             <>
-              <p style={{ margin: 0 }}>Monthly score change: {monthlyReport.data.student_facing_monthly_report.score_change}</p>
+              <p style={{ margin: 0, color: '#bfdbfe' }}>Monthly Growth</p>
+              <p style={{ margin: 0 }}>Score change: {monthlyReport.data.student_facing_monthly_report.score_change}</p>
               {aiMonthlyWording && <p style={{ margin: 0, color: '#bfdbfe' }}>{aiMonthlyWording}</p>}
-              <p style={{ margin: 0, color: '#94a3b8' }}>Skills improving: {monthlyReport.data.student_facing_monthly_report.subscale_progress.join(' | ')}</p>
+              <p style={{ margin: 0, color: '#94a3b8' }}>Subscale progress: {monthlyReport.data.student_facing_monthly_report.subscale_progress.join(' | ')}</p>
               <p style={{ margin: 0, color: '#86efac' }}>Strongest gains: {monthlyReport.data.student_facing_monthly_report.strongest_gains.join(', ')}</p>
               <p style={{ margin: 0, color: '#fca5a5' }}>
-                Main blocker: {monthlyReport.data.student_facing_monthly_report.remaining_blockers[0] ?? 'None'}
+                Biggest blocker: {monthlyReport.data.student_facing_monthly_report.remaining_blockers[0] ?? 'None'}
               </p>
             </>
           )}
