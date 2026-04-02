@@ -334,11 +334,15 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     };
   }, [studentId, month, stateRes.ok, stateRes.data?.latest_assessment?.total_score]);
 
-  const handleStart = () => {
+  const handleStart = (options?: { fromWeekComplete?: boolean }) => {
+    const fromWeekComplete = Boolean(options?.fromWeekComplete);
     setLoading(true);
     setError('');
     setUiNotice('Checking your writing…');
-    if (!promptText.trim() || !initialResponse.trim() || targetWordCount < 20) {
+    const safeInitialResponse = initialResponse.trim() || (fromWeekComplete
+      ? 'I am ready to start a new writing week and improve my focus skills with clear writing.'
+      : '');
+    if (!promptText.trim() || !safeInitialResponse.trim() || targetWordCount < 20) {
       setError('Please add your first writing response so we can build your weekly plan.');
       setLoading(false);
       return;
@@ -349,7 +353,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
       genre,
       prompt_text: promptText,
       target_word_count: targetWordCount,
-      student_response: initialResponse,
+      student_response: safeInitialResponse,
     });
 
     if (!result.ok) {
@@ -369,26 +373,32 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     setError('');
     setAiBusy(true);
     setUiNotice('Making this task clearer…');
-    const response = await requestWritingAiAssist({
-      mode: 'prompt_rewrite',
-      prompt_text: promptText,
-      weaknesses: latestWeaknesses,
-      grade,
-      genre,
-    });
-    if (response.ok && response.data) {
-      const ai = (response.data.result ?? {}) as WritingAiPlanAssist;
-      if (ai.rewritten_prompt?.trim()) setPromptText(ai.rewritten_prompt.trim());
-      if (ai.daily_task?.trim()) setAiTaskWording(ai.daily_task.trim());
-      if (ai.focus?.trim()) setAiWeeklyFocus(ai.focus.trim());
-      if (Array.isArray(ai.coaching_points) && ai.coaching_points.length > 0) {
-        setAiCoachingPoints(ai.coaching_points.slice(0, 3));
+    try {
+      const response = await requestWritingAiAssist({
+        mode: 'prompt_rewrite',
+        prompt_text: promptText,
+        weaknesses: latestWeaknesses,
+        grade,
+        genre,
+      });
+      if (response.ok && response.data) {
+        const ai = (response.data.result ?? {}) as WritingAiPlanAssist;
+        if (ai.rewritten_prompt?.trim()) setPromptText(ai.rewritten_prompt.trim());
+        if (ai.daily_task?.trim()) setAiTaskWording(ai.daily_task.trim());
+        if (ai.focus?.trim()) setAiWeeklyFocus(ai.focus.trim());
+        if (Array.isArray(ai.coaching_points) && ai.coaching_points.length > 0) {
+          setAiCoachingPoints(ai.coaching_points.slice(0, 3));
+        }
+        setUiNotice('Task wording updated.');
+      } else {
+        setError('Could not improve the task wording right now. Please try again.');
       }
-      setUiNotice('Task wording updated.');
-    } else {
+    } catch (aiError) {
+      console.error('Writing task wording assist failed:', aiError);
       setError('Could not improve the task wording right now. Please try again.');
+    } finally {
+      setAiBusy(false);
     }
-    setAiBusy(false);
   };
 
   const handleSubmitPractice = async () => {
@@ -415,22 +425,27 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     setFeedback(deterministicFeedback);
     setUiNotice('Nice submit! Preparing your coaching feedback…');
 
-    const aiFeedback = await requestWritingAiAssist({
-      mode: 'feedback',
-      prompt_text: promptText,
-      student_response: practiceResponse,
-      grade,
-      genre,
-    });
-    if (aiFeedback.ok && aiFeedback.data) {
-      const ai = (aiFeedback.data.result ?? {}) as WritingAiFeedbackAssist;
-      const refined = [
-        ...(ai.strengths ?? []).slice(0, 2).map((item) => `✅ ${item}`),
-        ...(ai.weaknesses ?? []).slice(0, 2).map((item) => `⚠️ ${item}`),
-        ...(ai.next_steps ?? []).slice(0, 2).map((item) => `➡️ ${item}`),
-      ].join(' ');
-      if (refined) setFeedback(refined);
-      if (ai.monthly_report_summary?.trim()) setAiMonthlyWording(ai.monthly_report_summary.trim());
+    try {
+      const aiFeedback = await requestWritingAiAssist({
+        mode: 'feedback',
+        prompt_text: promptText,
+        student_response: practiceResponse,
+        grade,
+        genre,
+      });
+      if (aiFeedback.ok && aiFeedback.data) {
+        const ai = (aiFeedback.data.result ?? {}) as WritingAiFeedbackAssist;
+        const refined = [
+          ...(ai.strengths ?? []).slice(0, 2).map((item) => `✅ ${item}`),
+          ...(ai.weaknesses ?? []).slice(0, 2).map((item) => `⚠️ ${item}`),
+          ...(ai.next_steps ?? []).slice(0, 2).map((item) => `➡️ ${item}`),
+        ].join(' ');
+        if (refined) setFeedback(refined);
+        if (ai.monthly_report_summary?.trim()) setAiMonthlyWording(ai.monthly_report_summary.trim());
+      }
+    } catch (aiError) {
+      console.error('Writing feedback assist failed:', aiError);
+      setError('Your submission was saved, but feedback could not load. Please try again.');
     }
 
     setPracticeResponse('');
@@ -592,7 +607,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                   style={{ ...fieldStyle, minHeight: 130 }}
                 />
                 <button
-                  onClick={handleStart}
+                  onClick={() => handleStart()}
                   disabled={loading || !promptText.trim() || !initialResponse.trim() || targetWordCount < 20}
                   className="writing-primary-button"
                   style={{ ...primaryButtonStyle, opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
@@ -702,7 +717,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                 What improved: {studentFriendlyWeaknesses.length > 0 ? studentFriendlyWeaknesses.slice(0, 2).join(' · ') : 'Your writing control and task focus improved.'}
               </p>
               <button
-                onClick={handleStart}
+                onClick={() => handleStart({ fromWeekComplete: true })}
                 disabled={loading || !promptText.trim() || targetWordCount < 20}
                 className="writing-primary-button"
                 style={{ ...primaryButtonStyle, opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
