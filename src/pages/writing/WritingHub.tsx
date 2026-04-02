@@ -552,7 +552,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
 
       {!canStartOrResetWeek && (
         <section className="writing-hub-card" style={shellCardStyle}>
-          <h3 style={{ marginTop: 0, marginBottom: 10, fontSize: 20, color: '#f8fafc' }}>Today’s Active Task</h3>
+          <h3 style={{ marginTop: 0, marginBottom: 10, fontSize: 20, color: '#f8fafc' }}>Today’s Task</h3>
           {!todayTask.ok || !todayTask.data ? (
             <p style={{ margin: 0, color: '#cbd5e1' }}>No task to submit right now. Check back tomorrow.</p>
           ) : (
@@ -562,7 +562,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                 {simplifyStudentLanguage(aiTaskWording || taskTypeToFriendlyInstruction(todayTask.data.task_type))}
               </p>
               <p style={{ margin: '0 0 8px', color: '#94a3b8', fontSize: 13 }}>
-                Word count: {computeWordCountRange(todayTask.data.expected_word_count).min}–{computeWordCountRange(todayTask.data.expected_word_count).max} words
+                Expected word count: {computeWordCountRange(todayTask.data.expected_word_count).min}–{computeWordCountRange(todayTask.data.expected_word_count).max} words
               </p>
               <ul style={{ margin: '0 0 10px', paddingLeft: 18, color: '#cbd5e1', fontSize: 14 }}>
                 {todayTask.data.success_criteria.map((item) => (
@@ -593,7 +593,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
         <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(250, 204, 21, 0.45)' }}>
           <h3 style={{ marginTop: 0, marginBottom: 6, fontSize: 22, color: '#fde68a' }}>Week complete</h3>
           <p style={{ margin: 0, color: '#fef3c7', fontSize: 15 }}>
-            Great work — you finished every task this week. Start a new week when you are ready for the next challenge.
+            Great work — you finished every task this week. All tasks submitted for now. Start a new week when you are ready for the next challenge.
           </p>
         </section>
       )}
