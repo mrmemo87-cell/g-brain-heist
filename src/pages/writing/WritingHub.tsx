@@ -65,6 +65,19 @@ const cardStyle = {
   color: '#e5e7eb',
 };
 
+const primaryButtonStyle = {
+  marginTop: 12,
+  width: '100%',
+  padding: '12px 16px',
+  borderRadius: 10,
+  border: 'none',
+  background: '#2563eb',
+  color: '#ffffff',
+  fontWeight: 700,
+  fontSize: 16,
+  cursor: 'pointer',
+};
+
 export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre, month = new Date().toISOString().slice(0, 7) }) => {
   const [promptText, setPromptText] = useState('Write a response that includes:\n- describe the event\n- explain why it mattered\n- give one suggestion');
   const [targetWordCount, setTargetWordCount] = useState(grade <= 7 ? 80 : grade <= 9 ? 120 : 160);
@@ -84,17 +97,20 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   const hasActiveWeek = totalPlannedTasks > 0;
   const isWeekComplete = hasActiveWeek && completedTasksCount >= totalPlannedTasks && (!todayTask.ok || !todayTask.data);
   const canStartOrResetWeek = !hasActiveWeek || isWeekComplete;
+  const hasTaskToday = Boolean(todayTask.ok && todayTask.data);
 
   const completionRatio =
     stateRes.ok && stateRes.data && stateRes.data.active_daily_tasks.length > 0
       ? stateRes.data.completed_daily_tasks.length / stateRes.data.active_daily_tasks.length
       : 0;
 
+  const currentStep = canStartOrResetWeek ? 1 : hasTaskToday ? 2 : 3;
+
   const handleStart = () => {
     setLoading(true);
     setError('');
     if (!promptText.trim() || !initialResponse.trim() || targetWordCount < 20) {
-      setError('Please provide prompt text, target word count (20+), and an initial response.');
+      setError('Please add a prompt, a target word count (20+), and your first writing response.');
       setLoading(false);
       return;
     }
@@ -106,13 +122,13 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
       target_word_count: targetWordCount,
       student_response: initialResponse,
     });
-    if (!result.ok) setError(result.error ?? 'Unable to start writing plan.');
+    if (!result.ok) setError(result.error ?? 'Unable to start writing week.');
     setLoading(false);
   };
 
   const handleSubmitPractice = () => {
     if (!todayTask.ok || !todayTask.data) {
-      setError('No task available to submit.');
+      setError('No task available to submit right now.');
       return;
     }
     setLoading(true);
@@ -122,14 +138,28 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
       submission_text: practiceResponse,
     });
     if (!result.ok || !result.data) {
-      setError(result.error ?? 'Failed to submit practice.');
+      setError(result.error ?? 'Could not submit today’s task.');
     } else {
       setFeedback(
-        `Status: ${result.data.evaluation.completion_status} • Skill: ${result.data.evaluation.target_skill_score}/5 • Next: ${result.data.evaluation.recommended_next_action}`
+        `Great job! ${result.data.evaluation.completion_status}. Skill score: ${result.data.evaluation.target_skill_score}/5. Next: ${result.data.evaluation.recommended_next_action}`
       );
       setPracticeResponse('');
     }
     setLoading(false);
+  };
+
+  const primaryActionLabel = canStartOrResetWeek
+    ? isWeekComplete
+      ? 'Start New Week'
+      : 'Start Writing Week'
+    : 'Submit Today’s Task';
+
+  const handlePrimaryAction = () => {
+    if (canStartOrResetWeek) {
+      handleStart();
+      return;
+    }
+    handleSubmitPractice();
   };
 
   return (
@@ -137,52 +167,33 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
       <h1 style={{ color: '#f9fafb', margin: 0 }}>🧠 Writing Hub</h1>
 
       <section style={cardStyle}>
-        <h2 style={{ marginTop: 0 }}>Dashboard</h2>
-        {!stateRes.ok ? (
-          <p>No writing state yet. Start your first writing mission below.</p>
-        ) : !dashboard.ok || !dashboard.data ? (
-          <p>Loading dashboard signals…</p>
+        <h2 style={{ marginTop: 0, marginBottom: 8 }}>Your writing steps</h2>
+        <p style={{ marginTop: 0, color: '#93c5fd' }}>
+          Step {currentStep} of 4:{' '}
+          {currentStep === 1 ? 'Start Writing Week' : currentStep === 2 ? 'Complete Today’s Task' : 'Review Feedback'}
+        </p>
+        {!stateRes.ok || !dashboard.ok || !dashboard.data ? (
+          <p>Let’s get started. Begin your writing week to unlock today’s task.</p>
         ) : (
           <>
-            <p>Primary: {dashboard.data.weekly_plan_summary?.primary ?? '—'}</p>
-            <p>Secondary: {dashboard.data.weekly_plan_summary?.secondary ?? '—'}</p>
-            <p>Maintenance: {dashboard.data.weekly_plan_summary?.maintenance ?? '—'}</p>
-            <p>Today: {dashboard.data.todays_task_title ?? (isWeekComplete ? 'Week complete — ready to reset.' : 'No task yet')}</p>
-            <p>Completed tasks: {dashboard.data.completed_tasks_count}</p>
-            <p>Latest score: {dashboard.data.latest_total_score ?? '—'}</p>
-            <p>Monthly growth: {dashboard.data.monthly_growth_summary ?? 'Not available yet'}</p>
-            {stateRes.data?.latest_assessment && (
-              <>
-                <p style={{ marginBottom: 4 }}><strong>Subscale progress</strong></p>
-                {[
-                  ['Content', stateRes.data.latest_assessment.subscores.content],
-                  ['Organisation', stateRes.data.latest_assessment.subscores.organisation],
-                  ['Language', stateRes.data.latest_assessment.subscores.language],
-                  ['Communicative', stateRes.data.latest_assessment.subscores.communicative_achievement ?? 0],
-                ].map(([label, value]) => (
-                  <div key={String(label)} style={{ marginBottom: 6 }}>
-                    <div style={{ fontSize: 12 }}>{label}: {value}/5</div>
-                    <div style={{ height: 8, background: '#374151', borderRadius: 999 }}>
-                      <div style={{ width: `${(Number(value) / 5) * 100}%`, height: '100%', background: '#22c55e', borderRadius: 999 }} />
-                    </div>
-                  </div>
-                ))}
-                <p style={{ marginBottom: 4 }}><strong>Weekly completion tracker</strong></p>
-                <div style={{ height: 8, background: '#374151', borderRadius: 999 }}>
-                  <div style={{ width: `${Math.min(100, completionRatio * 100)}%`, height: '100%', background: '#60a5fa', borderRadius: 999 }} />
-                </div>
-                <p style={{ fontSize: 12 }}>
-                  {Math.round(completionRatio * 100)}% complete • {isWeekComplete ? 'Week complete — reset is now available.' : 'Complete today’s task to continue your weekly mission.'}
-                </p>
-              </>
-            )}
+            <p style={{ margin: '0 0 8px 0' }}>
+              {isWeekComplete
+                ? 'You finished this week. Nice work! Tap “Start New Week” when you are ready.'
+                : hasTaskToday
+                  ? 'You have a task ready now. Complete it and submit your writing.'
+                  : 'You’re on track. Check your latest feedback and come back for your next task.'}
+            </p>
+            <div style={{ height: 10, background: '#374151', borderRadius: 999 }}>
+              <div style={{ width: `${Math.min(100, completionRatio * 100)}%`, height: '100%', background: '#60a5fa', borderRadius: 999 }} />
+            </div>
+            <p style={{ fontSize: 12, marginBottom: 0 }}>{Math.round(completionRatio * 100)}% of this week completed</p>
           </>
         )}
       </section>
 
       <section style={cardStyle}>
-        <h2 style={{ marginTop: 0 }}>Start / Reset Week</h2>
-        {!canStartOrResetWeek && <p style={{ marginTop: 0 }}>Finish the active week task sequence before starting or resetting.</p>}
+        <h2 style={{ marginTop: 0 }}>Step 1: Start Writing Week</h2>
+        {!canStartOrResetWeek && <p style={{ marginTop: 0 }}>You already started this week. Finish today’s task first.</p>}
         <textarea value={promptText} onChange={(e: { target: { value: string } }) => setPromptText(e.target.value)} style={{ width: '100%', minHeight: 80 }} />
         <input
           type="number"
@@ -193,26 +204,20 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
         <textarea
           value={initialResponse}
           onChange={(e: { target: { value: string } }) => setInitialResponse(e.target.value)}
-          placeholder="Paste your initial writing response"
+          placeholder="Paste your first writing response"
           style={{ width: '100%', minHeight: 80, marginTop: 8 }}
         />
-        <button onClick={handleStart} disabled={loading || !canStartOrResetWeek} style={{ marginTop: 8 }}>
-          {loading ? 'Loading…' : canStartOrResetWeek ? 'Start Writing Week' : 'Week In Progress'}
-        </button>
       </section>
 
       <section style={cardStyle}>
-        <h2 style={{ marginTop: 0 }}>Today’s Task</h2>
+        <h2 style={{ marginTop: 0 }}>Step 2: Complete Today’s Task</h2>
         {!todayTask.ok || !todayTask.data ? (
-          <p>{isWeekComplete ? 'Week complete. Review your results, then reset when ready for the next week.' : stateRes.ok && stateRes.data?.active_daily_tasks.length ? 'All tasks submitted for now. Great work, agent!' : 'No active task yet.'}</p>
+          <p>{isWeekComplete ? 'Week complete. Start a new week when you are ready.' : stateRes.ok && stateRes.data?.active_daily_tasks.length ? 'No task to submit right now. Check back tomorrow.' : 'Start your writing week to get today’s task.'}</p>
         ) : (
           <>
             <h3>{todayTask.data.title}</h3>
             <p>{todayTask.data.instructions}</p>
-            <p>Target skill: {todayTask.data.target_skill}</p>
-            <p>Target tags: {todayTask.data.target_tags.join(', ') || 'None'}</p>
-            <p>Expected word count: {todayTask.data.expected_word_count}</p>
-            <p>Task mode: {todayTask.data.task_mode}</p>
+            <p>Aim for about {todayTask.data.expected_word_count} words.</p>
             <ul>
               {todayTask.data.success_criteria.map((item) => (
                 <li key={item}>{item}</li>
@@ -224,47 +229,83 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
               placeholder="Write your submission here"
               style={{ width: '100%', minHeight: 90 }}
             />
-            <button onClick={handleSubmitPractice} disabled={loading || !practiceResponse.trim()} style={{ marginTop: 8 }}>
-              Submit Practice
-            </button>
           </>
         )}
       </section>
 
       <section style={cardStyle}>
-        <h2 style={{ marginTop: 0 }}>Feedback Panel</h2>
-        <p>{feedback || 'Submit a task to view feedback.'}</p>
+        <h2 style={{ marginTop: 0 }}>Step 3: Review Feedback</h2>
+        <p>{feedback || 'Submit today’s task to see feedback and your next step.'}</p>
       </section>
 
       <section style={cardStyle}>
-        <h2 style={{ marginTop: 0 }}>Weekly Review</h2>
+        <h2 style={{ marginTop: 0 }}>Step 4: Start New Week</h2>
+        <p style={{ marginBottom: 0 }}>
+          {isWeekComplete ? 'Your week is complete. Tap the button below to start a fresh week.' : 'Finish all tasks this week to unlock “Start New Week”.'}
+        </p>
+      </section>
+
+      <section style={cardStyle}>
+        <button
+          onClick={handlePrimaryAction}
+          disabled={
+            loading ||
+            (canStartOrResetWeek
+              ? !promptText.trim() || !initialResponse.trim() || targetWordCount < 20
+              : !hasTaskToday || !practiceResponse.trim())
+          }
+          style={{ ...primaryButtonStyle, opacity: loading ? 0.7 : 1 }}
+          aria-label={primaryActionLabel}
+        >
+          {loading ? 'Please wait…' : primaryActionLabel}
+        </button>
+      </section>
+
+      <details style={cardStyle}>
+        <summary style={{ cursor: 'pointer', fontWeight: 700 }}>See details</summary>
         {!weeklyReview.ok || !weeklyReview.data ? (
-          <p>Complete tasks to unlock weekly review.</p>
+          <p>Weekly summary appears after more task submissions.</p>
         ) : (
           <>
-            <p>Completed tasks: {weeklyReview.data.weekly_review_summary.completed_tasks}</p>
-            <p>Repeated blockers: {weeklyReview.data.weekly_review_summary.top_remaining_weaknesses.join(', ') || 'None'}</p>
-            <p>Carry-forward primary: {weeklyReview.data.next_week_planning_inputs.carry_forward_primary_target}</p>
-            <p>Carry-forward secondary: {weeklyReview.data.next_week_planning_inputs.carry_forward_secondary_target}</p>
+            <p>Weekly completed tasks: {weeklyReview.data.weekly_review_summary.completed_tasks}</p>
+            <p>Stuck areas: {weeklyReview.data.weekly_review_summary.top_remaining_weaknesses.join(', ') || 'None'}</p>
+            <p>Next focus 1: {weeklyReview.data.next_week_planning_inputs.carry_forward_primary_target}</p>
+            <p>Next focus 2: {weeklyReview.data.next_week_planning_inputs.carry_forward_secondary_target}</p>
           </>
         )}
-      </section>
 
-      <section style={cardStyle}>
-        <h2 style={{ marginTop: 0 }}>Monthly Growth</h2>
         {!monthlyReport.ok || !monthlyReport.data ? (
-          <p>Monthly report will appear after enough attempts.</p>
+          <p>Monthly growth details will appear after enough attempts.</p>
         ) : (
           <>
-            <p>Score change: {monthlyReport.data.student_facing_monthly_report.score_change}</p>
-            <p>Subscale progress: {monthlyReport.data.student_facing_monthly_report.subscale_progress.join(' | ')}</p>
+            <p>Monthly score change: {monthlyReport.data.student_facing_monthly_report.score_change}</p>
+            <p>Skills improving: {monthlyReport.data.student_facing_monthly_report.subscale_progress.join(' | ')}</p>
             <p>Strongest gains: {monthlyReport.data.student_facing_monthly_report.strongest_gains.join(', ')}</p>
             <p>Mistakes reduced: {monthlyReport.data.student_facing_monthly_report.repeated_mistakes_reduced.join(', ')}</p>
-            <p>Biggest blocker: {monthlyReport.data.student_facing_monthly_report.remaining_blockers[0] ?? 'None'}</p>
+            <p>Main blocker: {monthlyReport.data.student_facing_monthly_report.remaining_blockers[0] ?? 'None'}</p>
             <p>Next month priorities: {monthlyReport.data.student_facing_monthly_report.next_month_priorities.join(', ')}</p>
           </>
         )}
-      </section>
+
+        {stateRes.ok && stateRes.data?.latest_assessment && (
+          <>
+            <p style={{ marginBottom: 4 }}><strong>Score breakdown</strong></p>
+            {[
+              ['Content', stateRes.data.latest_assessment.subscores.content],
+              ['Organisation', stateRes.data.latest_assessment.subscores.organisation],
+              ['Language', stateRes.data.latest_assessment.subscores.language],
+              ['Communicative', stateRes.data.latest_assessment.subscores.communicative_achievement ?? 0],
+            ].map(([label, value]) => (
+              <div key={String(label)} style={{ marginBottom: 6 }}>
+                <div style={{ fontSize: 12 }}>{label}: {value}/5</div>
+                <div style={{ height: 8, background: '#374151', borderRadius: 999 }}>
+                  <div style={{ width: `${(Number(value) / 5) * 100}%`, height: '100%', background: '#22c55e', borderRadius: 999 }} />
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+      </details>
 
       {error && <p style={{ color: '#fca5a5' }}>{error}</p>}
     </div>
