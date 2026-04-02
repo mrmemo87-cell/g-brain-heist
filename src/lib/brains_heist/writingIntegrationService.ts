@@ -465,23 +465,23 @@ export const getMonthlyWritingReport = (
   if (!state) return badRequest('student writing state not found.');
   if (!/^\d{4}-\d{2}$/.test(month)) return badRequest('month must be in YYYY-MM format.');
 
+  const existing = store.monthlyReports
+    .filter((item) => item.student_id === studentId && item.month === month)
+    .sort((a, b) => b.created_at.localeCompare(a.created_at))[0];
+
+  if (existing) {
+    return ok({
+      monthly_comparison_summary: existing.comparison,
+      student_facing_monthly_report: existing.report,
+      next_month_target_recommendations: existing.next_month_target_recommendations,
+    });
+  }
+
   const review = runMonthlyWritingReviewFlow({
     student_id: studentId,
     month,
     writing_state: state,
   });
-
-  store.states.set(studentId, review.updated_writing_state);
-  store.monthlyReports.push({
-    id: buildId('monthly'),
-    student_id: studentId,
-    month,
-    comparison: review.monthly_comparison_summary,
-    report: review.student_facing_monthly_report,
-    next_month_target_recommendations: review.next_month_target_recommendations,
-    created_at: new Date().toISOString(),
-  });
-  persistStore();
 
   return ok({
     monthly_comparison_summary: review.monthly_comparison_summary,
