@@ -25,9 +25,10 @@ type AiResult = {
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
 const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
 const openAiKey = Deno.env.get("OPENAI_API_KEY");
 
-if (!supabaseUrl || !serviceKey || !openAiKey) {
+if (!supabaseUrl || !serviceKey || !anonKey || !openAiKey) {
   throw new Error("Missing required environment variables.");
 }
 
@@ -59,6 +60,13 @@ const validatePayload = (payload: Payload | null): string | null => {
   return null;
 };
 
+
+const isAdminMode = (_mode: Payload["mode"]): boolean => {
+  // Current bh_writing_ai modes are student-facing.
+  // Keep this check explicit so future admin-only modes can be gated safely.
+  return false;
+};
+
 const normalizeAiResult = (mode: Payload["mode"], raw: unknown): AiResult | null => {
   if (!raw || typeof raw !== "object") return null;
   const value = raw as Record<string, unknown>;
@@ -85,13 +93,29 @@ serve(async (req) => {
   const authHeader = req.headers.get("authorization");
   if (!authHeader) return json(401, { error: "Missing authorization" });
 
-  const token = authHeader.replace("Bearer ", "");
-  const { data: authData, error: authError } = await supabase.auth.getUser(token);
+  const authClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data: authData, error: authError } = await authClient.auth.getUser();
   if (authError || !authData?.user) return json(401, { error: "Unauthorized" });
 
   const payload = (await req.json().catch(() => null)) as Payload | null;
   const payloadError = validatePayload(payload);
   if (payloadError) return json(400, { error: payloadError });
+
+  if (isAdminMode(payload.mode)) {
+    const { data: userData } = await supabase
+      .from("users")
+      .select("is_admin, role")
+      .eq("id", authData.user.id)
+      .single();
+
+    const isTeacherOrAdmin = userData?.is_admin === true
+      || userData?.role === "teacher"
+      || userData?.role === "admin";
+
+    if (!isTeacherOrAdmin) return json(403, { error: "Forbidden" });
+  }
 
   const userPrompt = payload.mode === "feedback"
     ? [
