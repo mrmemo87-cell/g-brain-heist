@@ -80,22 +80,39 @@ const normalizeAiResult = (mode: Payload["mode"], raw: unknown): AiResult | null
   return { focus, drills, checkpoints, coaching_points, rewritten_prompt, daily_task };
 };
 
-const getUserRole = async (userId: string): Promise<UserRole | null> => {
-  const { data: userData } = await supabase
+const normalizeRole = (value: unknown): UserRole | null => {
+  if (value === "admin" || value === "teacher" || value === "student") return value;
+  return null;
+};
+
+const getUserRole = async (
+  userId: string,
+  fallbackRole?: unknown,
+  fallbackIsAdmin?: unknown,
+): Promise<UserRole | null> => {
+  const { data: userData, error: userError } = await supabase
     .from("users")
     .select("role, is_admin")
     .eq("id", userId)
-    .single();
+    .maybeSingle();
 
-  if (!userData) return null;
+  if (userError) throw userError;
+
+  if (!userData) {
+    if (fallbackIsAdmin === true) return "admin";
+    return normalizeRole(fallbackRole);
+  }
   if (userData.is_admin === true || userData.role === "admin") return "admin";
   if (userData.role === "teacher") return "teacher";
   if (userData.role === "student") return "student";
+  if (fallbackIsAdmin === true) return "admin";
+  const normalizedFallbackRole = normalizeRole(fallbackRole);
+  if (normalizedFallbackRole) return normalizedFallbackRole;
   return null;
 };
 
 const canUseMode = (role: UserRole, mode: Payload["mode"]): boolean => {
-  if (role === "student") return mode === "feedback" || mode === "plan_assist";
+  if (role === "student") return mode === "plan_assist";
   return mode === "feedback" || mode === "plan_assist";
 };
 
@@ -114,7 +131,11 @@ serve(async (req) => {
   const payloadError = validatePayload(payload);
   if (payloadError) return json(400, { error: payloadError });
 
-  const role = await getUserRole(authData.user.id);
+  const role = await getUserRole(
+    authData.user.id,
+    authData.user.app_metadata?.role,
+    authData.user.app_metadata?.is_admin,
+  );
   if (!role) return json(403, { error: "Forbidden" });
   if (!canUseMode(role, payload.mode)) return json(403, { error: "Forbidden" });
 
