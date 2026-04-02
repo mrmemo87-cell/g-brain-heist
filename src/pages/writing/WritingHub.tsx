@@ -129,9 +129,27 @@ const primaryButtonStyle = {
   boxShadow: '0 10px 22px rgba(59, 130, 246, 0.38)',
 };
 
+const computeWordCountRange = (targetWords: number): { min: number; max: number } => ({
+  min: Math.max(1, Math.floor(targetWords * 0.9)),
+  max: Math.ceil(targetWords * 1.1),
+});
+
+const weaknessTagToStudentTip = (tag: string): string => {
+  const tipMap: Record<string, string> = {
+    tense_error: 'Check your verb tense so time is clear and consistent.',
+    agreement_error: 'Match subjects and verbs (for example: “they were”, not “they was”).',
+    weak_paragraphing: 'Split ideas into clear paragraphs so each paragraph has one main point.',
+    poor_sequencing: 'Use linking words (first, next, however, finally) to guide your reader.',
+    wrong_tone: 'Use the right tone for the task (formal for reports/essays, natural for stories).',
+    weak_register_control: 'Choose words that fit the task style and audience.',
+    under_length: 'Add enough detail so your answer reaches the expected length.',
+  };
+  return tipMap[tag] ?? `Focus on clearer ${tag.replaceAll('_', ' ')} in your next response.`;
+};
+
 export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre, month = new Date().toISOString().slice(0, 7) }) => {
   const [promptText, setPromptText] = useState('Write a response that includes:\n- describe the event\n- explain why it mattered\n- give one suggestion');
-  const [targetWordCount, setTargetWordCount] = useState(grade <= 7 ? 80 : grade <= 9 ? 120 : 160);
+  const [targetWordCount] = useState(grade <= 7 ? 80 : grade <= 9 ? 120 : 160);
   const [initialResponse, setInitialResponse] = useState('');
   const [practiceResponse, setPracticeResponse] = useState('');
   const [feedback, setFeedback] = useState<string>('');
@@ -162,16 +180,19 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   const isWeekComplete = hasActiveWeek && completedTasksCount >= totalPlannedTasks && (!todayTask.ok || !todayTask.data);
   const canStartOrResetWeek = !hasActiveWeek || isWeekComplete;
   const hasTaskToday = Boolean(todayTask.ok && todayTask.data);
-  const latestWeaknesses = stateRes.ok && stateRes.data?.latest_assessment
-    ? stateRes.data.latest_assessment.weakness_tags.slice(0, 3).map((tag) => tag.replaceAll('_', ' '))
+  const latestWeaknessTags = stateRes.ok && stateRes.data?.latest_assessment
+    ? stateRes.data.latest_assessment.weakness_tags.slice(0, 3)
     : [];
+  const latestWeaknesses = latestWeaknessTags.map((tag) => tag.replaceAll('_', ' '));
+  const focusCoachingPoints = (aiCoachingPoints.length > 0
+    ? aiCoachingPoints.slice(0, 3)
+    : latestWeaknessTags.slice(0, 3).map((tag) => weaknessTagToStudentTip(tag))).slice(0, 3);
+  const wordCountRange = computeWordCountRange(targetWordCount);
 
   const completionRatio =
     stateRes.ok && stateRes.data && stateRes.data.active_daily_tasks.length > 0
       ? stateRes.data.completed_daily_tasks.length / stateRes.data.active_daily_tasks.length
       : 0;
-
-  const currentStep = canStartOrResetWeek ? 1 : hasTaskToday ? 2 : 3;
 
   const missionStateMeta = canStartOrResetWeek
     ? {
@@ -352,126 +373,125 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
         <h2 style={{ margin: '0 0 10px', color: '#e2e8f0', fontSize: 22, lineHeight: 1.2 }}>{missionStateMeta.title}</h2>
         <p style={{ margin: 0, color: '#cbd5e1', fontSize: 15 }}>{missionStateMeta.subtitle}</p>
         {showNoWritingState && <p style={{ margin: '8px 0 0', color: '#bfdbfe', fontSize: 13 }}>No writing state yet</p>}
-
-        <div style={{ marginTop: 14, display: 'grid', gap: 8 }}>
-          <p style={{ margin: 0, color: '#dbeafe', fontSize: 13, fontWeight: 700 }}>
-            Step {currentStep} of 4 · {Math.round(completionRatio * 100)}% complete
-          </p>
-          <div style={progressTrackStyle}>
-            <div
-              className="progress-fill"
-              style={{
-                width: `${Math.min(100, completionRatio * 100)}%`,
-                height: '100%',
-                background: 'linear-gradient(90deg, #38bdf8 0%, #22d3ee 55%, #34d399 100%)',
-                borderRadius: 999,
-              }}
-            />
-          </div>
-        </div>
-      </section>
-
-      <section className="writing-hub-card" style={shellCardStyle}>
-        <h3 style={{ marginTop: 0, marginBottom: 10, fontSize: 20, color: '#f8fafc' }}>1) Start Writing Week</h3>
-        {!canStartOrResetWeek && <p style={{ marginTop: 0, color: '#94a3b8' }}>Week already active. Finish today’s task before starting a new week.</p>}
-        <label style={{ display: 'block', fontSize: 13, color: '#bfdbfe', marginBottom: 6 }}>Prompt</label>
-        <textarea value={promptText} onChange={(e: { target: { value: string } }) => setPromptText(e.target.value)} style={{ ...fieldStyle, minHeight: 92 }} />
-        <button
-          type="button"
-          onClick={() => void handleEnhancePrompt()}
-          disabled={aiBusy || !promptText.trim()}
-          style={{
-            marginTop: 8,
-            padding: '8px 10px',
-            borderRadius: 10,
-            border: '1px solid rgba(147, 197, 253, 0.45)',
-            background: 'rgba(30, 41, 59, 0.9)',
-            color: '#bfdbfe',
-            cursor: 'pointer',
-          }}
-        >
-          {aiBusy ? 'Improving prompt…' : 'Improve prompt wording'}
-        </button>
-
-        <label style={{ display: 'block', fontSize: 13, color: '#bfdbfe', margin: '10px 0 6px' }}>Target words</label>
-        <input
-          type="number"
-          value={targetWordCount}
-          onChange={(e: { target: { value: string } }) => setTargetWordCount(Number(e.target.value) || 0)}
-          style={fieldStyle}
-        />
-
-        <label style={{ display: 'block', fontSize: 13, color: '#bfdbfe', margin: '10px 0 6px' }}>Initial response</label>
-        <textarea
-          value={initialResponse}
-          onChange={(e: { target: { value: string } }) => setInitialResponse(e.target.value)}
-          placeholder="Paste your first writing response"
-          style={{ ...fieldStyle, minHeight: 100 }}
-        />
-      </section>
-
-      <section className="writing-hub-card" style={shellCardStyle}>
-        <h3 style={{ marginTop: 0, marginBottom: 10, fontSize: 20, color: '#f8fafc' }}>2) Complete Today’s Task</h3>
-        <p style={{ marginTop: 0, color: '#94a3b8', fontSize: 13 }}>Today’s Task</p>
-        {!todayTask.ok || !todayTask.data ? (
-          <p style={{ margin: 0, color: '#cbd5e1' }}>
-            {isWeekComplete
-              ? 'Week complete. All tasks submitted for now. Start a new week when you are ready.'
-              : stateRes.ok && stateRes.data?.active_daily_tasks.length
-                ? 'No task to submit right now. Check back tomorrow.'
-                : 'Start your writing week to get today’s task.'}
-          </p>
-        ) : (
-          <>
-            <p style={{ margin: 0, color: '#7dd3fc', fontWeight: 700, fontSize: 13 }}>Active objective</p>
-            <h4 style={{ margin: '6px 0 8px', color: '#f8fafc', fontSize: 19 }}>{todayTask.data.title}</h4>
-            <p style={{ margin: '0 0 8px', color: '#e2e8f0', fontSize: 15 }}>{aiTaskWording || todayTask.data.instructions}</p>
-            <p style={{ margin: '0 0 8px', color: '#94a3b8', fontSize: 13 }}>
-              Target length: about {todayTask.data.expected_word_count} words. Expected word count: {todayTask.data.expected_word_count}.
+        {!isWeekComplete && (
+          <div style={{ marginTop: 14, display: 'grid', gap: 8 }}>
+            <p style={{ margin: 0, color: '#dbeafe', fontSize: 13, fontWeight: 700 }}>
+              {hasTaskToday ? 'Current step: Today’s task' : 'Current step: Start your writing week'}
             </p>
-            <ul style={{ margin: '0 0 10px', paddingLeft: 18, color: '#cbd5e1', fontSize: 14 }}>
-              {todayTask.data.success_criteria.map((item) => (
-                <li key={item} style={{ marginBottom: 4 }}>{item}</li>
-              ))}
-            </ul>
-            <textarea
-              value={practiceResponse}
-              onChange={(e: { target: { value: string } }) => setPracticeResponse(e.target.value)}
-              placeholder="Write your submission here"
-              style={{ ...fieldStyle, minHeight: 120 }}
-            />
-          </>
+            <div style={progressTrackStyle}>
+              <div
+                className="progress-fill"
+                style={{
+                  width: `${Math.min(100, completionRatio * 100)}%`,
+                  height: '100%',
+                  background: 'linear-gradient(90deg, #38bdf8 0%, #22d3ee 55%, #34d399 100%)',
+                  borderRadius: 999,
+                }}
+              />
+            </div>
+          </div>
         )}
       </section>
 
-      <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(16, 185, 129, 0.32)' }}>
-        <h3 style={{ marginTop: 0, marginBottom: 6, fontSize: 19, color: '#f8fafc' }}>3) Feedback & Momentum</h3>
-        <p style={{ margin: 0, color: feedback ? '#a7f3d0' : '#94a3b8', fontSize: 15 }}>
-          {feedback || 'Submit today’s task to reveal your feedback and next coaching step.'}
-        </p>
-      </section>
+      {canStartOrResetWeek && !isWeekComplete && (
+        <section className="writing-hub-card" style={shellCardStyle}>
+          <h3 style={{ marginTop: 0, marginBottom: 10, fontSize: 20, color: '#f8fafc' }}>Start Writing Week</h3>
+          <label style={{ display: 'block', fontSize: 13, color: '#bfdbfe', marginBottom: 6 }}>Task prompt</label>
+          <div style={{ ...fieldStyle, minHeight: 92, whiteSpace: 'pre-wrap' }}>{promptText}</div>
+          <button
+            type="button"
+            onClick={() => void handleEnhancePrompt()}
+            disabled={aiBusy || !promptText.trim()}
+            style={{
+              marginTop: 8,
+              padding: '10px 12px',
+              borderRadius: 10,
+              border: '1px solid rgba(147, 197, 253, 0.65)',
+              background: 'rgba(30, 41, 59, 0.95)',
+              color: '#dbeafe',
+              cursor: 'pointer',
+              fontWeight: 700,
+            }}
+          >
+            {aiBusy ? 'Clarifying task…' : 'Make this task clearer'}
+          </button>
+          <p style={{ margin: '6px 0 0', color: '#93c5fd', fontSize: 12 }}>
+            This only rewrites the instructions to be easier to understand. It does not change what you need to do.
+          </p>
 
-      <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(125, 211, 252, 0.35)' }}>
-        <h3 style={{ marginTop: 0, marginBottom: 6, fontSize: 19, color: '#f8fafc' }}>Your focus this week</h3>
-        <p style={{ margin: '0 0 8px', color: '#bfdbfe', fontSize: 15 }}>
-          {aiWeeklyFocus || dashboard.data?.weekly_plan_summary?.primary || 'Build clearer control in your weakest writing area.'}
-        </p>
-        <ul style={{ margin: 0, paddingLeft: 18, color: '#cbd5e1', fontSize: 14 }}>
-          {(aiCoachingPoints.length > 0
-            ? aiCoachingPoints.slice(0, 3)
-            : latestWeaknesses.slice(0, 3).map((item) => `Work specifically on ${item}.`)
-          ).map((item) => (
-            <li key={item} style={{ marginBottom: 4 }}>{item}</li>
-          ))}
-        </ul>
-      </section>
+          <p style={{ margin: '10px 0 6px', fontSize: 13, color: '#bfdbfe' }}>
+            Word count: {wordCountRange.min}–{wordCountRange.max} words
+          </p>
 
-      <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: isWeekComplete ? 'rgba(250, 204, 21, 0.45)' : 'rgba(148, 163, 184, 0.3)' }}>
-        <h3 style={{ marginTop: 0, marginBottom: 6, fontSize: 19, color: '#f8fafc' }}>4) Week Completion</h3>
-        <p style={{ margin: 0, color: isWeekComplete ? '#fde68a' : '#94a3b8', fontSize: 15 }}>
-          {isWeekComplete ? 'Mission complete. Celebrate the streak and launch your next week.' : 'Finish all weekly tasks to unlock your next mission launch.'}
-        </p>
-      </section>
+          <label style={{ display: 'block', fontSize: 13, color: '#bfdbfe', margin: '10px 0 6px' }}>Initial response</label>
+          <textarea
+            value={initialResponse}
+            onChange={(e: { target: { value: string } }) => setInitialResponse(e.target.value)}
+            placeholder="Paste your first writing response"
+            style={{ ...fieldStyle, minHeight: 100 }}
+          />
+        </section>
+      )}
+
+      {!canStartOrResetWeek && (
+        <section className="writing-hub-card" style={shellCardStyle}>
+          <h3 style={{ marginTop: 0, marginBottom: 10, fontSize: 20, color: '#f8fafc' }}>Today’s Active Task</h3>
+          {!todayTask.ok || !todayTask.data ? (
+            <p style={{ margin: 0, color: '#cbd5e1' }}>No task to submit right now. Check back tomorrow.</p>
+          ) : (
+            <>
+              <h4 style={{ margin: '0 0 8px', color: '#f8fafc', fontSize: 19 }}>{todayTask.data.title}</h4>
+              <p style={{ margin: '0 0 8px', color: '#e2e8f0', fontSize: 15 }}>{aiTaskWording || todayTask.data.instructions}</p>
+              <p style={{ margin: '0 0 8px', color: '#94a3b8', fontSize: 13 }}>
+                Word count: {computeWordCountRange(todayTask.data.expected_word_count).min}–{computeWordCountRange(todayTask.data.expected_word_count).max} words
+              </p>
+              <ul style={{ margin: '0 0 10px', paddingLeft: 18, color: '#cbd5e1', fontSize: 14 }}>
+                {todayTask.data.success_criteria.map((item) => (
+                  <li key={item} style={{ marginBottom: 4 }}>{item}</li>
+                ))}
+              </ul>
+              <textarea
+                value={practiceResponse}
+                onChange={(e: { target: { value: string } }) => setPracticeResponse(e.target.value)}
+                placeholder="Write your submission here"
+                style={{ ...fieldStyle, minHeight: 120 }}
+              />
+            </>
+          )}
+        </section>
+      )}
+
+      {!isWeekComplete && (
+        <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(125, 211, 252, 0.35)' }}>
+          <h3 style={{ marginTop: 0, marginBottom: 6, fontSize: 19, color: '#f8fafc' }}>Your focus this week</h3>
+          <p style={{ margin: '0 0 8px', color: '#bfdbfe', fontSize: 15 }}>
+            {aiWeeklyFocus || dashboard.data?.weekly_plan_summary?.primary || 'Build clearer control in your weakest writing area.'}
+          </p>
+          <ul style={{ margin: 0, paddingLeft: 18, color: '#cbd5e1', fontSize: 14 }}>
+            {focusCoachingPoints.map((item) => (
+              <li key={item} style={{ marginBottom: 4 }}>{item}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {!isWeekComplete && (
+        <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(16, 185, 129, 0.32)' }}>
+          <h3 style={{ marginTop: 0, marginBottom: 6, fontSize: 19, color: '#f8fafc' }}>Feedback & Momentum</h3>
+          <p style={{ margin: 0, color: feedback ? '#a7f3d0' : '#94a3b8', fontSize: 15 }}>
+            {feedback || 'Submit today’s task to reveal your feedback and next coaching step.'}
+          </p>
+        </section>
+      )}
+
+      {isWeekComplete && (
+        <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(250, 204, 21, 0.45)' }}>
+          <h3 style={{ marginTop: 0, marginBottom: 6, fontSize: 22, color: '#fde68a' }}>Week complete</h3>
+          <p style={{ margin: 0, color: '#fef3c7', fontSize: 15 }}>
+            Great work — you finished every task this week. Start a new week when you are ready for the next challenge.
+          </p>
+        </section>
+      )}
 
       <section className="writing-hub-card" style={shellCardStyle}>
         <button
