@@ -90,11 +90,13 @@ const getUserRole = async (
   fallbackRole?: unknown,
   fallbackIsAdmin?: unknown,
 ): Promise<UserRole | null> => {
-  const { data: userData } = await supabase
+  const { data: userData, error: userError } = await supabase
     .from("users")
     .select("role, is_admin")
     .eq("id", userId)
-    .single();
+    .maybeSingle();
+
+  if (userError) throw userError;
 
   if (!userData) {
     if (fallbackIsAdmin === true) return "admin";
@@ -131,8 +133,8 @@ serve(async (req) => {
 
   const role = await getUserRole(
     authData.user.id,
-    authData.user.user_metadata?.role ?? authData.user.app_metadata?.role,
-    authData.user.user_metadata?.is_admin ?? authData.user.app_metadata?.is_admin,
+    authData.user.app_metadata?.role,
+    authData.user.app_metadata?.is_admin,
   );
   if (!role) return json(403, { error: "Forbidden" });
   if (!canUseMode(role, payload.mode)) return json(403, { error: "Forbidden" });
