@@ -10,6 +10,8 @@ type Payload = {
   grade?: number;
   genre?: string;
 };
+
+type UserRole = "student" | "teacher" | "admin";
 type AiResult = {
   strengths?: string[];
   weaknesses?: string[];
@@ -78,6 +80,25 @@ const normalizeAiResult = (mode: Payload["mode"], raw: unknown): AiResult | null
   return { focus, drills, checkpoints, coaching_points, rewritten_prompt, daily_task };
 };
 
+const getUserRole = async (userId: string): Promise<UserRole | null> => {
+  const { data: userData } = await supabase
+    .from("users")
+    .select("role, is_admin")
+    .eq("id", userId)
+    .single();
+
+  if (!userData) return null;
+  if (userData.is_admin === true || userData.role === "admin") return "admin";
+  if (userData.role === "teacher") return "teacher";
+  if (userData.role === "student") return "student";
+  return null;
+};
+
+const canUseMode = (role: UserRole, mode: Payload["mode"]): boolean => {
+  if (role === "student") return mode === "feedback" || mode === "plan_assist";
+  return mode === "feedback" || mode === "plan_assist";
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json(405, { error: "Method not allowed" });
@@ -92,6 +113,10 @@ serve(async (req) => {
   const payload = (await req.json().catch(() => null)) as Payload | null;
   const payloadError = validatePayload(payload);
   if (payloadError) return json(400, { error: payloadError });
+
+  const role = await getUserRole(authData.user.id);
+  if (!role) return json(403, { error: "Forbidden" });
+  if (!canUseMode(role, payload.mode)) return json(403, { error: "Forbidden" });
 
   const userPrompt = payload.mode === "feedback"
     ? [
