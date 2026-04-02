@@ -42,13 +42,14 @@ export const buildWritingDashboardSnapshot = (
   return {
     ok: true,
     data: {
-      weekly_plan_summary: weeklyPlan.ok && weeklyPlan.data
-        ? {
-            primary: weeklyPlan.data.primary_target,
-            secondary: weeklyPlan.data.secondary_target,
-            maintenance: weeklyPlan.data.maintenance_target,
-          }
-        : null,
+      weekly_plan_summary:
+        weeklyPlan.ok && weeklyPlan.data
+          ? {
+              primary: weeklyPlan.data.primary_target,
+              secondary: weeklyPlan.data.secondary_target,
+              maintenance: weeklyPlan.data.maintenance_target,
+            }
+          : null,
       todays_task_title: today.ok && today.data ? today.data.title : null,
       completed_tasks_count: stateRes.data.completed_daily_tasks.length,
       latest_total_score: stateRes.data.latest_assessment?.total_score ?? null,
@@ -57,25 +58,60 @@ export const buildWritingDashboardSnapshot = (
   };
 };
 
-const cardStyle = {
-  background: '#111827',
-  borderRadius: 14,
-  padding: 14,
-  border: '1px solid #374151',
+const pageStyle = {
+  padding: 12,
+  display: 'grid',
+  gap: 12,
+  maxWidth: 860,
+  margin: '0 auto',
   color: '#e5e7eb',
 };
 
-const primaryButtonStyle = {
-  marginTop: 12,
+const shellCardStyle = {
+  borderRadius: 20,
+  border: '1px solid rgba(59, 130, 246, 0.25)',
+  background: 'linear-gradient(180deg, #0f172a 0%, #0b1224 100%)',
+  padding: 18,
+  boxShadow: '0 10px 30px rgba(2, 6, 23, 0.45)',
+};
+
+const missionCardStyle = {
+  ...shellCardStyle,
+  background: 'linear-gradient(155deg, #1d4ed8 0%, #312e81 55%, #0f172a 100%)',
+  border: '1px solid rgba(147, 197, 253, 0.45)',
+};
+
+const progressTrackStyle = {
+  height: 10,
+  background: 'rgba(148, 163, 184, 0.24)',
+  borderRadius: 999,
+  overflow: 'hidden',
+};
+
+const fieldStyle = {
   width: '100%',
-  padding: '12px 16px',
-  borderRadius: 10,
-  border: 'none',
-  background: '#2563eb',
+  borderRadius: 12,
+  border: '1px solid rgba(148, 163, 184, 0.4)',
+  background: 'rgba(15, 23, 42, 0.88)',
+  color: '#f8fafc',
+  padding: '12px 14px',
+  fontSize: 15,
+  lineHeight: 1.5,
+};
+
+const primaryButtonStyle = {
+  marginTop: 14,
+  width: '100%',
+  padding: '14px 16px',
+  borderRadius: 12,
+  border: '1px solid rgba(191, 219, 254, 0.5)',
+  background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
   color: '#ffffff',
-  fontWeight: 700,
+  fontWeight: 800,
   fontSize: 16,
   cursor: 'pointer',
+  transition: 'transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease',
+  boxShadow: '0 10px 22px rgba(59, 130, 246, 0.38)',
 };
 
 export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre, month = new Date().toISOString().slice(0, 7) }) => {
@@ -105,6 +141,29 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
       : 0;
 
   const currentStep = canStartOrResetWeek ? 1 : hasTaskToday ? 2 : 3;
+
+  const missionStateMeta = canStartOrResetWeek
+    ? {
+        badge: isWeekComplete ? 'Week Complete' : 'Mission Brief',
+        title: isWeekComplete ? 'Ready for Your Next Writing Quest?' : 'Launch Your Writing Mission',
+        subtitle: isWeekComplete
+          ? 'You completed this week. Lock in the momentum with a fresh challenge.'
+          : 'Set your prompt, target, and opening response to unlock your week.',
+        toneColor: '#bbf7d0',
+      }
+    : hasTaskToday
+      ? {
+          badge: 'Live Mission',
+          title: 'Today’s Writing Challenge is Active',
+          subtitle: 'Stay focused. Submit one clear, high-quality response for today’s objective.',
+          toneColor: '#bfdbfe',
+        }
+      : {
+          badge: 'Review Window',
+          title: 'Mission in Progress — Review & Recharge',
+          subtitle: 'No task due right now. Use feedback and progress insights to prep your next win.',
+          toneColor: '#ddd6fe',
+        };
 
   const handleStart = () => {
     setLoading(true);
@@ -163,89 +222,126 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   };
 
   return (
-    <div style={{ padding: 12, display: 'grid', gap: 12, maxWidth: 760, margin: '0 auto' }}>
-      <h1 style={{ color: '#f9fafb', margin: 0 }}>🧠 Writing Hub</h1>
+    <div style={pageStyle}>
+      <style>{`
+        .writing-hub-card {
+          animation: cardIn 380ms ease both;
+          transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+        }
+        .writing-hub-card:hover {
+          transform: translateY(-2px);
+          border-color: rgba(125, 211, 252, 0.45);
+          box-shadow: 0 14px 28px rgba(15, 23, 42, 0.42);
+        }
+        .writing-primary-button:hover:enabled {
+          transform: translateY(-1px) scale(1.01);
+          box-shadow: 0 14px 26px rgba(99, 102, 241, 0.35);
+        }
+        .writing-primary-button:active:enabled {
+          transform: translateY(1px) scale(0.99);
+        }
+        .progress-fill {
+          transition: width 560ms cubic-bezier(.34,1.56,.64,1);
+        }
+        @keyframes cardIn {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
 
-      <section style={cardStyle}>
-        <h2 style={{ marginTop: 0, marginBottom: 8 }}>Your writing steps</h2>
-        <p style={{ marginTop: 0, color: '#93c5fd' }}>
-          Step {currentStep} of 4:{' '}
-          {currentStep === 1 ? 'Start Writing Week' : currentStep === 2 ? 'Complete Today’s Task' : 'Review Feedback'}
-        </p>
-        {!stateRes.ok || !dashboard.ok || !dashboard.data ? (
-          <p>Let’s get started. Begin your writing week to unlock today’s task.</p>
-        ) : (
-          <>
-            <p style={{ margin: '0 0 8px 0' }}>
-              {isWeekComplete
-                ? 'You finished this week. Nice work! Tap “Start New Week” when you are ready.'
-                : hasTaskToday
-                  ? 'You have a task ready now. Complete it and submit your writing.'
-                  : 'You’re on track. Check your latest feedback and come back for your next task.'}
-            </p>
-            <div style={{ height: 10, background: '#374151', borderRadius: 999 }}>
-              <div style={{ width: `${Math.min(100, completionRatio * 100)}%`, height: '100%', background: '#60a5fa', borderRadius: 999 }} />
-            </div>
-            <p style={{ fontSize: 12, marginBottom: 0 }}>{Math.round(completionRatio * 100)}% of this week completed</p>
-          </>
-        )}
+      <section className="writing-hub-card" style={missionCardStyle}>
+        <p style={{ margin: 0, color: missionStateMeta.toneColor, fontWeight: 700, letterSpacing: 0.3, fontSize: 13 }}>{missionStateMeta.badge}</p>
+        <h1 style={{ margin: '6px 0 8px', color: '#f8fafc', fontSize: 30, lineHeight: 1.1 }}>Writing Hub</h1>
+        <h2 style={{ margin: '0 0 10px', color: '#e2e8f0', fontSize: 22, lineHeight: 1.2 }}>{missionStateMeta.title}</h2>
+        <p style={{ margin: 0, color: '#cbd5e1', fontSize: 15 }}>{missionStateMeta.subtitle}</p>
+
+        <div style={{ marginTop: 14, display: 'grid', gap: 8 }}>
+          <p style={{ margin: 0, color: '#dbeafe', fontSize: 13, fontWeight: 700 }}>
+            Step {currentStep} of 4 · {Math.round(completionRatio * 100)}% complete
+          </p>
+          <div style={progressTrackStyle}>
+            <div
+              className="progress-fill"
+              style={{
+                width: `${Math.min(100, completionRatio * 100)}%`,
+                height: '100%',
+                background: 'linear-gradient(90deg, #38bdf8 0%, #22d3ee 55%, #34d399 100%)',
+                borderRadius: 999,
+              }}
+            />
+          </div>
+        </div>
       </section>
 
-      <section style={cardStyle}>
-        <h2 style={{ marginTop: 0 }}>Step 1: Start Writing Week</h2>
-        {!canStartOrResetWeek && <p style={{ marginTop: 0 }}>You already started this week. Finish today’s task first.</p>}
-        <textarea value={promptText} onChange={(e: { target: { value: string } }) => setPromptText(e.target.value)} style={{ width: '100%', minHeight: 80 }} />
+      <section className="writing-hub-card" style={shellCardStyle}>
+        <h3 style={{ marginTop: 0, marginBottom: 10, fontSize: 20, color: '#f8fafc' }}>1) Start Writing Week</h3>
+        {!canStartOrResetWeek && <p style={{ marginTop: 0, color: '#94a3b8' }}>Week already active. Finish today’s task before starting a new week.</p>}
+        <label style={{ display: 'block', fontSize: 13, color: '#bfdbfe', marginBottom: 6 }}>Prompt</label>
+        <textarea value={promptText} onChange={(e: { target: { value: string } }) => setPromptText(e.target.value)} style={{ ...fieldStyle, minHeight: 92 }} />
+
+        <label style={{ display: 'block', fontSize: 13, color: '#bfdbfe', margin: '10px 0 6px' }}>Target words</label>
         <input
           type="number"
           value={targetWordCount}
           onChange={(e: { target: { value: string } }) => setTargetWordCount(Number(e.target.value) || 0)}
-          style={{ width: '100%', marginTop: 8 }}
+          style={fieldStyle}
         />
+
+        <label style={{ display: 'block', fontSize: 13, color: '#bfdbfe', margin: '10px 0 6px' }}>Initial response</label>
         <textarea
           value={initialResponse}
           onChange={(e: { target: { value: string } }) => setInitialResponse(e.target.value)}
           placeholder="Paste your first writing response"
-          style={{ width: '100%', minHeight: 80, marginTop: 8 }}
+          style={{ ...fieldStyle, minHeight: 100 }}
         />
       </section>
 
-      <section style={cardStyle}>
-        <h2 style={{ marginTop: 0 }}>Step 2: Complete Today’s Task</h2>
+      <section className="writing-hub-card" style={shellCardStyle}>
+        <h3 style={{ marginTop: 0, marginBottom: 10, fontSize: 20, color: '#f8fafc' }}>2) Complete Today’s Task</h3>
         {!todayTask.ok || !todayTask.data ? (
-          <p>{isWeekComplete ? 'Week complete. Start a new week when you are ready.' : stateRes.ok && stateRes.data?.active_daily_tasks.length ? 'No task to submit right now. Check back tomorrow.' : 'Start your writing week to get today’s task.'}</p>
+          <p style={{ margin: 0, color: '#cbd5e1' }}>
+            {isWeekComplete
+              ? 'Week complete. Start a new week when you are ready.'
+              : stateRes.ok && stateRes.data?.active_daily_tasks.length
+                ? 'No task to submit right now. Check back tomorrow.'
+                : 'Start your writing week to get today’s task.'}
+          </p>
         ) : (
           <>
-            <h3>{todayTask.data.title}</h3>
-            <p>{todayTask.data.instructions}</p>
-            <p>Aim for about {todayTask.data.expected_word_count} words.</p>
-            <ul>
+            <p style={{ margin: 0, color: '#7dd3fc', fontWeight: 700, fontSize: 13 }}>Active objective</p>
+            <h4 style={{ margin: '6px 0 8px', color: '#f8fafc', fontSize: 19 }}>{todayTask.data.title}</h4>
+            <p style={{ margin: '0 0 8px', color: '#e2e8f0', fontSize: 15 }}>{todayTask.data.instructions}</p>
+            <p style={{ margin: '0 0 8px', color: '#94a3b8', fontSize: 13 }}>Target length: about {todayTask.data.expected_word_count} words.</p>
+            <ul style={{ margin: '0 0 10px', paddingLeft: 18, color: '#cbd5e1', fontSize: 14 }}>
               {todayTask.data.success_criteria.map((item) => (
-                <li key={item}>{item}</li>
+                <li key={item} style={{ marginBottom: 4 }}>{item}</li>
               ))}
             </ul>
             <textarea
               value={practiceResponse}
               onChange={(e: { target: { value: string } }) => setPracticeResponse(e.target.value)}
               placeholder="Write your submission here"
-              style={{ width: '100%', minHeight: 90 }}
+              style={{ ...fieldStyle, minHeight: 120 }}
             />
           </>
         )}
       </section>
 
-      <section style={cardStyle}>
-        <h2 style={{ marginTop: 0 }}>Step 3: Review Feedback</h2>
-        <p>{feedback || 'Submit today’s task to see feedback and your next step.'}</p>
-      </section>
-
-      <section style={cardStyle}>
-        <h2 style={{ marginTop: 0 }}>Step 4: Start New Week</h2>
-        <p style={{ marginBottom: 0 }}>
-          {isWeekComplete ? 'Your week is complete. Tap the button below to start a fresh week.' : 'Finish all tasks this week to unlock “Start New Week”.'}
+      <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(16, 185, 129, 0.32)' }}>
+        <h3 style={{ marginTop: 0, marginBottom: 6, fontSize: 19, color: '#f8fafc' }}>3) Feedback & Momentum</h3>
+        <p style={{ margin: 0, color: feedback ? '#a7f3d0' : '#94a3b8', fontSize: 15 }}>
+          {feedback || 'Submit today’s task to reveal your feedback and next coaching step.'}
         </p>
       </section>
 
-      <section style={cardStyle}>
+      <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: isWeekComplete ? 'rgba(250, 204, 21, 0.45)' : 'rgba(148, 163, 184, 0.3)' }}>
+        <h3 style={{ marginTop: 0, marginBottom: 6, fontSize: 19, color: '#f8fafc' }}>4) Week Completion</h3>
+        <p style={{ margin: 0, color: isWeekComplete ? '#fde68a' : '#94a3b8', fontSize: 15 }}>
+          {isWeekComplete ? 'Mission complete. Celebrate the streak and launch your next week.' : 'Finish all weekly tasks to unlock your next mission launch.'}
+        </p>
+      </section>
+
+      <section className="writing-hub-card" style={shellCardStyle}>
         <button
           onClick={handlePrimaryAction}
           disabled={
@@ -254,6 +350,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
               ? !promptText.trim() || !initialResponse.trim() || targetWordCount < 20
               : !hasTaskToday || !practiceResponse.trim())
           }
+          className="writing-primary-button"
           style={{ ...primaryButtonStyle, opacity: loading ? 0.7 : 1 }}
           aria-label={primaryActionLabel}
         >
@@ -261,53 +358,77 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
         </button>
       </section>
 
-      <details style={cardStyle}>
-        <summary style={{ cursor: 'pointer', fontWeight: 700 }}>See details</summary>
-        {!weeklyReview.ok || !weeklyReview.data ? (
-          <p>Weekly summary appears after more task submissions.</p>
-        ) : (
-          <>
-            <p>Weekly completed tasks: {weeklyReview.data.weekly_review_summary.completed_tasks}</p>
-            <p>Stuck areas: {weeklyReview.data.weekly_review_summary.top_remaining_weaknesses.join(', ') || 'None'}</p>
-            <p>Next focus 1: {weeklyReview.data.next_week_planning_inputs.carry_forward_primary_target}</p>
-            <p>Next focus 2: {weeklyReview.data.next_week_planning_inputs.carry_forward_secondary_target}</p>
-          </>
-        )}
+      <details className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(148, 163, 184, 0.28)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 700, color: '#e2e8f0' }}>View progress details</summary>
+        <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+          {!weeklyReview.ok || !weeklyReview.data ? (
+            <p style={{ margin: 0, color: '#94a3b8' }}>Weekly summary appears after more task submissions.</p>
+          ) : (
+            <>
+              <p style={{ margin: 0 }}>Weekly completed tasks: {weeklyReview.data.weekly_review_summary.completed_tasks}</p>
+              <p style={{ margin: 0, color: '#94a3b8' }}>
+                Stuck areas: {weeklyReview.data.weekly_review_summary.top_remaining_weaknesses.join(', ') || 'None'}
+              </p>
+              <p style={{ margin: 0, color: '#93c5fd' }}>Next focus 1: {weeklyReview.data.next_week_planning_inputs.carry_forward_primary_target}</p>
+              <p style={{ margin: 0, color: '#93c5fd' }}>Next focus 2: {weeklyReview.data.next_week_planning_inputs.carry_forward_secondary_target}</p>
+            </>
+          )}
 
-        {!monthlyReport.ok || !monthlyReport.data ? (
-          <p>Monthly growth details will appear after enough attempts.</p>
-        ) : (
-          <>
-            <p>Monthly score change: {monthlyReport.data.student_facing_monthly_report.score_change}</p>
-            <p>Skills improving: {monthlyReport.data.student_facing_monthly_report.subscale_progress.join(' | ')}</p>
-            <p>Strongest gains: {monthlyReport.data.student_facing_monthly_report.strongest_gains.join(', ')}</p>
-            <p>Mistakes reduced: {monthlyReport.data.student_facing_monthly_report.repeated_mistakes_reduced.join(', ')}</p>
-            <p>Main blocker: {monthlyReport.data.student_facing_monthly_report.remaining_blockers[0] ?? 'None'}</p>
-            <p>Next month priorities: {monthlyReport.data.student_facing_monthly_report.next_month_priorities.join(', ')}</p>
-          </>
-        )}
+          {!monthlyReport.ok || !monthlyReport.data ? (
+            <p style={{ margin: 0, color: '#94a3b8' }}>Monthly growth details will appear after enough attempts.</p>
+          ) : (
+            <>
+              <p style={{ margin: 0 }}>Monthly score change: {monthlyReport.data.student_facing_monthly_report.score_change}</p>
+              <p style={{ margin: 0, color: '#94a3b8' }}>Skills improving: {monthlyReport.data.student_facing_monthly_report.subscale_progress.join(' | ')}</p>
+              <p style={{ margin: 0, color: '#86efac' }}>Strongest gains: {monthlyReport.data.student_facing_monthly_report.strongest_gains.join(', ')}</p>
+              <p style={{ margin: 0, color: '#fca5a5' }}>
+                Main blocker: {monthlyReport.data.student_facing_monthly_report.remaining_blockers[0] ?? 'None'}
+              </p>
+            </>
+          )}
 
-        {stateRes.ok && stateRes.data?.latest_assessment && (
-          <>
-            <p style={{ marginBottom: 4 }}><strong>Score breakdown</strong></p>
-            {[
-              ['Content', stateRes.data.latest_assessment.subscores.content],
-              ['Organisation', stateRes.data.latest_assessment.subscores.organisation],
-              ['Language', stateRes.data.latest_assessment.subscores.language],
-              ['Communicative', stateRes.data.latest_assessment.subscores.communicative_achievement ?? 0],
-            ].map(([label, value]) => (
-              <div key={String(label)} style={{ marginBottom: 6 }}>
-                <div style={{ fontSize: 12 }}>{label}: {value}/5</div>
-                <div style={{ height: 8, background: '#374151', borderRadius: 999 }}>
-                  <div style={{ width: `${(Number(value) / 5) * 100}%`, height: '100%', background: '#22c55e', borderRadius: 999 }} />
+          {stateRes.ok && stateRes.data?.latest_assessment && (
+            <>
+              <p style={{ marginBottom: 4, marginTop: 4, color: '#e2e8f0' }}><strong>Score breakdown</strong></p>
+              {[
+                ['Content', stateRes.data.latest_assessment.subscores.content],
+                ['Organisation', stateRes.data.latest_assessment.subscores.organisation],
+                ['Language', stateRes.data.latest_assessment.subscores.language],
+                ['Communicative', stateRes.data.latest_assessment.subscores.communicative_achievement ?? 0],
+              ].map(([label, value]) => (
+                <div key={String(label)} style={{ marginBottom: 6 }}>
+                  <div style={{ fontSize: 13, color: '#cbd5e1', marginBottom: 4 }}>
+                    {label}: {value}/5
+                  </div>
+                  <div style={progressTrackStyle}>
+                    <div
+                      className="progress-fill"
+                      style={{
+                        width: `${(Number(value) / 5) * 100}%`,
+                        height: '100%',
+                        background: 'linear-gradient(90deg, #22c55e 0%, #4ade80 100%)',
+                        borderRadius: 999,
+                      }}
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
-          </>
-        )}
+              ))}
+            </>
+          )}
+        </div>
       </details>
 
-      {error && <p style={{ color: '#fca5a5' }}>{error}</p>}
+      {error && (
+        <p style={{ ...shellCardStyle, margin: 0, color: '#fecaca', borderColor: 'rgba(248, 113, 113, 0.45)' }}>
+          {error}
+        </p>
+      )}
+
+      {dashboard.ok && dashboard.data && (
+        <p style={{ margin: 0, color: '#64748b', fontSize: 12, textAlign: 'center' }}>
+          Completed tasks: {dashboard.data.completed_tasks_count} · Latest total score: {dashboard.data.latest_total_score ?? 'N/A'}
+        </p>
+      )}
     </div>
   );
 };
