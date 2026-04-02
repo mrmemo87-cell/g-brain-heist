@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   getCurrentWeeklyPlan,
   getMonthlyWritingReport,
+  requestWritingAiAssist,
   getStudentWritingState,
   getTodayWritingTask,
   getWeeklyWritingReview,
@@ -26,6 +27,20 @@ export interface WritingDashboardSnapshot {
   completed_tasks_count: number;
   latest_total_score: number | null;
   monthly_growth_summary: string | null;
+}
+
+interface WritingAiPlanAssist {
+  focus?: string;
+  coaching_points?: string[];
+  rewritten_prompt?: string;
+  daily_task?: string;
+}
+
+interface WritingAiFeedbackAssist {
+  strengths?: string[];
+  weaknesses?: string[];
+  next_steps?: string[];
+  monthly_report_summary?: string;
 }
 
 export const buildWritingDashboardSnapshot = (
@@ -120,6 +135,11 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   const [initialResponse, setInitialResponse] = useState('');
   const [practiceResponse, setPracticeResponse] = useState('');
   const [feedback, setFeedback] = useState<string>('');
+  const [aiWeeklyFocus, setAiWeeklyFocus] = useState<string>('');
+  const [aiCoachingPoints, setAiCoachingPoints] = useState<string[]>([]);
+  const [aiTaskWording, setAiTaskWording] = useState<string>('');
+  const [aiMonthlyWording, setAiMonthlyWording] = useState<string>('');
+  const [aiBusy, setAiBusy] = useState(false);
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState(false);
 
@@ -134,6 +154,9 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   const isWeekComplete = hasActiveWeek && completedTasksCount >= totalPlannedTasks && (!todayTask.ok || !todayTask.data);
   const canStartOrResetWeek = !hasActiveWeek || isWeekComplete;
   const hasTaskToday = Boolean(todayTask.ok && todayTask.data);
+  const latestWeaknesses = stateRes.ok && stateRes.data?.latest_assessment
+    ? stateRes.data.latest_assessment.weakness_tags.slice(0, 3).map((tag) => tag.replaceAll('_', ' '))
+    : [];
 
   const completionRatio =
     stateRes.ok && stateRes.data && stateRes.data.active_daily_tasks.length > 0
@@ -162,8 +185,36 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
           badge: 'Review Window',
           title: 'Mission in Progress — Review & Recharge',
           subtitle: 'No task due right now. Use feedback and progress insights to prep your next win.',
-          toneColor: '#ddd6fe',
-        };
+        toneColor: '#ddd6fe',
+      };
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadAiPlanAssist = async () => {
+      if (!stateRes.ok || !stateRes.data?.latest_assessment || aiBusy) return;
+      setAiBusy(true);
+      const planAssist = await requestWritingAiAssist({
+        mode: 'plan_assist',
+        prompt_text: promptText,
+        weaknesses: latestWeaknesses,
+        grade,
+        genre,
+      });
+      if (!cancelled && planAssist.ok && planAssist.data) {
+        const ai = (planAssist.data.result ?? {}) as WritingAiPlanAssist;
+        if (ai.focus?.trim()) setAiWeeklyFocus(ai.focus.trim());
+        if (Array.isArray(ai.coaching_points) && ai.coaching_points.length > 0) {
+          setAiCoachingPoints(ai.coaching_points.slice(0, 3));
+        }
+        if (ai.daily_task?.trim()) setAiTaskWording(ai.daily_task.trim());
+      }
+      if (!cancelled) setAiBusy(false);
+    };
+    void loadAiPlanAssist();
+    return () => {
+      cancelled = true;
+    };
+  }, [studentId, month, stateRes.ok, stateRes.data?.latest_assessment?.total_score]);
 
   const handleStart = () => {
     setLoading(true);
@@ -185,7 +236,28 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     setLoading(false);
   };
 
-  const handleSubmitPractice = () => {
+  const handleEnhancePrompt = async () => {
+    setAiBusy(true);
+    const response = await requestWritingAiAssist({
+      mode: 'plan_assist',
+      prompt_text: promptText,
+      weaknesses: latestWeaknesses,
+      grade,
+      genre,
+    });
+    if (response.ok && response.data) {
+      const ai = (response.data.result ?? {}) as WritingAiPlanAssist;
+      if (ai.rewritten_prompt?.trim()) setPromptText(ai.rewritten_prompt.trim());
+      if (ai.daily_task?.trim()) setAiTaskWording(ai.daily_task.trim());
+      if (ai.focus?.trim()) setAiWeeklyFocus(ai.focus.trim());
+      if (Array.isArray(ai.coaching_points) && ai.coaching_points.length > 0) {
+        setAiCoachingPoints(ai.coaching_points.slice(0, 3));
+      }
+    }
+    setAiBusy(false);
+  };
+
+  const handleSubmitPractice = async () => {
     if (!todayTask.ok || !todayTask.data) {
       setError('No task available to submit right now.');
       return;
@@ -199,9 +271,25 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     if (!result.ok || !result.data) {
       setError(result.error ?? 'Could not submit today’s task.');
     } else {
-      setFeedback(
-        `Great job! ${result.data.evaluation.completion_status}. Skill score: ${result.data.evaluation.target_skill_score}/5. Next: ${result.data.evaluation.recommended_next_action}`
-      );
+      const deterministicFeedback = `Great job! ${result.data.evaluation.completion_status}. Skill score: ${result.data.evaluation.target_skill_score}/5. Next: ${result.data.evaluation.recommended_next_action}.`;
+      setFeedback(deterministicFeedback);
+      const aiFeedback = await requestWritingAiAssist({
+        mode: 'feedback',
+        prompt_text: promptText,
+        student_response: practiceResponse,
+        grade,
+        genre,
+      });
+      if (aiFeedback.ok && aiFeedback.data) {
+        const ai = (aiFeedback.data.result ?? {}) as WritingAiFeedbackAssist;
+        const refined = [
+          ...(ai.strengths ?? []).slice(0, 2).map((item) => `✅ ${item}`),
+          ...(ai.weaknesses ?? []).slice(0, 2).map((item) => `⚠️ ${item}`),
+          ...(ai.next_steps ?? []).slice(0, 2).map((item) => `➡️ ${item}`),
+        ].join(' ');
+        if (refined) setFeedback(refined);
+        if (ai.monthly_report_summary?.trim()) setAiMonthlyWording(ai.monthly_report_summary.trim());
+      }
       setPracticeResponse('');
     }
     setLoading(false);
@@ -218,7 +306,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
       handleStart();
       return;
     }
-    handleSubmitPractice();
+    void handleSubmitPractice();
   };
 
   return (
@@ -278,6 +366,22 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
         {!canStartOrResetWeek && <p style={{ marginTop: 0, color: '#94a3b8' }}>Week already active. Finish today’s task before starting a new week.</p>}
         <label style={{ display: 'block', fontSize: 13, color: '#bfdbfe', marginBottom: 6 }}>Prompt</label>
         <textarea value={promptText} onChange={(e: { target: { value: string } }) => setPromptText(e.target.value)} style={{ ...fieldStyle, minHeight: 92 }} />
+        <button
+          type="button"
+          onClick={() => void handleEnhancePrompt()}
+          disabled={aiBusy || !promptText.trim()}
+          style={{
+            marginTop: 8,
+            padding: '8px 10px',
+            borderRadius: 10,
+            border: '1px solid rgba(147, 197, 253, 0.45)',
+            background: 'rgba(30, 41, 59, 0.9)',
+            color: '#bfdbfe',
+            cursor: 'pointer',
+          }}
+        >
+          {aiBusy ? 'Improving prompt…' : 'Improve prompt wording'}
+        </button>
 
         <label style={{ display: 'block', fontSize: 13, color: '#bfdbfe', margin: '10px 0 6px' }}>Target words</label>
         <input
@@ -310,7 +414,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
           <>
             <p style={{ margin: 0, color: '#7dd3fc', fontWeight: 700, fontSize: 13 }}>Active objective</p>
             <h4 style={{ margin: '6px 0 8px', color: '#f8fafc', fontSize: 19 }}>{todayTask.data.title}</h4>
-            <p style={{ margin: '0 0 8px', color: '#e2e8f0', fontSize: 15 }}>{todayTask.data.instructions}</p>
+            <p style={{ margin: '0 0 8px', color: '#e2e8f0', fontSize: 15 }}>{aiTaskWording || todayTask.data.instructions}</p>
             <p style={{ margin: '0 0 8px', color: '#94a3b8', fontSize: 13 }}>Target length: about {todayTask.data.expected_word_count} words.</p>
             <ul style={{ margin: '0 0 10px', paddingLeft: 18, color: '#cbd5e1', fontSize: 14 }}>
               {todayTask.data.success_criteria.map((item) => (
@@ -332,6 +436,21 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
         <p style={{ margin: 0, color: feedback ? '#a7f3d0' : '#94a3b8', fontSize: 15 }}>
           {feedback || 'Submit today’s task to reveal your feedback and next coaching step.'}
         </p>
+      </section>
+
+      <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(125, 211, 252, 0.35)' }}>
+        <h3 style={{ marginTop: 0, marginBottom: 6, fontSize: 19, color: '#f8fafc' }}>Your focus this week</h3>
+        <p style={{ margin: '0 0 8px', color: '#bfdbfe', fontSize: 15 }}>
+          {aiWeeklyFocus || dashboard.data?.weekly_plan_summary?.primary || 'Build clearer control in your weakest writing area.'}
+        </p>
+        <ul style={{ margin: 0, paddingLeft: 18, color: '#cbd5e1', fontSize: 14 }}>
+          {(aiCoachingPoints.length > 0
+            ? aiCoachingPoints.slice(0, 3)
+            : latestWeaknesses.slice(0, 3).map((item) => `Work specifically on ${item}.`)
+          ).map((item) => (
+            <li key={item} style={{ marginBottom: 4 }}>{item}</li>
+          ))}
+        </ul>
       </section>
 
       <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: isWeekComplete ? 'rgba(250, 204, 21, 0.45)' : 'rgba(148, 163, 184, 0.3)' }}>
@@ -379,6 +498,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
           ) : (
             <>
               <p style={{ margin: 0 }}>Monthly score change: {monthlyReport.data.student_facing_monthly_report.score_change}</p>
+              {aiMonthlyWording && <p style={{ margin: 0, color: '#bfdbfe' }}>{aiMonthlyWording}</p>}
               <p style={{ margin: 0, color: '#94a3b8' }}>Skills improving: {monthlyReport.data.student_facing_monthly_report.subscale_progress.join(' | ')}</p>
               <p style={{ margin: 0, color: '#86efac' }}>Strongest gains: {monthlyReport.data.student_facing_monthly_report.strongest_gains.join(', ')}</p>
               <p style={{ margin: 0, color: '#fca5a5' }}>

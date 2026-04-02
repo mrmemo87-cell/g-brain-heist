@@ -17,6 +17,10 @@ type AiResult = {
   focus?: string;
   drills?: string[];
   checkpoints?: string[];
+  coaching_points?: string[];
+  rewritten_prompt?: string;
+  daily_task?: string;
+  monthly_report_summary?: string;
 };
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -62,12 +66,16 @@ const normalizeAiResult = (mode: Payload["mode"], raw: unknown): AiResult | null
     const strengths = Array.isArray(value.strengths) ? value.strengths.map(String) : [];
     const weaknesses = Array.isArray(value.weaknesses) ? value.weaknesses.map(String) : [];
     const next_steps = Array.isArray(value.next_steps) ? value.next_steps.map(String) : [];
-    return { strengths, weaknesses, next_steps };
+    const monthly_report_summary = typeof value.monthly_report_summary === "string" ? value.monthly_report_summary : "";
+    return { strengths, weaknesses, next_steps, monthly_report_summary };
   }
   const focus = typeof value.focus === "string" ? value.focus : "";
   const drills = Array.isArray(value.drills) ? value.drills.map(String) : [];
   const checkpoints = Array.isArray(value.checkpoints) ? value.checkpoints.map(String) : [];
-  return { focus, drills, checkpoints };
+  const coaching_points = Array.isArray(value.coaching_points) ? value.coaching_points.map(String) : [];
+  const rewritten_prompt = typeof value.rewritten_prompt === "string" ? value.rewritten_prompt : "";
+  const daily_task = typeof value.daily_task === "string" ? value.daily_task : "";
+  return { focus, drills, checkpoints, coaching_points, rewritten_prompt, daily_task };
 };
 
 serve(async (req) => {
@@ -81,22 +89,37 @@ serve(async (req) => {
   const { data: authData, error: authError } = await supabase.auth.getUser(token);
   if (authError || !authData?.user) return json(401, { error: "Unauthorized" });
 
-  const { data: userData } = await supabase
-    .from("users")
-    .select("is_admin, role")
-    .eq("id", authData.user.id)
-    .single();
-
-  const isTeacherOrAdmin = userData?.is_admin === true || userData?.role === "teacher" || userData?.role === "admin";
-  if (!isTeacherOrAdmin) return json(403, { error: "Teacher/admin role required" });
-
   const payload = (await req.json().catch(() => null)) as Payload | null;
   const payloadError = validatePayload(payload);
   if (payloadError) return json(400, { error: payloadError });
 
   const userPrompt = payload.mode === "feedback"
-    ? `Provide concise writing feedback in JSON with keys strengths, weaknesses, next_steps. Grade=${payload.grade ?? "unknown"}, genre=${payload.genre ?? "unknown"}. Prompt: ${payload.promptText}. Response: ${payload.studentResponse ?? ""}`
-    : `Create a weekly writing plan assist JSON with keys focus, drills, checkpoints. Grade=${payload.grade ?? "unknown"}, genre=${payload.genre ?? "unknown"}, weaknesses=${JSON.stringify(payload.weaknesses ?? [])}. Prompt: ${payload.promptText}`;
+    ? [
+      `Grade: ${payload.grade ?? "unknown"}`,
+      `Genre: ${payload.genre ?? "unknown"}`,
+      `Task prompt: ${payload.promptText}`,
+      `Student response: ${payload.studentResponse ?? ""}`,
+      "Return JSON keys:",
+      "- strengths: 2 short specific positives",
+      "- weaknesses: 2 short plain-English weakness summaries",
+      "- next_steps: 2 or 3 actionable coaching steps for the next draft",
+      "- monthly_report_summary: 1 short examiner-style summary line for progress reporting",
+      "Rules: keep it human, natural, and not robotic.",
+    ].join("\n")
+    : [
+      `Grade: ${payload.grade ?? "unknown"}`,
+      `Genre: ${payload.genre ?? "unknown"}`,
+      `Known weaknesses: ${JSON.stringify(payload.weaknesses ?? [])}`,
+      `Current/seed prompt: ${payload.promptText}`,
+      "Return JSON keys:",
+      "- focus: plain-English weekly focus title",
+      "- coaching_points: 2 or 3 student-facing coaching bullets tied to the weaknesses",
+      "- drills: 2 realistic daily task lines",
+      "- checkpoints: 2 success checks",
+      "- rewritten_prompt: a fuller contextualized writing prompt with clear purpose, audience, and context when suitable",
+      "- daily_task: one realistic daily writing task instruction",
+      "Rules: grade-sensitive, genre-sensitive, concise, and natural.",
+    ].join("\n");
 
   try {
     const completion = await withTimeout(
@@ -107,7 +130,8 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: "You are a writing coach assistant for Brains Heist. Return strict JSON only.",
+            content:
+              "You are a strong writing coach/examiner for Brains Heist. Improve wording realism while staying concise. Return strict JSON only.",
           },
           { role: "user", content: userPrompt },
         ],
