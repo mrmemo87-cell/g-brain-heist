@@ -160,6 +160,44 @@ const simplifyStudentLanguage = (text: string): string => {
   return replacements.reduce((acc, [pattern, replacement]) => acc.replace(pattern, replacement), text);
 };
 
+const toStudentLabel = (text: string): string => {
+  return simplifyStudentLanguage(text)
+    .replace(/carry-forward primary/gi, 'next focus')
+    .replace(/primary/gi, 'main focus')
+    .replace(/maintain balanced writing control/gi, 'keep your writing clear and balanced')
+    .replace(/raw delta-heavy technical phrasing/gi, 'technical progress notes')
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
+const getProgressTone = (score: number | null): { color: string; glow: string; label: string } => {
+  if (score == null) return { color: '#64748b', glow: 'rgba(100, 116, 139, 0.35)', label: 'No score yet' };
+  if (score >= 4) return { color: '#22c55e', glow: 'rgba(34, 197, 94, 0.45)', label: 'Strong' };
+  if (score >= 3) return { color: '#38bdf8', glow: 'rgba(56, 189, 248, 0.45)', label: 'Building' };
+  if (score >= 2) return { color: '#f59e0b', glow: 'rgba(245, 158, 11, 0.45)', label: 'In progress' };
+  return { color: '#f97316', glow: 'rgba(249, 115, 22, 0.45)', label: 'Needs attention' };
+};
+
+const parseSubscaleProgress = (entries: string[]): Record<string, number | null> => {
+  const values: Record<string, number | null> = {
+    content: null,
+    organisation: null,
+    language: null,
+    communicative_achievement: null,
+  };
+  entries.forEach((entry) => {
+    const contentMatch = entry.match(/content[:\s]*([+\-]?\d+(\.\d+)?)/i);
+    if (contentMatch) values['content'] = Number(contentMatch[1]);
+    const organisationMatch = entry.match(/organisation[:\s]*([+\-]?\d+(\.\d+)?)/i);
+    if (organisationMatch) values['organisation'] = Number(organisationMatch[1]);
+    const languageMatch = entry.match(/language[:\s]*([+\-]?\d+(\.\d+)?)/i);
+    if (languageMatch) values['language'] = Number(languageMatch[1]);
+    const achievementMatch = entry.match(/communicative achievement[:\s]*([+\-]?\d+(\.\d+)?)/i);
+    if (achievementMatch) values['communicative_achievement'] = Number(achievementMatch[1]);
+  });
+  return values;
+};
+
 const taskTypeToFriendlyTitle = (taskType: string, day: number): string => {
   const map: Record<string, string> = {
     'sentence correction': 'Fix and improve sentences',
@@ -285,6 +323,18 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     ? aiCoachingPoints.slice(0, 3)
     : latestWeaknessTags.slice(0, 3).map((tag) => weaknessTagToStudentTip(tag))).slice(0, 3);
   const wordCountRange = computeWordCountRange(targetWordCount);
+  const monthlySubscaleDeltas = parseSubscaleProgress(monthlyReport.data?.student_facing_monthly_report.subscale_progress ?? []);
+  const subscaleCards = [
+    { key: 'content', label: 'Content', score: firstAttemptAssessment?.subscores.content ?? null, delta: monthlySubscaleDeltas['content'] },
+    { key: 'organisation', label: 'Organisation', score: firstAttemptAssessment?.subscores.organisation ?? null, delta: monthlySubscaleDeltas['organisation'] },
+    { key: 'language', label: 'Language', score: firstAttemptAssessment?.subscores.language ?? null, delta: monthlySubscaleDeltas['language'] },
+    {
+      key: 'communicative_achievement',
+      label: 'Communicative Achievement',
+      score: firstAttemptAssessment?.subscores.communicative_achievement ?? null,
+      delta: monthlySubscaleDeltas['communicative_achievement'],
+    },
+  ];
 
   const completionRatio =
     stateRes.ok && stateRes.data && stateRes.data.active_daily_tasks.length > 0
@@ -729,32 +779,71 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
           )}
 
           <details className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(148, 163, 184, 0.28)' }}>
-            <summary style={{ cursor: 'pointer', fontWeight: 700, color: '#e2e8f0' }}>View detailed progress</summary>
+            <summary style={{ cursor: 'pointer', fontWeight: 700, color: '#e2e8f0' }}>View your progress details</summary>
             <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
-              <p style={{ margin: 0, color: '#bfdbfe' }}>Primary: {dashboard.data?.weekly_plan_summary?.primary ?? 'Not set yet'}</p>
+              <div className="focus-grid">
+                {subscaleCards.map((item) => {
+                  const tone = getProgressTone(item.score);
+                  const scorePercent = item.score == null ? 0 : Math.max(0, Math.min(100, (item.score / 5) * 100));
+                  return (
+                    <div
+                      key={item.key}
+                      style={{
+                        borderRadius: 12,
+                        border: `1px solid ${tone.glow}`,
+                        background: 'rgba(15, 23, 42, 0.55)',
+                        padding: 10,
+                        display: 'grid',
+                        gap: 6,
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
+                        <p style={{ margin: 0, color: '#dbeafe', fontSize: 13, fontWeight: 700 }}>{item.label}</p>
+                        <p style={{ margin: 0, color: '#f8fafc', fontSize: 13, fontWeight: 800 }}>
+                          {item.score == null ? '— / 5' : `${item.score}/5`}
+                        </p>
+                      </div>
+                      <div style={{ ...progressTrackStyle, height: 8 }}>
+                        <div className="progress-fill" style={{ width: `${scorePercent}%`, height: '100%', background: tone.color }} />
+                      </div>
+                      <p style={{ margin: 0, fontSize: 12, color: '#93c5fd' }}>
+                        {tone.label}
+                        {item.delta != null ? ` · ${item.delta >= 0 ? '+' : ''}${item.delta.toFixed(1)} this month` : ''}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <p style={{ margin: 0, color: '#bfdbfe' }}>Main focus: {toStudentLabel(dashboard.data?.weekly_plan_summary?.primary ?? 'Not set yet')}</p>
               {!weeklyReview.ok || !weeklyReview.data ? (
-                <p style={{ margin: 0, color: '#94a3b8' }}>Weekly review will appear after more submissions.</p>
+                <p style={{ margin: 0, color: '#94a3b8' }}>Complete more writing this week to unlock your progress review.</p>
               ) : (
                 <>
-                  <p style={{ margin: 0, color: '#bfdbfe' }}>Weekly Review</p>
-                  <p style={{ margin: 0 }}>Completed tasks: {weeklyReview.data.weekly_review_summary.completed_tasks}</p>
+                  <p style={{ margin: 0, color: '#bfdbfe' }}>What’s going well: You completed {weeklyReview.data.weekly_review_summary.completed_tasks} task{weeklyReview.data.weekly_review_summary.completed_tasks === 1 ? '' : 's'}.</p>
                   <p style={{ margin: 0, color: '#94a3b8' }}>
-                    Keep improving: {weeklyReview.data.weekly_review_summary.top_remaining_weaknesses.map((item) => simplifyStudentLanguage(item)).join(', ') || 'No major blockers right now.'}
+                    What to improve now: {weeklyReview.data.weekly_review_summary.top_remaining_weaknesses.map((item) => toStudentLabel(item)).join(', ') || 'No major blockers right now.'}
                   </p>
-                  <p style={{ margin: 0, color: '#93c5fd' }}>Carry-forward primary: {weeklyReview.data.next_week_planning_inputs.carry_forward_primary_target}</p>
+                  <p style={{ margin: 0, color: '#86efac' }}>
+                    Biggest improvement so far: {weeklyReview.data.weekly_review_summary.average_target_skill_score >= 3.5
+                      ? 'You are showing stronger writing control in daily practice.'
+                      : 'You are building consistency by finishing your tasks.'}
+                  </p>
+                  <p style={{ margin: 0, color: '#93c5fd' }}>Next step: {toStudentLabel(weeklyReview.data.next_week_planning_inputs.carry_forward_primary_target)}</p>
                 </>
               )}
 
               {!monthlyReport.ok || !monthlyReport.data ? (
-                <p style={{ margin: 0, color: '#94a3b8' }}>Monthly growth details will appear after enough submissions.</p>
+                <p style={{ margin: 0, color: '#94a3b8' }}>Complete more writing this month to unlock your growth view.</p>
               ) : (
                 <>
-                  <p style={{ margin: 0, color: '#bfdbfe' }}>Monthly Growth</p>
-                  <p style={{ margin: 0 }}>Score change: {monthlyReport.data.student_facing_monthly_report.score_change}</p>
+                  <p style={{ margin: 0, color: '#bfdbfe' }}>Monthly growth</p>
+                  <p style={{ margin: 0 }}>Biggest improvement so far: {toStudentLabel(monthlyReport.data.student_facing_monthly_report.score_change)}</p>
                   {aiMonthlyWording && <p style={{ margin: 0, color: '#bfdbfe' }}>{aiMonthlyWording}</p>}
-                  <p style={{ margin: 0, color: '#94a3b8' }}>Subscale progress: {monthlyReport.data.student_facing_monthly_report.subscale_progress.join(' | ')}</p>
-                  <p style={{ margin: 0, color: '#86efac' }}>Strongest gains: {monthlyReport.data.student_facing_monthly_report.strongest_gains.join(', ')}</p>
-                  <p style={{ margin: 0, color: '#fca5a5' }}>Biggest blocker: {monthlyReport.data.student_facing_monthly_report.remaining_blockers[0] ?? 'None'}</p>
+                  <p style={{ margin: 0, color: '#94a3b8' }}>Progress by subscale: {monthlyReport.data.student_facing_monthly_report.subscale_progress.join(' | ')}</p>
+                  <p style={{ margin: 0, color: '#86efac' }}>Strongest gains: {monthlyReport.data.student_facing_monthly_report.strongest_gains.map((item) => toStudentLabel(item)).join(', ')}</p>
+                  <p style={{ margin: 0, color: '#fca5a5' }}>Blocker: {toStudentLabel(monthlyReport.data.student_facing_monthly_report.remaining_blockers[0] ?? 'None right now')}</p>
+                  <p style={{ margin: 0, color: '#93c5fd' }}>Next step: {toStudentLabel(monthlyReport.data.student_facing_monthly_report.next_month_priorities[0] ?? 'Keep completing your weekly writing tasks.')}</p>
                 </>
               )}
             </div>
