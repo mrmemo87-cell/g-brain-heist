@@ -224,8 +224,8 @@ test('progress visual render with monthly data', () => {
   });
 
   const html = renderToStaticMarkup(React.createElement(WritingHub, { studentId: 'prod-4', grade: 9, genre: 'essay', month: '2026-03' }));
-  assert.ok(html.includes('Subscale progress'));
-  assert.ok(html.includes('Biggest blocker'));
+  assert.ok(html.includes('Progress by subscale'));
+  assert.ok(html.includes('Blocker:'));
 });
 
 test('admin calibration review renders full decision chain', () => {

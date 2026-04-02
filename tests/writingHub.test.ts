@@ -32,7 +32,7 @@ test('dashboard render after initial assessment', () => {
 
   const html = renderToStaticMarkup(React.createElement(WritingHub, { studentId: 'ui-1', grade: 8, genre: 'article', month: '2026-03' }));
   assert.ok(html.includes('Dashboard'));
-  assert.ok(html.includes('Primary:'));
+  assert.ok(html.includes('Main focus:'));
 });
 
 test('today task render', () => {
@@ -95,8 +95,8 @@ test('weekly review render', () => {
   assert.strictEqual(weekly.ok, true);
 
   const html = renderToStaticMarkup(React.createElement(WritingHub, { studentId: 'ui-4', grade: 8, genre: 'paragraph', month: '2026-03' }));
-  assert.ok(html.includes('Weekly Review'));
-  assert.ok(html.includes('Carry-forward primary'));
+  assert.ok(html.includes('What to improve now:'));
+  assert.ok(html.includes('Next step:'));
 });
 
 test('monthly report render', () => {
@@ -124,6 +124,6 @@ test('monthly report render', () => {
   assert.strictEqual(monthly.ok, true);
 
   const html = renderToStaticMarkup(React.createElement(WritingHub, { studentId: 'ui-5', grade: 9, genre: 'essay', month: '2026-03' }));
-  assert.ok(html.includes('Monthly Growth'));
-  assert.ok(html.includes('Score change'));
+  assert.ok(html.includes('Monthly growth'));
+  assert.ok(html.includes('Biggest improvement so far'));
 });
