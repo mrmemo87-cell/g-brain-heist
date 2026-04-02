@@ -79,6 +79,11 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   const todayTask = getTodayWritingTask(studentId);
   const weeklyReview = getWeeklyWritingReview(studentId);
   const monthlyReport = getMonthlyWritingReport(studentId, month);
+  const totalPlannedTasks = stateRes.ok && stateRes.data ? stateRes.data.active_daily_tasks.length : 0;
+  const completedTasksCount = stateRes.ok && stateRes.data ? stateRes.data.completed_daily_tasks.length : 0;
+  const hasActiveWeek = totalPlannedTasks > 0;
+  const isWeekComplete = hasActiveWeek && completedTasksCount >= totalPlannedTasks && (!todayTask.ok || !todayTask.data);
+  const canStartOrResetWeek = !hasActiveWeek || isWeekComplete;
 
   const completionRatio =
     stateRes.ok && stateRes.data && stateRes.data.active_daily_tasks.length > 0
@@ -142,7 +147,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
             <p>Primary: {dashboard.data.weekly_plan_summary?.primary ?? '—'}</p>
             <p>Secondary: {dashboard.data.weekly_plan_summary?.secondary ?? '—'}</p>
             <p>Maintenance: {dashboard.data.weekly_plan_summary?.maintenance ?? '—'}</p>
-            <p>Today: {dashboard.data.todays_task_title ?? 'No task yet'}</p>
+            <p>Today: {dashboard.data.todays_task_title ?? (isWeekComplete ? 'Week complete — ready to reset.' : 'No task yet')}</p>
             <p>Completed tasks: {dashboard.data.completed_tasks_count}</p>
             <p>Latest score: {dashboard.data.latest_total_score ?? '—'}</p>
             <p>Monthly growth: {dashboard.data.monthly_growth_summary ?? 'Not available yet'}</p>
@@ -167,7 +172,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                   <div style={{ width: `${Math.min(100, completionRatio * 100)}%`, height: '100%', background: '#60a5fa', borderRadius: 999 }} />
                 </div>
                 <p style={{ fontSize: 12 }}>
-                  {Math.round(completionRatio * 100)}% complete • End-of-week exam task is highlighted as your final mission.
+                  {Math.round(completionRatio * 100)}% complete • {isWeekComplete ? 'Week complete — reset is now available.' : 'Complete today’s task to continue your weekly mission.'}
                 </p>
               </>
             )}
@@ -177,6 +182,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
 
       <section style={cardStyle}>
         <h2 style={{ marginTop: 0 }}>Start / Reset Week</h2>
+        {!canStartOrResetWeek && <p style={{ marginTop: 0 }}>Finish the active week task sequence before starting or resetting.</p>}
         <textarea value={promptText} onChange={(e: { target: { value: string } }) => setPromptText(e.target.value)} style={{ width: '100%', minHeight: 80 }} />
         <input
           type="number"
@@ -190,15 +196,15 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
           placeholder="Paste your initial writing response"
           style={{ width: '100%', minHeight: 80, marginTop: 8 }}
         />
-        <button onClick={handleStart} disabled={loading} style={{ marginTop: 8 }}>
-          {loading ? 'Loading…' : 'Start Writing Week'}
+        <button onClick={handleStart} disabled={loading || !canStartOrResetWeek} style={{ marginTop: 8 }}>
+          {loading ? 'Loading…' : canStartOrResetWeek ? 'Start Writing Week' : 'Week In Progress'}
         </button>
       </section>
 
       <section style={cardStyle}>
         <h2 style={{ marginTop: 0 }}>Today’s Task</h2>
         {!todayTask.ok || !todayTask.data ? (
-          <p>{stateRes.ok && stateRes.data?.active_daily_tasks.length ? 'All tasks submitted for now. Great work, agent!' : 'No active task yet.'}</p>
+          <p>{isWeekComplete ? 'Week complete. Review your results, then reset when ready for the next week.' : stateRes.ok && stateRes.data?.active_daily_tasks.length ? 'All tasks submitted for now. Great work, agent!' : 'No active task yet.'}</p>
         ) : (
           <>
             <h3>{todayTask.data.title}</h3>
