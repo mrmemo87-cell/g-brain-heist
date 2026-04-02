@@ -20,6 +20,7 @@ import {
   getWritingRepositoryMode,
   loadWritingStoreSnapshot,
   persistWritingStoreSnapshot,
+  persistMonthlyWritingReport,
   SerializedWritingPersistenceStore,
 } from './writingRepository.js';
 
@@ -244,6 +245,11 @@ const SUPPORTED_GENRES: SupportedGenre[] = ['email', 'article', 'review', 'story
 
 const isValidGenre = (genre: string): genre is SupportedGenre => SUPPORTED_GENRES.includes(genre as SupportedGenre);
 const isValidGrade = (grade: number): boolean => Number.isInteger(grade) && grade >= 6 && grade <= 12;
+const normalizeGrade = (grade: unknown): number | null => {
+  const parsed = typeof grade === 'string' ? Number.parseInt(grade, 10) : Number(grade);
+  if (!Number.isInteger(parsed) || parsed < 6 || parsed > 12) return null;
+  return parsed;
+};
 const buildId = (prefix: string): string => `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
 const weekKey = (isoDate: string): string => isoDate.slice(0, 10);
 
@@ -259,7 +265,7 @@ const ok = <T>(data: T): ServiceResponse<T> => ({ ok: true, data });
 interface SubmitInitialWritingAssessmentInput {
   student_id: string;
   student_name?: string;
-  grade: number;
+  grade: number | string;
   genre: string;
   prompt_text: string;
   target_word_count: number;
@@ -283,15 +289,17 @@ export const submitInitialWritingAssessment = (
   writing_state: StudentWritingState;
 }> => {
   if (!input.student_id?.trim()) return badRequest('student_id is required.');
-  if (!isValidGrade(input.grade)) return badRequest('grade must be an integer between 6 and 12.');
+  const normalizedGrade = normalizeGrade(input.grade);
+  if (normalizedGrade === null) return badRequest('grade must be an integer between 6 and 12.');
   if (!isValidGenre(input.genre)) return badRequest('genre is invalid.');
   if (!input.prompt_text?.trim()) return badRequest('prompt_text is required.');
   if (!Number.isFinite(input.target_word_count) || input.target_word_count < 20) return badRequest('target_word_count must be >= 20.');
   if (!input.student_response?.trim()) return badRequest('student_response is required.');
 
-  const existingState = store.states.get(input.student_id) ?? createInitialStudentWritingState(input.student_id, input.grade, input.genre);
+  const existingState = store.states.get(input.student_id) ?? createInitialStudentWritingState(input.student_id, normalizedGrade, input.genre);
   const flow = runInitialWritingAssessmentFlow({
     ...input,
+    grade: normalizedGrade,
     genre: input.genre,
     current_state: existingState,
     attempted_at: input.attempted_at,
@@ -301,7 +309,7 @@ export const submitInitialWritingAssessment = (
   const profile: StudentWritingProfile = {
     student_id: input.student_id,
     student_name: input.student_name?.trim() || store.profiles.get(input.student_id)?.student_name,
-    grade: input.grade,
+    grade: normalizedGrade,
     current_genre: input.genre,
     created_at: store.profiles.get(input.student_id)?.created_at ?? now,
     updated_at: now,
@@ -481,6 +489,21 @@ export const getMonthlyWritingReport = (
     student_id: studentId,
     month,
     writing_state: state,
+  });
+
+  const createdAt = new Date().toISOString();
+  const reportRecord: MonthlyWritingReport = {
+    id: buildId('month'),
+    student_id: studentId,
+    month,
+    comparison: review.monthly_comparison_summary,
+    report: review.student_facing_monthly_report,
+    next_month_target_recommendations: review.next_month_target_recommendations,
+    created_at: createdAt,
+  };
+  store.monthlyReports.push(reportRecord);
+  void persistMonthlyWritingReport(reportRecord).catch((error) => {
+    console.warn('Writing monthly report persistence failed.', error);
   });
 
   return ok({
@@ -1442,7 +1465,7 @@ export const requestWritingAiAssist = async (input: {
         promptText: input.prompt_text,
         studentResponse: input.student_response,
         weaknesses: input.weaknesses ?? [],
-        grade: input.grade ?? null,
+        grade: normalizeGrade(input.grade) ?? null,
         genre: input.genre ?? null,
       },
     });

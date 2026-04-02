@@ -118,7 +118,6 @@ export const persistWritingStoreSnapshot = async (snapshot: SerializedWritingPer
     replaceTableByKey('bh_writing_daily_tasks', snapshot.dailyTasks, 'student_id'),
     replaceTableByKey('bh_writing_daily_submissions', snapshot.dailySubmissions, 'student_id'),
     replaceTableByKey('bh_writing_daily_evaluations', snapshot.dailyEvaluations, 'student_id'),
-    replaceTableByKey('bh_writing_monthly_reports', snapshot.monthlyReports, 'student_id'),
     replaceTableByKey('bh_writing_memory_snapshots', snapshot.memorySnapshots, 'student_id'),
     replaceTableByKey('bh_writing_prompt_bank', snapshot.promptBank, 'id'),
     replaceTableByKey('bh_writing_review_signals', snapshot.reviewSignals, 'id'),
@@ -152,4 +151,11 @@ const replaceFollowups = async (
   if (!rows.length) return;
   const upsertRes = await supabase.from('bh_writing_calibration_followups').upsert(rows, { onConflict: 'student_id' });
   ensureNoError(upsertRes, 'upsert calibration followups failed');
+};
+
+
+export const persistMonthlyWritingReport = async (report: unknown): Promise<void> => {
+  if (!canUseSupabase()) return;
+  const insertRes = await supabase.from('bh_writing_monthly_reports').insert({ payload: safe(report) });
+  ensureNoError(insertRes, 'insert bh_writing_monthly_reports failed');
 };
