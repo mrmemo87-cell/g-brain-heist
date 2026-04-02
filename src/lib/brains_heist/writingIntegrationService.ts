@@ -1459,7 +1459,19 @@ export const requestWritingAiAssist = async (input: {
 }): Promise<ServiceResponse<{ mode: 'feedback' | 'plan_assist'; result: unknown }>> => {
   try {
     const { supabase } = await import('../../../services/supabaseClient.js');
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError || !session?.access_token) {
+      return badRequest('Authentication required for writing AI assist. Please sign in and try again.');
+    }
+
     const { data, error } = await supabase.functions.invoke('bh_writing_ai', {
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
       body: {
         mode: input.mode,
         promptText: input.prompt_text,
