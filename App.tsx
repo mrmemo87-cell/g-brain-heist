@@ -33,6 +33,7 @@ import { fetchEffectiveTier, isPro as isProTier, invalidateTierCache, fetchSchoo
 // Uses lazyRetry to auto-recover from stale deployment chunk errors
 import { lazyRetry } from './src/utils/lazyRetry';
 const IeltsHome = lazyRetry(() => import('./src/pages/ielts/IeltsHome'), 'IeltsHome');
+const WritingHub = lazyRetry(() => import('./src/pages/writing/WritingHub'), 'WritingHub');
 const HelpModal = lazyRetry(() => import('./components/HelpModal'), 'HelpModal');
 const TutorialModal = lazyRetry(() => import('./components/TutorialModal'), 'TutorialModal');
 
@@ -121,7 +122,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [news, setNews] = useState<NewsEvent[]>(() => readCache<NewsEvent[]>(CACHE_KEYS.news) ?? []);
   const [activeAssignment, setActiveAssignment] = useState<StudentAssignmentTask | null>(null);
   const [criticalLoading, setCriticalLoading] = useState(true);
-  const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'rivalry' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts' | 'lockdown' | 'cambridge' | 'school_admin' | 'admissions'>('dashboard');
+  const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'rivalry' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts' | 'writing' | 'lockdown' | 'cambridge' | 'school_admin' | 'admissions'>('dashboard');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [levelUpData, setLevelUpData] = useState<{ newLevel: number; rewards: any } | null>(null);
@@ -1825,6 +1826,24 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                   <Suspense fallback={null}><IeltsHome /></Suspense>
               </div>
             );
+        case 'writing':
+            return renderLazy(
+              <div className="relative">
+                  <button
+                      onClick={() => handleViewChange('dashboard')}
+                      className="mb-4 px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors flex items-center gap-2"
+                  >
+                      ← Back to Dashboard
+                  </button>
+                  <Suspense fallback={null}>
+                    <WritingHub
+                      studentId={profile?.id ?? 'student'}
+                      grade={profile?.grade ?? 8}
+                      genre="essay"
+                    />
+                  </Suspense>
+              </div>
+            );
         case 'lockdown':
           return renderLazy(
             <div className="relative">
@@ -1975,42 +1994,52 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                   {/* Middle Column */}
                   <div className="space-y-6 lg:col-span-5">
                     {profile ? (
-                      <MainActions
-                        onStartQuest={handleQuestAction}
-                        onStartPvp={() => handleViewChange('pvp')}
-                        onOpenRaid={!isStudent ? () => handleViewChange('raids') : undefined}
-                        onVisitShop={() => handleViewChange('shop')}
-                        onGoToClan={() => handleViewChange('clan')}
-                        onOpenRivalry={() => handleViewChange('rivalry')}
-                        onVisitInventory={() => handleViewChange('inventory')}
-                        onViewLeaderboard={() => handleViewChange('leaderboard')}
-                        onViewAchievements={() => handleViewChange('achievements')}
-                        onOpenRaidAdmin={isAdminUser ? () => handleViewChange('raid_admin') : undefined}
-                        onOpenTournament={() => handleViewChange('tournament')}
-                        onOpenAdminPortal={isAdminUser ? () => handleViewChange('admin') : undefined}
-                        onOpenSchoolAdmin={isUserSchoolAdmin && hasSchool ? () => handleViewChange('school_admin') : undefined}
-                        onOpenAdmissions={isUserSchoolAdmin && hasSchool ? () => handleViewChange('admissions') : undefined}
-                        onOpenTournamentAdmin={isAdminUser ? () => handleViewChange('tournament_admin') : undefined}
-                        onOpenCompetitionPlay={!isStudent && profile?.grade && !profile?.is_banned && hasSchool ? () => handleViewChange('phase1_play') : undefined}
-                        onOpenCompetitionLeaderboard={hasSchool ? () => handleViewChange('phase1_leaderboard') : undefined}
-                        onOpenCompetitionAdmin={isAdminUser && hasSchool ? () => handleViewChange('phase1_admin') : undefined}
-                        onOpenIeltsPrep={hasSchool ? () => { window.location.href = '/ielts'; } : undefined}
-                        onOpenCambridgeTests={hasSchool ? () => handleViewChange('cambridge') : undefined}
-                        onOpenLockdown={() => handleViewChange('lockdown')}
-                        onJoinSchool={undefined}
-                        profile={profile}
-                        isIndividual={!hasSchool}
-                        hasPendingAssignment={Boolean(activeAssignment)}
-                        clanBadgeCount={pendingClanRequests + unreadClanChatMessages}
-                        schoolName={profile?.school_name}
-                        schoolLogoUrl={profile?.school_logo_url}
-                        isPro={isProUser}
-                        isPilot={isPilotPlan}
-                        onUpgrade={(featureLabel) => {
-                          setUpgradeFeatureLabel(featureLabel);
-                          setShowUpgradeModal(true);
-                        }}
-                      />
+                      <>
+                        <MainActions
+                          onStartQuest={handleQuestAction}
+                          onStartPvp={() => handleViewChange('pvp')}
+                          onOpenRaid={!isStudent ? () => handleViewChange('raids') : undefined}
+                          onVisitShop={() => handleViewChange('shop')}
+                          onGoToClan={() => handleViewChange('clan')}
+                          onOpenRivalry={() => handleViewChange('rivalry')}
+                          onVisitInventory={() => handleViewChange('inventory')}
+                          onViewLeaderboard={() => handleViewChange('leaderboard')}
+                          onViewAchievements={() => handleViewChange('achievements')}
+                          onOpenRaidAdmin={isAdminUser ? () => handleViewChange('raid_admin') : undefined}
+                          onOpenTournament={() => handleViewChange('tournament')}
+                          onOpenAdminPortal={isAdminUser ? () => handleViewChange('admin') : undefined}
+                          onOpenSchoolAdmin={isUserSchoolAdmin && hasSchool ? () => handleViewChange('school_admin') : undefined}
+                          onOpenAdmissions={isUserSchoolAdmin && hasSchool ? () => handleViewChange('admissions') : undefined}
+                          onOpenTournamentAdmin={isAdminUser ? () => handleViewChange('tournament_admin') : undefined}
+                          onOpenCompetitionPlay={!isStudent && profile?.grade && !profile?.is_banned && hasSchool ? () => handleViewChange('phase1_play') : undefined}
+                          onOpenCompetitionLeaderboard={hasSchool ? () => handleViewChange('phase1_leaderboard') : undefined}
+                          onOpenCompetitionAdmin={isAdminUser && hasSchool ? () => handleViewChange('phase1_admin') : undefined}
+                          onOpenIeltsPrep={hasSchool ? () => { window.location.href = '/ielts'; } : undefined}
+                          onOpenCambridgeTests={hasSchool ? () => handleViewChange('cambridge') : undefined}
+                          onOpenLockdown={() => handleViewChange('lockdown')}
+                          onJoinSchool={undefined}
+                          profile={profile}
+                          isIndividual={!hasSchool}
+                          hasPendingAssignment={Boolean(activeAssignment)}
+                          clanBadgeCount={pendingClanRequests + unreadClanChatMessages}
+                          schoolName={profile?.school_name}
+                          schoolLogoUrl={profile?.school_logo_url}
+                          isPro={isProUser}
+                          isPilot={isPilotPlan}
+                          onUpgrade={(featureLabel) => {
+                            setUpgradeFeatureLabel(featureLabel);
+                            setShowUpgradeModal(true);
+                          }}
+                        />
+                        {isStudent && (
+                          <button
+                            onClick={() => handleViewChange('writing')}
+                            className="w-full rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-500 transition-colors"
+                          >
+                            Open Writing Hub
+                          </button>
+                        )}
+                      </>
                     ) : (
                       <SectionPlaceholder title="Mission Console" lines={4} />
                     )}
