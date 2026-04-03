@@ -150,14 +150,20 @@ const computeWordCountRange = (targetWords: number): { min: number; max: number 
 
 const simplifyStudentLanguage = (text: string): string => {
   const replacements: Array<[RegExp, string]> = [
-    [/genre convention task/gi, 'use the right style for this writing type'],
-    [/missed content point/gi, 'a part of the question was missing'],
-    [/partial content coverage/gi, 'only part of the question was answered'],
-    [/viewpoint \+ support \+ progression/gi, 'clear opinion, strong detail, clear flow'],
+    [/genre convention task/gi, 'style and format practice'],
+    [/missed content point/gi, 'you missed one part of the question'],
+    [/partial content coverage/gi, 'you only answered part of the question'],
+    [/viewpoint \+ support \+ progression/gi, 'clear opinion, useful detail, and clear flow'],
     [/genre focus:/gi, 'remember to:'],
     [/focus on/gi, 'work on'],
+    [/reshelloponse/gi, 'response'],
   ];
   return replacements.reduce((acc, [pattern, replacement]) => acc.replace(pattern, replacement), text);
+};
+
+const toWordCountLabel = (targetWords: number): string => {
+  const range = computeWordCountRange(targetWords);
+  return `${range.min}–${range.max} words`;
 };
 
 const toStudentLabel = (text: string): string => {
@@ -259,8 +265,8 @@ const estimateWeeklyTargetScoreRange = (
   };
   const growth = growthBySupport[supportLevel ?? 'medium'];
   return {
-    low: Number((baselineScore + growth.min).toFixed(1)),
-    high: Number((baselineScore + growth.max).toFixed(1)),
+    low: Math.round(baselineScore + growth.min),
+    high: Math.round(baselineScore + growth.max),
   };
 };
 
@@ -311,6 +317,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   const latestWeaknesses = latestWeaknessTags.map((tag) => tag.replaceAll('_', ' '));
   const firstAttemptAssessment = hubSnapshot.ok ? hubSnapshot.data?.first_attempt_assessment ?? null : null;
   const originalPromptText = hubSnapshot.ok ? hubSnapshot.data?.original_prompt_text ?? null : null;
+  const firstAttemptSubmission = hubSnapshot.ok ? hubSnapshot.data?.first_attempt_submission ?? null : null;
   const firstAttemptWeaknesses = firstAttemptAssessment?.weakness_tags.slice(0, 3) ?? [];
   const studentFriendlyWeaknesses = (firstAttemptWeaknesses.length > 0 ? firstAttemptWeaknesses : latestWeaknessTags)
     .slice(0, 3)
@@ -322,7 +329,6 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   const focusCoachingPoints = (aiCoachingPoints.length > 0
     ? aiCoachingPoints.slice(0, 3)
     : latestWeaknessTags.slice(0, 3).map((tag) => weaknessTagToStudentTip(tag))).slice(0, 3);
-  const wordCountRange = computeWordCountRange(targetWordCount);
   const monthlySubscaleDeltas = parseSubscaleProgress(monthlyReport.data?.student_facing_monthly_report.subscale_progress ?? []);
   const subscaleCards = [
     { key: 'content', label: 'Content', score: firstAttemptAssessment?.subscores.content ?? null, delta: monthlySubscaleDeltas['content'] },
@@ -355,6 +361,23 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   ]
     .filter(Boolean)
     .slice(0, 3);
+  const showWeeklyEvidence = Boolean(weeklyReview.ok && weeklyReview.data && weeklyReview.data.weekly_review_summary.completed_tasks > 0);
+  const showMonthlyEvidence = Boolean(
+    monthlyReport.ok &&
+      monthlyReport.data &&
+      (monthlyReport.data.monthly_comparison_summary.currentMonth?.attempts ?? 0) > 0 &&
+      monthlyReport.data.monthly_comparison_summary.scoreDelta !== null
+  );
+  const weeklySummary = weeklyReview.ok && weeklyReview.data ? weeklyReview.data.weekly_review_summary : null;
+  const nextWeekInputs = weeklyReview.ok && weeklyReview.data ? weeklyReview.data.next_week_planning_inputs : null;
+  const monthlyFacingReport = monthlyReport.ok && monthlyReport.data ? monthlyReport.data.student_facing_monthly_report : null;
+
+  const handleRetryLoad = () => {
+    setUiNotice('Refreshing your Writing Hub…');
+    setError('');
+    setIsRefreshingProgress(true);
+    window.setTimeout(() => setIsRefreshingProgress(false), 320);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -452,6 +475,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   };
 
   const handleSubmitPractice = async () => {
+    if (loading) return;
     if (!todayTask.ok || !todayTask.data) {
       setError('Today’s task is not ready yet. Please refresh in a moment.');
       return;
@@ -550,18 +574,17 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
         <>
           <section className="writing-hub-card" style={missionCardStyle}>
             <p style={{ margin: 0, color: '#dbeafe', fontWeight: 700, fontSize: 13 }}>
-              {isWeekComplete ? 'Mission Complete' : isActiveWeek ? 'Weekly Mission Active' : 'Your Writing Mission Board'}
+              {isWeekComplete ? 'Week complete' : isActiveWeek ? 'Week active' : 'First step'}
             </p>
             <h1 style={{ margin: '6px 0 10px', color: '#f8fafc', fontSize: 30, lineHeight: 1.1 }}>
-              {isPreWeek ? 'Start Your Writing Week' : 'Writing Hub'}
+              {isPreWeek ? 'Welcome to your Writing Hub' : isWeekComplete ? 'Great work — week finished' : 'Your Writing Hub'}
             </h1>
-            <p style={{ margin: '0 0 4px', color: '#cbd5e1', fontSize: 13 }}>Dashboard</p>
             <p style={{ margin: 0, color: '#e2e8f0', fontSize: 15 }}>
               {isPreWeek
-                ? 'Write one response. We’ll check it, find your weak areas, and build your personal writing plan for the week.'
+                ? 'Write one first response. We will find your weak areas and build your weekly writing plan.'
                 : isWeekComplete
-                  ? 'You completed your week. Review your growth, then launch your next mission.'
-                  : 'Your coach plan is active. Follow today’s task and build your score step by step.'}
+                  ? 'You completed your plan. Review what improved, then start a new week when you are ready.'
+                  : 'Your weekly plan is active. Follow your focus goals and complete today’s task.'}
             </p>
             {showNoWritingState && <p style={{ margin: '8px 0 0', color: '#bfdbfe', fontSize: 13 }}>No writing state yet</p>}
             {!isWeekComplete && (
@@ -607,9 +630,9 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
           {isPreWeek && (
             <>
               <section className="writing-hub-card" style={shellCardStyle}>
-                <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 20, color: '#f8fafc' }}>How your week works</h3>
+                <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 20, color: '#f8fafc' }}>What happens next</h3>
                 <div className="mini-grid">
-                  {['Write once', 'Find weak areas', 'Train this week', 'Improve'].map((step, index) => (
+                  {['Write once', 'We find weak areas', 'You get your weekly plan', 'You improve day by day'].map((step, index) => (
                     <div key={step} style={{ borderRadius: 12, border: '1px solid rgba(147,197,253,0.45)', background: 'rgba(15,23,42,0.6)', padding: 10 }}>
                       <p style={{ margin: 0, fontSize: 11, color: '#93c5fd' }}>Step {index + 1}</p>
                       <p style={{ margin: '4px 0 0', fontSize: 14, color: '#e2e8f0', fontWeight: 700 }}>{step}</p>
@@ -619,7 +642,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
               </section>
 
               <section className="writing-hub-card" style={shellCardStyle}>
-                <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 20, color: '#f8fafc' }}>Your writing task</h3>
+                <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 20, color: '#f8fafc' }}>Your first writing task</h3>
                 <div style={{ ...fieldStyle, minHeight: 88, whiteSpace: 'pre-wrap' }}>{promptText}</div>
                 <button
                   type="button"
@@ -647,7 +670,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
               <section className="writing-hub-card" style={shellCardStyle}>
                 <h3 style={{ marginTop: 0, marginBottom: 6, fontSize: 20, color: '#f8fafc' }}>Write your first response</h3>
                 <p style={{ margin: '0 0 8px', color: '#bfdbfe', fontSize: 14 }}>
-                  Word count: {wordCountRange.min}–{wordCountRange.max} words
+                  Word count: {toWordCountLabel(targetWordCount)}
                 </p>
                 <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12 }}>Try to stay close to this range.</p>
                 <textarea
@@ -663,7 +686,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                   style={{ ...primaryButtonStyle, opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
                   aria-label="Start Writing Week"
                 >
-                  {loading ? 'Building your weekly plan…' : 'Start Writing Week'}
+                  {loading ? 'Building your weekly plan…' : 'Submit and build my plan'}
                 </button>
               </section>
             </>
@@ -676,6 +699,14 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                   <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.4)', minHeight: 80, whiteSpace: 'pre-wrap' }}>
                     <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Your original writing task</p>
                     <p style={{ margin: 0, fontSize: 14 }}>{originalPromptText ?? 'Your original writing task will appear here.'}</p>
+                  </div>
+                  <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.4)', minHeight: 80 }}>
+                    <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Your first attempt</p>
+                    <p style={{ margin: 0, fontSize: 14, color: '#e2e8f0' }}>
+                      {firstAttemptSubmission
+                        ? `${firstAttemptSubmission.slice(0, 170)}${firstAttemptSubmission.length > 170 ? '…' : ''}`
+                        : 'Your first response is saved and used as your starting point.'}
+                    </p>
                   </div>
                   <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.4)' }}>
                     <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Your starting score</p>
@@ -718,15 +749,17 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                 ) : (
                   <>
                     <h4 style={{ margin: '0 0 8px', color: '#f8fafc', fontSize: 18 }}>{taskTypeToFriendlyTitle(todayTask.data.task_type, todayTask.data.day_number)}</h4>
-                    <p style={{ margin: '0 0 8px', color: '#e2e8f0', fontSize: 15 }}>
-                      {simplifyStudentLanguage(aiTaskWording || taskTypeToFriendlyInstruction(todayTask.data.task_type))}
+                    <p style={{ margin: '0 0 6px', color: '#93c5fd', fontSize: 13, fontWeight: 700 }}>Today’s goal</p>
+                    <p style={{ margin: '0 0 8px', color: '#e2e8f0', fontSize: 15 }}>{simplifyStudentLanguage(aiTaskWording || taskTypeToFriendlyInstruction(todayTask.data.task_type))}</p>
+                    <p style={{ margin: '0 0 6px', color: '#93c5fd', fontSize: 13, fontWeight: 700 }}>Focus on this</p>
+                    <p style={{ margin: '0 0 8px', color: '#cbd5e1', fontSize: 14 }}>
+                      This helps you improve your weekly focus areas and raise your writing score step by step.
                     </p>
-                    <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 13 }}>
-                      Expected word count: {computeWordCountRange(todayTask.data.expected_word_count).min}–{computeWordCountRange(todayTask.data.expected_word_count).max} words
-                    </p>
+                    <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 13 }}>Word count: {toWordCountLabel(todayTask.data.expected_word_count)}</p>
                     <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12 }}>Try to stay close to this range.</p>
+                    <p style={{ margin: '0 0 6px', color: '#93c5fd', fontSize: 13, fontWeight: 700 }}>Try to do these 2 things</p>
                     <ul style={{ margin: '0 0 10px', paddingLeft: 18, color: '#cbd5e1', fontSize: 14 }}>
-                      {todayTask.data.success_criteria.slice(0, 3).map((item) => (
+                      {todayTask.data.success_criteria.slice(0, 2).map((item) => (
                         <li key={item} style={{ marginBottom: 4 }}>{simplifyStudentLanguage(item)}</li>
                       ))}
                     </ul>
@@ -816,34 +849,34 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
               </div>
 
               <p style={{ margin: 0, color: '#bfdbfe' }}>Main focus: {toStudentLabel(dashboard.data?.weekly_plan_summary?.primary ?? 'Not set yet')}</p>
-              {!weeklyReview.ok || !weeklyReview.data ? (
-                <p style={{ margin: 0, color: '#94a3b8' }}>Complete more writing this week to unlock your progress review.</p>
+              {!showWeeklyEvidence ? (
+                <>
+                  <p style={{ margin: 0, color: '#94a3b8' }}>You’re just getting started this week.</p>
+                  <p style={{ margin: 0, color: '#94a3b8' }}>Complete today’s task to unlock clearer progress feedback.</p>
+                </>
               ) : (
                 <>
-                  <p style={{ margin: 0, color: '#bfdbfe' }}>What’s going well: You completed {weeklyReview.data.weekly_review_summary.completed_tasks} task{weeklyReview.data.weekly_review_summary.completed_tasks === 1 ? '' : 's'}.</p>
+                  <p style={{ margin: 0, color: '#bfdbfe' }}>What’s improving: You completed {weeklySummary?.completed_tasks} task{weeklySummary?.completed_tasks === 1 ? '' : 's'} this week.</p>
                   <p style={{ margin: 0, color: '#94a3b8' }}>
-                    What to improve now: {weeklyReview.data.weekly_review_summary.top_remaining_weaknesses.map((item) => toStudentLabel(item)).join(', ') || 'No major blockers right now.'}
+                    What to work on today: {weeklySummary?.top_remaining_weaknesses.map((item) => toStudentLabel(item)).join(', ') || 'Keep practising your weekly goals.'}
                   </p>
                   <p style={{ margin: 0, color: '#86efac' }}>
-                    Biggest improvement so far: {weeklyReview.data.weekly_review_summary.average_target_skill_score >= 3.5
-                      ? 'You are showing stronger writing control in daily practice.'
-                      : 'You are building consistency by finishing your tasks.'}
+                    Next step: {toStudentLabel(nextWeekInputs?.carry_forward_primary_target ?? 'Keep building your weekly focus skills.')}
                   </p>
-                  <p style={{ margin: 0, color: '#93c5fd' }}>Next step: {toStudentLabel(weeklyReview.data.next_week_planning_inputs.carry_forward_primary_target)}</p>
                 </>
               )}
 
-              {!monthlyReport.ok || !monthlyReport.data ? (
+              {!showMonthlyEvidence ? (
                 <p style={{ margin: 0, color: '#94a3b8' }}>Complete more writing this month to unlock your growth view.</p>
               ) : (
                 <>
                   <p style={{ margin: 0, color: '#bfdbfe' }}>Monthly growth</p>
-                  <p style={{ margin: 0 }}>Biggest improvement so far: {toStudentLabel(monthlyReport.data.student_facing_monthly_report.score_change)}</p>
+                  <p style={{ margin: 0 }}>{toStudentLabel(monthlyFacingReport?.score_change ?? '')}</p>
                   {aiMonthlyWording && <p style={{ margin: 0, color: '#bfdbfe' }}>{aiMonthlyWording}</p>}
-                  <p style={{ margin: 0, color: '#94a3b8' }}>Progress by subscale: {monthlyReport.data.student_facing_monthly_report.subscale_progress.join(' | ')}</p>
-                  <p style={{ margin: 0, color: '#86efac' }}>Strongest gains: {monthlyReport.data.student_facing_monthly_report.strongest_gains.map((item) => toStudentLabel(item)).join(', ')}</p>
-                  <p style={{ margin: 0, color: '#fca5a5' }}>Blocker: {toStudentLabel(monthlyReport.data.student_facing_monthly_report.remaining_blockers[0] ?? 'None right now')}</p>
-                  <p style={{ margin: 0, color: '#93c5fd' }}>Next step: {toStudentLabel(monthlyReport.data.student_facing_monthly_report.next_month_priorities[0] ?? 'Keep completing your weekly writing tasks.')}</p>
+                  <p style={{ margin: 0, color: '#94a3b8' }}>{monthlyFacingReport?.subscale_progress.join(' ')}</p>
+                  <p style={{ margin: 0, color: '#86efac' }}>Strongest gains: {monthlyFacingReport?.strongest_gains.map((item) => toStudentLabel(item)).join(', ')}</p>
+                  <p style={{ margin: 0, color: '#fca5a5' }}>Main blocker: {toStudentLabel(monthlyFacingReport?.remaining_blockers[0] ?? 'None right now')}</p>
+                  <p style={{ margin: 0, color: '#93c5fd' }}>Next step: {toStudentLabel(monthlyFacingReport?.next_month_priorities[0] ?? 'Keep completing your weekly writing tasks.')}</p>
                 </>
               )}
             </div>
@@ -856,9 +889,25 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
           )}
 
           {error && (
-            <p style={{ ...shellCardStyle, margin: 0, color: '#fecaca', borderColor: 'rgba(248, 113, 113, 0.45)' }}>
-              {error}
-            </p>
+            <section style={{ ...shellCardStyle, margin: 0, color: '#fecaca', borderColor: 'rgba(248, 113, 113, 0.45)' }}>
+              <p style={{ margin: 0 }}>{error}</p>
+              <button
+                type="button"
+                onClick={handleRetryLoad}
+                style={{
+                  marginTop: 10,
+                  padding: '8px 10px',
+                  borderRadius: 10,
+                  border: '1px solid rgba(248, 113, 113, 0.6)',
+                  background: 'rgba(127, 29, 29, 0.4)',
+                  color: '#fecaca',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                Retry
+              </button>
+            </section>
           )}
 
           {dashboard.ok && dashboard.data && (
@@ -871,6 +920,22 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
             <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(248,113,113,0.5)' }}>
               <h3 style={{ marginTop: 0, marginBottom: 8, color: '#fecaca' }}>We’re having trouble loading your writing data.</h3>
               <p style={{ margin: 0, color: '#fecaca' }}>Please refresh and try again. Your writing progress is safe.</p>
+              <button
+                type="button"
+                onClick={handleRetryLoad}
+                style={{
+                  marginTop: 10,
+                  padding: '8px 10px',
+                  borderRadius: 10,
+                  border: '1px solid rgba(248, 113, 113, 0.6)',
+                  background: 'rgba(127, 29, 29, 0.4)',
+                  color: '#fecaca',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                Retry loading
+              </button>
             </section>
           )}
 

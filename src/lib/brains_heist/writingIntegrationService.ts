@@ -373,6 +373,7 @@ export const getStudentWritingState = (studentId: string): ServiceResponse<Stude
 export interface StudentWritingHubSnapshot {
   original_prompt_text: string | null;
   first_attempt_assessment: WritingAssessmentResult | null;
+  first_attempt_submission: string | null;
 }
 
 export const getStudentWritingHubSnapshot = (studentId: string): ServiceResponse<StudentWritingHubSnapshot> => {
@@ -385,6 +386,7 @@ export const getStudentWritingHubSnapshot = (studentId: string): ServiceResponse
   return ok({
     original_prompt_text: firstInitialAttempt?.prompt_text ?? null,
     first_attempt_assessment: firstInitialAttempt?.assessment ?? null,
+    first_attempt_submission: firstInitialAttempt?.student_submission ?? null,
   });
 };
 
