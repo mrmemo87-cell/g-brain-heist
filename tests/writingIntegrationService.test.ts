@@ -16,6 +16,7 @@ import {
   listAdminReviewSignals,
   getCurrentWeeklyPlan,
   getMonthlyWritingReport,
+  getStudentWritingState,
   getTodayWritingTask,
   getWeeklyWritingReview,
   listWritingPrompts,
@@ -27,6 +28,7 @@ import {
   setPromptQualityFlag,
   submitDailyWritingPractice,
   submitInitialWritingAssessment,
+  retryWritingHydration,
 } from '../src/lib/brains_heist/writingIntegrationService.js';
 import { WRITING_PILOT_GUARDRAILS } from '../src/lib/brains_heist/writingAdminConfig.js';
 import { parseAdminDrilldownFilters, serializeAdminDrilldownFilters } from '../src/lib/brains_heist/writingAdminFilters.js';
@@ -35,6 +37,21 @@ const prompt = `Write a response that includes:
 - describe the event
 - explain why it mattered
 - give one suggestion`;
+
+const installMockLocalStorage = () => {
+  const data = new Map<string, string>();
+  const storage = {
+    getItem: (key: string) => data.get(key) ?? null,
+    setItem: (key: string, value: string) => data.set(key, value),
+    removeItem: (key: string) => data.delete(key),
+    clear: () => data.clear(),
+    key: (index: number) => [...data.keys()][index] ?? null,
+    get length() {
+      return data.size;
+    },
+  };
+  Object.defineProperty(globalThis, 'localStorage', { value: storage, configurable: true });
+};
 
 test('initial assessment persistence flow', () => {
   __resetWritingIntegrationStoreForTests();
@@ -62,6 +79,27 @@ test('persistence diagnostics report fallback mode in test runtime', () => {
   assert.strictEqual(diagnostics.ok, true);
   assert.strictEqual(diagnostics.data!.repository_mode, 'disabled');
   assert.ok(['runtime-only', 'fallback-local', 'db'].includes(diagnostics.data!.mode));
+});
+
+test('retryWritingHydration rehydrates fallback snapshot from local storage', async () => {
+  installMockLocalStorage();
+  __resetWritingIntegrationStoreForTests();
+  submitInitialWritingAssessment({
+    student_id: 'svc-retry',
+    grade: 8,
+    genre: 'article',
+    prompt_text: prompt,
+    target_word_count: 120,
+    student_response: 'The event happened in school and mattered because students collaborated effectively.',
+  });
+
+  const store = __getWritingIntegrationStoreForTests();
+  store.states.clear();
+  store.profiles.clear();
+
+  await retryWritingHydration();
+  const reloaded = getStudentWritingState('svc-retry', 'article');
+  assert.strictEqual(reloaded.ok, true);
 });
 
 test('daily practice submission persistence flow', () => {

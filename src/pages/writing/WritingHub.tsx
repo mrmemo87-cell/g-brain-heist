@@ -5,6 +5,7 @@ import {
   getWritingHydrationStatus,
   getMonthlyWritingReport,
   requestWritingAiAssist,
+  retryWritingHydration,
   subscribeToWritingHydrationStatus,
   getStudentWritingState,
   getStudentWritingHubSnapshot,
@@ -423,7 +424,9 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     setUiNotice('Refreshing your Writing Hub…');
     setError('');
     setIsRefreshingProgress(true);
-    window.setTimeout(() => setIsRefreshingProgress(false), 320);
+    void retryWritingHydration().finally(() => {
+      window.setTimeout(() => setIsRefreshingProgress(false), 320);
+    });
   };
 
   useEffect(() => {

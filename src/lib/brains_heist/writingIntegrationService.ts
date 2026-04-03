@@ -232,6 +232,47 @@ const applyFallbackSnapshot = (storage: Storage | null): boolean => {
     return false;
   }
 };
+const applyHydratedSnapshot = (
+  parsed: SerializedWritingPersistenceStore,
+  hydrateStartVersion: number,
+  reason: 'initial' | 'late-after-timeout'
+): void => {
+  if (storeMutationVersion !== hydrateStartVersion) {
+    console.warn('[writingIntegrationService] Skipping DB hydration apply due to newer in-memory mutations.');
+    hydrationState = 'ready';
+    notifyHydrationListeners();
+    return;
+  }
+  if (reason === 'late-after-timeout') {
+    console.info('[writingIntegrationService] DB hydration recovered after timeout; applying fresh snapshot.');
+  }
+  lastPersistenceMode = 'db';
+  store.profiles = new Map(parsed.profiles as Array<[string, StudentWritingProfile]>);
+  const loadedStates = new Map<string, StudentWritingState>();
+  (parsed.states as Array<[string, StudentWritingState]>).forEach(([key, value]) => {
+    const { studentId, genre } = parseStateKey(key);
+    const resolvedGenre = resolveGenreFromState(value, genre ?? undefined);
+    if (!resolvedGenre) {
+      loadedStates.set(key, value);
+      return;
+    }
+    loadedStates.set(buildStateKey(studentId, resolvedGenre), { ...value, current_genre: resolvedGenre });
+  });
+  store.states = loadedStates;
+  store.attempts = (parsed.attempts ?? []) as WritingAttempt[];
+  store.weeklyPlans = (parsed.weeklyPlans ?? []) as WeeklyWritingPlan[];
+  store.dailyTasks = (parsed.dailyTasks ?? []) as PersistedDailyWritingTask[];
+  store.dailySubmissions = (parsed.dailySubmissions ?? []) as DailyWritingSubmission[];
+  store.dailyEvaluations = (parsed.dailyEvaluations ?? []) as DailyPracticeEvaluation[];
+  store.monthlyReports = (parsed.monthlyReports ?? []) as MonthlyWritingReport[];
+  store.memorySnapshots = (parsed.memorySnapshots ?? []) as RepeatedErrorMemorySnapshot[];
+  store.promptBank = (parsed.promptBank ?? []) as WritingPromptRecord[];
+  store.reviewSignals = (parsed.reviewSignals ?? []) as AdminReviewSignal[];
+  store.calibrationFollowUpByStudent = parsed.calibrationFollowUpByStudent ?? {};
+  hydrationState = 'ready';
+  notifyHydrationListeners();
+};
+
 const hydrateStore = (): Promise<void> => {
   if (hydrationTriggered) return hydrationInFlight ?? Promise.resolve();
   hydrationTriggered = true;
@@ -249,8 +290,9 @@ const hydrateStore = (): Promise<void> => {
     return hydrationInFlight;
   }
 
+  const dbLoadPromise = loadWritingStoreSnapshot();
   const dbLoad = Promise.race([
-    loadWritingStoreSnapshot(),
+    dbLoadPromise,
     new Promise<null>((resolve) => {
       setTimeout(() => resolve(null), HYDRATION_TIMEOUT_MS);
     }),
@@ -268,39 +310,16 @@ const hydrateStore = (): Promise<void> => {
           console.warn('[writingIntegrationService] DB hydration unavailable and no local fallback snapshot found; using runtime-only state.');
         }
         notifyHydrationListeners();
+        void dbLoadPromise
+          .then((lateParsed) => {
+            if (lateParsed) applyHydratedSnapshot(lateParsed, hydrateStartVersion, 'late-after-timeout');
+          })
+          .catch((error) => {
+            console.warn('Writing integration DB late hydration recovery failed.', error);
+          });
         return;
       }
-      if (storeMutationVersion !== hydrateStartVersion) {
-        console.warn('[writingIntegrationService] Skipping DB hydration apply due to newer in-memory mutations.');
-        hydrationState = 'ready';
-        notifyHydrationListeners();
-        return;
-      }
-      lastPersistenceMode = 'db';
-      store.profiles = new Map(parsed.profiles as Array<[string, StudentWritingProfile]>);
-      const loadedStates = new Map<string, StudentWritingState>();
-      (parsed.states as Array<[string, StudentWritingState]>).forEach(([key, value]) => {
-        const { studentId, genre } = parseStateKey(key);
-        const resolvedGenre = resolveGenreFromState(value, genre ?? undefined);
-        if (!resolvedGenre) {
-          loadedStates.set(key, value);
-          return;
-        }
-        loadedStates.set(buildStateKey(studentId, resolvedGenre), { ...value, current_genre: resolvedGenre });
-      });
-      store.states = loadedStates;
-      store.attempts = (parsed.attempts ?? []) as WritingAttempt[];
-      store.weeklyPlans = (parsed.weeklyPlans ?? []) as WeeklyWritingPlan[];
-      store.dailyTasks = (parsed.dailyTasks ?? []) as PersistedDailyWritingTask[];
-      store.dailySubmissions = (parsed.dailySubmissions ?? []) as DailyWritingSubmission[];
-      store.dailyEvaluations = (parsed.dailyEvaluations ?? []) as DailyPracticeEvaluation[];
-      store.monthlyReports = (parsed.monthlyReports ?? []) as MonthlyWritingReport[];
-      store.memorySnapshots = (parsed.memorySnapshots ?? []) as RepeatedErrorMemorySnapshot[];
-      store.promptBank = (parsed.promptBank ?? []) as WritingPromptRecord[];
-      store.reviewSignals = (parsed.reviewSignals ?? []) as AdminReviewSignal[];
-      store.calibrationFollowUpByStudent = parsed.calibrationFollowUpByStudent ?? {};
-      hydrationState = 'ready';
-      notifyHydrationListeners();
+      applyHydratedSnapshot(parsed, hydrateStartVersion, 'initial');
     })
     .catch((error) => {
       if (applyFallbackSnapshot(storage)) {
@@ -346,6 +365,14 @@ hydrateStore();
 export const getWritingHydrationStatus = (): 'idle' | 'loading' | 'ready' | 'degraded' => {
   hydrateStore();
   return hydrationState;
+};
+
+export const retryWritingHydration = (): Promise<void> => {
+  hydrationTriggered = false;
+  hydrationInFlight = null;
+  hydrationState = 'idle';
+  notifyHydrationListeners();
+  return hydrateStore();
 };
 
 export const subscribeToWritingHydrationStatus = (
