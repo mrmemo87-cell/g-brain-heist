@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   getCurrentWeeklyPlan,
+  getWritingHydrationStatus,
   getMonthlyWritingReport,
   requestWritingAiAssist,
+  subscribeToWritingHydrationStatus,
   getStudentWritingState,
   getStudentWritingHubSnapshot,
   getTodayWritingTask,
@@ -312,8 +314,9 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   const [aiBusy, setAiBusy] = useState(false);
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState(false);
-  const [initializing] = useState(false);
+  const [hydrationStatus, setHydrationStatus] = useState(getWritingHydrationStatus());
   const [isRefreshingProgress, setIsRefreshingProgress] = useState(false);
+  const initializing = hydrationStatus === 'idle' || hydrationStatus === 'loading';
 
   const dashboard = useMemo(() => buildWritingDashboardSnapshot(studentId, month), [studentId, month, feedback]);
   const stateRes = getStudentWritingState(studentId);
@@ -411,6 +414,11 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     setActiveGenre(genre);
     setPromptText(defaultPromptByGenre[genre]);
   }, [genre]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToWritingHydrationStatus((status) => setHydrationStatus(status));
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
