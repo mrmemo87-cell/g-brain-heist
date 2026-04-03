@@ -175,13 +175,20 @@ const toWordCountLabel = (targetWords: number): string => {
 const SUPPORTED_GENRES: SupportedGenre[] = ['essay', 'story', 'article', 'review', 'report', 'email', 'paragraph'];
 
 const defaultPromptByGenre: Record<SupportedGenre, string> = {
-  essay: 'Write about an event, explain why it mattered, and say how it could be better.',
-  story: 'Write a short story about an event, explain why it mattered to the character, and suggest how it could be better.',
-  article: 'Write an article about an event, explain why it mattered, and suggest one improvement.',
-  review: 'Write a review of an event, explain why it mattered, and suggest how it could be better next time.',
-  report: 'Write a report about an event, explain why it mattered, and recommend one improvement.',
-  email: 'Write an email about an event, explain why it mattered, and suggest how it could be better.',
-  paragraph: 'Write one clear paragraph about an event, explain why it mattered, and suggest one improvement.',
+  essay:
+    'Your school plans to cut one student program due to budget limits. Write an essay for the principal arguing which program should be protected, why it matters to students, and one realistic improvement to make it stronger.',
+  story:
+    'Write a short story about a student who makes a difficult choice during a school event. Show why that choice matters to the character and end with one change that could have led to a better outcome.',
+  article:
+    'Write a school newsletter article about a recent campus or community event. Explain why it mattered to readers and propose one practical improvement for next time.',
+  review:
+    'Write a review of a school or community event for younger students deciding whether to attend next time. Evaluate what worked, explain why it mattered, and recommend one specific improvement.',
+  report:
+    'Write a report for school leaders about a recent activity or campaign. Summarize key outcomes, explain why they mattered, and present one evidence-based recommendation for improvement.',
+  email:
+    'Write an email to an event organizer about an event you attended. Explain what impact it had, why that impact mattered, and suggest one clear improvement they could act on.',
+  paragraph:
+    'Write one focused paragraph for your class blog about an event that affected students. Explain why it mattered and include one concrete idea to make future events better.',
 };
 
 const toGenreLabel = (genre: SupportedGenre): string => genre.charAt(0).toUpperCase() + genre.slice(1);
@@ -200,14 +207,18 @@ const toGenreStateCopy = (
 
 const buildReadableTaskSummary = (promptText: string): string => {
   const normalized = simplifyStudentLanguage(promptText).replace(/\s+/g, ' ').trim();
-  if (!normalized) return 'Write about an event, explain why it mattered, and say how it could be better.';
-  const hasEvent = /event|experience|situation|story/i.test(normalized);
-  const hasImportance = /mattered|important|why it mattered|why it was important/i.test(normalized);
-  const hasImprove = /better|improve|suggestion|recommend|how it could be better/i.test(normalized);
-  if (hasEvent && hasImportance && hasImprove) {
-    return 'Write about an event, explain why it mattered, and say how it could be better.';
-  }
-  return normalized;
+  if (!normalized) return 'Your writing mission will appear here once a task is loaded.';
+  return normalized.length > 220 ? `${normalized.slice(0, 217).trimEnd()}…` : normalized;
+};
+
+const masteryTargetByGenre: Record<SupportedGenre, string> = {
+  essay: 'Mastery target: Build a clear claim, support it with relevant evidence, and evaluate one trade-off.',
+  story: 'Mastery target: Develop character motivation, keep logical progression, and craft a meaningful resolution.',
+  article: 'Mastery target: Inform a real audience with clear structure, reliable detail, and a practical takeaway.',
+  review: 'Mastery target: Judge quality with criteria, justify ratings with evidence, and give actionable advice.',
+  report: 'Mastery target: Present findings objectively, highlight impact, and recommend one evidence-based action.',
+  email: 'Mastery target: Use audience-appropriate tone, clear purpose, and a concise actionable recommendation.',
+  paragraph: 'Mastery target: Keep one main idea, strong supporting detail, and precise sentence control.',
 };
 
 const toStudentLabel = (text: string): string => {
@@ -219,6 +230,8 @@ const toStudentLabel = (text: string): string => {
     .replace(/\s+/g, ' ')
     .trim();
 };
+
+const normalizePromptForComparison = (prompt: string): string => prompt.replace(/\s+/g, ' ').trim().toLowerCase();
 
 const getProgressTone = (score: number | null): { color: string; glow: string; label: string } => {
   if (score == null) return { color: '#64748b', glow: 'rgba(100, 116, 139, 0.35)', label: 'No score yet' };
@@ -567,24 +580,50 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     };
   }, [studentId, month, stateRes.ok, stateRes.data?.latest_assessment?.total_score, activeGenre, promptText]);
 
-  const handleStart = (options?: { fromWeekComplete?: boolean }) => {
+  const handleStart = async (options?: { fromWeekComplete?: boolean }) => {
     const fromWeekComplete = Boolean(options?.fromWeekComplete);
     setLoading(true);
     setError('');
-    setUiNotice('Checking your writing…');
+    setUiNotice(fromWeekComplete ? 'Preparing a fresh writing mission…' : 'Checking your writing…');
     const safeInitialResponse = initialResponse.trim() || (fromWeekComplete
       ? 'I am ready to start a new writing week and improve my focus skills with clear writing.'
       : '');
-    if (!promptText.trim() || !safeInitialResponse.trim() || targetWordCount < 20) {
+    let promptForSubmission = promptText.trim();
+
+    if (!promptForSubmission || !safeInitialResponse.trim() || targetWordCount < 20) {
       setError('Please add your first writing response so we can build your weekly plan.');
       setLoading(false);
       return;
     }
+
+    if (fromWeekComplete) {
+      try {
+        const rewrite = await requestWritingAiAssist({
+          mode: 'prompt_rewrite',
+          prompt_text: `${promptForSubmission}\n\nPlease rewrite this into a clearly different real-world scenario for a new week while keeping the same genre and difficulty level.`,
+          weaknesses: latestWeaknesses,
+          grade,
+          genre: activeGenre,
+        });
+        if (rewrite.ok && rewrite.data) {
+          const ai = (rewrite.data.result ?? {}) as WritingAiPlanAssist;
+          const candidate = ai.rewritten_prompt?.trim();
+          if (candidate && normalizePromptForComparison(candidate) !== normalizePromptForComparison(promptForSubmission)) {
+            promptForSubmission = candidate;
+            setPromptText(candidate);
+            setUiNotice('Fresh writing mission ready. Building your weekly plan…');
+          }
+        }
+      } catch (aiError) {
+        console.error('Next-week writing prompt refresh failed:', aiError);
+      }
+    }
+
     const result = submitInitialWritingAssessment({
       student_id: studentId,
       grade,
       genre: activeGenre,
-      prompt_text: promptText,
+      prompt_text: promptForSubmission,
       target_word_count: targetWordCount,
       student_response: safeInitialResponse,
     });
@@ -806,7 +845,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
               {isWeekComplete && (
                 <button
                   type="button"
-                  onClick={() => handleStart({ fromWeekComplete: true })}
+                  onClick={() => void handleStart({ fromWeekComplete: true })}
                   disabled={loading || !promptText.trim() || targetWordCount < 20}
                   style={{
                     padding: '10px 12px',
@@ -889,6 +928,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                 <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 20, color: '#f8fafc' }}>Your writing task</h3>
                 <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 13, fontWeight: 700 }}>Task summary</p>
                 <p style={{ margin: '0 0 10px', color: '#e2e8f0', fontSize: 15 }}>{buildReadableTaskSummary(promptText)}</p>
+                <p style={{ margin: '0 0 10px', color: '#bfdbfe', fontSize: 13 }}>{masteryTargetByGenre[activeGenre]}</p>
                 <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 13, fontWeight: 700 }}>Original prompt</p>
                 <div style={{ ...fieldStyle, minHeight: 88, whiteSpace: 'pre-wrap' }}>{promptText}</div>
                 <button
@@ -927,7 +967,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                   style={{ ...fieldStyle, minHeight: 130 }}
                 />
                 <button
-                  onClick={() => handleStart()}
+                  onClick={() => void handleStart()}
                   disabled={loading || !promptText.trim() || !initialResponse.trim() || targetWordCount < 20}
                   className="writing-primary-button"
                   style={{ ...primaryButtonStyle, opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
@@ -1092,7 +1132,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                 What improved: {studentFriendlyWeaknesses.length > 0 ? studentFriendlyWeaknesses.slice(0, 2).join(' · ') : 'Your writing control and task focus improved.'}
               </p>
               <button
-                onClick={() => handleStart({ fromWeekComplete: true })}
+                onClick={() => void handleStart({ fromWeekComplete: true })}
                 disabled={loading || !promptText.trim() || targetWordCount < 20}
                 className="writing-primary-button"
                 style={{ ...primaryButtonStyle, opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
