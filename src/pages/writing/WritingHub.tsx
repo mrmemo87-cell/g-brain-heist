@@ -282,6 +282,93 @@ const taskTypeToFriendlyInstruction = (taskType: string): string => {
   return map[taskType] ?? 'Focus on clear and complete writing.';
 };
 
+interface TaskTypeStudyGuide {
+  objective: string;
+  structure: string[];
+  qualityChecks: string[];
+  pitfalls: string[];
+}
+
+const taskTypeStudyGuideMap: Record<string, TaskTypeStudyGuide> = {
+  'sentence correction': {
+    objective: 'Correct grammar, punctuation, and wording so each sentence is accurate and easy to read.',
+    structure: ['Read the sentence once for meaning.', 'Find one grammar issue at a time.', 'Rewrite only what is needed.'],
+    qualityChecks: ['Verb tense matches the meaning.', 'Subject and verb agree.', 'Sentence sounds natural when read aloud.'],
+    pitfalls: ['Changing the original meaning.', 'Fixing one error but creating another.', 'Ignoring punctuation and capitalization.'],
+  },
+  'error spotting': {
+    objective: 'Identify mistakes quickly and explain or apply the correct version.',
+    structure: ['Scan for obvious grammar signals.', 'Check word forms and word order.', 'Confirm the corrected version reads clearly.'],
+    qualityChecks: ['Every correction has a clear reason.', 'No missed errors in short sentences.', 'Corrections keep the same idea.'],
+    pitfalls: ['Guessing without checking context.', 'Only fixing spelling and missing grammar errors.', 'Over-correcting correct parts.'],
+  },
+  'sentence combining': {
+    objective: 'Join short ideas into smoother, more fluent sentences without losing clarity.',
+    structure: ['Choose the main idea sentence.', 'Use linking words or clauses to join support ideas.', 'Check punctuation after combining.'],
+    qualityChecks: ['Combined sentence is not too long.', 'Linking words fit the relationship (because, but, although).', 'Meaning stays complete.'],
+    pitfalls: ['Run-on sentences.', 'Too many connectors in one sentence.', 'Dropping important detail while combining.'],
+  },
+  'paragraph ordering': {
+    objective: 'Arrange ideas so the paragraph flows logically from beginning to end.',
+    structure: ['Start with a clear topic sentence.', 'Place supporting details in logical order.', 'End with a closing or linking sentence.'],
+    qualityChecks: ['Each sentence connects to the previous one.', 'Examples follow the point they support.', 'The final order is easy to follow.'],
+    pitfalls: ['Jumping between unrelated ideas.', 'Placing evidence before the main point.', 'Weak or missing paragraph ending.'],
+  },
+  'linking words insertion': {
+    objective: 'Use linking words to guide the reader through contrast, reason, sequence, and result.',
+    structure: ['Decide the relationship between two ideas.', 'Choose one suitable connector.', 'Read the full sentence to check flow.'],
+    qualityChecks: ['Connector meaning is correct.', 'Grammar after the connector is correct.', 'Writing sounds smooth, not forced.'],
+    pitfalls: ['Using formal connectors in simple contexts.', 'Repeating the same linker too often.', 'Using contrast linkers for addition ideas.'],
+  },
+  'paragraph writing': {
+    objective: 'Write one focused paragraph with a clear main idea and strong supporting detail.',
+    structure: ['Topic sentence with a clear point.', '2-3 supporting details or examples.', 'Final sentence that closes the idea.'],
+    qualityChecks: ['One main idea only.', 'Details are specific, not vague.', 'Sentences are connected logically.'],
+    pitfalls: ['Too many unrelated points.', 'General statements without examples.', 'No clear ending sentence.'],
+  },
+  'guided writing': {
+    objective: 'Follow the writing instructions closely and answer every part of the task.',
+    structure: ['Underline key task requirements.', 'Plan short points for each requirement.', 'Write in the requested format and tone.'],
+    qualityChecks: ['Every instruction point is answered.', 'Tone fits audience and purpose.', 'Word count is within the target range.'],
+    pitfalls: ['Ignoring one part of the prompt.', 'Wrong format (e.g., letter vs report style).', 'Too short responses with weak development.'],
+  },
+  'rewrite from feedback': {
+    objective: 'Improve your earlier response by applying feedback directly and clearly.',
+    structure: ['Review feedback tags before rewriting.', 'Prioritize 2-3 biggest weaknesses.', 'Rewrite and recheck against feedback points.'],
+    qualityChecks: ['Previous errors are fixed.', 'Ideas are clearer and better organized.', 'Improvement is visible in structure and language.'],
+    pitfalls: ['Copying old response with tiny edits.', 'Fixing grammar only and ignoring content gaps.', 'Not checking whether feedback was fully applied.'],
+  },
+  'full exam-style response': {
+    objective: 'Complete a full response under realistic exam conditions with clear structure and task coverage.',
+    structure: ['Plan quickly before writing.', 'Write full introduction-body-conclusion or full required format.', 'Leave time to revise key errors.'],
+    qualityChecks: ['All prompt parts are covered.', 'Paragraphing is clear and controlled.', 'Language accuracy is consistent.'],
+    pitfalls: ['Starting without planning.', 'Spending too long on one paragraph.', 'Finishing without revision.'],
+  },
+  'genre convention task': {
+    objective: 'Use the correct style, tone, and structure for this specific writing type.',
+    structure: ['Identify the genre and audience first.', 'Follow expected format features.', 'Use language that matches the genre purpose.'],
+    qualityChecks: ['Tone matches audience (formal/informal).', 'Text includes expected genre elements.', 'Purpose is clear from beginning to end.'],
+    pitfalls: ['Using essay style in a letter/report task.', 'Wrong greeting or ending conventions.', 'Mixing tone levels in one response.'],
+  },
+  'word-count control task': {
+    objective: 'Write a complete response while staying close to the required word range.',
+    structure: ['Plan paragraph lengths before writing.', 'Develop only the strongest points.', 'Count and trim/revise near the end.'],
+    qualityChecks: ['Response stays near target word count.', 'Main points are still complete.', 'No rushed ending or missing conclusion.'],
+    pitfalls: ['Writing too little and missing development.', 'Overwriting with repeated ideas.', 'Cutting words and damaging clarity.'],
+  },
+};
+
+const getTaskTypeStudyGuide = (taskType: string): TaskTypeStudyGuide => {
+  return (
+    taskTypeStudyGuideMap[taskType] ?? {
+      objective: 'Understand what the task asks, organize ideas clearly, and check language before submitting.',
+      structure: ['Read the prompt carefully.', 'Plan main points before writing.', 'Review your response for clarity and accuracy.'],
+      qualityChecks: ['All prompt parts are answered.', 'Ideas flow in logical order.', 'Grammar and word choice are clear.'],
+      pitfalls: ['Skipping planning.', 'Ignoring one part of the task.', 'Submitting without checking your writing.'],
+    }
+  );
+};
+
 const weaknessTagToStudentTip = (tag: string): string => {
   const tipMap: Record<string, string> = {
     missed_content_point: 'Answer every part of the question.',
@@ -332,6 +419,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   const [hydrationStatus, setHydrationStatus] = useState(getWritingHydrationStatus());
   const [isRefreshingProgress, setIsRefreshingProgress] = useState(false);
   const [isGenreSwitching, setIsGenreSwitching] = useState(false);
+  const [showTaskTypeGuide, setShowTaskTypeGuide] = useState(false);
   const initializing = hydrationStatus === 'idle' || hydrationStatus === 'loading';
 
   const dashboard = useMemo(() => buildWritingDashboardSnapshot(studentId, month, activeGenre), [studentId, month, activeGenre, feedback]);
@@ -433,6 +521,10 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     setActiveGenre(genre);
     setPromptText(defaultPromptByGenre[genre]);
   }, [genre]);
+
+  useEffect(() => {
+    setShowTaskTypeGuide(false);
+  }, [activeGenre, todayTask.ok, todayTask.data?.task_type]);
 
   useEffect(() => {
     const unsubscribe = subscribeToWritingHydrationStatus((status) => setHydrationStatus(status));
@@ -908,6 +1000,49 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                     <h4 style={{ margin: '0 0 8px', color: '#f8fafc', fontSize: 18 }}>{taskTypeToFriendlyTitle(todayTask.data.task_type, todayTask.data.day_number)}</h4>
                     <p style={{ margin: '0 0 6px', color: '#93c5fd', fontSize: 13, fontWeight: 700 }}>Today’s goal</p>
                     <p style={{ margin: '0 0 8px', color: '#e2e8f0', fontSize: 15 }}>{simplifyStudentLanguage(aiTaskWording || taskTypeToFriendlyInstruction(todayTask.data.task_type))}</p>
+                    <button
+                      type="button"
+                      onClick={() => setShowTaskTypeGuide((prev) => !prev)}
+                      style={{
+                        margin: '0 0 10px',
+                        padding: '8px 11px',
+                        borderRadius: 10,
+                        border: '1px solid rgba(147, 197, 253, 0.65)',
+                        background: 'rgba(30, 41, 59, 0.95)',
+                        color: '#dbeafe',
+                        cursor: 'pointer',
+                        fontWeight: 700,
+                        fontSize: 13,
+                      }}
+                    >
+                      {showTaskTypeGuide ? 'Hide detailed task guide' : 'Show detailed task guide'}
+                    </button>
+                    {showTaskTypeGuide && (
+                      <div style={{ borderRadius: 12, border: '1px solid rgba(147, 197, 253, 0.45)', background: 'rgba(15, 23, 42, 0.45)', padding: 12, marginBottom: 10 }}>
+                        <p style={{ margin: '0 0 6px', color: '#93c5fd', fontSize: 12, fontWeight: 800 }}>How to answer this task type</p>
+                        <p style={{ margin: '0 0 8px', color: '#e2e8f0', fontSize: 14 }}>
+                          <strong>Goal:</strong> {getTaskTypeStudyGuide(todayTask.data.task_type).objective}
+                        </p>
+                        <p style={{ margin: '0 0 4px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Best structure</p>
+                        <ul style={{ margin: '0 0 8px', paddingLeft: 18, color: '#cbd5e1', fontSize: 13 }}>
+                          {getTaskTypeStudyGuide(todayTask.data.task_type).structure.map((item) => (
+                            <li key={item} style={{ marginBottom: 3 }}>{item}</li>
+                          ))}
+                        </ul>
+                        <p style={{ margin: '0 0 4px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Check before you submit</p>
+                        <ul style={{ margin: '0 0 8px', paddingLeft: 18, color: '#cbd5e1', fontSize: 13 }}>
+                          {getTaskTypeStudyGuide(todayTask.data.task_type).qualityChecks.map((item) => (
+                            <li key={item} style={{ marginBottom: 3 }}>{item}</li>
+                          ))}
+                        </ul>
+                        <p style={{ margin: '0 0 4px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Common mistakes to avoid</p>
+                        <ul style={{ margin: 0, paddingLeft: 18, color: '#cbd5e1', fontSize: 13 }}>
+                          {getTaskTypeStudyGuide(todayTask.data.task_type).pitfalls.map((item) => (
+                            <li key={item} style={{ marginBottom: 3 }}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                     <p style={{ margin: '0 0 6px', color: '#93c5fd', fontSize: 13, fontWeight: 700 }}>Focus on this</p>
                     <p style={{ margin: '0 0 8px', color: '#cbd5e1', fontSize: 14 }}>
                       This helps you improve your weekly focus areas and raise your writing score step by step.
