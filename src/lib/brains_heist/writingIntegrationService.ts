@@ -1492,7 +1492,8 @@ export const setCalibrationFollowUpFlag = (
   note?: string
 ): ServiceResponse<{ flagged: boolean; note?: string; updated_at: string }> => {
   hydrateStore();
-  if (!store.states.has(studentId)) return badRequest('student writing state not found.');
+  const hasAnyGenreState = [...store.states.keys()].some((key) => parseStateKey(key).studentId === studentId);
+  if (!hasAnyGenreState) return badRequest('student writing state not found.');
   const record = {
     flagged,
     note,
