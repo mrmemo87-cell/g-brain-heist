@@ -84,7 +84,14 @@ export const loadWritingStoreSnapshot = async (): Promise<SerializedWritingPersi
           .filter(([genre]) => typeof genre === 'string' && genre.length > 0)
           .map(([genre, state]) => [`${row.student_id}::${genre}`, state] as [string, unknown]);
       }
-      return [[row.student_id, statePayload] as [string, unknown]];
+      const inferredGenre = (() => {
+        if (statePayload && typeof statePayload === 'object' && !Array.isArray(statePayload)) {
+          const rawGenre = (statePayload as Record<string, unknown>)['current_genre'] ?? (statePayload as Record<string, unknown>)['genre'];
+          if (typeof rawGenre === 'string' && rawGenre.length > 0) return rawGenre;
+        }
+        return 'unknown';
+      })();
+      return [[`${row.student_id}::${inferredGenre}`, statePayload] as [string, unknown]];
     }),
     attempts: (attemptsRes.data ?? []).map((row: any) => row.payload),
     weeklyPlans: (weeklyRes.data ?? []).map((row: any) => row.payload),
@@ -114,7 +121,10 @@ export const persistWritingStoreSnapshot = async (snapshot: SerializedWritingPer
   }));
   const statesByStudent = snapshot.states.reduce<Record<string, Record<string, unknown>>>((acc, [key, state]) => {
     const [studentId, genre] = key.split('::');
-    if (!studentId || !genre) return acc;
+    if (!studentId || !genre) {
+      console.warn(`[writingRepository] Skipping malformed state key during persistence: ${key}`);
+      return acc;
+    }
     if (!acc[studentId]) acc[studentId] = {};
     acc[studentId][genre] = safe(state);
     return acc;

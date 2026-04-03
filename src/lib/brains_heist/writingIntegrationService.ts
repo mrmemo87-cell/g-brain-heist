@@ -209,7 +209,10 @@ const applyFallbackSnapshot = (storage: Storage | null): boolean => {
     (fallback.states as Array<[string, StudentWritingState]>).forEach(([key, value]) => {
       const { studentId, genre } = parseStateKey(key);
       const resolvedGenre = resolveGenreFromState(value, genre ?? undefined);
-      if (!resolvedGenre) return;
+      if (!resolvedGenre) {
+        loadedStates.set(key, value);
+        return;
+      }
       loadedStates.set(buildStateKey(studentId, resolvedGenre), { ...value, current_genre: resolvedGenre });
     });
     store.states = loadedStates;
@@ -279,7 +282,10 @@ const hydrateStore = (): Promise<void> => {
       (parsed.states as Array<[string, StudentWritingState]>).forEach(([key, value]) => {
         const { studentId, genre } = parseStateKey(key);
         const resolvedGenre = resolveGenreFromState(value, genre ?? undefined);
-        if (!resolvedGenre) return;
+        if (!resolvedGenre) {
+          loadedStates.set(key, value);
+          return;
+        }
         loadedStates.set(buildStateKey(studentId, resolvedGenre), { ...value, current_genre: resolvedGenre });
       });
       store.states = loadedStates;
@@ -352,9 +358,7 @@ export const subscribeToWritingHydrationStatus = (
   };
 };
 
-const SUPPORTED_GENRES: SupportedGenre[] = ['email', 'article', 'review', 'story', 'essay', 'report', 'paragraph'];
-
-const isValidGenre = (genre: string): genre is SupportedGenre => SUPPORTED_GENRES.includes(genre as SupportedGenre);
+const isValidGenre = (genre: string): genre is SupportedGenre => GENRE_KEYS.includes(genre as SupportedGenre);
 const isValidGrade = (grade: number): boolean => Number.isInteger(grade) && grade >= 6 && grade <= 12;
 const normalizeGrade = (grade: unknown): number | null => {
   const parsed = typeof grade === 'string' ? Number.parseInt(grade, 10) : Number(grade);

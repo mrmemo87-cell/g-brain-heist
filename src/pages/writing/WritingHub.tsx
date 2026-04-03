@@ -437,6 +437,14 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   }, []);
 
   useEffect(() => {
+    if (!isGenreSwitching) return;
+    if (initializing) return;
+    if (genreStatuses.ok) {
+      setIsGenreSwitching(false);
+    }
+  }, [isGenreSwitching, initializing, genreStatuses.ok, activeGenre]);
+
+  useEffect(() => {
     let cancelled = false;
     const loadAiPlanAssist = async () => {
       if (!stateRes.ok || !stateRes.data?.latest_assessment || aiBusy) return;
@@ -599,7 +607,6 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     setAiCoachingPoints([]);
     setAiTaskWording('');
     setUiNotice(`${toGenreLabel(nextGenre)} path selected. Loading your progress for this writing path…`);
-    window.setTimeout(() => setIsGenreSwitching(false), 260);
   };
 
   const renderLoadingSkeleton = () => (
@@ -668,6 +675,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                       key={item}
                       type="button"
                       onClick={() => handleChangeWritingType(item)}
+                      aria-pressed={isSelected}
+                      aria-label={`${toGenreLabel(item)} writing path`}
                       style={{
                         textAlign: 'left',
                         borderRadius: 12,
@@ -685,7 +694,14 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                       {status && status.latest_score != null && (
                         <div style={{ fontSize: 11, color: '#93c5fd', marginTop: 2 }}>Latest score: {status.latest_score}/20</div>
                       )}
-                      <div style={{ marginTop: 6, ...progressTrackStyle, height: 6 }}>
+                      <div
+                        style={{ marginTop: 6, ...progressTrackStyle, height: 6 }}
+                        role="progressbar"
+                        aria-label={`${toGenreLabel(item)} path progress ${progress}%`}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={progress}
+                      >
                         <div className="progress-fill" style={{ width: `${progress}%`, height: '100%', background: 'linear-gradient(90deg, #38bdf8 0%, #22d3ee 100%)' }} />
                       </div>
                     </button>
