@@ -130,7 +130,7 @@ const store: WritingPersistenceStore = {
 };
 
 const WRITING_STORE_KEY = 'gbh_writing_integration_v2_fallback';
-const HYDRATION_TIMEOUT_MS = 4500;
+const HYDRATION_TIMEOUT_MS = 12000;
 
 const getStorage = (): Storage | null => {
   try {
@@ -513,8 +513,22 @@ export const submitInitialWritingAssessment = (
 
 export const getStudentWritingState = (studentId: string, genre?: SupportedGenre): ServiceResponse<StudentWritingState> => {
   hydrateStore();
-  const state = getStateForGenre(studentId, genre);
-  if (!state) return badRequest('student writing state not found.');
+  const resolvedGenre = genre ?? getProfileGenre(studentId);
+  const state = getStateForGenre(studentId, resolvedGenre);
+  if (!state) {
+    const profile = store.profiles.get(studentId);
+    if (!profile) return badRequest('student writing state not found.');
+
+    const seededState = createInitialStudentWritingState(studentId, profile.grade, resolvedGenre);
+    setStateForGenre(studentId, resolvedGenre, seededState);
+    store.profiles.set(studentId, {
+      ...profile,
+      current_genre: resolvedGenre,
+      updated_at: new Date().toISOString(),
+    });
+    persistStore();
+    return ok(seededState);
+  }
   return ok(state);
 };
 
