@@ -36,6 +36,7 @@ export interface StudentWritingProfile {
 export interface WritingAttempt {
   id: string;
   student_id: string;
+  genre: SupportedGenre;
   attempt_type: 'initial_assessment' | 'daily_practice';
   created_at: string;
   prompt_text?: string;
@@ -46,6 +47,7 @@ export interface WritingAttempt {
 export interface WeeklyWritingPlan {
   id: string;
   student_id: string;
+  genre: SupportedGenre;
   week_key: string;
   created_at: string;
   plan: WeeklyImprovementPlan;
@@ -54,6 +56,7 @@ export interface WeeklyWritingPlan {
 export interface PersistedDailyWritingTask {
   id: string;
   student_id: string;
+  genre: SupportedGenre;
   week_key: string;
   task: DailyWritingTask;
   created_at: string;
@@ -62,6 +65,7 @@ export interface PersistedDailyWritingTask {
 export interface DailyWritingSubmission {
   id: string;
   student_id: string;
+  genre: SupportedGenre;
   task_day_number: number;
   submission_text: string;
   submitted_at: string;
@@ -70,6 +74,7 @@ export interface DailyWritingSubmission {
 export interface DailyPracticeEvaluation {
   id: string;
   student_id: string;
+  genre: SupportedGenre;
   task_day_number: number;
   evaluation: WritingPracticeEvaluationResult;
   created_at: string;
@@ -78,6 +83,7 @@ export interface DailyPracticeEvaluation {
 export interface MonthlyWritingReport {
   id: string;
   student_id: string;
+  genre: SupportedGenre;
   month: string;
   comparison: MonthlyComparisonResult;
   report: MonthlyGrowthReport;
@@ -88,6 +94,7 @@ export interface MonthlyWritingReport {
 export interface RepeatedErrorMemorySnapshot {
   id: string;
   student_id: string;
+  genre: SupportedGenre;
   created_at: string;
   snapshot: StudentWritingState['repeated_error_memory'];
 }
@@ -151,6 +158,31 @@ const serializeStore = (): SerializedWritingPersistenceStore => ({
   calibrationFollowUpByStudent: store.calibrationFollowUpByStudent,
 });
 
+const GENRE_KEYS: SupportedGenre[] = ['email', 'article', 'review', 'story', 'essay', 'report', 'paragraph'];
+const isKnownGenre = (genre: string): genre is SupportedGenre => GENRE_KEYS.includes(genre as SupportedGenre);
+const buildStateKey = (studentId: string, genre: SupportedGenre): string => `${studentId}::${genre}`;
+const parseStateKey = (key: string): { studentId: string; genre: SupportedGenre | null } => {
+  const [studentId, rawGenre] = key.split('::');
+  if (studentId && rawGenre && isKnownGenre(rawGenre)) return { studentId, genre: rawGenre };
+  return { studentId: key, genre: null };
+};
+const resolveGenreFromState = (state: StudentWritingState | undefined, fallback?: string): SupportedGenre | null => {
+  if (state?.current_genre && isKnownGenre(state.current_genre)) return state.current_genre;
+  if (fallback && isKnownGenre(fallback)) return fallback;
+  return null;
+};
+const getProfileGenre = (studentId: string): SupportedGenre => {
+  const genre = store.profiles.get(studentId)?.current_genre;
+  return genre && isKnownGenre(genre) ? genre : 'essay';
+};
+const getStateForGenre = (studentId: string, genre?: SupportedGenre): StudentWritingState | null => {
+  const resolvedGenre = genre ?? getProfileGenre(studentId);
+  return store.states.get(buildStateKey(studentId, resolvedGenre)) ?? null;
+};
+const setStateForGenre = (studentId: string, genre: SupportedGenre, state: StudentWritingState): void => {
+  store.states.set(buildStateKey(studentId, genre), { ...state, current_genre: genre });
+};
+
 let hydrationTriggered = false;
 let hydrationInFlight: Promise<void> | null = null;
 let hydrationState: 'idle' | 'loading' | 'ready' | 'degraded' = 'idle';
@@ -173,7 +205,14 @@ const applyFallbackSnapshot = (storage: Storage | null): boolean => {
     if (!raw) return false;
     const fallback = JSON.parse(raw) as SerializedWritingPersistenceStore;
     store.profiles = new Map(fallback.profiles as Array<[string, StudentWritingProfile]>);
-    store.states = new Map(fallback.states as Array<[string, StudentWritingState]>);
+    const loadedStates = new Map<string, StudentWritingState>();
+    (fallback.states as Array<[string, StudentWritingState]>).forEach(([key, value]) => {
+      const { studentId, genre } = parseStateKey(key);
+      const resolvedGenre = resolveGenreFromState(value, genre ?? undefined);
+      if (!resolvedGenre) return;
+      loadedStates.set(buildStateKey(studentId, resolvedGenre), { ...value, current_genre: resolvedGenre });
+    });
+    store.states = loadedStates;
     store.attempts = (fallback.attempts ?? []) as WritingAttempt[];
     store.weeklyPlans = (fallback.weeklyPlans ?? []) as WeeklyWritingPlan[];
     store.dailyTasks = (fallback.dailyTasks ?? []) as PersistedDailyWritingTask[];
@@ -236,7 +275,14 @@ const hydrateStore = (): Promise<void> => {
       }
       lastPersistenceMode = 'db';
       store.profiles = new Map(parsed.profiles as Array<[string, StudentWritingProfile]>);
-      store.states = new Map(parsed.states as Array<[string, StudentWritingState]>);
+      const loadedStates = new Map<string, StudentWritingState>();
+      (parsed.states as Array<[string, StudentWritingState]>).forEach(([key, value]) => {
+        const { studentId, genre } = parseStateKey(key);
+        const resolvedGenre = resolveGenreFromState(value, genre ?? undefined);
+        if (!resolvedGenre) return;
+        loadedStates.set(buildStateKey(studentId, resolvedGenre), { ...value, current_genre: resolvedGenre });
+      });
+      store.states = loadedStates;
       store.attempts = (parsed.attempts ?? []) as WritingAttempt[];
       store.weeklyPlans = (parsed.weeklyPlans ?? []) as WeeklyWritingPlan[];
       store.dailyTasks = (parsed.dailyTasks ?? []) as PersistedDailyWritingTask[];
@@ -340,6 +386,7 @@ interface SubmitInitialWritingAssessmentInput {
 
 interface SubmitDailyWritingPracticeInput {
   student_id: string;
+  genre?: string;
   day_number: number;
   submission_text: string;
   submitted_at?: string;
@@ -357,15 +404,16 @@ export const submitInitialWritingAssessment = (
   const normalizedGrade = normalizeGrade(input.grade);
   if (normalizedGrade === null) return badRequest('grade must be an integer between 6 and 12.');
   if (!isValidGenre(input.genre)) return badRequest('genre is invalid.');
+  const normalizedGenre: SupportedGenre = input.genre;
   if (!input.prompt_text?.trim()) return badRequest('prompt_text is required.');
   if (!Number.isFinite(input.target_word_count) || input.target_word_count < 20) return badRequest('target_word_count must be >= 20.');
   if (!input.student_response?.trim()) return badRequest('student_response is required.');
 
-  const existingState = store.states.get(input.student_id) ?? createInitialStudentWritingState(input.student_id, normalizedGrade, input.genre);
+  const existingState = getStateForGenre(input.student_id, normalizedGenre) ?? createInitialStudentWritingState(input.student_id, normalizedGrade, normalizedGenre);
   const flow = runInitialWritingAssessmentFlow({
     ...input,
     grade: normalizedGrade,
-    genre: input.genre,
+    genre: normalizedGenre,
     current_state: existingState,
     attempted_at: input.attempted_at,
   });
@@ -375,17 +423,18 @@ export const submitInitialWritingAssessment = (
     student_id: input.student_id,
     student_name: input.student_name?.trim() || store.profiles.get(input.student_id)?.student_name,
     grade: normalizedGrade,
-    current_genre: input.genre,
+    current_genre: normalizedGenre,
     created_at: store.profiles.get(input.student_id)?.created_at ?? now,
     updated_at: now,
   };
 
   store.profiles.set(input.student_id, profile);
-  store.states.set(input.student_id, flow.updated_writing_state);
+  setStateForGenre(input.student_id, normalizedGenre, flow.updated_writing_state);
 
   store.attempts.push({
     id: buildId('attempt'),
     student_id: input.student_id,
+    genre: normalizedGenre,
     attempt_type: 'initial_assessment',
     created_at: now,
     prompt_text: input.prompt_text,
@@ -397,6 +446,7 @@ export const submitInitialWritingAssessment = (
   store.weeklyPlans.push({
     id: buildId('week'),
     student_id: input.student_id,
+    genre: normalizedGenre,
     week_key: wk,
     created_at: now,
     plan: flow.weekly_plan,
@@ -406,6 +456,7 @@ export const submitInitialWritingAssessment = (
     store.dailyTasks.push({
       id: buildId('task'),
       student_id: input.student_id,
+      genre: normalizedGenre,
       week_key: wk,
       task,
       created_at: now,
@@ -415,6 +466,7 @@ export const submitInitialWritingAssessment = (
   store.memorySnapshots.push({
     id: buildId('mem'),
     student_id: input.student_id,
+    genre: normalizedGenre,
     created_at: now,
     snapshot: flow.updated_writing_state.repeated_error_memory,
   });
@@ -428,9 +480,9 @@ export const submitInitialWritingAssessment = (
   });
 };
 
-export const getStudentWritingState = (studentId: string): ServiceResponse<StudentWritingState> => {
+export const getStudentWritingState = (studentId: string, genre?: SupportedGenre): ServiceResponse<StudentWritingState> => {
   hydrateStore();
-  const state = store.states.get(studentId);
+  const state = getStateForGenre(studentId, genre);
   if (!state) return badRequest('student writing state not found.');
   return ok(state);
 };
@@ -441,10 +493,20 @@ export interface StudentWritingHubSnapshot {
   first_attempt_submission: string | null;
 }
 
-export const getStudentWritingHubSnapshot = (studentId: string): ServiceResponse<StudentWritingHubSnapshot> => {
+export interface StudentGenrePathStatus {
+  genre: SupportedGenre;
+  status: 'not_started' | 'week_active' | 'week_complete';
+  current_day: number | null;
+  completed_tasks_count: number;
+  total_tasks_count: number;
+  latest_score: number | null;
+}
+
+export const getStudentWritingHubSnapshot = (studentId: string, genre?: SupportedGenre): ServiceResponse<StudentWritingHubSnapshot> => {
   hydrateStore();
+  const targetGenre = genre ?? getProfileGenre(studentId);
   const studentAttempts = store.attempts
-    .filter((attempt) => attempt.student_id === studentId)
+    .filter((attempt) => attempt.student_id === studentId && attempt.genre === targetGenre)
     .sort((a, b) => a.created_at.localeCompare(b.created_at));
 
   const firstInitialAttempt = studentAttempts.find((attempt) => attempt.attempt_type === 'initial_assessment') ?? null;
@@ -455,16 +517,40 @@ export const getStudentWritingHubSnapshot = (studentId: string): ServiceResponse
   });
 };
 
-export const getCurrentWeeklyPlan = (studentId: string): ServiceResponse<WeeklyImprovementPlan> => {
+export const getStudentGenrePathStatuses = (
+  studentId: string,
+  genres: SupportedGenre[]
+): ServiceResponse<StudentGenrePathStatus[]> => {
   hydrateStore();
-  const state = store.states.get(studentId);
+  const statuses = genres.map((genreItem) => {
+    const state = getStateForGenre(studentId, genreItem);
+    const totalTasks = state?.active_daily_tasks.length ?? 0;
+    const completed = state?.completed_daily_tasks.length ?? 0;
+    const hasStarted = Boolean(state?.latest_assessment || completed > 0 || totalTasks > 0);
+    const isWeekComplete = hasStarted && totalTasks > 0 && completed >= totalTasks;
+    const nextTask = state?.active_daily_tasks.find((task) => !new Set(state.completed_daily_tasks.map((item) => item.task.day_number)).has(task.day_number));
+    return {
+      genre: genreItem,
+      status: !hasStarted ? 'not_started' : isWeekComplete ? 'week_complete' : 'week_active',
+      current_day: nextTask?.day_number ?? null,
+      completed_tasks_count: completed,
+      total_tasks_count: totalTasks,
+      latest_score: state?.latest_assessment?.total_score ?? null,
+    } satisfies StudentGenrePathStatus;
+  });
+  return ok(statuses);
+};
+
+export const getCurrentWeeklyPlan = (studentId: string, genre?: SupportedGenre): ServiceResponse<WeeklyImprovementPlan> => {
+  hydrateStore();
+  const state = getStateForGenre(studentId, genre);
   if (!state || !state.active_week_plan) return badRequest('active weekly plan not found.');
   return ok(state.active_week_plan);
 };
 
-export const getTodayWritingTask = (studentId: string): ServiceResponse<DailyWritingTask> => {
+export const getTodayWritingTask = (studentId: string, genre?: SupportedGenre): ServiceResponse<DailyWritingTask> => {
   hydrateStore();
-  const state = store.states.get(studentId);
+  const state = getStateForGenre(studentId, genre);
   if (!state) return badRequest('student writing state not found.');
 
   const completedDays = new Set(state.completed_daily_tasks.map((item) => item.task.day_number));
@@ -480,10 +566,11 @@ export const submitDailyWritingPractice = (
   writing_state: StudentWritingState;
 }> => {
   if (!input.student_id?.trim()) return badRequest('student_id is required.');
+  const normalizedGenre = input.genre && isValidGenre(input.genre) ? input.genre : getProfileGenre(input.student_id);
   if (!Number.isInteger(input.day_number) || input.day_number <= 0) return badRequest('day_number must be a positive integer.');
   if (!input.submission_text?.trim()) return badRequest('submission_text is required.');
 
-  const state = store.states.get(input.student_id);
+  const state = getStateForGenre(input.student_id, normalizedGenre);
   if (!state) return badRequest('student writing state not found.');
 
   const task = state.active_daily_tasks.find((item) => item.day_number === input.day_number);
@@ -498,10 +585,11 @@ export const submitDailyWritingPractice = (
     completed_at: submittedAt,
   });
 
-  store.states.set(input.student_id, flow.updated_writing_state);
+  setStateForGenre(input.student_id, normalizedGenre, flow.updated_writing_state);
   store.dailySubmissions.push({
     id: buildId('submission'),
     student_id: input.student_id,
+    genre: normalizedGenre,
     task_day_number: input.day_number,
     submission_text: input.submission_text,
     submitted_at: submittedAt,
@@ -509,6 +597,7 @@ export const submitDailyWritingPractice = (
   store.dailyEvaluations.push({
     id: buildId('evaluation'),
     student_id: input.student_id,
+    genre: normalizedGenre,
     task_day_number: input.day_number,
     evaluation: flow.practice_evaluation_result,
     created_at: submittedAt,
@@ -518,6 +607,7 @@ export const submitDailyWritingPractice = (
     store.attempts.push({
       id: buildId('attempt'),
       student_id: input.student_id,
+      genre: normalizedGenre,
       attempt_type: 'daily_practice',
       created_at: submittedAt,
       student_submission: input.submission_text,
@@ -528,6 +618,7 @@ export const submitDailyWritingPractice = (
   store.memorySnapshots.push({
     id: buildId('mem'),
     student_id: input.student_id,
+    genre: normalizedGenre,
     created_at: submittedAt,
     snapshot: flow.updated_writing_state.repeated_error_memory,
   });
@@ -540,10 +631,11 @@ export const submitDailyWritingPractice = (
 };
 
 export const getWeeklyWritingReview = (
-  studentId: string
+  studentId: string,
+  genre?: SupportedGenre
 ): ServiceResponse<ReturnType<typeof runWeeklyWritingReviewFlow>> => {
   hydrateStore();
-  const state = store.states.get(studentId);
+  const state = getStateForGenre(studentId, genre);
   if (!state) return badRequest('student writing state not found.');
   const review = runWeeklyWritingReviewFlow({ student_id: studentId, completed_week_state: state });
   return ok(review);
@@ -551,15 +643,17 @@ export const getWeeklyWritingReview = (
 
 export const getMonthlyWritingReport = (
   studentId: string,
-  month: string
+  month: string,
+  genre?: SupportedGenre
 ): ServiceResponse<MonthlyReviewFlowOutputShape> => {
   hydrateStore();
-  const state = store.states.get(studentId);
+  const resolvedGenre = genre ?? getProfileGenre(studentId);
+  const state = getStateForGenre(studentId, resolvedGenre);
   if (!state) return badRequest('student writing state not found.');
   if (!/^\d{4}-\d{2}$/.test(month)) return badRequest('month must be in YYYY-MM format.');
 
   const existing = store.monthlyReports
-    .filter((item) => item.student_id === studentId && item.month === month)
+    .filter((item) => item.student_id === studentId && item.genre === resolvedGenre && item.month === month)
     .sort((a, b) => b.created_at.localeCompare(a.created_at))[0];
 
   if (existing) {
@@ -580,6 +674,7 @@ export const getMonthlyWritingReport = (
   const reportRecord: MonthlyWritingReport = {
     id: buildId('month'),
     student_id: studentId,
+    genre: resolvedGenre,
     month,
     comparison: review.monthly_comparison_summary,
     report: review.student_facing_monthly_report,
@@ -757,14 +852,16 @@ export const getWritingMonitoringOverview = (
   const hotspotCounter = new Map<string, number>();
   const rows: WritingMonitoringOverview['student_rows'] = [];
 
-  for (const [studentId, state] of store.states.entries()) {
+  for (const [stateKey, state] of store.states.entries()) {
+    const { studentId, genre } = parseStateKey(stateKey);
+    const laneGenre = genre ?? state.current_genre;
     const profile = store.profiles.get(studentId);
     const totalTasks = state.active_daily_tasks.length;
     const completed = state.completed_daily_tasks.length;
     const completionRate = totalTasks > 0 ? Number((completed / totalTasks).toFixed(2)) : 0;
     const latestScore = state.latest_assessment?.total_score ?? null;
 
-    const attempts = store.attempts.filter((item) => item.student_id === studentId).slice(-3);
+    const attempts = store.attempts.filter((item) => item.student_id === studentId && item.genre === laneGenre).slice(-3);
     const first = attempts[0]?.assessment;
     const last = attempts[attempts.length - 1]?.assessment;
     const scoreTrend = first && last ? Number((last.total_score - first.total_score).toFixed(2)) : 0;
@@ -807,15 +904,15 @@ export const getWritingMonitoringOverview = (
       (state.adaptation_trend.success_streak >= WRITING_PILOT_GUARDRAILS.improving_success_streak_threshold ||
         positiveTrendCount >= WRITING_PILOT_GUARDRAILS.improving_positive_subscale_count_threshold ||
         scoreTrend >= 1);
-    const monthlyAttempts = store.attempts.filter((item) => item.student_id === studentId && item.created_at.startsWith(month)).length;
-    const hasReport = store.monthlyReports.some((item) => item.student_id === studentId && item.month === month);
+    const monthlyAttempts = store.attempts.filter((item) => item.student_id === studentId && item.genre === laneGenre && item.created_at.startsWith(month)).length;
+    const hasReport = store.monthlyReports.some((item) => item.student_id === studentId && item.genre === laneGenre && item.month === month);
     const readyForMonthlyReview = monthlyAttempts >= WRITING_PILOT_GUARDRAILS.monthly_ready_attempt_threshold && !hasReport;
     const weeklyTargetSummary = state.active_week_plan
       ? `${state.active_week_plan.primary_target} • ${state.active_week_plan.secondary_target}`
       : 'No active weekly target';
 
     rows.push({
-      student_name: profile?.student_name || `Student ${studentId}`,
+      student_name: profile?.student_name || `Student ${studentId} (${laneGenre})`,
       student_id: studentId,
       current_grade: profile?.grade ?? state.grade,
       completion_rate: completionRate,
@@ -846,26 +943,28 @@ export const getWritingMonitoringOverview = (
 
 export const getWritingCalibrationCase = (
   studentId: string,
-  month = currentMonthKey()
+  month = currentMonthKey(),
+  genre?: SupportedGenre
 ): ServiceResponse<WritingCalibrationCase> => {
   hydrateStore();
-  const state = store.states.get(studentId);
+  const targetGenre = genre ?? getProfileGenre(studentId);
+  const state = getStateForGenre(studentId, targetGenre);
   const profile = store.profiles.get(studentId);
   if (!state) return badRequest('student writing state not found.');
 
   const studentAttempts = store.attempts
-    .filter((attempt) => attempt.student_id === studentId)
+    .filter((attempt) => attempt.student_id === studentId && attempt.genre === targetGenre)
     .sort((a, b) => a.created_at.localeCompare(b.created_at));
   const latestAttempt = studentAttempts[studentAttempts.length - 1] ?? null;
 
   const latestPracticeEvaluations = store.dailyEvaluations
-    .filter((evaluation) => evaluation.student_id === studentId)
+    .filter((evaluation) => evaluation.student_id === studentId && evaluation.genre === targetGenre)
     .sort((a, b) => b.created_at.localeCompare(a.created_at))
     .slice(0, 3);
 
   const monthlyReport =
     store.monthlyReports
-      .filter((report) => report.student_id === studentId && report.month === month)
+      .filter((report) => report.student_id === studentId && report.genre === targetGenre && report.month === month)
       .sort((a, b) => b.created_at.localeCompare(a.created_at))[0] ?? null;
 
   return ok({
@@ -886,12 +985,14 @@ export const getWritingCalibrationCase = (
 
 export const exportStudentMonthlyWritingReport = (
   studentId: string,
-  month: string
+  month: string,
+  genre?: SupportedGenre
 ): ServiceResponse<WritingExportDocument> => {
   hydrateStore();
-  const state = store.states.get(studentId);
+  const targetGenre = genre ?? getProfileGenre(studentId);
+  const state = getStateForGenre(studentId, targetGenre);
   if (!state) return badRequest('student writing state not found.');
-  const monthly = store.monthlyReports.find((item) => item.student_id === studentId && item.month === month);
+  const monthly = store.monthlyReports.find((item) => item.student_id === studentId && item.genre === targetGenre && item.month === month);
   if (!monthly) return badRequest('monthly report not found for this student/month.');
 
   const scoreHistory = state.monthly_history.map((entry) => `${entry.month}: ${entry.score}`);

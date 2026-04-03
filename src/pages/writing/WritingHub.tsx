@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   getCurrentWeeklyPlan,
+  getStudentGenrePathStatuses,
   getWritingHydrationStatus,
   getMonthlyWritingReport,
   requestWritingAiAssist,
@@ -49,14 +50,15 @@ interface WritingAiFeedbackAssist {
 
 export const buildWritingDashboardSnapshot = (
   studentId: string,
-  month: string
+  month: string,
+  genre: SupportedGenre
 ): { ok: boolean; data?: WritingDashboardSnapshot; error?: string } => {
-  const stateRes = getStudentWritingState(studentId);
+  const stateRes = getStudentWritingState(studentId, genre);
   if (!stateRes.ok || !stateRes.data) return { ok: false, error: stateRes.error ?? 'Unable to load writing state.' };
 
-  const weeklyPlan = getCurrentWeeklyPlan(studentId);
-  const today = getTodayWritingTask(studentId);
-  const monthly = getMonthlyWritingReport(studentId, month);
+  const weeklyPlan = getCurrentWeeklyPlan(studentId, genre);
+  const today = getTodayWritingTask(studentId, genre);
+  const monthly = getMonthlyWritingReport(studentId, month, genre);
 
   return {
     ok: true,
@@ -182,6 +184,18 @@ const defaultPromptByGenre: Record<SupportedGenre, string> = {
 };
 
 const toGenreLabel = (genre: SupportedGenre): string => genre.charAt(0).toUpperCase() + genre.slice(1);
+const toGenreStateCopy = (
+  status: 'not_started' | 'week_active' | 'week_complete',
+  day: number | null,
+  completed: number,
+  total: number
+): string => {
+  if (status === 'not_started') return 'Not started yet';
+  if (status === 'week_complete') return 'Week complete';
+  if (day) return `Day ${day} ready`;
+  if (total > 0) return `Week active • ${completed}/${total} tasks`;
+  return 'Week active';
+};
 
 const buildReadableTaskSummary = (promptText: string): string => {
   const normalized = simplifyStudentLanguage(promptText).replace(/\s+/g, ' ').trim();
@@ -316,14 +330,16 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   const [loading, setLoading] = useState(false);
   const [hydrationStatus, setHydrationStatus] = useState(getWritingHydrationStatus());
   const [isRefreshingProgress, setIsRefreshingProgress] = useState(false);
+  const [isGenreSwitching, setIsGenreSwitching] = useState(false);
   const initializing = hydrationStatus === 'idle' || hydrationStatus === 'loading';
 
-  const dashboard = useMemo(() => buildWritingDashboardSnapshot(studentId, month), [studentId, month, feedback]);
-  const stateRes = getStudentWritingState(studentId);
-  const todayTask = getTodayWritingTask(studentId);
-  const weeklyReview = getWeeklyWritingReview(studentId);
-  const monthlyReport = getMonthlyWritingReport(studentId, month);
-  const hubSnapshot = getStudentWritingHubSnapshot(studentId);
+  const dashboard = useMemo(() => buildWritingDashboardSnapshot(studentId, month, activeGenre), [studentId, month, activeGenre, feedback]);
+  const stateRes = getStudentWritingState(studentId, activeGenre);
+  const todayTask = getTodayWritingTask(studentId, activeGenre);
+  const weeklyReview = getWeeklyWritingReview(studentId, activeGenre);
+  const monthlyReport = getMonthlyWritingReport(studentId, month, activeGenre);
+  const hubSnapshot = getStudentWritingHubSnapshot(studentId, activeGenre);
+  const genreStatuses = getStudentGenrePathStatuses(studentId, SUPPORTED_GENRES);
 
   const totalPlannedTasks = stateRes.ok && stateRes.data ? stateRes.data.active_daily_tasks.length : 0;
   const completedTasksCount = stateRes.ok && stateRes.data ? stateRes.data.completed_daily_tasks.length : 0;
@@ -527,6 +543,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
 
     const result = submitDailyWritingPractice({
       student_id: studentId,
+      genre: activeGenre,
       day_number: todayTask.data.day_number,
       submission_text: practiceResponse,
     });
@@ -572,6 +589,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
 
   const handleChangeWritingType = (nextGenre: SupportedGenre) => {
     if (nextGenre === activeGenre) return;
+    setIsGenreSwitching(true);
     setActiveGenre(nextGenre);
     setPromptText(defaultPromptByGenre[nextGenre]);
     setInitialResponse('');
@@ -580,7 +598,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     setAiWeeklyFocus('');
     setAiCoachingPoints([]);
     setAiTaskWording('');
-    setUiNotice(`Your writing type is now ${toGenreLabel(nextGenre)}. Start this week to reset your plan for this type.`);
+    setUiNotice(`${toGenreLabel(nextGenre)} path selected. Loading your progress for this writing path…`);
+    window.setTimeout(() => setIsGenreSwitching(false), 260);
   };
 
   const renderLoadingSkeleton = () => (
@@ -624,7 +643,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
         }
       `}</style>
 
-      {initializing ? renderLoadingSkeleton() : (
+      {initializing || isGenreSwitching ? renderLoadingSkeleton() : (
         <>
           <section className="writing-hub-card" style={missionCardStyle}>
             <p style={{ margin: 0, color: '#dbeafe', fontWeight: 700, fontSize: 13 }}>
@@ -633,23 +652,47 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
             <h1 style={{ margin: '6px 0 10px', color: '#f8fafc', fontSize: 30, lineHeight: 1.1 }}>
               {isPreWeek ? 'Welcome to your Writing Hub' : isWeekComplete ? 'Great work — week finished' : 'Your Writing Hub'}
             </h1>
-            <div style={{ margin: '0 0 10px', display: 'grid', gap: 6, maxWidth: 360 }}>
-              <label style={{ color: '#bfdbfe', fontSize: 13, fontWeight: 700 }} htmlFor="writing-type-select">
-                Your writing type
+            <div style={{ margin: '0 0 10px', display: 'grid', gap: 8 }}>
+              <label style={{ color: '#bfdbfe', fontSize: 13, fontWeight: 700 }}>
+                Choose your writing path
               </label>
-              <select
-                id="writing-type-select"
-                value={activeGenre}
-                onChange={(event: { target: { value: string } }) => handleChangeWritingType(event.target.value as SupportedGenre)}
-                style={{ ...fieldStyle, padding: '10px 12px', fontSize: 14 }}
-              >
-                {SUPPORTED_GENRES.map((item) => (
-                  <option key={item} value={item}>
-                    {toGenreLabel(item)}
-                  </option>
-                ))}
-              </select>
-              {!isPreWeek && (
+              <div style={{ display: 'grid', gap: 8, gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
+                {SUPPORTED_GENRES.map((item) => {
+                  const status = genreStatuses.ok ? genreStatuses.data?.find((row) => row.genre === item) : null;
+                  const isSelected = item === activeGenre;
+                  const progress = status && status.total_tasks_count > 0
+                    ? Math.min(100, Math.round((status.completed_tasks_count / status.total_tasks_count) * 100))
+                    : 0;
+                  return (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => handleChangeWritingType(item)}
+                      style={{
+                        textAlign: 'left',
+                        borderRadius: 12,
+                        border: `1px solid ${isSelected ? 'rgba(125, 211, 252, 0.95)' : 'rgba(148, 163, 184, 0.35)'}`,
+                        background: isSelected ? 'rgba(30, 64, 175, 0.35)' : 'rgba(15, 23, 42, 0.75)',
+                        padding: 10,
+                        color: '#e2e8f0',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <div style={{ fontWeight: 800, color: '#f8fafc', fontSize: 14 }}>{toGenreLabel(item)} path</div>
+                      <div style={{ fontSize: 12, color: '#bfdbfe', marginTop: 4 }}>
+                        {status ? toGenreStateCopy(status.status, status.current_day, status.completed_tasks_count, status.total_tasks_count) : 'Not started yet'}
+                      </div>
+                      {status && status.latest_score != null && (
+                        <div style={{ fontSize: 11, color: '#93c5fd', marginTop: 2 }}>Latest score: {status.latest_score}/20</div>
+                      )}
+                      <div style={{ marginTop: 6, ...progressTrackStyle, height: 6 }}>
+                        <div className="progress-fill" style={{ width: `${progress}%`, height: '100%', background: 'linear-gradient(90deg, #38bdf8 0%, #22d3ee 100%)' }} />
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              {isWeekComplete && (
                 <button
                   type="button"
                   onClick={() => handleStart({ fromWeekComplete: true })}
@@ -665,7 +708,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                     opacity: loading ? 0.7 : 1,
                   }}
                 >
-                  {loading ? 'Changing writing type…' : 'Change writing type'}
+                  {loading ? 'Starting new week…' : `Start new ${toGenreLabel(activeGenre)} week`}
                 </button>
               )}
             </div>
