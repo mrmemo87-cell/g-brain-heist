@@ -17,6 +17,7 @@ interface WritingHubProps {
   genre: 'email' | 'article' | 'review' | 'story' | 'essay' | 'report' | 'paragraph';
   month?: string;
 }
+type SupportedGenre = WritingHubProps['genre'];
 
 export interface WritingDashboardSnapshot {
   weekly_plan_summary: {
@@ -166,6 +167,32 @@ const toWordCountLabel = (targetWords: number): string => {
   return `${range.min}–${range.max} words`;
 };
 
+const SUPPORTED_GENRES: SupportedGenre[] = ['essay', 'story', 'article', 'review', 'report', 'email', 'paragraph'];
+
+const defaultPromptByGenre: Record<SupportedGenre, string> = {
+  essay: 'Write about an event, explain why it mattered, and say how it could be better.',
+  story: 'Write a short story about an event, explain why it mattered to the character, and suggest how it could be better.',
+  article: 'Write an article about an event, explain why it mattered, and suggest one improvement.',
+  review: 'Write a review of an event, explain why it mattered, and suggest how it could be better next time.',
+  report: 'Write a report about an event, explain why it mattered, and recommend one improvement.',
+  email: 'Write an email about an event, explain why it mattered, and suggest how it could be better.',
+  paragraph: 'Write one clear paragraph about an event, explain why it mattered, and suggest one improvement.',
+};
+
+const toGenreLabel = (genre: SupportedGenre): string => genre.charAt(0).toUpperCase() + genre.slice(1);
+
+const buildReadableTaskSummary = (promptText: string): string => {
+  const normalized = simplifyStudentLanguage(promptText).replace(/\s+/g, ' ').trim();
+  if (!normalized) return 'Write about an event, explain why it mattered, and say how it could be better.';
+  const hasEvent = /event|experience|situation|story/i.test(normalized);
+  const hasImportance = /mattered|important|why it mattered|why it was important/i.test(normalized);
+  const hasImprove = /better|improve|suggestion|recommend|how it could be better/i.test(normalized);
+  if (hasEvent && hasImportance && hasImprove) {
+    return 'Write about an event, explain why it mattered, and say how it could be better.';
+  }
+  return normalized;
+};
+
 const toStudentLabel = (text: string): string => {
   return simplifyStudentLanguage(text)
     .replace(/carry-forward primary/gi, 'next focus')
@@ -271,7 +298,8 @@ const estimateWeeklyTargetScoreRange = (
 };
 
 export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre, month = new Date().toISOString().slice(0, 7) }) => {
-  const [promptText, setPromptText] = useState('Write a response that includes:\n- describe the event\n- explain why it mattered\n- give one suggestion');
+  const [activeGenre, setActiveGenre] = useState<SupportedGenre>(genre);
+  const [promptText, setPromptText] = useState(defaultPromptByGenre[genre]);
   const [targetWordCount] = useState(grade <= 7 ? 80 : grade <= 9 ? 120 : 160);
   const [initialResponse, setInitialResponse] = useState('');
   const [practiceResponse, setPracticeResponse] = useState('');
@@ -380,6 +408,11 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   };
 
   useEffect(() => {
+    setActiveGenre(genre);
+    setPromptText(defaultPromptByGenre[genre]);
+  }, [genre]);
+
+  useEffect(() => {
     let cancelled = false;
     const loadAiPlanAssist = async () => {
       if (!stateRes.ok || !stateRes.data?.latest_assessment || aiBusy) return;
@@ -389,7 +422,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
         prompt_text: promptText,
         weaknesses: latestWeaknesses,
         grade,
-        genre,
+        genre: activeGenre,
       });
       if (!cancelled && planAssist.ok && planAssist.data) {
         const ai = (planAssist.data.result ?? {}) as WritingAiPlanAssist;
@@ -405,7 +438,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     return () => {
       cancelled = true;
     };
-  }, [studentId, month, stateRes.ok, stateRes.data?.latest_assessment?.total_score]);
+  }, [studentId, month, stateRes.ok, stateRes.data?.latest_assessment?.total_score, activeGenre, promptText]);
 
   const handleStart = (options?: { fromWeekComplete?: boolean }) => {
     const fromWeekComplete = Boolean(options?.fromWeekComplete);
@@ -423,7 +456,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     const result = submitInitialWritingAssessment({
       student_id: studentId,
       grade,
-      genre,
+      genre: activeGenre,
       prompt_text: promptText,
       target_word_count: targetWordCount,
       student_response: safeInitialResponse,
@@ -452,7 +485,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
         prompt_text: promptText,
         weaknesses: latestWeaknesses,
         grade,
-        genre,
+        genre: activeGenre,
       });
       if (response.ok && response.data) {
         const ai = (response.data.result ?? {}) as WritingAiPlanAssist;
@@ -505,7 +538,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
         prompt_text: promptText,
         student_response: practiceResponse,
         grade,
-        genre,
+        genre: activeGenre,
       });
       if (aiFeedback.ok && aiFeedback.data) {
         const ai = (aiFeedback.data.result ?? {}) as WritingAiFeedbackAssist;
@@ -527,6 +560,19 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     setIsRefreshingProgress(true);
     setUiNotice('Progress updated. Keep going!');
     window.setTimeout(() => setIsRefreshingProgress(false), 350);
+  };
+
+  const handleChangeWritingType = (nextGenre: SupportedGenre) => {
+    if (nextGenre === activeGenre) return;
+    setActiveGenre(nextGenre);
+    setPromptText(defaultPromptByGenre[nextGenre]);
+    setInitialResponse('');
+    setPracticeResponse('');
+    setFeedback('');
+    setAiWeeklyFocus('');
+    setAiCoachingPoints([]);
+    setAiTaskWording('');
+    setUiNotice(`Your writing type is now ${toGenreLabel(nextGenre)}. Start this week to reset your plan for this type.`);
   };
 
   const renderLoadingSkeleton = () => (
@@ -579,6 +625,42 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
             <h1 style={{ margin: '6px 0 10px', color: '#f8fafc', fontSize: 30, lineHeight: 1.1 }}>
               {isPreWeek ? 'Welcome to your Writing Hub' : isWeekComplete ? 'Great work — week finished' : 'Your Writing Hub'}
             </h1>
+            <div style={{ margin: '0 0 10px', display: 'grid', gap: 6, maxWidth: 360 }}>
+              <label style={{ color: '#bfdbfe', fontSize: 13, fontWeight: 700 }} htmlFor="writing-type-select">
+                Your writing type
+              </label>
+              <select
+                id="writing-type-select"
+                value={activeGenre}
+                onChange={(event) => handleChangeWritingType(event.target.value as SupportedGenre)}
+                style={{ ...fieldStyle, padding: '10px 12px', fontSize: 14 }}
+              >
+                {SUPPORTED_GENRES.map((item) => (
+                  <option key={item} value={item}>
+                    {toGenreLabel(item)}
+                  </option>
+                ))}
+              </select>
+              {!isPreWeek && (
+                <button
+                  type="button"
+                  onClick={() => handleStart({ fromWeekComplete: true })}
+                  disabled={loading || !promptText.trim() || targetWordCount < 20}
+                  style={{
+                    padding: '10px 12px',
+                    borderRadius: 10,
+                    border: '1px solid rgba(147, 197, 253, 0.65)',
+                    background: 'rgba(30, 41, 59, 0.95)',
+                    color: '#dbeafe',
+                    fontWeight: 700,
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    opacity: loading ? 0.7 : 1,
+                  }}
+                >
+                  {loading ? 'Changing writing type…' : 'Change writing type'}
+                </button>
+              )}
+            </div>
             <p style={{ margin: 0, color: '#e2e8f0', fontSize: 15 }}>
               {isPreWeek
                 ? 'Write one first response. We will find your weak areas and build your weekly writing plan.'
@@ -642,7 +724,10 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
               </section>
 
               <section className="writing-hub-card" style={shellCardStyle}>
-                <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 20, color: '#f8fafc' }}>Your first writing task</h3>
+                <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 20, color: '#f8fafc' }}>Your writing task</h3>
+                <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 13, fontWeight: 700 }}>Task summary</p>
+                <p style={{ margin: '0 0 10px', color: '#e2e8f0', fontSize: 15 }}>{buildReadableTaskSummary(promptText)}</p>
+                <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 13, fontWeight: 700 }}>Original prompt</p>
                 <div style={{ ...fieldStyle, minHeight: 88, whiteSpace: 'pre-wrap' }}>{promptText}</div>
                 <button
                   type="button"
@@ -697,8 +782,10 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
               <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(147, 197, 253, 0.45)' }}>
                 <div className="focus-grid">
                   <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.4)', minHeight: 80, whiteSpace: 'pre-wrap' }}>
-                    <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Your original writing task</p>
-                    <p style={{ margin: 0, fontSize: 14 }}>{originalPromptText ?? 'Your original writing task will appear here.'}</p>
+                    <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Your writing task</p>
+                    <p style={{ margin: '0 0 8px', fontSize: 14 }}>{buildReadableTaskSummary(originalPromptText ?? promptText)}</p>
+                    <p style={{ margin: '0 0 6px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Original prompt</p>
+                    <p style={{ margin: 0, fontSize: 13 }}>{originalPromptText ?? promptText}</p>
                   </div>
                   <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.4)', minHeight: 80 }}>
                     <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Your first attempt</p>
@@ -956,7 +1043,7 @@ export const seedWritingHubForDemo = (studentId: string, grade: number, genre: W
     student_id: studentId,
     grade,
     genre,
-    prompt_text: 'Write a response that includes:\n- describe the event\n- explain why it mattered\n- give one suggestion',
+    prompt_text: defaultPromptByGenre[genre],
     target_word_count: grade <= 7 ? 80 : grade <= 9 ? 120 : 160,
     student_response:
       'This response describes the event, explains why it mattered, and gives one practical suggestion for next time.',
