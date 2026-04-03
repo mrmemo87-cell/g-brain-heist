@@ -632,7 +632,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
               <select
                 id="writing-type-select"
                 value={activeGenre}
-                onChange={(event) => handleChangeWritingType(event.target.value as SupportedGenre)}
+                onChange={(event: React.ChangeEvent<HTMLSelectElement>) => handleChangeWritingType(event.target.value as SupportedGenre)}
                 style={{ ...fieldStyle, padding: '10px 12px', fontSize: 14 }}
               >
                 {SUPPORTED_GENRES.map((item) => (
