@@ -44,13 +44,13 @@ export interface DailyTaskGeneratorInput {
 }
 
 const GENRE_FOCUS: Record<SupportedGenre, string> = {
-  email: 'tone + purpose + full point coverage',
-  article: 'audience + engaging opener + flow',
-  review: 'opinion + support + recommendation',
-  story: 'sequence + development + ending',
-  essay: 'viewpoint + support + progression',
-  report: 'formal tone + grouping + recommendation',
-  paragraph: 'unity + topic sentence + support',
+  email: 'clear purpose, friendly/formal tone, and all question points answered',
+  article: 'a strong opening, clear audience focus, and smooth flow',
+  review: 'a clear opinion, strong reasons, and a final recommendation',
+  story: 'a clear sequence, developed moments, and a satisfying ending',
+  essay: 'a clear opinion, useful support, and logical paragraph flow',
+  report: 'formal tone, clear sections, and practical recommendations',
+  paragraph: 'one clear main idea with supporting detail',
 };
 
 const supportLevelForGrade = (grade: number): 'high' | 'medium' | 'low' => {
@@ -148,9 +148,9 @@ const blueprintsForFocus = (focus: 'language' | 'organisation' | 'content' | 'co
 };
 
 const withGradeScaffolding = (grade: number, instructions: string): string => {
-  if (grade <= 7) return `${instructions} Use the checklist provided and complete the model sentence starter first.`;
-  if (grade <= 9) return `${instructions} Use the short checklist before writing your final version.`;
-  return `${instructions} Plan independently and self-check register, structure, and accuracy before submission.`;
+  if (grade <= 7) return `${instructions} Use the checklist and start with one simple plan sentence.`;
+  if (grade <= 9) return `${instructions} Use the short checklist before you write your final version.`;
+  return `${instructions} Plan first, then check style, structure, and accuracy before submission.`;
 };
 
 export const generateDailyWritingTasksForWeek = (input: DailyTaskGeneratorInput): DailyWritingTask[] => {
@@ -189,7 +189,7 @@ export const generateDailyWritingTasksForWeek = (input: DailyTaskGeneratorInput)
     const title = `Day ${day}: ${task.task_type}`;
     const instructions = withGradeScaffolding(
       input.grade,
-      `Complete a ${task.task_type} activity for ${input.target_genre} writing. Focus on ${input.weekly_plan.primary_target}, then check ${input.weekly_plan.secondary_target}. Genre focus: ${GENRE_FOCUS[input.target_genre]}.`
+      `Today, complete a ${task.task_type} practice for ${input.target_genre} writing. Main focus: ${input.weekly_plan.primary_target}. Second focus: ${input.weekly_plan.secondary_target}. Keep this writing style in mind: ${GENRE_FOCUS[input.target_genre]}.`
     );
 
     const includeWordCountCriterion = weakWordCount || task.task_type === 'word-count control task' || isExam;

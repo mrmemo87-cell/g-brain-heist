@@ -492,16 +492,16 @@ const detectWeaknessTags = (
 
 const buildPriorities = (tags: WeaknessTag[]): string[] => {
   const priorityMap: Partial<Record<WeaknessTag, string>> = {
-    missed_content_point: 'Address every bullet point explicitly before adding extra detail.',
-    partial_content_coverage: 'Develop partially covered points with one specific supporting detail each.',
-    under_length: 'Reach the target length by extending relevant ideas, not by repeating.',
-    wrong_tone: 'Adjust tone to match the task context and intended reader.',
-    weak_register_control: 'Use consistently formal or informal language based on genre.',
-    weak_genre_convention: 'Apply core genre conventions (opening, development, and ending).',
-    weak_audience_awareness: 'Show direct awareness of audience needs and expectations.',
-    weak_paragraphing: 'Separate ideas into clear paragraphs with one main focus each.',
-    poor_sequencing: 'Order ideas more logically from introduction to conclusion.',
-    weak_linking: 'Use cohesive devices to connect ideas more naturally.',
+    missed_content_point: 'Answer every part of the question before adding extra ideas.',
+    partial_content_coverage: 'Add one clear supporting detail to each main point.',
+    under_length: 'Add useful detail so your response stays close to the word-count range.',
+    wrong_tone: 'Match your tone to the task and reader.',
+    weak_register_control: 'Keep your style consistent (formal or informal) from start to end.',
+    weak_genre_convention: 'Use the expected format for this writing type (clear opening, middle, and ending).',
+    weak_audience_awareness: 'Write with the reader in mind and explain ideas clearly.',
+    weak_paragraphing: 'Use clear paragraphs, each with one main idea.',
+    poor_sequencing: 'Put ideas in a clear order from beginning to end.',
+    weak_linking: 'Use linking words to connect ideas smoothly.',
     agreement_error: 'Check subject–verb agreement while editing.',
     tense_error: 'Keep tense choices consistent across the response.',
     punctuation_error: 'Review sentence boundaries and end punctuation.',
@@ -963,7 +963,9 @@ export const formatMonthlyGrowthReport = (
   const subscaleProgress = (['content', 'organisation', 'language', 'communicative_achievement'] as WritableSubscale[])
     .map((key) => {
       const delta = currentAvg[key] - previousAvg[key];
-      return `${subscaleLabel(key)}: ${delta >= 0 ? '+' : ''}${delta.toFixed(2)}`;
+      const rounded = Math.round(delta * 10) / 10;
+      if (Math.abs(rounded) < 0.1) return `${subscaleLabel(key)} is stable this month.`;
+      return `${subscaleLabel(key)} ${rounded > 0 ? 'improved' : 'dipped'} by ${Math.abs(rounded).toFixed(1)} point${Math.abs(rounded) === 1 ? '' : 's'}.`;
     });
 
   const prevTop = new Set(summary.previousMonth?.topWeaknessTags ?? []);
@@ -971,23 +973,25 @@ export const formatMonthlyGrowthReport = (
   const reduced = [...prevTop].filter((tag) => !currentTop.has(tag)).map((tag) => tag.replaceAll('_', ' '));
   const remaining = [...currentTop].map((tag) => tag.replaceAll('_', ' '));
 
-  const strongestGains = subscaleProgress
-    .map((line) => ({ line, value: Number(line.split(': ')[1]) }))
+  const strongestGains = (['content', 'organisation', 'language', 'communicative_achievement'] as WritableSubscale[])
+    .map((key) => ({ key, value: currentAvg[key] - previousAvg[key] }))
     .sort((a, b) => b.value - a.value)
     .slice(0, 2)
-    .map((item) => item.line);
+    .map((item) => `${subscaleLabel(item.key)}: ${item.value > 0.05 ? 'showing clear improvement' : 'still building'}`);
 
-  const nextPriorities = remaining.slice(0, 3).map((item) => `Continue reducing ${item}.`);
+  const nextPriorities = remaining.slice(0, 3).map((item) => `Keep improving: ${item}.`);
 
   return {
     score_change:
       summary.scoreDelta === null
-        ? 'No prior month available for comparison.'
-        : `${summary.scoreDelta >= 0 ? '+' : ''}${summary.scoreDelta.toFixed(2)} average points`,
+        ? 'You are just getting started, so we do not have a month-to-month comparison yet.'
+        : summary.scoreDelta >= 0
+          ? `Your average score is up by about ${Math.round(summary.scoreDelta)} point${Math.round(summary.scoreDelta) === 1 ? '' : 's'} this month.`
+          : `This month was harder: your average score is down by about ${Math.abs(Math.round(summary.scoreDelta))} point${Math.abs(Math.round(summary.scoreDelta)) === 1 ? '' : 's'}.`,
     subscale_progress: subscaleProgress,
-    repeated_mistakes_reduced: reduced.length > 0 ? reduced : ['No major reductions yet.'],
-    strongest_gains: strongestGains.length > 0 ? strongestGains : ['No clear subscale gains yet.'],
-    remaining_blockers: remaining.length > 0 ? remaining : ['No major recurring blockers this month.'],
-    next_month_priorities: nextPriorities.length > 0 ? nextPriorities : ['Maintain current strengths with weekly practice.'],
+    repeated_mistakes_reduced: reduced.length > 0 ? reduced : ['No clear reductions yet — keep practising to unlock this trend.'],
+    strongest_gains: strongestGains.length > 0 ? strongestGains : ['No clear gains yet — complete more tasks to see improvement signals.'],
+    remaining_blockers: remaining.length > 0 ? remaining : ['No major recurring blockers right now.'],
+    next_month_priorities: nextPriorities.length > 0 ? nextPriorities : ['Keep your weekly writing habit to build steady progress.'],
   };
 };
