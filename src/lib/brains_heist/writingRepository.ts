@@ -76,7 +76,23 @@ export const loadWritingStoreSnapshot = async (): Promise<SerializedWritingPersi
 
   return {
     profiles: (profilesRes.data ?? []).map((row: any) => [row.student_id, row.profile]),
-    states: (statesRes.data ?? []).map((row: any) => [row.student_id, row.state]),
+    states: (statesRes.data ?? []).flatMap((row: any): Array<[string, unknown]> => {
+      const statePayload = row.state;
+      if (statePayload && typeof statePayload === 'object' && !Array.isArray(statePayload) && statePayload['by_genre']) {
+        const byGenre = statePayload['by_genre'] as Record<string, unknown>;
+        return Object.entries(byGenre)
+          .filter(([genre]) => typeof genre === 'string' && genre.length > 0)
+          .map(([genre, state]) => [`${row.student_id}::${genre}`, state] as [string, unknown]);
+      }
+      const inferredGenre = (() => {
+        if (statePayload && typeof statePayload === 'object' && !Array.isArray(statePayload)) {
+          const rawGenre = (statePayload as Record<string, unknown>)['current_genre'] ?? (statePayload as Record<string, unknown>)['genre'];
+          if (typeof rawGenre === 'string' && rawGenre.length > 0) return rawGenre;
+        }
+        return 'unknown';
+      })();
+      return [[`${row.student_id}::${inferredGenre}`, statePayload] as [string, unknown]];
+    }),
     attempts: (attemptsRes.data ?? []).map((row: any) => row.payload),
     weeklyPlans: (weeklyRes.data ?? []).map((row: any) => row.payload),
     dailyTasks: (tasksRes.data ?? []).map((row: any) => row.payload),
@@ -103,7 +119,20 @@ export const persistWritingStoreSnapshot = async (snapshot: SerializedWritingPer
     created_at: profile.created_at,
     updated_at: profile.updated_at,
   }));
-  const states = snapshot.states.map(([student_id, state]) => ({ student_id, state: safe(state) }));
+  const statesByStudent = snapshot.states.reduce<Record<string, Record<string, unknown>>>((acc, [key, state]) => {
+    const [studentId, genre] = key.split('::');
+    if (!studentId || !genre) {
+      console.warn(`[writingRepository] Skipping malformed state key during persistence: ${key}`);
+      return acc;
+    }
+    if (!acc[studentId]) acc[studentId] = {};
+    acc[studentId][genre] = safe(state);
+    return acc;
+  }, {});
+  const states = Object.entries(statesByStudent).map(([student_id, by_genre]) => ({
+    student_id,
+    state: { by_genre },
+  }));
 
   const [profilesRes, statesRes] = await Promise.all([
     supabase.from('bh_writing_student_profiles').upsert(profiles, { onConflict: 'student_id' }),
