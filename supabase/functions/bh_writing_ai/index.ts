@@ -272,11 +272,11 @@ const buildUserPrompt = (payload: Payload): string => {
       `Student response: ${payload.studentResponse ?? ""}`,
       `Known weaknesses from recent work: ${JSON.stringify(payload.weaknesses ?? [])}`,
       "Return strict JSON only with keys:",
-      '- task_understanding: one short student-friendly explanation of what the task is asking',
-      '- submission_read: one short summary of what this student actually wrote',
+      '- task_understanding: one short explanation written directly to the student (use "you") about what the task asks',
+      '- submission_read: one short summary written directly to the student about what they actually wrote',
       '- alignment: exactly one of on_task | partially_on_task | off_topic | too_short | underdeveloped | mostly_correct_but_needs_polish',
-      '- what_is_working: 2 evidence-based wins that reference the student response',
-      '- what_is_missing: 2 evidence-based missing content points',
+      '- what_is_working: 2 evidence-based wins that reference exact student wording when useful',
+      '- what_is_missing: 2 evidence-based missing content points that matter most for task completion',
       '- grammar_fixes: up to 3 objects with keys original, issue, better_version',
       '- punctuation_fixes: up to 3 objects with keys original, issue, better_version',
       '- natural_phrase_upgrades: up to 3 objects with keys original, better_version, why_it_helps',
@@ -291,9 +291,15 @@ const buildUserPrompt = (payload: Payload): string => {
       "- Use direct evidence from the student response. Quote short snippets where useful.",
       "- Never invent evidence or errors that are not present.",
       "- Separate content/task issues from language issues and style/tone issues.",
-      "- If off-topic, still give language-focused help where possible.",
+      "- Prioritize the most important truth first. If task alignment is weak, say that clearly before language polish.",
+      "- If off-topic: explicitly state the response does not answer the assigned task yet.",
+      "- If off-topic: do not over-praise irrelevant ideas. Briefly note language strengths only if they are real, then redirect to task content quickly.",
+      "- If off-topic: make what_is_missing and next_move focus on fixing task mismatch first.",
       "- Do not give vague advice like 'be clearer' without naming exactly what to change.",
-      "Keep tone supportive, smart, specific, and natural.",
+      "- Write like a smart writing coach texting a student: warm, direct, natural, and academic.",
+      "- Use second person ('you') and avoid stiff phrasing such as 'The student wrote' or 'The response demonstrates'.",
+      "- Be encouraging, but honest. Be clear before being polite.",
+      "Keep tone supportive, smart, specific, natural, and revision-focused.",
     ].join("\n");
   }
 
@@ -374,7 +380,7 @@ serve(async (req) => {
           {
             role: "system",
             content:
-              "You are an expert writing coach for Brains Heist students. Be specific, supportive, and evidence-based. You must prove you read the student response by citing exact words or short quoted snippets from their text where relevant. Never invent evidence, grammar mistakes, punctuation mistakes, or style issues. If uncertain, be conservative and say what is missing. Distinguish content/task issues, language issues, and style/tone issues clearly. Return strict JSON only. No markdown.",
+              "You are an expert writing coach for Brains Heist students. Sound like a real human coach: warm, direct, student-friendly, and academically credible. Use second person ('you'). Be clear before polite. Avoid robotic rubric language (for example avoid phrases like 'The student wrote...' or 'The response demonstrates...'). Prioritize the most important truth first. If the answer is off-topic or misaligned, state that clearly and early, avoid over-praising irrelevant content, and redirect to the required task focus. Use evidence from the student's actual words with short snippets where useful. Never invent evidence, grammar mistakes, punctuation mistakes, or style issues. If uncertain, be conservative and name what is missing. Distinguish content/task issues, language issues, and style/tone issues clearly. Return strict JSON only. No markdown.",
           },
           {
             role: "user",
