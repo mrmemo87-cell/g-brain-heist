@@ -63,10 +63,10 @@ interface WritingAiFeedbackAssist {
 const toAlignmentLabel = (alignment?: WritingAiFeedbackAssist['alignment']): string => {
   const labels: Record<NonNullable<WritingAiFeedbackAssist['alignment']>, string> = {
     on_task: 'On task',
-    partially_on_task: 'Partially on task',
+    partially_on_task: 'Partly on task',
     off_topic: 'Off topic',
     too_short: 'Too short',
-    underdeveloped: 'Underdeveloped',
+    underdeveloped: 'Needs development',
     mostly_correct_but_needs_polish: 'Mostly correct, needs polish',
   };
   if (!alignment) return 'Needs closer review';
@@ -613,6 +613,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     const fromWeekComplete = Boolean(options?.fromWeekComplete);
     setLoading(true);
     setError('');
+    setAiFeedbackDetails(null);
+    setFeedback('');
     setUiNotice(fromWeekComplete ? 'Preparing a fresh writing mission…' : 'Checking your writing…');
     const safeInitialResponse = initialResponse.trim() || (fromWeekComplete
       ? 'I am ready to start a new writing week and improve my focus skills with clear writing.'
