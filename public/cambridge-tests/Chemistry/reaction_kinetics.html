@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
   <title>AS Chemistry Ch8 (Reaction kinetics)</title>
   <script src="../examguard.js?v=2"></script>
+  <script src="./chemistry_master_answer_key.js"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
@@ -1132,7 +1133,7 @@
       },
       {
         number: 17,
-        code: '9701_s16_qp_12 Q: 11',
+        code: '9701_m99_qp_12 Q: 311',
         prompt: 'The Boltzmann distribution shows the molecular energies in a gas at a given temperature.<div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/427.svg" alt="Question 427 diagram" class="theme-aware-graphic white-graphic" loading="lazy" /></div>Which statement correctly describes the change when temperature increases?',
         options: {
           A: 'Fewer molecules possess the most probable energy value and this value shifts to the left.',
@@ -1419,17 +1420,9 @@
       },
     ];
 
-    let ANSWER_KEY = {
-      1: 'C', 2: 'C', 3: 'B', 4: 'D', 5: 'A',
-      6: 'B', 7: 'D', 8: 'B', 9: 'B', 10: 'C',
-      11: 'B', 12: 'B', 13: 'B', 14: 'D', 15: 'C',
-      16: 'D', 17: 'D', 18: 'C', 19: 'C', 20: 'D',
-      21: 'D', 22: 'D', 23: 'C', 24: 'B', 25: 'B',
-      26: 'C', 27: 'D', 28: 'C', 29: 'B', 30: 'D',
-      31: 'C', 32: 'A', 33: 'A', 34: 'C', 35: 'C',
-      36: 'A', 37: 'C', 38: 'C', 39: 'C', 40: 'D',
-      41: 'C',
-    };
+    let ANSWER_KEY = (window.CHEMISTRY_MASTER_ANSWER_KEY && typeof window.CHEMISTRY_MASTER_ANSWER_KEY.getAnswerKeyForQuestions === 'function')
+      ? window.CHEMISTRY_MASTER_ANSWER_KEY.getAnswerKeyForQuestions(QUESTIONS)
+      : {};
 
     const quizSplit = splitQuiz(QUESTIONS, ANSWER_KEY, QUIZ_PART.part);
     QUESTIONS = quizSplit.questions;

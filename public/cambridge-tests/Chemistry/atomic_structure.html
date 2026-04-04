@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
   <title>AS Chemistry — Atomic Structure</title>
   <script src="../examguard.js?v=2"></script>
+  <script src="./chemistry_master_answer_key.js"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
@@ -1393,18 +1394,9 @@
     ];
 
     // Placeholder answer key (awaiting official answers)
-    let ANSWER_KEY = {
-      1: 'A', 2: 'C', 3: 'C', 4: 'D', 5: 'B',
-      6: 'B', 7: 'A', 8: 'A', 9: 'D', 10: 'D',
-      11: 'B', 12: 'A', 13: 'C', 14: 'A', 15: 'C',
-      16: 'A', 17: 'D', 18: 'C', 19: 'C', 20: 'B',
-      21: 'B', 22: 'A', 23: 'B', 24: 'D', 25: 'A',
-      26: 'C', 27: 'D', 28: 'A', 29: 'D', 30: 'D',
-      31: 'C', 32: 'A', 33: 'D', 34: 'B', 35: 'C',
-      36: 'D', 37: 'C', 38: 'B', 39: 'A', 40: 'C',
-      41: 'D', 42: 'A', 43: 'C', 44: 'C', 45: 'D',
-      46: 'C', 47: 'A', 48: 'D', 49: 'A',
-    };
+    let ANSWER_KEY = (window.CHEMISTRY_MASTER_ANSWER_KEY && typeof window.CHEMISTRY_MASTER_ANSWER_KEY.getAnswerKeyForQuestions === 'function')
+      ? window.CHEMISTRY_MASTER_ANSWER_KEY.getAnswerKeyForQuestions(QUESTIONS)
+      : {};
 
     const quizSplit = splitQuiz(QUESTIONS, ANSWER_KEY, QUIZ_PART.part);
     QUESTIONS = quizSplit.questions;

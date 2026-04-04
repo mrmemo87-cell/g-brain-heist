@@ -1,0 +1,11 @@
+{
+  "total_entries": 1222,
+  "canonical_parseable": 1222,
+  "invalid_format_count": 0,
+  "unique_canonical_codes": 1222,
+  "duplicate_canonical_count": 0,
+  "missing_in_master_count": 0,
+  "duplicates": {},
+  "invalid_format": [],
+  "missing_in_master": []
+}

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
   <title>AS Chemistry Ch2 (Atoms, molecules and stoichiometry)</title>
   <script src="../examguard.js?v=2"></script>
+  <script src="./chemistry_master_answer_key.js"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
@@ -1541,7 +1542,7 @@
       },
       {
         number: 61,
-        code: 'Stoichiometry practice 61',
+        code: '9701_m99_qp_12 Q: 61',
         prompt: 'Magnesium metal reacts with dilute hydrochloric acid to produce magnesium chloride and hydrogen.<br><br>What volume of hydrogen gas, measured at room conditions, is released when 4.50 g of magnesium completely reacts with excess hydrochloric acid?',
         options: {
           A: '1.1 dm<sup>3</sup>',
@@ -1552,7 +1553,7 @@
       },
       {
         number: 62,
-        code: 'Stoichiometry practice 62',
+        code: '9701_m99_qp_12 Q: 62',
         prompt: 'A compound contains 52.2% carbon, 13.0% hydrogen and 34.8% oxygen by mass.<br><br>What is its empirical formula?',
         options: {
           A: 'CH<sub>2</sub>O',
@@ -1563,7 +1564,7 @@
       },
       {
         number: 63,
-        code: 'Stoichiometry practice 63',
+        code: '9701_m99_qp_12 Q: 63',
         prompt: 'The equation for the reduction of iron(III) oxide by carbon is shown.<br><br>2Fe<sub>2</sub>O<sub>3</sub> + 3C → 4Fe + 3CO<sub>2</sub><br><br>What mass of iron is produced from 15.9 g of iron(III) oxide?',
         options: {
           A: '5.6 g',
@@ -1585,21 +1586,9 @@
       },
     ];
 
-    let ANSWER_KEY = {
-      1: 'B', 2: 'C', 3: 'C', 4: 'C', 5: 'C',
-      6: 'C', 7: 'C', 8: 'A', 9: 'B', 10: 'C',
-      11: 'D', 12: 'A', 13: 'A', 14: 'D', 15: 'D',
-      16: 'B', 17: 'A', 18: 'C', 19: 'C', 20: 'B',
-      21: 'C', 22: 'C', 23: 'A', 24: 'A', 25: 'C',
-      26: 'D', 27: 'B', 28: 'B', 29: 'C', 30: 'B',
-      31: 'C', 32: 'D', 33: 'B', 34: 'B', 35: 'D',
-      36: 'B', 37: 'B', 38: 'C', 39: 'B', 40: 'A',
-      41: 'A', 42: 'B', 43: 'C', 44: 'D', 45: 'A',
-      46: 'C', 47: 'D', 48: 'B', 49: 'D', 50: 'D',
-      51: 'C', 52: 'C', 53: 'D', 54: 'D', 55: 'B',
-      56: 'A', 57: 'D', 58: 'A', 59: 'C', 60: 'A',
-      61: 'A', 62: 'B', 63: 'C', 64: 'A',
-    };
+    let ANSWER_KEY = (window.CHEMISTRY_MASTER_ANSWER_KEY && typeof window.CHEMISTRY_MASTER_ANSWER_KEY.getAnswerKeyForQuestions === 'function')
+      ? window.CHEMISTRY_MASTER_ANSWER_KEY.getAnswerKeyForQuestions(QUESTIONS)
+      : {};
 
     const quizSplit = splitQuiz(QUESTIONS, ANSWER_KEY, QUIZ_PART.part);
     QUESTIONS = quizSplit.questions;
