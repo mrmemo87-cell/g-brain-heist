@@ -115,8 +115,8 @@ const getUserRole = async (
   return null;
 };
 
-const STUDENT_SAFE_MODES: ReadonlySet<Mode> = new Set(["plan_assist", "prompt_rewrite"]);
-const ADMIN_ONLY_MODES: ReadonlySet<Mode> = new Set(["feedback"]);
+const STUDENT_SAFE_MODES: ReadonlySet<Mode> = new Set(["plan_assist", "prompt_rewrite", "feedback"]);
+const ADMIN_ONLY_MODES: ReadonlySet<Mode> = new Set([]);
 
 const canUseMode = (role: UserRole, mode: Mode): boolean => {
   if (ADMIN_ONLY_MODES.has(mode)) return role === "teacher" || role === "admin";
