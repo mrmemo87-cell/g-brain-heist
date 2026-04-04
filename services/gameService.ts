@@ -2033,18 +2033,15 @@ export const tasks_list = async (): Promise<Task[]> => {
   try {
     const user = await getCurrentUser();
     
-    // Get today's date range (UTC)
+    // Use UTC day/week boundaries so task windows match server-side reward checks.
     const now = new Date();
-    const todayStart = new Date(now);
-    todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date(now);
-    todayEnd.setHours(23, 59, 59, 999);
-    
-    // Get start of week (Sunday)
-    const weekStart = new Date(now);
-    const dayOfWeek = weekStart.getDay();
-    weekStart.setDate(weekStart.getDate() - dayOfWeek);
-    weekStart.setHours(0, 0, 0, 0);
+    const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const todayEnd = new Date(todayStart);
+    todayEnd.setUTCDate(todayEnd.getUTCDate() + 1);
+
+    // Get start of week (Sunday, UTC)
+    const weekStart = new Date(todayStart);
+    weekStart.setUTCDate(weekStart.getUTCDate() - weekStart.getUTCDay());
     
     // Query canonical quest completions from quest_runs (Quest Mode 2.0).
     const { count: completedRunsCount, error: completedRunsError } = await supabase
@@ -2053,7 +2050,7 @@ export const tasks_list = async (): Promise<Task[]> => {
       .eq('user_id', user.id)
       .eq('status', 'completed')
       .gte('completed_at', todayStart.toISOString())
-      .lte('completed_at', todayEnd.toISOString());
+      .lt('completed_at', todayEnd.toISOString());
 
     // Backward compatibility: older builds recorded quest completion in activities.
     const { data: questData } = await supabase
@@ -2062,7 +2059,7 @@ export const tasks_list = async (): Promise<Task[]> => {
       .eq('actor_id', user.id)
       .eq('kind', 'quest_complete')
       .gte('created_at', todayStart.toISOString())
-      .lte('created_at', todayEnd.toISOString());
+      .lt('created_at', todayEnd.toISOString());
 
     // Fallback source: derive completed quests from teacher-system quest sessions.
     const { data: questSessionRows } = await supabase
@@ -2070,7 +2067,7 @@ export const tasks_list = async (): Promise<Task[]> => {
       .select('quest_session_id')
       .eq('student_id', user.id)
       .gte('created_at', todayStart.toISOString())
-      .lte('created_at', todayEnd.toISOString())
+      .lt('created_at', todayEnd.toISOString())
       .not('quest_session_id', 'is', null);
 
     const uniqueQuestSessions = new Set((questSessionRows || [])
@@ -2090,9 +2087,9 @@ export const tasks_list = async (): Promise<Task[]> => {
       .from('activities')
       .select('id')
       .eq('actor_id', user.id)
-      .in('kind', ['pvp_win', 'attack_success'])
+      .eq('kind', 'pvp_win')
       .gte('created_at', todayStart.toISOString())
-      .lte('created_at', todayEnd.toISOString());
+      .lt('created_at', todayEnd.toISOString());
     
     dailyPvpWins = pvpData?.length || 0;
     
@@ -2171,8 +2168,7 @@ export const tasks_list = async (): Promise<Task[]> => {
   let claimedReadFromDb = false;
   try {
     const user = await getCurrentUser();
-    const todayStart = new Date(now);
-    todayStart.setHours(0, 0, 0, 0);
+    const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 
     const { data: claimedDailyData } = await supabase
       .from('activities')
@@ -2203,10 +2199,10 @@ export const tasks_list = async (): Promise<Task[]> => {
   }
 
   const allClaimedDailyTasks = claimedReadFromDb
-    ? [...new Set([...claimedDailyFromDb])]
+    ? [...new Set([...claimedDailyFromDb, ...claimedDailyTasks, ...legacyClaimedTasks])]
     : [...new Set([...claimedDailyTasks, ...legacyClaimedTasks])];
   const allClaimedWeeklyTasks = claimedReadFromDb
-    ? [...new Set([...claimedWeeklyFromDb])]
+    ? [...new Set([...claimedWeeklyFromDb, ...claimedWeeklyTasks])]
     : [...new Set([...claimedWeeklyTasks])];
   
   const completedUnclaimedDailyTasks = [
