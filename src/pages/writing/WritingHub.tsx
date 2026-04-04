@@ -5,6 +5,7 @@ import {
   getWritingHydrationStatus,
   getMonthlyWritingReport,
   requestWritingAiAssist,
+  persistInitialWritingRichFeedback,
   retryWritingHydration,
   subscribeToWritingHydrationStatus,
   getStudentWritingState,
@@ -452,6 +453,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   const [aiTaskWording, setAiTaskWording] = useState<string>('');
   const [aiMonthlyWording, setAiMonthlyWording] = useState<string>('');
   const [aiBusy, setAiBusy] = useState(false);
+  const [isAnalyzingRichFeedback, setIsAnalyzingRichFeedback] = useState(false);
+  const [analysisStageIndex, setAnalysisStageIndex] = useState(0);
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [hydrationStatus, setHydrationStatus] = useState(getWritingHydrationStatus());
@@ -495,6 +498,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   const originalPromptText = hubSnapshot.ok ? hubSnapshot.data?.original_prompt_text ?? null : null;
   const firstAttemptSubmission = hubSnapshot.ok ? hubSnapshot.data?.first_attempt_submission ?? null : null;
   const firstAttemptWeaknesses = firstAttemptAssessment?.weakness_tags.slice(0, 3) ?? [];
+  const firstAttemptRichFeedback = (hubSnapshot.ok ? hubSnapshot.data?.first_attempt_rich_feedback ?? null : null) as WritingAiFeedbackAssist | null;
   const studentFriendlyWeaknesses = (firstAttemptWeaknesses.length > 0 ? firstAttemptWeaknesses : latestWeaknessTags)
     .slice(0, 3)
     .map((tag) => weaknessTagToStudentTip(tag));
@@ -567,6 +571,17 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   }, [activeGenre, todayTask.ok, todayTask.data?.task_type]);
 
   useEffect(() => {
+    if (!isAnalyzingRichFeedback) {
+      setAnalysisStageIndex(0);
+      return;
+    }
+    const timer = window.setInterval(() => {
+      setAnalysisStageIndex((prev) => (prev + 1) % 4);
+    }, 1300);
+    return () => window.clearInterval(timer);
+  }, [isAnalyzingRichFeedback]);
+
+  useEffect(() => {
     const unsubscribe = subscribeToWritingHydrationStatus((status) => setHydrationStatus(status));
     return () => unsubscribe();
   }, []);
@@ -581,6 +596,23 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
       ));
     }
   }, [isGenreSwitching, initializing, genreStatuses.ok, activeGenre]);
+
+  useEffect(() => {
+    if (aiFeedbackDetails) return;
+    if (!firstAttemptRichFeedback) return;
+    if (!isActiveWeek) return;
+    if (completedTasksCount > 0) return;
+    setAiFeedbackDetails(firstAttemptRichFeedback);
+    const fallbackSummary = [
+      ...(firstAttemptRichFeedback.strengths ?? []).slice(0, 2).map((item) => `✅ ${item}`),
+      ...(firstAttemptRichFeedback.weaknesses ?? []).slice(0, 2).map((item) => `⚠️ ${item}`),
+      ...(firstAttemptRichFeedback.next_steps ?? []).slice(0, 1).map((item) => `➡️ ${item}`),
+    ].join(' ');
+    if (fallbackSummary) setFeedback((current) => current || fallbackSummary);
+    if (firstAttemptRichFeedback.monthly_report_summary?.trim()) {
+      setAiMonthlyWording((current) => current || firstAttemptRichFeedback.monthly_report_summary!.trim());
+    }
+  }, [aiFeedbackDetails, firstAttemptRichFeedback, isActiveWeek, completedTasksCount]);
 
   useEffect(() => {
     let cancelled = false;
@@ -612,12 +644,54 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     };
   }, [studentId, month, stateRes.ok, stateRes.data?.latest_assessment?.total_score, activeGenre, promptText]);
 
+  const loadRichFeedback = async (
+    submissionText: string,
+    promptForFeedback: string,
+    weaknessesForFeedback: string[],
+    source: 'initial' | 'daily'
+  ) => {
+    setIsAnalyzingRichFeedback(true);
+    const aiFeedback = await requestWritingAiAssist({
+      mode: 'feedback',
+      prompt_text: promptForFeedback,
+      student_response: submissionText,
+      weaknesses: weaknessesForFeedback,
+      grade,
+      genre: activeGenre,
+    });
+    if (aiFeedback.ok && aiFeedback.data) {
+      const ai = (aiFeedback.data.result ?? {}) as WritingAiFeedbackAssist;
+      setAiFeedbackDetails(ai);
+      const refined = [
+        ...(ai.strengths ?? []).slice(0, 2).map((item) => `✅ ${item}`),
+        ...(ai.weaknesses ?? []).slice(0, 2).map((item) => `⚠️ ${item}`),
+        ...(ai.next_steps ?? []).slice(0, 2).map((item) => `➡️ ${item}`),
+      ].join(' ');
+      if (refined) setFeedback(refined);
+      if (ai.monthly_report_summary?.trim()) setAiMonthlyWording(ai.monthly_report_summary.trim());
+      if (source === 'initial') {
+        const persistResult = persistInitialWritingRichFeedback({
+          student_id: studentId,
+          genre: activeGenre,
+          rich_feedback: ai,
+        });
+        if (!persistResult.ok) {
+          console.warn('Initial rich feedback persistence skipped:', persistResult.error);
+        }
+      }
+      return { ok: true as const };
+    }
+    return { ok: false as const, error: aiFeedback.error ?? 'AI analysis unavailable.' };
+  };
+
   const handleStart = async (options?: { fromWeekComplete?: boolean }) => {
     const fromWeekComplete = Boolean(options?.fromWeekComplete);
     setLoading(true);
     setError('');
     setAiFeedbackDetails(null);
     setFeedback('');
+    setAiMonthlyWording('');
+    setIsAnalyzingRichFeedback(false);
     setUiNotice(fromWeekComplete ? 'Preparing a fresh writing mission…' : 'Checking your writing…');
     const safeInitialResponse = initialResponse.trim() || (fromWeekComplete
       ? 'I am ready to start a new writing week and improve my focus skills with clear writing.'
@@ -669,10 +743,22 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     }
 
     setUiNotice('Building your weekly plan…');
-    window.setTimeout(() => {
+    try {
+      const aiResult = await loadRichFeedback(safeInitialResponse, promptForSubmission, latestWeaknesses, 'initial');
+      if (aiResult.ok) {
+        setUiNotice('Your writing week is ready. Here is your first AI coaching feedback.');
+      } else {
+        setError(`Your week is ready, but AI feedback is unavailable: ${aiResult.error}`);
+        setUiNotice('Your writing week is ready. You can continue with Day 1 now.');
+      }
+    } catch (aiError) {
+      console.error('Initial writing feedback assist failed:', aiError);
+      setError('Your week is ready, but first-submit AI feedback could not load. You can continue with Day 1.');
+      setUiNotice('Your writing week is ready. You can continue with Day 1 now.');
+    } finally {
+      setIsAnalyzingRichFeedback(false);
       setLoading(false);
-      setUiNotice('Your writing week is ready. Let’s go!');
-    }, 450);
+    }
   };
 
   const handleEnhancePrompt = async () => {
@@ -732,33 +818,19 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     const deterministicFeedback = `Great work. ${result.data.evaluation.completion_status}. Skill score: ${result.data.evaluation.target_skill_score}/5.`;
     setFeedback(deterministicFeedback);
     setAiFeedbackDetails(null);
+    setIsAnalyzingRichFeedback(false);
     setUiNotice('Nice submit! Preparing your coaching feedback…');
 
     try {
-      const aiFeedback = await requestWritingAiAssist({
-        mode: 'feedback',
-        prompt_text: promptText,
-        student_response: practiceResponse,
-        weaknesses: latestWeaknesses,
-        grade,
-        genre: activeGenre,
-      });
-      if (aiFeedback.ok && aiFeedback.data) {
-        const ai = (aiFeedback.data.result ?? {}) as WritingAiFeedbackAssist;
-        setAiFeedbackDetails(ai);
-        const refined = [
-          ...(ai.strengths ?? []).slice(0, 2).map((item) => `✅ ${item}`),
-          ...(ai.weaknesses ?? []).slice(0, 2).map((item) => `⚠️ ${item}`),
-          ...(ai.next_steps ?? []).slice(0, 2).map((item) => `➡️ ${item}`),
-        ].join(' ');
-        if (refined) setFeedback(refined);
-        if (ai.monthly_report_summary?.trim()) setAiMonthlyWording(ai.monthly_report_summary.trim());
-      } else if (aiFeedback.error) {
-        setError(`Saved your submission, but AI analysis is unavailable: ${aiFeedback.error}`);
+      const aiResult = await loadRichFeedback(practiceResponse, promptText, latestWeaknesses, 'daily');
+      if (!aiResult.ok) {
+        setError(`Saved your submission, but AI analysis is unavailable: ${aiResult.error}`);
       }
     } catch (aiError) {
       console.error('Writing feedback assist failed:', aiError);
       setError('Your submission was saved, but feedback could not load. Please try again.');
+    } finally {
+      setIsAnalyzingRichFeedback(false);
     }
 
     setPracticeResponse('');
@@ -780,6 +852,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     setAiWeeklyFocus('');
     setAiCoachingPoints([]);
     setAiTaskWording('');
+    setAiMonthlyWording('');
+    setIsAnalyzingRichFeedback(false);
     setUiNotice(`${toGenreLabel(nextGenre)} path selected. Loading your progress for this writing path…`);
   };
 
@@ -812,6 +886,21 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
         .writing-primary-button:hover:enabled { transform: translateY(-1px) scale(1.01); }
         .writing-primary-button:active:enabled { transform: translateY(1px) scale(0.99); }
         .progress-fill { transition: width 560ms cubic-bezier(.34,1.56,.64,1); }
+        .analysis-dot { width: 8px; height: 8px; border-radius: 999px; background: #67e8f9; opacity: 0.3; animation: analysisPulse 1.2s ease-in-out infinite; }
+        .analysis-dot:nth-child(2) { animation-delay: 0.2s; }
+        .analysis-dot:nth-child(3) { animation-delay: 0.4s; }
+        .analysis-shimmer {
+          position: relative;
+          overflow: hidden;
+        }
+        .analysis-shimmer::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          transform: translateX(-100%);
+          background: linear-gradient(90deg, transparent 0%, rgba(125, 211, 252, 0.2) 50%, transparent 100%);
+          animation: analysisSweep 2.2s ease-in-out infinite;
+        }
         .focus-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
         .mini-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
         @media (min-width: 760px) {
@@ -821,6 +910,13 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
         @keyframes cardIn {
           from { opacity: 0; transform: translateY(12px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes analysisPulse {
+          0%, 100% { opacity: 0.25; transform: scale(0.9); }
+          50% { opacity: 1; transform: scale(1.05); }
+        }
+        @keyframes analysisSweep {
+          100% { transform: translateX(100%); }
         }
       `}</style>
 
@@ -1156,7 +1252,30 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
 
               <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(16, 185, 129, 0.32)' }}>
                 <h3 style={{ marginTop: 0, marginBottom: 6, fontSize: 19, color: '#f8fafc' }}>Feedback & momentum</h3>
-                {aiFeedbackDetails ? (
+                {isAnalyzingRichFeedback ? (
+                  <div
+                    className="analysis-shimmer"
+                    role="status"
+                    aria-live="polite"
+                    style={{
+                      border: '1px solid rgba(56, 189, 248, 0.45)',
+                      borderRadius: 12,
+                      padding: 12,
+                      background: 'linear-gradient(140deg, rgba(30,41,59,0.85) 0%, rgba(17,24,39,0.9) 55%, rgba(30,27,75,0.8) 100%)',
+                      boxShadow: '0 0 28px rgba(56, 189, 248, 0.18)',
+                    }}
+                  >
+                    <p style={{ margin: '0 0 6px', color: '#67e8f9', fontWeight: 800, fontSize: 16 }}>Analyzing your writing…</p>
+                    <p style={{ margin: '0 0 10px', color: '#c4b5fd', fontSize: 14 }}>
+                      {['Reading your answer…', 'Checking task match…', 'Finding grammar fixes…', 'Preparing your next step…'][analysisStageIndex]}
+                    </p>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }} aria-hidden="true">
+                      <span className="analysis-dot" />
+                      <span className="analysis-dot" />
+                      <span className="analysis-dot" />
+                    </div>
+                  </div>
+                ) : aiFeedbackDetails ? (
                   <div style={{ display: 'grid', gap: 10 }}>
                     <div style={{ border: '1px solid rgba(96, 165, 250, 0.4)', borderRadius: 10, padding: 10, background: 'rgba(30,41,59,0.5)' }}>
                       <p style={{ margin: '0 0 6px', color: '#bfdbfe', fontWeight: 700 }}>Did you answer the task?</p>

@@ -42,6 +42,9 @@ export interface WritingAttempt {
   prompt_text?: string;
   student_submission?: string;
   assessment: WritingAssessmentResult;
+  rich_feedback?: unknown;
+  rich_feedback_source_submission_type?: 'initial';
+  rich_feedback_created_at?: string;
 }
 
 export interface WeeklyWritingPlan {
@@ -536,6 +539,9 @@ export interface StudentWritingHubSnapshot {
   original_prompt_text: string | null;
   first_attempt_assessment: WritingAssessmentResult | null;
   first_attempt_submission: string | null;
+  first_attempt_rich_feedback: unknown | null;
+  first_attempt_rich_feedback_source_submission_type: 'initial' | null;
+  first_attempt_rich_feedback_created_at: string | null;
 }
 
 export interface StudentGenrePathStatus {
@@ -559,7 +565,38 @@ export const getStudentWritingHubSnapshot = (studentId: string, genre?: Supporte
     original_prompt_text: firstInitialAttempt?.prompt_text ?? null,
     first_attempt_assessment: firstInitialAttempt?.assessment ?? null,
     first_attempt_submission: firstInitialAttempt?.student_submission ?? null,
+    first_attempt_rich_feedback: firstInitialAttempt?.rich_feedback ?? null,
+    first_attempt_rich_feedback_source_submission_type: firstInitialAttempt?.rich_feedback_source_submission_type ?? null,
+    first_attempt_rich_feedback_created_at: firstInitialAttempt?.rich_feedback_created_at ?? null,
   });
+};
+
+export const persistInitialWritingRichFeedback = (input: {
+  student_id: string;
+  genre: SupportedGenre;
+  rich_feedback: unknown;
+  created_at?: string;
+}): ServiceResponse<{ saved: boolean }> => {
+  if (!input.student_id?.trim()) return badRequest('student_id is required.');
+  if (!input.rich_feedback || typeof input.rich_feedback !== 'object') return badRequest('rich_feedback is required.');
+
+  hydrateStore();
+  const attempts = store.attempts
+    .filter(
+      (attempt) =>
+        attempt.student_id === input.student_id &&
+        attempt.genre === input.genre &&
+        attempt.attempt_type === 'initial_assessment'
+    )
+    .sort((a, b) => b.created_at.localeCompare(a.created_at));
+  const targetAttempt = attempts[0];
+  if (!targetAttempt) return badRequest('initial assessment attempt not found.');
+
+  targetAttempt.rich_feedback = JSON.parse(JSON.stringify(input.rich_feedback));
+  targetAttempt.rich_feedback_source_submission_type = 'initial';
+  targetAttempt.rich_feedback_created_at = input.created_at ?? new Date().toISOString();
+  persistStore();
+  return ok({ saved: true });
 };
 
 export const getStudentGenrePathStatuses = (
