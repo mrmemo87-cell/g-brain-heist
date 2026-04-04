@@ -16,6 +16,23 @@ type Payload = {
 type UserRole = "student" | "teacher" | "admin";
 
 type AiResult = {
+  task_understanding?: string;
+  submission_read?: string;
+  alignment?:
+    | "on_task"
+    | "partially_on_task"
+    | "off_topic"
+    | "too_short"
+    | "underdeveloped"
+    | "mostly_correct_but_needs_polish";
+  what_is_working?: string[];
+  what_is_missing?: string[];
+  grammar_fixes?: Array<{ original: string; issue: string; better_version: string }>;
+  punctuation_fixes?: Array<{ original: string; issue: string; better_version: string }>;
+  natural_phrase_upgrades?: Array<{ original: string; better_version: string; why_it_helps: string }>;
+  style_tone_feedback?: Array<{ evidence: string; issue: string; suggestion: string }>;
+  next_move?: string;
+  example_revision_start?: string;
   strengths?: string[];
   weaknesses?: string[];
   next_steps?: string[];
@@ -126,7 +143,90 @@ const normalizeAiResult = (mode: Mode, raw: unknown): AiResult | null => {
   const value = raw as Record<string, unknown>;
 
   if (mode === "feedback") {
+    const alignment = typeof value.alignment === "string" ? value.alignment : "";
+    const normalizedAlignment =
+      alignment === "on_task" ||
+      alignment === "partially_on_task" ||
+      alignment === "off_topic" ||
+      alignment === "too_short" ||
+      alignment === "underdeveloped" ||
+      alignment === "mostly_correct_but_needs_polish"
+        ? alignment
+        : "underdeveloped";
+
+    const normalizeFixes = (
+      input: unknown,
+    ): Array<{ original: string; issue: string; better_version: string }> => {
+      if (!Array.isArray(input)) return [];
+      return input
+        .map((item) => {
+          if (!item || typeof item !== "object") return null;
+          const obj = item as Record<string, unknown>;
+          return {
+            original: typeof obj.original === "string" ? obj.original.trim() : "",
+            issue: typeof obj.issue === "string" ? obj.issue.trim() : "",
+            better_version: typeof obj.better_version === "string" ? obj.better_version.trim() : "",
+          };
+        })
+        .filter((item): item is { original: string; issue: string; better_version: string } =>
+          Boolean(item && item.original && item.issue && item.better_version)
+        )
+        .slice(0, 5);
+    };
+
+    const normalizePhraseUpgrades = (
+      input: unknown,
+    ): Array<{ original: string; better_version: string; why_it_helps: string }> => {
+      if (!Array.isArray(input)) return [];
+      return input
+        .map((item) => {
+          if (!item || typeof item !== "object") return null;
+          const obj = item as Record<string, unknown>;
+          return {
+            original: typeof obj.original === "string" ? obj.original.trim() : "",
+            better_version: typeof obj.better_version === "string" ? obj.better_version.trim() : "",
+            why_it_helps: typeof obj.why_it_helps === "string" ? obj.why_it_helps.trim() : "",
+          };
+        })
+        .filter((item): item is { original: string; better_version: string; why_it_helps: string } =>
+          Boolean(item && item.original && item.better_version && item.why_it_helps)
+        )
+        .slice(0, 5);
+    };
+
+    const normalizeStyleTone = (
+      input: unknown,
+    ): Array<{ evidence: string; issue: string; suggestion: string }> => {
+      if (!Array.isArray(input)) return [];
+      return input
+        .map((item) => {
+          if (!item || typeof item !== "object") return null;
+          const obj = item as Record<string, unknown>;
+          return {
+            evidence: typeof obj.evidence === "string" ? obj.evidence.trim() : "",
+            issue: typeof obj.issue === "string" ? obj.issue.trim() : "",
+            suggestion: typeof obj.suggestion === "string" ? obj.suggestion.trim() : "",
+          };
+        })
+        .filter((item): item is { evidence: string; issue: string; suggestion: string } =>
+          Boolean(item && item.evidence && item.issue && item.suggestion)
+        )
+        .slice(0, 4);
+    };
+
     return {
+      task_understanding: typeof value.task_understanding === "string" ? value.task_understanding : "",
+      submission_read: typeof value.submission_read === "string" ? value.submission_read : "",
+      alignment: normalizedAlignment,
+      what_is_working: Array.isArray(value.what_is_working) ? value.what_is_working.map(String) : [],
+      what_is_missing: Array.isArray(value.what_is_missing) ? value.what_is_missing.map(String) : [],
+      grammar_fixes: normalizeFixes(value.grammar_fixes),
+      punctuation_fixes: normalizeFixes(value.punctuation_fixes),
+      natural_phrase_upgrades: normalizePhraseUpgrades(value.natural_phrase_upgrades),
+      style_tone_feedback: normalizeStyleTone(value.style_tone_feedback),
+      next_move: typeof value.next_move === "string" ? value.next_move : "",
+      example_revision_start:
+        typeof value.example_revision_start === "string" ? value.example_revision_start : "",
       strengths: Array.isArray(value.strengths) ? value.strengths.map(String) : [],
       weaknesses: Array.isArray(value.weaknesses) ? value.weaknesses.map(String) : [],
       next_steps: Array.isArray(value.next_steps) ? value.next_steps.map(String) : [],
@@ -170,12 +270,30 @@ const buildUserPrompt = (payload: Payload): string => {
       `Genre: ${genre}`,
       `Task prompt: ${payload.promptText}`,
       `Student response: ${payload.studentResponse ?? ""}`,
+      `Known weaknesses from recent work: ${JSON.stringify(payload.weaknesses ?? [])}`,
       "Return strict JSON only with keys:",
+      '- task_understanding: one short student-friendly explanation of what the task is asking',
+      '- submission_read: one short summary of what this student actually wrote',
+      '- alignment: exactly one of on_task | partially_on_task | off_topic | too_short | underdeveloped | mostly_correct_but_needs_polish',
+      '- what_is_working: 2 evidence-based wins that reference the student response',
+      '- what_is_missing: 2 evidence-based missing content points',
+      '- grammar_fixes: up to 3 objects with keys original, issue, better_version',
+      '- punctuation_fixes: up to 3 objects with keys original, issue, better_version',
+      '- natural_phrase_upgrades: up to 3 objects with keys original, better_version, why_it_helps',
+      '- style_tone_feedback: up to 2 objects with keys evidence, issue, suggestion',
+      '- next_move: one best next revision move',
+      '- example_revision_start: one concrete improved sentence/starter when useful',
       "- strengths: 2 short specific positives",
       "- weaknesses: 2 short plain-English weakness summaries",
       "- next_steps: 2 or 3 clear actionable next steps",
       "- monthly_report_summary: 1 short progress summary sentence",
-      "Keep the tone natural, helpful, and concise.",
+      "Quality rules:",
+      "- Use direct evidence from the student response. Quote short snippets where useful.",
+      "- Never invent evidence or errors that are not present.",
+      "- Separate content/task issues from language issues and style/tone issues.",
+      "- If off-topic, still give language-focused help where possible.",
+      "- Do not give vague advice like 'be clearer' without naming exactly what to change.",
+      "Keep tone supportive, smart, specific, and natural.",
     ].join("\n");
   }
 
@@ -256,7 +374,7 @@ serve(async (req) => {
           {
             role: "system",
             content:
-              "You are a strong student writing coach for Brains Heist. Return strict JSON only. No markdown.",
+              "You are an expert writing coach for Brains Heist students. Be specific, supportive, and evidence-based. You must prove you read the student response by citing exact words or short quoted snippets from their text where relevant. Never invent evidence, grammar mistakes, punctuation mistakes, or style issues. If uncertain, be conservative and say what is missing. Distinguish content/task issues, language issues, and style/tone issues clearly. Return strict JSON only. No markdown.",
           },
           {
             role: "user",
@@ -278,9 +396,32 @@ serve(async (req) => {
       return json(502, { error: "Model response schema invalid" });
     }
 
+    const usage = completion.usage
+      ? {
+          prompt_tokens: completion.usage.prompt_tokens ?? null,
+          completion_tokens: completion.usage.completion_tokens ?? null,
+          total_tokens: completion.usage.total_tokens ?? null,
+        }
+      : null;
+    const openAiRequestId =
+      completion.id ??
+      (typeof (completion as Record<string, unknown>)._request_id === "string"
+        ? ((completion as Record<string, unknown>)._request_id as string)
+        : null);
+
+    console.info("[bh_writing_ai] completion metadata", {
+      mode: payload!.mode,
+      openai_request_id: openAiRequestId,
+      usage,
+    });
+
     return json(200, {
       mode: payload!.mode,
       result: normalized,
+      meta: {
+        openai_request_id: openAiRequestId,
+        usage,
+      },
     });
   } catch (error) {
     console.error("[bh_writing_ai] request failed", error);
