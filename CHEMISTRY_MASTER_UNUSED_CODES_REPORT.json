@@ -1,0 +1,14 @@
+{
+  "schema_version": "2.0",
+  "canonical_parseable": 1222,
+  "invalid_format_count": 0,
+  "duplicate_canonical_count": 0,
+  "missing_in_master_count": 0,
+  "unused_master_count": 0,
+  "unused_master_codes": [],
+  "compatibility": {
+    "canonical_parseable": "parseable_entries",
+    "invalid_format_count": "invalid_entries",
+    "duplicate_canonical_count": "duplicate_canonical_codes"
+  }
+}

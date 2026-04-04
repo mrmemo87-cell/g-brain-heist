@@ -1,0 +1,23 @@
+{
+  "schema_version": "2.0",
+  "total_entries": 1222,
+  "canonical_parseable": 1222,
+  "invalid_format_count": 0,
+  "unique_canonical_codes": 1222,
+  "duplicate_canonical_count": 0,
+  "missing_in_master_count": 0,
+  "duplicates": [],
+  "display_code_duplicate_count": 6,
+  "display_code_duplicates": [
+    "9701_m20_qp_12|10",
+    "9701_m20_qp_12|5",
+    "9701_m22_qp_12|14",
+    "9701_s16_qp_12|11",
+    "9701_s19_qp_12|8",
+    "9701_s20_qp_12|7"
+  ],
+  "master_code_override_count": 9,
+  "missing_in_master": [],
+  "unused_master_count": 0,
+  "unused_master_codes": []
+}
