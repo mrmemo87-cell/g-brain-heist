@@ -450,21 +450,17 @@ const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, ad
       <h2 className="font-heading text-3xl text-center mb-8" style={{ color: 'var(--success-teal)' }}>Item Shop</h2>
 
             {/* ── Brains Master Premium Card ── */}
-            <section className="mb-6 bg-gradient-to-br from-yellow-900/30 via-amber-950/20 to-orange-900/30 border border-yellow-500/30 rounded-3xl p-6 space-y-4 relative overflow-hidden">
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(251,191,36,0.08),transparent_60%)] pointer-events-none" />
-              <img
-                src="/visuals/shop-items/Brains-Master.png"
-                alt="Brains Master"
-                className="pointer-events-none absolute right-2 top-2 h-44 w-72 object-contain opacity-95 md:h-52 md:w-80 z-10"
-                loading="lazy"
-              />
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between relative z-20 md:pr-64">
+            <section className="mb-6 rounded-3xl border border-yellow-500/30 bg-gradient-to-br from-[#3b1f18]/90 via-[#2e1628]/90 to-[#2a1223]/90 p-5 sm:p-6 relative overflow-hidden shadow-[0_0_40px_rgba(251,191,36,0.1)]">
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(251,191,36,0.12),transparent_62%)] pointer-events-none" />
+              <div className="relative z-20 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 md:gap-6">
+                <div className="space-y-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h3 className="font-heading text-2xl text-amber-300 flex items-center gap-2">
                     🧠 Brains Master
                     {bmActive && <span className="text-xs bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full border border-green-500/30">ACTIVE</span>}
                   </h3>
-                  <p className="text-sm text-amber-200/70 mt-1">
+                  <p className="mt-1 text-sm text-amber-100/80 leading-relaxed max-w-xl">
                     {bmActive
                       ? formatBrainsMasterRemaining(profile)
                       : `${BM_DURATION_DAYS}-day premium rank with instant rewards & boosted caps`}
@@ -475,16 +471,16 @@ const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, ad
                   <span className="font-mono text-rose-200 text-lg">{BM_GEM_PRICE}</span>
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm relative z-20 md:pr-64">
-                <div className="bg-black/30 rounded-xl p-3 border border-white/5">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                <div className="rounded-xl border border-white/10 bg-black/25 p-3 backdrop-blur-[1px]">
                   <span className="text-gray-400">Instant Reward</span>
                   <p className="text-white font-heading">+{BM_INSTANT_GEMS} 💎 gems + 5× daily coin cap in coins</p>
                 </div>
-                <div className="bg-black/30 rounded-xl p-3 border border-white/5">
+                <div className="rounded-xl border border-white/10 bg-black/25 p-3 backdrop-blur-[1px]">
                   <span className="text-gray-400">Cap Boost</span>
                   <p className="text-white font-heading">{BM_CAP_BOOST_FACTOR}× all earning caps for {BM_DURATION_DAYS} days</p>
                 </div>
-                <div className="bg-black/30 rounded-xl p-3 border border-white/5">
+                <div className="rounded-xl border border-white/10 bg-black/25 p-3 backdrop-blur-[1px]">
                   <span className="text-gray-400">Badge</span>
                   <p className="text-white font-heading">🧠 Brains Master badge on leaderboard & clan</p>
                 </div>
@@ -492,7 +488,7 @@ const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, ad
               <button
                 onClick={handleBuyBrainsMaster}
                 disabled={bmPurchasing || profile.gemstones < BM_GEM_PRICE}
-                className={`relative z-20 w-full py-3 rounded-xl font-heading text-lg transition-all ${
+                className={`w-full py-3 rounded-xl font-heading text-lg transition-all ${
                   bmPurchasing
                     ? 'bg-gray-600/50 cursor-wait'
                     : profile.gemstones < BM_GEM_PRICE
@@ -505,10 +501,20 @@ const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, ad
                 {bmPurchasing ? 'Purchasing…' : bmActive ? 'Extend Brains Master' : 'Purchase Brains Master'}
               </button>
               {profile.gemstones < BM_GEM_PRICE && (
-                <p className="text-xs text-rose-400 text-center relative z-20">
+                <p className="text-xs text-rose-300/90 text-center">
                   You need {BM_GEM_PRICE - profile.gemstones} more gemstones
                 </p>
               )}
+                </div>
+                <div className="flex items-start justify-center md:justify-end">
+                  <img
+                    src="/visuals/shop-items/Brains-Master.png"
+                    alt="Brains Master"
+                    className="pointer-events-none h-44 w-full max-w-xs object-contain opacity-95 drop-shadow-[0_10px_30px_rgba(255,170,80,0.35)] md:h-56"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
             </section>
 
             <div className="space-y-6">
