@@ -1,0 +1,20 @@
+{
+  "total_entries": 1222,
+  "runtime_effective_parseable_count": 1222,
+  "runtime_invalid_count": 0,
+  "runtime_duplicate_canonical_count": 0,
+  "runtime_missing_in_master_count": 0,
+  "runtime_unused_master_count": 0,
+  "display_code_duplicate_count": 6,
+  "display_code_duplicates": [
+    "9701_m20_qp_12|10",
+    "9701_m20_qp_12|5",
+    "9701_m22_qp_12|14",
+    "9701_s16_qp_12|11",
+    "9701_s19_qp_12|8",
+    "9701_s20_qp_12|7"
+  ],
+  "master_code_override_count": 9,
+  "runtime_missing_in_master": [],
+  "runtime_unused_master": []
+}

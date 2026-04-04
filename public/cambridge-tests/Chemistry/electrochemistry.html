@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
   <title>AS Chemistry Ch6 (Electrochemistry)</title>
   <script src="../examguard.js?v=2"></script>
+  <script src="./chemistry_master_answer_key.js"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
@@ -1023,7 +1024,8 @@
       },
       {
         number: 11,
-        code: '9701_s20_qp_12 Q: 5',
+        code: '9701_m20_qp_12 Q: 5',
+        masterCode: '9701_m99_qp_12 Q: 105',
         prompt: 'The following reaction occurs when MnO<sub>2</sub> is warmed with dilute H<sub>2</sub>SO<sub>4</sub>.<br><br>aMnO<sub>2</sub> + bH<sup>+</sup> → cMn<sup>2+</sup> + dMnO<sub>4</sub><sup>−</sup> + eH<sub>2</sub>O<br><br>What is the ratio of c : d in the correctly balanced equation?',
         options: {
           A: '1 : 1',
@@ -1034,7 +1036,8 @@
       },
       {
         number: 12,
-        code: '9701_s20_qp_12 Q: 10',
+        code: '9701_m20_qp_12 Q: 10',
+        masterCode: '9701_m99_qp_12 Q: 110',
         prompt: 'In which reaction does an element undergo the largest change in oxidation number?',
         options: {
           A: 'Cl<sub>2</sub> + 2OH<sup>−</sup> → OCl<sup>−</sup> + Cl<sup>−</sup> + H<sub>2</sub>O',
@@ -1150,7 +1153,8 @@
       },
       {
         number: 22,
-        code: '9701_s19_qp_13 Q: 8',
+        code: '9701_s19_qp_12 Q: 8',
+        masterCode: '9701_m99_qp_12 Q: 408',
         prompt: 'Ethanol can be oxidised to ethanal by dilute acidified dichromate(VI) ions.<br><br>The oxidation reaction equation is C<sub>2</sub>H<sub>5</sub>OH → C<sub>2</sub>H<sub>4</sub>O + 2H<sup>+</sup> + 2e<sup>−</sup>.<br>The reduction reaction equation is Cr<sub>2</sub>O<sub>7</sub><sup>2−</sup> + 14H<sup>+</sup> + 6e<sup>−</sup> → 2Cr<sup>3+</sup> + 7H<sub>2</sub>O.<br><br>Which equation is correct?',
         options: {
           A: 'Cr<sub>2</sub>O<sub>7</sub><sup>2−</sup> + 8H<sup>+</sup> + 3C<sub>2</sub>H<sub>5</sub>OH → 2Cr<sup>3+</sup> + 7H<sub>2</sub>O + 3C<sub>2</sub>H<sub>4</sub>O',
@@ -1577,20 +1581,9 @@
       },
     ];
 
-    let ANSWER_KEY = {
-      1: 'A', 2: 'C', 3: 'D', 4: 'A', 5: 'C',
-      6: 'D', 7: 'D', 8: 'D', 9: 'C', 10: 'B',
-      11: 'D', 12: 'D', 13: 'C', 14: 'A', 15: 'B',
-      16: 'A', 17: 'C', 18: 'B', 19: 'B', 20: 'C',
-      21: 'D', 22: 'B', 23: 'A', 24: 'D', 25: 'C',
-      26: 'C', 27: 'D', 28: 'C', 29: 'B', 30: 'A',
-      31: 'B', 32: 'D', 33: 'D', 34: 'B', 35: 'C',
-      36: 'B', 37: 'A', 38: 'C', 39: 'B', 40: 'C',
-      41: 'B', 42: 'A', 43: 'B', 44: 'A', 45: 'D',
-      46: 'A', 47: 'C', 48: 'C', 49: 'D', 50: 'A',
-      51: 'B', 52: 'A', 53: 'C', 54: 'D', 55: 'A',
-      56: 'D',
-    };
+    let ANSWER_KEY = (window.CHEMISTRY_MASTER_ANSWER_KEY && typeof window.CHEMISTRY_MASTER_ANSWER_KEY.getAnswerKeyForQuestions === 'function')
+      ? window.CHEMISTRY_MASTER_ANSWER_KEY.getAnswerKeyForQuestions(QUESTIONS)
+      : {};
 
     const quizSplit = splitQuiz(QUESTIONS, ANSWER_KEY, QUIZ_PART.part);
     QUESTIONS = quizSplit.questions;
