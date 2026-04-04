@@ -68,14 +68,35 @@ export interface JoinSchoolByCodeResult {
 
 export const login = async (email: string, password: string): Promise<{ success: boolean }> => {
     console.log(`Attempting login for ${email}`);
-    
-    const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-    });
+
+    let data: Awaited<ReturnType<typeof supabase.auth.signInWithPassword>>['data'];
+    let error: Awaited<ReturnType<typeof supabase.auth.signInWithPassword>>['error'];
+
+    try {
+        const result = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
+        data = result.data;
+        error = result.error;
+    } catch (signInError) {
+        const message = signInError instanceof Error ? signInError.message : String(signInError);
+        const isAbortLike =
+            (signInError instanceof DOMException && signInError.name === 'AbortError') ||
+            /fetch is aborted|aborted/i.test(message);
+
+        if (isAbortLike) {
+            throw new Error('Login request timed out. Please check your internet connection and try again.');
+        }
+
+        throw new Error(message || 'Unable to reach login service. Please try again.');
+    }
     
     if (error) {
         console.error('Login error:', error.message);
+        if (/fetch is aborted|aborted/i.test(error.message)) {
+            throw new Error('Login request timed out. Please check your internet connection and try again.');
+        }
         throw new Error(error.message);
     }
     
