@@ -465,6 +465,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     : [];
   const latestWeaknesses = latestWeaknessTags.map((tag) => tag.replaceAll('_', ' '));
   const firstAttemptAssessment = hubSnapshot.ok ? hubSnapshot.data?.first_attempt_assessment ?? null : null;
+  const latestAssessment = stateRes.ok ? stateRes.data?.latest_assessment ?? null : null;
+  const progressAssessment = latestAssessment ?? firstAttemptAssessment;
   const originalPromptText = hubSnapshot.ok ? hubSnapshot.data?.original_prompt_text ?? null : null;
   const firstAttemptSubmission = hubSnapshot.ok ? hubSnapshot.data?.first_attempt_submission ?? null : null;
   const firstAttemptWeaknesses = firstAttemptAssessment?.weakness_tags.slice(0, 3) ?? [];
@@ -480,13 +482,13 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     : latestWeaknessTags.slice(0, 3).map((tag) => weaknessTagToStudentTip(tag))).slice(0, 3);
   const monthlySubscaleDeltas = parseSubscaleProgress(monthlyReport.data?.student_facing_monthly_report.subscale_progress ?? []);
   const subscaleCards = [
-    { key: 'content', label: 'Content', score: firstAttemptAssessment?.subscores.content ?? null, delta: monthlySubscaleDeltas['content'] },
-    { key: 'organisation', label: 'Organisation', score: firstAttemptAssessment?.subscores.organisation ?? null, delta: monthlySubscaleDeltas['organisation'] },
-    { key: 'language', label: 'Language', score: firstAttemptAssessment?.subscores.language ?? null, delta: monthlySubscaleDeltas['language'] },
+    { key: 'content', label: 'Content', score: progressAssessment?.subscores.content ?? null, delta: monthlySubscaleDeltas['content'] },
+    { key: 'organisation', label: 'Organisation', score: progressAssessment?.subscores.organisation ?? null, delta: monthlySubscaleDeltas['organisation'] },
+    { key: 'language', label: 'Language', score: progressAssessment?.subscores.language ?? null, delta: monthlySubscaleDeltas['language'] },
     {
       key: 'communicative_achievement',
       label: 'Communicative Achievement',
-      score: firstAttemptAssessment?.subscores.communicative_achievement ?? null,
+      score: progressAssessment?.subscores.communicative_achievement ?? null,
       delta: monthlySubscaleDeltas['communicative_achievement'],
     },
   ];
@@ -571,6 +573,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
           setAiCoachingPoints(ai.coaching_points.slice(0, 3));
         }
         if (ai.daily_task?.trim()) setAiTaskWording(ai.daily_task.trim());
+      } else if (!cancelled && planAssist.error) {
+        setUiNotice(`AI coach unavailable right now: ${planAssist.error}`);
       }
       if (!cancelled) setAiBusy(false);
     };
@@ -716,6 +720,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
         ].join(' ');
         if (refined) setFeedback(refined);
         if (ai.monthly_report_summary?.trim()) setAiMonthlyWording(ai.monthly_report_summary.trim());
+      } else if (aiFeedback.error) {
+        setError(`Saved your submission, but AI analysis is unavailable: ${aiFeedback.error}`);
       }
     } catch (aiError) {
       console.error('Writing feedback assist failed:', aiError);
