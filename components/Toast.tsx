@@ -65,7 +65,7 @@ const Toast: React.FC<ToastProps> = ({ id, message, type, retryAction, onDismiss
     <div
       role="status"
       aria-live="polite"
-      className={`w-[min(92vw,420px)] rounded-2xl border shadow-2xl backdrop-blur-md transition-all duration-300 ${style.container} ${animationClasses}`}
+      className={`pointer-events-auto w-[min(92vw,420px)] rounded-2xl border shadow-2xl backdrop-blur-md transition-all duration-300 ${style.container} ${animationClasses}`}
     >
       <div className="p-4">
         <div className="flex items-start gap-3">
