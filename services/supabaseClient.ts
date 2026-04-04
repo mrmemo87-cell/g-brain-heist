@@ -33,18 +33,33 @@ export const supabase: SupabaseClient = createClient(supabaseUrl || 'https://pla
   },
   global: {
     // Set fetch options for better connection handling
-    fetch: (url, options) => {
+    fetch: (url, options = {}) => {
       // Edge Functions need longer timeout (GPT calls can take 30-60s)
       const isEdgeFunction = typeof url === 'string' && url.includes('/functions/v1/');
       const timeoutMs = isEdgeFunction ? 120000 : 30000; // 2 min for functions, 30s for others
       
       const controller = new AbortController();
+      const requestOptions = options as RequestInit;
+      const upstreamSignal = requestOptions.signal;
+      const abortFromUpstream = () => controller.abort();
+
+      if (upstreamSignal) {
+        if (upstreamSignal.aborted) {
+          controller.abort();
+        } else {
+          upstreamSignal.addEventListener('abort', abortFromUpstream, { once: true });
+        }
+      }
+
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
       
       return fetch(url, {
-        ...options,
+        ...requestOptions,
         signal: controller.signal,
-      }).finally(() => clearTimeout(timeoutId));
+      }).finally(() => {
+        clearTimeout(timeoutId);
+        upstreamSignal?.removeEventListener('abort', abortFromUpstream);
+      });
     },
   },
   realtime: {
