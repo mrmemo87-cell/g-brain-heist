@@ -1,16 +1,15 @@
-# Chemistry master key unused-code check (latest rerun)
+# Chemistry master key unused-code check (runtime-effective)
 
 ## Direct answer
-- **Unused codes in `chemistry_master_answer_key.js`: none**.
+- **Unused master codes: none**.
 
-## Current rerun summary
-- Total question `code:` entries scanned: **1222**
-- Canonical/parseable entries: **1222**
-- Invalid/non-canonical entries: **0**
-- Unique canonical codes used in chapter files: **1222**
-- Total master-key entries: **1222**
-- Missing in master (used but absent): **0**
-- Unused in master (present but never referenced): **0**
+## Runtime-effective summary (`masterCode || code`)
+- Total entries scanned: **1222**
+- Runtime-parseable entries: **1222**
+- Runtime-invalid entries: **0**
+- Master total count: **1222**
+- Missing in master: **0**
+- Unused in master: **0**
 
 ## Artifact
-- Machine-readable output: `CHEMISTRY_MASTER_UNUSED_CODES_REPORT.json`
+- `CHEMISTRY_MASTER_UNUSED_CODES_REPORT.json`

@@ -1,26 +1,23 @@
 # Chemistry master answer-key strategy audit (post-migration status)
 
-## Scope
-Target strategy:
-- One source of truth: `public/cambridge-tests/Chemistry/chemistry_master_answer_key.js`
-- Canonical question-code based lookup for all chemistry chapter tests
-- Chapter/part/order independent scoring
+## Status
+✅ Centralized scoring is active.
 
-## Compliance status (latest)
-✅ Centralization implemented.
+## Enforcement model
+- All chemistry chapter pages derive answers from `chemistry_master_answer_key.js`.
+- Runtime lookup uses **effective code**: `masterCode || code`.
+- `normalizeQuestionCode` accepts both `paper|question` and legacy `paper Q: question`.
 
-### What is now enforced
-1. Chemistry chapter pages load `chemistry_master_answer_key.js` and derive `ANSWER_KEY` from question codes at runtime.
-2. Local per-file hardcoded answer maps have been removed from chapter pages.
-3. Master helper supports canonical `paper|question` and legacy `paper Q: question` parsing via normalization.
-4. Question codes are currently unique and all map to master entries.
+## Current verification snapshot
+- Runtime parseable entries: **1222**
+- Runtime invalid entries: **0**
+- Runtime duplicate canonical keys: **0**
+- Runtime missing in master: **0**
+- Runtime unused master codes: **0**
 
-## Verification snapshot
-- Used canonical codes: **1222**
-- Duplicate canonical codes: **0**
-- Invalid code formats: **0**
-- Missing from master: **0**
-- Unused in master: **0**
+## Note on visible conflicts
+- Some display `code` labels are reused across chapter files (6 duplicates).
+- They are intentionally disambiguated by `masterCode` overrides at runtime (9 overrides total).
 
 ## Artifacts
 - `CHEMISTRY_CODE_AUDIT.json`

@@ -1238,7 +1238,7 @@
   function getAnswerKeyForQuestions(questions) {
     const answerKey = {};
     (questions || []).forEach((q) => {
-      const masterKey = normalizeQuestionCode((q && q.code) || '');
+      const masterKey = normalizeQuestionCode((q && (q.masterCode || q.code)) || '');
       if (!masterKey) return;
       const answer = MASTER_KEY_BY_PAPER_QUESTION[masterKey];
       if (answer) answerKey[q.number] = answer;
