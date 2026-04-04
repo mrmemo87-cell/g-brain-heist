@@ -43,11 +43,35 @@ interface WritingAiPlanAssist {
 }
 
 interface WritingAiFeedbackAssist {
+  task_understanding?: string;
+  submission_read?: string;
+  alignment?: 'on_task' | 'partially_on_task' | 'off_topic' | 'too_short' | 'underdeveloped' | 'mostly_correct_but_needs_polish';
+  what_is_working?: string[];
+  what_is_missing?: string[];
+  grammar_fixes?: Array<{ original: string; issue: string; better_version: string }>;
+  punctuation_fixes?: Array<{ original: string; issue: string; better_version: string }>;
+  natural_phrase_upgrades?: Array<{ original: string; better_version: string; why_it_helps: string }>;
+  style_tone_feedback?: Array<{ evidence: string; issue: string; suggestion: string }>;
+  next_move?: string;
+  example_revision_start?: string;
   strengths?: string[];
   weaknesses?: string[];
   next_steps?: string[];
   monthly_report_summary?: string;
 }
+
+const toAlignmentLabel = (alignment?: WritingAiFeedbackAssist['alignment']): string => {
+  const labels: Record<NonNullable<WritingAiFeedbackAssist['alignment']>, string> = {
+    on_task: 'On task',
+    partially_on_task: 'Partly on task',
+    off_topic: 'Off topic',
+    too_short: 'Too short',
+    underdeveloped: 'Needs development',
+    mostly_correct_but_needs_polish: 'Mostly correct, needs polish',
+  };
+  if (!alignment) return 'Needs closer review';
+  return labels[alignment] ?? 'Needs closer review';
+};
 
 export const buildWritingDashboardSnapshot = (
   studentId: string,
@@ -421,6 +445,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   const [initialResponse, setInitialResponse] = useState('');
   const [practiceResponse, setPracticeResponse] = useState('');
   const [feedback, setFeedback] = useState<string>('');
+  const [aiFeedbackDetails, setAiFeedbackDetails] = useState<WritingAiFeedbackAssist | null>(null);
   const [uiNotice, setUiNotice] = useState<string>('');
   const [aiWeeklyFocus, setAiWeeklyFocus] = useState<string>('');
   const [aiCoachingPoints, setAiCoachingPoints] = useState<string[]>([]);
@@ -588,6 +613,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     const fromWeekComplete = Boolean(options?.fromWeekComplete);
     setLoading(true);
     setError('');
+    setAiFeedbackDetails(null);
+    setFeedback('');
     setUiNotice(fromWeekComplete ? 'Preparing a fresh writing mission…' : 'Checking your writing…');
     const safeInitialResponse = initialResponse.trim() || (fromWeekComplete
       ? 'I am ready to start a new writing week and improve my focus skills with clear writing.'
@@ -701,6 +728,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
 
     const deterministicFeedback = `Great work. ${result.data.evaluation.completion_status}. Skill score: ${result.data.evaluation.target_skill_score}/5.`;
     setFeedback(deterministicFeedback);
+    setAiFeedbackDetails(null);
     setUiNotice('Nice submit! Preparing your coaching feedback…');
 
     try {
@@ -708,11 +736,13 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
         mode: 'feedback',
         prompt_text: promptText,
         student_response: practiceResponse,
+        weaknesses: latestWeaknesses,
         grade,
         genre: activeGenre,
       });
       if (aiFeedback.ok && aiFeedback.data) {
         const ai = (aiFeedback.data.result ?? {}) as WritingAiFeedbackAssist;
+        setAiFeedbackDetails(ai);
         const refined = [
           ...(ai.strengths ?? []).slice(0, 2).map((item) => `✅ ${item}`),
           ...(ai.weaknesses ?? []).slice(0, 2).map((item) => `⚠️ ${item}`),
@@ -743,6 +773,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     setInitialResponse('');
     setPracticeResponse('');
     setFeedback('');
+    setAiFeedbackDetails(null);
     setAiWeeklyFocus('');
     setAiCoachingPoints([]);
     setAiTaskWording('');
@@ -1122,9 +1153,100 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
 
               <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(16, 185, 129, 0.32)' }}>
                 <h3 style={{ marginTop: 0, marginBottom: 6, fontSize: 19, color: '#f8fafc' }}>Feedback & momentum</h3>
-                <p style={{ margin: 0, color: feedback ? '#a7f3d0' : '#94a3b8', fontSize: 15 }}>
-                  {feedback || (completedTasksCount > 0 ? `Great consistency. You completed ${completedTasksCount} task${completedTasksCount === 1 ? '' : 's'} this week.` : 'Great start. Your progress grows every day you submit.')}
-                </p>
+                {aiFeedbackDetails ? (
+                  <div style={{ display: 'grid', gap: 10 }}>
+                    <div style={{ border: '1px solid rgba(96, 165, 250, 0.4)', borderRadius: 10, padding: 10, background: 'rgba(30,41,59,0.5)' }}>
+                      <p style={{ margin: '0 0 6px', color: '#bfdbfe', fontWeight: 700 }}>Did you answer the task?</p>
+                      <p style={{ margin: '0 0 4px', color: '#e2e8f0' }}>{aiFeedbackDetails.task_understanding || 'Task understanding unavailable.'}</p>
+                      <p style={{ margin: '0 0 4px', color: '#93c5fd' }}>What you wrote: {aiFeedbackDetails.submission_read || 'No summary yet.'}</p>
+                      <p style={{ margin: 0, color: '#86efac', fontWeight: 600 }}>Alignment: {toAlignmentLabel(aiFeedbackDetails.alignment)}</p>
+                    </div>
+
+                    <div style={{ border: '1px solid rgba(34, 197, 94, 0.35)', borderRadius: 10, padding: 10, background: 'rgba(15,23,42,0.45)' }}>
+                      <p style={{ margin: '0 0 6px', color: '#86efac', fontWeight: 700 }}>What the AI noticed in your writing</p>
+                      <p style={{ margin: '0 0 4px', color: '#bbf7d0', fontWeight: 600 }}>What is working</p>
+                      <ul style={{ margin: '0 0 8px 16px', color: '#dcfce7' }}>
+                        {(aiFeedbackDetails.what_is_working?.length ? aiFeedbackDetails.what_is_working : aiFeedbackDetails.strengths ?? ['Keep building on your clear ideas.'])
+                          .slice(0, 3)
+                          .map((item, idx) => <li key={`working-${idx}`}>{item}</li>)}
+                      </ul>
+                      <p style={{ margin: '0 0 4px', color: '#fca5a5', fontWeight: 600 }}>What is missing</p>
+                      <ul style={{ margin: '0 0 0 16px', color: '#fecaca' }}>
+                        {(aiFeedbackDetails.what_is_missing?.length ? aiFeedbackDetails.what_is_missing : aiFeedbackDetails.weaknesses ?? ['Add one more specific detail from the task prompt.'])
+                          .slice(0, 3)
+                          .map((item, idx) => <li key={`missing-${idx}`}>{item}</li>)}
+                      </ul>
+                    </div>
+
+                    {Array.isArray(aiFeedbackDetails.grammar_fixes) && aiFeedbackDetails.grammar_fixes.length > 0 && (
+                      <div style={{ border: '1px solid rgba(244, 114, 182, 0.35)', borderRadius: 10, padding: 10, background: 'rgba(30,27,75,0.4)' }}>
+                        <p style={{ margin: '0 0 6px', color: '#f9a8d4', fontWeight: 700 }}>Grammar fixes</p>
+                        {aiFeedbackDetails.grammar_fixes.slice(0, 3).map((item, idx) => (
+                          <div key={`grammar-${idx}`} style={{ marginBottom: 8 }}>
+                            <p style={{ margin: 0, color: '#e2e8f0' }}><strong>Original:</strong> “{item.original}”</p>
+                            <p style={{ margin: 0, color: '#cbd5e1' }}><strong>Issue:</strong> {item.issue}</p>
+                            <p style={{ margin: 0, color: '#a7f3d0' }}><strong>Better:</strong> {item.better_version}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {Array.isArray(aiFeedbackDetails.punctuation_fixes) && aiFeedbackDetails.punctuation_fixes.length > 0 && (
+                      <div style={{ border: '1px solid rgba(250, 204, 21, 0.35)', borderRadius: 10, padding: 10, background: 'rgba(51, 65, 85, 0.45)' }}>
+                        <p style={{ margin: '0 0 6px', color: '#fde68a', fontWeight: 700 }}>Punctuation fixes</p>
+                        {aiFeedbackDetails.punctuation_fixes.slice(0, 3).map((item, idx) => (
+                          <div key={`punctuation-${idx}`} style={{ marginBottom: 8 }}>
+                            <p style={{ margin: 0, color: '#e2e8f0' }}><strong>Original:</strong> “{item.original}”</p>
+                            <p style={{ margin: 0, color: '#cbd5e1' }}><strong>Issue:</strong> {item.issue}</p>
+                            <p style={{ margin: 0, color: '#a7f3d0' }}><strong>Better:</strong> {item.better_version}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {Array.isArray(aiFeedbackDetails.natural_phrase_upgrades) && aiFeedbackDetails.natural_phrase_upgrades.length > 0 && (
+                      <div style={{ border: '1px solid rgba(167, 139, 250, 0.35)', borderRadius: 10, padding: 10, background: 'rgba(30,27,75,0.35)' }}>
+                        <p style={{ margin: '0 0 6px', color: '#c4b5fd', fontWeight: 700 }}>Better natural phrases</p>
+                        {aiFeedbackDetails.natural_phrase_upgrades.slice(0, 3).map((item, idx) => (
+                          <div key={`phrase-${idx}`} style={{ marginBottom: 8 }}>
+                            <p style={{ margin: 0, color: '#e2e8f0' }}><strong>Original:</strong> “{item.original}”</p>
+                            <p style={{ margin: 0, color: '#a7f3d0' }}><strong>Upgrade:</strong> {item.better_version}</p>
+                            <p style={{ margin: 0, color: '#cbd5e1' }}><strong>Why:</strong> {item.why_it_helps}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {Array.isArray(aiFeedbackDetails.style_tone_feedback) && aiFeedbackDetails.style_tone_feedback.length > 0 && (
+                      <div style={{ border: '1px solid rgba(56, 189, 248, 0.35)', borderRadius: 10, padding: 10, background: 'rgba(15,23,42,0.45)' }}>
+                        <p style={{ margin: '0 0 6px', color: '#7dd3fc', fontWeight: 700 }}>Style & tone</p>
+                        {aiFeedbackDetails.style_tone_feedback.slice(0, 2).map((item, idx) => (
+                          <div key={`style-${idx}`} style={{ marginBottom: 8 }}>
+                            <p style={{ margin: 0, color: '#e2e8f0' }}><strong>Evidence:</strong> {item.evidence}</p>
+                            <p style={{ margin: 0, color: '#cbd5e1' }}><strong>Issue:</strong> {item.issue}</p>
+                            <p style={{ margin: 0, color: '#a7f3d0' }}><strong>Suggestion:</strong> {item.suggestion}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div style={{ border: '1px solid rgba(52, 211, 153, 0.4)', borderRadius: 10, padding: 10, background: 'rgba(6, 78, 59, 0.25)' }}>
+                      <p style={{ margin: '0 0 6px', color: '#6ee7b7', fontWeight: 700 }}>Your next move</p>
+                      <p style={{ margin: '0 0 4px', color: '#d1fae5' }}>{aiFeedbackDetails.next_move || (aiFeedbackDetails.next_steps ?? []).slice(0, 1)[0] || 'Pick one sentence and revise it using the feedback above.'}</p>
+                      {aiFeedbackDetails.example_revision_start && (
+                        <p style={{ margin: 0, color: '#a7f3d0' }}><strong>Try this starter:</strong> {aiFeedbackDetails.example_revision_start}</p>
+                      )}
+                    </div>
+
+                    <p style={{ margin: 0, color: '#93c5fd', fontSize: 14 }}>
+                      {feedback || (completedTasksCount > 0 ? `Great consistency. You completed ${completedTasksCount} task${completedTasksCount === 1 ? '' : 's'} this week.` : 'Great start. Your progress grows every day you submit.')}
+                    </p>
+                  </div>
+                ) : (
+                  <p style={{ margin: 0, color: feedback ? '#a7f3d0' : '#94a3b8', fontSize: 15 }}>
+                    {feedback || (completedTasksCount > 0 ? `Great consistency. You completed ${completedTasksCount} task${completedTasksCount === 1 ? '' : 's'} this week.` : 'Great start. Your progress grows every day you submit.')}
+                  </p>
+                )}
               </section>
             </>
           )}
