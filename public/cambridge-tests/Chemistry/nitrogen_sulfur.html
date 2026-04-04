@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
   <title>AS Chemistry Ch12 ( Nitrogen and sulfur )</title>
   <script src="../examguard.js?v=2"></script>
+  <script src="./chemistry_master_answer_key.js?v=2"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
@@ -1399,23 +1400,42 @@
     ];
     // Placeholder answer key (awaiting official answers)
 
-    let ANSWER_KEY = {
-      1: 'C', 2: 'B', 3: 'C', 4: 'B', 5: 'C',
-      6: 'B', 7: 'D', 8: 'A', 9: 'D', 10: 'C',
-      11: 'B', 12: 'C', 13: 'B', 14: 'D', 15: 'B',
-      16: 'A', 17: 'D', 18: 'D', 19: 'D', 20: 'B',
-      21: 'A', 22: 'D', 23: 'B', 24: 'D', 25: 'A',
-      26: 'D', 27: 'C', 28: 'B', 29: 'A', 30: 'D',
-      31: 'B', 32: 'D', 33: 'C', 34: 'D', 35: 'C',
-      36: 'D', 37: 'B', 38: 'C', 39: 'D', 40: 'B',
-      41: 'A', 42: 'C', 43: 'C', 44: 'C', 45: 'B',
-      46: 'B', 47: 'D', 48: 'A', 49: 'D', 50: 'C',
-    };
+    let ANSWER_KEY = null;
+    const HAS_MASTER_KEY_LOOKUP = !!(window.CHEMISTRY_MASTER_ANSWER_KEY && typeof window.CHEMISTRY_MASTER_ANSWER_KEY.getAnswerKeyForQuestions === 'function');
+    if (HAS_MASTER_KEY_LOOKUP) {
+      try {
+        const derivedAnswerKey = window.CHEMISTRY_MASTER_ANSWER_KEY.getAnswerKeyForQuestions(QUESTIONS);
+        const hasCompleteAnswerKey = !!(derivedAnswerKey && QUESTIONS.every((q) => !!derivedAnswerKey[q.number]));
+        if (hasCompleteAnswerKey) {
+          ANSWER_KEY = derivedAnswerKey;
+        } else {
+          console.warn('[Chemistry] Master key incomplete for this quiz; submissions will remain pending.', {
+            quiz: QUIZ_NAME,
+            expected: QUESTIONS.length,
+            received: derivedAnswerKey ? Object.keys(derivedAnswerKey).length : 0,
+          });
+        }
+      } catch (error) {
+        console.error('[Chemistry] Failed to derive answer key from master lookup; submissions will remain pending.', error);
+      }
+    } else {
+      console.warn('[Chemistry] Master key lookup unavailable; submissions will remain pending.', { quiz: QUIZ_NAME });
+    }
 
+    if (!ANSWER_KEY) {
+      const statusEl = document.getElementById('status');
+      if (statusEl) {
+        statusEl.textContent = '⚠️ Answer key unavailable. Submissions are saved as pending until key is restored.';
+      }
+      const submitBtn = document.getElementById('submitBtn');
+      if (submitBtn) submitBtn.disabled = true;
+    }
 
-    const quizSplit = splitQuiz(QUESTIONS, ANSWER_KEY, QUIZ_PART.part);
+    const quizSplit = splitQuiz(QUESTIONS, ANSWER_KEY || {}, QUIZ_PART.part);
     QUESTIONS = quizSplit.questions;
-    ANSWER_KEY = quizSplit.answerKey;
+    if (ANSWER_KEY) {
+      ANSWER_KEY = quizSplit.answerKey;
+    }
 
     // Shuffle questions on each page load (Fisher-Yates) and re-number sequentially
     for (let i = QUESTIONS.length - 1; i > 0; i--) {
@@ -1424,12 +1444,16 @@
     }
     const _shuffledAK = {};
     QUESTIONS.forEach((q, idx) => {
-      _shuffledAK[idx + 1] = ANSWER_KEY[q.number];
+      if (ANSWER_KEY) {
+        _shuffledAK[idx + 1] = ANSWER_KEY[q.number];
+      }
       q.originalNumber = q.number; // preserve global number before re-indexing
       q.number = idx + 1;
     });
-    Object.keys(ANSWER_KEY).forEach(k => delete ANSWER_KEY[k]);
-    Object.assign(ANSWER_KEY, _shuffledAK);
+    if (ANSWER_KEY) {
+      Object.keys(ANSWER_KEY).forEach(k => delete ANSWER_KEY[k]);
+      Object.assign(ANSWER_KEY, _shuffledAK);
+    }
 
     const totalQuestions = QUESTIONS.length;
     let hasSubmitted = false;
@@ -1751,7 +1775,7 @@
     }
 
     function calculateScore(responses) {
-      const answerKeyReady = Object.values(ANSWER_KEY).every(v => !!v);
+      const answerKeyReady = !!(ANSWER_KEY && QUESTIONS.every((q) => !!ANSWER_KEY[q.number]));
       if (!answerKeyReady) {
         return { score: 0, percentage: 0, pending: true };
       }

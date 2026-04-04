@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
   <title>AS Chemistry Ch20 ( Polymerisation)</title>
   <script src="../examguard.js?v=2"></script>
+  <script src="./chemistry_master_answer_key.js?v=2"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
@@ -995,15 +996,42 @@
 
 
     // Placeholder answer key (awaiting official answers)
-    let ANSWER_KEY = {
-      1: 'B', 2: 'A', 3: 'D', 4: 'A', 5: 'B', 6: 'D', 7: 'B', 8: 'D',
-      9: 'B', 10: 'B', 11: 'B', 12: 'B', 13: 'B', 14: 'A', 15: 'B', 16: 'D',
-    };
+    let ANSWER_KEY = null;
+    const HAS_MASTER_KEY_LOOKUP = !!(window.CHEMISTRY_MASTER_ANSWER_KEY && typeof window.CHEMISTRY_MASTER_ANSWER_KEY.getAnswerKeyForQuestions === 'function');
+    if (HAS_MASTER_KEY_LOOKUP) {
+      try {
+        const derivedAnswerKey = window.CHEMISTRY_MASTER_ANSWER_KEY.getAnswerKeyForQuestions(QUESTIONS);
+        const hasCompleteAnswerKey = !!(derivedAnswerKey && QUESTIONS.every((q) => !!derivedAnswerKey[q.number]));
+        if (hasCompleteAnswerKey) {
+          ANSWER_KEY = derivedAnswerKey;
+        } else {
+          console.warn('[Chemistry] Master key incomplete for this quiz; submissions will remain pending.', {
+            quiz: QUIZ_NAME,
+            expected: QUESTIONS.length,
+            received: derivedAnswerKey ? Object.keys(derivedAnswerKey).length : 0,
+          });
+        }
+      } catch (error) {
+        console.error('[Chemistry] Failed to derive answer key from master lookup; submissions will remain pending.', error);
+      }
+    } else {
+      console.warn('[Chemistry] Master key lookup unavailable; submissions will remain pending.', { quiz: QUIZ_NAME });
+    }
 
+    if (!ANSWER_KEY) {
+      const statusEl = document.getElementById('status');
+      if (statusEl) {
+        statusEl.textContent = '⚠️ Answer key unavailable. Submissions are saved as pending until key is restored.';
+      }
+      const submitBtn = document.getElementById('submitBtn');
+      if (submitBtn) submitBtn.disabled = true;
+    }
 
-    const quizSplit = splitQuiz(QUESTIONS, ANSWER_KEY, QUIZ_PART.part);
+    const quizSplit = splitQuiz(QUESTIONS, ANSWER_KEY || {}, QUIZ_PART.part);
     QUESTIONS = quizSplit.questions;
-    ANSWER_KEY = quizSplit.answerKey;
+    if (ANSWER_KEY) {
+      ANSWER_KEY = quizSplit.answerKey;
+    }
 
     // Shuffle questions on each page load (Fisher-Yates) and re-number sequentially
     for (let i = QUESTIONS.length - 1; i > 0; i--) {
@@ -1012,12 +1040,16 @@
     }
     const _shuffledAK = {};
     QUESTIONS.forEach((q, idx) => {
-      _shuffledAK[idx + 1] = ANSWER_KEY[q.number];
+      if (ANSWER_KEY) {
+        _shuffledAK[idx + 1] = ANSWER_KEY[q.number];
+      }
       q.originalNumber = q.number; // preserve global number before re-indexing
       q.number = idx + 1;
     });
-    Object.keys(ANSWER_KEY).forEach(k => delete ANSWER_KEY[k]);
-    Object.assign(ANSWER_KEY, _shuffledAK);
+    if (ANSWER_KEY) {
+      Object.keys(ANSWER_KEY).forEach(k => delete ANSWER_KEY[k]);
+      Object.assign(ANSWER_KEY, _shuffledAK);
+    }
 
     const totalQuestions = QUESTIONS.length;
     let hasSubmitted = false;
@@ -1339,7 +1371,7 @@
     }
 
     function calculateScore(responses) {
-      const answerKeyReady = Object.values(ANSWER_KEY).every(v => !!v);
+      const answerKeyReady = !!(ANSWER_KEY && QUESTIONS.every((q) => !!ANSWER_KEY[q.number]));
       if (!answerKeyReady) {
         return { score: 0, percentage: 0, pending: true };
       }

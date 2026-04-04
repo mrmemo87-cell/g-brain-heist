@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
   <title>AS Chemistry Ch18 ( Carboxylic acids and derivatives )</title>
   <script src="../examguard.js?v=2"></script>
+  <script src="./chemistry_master_answer_key.js?v=2"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
@@ -1711,94 +1712,42 @@
     ];
 
     // Answer key
-    let ANSWER_KEY = {
-      1: 'C',
-      2: 'B',
-      3: 'C',
-      4: 'C',
-      5: 'B',
-      6: 'D',
-      7: 'A',
-      8: 'A',
-      9: 'A',
-      10: 'C',
-      11: 'C',
-      12: 'D',
-      13: 'D',
-      14: 'A',
-      15: 'D',
-      16: 'A',
-      17: 'B',
-      18: 'B',
-      19: 'A',
-      20: 'A',
-      21: 'C',
-      22: 'B',
-      23: 'D',
-      24: 'D',
-      25: 'B',
-      26: 'A',
-      27: 'A',
-      28: 'B',
-      29: 'A',
-      30: 'A',
-      31: 'A',
-      32: 'A',
-      33: 'C',
-      34: 'B',
-      35: 'A',
-      36: 'C',
-      37: 'B',
-      38: 'A',
-      39: 'C',
-      40: 'A',
-      41: 'A',
-      42: 'D',
-      43: 'C',
-      44: 'A',
-      45: 'A',
-      46: 'D',
-      47: 'C',
-      48: 'D',
-      49: 'B',
-      50: 'B',
-      51: 'B',
-      52: 'A',
-      53: 'D',
-      54: 'B',
-      55: 'D',
-      56: 'D',
-      57: 'A',
-      58: 'B',
-      59: 'B',
-      60: 'A',
-      61: 'A',
-      62: 'C',
-      63: 'A',
-      64: 'C',
-      65: 'C',
-      66: 'C',
-      67: 'B',
-      68: 'D',
-      69: 'B',
-      70: 'A',
-      71: 'B',
-      72: 'D',
-      73: 'C',
-      74: 'A',
-      75: 'A',
-      76: 'C',
-      77: 'D',
-      78: 'B',
-      79: 'B',
-      80: 'D',
-      81: 'B',
-      82: 'A',
-    };
+    let ANSWER_KEY = null;
+    const HAS_MASTER_KEY_LOOKUP = !!(window.CHEMISTRY_MASTER_ANSWER_KEY && typeof window.CHEMISTRY_MASTER_ANSWER_KEY.getAnswerKeyForQuestions === 'function');
+    if (HAS_MASTER_KEY_LOOKUP) {
+      try {
+        const derivedAnswerKey = window.CHEMISTRY_MASTER_ANSWER_KEY.getAnswerKeyForQuestions(QUESTIONS);
+        const hasCompleteAnswerKey = !!(derivedAnswerKey && QUESTIONS.every((q) => !!derivedAnswerKey[q.number]));
+        if (hasCompleteAnswerKey) {
+          ANSWER_KEY = derivedAnswerKey;
+        } else {
+          console.warn('[Chemistry] Master key incomplete for this quiz; submissions will remain pending.', {
+            quiz: QUIZ_NAME,
+            expected: QUESTIONS.length,
+            received: derivedAnswerKey ? Object.keys(derivedAnswerKey).length : 0,
+          });
+        }
+      } catch (error) {
+        console.error('[Chemistry] Failed to derive answer key from master lookup; submissions will remain pending.', error);
+      }
+    } else {
+      console.warn('[Chemistry] Master key lookup unavailable; submissions will remain pending.', { quiz: QUIZ_NAME });
+    }
 
-    const quizSplit = splitQuiz(QUESTIONS, ANSWER_KEY, QUIZ_PART.part);
+    if (!ANSWER_KEY) {
+      const statusEl = document.getElementById('status');
+      if (statusEl) {
+        statusEl.textContent = '⚠️ Answer key unavailable. Submissions are saved as pending until key is restored.';
+      }
+      const submitBtn = document.getElementById('submitBtn');
+      if (submitBtn) submitBtn.disabled = true;
+    }
+
+    const quizSplit = splitQuiz(QUESTIONS, ANSWER_KEY || {}, QUIZ_PART.part);
     QUESTIONS = quizSplit.questions;
-    ANSWER_KEY = quizSplit.answerKey;
+    if (ANSWER_KEY) {
+      ANSWER_KEY = quizSplit.answerKey;
+    }
 
     // Shuffle questions on each page load (Fisher-Yates) and re-number sequentially
     for (let i = QUESTIONS.length - 1; i > 0; i--) {
@@ -1807,12 +1756,16 @@
     }
     const _shuffledAK = {};
     QUESTIONS.forEach((q, idx) => {
-      _shuffledAK[idx + 1] = ANSWER_KEY[q.number];
+      if (ANSWER_KEY) {
+        _shuffledAK[idx + 1] = ANSWER_KEY[q.number];
+      }
       q.originalNumber = q.number; // preserve global number before re-indexing
       q.number = idx + 1;
     });
-    Object.keys(ANSWER_KEY).forEach(k => delete ANSWER_KEY[k]);
-    Object.assign(ANSWER_KEY, _shuffledAK);
+    if (ANSWER_KEY) {
+      Object.keys(ANSWER_KEY).forEach(k => delete ANSWER_KEY[k]);
+      Object.assign(ANSWER_KEY, _shuffledAK);
+    }
 
     const totalQuestions = QUESTIONS.length;
     let hasSubmitted = false;
@@ -2134,7 +2087,7 @@
     }
 
     function calculateScore(responses) {
-      const answerKeyReady = Object.values(ANSWER_KEY).every(v => !!v);
+      const answerKeyReady = !!(ANSWER_KEY && QUESTIONS.every((q) => !!ANSWER_KEY[q.number]));
       if (!answerKeyReady) {
         return { score: 0, percentage: 0, pending: true };
       }

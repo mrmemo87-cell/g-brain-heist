@@ -1213,15 +1213,42 @@
     '9701_w21_qp_13|26': 'D',
     '9701_w21_qp_13|29': 'B',
     '9701_w21_qp_13|30': 'B',
+    // Internal canonical ids for custom stoichiometry practice items.
+    '9701_m99_qp_12|61': 'A',
+    '9701_m99_qp_12|62': 'B',
+    '9701_m99_qp_12|63': 'C',
+    // Internal canonical ids to keep per-question code uniqueness across chapter sets.
+    '9701_m99_qp_12|105': 'D',
+    '9701_m99_qp_12|110': 'D',
+    '9701_m99_qp_12|214': 'D',
+    '9701_m99_qp_12|311': 'D',
+    '9701_m99_qp_12|408': 'B',
+    '9701_m99_qp_12|507': 'B',
   };
+
+  function normalizeQuestionCode(code) {
+    const value = (code || '').trim();
+    let m = value.match(/^(9701_[msw]\d{2}_qp_\d{2})\s*\|\s*(\d+)$/);
+    if (m) return `${m[1]}|${Number(m[2])}`;
+    m = value.match(/^(9701_[msw]\d{2}_qp_\d{2})\s*Q:\s*(\d+)$/);
+    if (m) return `${m[1]}|${Number(m[2])}`;
+    return null;
+  }
 
   function getAnswerKeyForQuestions(questions) {
     const answerKey = {};
     (questions || []).forEach((q) => {
-      const code = (q && q.code) || '';
-      const m = code.match(/(9701_[msw]\d{2}_qp_\d{2})\s*Q:\s*(\d+)/);
-      if (!m) return;
-      const masterKey = `${m[1]}|${Number(m[2])}`;
+      const masterKey = normalizeQuestionCode((q && (q.masterCode || q.code)) || '');
+      if (!masterKey) {
+        if (typeof console !== 'undefined' && typeof console.warn === 'function') {
+          console.warn('[Chemistry] Unparseable question code; skipping key lookup.', {
+            number: q && q.number,
+            code: q && q.code,
+            masterCode: q && q.masterCode,
+          });
+        }
+        return;
+      }
       const answer = MASTER_KEY_BY_PAPER_QUESTION[masterKey];
       if (answer) answerKey[q.number] = answer;
     });
@@ -1230,6 +1257,7 @@
 
   window.CHEMISTRY_MASTER_ANSWER_KEY = {
     MASTER_KEY_BY_PAPER_QUESTION,
+    normalizeQuestionCode,
     getAnswerKeyForQuestions,
   };
 })();
