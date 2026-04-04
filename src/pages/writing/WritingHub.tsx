@@ -576,6 +576,9 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     if (initializing) return;
     if (genreStatuses.ok) {
       setIsGenreSwitching(false);
+      setUiNotice((currentNotice) => (
+        currentNotice.endsWith('Loading your progress for this writing path…') ? '' : currentNotice
+      ));
     }
   }, [isGenreSwitching, initializing, genreStatuses.ok, activeGenre]);
 
