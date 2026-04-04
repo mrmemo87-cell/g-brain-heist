@@ -115,6 +115,12 @@ const getUserRole = async (
   return null;
 };
 
+const resolveRoleForWritingAssist = (role: UserRole | null): UserRole => {
+  // Writing assist modes are student-safe. If tenant role data is missing or stale,
+  // we still allow authenticated users to receive coaching help.
+  return role ?? "student";
+};
+
 const STUDENT_SAFE_MODES: ReadonlySet<Mode> = new Set(["plan_assist", "prompt_rewrite", "feedback"]);
 const ADMIN_ONLY_MODES: ReadonlySet<Mode> = new Set([]);
 
@@ -139,12 +145,11 @@ serve(async (req) => {
   const payloadError = validatePayload(payload);
   if (payloadError) return json(400, { error: payloadError });
 
-  const role = await getUserRole(
+  const role = resolveRoleForWritingAssist(await getUserRole(
     authData.user.id,
     authData.user.app_metadata?.role,
     authData.user.app_metadata?.is_admin,
-  );
-  if (!role) return json(403, { error: "Forbidden" });
+  ));
   if (!canUseMode(role, payload.mode)) return json(403, { error: "Forbidden" });
 
   const userPrompt = payload.mode === "feedback"
