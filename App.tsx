@@ -166,6 +166,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   } | null>(null);
   const [recognitionHold, setRecognitionHold] = useState(true);
   const recognitionTimerRef = useRef<number | null>(null);
+  const taskRealtimeRefreshTimerRef = useRef<number | null>(null);
   const [nonCriticalStatus, setNonCriticalStatus] = useState({
     tasks: 'idle' as NonCriticalLoadState,
     caps: 'idle' as NonCriticalLoadState,
@@ -555,6 +556,60 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       void supabase.removeChannel(channel);
     };
   }, [isPlayerMode, profile?.clan_id, profile?.id, view]);
+
+  useEffect(() => {
+    if (!isPlayerMode || !profile?.id) return;
+    if (profile.role === 'teacher' || profile.role === 'admin' || profile.role === 'school_admin') return;
+
+    const queueTaskRefresh = () => {
+      if (taskRealtimeRefreshTimerRef.current) {
+        window.clearTimeout(taskRealtimeRefreshTimerRef.current);
+      }
+      taskRealtimeRefreshTimerRef.current = window.setTimeout(() => {
+        retryNonCritical('tasks');
+        taskRealtimeRefreshTimerRef.current = null;
+      }, 250);
+    };
+
+    const channel = supabase
+      .channel(`app-task-progress-${profile.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'activities', filter: `actor_id=eq.${profile.id}` },
+        (payload) => {
+          const row = payload.new as { kind?: string };
+          if (['quest_complete', 'pvp_win', 'attack_success', 'task_claimed'].includes(row.kind || '')) {
+            queueTaskRefresh();
+          }
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'quest_runs', filter: `user_id=eq.${profile.id}` },
+        () => {
+          queueTaskRefresh();
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'quest_runs', filter: `user_id=eq.${profile.id}` },
+        (payload) => {
+          const row = payload.new as { status?: string };
+          if (row.status === 'completed') {
+            queueTaskRefresh();
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      if (taskRealtimeRefreshTimerRef.current) {
+        window.clearTimeout(taskRealtimeRefreshTimerRef.current);
+        taskRealtimeRefreshTimerRef.current = null;
+      }
+      void supabase.removeChannel(channel);
+    };
+  }, [isPlayerMode, profile?.id, profile?.role, retryNonCritical]);
 
   useEffect(() => {
     if (!isPlayerMode) return;
