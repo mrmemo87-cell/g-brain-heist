@@ -1007,7 +1007,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         window.clearTimeout(taskRealtimeRefreshTimerRef.current);
       }
       taskRealtimeRefreshTimerRef.current = window.setTimeout(() => {
-        retryNonCritical('tasks');
+        runNonCriticalLoadsRef.current(['tasks']);
         taskRealtimeRefreshTimerRef.current = null;
       }, 250);
     };
@@ -1050,7 +1050,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       }
       void supabase.removeChannel(channel);
     };
-  }, [isPlayerMode, profile?.id, profile?.role, retryNonCritical]);
+  }, [isPlayerMode, profile?.id, profile?.role]);
 
   useEffect(() => {
     startCriticalBoot();
