@@ -1077,6 +1077,20 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }, [addToast, isAdminMode, view]);
 
   const cinematicViewClass = useMemo(() => {
+    const isFullWidthPortalView =
+      view === 'teacher' ||
+      view === 'admin' ||
+      view === 'school_admin' ||
+      view === 'admissions' ||
+      (view === 'dashboard' && (isTeacherRole || isSchoolAdminRole));
+
+    // Keep portal-style views free from parent transforms.
+    // iOS Safari can render fixed headers and full-width cards incorrectly
+    // when an ancestor has transform/filter applied.
+    if (isFullWidthPortalView) {
+      return 'cinematic-view cinematic-view--calm';
+    }
+
     if (sessionStatus?.active) {
       return 'cinematic-view cinematic-view--alert';
     }
@@ -1086,7 +1100,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     }
 
     return 'cinematic-view cinematic-view--calm';
-  }, [view, sessionStatus?.active]);
+  }, [view, sessionStatus?.active, isTeacherRole, isSchoolAdminRole]);
 
   const isStudent = profile?.role === 'student';
   const isAdminUser = isAdminMode;
