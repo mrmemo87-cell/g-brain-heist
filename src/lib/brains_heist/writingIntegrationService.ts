@@ -1548,7 +1548,6 @@ export const setWritingPromptActiveStatus = (promptId: string, isActive: boolean
 
 export const listWritingPrompts = (filters: WritingPromptFilters = {}): ServiceResponse<WritingPromptRecord[]> => {
   hydrateStore();
-  ensureStructuredPromptBankSeeded();
   const results = store.promptBank.filter((prompt) => {
     if (filters.genre && prompt.genre !== filters.genre) return false;
     if (typeof filters.is_active === 'boolean' && prompt.is_active !== filters.is_active) return false;
@@ -1680,7 +1679,6 @@ export const getNextRotatedPromptForStudent = (input: {
   used_at?: string;
 }): ServiceResponse<WritingPromptRecord> => {
   hydrateStore();
-  ensureStructuredPromptBankSeeded();
   const candidates = store.promptBank
     .filter((prompt) => !prompt.is_archived && prompt.is_active)
     .filter((prompt) => prompt.genre === input.genre)
