@@ -7884,11 +7884,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               alt="Brains Heist"
               className="w-8 h-8 lg:w-10 lg:h-10 drop-shadow-[0_0_10px_rgba(59,130,246,0.6)] flex-shrink-0"
             />
-            <span className="font-heading text-lg lg:text-xl font-black tracking-wider select-none">
+            <span className="font-heading text-lg lg:text-xl font-black tracking-wider select-none hidden sm:inline">
               <span style={{ backgroundImage: 'linear-gradient(90deg, #22d3ee 0%, #3b82f6 25%, #8b5cf6 50%, #3b82f6 75%, #22d3ee 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundSize: '200% 100%', animation: 'shimmer 3s linear infinite' }}>BRAINS</span>
               {' '}
               <span style={{ backgroundImage: 'linear-gradient(90deg, #ec4899 0%, #ef4444 25%, #f97316 50%, #ef4444 75%, #ec4899 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundSize: '200% 100%', animation: 'shimmer 3s linear infinite', animationDelay: '1.5s' }}>HEIST</span>
             </span>
+            <span className="font-heading text-base font-black tracking-wide text-cyan-300 sm:hidden">BH</span>
 
             {/* Username */}
             <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-black/40 rounded-full border border-cyan-500/30 backdrop-blur-sm">
@@ -7902,7 +7903,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
             {/* Plan Badge */}
             {planBadge && (
-              <div className={`plan-badge plan-badge--${planBadge.color} flex-shrink-0`}>
+              <div className={`plan-badge plan-badge--${planBadge.color} flex-shrink-0 hidden sm:flex`}>
                 <span className="plan-badge__icon">{planBadge.icon}</span>
                 <span className="plan-badge__label">{planBadge.label}</span>
                 {planBadge.countdown && <span className="plan-badge__countdown">{planBadge.countdown}</span>}
@@ -7932,7 +7933,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             <button
               type="button"
               onClick={() => setShowHelp(true)}
-              className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-700 bg-slate-900/70 text-lg text-slate-200 shadow-sm shadow-slate-950/40 transition hover:border-cyan-500/60 hover:text-white"
+              className="hidden sm:flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-700 bg-slate-900/70 text-lg text-slate-200 shadow-sm shadow-slate-950/40 transition hover:border-cyan-500/60 hover:text-white"
               aria-label="Open help and guide"
               title="Guide & Help"
             >
@@ -7961,6 +7962,17 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
             {topNavMenuOpen && (
               <div className="absolute right-0 top-14 z-[60] w-60 max-w-[90vw] rounded-2xl border border-slate-800/70 bg-slate-950/95 p-2 shadow-2xl shadow-slate-950/70">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowHelp(true);
+                    setTopNavMenuOpen(false);
+                  }}
+                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-cyan-200 transition hover:bg-cyan-500/20"
+                >
+                  <span className="text-lg">❓</span>
+                  Guide & Help
+                </button>
                 <button
                   type="button"
                   onClick={() => {

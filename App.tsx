@@ -2110,7 +2110,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   return (
     <div
       className={
-        isLiteMode
+        isFullScreenView
+          ? 'relative min-h-screen w-full'
+          : isLiteMode
           ? 'relative min-h-screen w-full p-4 md:p-6 lg:p-8 max-w-screen-xl mx-auto lite-mode-wrapper'
           : 'relative min-h-screen p-4 md:p-6 lg:p-8 max-w-screen-xl mx-auto'
       }
