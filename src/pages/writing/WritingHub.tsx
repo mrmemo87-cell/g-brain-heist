@@ -1277,88 +1277,136 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                   </div>
                 ) : aiFeedbackDetails ? (
                   <div style={{ display: 'grid', gap: 10 }}>
-                    <div style={{ border: '1px solid rgba(96, 165, 250, 0.4)', borderRadius: 10, padding: 10, background: 'rgba(30,41,59,0.5)' }}>
-                      <p style={{ margin: '0 0 6px', color: '#bfdbfe', fontWeight: 700 }}>Did you answer the task?</p>
-                      <p style={{ margin: '0 0 4px', color: '#e2e8f0' }}>{aiFeedbackDetails.task_understanding || 'Task understanding unavailable.'}</p>
-                      <p style={{ margin: '0 0 4px', color: '#93c5fd' }}>What you wrote: {aiFeedbackDetails.submission_read || 'No summary yet.'}</p>
-                      <p style={{ margin: 0, color: '#86efac', fontWeight: 600 }}>Alignment: {toAlignmentLabel(aiFeedbackDetails.alignment)}</p>
+                    <div style={{ border: '1px solid rgba(56, 189, 248, 0.5)', borderRadius: 12, padding: 12, background: 'linear-gradient(145deg, rgba(15,23,42,0.85) 0%, rgba(30,41,59,0.7) 100%)' }}>
+                      <p style={{ margin: '0 0 6px', color: '#67e8f9', fontWeight: 800, fontSize: 13, letterSpacing: 0.3 }}>QUICK FEEDBACK</p>
+                      <p style={{ margin: '0 0 8px', color: '#86efac', fontWeight: 700 }}>Alignment: {toAlignmentLabel(aiFeedbackDetails.alignment)}</p>
+                      <p style={{ margin: '0 0 8px', color: '#e2e8f0', fontSize: 14 }}>
+                        {aiFeedbackDetails.task_understanding || aiFeedbackDetails.submission_read || 'Task fit summary will appear here.'}
+                      </p>
+                      <div className="focus-grid" style={{ gap: 8 }}>
+                        <div style={{ borderRadius: 10, border: '1px solid rgba(34, 197, 94, 0.35)', padding: 8, background: 'rgba(15, 23, 42, 0.55)' }}>
+                          <p style={{ margin: '0 0 4px', color: '#86efac', fontWeight: 700, fontSize: 13 }}>What is working</p>
+                          <ul style={{ margin: 0, paddingLeft: 16, color: '#dcfce7', fontSize: 13 }}>
+                            {(aiFeedbackDetails.what_is_working?.length ? aiFeedbackDetails.what_is_working : aiFeedbackDetails.strengths ?? ['Keep building on your clear ideas.'])
+                              .slice(0, 2)
+                              .map((item, idx) => <li key={`quick-working-${idx}`}>{item}</li>)}
+                          </ul>
+                        </div>
+                        <div style={{ borderRadius: 10, border: '1px solid rgba(248, 113, 113, 0.35)', padding: 8, background: 'rgba(15, 23, 42, 0.55)' }}>
+                          <p style={{ margin: '0 0 4px', color: '#fca5a5', fontWeight: 700, fontSize: 13 }}>Fix first</p>
+                          <ul style={{ margin: 0, paddingLeft: 16, color: '#fecaca', fontSize: 13 }}>
+                            {(aiFeedbackDetails.what_is_missing?.length ? aiFeedbackDetails.what_is_missing : aiFeedbackDetails.weaknesses ?? ['Add one more specific detail from the task prompt.'])
+                              .slice(0, 2)
+                              .map((item, idx) => <li key={`quick-missing-${idx}`}>{item}</li>)}
+                          </ul>
+                        </div>
+                      </div>
+                      <div style={{ marginTop: 8, border: '1px solid rgba(52, 211, 153, 0.4)', borderRadius: 10, padding: 8, background: 'rgba(6, 78, 59, 0.25)' }}>
+                        <p style={{ margin: '0 0 4px', color: '#6ee7b7', fontWeight: 700, fontSize: 13 }}>Next move</p>
+                        <p style={{ margin: 0, color: '#d1fae5', fontSize: 14 }}>
+                          {aiFeedbackDetails.next_move || (aiFeedbackDetails.next_steps ?? []).slice(0, 1)[0] || 'Pick one sentence and revise it using the feedback above.'}
+                        </p>
+                      </div>
                     </div>
 
-                    <div style={{ border: '1px solid rgba(34, 197, 94, 0.35)', borderRadius: 10, padding: 10, background: 'rgba(15,23,42,0.45)' }}>
-                      <p style={{ margin: '0 0 6px', color: '#86efac', fontWeight: 700 }}>What the AI noticed in your writing</p>
-                      <p style={{ margin: '0 0 4px', color: '#bbf7d0', fontWeight: 600 }}>What is working</p>
-                      <ul style={{ margin: '0 0 8px 16px', color: '#dcfce7' }}>
-                        {(aiFeedbackDetails.what_is_working?.length ? aiFeedbackDetails.what_is_working : aiFeedbackDetails.strengths ?? ['Keep building on your clear ideas.'])
-                          .slice(0, 3)
-                          .map((item, idx) => <li key={`working-${idx}`}>{item}</li>)}
-                      </ul>
-                      <p style={{ margin: '0 0 4px', color: '#fca5a5', fontWeight: 600 }}>What is missing</p>
-                      <ul style={{ margin: '0 0 0 16px', color: '#fecaca' }}>
-                        {(aiFeedbackDetails.what_is_missing?.length ? aiFeedbackDetails.what_is_missing : aiFeedbackDetails.weaknesses ?? ['Add one more specific detail from the task prompt.'])
-                          .slice(0, 3)
-                          .map((item, idx) => <li key={`missing-${idx}`}>{item}</li>)}
-                      </ul>
-                    </div>
-
-                    {Array.isArray(aiFeedbackDetails.grammar_fixes) && aiFeedbackDetails.grammar_fixes.length > 0 && (
-                      <div style={{ border: '1px solid rgba(244, 114, 182, 0.35)', borderRadius: 10, padding: 10, background: 'rgba(30,27,75,0.4)' }}>
-                        <p style={{ margin: '0 0 6px', color: '#f9a8d4', fontWeight: 700 }}>Grammar fixes</p>
-                        {aiFeedbackDetails.grammar_fixes.slice(0, 3).map((item, idx) => (
+                    <details style={{ border: '1px solid rgba(244, 114, 182, 0.35)', borderRadius: 10, padding: 10, background: 'rgba(30,27,75,0.35)' }}>
+                      <summary style={{ cursor: 'pointer', color: '#f9a8d4', fontWeight: 700 }}>Grammar fixes</summary>
+                      <div style={{ marginTop: 8 }}>
+                        {Array.isArray(aiFeedbackDetails.grammar_fixes) && aiFeedbackDetails.grammar_fixes.length > 0 ? aiFeedbackDetails.grammar_fixes.map((item, idx) => (
                           <div key={`grammar-${idx}`} style={{ marginBottom: 8 }}>
                             <p style={{ margin: 0, color: '#e2e8f0' }}><strong>Original:</strong> “{item.original}”</p>
                             <p style={{ margin: 0, color: '#cbd5e1' }}><strong>Issue:</strong> {item.issue}</p>
                             <p style={{ margin: 0, color: '#a7f3d0' }}><strong>Better:</strong> {item.better_version}</p>
                           </div>
-                        ))}
+                        )) : <p style={{ margin: 0, color: '#94a3b8' }}>No grammar fixes were flagged in this pass.</p>}
                       </div>
-                    )}
+                    </details>
 
-                    {Array.isArray(aiFeedbackDetails.punctuation_fixes) && aiFeedbackDetails.punctuation_fixes.length > 0 && (
-                      <div style={{ border: '1px solid rgba(250, 204, 21, 0.35)', borderRadius: 10, padding: 10, background: 'rgba(51, 65, 85, 0.45)' }}>
-                        <p style={{ margin: '0 0 6px', color: '#fde68a', fontWeight: 700 }}>Punctuation fixes</p>
-                        {aiFeedbackDetails.punctuation_fixes.slice(0, 3).map((item, idx) => (
+                    <details style={{ border: '1px solid rgba(250, 204, 21, 0.35)', borderRadius: 10, padding: 10, background: 'rgba(51, 65, 85, 0.45)' }}>
+                      <summary style={{ cursor: 'pointer', color: '#fde68a', fontWeight: 700 }}>Punctuation fixes</summary>
+                      <div style={{ marginTop: 8 }}>
+                        {Array.isArray(aiFeedbackDetails.punctuation_fixes) && aiFeedbackDetails.punctuation_fixes.length > 0 ? aiFeedbackDetails.punctuation_fixes.map((item, idx) => (
                           <div key={`punctuation-${idx}`} style={{ marginBottom: 8 }}>
                             <p style={{ margin: 0, color: '#e2e8f0' }}><strong>Original:</strong> “{item.original}”</p>
                             <p style={{ margin: 0, color: '#cbd5e1' }}><strong>Issue:</strong> {item.issue}</p>
                             <p style={{ margin: 0, color: '#a7f3d0' }}><strong>Better:</strong> {item.better_version}</p>
                           </div>
-                        ))}
+                        )) : <p style={{ margin: 0, color: '#94a3b8' }}>No punctuation fixes were flagged in this pass.</p>}
                       </div>
-                    )}
+                    </details>
 
-                    {Array.isArray(aiFeedbackDetails.natural_phrase_upgrades) && aiFeedbackDetails.natural_phrase_upgrades.length > 0 && (
-                      <div style={{ border: '1px solid rgba(167, 139, 250, 0.35)', borderRadius: 10, padding: 10, background: 'rgba(30,27,75,0.35)' }}>
-                        <p style={{ margin: '0 0 6px', color: '#c4b5fd', fontWeight: 700 }}>Better natural phrases</p>
-                        {aiFeedbackDetails.natural_phrase_upgrades.slice(0, 3).map((item, idx) => (
+                    <details style={{ border: '1px solid rgba(167, 139, 250, 0.35)', borderRadius: 10, padding: 10, background: 'rgba(30,27,75,0.35)' }}>
+                      <summary style={{ cursor: 'pointer', color: '#c4b5fd', fontWeight: 700 }}>Better natural phrases</summary>
+                      <div style={{ marginTop: 8 }}>
+                        {Array.isArray(aiFeedbackDetails.natural_phrase_upgrades) && aiFeedbackDetails.natural_phrase_upgrades.length > 0 ? aiFeedbackDetails.natural_phrase_upgrades.map((item, idx) => (
                           <div key={`phrase-${idx}`} style={{ marginBottom: 8 }}>
                             <p style={{ margin: 0, color: '#e2e8f0' }}><strong>Original:</strong> “{item.original}”</p>
                             <p style={{ margin: 0, color: '#a7f3d0' }}><strong>Upgrade:</strong> {item.better_version}</p>
                             <p style={{ margin: 0, color: '#cbd5e1' }}><strong>Why:</strong> {item.why_it_helps}</p>
                           </div>
-                        ))}
+                        )) : <p style={{ margin: 0, color: '#94a3b8' }}>No phrase upgrades were flagged in this pass.</p>}
                       </div>
-                    )}
+                    </details>
 
-                    {Array.isArray(aiFeedbackDetails.style_tone_feedback) && aiFeedbackDetails.style_tone_feedback.length > 0 && (
-                      <div style={{ border: '1px solid rgba(56, 189, 248, 0.35)', borderRadius: 10, padding: 10, background: 'rgba(15,23,42,0.45)' }}>
-                        <p style={{ margin: '0 0 6px', color: '#7dd3fc', fontWeight: 700 }}>Style & tone</p>
-                        {aiFeedbackDetails.style_tone_feedback.slice(0, 2).map((item, idx) => (
+                    <details style={{ border: '1px solid rgba(56, 189, 248, 0.35)', borderRadius: 10, padding: 10, background: 'rgba(15,23,42,0.45)' }}>
+                      <summary style={{ cursor: 'pointer', color: '#7dd3fc', fontWeight: 700 }}>Style & tone</summary>
+                      <div style={{ marginTop: 8 }}>
+                        {Array.isArray(aiFeedbackDetails.style_tone_feedback) && aiFeedbackDetails.style_tone_feedback.length > 0 ? aiFeedbackDetails.style_tone_feedback.map((item, idx) => (
                           <div key={`style-${idx}`} style={{ marginBottom: 8 }}>
                             <p style={{ margin: 0, color: '#e2e8f0' }}><strong>Evidence:</strong> {item.evidence}</p>
                             <p style={{ margin: 0, color: '#cbd5e1' }}><strong>Issue:</strong> {item.issue}</p>
                             <p style={{ margin: 0, color: '#a7f3d0' }}><strong>Suggestion:</strong> {item.suggestion}</p>
                           </div>
-                        ))}
+                        )) : <p style={{ margin: 0, color: '#94a3b8' }}>No style or tone issues were flagged in this pass.</p>}
                       </div>
-                    )}
+                    </details>
 
-                    <div style={{ border: '1px solid rgba(52, 211, 153, 0.4)', borderRadius: 10, padding: 10, background: 'rgba(6, 78, 59, 0.25)' }}>
-                      <p style={{ margin: '0 0 6px', color: '#6ee7b7', fontWeight: 700 }}>Your next move</p>
-                      <p style={{ margin: '0 0 4px', color: '#d1fae5' }}>{aiFeedbackDetails.next_move || (aiFeedbackDetails.next_steps ?? []).slice(0, 1)[0] || 'Pick one sentence and revise it using the feedback above.'}</p>
-                      {aiFeedbackDetails.example_revision_start && (
-                        <p style={{ margin: 0, color: '#a7f3d0' }}><strong>Try this starter:</strong> {aiFeedbackDetails.example_revision_start}</p>
-                      )}
-                    </div>
+                    <details style={{ border: '1px solid rgba(96, 165, 250, 0.4)', borderRadius: 10, padding: 10, background: 'rgba(30,41,59,0.5)' }}>
+                      <summary style={{ cursor: 'pointer', color: '#bfdbfe', fontWeight: 700 }}>Full task analysis</summary>
+                      <div style={{ marginTop: 8 }}>
+                        <p style={{ margin: '0 0 4px', color: '#e2e8f0' }}><strong>Did you answer the task?</strong> {aiFeedbackDetails.task_understanding || 'Task understanding unavailable.'}</p>
+                        <p style={{ margin: '0 0 4px', color: '#93c5fd' }}><strong>What you wrote:</strong> {aiFeedbackDetails.submission_read || 'No summary yet.'}</p>
+                        {aiFeedbackDetails.example_revision_start && (
+                          <p style={{ margin: 0, color: '#a7f3d0' }}><strong>Starter revision:</strong> {aiFeedbackDetails.example_revision_start}</p>
+                        )}
+                      </div>
+                    </details>
+
+                    <details style={{ border: '1px solid rgba(148, 163, 184, 0.35)', borderRadius: 10, padding: 10, background: 'rgba(15,23,42,0.4)' }}>
+                      <summary style={{ cursor: 'pointer', color: '#cbd5e1', fontWeight: 700 }}>View full feedback breakdown</summary>
+                      <div style={{ marginTop: 8, display: 'grid', gap: 8 }}>
+                        {(aiFeedbackDetails.what_is_working?.length || aiFeedbackDetails.strengths?.length) && (
+                          <div>
+                            <p style={{ margin: '0 0 4px', color: '#86efac', fontWeight: 700 }}>All strengths</p>
+                            <ul style={{ margin: 0, paddingLeft: 16, color: '#dcfce7' }}>
+                              {(aiFeedbackDetails.what_is_working?.length ? aiFeedbackDetails.what_is_working : aiFeedbackDetails.strengths ?? []).map((item, idx) => (
+                                <li key={`full-working-${idx}`}>{item}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {(aiFeedbackDetails.what_is_missing?.length || aiFeedbackDetails.weaknesses?.length) && (
+                          <div>
+                            <p style={{ margin: '0 0 4px', color: '#fca5a5', fontWeight: 700 }}>All priority fixes</p>
+                            <ul style={{ margin: 0, paddingLeft: 16, color: '#fecaca' }}>
+                              {(aiFeedbackDetails.what_is_missing?.length ? aiFeedbackDetails.what_is_missing : aiFeedbackDetails.weaknesses ?? []).map((item, idx) => (
+                                <li key={`full-missing-${idx}`}>{item}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {(aiFeedbackDetails.next_steps?.length ?? 0) > 0 && (
+                          <div>
+                            <p style={{ margin: '0 0 4px', color: '#93c5fd', fontWeight: 700 }}>All next steps</p>
+                            <ul style={{ margin: 0, paddingLeft: 16, color: '#dbeafe' }}>
+                              {(aiFeedbackDetails.next_steps ?? []).map((item, idx) => (
+                                <li key={`full-next-${idx}`}>{item}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </details>
 
                     <p style={{ margin: 0, color: '#93c5fd', fontSize: 14 }}>
                       {feedback || (completedTasksCount > 0 ? `Great consistency. You completed ${completedTasksCount} task${completedTasksCount === 1 ? '' : 's'} this week.` : 'Great start. Your progress grows every day you submit.')}
