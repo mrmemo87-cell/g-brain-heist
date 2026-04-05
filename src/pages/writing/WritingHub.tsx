@@ -1395,7 +1395,10 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                       : 'You are building consistency. Keep submitting daily tasks.'}
                   </p>
                   <p style={{ margin: '0 0 10px', color: '#93c5fd', fontSize: 14 }}>
-                    Next focus: {toStudentLabel(nextWeekInputs?.carry_forward_primary_target ?? weeklyGoals[0] ?? 'Keep building your weekly focus skills.')}
+                    What to work on today: {toStudentLabel(nextWeekInputs?.carry_forward_primary_target ?? weeklyGoals[0] ?? 'Keep building your weekly focus skills.')}
+                  </p>
+                  <p style={{ margin: '0 0 10px', color: '#86efac', fontSize: 14 }}>
+                    Next step: {toStudentLabel(nextWeekInputs?.carry_forward_primary_target ?? 'Keep building your weekly focus skills.')}
                   </p>
                   <details style={{ border: '1px solid rgba(148, 163, 184, 0.35)', borderRadius: 10, padding: 10, background: 'rgba(15,23,42,0.4)' }}>
                     <summary style={{ cursor: 'pointer', color: '#cbd5e1', fontWeight: 700 }}>View full progress details</summary>
