@@ -23,6 +23,18 @@ import {
   persistMonthlyWritingReport,
   SerializedWritingPersistenceStore,
 } from './writingRepository.js';
+import {
+  FALLBACK_PROMPT_BY_GENRE,
+  gradeToDifficultyLevel,
+  parseFocusAndContextTags,
+  PromptDifficultyLevel,
+  STRUCTURED_WRITING_PROMPT_BANK,
+  toCurriculumTagsForStructuredPrompt,
+  WEAKNESS_TAG_TO_MISSION_CATEGORY,
+  WEAKNESS_TAG_TO_PROMPT_FOCUS,
+  WritingPromptContextTag,
+  WritingPromptFocusTag,
+} from './writingPromptProgression.js';
 
 export interface StudentWritingProfile {
   student_id: string;
@@ -835,6 +847,9 @@ export interface WritingPromptRecord {
   };
   prompt_quality_flag: 'ok' | 'questionable' | 'needs_calibration_review';
   prompt_quality_note?: string;
+  focus_tags?: WritingPromptFocusTag[];
+  context_tags?: WritingPromptContextTag[];
+  source_key?: string;
   created_at: string;
   updated_at: string;
 }
@@ -871,6 +886,23 @@ interface WritingPromptFilters {
   difficulty_label?: PromptDifficultyLabel;
   is_active?: boolean;
   prompt_quality_flag?: WritingPromptRecord['prompt_quality_flag'];
+}
+
+export interface SmartWritingPromptSelection {
+  prompt_text: string;
+  base_prompt_text: string;
+  genre: SupportedGenre;
+  prompt_id: string | null;
+  difficulty_level: PromptDifficultyLevel;
+  target_word_count: number;
+  // Can later drive adaptive genre-guide emphasis.
+  focus_tags: WritingPromptFocusTag[];
+  // Can later drive contextual task-guide examples.
+  context_tags: WritingPromptContextTag[];
+  // Foundation for weakness -> quick mission recommendations.
+  mission_hint_categories: string[];
+  selection_source: 'prompt_bank' | 'fallback_default';
+  used_weakness_tags: string[];
 }
 
 export interface WritingExportDocument {
@@ -1372,6 +1404,71 @@ const gradeMatchesBand = (grade: number, band: string): boolean => {
   return grade >= min && grade <= max;
 };
 
+const normalizePromptText = (prompt: string): string => prompt.replace(/\s+/g, ' ').trim().toLowerCase();
+
+const ensureStructuredPromptBankSeeded = (): void => {
+  const existingIds = new Set(store.promptBank.map((prompt) => prompt.id));
+  const existingPromptTexts = new Set(store.promptBank.map((prompt) => normalizePromptText(prompt.prompt_text)));
+  if (STRUCTURED_WRITING_PROMPT_BANK.every((prompt) => existingIds.has(prompt.id) || existingPromptTexts.has(normalizePromptText(prompt.prompt_text)))) {
+    return;
+  }
+
+  const now = new Date().toISOString();
+  STRUCTURED_WRITING_PROMPT_BANK.forEach((prompt) => {
+    const normalizedText = normalizePromptText(prompt.prompt_text);
+    if (existingIds.has(prompt.id) || existingPromptTexts.has(normalizedText)) return;
+    const record: WritingPromptRecord = {
+      id: prompt.id,
+      title: prompt.title,
+      prompt_text: prompt.prompt_text,
+      genre: prompt.genre,
+      grade_band: prompt.grade_band,
+      target_word_count: prompt.target_word_count,
+      difficulty_label: prompt.difficulty_level,
+      curriculum_tags: toCurriculumTagsForStructuredPrompt(prompt),
+      safety_status: 'approved',
+      is_active: true,
+      is_archived: false,
+      usage_count: 0,
+      rotation_metadata: {
+        last_used_at: null,
+        recent_student_usage: {},
+      },
+      prompt_quality_flag: 'ok',
+      prompt_quality_note: 'System-seeded structured prompt bank entry.',
+      focus_tags: prompt.focus_tags,
+      context_tags: prompt.context_tags,
+      source_key: 'system_prompt_bank_v1',
+      created_at: now,
+      updated_at: now,
+    };
+    store.promptBank.push(record);
+    existingIds.add(prompt.id);
+    existingPromptTexts.add(normalizedText);
+  });
+};
+
+const resolvePromptFocusAndContext = (prompt: WritingPromptRecord): {
+  focus_tags: WritingPromptFocusTag[];
+  context_tags: WritingPromptContextTag[];
+} => {
+  const parsed = parseFocusAndContextTags(prompt.curriculum_tags ?? []);
+  return {
+    focus_tags: prompt.focus_tags?.length ? prompt.focus_tags : parsed.focus_tags,
+    context_tags: prompt.context_tags?.length ? prompt.context_tags : parsed.context_tags,
+  };
+};
+
+const normalizeDifficultyForState = (
+  grade: number,
+  stateDifficulty: StudentWritingState['current_difficulty_state'] | undefined
+): PromptDifficultyLevel => {
+  const gradeDefault = gradeToDifficultyLevel(grade);
+  if (stateDifficulty === 'reduced') return 'foundational';
+  if (stateDifficulty === 'increased') return gradeDefault === 'foundational' ? 'core' : 'stretch';
+  return gradeDefault;
+};
+
 export const createWritingPrompt = (input: CreateWritingPromptInput): ServiceResponse<WritingPromptRecord> => {
   hydrateStore();
   if (!input.title.trim()) return badRequest('title is required.');
@@ -1460,6 +1557,118 @@ export const listWritingPrompts = (filters: WritingPromptFilters = {}): ServiceR
     return true;
   });
   return ok(results);
+};
+
+export const getSmartWritingPromptForStudent = async (input: {
+  student_id: string;
+  grade: number;
+  genre: SupportedGenre;
+  current_prompt_text?: string;
+  weakness_tags?: string[];
+  use_ai_polish?: boolean;
+}): Promise<ServiceResponse<SmartWritingPromptSelection>> => {
+  hydrateStore();
+  ensureStructuredPromptBankSeeded();
+
+  const normalizedGrade = normalizeGrade(input.grade);
+  if (normalizedGrade === null) return badRequest('grade must be an integer between 6 and 12.');
+  const state = getStateForGenre(input.student_id, input.genre);
+  const targetDifficulty = normalizeDifficultyForState(normalizedGrade, state?.current_difficulty_state);
+  const weaknessTags = (input.weakness_tags?.length ? input.weakness_tags : state?.latest_assessment?.weakness_tags ?? []).slice(0, 4);
+  const weaknessFocusTargets = weaknessTags.flatMap((tag) => WEAKNESS_TAG_TO_PROMPT_FOCUS[tag as keyof typeof WEAKNESS_TAG_TO_PROMPT_FOCUS] ?? []);
+  const uniqueFocusTargets = [...new Set(weaknessFocusTargets)];
+
+  const recentAttempts = store.attempts
+    .filter((attempt) => attempt.student_id === input.student_id && attempt.genre === input.genre)
+    .sort((a, b) => b.created_at.localeCompare(a.created_at))
+    .slice(0, 5);
+  const recentPromptTexts = recentAttempts.map((attempt) => normalizePromptText(attempt.prompt_text ?? '')).filter(Boolean);
+  const currentPromptNormalized = input.current_prompt_text ? normalizePromptText(input.current_prompt_text) : null;
+
+  const allCandidates = store.promptBank
+    .filter((prompt) => !prompt.is_archived && prompt.is_active)
+    .filter((prompt) => prompt.genre === input.genre)
+    .filter((prompt) => gradeMatchesBand(normalizedGrade, prompt.grade_band));
+
+  const exactDifficultyCandidates = allCandidates.filter((prompt) => prompt.difficulty_label === targetDifficulty);
+  const candidates = exactDifficultyCandidates.length > 0 ? exactDifficultyCandidates : allCandidates;
+
+  if (candidates.length === 0) {
+    const fallback = FALLBACK_PROMPT_BY_GENRE[input.genre];
+    const fallbackText = fallback ?? 'Write a clear response that answers every part of the prompt with strong detail.';
+    return ok({
+      prompt_text: fallbackText,
+      base_prompt_text: fallbackText,
+      genre: input.genre,
+      prompt_id: null,
+      difficulty_level: targetDifficulty,
+      target_word_count: normalizedGrade <= 7 ? 80 : normalizedGrade <= 9 ? 120 : 160,
+      focus_tags: uniqueFocusTargets,
+      context_tags: [],
+      mission_hint_categories: [...new Set(weaknessTags.map((tag) => WEAKNESS_TAG_TO_MISSION_CATEGORY[tag as keyof typeof WEAKNESS_TAG_TO_MISSION_CATEGORY]).filter(Boolean))],
+      selection_source: 'fallback_default',
+      used_weakness_tags: weaknessTags,
+    });
+  }
+
+  const ranked = candidates
+    .map((prompt) => {
+      const normalizedPrompt = normalizePromptText(prompt.prompt_text);
+      const { focus_tags, context_tags } = resolvePromptFocusAndContext(prompt);
+      const matchedWeaknessFocus = focus_tags.filter((tag) => uniqueFocusTargets.includes(tag)).length;
+      const recentIndex = recentPromptTexts.findIndex((item) => item === normalizedPrompt);
+      const recencyPenalty = recentIndex === -1 ? 0 : recentIndex < 2 ? 24 : 12;
+      const sameAsCurrentPenalty = currentPromptNormalized && currentPromptNormalized === normalizedPrompt ? 30 : 0;
+      const lastUsedTimestamp = prompt.rotation_metadata.last_used_at ? Date.parse(prompt.rotation_metadata.last_used_at) : 0;
+      const freshnessBonus = lastUsedTimestamp > 0 ? Math.min(8, Math.floor((Date.now() - lastUsedTimestamp) / (1000 * 60 * 60 * 24 * 3))) : 8;
+      const score = matchedWeaknessFocus * 14 + freshnessBonus - recencyPenalty - sameAsCurrentPenalty - Math.min(8, prompt.usage_count);
+      return { prompt, score, focus_tags, context_tags };
+    })
+    .sort((a, b) => {
+      if (a.score !== b.score) return b.score - a.score;
+      if (a.prompt.usage_count !== b.prompt.usage_count) return a.prompt.usage_count - b.prompt.usage_count;
+      return a.prompt.id.localeCompare(b.prompt.id);
+    });
+
+  const selected = ranked[0];
+  const usedAt = new Date().toISOString();
+  const existing = selected.prompt.rotation_metadata.recent_student_usage[input.student_id] ?? [];
+  selected.prompt.rotation_metadata.recent_student_usage[input.student_id] = [...existing, selected.prompt.id].slice(-5);
+  selected.prompt.rotation_metadata.last_used_at = usedAt;
+  selected.prompt.usage_count += 1;
+  selected.prompt.updated_at = usedAt;
+
+  const basePromptText = selected.prompt.prompt_text.trim();
+  let finalPromptText = basePromptText;
+  if (input.use_ai_polish) {
+    const rewrite = await requestWritingAiAssist({
+      mode: 'prompt_rewrite',
+      prompt_text: `${basePromptText}\n\nLightly personalize wording for this student while preserving the same task goals, genre, and difficulty.`,
+      weaknesses: weaknessTags.map((tag) => tag.replaceAll('_', ' ')),
+      grade: normalizedGrade,
+      genre: input.genre,
+    });
+    if (rewrite.ok && rewrite.data) {
+      const ai = (rewrite.data.result ?? {}) as { rewritten_prompt?: string };
+      const polished = ai.rewritten_prompt?.trim();
+      if (polished) finalPromptText = polished;
+    }
+  }
+
+  persistStore();
+  return ok({
+    prompt_text: finalPromptText,
+    base_prompt_text: basePromptText,
+    genre: input.genre,
+    prompt_id: selected.prompt.id,
+    difficulty_level: selected.prompt.difficulty_label,
+    target_word_count: selected.prompt.target_word_count,
+    focus_tags: selected.focus_tags,
+    context_tags: selected.context_tags,
+    mission_hint_categories: [...new Set(weaknessTags.map((tag) => WEAKNESS_TAG_TO_MISSION_CATEGORY[tag as keyof typeof WEAKNESS_TAG_TO_MISSION_CATEGORY]).filter(Boolean))],
+    selection_source: 'prompt_bank',
+    used_weakness_tags: weaknessTags,
+  });
 };
 
 export const getNextRotatedPromptForStudent = (input: {

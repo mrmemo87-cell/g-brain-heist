@@ -10,11 +10,13 @@ import {
   subscribeToWritingHydrationStatus,
   getStudentWritingState,
   getStudentWritingHubSnapshot,
+  getSmartWritingPromptForStudent,
   getTodayWritingTask,
   getWeeklyWritingReview,
   submitDailyWritingPractice,
   submitInitialWritingAssessment,
 } from '../../lib/brains_heist/writingIntegrationService.js';
+import { FALLBACK_PROMPT_BY_GENRE } from '../../lib/brains_heist/writingPromptProgression.js';
 
 interface WritingHubProps {
   studentId: string;
@@ -199,22 +201,7 @@ const toWordCountLabel = (targetWords: number): string => {
 
 const SUPPORTED_GENRES: SupportedGenre[] = ['essay', 'story', 'article', 'review', 'report', 'email', 'paragraph'];
 
-const defaultPromptByGenre: Record<SupportedGenre, string> = {
-  essay:
-    'Your school plans to cut one student program due to budget limits. Write an essay for the principal arguing which program should be protected, why it matters to students, and one realistic improvement to make it stronger.',
-  story:
-    'Write a short story about a student who makes a difficult choice during a school event. Show why that choice matters to the character and end with one change that could have led to a better outcome.',
-  article:
-    'Write a school newsletter article about a recent campus or community event. Explain why it mattered to readers and propose one practical improvement for next time.',
-  review:
-    'Write a review of a school or community event for younger students deciding whether to attend next time. Evaluate what worked, explain why it mattered, and recommend one specific improvement.',
-  report:
-    'Write a report for school leaders about a recent activity or campaign. Summarize key outcomes, explain why they mattered, and present one evidence-based recommendation for improvement.',
-  email:
-    'Write an email to an event organizer about an event you attended. Explain what impact it had, why that impact mattered, and suggest one clear improvement they could act on.',
-  paragraph:
-    'Write one focused paragraph for your class blog about an event that affected students. Explain why it mattered and include one concrete idea to make future events better.',
-};
+const defaultPromptByGenre: Record<SupportedGenre, string> = FALLBACK_PROMPT_BY_GENRE;
 
 const toGenreLabel = (genre: SupportedGenre): string => genre.charAt(0).toUpperCase() + genre.slice(1);
 const toGenreStateCopy = (
@@ -598,6 +585,34 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   }, [isGenreSwitching, initializing, genreStatuses.ok, activeGenre]);
 
   useEffect(() => {
+    let cancelled = false;
+    const loadSmartPrompt = async () => {
+      if (initializing) return;
+      if (!isPreWeek && !isWeekComplete) return;
+      if (initialResponse.trim().length > 0) return;
+      const shouldRefreshPrompt =
+        !promptText.trim() || normalizePromptForComparison(promptText) === normalizePromptForComparison(defaultPromptByGenre[activeGenre]);
+      if (!shouldRefreshPrompt) return;
+
+      const nextPrompt = await getSmartWritingPromptForStudent({
+        student_id: studentId,
+        grade,
+        genre: activeGenre,
+        current_prompt_text: promptText,
+        weakness_tags: latestWeaknessTags,
+        use_ai_polish: false,
+      });
+      if (!cancelled && nextPrompt.ok && nextPrompt.data?.prompt_text?.trim()) {
+        setPromptText(nextPrompt.data.prompt_text.trim());
+      }
+    };
+    void loadSmartPrompt();
+    return () => {
+      cancelled = true;
+    };
+  }, [initializing, isPreWeek, isWeekComplete, promptText, activeGenre, studentId, grade, initialResponse, latestWeaknessTags.join('|')]);
+
+  useEffect(() => {
     if (aiFeedbackDetails) return;
     if (!firstAttemptRichFeedback) return;
     if (!isActiveWeek) return;
@@ -706,16 +721,16 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
 
     if (fromWeekComplete) {
       try {
-        const rewrite = await requestWritingAiAssist({
-          mode: 'prompt_rewrite',
-          prompt_text: `${promptForSubmission}\n\nPlease rewrite this into a clearly different real-world scenario for a new week while keeping the same genre and difficulty level.`,
-          weaknesses: latestWeaknesses,
+        const selection = await getSmartWritingPromptForStudent({
+          student_id: studentId,
           grade,
           genre: activeGenre,
+          current_prompt_text: promptForSubmission,
+          weakness_tags: latestWeaknessTags,
+          use_ai_polish: true,
         });
-        if (rewrite.ok && rewrite.data) {
-          const ai = (rewrite.data.result ?? {}) as WritingAiPlanAssist;
-          const candidate = ai.rewritten_prompt?.trim();
+        if (selection.ok && selection.data) {
+          const candidate = selection.data.prompt_text.trim();
           if (candidate && normalizePromptForComparison(candidate) !== normalizePromptForComparison(promptForSubmission)) {
             promptForSubmission = candidate;
             setPromptText(candidate);
