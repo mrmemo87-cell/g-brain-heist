@@ -130,6 +130,26 @@ const missionCardStyle = {
   border: '1px solid rgba(147, 197, 253, 0.45)',
 };
 
+const dashboardSectionTitleStyle = {
+  margin: 0,
+  fontSize: 12,
+  letterSpacing: 1.1,
+  textTransform: 'uppercase' as const,
+  fontWeight: 800,
+};
+
+const sectionLabelPillStyle = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  borderRadius: 999,
+  padding: '5px 10px',
+  border: '1px solid rgba(148, 163, 184, 0.4)',
+  background: 'rgba(15, 23, 42, 0.45)',
+  fontSize: 11,
+  fontWeight: 800,
+  letterSpacing: 0.4,
+};
+
 const progressTrackStyle = {
   height: 10,
   background: 'rgba(148, 163, 184, 0.24)',
@@ -916,9 +936,11 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
           background: linear-gradient(90deg, transparent 0%, rgba(125, 211, 252, 0.2) 50%, transparent 100%);
           animation: analysisSweep 2.2s ease-in-out infinite;
         }
+        .dashboard-grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
         .focus-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
         .mini-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
         @media (min-width: 760px) {
+          .dashboard-grid { grid-template-columns: minmax(0,1.45fr) minmax(0,1fr); align-items: start; }
           .focus-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
           .mini-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
         }
@@ -1132,55 +1154,13 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
 
           {isActiveWeek && (
             <>
-              <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(147, 197, 253, 0.45)' }}>
-                <div className="focus-grid">
-                  <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.4)', minHeight: 80, whiteSpace: 'pre-wrap' }}>
-                    <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Your writing task</p>
-                    <p style={{ margin: '0 0 8px', fontSize: 14 }}>{buildReadableTaskSummary(originalPromptText ?? promptText)}</p>
-                    <p style={{ margin: '0 0 6px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Original prompt</p>
-                    <p style={{ margin: 0, fontSize: 13 }}>{originalPromptText ?? promptText}</p>
+              <div className="dashboard-grid">
+                <section className="writing-hub-card" style={{ ...missionCardStyle, borderColor: 'rgba(125, 211, 252, 0.8)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                    <p style={{ ...dashboardSectionTitleStyle, color: '#dbeafe' }}>Today</p>
+                    <span style={{ ...sectionLabelPillStyle, color: '#bfdbfe', borderColor: 'rgba(147, 197, 253, 0.55)' }}>Action now</span>
                   </div>
-                  <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.4)', minHeight: 80 }}>
-                    <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Your first attempt</p>
-                    <p style={{ margin: 0, fontSize: 14, color: '#e2e8f0' }}>
-                      {firstAttemptSubmission
-                        ? `${firstAttemptSubmission.slice(0, 170)}${firstAttemptSubmission.length > 170 ? '…' : ''}`
-                        : 'Your first response is saved and used as your starting point.'}
-                    </p>
-                  </div>
-                  <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.4)' }}>
-                    <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Your starting score</p>
-                    <p style={{ margin: '0 0 4px', fontSize: 20, fontWeight: 800, color: '#f8fafc' }}>
-                      {firstAttemptAssessment ? `${firstAttemptAssessment.total_score}/20` : 'Waiting for first score'}
-                    </p>
-                    <p style={{ margin: 0, fontSize: 12, color: '#bfdbfe' }}>This is your starting point for this week.</p>
-                  </div>
-                </div>
-              </section>
-
-              <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(125, 211, 252, 0.72)', background: 'linear-gradient(160deg, #0f172a 0%, #0b1737 55%, #0b1224 100%)' }}>
-                <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 22, color: '#f8fafc' }}>Your focus this week</h3>
-                <p style={{ margin: '0 0 10px', color: '#bfdbfe', fontSize: 15 }}>
-                  {aiWeeklyFocus || 'We picked your focus areas based on your first writing.'}
-                </p>
-                <ul style={{ margin: 0, paddingLeft: 18, color: '#e2e8f0', fontSize: 14 }}>
-                  {(weeklyGoals.length > 0 ? weeklyGoals : ['Answer every part of the question.', 'Add stronger detail to your ideas.', 'Use the right style for this writing type.']).map((item) => (
-                    <li key={item} style={{ marginBottom: 6 }}>{simplifyStudentLanguage(item)}</li>
-                  ))}
-                </ul>
-              </section>
-
-              <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(96, 165, 250, 0.6)' }}>
-                <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 19, color: '#f8fafc' }}>Your goal this week</h3>
-                <p style={{ margin: '0 0 4px', color: '#bfdbfe' }}>Build stronger control in your focus skills through daily writing practice.</p>
-                <p style={{ margin: 0, color: '#e2e8f0', fontSize: 14 }}>
-                  Target score range: {estimatedTargetRange ? `${estimatedTargetRange.low}–${estimatedTargetRange.high} / 20` : 'Will appear after first scoring'}
-                </p>
-                <p style={{ margin: '8px 0 0', color: '#93c5fd', fontSize: 12 }}>This is an estimate, not a guaranteed score.</p>
-              </section>
-
-              <section className="writing-hub-card" style={shellCardStyle}>
-                <h3 style={{ marginTop: 0, marginBottom: 10, fontSize: 20, color: '#f8fafc' }}>Today’s Task</h3>
+                  <h3 style={{ margin: '0 0 10px', fontSize: 24, color: '#f8fafc' }}>Today’s writing mission</h3>
                 {!todayTask.ok || !todayTask.data ? (
                   <div>
                     <p style={{ margin: 0, color: '#cbd5e1' }}>Preparing today’s task…</p>
@@ -1188,52 +1168,9 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                   </div>
                 ) : (
                   <>
-                    <h4 style={{ margin: '0 0 8px', color: '#f8fafc', fontSize: 18 }}>{taskTypeToFriendlyTitle(todayTask.data.task_type, todayTask.data.day_number)}</h4>
+                      <h4 style={{ margin: '0 0 8px', color: '#f8fafc', fontSize: 18 }}>{taskTypeToFriendlyTitle(todayTask.data.task_type, todayTask.data.day_number)}</h4>
                     <p style={{ margin: '0 0 6px', color: '#93c5fd', fontSize: 13, fontWeight: 700 }}>Today’s goal</p>
                     <p style={{ margin: '0 0 8px', color: '#e2e8f0', fontSize: 15 }}>{simplifyStudentLanguage(aiTaskWording || taskTypeToFriendlyInstruction(todayTask.data.task_type))}</p>
-                    <button
-                      type="button"
-                      onClick={() => setShowTaskTypeGuide((prev) => !prev)}
-                      style={{
-                        margin: '0 0 10px',
-                        padding: '8px 11px',
-                        borderRadius: 10,
-                        border: '1px solid rgba(147, 197, 253, 0.65)',
-                        background: 'rgba(30, 41, 59, 0.95)',
-                        color: '#dbeafe',
-                        cursor: 'pointer',
-                        fontWeight: 700,
-                        fontSize: 13,
-                      }}
-                    >
-                      {showTaskTypeGuide ? 'Hide detailed task guide' : 'Show detailed task guide'}
-                    </button>
-                    {showTaskTypeGuide && (
-                      <div style={{ borderRadius: 12, border: '1px solid rgba(147, 197, 253, 0.45)', background: 'rgba(15, 23, 42, 0.45)', padding: 12, marginBottom: 10 }}>
-                        <p style={{ margin: '0 0 6px', color: '#93c5fd', fontSize: 12, fontWeight: 800 }}>How to answer this task type</p>
-                        <p style={{ margin: '0 0 8px', color: '#e2e8f0', fontSize: 14 }}>
-                          <strong>Goal:</strong> {getTaskTypeStudyGuide(todayTask.data.task_type).objective}
-                        </p>
-                        <p style={{ margin: '0 0 4px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Best structure</p>
-                        <ul style={{ margin: '0 0 8px', paddingLeft: 18, color: '#cbd5e1', fontSize: 13 }}>
-                          {getTaskTypeStudyGuide(todayTask.data.task_type).structure.map((item) => (
-                            <li key={item} style={{ marginBottom: 3 }}>{item}</li>
-                          ))}
-                        </ul>
-                        <p style={{ margin: '0 0 4px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Check before you submit</p>
-                        <ul style={{ margin: '0 0 8px', paddingLeft: 18, color: '#cbd5e1', fontSize: 13 }}>
-                          {getTaskTypeStudyGuide(todayTask.data.task_type).qualityChecks.map((item) => (
-                            <li key={item} style={{ marginBottom: 3 }}>{item}</li>
-                          ))}
-                        </ul>
-                        <p style={{ margin: '0 0 4px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Common mistakes to avoid</p>
-                        <ul style={{ margin: 0, paddingLeft: 18, color: '#cbd5e1', fontSize: 13 }}>
-                          {getTaskTypeStudyGuide(todayTask.data.task_type).pitfalls.map((item) => (
-                            <li key={item} style={{ marginBottom: 3 }}>{item}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
                     <p style={{ margin: '0 0 6px', color: '#93c5fd', fontSize: 13, fontWeight: 700 }}>Focus on this</p>
                     <p style={{ margin: '0 0 8px', color: '#cbd5e1', fontSize: 14 }}>
                       This helps you improve your weekly focus areas and raise your writing score step by step.
@@ -1263,10 +1200,14 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                     </button>
                   </>
                 )}
-              </section>
+                </section>
 
-              <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(16, 185, 129, 0.32)' }}>
-                <h3 style={{ marginTop: 0, marginBottom: 6, fontSize: 19, color: '#f8fafc' }}>Feedback & momentum</h3>
+                <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(16, 185, 129, 0.42)', background: 'linear-gradient(168deg, #0f172a 0%, #122034 60%, #0b1224 100%)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                    <p style={{ ...dashboardSectionTitleStyle, color: '#86efac' }}>Your Feedback</p>
+                    <span style={{ ...sectionLabelPillStyle, color: '#6ee7b7', borderColor: 'rgba(52, 211, 153, 0.4)' }}>Coaching</span>
+                  </div>
+                  <h3 style={{ marginTop: 0, marginBottom: 6, fontSize: 22, color: '#f8fafc' }}>Quick coaching snapshot</h3>
                 {isAnalyzingRichFeedback ? (
                   <div
                     className="analysis-shimmer"
@@ -1432,7 +1373,160 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                     {feedback || (completedTasksCount > 0 ? `Great consistency. You completed ${completedTasksCount} task${completedTasksCount === 1 ? '' : 's'} this week.` : 'Great start. Your progress grows every day you submit.')}
                   </p>
                 )}
-              </section>
+                </section>
+              </div>
+
+              <div className="dashboard-grid">
+                <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(96, 165, 250, 0.55)', background: 'linear-gradient(180deg, #0f172a 0%, #111b34 100%)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                    <p style={{ ...dashboardSectionTitleStyle, color: '#93c5fd' }}>Your Progress</p>
+                    <span style={{ ...sectionLabelPillStyle, color: '#bfdbfe', borderColor: 'rgba(147, 197, 253, 0.45)' }}>Snapshot</span>
+                  </div>
+                  <h3 style={{ margin: '0 0 8px', fontSize: 21, color: '#f8fafc' }}>Progress at a glance</h3>
+                  <p style={{ margin: '0 0 8px', color: '#dbeafe', fontSize: 15 }}>
+                    Current score: <strong>{progressAssessment?.total_score != null ? `${progressAssessment.total_score}/20` : 'Waiting for first score'}</strong>
+                  </p>
+                  <p style={{ margin: '0 0 8px', color: '#bfdbfe', fontSize: 14 }}>
+                    Weekly focus: {aiWeeklyFocus || 'We picked your focus areas based on your first writing.'}
+                  </p>
+                  <p style={{ margin: '0 0 8px', color: '#e2e8f0', fontSize: 14 }}>
+                    What’s improving: {showWeeklyEvidence
+                      ? `You completed ${weeklySummary?.completed_tasks} task${weeklySummary?.completed_tasks === 1 ? '' : 's'} this week.`
+                      : 'You are building consistency. Keep submitting daily tasks.'}
+                  </p>
+                  <p style={{ margin: '0 0 10px', color: '#93c5fd', fontSize: 14 }}>
+                    What to work on today: {toStudentLabel(nextWeekInputs?.carry_forward_primary_target ?? weeklyGoals[0] ?? 'Keep building your weekly focus skills.')}
+                  </p>
+                  <p style={{ margin: '0 0 10px', color: '#86efac', fontSize: 14 }}>
+                    Next step: {toStudentLabel(nextWeekInputs?.carry_forward_primary_target ?? 'Keep building your weekly focus skills.')}
+                  </p>
+                  <details style={{ border: '1px solid rgba(148, 163, 184, 0.35)', borderRadius: 10, padding: 10, background: 'rgba(15,23,42,0.4)' }}>
+                    <summary style={{ cursor: 'pointer', color: '#cbd5e1', fontWeight: 700 }}>View full progress details</summary>
+                    <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+                      <div className="focus-grid">
+                        {subscaleCards.map((item) => {
+                          const tone = getProgressTone(item.score);
+                          const scorePercent = item.score == null ? 0 : Math.max(0, Math.min(100, (item.score / 5) * 100));
+                          return (
+                            <div
+                              key={item.key}
+                              style={{
+                                borderRadius: 12,
+                                border: `1px solid ${tone.glow}`,
+                                background: 'rgba(15, 23, 42, 0.55)',
+                                padding: 10,
+                                display: 'grid',
+                                gap: 6,
+                              }}
+                            >
+                              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
+                                <p style={{ margin: 0, color: '#dbeafe', fontSize: 13, fontWeight: 700 }}>{item.label}</p>
+                                <p style={{ margin: 0, color: '#f8fafc', fontSize: 13, fontWeight: 800 }}>
+                                  {item.score == null ? '— / 5' : `${item.score}/5`}
+                                </p>
+                              </div>
+                              <div style={{ ...progressTrackStyle, height: 8 }}>
+                                <div className="progress-fill" style={{ width: `${scorePercent}%`, height: '100%', background: tone.color }} />
+                              </div>
+                              <p style={{ margin: 0, fontSize: 12, color: '#93c5fd' }}>
+                                {tone.label}
+                                {item.delta != null ? ` · ${item.delta >= 0 ? '+' : ''}${item.delta.toFixed(1)} this month` : ''}
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <p style={{ margin: 0, color: '#bfdbfe' }}>Main focus: {toStudentLabel(dashboard.data?.weekly_plan_summary?.primary ?? 'Not set yet')}</p>
+                      {!showMonthlyEvidence ? (
+                        <p style={{ margin: 0, color: '#94a3b8' }}>Complete more writing this month to unlock your growth view.</p>
+                      ) : (
+                        <>
+                          <p style={{ margin: 0, color: '#bfdbfe' }}>Monthly growth</p>
+                          <p style={{ margin: 0 }}>{toStudentLabel(monthlyFacingReport?.score_change ?? '')}</p>
+                          {aiMonthlyWording && <p style={{ margin: 0, color: '#bfdbfe' }}>{aiMonthlyWording}</p>}
+                          <p style={{ margin: 0, color: '#94a3b8' }}>{monthlyFacingReport?.subscale_progress.join(' ')}</p>
+                          <p style={{ margin: 0, color: '#86efac' }}>Strongest gains: {monthlyFacingReport?.strongest_gains.map((item) => toStudentLabel(item)).join(', ')}</p>
+                          <p style={{ margin: 0, color: '#fca5a5' }}>Main blocker: {toStudentLabel(monthlyFacingReport?.remaining_blockers[0] ?? 'None right now')}</p>
+                          <p style={{ margin: 0, color: '#93c5fd' }}>Next step: {toStudentLabel(monthlyFacingReport?.next_month_priorities[0] ?? 'Keep completing your weekly writing tasks.')}</p>
+                        </>
+                      )}
+                    </div>
+                  </details>
+                </section>
+
+                <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(168, 85, 247, 0.42)', background: 'linear-gradient(175deg, #0f172a 0%, #171432 58%, #0b1224 100%)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                    <p style={{ ...dashboardSectionTitleStyle, color: '#c4b5fd' }}>More Help</p>
+                    <span style={{ ...sectionLabelPillStyle, color: '#d8b4fe', borderColor: 'rgba(192, 132, 252, 0.35)' }}>Optional support</span>
+                  </div>
+                  <h3 style={{ margin: '0 0 8px', fontSize: 21, color: '#f8fafc' }}>Deep guides & references</h3>
+                  <p style={{ margin: '0 0 8px', color: '#bfdbfe', fontSize: 14 }}>{masteryTargetByGenre[activeGenre]}</p>
+                  <p style={{ margin: '0 0 8px', color: '#e2e8f0', fontSize: 14 }}>
+                    Target score range: {estimatedTargetRange ? `${estimatedTargetRange.low}–${estimatedTargetRange.high} / 20` : 'Will appear after first scoring'}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowTaskTypeGuide((prev) => !prev)}
+                    style={{
+                      margin: '0 0 10px',
+                      padding: '8px 11px',
+                      borderRadius: 10,
+                      border: '1px solid rgba(147, 197, 253, 0.65)',
+                      background: 'rgba(30, 41, 59, 0.95)',
+                      color: '#dbeafe',
+                      cursor: 'pointer',
+                      fontWeight: 700,
+                      fontSize: 13,
+                    }}
+                  >
+                    {showTaskTypeGuide ? 'Hide detailed task guide' : 'Show detailed task guide'}
+                  </button>
+                  {showTaskTypeGuide && todayTask.ok && todayTask.data && (
+                    <div style={{ borderRadius: 12, border: '1px solid rgba(147, 197, 253, 0.45)', background: 'rgba(15, 23, 42, 0.45)', padding: 12, marginBottom: 10 }}>
+                      <p style={{ margin: '0 0 6px', color: '#93c5fd', fontSize: 12, fontWeight: 800 }}>How to answer this task type</p>
+                      <p style={{ margin: '0 0 8px', color: '#e2e8f0', fontSize: 14 }}>
+                        <strong>Goal:</strong> {getTaskTypeStudyGuide(todayTask.data.task_type).objective}
+                      </p>
+                      <p style={{ margin: '0 0 4px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Best structure</p>
+                      <ul style={{ margin: '0 0 8px', paddingLeft: 18, color: '#cbd5e1', fontSize: 13 }}>
+                        {getTaskTypeStudyGuide(todayTask.data.task_type).structure.map((item) => (
+                          <li key={item} style={{ marginBottom: 3 }}>{item}</li>
+                        ))}
+                      </ul>
+                      <p style={{ margin: '0 0 4px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Check before you submit</p>
+                      <ul style={{ margin: '0 0 8px', paddingLeft: 18, color: '#cbd5e1', fontSize: 13 }}>
+                        {getTaskTypeStudyGuide(todayTask.data.task_type).qualityChecks.map((item) => (
+                          <li key={item} style={{ marginBottom: 3 }}>{item}</li>
+                        ))}
+                      </ul>
+                      <p style={{ margin: '0 0 4px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Common mistakes to avoid</p>
+                      <ul style={{ margin: 0, paddingLeft: 18, color: '#cbd5e1', fontSize: 13 }}>
+                        {getTaskTypeStudyGuide(todayTask.data.task_type).pitfalls.map((item) => (
+                          <li key={item} style={{ marginBottom: 3 }}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  <details style={{ border: '1px solid rgba(168, 85, 247, 0.35)', borderRadius: 10, padding: 10, background: 'rgba(30,27,75,0.3)' }}>
+                    <summary style={{ cursor: 'pointer', color: '#ddd6fe', fontWeight: 700 }}>Open task + starter context</summary>
+                    <div className="focus-grid" style={{ marginTop: 10 }}>
+                      <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.4)', minHeight: 80, whiteSpace: 'pre-wrap' }}>
+                        <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Original prompt</p>
+                        <p style={{ margin: 0, fontSize: 13 }}>{originalPromptText ?? promptText}</p>
+                      </div>
+                      <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.4)', minHeight: 80 }}>
+                        <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Your first attempt</p>
+                        <p style={{ margin: 0, fontSize: 14, color: '#e2e8f0' }}>
+                          {firstAttemptSubmission
+                            ? `${firstAttemptSubmission.slice(0, 170)}${firstAttemptSubmission.length > 170 ? '…' : ''}`
+                            : 'Your first response is saved and used as your starting point.'}
+                        </p>
+                      </div>
+                    </div>
+                  </details>
+                </section>
+              </div>
             </>
           )}
 
@@ -1456,9 +1550,10 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
             </section>
           )}
 
-          <details className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(148, 163, 184, 0.28)' }}>
-            <summary style={{ cursor: 'pointer', fontWeight: 700, color: '#e2e8f0' }}>View your progress details</summary>
-            <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+          {!isActiveWeek && (
+            <details className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(148, 163, 184, 0.28)' }}>
+              <summary style={{ cursor: 'pointer', fontWeight: 700, color: '#e2e8f0' }}>View your progress details</summary>
+              <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
               <div className="focus-grid">
                 {subscaleCards.map((item) => {
                   const tone = getProgressTone(item.score);
@@ -1524,8 +1619,9 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                   <p style={{ margin: 0, color: '#93c5fd' }}>Next step: {toStudentLabel(monthlyFacingReport?.next_month_priorities[0] ?? 'Keep completing your weekly writing tasks.')}</p>
                 </>
               )}
-            </div>
-          </details>
+              </div>
+            </details>
+          )}
 
           {(uiNotice || isRefreshingProgress) && (
             <p style={{ ...shellCardStyle, margin: 0, color: '#bfdbfe', borderColor: 'rgba(96, 165, 250, 0.45)' }}>
