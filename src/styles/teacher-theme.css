@@ -530,13 +530,30 @@
     top: auto;
   }
 
+  .teacher-nav-container--sidebar {
+    padding: 0.5rem;
+  }
+
   .teacher-nav-grid--sidebar {
-    grid-template-columns: 1fr;
+    display: flex;
+    grid-template-columns: none;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.2rem;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
   }
 
   .teacher-nav-btn {
-    min-height: 56px;
-    padding: 0.9rem 0.95rem;
+    min-height: 52px;
+    padding: 0.75rem 0.85rem;
+    min-width: 170px;
+    border-radius: 12px;
+    flex-shrink: 0;
+  }
+
+  .teacher-nav-icon {
+    font-size: 1.2rem;
   }
 
   .teacher-nav-label {
@@ -545,12 +562,11 @@
     justify-content: space-between;
     gap: 0.5rem;
     flex-wrap: wrap;
+    font-size: 0.86rem;
   }
 
   .teacher-nav-desc {
-    display: block;
-    white-space: normal;
-    overflow-wrap: anywhere;
+    display: none;
   }
 
   .teacher-main-panel {
