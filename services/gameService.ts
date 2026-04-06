@@ -6281,9 +6281,14 @@ export const generate_assignment_analysis = async (
             throw new Error('No authentication token available');
         }
 
+        const supabaseUrl = import.meta.env['VITE_SUPABASE_URL'];
+        if (!supabaseUrl) {
+            throw new Error('Missing VITE_SUPABASE_URL');
+        }
+
         // Call the edge function
         const response = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze_assignment_answers`,
+            `${supabaseUrl}/functions/v1/analyze_assignment_answers`,
             {
                 method: 'POST',
                 headers: {
