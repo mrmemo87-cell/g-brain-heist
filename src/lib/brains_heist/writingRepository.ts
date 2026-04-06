@@ -72,17 +72,31 @@ export const loadWritingStoreSnapshot = async (): Promise<SerializedWritingPersi
     supabase.from('bh_writing_calibration_followups').select('*'),
   ]);
 
-  const hasError = [profilesRes, statesRes, attemptsRes, weeklyRes, tasksRes, submissionsRes, evalsRes, reportsRes, memoriesRes, promptsRes, signalsRes, followupsRes]
-    .some((result) => result.error);
+  const readRows = <T>(result: { data: T[] | null; error: { message: string } | null }, label: string): T[] => {
+    if (result.error) {
+      console.warn(`[writingRepository] Partial DB load failed for ${label}: ${result.error.message}`);
+      return [];
+    }
+    return result.data ?? [];
+  };
 
-  if (hasError) {
-    console.warn('[writingRepository] DB load failed; snapshot unavailable.');
-    return null;
-  }
+  const profileRows = readRows<any>(profilesRes, 'profiles');
+  const stateRows = readRows<any>(statesRes, 'states');
+  const attemptRows = readRows<any>(attemptsRes, 'attempts');
+  const weeklyRows = readRows<any>(weeklyRes, 'weekly_plans');
+  const taskRows = readRows<any>(tasksRes, 'daily_tasks');
+  const submissionRows = readRows<any>(submissionsRes, 'daily_submissions');
+  const evaluationRows = readRows<any>(evalsRes, 'daily_evaluations');
+  const reportRows = readRows<any>(reportsRes, 'monthly_reports');
+  const memoryRows = readRows<any>(memoriesRes, 'memory_snapshots');
+  // Optional for students: admin-only tables can fail RLS and should not collapse hydration.
+  const promptRows = readRows<any>(promptsRes, 'prompt_bank');
+  const signalRows = readRows<any>(signalsRes, 'review_signals');
+  const followupRows = readRows<any>(followupsRes, 'calibration_followups');
 
   return {
-    profiles: (profilesRes.data ?? []).map((row: any) => [row.student_id, row.profile]),
-    states: (statesRes.data ?? []).flatMap((row: any): Array<[string, unknown]> => {
+    profiles: profileRows.map((row: any) => [row.student_id, row.profile]),
+    states: stateRows.flatMap((row: any): Array<[string, unknown]> => {
       const statePayload = row.state;
       if (statePayload && typeof statePayload === 'object' && !Array.isArray(statePayload) && statePayload['by_genre']) {
         const byGenre = statePayload['by_genre'] as Record<string, unknown>;
@@ -99,17 +113,26 @@ export const loadWritingStoreSnapshot = async (): Promise<SerializedWritingPersi
       })();
       return [[`${row.student_id}::${inferredGenre}`, statePayload] as [string, unknown]];
     }),
-    attempts: (attemptsRes.data ?? []).map((row: any) => row.payload),
-    weeklyPlans: (weeklyRes.data ?? []).map((row: any) => row.payload),
-    dailyTasks: (tasksRes.data ?? []).map((row: any) => row.payload),
-    dailySubmissions: (submissionsRes.data ?? []).map((row: any) => row.payload),
-    dailyEvaluations: (evalsRes.data ?? []).map((row: any) => row.payload),
-    monthlyReports: (reportsRes.data ?? []).map((row: any) => row.payload),
-    memorySnapshots: (memoriesRes.data ?? []).map((row: any) => row.payload),
-    promptBank: (promptsRes.data ?? []).map((row: any) => row.payload),
-    reviewSignals: (signalsRes.data ?? []).map((row: any) => row.payload),
+    attempts: attemptRows.map((row: any) => row.payload),
+    weeklyPlans: weeklyRows.map((row: any) => row.payload),
+    dailyTasks: taskRows.map((row: any) => row.payload),
+    dailySubmissions: submissionRows.map((row: any) => row.payload),
+    dailyEvaluations: evaluationRows.map((row: any) => row.payload),
+    monthlyReports: reportRows.map((row: any) => {
+      const payload = row?.payload && typeof row.payload === 'object' ? row.payload : {};
+      return {
+        ...payload,
+        student_id: typeof row?.student_id === 'string' ? row.student_id : (payload as any).student_id,
+        genre: typeof row?.genre === 'string' ? row.genre : (payload as any).genre,
+        month: typeof row?.month === 'string' ? row.month : (payload as any).month,
+        created_at: typeof row?.created_at === 'string' ? row.created_at : (payload as any).created_at,
+      };
+    }),
+    memorySnapshots: memoryRows.map((row: any) => row.payload),
+    promptBank: promptRows.map((row: any) => row.payload),
+    reviewSignals: signalRows.map((row: any) => row.payload),
     calibrationFollowUpByStudent: Object.fromEntries(
-      (followupsRes.data ?? []).map((row: any) => [row.student_id, row.payload])
+      followupRows.map((row: any) => [row.student_id, row.payload])
     ),
   };
 };
@@ -180,8 +203,6 @@ export const persistWritingStoreSnapshot = async (snapshot: SerializedWritingPer
     replaceTableByKey('bh_writing_daily_submissions', bindStudentRows(snapshot.dailySubmissions), 'student_id'),
     replaceTableByKey('bh_writing_daily_evaluations', bindStudentRows(snapshot.dailyEvaluations), 'student_id'),
     replaceTableByKey('bh_writing_memory_snapshots', bindStudentRows(snapshot.memorySnapshots), 'student_id'),
-    replaceTableByKey('bh_writing_prompt_bank', snapshot.promptBank, 'id'),
-    replaceTableByKey('bh_writing_review_signals', snapshot.reviewSignals, 'id'),
     replaceFollowups(followups),
   ]);
 };
@@ -218,8 +239,20 @@ const replaceFollowups = async (
 export const persistMonthlyWritingReport = async (report: unknown): Promise<void> => {
   if (!canUseSupabase()) return;
   const safeReport = safe(report);
+  const reportRow = safeReport as { student_id?: string; genre?: string; month?: string };
+  if (!reportRow.student_id || !reportRow.genre || !reportRow.month) {
+    throw new Error('[writingRepository] monthly report is missing required typed keys (student_id, genre, month).');
+  }
   const upsertRes = await supabase
     .from('bh_writing_monthly_reports')
-    .upsert({ payload: safeReport }, { onConflict: 'student_id,month' });
+    .upsert(
+      {
+        student_id: reportRow.student_id,
+        genre: reportRow.genre,
+        month: reportRow.month,
+        payload: safeReport,
+      },
+      { onConflict: 'student_id,genre,month' }
+    );
   ensureNoError(upsertRes, 'upsert bh_writing_monthly_reports failed');
 };
