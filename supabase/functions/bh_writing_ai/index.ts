@@ -176,7 +176,7 @@ const normalizeAiResult = (mode: Mode, raw: unknown): AiResult | null => {
     };
 
     const grammarIssuePattern =
-      /\b(subject-?verb|agreement|verb tense|tense|plural|singular|article|pronoun|word form|grammar|run-?on|fragment|sentence structure)\b/i;
+      /\b(subject-?verb|verb agreement|agreement|verb tense|tense|plural|singular|article|pronoun|word form|grammar|run-?on|fragment|sentence structure|clause|auxiliary verb|verb form)\b/i;
     const punctuationIssuePattern =
       /\b(comma|period|apostrophe|quotation|quote mark|capitalization|punctuation|semicolon|colon|question mark|exclamation)\b/i;
 
@@ -303,7 +303,7 @@ const buildUserPrompt = (payload: Payload): string => {
       "Return strict JSON only with keys:",
       '- task_understanding: one short explanation written directly to the student (use "you"), starting with "You were asked to..."',
       '- submission_read: one short summary written directly to the student about what they actually wrote, including "You answered this by..."',
-      '- alignment: exactly one of on_task | partially_on_task | off_topic | too_short | underdeveloped | mostly_correct_but_needs_polish',
+      '- alignment: exactly one of on_task | partly_on_task | partially_on_task | off_topic | too_short | underdeveloped | mostly_correct_but_needs_polish',
       '- what_is_working: 2 evidence-based wins that reference exact student wording when useful',
       '- what_is_missing: 2 evidence-based missing content points that matter most for task completion',
       '- grammar_fixes: up to 3 objects with keys original, issue, better_version',
@@ -329,15 +329,17 @@ const buildUserPrompt = (payload: Payload): string => {
       "  - Use partially_on_task when at least one required task part is missing, only partly answered, or clearly undercovered.",
       "  - Use off_topic only when the response clearly does not match the assigned task.",
       "  - Use too_short only when there is not enough writing to judge task completion.",
-      "  - Use underdeveloped when all required task parts are present but development is so superficial that key ideas stay sketchy and lack needed detail/specificity.",
+      "  - Use underdeveloped only as an explanatory quality judgment when development is extremely thin; do not use it as a substitute for coverage logic.",
       "  - Use mostly_correct_but_needs_polish when the task is answered well overall but language/style still needs refinement.",
       "  - If every required part is present but weakly developed, choose on_task (not partially_on_task) and explain that development is the issue.",
       "  - Clearly distinguish 'missing task element' from 'present but weakly developed task element'.",
+      "  - Required check order: (1) list required task parts, (2) mark each part present/missing, (3) choose alignment label, (4) describe quality/development.",
       "- Grammar and punctuation classification rules:",
       "  - Put subject-verb agreement, verb tense, plural/singular noun, article, pronoun, word form, and grammatical sentence structure issues in grammar_fixes.",
       "  - Put commas, periods, apostrophes, quotation punctuation, capitalization conventions, and missing/incorrect punctuation marks in punctuation_fixes.",
       "  - Do not place grammar issues inside punctuation_fixes just because a corrected sentence also improves punctuation.",
       "  - If clear grammar issues exist, include them in grammar_fixes and do not claim there are no grammar fixes.",
+      "  - If one sentence has both grammar and punctuation issues, classify by the core issue: grammar_fixes for grammar, punctuation_fixes for punctuation.",
       "  - Be conservative and accurate. Do not invent errors.",
       "- what_is_working should sound encouraging and specific, like a coach noticing real wins.",
       "- what_is_missing should sound constructive and revision-focused, not harsh.",
@@ -352,6 +354,7 @@ const buildUserPrompt = (payload: Payload): string => {
       "- Write like a smart writing coach texting a student: warm, direct, natural, and academic.",
       "- Use second person ('you') and avoid stiff phrasing such as 'The student wrote' or 'The response demonstrates'.",
       "- Prefer natural student-facing phrasing such as 'You were asked to...', 'In your answer, you...', 'You included...', and 'You could strengthen this by...'.",
+      "- Avoid rubric-like labels in full sentences (for example, avoid 'This response demonstrates...'). Keep wording conversational and specific.",
       "- Be encouraging, but honest. Be clear before being polite.",
       "- Vary sentence openings and phrasing to avoid template feel and repetition.",
       "Keep tone supportive, smart, specific, natural, and revision-focused.",
@@ -435,7 +438,7 @@ serve(async (req) => {
           {
             role: "system",
             content:
-              "You are an expert writing coach for Brains Heist students. Sound like a real human coach: supportive, direct, student-friendly, and academically credible. Always address the student as 'you'/'your'. Never use third-person framing like 'the student' or 'the response'. Be clear before polite. Avoid robotic rubric language and repetitive templates. Prioritize the most important truth first. If the answer is off-topic or misaligned, state that clearly and early, avoid over-praising irrelevant content, and redirect to the required task focus. Judge alignment by coverage first (are required task parts present), then quality. If all required parts are present but weak, keep alignment on_task and explain the development gap. Keep grammar fixes and punctuation fixes strictly separated: grammar errors belong in grammar_fixes, punctuation/convention errors belong in punctuation_fixes. Use evidence from the student's actual words with short snippets where useful. Never invent evidence, grammar mistakes, punctuation mistakes, or style issues. If uncertain, be conservative and name what is missing. Distinguish content/task issues, language issues, and style/tone issues clearly. Keep coaching language natural and actionable. Return strict JSON only. No markdown.",
+              "You are an expert writing coach for Brains Heist students. Sound like a real human coach: supportive, direct, student-friendly, and academically credible. Always address the student as 'you'/'your'. Never use third-person framing like 'the student' or 'the response'. Be clear before polite. Avoid robotic rubric language and repetitive templates. Prioritize the most important truth first. If the answer is off-topic or misaligned, state that clearly and early, avoid over-praising irrelevant content, and redirect to the required task focus. Judge alignment in order: first coverage (which required parts are present/missing), then quality. If all required parts are present but weak, keep alignment on_task and explain the development gap; do not mark partially_on_task just for weak development. Keep grammar fixes and punctuation fixes strictly separated: grammar errors belong in grammar_fixes, punctuation/convention errors belong in punctuation_fixes. If a sentence has both issue types, classify each issue in the correct list and do not hide grammar issues in punctuation_fixes. Use evidence from the student's actual words with short snippets where useful. Never invent evidence, grammar mistakes, punctuation mistakes, or style issues. If uncertain, be conservative and name what is missing. Distinguish content/task issues, language issues, and style/tone issues clearly. Keep coaching language natural and actionable. Return strict JSON only. No markdown.",
           },
           {
             role: "user",
