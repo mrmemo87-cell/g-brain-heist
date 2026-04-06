@@ -1,11 +1,11 @@
-import { supabase } from '../../../services/supabaseClient';
+import { supabase } from '../../../services/supabaseClient.js';
 import {
   createRaidSession,
   finalizeRaidSession,
   fetchRaidStatus,
   joinRaidSession,
   submitRaidAnswer as rpcSubmitRaidAnswer,
-} from '../../../services/rpcGateway';
+} from '../../../services/rpcGateway.js';
 import {
   BossUnlockState,
   RaidAnswerPayload,
@@ -21,7 +21,7 @@ import {
   RaidStatus,
   RaidWaveConfig,
   RaidWaveState,
-} from './raidTypes';
+} from './raidTypes.js';
 
 const RAID_REWARD_POOL: RaidRewardPool = { xp: 500, coins: 800, badge: 'Neural Siege Victor' };
 const WRONG_ANSWER_PENALTY_SECONDS = 5;

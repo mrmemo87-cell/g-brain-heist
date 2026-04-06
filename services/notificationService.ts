@@ -1,5 +1,5 @@
-import { supabase } from './supabaseClient';
-import { audioService, SoundEffect } from './audioService';
+import { supabase } from './supabaseClient.js';
+import { audioService, SoundEffect } from './audioService.js';
 
 export type NotificationType = 
   | 'attack_incoming'      // 🚨 Danger - Someone is attacking you
