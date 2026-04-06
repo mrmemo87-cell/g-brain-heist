@@ -204,6 +204,27 @@ let hydrationState: 'idle' | 'loading' | 'ready' | 'degraded' = 'idle';
 let lastPersistenceMode: 'db' | 'fallback-local' | 'runtime-only' = 'runtime-only';
 let storeMutationVersion = 0;
 const hydrationListeners = new Set<(status: 'idle' | 'loading' | 'ready' | 'degraded') => void>();
+type WritingPersistenceStatus = {
+  state: 'idle' | 'saving' | 'saved' | 'failed';
+  message: string | null;
+  updated_at: string | null;
+};
+let persistenceStatus: WritingPersistenceStatus = {
+  state: 'idle',
+  message: null,
+  updated_at: null,
+};
+const persistenceListeners = new Set<(status: WritingPersistenceStatus) => void>();
+const setPersistenceStatus = (next: WritingPersistenceStatus): void => {
+  persistenceStatus = next;
+  persistenceListeners.forEach((listener) => {
+    try {
+      listener(persistenceStatus);
+    } catch {
+      // noop
+    }
+  });
+};
 const notifyHydrationListeners = (): void => {
   hydrationListeners.forEach((listener) => {
     try {
@@ -353,12 +374,22 @@ const hydrateStore = (): Promise<void> => {
 const persistStore = (): void => {
   storeMutationVersion += 1;
   const snapshot = serializeStore();
+  setPersistenceStatus({ state: 'saving', message: null, updated_at: new Date().toISOString() });
   if (getWritingRepositoryMode() !== 'db') {
     console.warn('[writingIntegrationService] DB persistence is disabled in current runtime; writes will use fallback/local cache only.');
   }
-  void persistWritingStoreSnapshot(snapshot).catch((error) => {
-    console.warn('Writing integration DB persistence failed.', error);
-  });
+  void persistWritingStoreSnapshot(snapshot)
+    .then(() => {
+      setPersistenceStatus({ state: 'saved', message: null, updated_at: new Date().toISOString() });
+    })
+    .catch((error) => {
+      console.warn('Writing integration DB persistence failed.', error);
+      setPersistenceStatus({
+        state: 'failed',
+        message: error instanceof Error ? error.message : 'Unable to save writing progress to DB.',
+        updated_at: new Date().toISOString(),
+      });
+    });
   const storage = getStorage();
   if (storage) {
     storage.setItem(WRITING_STORE_KEY, JSON.stringify(snapshot));
@@ -400,8 +431,19 @@ export const subscribeToWritingHydrationStatus = (
   };
 };
 
+export const getWritingPersistenceStatus = (): WritingPersistenceStatus => persistenceStatus;
+
+export const subscribeToWritingPersistenceStatus = (
+  listener: (status: WritingPersistenceStatus) => void
+): (() => void) => {
+  persistenceListeners.add(listener);
+  listener(persistenceStatus);
+  return () => {
+    persistenceListeners.delete(listener);
+  };
+};
+
 const isValidGenre = (genre: string): genre is SupportedGenre => GENRE_KEYS.includes(genre as SupportedGenre);
-const isValidGrade = (grade: number): boolean => Number.isInteger(grade) && grade >= 6 && grade <= 12;
 const normalizeGrade = (grade: unknown): number | null => {
   const parsed = typeof grade === 'string' ? Number.parseInt(grade, 10) : Number(grade);
   if (!Number.isInteger(parsed) || parsed < 6 || parsed > 12) return null;
@@ -745,6 +787,8 @@ export const getMonthlyWritingReport = (
   const state = getStateForGenre(studentId, resolvedGenre);
   if (!state) return badRequest('student writing state not found.');
   if (!/^\d{4}-\d{2}$/.test(month)) return badRequest('month must be in YYYY-MM format.');
+  const hasActivity = Boolean(state.latest_assessment || state.completed_daily_tasks.length > 0);
+  if (!hasActivity) return badRequest('monthly report unavailable until writing activity exists.');
 
   const existing = store.monthlyReports
     .filter((item) => item.student_id === studentId && item.genre === resolvedGenre && item.month === month)
@@ -1998,6 +2042,8 @@ export const __resetWritingIntegrationStoreForTests = (): void => {
   hydrationInFlight = null;
   hydrationState = 'idle';
   hydrationListeners.clear();
+  persistenceListeners.clear();
+  persistenceStatus = { state: 'idle', message: null, updated_at: null };
   lastPersistenceMode = 'runtime-only';
   const storage = getStorage();
   if (storage) storage.removeItem(WRITING_STORE_KEY);

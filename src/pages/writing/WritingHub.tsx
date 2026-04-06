@@ -4,10 +4,12 @@ import {
   getCurrentWeeklyPlan,
   getStudentGenrePathStatuses,
   getWritingHydrationStatus,
+  getWritingPersistenceStatus,
   getMonthlyWritingReport,
   requestWritingAiAssist,
   persistInitialWritingRichFeedback,
   retryWritingHydration,
+  subscribeToWritingPersistenceStatus,
   subscribeToWritingHydrationStatus,
   getStudentWritingState,
   getStudentWritingHubSnapshot,
@@ -650,6 +652,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [hydrationStatus, setHydrationStatus] = useState(getWritingHydrationStatus());
+  const [persistenceStatus, setPersistenceStatus] = useState(getWritingPersistenceStatus());
   const [isRefreshingProgress, setIsRefreshingProgress] = useState(false);
   const [isGenreSwitching, setIsGenreSwitching] = useState(false);
   const [showTaskTypeGuide, setShowTaskTypeGuide] = useState(false);
@@ -820,6 +823,11 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   }, []);
 
   useEffect(() => {
+    const unsubscribe = subscribeToWritingPersistenceStatus((status) => setPersistenceStatus(status));
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
     if (!isGenreSwitching) return;
     if (initializing) return;
     if (genreStatuses.ok) {
@@ -877,6 +885,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
 
   useEffect(() => {
     let cancelled = false;
+    let debounceTimer: number | null = null;
     const loadAiPlanAssist = async () => {
       if (!stateRes.ok || !stateRes.data?.latest_assessment || aiBusy) return;
       setAiBusy(true);
@@ -899,11 +908,14 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
       }
       if (!cancelled) setAiBusy(false);
     };
-    void loadAiPlanAssist();
+    debounceTimer = window.setTimeout(() => {
+      void loadAiPlanAssist();
+    }, 700);
     return () => {
       cancelled = true;
+      if (debounceTimer) window.clearTimeout(debounceTimer);
     };
-  }, [studentId, month, stateRes.ok, stateRes.data?.latest_assessment?.total_score, activeGenre, promptText]);
+  }, [studentId, month, stateRes.ok, stateRes.data?.latest_assessment?.total_score, activeGenre]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1957,6 +1969,21 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
             <p style={{ ...shellCardStyle, margin: 0, color: '#bfdbfe', borderColor: 'rgba(96, 165, 250, 0.45)' }}>
               {isRefreshingProgress ? 'Loading progress updates…' : uiNotice}
             </p>
+          )}
+
+          {persistenceStatus.state === 'saving' && (
+            <p style={{ ...shellCardStyle, margin: 0, color: '#bfdbfe', borderColor: 'rgba(56, 189, 248, 0.45)' }}>
+              Saving your writing progress…
+            </p>
+          )}
+
+          {persistenceStatus.state === 'failed' && (
+            <section style={{ ...shellCardStyle, margin: 0, color: '#fecaca', borderColor: 'rgba(248, 113, 113, 0.55)' }}>
+              <p style={{ margin: '0 0 6px', fontWeight: 700 }}>Progress save failed.</p>
+              <p style={{ margin: 0, color: '#fee2e2', fontSize: 13 }}>
+                {persistenceStatus.message || 'Your latest changes may only be stored locally on this device.'}
+              </p>
+            </section>
           )}
 
           {error && (

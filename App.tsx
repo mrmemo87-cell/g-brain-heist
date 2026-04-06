@@ -1901,17 +1901,23 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                   >
                       ← Back to Dashboard
                   </button>
-                  <Suspense fallback={null}>
-                    <WritingHub
-                      studentId={profile?.id ?? 'student'}
-                      grade={profile?.grade ?? 8}
-                      genre="essay"
-                      onOpenQuestMission={(missionId?: string) => {
-                        setPendingQuestMissionId(missionId ?? null);
-                        handleViewChange('quest');
-                      }}
-                    />
-                  </Suspense>
+                  {!profile?.id ? (
+                    <div className="rounded-lg border border-blue-400/40 bg-slate-900/70 p-4 text-blue-100">
+                      Loading your writing profile…
+                    </div>
+                  ) : (
+                    <Suspense fallback={null}>
+                      <WritingHub
+                        studentId={profile.id}
+                        grade={profile?.grade ?? 8}
+                        genre="essay"
+                        onOpenQuestMission={(missionId?: string) => {
+                          setPendingQuestMissionId(missionId ?? null);
+                          handleViewChange('quest');
+                        }}
+                      />
+                    </Suspense>
+                  )}
               </div>
             );
         case 'lockdown':
