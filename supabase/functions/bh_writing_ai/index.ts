@@ -194,8 +194,8 @@ const normalizeAiResult = (mode: Mode, raw: unknown): AiResult | null => {
       );
 
       return {
-        grammar: [...keptGrammar, ...movedToGrammar].slice(0, 5),
-        punctuation: [...keptPunctuation, ...movedToPunctuation].slice(0, 5),
+        grammar: [...keptGrammar, ...movedToGrammar].slice(0, 3),
+        punctuation: [...keptPunctuation, ...movedToPunctuation].slice(0, 3),
       };
     };
 
@@ -325,11 +325,11 @@ const buildUserPrompt = (payload: Payload): string => {
       "- Prioritize the most important truth first. If task alignment is weak, say that clearly before language polish.",
       "- Alignment workflow: decide task coverage first, then decide quality/development.",
       "- Alignment decision logic:",
-      "  - Use on_task when all required task parts are present, even if ideas are brief, weak, or underdeveloped.",
+      "  - Use on_task when all required task parts are present, even if ideas are brief or somewhat weak.",
       "  - Use partially_on_task when at least one required task part is missing, only partly answered, or clearly undercovered.",
       "  - Use off_topic only when the response clearly does not match the assigned task.",
       "  - Use too_short only when there is not enough writing to judge task completion.",
-      "  - Use underdeveloped only as an explanatory quality judgment, not as a replacement for coverage logic.",
+      "  - Use underdeveloped when all required task parts are present but development is so superficial that key ideas stay sketchy and lack needed detail/specificity.",
       "  - Use mostly_correct_but_needs_polish when the task is answered well overall but language/style still needs refinement.",
       "  - If every required part is present but weakly developed, choose on_task (not partially_on_task) and explain that development is the issue.",
       "  - Clearly distinguish 'missing task element' from 'present but weakly developed task element'.",
