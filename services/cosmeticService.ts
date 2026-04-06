@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+import { supabase } from './supabaseClient.js';
 
 const NEON_FRAME_ITEM_ID = 'item_cosmetic_frame';
 const FLICKER_THEME_ITEM_ID = 'item_cosmetic_theme';

@@ -50,8 +50,8 @@ import {
     BrainsMasterPurchaseResult,
     TaskClaimReward,
     XpStatus,
-} from '../types';
-import * as RaidFeatureService from '../src/features/raids/raidService';
+} from '../types.js';
+import * as RaidFeatureService from '../src/features/raids/raidService.js';
 import {
     BossUnlockState,
     RaidAnswerPayload,
@@ -61,14 +61,14 @@ import {
     RaidQuestionRequest,
     RaidStatus,
     RaidWaveState,
-} from '../src/features/raids/raidTypes';
-import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, addActivityEvent, getActivityFeed, getTaskProgress, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount } from './storageService';
-import { supabase } from './supabaseClient';
-import { fetchNeonFrameOwners, fetchFlickerThemeOwners, fetchGlitchEffectOwners } from './cosmeticService';
-import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './banMessage';
-import { notificationService } from './notificationService';
-import { fetchMyXpStatus } from './xpStatus';
-import { audioService } from './audioService';
+} from '../src/features/raids/raidTypes.js';
+import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, addActivityEvent, getActivityFeed, getTaskProgress, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount } from './storageService.js';
+import { supabase } from './supabaseClient.js';
+import { fetchNeonFrameOwners, fetchFlickerThemeOwners, fetchGlitchEffectOwners } from './cosmeticService.js';
+import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './banMessage.js';
+import { notificationService } from './notificationService.js';
+import { fetchMyXpStatus } from './xpStatus.js';
+import { audioService } from './audioService.js';
 import {
     regenerateUserAp,
     notifyApFull,
@@ -89,7 +89,7 @@ import {
     getStudentCompletedAssignments as rpcGetStudentCompletedAssignments,
     checkAssignmentAchievements as rpcCheckAssignmentAchievements,
     getMyAssignmentAnswers as rpcGetMyAssignmentAnswers
-} from './rpcGateway';
+} from './rpcGateway.js';
 
 const MOCK_DELAY = 500;
 

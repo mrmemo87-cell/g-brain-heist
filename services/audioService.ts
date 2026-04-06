@@ -24,13 +24,22 @@ class AudioManager {
   private bgMusic: HTMLAudioElement | null = null;
   private bgMusicEnabled: boolean = false;
   private hasUserInteracted: boolean = false;
+  private readonly isBrowserRuntime: boolean = typeof window !== 'undefined' && typeof document !== 'undefined';
+  private readonly hasLocalStorage: boolean = typeof localStorage !== 'undefined';
+  private readonly hasAudioConstructor: boolean = typeof Audio !== 'undefined';
 
   constructor() {
+    if (!this.isBrowserRuntime) {
+      this.audioEnabled = false;
+      this.bgMusicEnabled = false;
+      return;
+    }
+
     // Load audio enabled state from localStorage (default: true)
-    const savedAudioState = localStorage.getItem('gbh_audio_enabled');
+    const savedAudioState = this.hasLocalStorage ? localStorage.getItem('gbh_audio_enabled') : null;
     this.audioEnabled = savedAudioState !== 'false'; // Default to true
     
-    const savedBgMusicState = localStorage.getItem('gbh_bg_music_enabled');
+    const savedBgMusicState = this.hasLocalStorage ? localStorage.getItem('gbh_bg_music_enabled') : null;
     // Default to false so pages never start with background music automatically
     this.bgMusicEnabled = savedBgMusicState === 'true';
     
@@ -39,6 +48,8 @@ class AudioManager {
   }
 
   private setupUserInteractionListener() {
+    if (!this.isBrowserRuntime) return;
+
     const handleInteraction = () => {
       if (!this.hasUserInteracted) {
         this.hasUserInteracted = true;
@@ -55,6 +66,8 @@ class AudioManager {
   }
 
   private preloadSounds() {
+    if (!this.hasAudioConstructor) return;
+
     // Map of sound effects to their file paths (some share files)
     const soundFileMap: Record<SoundEffect, string> = {
       'achievement': 'tada',    // Use tada for achievement (no achievement.mp3)
@@ -115,7 +128,9 @@ class AudioManager {
 
   setAudioEnabled(enabled: boolean) {
     this.audioEnabled = enabled;
-    localStorage.setItem('gbh_audio_enabled', enabled.toString());
+    if (this.hasLocalStorage) {
+      localStorage.setItem('gbh_audio_enabled', enabled.toString());
+    }
     
     if (!enabled) {
       this.stopBackgroundMusic();
@@ -126,7 +141,9 @@ class AudioManager {
 
   setBgMusicEnabled(enabled: boolean) {
     this.bgMusicEnabled = enabled;
-    localStorage.setItem('gbh_bg_music_enabled', enabled.toString());
+    if (this.hasLocalStorage) {
+      localStorage.setItem('gbh_bg_music_enabled', enabled.toString());
+    }
     
     if (enabled && this.audioEnabled && this.hasUserInteracted) {
       this.playBackgroundMusic();
