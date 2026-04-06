@@ -143,7 +143,8 @@ const normalizeAiResult = (mode: Mode, raw: unknown): AiResult | null => {
   const value = raw as Record<string, unknown>;
 
   if (mode === "feedback") {
-    const alignment = typeof value.alignment === "string" ? value.alignment : "";
+    const alignmentRaw = typeof value.alignment === "string" ? value.alignment : "";
+    const alignment = alignmentRaw === "partly_on_task" ? "partially_on_task" : alignmentRaw;
     const normalizedAlignment =
       alignment === "on_task" ||
       alignment === "partially_on_task" ||
@@ -172,6 +173,30 @@ const normalizeAiResult = (mode: Mode, raw: unknown): AiResult | null => {
           Boolean(item && item.original && item.issue && item.better_version)
         )
         .slice(0, 5);
+    };
+
+    const grammarIssuePattern =
+      /\b(subject-?verb|agreement|verb tense|tense|plural|singular|article|pronoun|word form|grammar|run-?on|fragment|sentence structure)\b/i;
+    const punctuationIssuePattern =
+      /\b(comma|period|apostrophe|quotation|quote mark|capitalization|punctuation|semicolon|colon|question mark|exclamation)\b/i;
+
+    const repartitionFixes = (
+      grammarFixes: Array<{ original: string; issue: string; better_version: string }>,
+      punctuationFixes: Array<{ original: string; issue: string; better_version: string }>,
+    ) => {
+      const movedToGrammar = punctuationFixes.filter((fix) => grammarIssuePattern.test(fix.issue));
+      const keptPunctuation = punctuationFixes.filter((fix) => !grammarIssuePattern.test(fix.issue));
+      const movedToPunctuation = grammarFixes.filter(
+        (fix) => punctuationIssuePattern.test(fix.issue) && !grammarIssuePattern.test(fix.issue),
+      );
+      const keptGrammar = grammarFixes.filter(
+        (fix) => !(punctuationIssuePattern.test(fix.issue) && !grammarIssuePattern.test(fix.issue)),
+      );
+
+      return {
+        grammar: [...keptGrammar, ...movedToGrammar].slice(0, 5),
+        punctuation: [...keptPunctuation, ...movedToPunctuation].slice(0, 5),
+      };
     };
 
     const normalizePhraseUpgrades = (
@@ -214,14 +239,18 @@ const normalizeAiResult = (mode: Mode, raw: unknown): AiResult | null => {
         .slice(0, 4);
     };
 
+    const normalizedGrammarFixes = normalizeFixes(value.grammar_fixes);
+    const normalizedPunctuationFixes = normalizeFixes(value.punctuation_fixes);
+    const repartitionedFixes = repartitionFixes(normalizedGrammarFixes, normalizedPunctuationFixes);
+
     return {
       task_understanding: typeof value.task_understanding === "string" ? value.task_understanding : "",
       submission_read: typeof value.submission_read === "string" ? value.submission_read : "",
       alignment: normalizedAlignment,
       what_is_working: Array.isArray(value.what_is_working) ? value.what_is_working.map(String) : [],
       what_is_missing: Array.isArray(value.what_is_missing) ? value.what_is_missing.map(String) : [],
-      grammar_fixes: normalizeFixes(value.grammar_fixes),
-      punctuation_fixes: normalizeFixes(value.punctuation_fixes),
+      grammar_fixes: repartitionedFixes.grammar,
+      punctuation_fixes: repartitionedFixes.punctuation,
       natural_phrase_upgrades: normalizePhraseUpgrades(value.natural_phrase_upgrades),
       style_tone_feedback: normalizeStyleTone(value.style_tone_feedback),
       next_move: typeof value.next_move === "string" ? value.next_move : "",
@@ -272,8 +301,8 @@ const buildUserPrompt = (payload: Payload): string => {
       `Student response: ${payload.studentResponse ?? ""}`,
       `Known weaknesses from recent work: ${JSON.stringify(payload.weaknesses ?? [])}`,
       "Return strict JSON only with keys:",
-      '- task_understanding: one short explanation written directly to the student (use "you") about what the task asks',
-      '- submission_read: one short summary written directly to the student about what they actually wrote',
+      '- task_understanding: one short explanation written directly to the student (use "you"), starting with "You were asked to..."',
+      '- submission_read: one short summary written directly to the student about what they actually wrote, including "You answered this by..."',
       '- alignment: exactly one of on_task | partially_on_task | off_topic | too_short | underdeveloped | mostly_correct_but_needs_polish',
       '- what_is_working: 2 evidence-based wins that reference exact student wording when useful',
       '- what_is_missing: 2 evidence-based missing content points that matter most for task completion',
@@ -294,15 +323,22 @@ const buildUserPrompt = (payload: Payload): string => {
       "- Never invent evidence or errors that are not present.",
       "- Separate content/task issues from language issues and style/tone issues.",
       "- Prioritize the most important truth first. If task alignment is weak, say that clearly before language polish.",
+      "- Alignment workflow: decide task coverage first, then decide quality/development.",
       "- Alignment decision logic:",
-      "  - Use on_task when the student answered the task and included all required elements, even if depth/clarity is weak.",
-      "  - Use partially_on_task only when one or more key task elements are missing.",
+      "  - Use on_task when all required task parts are present, even if ideas are brief, weak, or underdeveloped.",
+      "  - Use partially_on_task when at least one required task part is missing, only partly answered, or clearly undercovered.",
       "  - Use off_topic only when the response clearly does not match the assigned task.",
       "  - Use too_short only when there is not enough writing to judge task completion.",
-      "  - Use underdeveloped only when the writing is extremely thin and task completion cannot be confirmed.",
-      "  - For on_task but weak depth, explain: 'You answered the task, but some parts need more development.'",
-      "- In task_understanding, start with 'You were asked to...'.",
-      "- In submission_read, include 'You answered this by...'.",
+      "  - Use underdeveloped only as an explanatory quality judgment, not as a replacement for coverage logic.",
+      "  - Use mostly_correct_but_needs_polish when the task is answered well overall but language/style still needs refinement.",
+      "  - If every required part is present but weakly developed, choose on_task (not partially_on_task) and explain that development is the issue.",
+      "  - Clearly distinguish 'missing task element' from 'present but weakly developed task element'.",
+      "- Grammar and punctuation classification rules:",
+      "  - Put subject-verb agreement, verb tense, plural/singular noun, article, pronoun, word form, and grammatical sentence structure issues in grammar_fixes.",
+      "  - Put commas, periods, apostrophes, quotation punctuation, capitalization conventions, and missing/incorrect punctuation marks in punctuation_fixes.",
+      "  - Do not place grammar issues inside punctuation_fixes just because a corrected sentence also improves punctuation.",
+      "  - If clear grammar issues exist, include them in grammar_fixes and do not claim there are no grammar fixes.",
+      "  - Be conservative and accurate. Do not invent errors.",
       "- what_is_working should sound encouraging and specific, like a coach noticing real wins.",
       "- what_is_missing should sound constructive and revision-focused, not harsh.",
       "- In grammar_fixes issue text, use supportive wording like 'This sentence needs a small grammar fix.' when accurate.",
@@ -315,6 +351,7 @@ const buildUserPrompt = (payload: Payload): string => {
       "- Do not give vague advice like 'be clearer' without naming exactly what to change.",
       "- Write like a smart writing coach texting a student: warm, direct, natural, and academic.",
       "- Use second person ('you') and avoid stiff phrasing such as 'The student wrote' or 'The response demonstrates'.",
+      "- Prefer natural student-facing phrasing such as 'You were asked to...', 'In your answer, you...', 'You included...', and 'You could strengthen this by...'.",
       "- Be encouraging, but honest. Be clear before being polite.",
       "- Vary sentence openings and phrasing to avoid template feel and repetition.",
       "Keep tone supportive, smart, specific, natural, and revision-focused.",
@@ -398,7 +435,7 @@ serve(async (req) => {
           {
             role: "system",
             content:
-              "You are an expert writing coach for Brains Heist students. Sound like a real human coach: supportive, direct, student-friendly, and academically credible. Always address the student as 'you'/'your'. Never use third-person framing like 'the student' or 'the response'. Be clear before polite. Avoid robotic rubric language and repetitive templates. Prioritize the most important truth first. If the answer is off-topic or misaligned, state that clearly and early, avoid over-praising irrelevant content, and redirect to the required task focus. Use evidence from the student's actual words with short snippets where useful. Never invent evidence, grammar mistakes, punctuation mistakes, or style issues. If uncertain, be conservative and name what is missing. Distinguish content/task issues, language issues, and style/tone issues clearly. Keep coaching language natural and actionable. Return strict JSON only. No markdown.",
+              "You are an expert writing coach for Brains Heist students. Sound like a real human coach: supportive, direct, student-friendly, and academically credible. Always address the student as 'you'/'your'. Never use third-person framing like 'the student' or 'the response'. Be clear before polite. Avoid robotic rubric language and repetitive templates. Prioritize the most important truth first. If the answer is off-topic or misaligned, state that clearly and early, avoid over-praising irrelevant content, and redirect to the required task focus. Judge alignment by coverage first (are required task parts present), then quality. If all required parts are present but weak, keep alignment on_task and explain the development gap. Keep grammar fixes and punctuation fixes strictly separated: grammar errors belong in grammar_fixes, punctuation/convention errors belong in punctuation_fixes. Use evidence from the student's actual words with short snippets where useful. Never invent evidence, grammar mistakes, punctuation mistakes, or style issues. If uncertain, be conservative and name what is missing. Distinguish content/task issues, language issues, and style/tone issues clearly. Keep coaching language natural and actionable. Return strict JSON only. No markdown.",
           },
           {
             role: "user",
