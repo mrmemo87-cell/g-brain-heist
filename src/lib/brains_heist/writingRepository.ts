@@ -34,6 +34,12 @@ const ensureNoError = (result: { error: { message: string } | null }, context: s
     throw new Error(`[writingRepository] ${context}: ${result.error.message}`);
   }
 };
+const withStudentBinding = <T extends Record<string, unknown>>(row: T, studentId: string): T => {
+  if (typeof row['student_id'] === 'string') {
+    return { ...row, student_id: studentId };
+  }
+  return row;
+};
 
 export const loadWritingStoreSnapshot = async (): Promise<SerializedWritingPersistenceStore | null> => {
   if (!canUseSupabase()) return null;
@@ -111,8 +117,22 @@ export const loadWritingStoreSnapshot = async (): Promise<SerializedWritingPersi
 export const persistWritingStoreSnapshot = async (snapshot: SerializedWritingPersistenceStore): Promise<void> => {
   if (!canUseSupabase()) return;
 
-  const profiles = snapshot.profiles.map(([student_id, profile]: [string, any]) => ({
-    student_id,
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError) {
+    throw new Error(`[writingRepository] resolve auth user failed: ${authError.message}`);
+  }
+  const activeStudentId = user?.id;
+  if (!activeStudentId) {
+    throw new Error('[writingRepository] persist called without authenticated user.');
+  }
+
+  const profiles = snapshot.profiles
+    .filter(([student_id]) => student_id === activeStudentId)
+    .map(([, profile]: [string, any]) => ({
+    student_id: activeStudentId,
     grade: profile.grade,
     genre: profile.current_genre,
     profile: safe(profile),
@@ -125,6 +145,7 @@ export const persistWritingStoreSnapshot = async (snapshot: SerializedWritingPer
       console.warn(`[writingRepository] Skipping malformed state key during persistence: ${key}`);
       return acc;
     }
+    if (studentId !== activeStudentId) return acc;
     if (!acc[studentId]) acc[studentId] = {};
     acc[studentId][genre] = safe(state);
     return acc;
@@ -141,16 +162,27 @@ export const persistWritingStoreSnapshot = async (snapshot: SerializedWritingPer
   ensureNoError(profilesRes, 'upsert profiles failed');
   ensureNoError(statesRes, 'upsert states failed');
 
+  const bindStudentRows = (rows: unknown[]): unknown[] =>
+    rows
+      .filter((row) => readKey(row, 'student_id') === activeStudentId)
+      .map((row) => (row && typeof row === 'object' ? withStudentBinding(row as Record<string, unknown>, activeStudentId) : row));
+
+  const followups = Object.fromEntries(
+    Object.entries(snapshot.calibrationFollowUpByStudent)
+      .filter(([student_id]) => student_id === activeStudentId)
+      .map(([, payload]) => [activeStudentId, payload])
+  );
+
   await Promise.all([
-    replaceTableByKey('bh_writing_attempts', snapshot.attempts, 'student_id'),
-    replaceTableByKey('bh_writing_weekly_plans', snapshot.weeklyPlans, 'student_id'),
-    replaceTableByKey('bh_writing_daily_tasks', snapshot.dailyTasks, 'student_id'),
-    replaceTableByKey('bh_writing_daily_submissions', snapshot.dailySubmissions, 'student_id'),
-    replaceTableByKey('bh_writing_daily_evaluations', snapshot.dailyEvaluations, 'student_id'),
-    replaceTableByKey('bh_writing_memory_snapshots', snapshot.memorySnapshots, 'student_id'),
+    replaceTableByKey('bh_writing_attempts', bindStudentRows(snapshot.attempts), 'student_id'),
+    replaceTableByKey('bh_writing_weekly_plans', bindStudentRows(snapshot.weeklyPlans), 'student_id'),
+    replaceTableByKey('bh_writing_daily_tasks', bindStudentRows(snapshot.dailyTasks), 'student_id'),
+    replaceTableByKey('bh_writing_daily_submissions', bindStudentRows(snapshot.dailySubmissions), 'student_id'),
+    replaceTableByKey('bh_writing_daily_evaluations', bindStudentRows(snapshot.dailyEvaluations), 'student_id'),
+    replaceTableByKey('bh_writing_memory_snapshots', bindStudentRows(snapshot.memorySnapshots), 'student_id'),
     replaceTableByKey('bh_writing_prompt_bank', snapshot.promptBank, 'id'),
     replaceTableByKey('bh_writing_review_signals', snapshot.reviewSignals, 'id'),
-    replaceFollowups(snapshot.calibrationFollowUpByStudent),
+    replaceFollowups(followups),
   ]);
 };
 
