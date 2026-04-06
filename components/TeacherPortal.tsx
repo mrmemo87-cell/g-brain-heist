@@ -676,9 +676,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setAssignmentQuestionIds([]);
   }, [assignmentSubject]);
 
-  const loadAssignments = async (teacherId?: string) => {
+  const loadAssignments = async () => {
     try {
-      const rows = await GameService.get_teacher_assignments(teacherId);
+      const rows = await GameService.get_teacher_assignments();
       setAssignments(rows);
     } catch (error) {
       console.error('Error loading assignments:', error);
@@ -800,59 +800,28 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const loadCambridgeScores = async () => {
     setCambridgeLoading(true);
     try {
-      // Use school-scoped RPC to get only scores from teacher's school
+      // Use hardened RPC only (no direct table fallback)
       const { data, error } = await supabase.rpc('get_school_cambridge_scores', { p_limit: 500 });
 
       if (error) {
-        // Fallback to direct query if RPC doesn't exist yet (migration not run)
-        console.warn('RPC get_school_cambridge_scores not available, falling back to direct query:', error.message);
-        let query = supabase
-          .from('quiz_scores')
-          .select('*')
-          .order('submitted_at', { ascending: false });
-        
-        // Always scope to own school
-        if (profile.school_id) {
-          query = query.eq('school_id', profile.school_id);
-        }
-        
-        const fallback = await query;
-        if (fallback.error) throw fallback.error;
-        setCambridgeScores(fallback.data || []);
-        calculateCambridgeStats(fallback.data || []);
-        return;
+        throw error;
+      }
+
+      if (!Array.isArray(data)) {
+        throw new Error('Invalid Cambridge scores response from get_school_cambridge_scores');
       }
 
       const scores = data || [];
-      let resolvedScores = scores;
-
-      if (scores.length > 0 && !('scores_released' in scores[0])) {
-        const ids = scores.map((score) => score.id).filter(Boolean);
-        if (ids.length > 0) {
-          const { data: releaseRows, error: releaseError } = await supabase
-            .from('quiz_scores')
-            .select('id, scores_released')
-            .in('id', ids);
-
-          if (!releaseError && releaseRows) {
-            const releaseMap = new Map(releaseRows.map((row) => [row.id, row.scores_released]));
-            resolvedScores = scores.map((score) => ({
-              ...score,
-              scores_released: releaseMap.get(score.id) ?? false,
-            }));
-          } else {
-            resolvedScores = scores.map((score) => ({
-              ...score,
-              scores_released: false,
-            }));
-          }
-        }
-      }
-
-      setCambridgeScores(resolvedScores);
-      calculateCambridgeStats(resolvedScores);
+      setCambridgeScores(scores);
+      calculateCambridgeStats(scores);
     } catch (error) {
       console.error('Failed to fetch Cambridge scores:', error);
+      setCambridgeScores([]);
+      calculateCambridgeStats([]);
+      brainsAlert(
+        'Unable to load Cambridge scores because the secure school-scoped RPC failed. Please contact your admin.',
+        'error'
+      );
     } finally {
       setCambridgeLoading(false);
     }
@@ -1109,35 +1078,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const releaseScores = async (quizName: string, classFilter?: string) => {
     setReleasingScores(true);
     try {
-      // Try using the RPC function first
-      const { data, error } = await supabase.rpc('release_quiz_scores', {
+      const { error } = await supabase.rpc('release_quiz_scores', {
         p_quiz_name: quizName,
         p_class: classFilter || null
       });
 
       if (error) {
-        // Fallback to direct update if RPC doesn't exist
-        console.warn('RPC not available, using direct update:', error.message);
-        let query = supabase
-          .from('quiz_scores')
-          .update({ 
-            scores_released: true, 
-            released_at: new Date().toISOString() 
-          })
-          .eq('quiz_name', quizName)
-          .eq('scores_released', false);
-        
-        // Always scope to own school
-        if (profile.school_id) {
-          query = query.eq('school_id', profile.school_id);
-        }
-        
-        if (classFilter) {
-          query = query.eq('student_class', classFilter);
-        }
-        
-        const { error: updateError } = await query;
-        if (updateError) throw updateError;
+        throw error;
       }
 
       brainsAlert(`Scores for ${quizName}${classFilter ? ` (${classFilter})` : ''} have been released to students.`, 'success');
@@ -1154,35 +1101,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const hideScores = async (quizName: string, classFilter?: string) => {
     setReleasingScores(true);
     try {
-      // Try using the RPC function first
-      const { data, error } = await supabase.rpc('hide_quiz_scores', {
+      const { error } = await supabase.rpc('hide_quiz_scores', {
         p_quiz_name: quizName,
         p_class: classFilter || null
       });
 
       if (error) {
-        // Fallback to direct update if RPC doesn't exist
-        console.warn('RPC not available, using direct update:', error.message);
-        let query = supabase
-          .from('quiz_scores')
-          .update({ 
-            scores_released: false, 
-            released_at: null 
-          })
-          .eq('quiz_name', quizName)
-          .eq('scores_released', true);
-        
-        // Always scope to own school
-        if (profile.school_id) {
-          query = query.eq('school_id', profile.school_id);
-        }
-        
-        if (classFilter) {
-          query = query.eq('student_class', classFilter);
-        }
-        
-        const { error: updateError } = await query;
-        if (updateError) throw updateError;
+        throw error;
       }
 
       brainsAlert(`Scores for ${quizName}${classFilter ? ` (${classFilter})` : ''} are now hidden from students.`, 'success');
@@ -1199,19 +1124,29 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     if (ids.length === 0) return;
     setReleasingScores(true);
     try {
-      let query = supabase
-        .from('quiz_scores')
-        .update({ scores_released: true, released_at: new Date().toISOString() })
-        .in('id', ids);
-      
-      // Defense-in-depth: scope to own school
-      if (profile.school_id) {
-        query = query.eq('school_id', profile.school_id);
+      const selectedRows = cambridgeScores.filter((row) => ids.includes(row.id));
+      if (selectedRows.length === 0) {
+        brainsAlert('No valid attempts selected for release.', 'info');
+        return;
       }
 
-      const { error } = await query;
+      const groupMap = new Map<string, { quizName: string; classFilter?: string }>();
+      selectedRows.forEach((row) => {
+        const classFilter = row.student_class || undefined;
+        const key = `${row.quiz_name}::${classFilter || ''}`;
+        if (!groupMap.has(key)) {
+          groupMap.set(key, { quizName: row.quiz_name, classFilter });
+        }
+      });
 
-      if (error) throw error;
+      for (const group of groupMap.values()) {
+        const { error } = await supabase.rpc('release_quiz_scores', {
+          p_quiz_name: group.quizName,
+          p_class: group.classFilter || null,
+        });
+        if (error) throw error;
+      }
+
       brainsAlert(successMessage, 'success');
       setCambridgeSelectedIds([]);
       loadCambridgeScores();
@@ -2605,23 +2540,20 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       setLoading(true);
       const teacherProfile = await GameService.get_teacher_profile();
       
-      let teacherId: string;
       if (!teacherProfile) {
         // User is not a teacher yet, create profile
         const newTeacher = await GameService.create_teacher_profile();
         setTeacher(newTeacher);
-        teacherId = newTeacher.id;
       } else {
         setTeacher(teacherProfile);
-        teacherId = teacherProfile.id;
       }
 
       // Run independent startup data fetches in parallel to reduce blocking time
       const [classesResult, questionsResult, studentsResult, assignmentsResult] = await Promise.allSettled([
-        SchoolAdminService.getTeacherAssignedClasses(profile.id),
+        SchoolAdminService.getTeacherAssignedClasses(),
         GameService.get_all_questions(),
-        GameService.get_students_for_assignment(teacherId),
-        GameService.get_teacher_assignments(teacherId),
+        GameService.get_students_for_assignment(),
+        GameService.get_teacher_assignments(),
       ]);
 
       if (classesResult.status === 'fulfilled') {
