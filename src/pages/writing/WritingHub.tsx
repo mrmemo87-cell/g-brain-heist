@@ -16,7 +16,8 @@ import {
   submitDailyWritingPractice,
   submitInitialWritingAssessment,
 } from '../../lib/brains_heist/writingIntegrationService.js';
-import { FALLBACK_PROMPT_BY_GENRE } from '../../lib/brains_heist/writingPromptProgression.js';
+import { FALLBACK_PROMPT_BY_GENRE, WEAKNESS_TAG_TO_MISSION_CATEGORY } from '../../lib/brains_heist/writingPromptProgression.js';
+import { quest_get_missions, QuestMissionRow } from '../../../services/gameService.js';
 
 interface WritingHubProps {
   studentId: string;
@@ -61,6 +62,24 @@ interface WritingAiFeedbackAssist {
   weaknesses?: string[];
   next_steps?: string[];
   monthly_report_summary?: string;
+}
+
+interface WritingMissionCategoryMeta {
+  label: string;
+  practiceTitle: string;
+  reasonTemplate: string;
+  keywordHints: string[];
+}
+
+interface WritingMissionRecommendation {
+  weaknessTag: string;
+  weaknessLabel: string;
+  missionCategory: string;
+  missionCategoryLabel: string;
+  title: string;
+  reason: string;
+  source: 'quest' | 'category_fallback';
+  mission?: Pick<QuestMissionRow, 'id' | 'title' | 'subject' | 'difficulty' | 'mission_type'>;
 }
 
 const toAlignmentLabel = (alignment?: WritingAiFeedbackAssist['alignment']): string => {
@@ -251,6 +270,170 @@ const masteryTargetByGenre: Record<SupportedGenre, string> = {
   report: 'Mastery target: Present findings objectively, highlight impact, and recommend one evidence-based action.',
   email: 'Mastery target: Use audience-appropriate tone, clear purpose, and a concise actionable recommendation.',
   paragraph: 'Mastery target: Keep one main idea, strong supporting detail, and precise sentence control.',
+};
+
+const writingMissionCategoryMeta: Record<string, WritingMissionCategoryMeta> = {
+  mission_content_planning: {
+    label: 'Content coverage',
+    practiceTitle: 'Answer every task point mission',
+    reasonTemplate: 'Recommended because your writing needs stronger content coverage.',
+    keywordHints: ['content', 'coverage', 'task', 'plan', 'planning', 'answer'],
+  },
+  mission_content_selection: {
+    label: 'Idea relevance',
+    practiceTitle: 'Keep ideas relevant mission',
+    reasonTemplate: 'Recommended because your writing needs better idea selection.',
+    keywordHints: ['relevant', 'focus', 'select', 'idea', 'content'],
+  },
+  mission_expansion_control: {
+    label: 'Development and detail',
+    practiceTitle: 'Expand with detail mission',
+    reasonTemplate: 'Recommended because your writing needs more developed detail.',
+    keywordHints: ['develop', 'detail', 'expand', 'elaborate', 'length'],
+  },
+  mission_tone_shift: {
+    label: 'Tone control',
+    practiceTitle: 'Audience tone mission',
+    reasonTemplate: 'Recommended because your writing tone needs to match the audience.',
+    keywordHints: ['tone', 'audience', 'formal', 'informal', 'register'],
+  },
+  mission_register_shift: {
+    label: 'Register control',
+    practiceTitle: 'Right register mission',
+    reasonTemplate: 'Recommended because your wording needs better register control.',
+    keywordHints: ['register', 'formal', 'style', 'audience'],
+  },
+  mission_genre_conventions: {
+    label: 'Genre conventions',
+    practiceTitle: 'Genre structure mission',
+    reasonTemplate: 'Recommended because your response needs stronger genre conventions.',
+    keywordHints: ['genre', 'format', 'structure', 'convention'],
+  },
+  mission_audience_targeting: {
+    label: 'Audience awareness',
+    practiceTitle: 'Audience targeting mission',
+    reasonTemplate: 'Recommended because your writing should target the reader more clearly.',
+    keywordHints: ['audience', 'reader', 'purpose', 'tone'],
+  },
+  mission_paragraph_build: {
+    label: 'Paragraph structure',
+    practiceTitle: 'Paragraph structure mission',
+    reasonTemplate: 'Recommended because your paragraph structure needs improvement.',
+    keywordHints: ['paragraph', 'organize', 'structure', 'topic sentence'],
+  },
+  mission_idea_ordering: {
+    label: 'Sequencing',
+    practiceTitle: 'Idea ordering mission',
+    reasonTemplate: 'Recommended because your ideas need clearer sequencing.',
+    keywordHints: ['sequence', 'order', 'flow', 'organization', 'linking'],
+  },
+  mission_linking_upgrade: {
+    label: 'Linking and cohesion',
+    practiceTitle: 'Linking words mission',
+    reasonTemplate: 'Recommended because your linking and cohesion need work.',
+    keywordHints: ['link', 'cohesion', 'connectors', 'transition'],
+  },
+  mission_flow_variation: {
+    label: 'Flow variation',
+    practiceTitle: 'Sentence flow mission',
+    reasonTemplate: 'Recommended because your writing flow needs more variation.',
+    keywordHints: ['flow', 'variety', 'sentence', 'rhythm'],
+  },
+  mission_grammar_repair: {
+    label: 'Grammar control',
+    practiceTitle: 'Grammar repair mission',
+    reasonTemplate: 'Recommended because grammar accuracy is a current weakness.',
+    keywordHints: ['grammar', 'tense', 'verb', 'agreement', 'accuracy'],
+  },
+  mission_sentence_clarity: {
+    label: 'Sentence clarity',
+    practiceTitle: 'Clear sentence mission',
+    reasonTemplate: 'Recommended because sentence clarity needs improvement.',
+    keywordHints: ['sentence', 'clarity', 'fragment', 'run-on', 'edit'],
+  },
+  mission_vocabulary_precision: {
+    label: 'Vocabulary precision',
+    practiceTitle: 'Precise vocabulary mission',
+    reasonTemplate: 'Recommended because word choice needs more precision.',
+    keywordHints: ['vocabulary', 'word choice', 'precise', 'language'],
+  },
+  mission_language_accuracy: {
+    label: 'Language accuracy',
+    practiceTitle: 'Language accuracy mission',
+    reasonTemplate: 'Recommended because language accuracy is still a blocker.',
+    keywordHints: ['spelling', 'punctuation', 'accuracy', 'edit'],
+  },
+};
+
+const normalizeMissionText = (value: string | null | undefined): string =>
+  (value ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
+
+const scoreQuestMissionForCategory = (mission: QuestMissionRow, categoryMeta: WritingMissionCategoryMeta): number => {
+  const subject = normalizeMissionText(mission.subject);
+  const corpus = `${normalizeMissionText(mission.title)} ${normalizeMissionText(mission.description)} ${normalizeMissionText(mission.code)}`;
+  const writingSubjectSignals = ['english', 'writing', 'language', 'grammar', 'reading'];
+  const subjectBoost = writingSubjectSignals.some((signal) => subject.includes(signal)) ? 6 : 0;
+  const keywordHits = categoryMeta.keywordHints.reduce((count, keyword) => (corpus.includes(keyword) ? count + 1 : count), 0);
+  return subjectBoost + keywordHits;
+};
+
+const buildWritingMissionRecommendations = (input: {
+  rankedWeaknessTags: string[];
+  questMissions: QuestMissionRow[];
+}): WritingMissionRecommendation[] => {
+  const recommendations: WritingMissionRecommendation[] = [];
+  const usedMissionIds = new Set<string>();
+  const usedCategories = new Set<string>();
+
+  for (const weaknessTag of input.rankedWeaknessTags) {
+    const category = WEAKNESS_TAG_TO_MISSION_CATEGORY[weaknessTag as keyof typeof WEAKNESS_TAG_TO_MISSION_CATEGORY];
+    if (!category || usedCategories.has(category)) continue;
+    const categoryMeta = writingMissionCategoryMeta[category];
+    if (!categoryMeta) continue;
+
+    const bestMission = [...input.questMissions]
+      .filter((mission) => !usedMissionIds.has(mission.id))
+      .map((mission) => ({ mission, score: scoreQuestMissionForCategory(mission, categoryMeta) }))
+      .filter((item) => item.score > 0)
+      .sort((a, b) => b.score - a.score)[0]?.mission;
+
+    const weaknessLabel = weaknessTag.replaceAll('_', ' ');
+    if (bestMission) {
+      recommendations.push({
+        weaknessTag,
+        weaknessLabel,
+        missionCategory: category,
+        missionCategoryLabel: categoryMeta.label,
+        title: bestMission.title,
+        reason: `${categoryMeta.reasonTemplate} Focus area: ${weaknessLabel}.`,
+        source: 'quest',
+        mission: {
+          id: bestMission.id,
+          title: bestMission.title,
+          subject: bestMission.subject,
+          difficulty: bestMission.difficulty,
+          mission_type: bestMission.mission_type,
+        },
+      });
+      usedMissionIds.add(bestMission.id);
+      usedCategories.add(category);
+    } else {
+      recommendations.push({
+        weaknessTag,
+        weaknessLabel,
+        missionCategory: category,
+        missionCategoryLabel: categoryMeta.label,
+        title: categoryMeta.practiceTitle,
+        reason: `${categoryMeta.reasonTemplate} Focus area: ${weaknessLabel}.`,
+        source: 'category_fallback',
+      });
+      usedCategories.add(category);
+    }
+
+    if (recommendations.length >= 3) break;
+  }
+
+  return recommendations.slice(0, 3);
 };
 
 const toStudentLabel = (text: string): string => {
@@ -469,6 +652,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   const [isGenreSwitching, setIsGenreSwitching] = useState(false);
   const [showTaskTypeGuide, setShowTaskTypeGuide] = useState(false);
   const [showTaskContextModal, setShowTaskContextModal] = useState(false);
+  const [questMissions, setQuestMissions] = useState<QuestMissionRow[]>([]);
   const initializing = hydrationStatus === 'idle' || hydrationStatus === 'loading';
 
   const dashboard = useMemo(() => buildWritingDashboardSnapshot(studentId, month, activeGenre), [studentId, month, activeGenre, feedback]);
@@ -499,6 +683,21 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   const latestWeaknessTags = stateRes.ok && stateRes.data?.latest_assessment
     ? stateRes.data.latest_assessment.weakness_tags.slice(0, 3)
     : [];
+  const repeatedTagCounts = stateRes.ok && stateRes.data
+    ? stateRes.data.repeated_error_memory.byStudent[studentId]?.tagCounts ?? {}
+    : {};
+  const weeklyRemainingWeaknessTags = weeklyReview.ok && weeklyReview.data
+    ? weeklyReview.data.weekly_review_summary.top_remaining_weaknesses
+    : [];
+  const rankedWeaknessTags = useMemo(() => {
+    const scoreByTag = new Map<string, number>();
+    latestWeaknessTags.forEach((tag, index) => scoreByTag.set(tag, (scoreByTag.get(tag) ?? 0) + (9 - index)));
+    weeklyRemainingWeaknessTags.forEach((tag, index) => scoreByTag.set(tag, (scoreByTag.get(tag) ?? 0) + (6 - index)));
+    Object.entries(repeatedTagCounts).forEach(([tag, count]) => {
+      if (typeof count === 'number' && count > 0) scoreByTag.set(tag, (scoreByTag.get(tag) ?? 0) + count * 4);
+    });
+    return [...scoreByTag.entries()].sort((a, b) => b[1] - a[1]).map(([tag]) => tag).slice(0, 5);
+  }, [latestWeaknessTags.join('|'), weeklyRemainingWeaknessTags.join('|'), JSON.stringify(repeatedTagCounts)]);
   const latestWeaknesses = latestWeaknessTags.map((tag) => tag.replaceAll('_', ' '));
   const firstAttemptAssessment = hubSnapshot.ok ? hubSnapshot.data?.first_attempt_assessment ?? null : null;
   const latestAssessment = stateRes.ok ? stateRes.data?.latest_assessment ?? null : null;
@@ -517,6 +716,10 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   const focusCoachingPoints = (aiCoachingPoints.length > 0
     ? aiCoachingPoints.slice(0, 3)
     : latestWeaknessTags.slice(0, 3).map((tag) => weaknessTagToStudentTip(tag))).slice(0, 3);
+  const missionRecommendations = useMemo(
+    () => buildWritingMissionRecommendations({ rankedWeaknessTags, questMissions }),
+    [rankedWeaknessTags.join('|'), questMissions]
+  );
   const monthlySubscaleDeltas = parseSubscaleProgress(monthlyReport.data?.student_facing_monthly_report.subscale_progress ?? []);
   const subscaleCards = [
     { key: 'content', label: 'Content', score: progressAssessment?.subscores.content ?? null, delta: monthlySubscaleDeltas['content'] },
@@ -688,6 +891,25 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
       cancelled = true;
     };
   }, [studentId, month, stateRes.ok, stateRes.data?.latest_assessment?.total_score, activeGenre, promptText]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const hasWeaknessSignal = rankedWeaknessTags.length > 0;
+    if (!hasWeaknessSignal) {
+      setQuestMissions([]);
+      return;
+    }
+    void quest_get_missions()
+      .then((rows) => {
+        if (!cancelled) setQuestMissions(Array.isArray(rows) ? rows : []);
+      })
+      .catch(() => {
+        if (!cancelled) setQuestMissions([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [rankedWeaknessTags.join('|')]);
 
   const loadRichFeedback = async (
     submissionText: string,
@@ -1471,6 +1693,44 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                     <span style={{ ...sectionLabelPillStyle, color: '#d8b4fe', borderColor: 'rgba(192, 132, 252, 0.35)' }}>Optional support</span>
                   </div>
                   <h3 style={{ margin: '0 0 8px', fontSize: 21, color: '#f8fafc' }}>Deep guides & references</h3>
+                  {missionRecommendations.length > 0 && (
+                    <div style={{ marginBottom: 12, borderRadius: 12, border: '1px solid rgba(196, 181, 253, 0.45)', background: 'rgba(30, 27, 75, 0.35)', padding: 10 }}>
+                      <p style={{ margin: '0 0 6px', color: '#d8b4fe', fontSize: 12, fontWeight: 800, letterSpacing: 0.2 }}>RECOMMENDED PRACTICE MISSIONS</p>
+                      <div style={{ display: 'grid', gap: 8 }}>
+                        {missionRecommendations.map((item, index) => (
+                          <div key={`${item.missionCategory}-${item.title}-${index}`} style={{ borderRadius: 10, border: '1px solid rgba(147, 197, 253, 0.35)', background: 'rgba(15, 23, 42, 0.52)', padding: 9 }}>
+                            <p style={{ margin: 0, color: '#f8fafc', fontSize: 14, fontWeight: 700 }}>{item.title}</p>
+                            <p style={{ margin: '3px 0 0', color: '#bfdbfe', fontSize: 12 }}>
+                              {item.missionCategoryLabel}
+                              {item.mission?.difficulty ? ` · ${item.mission.difficulty}` : ''}
+                              {item.source === 'category_fallback' ? ' · Practice card' : ' · Mission'}
+                            </p>
+                            <p style={{ margin: '6px 0 0', color: '#e2e8f0', fontSize: 13 }}>{item.reason}</p>
+                            <button
+                              type="button"
+                              onClick={() => setUiNotice(item.source === 'quest'
+                                ? `Recommended mission ready: ${item.title}. Open Quest mode to start it.`
+                                : `Practice this skill next: ${item.missionCategoryLabel}.`
+                              )}
+                              style={{
+                                marginTop: 7,
+                                padding: '7px 10px',
+                                borderRadius: 8,
+                                border: '1px solid rgba(167, 139, 250, 0.5)',
+                                background: 'rgba(76, 29, 149, 0.35)',
+                                color: '#ddd6fe',
+                                fontWeight: 700,
+                                fontSize: 12,
+                                cursor: 'pointer',
+                              }}
+                            >
+                              {item.source === 'quest' ? 'Start mission' : 'Practice this skill'}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <p style={{ margin: '0 0 8px', color: '#bfdbfe', fontSize: 14 }}>{masteryTargetByGenre[activeGenre]}</p>
                   <p style={{ margin: '0 0 8px', color: '#e2e8f0', fontSize: 14 }}>
                     Target score range: {estimatedTargetRange ? `${estimatedTargetRange.low}–${estimatedTargetRange.high} / 20` : 'Will appear after first scoring'}
