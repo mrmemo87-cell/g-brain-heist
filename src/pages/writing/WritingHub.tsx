@@ -1511,16 +1511,14 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                   <details style={{ border: '1px solid rgba(168, 85, 247, 0.35)', borderRadius: 10, padding: 10, background: 'rgba(30,27,75,0.3)' }}>
                     <summary style={{ cursor: 'pointer', color: '#ddd6fe', fontWeight: 700 }}>Open task + starter context</summary>
                     <div className="focus-grid" style={{ marginTop: 10 }}>
-                      <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.4)', minHeight: 80, whiteSpace: 'pre-wrap' }}>
+                      <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.4)', minHeight: 80 }}>
                         <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Original prompt</p>
-                        <p style={{ margin: 0, fontSize: 13 }}>{originalPromptText ?? promptText}</p>
+                        <p style={{ margin: 0, fontSize: 13, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{originalPromptText ?? promptText}</p>
                       </div>
                       <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.4)', minHeight: 80 }}>
                         <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Your first attempt</p>
-                        <p style={{ margin: 0, fontSize: 14, color: '#e2e8f0' }}>
-                          {firstAttemptSubmission
-                            ? `${firstAttemptSubmission.slice(0, 170)}${firstAttemptSubmission.length > 170 ? '…' : ''}`
-                            : 'Your first response is saved and used as your starting point.'}
+                        <p style={{ margin: 0, fontSize: 14, color: '#e2e8f0', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+                          {firstAttemptSubmission || 'Your first response is saved and used as your starting point.'}
                         </p>
                       </div>
                     </div>
