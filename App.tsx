@@ -145,6 +145,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [academicError, setAcademicError] = useState<string | null>(null);
   const [attackAlert, setAttackAlert] = useState(false);
   const [pvpFocusTargetUserId, setPvpFocusTargetUserId] = useState<string | null>(null);
+  const [pendingQuestMissionId, setPendingQuestMissionId] = useState<string | null>(null);
   const attackAlertTimeoutRef = useRef<number | null>(null);
   const lastRewardedLevelRef = useRef<number | null>(null);
   const cachedDataLoadedRef = useRef(false);
@@ -1765,6 +1766,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                 refreshAssignment={() => refreshAssignment()}
                 avatarUrl={profile?.avatar_url ?? undefined}
                 viewerRole={profile?.is_admin ? 'admin' : profile?.role}
+                openMissionId={pendingQuestMissionId}
+                onOpenMissionHandled={() => setPendingQuestMissionId(null)}
               />
             );
         case 'pvp':
@@ -1903,6 +1906,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                       studentId={profile?.id ?? 'student'}
                       grade={profile?.grade ?? 8}
                       genre="essay"
+                      onOpenQuestMission={(missionId?: string) => {
+                        setPendingQuestMissionId(missionId ?? null);
+                        handleViewChange('quest');
+                      }}
                     />
                   </Suspense>
               </div>
