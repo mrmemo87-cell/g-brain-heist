@@ -217,6 +217,9 @@ const replaceFollowups = async (
 
 export const persistMonthlyWritingReport = async (report: unknown): Promise<void> => {
   if (!canUseSupabase()) return;
-  const insertRes = await supabase.from('bh_writing_monthly_reports').insert({ payload: safe(report) });
-  ensureNoError(insertRes, 'insert bh_writing_monthly_reports failed');
+  const safeReport = safe(report);
+  const upsertRes = await supabase
+    .from('bh_writing_monthly_reports')
+    .upsert({ payload: safeReport }, { onConflict: 'student_id,month' });
+  ensureNoError(upsertRes, 'upsert bh_writing_monthly_reports failed');
 };

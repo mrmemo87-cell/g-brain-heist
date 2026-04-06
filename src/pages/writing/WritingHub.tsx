@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   getCurrentWeeklyPlan,
   getStudentGenrePathStatuses,
@@ -24,6 +25,7 @@ interface WritingHubProps {
   grade: number;
   genre: 'email' | 'article' | 'review' | 'story' | 'essay' | 'report' | 'paragraph';
   month?: string;
+  onOpenQuestMission?: (missionId?: string) => void;
 }
 type SupportedGenre = WritingHubProps['genre'];
 
@@ -629,7 +631,7 @@ const estimateWeeklyTargetScoreRange = (
   };
 };
 
-export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre, month = new Date().toISOString().slice(0, 7) }) => {
+export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre, month = new Date().toISOString().slice(0, 7), onOpenQuestMission }) => {
   const [activeGenre, setActiveGenre] = useState<SupportedGenre>(genre);
   const [promptText, setPromptText] = useState(defaultPromptByGenre[genre]);
   const [targetWordCount] = useState(grade <= 7 ? 80 : grade <= 9 ? 120 : 160);
@@ -721,6 +723,17 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     [rankedWeaknessTags.join('|'), questMissions]
   );
   const monthlySubscaleDeltas = parseSubscaleProgress(monthlyReport.data?.student_facing_monthly_report.subscale_progress ?? []);
+  const communicativeAchievementScore = (() => {
+    const directScore = progressAssessment?.subscores.communicative_achievement;
+    if (directScore != null) return directScore;
+    const totalScore = progressAssessment?.total_score;
+    const content = progressAssessment?.subscores.content;
+    const organisation = progressAssessment?.subscores.organisation;
+    const language = progressAssessment?.subscores.language;
+    if (totalScore == null || content == null || organisation == null || language == null) return null;
+    const inferred = Number((totalScore - content - organisation - language).toFixed(1));
+    return Number.isFinite(inferred) ? Math.max(0, Math.min(5, inferred)) : null;
+  })();
   const subscaleCards = [
     { key: 'content', label: 'Content', score: progressAssessment?.subscores.content ?? null, delta: monthlySubscaleDeltas['content'] },
     { key: 'organisation', label: 'Organisation', score: progressAssessment?.subscores.organisation ?? null, delta: monthlySubscaleDeltas['organisation'] },
@@ -728,7 +741,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
     {
       key: 'communicative_achievement',
       label: 'Communicative Achievement',
-      score: progressAssessment?.subscores.communicative_achievement ?? null,
+      score: communicativeAchievementScore,
       delta: monthlySubscaleDeltas['communicative_achievement'],
     },
   ];
@@ -1500,7 +1513,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                     <details style={{ border: '1px solid rgba(244, 114, 182, 0.35)', borderRadius: 10, padding: 10, background: 'rgba(30,27,75,0.35)' }}>
                       <summary style={{ cursor: 'pointer', color: '#f9a8d4', fontWeight: 700 }}>Grammar fixes</summary>
                       <div style={{ marginTop: 8 }}>
-                        {Array.isArray(aiFeedbackDetails.grammar_fixes) && aiFeedbackDetails.grammar_fixes.length > 0 ? aiFeedbackDetails.grammar_fixes.map((item, idx) => (
+                        {Array.isArray(aiFeedbackDetails?.grammar_fixes) && aiFeedbackDetails.grammar_fixes.length > 0 ? aiFeedbackDetails.grammar_fixes.map((item, idx) => (
                           <div key={`grammar-${idx}`} style={{ marginBottom: 8 }}>
                             <p style={{ margin: 0, color: '#e2e8f0' }}><strong>Original:</strong> “{item.original}”</p>
                             <p style={{ margin: 0, color: '#cbd5e1' }}><strong>Issue:</strong> {item.issue}</p>
@@ -1513,7 +1526,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                     <details style={{ border: '1px solid rgba(250, 204, 21, 0.35)', borderRadius: 10, padding: 10, background: 'rgba(51, 65, 85, 0.45)' }}>
                       <summary style={{ cursor: 'pointer', color: '#fde68a', fontWeight: 700 }}>Punctuation fixes</summary>
                       <div style={{ marginTop: 8 }}>
-                        {Array.isArray(aiFeedbackDetails.punctuation_fixes) && aiFeedbackDetails.punctuation_fixes.length > 0 ? aiFeedbackDetails.punctuation_fixes.map((item, idx) => (
+                        {Array.isArray(aiFeedbackDetails?.punctuation_fixes) && aiFeedbackDetails.punctuation_fixes.length > 0 ? aiFeedbackDetails.punctuation_fixes.map((item, idx) => (
                           <div key={`punctuation-${idx}`} style={{ marginBottom: 8 }}>
                             <p style={{ margin: 0, color: '#e2e8f0' }}><strong>Original:</strong> “{item.original}”</p>
                             <p style={{ margin: 0, color: '#cbd5e1' }}><strong>Issue:</strong> {item.issue}</p>
@@ -1526,7 +1539,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                     <details style={{ border: '1px solid rgba(167, 139, 250, 0.35)', borderRadius: 10, padding: 10, background: 'rgba(30,27,75,0.35)' }}>
                       <summary style={{ cursor: 'pointer', color: '#c4b5fd', fontWeight: 700 }}>Better natural phrases</summary>
                       <div style={{ marginTop: 8 }}>
-                        {Array.isArray(aiFeedbackDetails.natural_phrase_upgrades) && aiFeedbackDetails.natural_phrase_upgrades.length > 0 ? aiFeedbackDetails.natural_phrase_upgrades.map((item, idx) => (
+                        {Array.isArray(aiFeedbackDetails?.natural_phrase_upgrades) && aiFeedbackDetails.natural_phrase_upgrades.length > 0 ? aiFeedbackDetails.natural_phrase_upgrades.map((item, idx) => (
                           <div key={`phrase-${idx}`} style={{ marginBottom: 8 }}>
                             <p style={{ margin: 0, color: '#e2e8f0' }}><strong>Original:</strong> “{item.original}”</p>
                             <p style={{ margin: 0, color: '#a7f3d0' }}><strong>Upgrade:</strong> {item.better_version}</p>
@@ -1670,6 +1683,49 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                       </div>
 
                       <p style={{ margin: 0, color: '#bfdbfe' }}>Main focus: {toStudentLabel(dashboard.data?.weekly_plan_summary?.primary ?? 'Not set yet')}</p>
+                      <details style={{ border: '1px solid rgba(148, 163, 184, 0.3)', borderRadius: 10, padding: 10, background: 'rgba(2, 6, 23, 0.45)' }}>
+                        <summary style={{ cursor: 'pointer', color: '#93c5fd', fontWeight: 700 }}>Grammar, punctuation & style details</summary>
+                        <div style={{ marginTop: 8, display: 'grid', gap: 8 }}>
+                          <details style={{ border: '1px solid rgba(244, 114, 182, 0.35)', borderRadius: 10, padding: 8, background: 'rgba(30,27,75,0.35)' }}>
+                            <summary style={{ cursor: 'pointer', color: '#f9a8d4', fontWeight: 700 }}>Grammar fixes</summary>
+                            <div style={{ marginTop: 8 }}>
+                              {(aiFeedbackDetails?.grammar_fixes?.length ?? 0) > 0 ? (aiFeedbackDetails?.grammar_fixes ?? []).map((item, idx) => (
+                                <div key={`progress-grammar-${idx}`} style={{ marginBottom: 8 }}>
+                                  <p style={{ margin: 0, color: '#e2e8f0' }}><strong>Original:</strong> “{item.original}”</p>
+                                  <p style={{ margin: 0, color: '#cbd5e1' }}><strong>Issue:</strong> {item.issue}</p>
+                                  <p style={{ margin: 0, color: '#a7f3d0' }}><strong>Better:</strong> {item.better_version}</p>
+                                </div>
+                              )) : <p style={{ margin: 0, color: '#94a3b8' }}>No grammar fixes were flagged in this pass.</p>}
+                            </div>
+                          </details>
+
+                          <details style={{ border: '1px solid rgba(250, 204, 21, 0.35)', borderRadius: 10, padding: 8, background: 'rgba(51, 65, 85, 0.45)' }}>
+                            <summary style={{ cursor: 'pointer', color: '#fde68a', fontWeight: 700 }}>Punctuation fixes</summary>
+                            <div style={{ marginTop: 8 }}>
+                              {(aiFeedbackDetails?.punctuation_fixes?.length ?? 0) > 0 ? (aiFeedbackDetails?.punctuation_fixes ?? []).map((item, idx) => (
+                                <div key={`progress-punctuation-${idx}`} style={{ marginBottom: 8 }}>
+                                  <p style={{ margin: 0, color: '#e2e8f0' }}><strong>Original:</strong> “{item.original}”</p>
+                                  <p style={{ margin: 0, color: '#cbd5e1' }}><strong>Issue:</strong> {item.issue}</p>
+                                  <p style={{ margin: 0, color: '#a7f3d0' }}><strong>Better:</strong> {item.better_version}</p>
+                                </div>
+                              )) : <p style={{ margin: 0, color: '#94a3b8' }}>No punctuation fixes were flagged in this pass.</p>}
+                            </div>
+                          </details>
+
+                          <details style={{ border: '1px solid rgba(167, 139, 250, 0.35)', borderRadius: 10, padding: 8, background: 'rgba(30,27,75,0.35)' }}>
+                            <summary style={{ cursor: 'pointer', color: '#c4b5fd', fontWeight: 700 }}>Natural phrase upgrades</summary>
+                            <div style={{ marginTop: 8 }}>
+                              {(aiFeedbackDetails?.natural_phrase_upgrades?.length ?? 0) > 0 ? (aiFeedbackDetails?.natural_phrase_upgrades ?? []).map((item, idx) => (
+                                <div key={`progress-phrase-${idx}`} style={{ marginBottom: 8 }}>
+                                  <p style={{ margin: 0, color: '#e2e8f0' }}><strong>Original:</strong> “{item.original}”</p>
+                                  <p style={{ margin: 0, color: '#a7f3d0' }}><strong>Upgrade:</strong> {item.better_version}</p>
+                                  <p style={{ margin: 0, color: '#cbd5e1' }}><strong>Why:</strong> {item.why_it_helps}</p>
+                                </div>
+                              )) : <p style={{ margin: 0, color: '#94a3b8' }}>No phrase upgrades were flagged in this pass.</p>}
+                            </div>
+                          </details>
+                        </div>
+                      </details>
                       {!showMonthlyEvidence ? (
                         <p style={{ margin: 0, color: '#94a3b8' }}>Complete more writing this month to unlock your growth view.</p>
                       ) : (
@@ -1708,10 +1764,15 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                             <p style={{ margin: '6px 0 0', color: '#e2e8f0', fontSize: 13 }}>{item.reason}</p>
                             <button
                               type="button"
-                              onClick={() => setUiNotice(item.source === 'quest'
-                                ? `Recommended mission ready: ${item.title}. Open Quest mode to start it.`
-                                : `Practice this skill next: ${item.missionCategoryLabel}.`
-                              )}
+                              onClick={() => {
+                                if (item.source === 'quest') {
+                                  onOpenQuestMission?.(item.mission?.id);
+                                  setUiNotice(`Opening mission: ${item.title}`);
+                                  return;
+                                }
+                                onOpenQuestMission?.();
+                                setUiNotice(`Practice this skill next: ${item.missionCategoryLabel}.`);
+                              }}
                               style={{
                                 marginTop: 7,
                                 padding: '7px 10px',
@@ -1958,7 +2019,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
         </>
       )}
 
-      {showTaskContextModal && (
+      {showTaskContextModal && createPortal((
         <div
           role="dialog"
           aria-modal="true"
@@ -2043,7 +2104,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
             </div>
           </div>
         </div>
-      )}
+      ), document.body)}
     </div>
   );
 };

@@ -163,9 +163,13 @@ interface QuestViewProps {
   refreshAssignment?: () => Promise<void> | void;
   /** User's avatar URL for the in-game avatar token */
   avatarUrl?: string;
+  /** Optional mission id to open directly from another view (e.g. writing hub recommendations). */
+  openMissionId?: string | null;
+  /** Called after we consume openMissionId so parent can clear it. */
+  onOpenMissionHandled?: () => void;
 }
 
-const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initialAssignment, refreshAssignment, avatarUrl, viewerRole = 'student' }) => {
+const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initialAssignment, refreshAssignment, avatarUrl, viewerRole = 'student', openMissionId, onOpenMissionHandled }) => {
   const [stage, setStage] = useState<QuestStage>('loading');
   const [mode, setMode] = useState<QuestMode>('practice');
   const [subjects, setSubjects] = useState<SubjectData[]>([]);
@@ -271,6 +275,20 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     }
     setSelectedMissionZone((prev) => (prev && zones.includes(prev) ? prev : zones[0]));
   }, [availableMissions]);
+
+  useEffect(() => {
+    if (!openMissionId) return;
+    if (missionsLoading) return;
+    const mission = availableMissions.find((candidate) => candidate.id === openMissionId);
+    if (mission) {
+      setSelectedMission(mission);
+      setSelectedMissionZone(mission.subject || 'Training Zone');
+      setStage('mission_preview');
+    } else if (availableMissions.length > 0) {
+      brainsAlert('That mission is no longer available. Please pick another mission card.', 'info');
+    }
+    onOpenMissionHandled?.();
+  }, [openMissionId, missionsLoading, availableMissions, onOpenMissionHandled]);
 
   const resolveDifficulty = (questionLike: Question | TeacherQuestion): SoloDifficulty => {
     const difficultyValue = (questionLike as TeacherQuestion).difficulty ?? (questionLike as Question).difficulty;
