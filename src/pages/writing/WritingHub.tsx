@@ -468,6 +468,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   const [isRefreshingProgress, setIsRefreshingProgress] = useState(false);
   const [isGenreSwitching, setIsGenreSwitching] = useState(false);
   const [showTaskTypeGuide, setShowTaskTypeGuide] = useState(false);
+  const [showTaskContextModal, setShowTaskContextModal] = useState(false);
   const initializing = hydrationStatus === 'idle' || hydrationStatus === 'loading';
 
   const dashboard = useMemo(() => buildWritingDashboardSnapshot(studentId, month, activeGenre), [studentId, month, activeGenre, feedback]);
@@ -576,6 +577,15 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
   useEffect(() => {
     setShowTaskTypeGuide(false);
   }, [activeGenre, todayTask.ok, todayTask.data?.task_type]);
+
+  useEffect(() => {
+    if (!showTaskContextModal) return;
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setShowTaskContextModal(false);
+    };
+    window.addEventListener('keydown', onEscape);
+    return () => window.removeEventListener('keydown', onEscape);
+  }, [showTaskContextModal]);
 
   useEffect(() => {
     if (!isAnalyzingRichFeedback) {
@@ -1508,21 +1518,22 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
                       </ul>
                     </div>
                   )}
-                  <details style={{ border: '1px solid rgba(168, 85, 247, 0.35)', borderRadius: 10, padding: 10, background: 'rgba(30,27,75,0.3)' }}>
-                    <summary style={{ cursor: 'pointer', color: '#ddd6fe', fontWeight: 700 }}>Open task + starter context</summary>
-                    <div className="focus-grid" style={{ marginTop: 10 }}>
-                      <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.4)', minHeight: 80 }}>
-                        <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Original prompt</p>
-                        <p style={{ margin: 0, fontSize: 13, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{originalPromptText ?? promptText}</p>
-                      </div>
-                      <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.4)', minHeight: 80 }}>
-                        <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Your first attempt</p>
-                        <p style={{ margin: 0, fontSize: 14, color: '#e2e8f0', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
-                          {firstAttemptSubmission || 'Your first response is saved and used as your starting point.'}
-                        </p>
-                      </div>
-                    </div>
-                  </details>
+                  <button
+                    type="button"
+                    onClick={() => setShowTaskContextModal(true)}
+                    style={{
+                      margin: 0,
+                      padding: '10px 12px',
+                      borderRadius: 10,
+                      border: '1px solid rgba(168, 85, 247, 0.45)',
+                      background: 'rgba(30, 27, 75, 0.45)',
+                      color: '#ddd6fe',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Open task + starter context
+                  </button>
                 </section>
               </div>
             </>
@@ -1685,6 +1696,93 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
             </section>
           )}
         </>
+      )}
+
+      {showTaskContextModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Task and first attempt"
+          onClick={() => setShowTaskContextModal(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1100,
+            display: 'grid',
+            placeItems: 'center',
+            background: 'rgba(2, 6, 23, 0.72)',
+            padding: 16,
+          }}
+        >
+          <div
+            onClick={(event: { stopPropagation: () => void }) => event.stopPropagation()}
+            style={{
+              width: 'min(980px, 100%)',
+              maxHeight: 'calc(100vh - 32px)',
+              borderRadius: 16,
+              border: '1px solid rgba(125, 211, 252, 0.35)',
+              background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)',
+              boxShadow: '0 24px 50px rgba(2, 6, 23, 0.6)',
+              padding: 14,
+              overflow: 'auto',
+              display: 'grid',
+              gap: 12,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+              <p style={{ margin: 0, color: '#dbeafe', fontSize: 16, fontWeight: 800 }}>Task + first attempt context</p>
+              <button
+                type="button"
+                onClick={() => setShowTaskContextModal(false)}
+                aria-label="Close task context modal"
+                style={{
+                  borderRadius: 999,
+                  border: '1px solid rgba(148, 163, 184, 0.45)',
+                  background: 'rgba(15, 23, 42, 0.7)',
+                  color: '#e2e8f0',
+                  width: 32,
+                  height: 32,
+                  fontSize: 18,
+                  lineHeight: '18px',
+                  cursor: 'pointer',
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <div className="focus-grid" style={{ gap: 12 }}>
+              <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.46)', minHeight: 200 }}>
+                <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Original prompt</p>
+                <p style={{ margin: 0, fontSize: 14, color: '#e2e8f0', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+                  {originalPromptText ?? promptText}
+                </p>
+              </div>
+              <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.46)', minHeight: 200 }}>
+                <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Your first attempt</p>
+                <p style={{ margin: 0, fontSize: 14, color: '#e2e8f0', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+                  {firstAttemptSubmission || 'Your first response is saved and used as your starting point.'}
+                </p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => setShowTaskContextModal(false)}
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: 10,
+                  border: '1px solid rgba(148, 163, 184, 0.45)',
+                  background: 'rgba(15, 23, 42, 0.78)',
+                  color: '#e2e8f0',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
