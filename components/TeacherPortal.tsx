@@ -3642,6 +3642,101 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     const successRate = myQuestions.length > 0
       ? Math.round((myQuestions.reduce((sum, q) => sum + (q.times_correct || 0), 0) / Math.max(totalResponses, 1)) * 100)
       : 0;
+    const pendingWriting = cambridgeScores.filter(
+      (score) => WRITING_TEST_NAMES.includes(score.quiz_name) && score.answers?.requires_marking
+    ).length;
+    const studentsWithoutClass = availableStudents.filter((student) => !student.batch).length;
+
+    const classHealthRows = myClasses.map((classCode) => {
+      const classStudents = availableStudents.filter((student) => student.batch === classCode);
+      const classAssignments = assignments.filter((assignment) => assignment.batch === classCode);
+      const totalAssigned = classAssignments.reduce((sum, assignment) => sum + (assignment.student_count || 0), 0);
+      const totalCompleted = classAssignments.reduce((sum, assignment) => sum + (assignment.completed_count || 0), 0);
+      const completionRate = totalAssigned > 0 ? Math.round((totalCompleted / totalAssigned) * 100) : 0;
+
+      const classCambridgeScores = cambridgeScores.filter((score) => (score.student_class || 'Unknown') === classCode);
+      const averageScore = classCambridgeScores.length > 0
+        ? Math.round(classCambridgeScores.reduce((sum, score) => sum + (score.percentage || 0), 0) / classCambridgeScores.length)
+        : null;
+
+      return {
+        classCode,
+        studentCount: classStudents.length,
+        assignmentsInProgress: classAssignments.filter((assignment) => assignment.completed_count < assignment.student_count).length,
+        completionRate,
+        averageScore,
+      };
+    }).sort((a, b) => a.completionRate - b.completionRate);
+
+    const lowCompletionClasses = classHealthRows.filter((row) => row.completionRate > 0 && row.completionRate < 60);
+
+    const studentRiskMap = new Map<string, { name: string; batch: string; reasons: string[]; riskScore: number }>();
+    const markRisk = (studentId: string, name: string, batch: string, reason: string, weight: number) => {
+      const existing = studentRiskMap.get(studentId);
+      if (existing) {
+        existing.riskScore += weight;
+        if (!existing.reasons.includes(reason)) existing.reasons.push(reason);
+        return;
+      }
+      studentRiskMap.set(studentId, { name, batch, reasons: [reason], riskScore: weight });
+    };
+
+    availableStudents.forEach((student) => {
+      if (!student.batch) {
+        markRisk(student.id, student.display_name || student.username, 'Unassigned', 'Not mapped to a class/batch yet', 4);
+      }
+    });
+
+    lowCompletionClasses.forEach((row) => {
+      availableStudents
+        .filter((student) => student.batch === row.classCode)
+        .forEach((student) => {
+          markRisk(
+            student.id,
+            student.display_name || student.username,
+            student.batch || 'Unknown',
+            `${row.classCode} completion is ${row.completionRate}%`,
+            2
+          );
+        });
+    });
+
+    cambridgeScores
+      .filter((score) => Number(score.percentage || 0) < 60)
+      .forEach((score) => {
+        const matchedStudent = availableStudents.find((student) => student.username === score.student_name || student.display_name === score.student_name);
+        if (!matchedStudent) return;
+        markRisk(
+          matchedStudent.id,
+          matchedStudent.display_name || matchedStudent.username,
+          matchedStudent.batch || score.student_class || 'Unknown',
+          `Low Cambridge score (${score.percentage}%) on ${score.quiz_name}`,
+          3
+        );
+      });
+
+    const atRiskStudents = Array.from(studentRiskMap.values())
+      .sort((a, b) => b.riskScore - a.riskScore)
+      .slice(0, 6);
+
+    const topIssues: string[] = [];
+    if (!teacherHasClassAssignments) topIssues.push('No class assignments are configured for this teacher account.');
+    if (lowCompletionClasses.length > 0) topIssues.push(`${lowCompletionClasses.length} class(es) are below 60% assignment completion.`);
+    if (studentsWithoutClass > 0) topIssues.push(`${studentsWithoutClass} student(s) have no class/batch mapping.`);
+    if (successRate > 0 && successRate < 65) topIssues.push(`Question bank success rate is ${successRate}% (below target).`);
+    if (pendingWriting > 0) topIssues.push(`${pendingWriting} Cambridge writing submission(s) still need marking.`);
+
+    const recommendedActions = [
+      lowCompletionClasses.length > 0
+        ? `Run a catch-up check with ${lowCompletionClasses[0].classCode} and review missed assignment blockers.`
+        : 'Keep assignment momentum by scheduling the next formative check this week.',
+      pendingWriting > 0
+        ? 'Open Cambridge Tests and clear pending writing to unlock score release.'
+        : 'Review Cambridge trends and release marked scores to students.',
+      studentsWithoutClass > 0
+        ? 'Coordinate with school admin to map unassigned students into classes.'
+        : 'Use Reports to target the bottom-performing students with a custom assignment.',
+    ];
 
     const priorityItems = [
       activeAssignments > 0 ? `Review ${activeAssignments} assignment${activeAssignments > 1 ? 's' : ''} still in progress.` : 'No pending assignments — great pacing today.',
@@ -3894,6 +3989,96 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           ) : (
             <p className="text-sm text-slate-500">No critical alerts right now.</p>
           )}
+        </div>
+      </div>
+
+      <div className="teacher-dashboard-grid teacher-dashboard-grid-bottom">
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>🩺</span> Class Health Dashboard
+          </h3>
+          {classHealthRows.length === 0 ? (
+            <p className="text-sm text-slate-500">No class health data yet. Class metrics will appear after assignments and submissions.</p>
+          ) : (
+            <div className="teacher-table-container">
+              <table className="teacher-table">
+                <thead>
+                  <tr>
+                    <th>Class</th>
+                    <th style={{ textAlign: 'center' }}>Students</th>
+                    <th style={{ textAlign: 'center' }}>In Progress</th>
+                    <th style={{ textAlign: 'center' }}>Completion</th>
+                    <th style={{ textAlign: 'center' }}>Avg Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {classHealthRows.map((row) => (
+                    <tr key={row.classCode}>
+                      <td style={{ fontWeight: 600 }}>{row.classCode}</td>
+                      <td style={{ textAlign: 'center' }}>{row.studentCount}</td>
+                      <td style={{ textAlign: 'center' }}>{row.assignmentsInProgress}</td>
+                      <td style={{ textAlign: 'center' }}>
+                        <span className={`teacher-badge ${row.completionRate >= 75 ? 'success' : row.completionRate >= 50 ? 'warning' : 'danger'}`}>
+                          {row.completionRate}%
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'center' }}>{row.averageScore !== null ? `${row.averageScore}%` : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>🧯</span> At-Risk Students
+          </h3>
+          {atRiskStudents.length === 0 ? (
+            <p className="text-sm text-slate-500">No high-risk students detected from current submissions.</p>
+          ) : (
+            <ul className="space-y-3">
+              {atRiskStudents.map((student, index) => (
+                <li key={`${student.name}-${index}`} className="rounded-lg border border-red-200 bg-red-50 p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="font-semibold text-red-800">{student.name}</div>
+                    <span className="text-xs text-red-700">{student.batch}</span>
+                  </div>
+                  <p className="text-xs text-red-700 mt-1">{student.reasons[0]}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+
+      <div className="teacher-dashboard-grid teacher-dashboard-grid-bottom">
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>⚠️</span> Top Issues
+          </h3>
+          {topIssues.length === 0 ? (
+            <p className="text-sm text-slate-500">No major issues detected right now.</p>
+          ) : (
+            <ul className="teacher-alert-list">
+              {topIssues.map((issue, index) => (
+                <li key={index} className="teacher-alert-item warning">
+                  {issue}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>✅</span> Recommended Actions
+          </h3>
+          <ul className="teacher-priority-list">
+            {recommendedActions.map((action, index) => (
+              <li key={index}>{action}</li>
+            ))}
+          </ul>
         </div>
       </div>
 
