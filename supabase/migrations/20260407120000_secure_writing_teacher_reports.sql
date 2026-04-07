@@ -89,11 +89,13 @@ $$;
 
 -- Tighten profile/state policies to scoped teacher/student access.
 drop policy if exists "bh writing profile self select" on public.bh_writing_student_profiles;
+drop policy if exists "bh writing profile scoped select" on public.bh_writing_student_profiles;
 create policy "bh writing profile scoped select" on public.bh_writing_student_profiles
 for select
 using (public.can_access_bh_writing_student(student_id) or student_id = auth.uid());
 
 drop policy if exists "bh writing profile self upsert" on public.bh_writing_student_profiles;
+drop policy if exists "bh writing profile scoped upsert" on public.bh_writing_student_profiles;
 create policy "bh writing profile scoped upsert" on public.bh_writing_student_profiles
 for all
 using (
@@ -114,6 +116,7 @@ with check (
 );
 
 drop policy if exists "bh writing states self" on public.bh_writing_student_states;
+drop policy if exists "bh writing states scoped" on public.bh_writing_student_states;
 create policy "bh writing states scoped" on public.bh_writing_student_states
 for all
 using (
