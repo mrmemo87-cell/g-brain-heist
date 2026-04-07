@@ -76,13 +76,13 @@ begin
       select
         r.student_id,
         u.username as student_name,
-        coalesce((sp.profile->>'grade')::int, u.grade) as grade,
+        coalesce((sp.profile->>'grade')::int, nullif(u.grade::text, '')::int) as grade,
         ss.state as state_json
       from roster r
       join public.users u on u.id = r.student_id
       left join public.bh_writing_student_profiles sp on sp.student_id = r.student_id
       left join public.bh_writing_student_states ss on ss.student_id = r.student_id
-      where (p_grade is null or coalesce((sp.profile->>'grade')::int, u.grade) = p_grade)
+      where (p_grade is null or coalesce((sp.profile->>'grade')::int, nullif(u.grade::text, '')::int) = p_grade)
         and (
           v_genre is null
           or coalesce(sp.profile->>'current_genre', sp.profile->>'genre', ss.state->>'current_genre') = v_genre
@@ -230,7 +230,7 @@ begin
       select
         r.student_id,
         coalesce(u.username, 'Student') as student_name,
-        coalesce((sp.profile->>'grade')::int, u.grade) as grade
+        coalesce((sp.profile->>'grade')::int, nullif(u.grade::text, '')::int) as grade
       from roster r
       join public.users u on u.id = r.student_id
       left join public.bh_writing_student_profiles sp on sp.student_id = r.student_id

@@ -440,7 +440,7 @@ begin
     'student', jsonb_build_object(
       'student_id', v_student.student_id,
       'student_name', coalesce(v_student.student_name, 'Student'),
-      'grade', coalesce((v_profile->>'grade')::int, v_student.student_grade),
+      'grade', coalesce((v_profile->>'grade')::int, nullif(v_student.student_grade::text, '')::int),
       'class_id', v_student.class_id,
       'class_name', coalesce(v_student.class_name, v_student.class_code, 'Unassigned')
     ),
