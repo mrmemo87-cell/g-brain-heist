@@ -2079,6 +2079,7 @@ export interface TeacherWritingReport {
   latest_evaluation: Record<string, unknown>;
   monthly_summary: Record<string, unknown>;
   teacher_actions: string[];
+  calibration_follow_up_flag: boolean;
   evidence_snippet: string | null;
   student_friendly_summary: {
     strengths: string[];
@@ -2087,6 +2088,58 @@ export interface TeacherWritingReport {
     next_steps: string[];
   };
 }
+
+export const mapCalibrationCaseToTeacherReport = (
+  c: WritingCalibrationCase,
+  month: string,
+  genre: SupportedGenre = 'essay'
+): TeacherWritingReport => {
+  const topTargets = c.latest_assessment?.weakness_tags?.slice(0, 3) ?? [];
+  const strengths = c.latest_assessment
+    ? [`Recent score: ${c.latest_assessment.total_score}.`, 'Keep building consistency on successful task responses.']
+    : ['Shows persistence with writing practice tasks.'];
+  const teacherActions = topTargets.length
+    ? [`Focus mini-lesson on: ${topTargets.slice(0, 2).join(', ')}.`, 'Assign one short targeted rewrite task this week.']
+    : ['Continue current weekly plan and monitor progress trend.'];
+  const nextSteps = topTargets.length
+    ? topTargets.map((tag) => `Practice target: ${tag}`)
+    : ['Complete the next two daily writing tasks to unlock clearer trend data.'];
+
+  return {
+    report_type: 'teacher_writing_report',
+    generated_at: new Date().toISOString(),
+    period: month,
+    student: {
+      student_id: c.student_id,
+      student_name: c.student_name,
+      grade: c.grade,
+      class_id: null,
+      class_name: 'Unassigned',
+    },
+    genre,
+    overall_summary: {
+      latest_score: c.latest_assessment?.total_score ?? null,
+      score_trend_delta: null,
+      completion_rate_percent: 0,
+      completed_tasks: c.latest_practice_evaluations.length,
+      total_tasks: c.generated_daily_tasks.length,
+    },
+    strengths,
+    priority_weak_areas: c.latest_assessment?.weakness_tags ?? [],
+    repeated_error_patterns: c.latest_assessment?.weakness_tags ?? [],
+    latest_evaluation: (c.latest_practice_evaluations[0]?.evaluation as unknown as Record<string, unknown>) ?? {},
+    monthly_summary: (c.monthly_report_snapshot?.report as unknown as Record<string, unknown>) ?? {},
+    teacher_actions: teacherActions,
+    calibration_follow_up_flag: c.calibration_follow_up_flag,
+    evidence_snippet: null,
+    student_friendly_summary: {
+      strengths: strengths.slice(0, 2),
+      top_improvement_targets: topTargets,
+      progress_summary: c.monthly_report_snapshot?.report.score_change ?? 'Keep going.',
+      next_steps: nextSteps,
+    },
+  };
+};
 
 export const getTeacherWritingReport = async (input: {
   student_id: string;
@@ -2129,12 +2182,17 @@ const isNodeTestRuntime = (): boolean => {
   }
 };
 
-export const getTeacherMonitoringOverviewScoped = async (month = new Date().toISOString().slice(0, 7)): Promise<ServiceResponse<WritingMonitoringOverview>> => {
+export const getTeacherMonitoringOverviewScoped = async (
+  month = new Date().toISOString().slice(0, 7),
+  filters?: { grade?: number; genre?: SupportedGenre }
+): Promise<ServiceResponse<WritingMonitoringOverview>> => {
   if (isNodeTestRuntime()) return getWritingMonitoringOverview(month);
   try {
     const { supabase } = await import('../../../services/supabaseClient.js');
     const { data, error } = await supabase.rpc('rpc_bh_writing_teacher_monitoring', {
       p_month: month,
+      p_grade: filters?.grade ?? null,
+      p_genre: filters?.genre ?? null,
     });
     if (error || !data) return badRequest(error?.message ?? 'Unable to load scoped teacher monitoring.');
     return ok(data as WritingMonitoringOverview);
@@ -2143,12 +2201,17 @@ export const getTeacherMonitoringOverviewScoped = async (month = new Date().toIS
   }
 };
 
-export const getTeacherAnalyticsDashboardScoped = async (month = new Date().toISOString().slice(0, 7)): Promise<ServiceResponse<WritingAnalyticsDashboard>> => {
-  if (isNodeTestRuntime()) return getWritingAnalyticsDashboard();
+export const getTeacherAnalyticsDashboardScoped = async (
+  month = new Date().toISOString().slice(0, 7),
+  filters?: { grade?: number; genre?: SupportedGenre }
+): Promise<ServiceResponse<WritingAnalyticsDashboard>> => {
+  if (isNodeTestRuntime()) return getWritingAnalyticsDashboard({ grade: filters?.grade, genre: filters?.genre });
   try {
     const { supabase } = await import('../../../services/supabaseClient.js');
     const { data, error } = await supabase.rpc('rpc_bh_writing_teacher_analytics', {
       p_month: month,
+      p_grade: filters?.grade ?? null,
+      p_genre: filters?.genre ?? null,
     });
     if (error || !data) return badRequest(error?.message ?? 'Unable to load scoped teacher analytics.');
     return ok(data as WritingAnalyticsDashboard);
@@ -2197,40 +2260,13 @@ export const getTeacherStudentSummaryScoped = async (input: {
   if (isNodeTestRuntime()) {
     const calibration = getWritingCalibrationCase(input.student_id, input.month, input.genre);
     if (!calibration.ok || !calibration.data) return badRequest(calibration.error ?? 'No student summary available.');
-    const c = calibration.data;
-    return ok({
-      report_type: 'teacher_writing_report',
-      generated_at: new Date().toISOString(),
-      period: input.month ?? new Date().toISOString().slice(0, 7),
-      student: {
-        student_id: c.student_id,
-        student_name: c.student_name,
-        grade: c.grade,
-        class_id: null,
-        class_name: 'Unassigned',
-      },
-      genre: input.genre ?? 'essay',
-      overall_summary: {
-        latest_score: c.latest_assessment?.total_score ?? null,
-        score_trend_delta: null,
-        completion_rate_percent: 0,
-        completed_tasks: c.latest_practice_evaluations.length,
-        total_tasks: c.generated_daily_tasks.length,
-      },
-      strengths: [],
-      priority_weak_areas: c.latest_assessment?.weakness_tags ?? [],
-      repeated_error_patterns: c.latest_assessment?.weakness_tags ?? [],
-      latest_evaluation: (c.latest_practice_evaluations[0]?.evaluation as unknown as Record<string, unknown>) ?? {},
-      monthly_summary: (c.monthly_report_snapshot?.report as unknown as Record<string, unknown>) ?? {},
-      teacher_actions: [],
-      evidence_snippet: null,
-      student_friendly_summary: {
-        strengths: [],
-        top_improvement_targets: c.latest_assessment?.weakness_tags?.slice(0, 3) ?? [],
-        progress_summary: c.monthly_report_snapshot?.report.score_change ?? 'Keep going.',
-        next_steps: [],
-      },
-    });
+    return ok(
+      mapCalibrationCaseToTeacherReport(
+        calibration.data,
+        input.month ?? new Date().toISOString().slice(0, 7),
+        input.genre ?? 'essay'
+      )
+    );
   }
   return getTeacherWritingReport(input);
 };

@@ -42,7 +42,10 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
   useEffect(() => {
     if (isTestRuntime) return;
     let cancelled = false;
-    void Promise.all([getTeacherAnalyticsDashboardScoped(), getTeacherMonitoringOverviewScoped()]).then(([dashRes, monitorRes]) => {
+    void Promise.all([
+      getTeacherAnalyticsDashboardScoped(undefined, { grade: gradeFilter, genre: genreFilter }),
+      getTeacherMonitoringOverviewScoped(undefined, { grade: gradeFilter, genre: genreFilter }),
+    ]).then(([dashRes, monitorRes]) => {
       if (cancelled) return;
       if (!dashRes.ok || !dashRes.data) {
         setDashboard(null);

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getTeacherStudentSummaryScoped, TeacherWritingReport, getWritingCalibrationCase } from '../../lib/brains_heist/writingIntegrationService.js';
+import { getTeacherStudentSummaryScoped, TeacherWritingReport, getWritingCalibrationCase, mapCalibrationCaseToTeacherReport } from '../../lib/brains_heist/writingIntegrationService.js';
 import { parseAdminDrilldownFilters } from '../../lib/brains_heist/writingAdminFilters.js';
 import { WRITING_ADMIN_HELP } from '../../lib/brains_heist/writingAdminHelp.js';
 
@@ -31,39 +31,7 @@ export const WritingCalibrationReview: React.FC<WritingCalibrationReviewProps> =
   const seededLegacy = isTestRuntime ? getWritingCalibrationCase(studentId, month) : null;
   const seededSummary: TeacherWritingReport | null =
     seededLegacy && seededLegacy.ok && seededLegacy.data
-      ? {
-          report_type: 'teacher_writing_report',
-          generated_at: new Date().toISOString(),
-          period: month,
-          student: {
-            student_id: seededLegacy.data.student_id,
-            student_name: seededLegacy.data.student_name,
-            grade: seededLegacy.data.grade,
-            class_id: null,
-            class_name: 'Unassigned',
-          },
-          genre: 'essay',
-          overall_summary: {
-            latest_score: seededLegacy.data.latest_assessment?.total_score ?? null,
-            score_trend_delta: null,
-            completion_rate_percent: 0,
-            completed_tasks: seededLegacy.data.latest_practice_evaluations.length,
-            total_tasks: seededLegacy.data.generated_daily_tasks.length,
-          },
-          strengths: [],
-          priority_weak_areas: seededLegacy.data.latest_assessment?.weakness_tags ?? [],
-          repeated_error_patterns: seededLegacy.data.latest_assessment?.weakness_tags ?? [],
-          latest_evaluation: (seededLegacy.data.latest_practice_evaluations[0]?.evaluation as unknown as Record<string, unknown>) ?? {},
-          monthly_summary: (seededLegacy.data.monthly_report_snapshot?.report as unknown as Record<string, unknown>) ?? {},
-          teacher_actions: [],
-          evidence_snippet: null,
-          student_friendly_summary: {
-            strengths: [],
-            top_improvement_targets: seededLegacy.data.latest_assessment?.weakness_tags?.slice(0, 3) ?? [],
-            progress_summary: seededLegacy.data.monthly_report_snapshot?.report.score_change ?? 'Keep going.',
-            next_steps: [],
-          },
-        }
+      ? mapCalibrationCaseToTeacherReport(seededLegacy.data, month, 'essay')
       : null;
 
   const [summary, setSummary] = useState<TeacherWritingReport | null>(seededSummary);
@@ -119,7 +87,7 @@ export const WritingCalibrationReview: React.FC<WritingCalibrationReviewProps> =
         {filters.weakness_tag ? <div>Filtered weakness focus: {filters.weakness_tag}</div> : null}
         <div>
           Calibration follow-up:{' '}
-          {seededLegacy?.ok && seededLegacy.data?.calibration_follow_up_flag ? 'Flagged' : 'Not flagged'}
+          {summary.calibration_follow_up_flag ? 'Flagged' : 'Not flagged'}
         </div>
         <div>Completion rate: {summary.overall_summary.completion_rate_percent}%</div>
         {assessment && Object.keys(assessment).length > 0 ? (

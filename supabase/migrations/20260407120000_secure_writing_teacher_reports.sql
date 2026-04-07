@@ -117,13 +117,50 @@ with check (
 
 drop policy if exists "bh writing states self" on public.bh_writing_student_states;
 drop policy if exists "bh writing states scoped" on public.bh_writing_student_states;
-create policy "bh writing states scoped" on public.bh_writing_student_states
-for all
+drop policy if exists "bh writing states scoped select" on public.bh_writing_student_states;
+create policy "bh writing states scoped select" on public.bh_writing_student_states
+for select
 using (
   student_id = auth.uid()
   or public.can_access_bh_writing_student(student_id)
+);
+
+drop policy if exists "bh writing states scoped write" on public.bh_writing_student_states;
+create policy "bh writing states scoped write" on public.bh_writing_student_states
+for insert
+with check (
+  student_id = auth.uid()
+  or exists (
+    select 1 from public.users u
+    where u.id = auth.uid()
+      and (coalesce(u.is_admin, false) or u.role in ('admin', 'school_admin'))
+  )
+);
+
+drop policy if exists "bh writing states scoped update" on public.bh_writing_student_states;
+create policy "bh writing states scoped update" on public.bh_writing_student_states
+for update
+using (
+  student_id = auth.uid()
+  or exists (
+    select 1 from public.users u
+    where u.id = auth.uid()
+      and (coalesce(u.is_admin, false) or u.role in ('admin', 'school_admin'))
+  )
 )
 with check (
+  student_id = auth.uid()
+  or exists (
+    select 1 from public.users u
+    where u.id = auth.uid()
+      and (coalesce(u.is_admin, false) or u.role in ('admin', 'school_admin'))
+  )
+);
+
+drop policy if exists "bh writing states scoped delete" on public.bh_writing_student_states;
+create policy "bh writing states scoped delete" on public.bh_writing_student_states
+for delete
+using (
   student_id = auth.uid()
   or exists (
     select 1 from public.users u
@@ -209,6 +246,8 @@ as $$
 declare
   v_month text := coalesce(nullif(trim(p_month), ''), to_char(now(), 'YYYY-MM'));
   v_genre text := nullif(trim(p_genre), '');
+  v_actor record;
+  v_authorized_class_id uuid := null;
   v_student record;
   v_profile jsonb := '{}'::jsonb;
   v_state jsonb := '{}'::jsonb;
@@ -225,6 +264,7 @@ declare
   v_top_tags text[] := '{}';
   v_strengths text[] := '{}';
   v_actions text[] := '{}';
+  v_follow_up_flag boolean := false;
   v_snippet text := null;
 begin
   if auth.uid() is null then
@@ -233,6 +273,30 @@ begin
 
   if not public.can_access_bh_writing_student(p_student_id) then
     raise exception 'Forbidden: teacher is not authorized for this student';
+  end if;
+
+  select
+    u.role,
+    coalesce(u.is_admin, false) as is_admin,
+    u.school_id
+  into v_actor
+  from public.users u
+  where u.id = auth.uid();
+
+  if coalesce(v_actor.role, '') = 'teacher' and coalesce(v_actor.is_admin, false) = false then
+    select cta.class_id
+    into v_authorized_class_id
+    from public.class_teacher_assignments cta
+    join public.class_students cs
+      on cs.class_id = cta.class_id
+     and cs.student_id = p_student_id
+    join public.classes c
+      on c.id = cta.class_id
+     and c.school_id = v_actor.school_id
+    where cta.teacher_user_id = auth.uid()
+      and coalesce(cta.active, true) = true
+    order by cta.class_id
+    limit 1;
   end if;
 
   select
@@ -247,6 +311,7 @@ begin
   left join public.class_students cs on cs.student_id = u.id
   left join public.classes c on c.id = cs.class_id
   where u.id = p_student_id
+    and (v_authorized_class_id is null or cs.class_id = v_authorized_class_id)
   order by c.created_at desc nulls last
   limit 1;
 
@@ -264,21 +329,21 @@ begin
 
   select ds.payload into v_latest_attempt
   from public.bh_writing_attempts ds
-  where (ds.payload->>'student_id')::uuid = p_student_id
+  where (coalesce(ds.payload->>'student_id', ds.payload->>'user_id'))::uuid = p_student_id
     and (v_genre is null or ds.payload->>'genre' = v_genre)
   order by ds.created_at desc
   limit 1;
 
   select de.payload into v_latest_eval
   from public.bh_writing_daily_evaluations de
-  where (de.payload->>'student_id')::uuid = p_student_id
+  where (coalesce(de.payload->>'student_id', de.payload->>'user_id'))::uuid = p_student_id
     and (v_genre is null or de.payload->>'genre' = v_genre)
   order by de.created_at desc
   limit 1;
 
   select mr.payload into v_monthly
   from public.bh_writing_monthly_reports mr
-  where (mr.payload->>'student_id')::uuid = p_student_id
+  where (coalesce(mr.payload->>'student_id', mr.payload->>'user_id'))::uuid = p_student_id
     and (v_genre is null or mr.payload->>'genre' = v_genre)
     and coalesce(mr.payload->>'month', '') = v_month
   order by mr.created_at desc
@@ -299,7 +364,7 @@ begin
       (a.payload->'assessment'->>'total_score')::numeric as total_score,
       a.created_at
     from public.bh_writing_attempts a
-    where (a.payload->>'student_id')::uuid = p_student_id
+    where (coalesce(a.payload->>'student_id', a.payload->>'user_id'))::uuid = p_student_id
       and (v_genre is null or a.payload->>'genre' = v_genre)
       and a.payload ? 'assessment'
     order by a.created_at desc
@@ -357,6 +422,13 @@ begin
     case when v_trend is not null and v_trend < 0 then 'Review recent regressions and reteach the current weekly target before increasing difficulty.' end
   ], null) into v_actions;
 
+  select coalesce((cf.payload->>'flagged')::boolean, false)
+  into v_follow_up_flag
+  from public.bh_writing_calibration_followups cf
+  where cf.student_id = p_student_id
+  order by cf.updated_at desc
+  limit 1;
+
   if p_include_snippet and v_latest_attempt is not null then
     v_snippet := left(coalesce(v_latest_attempt->>'student_submission', ''), 180);
   end if;
@@ -386,13 +458,14 @@ begin
     'latest_evaluation', coalesce(v_latest_eval->'evaluation', '{}'::jsonb),
     'monthly_summary', coalesce(v_monthly->'report', '{}'::jsonb),
     'teacher_actions', to_jsonb(coalesce(v_actions, '{}'::text[])),
+    'calibration_follow_up_flag', coalesce(v_follow_up_flag, false),
     'evidence_snippet', v_snippet,
     'student_friendly_summary', jsonb_build_object(
       'strengths', to_jsonb(v_strengths),
       'top_improvement_targets', to_jsonb(v_weaknesses[1:3]),
       'progress_summary', case
         when v_trend is null then 'Keep going. Your writing progress will be clearer after more submissions.'
-        when v_trend >= 0 then format('Nice momentum: your recent score trend is %+s.', v_trend)
+        when v_trend >= 0 then format('Nice momentum: your recent score trend is %s%s.', '+', v_trend::text)
         else format('You can recover quickly: recent trend is %s, so focus on the top targets this week.', v_trend)
       end,
       'next_steps', to_jsonb(coalesce(v_actions, '{}'::text[]))

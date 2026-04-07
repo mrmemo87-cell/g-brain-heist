@@ -85,7 +85,7 @@ For each student, Writing Hub currently stores:
 ### Grading/feedback
 - Assessment object: subscores (content/communicative/organisation/language), total score, band justifications, detected/missed content points, weakness tags, priorities.
 - Daily evaluation object: completion status, recommended next action, target skill score, detected weakness/improvement tags.
-- AI rich feedback object for initial and daily coaching: alignment, fixes, strengths/weaknesses, next steps, monthly summary sentence.
+- AI-rich feedback object for initial and daily coaching: alignment, fixes, strengths/weaknesses, next steps, monthly summary sentence.
 
 ### Analytics/reporting
 - Monthly report comparison + student-facing report + next month recommendations.

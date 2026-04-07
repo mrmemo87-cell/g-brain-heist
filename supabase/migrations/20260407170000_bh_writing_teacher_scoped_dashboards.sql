@@ -48,7 +48,12 @@ $$;
 comment on function public.bh_writing_allowed_students()
   is 'Returns roster-scoped writing student ids for current actor (admin/school_admin/teacher).';
 
-create or replace function public.rpc_bh_writing_teacher_monitoring(p_month text default null)
+drop function if exists public.rpc_bh_writing_teacher_monitoring(text);
+create or replace function public.rpc_bh_writing_teacher_monitoring(
+  p_month text default null,
+  p_grade int default null,
+  p_genre text default null
+)
 returns jsonb
 language plpgsql
 security definer
@@ -56,6 +61,7 @@ set search_path = public
 as $$
 declare
   v_month text := coalesce(nullif(trim(p_month), ''), to_char(now(), 'YYYY-MM'));
+  v_genre text := nullif(trim(p_genre), '');
 begin
   if auth.uid() is null then
     raise exception 'Not authenticated';
@@ -76,19 +82,20 @@ begin
       join public.users u on u.id = r.student_id
       left join public.bh_writing_student_profiles sp on sp.student_id = r.student_id
       left join public.bh_writing_student_states ss on ss.student_id = r.student_id
+      where (p_grade is null or coalesce((sp.profile->>'grade')::int, u.grade) = p_grade)
+        and (
+          v_genre is null
+          or coalesce(sp.profile->>'current_genre', sp.profile->>'genre', ss.state->>'current_genre') = v_genre
+        )
     ),
     latest_scores as (
-      select
-        (a.payload->>'student_id')::uuid as student_id,
-        max((a.payload->'assessment'->>'total_score')::numeric) filter (where a.created_at = max(a.created_at) over (partition by (a.payload->>'student_id')::uuid)) as latest_score
+      select distinct on ((coalesce(a.payload->>'student_id', a.payload->>'user_id'))::uuid)
+        (coalesce(a.payload->>'student_id', a.payload->>'user_id'))::uuid as student_id,
+        (a.payload->'assessment'->>'total_score')::numeric as latest_score
       from public.bh_writing_attempts a
-      where (a.payload->>'student_id')::uuid in (select student_id from roster)
-      group by (a.payload->>'student_id')::uuid, a.created_at, a.payload
-    ),
-    reduced_scores as (
-      select student_id, max(latest_score) as latest_score
-      from latest_scores
-      group by student_id
+      where (coalesce(a.payload->>'student_id', a.payload->>'user_id'))::uuid in (select student_id from roster)
+        and (v_genre is null or a.payload->>'genre' = v_genre)
+      order by (coalesce(a.payload->>'student_id', a.payload->>'user_id'))::uuid, a.created_at desc
     ),
     rows as (
       select
@@ -109,7 +116,7 @@ begin
           '{}'::text[]
         ) as weakness_hotspots
       from state_rows sr
-      left join reduced_scores rs on rs.student_id = sr.student_id
+      left join latest_scores rs on rs.student_id = sr.student_id
     )
     select jsonb_build_object(
       'student_rows', coalesce(jsonb_agg(
@@ -137,7 +144,12 @@ begin
 end;
 $$;
 
-create or replace function public.rpc_bh_writing_teacher_analytics(p_month text default null)
+drop function if exists public.rpc_bh_writing_teacher_analytics(text);
+create or replace function public.rpc_bh_writing_teacher_analytics(
+  p_month text default null,
+  p_grade int default null,
+  p_genre text default null
+)
 returns jsonb
 language plpgsql
 security definer
@@ -146,7 +158,7 @@ as $$
 declare
   monitor jsonb;
 begin
-  monitor := public.rpc_bh_writing_teacher_monitoring(p_month);
+  monitor := public.rpc_bh_writing_teacher_monitoring(p_month, p_grade, p_genre);
 
   return (
     with rows as (
@@ -213,7 +225,6 @@ begin
     with roster as (
       select s.student_id
       from public.bh_writing_allowed_students() s
-      limit greatest(coalesce(p_limit, 50), 1)
     ),
     rows as (
       select
@@ -223,6 +234,8 @@ begin
       from roster r
       join public.users u on u.id = r.student_id
       left join public.bh_writing_student_profiles sp on sp.student_id = r.student_id
+      order by coalesce(u.username, 'Student'), r.student_id
+      limit greatest(coalesce(p_limit, 50), 1)
     )
     select coalesce(jsonb_agg(
       jsonb_build_object(
@@ -257,7 +270,7 @@ as $$
           'latest_score', case when row ? 'latest_score' then (row->>'latest_score')::numeric else null end
         )
       )
-      from jsonb_array_elements(coalesce(public.rpc_bh_writing_teacher_monitoring(p_month)->'student_rows', '[]'::jsonb)) row
+      from jsonb_array_elements(coalesce(public.rpc_bh_writing_teacher_monitoring(p_month, null, null)->'student_rows', '[]'::jsonb)) row
     ),
     '[]'::jsonb
   );
@@ -293,11 +306,11 @@ $$;
 revoke all on function public.bh_writing_allowed_students() from public, anon;
 grant execute on function public.bh_writing_allowed_students() to authenticated;
 
-revoke all on function public.rpc_bh_writing_teacher_monitoring(text) from public, anon;
-grant execute on function public.rpc_bh_writing_teacher_monitoring(text) to authenticated;
+revoke all on function public.rpc_bh_writing_teacher_monitoring(text, int, text) from public, anon;
+grant execute on function public.rpc_bh_writing_teacher_monitoring(text, int, text) to authenticated;
 
-revoke all on function public.rpc_bh_writing_teacher_analytics(text) from public, anon;
-grant execute on function public.rpc_bh_writing_teacher_analytics(text) to authenticated;
+revoke all on function public.rpc_bh_writing_teacher_analytics(text, int, text) from public, anon;
+grant execute on function public.rpc_bh_writing_teacher_analytics(text, int, text) to authenticated;
 
 revoke all on function public.rpc_bh_writing_teacher_calibration_queue(text, int) from public, anon;
 grant execute on function public.rpc_bh_writing_teacher_calibration_queue(text, int) to authenticated;
