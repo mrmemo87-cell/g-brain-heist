@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   getWritingAnalyticsDashboard,
   getWritingMonitoringOverview,
@@ -22,6 +22,10 @@ interface WritingAnalyticsDashboardProps {
   onNavigate?: (path: string) => void;
 }
 
+type SortKey = 'student' | 'completion' | 'score';
+type InputChangeEvent = { target: { value: string } };
+type SelectChangeEvent = { target: { value: string } };
+
 export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps> = ({
   gradeFilter,
   genreFilter,
@@ -38,6 +42,8 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
   const [dashboard, setDashboard] = useState<WritingAnalyticsDashboardShape | null>(seededDashboard?.ok ? seededDashboard.data ?? null : null);
   const [monitoring, setMonitoring] = useState<WritingMonitoringOverview | null>(seededMonitoring?.ok ? seededMonitoring.data ?? null : null);
   const [loadError, setLoadError] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortKey, setSortKey] = useState<SortKey>('student');
 
   useEffect(() => {
     if (isTestRuntime) return;
@@ -61,21 +67,6 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
       cancelled = true;
     };
   }, [gradeFilter, genreFilter, isTestRuntime]);
-
-  if (isLoading) return <div style={{ padding: 12, color: '#e5e7eb' }}>Loading analytics…</div>;
-  if (errorMessage) return <div style={{ padding: 12, color: '#fca5a5' }}>Unable to load analytics: {errorMessage}</div>;
-
-  if (loadError) {
-    return <div style={{ padding: 12, color: '#e5e7eb' }}>{loadError}</div>;
-  }
-  if (!dashboard) {
-    return (
-      <div style={{ padding: 12, color: '#e5e7eb' }}>
-        No analytics data available for filters (grade: {gradeFilter ?? 'any'}, genre: {genreFilter ?? 'any'}).
-      </div>
-    );
-  }
-
   const data = dashboard;
   const isLikelyInternalId = (value?: string): boolean =>
     !value || /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.trim());
@@ -123,53 +114,102 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
   };
 
   const pilotWarnings = [
-    data.pilot_readiness.monthly_comparison_ready_students.length === 0 ? 'No students ready for monthly comparison' : null,
-    data.pilot_readiness.incomplete_weekly_cycle_students.length > 0
+    !data ? 'No analytics data available for current filters' : null,
+    data && data.pilot_readiness.monthly_comparison_ready_students.length === 0 ? 'No students ready for monthly comparison' : null,
+    data && data.pilot_readiness.incomplete_weekly_cycle_students.length > 0
       ? `${data.pilot_readiness.incomplete_weekly_cycle_students.length} students with incomplete cycles`
       : null,
-    data.pilot_readiness.overused_prompts.length > 0 ? `${data.pilot_readiness.overused_prompts.length} prompts overused recently` : null,
-    data.pilot_readiness.low_improvement_target_tags.length > 0
+    data && data.pilot_readiness.overused_prompts.length > 0 ? `${data.pilot_readiness.overused_prompts.length} prompts overused recently` : null,
+    data && data.pilot_readiness.low_improvement_target_tags.length > 0
       ? `${data.pilot_readiness.low_improvement_target_tags.length} low-improvement tags need intervention`
       : null,
   ].filter(Boolean) as string[];
-  const trendRows = data.subscale_improvement_over_time
-    .map((item) => ({
-      ...item,
-      overall_delta: Number(
-        (
-          (item.content_delta + item.communicative_delta + item.organisation_delta + item.language_delta) /
-          4
-        ).toFixed(2)
-      ),
-    }))
-    .sort((a, b) => b.overall_delta - a.overall_delta);
-  const topImproving = trendRows.filter((item) => item.overall_delta > 0).slice(0, 4);
-  const needsSupport = [...trendRows].reverse().filter((item) => item.overall_delta < 0).slice(0, 4);
+
+  const summaryRows = useMemo(() => {
+    if (!monitoring) return [];
+    const filtered = monitoring.student_rows.filter((row) => {
+      const weak = row.repeated_weakness_hotspots.map(toTeacherWeaknessLabel).join(', ');
+      const searchable = `${toDisplayLabel(row.student_name, row.student_id)} ${row.weekly_target_summary} ${weak}`.toLowerCase();
+      return !searchQuery || searchable.includes(searchQuery.toLowerCase());
+    });
+    const sorted = [...filtered].sort((a, b) => {
+      if (sortKey === 'completion') return b.completion_rate - a.completion_rate;
+      if (sortKey === 'score') return (b.latest_score ?? -1) - (a.latest_score ?? -1);
+      return toDisplayLabel(a.student_name, a.student_id).localeCompare(toDisplayLabel(b.student_name, b.student_id));
+    });
+    return sorted;
+  }, [monitoring, searchQuery, sortKey]);
+
+  if (isLoading) return <div style={{ padding: 12, color: '#e5e7eb' }}>Loading analytics…</div>;
+  if (errorMessage) return <div style={{ padding: 12, color: '#fca5a5' }}>Unable to load analytics: {errorMessage}</div>;
+  if (loadError) return <div style={{ padding: 12, color: '#e5e7eb' }}>{loadError}</div>;
+  if (!data) {
+    return (
+      <div style={{ padding: 12, color: '#e5e7eb' }}>
+        No analytics data available for filters (grade: {gradeFilter ?? 'any'}, genre: {genreFilter ?? 'any'}).
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: 12, color: '#f3f4f6', display: 'grid', gap: 10 }}>
       <h2 style={{ margin: 0, color: '#ffffff' }}>Writing Analytics</h2>
       <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Writing Analytics Dashboard</span>
-      <p style={{ margin: 0, color: '#cbd5e1' }}>
-        At a glance: who needs help, who is improving, the most common weakness, and suggested next actions.
-      </p>
-
-      <div style={{ display: 'grid', gap: 8, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-        <article style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, background: '#0f172a' }}>
-          <strong>Total students</strong>
-          <div>{data.summary.total_students}</div>
-        </article>
-        <article style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, background: '#0f172a' }}>
-          <strong>Who needs help?</strong>
-          <div>{data.summary.stalled_count} students currently need support.</div>
-          <a href={buildPath(monitoringBasePath, { status: 'stalled', grade: gradeFilter, genre: genreFilter })} onClick={(event: any) => navigateTo(buildPath(monitoringBasePath, { status: 'stalled', grade: gradeFilter, genre: genreFilter }), event)}>View</a>
-        </article>
-        <article style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, background: '#0f172a' }}>
-          <strong>Who is improving?</strong>
-          <div>{data.summary.improving_count} students are showing growth.</div>
-          <a href={buildPath(monitoringBasePath, { status: 'improving', grade: gradeFilter, genre: genreFilter })} onClick={(event: any) => navigateTo(buildPath(monitoringBasePath, { status: 'improving', grade: gradeFilter, genre: genreFilter }), event)}>View</a>
-        </article>
+      <div style={{ position: 'sticky', top: 0, zIndex: 3, background: '#020617', border: '1px solid #1e293b', borderRadius: 10, padding: 10, display: 'grid', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <span style={{ background: '#7f1d1d', color: '#fecaca', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Needs support: {data.summary.stalled_count}</span>
+          <span style={{ background: '#14532d', color: '#bbf7d0', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Improving: {data.summary.improving_count}</span>
+          <span style={{ background: '#1e3a8a', color: '#bfdbfe', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Total students: {data.summary.total_students}</span>
+        </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <input value={searchQuery} onChange={(event: InputChangeEvent) => setSearchQuery(event.target.value)} placeholder="Search student or weakness" style={{ flex: '1 1 220px', background: '#020617', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '8px 10px' }} />
+          <select value={sortKey} onChange={(event: SelectChangeEvent) => setSortKey(event.target.value as SortKey)} style={{ background: '#020617', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '8px 10px' }}>
+            <option value="student">Sort: Student</option>
+            <option value="completion">Sort: Completion</option>
+            <option value="score">Sort: Latest score</option>
+          </select>
+          <a href={buildPath(monitoringBasePath, { status: 'stalled', grade: gradeFilter, genre: genreFilter })} onClick={(event: any) => navigateTo(buildPath(monitoringBasePath, { status: 'stalled', grade: gradeFilter, genre: genreFilter }), event)}>View stalled</a>
+          <a href={buildPath(monitoringBasePath, { status: 'improving', grade: gradeFilter, genre: genreFilter })} onClick={(event: any) => navigateTo(buildPath(monitoringBasePath, { status: 'improving', grade: gradeFilter, genre: genreFilter }), event)}>View improving</a>
+        </div>
       </div>
+
+      <section style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, overflowX: 'auto', background: '#0f172a' }}>
+        <h3 style={{ marginTop: 0 }}>Student summary table</h3>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <thead>
+            <tr>
+              <th align="left">Student</th>
+              <th align="left">Grade</th>
+              <th align="left">Completion</th>
+              <th align="left">Latest score</th>
+              <th align="left">Main weakness</th>
+              <th align="left">Recent trend</th>
+              <th align="left">Next focus</th>
+              <th align="left">Flags</th>
+            </tr>
+          </thead>
+          <tbody>
+            {summaryRows.map((row) => (
+              <tr key={row.student_id}>
+                <td>{toDisplayLabel(row.student_name, row.student_id)}</td>
+                <td>{row.current_grade}</td>
+                <td>{Math.round(row.completion_rate * 100)}%</td>
+                <td>{row.latest_score ?? '—'}</td>
+                <td>{row.repeated_weakness_hotspots.map(toTeacherWeaknessLabel).join(', ') || '—'}</td>
+                <td>ΔC {row.subscale_trend.content}, ΔCom {row.subscale_trend.communicative_achievement}, ΔO {row.subscale_trend.organisation}, ΔL {row.subscale_trend.language}</td>
+                <td>{row.weekly_target_summary}</td>
+                <td>
+                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                    {row.stalled ? <span style={{ background: '#7f1d1d', color: '#fecaca', borderRadius: 999, padding: '1px 7px', fontSize: 11 }}>Needs support</span> : null}
+                    {row.improving ? <span style={{ background: '#14532d', color: '#bbf7d0', borderRadius: 999, padding: '1px 7px', fontSize: 11 }}>Improving</span> : null}
+                    {row.ready_for_monthly_review ? <span style={{ background: '#1e3a8a', color: '#bfdbfe', borderRadius: 999, padding: '1px 7px', fontSize: 11 }}>Ready</span> : null}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
 
       <section style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, background: '#0f172a' }}>
         <h3 style={{ marginTop: 0 }}>Main class weaknesses</h3>
@@ -187,44 +227,6 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
             </li>
           ))}
         </ul>
-      </section>
-
-      <section style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, background: '#0f172a' }}>
-        <h3 style={{ marginTop: 0 }}>Student momentum</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
-          <div>
-            <strong style={{ color: '#86efac' }}>Improving now</strong>
-            <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>
-              {topImproving.length === 0 ? <li>No clear improvements yet.</li> : null}
-              {topImproving.map((item) => (
-                <li key={`improving-${item.student_id}`}>
-                  {studentLabelsById.get(item.student_id) ?? 'Student'} (avg +{item.overall_delta})
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <strong style={{ color: '#fca5a5' }}>Needs attention</strong>
-            <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>
-              {needsSupport.length === 0 ? <li>No significant drops detected.</li> : null}
-              {needsSupport.map((item) => (
-                <li key={`support-${item.student_id}`}>
-                  {studentLabelsById.get(item.student_id) ?? 'Student'} (avg {item.overall_delta})
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-        <div style={{ display: 'grid', gap: 4 }}>
-          {data.average_score_by_grade.map((item) => (
-            <div key={`grade-${item.grade}`} style={{ display: 'grid', gap: 2 }}>
-              <small style={{ color: '#cbd5e1' }}>Grade {item.grade} class average: {item.average_score}</small>
-              <div style={{ background: '#334155', borderRadius: 999, height: 8 }}>
-                <div style={{ width: `${Math.min(100, (item.average_score / 20) * 100)}%`, background: '#22c55e', height: '100%' }} />
-              </div>
-            </div>
-          ))}
-        </div>
       </section>
 
       <section style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, overflowX: 'auto', background: '#0f172a' }}>
@@ -258,12 +260,6 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
         <p>
           Monthly reviews to run:{' '}
           {data.pilot_readiness.monthly_comparison_ready_students
-            .map((studentId) => studentLabelsById.get(studentId) ?? 'Student')
-            .join(', ') || 'None'}
-        </p>
-        <p>
-          Students missing part of this week&apos;s cycle:{' '}
-          {data.pilot_readiness.incomplete_weekly_cycle_students
             .map((studentId) => studentLabelsById.get(studentId) ?? 'Student')
             .join(', ') || 'None'}
         </p>
