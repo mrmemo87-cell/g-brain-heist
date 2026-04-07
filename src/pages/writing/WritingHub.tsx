@@ -24,6 +24,7 @@ import { quest_get_missions, QuestMissionRow } from '../../../services/gameServi
 
 interface WritingHubProps {
   studentId: string;
+  studentName?: string;
   grade: number;
   genre: 'email' | 'article' | 'review' | 'story' | 'essay' | 'report' | 'paragraph';
   month?: string;
@@ -633,7 +634,7 @@ const estimateWeeklyTargetScoreRange = (
   };
 };
 
-export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre, month = new Date().toISOString().slice(0, 7), onOpenQuestMission }) => {
+export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, grade, genre, month = new Date().toISOString().slice(0, 7), onOpenQuestMission }) => {
   const [activeGenre, setActiveGenre] = useState<SupportedGenre>(genre);
   const [promptText, setPromptText] = useState(defaultPromptByGenre[genre]);
   const [targetWordCount] = useState(grade <= 7 ? 80 : grade <= 9 ? 120 : 160);
@@ -1021,6 +1022,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, grade, genre,
 
     const result = submitInitialWritingAssessment({
       student_id: studentId,
+      student_name: studentName,
       grade,
       genre: activeGenre,
       prompt_text: promptForSubmission,

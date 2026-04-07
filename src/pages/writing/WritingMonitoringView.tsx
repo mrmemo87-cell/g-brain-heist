@@ -18,6 +18,20 @@ const cardStyle = {
   display: 'grid',
   gap: 8,
 };
+const tableHeaderCellStyle = {
+  color: '#e2e8f0',
+  background: '#1e293b',
+  borderBottom: '1px solid #334155',
+  padding: '8px 10px',
+  fontWeight: 700,
+};
+const tableCellStyle = {
+  color: '#f8fafc',
+  background: '#0f172a',
+  borderBottom: '1px solid #1e293b',
+  padding: '8px 10px',
+  verticalAlign: 'top' as const,
+};
 
 const isLikelyInternalId = (value?: string): boolean => {
   if (!value) return true;
@@ -142,46 +156,46 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
       </div>
 
       <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, background: '#0f172a' }}>
           <thead>
             <tr>
-              <th align="left">Student</th>
-              <th align="left">Grade</th>
-              <th align="left">Completion</th>
-              <th align="left">Latest score</th>
-              <th align="left">Skill snapshot</th>
-              <th align="left">Recent trend</th>
-              <th align="left">Main weakness</th>
-              <th align="left">Next focus</th>
-              <th align="left">Needs support</th>
-              <th align="left">Improving</th>
-              <th align="left">Ready for monthly review</th>
+              <th align="left" style={tableHeaderCellStyle}>Student</th>
+              <th align="left" style={tableHeaderCellStyle}>Grade</th>
+              <th align="left" style={tableHeaderCellStyle}>Completion</th>
+              <th align="left" style={tableHeaderCellStyle}>Latest score</th>
+              <th align="left" style={tableHeaderCellStyle}>Skill snapshot</th>
+              <th align="left" style={tableHeaderCellStyle}>Recent trend</th>
+              <th align="left" style={tableHeaderCellStyle}>Main weakness</th>
+              <th align="left" style={tableHeaderCellStyle}>Next focus</th>
+              <th align="left" style={tableHeaderCellStyle}>Needs support</th>
+              <th align="left" style={tableHeaderCellStyle}>Improving</th>
+              <th align="left" style={tableHeaderCellStyle}>Ready for monthly review</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((row) => (
               <tr key={row.student_id}>
-                <td>{toDisplayLabel(row.student_name, row.student_id)}</td>
-                <td>{row.current_grade}</td>
-                <td>{Math.round(row.completion_rate * 100)}%</td>
-                <td>{row.latest_score ?? '—'}</td>
-                <td>
+                <td style={tableCellStyle}>{toDisplayLabel(row.student_name, row.student_id)}</td>
+                <td style={tableCellStyle}>{row.current_grade}</td>
+                <td style={tableCellStyle}>{Math.round(row.completion_rate * 100)}%</td>
+                <td style={tableCellStyle}>{row.latest_score ?? '—'}</td>
+                <td style={tableCellStyle}>
                   Content {row.latest_subscale_scores.content ?? '—'} / Communication {row.latest_subscale_scores.communicative_achievement ?? '—'} / Organization
                   {' '}
                   {row.latest_subscale_scores.organisation ?? '—'} / Language {row.latest_subscale_scores.language ?? '—'}
                 </td>
-                <td>
+                <td style={tableCellStyle}>
                   Content {row.subscale_trend.content >= 0 ? '+' : ''}
                   {row.subscale_trend.content}, Communication {row.subscale_trend.communicative_achievement >= 0 ? '+' : ''}
                   {row.subscale_trend.communicative_achievement}, Organization {row.subscale_trend.organisation >= 0 ? '+' : ''}
                   {row.subscale_trend.organisation}, Language {row.subscale_trend.language >= 0 ? '+' : ''}
                   {row.subscale_trend.language}
                 </td>
-                <td>{row.repeated_weakness_hotspots.map(toTeacherWeaknessLabel).join(', ') || '—'}</td>
-                <td>{row.weekly_target_summary}</td>
-                <td>{row.stalled ? 'Yes' : 'No'}</td>
-                <td>{row.improving ? 'Yes' : 'No'}</td>
-                <td>{row.ready_for_monthly_review ? 'Yes' : 'No'}</td>
+                <td style={tableCellStyle}>{row.repeated_weakness_hotspots.map(toTeacherWeaknessLabel).join(', ') || '—'}</td>
+                <td style={tableCellStyle}>{row.weekly_target_summary}</td>
+                <td style={tableCellStyle}>{row.stalled ? 'Yes' : 'No'}</td>
+                <td style={tableCellStyle}>{row.improving ? 'Yes' : 'No'}</td>
+                <td style={tableCellStyle}>{row.ready_for_monthly_review ? 'Yes' : 'No'}</td>
               </tr>
             ))}
           </tbody>

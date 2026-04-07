@@ -12,6 +12,7 @@ interface WritingAnalyticsDashboardProps {
   monitoringBasePath?: string;
   calibrationBasePath?: string;
   promptBankBasePath?: string;
+  onNavigate?: (path: string) => void;
 }
 
 export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps> = ({
@@ -22,6 +23,7 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
   monitoringBasePath = '/writing/monitoring',
   calibrationBasePath = '/writing/calibration',
   promptBankBasePath = '/writing/prompts',
+  onNavigate,
 }) => {
   if (isLoading) return <div style={{ padding: 12, color: '#e5e7eb' }}>Loading analytics…</div>;
   if (errorMessage) return <div style={{ padding: 12, color: '#fca5a5' }}>Unable to load analytics: {errorMessage}</div>;
@@ -70,6 +72,17 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
 
   const buildPath = (basePath: string, params: Record<string, string | number | undefined>): string =>
     `${basePath}${serializeAdminDrilldownFilters(params)}`;
+  const navigateTo = (path: string, event: any): void => {
+    event.preventDefault();
+    if (onNavigate) {
+      onNavigate(path);
+      return;
+    }
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', path);
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    }
+  };
 
   const pilotWarnings = [
     data.pilot_readiness.monthly_comparison_ready_students.length === 0 ? 'No students ready for monthly comparison' : null,
@@ -111,12 +124,12 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
         <article style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, background: '#0f172a' }}>
           <strong>Who needs help?</strong>
           <div>{data.summary.stalled_count} students currently need support.</div>
-          <a href={buildPath(monitoringBasePath, { status: 'stalled', grade: gradeFilter, genre: genreFilter })}>View</a>
+          <a href={buildPath(monitoringBasePath, { status: 'stalled', grade: gradeFilter, genre: genreFilter })} onClick={(event: any) => navigateTo(buildPath(monitoringBasePath, { status: 'stalled', grade: gradeFilter, genre: genreFilter }), event)}>View</a>
         </article>
         <article style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, background: '#0f172a' }}>
           <strong>Who is improving?</strong>
           <div>{data.summary.improving_count} students are showing growth.</div>
-          <a href={buildPath(monitoringBasePath, { status: 'improving', grade: gradeFilter, genre: genreFilter })}>View</a>
+          <a href={buildPath(monitoringBasePath, { status: 'improving', grade: gradeFilter, genre: genreFilter })} onClick={(event: any) => navigateTo(buildPath(monitoringBasePath, { status: 'improving', grade: gradeFilter, genre: genreFilter }), event)}>View</a>
         </article>
       </div>
 
@@ -127,7 +140,10 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
           {data.most_common_weakness_tags.map((item) => (
             <li key={item.tag}>
               {toTeacherWeaknessLabel(item.tag)} ({item.count} students){' '}
-              <a href={buildPath(monitoringBasePath, { weakness_tag: item.tag, grade: gradeFilter, genre: genreFilter })}>
+              <a
+                href={buildPath(monitoringBasePath, { weakness_tag: item.tag, grade: gradeFilter, genre: genreFilter })}
+                onClick={(event: any) => navigateTo(buildPath(monitoringBasePath, { weakness_tag: item.tag, grade: gradeFilter, genre: genreFilter }), event)}
+              >
                 Open students
               </a>
             </li>
