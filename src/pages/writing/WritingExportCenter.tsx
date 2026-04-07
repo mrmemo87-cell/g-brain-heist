@@ -15,6 +15,7 @@ interface WritingExportCenterProps {
   isLoading?: boolean;
   errorMessage?: string;
 }
+type InputChangeEvent = { target: { value: string } };
 
 const renderExport = (doc: WritingExportDocument): React.ReactElement => (
   <article style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: '#0f172a', display: 'grid', gap: 8 }}>
@@ -56,6 +57,21 @@ const renderTeacherReport = (report: TeacherWritingReport): React.ReactElement =
       <strong>Teacher actions</strong>
       <ul>{(report.teacher_actions.length ? report.teacher_actions : ['No actions generated yet.']).map((item) => <li key={item}>{item}</li>)}</ul>
     </section>
+    <section>
+      <strong>Repeated error patterns</strong>
+      <ul>{(report.repeated_error_patterns.length ? report.repeated_error_patterns : ['None detected.']).map((item) => <li key={item}>{item}</li>)}</ul>
+    </section>
+    {report.evidence_snippet ? (
+      <section>
+        <strong>Evidence snippet</strong>
+        <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{report.evidence_snippet}</pre>
+      </section>
+    ) : null}
+    <section>
+      <strong>Student-friendly summary</strong>
+      <div>{report.student_friendly_summary.progress_summary}</div>
+      <div>Next steps: {report.student_friendly_summary.next_steps.join(' • ') || 'No next steps generated yet.'}</div>
+    </section>
   </article>
 );
 
@@ -72,6 +88,48 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
   const [teacherLoading, setTeacherLoading] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
+
+  const visibleRows = useMemo(
+    () => (teacherRows ?? []).filter((row) => !searchQuery || row.student_name.toLowerCase().includes(searchQuery.toLowerCase()) || row.student_id.toLowerCase().includes(searchQuery.toLowerCase())),
+    [teacherRows, searchQuery]
+  );
+
+  const escapeCsvField = (value: string): string => {
+    const escaped = value.replace(/"/g, '""');
+    return /[",\n]/.test(escaped) ? `"${escaped}"` : escaped;
+  };
+
+  const exportCsv = (): void => {
+    if (!teacherRows || typeof window === 'undefined') return;
+    const header = 'student_name,student_id,grade,completion_rate,latest_score';
+    const lines = teacherRows.map((row) => {
+      const completion = `${Math.round(row.completion_rate * 100)}%`;
+      return [
+        escapeCsvField(row.student_name),
+        escapeCsvField(row.student_id),
+        escapeCsvField(String(row.grade)),
+        escapeCsvField(completion),
+        escapeCsvField(row.latest_score == null ? '' : String(row.latest_score)),
+      ].join(',');
+    });
+    const blob = new Blob([[header, ...lines].join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `writing-export-${month}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  const handleViewSummary = (rowStudentId: string): void => {
+    setSelectedStudentId(rowStudentId);
+  };
+
+  const handleOpenReport = (rowStudentId: string): void => {
+    setSelectedStudentId(rowStudentId);
+    if (typeof window !== 'undefined') {
+      window.location.hash = '#selected-student-report';
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -141,23 +199,6 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
   if (isLoading) return <div style={{ padding: 12, color: '#e5e7eb' }}>Loading exports…</div>;
   if (errorMessage) return <div style={{ padding: 12, color: '#fca5a5' }}>Unable to load exports: {errorMessage}</div>;
 
-  const visibleRows = useMemo(
-    () => (teacherRows ?? []).filter((row) => !searchQuery || row.student_name.toLowerCase().includes(searchQuery.toLowerCase()) || row.student_id.toLowerCase().includes(searchQuery.toLowerCase())),
-    [teacherRows, searchQuery]
-  );
-
-  const exportCsv = (): void => {
-    if (!teacherRows || typeof window === 'undefined') return;
-    const header = 'student_name,student_id,grade,completion_rate,latest_score';
-    const lines = teacherRows.map((row) => `${row.student_name},${row.student_id},${row.grade},${Math.round(row.completion_rate * 100)}%,${row.latest_score ?? ''}`);
-    const blob = new Blob([[header, ...lines].join('\n')], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `writing-export-${month}.csv`;
-    link.click();
-    URL.revokeObjectURL(link.href);
-  };
-
   if (mode === 'teacher') {
     if (teacherLoading && !teacherRows && !teacherReport) return <div style={{ padding: 12, color: '#e5e7eb' }}>Generating teacher report…</div>;
     if (teacherReportError) return <div style={{ padding: 12, color: '#fca5a5' }}>No export data available: {teacherReportError}</div>;
@@ -171,7 +212,7 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
         {!studentId && teacherRows ? (
           <>
             <div style={{ position: 'sticky', top: 0, zIndex: 3, background: '#020617', border: '1px solid #1e293b', borderRadius: 10, padding: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <input value={searchQuery} onChange={(event: { target: { value: string } }) => setSearchQuery(event.target.value)} placeholder="Search student" style={{ flex: '1 1 220px', background: '#020617', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '8px 10px' }} />
+              <input value={searchQuery} onChange={(event: InputChangeEvent) => setSearchQuery(event.target.value)} placeholder="Search student" style={{ flex: '1 1 220px', background: '#020617', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '8px 10px' }} />
               <button type="button" onClick={exportCsv} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '8px 10px' }}>Export CSV</button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(300px, 1fr)', gap: 10 }}>
@@ -200,8 +241,8 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
                           <td>{row.latest_score ?? '—'}</td>
                           <td>
                             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                              <button type="button" onClick={() => setSelectedStudentId(row.student_id)} style={{ borderRadius: 6, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '4px 8px' }}>View summary</button>
-                              <button type="button" onClick={() => setSelectedStudentId(row.student_id)} style={{ borderRadius: 6, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '4px 8px' }}>Open report</button>
+                              <button type="button" onClick={() => handleViewSummary(row.student_id)} style={{ borderRadius: 6, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '4px 8px' }}>View summary</button>
+                              <button type="button" onClick={() => handleOpenReport(row.student_id)} style={{ borderRadius: 6, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '4px 8px' }}>Open report</button>
                             </div>
                           </td>
                         </tr>
@@ -211,7 +252,7 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
                 )}
               </article>
 
-              <aside style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: '#0f172a', display: 'grid', gap: 8 }}>
+              <aside id="selected-student-report" style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: '#0f172a', display: 'grid', gap: 8 }}>
                 <strong>Selected student report</strong>
                 {teacherReport ? renderTeacherReport(teacherReport) : <div>Select a student row to load details.</div>}
               </aside>

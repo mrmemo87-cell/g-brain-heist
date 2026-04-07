@@ -69,6 +69,8 @@ const toTeacherWeaknessLabel = (tag: string): string =>
     .replace(/\b\w/g, (char) => char.toUpperCase());
 
 type SortKey = 'student' | 'completion' | 'score';
+type InputChangeEvent = { target: { value: string } };
+type SelectChangeEvent = { target: { value: string } };
 
 export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
   month = new Date().toISOString().slice(0, 7),
@@ -83,6 +85,28 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('student');
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
+  const filters = parseAdminDrilldownFilters(filterQuery);
+
+  const rows = useMemo(() => {
+    if (!overview) return [];
+    const filtered = overview.student_rows.filter((row) => {
+      if (filters.grade && row.current_grade !== filters.grade) return false;
+      if (filters.status === 'stalled' && !row.stalled) return false;
+      if (filters.status === 'improving' && !row.improving) return false;
+      if (filters.weakness_tag && !row.repeated_weakness_hotspots.includes(filters.weakness_tag)) return false;
+      const searchable = `${toDisplayLabel(row.student_name, row.student_id)} ${row.weekly_target_summary}`.toLowerCase();
+      if (searchQuery && !searchable.includes(searchQuery.toLowerCase())) return false;
+      return true;
+    });
+
+    const next = [...filtered];
+    next.sort((a, b) => {
+      if (sortKey === 'completion') return b.completion_rate - a.completion_rate;
+      if (sortKey === 'score') return (b.latest_score ?? -1) - (a.latest_score ?? -1);
+      return toDisplayLabel(a.student_name, a.student_id).localeCompare(toDisplayLabel(b.student_name, b.student_id));
+    });
+    return next;
+  }, [overview, filters, searchQuery, sortKey]);
 
   useEffect(() => {
     if (isTestRuntime) return;
@@ -119,27 +143,6 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
   if (overview.student_rows.length === 0) {
     return <div style={{ padding: 12, color: '#e5e7eb' }}>No students with writing records yet.</div>;
   }
-  const filters = parseAdminDrilldownFilters(filterQuery);
-  const filteredRows = overview.student_rows.filter((row) => {
-    if (filters.grade && row.current_grade !== filters.grade) return false;
-    if (filters.status === 'stalled' && !row.stalled) return false;
-    if (filters.status === 'improving' && !row.improving) return false;
-    if (filters.weakness_tag && !row.repeated_weakness_hotspots.includes(filters.weakness_tag)) return false;
-    const searchable = `${toDisplayLabel(row.student_name, row.student_id)} ${row.weekly_target_summary}`.toLowerCase();
-    if (searchQuery && !searchable.includes(searchQuery.toLowerCase())) return false;
-    return true;
-  });
-
-  const rows = useMemo(() => {
-    const next = [...filteredRows];
-    next.sort((a, b) => {
-      if (sortKey === 'completion') return b.completion_rate - a.completion_rate;
-      if (sortKey === 'score') return (b.latest_score ?? -1) - (a.latest_score ?? -1);
-      return toDisplayLabel(a.student_name, a.student_id).localeCompare(toDisplayLabel(b.student_name, b.student_id));
-    });
-    return next;
-  }, [filteredRows, sortKey]);
-
   if (rows.length === 0) {
     return <div style={{ padding: 12, color: '#e5e7eb' }}>No monitoring matches for current filters ({filterQuery || 'none'}).</div>;
   }
@@ -148,6 +151,9 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
   const improvingCount = rows.filter((row) => row.improving).length;
   const monthlyReadyCount = rows.filter((row) => row.ready_for_monthly_review).length;
   const selectedRow = rows.find((row) => row.student_id === selectedStudentId) ?? rows[0];
+  const handleViewSummary = (): void => {};
+  const handleOpenReport = (): void => {};
+  const handleExportReport = (): void => {};
 
   return (
     <div style={{ padding: 12, color: '#f3f4f6', display: 'grid', gap: 12 }}>
@@ -163,13 +169,13 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <input
             value={searchQuery}
-            onChange={(event: { target: { value: string } }) => setSearchQuery(event.target.value)}
+            onChange={(event: InputChangeEvent) => setSearchQuery(event.target.value)}
             placeholder="Search student or focus"
             style={{ flex: '1 1 220px', background: '#020617', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '8px 10px' }}
           />
           <select
             value={sortKey}
-            onChange={(event: { target: { value: string } }) => setSortKey(event.target.value as SortKey)}
+            onChange={(event: SelectChangeEvent) => setSortKey(event.target.value as SortKey)}
             style={{ background: '#020617', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '8px 10px' }}
           >
             <option value="student">Sort: Student</option>
@@ -228,9 +234,9 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
           <span>Main weakness: {selectedRow.repeated_weakness_hotspots.map(toTeacherWeaknessLabel).join(', ') || '—'}</span>
           <span>Next focus: {selectedRow.weekly_target_summary}</span>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            <button type="button" style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 8px' }}>View summary</button>
-            <button type="button" style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 8px' }}>Open report</button>
-            <button type="button" style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 8px' }}>Export</button>
+            <button type="button" onClick={handleViewSummary} disabled aria-disabled title="View summary action is not wired yet" style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 8px', opacity: 0.65, cursor: 'not-allowed' }}>View summary</button>
+            <button type="button" onClick={handleOpenReport} disabled aria-disabled title="Open report action is not wired yet" style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 8px', opacity: 0.65, cursor: 'not-allowed' }}>Open report</button>
+            <button type="button" onClick={handleExportReport} disabled aria-disabled title="Export action is not wired yet" style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 8px', opacity: 0.65, cursor: 'not-allowed' }}>Export</button>
           </div>
         </aside>
       </div>

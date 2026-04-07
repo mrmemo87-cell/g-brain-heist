@@ -23,6 +23,8 @@ interface WritingAnalyticsDashboardProps {
 }
 
 type SortKey = 'student' | 'completion' | 'score';
+type InputChangeEvent = { target: { value: string } };
+type SelectChangeEvent = { target: { value: string } };
 
 export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps> = ({
   gradeFilter,
@@ -65,21 +67,6 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
       cancelled = true;
     };
   }, [gradeFilter, genreFilter, isTestRuntime]);
-
-  if (isLoading) return <div style={{ padding: 12, color: '#e5e7eb' }}>Loading analytics…</div>;
-  if (errorMessage) return <div style={{ padding: 12, color: '#fca5a5' }}>Unable to load analytics: {errorMessage}</div>;
-
-  if (loadError) {
-    return <div style={{ padding: 12, color: '#e5e7eb' }}>{loadError}</div>;
-  }
-  if (!dashboard) {
-    return (
-      <div style={{ padding: 12, color: '#e5e7eb' }}>
-        No analytics data available for filters (grade: {gradeFilter ?? 'any'}, genre: {genreFilter ?? 'any'}).
-      </div>
-    );
-  }
-
   const data = dashboard;
   const isLikelyInternalId = (value?: string): boolean =>
     !value || /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.trim());
@@ -127,12 +114,13 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
   };
 
   const pilotWarnings = [
-    data.pilot_readiness.monthly_comparison_ready_students.length === 0 ? 'No students ready for monthly comparison' : null,
-    data.pilot_readiness.incomplete_weekly_cycle_students.length > 0
+    !data ? 'No analytics data available for current filters' : null,
+    data && data.pilot_readiness.monthly_comparison_ready_students.length === 0 ? 'No students ready for monthly comparison' : null,
+    data && data.pilot_readiness.incomplete_weekly_cycle_students.length > 0
       ? `${data.pilot_readiness.incomplete_weekly_cycle_students.length} students with incomplete cycles`
       : null,
-    data.pilot_readiness.overused_prompts.length > 0 ? `${data.pilot_readiness.overused_prompts.length} prompts overused recently` : null,
-    data.pilot_readiness.low_improvement_target_tags.length > 0
+    data && data.pilot_readiness.overused_prompts.length > 0 ? `${data.pilot_readiness.overused_prompts.length} prompts overused recently` : null,
+    data && data.pilot_readiness.low_improvement_target_tags.length > 0
       ? `${data.pilot_readiness.low_improvement_target_tags.length} low-improvement tags need intervention`
       : null,
   ].filter(Boolean) as string[];
@@ -152,6 +140,17 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
     return sorted;
   }, [monitoring, searchQuery, sortKey]);
 
+  if (isLoading) return <div style={{ padding: 12, color: '#e5e7eb' }}>Loading analytics…</div>;
+  if (errorMessage) return <div style={{ padding: 12, color: '#fca5a5' }}>Unable to load analytics: {errorMessage}</div>;
+  if (loadError) return <div style={{ padding: 12, color: '#e5e7eb' }}>{loadError}</div>;
+  if (!data) {
+    return (
+      <div style={{ padding: 12, color: '#e5e7eb' }}>
+        No analytics data available for filters (grade: {gradeFilter ?? 'any'}, genre: {genreFilter ?? 'any'}).
+      </div>
+    );
+  }
+
   return (
     <div style={{ padding: 12, color: '#f3f4f6', display: 'grid', gap: 10 }}>
       <h2 style={{ margin: 0, color: '#ffffff' }}>Writing Analytics</h2>
@@ -163,8 +162,8 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
           <span style={{ background: '#1e3a8a', color: '#bfdbfe', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Total students: {data.summary.total_students}</span>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <input value={searchQuery} onChange={(event: { target: { value: string } }) => setSearchQuery(event.target.value)} placeholder="Search student or weakness" style={{ flex: '1 1 220px', background: '#020617', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '8px 10px' }} />
-          <select value={sortKey} onChange={(event: { target: { value: string } }) => setSortKey(event.target.value as SortKey)} style={{ background: '#020617', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '8px 10px' }}>
+          <input value={searchQuery} onChange={(event: InputChangeEvent) => setSearchQuery(event.target.value)} placeholder="Search student or weakness" style={{ flex: '1 1 220px', background: '#020617', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '8px 10px' }} />
+          <select value={sortKey} onChange={(event: SelectChangeEvent) => setSortKey(event.target.value as SortKey)} style={{ background: '#020617', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '8px 10px' }}>
             <option value="student">Sort: Student</option>
             <option value="completion">Sort: Completion</option>
             <option value="score">Sort: Latest score</option>

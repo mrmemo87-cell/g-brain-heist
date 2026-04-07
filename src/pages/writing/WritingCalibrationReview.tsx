@@ -75,10 +75,10 @@ export const WritingCalibrationReview: React.FC<WritingCalibrationReviewProps> =
   return (
     <div style={{ padding: 12, color: '#e5e7eb', display: 'grid', gap: 12 }}>
       <h2 style={{ margin: 0 }}>Admin Calibration Review</h2>
-      <div style={{ position: 'sticky', top: 0, zIndex: 3, background: '#020617', border: '1px solid #1e293b', borderRadius: 10, padding: 10, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-        <button type="button" onClick={() => setTab('assessment')} style={{ borderRadius: 999, border: '1px solid #334155', background: tab === 'assessment' ? '#1d4ed8' : '#1e293b', color: '#fff', padding: '4px 10px' }}>Assessment</button>
-        <button type="button" onClick={() => setTab('actions')} style={{ borderRadius: 999, border: '1px solid #334155', background: tab === 'actions' ? '#1d4ed8' : '#1e293b', color: '#fff', padding: '4px 10px' }}>Teacher actions</button>
-        <button type="button" onClick={() => setTab('patterns')} style={{ borderRadius: 999, border: '1px solid #334155', background: tab === 'patterns' ? '#1d4ed8' : '#1e293b', color: '#fff', padding: '4px 10px' }}>Patterns & summary</button>
+      <div role="tablist" aria-label="Calibration review sections" style={{ position: 'sticky', top: 0, zIndex: 3, background: '#020617', border: '1px solid #1e293b', borderRadius: 10, padding: 10, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        <button id="calibration-tab-assessment" role="tab" aria-selected={tab === 'assessment'} aria-controls="calibration-panel-assessment" tabIndex={tab === 'assessment' ? 0 : -1} type="button" onClick={() => setTab('assessment')} style={{ borderRadius: 999, border: '1px solid #334155', background: tab === 'assessment' ? '#1d4ed8' : '#1e293b', color: '#fff', padding: '4px 10px' }}>Assessment</button>
+        <button id="calibration-tab-actions" role="tab" aria-selected={tab === 'actions'} aria-controls="calibration-panel-actions" tabIndex={tab === 'actions' ? 0 : -1} type="button" onClick={() => setTab('actions')} style={{ borderRadius: 999, border: '1px solid #334155', background: tab === 'actions' ? '#1d4ed8' : '#1e293b', color: '#fff', padding: '4px 10px' }}>Teacher actions</button>
+        <button id="calibration-tab-patterns" role="tab" aria-selected={tab === 'patterns'} aria-controls="calibration-panel-patterns" tabIndex={tab === 'patterns' ? 0 : -1} type="button" onClick={() => setTab('patterns')} style={{ borderRadius: 999, border: '1px solid #334155', background: tab === 'patterns' ? '#1d4ed8' : '#1e293b', color: '#fff', padding: '4px 10px' }}>Patterns & summary</button>
       </div>
 
       <section style={sectionStyle}>
@@ -94,7 +94,7 @@ export const WritingCalibrationReview: React.FC<WritingCalibrationReviewProps> =
       </section>
 
       {tab === 'assessment' ? (
-        <section style={sectionStyle}>
+        <section id="calibration-panel-assessment" role="tabpanel" aria-labelledby="calibration-tab-assessment" style={sectionStyle}>
           <strong>Latest assessment result</strong>
           {filters.weakness_tag ? <div>Filtered weakness focus: {filters.weakness_tag}</div> : null}
           {assessment && Object.keys(assessment).length > 0 ? (
@@ -111,7 +111,7 @@ export const WritingCalibrationReview: React.FC<WritingCalibrationReviewProps> =
       ) : null}
 
       {tab === 'actions' ? (
-        <section style={sectionStyle}>
+        <section id="calibration-panel-actions" role="tabpanel" aria-labelledby="calibration-tab-actions" style={sectionStyle}>
           <strong>Teacher actions</strong>
           <ul style={{ margin: 0, paddingLeft: 18 }}>
             {(summary.teacher_actions.length ? summary.teacher_actions : ['No teacher actions generated yet.']).map((item) => (
@@ -123,7 +123,7 @@ export const WritingCalibrationReview: React.FC<WritingCalibrationReviewProps> =
 
       {tab === 'patterns' ? (
         <>
-          <section style={sectionStyle}>
+          <section id="calibration-panel-patterns" role="tabpanel" aria-labelledby="calibration-tab-patterns" style={sectionStyle}>
             <strong>Repeated error patterns</strong>
             <div>{summary.repeated_error_patterns.join(', ') || 'None detected.'}</div>
           </section>
