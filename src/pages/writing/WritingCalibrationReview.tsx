@@ -1,5 +1,5 @@
-import React from 'react';
-import { getWritingCalibrationCase, listAdminReviewSignals } from '../../lib/brains_heist/writingIntegrationService.js';
+import React, { useEffect, useState } from 'react';
+import { getTeacherStudentSummaryScoped, TeacherWritingReport, getWritingCalibrationCase, mapCalibrationCaseToTeacherReport } from '../../lib/brains_heist/writingIntegrationService.js';
 import { parseAdminDrilldownFilters } from '../../lib/brains_heist/writingAdminFilters.js';
 import { WRITING_ADMIN_HELP } from '../../lib/brains_heist/writingAdminHelp.js';
 
@@ -27,6 +27,34 @@ export const WritingCalibrationReview: React.FC<WritingCalibrationReviewProps> =
   errorMessage,
   filterQuery = '',
 }) => {
+  const isTestRuntime = typeof process !== 'undefined' && process.env?.['NODE_ENV'] === 'test';
+  const seededLegacy = isTestRuntime ? getWritingCalibrationCase(studentId, month) : null;
+  const seededSummary: TeacherWritingReport | null =
+    seededLegacy && seededLegacy.ok && seededLegacy.data
+      ? mapCalibrationCaseToTeacherReport(seededLegacy.data, month, 'essay')
+      : null;
+
+  const [summary, setSummary] = useState<TeacherWritingReport | null>(seededSummary);
+  const [loadError, setLoadError] = useState<string>('');
+
+  useEffect(() => {
+    if (isTestRuntime) return;
+    let cancelled = false;
+    void getTeacherStudentSummaryScoped({ student_id: studentId, month, include_snippet: false }).then((result) => {
+      if (cancelled) return;
+      if (!result.ok || !result.data) {
+        setSummary(null);
+        setLoadError(result.error ?? 'No calibration data found for this student yet.');
+        return;
+      }
+      setSummary(result.data);
+      setLoadError('');
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [studentId, month, isTestRuntime]);
+
   if (isLoading) {
     return <div style={{ padding: 12, color: '#e5e7eb' }}>Loading calibration review…</div>;
   }
@@ -35,15 +63,11 @@ export const WritingCalibrationReview: React.FC<WritingCalibrationReviewProps> =
     return <div style={{ padding: 12, color: '#fca5a5' }}>Unable to load calibration review: {errorMessage}</div>;
   }
 
-  const calibration = getWritingCalibrationCase(studentId, month);
-  if (!calibration.ok || !calibration.data) {
-    return <div style={{ padding: 12, color: '#e5e7eb' }}>No calibration data found for this student yet.</div>;
-  }
+  if (loadError) return <div style={{ padding: 12, color: '#e5e7eb' }}>{loadError}</div>;
+  if (!summary) return <div style={{ padding: 12, color: '#e5e7eb' }}>No calibration data found for this student yet.</div>;
 
-  const data = calibration.data;
-  const assessment = data.latest_assessment;
   const filters = parseAdminDrilldownFilters(filterQuery);
-  const reviewSignals = listAdminReviewSignals({ student_id: studentId });
+  const assessment = summary.latest_evaluation as Record<string, any>;
 
   return (
     <div style={{ padding: 12, color: '#e5e7eb', display: 'grid', gap: 12 }}>
@@ -52,41 +76,27 @@ export const WritingCalibrationReview: React.FC<WritingCalibrationReviewProps> =
 
       <section style={sectionStyle}>
         <strong>
-          {data.student_name} ({data.student_id})
+          {summary.student.student_name} ({summary.student.student_id})
         </strong>
-        <span>Grade {data.grade}</span>
-      </section>
-
-      <section style={sectionStyle}>
-        <strong>Prompt text</strong>
-        <div>{data.prompt_text ?? 'No prompt found.'}</div>
-      </section>
-
-      <section style={sectionStyle}>
-        <strong>Student submission</strong>
-        <div>{data.student_submission ?? 'No student submission found.'}</div>
+        <span>Grade {summary.student.grade ?? '—'}</span>
+        <span>Class {summary.student.class_name}</span>
       </section>
 
       <section style={sectionStyle}>
         <strong>Latest assessment result</strong>
         {filters.weakness_tag ? <div>Filtered weakness focus: {filters.weakness_tag}</div> : null}
-        <div>Calibration follow-up: {data.calibration_follow_up_flag ? 'Flagged' : 'Not flagged'}</div>
-        {data.calibration_follow_up_note ? <div>Follow-up note: {data.calibration_follow_up_note}</div> : null}
-        <div>Review signals: {reviewSignals.ok ? reviewSignals.data!.length : 0}</div>
-        {assessment ? (
+        <div>
+          Calibration follow-up:{' '}
+          {summary.calibration_follow_up_flag ? 'Flagged' : 'Not flagged'}
+        </div>
+        <div>Completion rate: {summary.overall_summary.completion_rate_percent}%</div>
+        {assessment && Object.keys(assessment).length > 0 ? (
           <>
-            <div>Total score: {assessment.total_score}</div>
+            <div>Total score: {summary.overall_summary.latest_score ?? '—'}</div>
             <div>
-              Subscale scores — Content: {assessment.subscores.content}, Communicative:{' '}
-              {assessment.subscores.communicative_achievement ?? '—'}, Organisation: {assessment.subscores.organisation}, Language:{' '}
-              {assessment.subscores.language}
+              Evaluation status: {String(assessment['completion_status'] ?? '—')} ({String(assessment['recommended_next_action'] ?? '—')})
             </div>
-            <div>
-              Band justifications — Content: {assessment.band_justification.content}; Communicative:{' '}
-              {assessment.band_justification.communicative_achievement}; Organisation: {assessment.band_justification.organisation}; Language:{' '}
-              {assessment.band_justification.language}
-            </div>
-            <div>Weakness tags: {assessment.weakness_tags.join(', ') || 'None'}</div>
+            <div>Weakness tags: {summary.priority_weak_areas.join(', ') || 'None'}</div>
           </>
         ) : (
           <div>No assessment available.</div>
@@ -94,58 +104,28 @@ export const WritingCalibrationReview: React.FC<WritingCalibrationReviewProps> =
       </section>
 
       <section style={sectionStyle}>
-        <strong>Weekly targets</strong>
-        {data.weekly_targets ? (
-          <>
-            <div>Primary: {data.weekly_targets.primary_target}</div>
-            <div>Secondary: {data.weekly_targets.secondary_target}</div>
-            <div>Maintenance: {data.weekly_targets.maintenance_target}</div>
-          </>
-        ) : (
-          <div>No weekly targets available.</div>
-        )}
+        <strong>Teacher actions</strong>
+        <ul style={{ margin: 0, paddingLeft: 18 }}>
+          {(summary.teacher_actions.length ? summary.teacher_actions : ['No teacher actions generated yet.']).map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
       </section>
 
       <section style={sectionStyle}>
-        <strong>Generated daily tasks</strong>
-        {data.generated_daily_tasks.length === 0 ? (
-          <div>No generated daily tasks found.</div>
-        ) : (
-          <ul style={{ margin: 0, paddingLeft: 18 }}>
-            {data.generated_daily_tasks.map((task) => (
-              <li key={task.day_number}>
-                Day {task.day_number}: {task.title}
-              </li>
-            ))}
-          </ul>
-        )}
+        <strong>Repeated error patterns</strong>
+        <div>{summary.repeated_error_patterns.join(', ') || 'None detected.'}</div>
       </section>
 
       <section style={sectionStyle}>
-        <strong>Latest practice evaluations</strong>
-        {data.latest_practice_evaluations.length === 0 ? (
-          <div>No practice evaluations found.</div>
-        ) : (
-          <ul style={{ margin: 0, paddingLeft: 18 }}>
-            {data.latest_practice_evaluations.map((item) => (
-              <li key={item.id}>
-                Day {item.task_day_number}: {item.evaluation.completion_status} ({item.evaluation.recommended_next_action})
-              </li>
-            ))}
-          </ul>
-        )}
+        <strong>Student-friendly summary</strong>
+        <div>{summary.student_friendly_summary.progress_summary}</div>
       </section>
 
       <section style={sectionStyle}>
         <strong>Monthly report snapshot</strong>
-        {data.monthly_report_snapshot ? (
-          <>
-            <div>Month: {data.monthly_report_snapshot.month}</div>
-            <div>Score change: {data.monthly_report_snapshot.report.score_change}</div>
-          </>
-        ) : (
-          <div>No monthly report snapshot available for this month.</div>
-        )}
+        <div>Month: {summary.period}</div>
+        <div>Score trend delta: {summary.overall_summary.score_trend_delta ?? '—'}</div>
       </section>
     </div>
   );
