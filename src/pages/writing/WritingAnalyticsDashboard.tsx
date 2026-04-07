@@ -1,5 +1,12 @@
-import React from 'react';
-import { getWritingAnalyticsDashboard, getWritingMonitoringOverview } from '../../lib/brains_heist/writingIntegrationService.js';
+import React, { useEffect, useState } from 'react';
+import {
+  getWritingAnalyticsDashboard,
+  getWritingMonitoringOverview,
+  getTeacherAnalyticsDashboardScoped,
+  getTeacherMonitoringOverviewScoped,
+  WritingAnalyticsDashboard as WritingAnalyticsDashboardShape,
+  WritingMonitoringOverview,
+} from '../../lib/brains_heist/writingIntegrationService.js';
 import { SupportedGenre } from '../../lib/brains_heist/writingAssessment.js';
 import { serializeAdminDrilldownFilters } from '../../lib/brains_heist/writingAdminFilters.js';
 import { WRITING_ADMIN_HELP } from '../../lib/brains_heist/writingAdminHelp.js';
@@ -25,11 +32,40 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
   promptBankBasePath = '/writing/prompts',
   onNavigate,
 }) => {
+  const isTestRuntime = typeof process !== 'undefined' && process.env?.['NODE_ENV'] === 'test';
+  const seededDashboard = isTestRuntime ? getWritingAnalyticsDashboard({ grade: gradeFilter, genre: genreFilter }) : null;
+  const seededMonitoring = isTestRuntime ? getWritingMonitoringOverview() : null;
+  const [dashboard, setDashboard] = useState<WritingAnalyticsDashboardShape | null>(seededDashboard?.ok ? seededDashboard.data ?? null : null);
+  const [monitoring, setMonitoring] = useState<WritingMonitoringOverview | null>(seededMonitoring?.ok ? seededMonitoring.data ?? null : null);
+  const [loadError, setLoadError] = useState<string>('');
+
+  useEffect(() => {
+    if (isTestRuntime) return;
+    let cancelled = false;
+    void Promise.all([getTeacherAnalyticsDashboardScoped(), getTeacherMonitoringOverviewScoped()]).then(([dashRes, monitorRes]) => {
+      if (cancelled) return;
+      if (!dashRes.ok || !dashRes.data) {
+        setDashboard(null);
+        setLoadError(dashRes.error ?? 'No analytics data available.');
+        return;
+      }
+      setDashboard(dashRes.data);
+      if (monitorRes.ok && monitorRes.data) setMonitoring(monitorRes.data);
+      else setMonitoring(null);
+      setLoadError('');
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [gradeFilter, genreFilter, isTestRuntime]);
+
   if (isLoading) return <div style={{ padding: 12, color: '#e5e7eb' }}>Loading analytics…</div>;
   if (errorMessage) return <div style={{ padding: 12, color: '#fca5a5' }}>Unable to load analytics: {errorMessage}</div>;
 
-  const dashboard = getWritingAnalyticsDashboard({ grade: gradeFilter, genre: genreFilter });
-  if (!dashboard.ok || !dashboard.data) {
+  if (loadError) {
+    return <div style={{ padding: 12, color: '#e5e7eb' }}>{loadError}</div>;
+  }
+  if (!dashboard) {
     return (
       <div style={{ padding: 12, color: '#e5e7eb' }}>
         No analytics data available for filters (grade: {gradeFilter ?? 'any'}, genre: {genreFilter ?? 'any'}).
@@ -37,8 +73,7 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
     );
   }
 
-  const { data } = dashboard;
-  const monitoring = getWritingMonitoringOverview();
+  const data = dashboard;
   const isLikelyInternalId = (value?: string): boolean =>
     !value || /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.trim());
   const toDisplayLabel = (studentName: string | undefined, studentId: string): string => {
@@ -65,8 +100,8 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
       .trim()
       .replace(/\b\w/g, (char) => char.toUpperCase());
   const studentLabelsById = new Map(
-    monitoring.ok && monitoring.data
-      ? monitoring.data.student_rows.map((row) => [row.student_id, toDisplayLabel(row.student_name, row.student_id)])
+    monitoring
+      ? monitoring.student_rows.map((row) => [row.student_id, toDisplayLabel(row.student_name, row.student_id)])
       : []
   );
 

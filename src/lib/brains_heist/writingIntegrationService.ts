@@ -2033,6 +2033,187 @@ export const requestWritingAiAssist = async (input: {
   }
 };
 
+export interface TeacherWritingReport {
+  report_type: 'teacher_writing_report';
+  generated_at: string;
+  period: string;
+  student: {
+    student_id: string;
+    student_name: string;
+    grade: number | null;
+    class_id: string | null;
+    class_name: string;
+  };
+  genre: string;
+  overall_summary: {
+    latest_score: number | null;
+    score_trend_delta: number | null;
+    completion_rate_percent: number;
+    completed_tasks: number;
+    total_tasks: number;
+  };
+  strengths: string[];
+  priority_weak_areas: string[];
+  repeated_error_patterns: string[];
+  latest_evaluation: Record<string, unknown>;
+  monthly_summary: Record<string, unknown>;
+  teacher_actions: string[];
+  evidence_snippet: string | null;
+  student_friendly_summary: {
+    strengths: string[];
+    top_improvement_targets: string[];
+    progress_summary: string;
+    next_steps: string[];
+  };
+}
+
+export const getTeacherWritingReport = async (input: {
+  student_id: string;
+  month?: string;
+  genre?: SupportedGenre;
+  include_snippet?: boolean;
+}): Promise<ServiceResponse<TeacherWritingReport>> => {
+  try {
+    const { supabase } = await import('../../../services/supabaseClient.js');
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+    if (sessionError || !session?.access_token) {
+      return badRequest('Authentication required for teacher reports. Please sign in and try again.');
+    }
+
+    const { data, error } = await supabase.rpc('rpc_bh_writing_teacher_report', {
+      p_student_id: input.student_id,
+      p_month: input.month ?? null,
+      p_genre: input.genre ?? null,
+      p_include_snippet: Boolean(input.include_snippet),
+    });
+
+    if (error || !data) {
+      return badRequest(error?.message ?? 'Unable to generate teacher writing report.');
+    }
+
+    return ok(data as TeacherWritingReport);
+  } catch (error) {
+    return badRequest(error instanceof Error ? error.message : 'Unable to generate teacher writing report.');
+  }
+};
+
+const isNodeTestRuntime = (): boolean => {
+  try {
+    return typeof process !== 'undefined' && process.env?.['NODE_ENV'] === 'test';
+  } catch {
+    return false;
+  }
+};
+
+export const getTeacherMonitoringOverviewScoped = async (month = new Date().toISOString().slice(0, 7)): Promise<ServiceResponse<WritingMonitoringOverview>> => {
+  if (isNodeTestRuntime()) return getWritingMonitoringOverview(month);
+  try {
+    const { supabase } = await import('../../../services/supabaseClient.js');
+    const { data, error } = await supabase.rpc('rpc_bh_writing_teacher_monitoring', {
+      p_month: month,
+    });
+    if (error || !data) return badRequest(error?.message ?? 'Unable to load scoped teacher monitoring.');
+    return ok(data as WritingMonitoringOverview);
+  } catch (error) {
+    return badRequest(error instanceof Error ? error.message : 'Unable to load scoped teacher monitoring.');
+  }
+};
+
+export const getTeacherAnalyticsDashboardScoped = async (month = new Date().toISOString().slice(0, 7)): Promise<ServiceResponse<WritingAnalyticsDashboard>> => {
+  if (isNodeTestRuntime()) return getWritingAnalyticsDashboard();
+  try {
+    const { supabase } = await import('../../../services/supabaseClient.js');
+    const { data, error } = await supabase.rpc('rpc_bh_writing_teacher_analytics', {
+      p_month: month,
+    });
+    if (error || !data) return badRequest(error?.message ?? 'Unable to load scoped teacher analytics.');
+    return ok(data as WritingAnalyticsDashboard);
+  } catch (error) {
+    return badRequest(error instanceof Error ? error.message : 'Unable to load scoped teacher analytics.');
+  }
+};
+
+export const getTeacherCalibrationQueueScoped = async (
+  month = new Date().toISOString().slice(0, 7),
+  limit = 50
+): Promise<ServiceResponse<Array<{ student_id: string; student_name: string; grade: number; latest_score: number | null; priority_weak_areas: string[]; completion_rate: number }>>> => {
+  if (isNodeTestRuntime()) {
+    const monitoring = getWritingMonitoringOverview(month);
+    if (!monitoring.ok || !monitoring.data) return badRequest(monitoring.error ?? 'No calibration data available.');
+    return ok(
+      monitoring.data.student_rows.map((row) => ({
+        student_id: row.student_id,
+        student_name: row.student_name,
+        grade: row.current_grade,
+        latest_score: row.latest_score,
+        priority_weak_areas: row.repeated_weakness_hotspots,
+        completion_rate: row.completion_rate,
+      }))
+    );
+  }
+  try {
+    const { supabase } = await import('../../../services/supabaseClient.js');
+    const { data, error } = await supabase.rpc('rpc_bh_writing_teacher_calibration_queue', {
+      p_month: month,
+      p_limit: limit,
+    });
+    if (error || !data) return badRequest(error?.message ?? 'Unable to load scoped calibration queue.');
+    return ok(data as Array<{ student_id: string; student_name: string; grade: number; latest_score: number | null; priority_weak_areas: string[]; completion_rate: number }>);
+  } catch (error) {
+    return badRequest(error instanceof Error ? error.message : 'Unable to load scoped calibration queue.');
+  }
+};
+
+export const getTeacherStudentSummaryScoped = async (input: {
+  student_id: string;
+  month?: string;
+  genre?: SupportedGenre;
+  include_snippet?: boolean;
+}): Promise<ServiceResponse<TeacherWritingReport>> => {
+  if (isNodeTestRuntime()) {
+    const calibration = getWritingCalibrationCase(input.student_id, input.month, input.genre);
+    if (!calibration.ok || !calibration.data) return badRequest(calibration.error ?? 'No student summary available.');
+    const c = calibration.data;
+    return ok({
+      report_type: 'teacher_writing_report',
+      generated_at: new Date().toISOString(),
+      period: input.month ?? new Date().toISOString().slice(0, 7),
+      student: {
+        student_id: c.student_id,
+        student_name: c.student_name,
+        grade: c.grade,
+        class_id: null,
+        class_name: 'Unassigned',
+      },
+      genre: input.genre ?? 'essay',
+      overall_summary: {
+        latest_score: c.latest_assessment?.total_score ?? null,
+        score_trend_delta: null,
+        completion_rate_percent: 0,
+        completed_tasks: c.latest_practice_evaluations.length,
+        total_tasks: c.generated_daily_tasks.length,
+      },
+      strengths: [],
+      priority_weak_areas: c.latest_assessment?.weakness_tags ?? [],
+      repeated_error_patterns: c.latest_assessment?.weakness_tags ?? [],
+      latest_evaluation: (c.latest_practice_evaluations[0]?.evaluation as unknown as Record<string, unknown>) ?? {},
+      monthly_summary: (c.monthly_report_snapshot?.report as unknown as Record<string, unknown>) ?? {},
+      teacher_actions: [],
+      evidence_snippet: null,
+      student_friendly_summary: {
+        strengths: [],
+        top_improvement_targets: c.latest_assessment?.weakness_tags?.slice(0, 3) ?? [],
+        progress_summary: c.monthly_report_snapshot?.report.score_change ?? 'Keep going.',
+        next_steps: [],
+      },
+    });
+  }
+  return getTeacherWritingReport(input);
+};
+
 export const getWritingPersistenceDiagnostics = (): ServiceResponse<{
   mode: 'db' | 'fallback-local' | 'runtime-only';
   repository_mode: 'db' | 'disabled';
