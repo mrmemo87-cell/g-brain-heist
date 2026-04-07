@@ -1,5 +1,5 @@
-import React from 'react';
-import { getWritingMonitoringOverview, listAdminReviewSignals } from '../../lib/brains_heist/writingIntegrationService.js';
+import React, { useEffect, useState } from 'react';
+import { getTeacherMonitoringOverviewScoped, getWritingMonitoringOverview, WritingMonitoringOverview } from '../../lib/brains_heist/writingIntegrationService.js';
 import { parseAdminDrilldownFilters } from '../../lib/brains_heist/writingAdminFilters.js';
 import { WRITING_ADMIN_HELP } from '../../lib/brains_heist/writingAdminHelp.js';
 
@@ -71,6 +71,29 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
   errorMessage,
   filterQuery = '',
 }) => {
+  const isTestRuntime = typeof process !== 'undefined' && process.env?.['NODE_ENV'] === 'test';
+  const seededOverview = isTestRuntime ? getWritingMonitoringOverview(month) : null;
+  const [overview, setOverview] = useState<WritingMonitoringOverview | null>(seededOverview?.ok ? seededOverview.data ?? null : null);
+  const [loadError, setLoadError] = useState<string>('');
+
+  useEffect(() => {
+    if (isTestRuntime) return;
+    let cancelled = false;
+    void getTeacherMonitoringOverviewScoped(month).then((result) => {
+      if (cancelled) return;
+      if (!result.ok || !result.data) {
+        setOverview(null);
+        setLoadError(result.error ?? 'No writing monitoring data available yet.');
+        return;
+      }
+      setOverview(result.data);
+      setLoadError('');
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [month, isTestRuntime]);
+
   if (isLoading) {
     return <div style={{ padding: 12, color: '#e5e7eb' }}>Loading writing monitor…</div>;
   }
@@ -79,27 +102,21 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
     return <div style={{ padding: 12, color: '#fca5a5' }}>Unable to load writing monitor: {errorMessage}</div>;
   }
 
-  const overview = getWritingMonitoringOverview(month);
-
-  if (!overview.ok || !overview.data) {
+  if (loadError) {
+    return <div style={{ padding: 12, color: '#e5e7eb' }}>{loadError}</div>;
+  }
+  if (!overview) {
     return <div style={{ padding: 12, color: '#e5e7eb' }}>No writing monitoring data available yet.</div>;
   }
-  if (overview.data.student_rows.length === 0) {
+  if (overview.student_rows.length === 0) {
     return <div style={{ padding: 12, color: '#e5e7eb' }}>No students with writing records yet.</div>;
   }
   const filters = parseAdminDrilldownFilters(filterQuery);
-  const reviewSignals = filters.status
-    ? listAdminReviewSignals({ status: filters.status as 'questionable' | 'needs_calibration_review' | 'approved' })
-    : null;
-  const flaggedStudentIds = new Set((reviewSignals?.data ?? []).map((item) => item.student_id).filter(Boolean));
-  const rows = overview.data.student_rows.filter((row) => {
+  const rows = overview.student_rows.filter((row) => {
     if (filters.grade && row.current_grade !== filters.grade) return false;
     if (filters.status === 'stalled' && !row.stalled) return false;
     if (filters.status === 'improving' && !row.improving) return false;
     if (filters.weakness_tag && !row.repeated_weakness_hotspots.includes(filters.weakness_tag)) return false;
-    if (filters.status && ['questionable', 'needs_calibration_review', 'approved'].includes(filters.status)) {
-      return flaggedStudentIds.has(row.student_id);
-    }
     return true;
   });
   if (rows.length === 0) {

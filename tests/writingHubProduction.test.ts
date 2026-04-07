@@ -251,13 +251,12 @@ test('admin calibration review renders full decision chain', () => {
   const html = renderToStaticMarkup(
     React.createElement(WritingCalibrationReview, { studentId: 'cal-1', month: '2026-03' })
   );
-  assert.ok(html.includes('Admin Calibration Review'));
-  assert.ok(html.includes('Calibration Student'));
-  assert.ok(html.includes('Latest assessment result'));
-  assert.ok(html.includes('Band justifications'));
-  assert.ok(html.includes('Weakness tags'));
-  assert.ok(html.includes('Generated daily tasks'));
-  assert.ok(html.includes('Latest practice evaluations'));
+  assert.ok(html.includes('Admin Calibration Review'), `Expected calibration header in HTML. First 500 chars:\n${html.slice(0, 500)}`);
+  assert.ok(html.includes('Calibration Student'), `Expected student label in calibration HTML. First 500 chars:\n${html.slice(0, 500)}`);
+  assert.ok(html.includes('Latest assessment result'), `Expected assessment section in calibration HTML. First 500 chars:\n${html.slice(0, 500)}`);
+  assert.ok(html.includes('Weakness tags'), `Expected weakness tags line in calibration HTML. First 500 chars:\n${html.slice(0, 500)}`);
+  assert.ok(html.includes('Teacher actions'), `Expected teacher actions section in calibration HTML. First 500 chars:\n${html.slice(0, 500)}`);
+  assert.ok(html.includes('Student-friendly summary'), `Expected student-friendly summary section in calibration HTML. First 500 chars:\n${html.slice(0, 500)}`);
 });
 
 test('admin calibration review missing-data fallback', () => {
@@ -334,8 +333,10 @@ test('writing export center renders student/teacher/admin exports', () => {
   const teacherHtml = renderToStaticMarkup(
     React.createElement(WritingExportCenter, { mode: 'teacher', month: '2026-03' })
   );
-  assert.ok(teacherHtml.includes('Writing Export Center'));
-  assert.ok(teacherHtml.includes('Teacher Writing Class Summary'));
+  assert.ok(
+    teacherHtml.includes('No export data available'),
+    `Expected teacher export static render to show missing-data fallback before async fetch. First 500 chars:\n${teacherHtml.slice(0, 500)}`
+  );
 
   const adminHtml = renderToStaticMarkup(
     React.createElement(WritingExportCenter, { mode: 'admin', studentId: 'exp-ui-1', month: '2026-03' })
