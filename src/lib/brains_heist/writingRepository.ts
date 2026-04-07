@@ -3,6 +3,7 @@ import { getEnvVar } from '../../../services/env.js';
 
 export interface SerializedWritingPersistenceStore {
   profiles: Array<[string, unknown]>;
+  usernamesById?: Record<string, string>;
   states: Array<[string, unknown]>;
   attempts: unknown[];
   weeklyPlans: unknown[];
@@ -93,9 +94,24 @@ export const loadWritingStoreSnapshot = async (): Promise<SerializedWritingPersi
   const promptRows = readRows<any>(promptsRes, 'prompt_bank');
   const signalRows = readRows<any>(signalsRes, 'review_signals');
   const followupRows = readRows<any>(followupsRes, 'calibration_followups');
+  const studentIds = [...new Set(profileRows.map((row: any) => row?.student_id).filter((value: unknown): value is string => typeof value === 'string' && value.length > 0))];
+  let usernamesById: Record<string, string> = {};
+  if (studentIds.length > 0) {
+    const usersRes = await supabase.from('users').select('id, username').in('id', studentIds);
+    if (usersRes.error) {
+      console.warn(`[writingRepository] Partial DB load failed for users: ${usersRes.error.message}`);
+    } else {
+      usernamesById = Object.fromEntries(
+        (usersRes.data ?? [])
+          .filter((row: any) => typeof row?.id === 'string' && typeof row?.username === 'string' && row.username.trim().length > 0)
+          .map((row: any) => [row.id, row.username.trim()])
+      );
+    }
+  }
 
   return {
     profiles: profileRows.map((row: any) => [row.student_id, row.profile]),
+    usernamesById,
     states: stateRows.flatMap((row: any): Array<[string, unknown]> => {
       const statePayload = row.state;
       if (statePayload && typeof statePayload === 'object' && !Array.isArray(statePayload) && statePayload['by_genre']) {

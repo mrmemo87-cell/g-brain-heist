@@ -594,7 +594,10 @@ test('admin feedback flags display and filter behavior in views', () => {
   const monitoringFlagged = renderToStaticMarkup(
     React.createElement(WritingMonitoringView, { filterQuery: '?status=questionable' })
   );
-  assert.ok(monitoringFlagged.includes('flag-1') || monitoringFlagged.includes('No monitoring matches'));
+  assert.ok(
+    monitoringFlagged.includes('Student') || monitoringFlagged.includes('No monitoring matches'),
+    `expected questionable monitoring view to render a safe student label or empty-filter copy, got: ${monitoringFlagged}`
+  );
 
   const promptFlagged = renderToStaticMarkup(
     React.createElement(WritingPromptBankManager, { filterQuery: '?status=questionable' })
