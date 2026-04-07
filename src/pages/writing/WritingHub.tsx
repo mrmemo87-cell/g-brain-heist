@@ -243,6 +243,12 @@ const toWordCountLabel = (targetWords: number): string => {
   return `${range.min}–${range.max} words`;
 };
 
+const countWords = (text: string): number => {
+  const normalized = text.trim();
+  if (!normalized) return 0;
+  return normalized.split(/\s+/).length;
+};
+
 const SUPPORTED_GENRES: SupportedGenre[] = ['essay', 'story', 'article', 'review', 'report', 'email', 'paragraph'];
 
 const defaultPromptByGenre: Record<SupportedGenre, string> = FALLBACK_PROMPT_BY_GENRE;
@@ -659,6 +665,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const [showTaskTypeGuide, setShowTaskTypeGuide] = useState(false);
   const [showTaskContextModal, setShowTaskContextModal] = useState(false);
   const [questMissions, setQuestMissions] = useState<QuestMissionRow[]>([]);
+  const initialResponseWordCount = countWords(initialResponse);
+  const practiceResponseWordCount = countWords(practiceResponse);
   const initializing = hydrationStatus === 'idle' || hydrationStatus === 'loading';
 
   const dashboard = useMemo(() => buildWritingDashboardSnapshot(studentId, month, activeGenre), [studentId, month, activeGenre, feedback]);
@@ -1391,6 +1399,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                 <p style={{ margin: '0 0 8px', color: '#bfdbfe', fontSize: 14 }}>
                   Word count: {toWordCountLabel(targetWordCount)}
                 </p>
+                <p style={{ margin: '0 0 8px', color: '#dbeafe', fontSize: 12, fontWeight: 700 }}>Typed so far: {initialResponseWordCount} words</p>
                 <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12 }}>Try to stay close to this range.</p>
                 <textarea
                   value={initialResponse}
@@ -1435,6 +1444,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                       This helps you improve your weekly focus areas and raise your writing score step by step.
                     </p>
                     <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 13 }}>Word count: {toWordCountLabel(todayTask.data.expected_word_count)}</p>
+                    <p style={{ margin: '0 0 8px', color: '#dbeafe', fontSize: 12, fontWeight: 700 }}>Typed so far: {practiceResponseWordCount} words</p>
                     <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12 }}>Try to stay close to this range.</p>
                     <p style={{ margin: '0 0 6px', color: '#93c5fd', fontSize: 13, fontWeight: 700 }}>Try to do these 2 things</p>
                     <ul style={{ margin: '0 0 10px', paddingLeft: 18, color: '#cbd5e1', fontSize: 14 }}>
