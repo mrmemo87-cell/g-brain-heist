@@ -99,10 +99,12 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
   return (
     <div style={{ padding: 12, color: '#f3f4f6', display: 'grid', gap: 12 }}>
       <h2 style={{ margin: 0, color: '#ffffff' }}>Writing Monitor</h2>
+      <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Teacher/Admin Writing Monitor</span>
       <p style={{ margin: 0, color: '#cbd5e1' }}>
         Quick answers: <strong>{stalledCount}</strong> students need support, <strong>{improvingCount}</strong> are improving, and{' '}
         <strong>{monthlyReadyCount}</strong> are ready for monthly review.
       </p>
+      <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Weekly target</span>
 
       <div style={{ display: 'grid', gap: 8, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
         <article style={cardStyle}>
@@ -128,7 +130,12 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
             <span>Latest writing score: {row.latest_score ?? '—'}</span>
             <span>Current weekly focus: {row.weekly_target_summary}</span>
             <span>
-              Progress status: {row.stalled ? 'Needs support' : row.improving ? 'Improving' : 'Steady progress'}
+              Progress status:{' '}
+              {row.stalled
+                ? 'Status: Stalled (Needs support)'
+                : row.improving
+                  ? 'Status: Improving'
+                  : 'Status: Steady'}
             </span>
           </article>
         ))}

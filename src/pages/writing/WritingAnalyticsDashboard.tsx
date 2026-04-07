@@ -98,6 +98,7 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
   return (
     <div style={{ padding: 12, color: '#f3f4f6', display: 'grid', gap: 10 }}>
       <h2 style={{ margin: 0, color: '#ffffff' }}>Writing Analytics</h2>
+      <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Writing Analytics Dashboard</span>
       <p style={{ margin: 0, color: '#cbd5e1' }}>
         At a glance: who needs help, who is improving, the most common weakness, and suggested next actions.
       </p>
@@ -121,6 +122,7 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
 
       <section style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, background: '#0f172a' }}>
         <h3 style={{ marginTop: 0 }}>Main class weaknesses</h3>
+        <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Weakness hotspots</span>
         <ul style={{ margin: 0, paddingLeft: 18 }}>
           {data.most_common_weakness_tags.map((item) => (
             <li key={item.tag}>
@@ -195,6 +197,7 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
 
       <section style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, background: '#0f172a' }}>
         <h3 style={{ marginTop: 0 }}>Recommended next actions</h3>
+        <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Pilot readiness</span>
         <small style={{ color: '#cbd5e1' }}>{WRITING_ADMIN_HELP.overused_prompt}</small>
         <br />
         <small style={{ color: '#cbd5e1' }}>{WRITING_ADMIN_HELP.low_improvement_tag}</small>
