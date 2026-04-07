@@ -20,6 +20,8 @@ const sectionStyle = {
   gap: 8,
 };
 
+type ReviewTab = 'assessment' | 'actions' | 'patterns';
+
 export const WritingCalibrationReview: React.FC<WritingCalibrationReviewProps> = ({
   studentId,
   month = new Date().toISOString().slice(0, 7),
@@ -36,6 +38,7 @@ export const WritingCalibrationReview: React.FC<WritingCalibrationReviewProps> =
 
   const [summary, setSummary] = useState<TeacherWritingReport | null>(seededSummary);
   const [loadError, setLoadError] = useState<string>('');
+  const [tab, setTab] = useState<ReviewTab>('assessment');
 
   useEffect(() => {
     if (isTestRuntime) return;
@@ -72,61 +75,70 @@ export const WritingCalibrationReview: React.FC<WritingCalibrationReviewProps> =
   return (
     <div style={{ padding: 12, color: '#e5e7eb', display: 'grid', gap: 12 }}>
       <h2 style={{ margin: 0 }}>Admin Calibration Review</h2>
-      <small>{WRITING_ADMIN_HELP.low_improvement_tag}</small>
+      <div style={{ position: 'sticky', top: 0, zIndex: 3, background: '#020617', border: '1px solid #1e293b', borderRadius: 10, padding: 10, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        <button type="button" onClick={() => setTab('assessment')} style={{ borderRadius: 999, border: '1px solid #334155', background: tab === 'assessment' ? '#1d4ed8' : '#1e293b', color: '#fff', padding: '4px 10px' }}>Assessment</button>
+        <button type="button" onClick={() => setTab('actions')} style={{ borderRadius: 999, border: '1px solid #334155', background: tab === 'actions' ? '#1d4ed8' : '#1e293b', color: '#fff', padding: '4px 10px' }}>Teacher actions</button>
+        <button type="button" onClick={() => setTab('patterns')} style={{ borderRadius: 999, border: '1px solid #334155', background: tab === 'patterns' ? '#1d4ed8' : '#1e293b', color: '#fff', padding: '4px 10px' }}>Patterns & summary</button>
+      </div>
 
       <section style={sectionStyle}>
-        <strong>
-          {summary.student.student_name} ({summary.student.student_id})
-        </strong>
-        <span>Grade {summary.student.grade ?? '—'}</span>
-        <span>Class {summary.student.class_name}</span>
-      </section>
-
-      <section style={sectionStyle}>
-        <strong>Latest assessment result</strong>
-        {filters.weakness_tag ? <div>Filtered weakness focus: {filters.weakness_tag}</div> : null}
-        <div>
-          Calibration follow-up:{' '}
-          {summary.calibration_follow_up_flag ? 'Flagged' : 'Not flagged'}
+        <strong>{summary.student.student_name} · Grade {summary.student.grade ?? '—'} · {summary.student.class_name}</strong>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <span style={{ background: summary.calibration_follow_up_flag ? '#7f1d1d' : '#14532d', color: summary.calibration_follow_up_flag ? '#fecaca' : '#bbf7d0', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>
+            {summary.calibration_follow_up_flag ? 'Needs calibration follow-up' : 'Calibration stable'}
+          </span>
+          <span style={{ background: '#1e3a8a', color: '#bfdbfe', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Completion {summary.overall_summary.completion_rate_percent}%</span>
+          <span style={{ background: '#312e81', color: '#c7d2fe', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Latest score {summary.overall_summary.latest_score ?? '—'}</span>
         </div>
-        <div>Completion rate: {summary.overall_summary.completion_rate_percent}%</div>
-        {assessment && Object.keys(assessment).length > 0 ? (
-          <>
-            <div>Total score: {summary.overall_summary.latest_score ?? '—'}</div>
-            <div>
-              Evaluation status: {String(assessment['completion_status'] ?? '—')} ({String(assessment['recommended_next_action'] ?? '—')})
-            </div>
-            <div>Weakness tags: {summary.priority_weak_areas.join(', ') || 'None'}</div>
-          </>
-        ) : (
-          <div>No assessment available.</div>
-        )}
       </section>
 
-      <section style={sectionStyle}>
-        <strong>Teacher actions</strong>
-        <ul style={{ margin: 0, paddingLeft: 18 }}>
-          {(summary.teacher_actions.length ? summary.teacher_actions : ['No teacher actions generated yet.']).map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
-      </section>
+      {tab === 'assessment' ? (
+        <section style={sectionStyle}>
+          <strong>Latest assessment result</strong>
+          {filters.weakness_tag ? <div>Filtered weakness focus: {filters.weakness_tag}</div> : null}
+          {assessment && Object.keys(assessment).length > 0 ? (
+            <>
+              <div>Evaluation status: {String(assessment['completion_status'] ?? '—')} ({String(assessment['recommended_next_action'] ?? '—')})</div>
+              <div>Weakness tags: {summary.priority_weak_areas.join(', ') || 'None'}</div>
+              <div>Score trend delta: {summary.overall_summary.score_trend_delta ?? '—'}</div>
+            </>
+          ) : (
+            <div>No assessment available.</div>
+          )}
+          <small>{WRITING_ADMIN_HELP.low_improvement_tag}</small>
+        </section>
+      ) : null}
 
-      <section style={sectionStyle}>
-        <strong>Repeated error patterns</strong>
-        <div>{summary.repeated_error_patterns.join(', ') || 'None detected.'}</div>
-      </section>
+      {tab === 'actions' ? (
+        <section style={sectionStyle}>
+          <strong>Teacher actions</strong>
+          <ul style={{ margin: 0, paddingLeft: 18 }}>
+            {(summary.teacher_actions.length ? summary.teacher_actions : ['No teacher actions generated yet.']).map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
-      <section style={sectionStyle}>
-        <strong>Student-friendly summary</strong>
-        <div>{summary.student_friendly_summary.progress_summary}</div>
-      </section>
+      {tab === 'patterns' ? (
+        <>
+          <section style={sectionStyle}>
+            <strong>Repeated error patterns</strong>
+            <div>{summary.repeated_error_patterns.join(', ') || 'None detected.'}</div>
+          </section>
 
-      <section style={sectionStyle}>
-        <strong>Monthly report snapshot</strong>
-        <div>Month: {summary.period}</div>
-        <div>Score trend delta: {summary.overall_summary.score_trend_delta ?? '—'}</div>
-      </section>
+          <section style={sectionStyle}>
+            <strong>Student-friendly summary</strong>
+            <div>{summary.student_friendly_summary.progress_summary}</div>
+          </section>
+
+          <section style={sectionStyle}>
+            <strong>Monthly report snapshot</strong>
+            <div>Month: {summary.period}</div>
+            <div>Score trend delta: {summary.overall_summary.score_trend_delta ?? '—'}</div>
+          </section>
+        </>
+      ) : null}
     </div>
   );
 };

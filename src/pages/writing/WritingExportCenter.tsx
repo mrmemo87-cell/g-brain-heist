@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   exportAdminCalibrationReport,
   exportStudentMonthlyWritingReport,
@@ -53,23 +53,8 @@ const renderTeacherReport = (report: TeacherWritingReport): React.ReactElement =
       <ul>{(report.priority_weak_areas.length ? report.priority_weak_areas : ['No priority weaknesses captured yet.']).map((item) => <li key={item}>{item}</li>)}</ul>
     </section>
     <section>
-      <strong>Repeated error patterns</strong>
-      <div>{report.repeated_error_patterns.length ? report.repeated_error_patterns.join(', ') : 'None detected.'}</div>
-    </section>
-    <section>
       <strong>Teacher actions</strong>
       <ul>{(report.teacher_actions.length ? report.teacher_actions : ['No actions generated yet.']).map((item) => <li key={item}>{item}</li>)}</ul>
-    </section>
-    {report.evidence_snippet ? (
-      <section>
-        <strong>Optional evidence snippet</strong>
-        <div style={{ fontStyle: 'italic' }}>{report.evidence_snippet}</div>
-      </section>
-    ) : null}
-    <section>
-      <strong>Student-friendly summary</strong>
-      <div>{report.student_friendly_summary.progress_summary}</div>
-      <div>Next steps: {report.student_friendly_summary.next_steps.join(' | ') || 'No next steps generated yet.'}</div>
     </section>
   </article>
 );
@@ -85,6 +70,8 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
   const [teacherRows, setTeacherRows] = useState<Array<{ student_id: string; student_name: string; grade: number; completion_rate: number; latest_score: number | null }> | null>(null);
   const [teacherReportError, setTeacherReportError] = useState<string>('');
   const [teacherLoading, setTeacherLoading] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -93,6 +80,7 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
       setTeacherRows(null);
       setTeacherReportError('');
       setTeacherLoading(false);
+      setSelectedStudentId('');
       return;
     }
 
@@ -113,9 +101,12 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
         if (studentId) {
           setTeacherReport(result.data as TeacherWritingReport);
           setTeacherRows(null);
+          setSelectedStudentId(studentId);
         } else {
-          setTeacherRows(result.data as Array<{ student_id: string; student_name: string; grade: number; completion_rate: number; latest_score: number | null }>);
+          const rows = result.data as Array<{ student_id: string; student_name: string; grade: number; completion_rate: number; latest_score: number | null }>;
+          setTeacherRows(rows);
           setTeacherReport(null);
+          setSelectedStudentId(rows[0]?.student_id ?? '');
         }
       })
       .catch((err) => {
@@ -130,11 +121,45 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
     };
   }, [mode, studentId, month]);
 
+  useEffect(() => {
+    if (mode !== 'teacher' || studentId || !selectedStudentId) return;
+    let cancelled = false;
+    setTeacherLoading(true);
+    void getTeacherWritingReport({ student_id: selectedStudentId, month, include_snippet: false })
+      .then((result) => {
+        if (cancelled) return;
+        if (result.ok && result.data) setTeacherReport(result.data);
+      })
+      .finally(() => {
+        if (!cancelled) setTeacherLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, month, selectedStudentId, studentId]);
+
   if (isLoading) return <div style={{ padding: 12, color: '#e5e7eb' }}>Loading exports…</div>;
   if (errorMessage) return <div style={{ padding: 12, color: '#fca5a5' }}>Unable to load exports: {errorMessage}</div>;
 
+  const visibleRows = useMemo(
+    () => (teacherRows ?? []).filter((row) => !searchQuery || row.student_name.toLowerCase().includes(searchQuery.toLowerCase()) || row.student_id.toLowerCase().includes(searchQuery.toLowerCase())),
+    [teacherRows, searchQuery]
+  );
+
+  const exportCsv = (): void => {
+    if (!teacherRows || typeof window === 'undefined') return;
+    const header = 'student_name,student_id,grade,completion_rate,latest_score';
+    const lines = teacherRows.map((row) => `${row.student_name},${row.student_id},${row.grade},${Math.round(row.completion_rate * 100)}%,${row.latest_score ?? ''}`);
+    const blob = new Blob([[header, ...lines].join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `writing-export-${month}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
   if (mode === 'teacher') {
-    if (teacherLoading) return <div style={{ padding: 12, color: '#e5e7eb' }}>Generating teacher report…</div>;
+    if (teacherLoading && !teacherRows && !teacherReport) return <div style={{ padding: 12, color: '#e5e7eb' }}>Generating teacher report…</div>;
     if (teacherReportError) return <div style={{ padding: 12, color: '#fca5a5' }}>No export data available: {teacherReportError}</div>;
     if (studentId && !teacherReport) return <div style={{ padding: 12, color: '#e5e7eb' }}>No export data available.</div>;
     if (!studentId && !teacherRows) return <div style={{ padding: 12, color: '#e5e7eb' }}>No export data available.</div>;
@@ -144,21 +169,54 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
         <h2 style={{ margin: 0 }}>Writing Export Center</h2>
         {studentId && teacherReport ? renderTeacherReport(teacherReport) : null}
         {!studentId && teacherRows ? (
-          <article style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: '#0f172a', display: 'grid', gap: 8 }}>
-            <h3 style={{ margin: 0 }}>Teacher Writing Class Summary</h3>
-            <div style={{ fontSize: 12, opacity: 0.85 }}>Month: {month}</div>
-            {teacherRows.length === 0 ? (
-              <div>No students found for your current roster.</div>
-            ) : (
-              <ul style={{ margin: 0, paddingLeft: 18 }}>
-                {teacherRows.map((row) => (
-                  <li key={row.student_id}>
-                    {row.student_name} ({row.student_id}) · Grade {row.grade} · Completion {Math.round(row.completion_rate * 100)}% · Latest score {row.latest_score ?? '—'}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </article>
+          <>
+            <div style={{ position: 'sticky', top: 0, zIndex: 3, background: '#020617', border: '1px solid #1e293b', borderRadius: 10, padding: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <input value={searchQuery} onChange={(event: { target: { value: string } }) => setSearchQuery(event.target.value)} placeholder="Search student" style={{ flex: '1 1 220px', background: '#020617', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '8px 10px' }} />
+              <button type="button" onClick={exportCsv} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '8px 10px' }}>Export CSV</button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(300px, 1fr)', gap: 10 }}>
+              <article style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: '#0f172a', overflowX: 'auto' }}>
+                <h3 style={{ margin: 0 }}>Teacher Writing Class Summary</h3>
+                <div style={{ fontSize: 12, opacity: 0.85, marginBottom: 8 }}>Month: {month}</div>
+                {visibleRows.length === 0 ? (
+                  <div>No students found for your current roster.</div>
+                ) : (
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                    <thead>
+                      <tr>
+                        <th align="left">Student</th>
+                        <th align="left">Grade</th>
+                        <th align="left">Completion</th>
+                        <th align="left">Latest score</th>
+                        <th align="left">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {visibleRows.map((row) => (
+                        <tr key={row.student_id}>
+                          <td>{row.student_name}</td>
+                          <td>{row.grade}</td>
+                          <td>{Math.round(row.completion_rate * 100)}%</td>
+                          <td>{row.latest_score ?? '—'}</td>
+                          <td>
+                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                              <button type="button" onClick={() => setSelectedStudentId(row.student_id)} style={{ borderRadius: 6, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '4px 8px' }}>View summary</button>
+                              <button type="button" onClick={() => setSelectedStudentId(row.student_id)} style={{ borderRadius: 6, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '4px 8px' }}>Open report</button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </article>
+
+              <aside style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: '#0f172a', display: 'grid', gap: 8 }}>
+                <strong>Selected student report</strong>
+                {teacherReport ? renderTeacherReport(teacherReport) : <div>Select a student row to load details.</div>}
+              </aside>
+            </div>
+          </>
         ) : null}
       </div>
     );
