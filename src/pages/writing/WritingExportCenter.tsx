@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   exportAdminCalibrationReport,
   exportStudentMonthlyWritingReport,
-  exportTeacherWeeklyClassSummary,
+  getTeacherExportRowsScoped,
   getTeacherWritingReport,
   TeacherWritingReport,
   WritingExportDocument,
@@ -82,13 +82,15 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
   errorMessage,
 }) => {
   const [teacherReport, setTeacherReport] = useState<TeacherWritingReport | null>(null);
+  const [teacherRows, setTeacherRows] = useState<Array<{ student_id: string; student_name: string; grade: number; completion_rate: number; latest_score: number | null }> | null>(null);
   const [teacherReportError, setTeacherReportError] = useState<string>('');
   const [teacherLoading, setTeacherLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    if (mode !== 'teacher' || !studentId) {
+    if (mode !== 'teacher') {
       setTeacherReport(null);
+      setTeacherRows(null);
       setTeacherReportError('');
       setTeacherLoading(false);
       return;
@@ -96,15 +98,25 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
 
     setTeacherLoading(true);
     setTeacherReportError('');
-    void getTeacherWritingReport({ student_id: studentId, month, include_snippet: false })
+    const task = studentId
+      ? getTeacherWritingReport({ student_id: studentId, month, include_snippet: false })
+      : getTeacherExportRowsScoped(month);
+    void task
       .then((result) => {
         if (cancelled) return;
         if (!result.ok || !result.data) {
           setTeacherReport(null);
+          setTeacherRows(null);
           setTeacherReportError(result.error ?? 'Unable to generate teacher report.');
           return;
         }
-        setTeacherReport(result.data);
+        if (studentId) {
+          setTeacherReport(result.data as TeacherWritingReport);
+          setTeacherRows(null);
+        } else {
+          setTeacherRows(result.data as Array<{ student_id: string; student_name: string; grade: number; completion_rate: number; latest_score: number | null }>);
+          setTeacherReport(null);
+        }
       })
       .catch((err) => {
         if (!cancelled) setTeacherReportError(err instanceof Error ? err.message : 'Unable to generate teacher report.');
@@ -121,15 +133,33 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
   if (isLoading) return <div style={{ padding: 12, color: '#e5e7eb' }}>Loading exports…</div>;
   if (errorMessage) return <div style={{ padding: 12, color: '#fca5a5' }}>Unable to load exports: {errorMessage}</div>;
 
-  if (mode === 'teacher' && studentId) {
+  if (mode === 'teacher') {
     if (teacherLoading) return <div style={{ padding: 12, color: '#e5e7eb' }}>Generating teacher report…</div>;
     if (teacherReportError) return <div style={{ padding: 12, color: '#fca5a5' }}>No export data available: {teacherReportError}</div>;
-    if (!teacherReport) return <div style={{ padding: 12, color: '#e5e7eb' }}>No export data available.</div>;
+    if (studentId && !teacherReport) return <div style={{ padding: 12, color: '#e5e7eb' }}>No export data available.</div>;
+    if (!studentId && !teacherRows) return <div style={{ padding: 12, color: '#e5e7eb' }}>No export data available.</div>;
 
     return (
       <div style={{ padding: 12, color: '#e5e7eb', display: 'grid', gap: 10 }}>
         <h2 style={{ margin: 0 }}>Writing Export Center</h2>
-        {renderTeacherReport(teacherReport)}
+        {studentId && teacherReport ? renderTeacherReport(teacherReport) : null}
+        {!studentId && teacherRows ? (
+          <article style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: '#0f172a', display: 'grid', gap: 8 }}>
+            <h3 style={{ margin: 0 }}>Teacher Writing Class Summary</h3>
+            <div style={{ fontSize: 12, opacity: 0.85 }}>Month: {month}</div>
+            {teacherRows.length === 0 ? (
+              <div>No students found for your current roster.</div>
+            ) : (
+              <ul style={{ margin: 0, paddingLeft: 18 }}>
+                {teacherRows.map((row) => (
+                  <li key={row.student_id}>
+                    {row.student_name} ({row.student_id}) · Grade {row.grade} · Completion {Math.round(row.completion_rate * 100)}% · Latest score {row.latest_score ?? '—'}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </article>
+        ) : null}
       </div>
     );
   }
@@ -139,8 +169,6 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
       ? studentId
         ? exportStudentMonthlyWritingReport(studentId, month)
         : { ok: false, error: 'studentId is required for student exports.' }
-      : mode === 'teacher'
-      ? exportTeacherWeeklyClassSummary(month)
       : studentId
       ? exportAdminCalibrationReport(studentId, month)
       : { ok: false, error: 'studentId is required for admin exports.' };

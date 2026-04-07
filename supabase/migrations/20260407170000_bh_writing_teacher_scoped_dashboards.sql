@@ -32,6 +32,8 @@ as $$
 
   select distinct cs.student_id
   from me
+  join public.teachers t
+    on t.user_id = me.id
   join public.class_teacher_assignments cta
     on cta.teacher_user_id = me.id
    and coalesce(cta.active, true) = true

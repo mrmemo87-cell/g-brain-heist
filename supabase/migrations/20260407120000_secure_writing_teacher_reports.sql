@@ -52,6 +52,9 @@ as $$
       join public.class_teacher_assignments cta
         on cta.teacher_user_id = me.id
        and coalesce(cta.active, true) = true
+      join public.classes c
+        on c.id = cta.class_id
+       and c.school_id = me.school_id
       join public.class_students cs
         on cs.class_id = cta.class_id
        and cs.student_id = target.id
