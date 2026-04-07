@@ -1909,6 +1909,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                     <Suspense fallback={null}>
                       <WritingHub
                         studentId={profile.id}
+                        studentName={profile.username ?? undefined}
                         grade={profile?.grade ?? 8}
                         genre="essay"
                         onOpenQuestMission={(missionId?: string) => {

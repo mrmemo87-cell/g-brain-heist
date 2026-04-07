@@ -116,6 +116,7 @@ export interface RepeatedErrorMemorySnapshot {
 
 interface WritingPersistenceStore {
   profiles: Map<string, StudentWritingProfile>;
+  usernamesById: Record<string, string>;
   states: Map<string, StudentWritingState>;
   attempts: WritingAttempt[];
   weeklyPlans: WeeklyWritingPlan[];
@@ -131,6 +132,7 @@ interface WritingPersistenceStore {
 
 const store: WritingPersistenceStore = {
   profiles: new Map(),
+  usernamesById: {},
   states: new Map(),
   attempts: [],
   weeklyPlans: [],
@@ -160,6 +162,7 @@ const getStorage = (): Storage | null => {
 
 const serializeStore = (): SerializedWritingPersistenceStore => ({
   profiles: [...store.profiles.entries()],
+  usernamesById: store.usernamesById,
   states: [...store.states.entries()],
   attempts: store.attempts,
   weeklyPlans: store.weeklyPlans,
@@ -175,6 +178,20 @@ const serializeStore = (): SerializedWritingPersistenceStore => ({
 
 const GENRE_KEYS: SupportedGenre[] = ['email', 'article', 'review', 'story', 'essay', 'report', 'paragraph'];
 const isKnownGenre = (genre: string): genre is SupportedGenre => GENRE_KEYS.includes(genre as SupportedGenre);
+const isLikelyUuid = (value?: string): boolean => {
+  if (typeof value !== 'string') return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.trim());
+};
+const isReadableStudentLabel = (value?: string): value is string =>
+  typeof value === 'string' && value.trim().length > 0 && !isLikelyUuid(value);
+const resolveStudentLabel = (studentId: string, preferredName?: string): string => {
+  if (isReadableStudentLabel(preferredName)) return preferredName.trim();
+  const profileName = store.profiles.get(studentId)?.student_name;
+  if (isReadableStudentLabel(profileName)) return profileName.trim();
+  const username = store.usernamesById[studentId];
+  if (isReadableStudentLabel(username)) return username.trim();
+  return 'Student';
+};
 const buildStateKey = (studentId: string, genre: SupportedGenre): string => `${studentId}::${genre}`;
 const parseStateKey = (key: string): { studentId: string; genre: SupportedGenre | null } => {
   const [studentId, rawGenre] = key.split('::');
@@ -241,6 +258,7 @@ const applyFallbackSnapshot = (storage: Storage | null): boolean => {
     if (!raw) return false;
     const fallback = JSON.parse(raw) as SerializedWritingPersistenceStore;
     store.profiles = new Map(fallback.profiles as Array<[string, StudentWritingProfile]>);
+    store.usernamesById = fallback.usernamesById ?? {};
     const loadedStates = new Map<string, StudentWritingState>();
     (fallback.states as Array<[string, StudentWritingState]>).forEach(([key, value]) => {
       const { studentId, genre } = parseStateKey(key);
@@ -284,6 +302,7 @@ const applyHydratedSnapshot = (
   }
   lastPersistenceMode = 'db';
   store.profiles = new Map(parsed.profiles as Array<[string, StudentWritingProfile]>);
+  store.usernamesById = parsed.usernamesById ?? {};
   const loadedStates = new Map<string, StudentWritingState>();
   (parsed.states as Array<[string, StudentWritingState]>).forEach(([key, value]) => {
     const { studentId, genre } = parseStateKey(key);
@@ -1070,7 +1089,7 @@ export const getWritingMonitoringOverview = (
       : 'No active weekly target';
 
     rows.push({
-      student_name: profile?.student_name || `Student ${studentId} (${laneGenre})`,
+      student_name: resolveStudentLabel(studentId, profile?.student_name),
       student_id: studentId,
       current_grade: profile?.grade ?? state.grade,
       completion_rate: completionRate,
@@ -2026,6 +2045,7 @@ export const getWritingPersistenceDiagnostics = (): ServiceResponse<{
 
 export const __resetWritingIntegrationStoreForTests = (): void => {
   store.profiles.clear();
+  store.usernamesById = {};
   store.states.clear();
   store.attempts = [];
   store.weeklyPlans = [];
