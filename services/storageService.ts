@@ -17,10 +17,41 @@ const STORAGE_KEYS = {
   BRANCH_HISTORY: 'gbh_branch_history', // Branch-level mission history
 } as const;
 
+const memoryStore = new Map<string, string>();
+
+const hasLocalStorage = (): boolean => {
+  try {
+    return typeof globalThis !== 'undefined' && 'localStorage' in globalThis && globalThis.localStorage != null;
+  } catch {
+    return false;
+  }
+};
+
+const getStorageItem = (key: string): string | null => {
+  if (!hasLocalStorage()) return memoryStore.get(key) ?? null;
+  return globalThis.localStorage.getItem(key);
+};
+
+const setStorageItem = (key: string, value: string): void => {
+  if (!hasLocalStorage()) {
+    memoryStore.set(key, value);
+    return;
+  }
+  globalThis.localStorage.setItem(key, value);
+};
+
+const removeStorageItem = (key: string): void => {
+  if (!hasLocalStorage()) {
+    memoryStore.delete(key);
+    return;
+  }
+  globalThis.localStorage.removeItem(key);
+};
+
 export const saveToStorage = <T>(key: string, data: T): void => {
   try {
-    localStorage.setItem(key, JSON.stringify(data));
-    localStorage.setItem(STORAGE_KEYS.LAST_SAVE, new Date().toISOString());
+    setStorageItem(key, JSON.stringify(data));
+    setStorageItem(STORAGE_KEYS.LAST_SAVE, new Date().toISOString());
   } catch (error) {
     console.error(`Failed to save ${key} to localStorage:`, error);
   }
@@ -28,7 +59,7 @@ export const saveToStorage = <T>(key: string, data: T): void => {
 
 export const loadFromStorage = <T>(key: string): T | null => {
   try {
-    const item = localStorage.getItem(key);
+    const item = getStorageItem(key);
     return item ? JSON.parse(item) : null;
   } catch (error) {
     console.error(`Failed to load ${key} from localStorage:`, error);
@@ -39,7 +70,7 @@ export const loadFromStorage = <T>(key: string): T | null => {
 export const clearStorage = (): void => {
   try {
     Object.values(STORAGE_KEYS).forEach(key => {
-      localStorage.removeItem(key);
+      removeStorageItem(key);
     });
   } catch (error) {
     console.error('Failed to clear localStorage:', error);
@@ -47,13 +78,13 @@ export const clearStorage = (): void => {
 };
 
 export const getLastSaveTime = (): string | null => {
-  return localStorage.getItem(STORAGE_KEYS.LAST_SAVE);
+  return getStorageItem(STORAGE_KEYS.LAST_SAVE);
 };
 
 export const exportGameData = (): string => {
   const data: Record<string, string | null> = {};
   Object.entries(STORAGE_KEYS).forEach(([_, key]) => {
-    data[key] = localStorage.getItem(key);
+    data[key] = getStorageItem(key);
   });
   return JSON.stringify(data, null, 2);
 };
@@ -63,7 +94,7 @@ export const importGameData = (jsonData: string): boolean => {
     const data = JSON.parse(jsonData);
     Object.entries(data).forEach(([key, value]) => {
       if (value !== null) {
-        localStorage.setItem(key, value as string);
+        setStorageItem(key, value as string);
       }
     });
     return true;

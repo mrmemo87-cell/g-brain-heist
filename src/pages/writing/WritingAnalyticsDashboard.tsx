@@ -1,5 +1,5 @@
 import React from 'react';
-import { getWritingAnalyticsDashboard } from '../../lib/brains_heist/writingIntegrationService.js';
+import { getWritingAnalyticsDashboard, getWritingMonitoringOverview } from '../../lib/brains_heist/writingIntegrationService.js';
 import { SupportedGenre } from '../../lib/brains_heist/writingAssessment.js';
 import { serializeAdminDrilldownFilters } from '../../lib/brains_heist/writingAdminFilters.js';
 import { WRITING_ADMIN_HELP } from '../../lib/brains_heist/writingAdminHelp.js';
@@ -36,6 +36,38 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
   }
 
   const { data } = dashboard;
+  const monitoring = getWritingMonitoringOverview();
+  const isLikelyInternalId = (value?: string): boolean =>
+    !value || /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.trim());
+  const toDisplayLabel = (studentName: string | undefined, studentId: string): string => {
+    const name = studentName?.trim();
+    if (name && !isLikelyInternalId(name)) return name;
+    const username = studentId?.trim();
+    if (username && !isLikelyInternalId(username)) return username;
+    return 'Student';
+  };
+  const WEAKNESS_LABEL_MAP: Record<string, string> = {
+    grammar_accuracy: 'Grammar accuracy',
+    vocabulary_range: 'Vocabulary range',
+    paragraph_organisation: 'Paragraph organization',
+    sentence_clarity: 'Sentence clarity',
+    task_response: 'Task response',
+    idea_development: 'Idea development',
+    punctuation: 'Punctuation control',
+  };
+  const toTeacherWeaknessLabel = (tag: string): string =>
+    WEAKNESS_LABEL_MAP[tag] ??
+    tag
+      .replace(/[_-]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  const studentLabelsById = new Map(
+    monitoring.ok && monitoring.data
+      ? monitoring.data.student_rows.map((row) => [row.student_id, toDisplayLabel(row.student_name, row.student_id)])
+      : []
+  );
+
   const buildPath = (basePath: string, params: Record<string, string | number | undefined>): string =>
     `${basePath}${serializeAdminDrilldownFilters(params)}`;
 
@@ -49,29 +81,52 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
       ? `${data.pilot_readiness.low_improvement_target_tags.length} low-improvement tags need intervention`
       : null,
   ].filter(Boolean) as string[];
+  const trendRows = data.subscale_improvement_over_time
+    .map((item) => ({
+      ...item,
+      overall_delta: Number(
+        (
+          (item.content_delta + item.communicative_delta + item.organisation_delta + item.language_delta) /
+          4
+        ).toFixed(2)
+      ),
+    }))
+    .sort((a, b) => b.overall_delta - a.overall_delta);
+  const topImproving = trendRows.filter((item) => item.overall_delta > 0).slice(0, 4);
+  const needsSupport = [...trendRows].reverse().filter((item) => item.overall_delta < 0).slice(0, 4);
 
   return (
-    <div style={{ padding: 12, color: '#e5e7eb', display: 'grid', gap: 10 }}>
-      <h2 style={{ margin: 0 }}>Writing Analytics Dashboard</h2>
+    <div style={{ padding: 12, color: '#f3f4f6', display: 'grid', gap: 10 }}>
+      <h2 style={{ margin: 0, color: '#ffffff' }}>Writing Analytics</h2>
+      <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Writing Analytics Dashboard</span>
+      <p style={{ margin: 0, color: '#cbd5e1' }}>
+        At a glance: who needs help, who is improving, the most common weakness, and suggested next actions.
+      </p>
 
       <div style={{ display: 'grid', gap: 8, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-        <article style={{ border: '1px solid #334155', borderRadius: 10, padding: 10 }}>Students: {data.summary.total_students}</article>
-        <article style={{ border: '1px solid #334155', borderRadius: 10, padding: 10 }}>
-          Stalled: {data.summary.stalled_count}{' '}
+        <article style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, background: '#0f172a' }}>
+          <strong>Total students</strong>
+          <div>{data.summary.total_students}</div>
+        </article>
+        <article style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, background: '#0f172a' }}>
+          <strong>Who needs help?</strong>
+          <div>{data.summary.stalled_count} students currently need support.</div>
           <a href={buildPath(monitoringBasePath, { status: 'stalled', grade: gradeFilter, genre: genreFilter })}>View</a>
         </article>
-        <article style={{ border: '1px solid #334155', borderRadius: 10, padding: 10 }}>
-          Improving: {data.summary.improving_count}{' '}
+        <article style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, background: '#0f172a' }}>
+          <strong>Who is improving?</strong>
+          <div>{data.summary.improving_count} students are showing growth.</div>
           <a href={buildPath(monitoringBasePath, { status: 'improving', grade: gradeFilter, genre: genreFilter })}>View</a>
         </article>
       </div>
 
-      <section style={{ border: '1px solid #334155', borderRadius: 10, padding: 10 }}>
-        <h3 style={{ marginTop: 0 }}>Weakness hotspots</h3>
+      <section style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, background: '#0f172a' }}>
+        <h3 style={{ marginTop: 0 }}>Main class weaknesses</h3>
+        <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Weakness hotspots</span>
         <ul style={{ margin: 0, paddingLeft: 18 }}>
           {data.most_common_weakness_tags.map((item) => (
             <li key={item.tag}>
-              {item.tag} ({item.count}){' '}
+              {toTeacherWeaknessLabel(item.tag)} ({item.count} students){' '}
               <a href={buildPath(monitoringBasePath, { weakness_tag: item.tag, grade: gradeFilter, genre: genreFilter })}>
                 Open students
               </a>
@@ -80,21 +135,37 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
         </ul>
       </section>
 
-      <section style={{ border: '1px solid #334155', borderRadius: 10, padding: 10 }}>
-        <h3 style={{ marginTop: 0 }}>Subscale trend view</h3>
-        <ul style={{ margin: 0, paddingLeft: 18 }}>
-          {data.subscale_improvement_over_time.map((item) => (
-            <li key={item.student_id}>
-              {item.student_id}: C {item.content_delta >= 0 ? '+' : ''}{item.content_delta}, O {item.organisation_delta >= 0 ? '+' : ''}
-              {item.organisation_delta}, L {item.language_delta >= 0 ? '+' : ''}{item.language_delta}
-            </li>
-          ))}
-        </ul>
+      <section style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, background: '#0f172a' }}>
+        <h3 style={{ marginTop: 0 }}>Student momentum</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
+          <div>
+            <strong style={{ color: '#86efac' }}>Improving now</strong>
+            <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>
+              {topImproving.length === 0 ? <li>No clear improvements yet.</li> : null}
+              {topImproving.map((item) => (
+                <li key={`improving-${item.student_id}`}>
+                  {studentLabelsById.get(item.student_id) ?? 'Student'} (avg +{item.overall_delta})
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <strong style={{ color: '#fca5a5' }}>Needs attention</strong>
+            <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>
+              {needsSupport.length === 0 ? <li>No significant drops detected.</li> : null}
+              {needsSupport.map((item) => (
+                <li key={`support-${item.student_id}`}>
+                  {studentLabelsById.get(item.student_id) ?? 'Student'} (avg {item.overall_delta})
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
         <div style={{ display: 'grid', gap: 4 }}>
           {data.average_score_by_grade.map((item) => (
             <div key={`grade-${item.grade}`} style={{ display: 'grid', gap: 2 }}>
-              <small>Grade {item.grade} avg score: {item.average_score}</small>
-              <div style={{ background: '#1f2937', borderRadius: 999, height: 8 }}>
+              <small style={{ color: '#cbd5e1' }}>Grade {item.grade} class average: {item.average_score}</small>
+              <div style={{ background: '#334155', borderRadius: 999, height: 8 }}>
                 <div style={{ width: `${Math.min(100, (item.average_score / 20) * 100)}%`, background: '#22c55e', height: '100%' }} />
               </div>
             </div>
@@ -102,7 +173,7 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
         </div>
       </section>
 
-      <section style={{ border: '1px solid #334155', borderRadius: 10, padding: 10, overflowX: 'auto' }}>
+      <section style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, overflowX: 'auto', background: '#0f172a' }}>
         <h3 style={{ marginTop: 0 }}>Prompt effectiveness</h3>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
@@ -124,27 +195,40 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
         </table>
       </section>
 
-      <section style={{ border: '1px solid #334155', borderRadius: 10, padding: 10 }}>
-        <h3 style={{ marginTop: 0 }}>Pilot readiness</h3>
-        <small>{WRITING_ADMIN_HELP.overused_prompt}</small>
+      <section style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, background: '#0f172a' }}>
+        <h3 style={{ marginTop: 0 }}>Recommended next actions</h3>
+        <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Pilot readiness</span>
+        <small style={{ color: '#cbd5e1' }}>{WRITING_ADMIN_HELP.overused_prompt}</small>
         <br />
-        <small>{WRITING_ADMIN_HELP.low_improvement_tag}</small>
-        <p>Monthly comparison ready: {data.pilot_readiness.monthly_comparison_ready_students.join(', ') || 'None'}</p>
-        <p>Incomplete weekly cycles: {data.pilot_readiness.incomplete_weekly_cycle_students.join(', ') || 'None'}</p>
+        <small style={{ color: '#cbd5e1' }}>{WRITING_ADMIN_HELP.low_improvement_tag}</small>
         <p>
-          Overused prompts:{' '}
+          Monthly reviews to run:{' '}
+          {data.pilot_readiness.monthly_comparison_ready_students
+            .map((studentId) => studentLabelsById.get(studentId) ?? 'Student')
+            .join(', ') || 'None'}
+        </p>
+        <p>
+          Students missing part of this week&apos;s cycle:{' '}
+          {data.pilot_readiness.incomplete_weekly_cycle_students
+            .map((studentId) => studentLabelsById.get(studentId) ?? 'Student')
+            .join(', ') || 'None'}
+        </p>
+        <p>
+          Refresh overused prompts:{' '}
           {data.pilot_readiness.overused_prompts.map((id) => (
             <span key={id}>
-              <a href={buildPath(promptBankBasePath, { prompt_id: id, status: 'active' })}>{id}</a>{' '}
+              <a href={buildPath(promptBankBasePath, { prompt_id: id, status: 'active' })}>Prompt {id.slice(0, 8)}</a>{' '}
             </span>
           ))}
           {data.pilot_readiness.overused_prompts.length === 0 ? 'None' : ''}
         </p>
         <p>
-          Low-improvement tags:{' '}
+          Weaknesses needing intervention:{' '}
           {data.pilot_readiness.low_improvement_target_tags.map((tag) => (
             <span key={tag}>
-              <a href={buildPath(calibrationBasePath, { weakness_tag: tag, grade: gradeFilter, genre: genreFilter })}>{tag}</a>{' '}
+              <a href={buildPath(calibrationBasePath, { weakness_tag: tag, grade: gradeFilter, genre: genreFilter })}>
+                {toTeacherWeaknessLabel(tag)}
+              </a>{' '}
             </span>
           ))}
           {data.pilot_readiness.low_improvement_target_tags.length === 0 ? 'None' : ''}
