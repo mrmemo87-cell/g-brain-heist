@@ -187,10 +187,13 @@ begin
       ),
       'most_common_weakness_tags', coalesce((select jsonb_agg(jsonb_build_object('tag', tag, 'count', cnt)) from weak), '[]'::jsonb),
       'average_score_by_grade', coalesce((
-        select jsonb_agg(jsonb_build_object('grade', current_grade, 'average_score', round(avg(latest_score)::numeric, 2)))
-        from rows
-        where latest_score is not null
-        group by current_grade
+        select jsonb_agg(jsonb_build_object('grade', ga.current_grade, 'average_score', ga.average_score))
+        from (
+          select current_grade, round(avg(latest_score)::numeric, 2) as average_score
+          from rows
+          where latest_score is not null
+          group by current_grade
+        ) ga
       ), '[]'::jsonb),
       'average_score_by_genre', '[]'::jsonb,
       'subscale_improvement_over_time', '[]'::jsonb,
