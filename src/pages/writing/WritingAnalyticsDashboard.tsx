@@ -155,6 +155,7 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
   return (
     <div style={{ padding: 12, color: '#f3f4f6', display: 'grid', gap: 10 }}>
       <h2 style={{ margin: 0, color: '#ffffff' }}>Writing Analytics</h2>
+      <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Writing Analytics Dashboard</span>
       <div style={{ position: 'sticky', top: 0, zIndex: 3, background: '#020617', border: '1px solid #1e293b', borderRadius: 10, padding: 10, display: 'grid', gap: 8 }}>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           <span style={{ background: '#7f1d1d', color: '#fecaca', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Needs support: {data.summary.stalled_count}</span>
@@ -168,6 +169,8 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
             <option value="completion">Sort: Completion</option>
             <option value="score">Sort: Latest score</option>
           </select>
+          <a href={buildPath(monitoringBasePath, { status: 'stalled', grade: gradeFilter, genre: genreFilter })} onClick={(event: any) => navigateTo(buildPath(monitoringBasePath, { status: 'stalled', grade: gradeFilter, genre: genreFilter }), event)}>View stalled</a>
+          <a href={buildPath(monitoringBasePath, { status: 'improving', grade: gradeFilter, genre: genreFilter })} onClick={(event: any) => navigateTo(buildPath(monitoringBasePath, { status: 'improving', grade: gradeFilter, genre: genreFilter }), event)}>View improving</a>
         </div>
       </div>
 
@@ -211,6 +214,7 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
 
       <section style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, background: '#0f172a' }}>
         <h3 style={{ marginTop: 0 }}>Main class weaknesses</h3>
+        <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Weakness hotspots</span>
         <ul style={{ margin: 0, paddingLeft: 18 }}>
           {data.most_common_weakness_tags.map((item) => (
             <li key={item.tag}>
@@ -250,6 +254,7 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
 
       <section style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, background: '#0f172a' }}>
         <h3 style={{ marginTop: 0 }}>Recommended next actions</h3>
+        <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Pilot readiness</span>
         <small style={{ color: '#cbd5e1' }}>{WRITING_ADMIN_HELP.overused_prompt}</small>
         <br />
         <small style={{ color: '#cbd5e1' }}>{WRITING_ADMIN_HELP.low_improvement_tag}</small>

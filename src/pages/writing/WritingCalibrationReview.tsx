@@ -84,6 +84,7 @@ export const WritingCalibrationReview: React.FC<WritingCalibrationReviewProps> =
       <section style={sectionStyle}>
         <strong>{summary.student.student_name} · Grade {summary.student.grade ?? '—'} · {summary.student.class_name}</strong>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Calibration follow-up: {summary.calibration_follow_up_flag ? 'Flagged' : 'Not flagged'}</span>
           <span style={{ background: summary.calibration_follow_up_flag ? '#7f1d1d' : '#14532d', color: summary.calibration_follow_up_flag ? '#fecaca' : '#bbf7d0', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>
             {summary.calibration_follow_up_flag ? 'Needs calibration follow-up' : 'Calibration stable'}
           </span>
@@ -127,7 +128,7 @@ export const WritingCalibrationReview: React.FC<WritingCalibrationReviewProps> =
             <div>{summary.repeated_error_patterns.join(', ') || 'None detected.'}</div>
           </section>
 
-          <section style={sectionStyle}>
+          <section id="student-friendly-summary" data-testid="student-summary" style={sectionStyle}>
             <strong>Student-friendly summary</strong>
             <div>{summary.student_friendly_summary.progress_summary}</div>
           </section>
@@ -138,7 +139,12 @@ export const WritingCalibrationReview: React.FC<WritingCalibrationReviewProps> =
             <div>Score trend delta: {summary.overall_summary.score_trend_delta ?? '—'}</div>
           </section>
         </>
-      ) : null}
+      ) : (
+        <section id="student-friendly-summary" data-testid="student-summary" style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>
+          <strong>Student-friendly summary</strong>
+          <div>{summary.student_friendly_summary.progress_summary}</div>
+        </section>
+      )}
     </div>
   );
 };

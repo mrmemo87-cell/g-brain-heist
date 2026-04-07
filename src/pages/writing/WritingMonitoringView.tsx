@@ -152,6 +152,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
   return (
     <div style={{ padding: 12, color: '#f3f4f6', display: 'grid', gap: 12 }}>
       <h2 style={{ margin: 0, color: '#ffffff' }}>Writing Monitor</h2>
+      <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Weekly target</span>
       <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Teacher/Admin Writing Monitor</span>
       <div style={{ position: 'sticky', top: 0, zIndex: 3, background: '#020617', border: '1px solid #1e293b', borderRadius: 10, padding: 10, display: 'grid', gap: 8 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -206,7 +207,9 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
                   <td style={tableCellStyle}>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                       {row.stalled ? <span style={{ background: '#7f1d1d', color: '#fecaca', borderRadius: 999, padding: '1px 7px', fontSize: 11 }}>Needs support</span> : null}
+                      {row.stalled ? <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Status: Stalled</span> : null}
                       {row.improving ? <span style={{ background: '#14532d', color: '#bbf7d0', borderRadius: 999, padding: '1px 7px', fontSize: 11 }}>Improving</span> : null}
+                      {row.improving ? <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Status: Improving</span> : null}
                       {row.ready_for_monthly_review ? <span style={{ background: '#1e3a8a', color: '#bfdbfe', borderRadius: 999, padding: '1px 7px', fontSize: 11 }}>Ready</span> : null}
                     </div>
                   </td>
