@@ -23,6 +23,8 @@ import ProfessionalCambridgeReport, { generateSerialNumber, StudentOverviewRepor
 import type { ProfessionalReportData, StudentOverviewReportData, StudentTestEntry } from './ProfessionalCambridgeReport';
 import CollectiveAssignmentReport from './CollectiveAssignmentReport';
 import { notificationService } from '../services/notificationService';
+import WritingMonitoringView from '../src/pages/writing/WritingMonitoringView';
+import WritingAnalyticsDashboard from '../src/pages/writing/WritingAnalyticsDashboard';
 
 interface TeacherPortalProps {
   profile: Profile;
@@ -38,7 +40,7 @@ interface TeacherPortalProps {
 let _cachedPlanDetails: SchoolPlanDetails | null = null;
 let _cachedTeacherTier: AccountTier | null = null;
 
-type PortalView = 'dashboard' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'geometry-diagrams' | 'cambridge-reports' | 'quest-builder' | 'join-school';
+type PortalView = 'dashboard' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'writing-monitoring' | 'writing-analytics' | 'geometry-diagrams' | 'cambridge-reports' | 'quest-builder' | 'join-school';
 
 // XP points based on difficulty: Easy=10, Medium=15, Hard=20
 const getDefaultPointsForDifficulty = (diff: QuestionDifficulty): number => {
@@ -531,17 +533,19 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       s.batch?.toLowerCase().includes(search)
     );
   }, [availableStudents, studentSearchTerm]);
-  const primarySection = useMemo<'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge' | 'quests' | 'lockdown' | 'join-school'>(() => {
+  const primarySection = useMemo<'dashboard' | 'questions' | 'assignments' | 'reports' | 'writing-monitoring' | 'writing-analytics' | 'cambridge' | 'quests' | 'lockdown' | 'join-school'>(() => {
     if (view === 'dashboard') return 'dashboard';
     if (view === 'join-school') return 'join-school';
     if (view === 'question-bank' || view === 'create-question' || view === 'csv-upload') return 'questions';
     if (view === 'assignments' || view === 'create-assignment') return 'assignments';
+    if (view === 'writing-monitoring') return 'writing-monitoring';
+    if (view === 'writing-analytics') return 'writing-analytics';
     if (view === 'cambridge-reports') return 'cambridge';
     if (view === 'quest-builder') return 'quests';
     return 'reports'; // catches 'reports', 'report-detail', 'report-analysis', 'collective-report'
   }, [view]);
 
-  const changeSection = (section: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge' | 'quests' | 'lockdown' | 'join-school') => {
+  const changeSection = (section: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'writing-monitoring' | 'writing-analytics' | 'cambridge' | 'quests' | 'lockdown' | 'join-school') => {
     switch (section) {
       case 'dashboard':
         setView('dashboard');
@@ -557,6 +561,12 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         setSelectedReportAssignment(null);
         setAssignmentReport([]);
         setView('reports');
+        break;
+      case 'writing-monitoring':
+        setView('writing-monitoring');
+        break;
+      case 'writing-analytics':
+        setView('writing-analytics');
         break;
       case 'cambridge':
         setView('cambridge-reports');
@@ -7954,12 +7964,20 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     );
   }
 
-  const navTabs: Array<{ id: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge' | 'quests' | 'lockdown' | 'join-school'; label: string; icon: string; description: string; proOnly?: boolean; highlight?: boolean }> = [
+  const canAccessWritingInsights = profile.role === 'teacher' || profile.role === 'admin';
+
+  const navTabs: Array<{ id: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'writing-monitoring' | 'writing-analytics' | 'cambridge' | 'quests' | 'lockdown' | 'join-school'; label: string; icon: string; description: string; proOnly?: boolean; highlight?: boolean }> = [
     { id: 'dashboard', label: 'Dashboard', icon: '🏠', description: 'Overview & Quick Actions' },
     ...(!profile.school_id ? [{ id: 'join-school' as const, label: 'Join Your School', icon: '🏫', description: 'Use your invite code to unlock school features', highlight: true }] : []),
     { id: 'questions', label: 'Question Bank', icon: '📚', description: 'Create & Manage Questions', proOnly: true },
     { id: 'assignments', label: 'Assignments', icon: '📋', description: 'Assign Work to Students', proOnly: true },
     { id: 'reports', label: 'Reports', icon: '📊', description: 'Student Performance', proOnly: true },
+    ...(canAccessWritingInsights
+      ? [
+          { id: 'writing-monitoring' as const, label: 'Writing Monitor', icon: '📝', description: 'Teacher writing progress', proOnly: true },
+          { id: 'writing-analytics' as const, label: 'Writing Analytics', icon: '📈', description: 'Writing trends & drill-downs', proOnly: true },
+        ]
+      : []),
     { id: 'lockdown', label: 'Lockdown Mode', icon: '🔒', description: 'Host Live Classroom Sessions' },
     { id: 'cambridge', label: 'Cambridge Tests', icon: '✍️', description: 'Writing & Test Results', proOnly: true },
     { id: 'quests', label: 'Quest Builder', icon: '🗺️', description: 'Create V2 Quest Missions', proOnly: true },
@@ -8255,6 +8273,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                     questions: 'Question Bank',
                     assignments: 'New Assignment',
                     reports: 'Performance Reports',
+                    'writing-monitoring': 'Performance Reports',
+                    'writing-analytics': 'Performance Reports',
                     lockdown: 'Lockdown Mode',
                     cambridge: 'Cambridge Marking',
                   };
@@ -8309,6 +8329,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           {view === 'assignments' && renderAssignments()}
           {view === 'create-assignment' && renderCreateAssignment()}
           {view === 'reports' && renderReports()}
+          {view === 'writing-monitoring' && canAccessWritingInsights && <WritingMonitoringView />}
+          {view === 'writing-analytics' && canAccessWritingInsights && <WritingAnalyticsDashboard />}
           {view === 'report-detail' && renderReportDetail()}
           {view === 'report-analysis' && renderReportAnalysis()}
           {view === 'collective-report' && (
