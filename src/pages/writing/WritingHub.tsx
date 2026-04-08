@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import type { MutableRefObject } from 'react';
 import { createPortal } from 'react-dom';
 import {
   getCurrentWeeklyPlan,
@@ -1021,6 +1022,28 @@ const estimateWeeklyTargetScoreRange = (
   };
 };
 
+const keepHorizontalItemInView = (
+  container: HTMLElement | null,
+  item: HTMLElement | null,
+  behavior: ScrollBehavior = 'smooth'
+) => {
+  if (!container || !item) return;
+  const containerRect = container.getBoundingClientRect();
+  const itemRect = item.getBoundingClientRect();
+  const leftOverflow = itemRect.left < containerRect.left;
+  const rightOverflow = itemRect.right > containerRect.right;
+  if (!leftOverflow && !rightOverflow) return;
+
+  const targetLeft = item.offsetLeft - Math.max(0, (container.clientWidth - item.clientWidth) / 2);
+  container.scrollTo({
+    left: Math.max(0, targetLeft),
+    behavior,
+  });
+};
+
+const getMissionRecommendationKey = (item: WritingMissionRecommendation) =>
+  `${item.missionCategory}-${item.title}`;
+
 export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, grade, genre, month = new Date().toISOString().slice(0, 7), onOpenQuestMission }) => {
   const [activeGenre, setActiveGenre] = useState<SupportedGenre>(genre);
   const [promptText, setPromptText] = useState(defaultPromptByGenre[genre]);
@@ -1057,7 +1080,14 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const firstRepairButtonRef = useRef<HTMLButtonElement | null>(null);
   const practiceTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const feedbackCardRef = useRef<HTMLElement | null>(null);
+  const writingPathCarouselRef = useRef<HTMLDivElement | null>(null);
+  const writingPathButtonRefs: MutableRefObject<Partial<Record<SupportedGenre, HTMLButtonElement | null>> | null> =
+    useRef<Partial<Record<SupportedGenre, HTMLButtonElement | null>>>({});
+  const missionsCarouselRef = useRef<HTMLDivElement | null>(null);
+  const missionCardRefs: MutableRefObject<Record<string, HTMLDivElement | null> | null> =
+    useRef<Record<string, HTMLDivElement | null>>({});
   const [questMissions, setQuestMissions] = useState<QuestMissionRow[]>([]);
+  const [selectedMissionKey, setSelectedMissionKey] = useState<string | null>(null);
   const initialResponseWordCount = countWords(initialResponse);
   const practiceResponseWordCount = countWords(practiceResponse);
   const initializing = hydrationStatus === 'idle' || hydrationStatus === 'loading';
@@ -1268,6 +1298,30 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   useEffect(() => {
     setShowTaskTypeGuide(false);
   }, [activeGenre, todayTask.ok, todayTask.data?.task_type]);
+
+  useEffect(() => {
+    const pathRefs = writingPathButtonRefs.current;
+    if (!pathRefs) return;
+    keepHorizontalItemInView(writingPathCarouselRef.current, pathRefs[activeGenre] ?? null);
+  }, [activeGenre, isGenreSwitching, initializing]);
+
+  useEffect(() => {
+    if (missionRecommendations.length === 0) {
+      setSelectedMissionKey(null);
+      return;
+    }
+    setSelectedMissionKey((current) => {
+      if (current && missionRecommendations.some((item) => getMissionRecommendationKey(item) === current)) return current;
+      return getMissionRecommendationKey(missionRecommendations[0]);
+    });
+  }, [missionRecommendations]);
+
+  useEffect(() => {
+    if (!selectedMissionKey) return;
+    const missionRefs = missionCardRefs.current;
+    if (!missionRefs) return;
+    keepHorizontalItemInView(missionsCarouselRef.current, missionRefs[selectedMissionKey] ?? null);
+  }, [selectedMissionKey, missionRecommendations]);
 
   useEffect(() => {
     if (!showTaskContextModal) return;
@@ -1833,6 +1887,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                 Choose your writing path
               </label>
               <div
+                ref={writingPathCarouselRef}
                 style={{
                   display: 'flex',
                   gap: 8,
@@ -1851,6 +1906,11 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   return (
                     <button
                       key={item}
+                      ref={(node: HTMLButtonElement | null) => {
+                        const pathRefs = writingPathButtonRefs.current;
+                        if (!pathRefs) return;
+                        pathRefs[item] = node;
+                      }}
                       type="button"
                       onClick={() => handleChangeWritingType(item)}
                       aria-pressed={isSelected}
@@ -2264,9 +2324,36 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   {missionRecommendations.length > 0 && (
                     <div style={{ marginBottom: 12, borderRadius: 12, border: '1px solid rgba(196, 181, 253, 0.45)', background: 'rgba(30, 27, 75, 0.35)', padding: 10 }}>
                       <p style={{ margin: '0 0 6px', color: '#d8b4fe', fontSize: 12, fontWeight: 800, letterSpacing: 0.2 }}>RECOMMENDED PRACTICE MISSIONS</p>
-                      <div style={{ display: 'grid', gap: 8 }}>
-                        {missionRecommendations.map((item, index) => (
-                          <div key={`${item.missionCategory}-${item.title}-${index}`} style={{ borderRadius: 10, border: '1px solid rgba(147, 197, 253, 0.35)', background: 'rgba(15, 23, 42, 0.52)', padding: 9 }}>
+                      <div
+                        ref={missionsCarouselRef}
+                        style={{
+                          display: 'flex',
+                          gap: 8,
+                          overflowX: 'auto',
+                          paddingBottom: 4,
+                          scrollSnapType: 'x mandatory',
+                          scrollbarWidth: 'thin',
+                        }}
+                      >
+                        {missionRecommendations.map((item) => (
+                          <div
+                            key={getMissionRecommendationKey(item)}
+                            ref={(node: HTMLDivElement | null) => {
+                              const missionRefs = missionCardRefs.current;
+                              if (!missionRefs) return;
+                              missionRefs[getMissionRecommendationKey(item)] = node;
+                            }}
+                            style={{
+                              borderRadius: 10,
+                              border: `1px solid ${selectedMissionKey === getMissionRecommendationKey(item) ? 'rgba(196, 181, 253, 0.9)' : 'rgba(147, 197, 253, 0.35)'}`,
+                              background: selectedMissionKey === getMissionRecommendationKey(item) ? 'rgba(76, 29, 149, 0.28)' : 'rgba(15, 23, 42, 0.52)',
+                              padding: 9,
+                              minWidth: 250,
+                              maxWidth: 320,
+                              flex: '0 0 auto',
+                              scrollSnapAlign: 'start',
+                            }}
+                          >
                             <p style={{ margin: 0, color: '#f8fafc', fontSize: 14, fontWeight: 700 }}>{item.title}</p>
                             <p style={{ margin: '3px 0 0', color: '#bfdbfe', fontSize: 12 }}>
                               {item.missionCategoryLabel}
@@ -2277,6 +2364,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                             <button
                               type="button"
                               onClick={() => {
+                                setSelectedMissionKey(getMissionRecommendationKey(item));
                                 if (item.source === 'quest') {
                                   onOpenQuestMission?.(item.mission?.id);
                                   setUiNotice(`Opening mission: ${item.title}`);
