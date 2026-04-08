@@ -581,7 +581,7 @@ const renderAnnotatedText = (text: string, ranges: TextAnchorRange[], activeInde
     const segment = text.slice(range.start, range.end);
     const strong = range.polarity === 'strong';
     const highlightStyle = {
-      animationDuration: `${getHighlightAnimationDurationMs(segment.length)}ms`,
+      '--highlight-swipe-duration': `${getHighlightAnimationDurationMs(segment.length)}ms`,
       borderBottom: strong ? '1px solid rgba(74,222,128,0.7)' : '1px solid rgba(248,113,113,0.74)',
       color: strong ? '#bbf7d0' : '#fecaca',
       boxShadow: idx === activeIndex
@@ -589,14 +589,16 @@ const renderAnnotatedText = (text: string, ranges: TextAnchorRange[], activeInde
         : (strong ? '0 0 0 1px rgba(34,197,94,0.22)' : '0 0 0 1px rgba(248,113,113,0.18)'),
       transition: 'box-shadow 220ms ease',
     };
+    const isActive = idx === activeIndex;
     nodes.push(
       <span
         key={`mark-${idx}`}
-        className={`review-highlight ${strong ? 'review-highlight--strong' : 'review-highlight--weak'}`}
+        className={`review-highlight ${strong ? 'review-highlight--strong' : 'review-highlight--weak'} ${isActive ? 'review-highlight--active' : ''}`}
         title={range.reason}
         style={highlightStyle}
       >
-        {segment}
+        <span className="review-highlight__ink" aria-hidden="true" />
+        <span className="review-highlight__text">{segment}</span>
       </span>
     );
     cursor = range.end;
@@ -1096,7 +1098,6 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const [showAiReviewModal, setShowAiReviewModal] = useState(false);
   const [showProgressDetailsModal, setShowProgressDetailsModal] = useState(false);
   const [submittedPracticeText, setSubmittedPracticeText] = useState('');
-  const [reviewScanCount, setReviewScanCount] = useState(0);
   const [reviewScanComplete, setReviewScanComplete] = useState(false);
   const [reviewActiveIndex, setReviewActiveIndex] = useState<number | null>(null);
   const [activeRepairId, setActiveRepairId] = useState<string | null>(null);
@@ -1174,8 +1175,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     [reviewScanPlan, submittedPracticeText]
   );
   const visibleSubmittedHighlightRanges = useMemo(
-    () => reviewScanPlan.slice(0, reviewScanCount),
-    [reviewScanPlan, reviewScanCount]
+    () => reviewScanPlan,
+    [reviewScanPlan]
   );
   const activeReviewRange = useMemo(
     () => (reviewActiveIndex != null ? visibleSubmittedHighlightRanges[reviewActiveIndex] ?? null : null),
@@ -1667,7 +1668,6 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     setUiNotice('Building your weekly plan…');
     setSubmittedPracticeText(safeInitialResponse);
     setShowAiReviewModal(false);
-    setReviewScanCount(0);
     setReviewScanComplete(false);
     setReviewActiveIndex(null);
     try {
@@ -1717,7 +1717,6 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     setIsAnalyzingRichFeedback(false);
     setSubmittedPracticeText(practiceResponse.trim());
     setShowAiReviewModal(false);
-    setReviewScanCount(0);
     setReviewScanComplete(false);
     setReviewActiveIndex(null);
     setUiNotice('Nice submit! Preparing your coaching feedback…');
@@ -1758,7 +1757,6 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     setIsAnalyzingRichFeedback(false);
     setShowAiReviewModal(false);
     setSubmittedPracticeText('');
-    setReviewScanCount(0);
     setReviewScanComplete(false);
     setReviewActiveIndex(null);
     setUiNotice(`${toGenreLabel(nextGenre)} path selected.`);
@@ -1766,18 +1764,15 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
 
   useEffect(() => {
     if (!showAiReviewModal) {
-      setReviewScanCount(0);
       setReviewScanComplete(false);
       setReviewActiveIndex(null);
       return;
     }
     if (reviewScanPlan.length === 0) {
-      setReviewScanCount(0);
       setReviewScanComplete(true);
       setReviewActiveIndex(null);
       return;
     }
-    setReviewScanCount(0);
     setReviewScanComplete(false);
     setReviewActiveIndex(0);
     let cancelled = false;
@@ -1788,7 +1783,6 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
       const stepDelay = getHighlightAnimationDurationMs(segment.length) + 36;
       timers.push(window.setTimeout(() => {
         if (cancelled) return;
-        setReviewScanCount(idx + 1);
         setReviewActiveIndex(idx);
       }, elapsed));
       elapsed += stepDelay;
@@ -1876,50 +1870,38 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
         }
         .review-highlight {
           position: relative;
-          display: inline;
+          display: inline-block;
           border-radius: 3px;
           padding: 0 1px;
           isolation: isolate;
         }
-        .review-highlight::before {
-          content: '';
+        .review-highlight__ink {
           position: absolute;
           inset: 0 -1px;
           border-radius: 4px;
           background: linear-gradient(180deg, rgba(34,197,94,0.3) 0%, rgba(34,197,94,0.42) 55%, rgba(34,197,94,0.26) 100%);
           transform-origin: left center;
-          transform: scaleX(0.06) skewX(-6deg);
-          opacity: 0;
+          transform: scaleX(1) skewX(0deg);
+          opacity: 0.5;
           z-index: -1;
-          animation-name: markerSwipe;
-          animation-duration: inherit;
-          animation-timing-function: cubic-bezier(.2,.9,.18,1);
-          animation-fill-mode: both;
         }
-        .review-highlight::after {
-          content: '';
-          position: absolute;
-          inset: -1px auto -1px -2px;
-          width: clamp(10px, 22%, 18px);
-          border-radius: 6px;
-          background: radial-gradient(circle at 40% 50%, rgba(255,255,255,0.24) 0%, transparent 48%),
-            linear-gradient(90deg, rgba(34,197,94,0.42) 0%, rgba(34,197,94,0.24) 100%);
-          opacity: 0;
-          filter: blur(0.2px);
-          pointer-events: none;
-          z-index: -1;
-          animation-name: markerNib;
-          animation-duration: inherit;
-          animation-timing-function: cubic-bezier(.2,.9,.18,1);
-          animation-fill-mode: both;
+        .review-highlight__text {
+          position: relative;
+          z-index: 1;
         }
-        .review-highlight--weak::before { background: linear-gradient(180deg, rgba(248,113,113,0.28) 0%, rgba(248,113,113,0.4) 55%, rgba(248,113,113,0.24) 100%); }
-        .review-highlight--weak::after {
-          background: radial-gradient(circle at 40% 50%, rgba(255,255,255,0.22) 0%, transparent 48%),
-            linear-gradient(90deg, rgba(248,113,113,0.42) 0%, rgba(248,113,113,0.23) 100%);
+        .review-highlight--weak .review-highlight__ink {
+          background: linear-gradient(180deg, rgba(248,113,113,0.28) 0%, rgba(248,113,113,0.4) 55%, rgba(248,113,113,0.24) 100%);
         }
-        :dir(rtl) .review-highlight::before { transform-origin: right center; transform: scaleX(0.06) skewX(6deg); animation-name: markerSwipeRtl; }
-        :dir(rtl) .review-highlight::after { inset: -1px -2px -1px auto; animation-name: markerNibRtl; }
+        .review-highlight--active .review-highlight__ink {
+          opacity: 0.88;
+          transform: scaleX(0.08) skewX(-3deg);
+          animation: markerSwipeActive var(--highlight-swipe-duration, 520ms) cubic-bezier(.2,.9,.18,1) forwards;
+        }
+        :dir(rtl) .review-highlight__ink { transform-origin: right center; }
+        :dir(rtl) .review-highlight--active .review-highlight__ink {
+          transform: scaleX(0.08) skewX(3deg);
+          animation-name: markerSwipeActiveRtl;
+        }
         .week-stage-wrap {
           display: grid;
           gap: 10px;
@@ -2023,8 +2005,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           .review-highlight {
             background-size: 100% 100% !important;
           }
-          .review-highlight::before,
-          .review-highlight::after {
+          .review-highlight__ink {
             animation: none !important;
             opacity: 1 !important;
             transform: none !important;
@@ -2047,27 +2028,17 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
         @keyframes textScanFlow {
           100% { transform: translateX(100%); }
         }
-        @keyframes markerSwipe {
+        @keyframes markerSwipeActive {
           0% { opacity: 0.1; transform: scaleX(0.05) skewX(-7deg); filter: saturate(0.75); }
           25% { opacity: 0.95; transform: scaleX(0.35) skewX(-5deg); }
           70% { opacity: 1; transform: scaleX(0.9) skewX(-3deg); }
           100% { opacity: 1; transform: scaleX(1) skewX(0deg); filter: saturate(1.05); }
         }
-        @keyframes markerNib {
-          0% { opacity: 0.05; transform: translateX(-120%) scaleX(0.8); }
-          20% { opacity: 0.92; }
-          100% { opacity: 0; transform: translateX(calc(100% + 4px)) scaleX(1.05); }
-        }
-        @keyframes markerSwipeRtl {
+        @keyframes markerSwipeActiveRtl {
           0% { opacity: 0.1; transform: scaleX(0.05) skewX(7deg); filter: saturate(0.75); }
           25% { opacity: 0.95; transform: scaleX(0.35) skewX(5deg); }
           70% { opacity: 1; transform: scaleX(0.9) skewX(3deg); }
           100% { opacity: 1; transform: scaleX(1) skewX(0deg); filter: saturate(1.05); }
-        }
-        @keyframes markerNibRtl {
-          0% { opacity: 0.05; transform: translateX(120%) scaleX(0.8); }
-          20% { opacity: 0.92; }
-          100% { opacity: 0; transform: translateX(calc(-100% - 4px)) scaleX(1.05); }
         }
       `}</style>
 
@@ -2777,10 +2748,11 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             position: 'fixed',
             inset: 0,
             zIndex: 1150,
-            display: 'grid',
-            placeItems: 'center',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'flex-start',
             background: 'rgba(2, 6, 23, 0.78)',
-            padding: 16,
+            padding: '16px 16px 24px',
             overflowY: 'auto',
           }}
         >
@@ -2789,16 +2761,17 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             onClick={(event: { stopPropagation: () => void }) => event.stopPropagation()}
             style={{
               width: 'min(840px, 100%)',
-              maxHeight: 'calc(100vh - 32px)',
+              height: 'min(760px, calc(100vh - 40px))',
               borderRadius: 18,
               border: '1px solid rgba(125, 211, 252, 0.4)',
               background: 'linear-gradient(180deg, rgba(10,18,35,0.98) 0%, rgba(11,15,28,0.98) 100%)',
               boxShadow: '0 28px 60px rgba(2, 6, 23, 0.75)',
               padding: 16,
-              overflowY: 'auto',
+              overflow: 'hidden',
               overscrollBehavior: 'contain',
               display: 'grid',
-              gap: 12,
+              gridTemplateRows: 'auto auto minmax(0, 1fr)',
+              gap: 10,
             }}
           >
             <div className="ai-review-scan" aria-hidden="true" />
@@ -2847,20 +2820,22 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
               </span>
             </div>
 
-            <div
-              style={{
-                position: 'relative',
-                zIndex: 1,
-                borderRadius: 14,
-                border: '1px solid rgba(148, 163, 184, 0.32)',
-                background: 'rgba(15, 23, 42, 0.75)',
-                padding: 14,
-                color: '#e2e8f0',
-                lineHeight: 1.7,
-                fontSize: 15,
-                whiteSpace: 'pre-wrap',
-              }}
-            >
+            <div style={{ position: 'relative', zIndex: 1, minHeight: 0, overflowY: 'auto', paddingRight: 2, display: 'grid', gap: 10, alignContent: 'start' }}>
+              <div
+                style={{
+                  position: 'relative',
+                  zIndex: 1,
+                  borderRadius: 14,
+                  border: '1px solid rgba(148, 163, 184, 0.32)',
+                  background: 'rgba(15, 23, 42, 0.75)',
+                  padding: 14,
+                  color: '#e2e8f0',
+                  lineHeight: 1.7,
+                  fontSize: 15,
+                  whiteSpace: 'pre-wrap',
+                  minHeight: 210,
+                }}
+              >
               {!reviewScanComplete && reviewScanPlan.length > 0 && (
                 <div
                   aria-hidden="true"
@@ -2875,29 +2850,33 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                 />
               )}
               {renderAnnotatedText(submittedPracticeText, visibleSubmittedHighlightRanges, reviewActiveIndex)}
-            </div>
+              </div>
 
-            <p style={{ position: 'relative', zIndex: 1, margin: 0, color: '#94a3b8', fontSize: 12 }}>
-              Green glow = strong writing choices. Red glow = corrections (grammar, awkward wording, or spelling).
-            </p>
+              <p style={{ position: 'relative', zIndex: 1, margin: 0, color: '#94a3b8', fontSize: 12 }}>
+                Green glow = strong writing choices. Red glow = corrections (grammar, awkward wording, or spelling).
+              </p>
 
-            {activeReviewRange && (
-              <div style={{ position: 'relative', zIndex: 1, borderRadius: 10, border: `1px solid ${activeReviewRange.polarity === 'strong' ? 'rgba(74,222,128,0.45)' : 'rgba(248,113,113,0.45)'}`, background: 'rgba(15,23,42,0.62)', padding: 10 }}>
-                <p style={{ margin: '0 0 4px', color: activeReviewRange.polarity === 'strong' ? '#86efac' : '#fca5a5', fontWeight: 700, fontSize: 13 }}>
-                  {activeReviewNote.label}
-                </p>
-                <p style={{ margin: 0, color: '#e2e8f0', fontSize: 14 }}>{activeReviewNote.detail}</p>
-                {activeReviewNote.correction && (
-                  <p style={{ margin: '6px 0 0', color: '#bbf7d0', fontSize: 14 }}>
-                    Better version: {activeReviewNote.correction}
-                  </p>
+              <div style={{ position: 'relative', zIndex: 1, borderRadius: 10, border: `1px solid ${activeReviewRange?.polarity === 'strong' ? 'rgba(74,222,128,0.45)' : 'rgba(148,163,184,0.35)'}`, background: 'rgba(15,23,42,0.62)', padding: 10, minHeight: 88 }}>
+                {activeReviewRange ? (
+                  <>
+                    <p style={{ margin: '0 0 4px', color: activeReviewRange.polarity === 'strong' ? '#86efac' : '#fca5a5', fontWeight: 700, fontSize: 13 }}>
+                      {activeReviewNote.label}
+                    </p>
+                    <p style={{ margin: 0, color: '#e2e8f0', fontSize: 14 }}>{activeReviewNote.detail}</p>
+                    {activeReviewNote.correction && (
+                      <p style={{ margin: '6px 0 0', color: '#bbf7d0', fontSize: 14 }}>
+                        Better version: {activeReviewNote.correction}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <p style={{ margin: 0, color: '#94a3b8', fontSize: 13 }}>Select a highlight to view detailed guidance.</p>
                 )}
               </div>
-            )}
 
-            {reviewScanPlan.length > 0 && (
-              <div style={{ position: 'relative', zIndex: 1, display: 'flex', gap: 8 }}>
-                <button
+              {reviewScanPlan.length > 0 && (
+                <div style={{ position: 'relative', zIndex: 1, display: 'flex', gap: 8 }}>
+                  <button
                   type="button"
                   onClick={() => setReviewActiveIndex((prev) => Math.max(0, (prev ?? 0) - 1))}
                   disabled={(reviewActiveIndex ?? 0) <= 0}
@@ -2912,8 +2891,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   }}
                 >
                   Previous
-                </button>
-                <button
+                  </button>
+                  <button
                   type="button"
                   onClick={() => setReviewActiveIndex((prev) => Math.min(Math.max(0, visibleSubmittedHighlightRanges.length - 1), (prev ?? 0) + 1))}
                   disabled={(reviewActiveIndex ?? 0) >= Math.max(0, visibleSubmittedHighlightRanges.length - 1)}
@@ -2928,28 +2907,28 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   }}
                 >
                   Next
-                </button>
-              </div>
-            )}
+                  </button>
+                </div>
+              )}
 
-            {reviewScanComplete && (
-              <div
-                style={{
-                  position: 'relative',
-                  zIndex: 1,
-                  borderRadius: 12,
-                  border: '1px solid rgba(16,185,129,0.35)',
-                  background: 'rgba(6, 78, 59, 0.25)',
-                  padding: 12,
-                  display: 'grid',
-                  gap: 8,
-                }}
-              >
-                <p style={{ margin: 0, color: '#d1fae5', fontWeight: 700 }}>Next action</p>
-                <p style={{ margin: 0, color: '#ecfdf5', fontSize: 14 }}>
-                  {aiFeedbackDetails?.next_move || (aiFeedbackDetails?.next_steps ?? []).slice(0, 1)[0] || 'Pick one red highlight and revise that sentence now.'}
-                </p>
-                <button
+              {reviewScanComplete && (
+                <div
+                  style={{
+                    position: 'relative',
+                    zIndex: 1,
+                    borderRadius: 12,
+                    border: '1px solid rgba(16,185,129,0.35)',
+                    background: 'rgba(6, 78, 59, 0.25)',
+                    padding: 12,
+                    display: 'grid',
+                    gap: 8,
+                  }}
+                >
+                  <p style={{ margin: 0, color: '#d1fae5', fontWeight: 700 }}>Next action</p>
+                  <p style={{ margin: 0, color: '#ecfdf5', fontSize: 14 }}>
+                    {aiFeedbackDetails?.next_move || (aiFeedbackDetails?.next_steps ?? []).slice(0, 1)[0] || 'Pick one red highlight and revise that sentence now.'}
+                  </p>
+                  <button
                   type="button"
                   onClick={() => {
                     setPracticeResponse(submittedPracticeText);
@@ -2969,11 +2948,12 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                     fontWeight: 700,
                     cursor: 'pointer',
                   }}
-                >
-                  Start revision
-                </button>
-              </div>
-            )}
+                  >
+                    Start revision
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       ), document.body)}
@@ -3042,25 +3022,28 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             position: 'fixed',
             inset: 0,
             zIndex: 1100,
-            display: 'grid',
-            placeItems: 'center',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'flex-start',
             background: 'rgba(2, 6, 23, 0.72)',
-            padding: 16,
+            padding: '16px 16px 24px',
+            overflowY: 'auto',
           }}
         >
           <div
             onClick={(event: { stopPropagation: () => void }) => event.stopPropagation()}
             style={{
               width: 'min(980px, 100%)',
-              maxHeight: 'calc(100vh - 32px)',
+              height: 'min(820px, calc(100vh - 40px))',
               borderRadius: 16,
               border: '1px solid rgba(125, 211, 252, 0.35)',
               background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)',
               boxShadow: '0 24px 50px rgba(2, 6, 23, 0.6)',
               padding: 14,
-              overflow: 'auto',
+              overflow: 'hidden',
               display: 'grid',
-              gap: 12,
+              gridTemplateRows: 'auto auto minmax(0, 1fr) auto',
+              gap: 10,
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
@@ -3095,8 +3078,9 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
               <span style={{ borderRadius: 999, padding: '3px 9px', border: '1px solid rgba(74, 222, 128, 0.45)', color: '#bbf7d0', fontSize: 11 }}>2) Keep strengths</span>
               <span style={{ borderRadius: 999, padding: '3px 9px', border: '1px solid rgba(248, 113, 113, 0.45)', color: '#fecaca', fontSize: 11 }}>3) Repair step by step</span>
             </div>
-            <div className="focus-grid" style={{ gap: 12 }}>
-              <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.46)', minHeight: 200 }}>
+            <div style={{ minHeight: 0, overflowY: 'auto', paddingRight: 2, display: 'grid', gap: 10, alignContent: 'start' }}>
+              <div className="focus-grid" style={{ gap: 12 }}>
+                <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.46)', minHeight: 200 }}>
                 <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Step 1 · What the task asked</p>
                 <p style={{ margin: 0, fontSize: 14, color: '#e2e8f0', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
                   {originalPromptText ?? promptText}
@@ -3116,8 +3100,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   )}
                 </div>
               </div>
-              <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.46)', minHeight: 200, display: 'grid', gap: 10 }}>
-                <div>
+                <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.46)', minHeight: 200, display: 'grid', gap: 10 }}>
+                  <div>
                   <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Your first attempt (coached view)</p>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
                     <span style={{ borderRadius: 999, padding: '2px 8px', border: '1px solid rgba(74, 222, 128, 0.4)', color: '#86efac', fontSize: 11 }}>
@@ -3178,7 +3162,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                     })()}
                   </div>
                 </div>
-                <div style={{ borderTop: '1px solid rgba(148, 163, 184, 0.25)', paddingTop: 10 }}>
+                  <div style={{ borderTop: '1px solid rgba(148, 163, 184, 0.25)', paddingTop: 10, minHeight: 230 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', marginBottom: 8 }}>
                     <p style={{ margin: 0, color: '#cbd5e1', fontSize: 12, fontWeight: 700 }}>
                       Step 3 · Let’s fix one thing at a time
@@ -3230,7 +3214,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                     })}
                   </div>
                 </div>
-                <p style={{ margin: 0, color: '#bfdbfe', fontSize: 12 }}>{repairStatusMessage}</p>
+                  <p style={{ margin: 0, color: '#bfdbfe', fontSize: 12, minHeight: 18 }}>{repairStatusMessage}</p>
+                </div>
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
