@@ -35,6 +35,8 @@ const ensureNoError = (result: { error: { message: string } | null }, context: s
     throw new Error(`[writingRepository] ${context}: ${result.error.message}`);
   }
 };
+const isStatementTimeoutError = (result: { error: { message: string } | null }): boolean =>
+  Boolean(result.error?.message?.toLowerCase().includes('statement timeout'));
 const withStudentBinding = <T extends Record<string, unknown>>(row: T, studentId: string): T => {
   if (typeof row['student_id'] === 'string') {
     return { ...row, student_id: studentId };
@@ -245,6 +247,10 @@ const replaceTableByKey = async (table: string, rows: unknown[], key: string): P
   const keys = [...new Set(rows.map((row) => readKey(row, key)).filter((value): value is string => Boolean(value)))];
   if (keys.length) {
     const deleteRes = await supabase.from(table).delete().in(`payload->>${key}`, keys);
+    if (isStatementTimeoutError(deleteRes)) {
+      console.warn(`[writingRepository] Skipping ${table} persistence this cycle: delete by ${key} timed out.`);
+      return;
+    }
     ensureNoError(deleteRes, `delete ${table} by ${key} failed`);
   }
   if (!rows.length) return;
