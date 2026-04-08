@@ -292,11 +292,13 @@ const toWordCountLabel = (targetWords: number): string => {
   return `${range.min}–${range.max} words`;
 };
 
+const getHighlightAnimationDurationMs = (segmentLength: number): number => Math.max(140, Math.min(360, segmentLength * 14));
+
 const getWordCounterTone = (typedWords: number, targetWords: number): { label: string; accent: string; glow: string; track: string; progress: number } => {
   const safeTarget = Math.max(1, targetWords);
-  const ratio = typedWords / safeTarget;
-  const progress = Math.max(0, Math.min(100, Math.round(ratio * 100)));
-  if (ratio < 0.75) {
+  const targetRange = computeWordCountRange(safeTarget);
+  const progress = Math.max(0, Math.min(100, Math.round((typedWords / safeTarget) * 100)));
+  if (typedWords < targetRange.min) {
     return {
       label: 'Too short',
       accent: '#60a5fa',
@@ -305,7 +307,7 @@ const getWordCounterTone = (typedWords: number, targetWords: number): { label: s
       progress,
     };
   }
-  if (ratio <= 1.1) {
+  if (typedWords <= targetRange.max) {
     return {
       label: 'On target',
       accent: '#4ade80',
@@ -574,7 +576,6 @@ const renderAnnotatedText = (text: string, ranges: TextAnchorRange[], activeInde
   if (normalizedRanges.length === 0) return text;
   const nodes: React.ReactNode[] = [];
   let cursor = 0;
-  let revealOffsetMs = 0;
   normalizedRanges.forEach((range, idx) => {
     if (cursor < range.start) nodes.push(<span key={`plain-${idx}`}>{text.slice(cursor, range.start)}</span>);
     const segment = text.slice(range.start, range.end);
@@ -590,8 +591,7 @@ const renderAnnotatedText = (text: string, ranges: TextAnchorRange[], activeInde
           backgroundRepeat: 'no-repeat',
           borderBottom: strong ? '1px solid rgba(74,222,128,0.7)' : '1px solid rgba(248,113,113,0.74)',
           animationName: 'highlightPaint',
-          animationDuration: `${Math.max(140, Math.min(360, segment.length * 14))}ms`,
-          animationDelay: `${revealOffsetMs}ms`,
+          animationDuration: `${getHighlightAnimationDurationMs(segment.length)}ms`,
           animationTimingFunction: 'cubic-bezier(.22,.9,.2,1)',
           animationFillMode: 'both',
           color: strong ? '#bbf7d0' : '#fecaca',
@@ -604,7 +604,6 @@ const renderAnnotatedText = (text: string, ranges: TextAnchorRange[], activeInde
         {segment}
       </span>
     );
-    revealOffsetMs += Math.max(140, Math.min(360, segment.length * 14)) + 36;
     cursor = range.end;
   });
   if (cursor < text.length) nodes.push(<span key="plain-tail">{text.slice(cursor)}</span>);
@@ -1116,6 +1115,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const todayMissionCardRef = useRef<HTMLElement | null>(null);
   const progressCardRef = useRef<HTMLElement | null>(null);
   const preWeekComposeCardRef = useRef<HTMLElement | null>(null);
+  const preWeekResponseRef = useRef<HTMLTextAreaElement | null>(null);
   const writingPathCarouselRef = useRef<HTMLDivElement | null>(null);
   const writingPathButtonRefs: MutableRefObject<Partial<Record<SupportedGenre, HTMLButtonElement | null>> | null> =
     useRef<Partial<Record<SupportedGenre, HTMLButtonElement | null>>>({});
@@ -1152,7 +1152,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const isPreWeek = !hasActiveWeek && !hasStartedAnyWeek;
   const isActiveWeek = hasActiveWeek && !isWeekComplete;
   const hasTaskToday = Boolean(todayTask.ok && todayTask.data);
-  const scrollToSection = (ref: MutableRefObject<HTMLElement | null>) => {
+  const scrollToSection = <T extends HTMLElement>(ref: MutableRefObject<T | null>) => {
     ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
   const submittedHighlightRanges = useMemo(
@@ -1170,6 +1170,13 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const reviewScanPlan = useMemo(
     () => buildBalancedReviewSequence(reviewAnchorTrust.mode === 'trusted' ? submittedHighlightRanges : fallbackHighlightRanges, 8),
     [reviewAnchorTrust.mode, submittedHighlightRanges, fallbackHighlightRanges]
+  );
+  const reviewAnimationTimelineMs = useMemo(
+    () => reviewScanPlan.reduce((total, range) => {
+      const segment = submittedPracticeText.slice(range.start, range.end);
+      return total + getHighlightAnimationDurationMs(segment.length) + 36;
+    }, 0),
+    [reviewScanPlan, submittedPracticeText]
   );
   const visibleSubmittedHighlightRanges = useMemo(
     () => reviewScanPlan.slice(0, reviewScanCount),
@@ -1778,18 +1785,27 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     setReviewScanCount(0);
     setReviewScanComplete(false);
     setReviewActiveIndex(0);
-    let frame = 0;
-    const timer = window.setInterval(() => {
-      frame += 1;
-      setReviewScanCount(frame);
-      setReviewActiveIndex(Math.min(frame - 1, reviewScanPlan.length - 1));
-      if (frame >= reviewScanPlan.length) {
-        window.clearInterval(timer);
-        setReviewScanComplete(true);
-      }
-    }, 170);
-    return () => window.clearInterval(timer);
-  }, [showAiReviewModal, reviewScanPlan.length]);
+    let cancelled = false;
+    const timers: number[] = [];
+    let elapsed = 0;
+    reviewScanPlan.forEach((range, idx) => {
+      const segment = submittedPracticeText.slice(range.start, range.end);
+      const stepDelay = getHighlightAnimationDurationMs(segment.length) + 36;
+      timers.push(window.setTimeout(() => {
+        if (cancelled) return;
+        setReviewScanCount(idx + 1);
+        setReviewActiveIndex(idx);
+      }, elapsed));
+      elapsed += stepDelay;
+    });
+    timers.push(window.setTimeout(() => {
+      if (!cancelled) setReviewScanComplete(true);
+    }, Math.max(reviewAnimationTimelineMs, 0)));
+    return () => {
+      cancelled = true;
+      timers.forEach((timerId) => window.clearTimeout(timerId));
+    };
+  }, [showAiReviewModal, reviewScanPlan, submittedPracticeText, reviewAnimationTimelineMs]);
 
   const renderLoadingSkeleton = () => (
     <>
@@ -1952,6 +1968,27 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
         @media (min-width: 1120px) {
           .focus-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
         }
+        @media (prefers-reduced-motion: reduce) {
+          .writing-hub-card,
+          .progress-fill,
+          .analysis-dot,
+          .analysis-shimmer::after,
+          .ai-review-modal-shell::before,
+          .ai-review-scan,
+          .ai-review-status-dot,
+          .review-highlight {
+            animation: none !important;
+            transition: none !important;
+            transform: none !important;
+          }
+          .analysis-shimmer::after,
+          .ai-review-scan {
+            background: transparent !important;
+          }
+          .review-highlight {
+            background-size: 100% 100% !important;
+          }
+        }
         @keyframes cardIn {
           from { opacity: 0; transform: translateY(12px); }
           to { opacity: 1; transform: translateY(0); }
@@ -2080,9 +2117,9 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             </p>
             {isPreWeek && (
               <div className="phone-quick-nav" aria-label="Quick actions for phone users">
-                <button type="button" onClick={() => scrollToSection(preWeekComposeCardRef)}>Go to task</button>
-                <button type="button" onClick={() => scrollToSection(preWeekComposeCardRef)}>Start writing</button>
-                <button type="button" onClick={() => practiceTextareaRef.current?.focus()}>Focus input</button>
+                <button type="button" onClick={() => scrollToSection(preWeekResponseRef)}>Go to task</button>
+                <button type="button" onClick={() => scrollToSection(preWeekResponseRef)}>Start writing</button>
+                <button type="button" onClick={() => preWeekResponseRef.current?.focus()}>Focus input</button>
               </div>
             )}
             {isActiveWeek && (
@@ -2157,6 +2194,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                 </div>
                 <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12 }}>Try to stay close to this range.</p>
                 <textarea
+                  ref={preWeekResponseRef}
                   value={initialResponse}
                   onChange={(e: { target: { value: string } }) => setInitialResponse(e.target.value)}
                   placeholder="Write your first response here. This helps us understand your starting point and build your weekly coaching plan."
