@@ -41,6 +41,9 @@ const withStudentBinding = <T extends Record<string, unknown>>(row: T, studentId
   }
   return row;
 };
+const withLegacyStudentFilter = (query: any, studentId: string) =>
+  query.or(`payload->>student_id.eq.${studentId},payload->>user_id.eq.${studentId}`);
+const readStudentKey = (row: unknown): string | null => readKey(row, 'student_id') ?? readKey(row, 'user_id');
 
 export const loadWritingStoreSnapshot = async (): Promise<SerializedWritingPersistenceStore | null> => {
   if (!canUseSupabase()) return null;
@@ -71,15 +74,15 @@ export const loadWritingStoreSnapshot = async (): Promise<SerializedWritingPersi
   ] = await Promise.all([
     supabase.from('bh_writing_student_profiles').select('*').eq('student_id', activeStudentId),
     supabase.from('bh_writing_student_states').select('*').eq('student_id', activeStudentId),
-    supabase.from('bh_writing_attempts').select('*').eq('student_id', activeStudentId),
-    supabase.from('bh_writing_weekly_plans').select('*').eq('student_id', activeStudentId),
-    supabase.from('bh_writing_daily_tasks').select('*').eq('student_id', activeStudentId),
-    supabase.from('bh_writing_daily_submissions').select('*').eq('student_id', activeStudentId),
-    supabase.from('bh_writing_daily_evaluations').select('*').eq('student_id', activeStudentId),
-    supabase.from('bh_writing_monthly_reports').select('*').eq('student_id', activeStudentId),
-    supabase.from('bh_writing_memory_snapshots').select('*').eq('student_id', activeStudentId),
+    withLegacyStudentFilter(supabase.from('bh_writing_attempts').select('*'), activeStudentId),
+    withLegacyStudentFilter(supabase.from('bh_writing_weekly_plans').select('*'), activeStudentId),
+    withLegacyStudentFilter(supabase.from('bh_writing_daily_tasks').select('*'), activeStudentId),
+    withLegacyStudentFilter(supabase.from('bh_writing_daily_submissions').select('*'), activeStudentId),
+    withLegacyStudentFilter(supabase.from('bh_writing_daily_evaluations').select('*'), activeStudentId),
+    withLegacyStudentFilter(supabase.from('bh_writing_monthly_reports').select('*'), activeStudentId),
+    withLegacyStudentFilter(supabase.from('bh_writing_memory_snapshots').select('*'), activeStudentId),
     Promise.resolve({ data: [], error: null } as { data: any[]; error: null }),
-    supabase.from('bh_writing_review_signals').select('*').eq('student_id', activeStudentId),
+    Promise.resolve({ data: [], error: null } as { data: any[]; error: null }),
     supabase.from('bh_writing_calibration_followups').select('*').eq('student_id', activeStudentId),
   ]);
 
@@ -210,7 +213,7 @@ export const persistWritingStoreSnapshot = async (snapshot: SerializedWritingPer
 
   const bindStudentRows = (rows: unknown[]): unknown[] =>
     rows
-      .filter((row) => readKey(row, 'student_id') === activeStudentId)
+      .filter((row) => readStudentKey(row) === activeStudentId)
       .map((row) => (row && typeof row === 'object' ? withStudentBinding(row as Record<string, unknown>, activeStudentId) : row));
 
   const followups = Object.fromEntries(
@@ -266,16 +269,14 @@ export const persistMonthlyWritingReport = async (report: unknown): Promise<void
   if (!reportRow.student_id || !reportRow.genre || !reportRow.month) {
     throw new Error('[writingRepository] monthly report is missing required typed keys (student_id, genre, month).');
   }
-  const upsertRes = await supabase
+  const deleteRes = await supabase
     .from('bh_writing_monthly_reports')
-    .upsert(
-      {
-        student_id: reportRow.student_id,
-        genre: reportRow.genre,
-        month: reportRow.month,
-        payload: safeReport,
-      },
-      { onConflict: 'student_id,genre,month' }
-    );
-  ensureNoError(upsertRes, 'upsert bh_writing_monthly_reports failed');
+    .delete()
+    .eq('payload->>student_id', reportRow.student_id)
+    .eq('payload->>genre', reportRow.genre)
+    .eq('payload->>month', reportRow.month);
+  ensureNoError(deleteRes, 'delete existing monthly report failed');
+
+  const insertRes = await supabase.from('bh_writing_monthly_reports').insert({ payload: safeReport });
+  ensureNoError(insertRes, 'insert bh_writing_monthly_reports failed');
 };
