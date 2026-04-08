@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { MutableRefObject } from 'react';
 import { createPortal } from 'react-dom';
+import gsap from 'gsap';
 import {
   getCurrentWeeklyPlan,
   getStudentGenrePathStatuses,
@@ -561,6 +562,84 @@ const buildFallbackHighlightRanges = (text: string, ai: WritingAiFeedbackAssist 
   return ranges;
 };
 
+interface ReviewHighlightSpanProps {
+  range: TextAnchorRange;
+  segment: string;
+  isActive: boolean;
+  activeCycle: number | null;
+}
+
+const ReviewHighlightSpan: React.FC<ReviewHighlightSpanProps> = ({ range, segment, isActive, activeCycle }) => {
+  const overlayRef = useRef<HTMLSpanElement | null>(null);
+  const strong = range.polarity === 'strong';
+  const swipeDuration = getHighlightAnimationDurationMs(segment.length) / 1000;
+
+  useEffect(() => {
+    const overlay = overlayRef.current;
+    if (!overlay) return;
+
+    gsap.killTweensOf(overlay);
+
+    if (!isActive) {
+      gsap.set(overlay, {
+        opacity: 0,
+        scaleX: 0,
+        xPercent: -10,
+        skewX: 0,
+        transformOrigin: 'left center',
+      });
+      return;
+    }
+
+    gsap.set(overlay, {
+      opacity: 0.92,
+      scaleX: 0,
+      xPercent: -14,
+      skewX: -8,
+      transformOrigin: 'left center',
+    });
+    gsap.to(overlay, {
+      opacity: 0.98,
+      scaleX: 1,
+      xPercent: 0,
+      skewX: 0,
+      duration: swipeDuration,
+      ease: 'power2.out',
+      overwrite: 'auto',
+    });
+  }, [isActive, activeCycle, swipeDuration]);
+
+  const highlightStyle = {
+    borderBottom: isActive
+      ? (strong ? '1px solid rgba(74,222,128,0.65)' : '1px solid rgba(248,113,113,0.62)')
+      : '1px solid transparent',
+    color: isActive
+      ? (strong ? '#dcfce7' : '#fee2e2')
+      : (strong ? 'rgba(187,247,208,0.84)' : 'rgba(254,202,202,0.82)'),
+    boxShadow: 'none',
+    textShadow: isActive
+      ? (strong ? '0 0 7px rgba(74,222,128,0.25)' : '0 0 6px rgba(248,113,113,0.2)')
+      : 'none',
+    transition: 'color 220ms ease, border-color 220ms ease, text-shadow 220ms ease',
+  };
+
+  return (
+    <span
+      className={`review-highlight ${strong ? 'review-highlight--strong' : 'review-highlight--weak'} ${isActive ? 'review-highlight--active' : 'review-highlight--inactive'}`}
+      title={range.reason}
+      style={highlightStyle}
+    >
+      <span className="review-highlight__ink-base" aria-hidden="true" />
+      <span
+        ref={overlayRef}
+        className="review-highlight__ink-swipe"
+        aria-hidden="true"
+      />
+      <span className="review-highlight__text">{segment}</span>
+    </span>
+  );
+};
+
 const renderAnnotatedText = (text: string, ranges: TextAnchorRange[], activeIndex: number | null = null): React.ReactNode => {
   if (!text) return text;
   const normalizedRanges = [...ranges]
@@ -579,39 +658,13 @@ const renderAnnotatedText = (text: string, ranges: TextAnchorRange[], activeInde
   normalizedRanges.forEach((range, idx) => {
     if (cursor < range.start) nodes.push(<span key={`plain-${idx}`}>{text.slice(cursor, range.start)}</span>);
     const segment = text.slice(range.start, range.end);
-    const strong = range.polarity === 'strong';
-    const highlightStyle = {
-      '--highlight-swipe-duration': `${getHighlightAnimationDurationMs(segment.length)}ms`,
-      borderBottom: idx === activeIndex
-        ? (strong ? '1px solid rgba(74,222,128,0.65)' : '1px solid rgba(248,113,113,0.62)')
-        : '1px solid transparent',
-      color: idx === activeIndex
-        ? (strong ? '#dcfce7' : '#fee2e2')
-        : (strong ? 'rgba(187,247,208,0.84)' : 'rgba(254,202,202,0.82)'),
-      boxShadow: 'none',
-      textShadow: idx === activeIndex
-        ? (strong ? '0 0 7px rgba(74,222,128,0.25)' : '0 0 6px rgba(248,113,113,0.2)')
-        : 'none',
-      transition: 'color 220ms ease, border-color 220ms ease, text-shadow 220ms ease',
-    };
-    const isActive = idx === activeIndex;
     nodes.push(
-      <span
-        key={`mark-${idx}`}
-        className={`review-highlight ${strong ? 'review-highlight--strong' : 'review-highlight--weak'} ${isActive ? 'review-highlight--active' : 'review-highlight--inactive'}`}
-        title={range.reason}
-        style={highlightStyle}
-      >
-        <span className="review-highlight__ink-base" aria-hidden="true" />
-        {isActive ? (
-          <span
-            key={`ink-swipe-${activeIndex}-${range.start}-${range.end}`}
-            className="review-highlight__ink-swipe"
-            aria-hidden="true"
-          />
-        ) : null}
-        <span className="review-highlight__text">{segment}</span>
-      </span>
+      <ReviewHighlightSpan
+        range={range}
+        segment={segment}
+        isActive={idx === activeIndex}
+        activeCycle={activeIndex}
+      />
     );
     cursor = range.end;
   });
@@ -1903,11 +1956,10 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           inset: 0 -3px 0 -2px;
           border-radius: 13px 13px 9px 9px;
           transform-origin: left center;
-          background: linear-gradient(90deg, rgba(34,197,94,0.26) 0%, rgba(34,197,94,0.4) 78%, rgba(187,247,208,0.75) 92%, rgba(255,255,255,0) 100%);
+          background: linear-gradient(90deg, rgba(34,197,94,0.38) 0%, rgba(34,197,94,0.52) 72%, rgba(187,247,208,0.9) 92%, rgba(255,255,255,0) 100%);
           opacity: 0;
           z-index: 1;
           pointer-events: none;
-          animation: markerSwipeDrag var(--highlight-swipe-duration, 620ms) cubic-bezier(.24,.88,.22,1) forwards;
         }
         .review-highlight__text {
           position: relative;
@@ -1917,7 +1969,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           background: linear-gradient(180deg, rgba(248,113,113,0.12) 0%, rgba(248,113,113,0.24) 56%, rgba(248,113,113,0.1) 100%);
         }
         .review-highlight--weak .review-highlight__ink-swipe {
-          background: linear-gradient(90deg, rgba(248,113,113,0.24) 0%, rgba(248,113,113,0.38) 78%, rgba(254,202,202,0.76) 92%, rgba(255,255,255,0) 100%);
+          background: linear-gradient(90deg, rgba(248,113,113,0.36) 0%, rgba(248,113,113,0.5) 72%, rgba(254,202,202,0.9) 92%, rgba(255,255,255,0) 100%);
         }
         .review-highlight--inactive {
           opacity: 0.62;
@@ -1949,12 +2001,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           overflow-y: auto;
         }
         :dir(rtl) .review-highlight__ink-swipe {
-          transform-origin: right center;
-          animation-name: markerSwipeDragRtl;
-          background: linear-gradient(270deg, rgba(34,197,94,0.26) 0%, rgba(34,197,94,0.4) 78%, rgba(187,247,208,0.75) 92%, rgba(255,255,255,0) 100%);
-        }
-        :dir(rtl) .review-highlight--weak .review-highlight__ink-swipe {
-          background: linear-gradient(270deg, rgba(248,113,113,0.24) 0%, rgba(248,113,113,0.38) 78%, rgba(254,202,202,0.76) 92%, rgba(255,255,255,0) 100%);
+          transform-origin: left center;
         }
         .week-stage-wrap {
           display: grid;
