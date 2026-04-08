@@ -585,16 +585,21 @@ const renderAnnotatedText = (text: string, ranges: TextAnchorRange[], activeInde
         className="review-highlight"
         title={range.reason}
         style={{
-          '--highlight-fill': strong ? 'rgba(34,197,94,0.3)' : 'rgba(248,113,113,0.28)',
-          '--highlight-border': strong ? 'rgba(74,222,128,0.7)' : 'rgba(248,113,113,0.74)',
-          '--highlight-delay': `${revealOffsetMs}ms`,
-          '--highlight-duration': `${Math.max(140, Math.min(360, segment.length * 14))}ms`,
+          backgroundImage: `linear-gradient(90deg, ${strong ? 'rgba(34,197,94,0.3)' : 'rgba(248,113,113,0.28)'} 0%, ${strong ? 'rgba(34,197,94,0.3)' : 'rgba(248,113,113,0.28)'} 100%)`,
+          backgroundSize: '0% 100%',
+          backgroundRepeat: 'no-repeat',
+          borderBottom: strong ? '1px solid rgba(74,222,128,0.7)' : '1px solid rgba(248,113,113,0.74)',
+          animationName: 'highlightPaint',
+          animationDuration: `${Math.max(140, Math.min(360, segment.length * 14))}ms`,
+          animationDelay: `${revealOffsetMs}ms`,
+          animationTimingFunction: 'cubic-bezier(.22,.9,.2,1)',
+          animationFillMode: 'both',
           color: strong ? '#bbf7d0' : '#fecaca',
           boxShadow: idx === activeIndex
             ? (strong ? '0 0 0 1px rgba(74,222,128,0.65), 0 0 18px rgba(74,222,128,0.42)' : '0 0 0 1px rgba(248,113,113,0.55), 0 0 16px rgba(248,113,113,0.35)')
             : (strong ? '0 0 0 1px rgba(34,197,94,0.22)' : '0 0 0 1px rgba(248,113,113,0.18)'),
           transition: 'box-shadow 220ms ease',
-        } as any}
+        }}
       >
         {segment}
       </span>
@@ -1862,22 +1867,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           position: relative;
           display: inline;
           border-radius: 3px;
-          isolation: isolate;
           padding: 0 1px;
-        }
-        .review-highlight::before {
-          content: '';
-          position: absolute;
-          inset: 0.07em -0.02em 0.02em;
-          border-bottom: 1px solid var(--highlight-border, rgba(148,163,184,0.45));
-          background: var(--highlight-fill, rgba(148,163,184,0.2));
-          border-radius: 3px;
-          transform-origin: left center;
-          transform: scaleX(0);
-          animation: highlightPaint var(--highlight-duration, 220ms) cubic-bezier(.22,.9,.2,1) both;
-          animation-delay: var(--highlight-delay, 0ms);
-          box-shadow: 0 0 0 1px rgba(15,23,42,0.05);
-          z-index: -1;
         }
         .week-stage-wrap {
           display: grid;
@@ -1980,8 +1970,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           100% { transform: translateX(100%); }
         }
         @keyframes highlightPaint {
-          from { transform: scaleX(0); filter: saturate(0.6); }
-          to { transform: scaleX(1); filter: saturate(1); }
+          from { background-size: 0% 100%; filter: saturate(0.6); }
+          to { background-size: 100% 100%; filter: saturate(1); }
         }
       `}</style>
 
