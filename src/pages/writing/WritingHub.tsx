@@ -580,22 +580,21 @@ const renderAnnotatedText = (text: string, ranges: TextAnchorRange[], activeInde
     if (cursor < range.start) nodes.push(<span key={`plain-${idx}`}>{text.slice(cursor, range.start)}</span>);
     const segment = text.slice(range.start, range.end);
     const strong = range.polarity === 'strong';
+    const highlightStyle = {
+      animationDuration: `${getHighlightAnimationDurationMs(segment.length)}ms`,
+      borderBottom: strong ? '1px solid rgba(74,222,128,0.7)' : '1px solid rgba(248,113,113,0.74)',
+      color: strong ? '#bbf7d0' : '#fecaca',
+      boxShadow: idx === activeIndex
+        ? (strong ? '0 0 0 1px rgba(74,222,128,0.65), 0 0 18px rgba(74,222,128,0.42)' : '0 0 0 1px rgba(248,113,113,0.55), 0 0 16px rgba(248,113,113,0.35)')
+        : (strong ? '0 0 0 1px rgba(34,197,94,0.22)' : '0 0 0 1px rgba(248,113,113,0.18)'),
+      transition: 'box-shadow 220ms ease',
+    };
     nodes.push(
       <span
         key={`mark-${idx}`}
-        className="review-highlight"
+        className={`review-highlight ${strong ? 'review-highlight--strong' : 'review-highlight--weak'}`}
         title={range.reason}
-        style={{
-          '--highlight-stroke-color': strong ? 'rgba(34,197,94,0.34)' : 'rgba(248,113,113,0.3)',
-          '--highlight-stroke-core': strong ? 'rgba(34,197,94,0.42)' : 'rgba(248,113,113,0.38)',
-          '--highlight-swipe-duration': `${getHighlightAnimationDurationMs(segment.length)}ms`,
-          borderBottom: strong ? '1px solid rgba(74,222,128,0.7)' : '1px solid rgba(248,113,113,0.74)',
-          color: strong ? '#bbf7d0' : '#fecaca',
-          boxShadow: idx === activeIndex
-            ? (strong ? '0 0 0 1px rgba(74,222,128,0.65), 0 0 18px rgba(74,222,128,0.42)' : '0 0 0 1px rgba(248,113,113,0.55), 0 0 16px rgba(248,113,113,0.35)')
-            : (strong ? '0 0 0 1px rgba(34,197,94,0.22)' : '0 0 0 1px rgba(248,113,113,0.18)'),
-          transition: 'box-shadow 220ms ease',
-        }}
+        style={highlightStyle}
       >
         {segment}
       </span>
@@ -1887,17 +1886,15 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           position: absolute;
           inset: 0 -1px;
           border-radius: 4px;
-          background: linear-gradient(
-            180deg,
-            color-mix(in srgb, var(--highlight-stroke-color, rgba(34,197,94,0.34)) 86%, transparent) 0%,
-            var(--highlight-stroke-core, rgba(34,197,94,0.42)) 55%,
-            color-mix(in srgb, var(--highlight-stroke-color, rgba(34,197,94,0.34)) 75%, transparent) 100%
-          );
+          background: linear-gradient(180deg, rgba(34,197,94,0.3) 0%, rgba(34,197,94,0.42) 55%, rgba(34,197,94,0.26) 100%);
           transform-origin: left center;
           transform: scaleX(0.06) skewX(-6deg);
           opacity: 0;
           z-index: -1;
-          animation: markerSwipe var(--highlight-swipe-duration, 900ms) cubic-bezier(.2,.9,.18,1) both;
+          animation-name: markerSwipe;
+          animation-duration: inherit;
+          animation-timing-function: cubic-bezier(.2,.9,.18,1);
+          animation-fill-mode: both;
         }
         .review-highlight::after {
           content: '';
@@ -1906,12 +1903,20 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           width: clamp(10px, 22%, 18px);
           border-radius: 6px;
           background: radial-gradient(circle at 40% 50%, rgba(255,255,255,0.24) 0%, transparent 48%),
-            linear-gradient(90deg, var(--highlight-stroke-core, rgba(34,197,94,0.42)) 0%, color-mix(in srgb, var(--highlight-stroke-core, rgba(34,197,94,0.42)) 72%, transparent) 100%);
+            linear-gradient(90deg, rgba(34,197,94,0.42) 0%, rgba(34,197,94,0.24) 100%);
           opacity: 0;
           filter: blur(0.2px);
           pointer-events: none;
           z-index: -1;
-          animation: markerNib var(--highlight-swipe-duration, 900ms) cubic-bezier(.2,.9,.18,1) both;
+          animation-name: markerNib;
+          animation-duration: inherit;
+          animation-timing-function: cubic-bezier(.2,.9,.18,1);
+          animation-fill-mode: both;
+        }
+        .review-highlight--weak::before { background: linear-gradient(180deg, rgba(248,113,113,0.28) 0%, rgba(248,113,113,0.4) 55%, rgba(248,113,113,0.24) 100%); }
+        .review-highlight--weak::after {
+          background: radial-gradient(circle at 40% 50%, rgba(255,255,255,0.22) 0%, transparent 48%),
+            linear-gradient(90deg, rgba(248,113,113,0.42) 0%, rgba(248,113,113,0.23) 100%);
         }
         :dir(rtl) .review-highlight::before { transform-origin: right center; transform: scaleX(0.06) skewX(6deg); animation-name: markerSwipeRtl; }
         :dir(rtl) .review-highlight::after { inset: -1px -2px -1px auto; animation-name: markerNibRtl; }
