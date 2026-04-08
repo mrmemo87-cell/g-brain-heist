@@ -1445,8 +1445,10 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     if (aiFeedbackDetails) return;
     if (!firstAttemptRichFeedback) return;
     if (!isActiveWeek) return;
-    if (completedTasksCount > 0) return;
     setAiFeedbackDetails(firstAttemptRichFeedback);
+    if (!submittedPracticeText.trim() && firstAttemptSubmission?.trim()) {
+      setSubmittedPracticeText(firstAttemptSubmission.trim());
+    }
     const fallbackSummary = [
       ...(firstAttemptRichFeedback.strengths ?? []).slice(0, 2).map((item) => `✅ ${item}`),
       ...(firstAttemptRichFeedback.weaknesses ?? []).slice(0, 2).map((item) => `⚠️ ${item}`),
@@ -1456,7 +1458,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     if (firstAttemptRichFeedback.monthly_report_summary?.trim()) {
       setAiMonthlyWording((current) => current || firstAttemptRichFeedback.monthly_report_summary!.trim());
     }
-  }, [aiFeedbackDetails, firstAttemptRichFeedback, isActiveWeek, completedTasksCount]);
+  }, [aiFeedbackDetails, firstAttemptRichFeedback, isActiveWeek, submittedPracticeText, firstAttemptSubmission]);
 
   useEffect(() => {
     let cancelled = false;
