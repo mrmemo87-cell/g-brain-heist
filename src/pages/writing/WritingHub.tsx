@@ -303,7 +303,7 @@ const normalizeTextForMatch = (value: string): string =>
     .replace(/\s+/g, ' ')
     .trim();
 
-const buildTextFingerprint = (value: string): string => {
+export const buildTextFingerprint = (value: string): string => {
   const normalized = normalizeTextForMatch(value);
   let hash = 2166136261;
   for (let i = 0; i < normalized.length; i += 1) {
@@ -311,6 +311,37 @@ const buildTextFingerprint = (value: string): string => {
     hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
   }
   return `fp_${(hash >>> 0).toString(16)}`;
+};
+
+const normalizeTextWithIndexMap = (value: string): { normalized: string; map: number[] } => {
+  let normalized = '';
+  const map: number[] = [];
+  let previousWasSpace = false;
+  for (let i = 0; i < value.length; i += 1) {
+    let char = value[i].toLowerCase();
+    if (char === '“' || char === '”') char = '"';
+    if (char === '‘' || char === '’') char = "'";
+    if (/\s/.test(char)) {
+      if (!previousWasSpace) {
+        normalized += ' ';
+        map.push(i);
+      }
+      previousWasSpace = true;
+      continue;
+    }
+    previousWasSpace = false;
+    normalized += char;
+    map.push(i);
+  }
+  while (normalized.startsWith(' ')) {
+    normalized = normalized.slice(1);
+    map.shift();
+  }
+  while (normalized.endsWith(' ')) {
+    normalized = normalized.slice(0, -1);
+    map.pop();
+  }
+  return { normalized, map };
 };
 
 const extractQuotedSnippet = (value: string): string | null => {
@@ -324,13 +355,19 @@ const findSafeSnippetRange = (text: string, snippet?: string | null): { start: n
   if (!snippet) return null;
   const trimmed = snippet.trim();
   if (trimmed.length < 6) return null;
-  const haystack = normalizeTextForMatch(text);
+  const haystackWithMap = normalizeTextWithIndexMap(text);
+  const haystack = haystackWithMap.normalized;
   const needle = normalizeTextForMatch(trimmed);
   if (!needle) return null;
   const firstIndex = haystack.indexOf(needle);
   if (firstIndex < 0) return null;
   const secondIndex = haystack.indexOf(needle, firstIndex + 1);
   if (secondIndex >= 0) return null;
+  const mappedStart = haystackWithMap.map[firstIndex];
+  const mappedEnd = haystackWithMap.map[firstIndex + needle.length - 1];
+  if (typeof mappedStart === 'number' && typeof mappedEnd === 'number' && mappedEnd >= mappedStart) {
+    return { start: mappedStart, end: mappedEnd + 1 };
+  }
   const directStart = text.toLowerCase().indexOf(trimmed.toLowerCase());
   if (directStart >= 0) return { start: directStart, end: directStart + trimmed.length };
   return null;
@@ -350,7 +387,27 @@ const buildRepairQueue = (
   }
 
   const queue: RepairQueueItem[] = [];
-  (ai.what_is_missing ?? ai.weaknesses ?? []).slice(0, 3).forEach((item, idx) => {
+  const mapRepairCategory = (stepType?: string): RepairQueueItem['category'] => {
+    const normalized = (stepType ?? '').toLowerCase();
+    if (normalized.includes('grammar')) return 'grammar';
+    if (normalized.includes('punct')) return 'punctuation';
+    if (normalized.includes('style') || normalized.includes('tone')) return 'style';
+    if (normalized.includes('next')) return 'next_step';
+    return 'content';
+  };
+  (ai.repair_steps ?? []).slice(0, 4).forEach((step, idx) => {
+    const title = step.title?.trim() || step.instruction?.trim() || `Revision step ${idx + 1}`;
+    const explanation = step.instruction?.trim() || step.done_criteria?.trim() || step.evidence?.trim() || 'Revise this part using the coaching guidance.';
+    queue.push({
+      id: step.id?.trim() || `repair-step-${idx}`,
+      title: simplifyStudentLanguage(title),
+      category: mapRepairCategory(step.step_type),
+      explanation: simplifyStudentLanguage(explanation),
+      evidenceSnippet: step.evidence?.trim() || undefined,
+    });
+  });
+  const missingContentSignals = (ai.what_is_missing?.length ? ai.what_is_missing : ai.weaknesses ?? []).slice(0, 3);
+  missingContentSignals.forEach((item, idx) => {
     queue.push({
       id: `missing-${idx}`,
       title: `Add a missing task point`,
@@ -1097,7 +1154,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   useEffect(() => {
     if (!showTaskContextModal) return;
     setViewedRepairIds([]);
-    setActiveRepairId((current) => current ?? repairQueue[0]?.id ?? null);
+    setActiveRepairId(repairQueue[0]?.id ?? null);
   }, [showTaskContextModal, repairQueue]);
 
   useEffect(() => {

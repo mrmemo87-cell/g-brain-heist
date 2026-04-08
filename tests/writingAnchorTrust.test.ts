@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { evaluateAnchorTrust } from '../src/pages/writing/WritingHub.js';
+import { buildTextFingerprint, evaluateAnchorTrust } from '../src/pages/writing/WritingHub.js';
 import {
   __resetWritingIntegrationStoreForTests,
   getStudentWritingHubSnapshot,
@@ -12,7 +12,12 @@ import {
 const prompt = `Write a response that includes:\n- describe the event\n- explain why it mattered\n- give one suggestion`;
 
 const submissionText = 'The event was sports day. It mattered because teamwork improved. I suggest more team rounds.';
-const matchingFingerprint = evaluateAnchorTrust(submissionText, null).localFingerprint;
+const matchingFingerprint = buildTextFingerprint(submissionText);
+
+test('fingerprint helper matches evaluateAnchorTrust local fingerprint output', () => {
+  const trust = evaluateAnchorTrust(submissionText, null);
+  assert.strictEqual(trust.localFingerprint, matchingFingerprint);
+});
 
 test('matching fingerprint with valid anchors is trusted', () => {
   assert.ok(matchingFingerprint);

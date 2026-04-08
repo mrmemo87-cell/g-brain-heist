@@ -663,6 +663,7 @@ export const persistInitialWritingRichFeedback = (input: {
   if (fingerprint) {
     richFeedbackClone['text_fingerprint'] = fingerprint;
   } else {
+    delete richFeedbackClone['text_fingerprint'];
     // Compatibility mode for older feedback payloads: keep guidance text, but never preserve anchor fields without trust fingerprint.
     delete richFeedbackClone['anchor_version'];
     delete richFeedbackClone['highlights'];
