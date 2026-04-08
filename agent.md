@@ -8,3 +8,4 @@ To avoid repeating CI failures on Writing Hub and TypeScript checks:
 2. If any production snapshot/contract test fails, restore required stable markers/labels (or add hidden compatibility markers) before committing.
 3. Do not merge UI refactors that remove existing test contract strings without updating tests in the same change.
 4. Re-run `npm run typecheck && npm test` after each patch iteration until both pass.
+5. For React ref collections (e.g., map/dictionary refs), explicitly type callback ref params (`HTMLButtonElement | null`, `HTMLDivElement | null`) and null-guard `.current` before indexed access to satisfy strict TypeScript in CI.

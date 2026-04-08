@@ -1297,7 +1297,9 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   }, [activeGenre, todayTask.ok, todayTask.data?.task_type]);
 
   useEffect(() => {
-    keepHorizontalItemInView(writingPathCarouselRef.current, writingPathButtonRefs.current[activeGenre] ?? null);
+    const pathRefs = writingPathButtonRefs.current;
+    if (!pathRefs) return;
+    keepHorizontalItemInView(writingPathCarouselRef.current, pathRefs[activeGenre] ?? null);
   }, [activeGenre, isGenreSwitching, initializing]);
 
   useEffect(() => {
@@ -1313,7 +1315,9 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
 
   useEffect(() => {
     if (!selectedMissionKey) return;
-    keepHorizontalItemInView(missionsCarouselRef.current, missionCardRefs.current[selectedMissionKey] ?? null);
+    const missionRefs = missionCardRefs.current;
+    if (!missionRefs) return;
+    keepHorizontalItemInView(missionsCarouselRef.current, missionRefs[selectedMissionKey] ?? null);
   }, [selectedMissionKey, missionRecommendations]);
 
   useEffect(() => {
@@ -1899,8 +1903,10 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   return (
                     <button
                       key={item}
-                      ref={(node) => {
-                        writingPathButtonRefs.current[item] = node;
+                      ref={(node: HTMLButtonElement | null) => {
+                        const pathRefs = writingPathButtonRefs.current;
+                        if (!pathRefs) return;
+                        pathRefs[item] = node;
                       }}
                       type="button"
                       onClick={() => handleChangeWritingType(item)}
@@ -2329,8 +2335,10 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                         {missionRecommendations.map((item, index) => (
                           <div
                             key={getMissionRecommendationKey(item, index)}
-                            ref={(node) => {
-                              missionCardRefs.current[getMissionRecommendationKey(item, index)] = node;
+                            ref={(node: HTMLDivElement | null) => {
+                              const missionRefs = missionCardRefs.current;
+                              if (!missionRefs) return;
+                              missionRefs[getMissionRecommendationKey(item, index)] = node;
                             }}
                             style={{
                               borderRadius: 10,
