@@ -598,6 +598,38 @@ const buildBalancedReviewSequence = (ranges: TextAnchorRange[], maxItems = 8): T
     .sort((a, b) => a.start - b.start || a.end - b.end);
 };
 
+const describeHighlight = (
+  range: TextAnchorRange | null | undefined,
+  text: string,
+  ai: WritingAiFeedbackAssist | null
+): { label: string; detail: string; correction?: string } => {
+  if (!range) return { label: 'AI feedback', detail: 'Select a highlight to view detailed guidance.' };
+  const snippet = text.slice(range.start, range.end).trim();
+  const lowerSnippet = snippet.toLowerCase();
+  if (!ai) {
+    return {
+      label: range.polarity === 'strong' ? 'Strong writing choice' : 'Needs correction',
+      detail: snippet || 'Highlighted text from your submission.',
+    };
+  }
+
+  const grammar = (ai.grammar_fixes ?? []).find((item) => item.original.toLowerCase().includes(lowerSnippet) || lowerSnippet.includes(item.original.toLowerCase()));
+  if (grammar) return { label: 'Grammar fix', detail: grammar.issue, correction: grammar.better_version };
+  const punctuation = (ai.punctuation_fixes ?? []).find((item) => item.original.toLowerCase().includes(lowerSnippet) || lowerSnippet.includes(item.original.toLowerCase()));
+  if (punctuation) return { label: 'Punctuation fix', detail: punctuation.issue, correction: punctuation.better_version };
+  const phrase = (ai.natural_phrase_upgrades ?? []).find((item) => item.original.toLowerCase().includes(lowerSnippet) || lowerSnippet.includes(item.original.toLowerCase()));
+  if (phrase) return { label: 'Phrase upgrade', detail: phrase.why_it_helps, correction: phrase.better_version };
+  const strength = [...(ai.what_is_working ?? []), ...(ai.strengths ?? [])].find((item) => (extractQuotedSnippet(item) ?? '').toLowerCase().includes(lowerSnippet) || item.toLowerCase().includes(lowerSnippet));
+  if (strength) return { label: 'Why this is strong', detail: simplifyStudentLanguage(strength) };
+
+  return {
+    label: range.polarity === 'strong' ? 'Strong writing choice' : 'Needs correction',
+    detail: range.polarity === 'strong'
+      ? 'This part supports your story effectively. Keep this clarity and energy.'
+      : 'This part needs clearer grammar, wording, or structure.',
+  };
+};
+
 const SUPPORTED_GENRES: SupportedGenre[] = ['essay', 'story', 'article', 'review', 'report', 'email', 'paragraph'];
 
 const defaultPromptByGenre: Record<SupportedGenre, string> = FALLBACK_PROMPT_BY_GENRE;
@@ -1024,6 +1056,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const closeModalButtonRef = useRef<HTMLButtonElement | null>(null);
   const firstRepairButtonRef = useRef<HTMLButtonElement | null>(null);
   const practiceTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const feedbackCardRef = useRef<HTMLElement | null>(null);
   const [questMissions, setQuestMissions] = useState<QuestMissionRow[]>([]);
   const initialResponseWordCount = countWords(initialResponse);
   const practiceResponseWordCount = countWords(practiceResponse);
@@ -1072,6 +1105,14 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const visibleSubmittedHighlightRanges = useMemo(
     () => reviewScanPlan.slice(0, reviewScanCount),
     [reviewScanPlan, reviewScanCount]
+  );
+  const activeReviewRange = useMemo(
+    () => (reviewActiveIndex != null ? visibleSubmittedHighlightRanges[reviewActiveIndex] ?? null : null),
+    [visibleSubmittedHighlightRanges, reviewActiveIndex]
+  );
+  const activeReviewNote = useMemo(
+    () => describeHighlight(activeReviewRange, submittedPracticeText, aiFeedbackDetails),
+    [activeReviewRange, submittedPracticeText, aiFeedbackDetails]
   );
 
   const latestWeaknessTags = stateRes.ok && stateRes.data?.latest_assessment
@@ -1773,6 +1814,9 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
         @keyframes aiReviewSweep {
           100% { transform: translateX(100%); }
         }
+        @keyframes textScanFlow {
+          100% { transform: translateX(100%); }
+        }
       `}</style>
 
       {initializing || isGenreSwitching ? renderLoadingSkeleton() : (
@@ -1788,7 +1832,16 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
               <label style={{ color: '#bfdbfe', fontSize: 13, fontWeight: 700 }}>
                 Choose your writing path
               </label>
-              <div style={{ display: 'grid', gap: 8, gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 8,
+                  overflowX: 'auto',
+                  paddingBottom: 4,
+                  scrollSnapType: 'x mandatory',
+                  scrollbarWidth: 'thin',
+                }}
+              >
                 {SUPPORTED_GENRES.map((item) => {
                   const status = genreStatuses.ok ? genreStatuses.data?.find((row) => row.genre === item) : null;
                   const isSelected = item === activeGenre;
@@ -1803,6 +1856,9 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                       aria-pressed={isSelected}
                       aria-label={`${toGenreLabel(item)} writing path`}
                       style={{
+                        minWidth: 180,
+                        flex: '0 0 auto',
+                        scrollSnapAlign: 'start',
                         textAlign: 'left',
                         borderRadius: 12,
                         border: `1px solid ${isSelected ? 'rgba(125, 211, 252, 0.95)' : 'rgba(148, 163, 184, 0.35)'}`,
@@ -2023,7 +2079,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                 )}
                 </section>
 
-                <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(16, 185, 129, 0.42)', background: 'linear-gradient(168deg, #0f172a 0%, #122034 60%, #0b1224 100%)' }}>
+                <section ref={feedbackCardRef} className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(16, 185, 129, 0.42)', background: 'linear-gradient(168deg, #0f172a 0%, #122034 60%, #0b1224 100%)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                     <p style={{ ...dashboardSectionTitleStyle, color: '#86efac' }}>Your Feedback</p>
                     <span style={{ ...sectionLabelPillStyle, color: '#6ee7b7', borderColor: 'rgba(52, 211, 153, 0.4)' }}>Coaching</span>
@@ -2581,12 +2637,39 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                 whiteSpace: 'pre-wrap',
               }}
             >
+              {!reviewScanComplete && reviewScanPlan.length > 0 && (
+                <div
+                  aria-hidden="true"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    pointerEvents: 'none',
+                    background: 'linear-gradient(90deg, transparent 0%, rgba(56,189,248,0.16) 45%, transparent 78%)',
+                    transform: 'translateX(-100%)',
+                    animation: 'textScanFlow 1.2s ease-in-out infinite',
+                  }}
+                />
+              )}
               {renderAnnotatedText(submittedPracticeText, visibleSubmittedHighlightRanges, reviewActiveIndex)}
             </div>
 
             <p style={{ position: 'relative', zIndex: 1, margin: 0, color: '#94a3b8', fontSize: 12 }}>
               Green glow = strong writing choices. Red glow = corrections (grammar, awkward wording, or spelling).
             </p>
+
+            {activeReviewRange && (
+              <div style={{ position: 'relative', zIndex: 1, borderRadius: 10, border: `1px solid ${activeReviewRange.polarity === 'strong' ? 'rgba(74,222,128,0.45)' : 'rgba(248,113,113,0.45)'}`, background: 'rgba(15,23,42,0.62)', padding: 10 }}>
+                <p style={{ margin: '0 0 4px', color: activeReviewRange.polarity === 'strong' ? '#86efac' : '#fca5a5', fontWeight: 700, fontSize: 13 }}>
+                  {activeReviewNote.label}
+                </p>
+                <p style={{ margin: 0, color: '#e2e8f0', fontSize: 14 }}>{activeReviewNote.detail}</p>
+                {activeReviewNote.correction && (
+                  <p style={{ margin: '6px 0 0', color: '#bbf7d0', fontSize: 14 }}>
+                    Better version: {activeReviewNote.correction}
+                  </p>
+                )}
+              </div>
+            )}
 
             {reviewScanPlan.length > 0 && (
               <div style={{ position: 'relative', zIndex: 1, display: 'flex', gap: 8 }}>
@@ -2647,10 +2730,9 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   onClick={() => {
                     setPracticeResponse(submittedPracticeText);
                     setShowAiReviewModal(false);
-                    setUiNotice('Revision mode is on. Improve one highlighted sentence, then submit again.');
+                    setUiNotice('Revision mode is on. Review Your Feedback card, then improve one highlighted sentence and submit again.');
                     window.setTimeout(() => {
-                      practiceTextareaRef.current?.focus();
-                      practiceTextareaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      feedbackCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }, 40);
                   }}
                   style={{
