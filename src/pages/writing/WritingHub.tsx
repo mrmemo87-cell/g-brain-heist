@@ -582,18 +582,22 @@ const renderAnnotatedText = (text: string, ranges: TextAnchorRange[], activeInde
     const strong = range.polarity === 'strong';
     const highlightStyle = {
       '--highlight-swipe-duration': `${getHighlightAnimationDurationMs(segment.length)}ms`,
-      borderBottom: strong ? '1px solid rgba(74,222,128,0.7)' : '1px solid rgba(248,113,113,0.74)',
-      color: strong ? '#bbf7d0' : '#fecaca',
+      borderBottom: idx === activeIndex
+        ? (strong ? '1px solid rgba(74,222,128,0.92)' : '1px solid rgba(248,113,113,0.9)')
+        : (strong ? '1px solid rgba(74,222,128,0.34)' : '1px solid rgba(248,113,113,0.32)'),
+      color: idx === activeIndex
+        ? (strong ? '#dcfce7' : '#fee2e2')
+        : (strong ? 'rgba(187,247,208,0.84)' : 'rgba(254,202,202,0.82)'),
       boxShadow: idx === activeIndex
-        ? (strong ? '0 0 0 1px rgba(74,222,128,0.65), 0 0 18px rgba(74,222,128,0.42)' : '0 0 0 1px rgba(248,113,113,0.55), 0 0 16px rgba(248,113,113,0.35)')
-        : (strong ? '0 0 0 1px rgba(34,197,94,0.22)' : '0 0 0 1px rgba(248,113,113,0.18)'),
-      transition: 'box-shadow 220ms ease',
+        ? (strong ? '0 0 0 1px rgba(74,222,128,0.78), 0 6px 20px rgba(22,163,74,0.38)' : '0 0 0 1px rgba(248,113,113,0.72), 0 6px 18px rgba(239,68,68,0.32)')
+        : (strong ? '0 0 0 1px rgba(34,197,94,0.12)' : '0 0 0 1px rgba(248,113,113,0.1)'),
+      transition: 'box-shadow 220ms ease, color 220ms ease, border-color 220ms ease',
     };
     const isActive = idx === activeIndex;
     nodes.push(
       <span
         key={`mark-${idx}`}
-        className={`review-highlight ${strong ? 'review-highlight--strong' : 'review-highlight--weak'} ${isActive ? 'review-highlight--active' : ''}`}
+        className={`review-highlight ${strong ? 'review-highlight--strong' : 'review-highlight--weak'} ${isActive ? 'review-highlight--active' : 'review-highlight--inactive'}`}
         title={range.reason}
         style={highlightStyle}
       >
@@ -1871,18 +1875,20 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
         .review-highlight {
           position: relative;
           display: inline-block;
-          border-radius: 3px;
-          padding: 0 1px;
+          border-radius: 4px;
+          padding: 0 1.5px;
           isolation: isolate;
+          transform: translateY(0);
+          transition: opacity 180ms ease, transform 180ms ease, filter 180ms ease;
         }
         .review-highlight__ink {
           position: absolute;
-          inset: 0 -1px;
-          border-radius: 4px;
-          background: linear-gradient(180deg, rgba(34,197,94,0.3) 0%, rgba(34,197,94,0.42) 55%, rgba(34,197,94,0.26) 100%);
+          inset: -1px -2px;
+          border-radius: 5px;
+          background: linear-gradient(180deg, rgba(34,197,94,0.26) 0%, rgba(34,197,94,0.4) 54%, rgba(34,197,94,0.2) 100%);
           transform-origin: left center;
           transform: scaleX(1) skewX(0deg);
-          opacity: 0.5;
+          opacity: 0.42;
           z-index: -1;
         }
         .review-highlight__text {
@@ -1890,12 +1896,24 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           z-index: 1;
         }
         .review-highlight--weak .review-highlight__ink {
-          background: linear-gradient(180deg, rgba(248,113,113,0.28) 0%, rgba(248,113,113,0.4) 55%, rgba(248,113,113,0.24) 100%);
+          background: linear-gradient(180deg, rgba(248,113,113,0.24) 0%, rgba(248,113,113,0.38) 55%, rgba(248,113,113,0.19) 100%);
+        }
+        .review-highlight--inactive {
+          opacity: 0.66;
+          filter: saturate(0.72);
+        }
+        .review-highlight--inactive .review-highlight__ink {
+          opacity: 0.34;
         }
         .review-highlight--active .review-highlight__ink {
-          opacity: 0.88;
+          opacity: 0.96;
           transform: scaleX(0.08) skewX(-3deg);
           animation: markerSwipeActive var(--highlight-swipe-duration, 520ms) cubic-bezier(.2,.9,.18,1) forwards;
+        }
+        .review-highlight--active {
+          opacity: 1;
+          filter: saturate(1.12);
+          transform: translateY(-0.5px);
         }
         :dir(rtl) .review-highlight__ink { transform-origin: right center; }
         :dir(rtl) .review-highlight--active .review-highlight__ink {
@@ -2770,7 +2788,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
               overflow: 'hidden',
               overscrollBehavior: 'contain',
               display: 'grid',
-              gridTemplateRows: 'auto auto minmax(0, 1fr)',
+              gridTemplateRows: 'auto auto minmax(0, 1fr) auto',
               gap: 10,
             }}
           >
@@ -2828,12 +2846,12 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   borderRadius: 14,
                   border: '1px solid rgba(148, 163, 184, 0.32)',
                   background: 'rgba(15, 23, 42, 0.75)',
-                  padding: 14,
+                  padding: 12,
                   color: '#e2e8f0',
-                  lineHeight: 1.7,
-                  fontSize: 15,
+                  lineHeight: 1.62,
+                  fontSize: 14,
                   whiteSpace: 'pre-wrap',
-                  minHeight: 210,
+                  minHeight: 132,
                 }}
               >
               {!reviewScanComplete && reviewScanPlan.length > 0 && (
@@ -2856,7 +2874,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                 Green glow = strong writing choices. Red glow = corrections (grammar, awkward wording, or spelling).
               </p>
 
-              <div style={{ position: 'relative', zIndex: 1, borderRadius: 10, border: `1px solid ${activeReviewRange?.polarity === 'strong' ? 'rgba(74,222,128,0.45)' : 'rgba(148,163,184,0.35)'}`, background: 'rgba(15,23,42,0.62)', padding: 10, minHeight: 88 }}>
+              <div style={{ position: 'relative', zIndex: 1, borderRadius: 10, border: `1px solid ${activeReviewRange?.polarity === 'strong' ? 'rgba(74,222,128,0.45)' : 'rgba(148,163,184,0.35)'}`, background: 'rgba(15,23,42,0.62)', padding: '9px 10px' }}>
                 {activeReviewRange ? (
                   <>
                     <p style={{ margin: '0 0 4px', color: activeReviewRange.polarity === 'strong' ? '#86efac' : '#fca5a5', fontWeight: 700, fontSize: 13 }}>
@@ -2874,43 +2892,6 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                 )}
               </div>
 
-              {reviewScanPlan.length > 0 && (
-                <div style={{ position: 'relative', zIndex: 1, display: 'flex', gap: 8 }}>
-                  <button
-                  type="button"
-                  onClick={() => setReviewActiveIndex((prev) => Math.max(0, (prev ?? 0) - 1))}
-                  disabled={(reviewActiveIndex ?? 0) <= 0}
-                  style={{
-                    borderRadius: 10,
-                    border: '1px solid rgba(148,163,184,0.45)',
-                    background: 'rgba(15,23,42,0.72)',
-                    color: '#e2e8f0',
-                    padding: '7px 11px',
-                    cursor: (reviewActiveIndex ?? 0) <= 0 ? 'not-allowed' : 'pointer',
-                    opacity: (reviewActiveIndex ?? 0) <= 0 ? 0.55 : 1,
-                  }}
-                >
-                  Previous
-                  </button>
-                  <button
-                  type="button"
-                  onClick={() => setReviewActiveIndex((prev) => Math.min(Math.max(0, visibleSubmittedHighlightRanges.length - 1), (prev ?? 0) + 1))}
-                  disabled={(reviewActiveIndex ?? 0) >= Math.max(0, visibleSubmittedHighlightRanges.length - 1)}
-                  style={{
-                    borderRadius: 10,
-                    border: '1px solid rgba(148,163,184,0.45)',
-                    background: 'rgba(15,23,42,0.72)',
-                    color: '#e2e8f0',
-                    padding: '7px 11px',
-                    cursor: (reviewActiveIndex ?? 0) >= Math.max(0, visibleSubmittedHighlightRanges.length - 1) ? 'not-allowed' : 'pointer',
-                    opacity: (reviewActiveIndex ?? 0) >= Math.max(0, visibleSubmittedHighlightRanges.length - 1) ? 0.55 : 1,
-                  }}
-                >
-                  Next
-                  </button>
-                </div>
-              )}
-
               {reviewScanComplete && (
                 <div
                   style={{
@@ -2918,14 +2899,16 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                     zIndex: 1,
                     borderRadius: 12,
                     border: '1px solid rgba(16,185,129,0.35)',
-                    background: 'rgba(6, 78, 59, 0.25)',
-                    padding: 12,
-                    display: 'grid',
-                    gap: 8,
+                    background: 'rgba(6, 78, 59, 0.2)',
+                    padding: '9px 10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    flexWrap: 'wrap',
                   }}
                 >
-                  <p style={{ margin: 0, color: '#d1fae5', fontWeight: 700 }}>Next action</p>
-                  <p style={{ margin: 0, color: '#ecfdf5', fontSize: 14 }}>
+                  <p style={{ margin: 0, color: '#d1fae5', fontWeight: 700, fontSize: 13 }}>Next action</p>
+                  <p style={{ margin: 0, color: '#ecfdf5', fontSize: 13, flex: '1 1 280px' }}>
                     {aiFeedbackDetails?.next_move || (aiFeedbackDetails?.next_steps ?? []).slice(0, 1)[0] || 'Pick one red highlight and revise that sentence now.'}
                   </p>
                   <button
@@ -2940,12 +2923,13 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   }}
                   style={{
                     justifySelf: 'start',
-                    borderRadius: 10,
+                    borderRadius: 9,
                     border: '1px solid rgba(110,231,183,0.55)',
                     background: 'linear-gradient(135deg, rgba(5,150,105,0.5), rgba(14,116,144,0.45))',
                     color: '#ecfdf5',
-                    padding: '8px 12px',
+                    padding: '7px 10px',
                     fontWeight: 700,
+                    fontSize: 13,
                     cursor: 'pointer',
                   }}
                   >
@@ -2954,6 +2938,51 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                 </div>
               )}
             </div>
+            {reviewScanPlan.length > 0 && (
+              <div style={{ position: 'relative', zIndex: 1, marginTop: -2, borderTop: '1px solid rgba(148,163,184,0.25)', paddingTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                <p style={{ margin: 0, color: '#94a3b8', fontSize: 12 }}>
+                  Highlight {(reviewActiveIndex ?? 0) + 1} of {visibleSubmittedHighlightRanges.length}
+                </p>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    type="button"
+                    onClick={() => setReviewActiveIndex((prev) => Math.max(0, (prev ?? 0) - 1))}
+                    disabled={(reviewActiveIndex ?? 0) <= 0}
+                    style={{
+                      borderRadius: 10,
+                      border: '1px solid rgba(148,163,184,0.45)',
+                      background: 'rgba(15,23,42,0.82)',
+                      color: '#e2e8f0',
+                      padding: '7px 12px',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      cursor: (reviewActiveIndex ?? 0) <= 0 ? 'not-allowed' : 'pointer',
+                      opacity: (reviewActiveIndex ?? 0) <= 0 ? 0.55 : 1,
+                    }}
+                  >
+                    Previous
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setReviewActiveIndex((prev) => Math.min(Math.max(0, visibleSubmittedHighlightRanges.length - 1), (prev ?? 0) + 1))}
+                    disabled={(reviewActiveIndex ?? 0) >= Math.max(0, visibleSubmittedHighlightRanges.length - 1)}
+                    style={{
+                      borderRadius: 10,
+                      border: '1px solid rgba(148,163,184,0.45)',
+                      background: 'rgba(15,23,42,0.82)',
+                      color: '#e2e8f0',
+                      padding: '7px 12px',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      cursor: (reviewActiveIndex ?? 0) >= Math.max(0, visibleSubmittedHighlightRanges.length - 1) ? 'not-allowed' : 'pointer',
+                      opacity: (reviewActiveIndex ?? 0) >= Math.max(0, visibleSubmittedHighlightRanges.length - 1) ? 0.55 : 1,
+                    }}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       ), document.body)}
