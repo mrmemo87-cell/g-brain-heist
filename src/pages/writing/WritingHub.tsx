@@ -586,14 +586,10 @@ const renderAnnotatedText = (text: string, ranges: TextAnchorRange[], activeInde
         className="review-highlight"
         title={range.reason}
         style={{
-          backgroundImage: `linear-gradient(90deg, ${strong ? 'rgba(34,197,94,0.3)' : 'rgba(248,113,113,0.28)'} 0%, ${strong ? 'rgba(34,197,94,0.3)' : 'rgba(248,113,113,0.28)'} 100%)`,
-          backgroundSize: '0% 100%',
-          backgroundRepeat: 'no-repeat',
+          '--highlight-stroke-color': strong ? 'rgba(34,197,94,0.34)' : 'rgba(248,113,113,0.3)',
+          '--highlight-stroke-core': strong ? 'rgba(34,197,94,0.42)' : 'rgba(248,113,113,0.38)',
+          '--highlight-swipe-duration': `${getHighlightAnimationDurationMs(segment.length)}ms`,
           borderBottom: strong ? '1px solid rgba(74,222,128,0.7)' : '1px solid rgba(248,113,113,0.74)',
-          animationName: 'highlightPaint',
-          animationDuration: `${getHighlightAnimationDurationMs(segment.length)}ms`,
-          animationTimingFunction: 'cubic-bezier(.22,.9,.2,1)',
-          animationFillMode: 'both',
           color: strong ? '#bbf7d0' : '#fecaca',
           boxShadow: idx === activeIndex
             ? (strong ? '0 0 0 1px rgba(74,222,128,0.65), 0 0 18px rgba(74,222,128,0.42)' : '0 0 0 1px rgba(248,113,113,0.55), 0 0 16px rgba(248,113,113,0.35)')
@@ -1884,7 +1880,41 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           display: inline;
           border-radius: 3px;
           padding: 0 1px;
+          isolation: isolate;
         }
+        .review-highlight::before {
+          content: '';
+          position: absolute;
+          inset: 0 -1px;
+          border-radius: 4px;
+          background: linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--highlight-stroke-color, rgba(34,197,94,0.34)) 86%, transparent) 0%,
+            var(--highlight-stroke-core, rgba(34,197,94,0.42)) 55%,
+            color-mix(in srgb, var(--highlight-stroke-color, rgba(34,197,94,0.34)) 75%, transparent) 100%
+          );
+          transform-origin: left center;
+          transform: scaleX(0.06) skewX(-6deg);
+          opacity: 0;
+          z-index: -1;
+          animation: markerSwipe var(--highlight-swipe-duration, 900ms) cubic-bezier(.2,.9,.18,1) both;
+        }
+        .review-highlight::after {
+          content: '';
+          position: absolute;
+          inset: -1px auto -1px -2px;
+          width: clamp(10px, 22%, 18px);
+          border-radius: 6px;
+          background: radial-gradient(circle at 40% 50%, rgba(255,255,255,0.24) 0%, transparent 48%),
+            linear-gradient(90deg, var(--highlight-stroke-core, rgba(34,197,94,0.42)) 0%, color-mix(in srgb, var(--highlight-stroke-core, rgba(34,197,94,0.42)) 72%, transparent) 100%);
+          opacity: 0;
+          filter: blur(0.2px);
+          pointer-events: none;
+          z-index: -1;
+          animation: markerNib var(--highlight-swipe-duration, 900ms) cubic-bezier(.2,.9,.18,1) both;
+        }
+        :dir(rtl) .review-highlight::before { transform-origin: right center; transform: scaleX(0.06) skewX(6deg); animation-name: markerSwipeRtl; }
+        :dir(rtl) .review-highlight::after { inset: -1px -2px -1px auto; animation-name: markerNibRtl; }
         .week-stage-wrap {
           display: grid;
           gap: 10px;
@@ -1988,6 +2018,12 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           .review-highlight {
             background-size: 100% 100% !important;
           }
+          .review-highlight::before,
+          .review-highlight::after {
+            animation: none !important;
+            opacity: 1 !important;
+            transform: none !important;
+          }
         }
         @keyframes cardIn {
           from { opacity: 0; transform: translateY(12px); }
@@ -2006,9 +2042,27 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
         @keyframes textScanFlow {
           100% { transform: translateX(100%); }
         }
-        @keyframes highlightPaint {
-          from { background-size: 0% 100%; filter: saturate(0.6); }
-          to { background-size: 100% 100%; filter: saturate(1); }
+        @keyframes markerSwipe {
+          0% { opacity: 0.1; transform: scaleX(0.05) skewX(-7deg); filter: saturate(0.75); }
+          25% { opacity: 0.95; transform: scaleX(0.35) skewX(-5deg); }
+          70% { opacity: 1; transform: scaleX(0.9) skewX(-3deg); }
+          100% { opacity: 1; transform: scaleX(1) skewX(0deg); filter: saturate(1.05); }
+        }
+        @keyframes markerNib {
+          0% { opacity: 0.05; transform: translateX(-120%) scaleX(0.8); }
+          20% { opacity: 0.92; }
+          100% { opacity: 0; transform: translateX(calc(100% + 4px)) scaleX(1.05); }
+        }
+        @keyframes markerSwipeRtl {
+          0% { opacity: 0.1; transform: scaleX(0.05) skewX(7deg); filter: saturate(0.75); }
+          25% { opacity: 0.95; transform: scaleX(0.35) skewX(5deg); }
+          70% { opacity: 1; transform: scaleX(0.9) skewX(3deg); }
+          100% { opacity: 1; transform: scaleX(1) skewX(0deg); filter: saturate(1.05); }
+        }
+        @keyframes markerNibRtl {
+          0% { opacity: 0.05; transform: translateX(120%) scaleX(0.8); }
+          20% { opacity: 0.92; }
+          100% { opacity: 0; transform: translateX(calc(-100% - 4px)) scaleX(1.05); }
         }
       `}</style>
 
