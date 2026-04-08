@@ -655,7 +655,21 @@ export const persistInitialWritingRichFeedback = (input: {
   const targetAttempt = attempts[0];
   if (!targetAttempt) return badRequest('initial assessment attempt not found.');
 
-  targetAttempt.rich_feedback = JSON.parse(JSON.stringify(input.rich_feedback));
+  const richFeedbackClone = JSON.parse(JSON.stringify(input.rich_feedback)) as Record<string, unknown>;
+  const fingerprint =
+    typeof richFeedbackClone['text_fingerprint'] === 'string' && richFeedbackClone['text_fingerprint'].trim()
+      ? richFeedbackClone['text_fingerprint'].trim()
+      : null;
+  if (fingerprint) {
+    richFeedbackClone['text_fingerprint'] = fingerprint;
+  } else {
+    delete richFeedbackClone['text_fingerprint'];
+    // Compatibility mode for older feedback payloads: keep guidance text, but never preserve anchor fields without trust fingerprint.
+    delete richFeedbackClone['anchor_version'];
+    delete richFeedbackClone['highlights'];
+    delete richFeedbackClone['repair_steps'];
+  }
+  targetAttempt.rich_feedback = richFeedbackClone;
   targetAttempt.rich_feedback_source_submission_type = 'initial';
   targetAttempt.rich_feedback_created_at = input.created_at ?? new Date().toISOString();
   persistStore();

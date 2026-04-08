@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   getCurrentWeeklyPlan,
@@ -67,6 +67,52 @@ interface WritingAiFeedbackAssist {
   weaknesses?: string[];
   next_steps?: string[];
   monthly_report_summary?: string;
+  anchor_version?: string;
+  text_fingerprint?: string;
+  highlights?: Array<{
+    id?: string;
+    polarity?: 'strong' | 'weak';
+    category?: string;
+    start_char?: number;
+    end_char?: number;
+    sentence_index?: number;
+    paragraph_index?: number;
+    exact_text?: string;
+    confidence?: number;
+  }>;
+  repair_steps?: Array<{
+    id?: string;
+    highlight_id?: string;
+    step_type?: string;
+    title?: string;
+    instruction?: string;
+    source_field?: string;
+    done_criteria?: string;
+    evidence?: string;
+  }>;
+}
+
+interface TextAnchorRange {
+  start: number;
+  end: number;
+  polarity: 'strong' | 'weak';
+  reason?: string;
+}
+
+interface RepairQueueItem {
+  id: string;
+  title: string;
+  category: 'content' | 'grammar' | 'punctuation' | 'style' | 'next_step';
+  explanation: string;
+  evidenceSnippet?: string;
+}
+
+export type AnchorTrustMode = 'trusted' | 'missing_fingerprint' | 'stale_feedback' | 'no_anchors' | 'no_feedback';
+
+interface AnchorTrustEvaluation {
+  mode: AnchorTrustMode;
+  localFingerprint: string | null;
+  persistedFingerprint: string | null;
 }
 
 interface WritingMissionCategoryMeta {
@@ -247,6 +293,249 @@ const countWords = (text: string): number => {
   const normalized = text.trim();
   if (!normalized) return 0;
   return normalized.split(/\s+/).length;
+};
+
+const normalizeTextForMatch = (value: string): string =>
+  value
+    .toLowerCase()
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+export const buildTextFingerprint = (value: string): string => {
+  const normalized = normalizeTextForMatch(value);
+  let hash = 2166136261;
+  for (let i = 0; i < normalized.length; i += 1) {
+    hash ^= normalized.charCodeAt(i);
+    hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+  }
+  return `fp_${(hash >>> 0).toString(16)}`;
+};
+
+const normalizeTextWithIndexMap = (value: string): { normalized: string; map: number[] } => {
+  let normalized = '';
+  const map: number[] = [];
+  let previousWasSpace = false;
+  for (let i = 0; i < value.length; i += 1) {
+    let char = value[i].toLowerCase();
+    if (char === '“' || char === '”') char = '"';
+    if (char === '‘' || char === '’') char = "'";
+    if (/\s/.test(char)) {
+      if (!previousWasSpace) {
+        normalized += ' ';
+        map.push(i);
+      }
+      previousWasSpace = true;
+      continue;
+    }
+    previousWasSpace = false;
+    normalized += char;
+    map.push(i);
+  }
+  while (normalized.startsWith(' ')) {
+    normalized = normalized.slice(1);
+    map.shift();
+  }
+  while (normalized.endsWith(' ')) {
+    normalized = normalized.slice(0, -1);
+    map.pop();
+  }
+  return { normalized, map };
+};
+
+const extractQuotedSnippet = (value: string): string | null => {
+  const quoted = value.match(/["“](.{6,180}?)["”]/);
+  if (!quoted) return null;
+  const snippet = quoted[1]?.trim();
+  return snippet && snippet.length >= 6 ? snippet : null;
+};
+
+const findSafeSnippetRange = (text: string, snippet?: string | null): { start: number; end: number } | null => {
+  if (!snippet) return null;
+  const trimmed = snippet.trim();
+  if (trimmed.length < 6) return null;
+  const haystackWithMap = normalizeTextWithIndexMap(text);
+  const haystack = haystackWithMap.normalized;
+  const needle = normalizeTextForMatch(trimmed);
+  if (!needle) return null;
+  const firstIndex = haystack.indexOf(needle);
+  if (firstIndex < 0) return null;
+  const secondIndex = haystack.indexOf(needle, firstIndex + 1);
+  if (secondIndex >= 0) return null;
+  const mappedStart = haystackWithMap.map[firstIndex];
+  const mappedEnd = haystackWithMap.map[firstIndex + needle.length - 1];
+  if (typeof mappedStart === 'number' && typeof mappedEnd === 'number' && mappedEnd >= mappedStart) {
+    return { start: mappedStart, end: mappedEnd + 1 };
+  }
+  const directStart = text.toLowerCase().indexOf(trimmed.toLowerCase());
+  if (directStart >= 0) return { start: directStart, end: directStart + trimmed.length };
+  return null;
+};
+
+const buildRepairQueue = (
+  ai: WritingAiFeedbackAssist | null,
+  fallbackWeaknessTips: string[]
+): RepairQueueItem[] => {
+  if (!ai) {
+    return fallbackWeaknessTips.slice(0, 3).map((tip, idx) => ({
+      id: `fallback-${idx}`,
+      title: `Revision focus ${idx + 1}`,
+      category: 'content',
+      explanation: simplifyStudentLanguage(tip),
+    }));
+  }
+
+  const queue: RepairQueueItem[] = [];
+  const mapRepairCategory = (stepType?: string): RepairQueueItem['category'] => {
+    const normalized = (stepType ?? '').toLowerCase();
+    if (normalized.includes('grammar')) return 'grammar';
+    if (normalized.includes('punct')) return 'punctuation';
+    if (normalized.includes('style') || normalized.includes('tone')) return 'style';
+    if (normalized.includes('next')) return 'next_step';
+    return 'content';
+  };
+  (ai.repair_steps ?? []).slice(0, 4).forEach((step, idx) => {
+    const title = step.title?.trim() || step.instruction?.trim() || `Revision step ${idx + 1}`;
+    const explanation = step.instruction?.trim() || step.done_criteria?.trim() || step.evidence?.trim() || 'Revise this part using the coaching guidance.';
+    queue.push({
+      id: step.id?.trim() || `repair-step-${idx}`,
+      title: simplifyStudentLanguage(title),
+      category: mapRepairCategory(step.step_type),
+      explanation: simplifyStudentLanguage(explanation),
+      evidenceSnippet: step.evidence?.trim() || undefined,
+    });
+  });
+  const missingContentSignals = (ai.what_is_missing?.length ? ai.what_is_missing : ai.weaknesses ?? []).slice(0, 3);
+  missingContentSignals.forEach((item, idx) => {
+    queue.push({
+      id: `missing-${idx}`,
+      title: `Add a missing task point`,
+      category: 'content',
+      explanation: simplifyStudentLanguage(item),
+      evidenceSnippet: extractQuotedSnippet(item) ?? undefined,
+    });
+  });
+  (ai.grammar_fixes ?? []).slice(0, 3).forEach((item, idx) => {
+    queue.push({
+      id: `grammar-${idx}`,
+      title: `Fix one grammar sentence`,
+      category: 'grammar',
+      explanation: `${simplifyStudentLanguage(item.issue)} → ${item.better_version}`,
+      evidenceSnippet: item.original,
+    });
+  });
+  (ai.punctuation_fixes ?? []).slice(0, 3).forEach((item, idx) => {
+    queue.push({
+      id: `punctuation-${idx}`,
+      title: `Fix one punctuation spot`,
+      category: 'punctuation',
+      explanation: `${simplifyStudentLanguage(item.issue)} → ${item.better_version}`,
+      evidenceSnippet: item.original,
+    });
+  });
+  (ai.style_tone_feedback ?? []).slice(0, 2).forEach((item, idx) => {
+    queue.push({
+      id: `style-${idx}`,
+      title: `Improve tone clarity`,
+      category: 'style',
+      explanation: `${simplifyStudentLanguage(item.issue)} → ${item.suggestion}`,
+      evidenceSnippet: item.evidence,
+    });
+  });
+  (ai.next_steps ?? []).slice(0, 2).forEach((item, idx) => {
+    queue.push({
+      id: `next-${idx}`,
+      title: `Next revision move`,
+      category: 'next_step',
+      explanation: simplifyStudentLanguage(item),
+      evidenceSnippet: extractQuotedSnippet(item) ?? undefined,
+    });
+  });
+
+  const seen = new Set<string>();
+  const deduped: RepairQueueItem[] = [];
+  queue.forEach((item) => {
+    const key = `${item.category}:${normalizeTextForMatch(item.title)}:${normalizeTextForMatch(item.explanation)}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    deduped.push(item);
+  });
+  return deduped.slice(0, 8);
+};
+
+const buildAnchorRanges = (text: string, ai: WritingAiFeedbackAssist | null): TextAnchorRange[] => {
+  if (!ai) return [];
+  const ranges: TextAnchorRange[] = [];
+  (ai.highlights ?? []).forEach((item, idx) => {
+    if (typeof item.start_char !== 'number' || typeof item.end_char !== 'number') return;
+    if (!Number.isInteger(item.start_char) || !Number.isInteger(item.end_char)) return;
+    if (item.start_char < 0 || item.end_char <= item.start_char || item.end_char > text.length) return;
+    ranges.push({
+      start: item.start_char,
+      end: item.end_char,
+      polarity: item.polarity === 'strong' ? 'strong' : 'weak',
+      reason: item.category ?? `highlight-${idx + 1}`,
+    });
+  });
+  return ranges;
+};
+
+export const evaluateAnchorTrust = (
+  submissionText: string | null | undefined,
+  feedback: WritingAiFeedbackAssist | null
+): AnchorTrustEvaluation => {
+  const safeSubmissionText = submissionText ?? '';
+  const localFingerprint = safeSubmissionText ? buildTextFingerprint(safeSubmissionText) : null;
+  const persistedFingerprint = typeof feedback?.text_fingerprint === 'string' && feedback.text_fingerprint.trim()
+    ? feedback.text_fingerprint.trim()
+    : null;
+  if (!feedback) return { mode: 'no_feedback', localFingerprint, persistedFingerprint };
+  if (!persistedFingerprint || !localFingerprint) return { mode: 'missing_fingerprint', localFingerprint, persistedFingerprint };
+  if (persistedFingerprint !== localFingerprint) return { mode: 'stale_feedback', localFingerprint, persistedFingerprint };
+  if (buildAnchorRanges(safeSubmissionText, feedback).length === 0) return { mode: 'no_anchors', localFingerprint, persistedFingerprint };
+  return { mode: 'trusted', localFingerprint, persistedFingerprint };
+};
+
+const renderAnnotatedText = (text: string, ranges: TextAnchorRange[]): React.ReactNode => {
+  if (!text) return text;
+  const normalizedRanges = [...ranges]
+    .sort((a, b) => a.start - b.start || a.end - b.end)
+    .reduce<TextAnchorRange[]>((acc, range) => {
+      const prev = acc[acc.length - 1];
+      if (!prev || range.start >= prev.end) {
+        acc.push(range);
+        return acc;
+      }
+      return acc;
+    }, []);
+  if (normalizedRanges.length === 0) return text;
+  const nodes: React.ReactNode[] = [];
+  let cursor = 0;
+  normalizedRanges.forEach((range, idx) => {
+    if (cursor < range.start) nodes.push(<span key={`plain-${idx}`}>{text.slice(cursor, range.start)}</span>);
+    const segment = text.slice(range.start, range.end);
+    const strong = range.polarity === 'strong';
+    nodes.push(
+      <span
+        key={`mark-${idx}`}
+        title={range.reason}
+        style={{
+          background: strong ? 'rgba(34,197,94,0.24)' : 'rgba(248,113,113,0.22)',
+          color: strong ? '#bbf7d0' : '#fecaca',
+          borderBottom: strong ? '1px solid rgba(74, 222, 128, 0.65)' : '1px solid rgba(248, 113, 113, 0.7)',
+          borderRadius: 3,
+          boxShadow: strong ? '0 0 0 1px rgba(34,197,94,0.22)' : '0 0 0 1px rgba(248,113,113,0.18)',
+          transition: 'background 180ms ease, box-shadow 180ms ease',
+        }}
+      >
+        {segment}
+      </span>
+    );
+    cursor = range.end;
+  });
+  if (cursor < text.length) nodes.push(<span key="plain-tail">{text.slice(cursor)}</span>);
+  return nodes;
 };
 
 const SUPPORTED_GENRES: SupportedGenre[] = ['essay', 'story', 'article', 'review', 'report', 'email', 'paragraph'];
@@ -664,6 +953,11 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const [isGenreSwitching, setIsGenreSwitching] = useState(false);
   const [showTaskTypeGuide, setShowTaskTypeGuide] = useState(false);
   const [showTaskContextModal, setShowTaskContextModal] = useState(false);
+  const [activeRepairId, setActiveRepairId] = useState<string | null>(null);
+  const [repairStatusMessage, setRepairStatusMessage] = useState<string>('');
+  const [viewedRepairIds, setViewedRepairIds] = useState<string[]>([]);
+  const closeModalButtonRef = useRef<HTMLButtonElement | null>(null);
+  const firstRepairButtonRef = useRef<HTMLButtonElement | null>(null);
   const [questMissions, setQuestMissions] = useState<QuestMissionRow[]>([]);
   const initialResponseWordCount = countWords(initialResponse);
   const practiceResponseWordCount = countWords(practiceResponse);
@@ -723,6 +1017,48 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const studentFriendlyWeaknesses = (firstAttemptWeaknesses.length > 0 ? firstAttemptWeaknesses : latestWeaknessTags)
     .slice(0, 3)
     .map((tag) => weaknessTagToStudentTip(tag));
+  const anchorTrustEvaluation = useMemo(
+    () => evaluateAnchorTrust(firstAttemptSubmission, firstAttemptRichFeedback),
+    [firstAttemptSubmission, firstAttemptRichFeedback]
+  );
+  const trustedAnchorMode = anchorTrustEvaluation.mode === 'trusted';
+  const firstAttemptFeedbackForAnchors = trustedAnchorMode ? firstAttemptRichFeedback : null;
+  const firstAttemptFeedbackForRepairQueue = anchorTrustEvaluation.mode === 'stale_feedback' ? null : firstAttemptRichFeedback;
+  const firstAttemptAnchorRanges = useMemo(
+    () => buildAnchorRanges(firstAttemptSubmission ?? '', firstAttemptFeedbackForAnchors),
+    [firstAttemptSubmission, firstAttemptFeedbackForAnchors]
+  );
+  const repairQueue = useMemo(
+    () => buildRepairQueue(firstAttemptFeedbackForRepairQueue, studentFriendlyWeaknesses),
+    [firstAttemptFeedbackForRepairQueue, studentFriendlyWeaknesses.join('|')]
+  );
+  const activeRepairItem = useMemo(
+    () => repairQueue.find((item) => item.id === activeRepairId) ?? repairQueue[0] ?? null,
+    [repairQueue, activeRepairId]
+  );
+  const studentStrengths = useMemo(
+    () =>
+      (
+        firstAttemptRichFeedback?.what_is_working?.length
+          ? firstAttemptRichFeedback.what_is_working
+          : firstAttemptRichFeedback?.strengths ?? []
+      )
+        .map((item) => simplifyStudentLanguage(item))
+        .filter(Boolean)
+        .slice(0, 2),
+    [firstAttemptRichFeedback]
+  );
+  const sessionSeenRepairCount = useMemo(() => {
+    if (repairQueue.length === 0) return 0;
+    const seen = new Set(viewedRepairIds);
+    if (activeRepairItem?.id) seen.add(activeRepairItem.id);
+    return Math.min(repairQueue.length, seen.size);
+  }, [viewedRepairIds, activeRepairItem?.id, repairQueue.length]);
+  const activeRepairRange = useMemo(() => {
+    if (!trustedAnchorMode) return null;
+    if (!firstAttemptSubmission || !activeRepairItem?.evidenceSnippet) return null;
+    return findSafeSnippetRange(firstAttemptSubmission, activeRepairItem.evidenceSnippet);
+  }, [firstAttemptSubmission, activeRepairItem?.evidenceSnippet, trustedAnchorMode]);
   const primarySupportLevel = stateRes.ok && stateRes.data?.active_daily_tasks.length
     ? stateRes.data.active_daily_tasks[0].support_level
     : null;
@@ -814,6 +1150,55 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     window.addEventListener('keydown', onEscape);
     return () => window.removeEventListener('keydown', onEscape);
   }, [showTaskContextModal]);
+
+  useEffect(() => {
+    if (!showTaskContextModal) return;
+    setViewedRepairIds([]);
+    setActiveRepairId(repairQueue[0]?.id ?? null);
+  }, [showTaskContextModal, repairQueue]);
+
+  useEffect(() => {
+    if (!showTaskContextModal || !activeRepairItem?.id) return;
+    setViewedRepairIds((current) => (current.includes(activeRepairItem.id) ? current : [...current, activeRepairItem.id]));
+  }, [showTaskContextModal, activeRepairItem?.id]);
+
+  useEffect(() => {
+    if (!showTaskContextModal) return;
+    const timer = window.setTimeout(() => {
+      const focusTarget = firstRepairButtonRef.current ?? closeModalButtonRef.current;
+      focusTarget?.focus();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [showTaskContextModal, repairQueue.length]);
+
+  useEffect(() => {
+    if (!showTaskContextModal) return;
+    if (anchorTrustEvaluation.mode === 'stale_feedback') {
+      setRepairStatusMessage('We are using safe coaching mode because this older feedback no longer matches your current draft.');
+      return;
+    }
+    if (anchorTrustEvaluation.mode === 'missing_fingerprint') {
+      setRepairStatusMessage('We can still coach you safely. This saved feedback has no trust fingerprint, so precise highlights stay off.');
+      return;
+    }
+    if (anchorTrustEvaluation.mode === 'no_anchors') {
+      setRepairStatusMessage('Guidance is ready. This feedback did not include precise anchors, so use each step to revise manually.');
+      return;
+    }
+    if (!activeRepairItem) {
+      setRepairStatusMessage('No guided repair steps are available yet.');
+      return;
+    }
+    if (!activeRepairItem.evidenceSnippet) {
+      setRepairStatusMessage('Good choice. This step has no direct quote, so follow the instruction and revise that part manually.');
+      return;
+    }
+    if (!activeRepairRange) {
+      setRepairStatusMessage('We could not safely match that phrase in your draft. Keep the step open and revise using the guidance text.');
+      return;
+    }
+    setRepairStatusMessage('Trusted highlight active. Revise the marked phrase, then move to the next step.');
+  }, [showTaskContextModal, activeRepairItem, activeRepairRange, anchorTrustEvaluation.mode]);
 
   useEffect(() => {
     if (!isAnalyzingRichFeedback) {
@@ -2090,11 +2475,17 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-              <p style={{ margin: 0, color: '#dbeafe', fontSize: 16, fontWeight: 800 }}>Task + first attempt context</p>
+              <div>
+                <p style={{ margin: 0, color: '#dbeafe', fontSize: 16, fontWeight: 800 }}>Your first coaching session</p>
+                <p style={{ margin: '4px 0 0', color: '#93c5fd', fontSize: 12 }}>
+                  We start with what worked, then fix one thing at a time.
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={() => setShowTaskContextModal(false)}
                 aria-label="Close task context modal"
+                ref={closeModalButtonRef}
                 style={{
                   borderRadius: 999,
                   border: '1px solid rgba(148, 163, 184, 0.45)',
@@ -2110,18 +2501,147 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                 ×
               </button>
             </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ borderRadius: 999, padding: '3px 9px', border: '1px solid rgba(125, 211, 252, 0.45)', color: '#bae6fd', fontSize: 11 }}>1) Understand task</span>
+              <span style={{ borderRadius: 999, padding: '3px 9px', border: '1px solid rgba(74, 222, 128, 0.45)', color: '#bbf7d0', fontSize: 11 }}>2) Keep strengths</span>
+              <span style={{ borderRadius: 999, padding: '3px 9px', border: '1px solid rgba(248, 113, 113, 0.45)', color: '#fecaca', fontSize: 11 }}>3) Repair step by step</span>
+            </div>
             <div className="focus-grid" style={{ gap: 12 }}>
               <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.46)', minHeight: 200 }}>
-                <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Original prompt</p>
+                <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Step 1 · What the task asked</p>
                 <p style={{ margin: 0, fontSize: 14, color: '#e2e8f0', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
                   {originalPromptText ?? promptText}
                 </p>
+                <div style={{ marginTop: 10, borderTop: '1px solid rgba(148, 163, 184, 0.25)', paddingTop: 10 }}>
+                  <p style={{ margin: '0 0 6px', color: '#86efac', fontSize: 12, fontWeight: 700 }}>Step 2 · Keep these strengths</p>
+                  {studentStrengths.length > 0 ? (
+                    <ul style={{ margin: 0, paddingLeft: 18, color: '#dcfce7', fontSize: 13, display: 'grid', gap: 4 }}>
+                      {studentStrengths.map((item, idx) => (
+                        <li key={`first-strength-${idx}`}>{item}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p style={{ margin: 0, color: '#bbf7d0', fontSize: 13 }}>
+                      You already have a useful starting idea. Keep that clarity while you revise.
+                    </p>
+                  )}
+                </div>
               </div>
-              <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.46)', minHeight: 200 }}>
-                <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Your first attempt</p>
-                <p style={{ margin: 0, fontSize: 14, color: '#e2e8f0', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
-                  {firstAttemptSubmission || 'Your first response is saved and used as your starting point.'}
-                </p>
+              <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.46)', minHeight: 200, display: 'grid', gap: 10 }}>
+                <div>
+                  <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Your first attempt (coached view)</p>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+                    <span style={{ borderRadius: 999, padding: '2px 8px', border: '1px solid rgba(74, 222, 128, 0.4)', color: '#86efac', fontSize: 11 }}>
+                      Strong signals
+                    </span>
+                    <span style={{ borderRadius: 999, padding: '2px 8px', border: '1px solid rgba(248, 113, 113, 0.45)', color: '#fca5a5', fontSize: 11 }}>
+                      Repair targets
+                    </span>
+                    {anchorTrustEvaluation.mode === 'trusted' ? (
+                      <span style={{ borderRadius: 999, padding: '2px 8px', border: '1px solid rgba(96, 165, 250, 0.45)', color: '#bfdbfe', fontSize: 11 }}>
+                        Trusted anchor highlight mode
+                      </span>
+                    ) : anchorTrustEvaluation.mode === 'stale_feedback' ? (
+                      <span style={{ borderRadius: 999, padding: '2px 8px', border: '1px solid rgba(248,113,113,0.45)', color: '#fca5a5', fontSize: 11 }}>
+                        Anchors blocked (out-of-sync feedback)
+                      </span>
+                    ) : anchorTrustEvaluation.mode === 'missing_fingerprint' ? (
+                      <span style={{ borderRadius: 999, padding: '2px 8px', border: '1px solid rgba(250, 204, 21, 0.45)', color: '#fde68a', fontSize: 11 }}>
+                        Anchors unavailable (missing fingerprint)
+                      </span>
+                    ) : anchorTrustEvaluation.mode === 'no_anchors' ? (
+                      <span style={{ borderRadius: 999, padding: '2px 8px', border: '1px solid rgba(148, 163, 184, 0.4)', color: '#cbd5e1', fontSize: 11 }}>
+                        Guidance-only mode (no anchors provided)
+                      </span>
+                    ) : (
+                      <span style={{ borderRadius: 999, padding: '2px 8px', border: '1px solid rgba(148, 163, 184, 0.4)', color: '#cbd5e1', fontSize: 11 }}>
+                        Safe fallback mode
+                      </span>
+                    )}
+                  </div>
+                  <div
+                    style={{
+                      borderRadius: 10,
+                      border: '1px solid rgba(148, 163, 184, 0.35)',
+                      padding: 10,
+                      background: 'rgba(15, 23, 42, 0.55)',
+                      minHeight: 170,
+                      fontSize: 14,
+                      color: '#e2e8f0',
+                      whiteSpace: 'pre-wrap',
+                      overflowWrap: 'anywhere',
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {(() => {
+                      const text = firstAttemptSubmission || 'Your first response is saved and used as your starting point.';
+                      if (!firstAttemptSubmission) return text;
+                      const ranges = [...firstAttemptAnchorRanges];
+                      if (activeRepairRange) {
+                        ranges.push({
+                          start: activeRepairRange.start,
+                          end: activeRepairRange.end,
+                          polarity: 'weak',
+                          reason: activeRepairItem?.title ?? 'repair focus',
+                        });
+                      }
+                      return renderAnnotatedText(text, ranges);
+                    })()}
+                  </div>
+                </div>
+                <div style={{ borderTop: '1px solid rgba(148, 163, 184, 0.25)', paddingTop: 10 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+                    <p style={{ margin: 0, color: '#cbd5e1', fontSize: 12, fontWeight: 700 }}>
+                      Step 3 · Let’s fix one thing at a time
+                    </p>
+                    {repairQueue.length > 0 && (
+                      <span style={{ color: '#bfdbfe', fontSize: 11 }}>
+                        Step {Math.min(repairQueue.length, sessionSeenRepairCount || 1)} of {repairQueue.length} · session progress
+                      </span>
+                    )}
+                  </div>
+                  {repairQueue.length > 0 && (
+                    <div style={{ height: 6, borderRadius: 999, background: 'rgba(30,41,59,0.8)', border: '1px solid rgba(148,163,184,0.3)', marginBottom: 10 }}>
+                      <div style={{ height: '100%', borderRadius: 999, width: `${(sessionSeenRepairCount / repairQueue.length) * 100}%`, background: 'linear-gradient(90deg, #38bdf8 0%, #34d399 100%)', transition: 'width 180ms ease' }} />
+                    </div>
+                  )}
+                  <p style={{ margin: '0 0 8px', color: '#94a3b8', fontSize: 12 }}>
+                    Pick one step, revise that part, then move to the next.
+                  </p>
+                  <div style={{ display: 'grid', gap: 6 }}>
+                    {repairQueue.length === 0 ? (
+                      <p style={{ margin: 0, color: '#94a3b8', fontSize: 13 }}>
+                        No repair steps available yet. Submit feedback to unlock targeted fixes.
+                      </p>
+                    ) : repairQueue.map((item, idx) => {
+                      const active = item.id === activeRepairItem?.id;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => setActiveRepairId(item.id)}
+                          ref={idx === 0 ? firstRepairButtonRef : undefined}
+                          style={{
+                            textAlign: 'left',
+                            borderRadius: 10,
+                            border: active ? '1px solid rgba(248,113,113,0.68)' : '1px solid rgba(148,163,184,0.35)',
+                            background: active ? 'rgba(127,29,29,0.32)' : 'rgba(15,23,42,0.45)',
+                            padding: '8px 10px',
+                            cursor: 'pointer',
+                            color: '#e2e8f0',
+                          }}
+                        >
+                          <p style={{ margin: 0, fontSize: 12, color: '#fca5a5', fontWeight: 700 }}>
+                            {active ? 'Start here' : `Step ${idx + 1}`} · {item.category.replace('_', ' ')}
+                          </p>
+                          <p style={{ margin: '2px 0 0', fontSize: 13, fontWeight: 700 }}>{item.title}</p>
+                          <p style={{ margin: '4px 0 0', fontSize: 12, color: '#cbd5e1' }}>{item.explanation}</p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <p style={{ margin: 0, color: '#bfdbfe', fontSize: 12 }}>{repairStatusMessage}</p>
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>

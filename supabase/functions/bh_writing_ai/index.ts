@@ -43,6 +43,29 @@ type AiResult = {
   rewritten_prompt?: string;
   daily_task?: string;
   monthly_report_summary?: string;
+  anchor_version?: string;
+  text_fingerprint?: string;
+  highlights?: Array<{
+    id?: string;
+    polarity?: "strong" | "weak";
+    category?: string;
+    start_char?: number;
+    end_char?: number;
+    sentence_index?: number;
+    paragraph_index?: number;
+    exact_text?: string;
+    confidence?: number;
+  }>;
+  repair_steps?: Array<{
+    id?: string;
+    highlight_id?: string;
+    step_type?: string;
+    title?: string;
+    instruction?: string;
+    source_field?: string;
+    done_criteria?: string;
+    evidence?: string;
+  }>;
 };
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -85,6 +108,24 @@ const normalizeGrade = (value: unknown): number | undefined => {
   const n = typeof value === "number" ? value : Number(value);
   if (!Number.isInteger(n) || n < 6 || n > 12) return undefined;
   return n;
+};
+
+const normalizeTextForFingerprint = (value: string): string =>
+  value
+    .toLowerCase()
+    .replace(/[“”]/g, "\"")
+    .replace(/[‘’]/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const buildDeterministicTextFingerprint = (value: string): string => {
+  const normalized = normalizeTextForFingerprint(value);
+  let hash = 2166136261;
+  for (let i = 0; i < normalized.length; i += 1) {
+    hash ^= normalized.charCodeAt(i);
+    hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+  }
+  return `fp_${(hash >>> 0).toString(16)}`;
 };
 
 const normalizeRole = (value: unknown): UserRole | null => {
@@ -243,6 +284,64 @@ const normalizeAiResult = (mode: Mode, raw: unknown): AiResult | null => {
     const normalizedPunctuationFixes = normalizeFixes(value.punctuation_fixes);
     const repartitionedFixes = repartitionFixes(normalizedGrammarFixes, normalizedPunctuationFixes);
 
+    const normalizeHighlights = (input: unknown): AiResult["highlights"] => {
+      if (!Array.isArray(input)) return [];
+      return input
+        .map((item) => {
+          if (!item || typeof item !== "object") return null;
+          const obj = item as Record<string, unknown>;
+          const start = typeof obj.start_char === "number" && Number.isInteger(obj.start_char) ? obj.start_char : null;
+          const end = typeof obj.end_char === "number" && Number.isInteger(obj.end_char) ? obj.end_char : null;
+          if (start === null || end === null || start < 0 || end <= start) return null;
+          const polarity = obj.polarity === "strong" ? "strong" : "weak";
+          return {
+            id: typeof obj.id === "string" ? obj.id : undefined,
+            polarity,
+            category: typeof obj.category === "string" ? obj.category : undefined,
+            start_char: start,
+            end_char: end,
+            sentence_index:
+              typeof obj.sentence_index === "number" && Number.isInteger(obj.sentence_index)
+                ? obj.sentence_index
+                : undefined,
+            paragraph_index:
+              typeof obj.paragraph_index === "number" && Number.isInteger(obj.paragraph_index)
+                ? obj.paragraph_index
+                : undefined,
+            exact_text: typeof obj.exact_text === "string" ? obj.exact_text : undefined,
+            confidence:
+              typeof obj.confidence === "number" && Number.isFinite(obj.confidence)
+                ? Math.max(0, Math.min(1, obj.confidence))
+                : undefined,
+          };
+        })
+        .filter((item): item is NonNullable<AiResult["highlights"]>[number] => Boolean(item))
+        .slice(0, 20);
+    };
+
+    const normalizeRepairSteps = (input: unknown): AiResult["repair_steps"] => {
+      if (!Array.isArray(input)) return [];
+      return input
+        .map((item) => {
+          if (!item || typeof item !== "object") return null;
+          const obj = item as Record<string, unknown>;
+          return {
+            id: typeof obj.id === "string" ? obj.id : undefined,
+            highlight_id: typeof obj.highlight_id === "string" ? obj.highlight_id : undefined,
+            step_type: typeof obj.step_type === "string" ? obj.step_type : undefined,
+            title: typeof obj.title === "string" ? obj.title : undefined,
+            instruction: typeof obj.instruction === "string" ? obj.instruction : undefined,
+            source_field: typeof obj.source_field === "string" ? obj.source_field : undefined,
+            done_criteria: typeof obj.done_criteria === "string" ? obj.done_criteria : undefined,
+            evidence: typeof obj.evidence === "string" ? obj.evidence : undefined,
+          };
+        })
+        .filter((item): item is NonNullable<AiResult["repair_steps"]>[number] =>
+          Boolean(item && (item.title || item.instruction || item.evidence))
+        )
+        .slice(0, 20);
+    };
+
     return {
       task_understanding: typeof value.task_understanding === "string" ? value.task_understanding : "",
       submission_read: typeof value.submission_read === "string" ? value.submission_read : "",
@@ -261,6 +360,9 @@ const normalizeAiResult = (mode: Mode, raw: unknown): AiResult | null => {
       next_steps: Array.isArray(value.next_steps) ? value.next_steps.map(String) : [],
       monthly_report_summary:
         typeof value.monthly_report_summary === "string" ? value.monthly_report_summary : "",
+      anchor_version: typeof value.anchor_version === "string" ? value.anchor_version : undefined,
+      highlights: normalizeHighlights(value.highlights),
+      repair_steps: normalizeRepairSteps(value.repair_steps),
     };
   }
 
@@ -316,6 +418,9 @@ const buildUserPrompt = (payload: Payload): string => {
       "- weaknesses: 2 short plain-English weakness summaries",
       "- next_steps: 2 or 3 clear actionable next steps",
       "- monthly_report_summary: 1 short progress summary sentence",
+      "- Optional future-safe keys when confidence is high: anchor_version, highlights[], repair_steps[]",
+      "  - highlights item keys: id, polarity(strong|weak), category, start_char, end_char, sentence_index?, paragraph_index?, exact_text, confidence(0-1).",
+      "  - repair_steps item keys: id, highlight_id?, step_type, title, instruction, source_field, done_criteria, evidence.",
       "Quality rules:",
       "- Always write directly to the student using 'you' and 'your'.",
       "- Never use third-person framing like 'the student', 'the response', or 'the story'.",
@@ -459,6 +564,14 @@ serve(async (req) => {
     if (!normalized) {
       return json(502, { error: "Model response schema invalid" });
     }
+    const normalizedWithFingerprint =
+      payload!.mode === "feedback"
+        ? {
+            ...normalized,
+            // Trust boundary: fingerprint must be derived from canonical request payload, never model output.
+            text_fingerprint: buildDeterministicTextFingerprint(payload!.studentResponse ?? ""),
+          }
+        : normalized;
 
     const usage = completion.usage
       ? {
@@ -481,7 +594,7 @@ serve(async (req) => {
 
     return json(200, {
       mode: payload!.mode,
-      result: normalized,
+      result: normalizedWithFingerprint,
       meta: {
         openai_request_id: openAiRequestId,
         usage,
