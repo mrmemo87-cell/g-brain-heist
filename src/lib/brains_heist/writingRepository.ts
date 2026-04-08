@@ -44,6 +44,16 @@ const withStudentBinding = <T extends Record<string, unknown>>(row: T, studentId
 
 export const loadWritingStoreSnapshot = async (): Promise<SerializedWritingPersistenceStore | null> => {
   if (!canUseSupabase()) return null;
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError) {
+    console.warn(`[writingRepository] Auth lookup failed during load: ${authError.message}`);
+    return null;
+  }
+  const activeStudentId = user?.id;
+  if (!activeStudentId) return null;
 
   const [
     profilesRes,
@@ -59,18 +69,18 @@ export const loadWritingStoreSnapshot = async (): Promise<SerializedWritingPersi
     signalsRes,
     followupsRes,
   ] = await Promise.all([
-    supabase.from('bh_writing_student_profiles').select('*'),
-    supabase.from('bh_writing_student_states').select('*'),
-    supabase.from('bh_writing_attempts').select('*'),
-    supabase.from('bh_writing_weekly_plans').select('*'),
-    supabase.from('bh_writing_daily_tasks').select('*'),
-    supabase.from('bh_writing_daily_submissions').select('*'),
-    supabase.from('bh_writing_daily_evaluations').select('*'),
-    supabase.from('bh_writing_monthly_reports').select('*'),
-    supabase.from('bh_writing_memory_snapshots').select('*'),
-    supabase.from('bh_writing_prompt_bank').select('*'),
-    supabase.from('bh_writing_review_signals').select('*'),
-    supabase.from('bh_writing_calibration_followups').select('*'),
+    supabase.from('bh_writing_student_profiles').select('*').eq('student_id', activeStudentId),
+    supabase.from('bh_writing_student_states').select('*').eq('student_id', activeStudentId),
+    supabase.from('bh_writing_attempts').select('*').eq('student_id', activeStudentId),
+    supabase.from('bh_writing_weekly_plans').select('*').eq('student_id', activeStudentId),
+    supabase.from('bh_writing_daily_tasks').select('*').eq('student_id', activeStudentId),
+    supabase.from('bh_writing_daily_submissions').select('*').eq('student_id', activeStudentId),
+    supabase.from('bh_writing_daily_evaluations').select('*').eq('student_id', activeStudentId),
+    supabase.from('bh_writing_monthly_reports').select('*').eq('student_id', activeStudentId),
+    supabase.from('bh_writing_memory_snapshots').select('*').eq('student_id', activeStudentId),
+    Promise.resolve({ data: [], error: null } as { data: any[]; error: null }),
+    supabase.from('bh_writing_review_signals').select('*').eq('student_id', activeStudentId),
+    supabase.from('bh_writing_calibration_followups').select('*').eq('student_id', activeStudentId),
   ]);
 
   const readRows = <T>(result: { data: T[] | null; error: { message: string } | null }, label: string): T[] => {
@@ -97,15 +107,12 @@ export const loadWritingStoreSnapshot = async (): Promise<SerializedWritingPersi
   const studentIds = [...new Set(profileRows.map((row: any) => row?.student_id).filter((value: unknown): value is string => typeof value === 'string' && value.length > 0))];
   let usernamesById: Record<string, string> = {};
   if (studentIds.length > 0) {
-    const usersRes = await supabase.from('users').select('id, username').in('id', studentIds);
+    const usersRes = await supabase.from('users').select('id, username').eq('id', activeStudentId).maybeSingle();
     if (usersRes.error) {
       console.warn(`[writingRepository] Partial DB load failed for users: ${usersRes.error.message}`);
     } else {
-      usernamesById = Object.fromEntries(
-        (usersRes.data ?? [])
-          .filter((row: any) => typeof row?.id === 'string' && typeof row?.username === 'string' && row.username.trim().length > 0)
-          .map((row: any) => [row.id, row.username.trim()])
-      );
+      const row = usersRes.data;
+      if (row?.id && row?.username) usernamesById = { [row.id]: String(row.username).trim() };
     }
   }
 
