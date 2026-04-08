@@ -181,7 +181,7 @@ const pageStyle = {
   padding: 12,
   display: 'grid',
   gap: 12,
-  maxWidth: 920,
+  maxWidth: 1120,
   margin: '0 auto',
   color: '#e5e7eb',
 };
@@ -536,6 +536,36 @@ const renderAnnotatedText = (text: string, ranges: TextAnchorRange[]): React.Rea
   });
   if (cursor < text.length) nodes.push(<span key="plain-tail">{text.slice(cursor)}</span>);
   return nodes;
+};
+
+const buildBalancedReviewSequence = (ranges: TextAnchorRange[], maxItems = 8): TextAnchorRange[] => {
+  if (ranges.length === 0) return [];
+  const strong = ranges.filter((item) => item.polarity === 'strong');
+  const weak = ranges.filter((item) => item.polarity === 'weak');
+  const ordered: TextAnchorRange[] = [];
+  let strongIdx = 0;
+  let weakIdx = 0;
+
+  if (strong[strongIdx]) {
+    ordered.push(strong[strongIdx]);
+    strongIdx += 1;
+  }
+
+  while (ordered.length < maxItems && (strongIdx < strong.length || weakIdx < weak.length)) {
+    if (weakIdx < weak.length) {
+      ordered.push(weak[weakIdx]);
+      weakIdx += 1;
+      if (ordered.length >= maxItems) break;
+    }
+    if (strongIdx < strong.length) {
+      ordered.push(strong[strongIdx]);
+      strongIdx += 1;
+    }
+  }
+
+  return ordered
+    .slice(0, maxItems)
+    .sort((a, b) => a.start - b.start || a.end - b.end);
 };
 
 const SUPPORTED_GENRES: SupportedGenre[] = ['essay', 'story', 'article', 'review', 'report', 'email', 'paragraph'];
@@ -953,6 +983,10 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const [isGenreSwitching, setIsGenreSwitching] = useState(false);
   const [showTaskTypeGuide, setShowTaskTypeGuide] = useState(false);
   const [showTaskContextModal, setShowTaskContextModal] = useState(false);
+  const [showAiReviewModal, setShowAiReviewModal] = useState(false);
+  const [submittedPracticeText, setSubmittedPracticeText] = useState('');
+  const [reviewScanCount, setReviewScanCount] = useState(0);
+  const [reviewScanComplete, setReviewScanComplete] = useState(false);
   const [activeRepairId, setActiveRepairId] = useState<string | null>(null);
   const [repairStatusMessage, setRepairStatusMessage] = useState<string>('');
   const [viewedRepairIds, setViewedRepairIds] = useState<string[]>([]);
@@ -987,6 +1021,22 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const isPreWeek = !hasActiveWeek && !hasStartedAnyWeek;
   const isActiveWeek = hasActiveWeek && !isWeekComplete;
   const hasTaskToday = Boolean(todayTask.ok && todayTask.data);
+  const submittedHighlightRanges = useMemo(
+    () => buildAnchorRanges(submittedPracticeText, aiFeedbackDetails),
+    [submittedPracticeText, aiFeedbackDetails]
+  );
+  const reviewAnchorTrust = useMemo(
+    () => evaluateAnchorTrust(submittedPracticeText, aiFeedbackDetails),
+    [submittedPracticeText, aiFeedbackDetails]
+  );
+  const reviewScanPlan = useMemo(
+    () => (reviewAnchorTrust.mode === 'trusted' ? buildBalancedReviewSequence(submittedHighlightRanges, 8) : []),
+    [reviewAnchorTrust.mode, submittedHighlightRanges]
+  );
+  const visibleSubmittedHighlightRanges = useMemo(
+    () => reviewScanPlan.slice(0, reviewScanCount),
+    [reviewScanPlan, reviewScanCount]
+  );
 
   const latestWeaknessTags = stateRes.ok && stateRes.data?.latest_assessment
     ? stateRes.data.latest_assessment.weakness_tags.slice(0, 3)
@@ -1506,12 +1556,18 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     setFeedback(deterministicFeedback);
     setAiFeedbackDetails(null);
     setIsAnalyzingRichFeedback(false);
+    setSubmittedPracticeText(practiceResponse.trim());
+    setShowAiReviewModal(false);
+    setReviewScanCount(0);
+    setReviewScanComplete(false);
     setUiNotice('Nice submit! Preparing your coaching feedback…');
 
     try {
       const aiResult = await loadRichFeedback(practiceResponse, promptText, latestWeaknesses, 'daily');
       if (!aiResult.ok) {
         setError(`Saved your submission, but AI analysis is unavailable: ${aiResult.error}`);
+      } else {
+        setShowAiReviewModal(true);
       }
     } catch (aiError) {
       console.error('Writing feedback assist failed:', aiError);
@@ -1541,8 +1597,37 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     setAiTaskWording('');
     setAiMonthlyWording('');
     setIsAnalyzingRichFeedback(false);
+    setShowAiReviewModal(false);
+    setSubmittedPracticeText('');
+    setReviewScanCount(0);
+    setReviewScanComplete(false);
     setUiNotice(`${toGenreLabel(nextGenre)} path selected. Loading your progress for this writing path…`);
   };
+
+  useEffect(() => {
+    if (!showAiReviewModal) {
+      setReviewScanCount(0);
+      setReviewScanComplete(false);
+      return;
+    }
+    if (reviewScanPlan.length === 0) {
+      setReviewScanCount(0);
+      setReviewScanComplete(true);
+      return;
+    }
+    setReviewScanCount(0);
+    setReviewScanComplete(false);
+    let frame = 0;
+    const timer = window.setInterval(() => {
+      frame += 1;
+      setReviewScanCount(frame);
+      if (frame >= reviewScanPlan.length) {
+        window.clearInterval(timer);
+        setReviewScanComplete(true);
+      }
+    }, 520);
+    return () => window.clearInterval(timer);
+  }, [showAiReviewModal, reviewScanPlan.length]);
 
   const renderLoadingSkeleton = () => (
     <>
@@ -1588,13 +1673,43 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           background: linear-gradient(90deg, transparent 0%, rgba(125, 211, 252, 0.2) 50%, transparent 100%);
           animation: analysisSweep 2.2s ease-in-out infinite;
         }
+        .ai-review-modal-shell {
+          position: relative;
+          overflow: hidden;
+        }
+        .ai-review-modal-shell::before {
+          content: '';
+          position: absolute;
+          inset: -30% -10%;
+          background: radial-gradient(circle at 20% 20%, rgba(59,130,246,0.24), transparent 45%),
+            radial-gradient(circle at 80% 80%, rgba(16,185,129,0.18), transparent 40%);
+          pointer-events: none;
+        }
+        .ai-review-scan {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(120deg, transparent 0%, rgba(125, 211, 252, 0.18) 45%, transparent 70%);
+          transform: translateX(-100%);
+          animation: aiReviewSweep 1.45s ease-in-out infinite;
+          pointer-events: none;
+        }
+        .ai-review-status-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 999px;
+          background: #22d3ee;
+          box-shadow: 0 0 14px rgba(34, 211, 238, 0.7);
+          animation: analysisPulse 1.2s ease-in-out infinite;
+        }
         .dashboard-grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
         .focus-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
         .mini-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
-        @media (min-width: 760px) {
+        @media (min-width: 860px) {
           .dashboard-grid { grid-template-columns: minmax(0,1.45fr) minmax(0,1fr); align-items: start; }
-          .focus-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
           .mini-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
+        }
+        @media (min-width: 1120px) {
+          .focus-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
         }
         @keyframes cardIn {
           from { opacity: 0; transform: translateY(12px); }
@@ -1605,6 +1720,9 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           50% { opacity: 1; transform: scale(1.05); }
         }
         @keyframes analysisSweep {
+          100% { transform: translateX(100%); }
+        }
+        @keyframes aiReviewSweep {
           100% { transform: translateX(100%); }
         }
       `}</style>
@@ -2442,6 +2560,143 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           )}
         </>
       )}
+
+      {showAiReviewModal && submittedPracticeText.trim() && createPortal((
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="AI feedback review"
+          onClick={() => setShowAiReviewModal(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1150,
+            display: 'grid',
+            placeItems: 'center',
+            background: 'rgba(2, 6, 23, 0.78)',
+            padding: 16,
+          }}
+        >
+          <div
+            className="ai-review-modal-shell"
+            onClick={(event: { stopPropagation: () => void }) => event.stopPropagation()}
+            style={{
+              width: 'min(840px, 100%)',
+              borderRadius: 18,
+              border: '1px solid rgba(125, 211, 252, 0.4)',
+              background: 'linear-gradient(180deg, rgba(10,18,35,0.98) 0%, rgba(11,15,28,0.98) 100%)',
+              boxShadow: '0 28px 60px rgba(2, 6, 23, 0.75)',
+              padding: 16,
+              overflow: 'hidden',
+              display: 'grid',
+              gap: 12,
+            }}
+          >
+            <div className="ai-review-scan" aria-hidden="true" />
+            <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+              <div style={{ display: 'grid', gap: 4 }}>
+                <p style={{ margin: 0, color: '#93c5fd', fontSize: 12, fontWeight: 800, letterSpacing: 0.4 }}>AI FEEDBACK</p>
+                <h3 style={{ margin: 0, color: '#f8fafc', fontSize: 22 }}>Submitted · Smart review in progress</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAiReviewModal(false)}
+                style={{
+                  borderRadius: 999,
+                  border: '1px solid rgba(148, 163, 184, 0.45)',
+                  background: 'rgba(15, 23, 42, 0.75)',
+                  color: '#e2e8f0',
+                  width: 34,
+                  height: 34,
+                  fontSize: 18,
+                  lineHeight: '18px',
+                  cursor: 'pointer',
+                }}
+                aria-label="Close AI feedback modal"
+              >
+                ×
+              </button>
+            </div>
+
+            <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <span style={{ borderRadius: 999, padding: '4px 10px', border: '1px solid rgba(16,185,129,0.45)', color: '#bbf7d0', fontSize: 12, fontWeight: 700 }}>Submitted ✓</span>
+              <span style={{ borderRadius: 999, padding: '4px 10px', border: '1px solid rgba(56,189,248,0.45)', color: '#bae6fd', fontSize: 12, fontWeight: 700 }}>
+                {reviewScanComplete ? 'Review complete ✓' : 'AI review scanning…'}
+              </span>
+              {reviewAnchorTrust.mode === 'trusted' ? (
+                <span style={{ borderRadius: 999, padding: '4px 10px', border: '1px solid rgba(125,211,252,0.45)', color: '#dbeafe', fontSize: 12, fontWeight: 700 }}>
+                  Trusted anchors
+                </span>
+              ) : (
+                <span style={{ borderRadius: 999, padding: '4px 10px', border: '1px solid rgba(148,163,184,0.45)', color: '#cbd5e1', fontSize: 12, fontWeight: 700 }}>
+                  Guidance mode
+                </span>
+              )}
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#67e8f9', fontSize: 12 }}>
+                <span className="ai-review-status-dot" />
+                {reviewScanComplete ? 'Highlights locked' : 'Live analysis'}
+              </span>
+            </div>
+
+            <div
+              style={{
+                position: 'relative',
+                zIndex: 1,
+                borderRadius: 14,
+                border: '1px solid rgba(148, 163, 184, 0.32)',
+                background: 'rgba(15, 23, 42, 0.75)',
+                padding: 14,
+                color: '#e2e8f0',
+                lineHeight: 1.7,
+                fontSize: 15,
+                whiteSpace: 'pre-wrap',
+              }}
+            >
+              {renderAnnotatedText(submittedPracticeText, visibleSubmittedHighlightRanges)}
+            </div>
+
+            <p style={{ position: 'relative', zIndex: 1, margin: 0, color: '#94a3b8', fontSize: 12 }}>
+              Green glow = strong writing choices. Red glow = corrections (grammar, awkward wording, or spelling).
+            </p>
+
+            {reviewScanComplete && (
+              <div
+                style={{
+                  position: 'relative',
+                  zIndex: 1,
+                  borderRadius: 12,
+                  border: '1px solid rgba(16,185,129,0.35)',
+                  background: 'rgba(6, 78, 59, 0.25)',
+                  padding: 12,
+                  display: 'grid',
+                  gap: 8,
+                }}
+              >
+                <p style={{ margin: 0, color: '#d1fae5', fontWeight: 700 }}>Next action</p>
+                <p style={{ margin: 0, color: '#ecfdf5', fontSize: 14 }}>
+                  {aiFeedbackDetails?.next_move || (aiFeedbackDetails?.next_steps ?? []).slice(0, 1)[0] || 'Pick one red highlight and revise that sentence now.'}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowAiReviewModal(false)}
+                  style={{
+                    justifySelf: 'start',
+                    borderRadius: 10,
+                    border: '1px solid rgba(110,231,183,0.55)',
+                    background: 'linear-gradient(135deg, rgba(5,150,105,0.5), rgba(14,116,144,0.45))',
+                    color: '#ecfdf5',
+                    padding: '8px 12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Start revision
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      ), document.body)}
 
       {showTaskContextModal && createPortal((
         <div
