@@ -602,7 +602,14 @@ const renderAnnotatedText = (text: string, ranges: TextAnchorRange[], activeInde
         title={range.reason}
         style={highlightStyle}
       >
-        <span className="review-highlight__ink" aria-hidden="true" />
+        <span className="review-highlight__ink-base" aria-hidden="true" />
+        {isActive ? (
+          <span
+            key={`ink-swipe-${activeIndex}-${range.start}-${range.end}`}
+            className="review-highlight__ink-swipe"
+            aria-hidden="true"
+          />
+        ) : null}
         <span className="review-highlight__text">{segment}</span>
       </span>
     );
@@ -1879,37 +1886,48 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           border-radius: 3px;
           padding: 0 1.5px;
           isolation: isolate;
+          overflow: hidden;
           transform: translateY(0);
           transition: opacity 180ms ease, transform 180ms ease, filter 180ms ease;
         }
-        .review-highlight__ink {
+        .review-highlight__ink-base {
           position: absolute;
           inset: 1px -1px 0;
           border-radius: 12px 12px 8px 8px;
-          background: linear-gradient(180deg, rgba(34,197,94,0.15) 0%, rgba(34,197,94,0.29) 56%, rgba(34,197,94,0.12) 100%);
+          background: linear-gradient(180deg, rgba(34,197,94,0.12) 0%, rgba(34,197,94,0.24) 56%, rgba(34,197,94,0.1) 100%);
+          opacity: 0.26;
+          z-index: 0;
+        }
+        .review-highlight__ink-swipe {
+          position: absolute;
+          inset: 0 -3px 0 -2px;
+          border-radius: 13px 13px 9px 9px;
           transform-origin: left center;
-          transform: scaleX(1) skewX(0deg);
-          opacity: 0.34;
-          z-index: -1;
+          background: linear-gradient(90deg, rgba(34,197,94,0.26) 0%, rgba(34,197,94,0.4) 78%, rgba(187,247,208,0.75) 92%, rgba(255,255,255,0) 100%);
+          opacity: 0;
+          z-index: 1;
+          pointer-events: none;
+          animation: markerSwipeDrag var(--highlight-swipe-duration, 620ms) cubic-bezier(.24,.88,.22,1) forwards;
         }
         .review-highlight__text {
           position: relative;
-          z-index: 1;
+          z-index: 2;
         }
-        .review-highlight--weak .review-highlight__ink {
-          background: linear-gradient(180deg, rgba(248,113,113,0.16) 0%, rgba(248,113,113,0.3) 56%, rgba(248,113,113,0.12) 100%);
+        .review-highlight--weak .review-highlight__ink-base {
+          background: linear-gradient(180deg, rgba(248,113,113,0.12) 0%, rgba(248,113,113,0.24) 56%, rgba(248,113,113,0.1) 100%);
+        }
+        .review-highlight--weak .review-highlight__ink-swipe {
+          background: linear-gradient(90deg, rgba(248,113,113,0.24) 0%, rgba(248,113,113,0.38) 78%, rgba(254,202,202,0.76) 92%, rgba(255,255,255,0) 100%);
         }
         .review-highlight--inactive {
           opacity: 0.62;
           filter: saturate(0.68);
         }
-        .review-highlight--inactive .review-highlight__ink {
-          opacity: 0.22;
+        .review-highlight--inactive .review-highlight__ink-base {
+          opacity: 0.16;
         }
-        .review-highlight--active .review-highlight__ink {
-          opacity: 0.82;
-          transform: scaleX(0.12) skewX(-2deg);
-          animation: markerSwipeActive var(--highlight-swipe-duration, 520ms) cubic-bezier(.2,.9,.18,1) forwards;
+        .review-highlight--active .review-highlight__ink-base {
+          opacity: 0.3;
         }
         .review-highlight--active {
           opacity: 1;
@@ -1930,10 +1948,13 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           max-height: clamp(140px, 34vh, 300px);
           overflow-y: auto;
         }
-        :dir(rtl) .review-highlight__ink { transform-origin: right center; }
-        :dir(rtl) .review-highlight--active .review-highlight__ink {
-          transform: scaleX(0.08) skewX(3deg);
-          animation-name: markerSwipeActiveRtl;
+        :dir(rtl) .review-highlight__ink-swipe {
+          transform-origin: right center;
+          animation-name: markerSwipeDragRtl;
+          background: linear-gradient(270deg, rgba(34,197,94,0.26) 0%, rgba(34,197,94,0.4) 78%, rgba(187,247,208,0.75) 92%, rgba(255,255,255,0) 100%);
+        }
+        :dir(rtl) .review-highlight--weak .review-highlight__ink-swipe {
+          background: linear-gradient(270deg, rgba(248,113,113,0.24) 0%, rgba(248,113,113,0.38) 78%, rgba(254,202,202,0.76) 92%, rgba(255,255,255,0) 100%);
         }
         .week-stage-wrap {
           display: grid;
@@ -2038,10 +2059,12 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           .review-highlight {
             background-size: 100% 100% !important;
           }
-          .review-highlight__ink {
+          .review-highlight__ink-base,
+          .review-highlight__ink-swipe {
             animation: none !important;
             opacity: 1 !important;
             transform: none !important;
+            clip-path: none !important;
           }
         }
         @keyframes cardIn {
@@ -2061,17 +2084,17 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
         @keyframes textScanFlow {
           100% { transform: translateX(100%); }
         }
-        @keyframes markerSwipeActive {
-          0% { opacity: 0.08; transform: scaleX(0.08) skewX(-5deg); filter: saturate(0.85); }
-          30% { opacity: 0.78; transform: scaleX(0.45) skewX(-3deg); }
-          80% { opacity: 0.84; transform: scaleX(0.95) skewX(-1deg); }
-          100% { opacity: 0.82; transform: scaleX(1) skewX(0deg); filter: saturate(1); }
+        @keyframes markerSwipeDrag {
+          0% { opacity: 0; clip-path: inset(0 100% 0 0); transform: translateX(-6%) skewX(-4deg); }
+          20% { opacity: 0.95; }
+          65% { opacity: 0.9; clip-path: inset(0 16% 0 0); }
+          100% { opacity: 0.78; clip-path: inset(0 0 0 0); transform: translateX(0) skewX(0deg); }
         }
-        @keyframes markerSwipeActiveRtl {
-          0% { opacity: 0.08; transform: scaleX(0.08) skewX(5deg); filter: saturate(0.85); }
-          30% { opacity: 0.78; transform: scaleX(0.45) skewX(3deg); }
-          80% { opacity: 0.84; transform: scaleX(0.95) skewX(1deg); }
-          100% { opacity: 0.82; transform: scaleX(1) skewX(0deg); filter: saturate(1); }
+        @keyframes markerSwipeDragRtl {
+          0% { opacity: 0; clip-path: inset(0 0 0 100%); transform: translateX(6%) skewX(4deg); }
+          20% { opacity: 0.95; }
+          65% { opacity: 0.9; clip-path: inset(0 0 0 16%); }
+          100% { opacity: 0.78; clip-path: inset(0 0 0 0); transform: translateX(0) skewX(0deg); }
         }
       `}</style>
 
