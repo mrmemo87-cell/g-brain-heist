@@ -292,6 +292,37 @@ const toWordCountLabel = (targetWords: number): string => {
   return `${range.min}–${range.max} words`;
 };
 
+const getWordCounterTone = (typedWords: number, targetWords: number): { label: string; accent: string; glow: string; track: string; progress: number } => {
+  const safeTarget = Math.max(1, targetWords);
+  const ratio = typedWords / safeTarget;
+  const progress = Math.max(0, Math.min(100, Math.round(ratio * 100)));
+  if (ratio < 0.75) {
+    return {
+      label: 'Too short',
+      accent: '#60a5fa',
+      glow: 'rgba(96,165,250,0.35)',
+      track: 'linear-gradient(90deg, #2563eb 0%, #38bdf8 100%)',
+      progress,
+    };
+  }
+  if (ratio <= 1.1) {
+    return {
+      label: 'On target',
+      accent: '#4ade80',
+      glow: 'rgba(74,222,128,0.35)',
+      track: 'linear-gradient(90deg, #22c55e 0%, #34d399 100%)',
+      progress,
+    };
+  }
+  return {
+    label: 'Over target',
+    accent: '#f97316',
+    glow: 'rgba(249,115,22,0.35)',
+    track: 'linear-gradient(90deg, #f59e0b 0%, #f97316 100%)',
+    progress,
+  };
+};
+
 const countWords = (text: string): number => {
   const normalized = text.trim();
   if (!normalized) return 0;
@@ -543,6 +574,7 @@ const renderAnnotatedText = (text: string, ranges: TextAnchorRange[], activeInde
   if (normalizedRanges.length === 0) return text;
   const nodes: React.ReactNode[] = [];
   let cursor = 0;
+  let revealOffsetMs = 0;
   normalizedRanges.forEach((range, idx) => {
     if (cursor < range.start) nodes.push(<span key={`plain-${idx}`}>{text.slice(cursor, range.start)}</span>);
     const segment = text.slice(range.start, range.end);
@@ -553,20 +585,21 @@ const renderAnnotatedText = (text: string, ranges: TextAnchorRange[], activeInde
         className="review-highlight"
         title={range.reason}
         style={{
-          background: strong ? 'rgba(34,197,94,0.24)' : 'rgba(248,113,113,0.22)',
+          '--highlight-fill': strong ? 'rgba(34,197,94,0.3)' : 'rgba(248,113,113,0.28)',
+          '--highlight-border': strong ? 'rgba(74,222,128,0.7)' : 'rgba(248,113,113,0.74)',
+          '--highlight-delay': `${revealOffsetMs}ms`,
+          '--highlight-duration': `${Math.max(140, Math.min(360, segment.length * 14))}ms`,
           color: strong ? '#bbf7d0' : '#fecaca',
-          borderBottom: strong ? '1px solid rgba(74, 222, 128, 0.65)' : '1px solid rgba(248, 113, 113, 0.7)',
-          borderRadius: 3,
-          animationDelay: `${Math.min(idx, 12) * 120}ms`,
           boxShadow: idx === activeIndex
             ? (strong ? '0 0 0 1px rgba(74,222,128,0.65), 0 0 18px rgba(74,222,128,0.42)' : '0 0 0 1px rgba(248,113,113,0.55), 0 0 16px rgba(248,113,113,0.35)')
             : (strong ? '0 0 0 1px rgba(34,197,94,0.22)' : '0 0 0 1px rgba(248,113,113,0.18)'),
-          transition: 'background 220ms ease, box-shadow 220ms ease',
-        }}
+          transition: 'box-shadow 220ms ease',
+        } as any}
       >
         {segment}
       </span>
     );
+    revealOffsetMs += Math.max(140, Math.min(360, segment.length * 14)) + 36;
     cursor = range.end;
   });
   if (cursor < text.length) nodes.push(<span key="plain-tail">{text.slice(cursor)}</span>);
@@ -657,16 +690,6 @@ const buildReadableTaskSummary = (promptText: string): string => {
   const normalized = simplifyStudentLanguage(promptText).replace(/\s+/g, ' ').trim();
   if (!normalized) return 'Your writing mission will appear here once a task is loaded.';
   return normalized.length > 220 ? `${normalized.slice(0, 217).trimEnd()}…` : normalized;
-};
-
-const masteryTargetByGenre: Record<SupportedGenre, string> = {
-  essay: 'Mastery target: Build a clear claim, support it with relevant evidence, and evaluate one trade-off.',
-  story: 'Mastery target: Develop character motivation, keep logical progression, and craft a meaningful resolution.',
-  article: 'Mastery target: Inform a real audience with clear structure, reliable detail, and a practical takeaway.',
-  review: 'Mastery target: Judge quality with criteria, justify ratings with evidence, and give actionable advice.',
-  report: 'Mastery target: Present findings objectively, highlight impact, and recommend one evidence-based action.',
-  email: 'Mastery target: Use audience-appropriate tone, clear purpose, and a concise actionable recommendation.',
-  paragraph: 'Mastery target: Keep one main idea, strong supporting detail, and precise sentence control.',
 };
 
 const writingMissionCategoryMeta: Record<string, WritingMissionCategoryMeta> = {
@@ -1087,7 +1110,6 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const feedbackCardRef = useRef<HTMLElement | null>(null);
   const todayMissionCardRef = useRef<HTMLElement | null>(null);
   const progressCardRef = useRef<HTMLElement | null>(null);
-  const preWeekTaskCardRef = useRef<HTMLElement | null>(null);
   const preWeekComposeCardRef = useRef<HTMLElement | null>(null);
   const writingPathCarouselRef = useRef<HTMLDivElement | null>(null);
   const writingPathButtonRefs: MutableRefObject<Partial<Record<SupportedGenre, HTMLButtonElement | null>> | null> =
@@ -1660,38 +1682,6 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     }
   };
 
-  const handleEnhancePrompt = async () => {
-    setError('');
-    setAiBusy(true);
-    setUiNotice('Making this task clearer…');
-    try {
-      const response = await requestWritingAiAssist({
-        mode: 'prompt_rewrite',
-        prompt_text: promptText,
-        weaknesses: latestWeaknesses,
-        grade,
-        genre: activeGenre,
-      });
-      if (response.ok && response.data) {
-        const ai = (response.data.result ?? {}) as WritingAiPlanAssist;
-        if (ai.rewritten_prompt?.trim()) setPromptText(ai.rewritten_prompt.trim());
-        if (ai.daily_task?.trim()) setAiTaskWording(ai.daily_task.trim());
-        if (ai.focus?.trim()) setAiWeeklyFocus(ai.focus.trim());
-        if (Array.isArray(ai.coaching_points) && ai.coaching_points.length > 0) {
-          setAiCoachingPoints(ai.coaching_points.slice(0, 3));
-        }
-        setUiNotice('Task wording updated.');
-      } else {
-        setError('Could not improve the task wording right now. Please try again.');
-      }
-    } catch (aiError) {
-      console.error('Writing task wording assist failed:', aiError);
-      setError('Could not improve the task wording right now. Please try again.');
-    } finally {
-      setAiBusy(false);
-    }
-  };
-
   const handleSubmitPractice = async () => {
     if (loading) return;
     if (!todayTask.ok || !todayTask.data) {
@@ -1792,7 +1782,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
         window.clearInterval(timer);
         setReviewScanComplete(true);
       }
-    }, 520);
+    }, 170);
     return () => window.clearInterval(timer);
   }, [showAiReviewModal, reviewScanPlan.length]);
 
@@ -1869,8 +1859,48 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           animation: analysisPulse 1.2s ease-in-out infinite;
         }
         .review-highlight {
+          position: relative;
           display: inline;
-          animation: highlightReveal 420ms ease both;
+          border-radius: 3px;
+          isolation: isolate;
+          padding: 0 1px;
+        }
+        .review-highlight::before {
+          content: '';
+          position: absolute;
+          inset: 0.07em -0.02em 0.02em;
+          border-bottom: 1px solid var(--highlight-border, rgba(148,163,184,0.45));
+          background: var(--highlight-fill, rgba(148,163,184,0.2));
+          border-radius: 3px;
+          transform-origin: left center;
+          transform: scaleX(0);
+          animation: highlightPaint var(--highlight-duration, 220ms) cubic-bezier(.22,.9,.2,1) both;
+          animation-delay: var(--highlight-delay, 0ms);
+          box-shadow: 0 0 0 1px rgba(15,23,42,0.05);
+          z-index: -1;
+        }
+        .week-stage-wrap {
+          display: grid;
+          gap: 10px;
+        }
+        .week-stage-track {
+          height: 8px;
+          border-radius: 999px;
+          background: rgba(30,41,59,0.85);
+          border: 1px solid rgba(148,163,184,0.35);
+          overflow: hidden;
+        }
+        .week-stage-nodes {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0,1fr));
+          gap: 8px;
+        }
+        .week-stage-node {
+          border-radius: 12px;
+          border: 1px solid rgba(148,163,184,0.35);
+          background: rgba(15,23,42,0.65);
+          padding: 10px 8px;
+          text-align: center;
         }
         .dashboard-grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
         .focus-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
@@ -1949,9 +1979,9 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
         @keyframes textScanFlow {
           100% { transform: translateX(100%); }
         }
-        @keyframes highlightReveal {
-          from { opacity: 0; filter: saturate(0.4); }
-          to { opacity: 1; filter: saturate(1); }
+        @keyframes highlightPaint {
+          from { transform: scaleX(0); filter: saturate(0.6); }
+          to { transform: scaleX(1); filter: saturate(1); }
         }
       `}</style>
 
@@ -2060,7 +2090,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             </p>
             {isPreWeek && (
               <div className="phone-quick-nav" aria-label="Quick actions for phone users">
-                <button type="button" onClick={() => scrollToSection(preWeekTaskCardRef)}>Go to task</button>
+                <button type="button" onClick={() => scrollToSection(preWeekComposeCardRef)}>Go to task</button>
                 <button type="button" onClick={() => scrollToSection(preWeekComposeCardRef)}>Start writing</button>
                 <button type="button" onClick={() => practiceTextareaRef.current?.focus()}>Focus input</button>
               </div>
@@ -2074,32 +2104,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             )}
             {showNoWritingState && <p style={{ margin: '8px 0 0', color: '#bfdbfe', fontSize: 13 }}>No writing state yet</p>}
             {!isWeekComplete && (
-              <div style={{ marginTop: 12 }}>
-                <div className="mini-grid">
-                  {weeklyPlanStages.map((stage, index) => {
-                    const isCurrent = index === currentStageIndex;
-                    const isDone = index < currentStageIndex;
-                    return (
-                      <div
-                        key={stage.key}
-                        style={{
-                          borderRadius: 12,
-                          border: `1px solid ${isCurrent ? 'rgba(125,211,252,0.95)' : 'rgba(148,163,184,0.35)'}`,
-                          background: isDone ? 'rgba(16,185,129,0.16)' : isCurrent ? 'rgba(30,64,175,0.35)' : 'rgba(15,23,42,0.65)',
-                          padding: '10px 8px',
-                          textAlign: 'center',
-                          fontSize: 12,
-                          fontWeight: 700,
-                          color: '#dbeafe',
-                        }}
-                      >
-                        <div>{isDone ? 'Done' : isCurrent ? 'Now' : 'Next'}</div>
-                        <div style={{ opacity: 0.9 }}>{stage.label}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-                <div style={{ marginTop: 8, ...progressTrackStyle }}>
+              <div style={{ marginTop: 12 }} className="week-stage-wrap">
+                <div className="week-stage-track">
                   <div
                     className="progress-fill"
                     style={{
@@ -2109,60 +2115,56 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                     }}
                   />
                 </div>
+                <div className="week-stage-nodes">
+                  {weeklyPlanStages.map((stage, index) => {
+                    const isCurrent = index === currentStageIndex;
+                    const isDone = index < currentStageIndex;
+                    return (
+                      <div
+                        key={stage.key}
+                        className="week-stage-node"
+                        style={{
+                          borderColor: isCurrent ? 'rgba(125,211,252,0.95)' : 'rgba(148,163,184,0.35)',
+                          background: isDone ? 'rgba(16,185,129,0.18)' : isCurrent ? 'rgba(30,64,175,0.35)' : 'rgba(15,23,42,0.65)',
+                        }}
+                      >
+                        <div style={{ fontSize: 11, fontWeight: 800, color: isDone ? '#86efac' : isCurrent ? '#7dd3fc' : '#94a3b8' }}>
+                          {isDone ? '✓ Done' : isCurrent ? 'Now' : 'Next'}
+                        </div>
+                        <div style={{ marginTop: 2, fontSize: 12, fontWeight: 700, color: '#dbeafe' }}>{stage.label}</div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </section>
 
           {isPreWeek && (
             <>
-              <section ref={preWeekTaskCardRef} className="writing-hub-card" style={shellCardStyle}>
-                <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 20, color: '#f8fafc' }}>What happens next</h3>
-                <div className="mini-grid">
-                  {['Write once', 'We find weak areas', 'You get your weekly plan', 'You improve day by day'].map((step, index) => (
-                    <div key={step} style={{ borderRadius: 12, border: '1px solid rgba(147,197,253,0.45)', background: 'rgba(15,23,42,0.6)', padding: 10 }}>
-                      <p style={{ margin: 0, fontSize: 11, color: '#93c5fd' }}>Step {index + 1}</p>
-                      <p style={{ margin: '4px 0 0', fontSize: 14, color: '#e2e8f0', fontWeight: 700 }}>{step}</p>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
               <section ref={preWeekComposeCardRef} className="writing-hub-card" style={shellCardStyle}>
                 <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 20, color: '#f8fafc' }}>Your writing task</h3>
                 <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 13, fontWeight: 700 }}>Task summary</p>
                 <p style={{ margin: '0 0 10px', color: '#e2e8f0', fontSize: 15 }}>{buildReadableTaskSummary(promptText)}</p>
-                <p style={{ margin: '0 0 10px', color: '#bfdbfe', fontSize: 13 }}>{masteryTargetByGenre[activeGenre]}</p>
-                <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 13, fontWeight: 700 }}>Original prompt</p>
                 <div style={{ ...fieldStyle, minHeight: 88, whiteSpace: 'pre-wrap' }}>{promptText}</div>
-                <button
-                  type="button"
-                  onClick={() => void handleEnhancePrompt()}
-                  disabled={aiBusy || !promptText.trim()}
-                  style={{
-                    marginTop: 8,
-                    padding: '10px 12px',
-                    borderRadius: 10,
-                    border: '1px solid rgba(147, 197, 253, 0.65)',
-                    background: 'rgba(30, 41, 59, 0.95)',
-                    color: '#dbeafe',
-                    cursor: aiBusy ? 'not-allowed' : 'pointer',
-                    fontWeight: 700,
-                    opacity: aiBusy ? 0.7 : 1,
-                  }}
-                >
-                  {aiBusy ? 'Making this task clearer…' : 'Make this task clearer'}
-                </button>
-                <p style={{ margin: '6px 0 0', color: '#93c5fd', fontSize: 12 }}>
-                  This explains the task more clearly. It does not change what you need to do.
-                </p>
               </section>
 
               <section className="writing-hub-card" style={shellCardStyle}>
                 <h3 style={{ marginTop: 0, marginBottom: 6, fontSize: 20, color: '#f8fafc' }}>Write your first response</h3>
                 <p style={{ margin: '0 0 8px', color: '#bfdbfe', fontSize: 14 }}>
-                  Word count: {toWordCountLabel(targetWordCount)}
+                  Word count target: {toWordCountLabel(targetWordCount)}
                 </p>
-                <p style={{ margin: '0 0 8px', color: '#dbeafe', fontSize: 12, fontWeight: 700 }}>Typed so far: {initialResponseWordCount} words</p>
+                <div style={{ margin: '0 0 8px', borderRadius: 12, border: `1px solid ${getWordCounterTone(initialResponseWordCount, targetWordCount).glow}`, background: 'rgba(15,23,42,0.72)', padding: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
+                    <p style={{ margin: 0, color: '#dbeafe', fontSize: 12, fontWeight: 800 }}>Typed so far: {initialResponseWordCount} words</p>
+                    <span style={{ borderRadius: 999, padding: '3px 9px', fontSize: 11, fontWeight: 800, color: getWordCounterTone(initialResponseWordCount, targetWordCount).accent, border: `1px solid ${getWordCounterTone(initialResponseWordCount, targetWordCount).glow}` }}>
+                      {getWordCounterTone(initialResponseWordCount, targetWordCount).label}
+                    </span>
+                  </div>
+                  <div style={{ marginTop: 6, height: 7, borderRadius: 999, background: 'rgba(51,65,85,0.8)', overflow: 'hidden' }}>
+                    <div className="progress-fill" style={{ width: `${getWordCounterTone(initialResponseWordCount, targetWordCount).progress}%`, height: '100%', background: getWordCounterTone(initialResponseWordCount, targetWordCount).track }} />
+                  </div>
+                </div>
                 <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12 }}>Try to stay close to this range.</p>
                 <textarea
                   value={initialResponse}
@@ -2207,8 +2209,18 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                     <p style={{ margin: '0 0 8px', color: '#cbd5e1', fontSize: 14 }}>
                       This helps you improve your weekly focus areas and raise your writing score step by step.
                     </p>
-                    <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 13 }}>Word count: {toWordCountLabel(todayTask.data.expected_word_count)}</p>
-                    <p style={{ margin: '0 0 8px', color: '#dbeafe', fontSize: 12, fontWeight: 700 }}>Typed so far: {practiceResponseWordCount} words</p>
+                    <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 13 }}>Word count target: {toWordCountLabel(todayTask.data.expected_word_count)}</p>
+                    <div style={{ margin: '0 0 8px', borderRadius: 12, border: `1px solid ${getWordCounterTone(practiceResponseWordCount, todayTask.data.expected_word_count).glow}`, background: 'rgba(15,23,42,0.72)', padding: 8 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
+                        <p style={{ margin: 0, color: '#dbeafe', fontSize: 12, fontWeight: 800 }}>Typed so far: {practiceResponseWordCount} words</p>
+                        <span style={{ borderRadius: 999, padding: '3px 9px', fontSize: 11, fontWeight: 800, color: getWordCounterTone(practiceResponseWordCount, todayTask.data.expected_word_count).accent, border: `1px solid ${getWordCounterTone(practiceResponseWordCount, todayTask.data.expected_word_count).glow}` }}>
+                          {getWordCounterTone(practiceResponseWordCount, todayTask.data.expected_word_count).label}
+                        </span>
+                      </div>
+                      <div style={{ marginTop: 6, height: 7, borderRadius: 999, background: 'rgba(51,65,85,0.8)', overflow: 'hidden' }}>
+                        <div className="progress-fill" style={{ width: `${getWordCounterTone(practiceResponseWordCount, todayTask.data.expected_word_count).progress}%`, height: '100%', background: getWordCounterTone(practiceResponseWordCount, todayTask.data.expected_word_count).track }} />
+                      </div>
+                    </div>
                     <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12 }}>Try to stay close to this range.</p>
                     <p style={{ margin: '0 0 6px', color: '#93c5fd', fontSize: 13, fontWeight: 700 }}>Try to do these 2 things</p>
                     <ul style={{ margin: '0 0 10px', paddingLeft: 18, color: '#cbd5e1', fontSize: 14 }}>
@@ -2427,7 +2439,6 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                       </div>
                     </div>
                   )}
-                  <p style={{ margin: '0 0 8px', color: '#bfdbfe', fontSize: 14 }}>{masteryTargetByGenre[activeGenre]}</p>
                   <p style={{ margin: '0 0 8px', color: '#e2e8f0', fontSize: 14 }}>
                     Target score range: {estimatedTargetRange ? `${estimatedTargetRange.low}–${estimatedTargetRange.high} / 20` : 'Will appear after first scoring'}
                   </p>
