@@ -1080,6 +1080,10 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const firstRepairButtonRef = useRef<HTMLButtonElement | null>(null);
   const practiceTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const feedbackCardRef = useRef<HTMLElement | null>(null);
+  const todayMissionCardRef = useRef<HTMLElement | null>(null);
+  const progressCardRef = useRef<HTMLElement | null>(null);
+  const preWeekTaskCardRef = useRef<HTMLElement | null>(null);
+  const preWeekComposeCardRef = useRef<HTMLElement | null>(null);
   const writingPathCarouselRef = useRef<HTMLDivElement | null>(null);
   const writingPathButtonRefs: MutableRefObject<Partial<Record<SupportedGenre, HTMLButtonElement | null>> | null> =
     useRef<Partial<Record<SupportedGenre, HTMLButtonElement | null>>>({});
@@ -1116,6 +1120,9 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const isPreWeek = !hasActiveWeek && !hasStartedAnyWeek;
   const isActiveWeek = hasActiveWeek && !isWeekComplete;
   const hasTaskToday = Boolean(todayTask.ok && todayTask.data);
+  const scrollToSection = (ref: MutableRefObject<HTMLElement | null>) => {
+    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
   const submittedHighlightRanges = useMemo(
     () => buildAnchorRanges(submittedPracticeText, aiFeedbackDetails),
     [submittedPracticeText, aiFeedbackDetails]
@@ -1849,9 +1856,56 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
         .dashboard-grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
         .focus-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
         .mini-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+        .phone-quick-nav {
+          position: sticky;
+          top: 8px;
+          z-index: 30;
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 8px;
+          padding: 8px;
+          border: 1px solid rgba(147, 197, 253, 0.35);
+          border-radius: 12px;
+          background: rgba(15, 23, 42, 0.88);
+          backdrop-filter: blur(5px);
+        }
+        .phone-quick-nav button {
+          min-height: 42px;
+          border-radius: 9px;
+          border: 1px solid rgba(147, 197, 253, 0.4);
+          background: rgba(30, 64, 175, 0.28);
+          color: #dbeafe;
+          font-size: 12px;
+          font-weight: 800;
+          cursor: pointer;
+        }
+        .phone-submit-bar {
+          position: sticky;
+          bottom: 8px;
+          z-index: 35;
+          margin-top: 4px;
+          padding: 10px;
+          border-radius: 12px;
+          border: 1px solid rgba(147, 197, 253, 0.45);
+          background: rgba(15, 23, 42, 0.92);
+          backdrop-filter: blur(5px);
+          box-shadow: 0 10px 22px rgba(2, 6, 23, 0.42);
+        }
+        .phone-submit-bar .writing-primary-button {
+          margin-top: 0 !important;
+          font-size: 15px;
+          padding: 12px 14px;
+        }
+        .touch-friendly-field {
+          font-size: 16px !important;
+          min-height: 150px !important;
+        }
         @media (min-width: 860px) {
           .dashboard-grid { grid-template-columns: minmax(0,1.45fr) minmax(0,1fr); align-items: start; }
           .mini-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
+          .phone-quick-nav,
+          .phone-submit-bar { display: none; }
+          .touch-friendly-field { min-height: 120px !important; }
         }
         @media (min-width: 1120px) {
           .focus-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
@@ -1978,6 +2032,20 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   ? 'You completed your plan. Review what improved, then start a new week when you are ready.'
                   : 'Your weekly plan is active. Follow your focus goals and complete today’s task.'}
             </p>
+            {isPreWeek && (
+              <div className="phone-quick-nav" aria-label="Quick actions for phone users">
+                <button type="button" onClick={() => scrollToSection(preWeekTaskCardRef)}>Go to task</button>
+                <button type="button" onClick={() => scrollToSection(preWeekComposeCardRef)}>Start writing</button>
+                <button type="button" onClick={() => practiceTextareaRef.current?.focus()}>Focus input</button>
+              </div>
+            )}
+            {isActiveWeek && (
+              <div className="phone-quick-nav" aria-label="Quick actions for phone users">
+                <button type="button" onClick={() => scrollToSection(todayMissionCardRef)}>Today task</button>
+                <button type="button" onClick={() => scrollToSection(feedbackCardRef)}>Feedback</button>
+                <button type="button" onClick={() => scrollToSection(progressCardRef)}>Progress</button>
+              </div>
+            )}
             {showNoWritingState && <p style={{ margin: '8px 0 0', color: '#bfdbfe', fontSize: 13 }}>No writing state yet</p>}
             {!isWeekComplete && (
               <div style={{ marginTop: 12 }}>
@@ -2021,7 +2089,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
 
           {isPreWeek && (
             <>
-              <section className="writing-hub-card" style={shellCardStyle}>
+              <section ref={preWeekTaskCardRef} className="writing-hub-card" style={shellCardStyle}>
                 <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 20, color: '#f8fafc' }}>What happens next</h3>
                 <div className="mini-grid">
                   {['Write once', 'We find weak areas', 'You get your weekly plan', 'You improve day by day'].map((step, index) => (
@@ -2033,7 +2101,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                 </div>
               </section>
 
-              <section className="writing-hub-card" style={shellCardStyle}>
+              <section ref={preWeekComposeCardRef} className="writing-hub-card" style={shellCardStyle}>
                 <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 20, color: '#f8fafc' }}>Your writing task</h3>
                 <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 13, fontWeight: 700 }}>Task summary</p>
                 <p style={{ margin: '0 0 10px', color: '#e2e8f0', fontSize: 15 }}>{buildReadableTaskSummary(promptText)}</p>
@@ -2074,6 +2142,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   value={initialResponse}
                   onChange={(e: { target: { value: string } }) => setInitialResponse(e.target.value)}
                   placeholder="Write your first response here. This helps us understand your starting point and build your weekly coaching plan."
+                  className="touch-friendly-field"
                   style={{ ...fieldStyle, minHeight: 130 }}
                 />
                 <button
@@ -2092,7 +2161,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           {isActiveWeek && (
             <>
               <div className="dashboard-grid">
-                <section className="writing-hub-card" style={{ ...missionCardStyle, borderColor: 'rgba(125, 211, 252, 0.8)' }}>
+                <section ref={todayMissionCardRef} className="writing-hub-card" style={{ ...missionCardStyle, borderColor: 'rgba(125, 211, 252, 0.8)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                     <p style={{ ...dashboardSectionTitleStyle, color: '#dbeafe' }}>Today</p>
                     <span style={{ ...sectionLabelPillStyle, color: '#bfdbfe', borderColor: 'rgba(147, 197, 253, 0.55)' }}>Action now</span>
@@ -2126,6 +2195,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                       value={practiceResponse}
                       onChange={(e: { target: { value: string } }) => setPracticeResponse(e.target.value)}
                       placeholder="Write today’s response here. Focus on today’s goal and your weekly coaching points."
+                      className="touch-friendly-field"
                       style={{ ...fieldStyle, minHeight: 120 }}
                     />
                     <button
@@ -2140,6 +2210,22 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   </>
                 )}
                 </section>
+                {hasTaskToday && (
+                  <div className="phone-submit-bar" role="region" aria-label="Quick submit bar for phone users">
+                    <p style={{ margin: '0 0 8px', color: '#bfdbfe', fontSize: 12, fontWeight: 700 }}>
+                      {practiceResponseWordCount} words typed · Keep going and submit when ready.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => void handleSubmitPractice()}
+                      disabled={loading || !practiceResponse.trim()}
+                      className="writing-primary-button"
+                      style={{ ...primaryButtonStyle, opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
+                    >
+                      {loading ? 'Submitting…' : 'Quick submit'}
+                    </button>
+                  </div>
+                )}
 
                 <section ref={feedbackCardRef} className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(16, 185, 129, 0.42)', background: 'linear-gradient(168deg, #0f172a 0%, #122034 60%, #0b1224 100%)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 10 }}>
@@ -2196,7 +2282,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
               </div>
 
               <div className="dashboard-grid">
-                <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(96, 165, 250, 0.55)', background: 'linear-gradient(180deg, #0f172a 0%, #111b34 100%)' }}>
+                <section ref={progressCardRef} className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(96, 165, 250, 0.55)', background: 'linear-gradient(180deg, #0f172a 0%, #111b34 100%)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                     <p style={{ ...dashboardSectionTitleStyle, color: '#93c5fd' }}>Your Progress</p>
                     <span style={{ ...sectionLabelPillStyle, color: '#bfdbfe', borderColor: 'rgba(147, 197, 253, 0.45)' }}>Snapshot</span>
