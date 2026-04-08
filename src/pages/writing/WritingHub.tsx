@@ -182,9 +182,11 @@ const pageStyle = {
   padding: 12,
   display: 'grid',
   gap: 12,
+  width: '100%',
   maxWidth: 1120,
   margin: '0 auto',
   color: '#e5e7eb',
+  overflowX: 'clip' as const,
 };
 
 const shellCardStyle = {
@@ -548,12 +550,14 @@ const renderAnnotatedText = (text: string, ranges: TextAnchorRange[], activeInde
     nodes.push(
       <span
         key={`mark-${idx}`}
+        className="review-highlight"
         title={range.reason}
         style={{
           background: strong ? 'rgba(34,197,94,0.24)' : 'rgba(248,113,113,0.22)',
           color: strong ? '#bbf7d0' : '#fecaca',
           borderBottom: strong ? '1px solid rgba(74, 222, 128, 0.65)' : '1px solid rgba(248, 113, 113, 0.7)',
           borderRadius: 3,
+          animationDelay: `${Math.min(idx, 12) * 120}ms`,
           boxShadow: idx === activeIndex
             ? (strong ? '0 0 0 1px rgba(74,222,128,0.65), 0 0 18px rgba(74,222,128,0.42)' : '0 0 0 1px rgba(248,113,113,0.55), 0 0 16px rgba(248,113,113,0.35)')
             : (strong ? '0 0 0 1px rgba(34,197,94,0.22)' : '0 0 0 1px rgba(248,113,113,0.18)'),
@@ -1065,10 +1069,10 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const [hydrationStatus, setHydrationStatus] = useState(getWritingHydrationStatus());
   const [persistenceStatus, setPersistenceStatus] = useState(getWritingPersistenceStatus());
   const [isRefreshingProgress, setIsRefreshingProgress] = useState(false);
-  const [isGenreSwitching, setIsGenreSwitching] = useState(false);
   const [showTaskTypeGuide, setShowTaskTypeGuide] = useState(false);
   const [showTaskContextModal, setShowTaskContextModal] = useState(false);
   const [showAiReviewModal, setShowAiReviewModal] = useState(false);
+  const [showProgressDetailsModal, setShowProgressDetailsModal] = useState(false);
   const [submittedPracticeText, setSubmittedPracticeText] = useState('');
   const [reviewScanCount, setReviewScanCount] = useState(0);
   const [reviewScanComplete, setReviewScanComplete] = useState(false);
@@ -1077,6 +1081,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const [repairStatusMessage, setRepairStatusMessage] = useState<string>('');
   const [viewedRepairIds, setViewedRepairIds] = useState<string[]>([]);
   const closeModalButtonRef = useRef<HTMLButtonElement | null>(null);
+  const closeProgressDetailsButtonRef = useRef<HTMLButtonElement | null>(null);
   const firstRepairButtonRef = useRef<HTMLButtonElement | null>(null);
   const practiceTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const feedbackCardRef = useRef<HTMLElement | null>(null);
@@ -1310,7 +1315,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     const pathRefs = writingPathButtonRefs.current;
     if (!pathRefs) return;
     keepHorizontalItemInView(writingPathCarouselRef.current, pathRefs[activeGenre] ?? null);
-  }, [activeGenre, isGenreSwitching, initializing]);
+  }, [activeGenre, initializing]);
 
   useEffect(() => {
     if (missionRecommendations.length === 0) {
@@ -1338,6 +1343,28 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     window.addEventListener('keydown', onEscape);
     return () => window.removeEventListener('keydown', onEscape);
   }, [showTaskContextModal]);
+
+  useEffect(() => {
+    if (!showAiReviewModal) return;
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setShowAiReviewModal(false);
+    };
+    window.addEventListener('keydown', onEscape);
+    return () => window.removeEventListener('keydown', onEscape);
+  }, [showAiReviewModal]);
+
+  useEffect(() => {
+    if (!showProgressDetailsModal) return;
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setShowProgressDetailsModal(false);
+    };
+    window.addEventListener('keydown', onEscape);
+    const timer = window.setTimeout(() => closeProgressDetailsButtonRef.current?.focus(), 0);
+    return () => {
+      window.removeEventListener('keydown', onEscape);
+      window.clearTimeout(timer);
+    };
+  }, [showProgressDetailsModal]);
 
   useEffect(() => {
     if (!showTaskContextModal) return;
@@ -1408,17 +1435,6 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     const unsubscribe = subscribeToWritingPersistenceStatus((status) => setPersistenceStatus(status));
     return () => unsubscribe();
   }, []);
-
-  useEffect(() => {
-    if (!isGenreSwitching) return;
-    if (initializing) return;
-    if (genreStatuses.ok) {
-      setIsGenreSwitching(false);
-      setUiNotice((currentNotice) => (
-        currentNotice.endsWith('Loading your progress for this writing path…') ? '' : currentNotice
-      ));
-    }
-  }, [isGenreSwitching, initializing, genreStatuses.ok, activeGenre]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1732,7 +1748,6 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
 
   const handleChangeWritingType = (nextGenre: SupportedGenre) => {
     if (nextGenre === activeGenre) return;
-    setIsGenreSwitching(true);
     setActiveGenre(nextGenre);
     setPromptText(defaultPromptByGenre[nextGenre]);
     setInitialResponse('');
@@ -1749,7 +1764,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     setReviewScanCount(0);
     setReviewScanComplete(false);
     setReviewActiveIndex(null);
-    setUiNotice(`${toGenreLabel(nextGenre)} path selected. Loading your progress for this writing path…`);
+    setUiNotice(`${toGenreLabel(nextGenre)} path selected.`);
   };
 
   useEffect(() => {
@@ -1853,6 +1868,10 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           box-shadow: 0 0 14px rgba(34, 211, 238, 0.7);
           animation: analysisPulse 1.2s ease-in-out infinite;
         }
+        .review-highlight {
+          display: inline;
+          animation: highlightReveal 420ms ease both;
+        }
         .dashboard-grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
         .focus-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
         .mini-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
@@ -1907,6 +1926,9 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           .phone-submit-bar { display: none; }
           .touch-friendly-field { min-height: 120px !important; }
         }
+        @media (max-width: 859px) {
+          .writing-hub-card { min-width: 0; }
+        }
         @media (min-width: 1120px) {
           .focus-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
         }
@@ -1927,9 +1949,13 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
         @keyframes textScanFlow {
           100% { transform: translateX(100%); }
         }
+        @keyframes highlightReveal {
+          from { opacity: 0; filter: saturate(0.4); }
+          to { opacity: 1; filter: saturate(1); }
+        }
       `}</style>
 
-      {initializing || isGenreSwitching ? renderLoadingSkeleton() : (
+      {initializing ? renderLoadingSkeleton() : (
         <>
           <section className="writing-hub-card" style={missionCardStyle}>
             <p style={{ margin: 0, color: '#dbeafe', fontWeight: 700, fontSize: 13 }}>
@@ -2305,102 +2331,23 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   <p style={{ margin: '0 0 10px', color: '#86efac', fontSize: 14 }}>
                     Next step: {toStudentLabel(nextWeekInputs?.carry_forward_primary_target ?? 'Keep building your weekly focus skills.')}
                   </p>
-                  <details style={{ border: '1px solid rgba(148, 163, 184, 0.35)', borderRadius: 10, padding: 10, background: 'rgba(15,23,42,0.4)' }}>
-                    <summary style={{ cursor: 'pointer', color: '#cbd5e1', fontWeight: 700 }}>View full progress details</summary>
-                    <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
-                      <div className="focus-grid">
-                        {subscaleCards.map((item) => {
-                          const tone = getProgressTone(item.score);
-                          const scorePercent = item.score == null ? 0 : Math.max(0, Math.min(100, (item.score / 5) * 100));
-                          return (
-                            <div
-                              key={item.key}
-                              style={{
-                                borderRadius: 12,
-                                border: `1px solid ${tone.glow}`,
-                                background: 'rgba(15, 23, 42, 0.55)',
-                                padding: 10,
-                                display: 'grid',
-                                gap: 6,
-                              }}
-                            >
-                              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
-                                <p style={{ margin: 0, color: '#dbeafe', fontSize: 13, fontWeight: 700 }}>{item.label}</p>
-                                <p style={{ margin: 0, color: '#f8fafc', fontSize: 13, fontWeight: 800 }}>
-                                  {item.score == null ? '— / 5' : `${item.score}/5`}
-                                </p>
-                              </div>
-                              <div style={{ ...progressTrackStyle, height: 8 }}>
-                                <div className="progress-fill" style={{ width: `${scorePercent}%`, height: '100%', background: tone.color }} />
-                              </div>
-                              <p style={{ margin: 0, fontSize: 12, color: '#93c5fd' }}>
-                                {tone.label}
-                                {item.delta != null ? ` · ${item.delta >= 0 ? '+' : ''}${item.delta.toFixed(1)} this month` : ''}
-                              </p>
-                            </div>
-                          );
-                        })}
-                      </div>
-
-                      <p style={{ margin: 0, color: '#bfdbfe' }}>Main focus: {toStudentLabel(dashboard.data?.weekly_plan_summary?.primary ?? 'Not set yet')}</p>
-                      <details style={{ border: '1px solid rgba(148, 163, 184, 0.3)', borderRadius: 10, padding: 10, background: 'rgba(2, 6, 23, 0.45)' }}>
-                        <summary style={{ cursor: 'pointer', color: '#93c5fd', fontWeight: 700 }}>Grammar, punctuation & style details</summary>
-                        <div style={{ marginTop: 8, display: 'grid', gap: 8 }}>
-                          <details style={{ border: '1px solid rgba(244, 114, 182, 0.35)', borderRadius: 10, padding: 8, background: 'rgba(30,27,75,0.35)' }}>
-                            <summary style={{ cursor: 'pointer', color: '#f9a8d4', fontWeight: 700 }}>Grammar fixes</summary>
-                            <div style={{ marginTop: 8 }}>
-                              {(aiFeedbackDetails?.grammar_fixes?.length ?? 0) > 0 ? (aiFeedbackDetails?.grammar_fixes ?? []).map((item, idx) => (
-                                <div key={`progress-grammar-${idx}`} style={{ marginBottom: 8 }}>
-                                  <p style={{ margin: 0, color: '#e2e8f0' }}><strong>Original:</strong> “{item.original}”</p>
-                                  <p style={{ margin: 0, color: '#cbd5e1' }}><strong>Issue:</strong> {item.issue}</p>
-                                  <p style={{ margin: 0, color: '#a7f3d0' }}><strong>Better:</strong> {item.better_version}</p>
-                                </div>
-                              )) : <p style={{ margin: 0, color: '#94a3b8' }}>No grammar fixes were flagged in this pass.</p>}
-                            </div>
-                          </details>
-
-                          <details style={{ border: '1px solid rgba(250, 204, 21, 0.35)', borderRadius: 10, padding: 8, background: 'rgba(51, 65, 85, 0.45)' }}>
-                            <summary style={{ cursor: 'pointer', color: '#fde68a', fontWeight: 700 }}>Punctuation fixes</summary>
-                            <div style={{ marginTop: 8 }}>
-                              {(aiFeedbackDetails?.punctuation_fixes?.length ?? 0) > 0 ? (aiFeedbackDetails?.punctuation_fixes ?? []).map((item, idx) => (
-                                <div key={`progress-punctuation-${idx}`} style={{ marginBottom: 8 }}>
-                                  <p style={{ margin: 0, color: '#e2e8f0' }}><strong>Original:</strong> “{item.original}”</p>
-                                  <p style={{ margin: 0, color: '#cbd5e1' }}><strong>Issue:</strong> {item.issue}</p>
-                                  <p style={{ margin: 0, color: '#a7f3d0' }}><strong>Better:</strong> {item.better_version}</p>
-                                </div>
-                              )) : <p style={{ margin: 0, color: '#94a3b8' }}>No punctuation fixes were flagged in this pass.</p>}
-                            </div>
-                          </details>
-
-                          <details style={{ border: '1px solid rgba(167, 139, 250, 0.35)', borderRadius: 10, padding: 8, background: 'rgba(30,27,75,0.35)' }}>
-                            <summary style={{ cursor: 'pointer', color: '#c4b5fd', fontWeight: 700 }}>Natural phrase upgrades</summary>
-                            <div style={{ marginTop: 8 }}>
-                              {(aiFeedbackDetails?.natural_phrase_upgrades?.length ?? 0) > 0 ? (aiFeedbackDetails?.natural_phrase_upgrades ?? []).map((item, idx) => (
-                                <div key={`progress-phrase-${idx}`} style={{ marginBottom: 8 }}>
-                                  <p style={{ margin: 0, color: '#e2e8f0' }}><strong>Original:</strong> “{item.original}”</p>
-                                  <p style={{ margin: 0, color: '#a7f3d0' }}><strong>Upgrade:</strong> {item.better_version}</p>
-                                  <p style={{ margin: 0, color: '#cbd5e1' }}><strong>Why:</strong> {item.why_it_helps}</p>
-                                </div>
-                              )) : <p style={{ margin: 0, color: '#94a3b8' }}>No phrase upgrades were flagged in this pass.</p>}
-                            </div>
-                          </details>
-                        </div>
-                      </details>
-                      {!showMonthlyEvidence ? (
-                        <p style={{ margin: 0, color: '#94a3b8' }}>Complete more writing this month to unlock your growth view.</p>
-                      ) : (
-                        <>
-                          <p style={{ margin: 0, color: '#bfdbfe' }}>Monthly growth</p>
-                          <p style={{ margin: 0 }}>{toStudentLabel(monthlyFacingReport?.score_change ?? '')}</p>
-                          {aiMonthlyWording && <p style={{ margin: 0, color: '#bfdbfe' }}>{aiMonthlyWording}</p>}
-                          <p style={{ margin: 0, color: '#94a3b8' }}>{monthlyFacingReport?.subscale_progress.join(' ')}</p>
-                          <p style={{ margin: 0, color: '#86efac' }}>Strongest gains: {monthlyFacingReport?.strongest_gains.map((item) => toStudentLabel(item)).join(', ')}</p>
-                          <p style={{ margin: 0, color: '#fca5a5' }}>Main blocker: {toStudentLabel(monthlyFacingReport?.remaining_blockers[0] ?? 'None right now')}</p>
-                          <p style={{ margin: 0, color: '#93c5fd' }}>Next step: {toStudentLabel(monthlyFacingReport?.next_month_priorities[0] ?? 'Keep completing your weekly writing tasks.')}</p>
-                        </>
-                      )}
-                    </div>
-                  </details>
+                  <button
+                    type="button"
+                    onClick={() => setShowProgressDetailsModal(true)}
+                    style={{
+                      marginTop: 2,
+                      padding: '10px 12px',
+                      width: '100%',
+                      borderRadius: 10,
+                      border: '1px solid rgba(148, 163, 184, 0.45)',
+                      background: 'rgba(15,23,42,0.45)',
+                      color: '#cbd5e1',
+                      cursor: 'pointer',
+                      fontWeight: 700,
+                    }}
+                  >
+                    Open full progress details
+                  </button>
                 </section>
 
                 <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(168, 85, 247, 0.42)', background: 'linear-gradient(175deg, #0f172a 0%, #171432 58%, #0b1224 100%)' }}>
@@ -2736,6 +2683,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             placeItems: 'center',
             background: 'rgba(2, 6, 23, 0.78)',
             padding: 16,
+            overflowY: 'auto',
           }}
         >
           <div
@@ -2743,12 +2691,14 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             onClick={(event: { stopPropagation: () => void }) => event.stopPropagation()}
             style={{
               width: 'min(840px, 100%)',
+              maxHeight: 'calc(100vh - 32px)',
               borderRadius: 18,
               border: '1px solid rgba(125, 211, 252, 0.4)',
               background: 'linear-gradient(180deg, rgba(10,18,35,0.98) 0%, rgba(11,15,28,0.98) 100%)',
               boxShadow: '0 28px 60px rgba(2, 6, 23, 0.75)',
               padding: 16,
-              overflow: 'hidden',
+              overflowY: 'auto',
+              overscrollBehavior: 'contain',
               display: 'grid',
               gap: 12,
             }}
@@ -2925,6 +2875,60 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   Start revision
                 </button>
               </div>
+            )}
+          </div>
+        </div>
+      ), document.body)}
+
+      {showProgressDetailsModal && createPortal((
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Full progress details"
+          onClick={() => setShowProgressDetailsModal(false)}
+          style={{ position: 'fixed', inset: 0, zIndex: 1125, display: 'grid', placeItems: 'center', background: 'rgba(2, 6, 23, 0.78)', padding: 16 }}
+        >
+          <div
+            onClick={(event: { stopPropagation: () => void }) => event.stopPropagation()}
+            style={{ width: 'min(900px, 100%)', maxHeight: 'calc(100vh - 32px)', borderRadius: 16, border: '1px solid rgba(148,163,184,0.4)', background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', padding: 14, overflowY: 'auto', display: 'grid', gap: 10 }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+              <p style={{ margin: 0, color: '#e2e8f0', fontSize: 17, fontWeight: 800 }}>Full progress details</p>
+              <button
+                type="button"
+                ref={closeProgressDetailsButtonRef}
+                onClick={() => setShowProgressDetailsModal(false)}
+                aria-label="Close full progress details"
+                style={{ borderRadius: 999, border: '1px solid rgba(148,163,184,0.45)', background: 'rgba(15,23,42,0.75)', color: '#e2e8f0', width: 34, height: 34, fontSize: 18, cursor: 'pointer' }}
+              >
+                ×
+              </button>
+            </div>
+            <div className="focus-grid">
+              {subscaleCards.map((item) => {
+                const tone = getProgressTone(item.score);
+                const scorePercent = item.score == null ? 0 : Math.max(0, Math.min(100, (item.score / 5) * 100));
+                return (
+                  <div key={item.key} style={{ borderRadius: 12, border: `1px solid ${tone.glow}`, background: 'rgba(15, 23, 42, 0.55)', padding: 10, display: 'grid', gap: 6 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
+                      <p style={{ margin: 0, color: '#dbeafe', fontSize: 13, fontWeight: 700 }}>{item.label}</p>
+                      <p style={{ margin: 0, color: '#f8fafc', fontSize: 13, fontWeight: 800 }}>{item.score == null ? '— / 5' : `${item.score}/5`}</p>
+                    </div>
+                    <div style={{ ...progressTrackStyle, height: 8 }}>
+                      <div className="progress-fill" style={{ width: `${scorePercent}%`, height: '100%', background: tone.color }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <p style={{ margin: 0, color: '#bfdbfe' }}>Main focus: {toStudentLabel(dashboard.data?.weekly_plan_summary?.primary ?? 'Not set yet')}</p>
+            {!showMonthlyEvidence ? (
+              <p style={{ margin: 0, color: '#94a3b8' }}>Complete more writing this month to unlock your growth view.</p>
+            ) : (
+              <>
+                <p style={{ margin: 0, color: '#bfdbfe' }}>Monthly growth</p>
+                <p style={{ margin: 0 }}>{toStudentLabel(monthlyFacingReport?.score_change ?? '')}</p>
+              </>
             )}
           </div>
         </div>
