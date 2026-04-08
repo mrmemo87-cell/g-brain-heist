@@ -563,51 +563,15 @@ const buildFallbackHighlightRanges = (text: string, ai: WritingAiFeedbackAssist 
 };
 
 interface ReviewHighlightSpanProps {
+  index: number;
   range: TextAnchorRange;
   segment: string;
   isActive: boolean;
-  activeCycle: number | null;
+  onMount?: (index: number, element: HTMLSpanElement | null) => void;
 }
 
-const ReviewHighlightSpan: React.FC<ReviewHighlightSpanProps> = ({ range, segment, isActive, activeCycle }) => {
-  const overlayRef = useRef<HTMLSpanElement | null>(null);
+const ReviewHighlightSpan: React.FC<ReviewHighlightSpanProps> = ({ index, range, segment, isActive, onMount }) => {
   const strong = range.polarity === 'strong';
-  const swipeDuration = getHighlightAnimationDurationMs(segment.length) / 1000;
-
-  useEffect(() => {
-    const overlay = overlayRef.current;
-    if (!overlay) return;
-
-    gsap.killTweensOf(overlay);
-
-    if (!isActive) {
-      gsap.set(overlay, {
-        opacity: 0,
-        scaleX: 0,
-        xPercent: -10,
-        skewX: 0,
-        transformOrigin: 'left center',
-      });
-      return;
-    }
-
-    gsap.set(overlay, {
-      opacity: 0.92,
-      scaleX: 0,
-      xPercent: -14,
-      skewX: -8,
-      transformOrigin: 'left center',
-    });
-    gsap.to(overlay, {
-      opacity: 0.98,
-      scaleX: 1,
-      xPercent: 0,
-      skewX: 0,
-      duration: swipeDuration,
-      ease: 'power2.out',
-      overwrite: 'auto',
-    });
-  }, [isActive, activeCycle, swipeDuration]);
 
   const highlightStyle = {
     borderBottom: isActive
@@ -625,22 +589,24 @@ const ReviewHighlightSpan: React.FC<ReviewHighlightSpanProps> = ({ range, segmen
 
   return (
     <span
+      ref={(element: HTMLSpanElement | null) => onMount?.(index, element)}
+      data-review-highlight-index={index}
       className={`review-highlight ${strong ? 'review-highlight--strong' : 'review-highlight--weak'} ${isActive ? 'review-highlight--active' : 'review-highlight--inactive'}`}
       title={range.reason}
       style={highlightStyle}
     >
       <span className="review-highlight__ink-base" aria-hidden="true" />
-      <span
-        ref={overlayRef}
-        className="review-highlight__ink-swipe"
-        aria-hidden="true"
-      />
       <span className="review-highlight__text">{segment}</span>
     </span>
   );
 };
 
-const renderAnnotatedText = (text: string, ranges: TextAnchorRange[], activeIndex: number | null = null): React.ReactNode => {
+const renderAnnotatedText = (
+  text: string,
+  ranges: TextAnchorRange[],
+  activeIndex: number | null = null,
+  onHighlightMount?: (index: number, element: HTMLSpanElement | null) => void
+): React.ReactNode => {
   if (!text) return text;
   const normalizedRanges = [...ranges]
     .sort((a, b) => a.start - b.start || a.end - b.end)
@@ -660,10 +626,11 @@ const renderAnnotatedText = (text: string, ranges: TextAnchorRange[], activeInde
     const segment = text.slice(range.start, range.end);
     nodes.push(
       <ReviewHighlightSpan
+        index={idx}
         range={range}
         segment={segment}
         isActive={idx === activeIndex}
-        activeCycle={activeIndex}
+        onMount={onHighlightMount}
       />
     );
     cursor = range.end;
@@ -700,6 +667,84 @@ const buildBalancedReviewSequence = (ranges: TextAnchorRange[], maxItems = 8): T
   return ordered
     .slice(0, maxItems)
     .sort((a, b) => a.start - b.start || a.end - b.end);
+};
+
+type VisualLineRect = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+};
+
+const getVisualLineRectsForHighlight = (
+  scrollContainer: HTMLElement | null,
+  highlightElement: HTMLElement | null
+): VisualLineRect[] => {
+  if (!scrollContainer || !highlightElement) return [];
+  const textElement = highlightElement.querySelector('.review-highlight__text');
+  if (!textElement) return [];
+  const textNode = textElement.firstChild;
+  if (!textNode) return [];
+
+  const range = document.createRange();
+  range.setStart(textNode, 0);
+  range.setEnd(textNode, textNode.textContent?.length ?? 0);
+  const clientRects = Array.from(range.getClientRects()).filter((rect) => rect.width > 0.5 && rect.height > 0.5);
+  range.detach?.();
+  if (clientRects.length === 0) return [];
+
+  const containerRect = scrollContainer.getBoundingClientRect();
+  const grouped: Array<{ top: number; bottom: number; left: number; right: number; height: number }> = [];
+  const LINE_MERGE_THRESHOLD = 3;
+
+  clientRects
+    .sort((a, b) => a.top - b.top || a.left - b.left)
+    .forEach((rect) => {
+      const top = rect.top - containerRect.top + scrollContainer.scrollTop;
+      const left = rect.left - containerRect.left + scrollContainer.scrollLeft;
+      const right = left + rect.width;
+      const bottom = top + rect.height;
+      const existing = grouped.find((line) => Math.abs(line.top - top) <= LINE_MERGE_THRESHOLD);
+      if (existing) {
+        existing.left = Math.min(existing.left, left);
+        existing.right = Math.max(existing.right, right);
+        existing.top = Math.min(existing.top, top);
+        existing.bottom = Math.max(existing.bottom, bottom);
+        existing.height = Math.max(existing.height, rect.height);
+        return;
+      }
+      grouped.push({ top, bottom, left, right, height: rect.height });
+    });
+
+  return grouped
+    .sort((a, b) => a.top - b.top || a.left - b.left)
+    .map((line) => ({
+      top: line.top,
+      left: line.left,
+      width: Math.max(1, line.right - line.left),
+      height: Math.max(1, line.height),
+    }));
+};
+
+const scrollLineIntoComfortZone = (scrollContainer: HTMLElement | null, line: VisualLineRect | null) => {
+  if (!scrollContainer || !line) return;
+  const viewHeight = scrollContainer.clientHeight;
+  const scrollTop = scrollContainer.scrollTop;
+  const comfortTop = scrollTop + viewHeight * 0.2;
+  const comfortBottom = scrollTop + viewHeight * 0.78;
+  const lineTop = line.top;
+  const lineBottom = line.top + line.height;
+  let nextTop: number | null = null;
+
+  if (lineTop < comfortTop) {
+    nextTop = lineTop - viewHeight * 0.28;
+  } else if (lineBottom > comfortBottom) {
+    nextTop = lineBottom - viewHeight * 0.72;
+  }
+
+  if (nextTop == null) return;
+  const clamped = Math.max(0, Math.min(nextTop, scrollContainer.scrollHeight - viewHeight));
+  scrollContainer.scrollTo({ top: clamped, behavior: 'smooth' });
 };
 
 const describeHighlight = (
@@ -1165,6 +1210,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const [submittedPracticeText, setSubmittedPracticeText] = useState('');
   const [reviewScanComplete, setReviewScanComplete] = useState(false);
   const [reviewActiveIndex, setReviewActiveIndex] = useState<number | null>(null);
+  const [activeLineRects, setActiveLineRects] = useState<VisualLineRect[]>([]);
   const [activeRepairId, setActiveRepairId] = useState<string | null>(null);
   const [repairStatusMessage, setRepairStatusMessage] = useState<string>('');
   const [viewedRepairIds, setViewedRepairIds] = useState<string[]>([]);
@@ -1178,6 +1224,9 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const preWeekComposeCardRef = useRef<HTMLElement | null>(null);
   const preWeekResponseRef = useRef<HTMLTextAreaElement | null>(null);
   const writingPathCarouselRef = useRef<HTMLDivElement | null>(null);
+  const reviewEssayPanelRef = useRef<HTMLDivElement | null>(null);
+  const highlightSpanRefs = useRef<Record<number, HTMLSpanElement | null>>({});
+  const activeLineOverlayRefs = useRef<Array<HTMLSpanElement | null>>([]);
   const writingPathButtonRefs: MutableRefObject<Partial<Record<SupportedGenre, HTMLButtonElement | null>> | null> =
     useRef<Partial<Record<SupportedGenre, HTMLButtonElement | null>>>({});
   const missionsCarouselRef = useRef<HTMLDivElement | null>(null);
@@ -1251,6 +1300,11 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     () => describeHighlight(activeReviewRange, submittedPracticeText, aiFeedbackDetails),
     [activeReviewRange, submittedPracticeText, aiFeedbackDetails]
   );
+  const handleReviewHighlightMount = (index: number, element: HTMLSpanElement | null) => {
+    const currentRefs = highlightSpanRefs.current ?? {};
+    currentRefs[index] = element;
+    highlightSpanRefs.current = currentRefs;
+  };
 
   const latestWeaknessTags = stateRes.ok && stateRes.data?.latest_assessment
     ? stateRes.data.latest_assessment.weakness_tags.slice(0, 3)
@@ -1447,6 +1501,66 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     window.addEventListener('keydown', onEscape);
     return () => window.removeEventListener('keydown', onEscape);
   }, [showAiReviewModal]);
+
+  useEffect(() => {
+    if (!showAiReviewModal || reviewActiveIndex == null) {
+      setActiveLineRects([]);
+      return;
+    }
+    const container = reviewEssayPanelRef.current;
+    const activeHighlight = (highlightSpanRefs.current ?? {})[reviewActiveIndex] ?? null;
+    const updateRects = () => setActiveLineRects(getVisualLineRectsForHighlight(container, activeHighlight));
+    updateRects();
+    const onResize = () => updateRects();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [showAiReviewModal, reviewActiveIndex, submittedPracticeText, visibleSubmittedHighlightRanges]);
+
+  useEffect(() => {
+    highlightSpanRefs.current = {};
+  }, [submittedPracticeText, visibleSubmittedHighlightRanges]);
+
+  useEffect(() => {
+    if (!showAiReviewModal || reviewActiveIndex == null || activeLineRects.length === 0) return;
+    const overlayElements = activeLineOverlayRefs.current ?? [];
+    if (!overlayElements.length) return;
+    const timeline = gsap.timeline();
+    overlayElements.forEach((element, idx) => {
+      if (!element) return;
+      gsap.set(element, {
+        opacity: 0.2,
+        scaleX: 0,
+        xPercent: -12,
+        skewX: -7,
+        transformOrigin: 'left center',
+      });
+      timeline.call(() => {
+        scrollLineIntoComfortZone(reviewEssayPanelRef.current, activeLineRects[idx] ?? null);
+      });
+      const lineDuration = Math.max(0.22, Math.min(0.7, activeLineRects[idx].width / 220));
+      timeline.to(element, {
+        opacity: 1,
+        scaleX: 1,
+        xPercent: 0,
+        skewX: 0,
+        duration: lineDuration,
+        ease: 'power2.out',
+      });
+      timeline.to(element, {
+        opacity: 0.48,
+        duration: 0.2,
+        ease: 'power1.out',
+      }, '>');
+    });
+    return () => {
+      timeline.kill();
+      overlayElements.forEach((element) => element && gsap.killTweensOf(element));
+    };
+  }, [showAiReviewModal, reviewActiveIndex, activeLineRects]);
+
+  useEffect(() => {
+    activeLineOverlayRefs.current = (activeLineOverlayRefs.current ?? []).slice(0, activeLineRects.length);
+  }, [activeLineRects.length]);
 
   useEffect(() => {
     if (!showProgressDetailsModal) return;
@@ -2926,6 +3040,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             <div className="ai-review-body" style={{ position: 'relative', zIndex: 1 }}>
               <div
                 className="ai-review-essay-panel"
+                ref={reviewEssayPanelRef}
                 style={{
                   position: 'relative',
                   zIndex: 1,
@@ -2952,7 +3067,37 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   }}
                 />
               )}
-              {renderAnnotatedText(submittedPracticeText, visibleSubmittedHighlightRanges, reviewActiveIndex)}
+              {renderAnnotatedText(submittedPracticeText, visibleSubmittedHighlightRanges, reviewActiveIndex, handleReviewHighlightMount)}
+              {activeLineRects.map((line, idx) => {
+                const isLast = idx === activeLineRects.length - 1;
+                return (
+                  <span
+                    key={`line-overlay-${reviewActiveIndex ?? 'none'}-${idx}`}
+                    ref={(element: HTMLSpanElement | null) => {
+                      const currentRefs = activeLineOverlayRefs.current ?? [];
+                      currentRefs[idx] = element;
+                      activeLineOverlayRefs.current = currentRefs;
+                    }}
+                    aria-hidden="true"
+                    style={{
+                      position: 'absolute',
+                      left: line.left - 2,
+                      top: line.top + 1,
+                      width: line.width + 4,
+                      height: Math.max(8, line.height - 1),
+                      borderRadius: 10,
+                      pointerEvents: 'none',
+                      mixBlendMode: 'screen',
+                      background: activeReviewRange?.polarity === 'strong'
+                        ? 'linear-gradient(90deg, rgba(74,222,128,0.42) 0%, rgba(134,239,172,0.8) 75%, rgba(220,252,231,0.95) 100%)'
+                        : 'linear-gradient(90deg, rgba(248,113,113,0.42) 0%, rgba(252,165,165,0.8) 75%, rgba(254,226,226,0.95) 100%)',
+                      boxShadow: isLast
+                        ? (activeReviewRange?.polarity === 'strong' ? '0 0 14px rgba(74,222,128,0.42)' : '0 0 14px rgba(248,113,113,0.38)')
+                        : (activeReviewRange?.polarity === 'strong' ? '0 0 9px rgba(74,222,128,0.24)' : '0 0 9px rgba(248,113,113,0.24)'),
+                    }}
+                  />
+                );
+              })}
               </div>
 
               <p style={{ position: 'relative', zIndex: 1, margin: 0, color: '#94a3b8', fontSize: 12 }}>
