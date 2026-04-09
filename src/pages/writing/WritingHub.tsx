@@ -181,33 +181,29 @@ export const buildWritingDashboardSnapshot = (
 
 type WritingHubThemeMode = 'dark' | 'light';
 
-const getPageStyle = (theme: WritingHubThemeMode) => ({
+const getPageStyle = (_theme: WritingHubThemeMode) => ({
   padding: 12,
   display: 'grid',
   gap: 12,
   width: '100%',
   maxWidth: 1120,
   margin: '0 auto',
-  color: theme === 'light' ? '#0f172a' : '#e5e7eb',
+  color: 'var(--hub-text)',
   overflowX: 'clip' as const,
 });
 
-const getShellCardStyle = (theme: WritingHubThemeMode) => ({
+const getShellCardStyle = (_theme: WritingHubThemeMode) => ({
   borderRadius: 20,
-  border: theme === 'light' ? '1px solid rgba(148, 163, 184, 0.45)' : '1px solid rgba(59, 130, 246, 0.25)',
-  background: theme === 'light'
-    ? 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)'
-    : 'linear-gradient(180deg, #0f172a 0%, #0b1224 100%)',
+  border: '1px solid var(--hub-border)',
+  background: 'var(--hub-surface-card)',
   padding: 16,
-  boxShadow: theme === 'light' ? '0 10px 24px rgba(15, 23, 42, 0.1)' : '0 10px 30px rgba(2, 6, 23, 0.45)',
+  boxShadow: 'var(--hub-shadow-card)',
 });
 
-const getMissionCardStyle = (theme: WritingHubThemeMode) => ({
-  ...getShellCardStyle(theme),
-  background: theme === 'light'
-    ? 'linear-gradient(155deg, #dbeafe 0%, #ede9fe 55%, #f8fafc 100%)'
-    : 'linear-gradient(155deg, #1d4ed8 0%, #312e81 55%, #0f172a 100%)',
-  border: theme === 'light' ? '1px solid rgba(99, 102, 241, 0.35)' : '1px solid rgba(147, 197, 253, 0.45)',
+const getMissionCardStyle = (_theme: WritingHubThemeMode) => ({
+  ...getShellCardStyle(_theme),
+  background: 'var(--hub-surface-hero)',
+  border: '1px solid var(--hub-border-strong)',
 });
 
 const dashboardSectionTitleStyle = {
@@ -223,8 +219,8 @@ const sectionLabelPillStyle = {
   alignItems: 'center',
   borderRadius: 999,
   padding: '5px 10px',
-  border: '1px solid rgba(148, 163, 184, 0.4)',
-  background: 'rgba(15, 23, 42, 0.45)',
+  border: '1px solid var(--hub-border)',
+  background: 'var(--hub-muted-surface-soft)',
   fontSize: 11,
   fontWeight: 800,
   letterSpacing: 0.4,
@@ -232,7 +228,7 @@ const sectionLabelPillStyle = {
 
 const progressTrackStyle = {
   height: 10,
-  background: 'rgba(148, 163, 184, 0.24)',
+  background: 'var(--hub-progress-track)',
   borderRadius: 999,
   overflow: 'hidden',
 };
@@ -240,9 +236,9 @@ const progressTrackStyle = {
 const fieldStyle = {
   width: '100%',
   borderRadius: 12,
-  border: '1px solid rgba(148, 163, 184, 0.4)',
-  background: 'rgba(15, 23, 42, 0.88)',
-  color: '#f8fafc',
+  border: '1px solid var(--hub-border)',
+  background: 'var(--hub-overlay-strong)',
+  color: 'var(--hub-text-strong)',
   padding: '12px 14px',
   fontSize: 15,
   lineHeight: 1.5,
@@ -269,10 +265,10 @@ const pillStyle = {
   gap: 6,
   borderRadius: 999,
   padding: '6px 10px',
-  border: '1px solid rgba(191, 219, 254, 0.35)',
-  background: 'rgba(15, 23, 42, 0.4)',
+  border: '1px solid var(--hub-border-strong)',
+  background: 'var(--hub-muted-surface-soft)',
   fontSize: 12,
-  color: '#dbeafe',
+  color: 'var(--hub-text-soft)',
   fontWeight: 700,
 };
 
@@ -1246,8 +1242,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const pageStyle = useMemo(() => getPageStyle(themeMode), [themeMode]);
   const shellCardStyle = useMemo(() => getShellCardStyle(themeMode), [themeMode]);
   const missionCardStyle = useMemo(() => getMissionCardStyle(themeMode), [themeMode]);
-  const headingColor = themeMode === 'light' ? '#0f172a' : '#f8fafc';
-  const headingSubtle = themeMode === 'light' ? '#334155' : '#dbeafe';
+  const headingColor = 'var(--hub-text-strong)';
+  const headingSubtle = 'var(--hub-text-soft)';
 
   const dashboard = useMemo(() => buildWritingDashboardSnapshot(studentId, month, activeGenre), [studentId, month, activeGenre, feedback]);
   const stateRes = getStudentWritingState(studentId, activeGenre);
@@ -2006,21 +2002,59 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
       <style>{`
         .writing-hub-root {
           --hub-bg: #020617;
-          --hub-text: #e2e8f0;
+          --hub-text: #dbe7ff;
+          --hub-text-strong: #f8fbff;
+          --hub-text-soft: #c5dcff;
+          --hub-text-muted: #cbd5e1;
+          --hub-text-accent: #bfdbfe;
+          --hub-text-accent-2: #93c5fd;
           --hub-subtext: #94a3b8;
-          --hub-panel: rgba(15, 23, 42, 0.75);
+          --hub-panel: rgba(10, 17, 32, 0.92);
+          --hub-overlay-soft: rgba(18, 30, 52, 0.92);
+          --hub-overlay-strong: rgba(10, 17, 32, 0.95);
+          --hub-surface-card: linear-gradient(180deg, #0e1a30 0%, #0a1326 100%);
+          --hub-surface-hero: linear-gradient(145deg, #1a47b8 0%, #38257f 55%, #0b1428 100%);
+          --hub-muted-surface: rgba(13, 27, 50, 0.86);
+          --hub-muted-surface-soft: rgba(30, 48, 79, 0.62);
+          --hub-accent-surface: rgba(34, 75, 198, 0.36);
+          --hub-progress-track: rgba(30, 41, 59, 0.9);
           --hub-border: rgba(148, 163, 184, 0.32);
+          --hub-border-strong: rgba(125, 211, 252, 0.5);
+          --hub-shadow-card: 0 16px 36px rgba(2, 6, 23, 0.5);
+          --hub-shadow-hover: 0 18px 36px rgba(8, 47, 73, 0.42);
+          --hub-hud-bg: rgba(8, 15, 30, 0.92);
+          --hub-hud-border: rgba(125, 211, 252, 0.35);
+          --hub-glass-blur: blur(6px);
           --marker-strong-base: rgba(74, 222, 128, 0.3);
           --marker-strong-mid: rgba(74, 222, 128, 0.44);
           --marker-weak-base: rgba(248, 113, 113, 0.28);
           --marker-weak-mid: rgba(248, 113, 113, 0.42);
         }
         .writing-hub-theme-light {
-          --hub-bg: #f8fafc;
+          --hub-bg: #eef4ff;
           --hub-text: #0f172a;
+          --hub-text-strong: #0b1220;
+          --hub-text-soft: #1e3a5f;
+          --hub-text-muted: #334155;
+          --hub-text-accent: #1d4ed8;
+          --hub-text-accent-2: #2563eb;
           --hub-subtext: #475569;
-          --hub-panel: rgba(255, 255, 255, 0.95);
-          --hub-border: rgba(148, 163, 184, 0.45);
+          --hub-panel: rgba(255, 255, 255, 0.96);
+          --hub-overlay-soft: rgba(248, 250, 255, 0.96);
+          --hub-overlay-strong: rgba(255, 255, 255, 0.98);
+          --hub-surface-card: linear-gradient(180deg, #ffffff 0%, #f5f9ff 100%);
+          --hub-surface-hero: linear-gradient(145deg, #dbeafe 0%, #ede9fe 52%, #f7f9ff 100%);
+          --hub-muted-surface: rgba(237, 245, 255, 0.94);
+          --hub-muted-surface-soft: rgba(223, 235, 252, 0.82);
+          --hub-accent-surface: rgba(191, 219, 254, 0.62);
+          --hub-progress-track: rgba(203, 213, 225, 0.72);
+          --hub-border: rgba(148, 163, 184, 0.46);
+          --hub-border-strong: rgba(59, 130, 246, 0.42);
+          --hub-shadow-card: 0 12px 24px rgba(15, 23, 42, 0.1);
+          --hub-shadow-hover: 0 14px 28px rgba(37, 99, 235, 0.16);
+          --hub-hud-bg: rgba(255, 255, 255, 0.92);
+          --hub-hud-border: rgba(59, 130, 246, 0.3);
+          --hub-glass-blur: blur(8px);
           --marker-strong-base: rgba(74, 222, 128, 0.24);
           --marker-strong-mid: rgba(74, 222, 128, 0.34);
           --marker-weak-base: rgba(248, 113, 113, 0.22);
@@ -2032,8 +2066,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
         }
         .writing-hub-card:hover {
           transform: translateY(-2px);
-          border-color: rgba(125, 211, 252, 0.45);
-          box-shadow: 0 14px 28px rgba(15, 23, 42, 0.42);
+          border-color: var(--hub-border-strong);
+          box-shadow: var(--hub-shadow-hover);
         }
         .writing-primary-button:hover:enabled { transform: translateY(-1px) scale(1.01); }
         .writing-primary-button:active:enabled { transform: translateY(1px) scale(0.99); }
@@ -2170,17 +2204,17 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 8px;
           padding: 8px;
-          border: 1px solid rgba(147, 197, 253, 0.35);
+          border: 1px solid var(--hub-hud-border);
           border-radius: 12px;
-          background: rgba(15, 23, 42, 0.88);
-          backdrop-filter: blur(5px);
+          background: var(--hub-hud-bg);
+          backdrop-filter: var(--hub-glass-blur);
         }
         .phone-quick-nav button {
           min-height: 42px;
           border-radius: 9px;
-          border: 1px solid rgba(147, 197, 253, 0.4);
-          background: rgba(30, 64, 175, 0.28);
-          color: #dbeafe;
+          border: 1px solid var(--hub-border-strong);
+          background: var(--hub-accent-surface);
+          color: var(--hub-text-soft);
           font-size: 12px;
           font-weight: 800;
           cursor: pointer;
@@ -2192,10 +2226,10 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           margin-top: 4px;
           padding: 10px;
           border-radius: 12px;
-          border: 1px solid rgba(147, 197, 253, 0.45);
-          background: rgba(15, 23, 42, 0.92);
-          backdrop-filter: blur(5px);
-          box-shadow: 0 10px 22px rgba(2, 6, 23, 0.42);
+          border: 1px solid var(--hub-hud-border);
+          background: var(--hub-hud-bg);
+          backdrop-filter: var(--hub-glass-blur);
+          box-shadow: var(--hub-shadow-card);
         }
         .phone-submit-bar .writing-primary-button {
           margin-top: 0 !important;
@@ -2279,9 +2313,9 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                 aria-label={`Switch to ${themeMode === 'dark' ? 'light' : 'dark'} theme`}
                 style={{
                   borderRadius: 999,
-                  border: '1px solid rgba(148, 163, 184, 0.5)',
-                  background: themeMode === 'dark' ? 'rgba(15,23,42,0.62)' : 'rgba(255,255,255,0.85)',
-                  color: themeMode === 'dark' ? '#e2e8f0' : '#0f172a',
+                  border: '1px solid var(--hub-border-strong)',
+                  background: 'var(--hub-hud-bg)',
+                  color: 'var(--hub-text-strong)',
                   fontSize: 12,
                   fontWeight: 700,
                   padding: '6px 10px',
@@ -2295,7 +2329,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
               {isPreWeek ? 'Welcome to your Writing Hub' : isWeekComplete ? 'Great work — week finished' : 'Your Writing Hub'}
             </h1>
             <div style={{ margin: '0 0 10px', display: 'grid', gap: 8 }}>
-              <label style={{ color: '#bfdbfe', fontSize: 13, fontWeight: 700 }}>
+              <label style={{ color: 'var(--hub-text-accent)', fontSize: 13, fontWeight: 700 }}>
                 Choose your writing path
               </label>
               <div
@@ -2333,19 +2367,19 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                         scrollSnapAlign: 'start',
                         textAlign: 'left',
                         borderRadius: 12,
-                        border: `1px solid ${isSelected ? 'rgba(125, 211, 252, 0.95)' : 'rgba(148, 163, 184, 0.35)'}`,
-                        background: isSelected ? 'rgba(30, 64, 175, 0.35)' : 'rgba(15, 23, 42, 0.75)',
+                        border: `1px solid ${isSelected ? 'var(--hub-border-strong)' : 'var(--hub-border)'}`,
+                        background: isSelected ? 'var(--hub-accent-surface)' : 'var(--hub-panel)',
                         padding: 10,
-                        color: '#e2e8f0',
+                        color: 'var(--hub-text)',
                         cursor: 'pointer',
                       }}
                     >
-                      <div style={{ fontWeight: 800, color: '#f8fafc', fontSize: 14 }}>{toGenreLabel(item)} path</div>
-                      <div style={{ fontSize: 12, color: '#bfdbfe', marginTop: 4 }}>
+                      <div style={{ fontWeight: 800, color: 'var(--hub-text-strong)', fontSize: 14 }}>{toGenreLabel(item)} path</div>
+                      <div style={{ fontSize: 12, color: 'var(--hub-text-accent)', marginTop: 4 }}>
                         {status ? toGenreStateCopy(status.status, status.current_day, status.completed_tasks_count, status.total_tasks_count) : 'Not started yet'}
                       </div>
                       {status && status.latest_score != null && (
-                        <div style={{ fontSize: 11, color: '#93c5fd', marginTop: 2 }}>Latest score: {status.latest_score}/20</div>
+                        <div style={{ fontSize: 11, color: 'var(--hub-text-accent-2)', marginTop: 2 }}>Latest score: {status.latest_score}/20</div>
                       )}
                       <div
                         style={{ marginTop: 6, ...progressTrackStyle, height: 6 }}
@@ -2370,8 +2404,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                     padding: '10px 12px',
                     borderRadius: 10,
                     border: '1px solid rgba(147, 197, 253, 0.65)',
-                    background: 'rgba(30, 41, 59, 0.95)',
-                    color: '#dbeafe',
+                    background: 'var(--hub-overlay-soft)',
+                    color: 'var(--hub-text-soft)',
                     fontWeight: 700,
                     cursor: loading ? 'not-allowed' : 'pointer',
                     opacity: loading ? 0.7 : 1,
@@ -2381,7 +2415,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                 </button>
               )}
             </div>
-            <p style={{ margin: 0, color: '#e2e8f0', fontSize: 15 }}>
+            <p style={{ margin: 0, color: 'var(--hub-text)', fontSize: 15 }}>
               {isPreWeek
                 ? 'Write one first response. We will find your weak areas and build your weekly writing plan.'
                 : isWeekComplete
@@ -2402,7 +2436,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                 <button type="button" onClick={() => scrollToSection(progressCardRef)}>Progress</button>
               </div>
             )}
-            {showNoWritingState && <p style={{ margin: '8px 0 0', color: '#bfdbfe', fontSize: 13 }}>No writing state yet</p>}
+            {showNoWritingState && <p style={{ margin: '8px 0 0', color: 'var(--hub-text-accent)', fontSize: 13 }}>No writing state yet</p>}
             {!isWeekComplete && (
               <div style={{ marginTop: 12 }} className="week-stage-wrap">
                 <div className="week-stage-track">
@@ -2425,13 +2459,13 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                         className="week-stage-node"
                         style={{
                           borderColor: isCurrent ? 'rgba(125,211,252,0.95)' : 'rgba(148,163,184,0.35)',
-                          background: isDone ? 'rgba(16,185,129,0.18)' : isCurrent ? 'rgba(30,64,175,0.35)' : 'rgba(15,23,42,0.65)',
+                          background: isDone ? 'rgba(16,185,129,0.18)' : isCurrent ? 'var(--hub-accent-surface)' : 'var(--hub-muted-surface)',
                         }}
                       >
-                        <div style={{ fontSize: 11, fontWeight: 800, color: isDone ? '#86efac' : isCurrent ? '#7dd3fc' : '#94a3b8' }}>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: isDone ? '#86efac' : isCurrent ? '#7dd3fc' : 'var(--hub-subtext)' }}>
                           {isDone ? '✓ Done' : isCurrent ? 'Now' : 'Next'}
                         </div>
-                        <div style={{ marginTop: 2, fontSize: 12, fontWeight: 700, color: '#dbeafe' }}>{stage.label}</div>
+                        <div style={{ marginTop: 2, fontSize: 12, fontWeight: 700, color: 'var(--hub-text-soft)' }}>{stage.label}</div>
                       </div>
                     );
                   })}
@@ -2443,20 +2477,20 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           {isPreWeek && (
             <>
               <section ref={preWeekComposeCardRef} className="writing-hub-card" style={shellCardStyle}>
-                <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 20, color: '#f8fafc' }}>Your writing task</h3>
-                <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 13, fontWeight: 700 }}>Task summary</p>
-                <p style={{ margin: '0 0 10px', color: '#e2e8f0', fontSize: 15 }}>{buildReadableTaskSummary(promptText)}</p>
+                <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 20, color: 'var(--hub-text-strong)' }}>Your writing task</h3>
+                <p style={{ margin: '0 0 8px', color: 'var(--hub-text-accent-2)', fontSize: 13, fontWeight: 700 }}>Task summary</p>
+                <p style={{ margin: '0 0 10px', color: 'var(--hub-text)', fontSize: 15 }}>{buildReadableTaskSummary(promptText)}</p>
                 <div style={{ ...fieldStyle, minHeight: 88, whiteSpace: 'pre-wrap' }}>{promptText}</div>
               </section>
 
               <section className="writing-hub-card" style={shellCardStyle}>
-                <h3 style={{ marginTop: 0, marginBottom: 6, fontSize: 20, color: '#f8fafc' }}>Write your first response</h3>
-                <p style={{ margin: '0 0 8px', color: '#bfdbfe', fontSize: 14 }}>
+                <h3 style={{ marginTop: 0, marginBottom: 6, fontSize: 20, color: 'var(--hub-text-strong)' }}>Write your first response</h3>
+                <p style={{ margin: '0 0 8px', color: 'var(--hub-text-accent)', fontSize: 14 }}>
                   Word count target: {toWordCountLabel(targetWordCount)}
                 </p>
-                <div style={{ margin: '0 0 8px', borderRadius: 12, border: `1px solid ${getWordCounterTone(initialResponseWordCount, targetWordCount).glow}`, background: 'rgba(15,23,42,0.72)', padding: 8 }}>
+                <div style={{ margin: '0 0 8px', borderRadius: 12, border: `1px solid ${getWordCounterTone(initialResponseWordCount, targetWordCount).glow}`, background: 'var(--hub-muted-surface)', padding: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
-                    <p style={{ margin: 0, color: '#dbeafe', fontSize: 12, fontWeight: 800 }}>Typed so far: {initialResponseWordCount} words</p>
+                    <p style={{ margin: 0, color: 'var(--hub-text-soft)', fontSize: 12, fontWeight: 800 }}>Typed so far: {initialResponseWordCount} words</p>
                     <span style={{ borderRadius: 999, padding: '3px 9px', fontSize: 11, fontWeight: 800, color: getWordCounterTone(initialResponseWordCount, targetWordCount).accent, border: `1px solid ${getWordCounterTone(initialResponseWordCount, targetWordCount).glow}` }}>
                       {getWordCounterTone(initialResponseWordCount, targetWordCount).label}
                     </span>
@@ -2465,7 +2499,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                     <div className="progress-fill" style={{ width: `${getWordCounterTone(initialResponseWordCount, targetWordCount).progress}%`, height: '100%', background: getWordCounterTone(initialResponseWordCount, targetWordCount).track }} />
                   </div>
                 </div>
-                <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12 }}>Try to stay close to this range.</p>
+                <p style={{ margin: '0 0 8px', color: 'var(--hub-text-accent-2)', fontSize: 12 }}>Try to stay close to this range.</p>
                 <textarea
                   ref={preWeekResponseRef}
                   value={initialResponse}
@@ -2492,39 +2526,39 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
               <div className="dashboard-grid">
                 <section ref={todayMissionCardRef} className="writing-hub-card" style={{ ...missionCardStyle, borderColor: 'rgba(125, 211, 252, 0.8)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                    <p style={{ ...dashboardSectionTitleStyle, color: '#dbeafe' }}>Today</p>
-                    <span style={{ ...sectionLabelPillStyle, color: '#bfdbfe', borderColor: 'rgba(147, 197, 253, 0.55)' }}>Action now</span>
+                    <p style={{ ...dashboardSectionTitleStyle, color: 'var(--hub-text-soft)' }}>Today</p>
+                    <span style={{ ...sectionLabelPillStyle, color: 'var(--hub-text-accent)', borderColor: 'rgba(147, 197, 253, 0.55)' }}>Action now</span>
                   </div>
-                  <h3 style={{ margin: '0 0 10px', fontSize: 24, color: '#f8fafc' }}>Today’s writing mission</h3>
+                  <h3 style={{ margin: '0 0 10px', fontSize: 24, color: 'var(--hub-text-strong)' }}>Today’s writing mission</h3>
                 {!todayTask.ok || !todayTask.data ? (
                   <div>
-                    <p style={{ margin: 0, color: '#cbd5e1' }}>Preparing today’s task…</p>
-                    <p style={{ margin: '6px 0 0', color: '#93c5fd', fontSize: 12 }}>If this takes longer, refresh and try again.</p>
+                    <p style={{ margin: 0, color: 'var(--hub-text-muted)' }}>Preparing today’s task…</p>
+                    <p style={{ margin: '6px 0 0', color: 'var(--hub-text-accent-2)', fontSize: 12 }}>If this takes longer, refresh and try again.</p>
                   </div>
                 ) : (
                   <>
-                      <h4 style={{ margin: '0 0 8px', color: '#f8fafc', fontSize: 18 }}>{taskTypeToFriendlyTitle(todayTask.data.task_type, todayTask.data.day_number)}</h4>
-                    <p style={{ margin: '0 0 6px', color: '#93c5fd', fontSize: 13, fontWeight: 700 }}>Today’s goal</p>
-                    <p style={{ margin: '0 0 8px', color: '#e2e8f0', fontSize: 15 }}>{simplifyStudentLanguage(aiTaskWording || taskTypeToFriendlyInstruction(todayTask.data.task_type))}</p>
-                    <p style={{ margin: '0 0 6px', color: '#93c5fd', fontSize: 13, fontWeight: 700 }}>Focus on this</p>
-                    <p style={{ margin: '0 0 8px', color: '#cbd5e1', fontSize: 14 }}>
+                      <h4 style={{ margin: '0 0 8px', color: 'var(--hub-text-strong)', fontSize: 18 }}>{taskTypeToFriendlyTitle(todayTask.data.task_type, todayTask.data.day_number)}</h4>
+                    <p style={{ margin: '0 0 6px', color: 'var(--hub-text-accent-2)', fontSize: 13, fontWeight: 700 }}>Today’s goal</p>
+                    <p style={{ margin: '0 0 8px', color: 'var(--hub-text)', fontSize: 15 }}>{simplifyStudentLanguage(aiTaskWording || taskTypeToFriendlyInstruction(todayTask.data.task_type))}</p>
+                    <p style={{ margin: '0 0 6px', color: 'var(--hub-text-accent-2)', fontSize: 13, fontWeight: 700 }}>Focus on this</p>
+                    <p style={{ margin: '0 0 8px', color: 'var(--hub-text-muted)', fontSize: 14 }}>
                       This helps you improve your weekly focus areas and raise your writing score step by step.
                     </p>
-                    <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 13 }}>Word count target: {toWordCountLabel(todayTask.data.expected_word_count)}</p>
-                    <div style={{ margin: '0 0 8px', borderRadius: 12, border: `1px solid ${getWordCounterTone(practiceResponseWordCount, todayTask.data.expected_word_count).glow}`, background: 'rgba(15,23,42,0.72)', padding: 8 }}>
+                    <p style={{ margin: '0 0 8px', color: 'var(--hub-text-accent-2)', fontSize: 13 }}>Word count target: {toWordCountLabel(todayTask.data.expected_word_count)}</p>
+                    <div style={{ margin: '0 0 8px', borderRadius: 12, border: `1px solid ${getWordCounterTone(practiceResponseWordCount, todayTask.data.expected_word_count).glow}`, background: 'var(--hub-muted-surface)', padding: 8 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
-                        <p style={{ margin: 0, color: '#dbeafe', fontSize: 12, fontWeight: 800 }}>Typed so far: {practiceResponseWordCount} words</p>
+                        <p style={{ margin: 0, color: 'var(--hub-text-soft)', fontSize: 12, fontWeight: 800 }}>Typed so far: {practiceResponseWordCount} words</p>
                         <span style={{ borderRadius: 999, padding: '3px 9px', fontSize: 11, fontWeight: 800, color: getWordCounterTone(practiceResponseWordCount, todayTask.data.expected_word_count).accent, border: `1px solid ${getWordCounterTone(practiceResponseWordCount, todayTask.data.expected_word_count).glow}` }}>
                           {getWordCounterTone(practiceResponseWordCount, todayTask.data.expected_word_count).label}
                         </span>
                       </div>
-                      <div style={{ marginTop: 6, height: 7, borderRadius: 999, background: 'rgba(51,65,85,0.8)', overflow: 'hidden' }}>
+                      <div style={{ marginTop: 6, height: 7, borderRadius: 999, background: 'var(--hub-progress-track)', overflow: 'hidden' }}>
                         <div className="progress-fill" style={{ width: `${getWordCounterTone(practiceResponseWordCount, todayTask.data.expected_word_count).progress}%`, height: '100%', background: getWordCounterTone(practiceResponseWordCount, todayTask.data.expected_word_count).track }} />
                       </div>
                     </div>
-                    <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12 }}>Try to stay close to this range.</p>
-                    <p style={{ margin: '0 0 6px', color: '#93c5fd', fontSize: 13, fontWeight: 700 }}>Try to do these 2 things</p>
-                    <ul style={{ margin: '0 0 10px', paddingLeft: 18, color: '#cbd5e1', fontSize: 14 }}>
+                    <p style={{ margin: '0 0 8px', color: 'var(--hub-text-accent-2)', fontSize: 12 }}>Try to stay close to this range.</p>
+                    <p style={{ margin: '0 0 6px', color: 'var(--hub-text-accent-2)', fontSize: 13, fontWeight: 700 }}>Try to do these 2 things</p>
+                    <ul style={{ margin: '0 0 10px', paddingLeft: 18, color: 'var(--hub-text-muted)', fontSize: 14 }}>
                       {todayTask.data.success_criteria.slice(0, 2).map((item) => (
                         <li key={item} style={{ marginBottom: 4 }}>{simplifyStudentLanguage(item)}</li>
                       ))}
@@ -2551,7 +2585,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                 </section>
                 {hasTaskToday && (
                   <div className="phone-submit-bar" role="region" aria-label="Quick submit bar for phone users">
-                    <p style={{ margin: '0 0 8px', color: '#bfdbfe', fontSize: 12, fontWeight: 700 }}>
+                    <p style={{ margin: '0 0 8px', color: 'var(--hub-text-accent)', fontSize: 12, fontWeight: 700 }}>
                       {practiceResponseWordCount} words typed · Keep going and submit when ready.
                     </p>
                     <button
@@ -2566,27 +2600,27 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   </div>
                 )}
 
-                <section ref={feedbackCardRef} className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(16, 185, 129, 0.42)', background: 'linear-gradient(168deg, #0f172a 0%, #122034 60%, #0b1224 100%)' }}>
+                <section ref={feedbackCardRef} className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'var(--hub-border-strong)', background: 'var(--hub-surface-card)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                    <p style={{ ...dashboardSectionTitleStyle, color: '#86efac' }}>Your Feedback</p>
-                    <span style={{ ...sectionLabelPillStyle, color: '#6ee7b7', borderColor: 'rgba(52, 211, 153, 0.4)' }}>Coaching</span>
+                    <p style={{ ...dashboardSectionTitleStyle, color: 'var(--hub-text-accent-2)' }}>Your Feedback</p>
+                    <span style={{ ...sectionLabelPillStyle, color: 'var(--hub-text-accent)', borderColor: 'var(--hub-border-strong)' }}>Coaching</span>
                   </div>
-                  <h3 style={{ marginTop: 0, marginBottom: 6, fontSize: 22, color: '#f8fafc' }}>Quick coaching snapshot</h3>
+                  <h3 style={{ marginTop: 0, marginBottom: 6, fontSize: 22, color: 'var(--hub-text-strong)' }}>Quick coaching snapshot</h3>
                 {isAnalyzingRichFeedback ? (
                   <div
                     className="analysis-shimmer"
                     role="status"
                     aria-live="polite"
                     style={{
-                      border: '1px solid rgba(56, 189, 248, 0.45)',
+                      border: '1px solid var(--hub-border-strong)',
                       borderRadius: 12,
                       padding: 12,
-                      background: 'linear-gradient(140deg, rgba(30,41,59,0.85) 0%, rgba(17,24,39,0.9) 55%, rgba(30,27,75,0.8) 100%)',
-                      boxShadow: '0 0 28px rgba(56, 189, 248, 0.18)',
+                      background: 'var(--hub-overlay-soft)',
+                      boxShadow: 'var(--hub-shadow-card)',
                     }}
                   >
-                    <p style={{ margin: '0 0 6px', color: '#67e8f9', fontWeight: 800, fontSize: 16 }}>Analyzing your writing…</p>
-                    <p style={{ margin: '0 0 10px', color: '#c4b5fd', fontSize: 14 }}>
+                    <p style={{ margin: '0 0 6px', color: 'var(--hub-text-accent-2)', fontWeight: 800, fontSize: 16 }}>Analyzing your writing…</p>
+                    <p style={{ margin: '0 0 10px', color: 'var(--hub-text-accent)', fontSize: 14 }}>
                       {['Reading your answer…', 'Checking task match…', 'Finding grammar fixes…', 'Preparing your next step…'][analysisStageIndex]}
                     </p>
                     <div style={{ display: 'flex', gap: 6, alignItems: 'center' }} aria-hidden="true">
@@ -2597,7 +2631,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   </div>
                 ) : aiFeedbackDetails ? (
                   <div style={{ display: 'grid', gap: 10 }}>
-                    <p style={{ margin: 0, color: '#a7f3d0', fontSize: 14 }}>
+                    <p style={{ margin: 0, color: 'var(--hub-text-accent-2)', fontSize: 14 }}>
                       AI review is ready. Open the cinematic feedback view to see strengths, corrections, and your next move.
                     </p>
                     <button
@@ -2608,12 +2642,12 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                     >
                       Open cinematic AI review
                     </button>
-                    <p style={{ margin: 0, color: '#93c5fd', fontSize: 13 }}>
+                    <p style={{ margin: 0, color: 'var(--hub-text-accent-2)', fontSize: 13 }}>
                       {feedback || (completedTasksCount > 0 ? `Great consistency. You completed ${completedTasksCount} task${completedTasksCount === 1 ? '' : 's'} this week.` : 'Great start. Your progress grows every day you submit.')}
                     </p>
                   </div>
                 ) : (
-                  <p style={{ margin: 0, color: feedback ? '#a7f3d0' : '#94a3b8', fontSize: 15 }}>
+                  <p style={{ margin: 0, color: feedback ? 'var(--hub-text-accent-2)' : 'var(--hub-subtext)', fontSize: 15 }}>
                     {feedback || (completedTasksCount > 0 ? `Great consistency. You completed ${completedTasksCount} task${completedTasksCount === 1 ? '' : 's'} this week.` : 'Great start. Your progress grows every day you submit.')}
                   </p>
                 )}
@@ -2621,27 +2655,27 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
               </div>
 
               <div className="dashboard-grid">
-                <section ref={progressCardRef} className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(96, 165, 250, 0.55)', background: 'linear-gradient(180deg, #0f172a 0%, #111b34 100%)' }}>
+                <section ref={progressCardRef} className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'var(--hub-border-strong)', background: 'var(--hub-surface-card)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                    <p style={{ ...dashboardSectionTitleStyle, color: '#93c5fd' }}>Your Progress</p>
-                    <span style={{ ...sectionLabelPillStyle, color: '#bfdbfe', borderColor: 'rgba(147, 197, 253, 0.45)' }}>Snapshot</span>
+                    <p style={{ ...dashboardSectionTitleStyle, color: 'var(--hub-text-accent-2)' }}>Your Progress</p>
+                    <span style={{ ...sectionLabelPillStyle, color: 'var(--hub-text-accent)', borderColor: 'var(--hub-border-strong)' }}>Snapshot</span>
                   </div>
-                  <h3 style={{ margin: '0 0 8px', fontSize: 21, color: '#f8fafc' }}>Progress at a glance</h3>
-                  <p style={{ margin: '0 0 8px', color: '#dbeafe', fontSize: 15 }}>
+                  <h3 style={{ margin: '0 0 8px', fontSize: 21, color: 'var(--hub-text-strong)' }}>Progress at a glance</h3>
+                  <p style={{ margin: '0 0 8px', color: 'var(--hub-text-soft)', fontSize: 15 }}>
                     Current score: <strong>{progressAssessment?.total_score != null ? `${progressAssessment.total_score}/20` : 'Waiting for first score'}</strong>
                   </p>
-                  <p style={{ margin: '0 0 8px', color: '#bfdbfe', fontSize: 14 }}>
+                  <p style={{ margin: '0 0 8px', color: 'var(--hub-text-accent)', fontSize: 14 }}>
                     Weekly focus: {aiWeeklyFocus || 'We picked your focus areas based on your first writing.'}
                   </p>
-                  <p style={{ margin: '0 0 8px', color: '#e2e8f0', fontSize: 14 }}>
+                  <p style={{ margin: '0 0 8px', color: 'var(--hub-text)', fontSize: 14 }}>
                     What’s improving: {showWeeklyEvidence
                       ? `You completed ${weeklySummary?.completed_tasks} task${weeklySummary?.completed_tasks === 1 ? '' : 's'} this week.`
                       : 'You are building consistency. Keep submitting daily tasks.'}
                   </p>
-                  <p style={{ margin: '0 0 10px', color: '#93c5fd', fontSize: 14 }}>
+                  <p style={{ margin: '0 0 10px', color: 'var(--hub-text-accent-2)', fontSize: 14 }}>
                     What to work on today: {toStudentLabel(nextWeekInputs?.carry_forward_primary_target ?? weeklyGoals[0] ?? 'Keep building your weekly focus skills.')}
                   </p>
-                  <p style={{ margin: '0 0 10px', color: '#86efac', fontSize: 14 }}>
+                  <p style={{ margin: '0 0 10px', color: 'var(--hub-text-accent-2)', fontSize: 14 }}>
                     Next step: {toStudentLabel(nextWeekInputs?.carry_forward_primary_target ?? 'Keep building your weekly focus skills.')}
                   </p>
                   <button
@@ -2652,9 +2686,9 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                       padding: '10px 12px',
                       width: '100%',
                       borderRadius: 10,
-                      border: '1px solid rgba(148, 163, 184, 0.45)',
-                      background: 'rgba(15,23,42,0.45)',
-                      color: '#cbd5e1',
+                      border: '1px solid var(--hub-border)',
+                      background: 'var(--hub-muted-surface-soft)',
+                      color: 'var(--hub-text-muted)',
                       cursor: 'pointer',
                       fontWeight: 700,
                     }}
@@ -2668,7 +2702,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                     <p style={{ ...dashboardSectionTitleStyle, color: '#c4b5fd' }}>More Help</p>
                     <span style={{ ...sectionLabelPillStyle, color: '#d8b4fe', borderColor: 'rgba(192, 132, 252, 0.35)' }}>Optional support</span>
                   </div>
-                  <h3 style={{ margin: '0 0 8px', fontSize: 21, color: '#f8fafc' }}>Deep guides & references</h3>
+                  <h3 style={{ margin: '0 0 8px', fontSize: 21, color: 'var(--hub-text-strong)' }}>Deep guides & references</h3>
                   {missionRecommendations.length > 0 && (
                     <div style={{ marginBottom: 12, borderRadius: 12, border: '1px solid rgba(196, 181, 253, 0.45)', background: 'rgba(30, 27, 75, 0.35)', padding: 10 }}>
                       <p style={{ margin: '0 0 6px', color: '#d8b4fe', fontSize: 12, fontWeight: 800, letterSpacing: 0.2 }}>RECOMMENDED PRACTICE MISSIONS</p>
@@ -2702,13 +2736,13 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                               scrollSnapAlign: 'start',
                             }}
                           >
-                            <p style={{ margin: 0, color: '#f8fafc', fontSize: 14, fontWeight: 700 }}>{item.title}</p>
-                            <p style={{ margin: '3px 0 0', color: '#bfdbfe', fontSize: 12 }}>
+                            <p style={{ margin: 0, color: 'var(--hub-text-strong)', fontSize: 14, fontWeight: 700 }}>{item.title}</p>
+                            <p style={{ margin: '3px 0 0', color: 'var(--hub-text-accent)', fontSize: 12 }}>
                               {item.missionCategoryLabel}
                               {item.mission?.difficulty ? ` · ${item.mission.difficulty}` : ''}
                               {item.source === 'category_fallback' ? ' · Practice card' : ' · Mission'}
                             </p>
-                            <p style={{ margin: '6px 0 0', color: '#e2e8f0', fontSize: 13 }}>{item.reason}</p>
+                            <p style={{ margin: '6px 0 0', color: 'var(--hub-text)', fontSize: 13 }}>{item.reason}</p>
                             <button
                               type="button"
                               onClick={() => {
@@ -2740,7 +2774,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                       </div>
                     </div>
                   )}
-                  <p style={{ margin: '0 0 8px', color: '#e2e8f0', fontSize: 14 }}>
+                  <p style={{ margin: '0 0 8px', color: 'var(--hub-text)', fontSize: 14 }}>
                     Target score range: {estimatedTargetRange ? `${estimatedTargetRange.low}–${estimatedTargetRange.high} / 20` : 'Will appear after first scoring'}
                   </p>
                   <button
@@ -2751,8 +2785,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                       padding: '8px 11px',
                       borderRadius: 10,
                       border: '1px solid rgba(147, 197, 253, 0.65)',
-                      background: 'rgba(30, 41, 59, 0.95)',
-                      color: '#dbeafe',
+                      background: 'var(--hub-overlay-soft)',
+                      color: 'var(--hub-text-soft)',
                       cursor: 'pointer',
                       fontWeight: 700,
                       fontSize: 13,
@@ -2761,25 +2795,25 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                     {showTaskTypeGuide ? 'Hide detailed task guide' : 'Show detailed task guide'}
                   </button>
                   {showTaskTypeGuide && todayTask.ok && todayTask.data && (
-                    <div style={{ borderRadius: 12, border: '1px solid rgba(147, 197, 253, 0.45)', background: 'rgba(15, 23, 42, 0.45)', padding: 12, marginBottom: 10 }}>
-                      <p style={{ margin: '0 0 6px', color: '#93c5fd', fontSize: 12, fontWeight: 800 }}>How to answer this task type</p>
-                      <p style={{ margin: '0 0 8px', color: '#e2e8f0', fontSize: 14 }}>
+                    <div style={{ borderRadius: 12, border: '1px solid rgba(147, 197, 253, 0.45)', background: 'var(--hub-muted-surface-soft)', padding: 12, marginBottom: 10 }}>
+                      <p style={{ margin: '0 0 6px', color: 'var(--hub-text-accent-2)', fontSize: 12, fontWeight: 800 }}>How to answer this task type</p>
+                      <p style={{ margin: '0 0 8px', color: 'var(--hub-text)', fontSize: 14 }}>
                         <strong>Goal:</strong> {getTaskTypeStudyGuide(todayTask.data.task_type).objective}
                       </p>
-                      <p style={{ margin: '0 0 4px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Best structure</p>
-                      <ul style={{ margin: '0 0 8px', paddingLeft: 18, color: '#cbd5e1', fontSize: 13 }}>
+                      <p style={{ margin: '0 0 4px', color: 'var(--hub-text-accent-2)', fontSize: 12, fontWeight: 700 }}>Best structure</p>
+                      <ul style={{ margin: '0 0 8px', paddingLeft: 18, color: 'var(--hub-text-muted)', fontSize: 13 }}>
                         {getTaskTypeStudyGuide(todayTask.data.task_type).structure.map((item) => (
                           <li key={item} style={{ marginBottom: 3 }}>{item}</li>
                         ))}
                       </ul>
-                      <p style={{ margin: '0 0 4px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Check before you submit</p>
-                      <ul style={{ margin: '0 0 8px', paddingLeft: 18, color: '#cbd5e1', fontSize: 13 }}>
+                      <p style={{ margin: '0 0 4px', color: 'var(--hub-text-accent-2)', fontSize: 12, fontWeight: 700 }}>Check before you submit</p>
+                      <ul style={{ margin: '0 0 8px', paddingLeft: 18, color: 'var(--hub-text-muted)', fontSize: 13 }}>
                         {getTaskTypeStudyGuide(todayTask.data.task_type).qualityChecks.map((item) => (
                           <li key={item} style={{ marginBottom: 3 }}>{item}</li>
                         ))}
                       </ul>
-                      <p style={{ margin: '0 0 4px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Common mistakes to avoid</p>
-                      <ul style={{ margin: 0, paddingLeft: 18, color: '#cbd5e1', fontSize: 13 }}>
+                      <p style={{ margin: '0 0 4px', color: 'var(--hub-text-accent-2)', fontSize: 12, fontWeight: 700 }}>Common mistakes to avoid</p>
+                      <ul style={{ margin: 0, paddingLeft: 18, color: 'var(--hub-text-muted)', fontSize: 13 }}>
                         {getTaskTypeStudyGuide(todayTask.data.task_type).pitfalls.map((item) => (
                           <li key={item} style={{ marginBottom: 3 }}>{item}</li>
                         ))}
@@ -2811,8 +2845,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             <section className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(250, 204, 21, 0.45)', background: 'linear-gradient(175deg,#1f2937 0%, #0b1224 80%)' }}>
               <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 22, color: '#fde68a' }}>Week complete 🎯</h3>
               <p style={{ margin: '0 0 8px', color: '#fef3c7', fontSize: 15 }}>You finished your writing mission. Nice consistency and progress. All tasks submitted for now.</p>
-              <p style={{ margin: '0 0 8px', color: '#dbeafe', fontSize: 14 }}>Tasks completed: {completedTasksCount}/{totalPlannedTasks}</p>
-              <p style={{ margin: '0 0 8px', color: '#bfdbfe', fontSize: 14 }}>
+              <p style={{ margin: '0 0 8px', color: 'var(--hub-text-soft)', fontSize: 14 }}>Tasks completed: {completedTasksCount}/{totalPlannedTasks}</p>
+              <p style={{ margin: '0 0 8px', color: 'var(--hub-text-accent)', fontSize: 14 }}>
                 What improved: {studentFriendlyWeaknesses.length > 0 ? studentFriendlyWeaknesses.slice(0, 2).join(' · ') : 'Your writing control and task focus improved.'}
               </p>
               <button
@@ -2829,7 +2863,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
 
           {!isActiveWeek && (
             <details className="writing-hub-card" style={{ ...shellCardStyle, borderColor: 'rgba(148, 163, 184, 0.28)' }}>
-              <summary style={{ cursor: 'pointer', fontWeight: 700, color: '#e2e8f0' }}>View your progress details</summary>
+              <summary style={{ cursor: 'pointer', fontWeight: 700, color: 'var(--hub-text)' }}>View your progress details</summary>
               <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
               <div className="focus-grid">
                 {subscaleCards.map((item) => {
@@ -2848,15 +2882,15 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
-                        <p style={{ margin: 0, color: '#dbeafe', fontSize: 13, fontWeight: 700 }}>{item.label}</p>
-                        <p style={{ margin: 0, color: '#f8fafc', fontSize: 13, fontWeight: 800 }}>
+                        <p style={{ margin: 0, color: 'var(--hub-text-soft)', fontSize: 13, fontWeight: 700 }}>{item.label}</p>
+                        <p style={{ margin: 0, color: 'var(--hub-text-strong)', fontSize: 13, fontWeight: 800 }}>
                           {item.score == null ? '— / 5' : `${item.score}/5`}
                         </p>
                       </div>
                       <div style={{ ...progressTrackStyle, height: 8 }}>
                         <div className="progress-fill" style={{ width: `${scorePercent}%`, height: '100%', background: tone.color }} />
                       </div>
-                      <p style={{ margin: 0, fontSize: 12, color: '#93c5fd' }}>
+                      <p style={{ margin: 0, fontSize: 12, color: 'var(--hub-text-accent-2)' }}>
                         {tone.label}
                         {item.delta != null ? ` · ${item.delta >= 0 ? '+' : ''}${item.delta.toFixed(1)} this month` : ''}
                       </p>
@@ -2865,16 +2899,16 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                 })}
               </div>
 
-              <p style={{ margin: 0, color: '#bfdbfe' }}>Main focus: {toStudentLabel(dashboard.data?.weekly_plan_summary?.primary ?? 'Not set yet')}</p>
+              <p style={{ margin: 0, color: 'var(--hub-text-accent)' }}>Main focus: {toStudentLabel(dashboard.data?.weekly_plan_summary?.primary ?? 'Not set yet')}</p>
               {!showWeeklyEvidence ? (
                 <>
-                  <p style={{ margin: 0, color: '#94a3b8' }}>You’re just getting started this week.</p>
-                  <p style={{ margin: 0, color: '#94a3b8' }}>Complete today’s task to unlock clearer progress feedback.</p>
+                  <p style={{ margin: 0, color: 'var(--hub-subtext)' }}>You’re just getting started this week.</p>
+                  <p style={{ margin: 0, color: 'var(--hub-subtext)' }}>Complete today’s task to unlock clearer progress feedback.</p>
                 </>
               ) : (
                 <>
-                  <p style={{ margin: 0, color: '#bfdbfe' }}>What’s improving: You completed {weeklySummary?.completed_tasks} task{weeklySummary?.completed_tasks === 1 ? '' : 's'} this week.</p>
-                  <p style={{ margin: 0, color: '#94a3b8' }}>
+                  <p style={{ margin: 0, color: 'var(--hub-text-accent)' }}>What’s improving: You completed {weeklySummary?.completed_tasks} task{weeklySummary?.completed_tasks === 1 ? '' : 's'} this week.</p>
+                  <p style={{ margin: 0, color: 'var(--hub-subtext)' }}>
                     What to work on today: {weeklySummary?.top_remaining_weaknesses.map((item) => toStudentLabel(item)).join(', ') || 'Keep practising your weekly goals.'}
                   </p>
                   <p style={{ margin: 0, color: '#86efac' }}>
@@ -2884,16 +2918,16 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
               )}
 
               {!showMonthlyEvidence ? (
-                <p style={{ margin: 0, color: '#94a3b8' }}>Complete more writing this month to unlock your growth view.</p>
+                <p style={{ margin: 0, color: 'var(--hub-subtext)' }}>Complete more writing this month to unlock your growth view.</p>
               ) : (
                 <>
-                  <p style={{ margin: 0, color: '#bfdbfe' }}>Monthly growth</p>
+                  <p style={{ margin: 0, color: 'var(--hub-text-accent)' }}>Monthly growth</p>
                   <p style={{ margin: 0 }}>{toStudentLabel(monthlyFacingReport?.score_change ?? '')}</p>
-                  {aiMonthlyWording && <p style={{ margin: 0, color: '#bfdbfe' }}>{aiMonthlyWording}</p>}
-                  <p style={{ margin: 0, color: '#94a3b8' }}>{monthlyFacingReport?.subscale_progress.join(' ')}</p>
+                  {aiMonthlyWording && <p style={{ margin: 0, color: 'var(--hub-text-accent)' }}>{aiMonthlyWording}</p>}
+                  <p style={{ margin: 0, color: 'var(--hub-subtext)' }}>{monthlyFacingReport?.subscale_progress.join(' ')}</p>
                   <p style={{ margin: 0, color: '#86efac' }}>Strongest gains: {monthlyFacingReport?.strongest_gains.map((item) => toStudentLabel(item)).join(', ')}</p>
                   <p style={{ margin: 0, color: '#fca5a5' }}>Main blocker: {toStudentLabel(monthlyFacingReport?.remaining_blockers[0] ?? 'None right now')}</p>
-                  <p style={{ margin: 0, color: '#93c5fd' }}>Next step: {toStudentLabel(monthlyFacingReport?.next_month_priorities[0] ?? 'Keep completing your weekly writing tasks.')}</p>
+                  <p style={{ margin: 0, color: 'var(--hub-text-accent-2)' }}>Next step: {toStudentLabel(monthlyFacingReport?.next_month_priorities[0] ?? 'Keep completing your weekly writing tasks.')}</p>
                 </>
               )}
               </div>
@@ -2901,13 +2935,13 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           )}
 
           {(uiNotice || isRefreshingProgress) && (
-            <p style={{ ...shellCardStyle, margin: 0, color: '#bfdbfe', borderColor: 'rgba(96, 165, 250, 0.45)' }}>
+            <p style={{ ...shellCardStyle, margin: 0, color: 'var(--hub-text-accent)', borderColor: 'rgba(96, 165, 250, 0.45)' }}>
               {isRefreshingProgress ? 'Loading progress updates…' : uiNotice}
             </p>
           )}
 
           {persistenceStatus.state === 'saving' && (
-            <p style={{ ...shellCardStyle, margin: 0, color: '#bfdbfe', borderColor: 'rgba(56, 189, 248, 0.45)' }}>
+            <p style={{ ...shellCardStyle, margin: 0, color: 'var(--hub-text-accent)', borderColor: 'rgba(56, 189, 248, 0.45)' }}>
               Saving your writing progress…
             </p>
           )}
@@ -2974,8 +3008,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
 
           {showNoWritingState && !isPreWeek && (
             <section className="writing-hub-card" style={shellCardStyle}>
-              <h3 style={{ marginTop: 0, marginBottom: 8, color: '#f8fafc' }}>No active writing task yet</h3>
-              <p style={{ margin: 0, color: '#cbd5e1' }}>Start your first week to unlock your mission board and daily coaching.</p>
+              <h3 style={{ marginTop: 0, marginBottom: 8, color: 'var(--hub-text-strong)' }}>No active writing task yet</h3>
+              <p style={{ margin: 0, color: 'var(--hub-text-muted)' }}>Start your first week to unlock your mission board and daily coaching.</p>
             </section>
           )}
         </>
@@ -2994,7 +3028,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'flex-start',
-            background: 'rgba(2, 6, 23, 0.78)',
+            background: 'color-mix(in srgb, var(--hub-bg) 72%, #000 28%)',
             padding: '16px 16px 24px',
             overflowY: 'auto',
           }}
@@ -3006,9 +3040,9 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
               width: 'min(840px, 100%)',
               height: 'min(760px, calc(100vh - 40px))',
               borderRadius: 18,
-              border: '1px solid rgba(125, 211, 252, 0.4)',
-              background: 'linear-gradient(180deg, rgba(10,18,35,0.98) 0%, rgba(11,15,28,0.98) 100%)',
-              boxShadow: '0 28px 60px rgba(2, 6, 23, 0.75)',
+              border: '1px solid var(--hub-border-strong)',
+              background: 'var(--hub-overlay-strong)',
+              boxShadow: 'var(--hub-shadow-card)',
               padding: 16,
               overflow: 'hidden',
               overscrollBehavior: 'contain',
@@ -3020,17 +3054,17 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             <div className="ai-review-scan" aria-hidden="true" />
             <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
               <div style={{ display: 'grid', gap: 4 }}>
-                <p style={{ margin: 0, color: '#93c5fd', fontSize: 12, fontWeight: 800, letterSpacing: 0.4 }}>AI FEEDBACK</p>
-                <h3 style={{ margin: 0, color: '#f8fafc', fontSize: 22 }}>Submitted · Smart review in progress</h3>
+                <p style={{ margin: 0, color: 'var(--hub-text-accent-2)', fontSize: 12, fontWeight: 800, letterSpacing: 0.4 }}>AI FEEDBACK</p>
+                <h3 style={{ margin: 0, color: 'var(--hub-text-strong)', fontSize: 22 }}>Submitted · Smart review in progress</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowAiReviewModal(false)}
                 style={{
                   borderRadius: 999,
-                  border: '1px solid rgba(148, 163, 184, 0.45)',
-                  background: 'rgba(15, 23, 42, 0.75)',
-                  color: '#e2e8f0',
+                  border: '1px solid var(--hub-border)',
+                  background: 'var(--hub-panel)',
+                  color: 'var(--hub-text)',
                   width: 34,
                   height: 34,
                   fontSize: 18,
@@ -3044,20 +3078,20 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             </div>
 
             <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-              <span style={{ borderRadius: 999, padding: '4px 10px', border: '1px solid rgba(16,185,129,0.45)', color: '#bbf7d0', fontSize: 12, fontWeight: 700 }}>Submitted ✓</span>
-              <span style={{ borderRadius: 999, padding: '4px 10px', border: '1px solid rgba(56,189,248,0.45)', color: '#bae6fd', fontSize: 12, fontWeight: 700 }}>
+              <span style={{ borderRadius: 999, padding: '4px 10px', border: '1px solid var(--hub-border-strong)', color: 'var(--hub-text-accent-2)', fontSize: 12, fontWeight: 700 }}>Submitted ✓</span>
+              <span style={{ borderRadius: 999, padding: '4px 10px', border: '1px solid var(--hub-border-strong)', color: 'var(--hub-text-accent-2)', fontSize: 12, fontWeight: 700 }}>
                 {reviewScanComplete ? 'Review complete ✓' : 'AI review scanning…'}
               </span>
               {reviewAnchorTrust.mode === 'trusted' ? (
-                <span style={{ borderRadius: 999, padding: '4px 10px', border: '1px solid rgba(125,211,252,0.45)', color: '#dbeafe', fontSize: 12, fontWeight: 700 }}>
+                <span style={{ borderRadius: 999, padding: '4px 10px', border: '1px solid var(--hub-border-strong)', color: 'var(--hub-text-soft)', fontSize: 12, fontWeight: 700 }}>
                   Trusted anchors
                 </span>
               ) : (
-                <span style={{ borderRadius: 999, padding: '4px 10px', border: '1px solid rgba(148,163,184,0.45)', color: '#cbd5e1', fontSize: 12, fontWeight: 700 }}>
+                <span style={{ borderRadius: 999, padding: '4px 10px', border: '1px solid var(--hub-border)', color: 'var(--hub-text-muted)', fontSize: 12, fontWeight: 700 }}>
                   Guided highlights
                 </span>
               )}
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#67e8f9', fontSize: 12 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--hub-text-accent-2)', fontSize: 12 }}>
                 <span className="ai-review-status-dot" />
                 {reviewScanComplete ? 'Highlights locked' : 'Live analysis'}
               </span>
@@ -3110,25 +3144,25 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
               })}
               </div>
 
-              <p style={{ position: 'relative', zIndex: 1, margin: 0, color: '#94a3b8', fontSize: 12 }}>
+              <p style={{ position: 'relative', zIndex: 1, margin: 0, color: 'var(--hub-subtext)', fontSize: 12 }}>
                 Green ink = strong writing choices. Red ink = corrections (grammar, awkward wording, or spelling).
               </p>
 
-              <div style={{ position: 'relative', zIndex: 1, borderRadius: 10, border: `1px solid ${activeReviewRange?.polarity === 'strong' ? 'rgba(74,222,128,0.45)' : 'rgba(148,163,184,0.35)'}`, background: 'rgba(15,23,42,0.62)', padding: '9px 10px' }}>
+              <div style={{ position: 'relative', zIndex: 1, borderRadius: 10, border: `1px solid ${activeReviewRange?.polarity === 'strong' ? 'rgba(74,222,128,0.45)' : 'var(--hub-border)'}`, background: 'var(--hub-muted-surface)', padding: '9px 10px' }}>
                 {activeReviewRange ? (
                   <>
-                    <p style={{ margin: '0 0 4px', color: activeReviewRange.polarity === 'strong' ? '#86efac' : '#fca5a5', fontWeight: 700, fontSize: 13 }}>
+                    <p style={{ margin: '0 0 4px', color: activeReviewRange.polarity === 'strong' ? 'var(--hub-text-accent-2)' : '#f87171', fontWeight: 700, fontSize: 13 }}>
                       {activeReviewNote.label}
                     </p>
-                    <p style={{ margin: 0, color: '#e2e8f0', fontSize: 14 }}>{activeReviewNote.detail}</p>
+                    <p style={{ margin: 0, color: 'var(--hub-text)', fontSize: 14 }}>{activeReviewNote.detail}</p>
                     {activeReviewNote.correction && (
-                      <p style={{ margin: '6px 0 0', color: '#bbf7d0', fontSize: 14 }}>
+                      <p style={{ margin: '6px 0 0', color: 'var(--hub-text-accent-2)', fontSize: 14 }}>
                         Better version: {activeReviewNote.correction}
                       </p>
                     )}
                   </>
                 ) : (
-                  <p style={{ margin: 0, color: '#94a3b8', fontSize: 13 }}>Select a highlight to view detailed guidance.</p>
+                  <p style={{ margin: 0, color: 'var(--hub-subtext)', fontSize: 13 }}>Select a highlight to view detailed guidance.</p>
                 )}
               </div>
 
@@ -3179,7 +3213,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
               )}
             </div>
             <div style={{ position: 'relative', zIndex: 1, borderTop: '1px solid rgba(148,163,184,0.25)', paddingTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-              <p style={{ margin: 0, color: '#94a3b8', fontSize: 12 }}>
+              <p style={{ margin: 0, color: 'var(--hub-subtext)', fontSize: 12 }}>
                 {reviewScanPlan.length > 0
                   ? `Highlight ${(reviewActiveIndex ?? 0) + 1} of ${visibleSubmittedHighlightRanges.length}`
                   : 'No highlights available yet'}
@@ -3193,7 +3227,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                     borderRadius: 10,
                     border: '1px solid rgba(148,163,184,0.45)',
                     background: 'rgba(15,23,42,0.82)',
-                    color: '#e2e8f0',
+                    color: 'var(--hub-text)',
                     padding: '7px 12px',
                     fontSize: 13,
                     fontWeight: 700,
@@ -3211,7 +3245,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                     borderRadius: 10,
                     border: '1px solid rgba(148,163,184,0.45)',
                     background: 'rgba(15,23,42,0.82)',
-                    color: '#e2e8f0',
+                    color: 'var(--hub-text)',
                     padding: '7px 12px',
                     fontSize: 13,
                     fontWeight: 700,
@@ -3240,13 +3274,13 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             style={{ width: 'min(900px, 100%)', maxHeight: 'calc(100vh - 32px)', borderRadius: 16, border: '1px solid rgba(148,163,184,0.4)', background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', padding: 14, overflowY: 'auto', display: 'grid', gap: 10 }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-              <p style={{ margin: 0, color: '#e2e8f0', fontSize: 17, fontWeight: 800 }}>Full progress details</p>
+              <p style={{ margin: 0, color: 'var(--hub-text)', fontSize: 17, fontWeight: 800 }}>Full progress details</p>
               <button
                 type="button"
                 ref={closeProgressDetailsButtonRef}
                 onClick={() => setShowProgressDetailsModal(false)}
                 aria-label="Close full progress details"
-                style={{ borderRadius: 999, border: '1px solid rgba(148,163,184,0.45)', background: 'rgba(15,23,42,0.75)', color: '#e2e8f0', width: 34, height: 34, fontSize: 18, cursor: 'pointer' }}
+                style={{ borderRadius: 999, border: '1px solid rgba(148,163,184,0.45)', background: 'rgba(15,23,42,0.75)', color: 'var(--hub-text)', width: 34, height: 34, fontSize: 18, cursor: 'pointer' }}
               >
                 ×
               </button>
@@ -3258,8 +3292,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                 return (
                   <div key={item.key} style={{ borderRadius: 12, border: `1px solid ${tone.glow}`, background: 'rgba(15, 23, 42, 0.55)', padding: 10, display: 'grid', gap: 6 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
-                      <p style={{ margin: 0, color: '#dbeafe', fontSize: 13, fontWeight: 700 }}>{item.label}</p>
-                      <p style={{ margin: 0, color: '#f8fafc', fontSize: 13, fontWeight: 800 }}>{item.score == null ? '— / 5' : `${item.score}/5`}</p>
+                      <p style={{ margin: 0, color: 'var(--hub-text-soft)', fontSize: 13, fontWeight: 700 }}>{item.label}</p>
+                      <p style={{ margin: 0, color: 'var(--hub-text-strong)', fontSize: 13, fontWeight: 800 }}>{item.score == null ? '— / 5' : `${item.score}/5`}</p>
                     </div>
                     <div style={{ ...progressTrackStyle, height: 8 }}>
                       <div className="progress-fill" style={{ width: `${scorePercent}%`, height: '100%', background: tone.color }} />
@@ -3268,12 +3302,12 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                 );
               })}
             </div>
-            <p style={{ margin: 0, color: '#bfdbfe' }}>Main focus: {toStudentLabel(dashboard.data?.weekly_plan_summary?.primary ?? 'Not set yet')}</p>
+            <p style={{ margin: 0, color: 'var(--hub-text-accent)' }}>Main focus: {toStudentLabel(dashboard.data?.weekly_plan_summary?.primary ?? 'Not set yet')}</p>
             {!showMonthlyEvidence ? (
-              <p style={{ margin: 0, color: '#94a3b8' }}>Complete more writing this month to unlock your growth view.</p>
+              <p style={{ margin: 0, color: 'var(--hub-subtext)' }}>Complete more writing this month to unlock your growth view.</p>
             ) : (
               <>
-                <p style={{ margin: 0, color: '#bfdbfe' }}>Monthly growth</p>
+                <p style={{ margin: 0, color: 'var(--hub-text-accent)' }}>Monthly growth</p>
                 <p style={{ margin: 0 }}>{toStudentLabel(monthlyFacingReport?.score_change ?? '')}</p>
               </>
             )}
@@ -3317,8 +3351,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
               <div>
-                <p style={{ margin: 0, color: '#dbeafe', fontSize: 16, fontWeight: 800 }}>Your first coaching session</p>
-                <p style={{ margin: '4px 0 0', color: '#93c5fd', fontSize: 12 }}>
+                <p style={{ margin: 0, color: 'var(--hub-text-soft)', fontSize: 16, fontWeight: 800 }}>Your first coaching session</p>
+                <p style={{ margin: '4px 0 0', color: 'var(--hub-text-accent-2)', fontSize: 12 }}>
                   We start with what worked, then fix one thing at a time.
                 </p>
               </div>
@@ -3331,7 +3365,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   borderRadius: 999,
                   border: '1px solid rgba(148, 163, 184, 0.45)',
                   background: 'rgba(15, 23, 42, 0.7)',
-                  color: '#e2e8f0',
+                  color: 'var(--hub-text)',
                   width: 32,
                   height: 32,
                   fontSize: 18,
@@ -3350,8 +3384,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             <div style={{ minHeight: 0, overflowY: 'auto', paddingRight: 2, display: 'grid', gap: 10, alignContent: 'start' }}>
               <div className="focus-grid" style={{ gap: 12 }}>
                 <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.46)', minHeight: 200 }}>
-                <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Step 1 · What the task asked</p>
-                <p style={{ margin: 0, fontSize: 14, color: '#e2e8f0', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+                <p style={{ margin: '0 0 8px', color: 'var(--hub-text-accent-2)', fontSize: 12, fontWeight: 700 }}>Step 1 · What the task asked</p>
+                <p style={{ margin: 0, fontSize: 14, color: 'var(--hub-text)', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
                   {originalPromptText ?? promptText}
                 </p>
                 <div style={{ marginTop: 10, borderTop: '1px solid rgba(148, 163, 184, 0.25)', paddingTop: 10 }}>
@@ -3371,7 +3405,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
               </div>
                 <div style={{ ...fieldStyle, background: 'rgba(15, 23, 42, 0.46)', minHeight: 200, display: 'grid', gap: 10 }}>
                   <div>
-                  <p style={{ margin: '0 0 8px', color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Your first attempt (coached view)</p>
+                  <p style={{ margin: '0 0 8px', color: 'var(--hub-text-accent-2)', fontSize: 12, fontWeight: 700 }}>Your first attempt (coached view)</p>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
                     <span style={{ borderRadius: 999, padding: '2px 8px', border: '1px solid rgba(74, 222, 128, 0.4)', color: '#86efac', fontSize: 11 }}>
                       Strong signals
@@ -3380,7 +3414,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                       Repair targets
                     </span>
                     {anchorTrustEvaluation.mode === 'trusted' ? (
-                      <span style={{ borderRadius: 999, padding: '2px 8px', border: '1px solid rgba(96, 165, 250, 0.45)', color: '#bfdbfe', fontSize: 11 }}>
+                      <span style={{ borderRadius: 999, padding: '2px 8px', border: '1px solid rgba(96, 165, 250, 0.45)', color: 'var(--hub-text-accent)', fontSize: 11 }}>
                         Trusted anchor highlight mode
                       </span>
                     ) : anchorTrustEvaluation.mode === 'stale_feedback' ? (
@@ -3392,11 +3426,11 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                         Anchors unavailable (missing fingerprint)
                       </span>
                     ) : anchorTrustEvaluation.mode === 'no_anchors' ? (
-                      <span style={{ borderRadius: 999, padding: '2px 8px', border: '1px solid rgba(148, 163, 184, 0.4)', color: '#cbd5e1', fontSize: 11 }}>
+                      <span style={{ borderRadius: 999, padding: '2px 8px', border: '1px solid rgba(148, 163, 184, 0.4)', color: 'var(--hub-text-muted)', fontSize: 11 }}>
                         Guidance-only mode (no anchors provided)
                       </span>
                     ) : (
-                      <span style={{ borderRadius: 999, padding: '2px 8px', border: '1px solid rgba(148, 163, 184, 0.4)', color: '#cbd5e1', fontSize: 11 }}>
+                      <span style={{ borderRadius: 999, padding: '2px 8px', border: '1px solid rgba(148, 163, 184, 0.4)', color: 'var(--hub-text-muted)', fontSize: 11 }}>
                         Safe fallback mode
                       </span>
                     )}
@@ -3409,7 +3443,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                       background: 'rgba(15, 23, 42, 0.55)',
                       minHeight: 170,
                       fontSize: 14,
-                      color: '#e2e8f0',
+                      color: 'var(--hub-text)',
                       whiteSpace: 'pre-wrap',
                       overflowWrap: 'anywhere',
                       lineHeight: 1.6,
@@ -3433,11 +3467,11 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                 </div>
                   <div style={{ borderTop: '1px solid rgba(148, 163, 184, 0.25)', paddingTop: 10, minHeight: 230 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', marginBottom: 8 }}>
-                    <p style={{ margin: 0, color: '#cbd5e1', fontSize: 12, fontWeight: 700 }}>
+                    <p style={{ margin: 0, color: 'var(--hub-text-muted)', fontSize: 12, fontWeight: 700 }}>
                       Step 3 · Let’s fix one thing at a time
                     </p>
                     {repairQueue.length > 0 && (
-                      <span style={{ color: '#bfdbfe', fontSize: 11 }}>
+                      <span style={{ color: 'var(--hub-text-accent)', fontSize: 11 }}>
                         Step {Math.min(repairQueue.length, sessionSeenRepairCount || 1)} of {repairQueue.length} · session progress
                       </span>
                     )}
@@ -3447,12 +3481,12 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                       <div style={{ height: '100%', borderRadius: 999, width: `${(sessionSeenRepairCount / repairQueue.length) * 100}%`, background: 'linear-gradient(90deg, #38bdf8 0%, #34d399 100%)', transition: 'width 180ms ease' }} />
                     </div>
                   )}
-                  <p style={{ margin: '0 0 8px', color: '#94a3b8', fontSize: 12 }}>
+                  <p style={{ margin: '0 0 8px', color: 'var(--hub-subtext)', fontSize: 12 }}>
                     Pick one step, revise that part, then move to the next.
                   </p>
                   <div style={{ display: 'grid', gap: 6 }}>
                     {repairQueue.length === 0 ? (
-                      <p style={{ margin: 0, color: '#94a3b8', fontSize: 13 }}>
+                      <p style={{ margin: 0, color: 'var(--hub-subtext)', fontSize: 13 }}>
                         No repair steps available yet. Submit feedback to unlock targeted fixes.
                       </p>
                     ) : repairQueue.map((item, idx) => {
@@ -3467,23 +3501,23 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                             textAlign: 'left',
                             borderRadius: 10,
                             border: active ? '1px solid rgba(248,113,113,0.68)' : '1px solid rgba(148,163,184,0.35)',
-                            background: active ? 'rgba(127,29,29,0.32)' : 'rgba(15,23,42,0.45)',
+                            background: active ? 'rgba(127,29,29,0.32)' : 'var(--hub-muted-surface-soft)',
                             padding: '8px 10px',
                             cursor: 'pointer',
-                            color: '#e2e8f0',
+                            color: 'var(--hub-text)',
                           }}
                         >
                           <p style={{ margin: 0, fontSize: 12, color: '#fca5a5', fontWeight: 700 }}>
                             {active ? 'Start here' : `Step ${idx + 1}`} · {item.category.replace('_', ' ')}
                           </p>
                           <p style={{ margin: '2px 0 0', fontSize: 13, fontWeight: 700 }}>{item.title}</p>
-                          <p style={{ margin: '4px 0 0', fontSize: 12, color: '#cbd5e1' }}>{item.explanation}</p>
+                          <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--hub-text-muted)' }}>{item.explanation}</p>
                         </button>
                       );
                     })}
                   </div>
                 </div>
-                  <p style={{ margin: 0, color: '#bfdbfe', fontSize: 12, minHeight: 18 }}>{repairStatusMessage}</p>
+                  <p style={{ margin: 0, color: 'var(--hub-text-accent)', fontSize: 12, minHeight: 18 }}>{repairStatusMessage}</p>
                 </div>
               </div>
             </div>
@@ -3496,7 +3530,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   borderRadius: 10,
                   border: '1px solid rgba(148, 163, 184, 0.45)',
                   background: 'rgba(15, 23, 42, 0.78)',
-                  color: '#e2e8f0',
+                  color: 'var(--hub-text)',
                   cursor: 'pointer',
                   fontWeight: 700,
                 }}
