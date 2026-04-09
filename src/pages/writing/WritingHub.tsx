@@ -99,6 +99,8 @@ interface TextAnchorRange {
   end: number;
   polarity: 'strong' | 'weak';
   reason?: string;
+  sourceCategory?: string;
+  sourceExactText?: string;
 }
 
 interface RepairQueueItem {
@@ -516,6 +518,8 @@ const buildAnchorRanges = (text: string, ai: WritingAiFeedbackAssist | null): Te
       end: item.end_char,
       polarity: item.polarity === 'strong' ? 'strong' : 'weak',
       reason: item.category ?? `highlight-${idx + 1}`,
+      sourceCategory: item.category,
+      sourceExactText: item.exact_text?.trim() || undefined,
     });
   });
   return ranges;
@@ -541,26 +545,38 @@ const buildFallbackHighlightRanges = (text: string, ai: WritingAiFeedbackAssist 
   if (!text || !ai) return [];
   const lowerText = text.toLowerCase();
   const ranges: TextAnchorRange[] = [];
-  const addSnippet = (snippet: string, polarity: 'strong' | 'weak', reason: string) => {
+  const addSnippet = (
+    snippet: string,
+    polarity: 'strong' | 'weak',
+    reason: string,
+    sourceCategory?: string
+  ) => {
     const clean = snippet.trim();
     if (!clean || clean.length < 6) return;
     const start = lowerText.indexOf(clean.toLowerCase());
     if (start < 0) return;
-    ranges.push({ start, end: start + clean.length, polarity, reason });
+    ranges.push({
+      start,
+      end: start + clean.length,
+      polarity,
+      reason,
+      sourceCategory,
+      sourceExactText: clean,
+    });
   };
 
-  (ai.grammar_fixes ?? []).slice(0, 4).forEach((item) => addSnippet(item.original, 'weak', 'grammar_fix'));
-  (ai.punctuation_fixes ?? []).slice(0, 4).forEach((item) => addSnippet(item.original, 'weak', 'punctuation_fix'));
+  (ai.grammar_fixes ?? []).slice(0, 4).forEach((item) => addSnippet(item.original, 'weak', 'grammar_fix', 'grammar'));
+  (ai.punctuation_fixes ?? []).slice(0, 4).forEach((item) => addSnippet(item.original, 'weak', 'punctuation_fix', 'punctuation'));
   [...(ai.what_is_working ?? []), ...(ai.strengths ?? [])]
     .slice(0, 4)
     .forEach((item) => {
       const quoted = extractQuotedSnippet(item) ?? '';
-      addSnippet(quoted, 'strong', 'strength');
+      addSnippet(quoted, 'strong', 'strength', 'strength');
     });
 
   if (!ranges.some((item) => item.polarity === 'strong')) {
     const firstSentenceEnd = text.indexOf('.') > 0 ? text.indexOf('.') + 1 : Math.min(text.length, 90);
-    ranges.push({ start: 0, end: firstSentenceEnd, polarity: 'strong', reason: 'opening_strength' });
+    ranges.push({ start: 0, end: firstSentenceEnd, polarity: 'strong', reason: 'opening_strength', sourceCategory: 'strength' });
   }
   return ranges;
 };
@@ -764,12 +780,24 @@ const describeHighlight = (
   const normalizedSnippet = normalize(snippet);
   const isOriginalMatch = (value: string) => {
     const normalized = normalize(value);
-    return normalizedSnippet === normalized || normalized.includes(normalizedSnippet) || normalizedSnippet.includes(normalized);
+    if (!normalized || !normalizedSnippet) return false;
+    if (normalizedSnippet === normalized) return true;
+    if (range.sourceExactText) {
+      const normalizedSource = normalize(range.sourceExactText);
+      return normalizedSource === normalized;
+    }
+    return false;
   };
   const isCorrectedMatch = (value: string) => {
     const normalized = normalize(value);
     return normalizedSnippet === normalized;
   };
+
+  const normalizedCategory = (range.sourceCategory ?? range.reason ?? '').toLowerCase();
+  const prefersGrammar = normalizedCategory.includes('grammar');
+  const prefersPunctuation = normalizedCategory.includes('punct');
+  const prefersPhrase = normalizedCategory.includes('phrase') || normalizedCategory.includes('style');
+  const prefersStrength = normalizedCategory.includes('strong') || normalizedCategory.includes('strength') || range.polarity === 'strong';
 
   const grammar = (ai.grammar_fixes ?? []).find((item) => isOriginalMatch(item.original));
   if (grammar) return { label: 'Grammar fix', detail: grammar.issue, correction: grammar.better_version };
@@ -802,14 +830,42 @@ const describeHighlight = (
       correction: correctedPhrase.better_version,
     };
   }
-  const strength = [...(ai.what_is_working ?? []), ...(ai.strengths ?? [])].find((item) => (extractQuotedSnippet(item) ?? '').toLowerCase().includes(lowerSnippet) || item.toLowerCase().includes(lowerSnippet));
+  const strength = [...(ai.what_is_working ?? []), ...(ai.strengths ?? [])].find((item) => {
+    const quoted = extractQuotedSnippet(item) ?? '';
+    const normalizedQuoted = normalize(quoted);
+    if (normalizedQuoted && normalizedQuoted === normalizedSnippet) return true;
+    return normalize(item).includes(normalizedSnippet) && normalizedSnippet.length > 10;
+  });
   if (strength) return { label: 'Why this is strong', detail: simplifyStudentLanguage(strength) };
+
+  if (prefersGrammar) {
+    return {
+      label: 'Grammar fix',
+      detail: `Check grammar in this exact snippet: "${snippet || 'selected text'}".`,
+    };
+  }
+  if (prefersPunctuation) {
+    return {
+      label: 'Punctuation fix',
+      detail: `Check punctuation in this exact snippet: "${snippet || 'selected text'}".`,
+    };
+  }
+  if (prefersPhrase) {
+    return {
+      label: 'Phrase upgrade',
+      detail: `Refine wording in this exact snippet: "${snippet || 'selected text'}".`,
+    };
+  }
+  if (prefersStrength) {
+    return {
+      label: 'Strong writing choice',
+      detail: `Keep this exact snippet as a strength: "${snippet || 'selected text'}".`,
+    };
+  }
 
   return {
     label: range.polarity === 'strong' ? 'Strong writing choice' : 'Needs correction',
-    detail: range.polarity === 'strong'
-      ? 'This part supports your story effectively. Keep this clarity and energy.'
-      : 'This part needs clearer grammar, wording, or structure.',
+    detail: `Selected snippet: "${snippet || 'highlighted text'}".`,
   };
 };
 
@@ -1249,6 +1305,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const [submittedPracticeText, setSubmittedPracticeText] = useState('');
   const [reviewScanComplete, setReviewScanComplete] = useState(false);
   const [reviewActiveIndex, setReviewActiveIndex] = useState<number | null>(null);
+  const [isReviewAutoplayPaused, setIsReviewAutoplayPaused] = useState(false);
   const [activeLineRects, setActiveLineRects] = useState<VisualLineRect[]>([]);
   const [activeRepairId, setActiveRepairId] = useState<string | null>(null);
   const [repairStatusMessage, setRepairStatusMessage] = useState<string>('');
@@ -1267,6 +1324,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const writingHubRootRef = useRef<HTMLDivElement | null>(null);
   const highlightSpanRefs = useRef<Record<number, HTMLSpanElement | null>>({});
   const activeLineOverlayRefs = useRef<Array<HTMLSpanElement | null>>([]);
+  const reviewAutoplaySessionRef = useRef<string | null>(null);
+  const reviewAnimationForIndexRef = useRef<number | null>(null);
   const writingPathButtonRefs: MutableRefObject<Partial<Record<SupportedGenre, HTMLButtonElement | null>> | null> =
     useRef<Partial<Record<SupportedGenre, HTMLButtonElement | null>>>({});
   const missionsCarouselRef = useRef<HTMLDivElement | null>(null);
@@ -1426,6 +1485,13 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const visibleSubmittedHighlightRanges = useMemo(
     () => reviewScanPlan,
     [reviewScanPlan]
+  );
+  const reviewSessionKey = useMemo(
+    () =>
+      `${submittedPracticeText.length}:${visibleSubmittedHighlightRanges
+        .map((range) => `${range.start}-${range.end}-${range.reason ?? ''}-${range.sourceCategory ?? ''}`)
+        .join('|')}`,
+    [submittedPracticeText, visibleSubmittedHighlightRanges]
   );
   const activeReviewRange = useMemo(
     () => (reviewActiveIndex != null ? visibleSubmittedHighlightRanges[reviewActiveIndex] ?? null : null),
@@ -1647,14 +1713,16 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
       setActiveLineRects([]);
       return;
     }
-    const container = reviewEssayPanelRef.current;
-    const activeHighlight = (highlightSpanRefs.current ?? {})[reviewActiveIndex] ?? null;
-    const updateRects = () => setActiveLineRects(getVisualLineRectsForHighlight(container, activeHighlight));
+    const updateRects = () => {
+      const container = reviewEssayPanelRef.current;
+      const activeHighlight = (highlightSpanRefs.current ?? {})[reviewActiveIndex] ?? null;
+      setActiveLineRects(getVisualLineRectsForHighlight(container, activeHighlight));
+    };
     updateRects();
     const onResize = () => updateRects();
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
-  }, [showAiReviewModal, reviewActiveIndex, submittedPracticeText, visibleSubmittedHighlightRanges]);
+  }, [showAiReviewModal, reviewActiveIndex, reviewSessionKey]);
 
   useEffect(() => {
     highlightSpanRefs.current = {};
@@ -1662,6 +1730,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
 
   useEffect(() => {
     if (!showAiReviewModal || reviewActiveIndex == null || activeLineRects.length === 0) return;
+    if (reviewAnimationForIndexRef.current === reviewActiveIndex) return;
+    reviewAnimationForIndexRef.current = reviewActiveIndex;
     const overlayElements = activeLineOverlayRefs.current ?? [];
     if (!overlayElements.length) return;
     const timeline = gsap.timeline();
@@ -1697,6 +1767,12 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   useEffect(() => {
     activeLineOverlayRefs.current = (activeLineOverlayRefs.current ?? []).slice(0, activeLineRects.length);
   }, [activeLineRects.length]);
+
+  useEffect(() => {
+    if (!showAiReviewModal) {
+      reviewAnimationForIndexRef.current = null;
+    }
+  }, [showAiReviewModal, reviewSessionKey]);
 
   useEffect(() => {
     if (!showProgressDetailsModal) return;
@@ -2077,8 +2153,24 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     setUiNotice(`${toGenreLabel(nextGenre)} path selected.`);
   };
 
+  const handleReviewStepNavigation = (direction: 'previous' | 'next') => {
+    setIsReviewAutoplayPaused(true);
+    setReviewScanComplete(true);
+    setReviewActiveIndex((prev) => {
+      const current = prev ?? 0;
+      if (direction === 'previous') return Math.max(0, current - 1);
+      return Math.min(Math.max(0, visibleSubmittedHighlightRanges.length - 1), current + 1);
+    });
+  };
+
+  const handleReviewEssayScroll = () => {
+    if (!isReviewAutoplayPaused) setIsReviewAutoplayPaused(true);
+  };
+
   useEffect(() => {
     if (!showAiReviewModal) {
+      setIsReviewAutoplayPaused(false);
+      reviewAutoplaySessionRef.current = null;
       setReviewScanComplete(false);
       setReviewActiveIndex(null);
       return;
@@ -2088,7 +2180,13 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
       setReviewActiveIndex(null);
       return;
     }
+    if (reviewAutoplaySessionRef.current === reviewSessionKey) {
+      if (reviewActiveIndex == null) setReviewActiveIndex(0);
+      return;
+    }
+    reviewAutoplaySessionRef.current = reviewSessionKey;
     setReviewScanComplete(false);
+    setIsReviewAutoplayPaused(false);
     setReviewActiveIndex(0);
     let cancelled = false;
     const timers: number[] = [];
@@ -2097,7 +2195,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
       const segment = submittedPracticeText.slice(range.start, range.end);
       const stepDelay = getHighlightAnimationDurationMs(segment.length) + 36;
       timers.push(window.setTimeout(() => {
-        if (cancelled) return;
+        if (cancelled || isReviewAutoplayPaused) return;
         setReviewActiveIndex(idx);
       }, elapsed));
       elapsed += stepDelay;
@@ -2109,7 +2207,15 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
       cancelled = true;
       timers.forEach((timerId) => window.clearTimeout(timerId));
     };
-  }, [showAiReviewModal, reviewScanPlan, submittedPracticeText, reviewAnimationTimelineMs]);
+  }, [
+    showAiReviewModal,
+    reviewScanPlan,
+    reviewSessionKey,
+    reviewActiveIndex,
+    submittedPracticeText,
+    reviewAnimationTimelineMs,
+    isReviewAutoplayPaused,
+  ]);
 
   const renderLoadingSkeleton = () => (
     <>
@@ -2310,7 +2416,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
         }
         .ai-review-essay-panel {
           flex: 0 1 auto;
-          max-height: clamp(180px, 42vh, 360px);
+          min-height: clamp(220px, 34dvh, 340px);
+          max-height: clamp(260px, 46dvh, 460px);
           overflow-y: auto;
         }
         .ai-review-feedback-card,
@@ -2319,11 +2426,12 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
         }
         @media (max-width: 640px) {
           .ai-review-body {
-            gap: 16px;
+            gap: 14px;
             padding-right: 0;
           }
           .ai-review-essay-panel {
-            max-height: clamp(220px, 50vh, 420px);
+            min-height: clamp(260px, 42dvh, 420px);
+            max-height: clamp(300px, 52dvh, 560px);
           }
         }
         .week-stage-wrap {
@@ -3184,9 +3292,9 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             zIndex: 1150,
             display: 'flex',
             justifyContent: 'center',
-            alignItems: 'flex-start',
+            alignItems: 'center',
             background: 'var(--hub-modal-overlay)',
-            padding: '16px 16px 24px',
+            padding: 'max(12px, env(safe-area-inset-top)) 12px max(16px, env(safe-area-inset-bottom))',
             overflowY: 'auto',
           }}
         >
@@ -3195,7 +3303,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             onClick={(event: { stopPropagation: () => void }) => event.stopPropagation()}
             style={{
               width: 'min(840px, 100%)',
-              height: 'min(760px, calc(100vh - 40px))',
+              height: 'min(760px, calc(100dvh - (max(24px, env(safe-area-inset-top) + env(safe-area-inset-bottom) + 20px))))',
               borderRadius: 18,
               border: '1px solid var(--hub-border-strong)',
               background: 'var(--hub-overlay-strong)',
@@ -3262,6 +3370,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
               <div
                 className="ai-review-essay-panel"
                 ref={reviewEssayPanelRef}
+                onScroll={handleReviewEssayScroll}
                 style={{
                   position: 'relative',
                   zIndex: 1,
@@ -3379,7 +3488,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
               <div style={{ display: 'flex', gap: 8 }}>
                 <button
                   type="button"
-                  onClick={() => setReviewActiveIndex((prev) => Math.max(0, (prev ?? 0) - 1))}
+                  onClick={() => handleReviewStepNavigation('previous')}
                   disabled={reviewScanPlan.length === 0 || (reviewActiveIndex ?? 0) <= 0}
                   style={{
                     borderRadius: 10,
@@ -3397,7 +3506,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                 </button>
                 <button
                   type="button"
-                  onClick={() => setReviewActiveIndex((prev) => Math.min(Math.max(0, visibleSubmittedHighlightRanges.length - 1), (prev ?? 0) + 1))}
+                  onClick={() => handleReviewStepNavigation('next')}
                   disabled={reviewScanPlan.length === 0 || (reviewActiveIndex ?? 0) >= Math.max(0, visibleSubmittedHighlightRanges.length - 1)}
                   style={{
                     borderRadius: 10,
