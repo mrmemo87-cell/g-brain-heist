@@ -179,30 +179,36 @@ export const buildWritingDashboardSnapshot = (
   };
 };
 
-const pageStyle = {
+type WritingHubThemeMode = 'dark' | 'light';
+
+const getPageStyle = (theme: WritingHubThemeMode) => ({
   padding: 12,
   display: 'grid',
   gap: 12,
   width: '100%',
   maxWidth: 1120,
   margin: '0 auto',
-  color: '#e5e7eb',
+  color: theme === 'light' ? '#0f172a' : '#e5e7eb',
   overflowX: 'clip' as const,
-};
+});
 
-const shellCardStyle = {
+const getShellCardStyle = (theme: WritingHubThemeMode) => ({
   borderRadius: 20,
-  border: '1px solid rgba(59, 130, 246, 0.25)',
-  background: 'linear-gradient(180deg, #0f172a 0%, #0b1224 100%)',
+  border: theme === 'light' ? '1px solid rgba(148, 163, 184, 0.45)' : '1px solid rgba(59, 130, 246, 0.25)',
+  background: theme === 'light'
+    ? 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)'
+    : 'linear-gradient(180deg, #0f172a 0%, #0b1224 100%)',
   padding: 16,
-  boxShadow: '0 10px 30px rgba(2, 6, 23, 0.45)',
-};
+  boxShadow: theme === 'light' ? '0 10px 24px rgba(15, 23, 42, 0.1)' : '0 10px 30px rgba(2, 6, 23, 0.45)',
+});
 
-const missionCardStyle = {
-  ...shellCardStyle,
-  background: 'linear-gradient(155deg, #1d4ed8 0%, #312e81 55%, #0f172a 100%)',
-  border: '1px solid rgba(147, 197, 253, 0.45)',
-};
+const getMissionCardStyle = (theme: WritingHubThemeMode) => ({
+  ...getShellCardStyle(theme),
+  background: theme === 'light'
+    ? 'linear-gradient(155deg, #dbeafe 0%, #ede9fe 55%, #f8fafc 100%)'
+    : 'linear-gradient(155deg, #1d4ed8 0%, #312e81 55%, #0f172a 100%)',
+  border: theme === 'light' ? '1px solid rgba(99, 102, 241, 0.35)' : '1px solid rgba(147, 197, 253, 0.45)',
+});
 
 const dashboardSectionTitleStyle = {
   margin: 0,
@@ -574,17 +580,12 @@ const ReviewHighlightSpan: React.FC<ReviewHighlightSpanProps> = ({ index, range,
   const strong = range.polarity === 'strong';
 
   const highlightStyle = {
-    borderBottom: isActive
-      ? (strong ? '1px solid rgba(74,222,128,0.65)' : '1px solid rgba(248,113,113,0.62)')
-      : '1px solid transparent',
     color: isActive
-      ? (strong ? '#dcfce7' : '#fee2e2')
-      : (strong ? 'rgba(187,247,208,0.84)' : 'rgba(254,202,202,0.82)'),
+      ? (strong ? '#d9f99d' : '#fecaca')
+      : (strong ? 'rgba(187,247,208,0.9)' : 'rgba(254,202,202,0.9)'),
     boxShadow: 'none',
-    textShadow: isActive
-      ? (strong ? '0 0 7px rgba(74,222,128,0.25)' : '0 0 6px rgba(248,113,113,0.2)')
-      : 'none',
-    transition: 'color 220ms ease, border-color 220ms ease, text-shadow 220ms ease',
+    textShadow: 'none',
+    transition: 'color 180ms ease',
   };
 
   return (
@@ -1183,6 +1184,11 @@ const getMissionRecommendationKey = (item: WritingMissionRecommendation) =>
   `${item.missionCategory}-${item.title}`;
 
 export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, grade, genre, month = new Date().toISOString().slice(0, 7), onOpenQuestMission }) => {
+  const [themeMode, setThemeMode] = useState<WritingHubThemeMode>(() => {
+    if (typeof window === 'undefined') return 'dark';
+    const saved = window.localStorage.getItem('writing-hub-theme');
+    return saved === 'light' ? 'light' : 'dark';
+  });
   const [activeGenre, setActiveGenre] = useState<SupportedGenre>(genre);
   const [promptText, setPromptText] = useState(defaultPromptByGenre[genre]);
   const [targetWordCount] = useState(grade <= 7 ? 80 : grade <= 9 ? 120 : 160);
@@ -1237,6 +1243,11 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const initialResponseWordCount = countWords(initialResponse);
   const practiceResponseWordCount = countWords(practiceResponse);
   const initializing = hydrationStatus === 'idle' || hydrationStatus === 'loading';
+  const pageStyle = useMemo(() => getPageStyle(themeMode), [themeMode]);
+  const shellCardStyle = useMemo(() => getShellCardStyle(themeMode), [themeMode]);
+  const missionCardStyle = useMemo(() => getMissionCardStyle(themeMode), [themeMode]);
+  const headingColor = themeMode === 'light' ? '#0f172a' : '#f8fafc';
+  const headingSubtle = themeMode === 'light' ? '#334155' : '#dbeafe';
 
   const dashboard = useMemo(() => buildWritingDashboardSnapshot(studentId, month, activeGenre), [studentId, month, activeGenre, feedback]);
   const stateRes = getStudentWritingState(studentId, activeGenre);
@@ -1300,6 +1311,11 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     () => describeHighlight(activeReviewRange, submittedPracticeText, aiFeedbackDetails),
     [activeReviewRange, submittedPracticeText, aiFeedbackDetails]
   );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem('writing-hub-theme', themeMode);
+  }, [themeMode]);
   const handleReviewHighlightMount = (index: number, element: HTMLSpanElement | null) => {
     const currentRefs = highlightSpanRefs.current ?? {};
     currentRefs[index] = element;
@@ -1528,10 +1544,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     overlayElements.forEach((element, idx) => {
       if (!element) return;
       gsap.set(element, {
-        opacity: 0.2,
-        scaleX: 0,
-        xPercent: -12,
-        skewX: -7,
+        opacity: 0.82,
+        clipPath: 'inset(0 100% 0 0)',
         transformOrigin: 'left center',
       });
       timeline.call(() => {
@@ -1539,16 +1553,14 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
       });
       const lineDuration = Math.max(0.22, Math.min(0.7, activeLineRects[idx].width / 220));
       timeline.to(element, {
-        opacity: 1,
-        scaleX: 1,
-        xPercent: 0,
-        skewX: 0,
+        opacity: 0.9,
+        clipPath: 'inset(0 0% 0 0)',
         duration: lineDuration,
-        ease: 'power2.out',
+        ease: 'power1.out',
       });
       timeline.to(element, {
-        opacity: 0.48,
-        duration: 0.2,
+        opacity: 0.74,
+        duration: 0.08,
         ease: 'power1.out',
       }, '>');
     });
@@ -1990,8 +2002,30 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   );
 
   return (
-    <div style={pageStyle}>
+    <div style={pageStyle} className={`writing-hub-root writing-hub-theme-${themeMode}`}>
       <style>{`
+        .writing-hub-root {
+          --hub-bg: #020617;
+          --hub-text: #e2e8f0;
+          --hub-subtext: #94a3b8;
+          --hub-panel: rgba(15, 23, 42, 0.75);
+          --hub-border: rgba(148, 163, 184, 0.32);
+          --marker-strong-base: rgba(74, 222, 128, 0.3);
+          --marker-strong-mid: rgba(74, 222, 128, 0.44);
+          --marker-weak-base: rgba(248, 113, 113, 0.28);
+          --marker-weak-mid: rgba(248, 113, 113, 0.42);
+        }
+        .writing-hub-theme-light {
+          --hub-bg: #f8fafc;
+          --hub-text: #0f172a;
+          --hub-subtext: #475569;
+          --hub-panel: rgba(255, 255, 255, 0.95);
+          --hub-border: rgba(148, 163, 184, 0.45);
+          --marker-strong-base: rgba(74, 222, 128, 0.24);
+          --marker-strong-mid: rgba(74, 222, 128, 0.34);
+          --marker-weak-base: rgba(248, 113, 113, 0.22);
+          --marker-weak-mid: rgba(248, 113, 113, 0.32);
+        }
         .writing-hub-card {
           animation: cardIn 340ms ease both;
           transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
@@ -2049,56 +2083,44 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
         }
         .review-highlight {
           position: relative;
-          display: inline-block;
-          border-radius: 3px;
-          padding: 0 1.5px;
+          display: inline;
+          border-radius: 2px;
+          padding: 0 1px;
           isolation: isolate;
-          overflow: hidden;
-          transform: translateY(0);
-          transition: opacity 180ms ease, transform 180ms ease, filter 180ms ease;
+          transition: opacity 160ms ease, filter 160ms ease;
         }
         .review-highlight__ink-base {
           position: absolute;
-          inset: 1px -1px 0;
-          border-radius: 12px 12px 8px 8px;
-          background: linear-gradient(180deg, rgba(34,197,94,0.12) 0%, rgba(34,197,94,0.24) 56%, rgba(34,197,94,0.1) 100%);
-          opacity: 0.26;
+          inset: 0.1em -1px 0.05em -1px;
+          border-radius: 4px;
+          background: linear-gradient(180deg, var(--marker-strong-base) 0%, var(--marker-strong-mid) 55%, var(--marker-strong-base) 100%);
+          opacity: 0.24;
           z-index: 0;
-        }
-        .review-highlight__ink-swipe {
-          position: absolute;
-          inset: 0 -3px 0 -2px;
-          border-radius: 13px 13px 9px 9px;
-          transform-origin: left center;
-          background: linear-gradient(90deg, rgba(34,197,94,0.38) 0%, rgba(34,197,94,0.52) 72%, rgba(187,247,208,0.9) 92%, rgba(255,255,255,0) 100%);
-          opacity: 0;
-          z-index: 1;
           pointer-events: none;
         }
         .review-highlight__text {
           position: relative;
           z-index: 2;
+          vertical-align: baseline;
+          display: inline;
+          line-height: inherit;
         }
         .review-highlight--weak .review-highlight__ink-base {
-          background: linear-gradient(180deg, rgba(248,113,113,0.12) 0%, rgba(248,113,113,0.24) 56%, rgba(248,113,113,0.1) 100%);
-        }
-        .review-highlight--weak .review-highlight__ink-swipe {
-          background: linear-gradient(90deg, rgba(248,113,113,0.36) 0%, rgba(248,113,113,0.5) 72%, rgba(254,202,202,0.9) 92%, rgba(255,255,255,0) 100%);
+          background: linear-gradient(180deg, var(--marker-weak-base) 0%, var(--marker-weak-mid) 55%, var(--marker-weak-base) 100%);
         }
         .review-highlight--inactive {
-          opacity: 0.62;
-          filter: saturate(0.68);
+          opacity: 0.72;
+          filter: saturate(0.82);
         }
         .review-highlight--inactive .review-highlight__ink-base {
-          opacity: 0.16;
+          opacity: 0.14;
         }
         .review-highlight--active .review-highlight__ink-base {
-          opacity: 0.3;
+          opacity: 0.36;
         }
         .review-highlight--active {
           opacity: 1;
-          filter: saturate(1.06);
-          transform: translateY(-0.25px);
+          filter: saturate(1);
         }
         .ai-review-body {
           min-height: 0;
@@ -2113,9 +2135,6 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           flex: 0 1 auto;
           max-height: clamp(140px, 34vh, 300px);
           overflow-y: auto;
-        }
-        :dir(rtl) .review-highlight__ink-swipe {
-          transform-origin: left center;
         }
         .week-stage-wrap {
           display: grid;
@@ -2221,7 +2240,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             background-size: 100% 100% !important;
           }
           .review-highlight__ink-base,
-          .review-highlight__ink-swipe {
+          .review-highlight__text {
             animation: none !important;
             opacity: 1 !important;
             transform: none !important;
@@ -2245,27 +2264,34 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
         @keyframes textScanFlow {
           100% { transform: translateX(100%); }
         }
-        @keyframes markerSwipeDrag {
-          0% { opacity: 0; clip-path: inset(0 100% 0 0); transform: translateX(-6%) skewX(-4deg); }
-          20% { opacity: 0.95; }
-          65% { opacity: 0.9; clip-path: inset(0 16% 0 0); }
-          100% { opacity: 0.78; clip-path: inset(0 0 0 0); transform: translateX(0) skewX(0deg); }
-        }
-        @keyframes markerSwipeDragRtl {
-          0% { opacity: 0; clip-path: inset(0 0 0 100%); transform: translateX(6%) skewX(4deg); }
-          20% { opacity: 0.95; }
-          65% { opacity: 0.9; clip-path: inset(0 0 0 16%); }
-          100% { opacity: 0.78; clip-path: inset(0 0 0 0); transform: translateX(0) skewX(0deg); }
-        }
       `}</style>
 
       {initializing ? renderLoadingSkeleton() : (
         <>
           <section className="writing-hub-card" style={missionCardStyle}>
-            <p style={{ margin: 0, color: '#dbeafe', fontWeight: 700, fontSize: 13 }}>
-              {isWeekComplete ? 'Week complete' : isActiveWeek ? 'Week active' : 'First step'}
-            </p>
-            <h1 style={{ margin: '6px 0 10px', color: '#f8fafc', fontSize: 30, lineHeight: 1.1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+              <p style={{ margin: 0, color: headingSubtle, fontWeight: 700, fontSize: 13 }}>
+                {isWeekComplete ? 'Week complete' : isActiveWeek ? 'Week active' : 'First step'}
+              </p>
+              <button
+                type="button"
+                onClick={() => setThemeMode((current) => (current === 'dark' ? 'light' : 'dark'))}
+                aria-label={`Switch to ${themeMode === 'dark' ? 'light' : 'dark'} theme`}
+                style={{
+                  borderRadius: 999,
+                  border: '1px solid rgba(148, 163, 184, 0.5)',
+                  background: themeMode === 'dark' ? 'rgba(15,23,42,0.62)' : 'rgba(255,255,255,0.85)',
+                  color: themeMode === 'dark' ? '#e2e8f0' : '#0f172a',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  padding: '6px 10px',
+                  cursor: 'pointer',
+                }}
+              >
+                {themeMode === 'dark' ? '☀️ Light' : '🌙 Dark'}
+              </button>
+            </div>
+            <h1 style={{ margin: '6px 0 10px', color: headingColor, fontSize: 30, lineHeight: 1.1 }}>
               {isPreWeek ? 'Welcome to your Writing Hub' : isWeekComplete ? 'Great work — week finished' : 'Your Writing Hub'}
             </h1>
             <div style={{ margin: '0 0 10px', display: 'grid', gap: 8 }}>
@@ -3045,31 +3071,17 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   position: 'relative',
                   zIndex: 1,
                   borderRadius: 14,
-                  border: '1px solid rgba(148, 163, 184, 0.32)',
-                  background: 'rgba(15, 23, 42, 0.75)',
+                  border: '1px solid var(--hub-border)',
+                  background: 'var(--hub-panel)',
                   padding: 12,
-                  color: '#e2e8f0',
+                  color: 'var(--hub-text)',
                   lineHeight: 1.62,
                   fontSize: 14,
                   whiteSpace: 'pre-wrap',
                 }}
               >
-              {!reviewScanComplete && reviewScanPlan.length > 0 && (
-                <div
-                  aria-hidden="true"
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    pointerEvents: 'none',
-                    background: 'linear-gradient(90deg, transparent 0%, rgba(56,189,248,0.16) 45%, transparent 78%)',
-                    transform: 'translateX(-100%)',
-                    animation: 'textScanFlow 1.2s ease-in-out infinite',
-                  }}
-                />
-              )}
               {renderAnnotatedText(submittedPracticeText, visibleSubmittedHighlightRanges, reviewActiveIndex, handleReviewHighlightMount)}
               {activeLineRects.map((line, idx) => {
-                const isLast = idx === activeLineRects.length - 1;
                 return (
                   <span
                     key={`line-overlay-${reviewActiveIndex ?? 'none'}-${idx}`}
@@ -3085,15 +3097,13 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                       top: line.top + 1,
                       width: line.width + 4,
                       height: Math.max(8, line.height - 1),
-                      borderRadius: 10,
+                      borderRadius: 4,
                       pointerEvents: 'none',
-                      mixBlendMode: 'screen',
+                      mixBlendMode: 'multiply',
                       background: activeReviewRange?.polarity === 'strong'
-                        ? 'linear-gradient(90deg, rgba(74,222,128,0.42) 0%, rgba(134,239,172,0.8) 75%, rgba(220,252,231,0.95) 100%)'
-                        : 'linear-gradient(90deg, rgba(248,113,113,0.42) 0%, rgba(252,165,165,0.8) 75%, rgba(254,226,226,0.95) 100%)',
-                      boxShadow: isLast
-                        ? (activeReviewRange?.polarity === 'strong' ? '0 0 14px rgba(74,222,128,0.42)' : '0 0 14px rgba(248,113,113,0.38)')
-                        : (activeReviewRange?.polarity === 'strong' ? '0 0 9px rgba(74,222,128,0.24)' : '0 0 9px rgba(248,113,113,0.24)'),
+                        ? 'linear-gradient(180deg, rgba(74,222,128,0.22) 0%, rgba(74,222,128,0.38) 45%, rgba(74,222,128,0.24) 100%)'
+                        : 'linear-gradient(180deg, rgba(248,113,113,0.2) 0%, rgba(248,113,113,0.34) 45%, rgba(248,113,113,0.22) 100%)',
+                      boxShadow: 'none',
                     }}
                   />
                 );
@@ -3101,7 +3111,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
               </div>
 
               <p style={{ position: 'relative', zIndex: 1, margin: 0, color: '#94a3b8', fontSize: 12 }}>
-                Green glow = strong writing choices. Red glow = corrections (grammar, awkward wording, or spelling).
+                Green ink = strong writing choices. Red ink = corrections (grammar, awkward wording, or spelling).
               </p>
 
               <div style={{ position: 'relative', zIndex: 1, borderRadius: 10, border: `1px solid ${activeReviewRange?.polarity === 'strong' ? 'rgba(74,222,128,0.45)' : 'rgba(148,163,184,0.35)'}`, background: 'rgba(15,23,42,0.62)', padding: '9px 10px' }}>
