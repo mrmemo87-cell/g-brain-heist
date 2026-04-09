@@ -180,6 +180,7 @@ export const buildWritingDashboardSnapshot = (
 };
 
 type WritingHubThemeMode = 'dark' | 'light';
+type ThemeVarStyle = Record<string, string | number>;
 
 const getPageStyle = (_theme: WritingHubThemeMode) => ({
   padding: 12,
@@ -577,8 +578,8 @@ const ReviewHighlightSpan: React.FC<ReviewHighlightSpanProps> = ({ index, range,
 
   const highlightStyle = {
     color: isActive
-      ? (strong ? '#d9f99d' : '#fecaca')
-      : (strong ? 'rgba(187,247,208,0.9)' : 'rgba(254,202,202,0.9)'),
+      ? (strong ? 'var(--hub-highlight-strong-active, #d9f99d)' : 'var(--hub-highlight-weak-active, #fecaca)')
+      : (strong ? 'var(--hub-highlight-strong-idle, rgba(187,247,208,0.9))' : 'var(--hub-highlight-weak-idle, rgba(254,202,202,0.9))'),
     boxShadow: 'none',
     textShadow: 'none',
     transition: 'color 180ms ease',
@@ -759,12 +760,48 @@ const describeHighlight = (
     };
   }
 
-  const grammar = (ai.grammar_fixes ?? []).find((item) => item.original.toLowerCase().includes(lowerSnippet) || lowerSnippet.includes(item.original.toLowerCase()));
+  const normalize = (value: string) => value.replace(/\s+/g, ' ').trim().toLowerCase();
+  const normalizedSnippet = normalize(snippet);
+  const isOriginalMatch = (value: string) => {
+    const normalized = normalize(value);
+    return normalizedSnippet === normalized || normalized.includes(normalizedSnippet) || normalizedSnippet.includes(normalized);
+  };
+  const isCorrectedMatch = (value: string) => {
+    const normalized = normalize(value);
+    return normalizedSnippet === normalized;
+  };
+
+  const grammar = (ai.grammar_fixes ?? []).find((item) => isOriginalMatch(item.original));
   if (grammar) return { label: 'Grammar fix', detail: grammar.issue, correction: grammar.better_version };
-  const punctuation = (ai.punctuation_fixes ?? []).find((item) => item.original.toLowerCase().includes(lowerSnippet) || lowerSnippet.includes(item.original.toLowerCase()));
+  const punctuation = (ai.punctuation_fixes ?? []).find((item) => isOriginalMatch(item.original));
   if (punctuation) return { label: 'Punctuation fix', detail: punctuation.issue, correction: punctuation.better_version };
-  const phrase = (ai.natural_phrase_upgrades ?? []).find((item) => item.original.toLowerCase().includes(lowerSnippet) || lowerSnippet.includes(item.original.toLowerCase()));
+  const phrase = (ai.natural_phrase_upgrades ?? []).find((item) => isOriginalMatch(item.original));
   if (phrase) return { label: 'Phrase upgrade', detail: phrase.why_it_helps, correction: phrase.better_version };
+
+  const correctedGrammar = (ai.grammar_fixes ?? []).find((item) => isCorrectedMatch(item.better_version));
+  if (correctedGrammar) {
+    return {
+      label: 'Grammar correction applied',
+      detail: `This highlight is already showing the improved sentence. Original wording: "${correctedGrammar.original}"`,
+      correction: correctedGrammar.better_version,
+    };
+  }
+  const correctedPunctuation = (ai.punctuation_fixes ?? []).find((item) => isCorrectedMatch(item.better_version));
+  if (correctedPunctuation) {
+    return {
+      label: 'Punctuation correction applied',
+      detail: `This highlight already reflects the corrected punctuation. Original wording: "${correctedPunctuation.original}"`,
+      correction: correctedPunctuation.better_version,
+    };
+  }
+  const correctedPhrase = (ai.natural_phrase_upgrades ?? []).find((item) => isCorrectedMatch(item.better_version));
+  if (correctedPhrase) {
+    return {
+      label: 'Phrase upgrade applied',
+      detail: `This highlight is showing the improved phrase. Original wording: "${correctedPhrase.original}"`,
+      correction: correctedPhrase.better_version,
+    };
+  }
   const strength = [...(ai.what_is_working ?? []), ...(ai.strengths ?? [])].find((item) => (extractQuotedSnippet(item) ?? '').toLowerCase().includes(lowerSnippet) || item.toLowerCase().includes(lowerSnippet));
   if (strength) return { label: 'Why this is strong', detail: simplifyStudentLanguage(strength) };
 
@@ -1227,6 +1264,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const preWeekResponseRef = useRef<HTMLTextAreaElement | null>(null);
   const writingPathCarouselRef = useRef<HTMLDivElement | null>(null);
   const reviewEssayPanelRef = useRef<HTMLDivElement | null>(null);
+  const writingHubRootRef = useRef<HTMLDivElement | null>(null);
   const highlightSpanRefs = useRef<Record<number, HTMLSpanElement | null>>({});
   const activeLineOverlayRefs = useRef<Array<HTMLSpanElement | null>>([]);
   const writingPathButtonRefs: MutableRefObject<Partial<Record<SupportedGenre, HTMLButtonElement | null>> | null> =
@@ -1242,6 +1280,96 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const pageStyle = useMemo(() => getPageStyle(themeMode), [themeMode]);
   const shellCardStyle = useMemo(() => getShellCardStyle(themeMode), [themeMode]);
   const missionCardStyle = useMemo(() => getMissionCardStyle(themeMode), [themeMode]);
+  const modalThemeVars = useMemo<ThemeVarStyle>(() => {
+    if (themeMode === 'light') {
+      return {
+        '--hub-bg': '#eef4ff',
+        '--hub-text': '#0f172a',
+        '--hub-text-strong': '#0b1220',
+        '--hub-text-soft': '#1e3a5f',
+        '--hub-text-muted': '#334155',
+        '--hub-text-accent': '#1d4ed8',
+        '--hub-text-accent-2': '#2563eb',
+        '--hub-subtext': '#475569',
+        '--hub-panel': 'rgba(255, 255, 255, 0.96)',
+        '--hub-overlay-soft': 'rgba(248, 250, 255, 0.96)',
+        '--hub-overlay-strong': 'rgba(255, 255, 255, 0.98)',
+        '--hub-muted-surface': 'rgba(237, 245, 255, 0.94)',
+        '--hub-muted-surface-soft': 'rgba(223, 235, 252, 0.82)',
+        '--hub-accent-surface': 'rgba(191, 219, 254, 0.62)',
+        '--hub-border': 'rgba(148, 163, 184, 0.46)',
+        '--hub-border-strong': 'rgba(59, 130, 246, 0.42)',
+        '--hub-shadow-card': '0 12px 24px rgba(15, 23, 42, 0.1)',
+        '--hub-hud-bg': 'rgba(255, 255, 255, 0.92)',
+        '--hub-hud-border': 'rgba(59, 130, 246, 0.3)',
+        '--hub-glass-blur': 'blur(8px)',
+        '--hub-modal-overlay': 'color-mix(in srgb, #eff6ff 84%, #94a3b8 16%)',
+        '--hub-feedback-weak': '#dc2626',
+        '--hub-next-border': 'rgba(16, 185, 129, 0.36)',
+        '--hub-next-bg': 'rgba(220, 252, 231, 0.86)',
+        '--hub-next-heading': '#065f46',
+        '--hub-next-text': '#14532d',
+        '--hub-nav-button-bg': 'rgba(255, 255, 255, 0.94)',
+        '--hub-nav-button-border': 'rgba(59,130,246,0.38)',
+        '--hub-cta-border': 'rgba(16,185,129,0.42)',
+        '--hub-cta-bg': 'linear-gradient(135deg, rgba(59,130,246,0.22), rgba(16,185,129,0.2))',
+        '--hub-cta-text': '#065f46',
+        '--hub-marker-strong': 'rgba(34, 197, 94, 0.23)',
+        '--hub-marker-weak': 'rgba(239, 68, 68, 0.2)',
+        '--hub-highlight-strong-active': '#166534',
+        '--hub-highlight-strong-idle': '#14532d',
+        '--hub-highlight-weak-active': '#991b1b',
+        '--hub-highlight-weak-idle': '#7f1d1d',
+        '--marker-strong-base': 'rgba(74, 222, 128, 0.24)',
+        '--marker-strong-mid': 'rgba(74, 222, 128, 0.34)',
+        '--marker-weak-base': 'rgba(248, 113, 113, 0.22)',
+        '--marker-weak-mid': 'rgba(248, 113, 113, 0.32)',
+      } as ThemeVarStyle;
+    }
+    return {
+      '--hub-bg': '#020617',
+      '--hub-text': '#dbe7ff',
+      '--hub-text-strong': '#f8fbff',
+      '--hub-text-soft': '#c5dcff',
+      '--hub-text-muted': '#cbd5e1',
+      '--hub-text-accent': '#bfdbfe',
+      '--hub-text-accent-2': '#93c5fd',
+      '--hub-subtext': '#94a3b8',
+      '--hub-panel': 'rgba(10, 17, 32, 0.92)',
+      '--hub-overlay-soft': 'rgba(18, 30, 52, 0.92)',
+      '--hub-overlay-strong': 'rgba(10, 17, 32, 0.95)',
+      '--hub-muted-surface': 'rgba(13, 27, 50, 0.86)',
+      '--hub-muted-surface-soft': 'rgba(30, 48, 79, 0.62)',
+      '--hub-accent-surface': 'rgba(34, 75, 198, 0.36)',
+      '--hub-border': 'rgba(148, 163, 184, 0.32)',
+      '--hub-border-strong': 'rgba(125, 211, 252, 0.5)',
+      '--hub-shadow-card': '0 16px 36px rgba(2, 6, 23, 0.5)',
+      '--hub-hud-bg': 'rgba(8, 15, 30, 0.92)',
+      '--hub-hud-border': 'rgba(125, 211, 252, 0.35)',
+      '--hub-glass-blur': 'blur(6px)',
+      '--hub-modal-overlay': 'color-mix(in srgb, #020617 72%, #000 28%)',
+      '--hub-feedback-weak': '#f87171',
+      '--hub-next-border': 'rgba(16,185,129,0.35)',
+      '--hub-next-bg': 'rgba(6, 78, 59, 0.2)',
+      '--hub-next-heading': '#d1fae5',
+      '--hub-next-text': '#ecfdf5',
+      '--hub-nav-button-bg': 'rgba(15,23,42,0.82)',
+      '--hub-nav-button-border': 'rgba(148,163,184,0.45)',
+      '--hub-cta-border': 'rgba(110,231,183,0.55)',
+      '--hub-cta-bg': 'linear-gradient(135deg, rgba(5,150,105,0.5), rgba(14,116,144,0.45))',
+      '--hub-cta-text': '#ecfdf5',
+      '--hub-marker-strong': 'rgba(74,222,128,0.28)',
+      '--hub-marker-weak': 'rgba(248,113,113,0.24)',
+      '--hub-highlight-strong-active': '#d9f99d',
+      '--hub-highlight-strong-idle': 'rgba(187,247,208,0.9)',
+      '--hub-highlight-weak-active': '#fecaca',
+      '--hub-highlight-weak-idle': 'rgba(254,202,202,0.9)',
+      '--marker-strong-base': 'rgba(74, 222, 128, 0.3)',
+      '--marker-strong-mid': 'rgba(74, 222, 128, 0.44)',
+      '--marker-weak-base': 'rgba(248, 113, 113, 0.28)',
+      '--marker-weak-mid': 'rgba(248, 113, 113, 0.42)',
+    } as ThemeVarStyle;
+  }, [themeMode]);
   const headingColor = 'var(--hub-text-strong)';
   const headingSubtle = 'var(--hub-text-soft)';
 
@@ -1998,7 +2126,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   );
 
   return (
-    <div style={pageStyle} className={`writing-hub-root writing-hub-theme-${themeMode}`}>
+    <div ref={writingHubRootRef} style={pageStyle} className={`writing-hub-root writing-hub-theme-${themeMode}`}>
       <style>{`
         .writing-hub-root {
           --hub-bg: #020617;
@@ -2095,14 +2223,14 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           content: '';
           position: absolute;
           inset: -30% -10%;
-          background: radial-gradient(circle at 20% 20%, rgba(59,130,246,0.24), transparent 45%),
-            radial-gradient(circle at 80% 80%, rgba(16,185,129,0.18), transparent 40%);
+          background: radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--hub-text-accent-2) 26%, transparent), transparent 45%),
+            radial-gradient(circle at 80% 80%, color-mix(in srgb, var(--hub-next-heading) 20%, transparent), transparent 40%);
           pointer-events: none;
         }
         .ai-review-scan {
           position: absolute;
           inset: 0;
-          background: linear-gradient(120deg, transparent 0%, rgba(125, 211, 252, 0.18) 45%, transparent 70%);
+          background: linear-gradient(120deg, transparent 0%, color-mix(in srgb, var(--hub-text-accent-2) 22%, transparent) 45%, transparent 70%);
           transform: translateX(-100%);
           animation: aiReviewSweep 1.45s ease-in-out infinite;
           pointer-events: none;
@@ -2111,9 +2239,24 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           width: 8px;
           height: 8px;
           border-radius: 999px;
-          background: #22d3ee;
-          box-shadow: 0 0 14px rgba(34, 211, 238, 0.7);
+          background: var(--hub-text-accent-2);
+          box-shadow: 0 0 14px color-mix(in srgb, var(--hub-text-accent-2) 70%, transparent);
           animation: analysisPulse 1.2s ease-in-out infinite;
+        }
+        .ai-review-brand {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          width: fit-content;
+          border-radius: 999px;
+          border: 1px solid var(--hub-border-strong);
+          background: var(--hub-accent-surface, var(--hub-muted-surface-soft));
+          color: var(--hub-text-accent-2);
+          padding: 4px 10px 4px 8px;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
         }
         .review-highlight {
           position: relative;
@@ -2160,15 +2303,28 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           min-height: 0;
           display: flex;
           flex-direction: column;
-          gap: 10px;
+          gap: 14px;
           overflow-y: auto;
           overflow-x: hidden;
-          padding-right: 2px;
+          padding: 4px 2px 2px;
         }
         .ai-review-essay-panel {
           flex: 0 1 auto;
-          max-height: clamp(140px, 34vh, 300px);
+          max-height: clamp(180px, 42vh, 360px);
           overflow-y: auto;
+        }
+        .ai-review-feedback-card,
+        .ai-review-next-card {
+          box-shadow: 0 8px 18px color-mix(in srgb, var(--hub-text) 8%, transparent);
+        }
+        @media (max-width: 640px) {
+          .ai-review-body {
+            gap: 16px;
+            padding-right: 0;
+          }
+          .ai-review-essay-panel {
+            max-height: clamp(220px, 50vh, 420px);
+          }
         }
         .week-stage-wrap {
           display: grid;
@@ -3022,13 +3178,14 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           aria-label="AI feedback review"
           onClick={() => setShowAiReviewModal(false)}
           style={{
+            ...modalThemeVars,
             position: 'fixed',
             inset: 0,
             zIndex: 1150,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'flex-start',
-            background: 'color-mix(in srgb, var(--hub-bg) 72%, #000 28%)',
+            background: 'var(--hub-modal-overlay)',
             padding: '16px 16px 24px',
             overflowY: 'auto',
           }}
@@ -3053,7 +3210,11 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           >
             <div className="ai-review-scan" aria-hidden="true" />
             <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
-              <div style={{ display: 'grid', gap: 4 }}>
+              <div style={{ display: 'grid', gap: 6 }}>
+                <div className="ai-review-brand">
+                  <img src="/logo.png" alt="Brains Heist" style={{ width: 22, height: 22, objectFit: 'contain' }} />
+                  <span>Brains Heist</span>
+                </div>
                 <p style={{ margin: 0, color: 'var(--hub-text-accent-2)', fontSize: 12, fontWeight: 800, letterSpacing: 0.4 }}>AI FEEDBACK</p>
                 <h3 style={{ margin: 0, color: 'var(--hub-text-strong)', fontSize: 22 }}>Submitted · Smart review in progress</h3>
               </div>
@@ -3109,8 +3270,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   background: 'var(--hub-panel)',
                   padding: 12,
                   color: 'var(--hub-text)',
-                  lineHeight: 1.62,
-                  fontSize: 14,
+                  lineHeight: 1.74,
+                  fontSize: 'clamp(15px, 2.8vw, 17px)',
                   whiteSpace: 'pre-wrap',
                 }}
               >
@@ -3135,8 +3296,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                       pointerEvents: 'none',
                       mixBlendMode: 'multiply',
                       background: activeReviewRange?.polarity === 'strong'
-                        ? 'linear-gradient(180deg, rgba(74,222,128,0.22) 0%, rgba(74,222,128,0.38) 45%, rgba(74,222,128,0.24) 100%)'
-                        : 'linear-gradient(180deg, rgba(248,113,113,0.2) 0%, rgba(248,113,113,0.34) 45%, rgba(248,113,113,0.22) 100%)',
+                        ? 'linear-gradient(180deg, color-mix(in srgb, var(--hub-marker-strong) 88%, transparent) 0%, var(--hub-marker-strong) 45%, color-mix(in srgb, var(--hub-marker-strong) 86%, transparent) 100%)'
+                        : 'linear-gradient(180deg, color-mix(in srgb, var(--hub-marker-weak) 88%, transparent) 0%, var(--hub-marker-weak) 45%, color-mix(in srgb, var(--hub-marker-weak) 86%, transparent) 100%)',
                       boxShadow: 'none',
                     }}
                   />
@@ -3144,19 +3305,15 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
               })}
               </div>
 
-              <p style={{ position: 'relative', zIndex: 1, margin: 0, color: 'var(--hub-subtext)', fontSize: 12 }}>
-                Green ink = strong writing choices. Red ink = corrections (grammar, awkward wording, or spelling).
-              </p>
-
-              <div style={{ position: 'relative', zIndex: 1, borderRadius: 10, border: `1px solid ${activeReviewRange?.polarity === 'strong' ? 'rgba(74,222,128,0.45)' : 'var(--hub-border)'}`, background: 'var(--hub-muted-surface)', padding: '9px 10px' }}>
+              <div className="ai-review-feedback-card" style={{ position: 'relative', zIndex: 1, borderRadius: 12, border: `1px solid ${activeReviewRange?.polarity === 'strong' ? 'var(--hub-border-strong)' : 'var(--hub-border)'}`, background: 'var(--hub-muted-surface)', padding: '12px 12px' }}>
                 {activeReviewRange ? (
                   <>
-                    <p style={{ margin: '0 0 4px', color: activeReviewRange.polarity === 'strong' ? 'var(--hub-text-accent-2)' : '#f87171', fontWeight: 700, fontSize: 13 }}>
+                    <p style={{ margin: '0 0 8px', color: activeReviewRange.polarity === 'strong' ? 'var(--hub-text-accent-2)' : 'var(--hub-feedback-weak)', fontWeight: 800, fontSize: 'clamp(14px, 2.3vw, 16px)' }}>
                       {activeReviewNote.label}
                     </p>
-                    <p style={{ margin: 0, color: 'var(--hub-text)', fontSize: 14 }}>{activeReviewNote.detail}</p>
+                    <p style={{ margin: 0, color: 'var(--hub-text)', fontSize: 'clamp(14px, 2.5vw, 16px)', lineHeight: 1.65 }}>{activeReviewNote.detail}</p>
                     {activeReviewNote.correction && (
-                      <p style={{ margin: '6px 0 0', color: 'var(--hub-text-accent-2)', fontSize: 14 }}>
+                      <p style={{ margin: '10px 0 0', color: 'var(--hub-text-accent-2)', fontSize: 'clamp(14px, 2.45vw, 16px)', lineHeight: 1.6 }}>
                         Better version: {activeReviewNote.correction}
                       </p>
                     )}
@@ -3168,21 +3325,22 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
 
               {reviewScanComplete && (
                 <div
+                  className="ai-review-next-card"
                   style={{
                     position: 'relative',
                     zIndex: 1,
                     borderRadius: 12,
-                    border: '1px solid rgba(16,185,129,0.35)',
-                    background: 'rgba(6, 78, 59, 0.2)',
-                    padding: '9px 10px',
+                    border: '1px solid var(--hub-next-border)',
+                    background: 'var(--hub-next-bg)',
+                    padding: '12px 12px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 10,
                     flexWrap: 'wrap',
                   }}
                 >
-                  <p style={{ margin: 0, color: '#d1fae5', fontWeight: 700, fontSize: 13 }}>Next action</p>
-                  <p style={{ margin: 0, color: '#ecfdf5', fontSize: 13, flex: '1 1 280px' }}>
+                  <p style={{ margin: 0, color: 'var(--hub-next-heading)', fontWeight: 800, fontSize: 'clamp(14px, 2.3vw, 16px)' }}>Next action</p>
+                  <p style={{ margin: 0, color: 'var(--hub-next-text)', fontSize: 'clamp(14px, 2.4vw, 16px)', lineHeight: 1.6, flex: '1 1 280px' }}>
                     {aiFeedbackDetails?.next_move || (aiFeedbackDetails?.next_steps ?? []).slice(0, 1)[0] || 'Pick one red highlight and revise that sentence now.'}
                   </p>
                   <button
@@ -3197,13 +3355,13 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   }}
                   style={{
                     justifySelf: 'start',
-                    borderRadius: 9,
-                    border: '1px solid rgba(110,231,183,0.55)',
-                    background: 'linear-gradient(135deg, rgba(5,150,105,0.5), rgba(14,116,144,0.45))',
-                    color: '#ecfdf5',
-                    padding: '7px 10px',
+                    borderRadius: 10,
+                    border: '1px solid var(--hub-cta-border)',
+                    background: 'var(--hub-cta-bg)',
+                    color: 'var(--hub-cta-text)',
+                    padding: '9px 12px',
                     fontWeight: 700,
-                    fontSize: 13,
+                    fontSize: 14,
                     cursor: 'pointer',
                   }}
                   >
@@ -3212,7 +3370,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                 </div>
               )}
             </div>
-            <div style={{ position: 'relative', zIndex: 1, borderTop: '1px solid rgba(148,163,184,0.25)', paddingTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+            <div style={{ position: 'relative', zIndex: 1, borderTop: '1px solid var(--hub-border)', paddingTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
               <p style={{ margin: 0, color: 'var(--hub-subtext)', fontSize: 12 }}>
                 {reviewScanPlan.length > 0
                   ? `Highlight ${(reviewActiveIndex ?? 0) + 1} of ${visibleSubmittedHighlightRanges.length}`
@@ -3225,11 +3383,11 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   disabled={reviewScanPlan.length === 0 || (reviewActiveIndex ?? 0) <= 0}
                   style={{
                     borderRadius: 10,
-                    border: '1px solid rgba(148,163,184,0.45)',
-                    background: 'rgba(15,23,42,0.82)',
+                    border: '1px solid var(--hub-nav-button-border)',
+                    background: 'var(--hub-nav-button-bg)',
                     color: 'var(--hub-text)',
                     padding: '7px 12px',
-                    fontSize: 13,
+                    fontSize: 14,
                     fontWeight: 700,
                     cursor: reviewScanPlan.length === 0 || (reviewActiveIndex ?? 0) <= 0 ? 'not-allowed' : 'pointer',
                     opacity: reviewScanPlan.length === 0 || (reviewActiveIndex ?? 0) <= 0 ? 0.55 : 1,
@@ -3243,11 +3401,11 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   disabled={reviewScanPlan.length === 0 || (reviewActiveIndex ?? 0) >= Math.max(0, visibleSubmittedHighlightRanges.length - 1)}
                   style={{
                     borderRadius: 10,
-                    border: '1px solid rgba(148,163,184,0.45)',
-                    background: 'rgba(15,23,42,0.82)',
+                    border: '1px solid var(--hub-nav-button-border)',
+                    background: 'var(--hub-nav-button-bg)',
                     color: 'var(--hub-text)',
                     padding: '7px 12px',
-                    fontSize: 13,
+                    fontSize: 14,
                     fontWeight: 700,
                     cursor: reviewScanPlan.length === 0 || (reviewActiveIndex ?? 0) >= Math.max(0, visibleSubmittedHighlightRanges.length - 1) ? 'not-allowed' : 'pointer',
                     opacity: reviewScanPlan.length === 0 || (reviewActiveIndex ?? 0) >= Math.max(0, visibleSubmittedHighlightRanges.length - 1) ? 0.55 : 1,
@@ -3259,7 +3417,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             </div>
           </div>
         </div>
-      ), document.body)}
+      ), writingHubRootRef.current ?? document.body)}
 
       {showProgressDetailsModal && createPortal((
         <div
