@@ -854,12 +854,19 @@ const describeHighlight = (
   const prefersPunctuation = normalizedCategory.includes('punct');
   const prefersPhrase = normalizedCategory.includes('phrase') || normalizedCategory.includes('style');
   const prefersStrength = normalizedCategory.includes('strong') || normalizedCategory.includes('strength') || range.polarity === 'strong';
+  const lowerText = text.toLowerCase();
   const scoreOriginalMatch = (value: string): number => {
     const normalized = normalize(value);
     if (!normalized || !normalizedSnippet) return 0;
     if (normalizedSnippet === normalized) return 100;
     if (normalizedSnippet.includes(normalized)) return Math.min(95, 50 + normalized.length);
     if (normalized.includes(normalizedSnippet)) return Math.min(90, 40 + normalizedSnippet.length);
+    const rawNeedle = value.trim().toLowerCase();
+    if (rawNeedle && lowerText.includes(rawNeedle)) {
+      const occurrenceStart = lowerText.indexOf(rawNeedle);
+      const distance = Math.abs(occurrenceStart - range.start);
+      return Math.max(15, 82 - Math.min(distance, 67));
+    }
     return 0;
   };
   const pickBestByOriginal = <T extends { original: string }>(items: T[]): T | null => {
@@ -876,10 +883,20 @@ const describeHighlight = (
   };
 
   const grammar = pickBestByOriginal(ai.grammar_fixes ?? []);
-  if (grammar) return { label: 'Grammar fix', detail: toTeacherDetail('grammar', grammar.issue), correction: grammar.better_version };
   const punctuation = pickBestByOriginal(ai.punctuation_fixes ?? []);
-  if (punctuation) return { label: 'Punctuation fix', detail: toTeacherDetail('punctuation', punctuation.issue), correction: punctuation.better_version };
   const phrase = pickBestByOriginal(ai.natural_phrase_upgrades ?? []);
+
+  if (prefersPunctuation && punctuation) {
+    return { label: 'Punctuation fix', detail: toTeacherDetail('punctuation', punctuation.issue), correction: punctuation.better_version };
+  }
+  if (prefersGrammar && grammar) {
+    return { label: 'Grammar fix', detail: toTeacherDetail('grammar', grammar.issue), correction: grammar.better_version };
+  }
+  if (prefersPhrase && phrase) {
+    return { label: 'Phrase upgrade', detail: toTeacherDetail('phrase', phrase.why_it_helps), correction: phrase.better_version };
+  }
+  if (grammar) return { label: 'Grammar fix', detail: toTeacherDetail('grammar', grammar.issue), correction: grammar.better_version };
+  if (punctuation) return { label: 'Punctuation fix', detail: toTeacherDetail('punctuation', punctuation.issue), correction: punctuation.better_version };
   if (phrase) return { label: 'Phrase upgrade', detail: toTeacherDetail('phrase', phrase.why_it_helps), correction: phrase.better_version };
 
   if (isOriginalMatch(range.sourceExactText ?? '')) {
