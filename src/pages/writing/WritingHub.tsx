@@ -1352,6 +1352,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const reviewAutoplaySessionRef = useRef<string | null>(null);
   const reviewAnimationStepRef = useRef<number | null>(null);
   const reviewAnimationForIndexRef = useRef<number | null>(null);
+  const aiPlanAssistRequestIdRef = useRef(0);
   const writingPathButtonRefs: MutableRefObject<Partial<Record<SupportedGenre, HTMLButtonElement | null>> | null> =
     useRef<Partial<Record<SupportedGenre, HTMLButtonElement | null>>>({});
   const missionsCarouselRef = useRef<HTMLDivElement | null>(null);
@@ -1988,31 +1989,41 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     const loadAiPlanAssist = async () => {
       if (!nonCriticalReady) return;
       if (!stateRes.ok || !stateRes.data?.latest_assessment || aiBusy) return;
+      const requestId = aiPlanAssistRequestIdRef.current + 1;
+      aiPlanAssistRequestIdRef.current = requestId;
       setAiBusy(true);
-      const planAssist = await requestWritingAiAssist({
-        mode: 'plan_assist',
-        prompt_text: promptText,
-        weaknesses: latestWeaknesses,
-        grade,
-        genre: activeGenre,
-      });
-      if (!cancelled && planAssist.ok && planAssist.data) {
-        const ai = (planAssist.data.result ?? {}) as WritingAiPlanAssist;
-        if (ai.focus?.trim()) setAiWeeklyFocus(ai.focus.trim());
-        if (Array.isArray(ai.coaching_points) && ai.coaching_points.length > 0) {
-          setAiCoachingPoints(ai.coaching_points.slice(0, 3));
+      try {
+        const planAssist = await requestWritingAiAssist({
+          mode: 'plan_assist',
+          prompt_text: promptText,
+          weaknesses: latestWeaknesses,
+          grade,
+          genre: activeGenre,
+        });
+        if (cancelled || aiPlanAssistRequestIdRef.current !== requestId) return;
+        if (planAssist.ok && planAssist.data) {
+          const ai = (planAssist.data.result ?? {}) as WritingAiPlanAssist;
+          if (ai.focus?.trim()) setAiWeeklyFocus(ai.focus.trim());
+          if (Array.isArray(ai.coaching_points) && ai.coaching_points.length > 0) {
+            setAiCoachingPoints(ai.coaching_points.slice(0, 3));
+          }
+          if (ai.daily_task?.trim()) setAiTaskWording(ai.daily_task.trim());
+        } else if (planAssist.error) {
+          setUiNotice(`AI coach unavailable right now: ${planAssist.error}`);
         }
-        if (ai.daily_task?.trim()) setAiTaskWording(ai.daily_task.trim());
-      } else if (!cancelled && planAssist.error) {
-        setUiNotice(`AI coach unavailable right now: ${planAssist.error}`);
+      } finally {
+        if (aiPlanAssistRequestIdRef.current === requestId) {
+          setAiBusy(false);
+        }
       }
-      if (!cancelled) setAiBusy(false);
     };
     debounceTimer = window.setTimeout(() => {
       void loadAiPlanAssist();
     }, 700);
     return () => {
       cancelled = true;
+      aiPlanAssistRequestIdRef.current += 1;
+      setAiBusy(false);
       if (debounceTimer) window.clearTimeout(debounceTimer);
     };
   }, [studentId, month, stateRes.ok, stateRes.data?.latest_assessment?.total_score, activeGenre, nonCriticalReady]);

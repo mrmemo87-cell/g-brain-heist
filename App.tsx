@@ -35,7 +35,9 @@ import { lazyRetry } from './src/utils/lazyRetry';
 const IeltsHome = lazyRetry(() => import('./src/pages/ielts/IeltsHome'), 'IeltsHome');
 const importWritingHub = () => import('./src/pages/writing/WritingHub');
 const preloadWritingHub = (): void => {
-  void importWritingHub();
+  void importWritingHub().catch(() => {
+    // Speculative preload should never surface an unhandled rejection.
+  });
 };
 const WritingHub = lazyRetry(() => importWritingHub(), 'WritingHub');
 const HelpModal = lazyRetry(() => import('./components/HelpModal'), 'HelpModal');
