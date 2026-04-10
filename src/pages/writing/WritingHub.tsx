@@ -509,14 +509,30 @@ const buildRepairQueue = (
 const buildAnchorRanges = (text: string, ai: WritingAiFeedbackAssist | null): TextAnchorRange[] => {
   if (!ai) return [];
   const ranges: TextAnchorRange[] = [];
+  const classifyPolarity = (category: string | undefined, fallback: 'strong' | 'weak'): 'strong' | 'weak' => {
+    const normalized = (category ?? '').toLowerCase();
+    if (!normalized) return fallback;
+    if (normalized.includes('strong') || normalized.includes('strength') || normalized.includes('what_is_working')) return 'strong';
+    if (
+      normalized.includes('grammar')
+      || normalized.includes('punct')
+      || normalized.includes('spelling')
+      || normalized.includes('phrase')
+      || normalized.includes('style')
+      || normalized.includes('fix')
+      || normalized.includes('error')
+    ) return 'weak';
+    return fallback;
+  };
   (ai.highlights ?? []).forEach((item, idx) => {
     if (typeof item.start_char !== 'number' || typeof item.end_char !== 'number') return;
     if (!Number.isInteger(item.start_char) || !Number.isInteger(item.end_char)) return;
     if (item.start_char < 0 || item.end_char <= item.start_char || item.end_char > text.length) return;
+    const basePolarity = item.polarity === 'strong' ? 'strong' : 'weak';
     ranges.push({
       start: item.start_char,
       end: item.end_char,
-      polarity: item.polarity === 'strong' ? 'strong' : 'weak',
+      polarity: classifyPolarity(item.category, basePolarity),
       reason: item.category ?? `highlight-${idx + 1}`,
       sourceCategory: item.category,
       sourceExactText: item.exact_text?.trim() || undefined,
@@ -800,12 +816,29 @@ const describeHighlight = (
   }
 
   const normalize = (value: string) => value.replace(/\s+/g, ' ').trim().toLowerCase();
+  const toTeacherDetail = (kind: 'grammar' | 'punctuation' | 'phrase', issue: string): string => {
+    const simpleIssue = simplifyStudentLanguage(issue || '').trim();
+    if (kind === 'grammar') {
+      return simpleIssue
+        ? `This sentence has a grammar mistake. ${simpleIssue}`
+        : 'This sentence has a grammar mistake. Fix capitalization, word form, or sentence structure.';
+    }
+    if (kind === 'punctuation') {
+      return simpleIssue
+        ? `This sentence has a punctuation mistake. ${simpleIssue}`
+        : 'This sentence has a punctuation mistake. Check capitals, full stops, and commas.';
+    }
+    return simpleIssue
+      ? `This sentence can sound more natural. ${simpleIssue}`
+      : 'This sentence can sound more natural. Replace awkward wording with a clearer phrase.';
+  };
   const normalizedSnippet = normalize(snippet);
   const isOriginalMatch = (value: string) => {
     const normalized = normalize(value);
     if (!normalized || !normalizedSnippet) return false;
     if (normalizedSnippet === normalized) return true;
-    if (range.sourceExactText) {
+    if (normalizedSnippet.includes(normalized) || normalized.includes(normalizedSnippet)) return true;
+    if (!snippet && range.sourceExactText) {
       const normalizedSource = normalize(range.sourceExactText);
       return normalizedSource === normalized;
     }
@@ -821,13 +854,48 @@ const describeHighlight = (
   const prefersPunctuation = normalizedCategory.includes('punct');
   const prefersPhrase = normalizedCategory.includes('phrase') || normalizedCategory.includes('style');
   const prefersStrength = normalizedCategory.includes('strong') || normalizedCategory.includes('strength') || range.polarity === 'strong';
+  const scoreOriginalMatch = (value: string): number => {
+    const normalized = normalize(value);
+    if (!normalized || !normalizedSnippet) return 0;
+    if (normalizedSnippet === normalized) return 100;
+    if (normalizedSnippet.includes(normalized)) return Math.min(95, 50 + normalized.length);
+    if (normalized.includes(normalizedSnippet)) return Math.min(90, 40 + normalizedSnippet.length);
+    return 0;
+  };
+  const pickBestByOriginal = <T extends { original: string }>(items: T[]): T | null => {
+    let best: T | null = null;
+    let bestScore = 0;
+    items.forEach((item) => {
+      const score = scoreOriginalMatch(item.original);
+      if (score > bestScore) {
+        best = item;
+        bestScore = score;
+      }
+    });
+    return best;
+  };
 
-  const grammar = (ai.grammar_fixes ?? []).find((item) => isOriginalMatch(item.original));
-  if (grammar) return { label: 'Grammar fix', detail: grammar.issue, correction: grammar.better_version };
-  const punctuation = (ai.punctuation_fixes ?? []).find((item) => isOriginalMatch(item.original));
-  if (punctuation) return { label: 'Punctuation fix', detail: punctuation.issue, correction: punctuation.better_version };
-  const phrase = (ai.natural_phrase_upgrades ?? []).find((item) => isOriginalMatch(item.original));
-  if (phrase) return { label: 'Phrase upgrade', detail: phrase.why_it_helps, correction: phrase.better_version };
+  const grammar = pickBestByOriginal(ai.grammar_fixes ?? []);
+  if (grammar) return { label: 'Grammar fix', detail: toTeacherDetail('grammar', grammar.issue), correction: grammar.better_version };
+  const punctuation = pickBestByOriginal(ai.punctuation_fixes ?? []);
+  if (punctuation) return { label: 'Punctuation fix', detail: toTeacherDetail('punctuation', punctuation.issue), correction: punctuation.better_version };
+  const phrase = pickBestByOriginal(ai.natural_phrase_upgrades ?? []);
+  if (phrase) return { label: 'Phrase upgrade', detail: toTeacherDetail('phrase', phrase.why_it_helps), correction: phrase.better_version };
+
+  if (isOriginalMatch(range.sourceExactText ?? '')) {
+    if (prefersGrammar) {
+      return {
+        label: 'Grammar fix',
+        detail: `This sentence has a grammar mistake. Check this exact part: "${snippet || range.sourceExactText || 'selected text'}".`,
+      };
+    }
+    if (prefersPunctuation) {
+      return {
+        label: 'Punctuation fix',
+        detail: `This sentence has a punctuation mistake. Check this exact part: "${snippet || range.sourceExactText || 'selected text'}".`,
+      };
+    }
+  }
 
   const correctedGrammar = (ai.grammar_fixes ?? []).find((item) => isCorrectedMatch(item.better_version));
   if (correctedGrammar) {
