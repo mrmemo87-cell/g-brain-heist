@@ -1321,7 +1321,6 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const [submittedPracticeText, setSubmittedPracticeText] = useState('');
   const [reviewScanComplete, setReviewScanComplete] = useState(false);
   const [reviewActiveIndex, setReviewActiveIndex] = useState<number | null>(null);
-  const [isReviewAutoplayPaused, setIsReviewAutoplayPaused] = useState(false);
   const [activeLineRects, setActiveLineRects] = useState<VisualLineRect[]>([]);
   const [activeRepairId, setActiveRepairId] = useState<string | null>(null);
   const [repairStatusMessage, setRepairStatusMessage] = useState<string>('');
@@ -1341,6 +1340,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const highlightSpanRefs = useRef<Record<number, HTMLSpanElement | null>>({});
   const activeLineOverlayRefs = useRef<Array<HTMLSpanElement | null>>([]);
   const reviewAutoplaySessionRef = useRef<string | null>(null);
+  const reviewAnimationStepRef = useRef<number | null>(null);
   const reviewAnimationForIndexRef = useRef<number | null>(null);
   const writingPathButtonRefs: MutableRefObject<Partial<Record<SupportedGenre, HTMLButtonElement | null>> | null> =
     useRef<Partial<Record<SupportedGenre, HTMLButtonElement | null>>>({});
@@ -1389,16 +1389,16 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
         '--hub-cta-border': 'rgba(16,185,129,0.42)',
         '--hub-cta-bg': 'linear-gradient(135deg, rgba(59,130,246,0.22), rgba(16,185,129,0.2))',
         '--hub-cta-text': '#065f46',
-        '--hub-marker-strong': 'rgba(34, 197, 94, 0.23)',
-        '--hub-marker-weak': 'rgba(239, 68, 68, 0.2)',
+        '--hub-marker-strong': 'rgba(22, 163, 74, 0.36)',
+        '--hub-marker-weak': 'rgba(185, 28, 28, 0.34)',
         '--hub-highlight-strong-active': '#166534',
         '--hub-highlight-strong-idle': '#14532d',
         '--hub-highlight-weak-active': '#991b1b',
         '--hub-highlight-weak-idle': '#7f1d1d',
-        '--marker-strong-base': 'rgba(74, 222, 128, 0.24)',
-        '--marker-strong-mid': 'rgba(74, 222, 128, 0.34)',
-        '--marker-weak-base': 'rgba(248, 113, 113, 0.22)',
-        '--marker-weak-mid': 'rgba(248, 113, 113, 0.32)',
+        '--marker-strong-base': 'rgba(22, 163, 74, 0.32)',
+        '--marker-strong-mid': 'rgba(22, 163, 74, 0.46)',
+        '--marker-weak-base': 'rgba(185, 28, 28, 0.3)',
+        '--marker-weak-mid': 'rgba(185, 28, 28, 0.42)',
       } as ThemeVarStyle;
     }
     return {
@@ -1423,7 +1423,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
       '--hub-hud-border': 'rgba(125, 211, 252, 0.35)',
       '--hub-glass-blur': 'blur(6px)',
       '--hub-modal-overlay': 'color-mix(in srgb, #020617 72%, #000 28%)',
-      '--hub-feedback-weak': '#f87171',
+      '--hub-feedback-weak': '#ef4444',
       '--hub-next-border': 'rgba(16,185,129,0.35)',
       '--hub-next-bg': 'rgba(6, 78, 59, 0.2)',
       '--hub-next-heading': '#d1fae5',
@@ -1433,16 +1433,16 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
       '--hub-cta-border': 'rgba(110,231,183,0.55)',
       '--hub-cta-bg': 'linear-gradient(135deg, rgba(5,150,105,0.5), rgba(14,116,144,0.45))',
       '--hub-cta-text': '#ecfdf5',
-      '--hub-marker-strong': 'rgba(74,222,128,0.28)',
-      '--hub-marker-weak': 'rgba(248,113,113,0.24)',
-      '--hub-highlight-strong-active': '#d9f99d',
-      '--hub-highlight-strong-idle': 'rgba(187,247,208,0.9)',
-      '--hub-highlight-weak-active': '#fecaca',
-      '--hub-highlight-weak-idle': 'rgba(254,202,202,0.9)',
-      '--marker-strong-base': 'rgba(74, 222, 128, 0.3)',
-      '--marker-strong-mid': 'rgba(74, 222, 128, 0.44)',
-      '--marker-weak-base': 'rgba(248, 113, 113, 0.28)',
-      '--marker-weak-mid': 'rgba(248, 113, 113, 0.42)',
+      '--hub-marker-strong': 'rgba(34,197,94,0.38)',
+      '--hub-marker-weak': 'rgba(220,38,38,0.36)',
+      '--hub-highlight-strong-active': '#4ade80',
+      '--hub-highlight-strong-idle': 'rgba(34,197,94,0.9)',
+      '--hub-highlight-weak-active': '#f87171',
+      '--hub-highlight-weak-idle': 'rgba(239,68,68,0.9)',
+      '--marker-strong-base': 'rgba(34, 197, 94, 0.34)',
+      '--marker-strong-mid': 'rgba(34, 197, 94, 0.5)',
+      '--marker-weak-base': 'rgba(220, 38, 38, 0.32)',
+      '--marker-weak-mid': 'rgba(220, 38, 38, 0.48)',
     } as ThemeVarStyle;
   }, [themeMode]);
   const headingColor = 'var(--hub-text-strong)';
@@ -1742,13 +1742,15 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
       setActiveLineRects([]);
       return;
     }
-    const updateRects = () => {
+    const measureActiveStep = () => {
       const container = reviewEssayPanelRef.current;
       const activeHighlight = (highlightSpanRefs.current ?? {})[reviewActiveIndex] ?? null;
       setActiveLineRects(getVisualLineRectsForHighlight(container, activeHighlight));
     };
-    updateRects();
-    const onResize = () => updateRects();
+    measureActiveStep();
+    const onResize = () => {
+      window.requestAnimationFrame(() => measureActiveStep());
+    };
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, [showAiReviewModal, reviewActiveIndex, reviewSessionKey]);
@@ -1759,20 +1761,19 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
 
   useEffect(() => {
     if (!showAiReviewModal || reviewActiveIndex == null || activeLineRects.length === 0) return;
-    if (reviewAnimationForIndexRef.current === reviewActiveIndex) return;
+    if (reviewAnimationForIndexRef.current === reviewActiveIndex && reviewAnimationStepRef.current === reviewActiveIndex) return;
     reviewAnimationForIndexRef.current = reviewActiveIndex;
+    reviewAnimationStepRef.current = reviewActiveIndex;
     const overlayElements = activeLineOverlayRefs.current ?? [];
     if (!overlayElements.length) return;
     const timeline = gsap.timeline();
+    scrollLineIntoComfortZone(reviewEssayPanelRef.current, activeLineRects[0] ?? null);
     overlayElements.forEach((element, idx) => {
       if (!element) return;
       gsap.set(element, {
         opacity: 0.82,
         clipPath: 'inset(0 100% 0 0)',
         transformOrigin: 'left center',
-      });
-      timeline.call(() => {
-        scrollLineIntoComfortZone(reviewEssayPanelRef.current, activeLineRects[idx] ?? null);
       });
       const lineDuration = Math.max(0.22, Math.min(0.7, activeLineRects[idx].width / 220));
       timeline.to(element, {
@@ -1800,6 +1801,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   useEffect(() => {
     if (!showAiReviewModal) {
       reviewAnimationForIndexRef.current = null;
+      reviewAnimationStepRef.current = null;
     }
   }, [showAiReviewModal, reviewSessionKey]);
 
@@ -2183,7 +2185,6 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   };
 
   const handleReviewStepNavigation = (direction: 'previous' | 'next') => {
-    setIsReviewAutoplayPaused(true);
     setReviewScanComplete(true);
     setReviewActiveIndex((prev) => {
       const current = prev ?? 0;
@@ -2192,13 +2193,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     });
   };
 
-  const handleReviewEssayScroll = () => {
-    if (!isReviewAutoplayPaused) setIsReviewAutoplayPaused(true);
-  };
-
   useEffect(() => {
     if (!showAiReviewModal) {
-      setIsReviewAutoplayPaused(false);
       reviewAutoplaySessionRef.current = null;
       setReviewScanComplete(false);
       setReviewActiveIndex(null);
@@ -2215,7 +2211,6 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     }
     reviewAutoplaySessionRef.current = reviewSessionKey;
     setReviewScanComplete(false);
-    setIsReviewAutoplayPaused(false);
     setReviewActiveIndex(0);
     let cancelled = false;
     const timers: number[] = [];
@@ -2224,7 +2219,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
       const segment = submittedPracticeText.slice(range.start, range.end);
       const stepDelay = getHighlightAnimationDurationMs(segment.length) + 36;
       timers.push(window.setTimeout(() => {
-        if (cancelled || isReviewAutoplayPaused) return;
+        if (cancelled) return;
         setReviewActiveIndex(idx);
       }, elapsed));
       elapsed += stepDelay;
@@ -2243,7 +2238,6 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     reviewActiveIndex,
     submittedPracticeText,
     reviewAnimationTimelineMs,
-    isReviewAutoplayPaused,
   ]);
 
   const renderLoadingSkeleton = () => (
@@ -2362,14 +2356,6 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             radial-gradient(circle at 80% 80%, color-mix(in srgb, var(--hub-next-heading) 20%, transparent), transparent 40%);
           pointer-events: none;
         }
-        .ai-review-scan {
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(120deg, transparent 0%, color-mix(in srgb, var(--hub-text-accent-2) 22%, transparent) 45%, transparent 70%);
-          transform: translateX(-100%);
-          animation: aiReviewSweep 1.45s ease-in-out infinite;
-          pointer-events: none;
-        }
         .ai-review-status-dot {
           width: 8px;
           height: 8px;
@@ -2442,12 +2428,12 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           overflow-y: auto;
           overflow-x: hidden;
           padding: 4px 2px 2px;
+          overscroll-behavior: contain;
         }
         .ai-review-essay-panel {
-          flex: 0 1 auto;
-          min-height: clamp(220px, 34dvh, 340px);
-          max-height: clamp(260px, 46dvh, 460px);
-          overflow-y: auto;
+          flex: 0 0 auto;
+          min-height: clamp(280px, 42dvh, 420px);
+          overflow: visible;
         }
         .ai-review-feedback-card,
         .ai-review-next-card {
@@ -2459,8 +2445,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             padding-right: 0;
           }
           .ai-review-essay-panel {
-            min-height: clamp(260px, 42dvh, 420px);
-            max-height: clamp(300px, 52dvh, 560px);
+            min-height: clamp(340px, 52dvh, 560px);
           }
         }
         .week-stage-wrap {
@@ -2581,15 +2566,13 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           .analysis-dot,
           .analysis-shimmer::after,
           .ai-review-modal-shell::before,
-          .ai-review-scan,
           .ai-review-status-dot,
           .review-highlight {
             animation: none !important;
             transition: none !important;
             transform: none !important;
           }
-          .analysis-shimmer::after,
-          .ai-review-scan {
+          .analysis-shimmer::after {
             background: transparent !important;
           }
           .review-highlight {
@@ -3366,8 +3349,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             background: 'color-mix(in srgb, var(--hub-modal-overlay) 68%, transparent)',
             backdropFilter: 'blur(12px) saturate(1.15)',
             WebkitBackdropFilter: 'blur(12px) saturate(1.15)',
-            padding: 'max(12px, env(safe-area-inset-top)) 12px max(16px, env(safe-area-inset-bottom))',
-            overflowY: 'auto',
+            padding: 'max(14px, calc(env(safe-area-inset-top) + 10px)) 12px max(18px, calc(env(safe-area-inset-bottom) + 10px))',
+            overflow: 'hidden',
           }}
         >
           <div
@@ -3375,7 +3358,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             onClick={(event: { stopPropagation: () => void }) => event.stopPropagation()}
             style={{
               width: 'min(840px, 100%)',
-              height: 'min(760px, calc(100dvh - (max(24px, env(safe-area-inset-top) + env(safe-area-inset-bottom) + 20px))))',
+              maxHeight: 'calc(100dvh - (max(28px, env(safe-area-inset-top) + env(safe-area-inset-bottom) + 20px)))',
+              minHeight: 'min(640px, calc(100dvh - (max(28px, env(safe-area-inset-top) + env(safe-area-inset-bottom) + 20px))))',
               borderRadius: 18,
               border: '1px solid var(--hub-border-strong)',
               background: 'var(--hub-overlay-strong)',
@@ -3388,7 +3372,6 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
               gap: 10,
             }}
           >
-            <div className="ai-review-scan" aria-hidden="true" />
             <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
               <div style={{ display: 'grid', gap: 6 }}>
                 <div className="ai-review-brand">
@@ -3442,7 +3425,6 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
               <div
                 className="ai-review-essay-panel"
                 ref={reviewEssayPanelRef}
-                onScroll={handleReviewEssayScroll}
                 style={{
                   position: 'relative',
                   zIndex: 1,
@@ -3452,7 +3434,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   padding: 12,
                   color: 'var(--hub-text)',
                   lineHeight: 1.74,
-                  fontSize: 'clamp(15px, 2.8vw, 17px)',
+                  fontSize: 'clamp(16px, 3.2vw, 18px)',
                   whiteSpace: 'pre-wrap',
                 }}
               >
@@ -3460,7 +3442,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
               {activeLineRects.map((line, idx) => {
                 return (
                   <span
-                    key={`line-overlay-${reviewActiveIndex ?? 'none'}-${idx}`}
+                    key={`line-overlay-${idx}`}
                     ref={(element: HTMLSpanElement | null) => {
                       const currentRefs = activeLineOverlayRefs.current ?? [];
                       currentRefs[idx] = element;
@@ -3489,12 +3471,12 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
               <div className="ai-review-feedback-card" style={{ position: 'relative', zIndex: 1, borderRadius: 12, border: `1px solid ${activeReviewRange?.polarity === 'strong' ? 'var(--hub-border-strong)' : 'var(--hub-border)'}`, background: 'var(--hub-muted-surface)', padding: '12px 12px' }}>
                 {activeReviewRange ? (
                   <>
-                    <p style={{ margin: '0 0 8px', color: activeReviewRange.polarity === 'strong' ? 'var(--hub-text-accent-2)' : 'var(--hub-feedback-weak)', fontWeight: 800, fontSize: 'clamp(14px, 2.3vw, 16px)' }}>
+                    <p style={{ margin: '0 0 8px', color: activeReviewRange.polarity === 'strong' ? 'var(--hub-text-accent-2)' : 'var(--hub-feedback-weak)', fontWeight: 800, fontSize: 'clamp(15px, 2.6vw, 17px)' }}>
                       {activeReviewNote.label}
                     </p>
-                    <p style={{ margin: 0, color: 'var(--hub-text)', fontSize: 'clamp(14px, 2.5vw, 16px)', lineHeight: 1.65 }}>{activeReviewNote.detail}</p>
+                    <p style={{ margin: 0, color: 'var(--hub-text)', fontSize: 'clamp(15px, 2.8vw, 17px)', lineHeight: 1.7 }}>{activeReviewNote.detail}</p>
                     {activeReviewNote.correction && (
-                      <p style={{ margin: '10px 0 0', color: 'var(--hub-text-accent-2)', fontSize: 'clamp(14px, 2.45vw, 16px)', lineHeight: 1.6 }}>
+                      <p style={{ margin: '10px 0 0', color: 'var(--hub-text-accent-2)', fontSize: 'clamp(15px, 2.7vw, 17px)', lineHeight: 1.7 }}>
                         Better version: {activeReviewNote.correction}
                       </p>
                     )}
