@@ -33,7 +33,11 @@ import { fetchEffectiveTier, isPro as isProTier, invalidateTierCache, fetchSchoo
 // Uses lazyRetry to auto-recover from stale deployment chunk errors
 import { lazyRetry } from './src/utils/lazyRetry';
 const IeltsHome = lazyRetry(() => import('./src/pages/ielts/IeltsHome'), 'IeltsHome');
-const WritingHub = lazyRetry(() => import('./src/pages/writing/WritingHub'), 'WritingHub');
+const importWritingHub = () => import('./src/pages/writing/WritingHub');
+const preloadWritingHub = (): void => {
+  void importWritingHub();
+};
+const WritingHub = lazyRetry(() => importWritingHub(), 'WritingHub');
 const HelpModal = lazyRetry(() => import('./components/HelpModal'), 'HelpModal');
 const TutorialModal = lazyRetry(() => import('./components/TutorialModal'), 'TutorialModal');
 
@@ -111,6 +115,20 @@ const readCache = <T,>(key: string): T | null => {
 const writeCache = <T,>(key: string, value: T) => {
   localStorage.setItem(key, JSON.stringify({ timestamp: Date.now(), value }));
 };
+
+const WritingHubRouteFallback: React.FC = () => (
+  <div className="space-y-3">
+    <div className="rounded-lg border border-blue-400/40 bg-slate-900/70 p-4 text-blue-100">
+      Opening Writing Hub…
+    </div>
+    <div className="rounded-lg border border-slate-700 bg-slate-900/50 p-4">
+      <div className="h-4 w-40 animate-pulse rounded bg-slate-700/70" />
+      <div className="mt-3 h-3 w-full animate-pulse rounded bg-slate-800/80" />
+      <div className="mt-2 h-3 w-11/12 animate-pulse rounded bg-slate-800/80" />
+      <div className="mt-2 h-3 w-9/12 animate-pulse rounded bg-slate-800/80" />
+    </div>
+  </div>
+);
 
 const App: React.FC<AppProps> = ({ onLogout }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -1906,7 +1924,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                       Loading your writing profile…
                     </div>
                   ) : (
-                    <Suspense fallback={null}>
+                    <Suspense fallback={<WritingHubRouteFallback />}>
                       <WritingHub
                         studentId={profile.id}
                         studentName={profile.username ?? undefined}
@@ -2110,6 +2128,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                         />
                         {isStudent && (
                           <button
+                            onMouseEnter={preloadWritingHub}
+                            onFocus={preloadWritingHub}
                             onClick={() => handleViewChange('writing')}
                             className="w-full rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-500 transition-colors"
                           >
