@@ -1189,7 +1189,17 @@ export interface QuestNode {
   // Hydrated event data (for reward/surprise nodes)
   event_id?: string;
   event_title?: string;
-  event_payload?: { xp?: number; coins?: number; effect?: string };
+  event_payload?: {
+    xp?: number;
+    coins?: number;
+    gemstones?: number;
+    effect?: string;
+    item_id?: string;
+    shop_item_id?: string;
+    item_name?: string;
+    item_kind?: string;
+    quantity?: number;
+  };
 }
 
 export interface QuestMission {

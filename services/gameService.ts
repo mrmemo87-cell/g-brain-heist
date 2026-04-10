@@ -6385,7 +6385,25 @@ const normalizeQuestRunState = (payload: unknown): QuestRunStateRaw => {
 
 export interface QuestEventClaimResult {
     event_title: string;
-    event_payload: { xp?: number; coins?: number; effect?: string };
+    event_payload: {
+        xp?: number;
+        coins?: number;
+        gemstones?: number;
+        effect?: string;
+        item_id?: string;
+        shop_item_id?: string;
+        item_name?: string;
+        item_kind?: string;
+        quantity?: number;
+    };
+    items_awarded?: Array<{
+        item_id: string;
+        name?: string;
+        kind?: string;
+        quantity?: number;
+        attack_bonus?: number;
+        defense_bonus?: number;
+    }>;
     deltas: { xp: number; coins: number };
     next_node_index: number;
     run_status: string;
