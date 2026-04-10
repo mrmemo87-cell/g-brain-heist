@@ -1328,7 +1328,10 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const [submittedPracticeText, setSubmittedPracticeText] = useState('');
   const [reviewScanComplete, setReviewScanComplete] = useState(false);
   const [reviewActiveIndex, setReviewActiveIndex] = useState<number | null>(null);
-  const [activeLineRects, setActiveLineRects] = useState<VisualLineRect[]>([]);
+  const [activeLineMeasure, setActiveLineMeasure] = useState<{ index: number | null; rects: VisualLineRect[] }>({
+    index: null,
+    rects: [],
+  });
   const [activeRepairId, setActiveRepairId] = useState<string | null>(null);
   const [repairStatusMessage, setRepairStatusMessage] = useState<string>('');
   const [viewedRepairIds, setViewedRepairIds] = useState<string[]>([]);
@@ -1746,13 +1749,16 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
 
   useEffect(() => {
     if (!showAiReviewModal || reviewActiveIndex == null) {
-      setActiveLineRects([]);
+      setActiveLineMeasure({ index: null, rects: [] });
       return;
     }
     const measureActiveStep = () => {
       const container = reviewEssayPanelRef.current;
       const activeHighlight = (highlightSpanRefs.current ?? {})[reviewActiveIndex] ?? null;
-      setActiveLineRects(getVisualLineRectsForHighlight(container, activeHighlight));
+      setActiveLineMeasure({
+        index: reviewActiveIndex,
+        rects: getVisualLineRectsForHighlight(container, activeHighlight),
+      });
     };
     measureActiveStep();
     const onResize = () => {
@@ -1767,14 +1773,15 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   }, [submittedPracticeText, visibleSubmittedHighlightRanges]);
 
   useEffect(() => {
-    if (!showAiReviewModal || reviewActiveIndex == null || activeLineRects.length === 0) return;
+    if (!showAiReviewModal || reviewActiveIndex == null || activeLineMeasure.rects.length === 0) return;
+    if (activeLineMeasure.index !== reviewActiveIndex) return;
     if (reviewAnimationForIndexRef.current === reviewActiveIndex && reviewAnimationStepRef.current === reviewActiveIndex) return;
     reviewAnimationForIndexRef.current = reviewActiveIndex;
     reviewAnimationStepRef.current = reviewActiveIndex;
     const overlayElements = activeLineOverlayRefs.current ?? [];
     if (!overlayElements.length) return;
     const timeline = gsap.timeline();
-    scrollLineIntoComfortZone(reviewEssayPanelRef.current, activeLineRects[0] ?? null);
+    scrollLineIntoComfortZone(reviewEssayPanelRef.current, activeLineMeasure.rects[0] ?? null);
     overlayElements.forEach((element, idx) => {
       if (!element) return;
       gsap.set(element, {
@@ -1782,7 +1789,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
         clipPath: 'inset(0 100% 0 0)',
         transformOrigin: 'left center',
       });
-      const lineDuration = Math.max(0.22, Math.min(0.7, activeLineRects[idx].width / 220));
+      const lineDuration = Math.max(0.22, Math.min(0.7, activeLineMeasure.rects[idx].width / 220));
       timeline.to(element, {
         opacity: 0.9,
         clipPath: 'inset(0 0% 0 0)',
@@ -1799,11 +1806,11 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
       timeline.kill();
       overlayElements.forEach((element) => element && gsap.killTweensOf(element));
     };
-  }, [showAiReviewModal, reviewActiveIndex, activeLineRects]);
+  }, [showAiReviewModal, reviewActiveIndex, activeLineMeasure]);
 
   useEffect(() => {
-    activeLineOverlayRefs.current = (activeLineOverlayRefs.current ?? []).slice(0, activeLineRects.length);
-  }, [activeLineRects.length]);
+    activeLineOverlayRefs.current = (activeLineOverlayRefs.current ?? []).slice(0, activeLineMeasure.rects.length);
+  }, [activeLineMeasure.rects.length]);
 
   useEffect(() => {
     if (!showAiReviewModal) {
@@ -3457,7 +3464,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                 }}
               >
               {renderAnnotatedText(submittedPracticeText, visibleSubmittedHighlightRanges, reviewActiveIndex, handleReviewHighlightMount)}
-              {activeLineRects.map((line, idx) => {
+              {activeLineMeasure.rects.map((line, idx) => {
                 return (
                   <span
                     key={`line-overlay-${idx}`}
