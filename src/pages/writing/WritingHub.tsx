@@ -727,6 +727,8 @@ const getVisualLineRectsForHighlight = (
   const containerRect = scrollContainer.getBoundingClientRect();
   const grouped: Array<{ top: number; bottom: number; left: number; right: number; height: number }> = [];
   const LINE_MERGE_THRESHOLD = 3;
+  const MIN_RECT_WIDTH = 7;
+  const MIN_RECT_AREA = 90;
 
   clientRects
     .sort((a, b) => a.top - b.top || a.left - b.left)
@@ -749,12 +751,17 @@ const getVisualLineRectsForHighlight = (
 
   return grouped
     .sort((a, b) => a.top - b.top || a.left - b.left)
-    .map((line) => ({
-      top: line.top,
-      left: line.left,
-      width: Math.max(1, line.right - line.left),
-      height: Math.max(1, line.height),
-    }));
+    .map((line) => {
+      const width = Math.max(1, line.right - line.left);
+      const height = Math.max(1, line.height);
+      return {
+        top: line.top,
+        left: line.left,
+        width,
+        height,
+      };
+    })
+    .filter((line) => line.width >= MIN_RECT_WIDTH && line.width * line.height >= MIN_RECT_AREA);
 };
 
 const scrollLineIntoComfortZone = (scrollContainer: HTMLElement | null, line: VisualLineRect | null) => {
@@ -2407,11 +2414,11 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           background: linear-gradient(180deg, var(--marker-weak-base) 0%, var(--marker-weak-mid) 55%, var(--marker-weak-base) 100%);
         }
         .review-highlight--inactive {
-          opacity: 0.72;
-          filter: saturate(0.82);
+          opacity: 0.9;
+          filter: saturate(0.72);
         }
         .review-highlight--inactive .review-highlight__ink-base {
-          opacity: 0.14;
+          opacity: 0.03;
         }
         .review-highlight--active .review-highlight__ink-base {
           opacity: 0.36;
@@ -2422,30 +2429,39 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
         }
         .ai-review-body {
           min-height: 0;
-          display: flex;
-          flex-direction: column;
+          display: grid;
+          grid-template-rows: minmax(210px, 1fr) auto auto;
           gap: 14px;
-          overflow-y: auto;
+          overflow-y: hidden;
           overflow-x: hidden;
           padding: 4px 2px 2px;
           overscroll-behavior: contain;
         }
         .ai-review-essay-panel {
-          flex: 0 0 auto;
-          min-height: clamp(280px, 42dvh, 420px);
-          overflow: visible;
+          min-height: 0;
+          height: 100%;
         }
         .ai-review-feedback-card,
         .ai-review-next-card {
           box-shadow: 0 8px 18px color-mix(in srgb, var(--hub-text) 8%, transparent);
         }
         @media (max-width: 640px) {
+          .ai-review-modal-shell {
+            border-radius: 14px !important;
+            padding: 12px !important;
+            min-height: calc(100dvh - (env(safe-area-inset-top) + env(safe-area-inset-bottom) + 16px)) !important;
+            max-height: calc(100dvh - (env(safe-area-inset-top) + env(safe-area-inset-bottom) + 16px)) !important;
+          }
           .ai-review-body {
-            gap: 14px;
+            grid-template-rows: minmax(180px, 1fr) auto auto;
+            gap: 10px;
             padding-right: 0;
           }
           .ai-review-essay-panel {
-            min-height: clamp(340px, 52dvh, 560px);
+            min-height: 0;
+          }
+          .ai-review-feedback-card {
+            padding: 10px 11px !important;
           }
         }
         .week-stage-wrap {
@@ -3342,14 +3358,14 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             ...modalThemeVars,
             position: 'fixed',
             inset: 0,
-            zIndex: 1150,
+            zIndex: 10050,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             background: 'color-mix(in srgb, var(--hub-modal-overlay) 68%, transparent)',
             backdropFilter: 'blur(12px) saturate(1.15)',
             WebkitBackdropFilter: 'blur(12px) saturate(1.15)',
-            padding: 'max(14px, calc(env(safe-area-inset-top) + 10px)) 12px max(18px, calc(env(safe-area-inset-bottom) + 10px))',
+            padding: 'max(12px, calc(env(safe-area-inset-top) + 8px)) 10px max(12px, calc(env(safe-area-inset-bottom) + 8px))',
             overflow: 'hidden',
           }}
         >
@@ -3358,8 +3374,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             onClick={(event: { stopPropagation: () => void }) => event.stopPropagation()}
             style={{
               width: 'min(840px, 100%)',
-              maxHeight: 'calc(100dvh - (max(28px, env(safe-area-inset-top) + env(safe-area-inset-bottom) + 20px)))',
-              minHeight: 'min(640px, calc(100dvh - (max(28px, env(safe-area-inset-top) + env(safe-area-inset-bottom) + 20px))))',
+              maxHeight: 'calc(100dvh - (max(20px, env(safe-area-inset-top) + env(safe-area-inset-bottom) + 16px)))',
+              minHeight: 'min(620px, calc(100dvh - (max(20px, env(safe-area-inset-top) + env(safe-area-inset-bottom) + 16px))))',
               borderRadius: 18,
               border: '1px solid var(--hub-border-strong)',
               background: 'var(--hub-overlay-strong)',
@@ -3436,6 +3452,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
                   lineHeight: 1.74,
                   fontSize: 'clamp(16px, 3.2vw, 18px)',
                   whiteSpace: 'pre-wrap',
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
                 }}
               >
               {renderAnnotatedText(submittedPracticeText, visibleSubmittedHighlightRanges, reviewActiveIndex, handleReviewHighlightMount)}
@@ -3534,7 +3552,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
               )}
             </div>
             <div style={{ position: 'relative', zIndex: 1, borderTop: '1px solid var(--hub-border)', paddingTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-              <p style={{ margin: 0, color: 'var(--hub-text-soft)', fontSize: 12, fontWeight: 700 }}>
+              <p style={{ margin: 0, color: 'var(--hub-text-strong)', fontSize: 12, fontWeight: 800 }}>
                 {reviewScanPlan.length > 0
                   ? `Highlight ${(reviewActiveIndex ?? 0) + 1} of ${visibleSubmittedHighlightRanges.length}`
                   : 'No highlights available yet'}
@@ -3580,7 +3598,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
             </div>
           </div>
         </div>
-      ), writingHubRootRef.current ?? document.body)}
+      ), document.body)}
 
       {showProgressDetailsModal && createPortal((
         <div
