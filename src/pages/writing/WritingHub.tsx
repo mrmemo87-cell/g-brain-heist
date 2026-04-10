@@ -1352,6 +1352,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const reviewAutoplaySessionRef = useRef<string | null>(null);
   const reviewAnimationStepRef = useRef<number | null>(null);
   const reviewAnimationForIndexRef = useRef<number | null>(null);
+  const aiPlanAssistRequestIdRef = useRef<number | null>(0);
   const writingPathButtonRefs: MutableRefObject<Partial<Record<SupportedGenre, HTMLButtonElement | null>> | null> =
     useRef<Partial<Record<SupportedGenre, HTMLButtonElement | null>>>({});
   const missionsCarouselRef = useRef<HTMLDivElement | null>(null);
@@ -1359,6 +1360,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     useRef<Record<string, HTMLDivElement | null>>({});
   const [questMissions, setQuestMissions] = useState<QuestMissionRow[]>([]);
   const [selectedMissionKey, setSelectedMissionKey] = useState<string | null>(null);
+  const [nonCriticalReady, setNonCriticalReady] = useState(false);
   const initialResponseWordCount = countWords(initialResponse);
   const practiceResponseWordCount = countWords(practiceResponse);
   const initializing = hydrationStatus === 'idle' || hydrationStatus === 'loading';
@@ -1903,6 +1905,38 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   }, []);
 
   useEffect(() => {
+    if (initializing) {
+      setNonCriticalReady(false);
+      return;
+    }
+    let cancelled = false;
+    let timeoutId: number | null = null;
+    const idleCallback = (window as unknown as {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    }).requestIdleCallback;
+    const cancelIdleCallback = (window as unknown as {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    }).cancelIdleCallback;
+    let idleId: number | null = null;
+    const markReady = () => {
+      if (!cancelled) setNonCriticalReady(true);
+    };
+    if (typeof idleCallback === 'function') {
+      idleId = idleCallback(markReady, { timeout: 900 });
+      timeoutId = window.setTimeout(markReady, 1200);
+    } else {
+      timeoutId = window.setTimeout(markReady, 900);
+    }
+    return () => {
+      cancelled = true;
+      if (timeoutId) window.clearTimeout(timeoutId);
+      if (idleId && typeof cancelIdleCallback === 'function') cancelIdleCallback(idleId);
+    };
+  }, [initializing, activeGenre]);
+
+  useEffect(() => {
     let cancelled = false;
     const loadSmartPrompt = async () => {
       if (initializing) return;
@@ -1953,38 +1987,52 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     let cancelled = false;
     let debounceTimer: number | null = null;
     const loadAiPlanAssist = async () => {
+      if (!nonCriticalReady) return;
       if (!stateRes.ok || !stateRes.data?.latest_assessment || aiBusy) return;
+      const requestId = (aiPlanAssistRequestIdRef.current ?? 0) + 1;
+      aiPlanAssistRequestIdRef.current = requestId;
       setAiBusy(true);
-      const planAssist = await requestWritingAiAssist({
-        mode: 'plan_assist',
-        prompt_text: promptText,
-        weaknesses: latestWeaknesses,
-        grade,
-        genre: activeGenre,
-      });
-      if (!cancelled && planAssist.ok && planAssist.data) {
-        const ai = (planAssist.data.result ?? {}) as WritingAiPlanAssist;
-        if (ai.focus?.trim()) setAiWeeklyFocus(ai.focus.trim());
-        if (Array.isArray(ai.coaching_points) && ai.coaching_points.length > 0) {
-          setAiCoachingPoints(ai.coaching_points.slice(0, 3));
+      try {
+        const planAssist = await requestWritingAiAssist({
+          mode: 'plan_assist',
+          prompt_text: promptText,
+          weaknesses: latestWeaknesses,
+          grade,
+          genre: activeGenre,
+        });
+        const activeRequestId = aiPlanAssistRequestIdRef.current;
+        if (cancelled || activeRequestId == null || activeRequestId !== requestId) return;
+        if (planAssist.ok && planAssist.data) {
+          const ai = (planAssist.data.result ?? {}) as WritingAiPlanAssist;
+          if (ai.focus?.trim()) setAiWeeklyFocus(ai.focus.trim());
+          if (Array.isArray(ai.coaching_points) && ai.coaching_points.length > 0) {
+            setAiCoachingPoints(ai.coaching_points.slice(0, 3));
+          }
+          if (ai.daily_task?.trim()) setAiTaskWording(ai.daily_task.trim());
+        } else if (planAssist.error) {
+          setUiNotice(`AI coach unavailable right now: ${planAssist.error}`);
         }
-        if (ai.daily_task?.trim()) setAiTaskWording(ai.daily_task.trim());
-      } else if (!cancelled && planAssist.error) {
-        setUiNotice(`AI coach unavailable right now: ${planAssist.error}`);
+      } finally {
+        const activeRequestId = aiPlanAssistRequestIdRef.current;
+        if (activeRequestId != null && activeRequestId === requestId) {
+          setAiBusy(false);
+        }
       }
-      if (!cancelled) setAiBusy(false);
     };
     debounceTimer = window.setTimeout(() => {
       void loadAiPlanAssist();
     }, 700);
     return () => {
       cancelled = true;
+      aiPlanAssistRequestIdRef.current = (aiPlanAssistRequestIdRef.current ?? 0) + 1;
+      setAiBusy(false);
       if (debounceTimer) window.clearTimeout(debounceTimer);
     };
-  }, [studentId, month, stateRes.ok, stateRes.data?.latest_assessment?.total_score, activeGenre]);
+  }, [studentId, month, stateRes.ok, stateRes.data?.latest_assessment?.total_score, activeGenre, nonCriticalReady]);
 
   useEffect(() => {
     let cancelled = false;
+    if (!nonCriticalReady) return;
     const hasWeaknessSignal = rankedWeaknessTags.length > 0;
     if (!hasWeaknessSignal) {
       setQuestMissions([]);
@@ -2000,7 +2048,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     return () => {
       cancelled = true;
     };
-  }, [rankedWeaknessTags.join('|')]);
+  }, [rankedWeaknessTags.join('|'), nonCriticalReady]);
 
   const loadRichFeedback = async (
     submissionText: string,
