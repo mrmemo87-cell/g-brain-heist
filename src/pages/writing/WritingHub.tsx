@@ -1352,7 +1352,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
   const reviewAutoplaySessionRef = useRef<string | null>(null);
   const reviewAnimationStepRef = useRef<number | null>(null);
   const reviewAnimationForIndexRef = useRef<number | null>(null);
-  const aiPlanAssistRequestIdRef = useRef(0);
+  const aiPlanAssistRequestIdRef = useRef<number | null>(0);
   const writingPathButtonRefs: MutableRefObject<Partial<Record<SupportedGenre, HTMLButtonElement | null>> | null> =
     useRef<Partial<Record<SupportedGenre, HTMLButtonElement | null>>>({});
   const missionsCarouselRef = useRef<HTMLDivElement | null>(null);
@@ -1989,7 +1989,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     const loadAiPlanAssist = async () => {
       if (!nonCriticalReady) return;
       if (!stateRes.ok || !stateRes.data?.latest_assessment || aiBusy) return;
-      const requestId = aiPlanAssistRequestIdRef.current + 1;
+      const requestId = (aiPlanAssistRequestIdRef.current ?? 0) + 1;
       aiPlanAssistRequestIdRef.current = requestId;
       setAiBusy(true);
       try {
@@ -2000,7 +2000,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           grade,
           genre: activeGenre,
         });
-        if (cancelled || aiPlanAssistRequestIdRef.current !== requestId) return;
+        const activeRequestId = aiPlanAssistRequestIdRef.current;
+        if (cancelled || activeRequestId == null || activeRequestId !== requestId) return;
         if (planAssist.ok && planAssist.data) {
           const ai = (planAssist.data.result ?? {}) as WritingAiPlanAssist;
           if (ai.focus?.trim()) setAiWeeklyFocus(ai.focus.trim());
@@ -2012,7 +2013,8 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
           setUiNotice(`AI coach unavailable right now: ${planAssist.error}`);
         }
       } finally {
-        if (aiPlanAssistRequestIdRef.current === requestId) {
+        const activeRequestId = aiPlanAssistRequestIdRef.current;
+        if (activeRequestId != null && activeRequestId === requestId) {
           setAiBusy(false);
         }
       }
@@ -2022,7 +2024,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     }, 700);
     return () => {
       cancelled = true;
-      aiPlanAssistRequestIdRef.current += 1;
+      aiPlanAssistRequestIdRef.current = (aiPlanAssistRequestIdRef.current ?? 0) + 1;
       setAiBusy(false);
       if (debounceTimer) window.clearTimeout(debounceTimer);
     };
