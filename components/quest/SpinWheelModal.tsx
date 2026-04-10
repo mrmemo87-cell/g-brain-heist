@@ -51,17 +51,44 @@ interface SpinWheelModalProps {
   onClaim: (prize: SpinPrize) => void;
   /** If true, the Claim button shows a loading state */
   isClaiming?: boolean;
+  /** Optional server-authored reward payload for the active surprise node */
+  rewardPayload?: {
+    xp?: number;
+    coins?: number;
+    gemstones?: number;
+    item_id?: string;
+    shop_item_id?: string;
+    item_name?: string;
+  };
 }
 
 const SEGMENTS = PRIZE_POOL.length;
 const SEG_ANGLE = 360 / SEGMENTS;
 
-const SpinWheelModal: React.FC<SpinWheelModalProps> = ({ onClaim, isClaiming }) => {
+const SpinWheelModal: React.FC<SpinWheelModalProps> = ({ onClaim, isClaiming, rewardPayload }) => {
   const wheelRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState<SpinPrize | null>(null);
   const [currentRotation, setCurrentRotation] = useState(0);
+
+  const resolvePrizeFromPayload = useCallback((payload?: SpinWheelModalProps['rewardPayload']) => {
+    if (!payload) return null;
+    const itemId = payload.item_id ?? payload.shop_item_id;
+    if (itemId) {
+      return PRIZE_POOL.find((prize) => prize.reward.item_id === itemId) ?? null;
+    }
+    if (typeof payload.gemstones === 'number' && payload.gemstones > 0) {
+      return PRIZE_POOL.find((prize) => prize.reward.gemstones === payload.gemstones) ?? null;
+    }
+    if (typeof payload.coins === 'number' && payload.coins > 0) {
+      return PRIZE_POOL.find((prize) => prize.reward.coins === payload.coins) ?? null;
+    }
+    if (typeof payload.xp === 'number' && payload.xp > 0) {
+      return PRIZE_POOL.find((prize) => prize.reward.xp === payload.xp) ?? null;
+    }
+    return null;
+  }, []);
 
   // Entrance animation
   useEffect(() => {
@@ -78,7 +105,10 @@ const SpinWheelModal: React.FC<SpinWheelModalProps> = ({ onClaim, isClaiming }) 
     setSpinning(true);
     playSound('spin');
 
-    const { prize, index } = pickWeightedPrize(PRIZE_POOL);
+    const serverPrize = resolvePrizeFromPayload(rewardPayload);
+    const weightedPick = pickWeightedPrize(PRIZE_POOL);
+    const prize = serverPrize ?? weightedPick.prize;
+    const index = serverPrize ? PRIZE_POOL.indexOf(serverPrize) : weightedPick.index;
     const segCenter = index * SEG_ANGLE + SEG_ANGLE / 2;
 
     if (wheelRef.current) {
@@ -111,7 +141,7 @@ const SpinWheelModal: React.FC<SpinWheelModalProps> = ({ onClaim, isClaiming }) 
         ease: 'power2.out',
       });
     }
-  }, [spinning, result, currentRotation]);
+  }, [spinning, result, currentRotation, resolvePrizeFromPayload, rewardPayload]);
 
   const rarityGlow: Record<string, string> = {
     common: 'shadow-cyan-500/20',

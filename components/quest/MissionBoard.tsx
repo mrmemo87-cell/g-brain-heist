@@ -1228,6 +1228,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         <SpinWheelModal
           onClaim={handleSpinClaim}
           isClaiming={isSubmitting}
+          rewardPayload={activeNode?.event_payload}
         />
       )}
 
