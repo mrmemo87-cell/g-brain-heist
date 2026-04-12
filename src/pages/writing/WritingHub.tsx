@@ -509,14 +509,30 @@ const buildRepairQueue = (
 const buildAnchorRanges = (text: string, ai: WritingAiFeedbackAssist | null): TextAnchorRange[] => {
   if (!ai) return [];
   const ranges: TextAnchorRange[] = [];
+  const classifyPolarity = (category: string | undefined, fallback: 'strong' | 'weak'): 'strong' | 'weak' => {
+    const normalized = (category ?? '').toLowerCase();
+    if (!normalized) return fallback;
+    if (normalized.includes('strong') || normalized.includes('strength') || normalized.includes('what_is_working')) return 'strong';
+    if (
+      normalized.includes('grammar')
+      || normalized.includes('punct')
+      || normalized.includes('spelling')
+      || normalized.includes('phrase')
+      || normalized.includes('style')
+      || normalized.includes('fix')
+      || normalized.includes('error')
+    ) return 'weak';
+    return fallback;
+  };
   (ai.highlights ?? []).forEach((item, idx) => {
     if (typeof item.start_char !== 'number' || typeof item.end_char !== 'number') return;
     if (!Number.isInteger(item.start_char) || !Number.isInteger(item.end_char)) return;
     if (item.start_char < 0 || item.end_char <= item.start_char || item.end_char > text.length) return;
+    const basePolarity = item.polarity === 'strong' ? 'strong' : 'weak';
     ranges.push({
       start: item.start_char,
       end: item.end_char,
-      polarity: item.polarity === 'strong' ? 'strong' : 'weak',
+      polarity: classifyPolarity(item.category, basePolarity),
       reason: item.category ?? `highlight-${idx + 1}`,
       sourceCategory: item.category,
       sourceExactText: item.exact_text?.trim() || undefined,
@@ -539,6 +555,23 @@ export const evaluateAnchorTrust = (
   if (persistedFingerprint !== localFingerprint) return { mode: 'stale_feedback', localFingerprint, persistedFingerprint };
   if (buildAnchorRanges(safeSubmissionText, feedback).length === 0) return { mode: 'no_anchors', localFingerprint, persistedFingerprint };
   return { mode: 'trusted', localFingerprint, persistedFingerprint };
+};
+
+const hasConflictingAnchorOverlap = (ranges: TextAnchorRange[]): boolean => {
+  if (ranges.length < 2) return false;
+  const sorted = [...ranges].sort((a, b) => a.start - b.start || a.end - b.end);
+  for (let i = 1; i < sorted.length; i += 1) {
+    const prev = sorted[i - 1];
+    const current = sorted[i];
+    const overlapStart = Math.max(prev.start, current.start);
+    const overlapEnd = Math.min(prev.end, current.end);
+    if (overlapEnd <= overlapStart) continue;
+    const overlapSize = overlapEnd - overlapStart;
+    const smallerRangeSize = Math.max(1, Math.min(prev.end - prev.start, current.end - current.start));
+    const overlapRatio = overlapSize / smallerRangeSize;
+    if (overlapRatio >= 0.4 && prev.polarity !== current.polarity) return true;
+  }
+  return false;
 };
 
 const buildFallbackHighlightRanges = (text: string, ai: WritingAiFeedbackAssist | null): TextAnchorRange[] => {
@@ -800,12 +833,29 @@ const describeHighlight = (
   }
 
   const normalize = (value: string) => value.replace(/\s+/g, ' ').trim().toLowerCase();
+  const toTeacherDetail = (kind: 'grammar' | 'punctuation' | 'phrase', issue: string): string => {
+    const simpleIssue = simplifyStudentLanguage(issue || '').trim();
+    if (kind === 'grammar') {
+      return simpleIssue
+        ? `This sentence has a grammar mistake. ${simpleIssue}`
+        : 'This sentence has a grammar mistake. Fix capitalization, word form, or sentence structure.';
+    }
+    if (kind === 'punctuation') {
+      return simpleIssue
+        ? `This sentence has a punctuation mistake. ${simpleIssue}`
+        : 'This sentence has a punctuation mistake. Check capitals, full stops, and commas.';
+    }
+    return simpleIssue
+      ? `This sentence can sound more natural. ${simpleIssue}`
+      : 'This sentence can sound more natural. Replace awkward wording with a clearer phrase.';
+  };
   const normalizedSnippet = normalize(snippet);
   const isOriginalMatch = (value: string) => {
     const normalized = normalize(value);
     if (!normalized || !normalizedSnippet) return false;
     if (normalizedSnippet === normalized) return true;
-    if (range.sourceExactText) {
+    if (normalizedSnippet.includes(normalized) || normalized.includes(normalizedSnippet)) return true;
+    if (!snippet && range.sourceExactText) {
       const normalizedSource = normalize(range.sourceExactText);
       return normalizedSource === normalized;
     }
@@ -821,13 +871,65 @@ const describeHighlight = (
   const prefersPunctuation = normalizedCategory.includes('punct');
   const prefersPhrase = normalizedCategory.includes('phrase') || normalizedCategory.includes('style');
   const prefersStrength = normalizedCategory.includes('strong') || normalizedCategory.includes('strength') || range.polarity === 'strong';
+  const lowerText = text.toLowerCase();
+  const scoreOriginalMatch = (value: string): number => {
+    const normalized = normalize(value);
+    if (!normalized || !normalizedSnippet) return 0;
+    if (normalizedSnippet === normalized) return 100;
+    if (normalizedSnippet.includes(normalized)) return Math.min(95, 50 + normalized.length);
+    if (normalized.includes(normalizedSnippet)) return Math.min(90, 40 + normalizedSnippet.length);
+    const rawNeedle = value.trim().toLowerCase();
+    if (rawNeedle && lowerText.includes(rawNeedle)) {
+      const occurrenceStart = lowerText.indexOf(rawNeedle);
+      const distance = Math.abs(occurrenceStart - range.start);
+      return Math.max(15, 82 - Math.min(distance, 67));
+    }
+    return 0;
+  };
+  const pickBestByOriginal = <T extends { original: string }>(items: T[]): T | null => {
+    let best: T | null = null;
+    let bestScore = 0;
+    items.forEach((item) => {
+      const score = scoreOriginalMatch(item.original);
+      if (score > bestScore) {
+        best = item;
+        bestScore = score;
+      }
+    });
+    return best;
+  };
 
-  const grammar = (ai.grammar_fixes ?? []).find((item) => isOriginalMatch(item.original));
-  if (grammar) return { label: 'Grammar fix', detail: grammar.issue, correction: grammar.better_version };
-  const punctuation = (ai.punctuation_fixes ?? []).find((item) => isOriginalMatch(item.original));
-  if (punctuation) return { label: 'Punctuation fix', detail: punctuation.issue, correction: punctuation.better_version };
-  const phrase = (ai.natural_phrase_upgrades ?? []).find((item) => isOriginalMatch(item.original));
-  if (phrase) return { label: 'Phrase upgrade', detail: phrase.why_it_helps, correction: phrase.better_version };
+  const grammar = pickBestByOriginal(ai.grammar_fixes ?? []);
+  const punctuation = pickBestByOriginal(ai.punctuation_fixes ?? []);
+  const phrase = pickBestByOriginal(ai.natural_phrase_upgrades ?? []);
+
+  if (prefersPunctuation && punctuation) {
+    return { label: 'Punctuation fix', detail: toTeacherDetail('punctuation', punctuation.issue), correction: punctuation.better_version };
+  }
+  if (prefersGrammar && grammar) {
+    return { label: 'Grammar fix', detail: toTeacherDetail('grammar', grammar.issue), correction: grammar.better_version };
+  }
+  if (prefersPhrase && phrase) {
+    return { label: 'Phrase upgrade', detail: toTeacherDetail('phrase', phrase.why_it_helps), correction: phrase.better_version };
+  }
+  if (grammar) return { label: 'Grammar fix', detail: toTeacherDetail('grammar', grammar.issue), correction: grammar.better_version };
+  if (punctuation) return { label: 'Punctuation fix', detail: toTeacherDetail('punctuation', punctuation.issue), correction: punctuation.better_version };
+  if (phrase) return { label: 'Phrase upgrade', detail: toTeacherDetail('phrase', phrase.why_it_helps), correction: phrase.better_version };
+
+  if (isOriginalMatch(range.sourceExactText ?? '')) {
+    if (prefersGrammar) {
+      return {
+        label: 'Grammar fix',
+        detail: `This sentence has a grammar mistake. Check this exact part: "${snippet || range.sourceExactText || 'selected text'}".`,
+      };
+    }
+    if (prefersPunctuation) {
+      return {
+        label: 'Punctuation fix',
+        detail: `This sentence has a punctuation mistake. Check this exact part: "${snippet || range.sourceExactText || 'selected text'}".`,
+      };
+    }
+  }
 
   const correctedGrammar = (ai.grammar_fixes ?? []).find((item) => isCorrectedMatch(item.better_version));
   if (correctedGrammar) {
@@ -1512,9 +1614,13 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     () => evaluateAnchorTrust(submittedPracticeText, aiFeedbackDetails),
     [submittedPracticeText, aiFeedbackDetails]
   );
+  const shouldUseFallbackRanges = useMemo(
+    () => reviewAnchorTrust.mode !== 'trusted' || hasConflictingAnchorOverlap(submittedHighlightRanges),
+    [reviewAnchorTrust.mode, submittedHighlightRanges]
+  );
   const reviewScanPlan = useMemo(
-    () => buildBalancedReviewSequence(reviewAnchorTrust.mode === 'trusted' ? submittedHighlightRanges : fallbackHighlightRanges, 8),
-    [reviewAnchorTrust.mode, submittedHighlightRanges, fallbackHighlightRanges]
+    () => buildBalancedReviewSequence(shouldUseFallbackRanges ? fallbackHighlightRanges : submittedHighlightRanges, 8),
+    [shouldUseFallbackRanges, submittedHighlightRanges, fallbackHighlightRanges]
   );
   const reviewAnimationTimelineMs = useMemo(
     () => reviewScanPlan.reduce((total, range) => {
@@ -3477,7 +3583,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
               <span style={{ borderRadius: 999, padding: '4px 10px', border: '1px solid var(--hub-border-strong)', color: 'var(--hub-text-accent-2)', background: 'var(--hub-accent-surface)', fontSize: 12, fontWeight: 800 }}>
                 {reviewScanComplete ? 'Review complete ✓' : 'AI review scanning…'}
               </span>
-              {reviewAnchorTrust.mode === 'trusted' ? (
+              {!shouldUseFallbackRanges ? (
                 <span style={{ borderRadius: 999, padding: '4px 10px', border: '1px solid var(--hub-border-strong)', color: 'var(--hub-text-soft)', background: 'var(--hub-muted-surface-soft)', fontSize: 12, fontWeight: 800 }}>
                   Trusted anchors
                 </span>
