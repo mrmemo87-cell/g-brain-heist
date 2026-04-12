@@ -912,9 +912,16 @@ const describeHighlight = (
   if (prefersPhrase && phrase) {
     return { label: 'Phrase upgrade', detail: toTeacherDetail('phrase', phrase.why_it_helps), correction: phrase.better_version };
   }
-  if (grammar) return { label: 'Grammar fix', detail: toTeacherDetail('grammar', grammar.issue), correction: grammar.better_version };
-  if (punctuation) return { label: 'Punctuation fix', detail: toTeacherDetail('punctuation', punctuation.issue), correction: punctuation.better_version };
-  if (phrase) return { label: 'Phrase upgrade', detail: toTeacherDetail('phrase', phrase.why_it_helps), correction: phrase.better_version };
+  const strength = [...(ai.what_is_working ?? []), ...(ai.strengths ?? [])].find((item) => {
+    const quoted = extractQuotedSnippet(item) ?? '';
+    const normalizedQuoted = normalize(quoted);
+    if (normalizedQuoted && normalizedQuoted === normalizedSnippet) return true;
+    return normalize(item).includes(normalizedSnippet) && normalizedSnippet.length > 10;
+  });
+  if (prefersStrength && strength) return { label: 'Why this is strong', detail: simplifyStudentLanguage(strength) };
+  if (!prefersStrength && grammar) return { label: 'Grammar fix', detail: toTeacherDetail('grammar', grammar.issue), correction: grammar.better_version };
+  if (!prefersStrength && punctuation) return { label: 'Punctuation fix', detail: toTeacherDetail('punctuation', punctuation.issue), correction: punctuation.better_version };
+  if (!prefersStrength && phrase) return { label: 'Phrase upgrade', detail: toTeacherDetail('phrase', phrase.why_it_helps), correction: phrase.better_version };
 
   if (isOriginalMatch(range.sourceExactText ?? '')) {
     if (prefersGrammar) {
@@ -955,12 +962,6 @@ const describeHighlight = (
       correction: correctedPhrase.better_version,
     };
   }
-  const strength = [...(ai.what_is_working ?? []), ...(ai.strengths ?? [])].find((item) => {
-    const quoted = extractQuotedSnippet(item) ?? '';
-    const normalizedQuoted = normalize(quoted);
-    if (normalizedQuoted && normalizedQuoted === normalizedSnippet) return true;
-    return normalize(item).includes(normalizedSnippet) && normalizedSnippet.length > 10;
-  });
   if (strength) return { label: 'Why this is strong', detail: simplifyStudentLanguage(strength) };
 
   if (prefersGrammar) {
