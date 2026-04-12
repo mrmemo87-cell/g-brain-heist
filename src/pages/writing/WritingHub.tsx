@@ -557,6 +557,23 @@ export const evaluateAnchorTrust = (
   return { mode: 'trusted', localFingerprint, persistedFingerprint };
 };
 
+const hasConflictingAnchorOverlap = (ranges: TextAnchorRange[]): boolean => {
+  if (ranges.length < 2) return false;
+  const sorted = [...ranges].sort((a, b) => a.start - b.start || a.end - b.end);
+  for (let i = 1; i < sorted.length; i += 1) {
+    const prev = sorted[i - 1];
+    const current = sorted[i];
+    const overlapStart = Math.max(prev.start, current.start);
+    const overlapEnd = Math.min(prev.end, current.end);
+    if (overlapEnd <= overlapStart) continue;
+    const overlapSize = overlapEnd - overlapStart;
+    const smallerRangeSize = Math.max(1, Math.min(prev.end - prev.start, current.end - current.start));
+    const overlapRatio = overlapSize / smallerRangeSize;
+    if (overlapRatio >= 0.4 && prev.polarity !== current.polarity) return true;
+  }
+  return false;
+};
+
 const buildFallbackHighlightRanges = (text: string, ai: WritingAiFeedbackAssist | null): TextAnchorRange[] => {
   if (!text || !ai) return [];
   const lowerText = text.toLowerCase();
@@ -1597,9 +1614,13 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
     () => evaluateAnchorTrust(submittedPracticeText, aiFeedbackDetails),
     [submittedPracticeText, aiFeedbackDetails]
   );
+  const shouldUseFallbackRanges = useMemo(
+    () => reviewAnchorTrust.mode !== 'trusted' || hasConflictingAnchorOverlap(submittedHighlightRanges),
+    [reviewAnchorTrust.mode, submittedHighlightRanges]
+  );
   const reviewScanPlan = useMemo(
-    () => buildBalancedReviewSequence(reviewAnchorTrust.mode === 'trusted' ? submittedHighlightRanges : fallbackHighlightRanges, 8),
-    [reviewAnchorTrust.mode, submittedHighlightRanges, fallbackHighlightRanges]
+    () => buildBalancedReviewSequence(shouldUseFallbackRanges ? fallbackHighlightRanges : submittedHighlightRanges, 8),
+    [shouldUseFallbackRanges, submittedHighlightRanges, fallbackHighlightRanges]
   );
   const reviewAnimationTimelineMs = useMemo(
     () => reviewScanPlan.reduce((total, range) => {
@@ -3562,7 +3583,7 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
               <span style={{ borderRadius: 999, padding: '4px 10px', border: '1px solid var(--hub-border-strong)', color: 'var(--hub-text-accent-2)', background: 'var(--hub-accent-surface)', fontSize: 12, fontWeight: 800 }}>
                 {reviewScanComplete ? 'Review complete ✓' : 'AI review scanning…'}
               </span>
-              {reviewAnchorTrust.mode === 'trusted' ? (
+              {!shouldUseFallbackRanges ? (
                 <span style={{ borderRadius: 999, padding: '4px 10px', border: '1px solid var(--hub-border-strong)', color: 'var(--hub-text-soft)', background: 'var(--hub-muted-surface-soft)', fontSize: 12, fontWeight: 800 }}>
                   Trusted anchors
                 </span>
