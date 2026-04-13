@@ -4066,7 +4066,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [notice, setNotice] = useState('Write your response, submit, then retry using feedback.');
+  const [notice, setNotice] = useState('Write your response, submit for feedback, then choose retry or a new prompt.');
   const [assessment, setAssessment] = useState<{
     total_score: number;
     weakness_tags: string[];
@@ -4228,6 +4228,13 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     ),
     [cinematicTrust.mode, trustedRanges, fallbackRanges]
   );
+  const improvementGuidance = useMemo(
+    () => [
+      aiFeedback?.next_move,
+      ...(aiFeedback?.next_steps ?? []),
+    ].filter(Boolean).join(' ') || 'Focus on the mistake tags, then rewrite for clearer task coverage and language control.',
+    [aiFeedback]
+  );
 
   useEffect(() => {
     if (!showCinematicFeedback) return;
@@ -4264,7 +4271,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   return (
     <div style={{ ...getPageStyle('dark'), gap: 14 }}>
       <section className="writing-hub-card" style={getMissionCardStyle('dark')}>
-        <p style={{ ...sectionLabelPillStyle, margin: 0 }}>Simple loop enabled</p>
+        <p style={{ ...sectionLabelPillStyle, margin: 0 }}>Student Writing Hub</p>
         <h2 style={{ margin: '8px 0 10px', color: '#f8fbff' }}>Write → Feedback → Retry</h2>
         <p style={{ margin: 0, color: '#cbd5e1' }}>{notice}</p>
         {error && <p style={{ margin: '8px 0 0', color: '#fca5a5' }}>{error}</p>}
@@ -4322,6 +4329,14 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
               ...(aiFeedback?.next_steps ?? []),
             ].filter(Boolean).join(' ') || 'Detailed AI feedback unavailable for this attempt.'}
           </p>
+          <div style={{ marginTop: 10, borderRadius: 10, border: '1px solid rgba(148,163,184,0.35)', padding: 10, background: 'rgba(15,23,42,0.45)' }}>
+            <p style={{ margin: '0 0 6px', color: '#bfdbfe', fontWeight: 700 }}>Rubric</p>
+            <p style={{ margin: '0 0 4px', color: '#dbe7ff' }}>Content: {assessment.subscores.content}</p>
+            <p style={{ margin: '0 0 4px', color: '#dbe7ff' }}>Organization: {assessment.subscores.organisation}</p>
+            <p style={{ margin: '0 0 4px', color: '#dbe7ff' }}>Language: {assessment.subscores.language}</p>
+            <p style={{ margin: 0, color: '#dbe7ff' }}>Communicative achievement: {assessment.subscores.communicative_achievement ?? '—'}</p>
+          </div>
+          <p style={{ margin: '10px 0 0', color: '#cbd5e1' }}>How to improve: {improvementGuidance}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 10, marginTop: 12 }}>
             <button
               type="button"
@@ -4412,10 +4427,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
               <p style={{ margin: 0 }}>Language: {assessment.subscores.language}</p>
               <p style={{ margin: 0 }}>Communicative achievement: {assessment.subscores.communicative_achievement ?? '—'}</p>
               <p style={{ margin: 0, color: '#cbd5e1' }}>
-                How to improve: {[
-                  aiFeedback?.next_move,
-                  ...(aiFeedback?.next_steps ?? []),
-                ].filter(Boolean).join(' ') || 'Focus on mistake tags, then rewrite for clarity and task coverage.'}
+                How to improve: {improvementGuidance}
               </p>
               <p style={{ margin: 0, color: '#93c5fd', fontSize: 12 }}>
                 Trust mode: {cinematicTrust.mode === 'trusted' ? 'Trusted anchors' : 'Safe fallback highlights'}
