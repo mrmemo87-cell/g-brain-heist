@@ -3,7 +3,7 @@ import type { MutableRefObject } from 'react';
 import { createPortal } from 'react-dom';
 import gsap from 'gsap';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
-import { Observer } from 'gsap/Observer';
+import { Observer } from 'gsap/observer';
 import {
   getCurrentWeeklyPlan,
   getStudentGenrePathStatuses,
@@ -4687,7 +4687,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
             placeItems: 'center',
             padding: 14,
           }}
-          onClick={(e: React.MouseEvent) => { if (e.target === e.currentTarget) setShowCinematicFeedback(false); }}
+          onClick={(e: React.MouseEvent<HTMLDivElement>) => { if (e.target === e.currentTarget) setShowCinematicFeedback(false); }}
         >
           <div
             className="simple-cinematic-panel"

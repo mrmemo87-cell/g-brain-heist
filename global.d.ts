@@ -65,6 +65,35 @@ declare namespace React {
   }
   interface HTMLAttributes<T> extends Record<string, unknown> {}
   interface DetailedHTMLProps<E, T> extends E {}
+  interface BaseSyntheticEvent<E = object, C = any, T = any> {
+    nativeEvent: E;
+    currentTarget: C;
+    target: T;
+    bubbles: boolean;
+    cancelable: boolean;
+    defaultPrevented: boolean;
+    eventPhase: number;
+    isTrusted: boolean;
+    preventDefault(): void;
+    stopPropagation(): void;
+    type: string;
+  }
+  interface MouseEvent<T = Element, E = globalThis.MouseEvent> extends BaseSyntheticEvent<E, EventTarget & T, EventTarget> {
+    altKey: boolean;
+    button: number;
+    buttons: number;
+    clientX: number;
+    clientY: number;
+    movementX: number;
+    movementY: number;
+    pageX: number;
+    pageY: number;
+    screenX: number;
+    screenY: number;
+    shiftKey: boolean;
+    ctrlKey: boolean;
+    metaKey: boolean;
+  }
 }
 
 declare module 'react' {
