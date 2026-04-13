@@ -330,32 +330,47 @@ test('export html escapes user-controlled fields', () => {
 
 test('analytics aggregation and filter behavior', () => {
   __resetWritingIntegrationStoreForTests();
-  submitInitialWritingAssessment({
+  const first = submitInitialWritingAssessment({
     student_id: 'ana-1',
     grade: 8,
     genre: 'article',
     prompt_text: prompt,
     target_word_count: 120,
     student_response: 'I is short text',
+    revision_cycle_id: 'cycle-a',
+    attempt_number: 1,
+    retry_kind: 'new_prompt',
     attempted_at: '2026-02-01T10:00:00.000Z',
   });
-  submitInitialWritingAssessment({
+  const second = submitInitialWritingAssessment({
     student_id: 'ana-1',
     grade: 8,
     genre: 'article',
     prompt_text: prompt,
     target_word_count: 120,
     student_response: 'This article explains event impact and gives one recommendation.',
+    revision_cycle_id: 'cycle-a',
+    attempt_number: 2,
+    retry_kind: 'same_prompt',
+    parent_attempt_id: first.data?.attempt_id ?? null,
     attempted_at: '2026-03-01T10:00:00.000Z',
   });
+  assert.strictEqual(first.ok, true);
+  assert.strictEqual(second.ok, true);
 
   const analytics = getWritingAnalyticsDashboard();
   assert.strictEqual(analytics.ok, true);
   assert.ok(analytics.data!.summary.total_students >= 1);
   assert.ok(Array.isArray(analytics.data!.most_common_weakness_tags));
+  assert.ok(analytics.data!.retry_insights);
+  assert.strictEqual(analytics.data!.retry_insights!.retry_cycle_count, 1);
+  assert.strictEqual(analytics.data!.retry_insights!.same_prompt_retry_count, 1);
+  assert.ok(Array.isArray(analytics.data!.retry_insights!.student_retry_profiles));
+  assert.strictEqual(analytics.data!.retry_insights!.student_retry_profiles[0].student_id, 'ana-1');
 
   const filtered = getWritingAnalyticsDashboard({ grade: 8, genre: 'article' });
   assert.strictEqual(filtered.ok, true);
+  assert.ok(filtered.data!.retry_insights);
 
   const empty = getWritingAnalyticsDashboard({ grade: 12, genre: 'story' });
   assert.strictEqual(empty.ok, false);

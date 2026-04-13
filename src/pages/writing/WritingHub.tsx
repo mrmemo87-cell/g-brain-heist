@@ -1398,7 +1398,7 @@ const keepHorizontalItemInView = (
 const getMissionRecommendationKey = (item: WritingMissionRecommendation) =>
   `${item.missionCategory}-${item.title}`;
 
-export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, grade, genre, month = new Date().toISOString().slice(0, 7), onOpenQuestMission }) => {
+const WritingHubLegacy: React.FC<WritingHubProps> = ({ studentId, studentName, grade, genre, month = new Date().toISOString().slice(0, 7), onOpenQuestMission }) => {
   const [themeMode, setThemeMode] = useState<WritingHubThemeMode>(() => {
     if (typeof window === 'undefined') return 'dark';
     const saved = window.localStorage.getItem('writing-hub-theme');
@@ -4044,6 +4044,432 @@ export const WritingHub: React.FC<WritingHubProps> = ({ studentId, studentName, 
       ), document.body)}
     </div>
   );
+};
+
+const WRITING_HUB_FORCE_LEGACY_FLAG = 'writing_hub_legacy_ui';
+
+const isLegacyForced = (): boolean => {
+  const envFlag = typeof import.meta !== 'undefined' && (import.meta as ImportMeta & { env?: Record<string, string> }).env
+    ? (import.meta as ImportMeta & { env?: Record<string, string> }).env?.['VITE_WRITING_HUB_FORCE_LEGACY_UI']
+    : undefined;
+  if (typeof envFlag === 'string' && ['1', 'true', 'on', 'yes'].includes(envFlag.toLowerCase())) return true;
+  if (typeof window === 'undefined') return false;
+  const localFlag = window.localStorage.getItem(WRITING_HUB_FORCE_LEGACY_FLAG);
+  return typeof localFlag === 'string' && ['1', 'true', 'on', 'yes'].includes(localFlag.toLowerCase());
+};
+
+const createRevisionCycleId = (): string => `rev_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentName, grade, genre }) => {
+  const [activeGenre, setActiveGenre] = useState<SupportedGenre>(genre);
+  const [promptText, setPromptText] = useState(defaultPromptByGenre[genre]);
+  const [draft, setDraft] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('Write your response, submit for feedback, then choose retry or a new prompt.');
+  const [assessment, setAssessment] = useState<{
+    total_score: number;
+    weakness_tags: string[];
+    subscores: {
+      content: number;
+      communicative_achievement: number | null;
+      organisation: number;
+      language: number;
+    };
+  } | null>(null);
+  const [aiFeedback, setAiFeedback] = useState<WritingAiFeedbackAssist | null>(null);
+  const [submittedText, setSubmittedText] = useState('');
+  const [showCinematicFeedback, setShowCinematicFeedback] = useState(false);
+  const [cinematicIndex, setCinematicIndex] = useState<number | null>(null);
+  const [cinematicDone, setCinematicDone] = useState(false);
+  const [revisionCycleId, setRevisionCycleId] = useState<string>(() => createRevisionCycleId());
+  const [attemptNumber, setAttemptNumber] = useState<number>(1);
+  const [lastAttemptId, setLastAttemptId] = useState<string | null>(null);
+  const [lastRetryKind, setLastRetryKind] = useState<'same_prompt' | 'new_prompt'>('new_prompt');
+  const targetWordCount = grade <= 7 ? 80 : grade <= 9 ? 120 : 160;
+  const wordCount = countWords(draft);
+
+  useEffect(() => {
+    setActiveGenre(genre);
+    setPromptText(defaultPromptByGenre[genre]);
+    setDraft('');
+    setAssessment(null);
+    setAiFeedback(null);
+    setSubmittedText('');
+    setShowCinematicFeedback(false);
+    setCinematicIndex(null);
+    setCinematicDone(false);
+    setRevisionCycleId(createRevisionCycleId());
+    setAttemptNumber(1);
+    setLastAttemptId(null);
+    setLastRetryKind('new_prompt');
+  }, [genre]);
+
+  const loadFreshPrompt = async () => {
+    setBusy(true);
+    setError('');
+    setNotice('Loading a new prompt…');
+    try {
+      const stateRes = getStudentWritingState(studentId, activeGenre);
+      const weaknessTags = stateRes.ok && stateRes.data?.latest_assessment ? stateRes.data.latest_assessment.weakness_tags.slice(0, 4) : [];
+      const nextPrompt = await getSmartWritingPromptForStudent({
+        student_id: studentId,
+        grade,
+        genre: activeGenre,
+        current_prompt_text: promptText,
+        weakness_tags: weaknessTags,
+        use_ai_polish: true,
+      });
+      if (nextPrompt.ok && nextPrompt.data?.prompt_text?.trim()) {
+        setPromptText(nextPrompt.data.prompt_text.trim());
+      } else {
+        setPromptText(defaultPromptByGenre[activeGenre]);
+      }
+      setDraft('');
+      setAssessment(null);
+      setAiFeedback(null);
+      setSubmittedText('');
+      setShowCinematicFeedback(false);
+      setCinematicIndex(null);
+      setCinematicDone(false);
+      setRevisionCycleId(createRevisionCycleId());
+      setAttemptNumber(1);
+      setLastAttemptId(null);
+      setLastRetryKind('new_prompt');
+      setNotice('New prompt ready. Write and submit.');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Unable to load a new prompt.');
+      setNotice('Using your current prompt. You can still submit safely.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitAttempt = async (retryKind: 'same_prompt' | 'new_prompt') => {
+    if (!draft.trim()) {
+      setError('Please write your response before submitting.');
+      return;
+    }
+    setBusy(true);
+    setError('');
+    setNotice('Checking your writing…');
+
+    const currentCycleId = retryKind === 'new_prompt' ? createRevisionCycleId() : revisionCycleId;
+    const currentAttemptNumber = retryKind === 'new_prompt' ? 1 : attemptNumber;
+
+    const result = submitInitialWritingAssessment({
+      student_id: studentId,
+      student_name: studentName,
+      grade,
+      genre: activeGenre,
+      prompt_text: promptText,
+      target_word_count: targetWordCount,
+      student_response: draft,
+      revision_cycle_id: currentCycleId,
+      attempt_number: currentAttemptNumber,
+      retry_kind: retryKind,
+      parent_attempt_id: retryKind === 'same_prompt' ? lastAttemptId : null,
+    });
+
+    if (!result.ok || !result.data) {
+      setError(result.error ?? 'Submission failed. Please retry.');
+      setBusy(false);
+      return;
+    }
+
+    setAssessment(result.data.assessment_result);
+    setSubmittedText(draft.trim());
+    setLastAttemptId(result.data.attempt_id ?? null);
+    setRevisionCycleId(currentCycleId);
+    setAttemptNumber(currentAttemptNumber + 1);
+    setLastRetryKind(retryKind);
+
+    try {
+      const ai = await requestWritingAiAssist({
+        mode: 'feedback',
+        prompt_text: promptText,
+        student_response: draft,
+        weaknesses: result.data.assessment_result.weakness_tags.slice(0, 5),
+        grade,
+        genre: activeGenre,
+      });
+      if (ai.ok && ai.data) {
+        setAiFeedback((ai.data.result ?? null) as WritingAiFeedbackAssist | null);
+      } else {
+        setAiFeedback(null);
+      }
+    } catch {
+      setAiFeedback(null);
+    } finally {
+      setBusy(false);
+      setNotice('Feedback ready. Choose Retry this prompt or New prompt.');
+      setShowCinematicFeedback(true);
+      setCinematicDone(false);
+      setCinematicIndex(null);
+    }
+  };
+
+  const trustedRanges = useMemo(
+    () => buildAnchorRanges(submittedText, aiFeedback),
+    [submittedText, aiFeedback]
+  );
+  const fallbackRanges = useMemo(
+    () => buildFallbackHighlightRanges(submittedText, aiFeedback),
+    [submittedText, aiFeedback]
+  );
+  const cinematicTrust = useMemo(
+    () => evaluateAnchorTrust(submittedText, aiFeedback),
+    [submittedText, aiFeedback]
+  );
+  const cinematicRanges = useMemo(
+    () => buildBalancedReviewSequence(
+      cinematicTrust.mode === 'trusted' && !hasConflictingAnchorOverlap(trustedRanges) ? trustedRanges : fallbackRanges,
+      8
+    ),
+    [cinematicTrust.mode, trustedRanges, fallbackRanges]
+  );
+  const improvementGuidance = useMemo(
+    () => [
+      aiFeedback?.next_move,
+      ...(aiFeedback?.next_steps ?? []),
+    ].filter(Boolean).join(' ') || 'Focus on the mistake tags, then rewrite for clearer task coverage and language control.',
+    [aiFeedback]
+  );
+
+  useEffect(() => {
+    if (!showCinematicFeedback) return;
+    gsap.fromTo(
+      '.simple-cinematic-panel',
+      { opacity: 0, y: 14 },
+      { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' }
+    );
+    if (cinematicRanges.length === 0) {
+      setCinematicDone(true);
+      setCinematicIndex(null);
+      return;
+    }
+    let cancelled = false;
+    const timers: number[] = [];
+    let elapsed = 0;
+    cinematicRanges.forEach((range, idx) => {
+      const segment = submittedText.slice(range.start, range.end);
+      const delay = getHighlightAnimationDurationMs(segment.length) + 48;
+      timers.push(window.setTimeout(() => {
+        if (!cancelled) setCinematicIndex(idx);
+      }, elapsed));
+      elapsed += delay;
+    });
+    timers.push(window.setTimeout(() => {
+      if (!cancelled) setCinematicDone(true);
+    }, elapsed + 120));
+    return () => {
+      cancelled = true;
+      timers.forEach((timer) => window.clearTimeout(timer));
+    };
+  }, [showCinematicFeedback, cinematicRanges, submittedText]);
+
+  return (
+    <div style={{ ...getPageStyle('dark'), gap: 14 }}>
+      <section className="writing-hub-card" style={getMissionCardStyle('dark')}>
+        <p style={{ ...sectionLabelPillStyle, margin: 0 }}>Student Writing Hub</p>
+        <h2 style={{ margin: '8px 0 10px', color: '#f8fbff' }}>Write → Feedback → Retry</h2>
+        <p style={{ margin: 0, color: '#cbd5e1' }}>{notice}</p>
+        {error && <p style={{ margin: '8px 0 0', color: '#fca5a5' }}>{error}</p>}
+      </section>
+
+      <section className="writing-hub-card" style={getShellCardStyle('dark')}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
+          <h3 style={{ margin: 0, color: '#f8fbff' }}>Prompt</h3>
+          <span style={{ ...sectionLabelPillStyle, color: '#93c5fd' }}>Target: {toWordCountLabel(targetWordCount)}</span>
+        </div>
+        <p style={{ margin: '10px 0 0', color: '#dbe7ff', whiteSpace: 'pre-wrap' }}>{promptText}</p>
+      </section>
+
+      <section className="writing-hub-card" style={getShellCardStyle('dark')}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+          <h3 style={{ margin: 0, color: '#f8fbff' }}>Your response</h3>
+          <span style={{ color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>{wordCount} words</span>
+        </div>
+        <textarea
+          value={draft}
+          onChange={(e: { target: { value: string } }) => setDraft(e.target.value)}
+          placeholder="Write your response here…"
+          style={{ ...fieldStyle, marginTop: 10, minHeight: 180 }}
+          aria-label="Writing response"
+        />
+        <button
+          type="button"
+          onClick={() => void submitAttempt(lastRetryKind)}
+          disabled={busy || !draft.trim()}
+          className="writing-primary-button"
+          style={{ ...primaryButtonStyle, opacity: busy ? 0.7 : 1, cursor: busy ? 'not-allowed' : 'pointer' }}
+        >
+          {busy ? 'Submitting…' : 'Submit for feedback'}
+        </button>
+      </section>
+
+      {assessment && (
+        <section className="writing-hub-card" style={getShellCardStyle('dark')}>
+          <h3 style={{ marginTop: 0, color: '#f8fbff' }}>Feedback</h3>
+          <p style={{ margin: '0 0 8px', color: '#bfdbfe', fontWeight: 700 }}>Score: {assessment.total_score}</p>
+          <p style={{ margin: '0 0 8px', color: '#86efac' }}>
+            Strengths: {(aiFeedback?.what_is_working ?? aiFeedback?.strengths ?? []).slice(0, 3).join(' • ') || 'No strengths summary available.'}
+          </p>
+          <p style={{ margin: '0 0 8px', color: '#fca5a5' }}>
+            Mistakes: {(aiFeedback?.what_is_missing ?? aiFeedback?.weaknesses ?? []).slice(0, 3).join(' • ') || 'No mistake summary available.'}
+          </p>
+          <p style={{ margin: '0 0 8px', color: '#cbd5e1' }}>
+            Mistake tags: {assessment.weakness_tags.length > 0 ? assessment.weakness_tags.join(', ') : 'None detected.'}
+          </p>
+          <p style={{ margin: 0, color: '#dbe7ff' }}>
+            Full feedback: {[
+              aiFeedback?.task_understanding,
+              aiFeedback?.submission_read,
+              aiFeedback?.next_move,
+              ...(aiFeedback?.next_steps ?? []),
+            ].filter(Boolean).join(' ') || 'Detailed AI feedback unavailable for this attempt.'}
+          </p>
+          <div style={{ marginTop: 10, borderRadius: 10, border: '1px solid rgba(148,163,184,0.35)', padding: 10, background: 'rgba(15,23,42,0.45)' }}>
+            <p style={{ margin: '0 0 6px', color: '#bfdbfe', fontWeight: 700 }}>Rubric</p>
+            <p style={{ margin: '0 0 4px', color: '#dbe7ff' }}>Content: {assessment.subscores.content}</p>
+            <p style={{ margin: '0 0 4px', color: '#dbe7ff' }}>Organization: {assessment.subscores.organisation}</p>
+            <p style={{ margin: '0 0 4px', color: '#dbe7ff' }}>Language: {assessment.subscores.language}</p>
+            <p style={{ margin: 0, color: '#dbe7ff' }}>Communicative achievement: {assessment.subscores.communicative_achievement ?? '—'}</p>
+          </div>
+          <p style={{ margin: '10px 0 0', color: '#cbd5e1' }}>How to improve: {improvementGuidance}</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 10, marginTop: 12 }}>
+            <button
+              type="button"
+              onClick={() => {
+                setLastRetryKind('same_prompt');
+                setDraft('');
+                setShowCinematicFeedback(false);
+                setNotice('Retry this prompt: write an improved version, then submit.');
+              }}
+              disabled={busy}
+              style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)' }}
+            >
+              Retry this prompt
+            </button>
+            <button
+              type="button"
+              onClick={() => void loadFreshPrompt()}
+              disabled={busy}
+              style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}
+            >
+              New prompt
+            </button>
+          </div>
+        </section>
+      )}
+
+      {showCinematicFeedback && assessment && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 120,
+            background: 'rgba(2,6,23,0.82)',
+            display: 'grid',
+            placeItems: 'center',
+            padding: 14,
+          }}
+        >
+          <div
+            className="simple-cinematic-panel"
+            style={{
+              width: 'min(980px, 100%)',
+              maxHeight: '92vh',
+              overflow: 'auto',
+              borderRadius: 16,
+              border: '1px solid rgba(148,163,184,0.5)',
+              background: 'linear-gradient(180deg, #0b1224 0%, #07101f 100%)',
+              padding: 16,
+              color: '#e2e8f0',
+              display: 'grid',
+              gap: 12,
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
+              <h3 style={{ margin: 0, color: '#f8fafc' }}>AI Cinematic Feedback</h3>
+              <button
+                type="button"
+                onClick={() => setShowCinematicFeedback(false)}
+                style={{ borderRadius: 8, border: '1px solid rgba(148,163,184,0.45)', background: 'rgba(15,23,42,0.9)', color: '#e2e8f0', padding: '8px 10px' }}
+              >
+                Close
+              </button>
+            </div>
+
+            <div style={{ borderRadius: 12, border: '1px solid rgba(148,163,184,0.35)', background: 'rgba(15,23,42,0.62)', padding: 12, lineHeight: 1.7 }}>
+              {submittedText
+                ? renderAnnotatedText(submittedText, cinematicRanges, cinematicIndex)
+                : 'No submission text available.'}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 8 }}>
+              <div style={{ borderRadius: 10, border: '1px solid rgba(16,185,129,0.45)', background: 'rgba(6,78,59,0.2)', padding: 10 }}>
+                <strong style={{ color: '#86efac' }}>Strong parts (green)</strong>
+                <p style={{ margin: '6px 0 0' }}>{(aiFeedback?.what_is_working ?? aiFeedback?.strengths ?? []).slice(0, 3).join(' • ') || 'No strong-part summary available.'}</p>
+              </div>
+              <div style={{ borderRadius: 10, border: '1px solid rgba(248,113,113,0.45)', background: 'rgba(127,29,29,0.24)', padding: 10 }}>
+                <strong style={{ color: '#fca5a5' }}>Mistakes to fix (red)</strong>
+                <p style={{ margin: '6px 0 0' }}>{(aiFeedback?.what_is_missing ?? aiFeedback?.weaknesses ?? []).slice(0, 3).join(' • ') || 'No mistake summary available.'}</p>
+              </div>
+            </div>
+
+            <div style={{ borderRadius: 12, border: '1px solid rgba(148,163,184,0.35)', background: 'rgba(15,23,42,0.62)', padding: 12, display: 'grid', gap: 6 }}>
+              <strong style={{ color: '#bfdbfe' }}>Rubric view</strong>
+              <p style={{ margin: 0 }}>Content: {assessment.subscores.content}</p>
+              <p style={{ margin: 0 }}>Organization: {assessment.subscores.organisation}</p>
+              <p style={{ margin: 0 }}>Language: {assessment.subscores.language}</p>
+              <p style={{ margin: 0 }}>Communicative achievement: {assessment.subscores.communicative_achievement ?? '—'}</p>
+              <p style={{ margin: 0, color: '#cbd5e1' }}>
+                How to improve: {improvementGuidance}
+              </p>
+              <p style={{ margin: 0, color: '#93c5fd', fontSize: 12 }}>
+                Trust mode: {cinematicTrust.mode === 'trusted' ? 'Trusted anchors' : 'Safe fallback highlights'}
+              </p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 10 }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setLastRetryKind('same_prompt');
+                  setDraft('');
+                  setShowCinematicFeedback(false);
+                  setNotice('Retry this prompt: apply the feedback and submit again.');
+                }}
+                style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)' }}
+              >
+                Retry this prompt
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCinematicFeedback(false);
+                  void loadFreshPrompt();
+                }}
+                style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}
+              >
+                New prompt
+              </button>
+            </div>
+            {!cinematicDone && <p style={{ margin: 0, color: '#93c5fd', fontSize: 12 }}>Review animation in progress…</p>}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export const WritingHub: React.FC<WritingHubProps> = (props) => {
+  const [legacyForced] = useState<boolean>(() => isLegacyForced());
+  if (legacyForced) return <WritingHubLegacy {...props} />;
+  return <WritingHubSimpleLoop {...props} />;
 };
 
 export const seedWritingHubForDemo = (studentId: string, grade: number, genre: WritingHubProps['genre']): void => {

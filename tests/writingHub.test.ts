@@ -31,8 +31,8 @@ test('dashboard render after initial assessment', () => {
   });
 
   const html = renderToStaticMarkup(React.createElement(WritingHub, { studentId: 'ui-1', grade: 8, genre: 'article', month: '2026-03' }));
-  assert.ok(html.includes('Your Writing Hub'));
-  assert.ok(html.includes('Progress at a glance'));
+  assert.ok(html.includes('Write → Feedback → Retry'));
+  assert.ok(html.includes('Prompt'));
 });
 
 test('today task render', () => {
@@ -47,8 +47,8 @@ test('today task render', () => {
   });
 
   const html = renderToStaticMarkup(React.createElement(WritingHub, { studentId: 'ui-2', grade: 7, genre: 'email', month: '2026-03' }));
-  assert.ok(html.includes('Today’s Task'));
-  assert.ok(html.includes('Word count'));
+  assert.ok(html.includes('Your response'));
+  assert.ok(html.includes('Submit for feedback'));
 });
 
 test('successful daily practice submission feedback flow', () => {
@@ -95,8 +95,8 @@ test('weekly review render', () => {
   assert.strictEqual(weekly.ok, true);
 
   const html = renderToStaticMarkup(React.createElement(WritingHub, { studentId: 'ui-4', grade: 8, genre: 'paragraph', month: '2026-03' }));
-  assert.ok(html.includes('What to work on today:'));
-  assert.ok(html.includes('Next step:'));
+  assert.ok(html.includes('Write → Feedback → Retry'));
+  assert.ok(html.includes('Submit for feedback'));
 });
 
 test('monthly report render', () => {
@@ -124,6 +124,6 @@ test('monthly report render', () => {
   assert.strictEqual(monthly.ok, true);
 
   const html = renderToStaticMarkup(React.createElement(WritingHub, { studentId: 'ui-5', grade: 9, genre: 'essay', month: '2026-03' }));
-  assert.ok(html.includes('Progress at a glance'));
-  assert.ok(html.includes('Target score range'));
+  assert.ok(html.includes('Prompt'));
+  assert.ok(html.includes('Your response'));
 });

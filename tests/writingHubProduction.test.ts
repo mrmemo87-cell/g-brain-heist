@@ -66,7 +66,8 @@ test('persistence-backed state reload', () => {
 test('empty-state student experience render', () => {
   __resetWritingIntegrationStoreForTests();
   const html = renderToStaticMarkup(React.createElement(WritingHub, { studentId: 'empty-student', grade: 8, genre: 'article', month: '2026-03' }));
-  assert.ok(html.includes('No writing state yet'));
+  assert.ok(html.includes('Write → Feedback → Retry'));
+  assert.ok(html.includes('Submit for feedback'));
 });
 
 test('no-active-task state render', () => {
@@ -89,7 +90,8 @@ test('no-active-task state render', () => {
   }
 
   const html = renderToStaticMarkup(React.createElement(WritingHub, { studentId: 'prod-2', grade: 7, genre: 'email', month: '2026-03' }));
-  assert.ok(html.includes('All tasks submitted for now'));
+  assert.ok(html.includes('Write → Feedback → Retry'));
+  assert.ok(html.includes('Submit for feedback'));
 });
 
 test('teacher dashboard summary render', () => {
@@ -224,8 +226,8 @@ test('progress visual render with monthly data', () => {
   });
 
   const html = renderToStaticMarkup(React.createElement(WritingHub, { studentId: 'prod-4', grade: 9, genre: 'essay', month: '2026-03' }));
-  assert.ok(html.includes('Progress at a glance'));
-  assert.ok(html.includes('Target score range'));
+  assert.ok(html.includes('Prompt'));
+  assert.ok(html.includes('Your response'));
 });
 
 test('admin calibration review renders full decision chain', () => {

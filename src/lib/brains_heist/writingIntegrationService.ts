@@ -50,6 +50,11 @@ export interface WritingAttempt {
   student_id: string;
   genre: SupportedGenre;
   attempt_type: 'initial_assessment' | 'daily_practice';
+  revision_cycle_id?: string;
+  attempt_number?: number;
+  retry_kind?: 'same_prompt' | 'new_prompt';
+  parent_attempt_id?: string | null;
+  prompt_id?: string | null;
   created_at: string;
   prompt_text?: string;
   student_submission?: string;
@@ -478,6 +483,11 @@ interface SubmitInitialWritingAssessmentInput {
   prompt_text: string;
   target_word_count: number;
   student_response: string;
+  revision_cycle_id?: string;
+  attempt_number?: number;
+  retry_kind?: 'same_prompt' | 'new_prompt';
+  parent_attempt_id?: string | null;
+  prompt_id?: string | null;
   attempted_at?: string;
 }
 
@@ -486,12 +496,18 @@ interface SubmitDailyWritingPracticeInput {
   genre?: string;
   day_number: number;
   submission_text: string;
+  revision_cycle_id?: string;
+  attempt_number?: number;
+  retry_kind?: 'same_prompt' | 'new_prompt';
+  parent_attempt_id?: string | null;
+  prompt_id?: string | null;
   submitted_at?: string;
 }
 
 export const submitInitialWritingAssessment = (
   input: SubmitInitialWritingAssessmentInput
 ): ServiceResponse<{
+  attempt_id: string;
   assessment_result: WritingAssessmentResult;
   weekly_plan: WeeklyImprovementPlan;
   daily_tasks: DailyWritingTask[];
@@ -528,11 +544,17 @@ export const submitInitialWritingAssessment = (
   store.profiles.set(input.student_id, profile);
   setStateForGenre(input.student_id, normalizedGenre, flow.updated_writing_state);
 
+  const attemptId = buildId('attempt');
   store.attempts.push({
-    id: buildId('attempt'),
+    id: attemptId,
     student_id: input.student_id,
     genre: normalizedGenre,
     attempt_type: 'initial_assessment',
+    revision_cycle_id: input.revision_cycle_id,
+    attempt_number: input.attempt_number,
+    retry_kind: input.retry_kind,
+    parent_attempt_id: input.parent_attempt_id ?? null,
+    prompt_id: input.prompt_id ?? null,
     created_at: now,
     prompt_text: input.prompt_text,
     student_submission: input.student_response,
@@ -570,6 +592,7 @@ export const submitInitialWritingAssessment = (
   persistStore();
 
   return ok({
+    attempt_id: attemptId,
     assessment_result: flow.assessment_result,
     weekly_plan: flow.weekly_plan,
     daily_tasks: flow.daily_tasks,
@@ -721,6 +744,7 @@ export const getTodayWritingTask = (studentId: string, genre?: SupportedGenre): 
 export const submitDailyWritingPractice = (
   input: SubmitDailyWritingPracticeInput
 ): ServiceResponse<{
+  attempt_id: string | null;
   evaluation: WritingPracticeEvaluationResult;
   writing_state: StudentWritingState;
 }> => {
@@ -762,12 +786,19 @@ export const submitDailyWritingPractice = (
     created_at: submittedAt,
   });
 
+  let attemptId: string | null = null;
   if (flow.updated_writing_state.latest_assessment) {
+    attemptId = buildId('attempt');
     store.attempts.push({
-      id: buildId('attempt'),
+      id: attemptId,
       student_id: input.student_id,
       genre: normalizedGenre,
       attempt_type: 'daily_practice',
+      revision_cycle_id: input.revision_cycle_id,
+      attempt_number: input.attempt_number,
+      retry_kind: input.retry_kind,
+      parent_attempt_id: input.parent_attempt_id ?? null,
+      prompt_id: input.prompt_id ?? null,
       created_at: submittedAt,
       student_submission: input.submission_text,
       assessment: flow.updated_writing_state.latest_assessment,
@@ -784,6 +815,7 @@ export const submitDailyWritingPractice = (
   persistStore();
 
   return ok({
+    attempt_id: attemptId,
     evaluation: flow.practice_evaluation_result,
     writing_state: flow.updated_writing_state,
   });
@@ -1022,9 +1054,201 @@ export interface WritingAnalyticsDashboard {
     overused_prompts: string[];
     low_improvement_target_tags: string[];
   };
+  retry_insights?: {
+    retry_metadata_attempts: number;
+    total_attempts: number;
+    retry_metadata_coverage_rate: number;
+    retry_cycle_count: number;
+    average_attempts_per_cycle: number;
+    same_prompt_retry_count: number;
+    new_prompt_restart_count: number;
+    cycles_improved_count: number;
+    cycles_not_improved_count: number;
+    average_same_prompt_score_delta: number | null;
+    improved_cycle_rate: number;
+    retry_depth_distribution: Array<{ attempts: number; cycle_count: number }>;
+    most_repeated_cycle_tags: Array<{ tag: string; count: number }>;
+    students_needing_intervention: string[];
+    students_showing_fast_gains: string[];
+    student_retry_profiles: Array<{
+      student_id: string;
+      retry_cycle_count: number;
+      average_attempts_per_cycle: number;
+      same_prompt_retry_count: number;
+      new_prompt_restart_count: number;
+      improved_same_prompt_cycles: number;
+      no_improvement_same_prompt_cycles: number;
+      average_same_prompt_score_delta: number | null;
+      recurring_mistake_tags: string[];
+      retry_metadata_attempt_count: number;
+      needs_intervention: boolean;
+      fast_gains: boolean;
+    }>;
+  };
 }
 
 const currentMonthKey = (): string => new Date().toISOString().slice(0, 7);
+
+const buildRetryInsights = (
+  attempts: WritingAttempt[]
+): NonNullable<WritingAnalyticsDashboard['retry_insights']> => {
+  const totalAttempts = attempts.length;
+  const retryAwareAttempts = attempts.filter((attempt) => typeof attempt.revision_cycle_id === 'string' && attempt.revision_cycle_id.trim().length > 0);
+  const coverageRate = totalAttempts > 0 ? Number((retryAwareAttempts.length / totalAttempts).toFixed(2)) : 0;
+  const cycleMap = new Map<string, WritingAttempt[]>();
+  retryAwareAttempts.forEach((attempt) => {
+    const cycleId = attempt.revision_cycle_id?.trim();
+    if (!cycleId) return;
+    const key = `${attempt.student_id}::${cycleId}`;
+    cycleMap.set(key, [...(cycleMap.get(key) ?? []), attempt]);
+  });
+
+  const retryDepthCounter = new Map<number, number>();
+  const repeatedTagCounter = new Map<string, number>();
+  const samePromptDeltas: number[] = [];
+  const profiles = new Map<string, NonNullable<WritingAnalyticsDashboard['retry_insights']>['student_retry_profiles'][number]>();
+
+  let samePromptRetryCount = 0;
+  let newPromptRestartCount = 0;
+  let cyclesImproved = 0;
+  let cyclesNotImproved = 0;
+
+  const ensureProfile = (studentId: string) => {
+    const existing = profiles.get(studentId);
+    if (existing) return existing;
+    const initial = {
+      student_id: studentId,
+      retry_cycle_count: 0,
+      average_attempts_per_cycle: 0,
+      same_prompt_retry_count: 0,
+      new_prompt_restart_count: 0,
+      improved_same_prompt_cycles: 0,
+      no_improvement_same_prompt_cycles: 0,
+      average_same_prompt_score_delta: null as number | null,
+      recurring_mistake_tags: [] as string[],
+      retry_metadata_attempt_count: 0,
+      needs_intervention: false,
+      fast_gains: false,
+    };
+    profiles.set(studentId, initial);
+    return initial;
+  };
+
+  cycleMap.forEach((items, cycleKey) => {
+    const [studentId] = cycleKey.split('::');
+    const profile = ensureProfile(studentId);
+    const sorted = [...items].sort((a, b) => {
+      const attemptA = Number.isFinite(a.attempt_number) ? (a.attempt_number as number) : Number.POSITIVE_INFINITY;
+      const attemptB = Number.isFinite(b.attempt_number) ? (b.attempt_number as number) : Number.POSITIVE_INFINITY;
+      if (attemptA !== attemptB) return attemptA - attemptB;
+      return a.created_at.localeCompare(b.created_at);
+    });
+    if (sorted.length === 0) return;
+
+    profile.retry_cycle_count += 1;
+    profile.retry_metadata_attempt_count += sorted.length;
+    retryDepthCounter.set(sorted.length, (retryDepthCounter.get(sorted.length) ?? 0) + 1);
+
+    const first = sorted[0];
+    const latest = sorted[sorted.length - 1];
+    const delta = Number((latest.assessment.total_score - first.assessment.total_score).toFixed(2));
+    const hasSamePromptRetry = sorted.some((attempt) => attempt.retry_kind === 'same_prompt');
+
+    const firstTags = new Set(first.assessment.weakness_tags ?? []);
+    const latestTags = new Set(latest.assessment.weakness_tags ?? []);
+    [...firstTags].filter((tag) => latestTags.has(tag)).forEach((tag) => {
+      repeatedTagCounter.set(tag, (repeatedTagCounter.get(tag) ?? 0) + 1);
+    });
+
+    sorted.forEach((attempt) => {
+      if (attempt.retry_kind === 'same_prompt') {
+        samePromptRetryCount += 1;
+        profile.same_prompt_retry_count += 1;
+      }
+      if (attempt.retry_kind === 'new_prompt' && (attempt.attempt_number ?? 0) <= 1) {
+        newPromptRestartCount += 1;
+        profile.new_prompt_restart_count += 1;
+      }
+    });
+
+    if (hasSamePromptRetry) {
+      samePromptDeltas.push(delta);
+      if (delta > 0) {
+        cyclesImproved += 1;
+        profile.improved_same_prompt_cycles += 1;
+      } else {
+        cyclesNotImproved += 1;
+        profile.no_improvement_same_prompt_cycles += 1;
+      }
+    }
+  });
+
+  const studentProfiles = [...profiles.values()].map((profile) => {
+    const cycleAttempts = profile.retry_cycle_count > 0 ? profile.retry_metadata_attempt_count / profile.retry_cycle_count : 0;
+    profile.average_attempts_per_cycle = Number(cycleAttempts.toFixed(2));
+    const studentCycles = [...cycleMap.entries()].filter(([key]) => key.startsWith(`${profile.student_id}::`));
+    const deltas = studentCycles
+      .map(([, items]) => {
+        const sorted = [...items].sort((a, b) => (a.attempt_number ?? 999) - (b.attempt_number ?? 999));
+        if (!sorted.some((attempt) => attempt.retry_kind === 'same_prompt')) return null;
+        return Number((sorted[sorted.length - 1].assessment.total_score - sorted[0].assessment.total_score).toFixed(2));
+      })
+      .filter((value): value is number => value != null);
+    profile.average_same_prompt_score_delta = deltas.length ? Number((deltas.reduce((a, b) => a + b, 0) / deltas.length).toFixed(2)) : null;
+
+    const recurringTags = new Map<string, number>();
+    studentCycles.forEach(([, items]) => {
+      const sorted = [...items].sort((a, b) => (a.attempt_number ?? 999) - (b.attempt_number ?? 999));
+      if (!sorted.length) return;
+      const firstTags = new Set(sorted[0].assessment.weakness_tags ?? []);
+      const latestTags = new Set(sorted[sorted.length - 1].assessment.weakness_tags ?? []);
+      [...firstTags].filter((tag) => latestTags.has(tag)).forEach((tag) => {
+        recurringTags.set(tag, (recurringTags.get(tag) ?? 0) + 1);
+      });
+    });
+    profile.recurring_mistake_tags = [...recurringTags.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([tag]) => tag);
+    profile.needs_intervention =
+      profile.retry_cycle_count >= 2 &&
+      profile.average_attempts_per_cycle >= 2 &&
+      (profile.average_same_prompt_score_delta ?? 0) <= 0;
+    profile.fast_gains =
+      profile.improved_same_prompt_cycles > 0 &&
+      (profile.average_same_prompt_score_delta ?? 0) >= 0.5 &&
+      profile.average_attempts_per_cycle <= 2;
+    return profile;
+  });
+
+  const retryCycleCount = cycleMap.size;
+  const avgAttemptsPerCycle = retryCycleCount > 0 ? Number((retryAwareAttempts.length / retryCycleCount).toFixed(2)) : 0;
+  const avgSamePromptDelta = samePromptDeltas.length > 0
+    ? Number((samePromptDeltas.reduce((acc, item) => acc + item, 0) / samePromptDeltas.length).toFixed(2))
+    : null;
+  const improvedRateBase = cyclesImproved + cyclesNotImproved;
+
+  return {
+    retry_metadata_attempts: retryAwareAttempts.length,
+    total_attempts: totalAttempts,
+    retry_metadata_coverage_rate: coverageRate,
+    retry_cycle_count: retryCycleCount,
+    average_attempts_per_cycle: avgAttemptsPerCycle,
+    same_prompt_retry_count: samePromptRetryCount,
+    new_prompt_restart_count: newPromptRestartCount,
+    cycles_improved_count: cyclesImproved,
+    cycles_not_improved_count: cyclesNotImproved,
+    average_same_prompt_score_delta: avgSamePromptDelta,
+    improved_cycle_rate: improvedRateBase > 0 ? Number((cyclesImproved / improvedRateBase).toFixed(2)) : 0,
+    retry_depth_distribution: [...retryDepthCounter.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([attemptsInCycle, cycle_count]) => ({ attempts: attemptsInCycle, cycle_count })),
+    most_repeated_cycle_tags: [...repeatedTagCounter.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(([tag, count]) => ({ tag, count })),
+    students_needing_intervention: studentProfiles.filter((profile) => profile.needs_intervention).map((profile) => profile.student_id),
+    students_showing_fast_gains: studentProfiles.filter((profile) => profile.fast_gains).map((profile) => profile.student_id),
+    student_retry_profiles: studentProfiles.sort((a, b) => b.retry_cycle_count - a.retry_cycle_count),
+  };
+};
 
 export const getWritingMonitoringOverview = (
   month = currentMonthKey()
@@ -1433,6 +1657,14 @@ export const getWritingAnalyticsDashboard = (
   const lowImprovementTags = [...weaknessCounter.entries()]
     .filter(([, count]) => count >= WRITING_PILOT_GUARDRAILS.low_improvement_tag_threshold)
     .map(([tag]) => tag);
+  const retryInsights = buildRetryInsights(
+    store.attempts.filter((item) => {
+      if (filters.genre && item.genre !== filters.genre) return false;
+      if (!filters.grade) return true;
+      const state = store.states.get(buildStateKey(item.student_id, item.genre));
+      return (state?.grade ?? null) === filters.grade;
+    })
+  );
 
   return ok({
     summary: {
@@ -1467,6 +1699,7 @@ export const getWritingAnalyticsDashboard = (
       overused_prompts: overusedPrompts,
       low_improvement_target_tags: lowImprovementTags,
     },
+    retry_insights: retryInsights,
   });
 };
 
