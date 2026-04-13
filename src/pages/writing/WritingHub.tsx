@@ -16,6 +16,7 @@ import {
   getStudentWritingState,
   getStudentWritingHubSnapshot,
   getSmartWritingPromptForStudent,
+  listWritingPrompts,
   getTodayWritingTask,
   getWeeklyWritingReview,
   submitDailyWritingPractice,
@@ -628,6 +629,16 @@ const buildFallbackHighlightRanges = (text: string, ai: WritingAiFeedbackAssist 
     const firstSentenceEnd = text.indexOf('.') > 0 ? text.indexOf('.') + 1 : Math.min(text.length, 90);
     ranges.push({ start: 0, end: firstSentenceEnd, polarity: 'strong', reason: 'opening_strength', sourceCategory: 'strength' });
   }
+  if (!ranges.some((item) => item.polarity === 'weak')) {
+    const midpoint = Math.max(0, Math.floor(text.length * 0.4));
+    const fallbackStart = text.lastIndexOf(' ', midpoint);
+    const fallbackEndWord = text.indexOf(' ', Math.min(text.length - 1, midpoint + 40));
+    const start = fallbackStart > 0 ? fallbackStart : Math.max(0, midpoint - 20);
+    const end = fallbackEndWord > start ? fallbackEndWord : Math.min(text.length, start + 45);
+    if (end - start >= 8) {
+      ranges.push({ start, end, polarity: 'weak', reason: 'revision_focus', sourceCategory: 'fallback' });
+    }
+  }
   return ranges;
 };
 
@@ -643,12 +654,20 @@ const ReviewHighlightSpan: React.FC<ReviewHighlightSpanProps> = ({ index, range,
   const strong = range.polarity === 'strong';
 
   const highlightStyle = {
+    background: isActive
+      ? (strong ? 'rgba(74, 222, 128, 0.35)' : 'rgba(248, 113, 113, 0.34)')
+      : (strong ? 'rgba(74, 222, 128, 0.18)' : 'rgba(248, 113, 113, 0.16)'),
+    borderBottom: isActive
+      ? (strong ? '2px solid rgba(74, 222, 128, 0.9)' : '2px solid rgba(248, 113, 113, 0.9)')
+      : (strong ? '2px solid rgba(74, 222, 128, 0.45)' : '2px solid rgba(248, 113, 113, 0.42)'),
     color: isActive
       ? (strong ? 'var(--hub-highlight-strong-active, #d9f99d)' : 'var(--hub-highlight-weak-active, #fecaca)')
       : (strong ? 'var(--hub-highlight-strong-idle, rgba(187,247,208,0.9))' : 'var(--hub-highlight-weak-idle, rgba(254,202,202,0.9))'),
-    boxShadow: 'none',
+    boxShadow: isActive ? (strong ? '0 0 0 1px rgba(74, 222, 128, 0.5)' : '0 0 0 1px rgba(248, 113, 113, 0.5)') : 'none',
     textShadow: 'none',
-    transition: 'color 180ms ease',
+    borderRadius: 4,
+    padding: '0 2px',
+    transition: 'color 180ms ease, background 180ms ease, box-shadow 180ms ease',
   };
 
   return (
@@ -4086,8 +4105,16 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   const [attemptNumber, setAttemptNumber] = useState<number>(1);
   const [lastAttemptId, setLastAttemptId] = useState<string | null>(null);
   const [lastRetryKind, setLastRetryKind] = useState<'same_prompt' | 'new_prompt'>('new_prompt');
+  const responseFieldRef = useRef<HTMLTextAreaElement | null>(null);
   const targetWordCount = grade <= 7 ? 80 : grade <= 9 ? 120 : 160;
   const wordCount = countWords(draft);
+  const isVeryShortDraft = wordCount > 0 && wordCount < Math.max(10, Math.floor(targetWordCount * 0.2));
+  const availablePromptCount = useMemo(() => {
+    const promptRes = listWritingPrompts({ genre: activeGenre, grade, is_active: true });
+    if (!promptRes.ok || !promptRes.data) return 1;
+    return Math.max(1, promptRes.data.length);
+  }, [activeGenre, grade]);
+  const hasPromptRotation = availablePromptCount > 1;
 
   useEffect(() => {
     setActiveGenre(genre);
@@ -4105,13 +4132,28 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     setLastRetryKind('new_prompt');
   }, [genre]);
 
+  const beginRetrySamePrompt = () => {
+    setLastRetryKind('same_prompt');
+    setDraft('');
+    setAssessment(null);
+    setAiFeedback(null);
+    setSubmittedText('');
+    setShowCinematicFeedback(false);
+    setCinematicDone(false);
+    setCinematicIndex(null);
+    setNotice('Retry this prompt: write an improved version, then submit.');
+    setTimeout(() => responseFieldRef.current?.focus(), 0);
+  };
+
   const loadFreshPrompt = async () => {
+    if (busy) return;
     setBusy(true);
     setError('');
-    setNotice('Loading a new prompt…');
+    setNotice(hasPromptRotation ? 'Loading a new prompt…' : 'Checking for a different prompt…');
     try {
       const stateRes = getStudentWritingState(studentId, activeGenre);
       const weaknessTags = stateRes.ok && stateRes.data?.latest_assessment ? stateRes.data.latest_assessment.weakness_tags.slice(0, 4) : [];
+      const previousPrompt = promptText;
       const nextPrompt = await getSmartWritingPromptForStudent({
         student_id: studentId,
         grade,
@@ -4120,11 +4162,20 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
         weakness_tags: weaknessTags,
         use_ai_polish: true,
       });
+      let resolvedPrompt = defaultPromptByGenre[activeGenre];
       if (nextPrompt.ok && nextPrompt.data?.prompt_text?.trim()) {
-        setPromptText(nextPrompt.data.prompt_text.trim());
-      } else {
-        setPromptText(defaultPromptByGenre[activeGenre]);
+        resolvedPrompt = nextPrompt.data.prompt_text.trim();
       }
+      if (normalizePromptForComparison(resolvedPrompt) === normalizePromptForComparison(previousPrompt)) {
+        setNotice(
+          hasPromptRotation
+            ? 'Prompt pool returned the same task. You can still retry this prompt now, and we will rotate on the next request.'
+            : 'Only one active essay prompt is currently enabled, so New prompt keeps the same task.'
+        );
+      } else {
+        setNotice('New prompt ready. Write and submit.');
+      }
+      setPromptText(resolvedPrompt);
       setDraft('');
       setAssessment(null);
       setAiFeedback(null);
@@ -4136,7 +4187,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       setAttemptNumber(1);
       setLastAttemptId(null);
       setLastRetryKind('new_prompt');
-      setNotice('New prompt ready. Write and submit.');
+      setTimeout(() => responseFieldRef.current?.focus(), 0);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unable to load a new prompt.');
       setNotice('Using your current prompt. You can still submit safely.');
@@ -4290,7 +4341,13 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
           <h3 style={{ margin: 0, color: '#f8fbff' }}>Your response</h3>
           <span style={{ color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>{wordCount} words</span>
         </div>
+        {isVeryShortDraft && (
+          <p style={{ margin: '8px 0 0', color: '#fbbf24', fontSize: 12 }}>
+            This looks very short. You can submit, but a longer answer will get more useful feedback.
+          </p>
+        )}
         <textarea
+          ref={responseFieldRef}
           value={draft}
           onChange={(e: { target: { value: string } }) => setDraft(e.target.value)}
           placeholder="Write your response here…"
@@ -4306,46 +4363,22 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
         >
           {busy ? 'Submitting…' : 'Submit for feedback'}
         </button>
+        <p style={{ margin: '8px 0 0', color: '#94a3b8', fontSize: 12 }}>
+          Path: Essay (fixed for now). Genre switching is hidden because the student route currently opens only the essay track.
+        </p>
       </section>
 
       {assessment && (
         <section className="writing-hub-card" style={getShellCardStyle('dark')}>
-          <h3 style={{ marginTop: 0, color: '#f8fbff' }}>Feedback</h3>
+          <h3 style={{ marginTop: 0, color: '#f8fbff' }}>Feedback summary</h3>
           <p style={{ margin: '0 0 8px', color: '#bfdbfe', fontWeight: 700 }}>Score: {assessment.total_score}</p>
-          <p style={{ margin: '0 0 8px', color: '#86efac' }}>
-            Strengths: {(aiFeedback?.what_is_working ?? aiFeedback?.strengths ?? []).slice(0, 3).join(' • ') || 'No strengths summary available.'}
-          </p>
-          <p style={{ margin: '0 0 8px', color: '#fca5a5' }}>
-            Mistakes: {(aiFeedback?.what_is_missing ?? aiFeedback?.weaknesses ?? []).slice(0, 3).join(' • ') || 'No mistake summary available.'}
-          </p>
           <p style={{ margin: '0 0 8px', color: '#cbd5e1' }}>
-            Mistake tags: {assessment.weakness_tags.length > 0 ? assessment.weakness_tags.join(', ') : 'None detected.'}
+            Alignment: {toAlignmentLabel(aiFeedback?.alignment)}. Full rubric, strengths, mistakes, and improvement guidance are in the cinematic review.
           </p>
-          <p style={{ margin: 0, color: '#dbe7ff' }}>
-            Full feedback: {[
-              aiFeedback?.task_understanding,
-              aiFeedback?.submission_read,
-              aiFeedback?.next_move,
-              ...(aiFeedback?.next_steps ?? []),
-            ].filter(Boolean).join(' ') || 'Detailed AI feedback unavailable for this attempt.'}
-          </p>
-          <div style={{ marginTop: 10, borderRadius: 10, border: '1px solid rgba(148,163,184,0.35)', padding: 10, background: 'rgba(15,23,42,0.45)' }}>
-            <p style={{ margin: '0 0 6px', color: '#bfdbfe', fontWeight: 700 }}>Rubric</p>
-            <p style={{ margin: '0 0 4px', color: '#dbe7ff' }}>Content: {assessment.subscores.content}</p>
-            <p style={{ margin: '0 0 4px', color: '#dbe7ff' }}>Organization: {assessment.subscores.organisation}</p>
-            <p style={{ margin: '0 0 4px', color: '#dbe7ff' }}>Language: {assessment.subscores.language}</p>
-            <p style={{ margin: 0, color: '#dbe7ff' }}>Communicative achievement: {assessment.subscores.communicative_achievement ?? '—'}</p>
-          </div>
-          <p style={{ margin: '10px 0 0', color: '#cbd5e1' }}>How to improve: {improvementGuidance}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 10, marginTop: 12 }}>
             <button
               type="button"
-              onClick={() => {
-                setLastRetryKind('same_prompt');
-                setDraft('');
-                setShowCinematicFeedback(false);
-                setNotice('Retry this prompt: write an improved version, then submit.');
-              }}
+              onClick={beginRetrySamePrompt}
               disabled={busy}
               style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)' }}
             >
@@ -4360,6 +4393,15 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
               New prompt
             </button>
           </div>
+          <button
+            type="button"
+            onClick={() => setShowCinematicFeedback(true)}
+            disabled={busy}
+            className="writing-primary-button cinematic-trigger-button"
+            style={{ ...primaryButtonStyle, marginTop: 10 }}
+          >
+            Reopen cinematic AI review
+          </button>
         </section>
       )}
 
@@ -4437,12 +4479,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 10 }}>
               <button
                 type="button"
-                onClick={() => {
-                  setLastRetryKind('same_prompt');
-                  setDraft('');
-                  setShowCinematicFeedback(false);
-                  setNotice('Retry this prompt: apply the feedback and submit again.');
-                }}
+                onClick={beginRetrySamePrompt}
                 style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)' }}
               >
                 Retry this prompt
