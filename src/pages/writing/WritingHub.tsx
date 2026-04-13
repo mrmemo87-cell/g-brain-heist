@@ -884,21 +884,25 @@ const describeHighlight = (
   }
 
   const normalize = (value: string) => value.replace(/\s+/g, ' ').trim().toLowerCase();
-  const toTeacherDetail = (kind: 'grammar' | 'punctuation' | 'phrase', issue: string): string => {
+  const toTeacherDetail = (kind: 'grammar' | 'punctuation' | 'phrase', issue: string, original?: string, betterVersion?: string): string => {
     const simpleIssue = simplifyStudentLanguage(issue || '').trim();
+    const quotedOriginal = original?.trim() ? `"${original.trim()}"` : '';
     if (kind === 'grammar') {
-      return simpleIssue
-        ? `This sentence has a grammar mistake. ${simpleIssue}`
-        : 'This sentence has a grammar mistake. Fix capitalization, word form, or sentence structure.';
+      if (quotedOriginal && betterVersion?.trim()) return `You wrote ${quotedOriginal} — ${simpleIssue || 'this needs a grammar fix'}. Better: "${betterVersion.trim()}".`;
+      if (quotedOriginal && simpleIssue) return `You wrote ${quotedOriginal} — ${simpleIssue}.`;
+      if (simpleIssue) return simpleIssue;
+      return 'Check the grammar in this sentence — look at word form, subject-verb agreement, or sentence structure.';
     }
     if (kind === 'punctuation') {
-      return simpleIssue
-        ? `This sentence has a punctuation mistake. ${simpleIssue}`
-        : 'This sentence has a punctuation mistake. Check capitals, full stops, and commas.';
+      if (quotedOriginal && betterVersion?.trim()) return `You wrote ${quotedOriginal} — ${simpleIssue || 'punctuation needs fixing'}. Better: "${betterVersion.trim()}".`;
+      if (quotedOriginal && simpleIssue) return `You wrote ${quotedOriginal} — ${simpleIssue}.`;
+      if (simpleIssue) return simpleIssue;
+      return 'Check punctuation here — look at capitals, full stops, or commas.';
     }
-    return simpleIssue
-      ? `This sentence can sound more natural. ${simpleIssue}`
-      : 'This sentence can sound more natural. Replace awkward wording with a clearer phrase.';
+    if (quotedOriginal && betterVersion?.trim()) return `You wrote ${quotedOriginal} — ${simpleIssue || 'this can sound more natural'}. Try: "${betterVersion.trim()}".`;
+    if (quotedOriginal && simpleIssue) return `You wrote ${quotedOriginal} — ${simpleIssue}.`;
+    if (simpleIssue) return simpleIssue;
+    return 'This phrasing can sound more natural — try rephrasing for clarity.';
   };
   const normalizedSnippet = normalize(snippet);
   const isOriginalMatch = (value: string) => {
@@ -970,9 +974,9 @@ const describeHighlight = (
     return normalize(item).includes(normalizedSnippet) && normalizedSnippet.length > 10;
   });
   if (prefersStrength && strength) return { label: 'Why this is strong', detail: simplifyStudentLanguage(strength) };
-  if (!prefersStrength && grammar) return { label: 'Grammar fix', detail: toTeacherDetail('grammar', grammar.issue), correction: grammar.better_version };
-  if (!prefersStrength && punctuation) return { label: 'Punctuation fix', detail: toTeacherDetail('punctuation', punctuation.issue), correction: punctuation.better_version };
-  if (!prefersStrength && phrase) return { label: 'Phrase upgrade', detail: toTeacherDetail('phrase', phrase.why_it_helps), correction: phrase.better_version };
+if (!prefersStrength && grammar) return { label: 'Grammar fix', detail: toTeacherDetail('grammar', grammar.issue, grammar.original, grammar.better_version), correction: grammar.better_version };
+    if (!prefersStrength && punctuation) return { label: 'Punctuation fix', detail: toTeacherDetail('punctuation', punctuation.issue, punctuation.original, punctuation.better_version), correction: punctuation.better_version };
+    if (!prefersStrength && phrase) return { label: 'Phrase upgrade', detail: toTeacherDetail('phrase', phrase.why_it_helps, phrase.original, phrase.better_version), correction: phrase.better_version };
 
   if (isOriginalMatch(range.sourceExactText ?? '')) {
     if (prefersGrammar) {
@@ -1044,6 +1048,47 @@ const describeHighlight = (
     label: range.polarity === 'strong' ? 'Strong writing choice' : 'Needs correction',
     detail: `Selected snippet: "${snippet || 'highlighted text'}".`,
   };
+};
+
+const buildRubricReason = (
+  key: string,
+  score: number,
+  weaknessTags: string[],
+  ai: WritingAiFeedbackAssist | null
+): string | null => {
+  const tags = weaknessTags.map((t) => t.toLowerCase());
+  const strengths = [...(ai?.what_is_working ?? []), ...(ai?.strengths ?? [])];
+  const issues = [...(ai?.what_is_missing ?? []), ...(ai?.weaknesses ?? [])];
+
+  if (key === 'content') {
+    if (score >= 4) return strengths.find((s) => /point|detail|idea|argument|reason/i.test(s)) ? simplifyStudentLanguage(strengths.find((s) => /point|detail|idea|argument|reason/i.test(s))!) : 'Strong coverage of the task with clear ideas and supporting detail.';
+    if (score >= 3) return 'Most task points addressed, but some ideas need more supporting detail.';
+    if (tags.includes('missing_content_point') || tags.includes('partial_content_coverage')) return 'Key parts of the question were not answered or not developed with reasons.';
+    if (score >= 2) return 'Some relevant ideas, but important task points are missing or undeveloped.';
+    return 'The response does not cover enough of what the task asks for.';
+  }
+  if (key === 'organisation') {
+    if (score >= 4) return 'Ideas flow logically with clear connections between sentences.';
+    if (score >= 3) return 'Generally organized, but some transitions between ideas are missing.';
+    if (tags.includes('weak_organisation') || tags.includes('no_paragraph_structure')) return 'Ideas are not grouped or connected in a clear order.';
+    if (score >= 2) return 'Some structure, but the argument or narrative jumps between points.';
+    return 'No clear structure — ideas feel randomly ordered.';
+  }
+  if (key === 'language') {
+    const grammarCount = (ai?.grammar_fixes ?? []).length + (ai?.punctuation_fixes ?? []).length;
+    if (score >= 4) return 'Good range of vocabulary and mostly accurate grammar.';
+    if (score >= 3) return grammarCount > 0 ? `Meaning is clear, but ${grammarCount} language issue${grammarCount > 1 ? 's' : ''} reduce${grammarCount === 1 ? 's' : ''} accuracy.` : 'Meaning is mostly clear, with some grammar or vocabulary issues.';
+    if (score >= 2) return grammarCount > 2 ? `Several grammar mistakes (${grammarCount} found) make some sentences hard to follow.` : 'Grammar errors reduce clarity in places.';
+    return 'Frequent language errors make the meaning difficult to understand.';
+  }
+  if (key === 'communicative_achievement') {
+    if (score >= 4) return 'Tone, register, and format match the task well.';
+    if (score >= 3) return 'Mostly appropriate tone, but some sections feel too informal or too formal.';
+    if (tags.includes('wrong_register') || tags.includes('tone_mismatch')) return 'The tone or style does not match what the task requires.';
+    if (score >= 2) return 'The writing communicates meaning, but the tone needs adjustment for this genre.';
+    return 'The style and tone do not match the expected format.';
+  }
+  return null;
 };
 
 const SUPPORTED_GENRES: SupportedGenre[] = ['essay', 'story', 'article', 'review', 'report', 'email', 'paragraph'];
@@ -4356,12 +4401,39 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   };
 
   useEffect(() => {
-    if (!showCinematicFeedback) return;
-    gsap.fromTo(
-      '.simple-cinematic-panel',
-      { opacity: 0, y: 14 },
-      { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' }
+    if (!assessment) return;
+    const card = document.querySelector('.feedback-result-card');
+    if (!card) return;
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    tl.fromTo(card, { opacity: 0, y: 20, scale: 0.98 }, { opacity: 1, y: 0, scale: 1, duration: 0.45 });
+    tl.fromTo(
+      card.querySelectorAll('.feedback-insight-row'),
+      { opacity: 0, x: -10 },
+      { opacity: 1, x: 0, duration: 0.3, stagger: 0.1 },
+      '-=0.15'
     );
+    return () => { tl.kill(); };
+  }, [assessment]);
+
+  useEffect(() => {
+    if (!showCinematicFeedback) return;
+    const panel = document.querySelector('.simple-cinematic-panel');
+    if (!panel) return;
+
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    tl.fromTo(panel, { opacity: 0, scale: 0.97, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: 0.5 });
+    tl.fromTo(panel.querySelector('.cinematic-text-panel'), { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4 }, '-=0.2');
+    tl.fromTo('.cinematic-detail-card', { opacity: 0, x: -12 }, { opacity: 1, x: 0, duration: 0.35 }, '-=0.15');
+    tl.fromTo('.cinematic-rubric-section', { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.35 }, '-=0.1');
+    tl.fromTo('.cinematic-nav-bar', { opacity: 0 }, { opacity: 1, duration: 0.25 }, '-=0.1');
+    tl.add(() => {
+      const bars = document.querySelectorAll('.rubric-bar-fill');
+      bars.forEach((bar) => {
+        const target = (bar as HTMLElement).style.width || '0%';
+        gsap.fromTo(bar, { width: '0%' }, { width: target, duration: 0.8, ease: 'power2.out', delay: 0.05 });
+      });
+    }, '-=0.15');
+
     if (cinematicRanges.length === 0) {
       setCinematicDone(true);
       setCinematicIndex(null);
@@ -4369,10 +4441,10 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     }
     let cancelled = false;
     const timers: number[] = [];
-    let elapsed = 0;
+    let elapsed = 600;
     cinematicRanges.forEach((range, idx) => {
       const segment = submittedText.slice(range.start, range.end);
-      const delay = getHighlightAnimationDurationMs(segment.length) + 48;
+      const delay = getHighlightAnimationDurationMs(segment.length) + 80;
       timers.push(window.setTimeout(() => {
         if (!cancelled) setCinematicIndex(idx);
       }, elapsed));
@@ -4380,9 +4452,10 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     });
     timers.push(window.setTimeout(() => {
       if (!cancelled) setCinematicDone(true);
-    }, elapsed + 120));
+    }, elapsed + 200));
     return () => {
       cancelled = true;
+      tl.kill();
       timers.forEach((timer) => window.clearTimeout(timer));
     };
   }, [showCinematicFeedback, cinematicRanges, submittedText]);
@@ -4394,22 +4467,45 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     const pathEl = cinematicTracePathRef.current;
     if (!panel || !activeRangeEl || !pathEl) return;
 
-    const panelRect = panel.getBoundingClientRect();
     const lineRects = getVisualLineRectsForHighlight(panel, activeRangeEl);
-    const activeRect = lineRects[0];
-    if (!activeRect) return;
-    const y = activeRect.top + activeRect.height + 6;
-    const startX = Math.max(8, activeRect.left - panelRect.left - 8);
-    const endX = Math.min(panelRect.width - 8, activeRect.left - panelRect.left + activeRect.width + 8);
-    pathEl.setAttribute('d', `M ${startX} ${y} L ${endX} ${y}`);
+    if (lineRects.length === 0) return;
 
-    gsap.fromTo(
-      pathEl,
-      { drawSVG: '0% 0%', opacity: 0.35 },
-      { drawSVG: '0% 100%', opacity: 1, duration: 0.72, ease: 'power2.out' }
+    const isStrong = activeCinematicRange?.polarity === 'strong';
+    const accentColor = isStrong ? '#4ade80' : '#f87171';
+    const glowColor = isStrong ? 'rgba(74,222,128,0.5)' : 'rgba(248,113,113,0.5)';
+    const softGlow = isStrong ? 'rgba(74,222,128,0.12)' : 'rgba(248,113,113,0.12)';
+
+    const pathParts = lineRects.map((rect) => {
+      const y = rect.top + rect.height + 4;
+      const x1 = Math.max(4, rect.left - 4);
+      const x2 = Math.min(panel.scrollWidth - 4, rect.left + rect.width + 4);
+      return `M ${x1} ${y} L ${x2} ${y}`;
+    });
+    pathEl.setAttribute('d', pathParts.join(' '));
+    pathEl.setAttribute('stroke', accentColor);
+
+    const stepTl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+
+    stepTl.fromTo(pathEl, { drawSVG: '0% 0%', opacity: 0 }, { drawSVG: '0% 100%', opacity: 1, duration: 0.6 });
+
+    stepTl.fromTo(
+      activeRangeEl,
+      { backgroundColor: 'rgba(15,23,42,0.1)', boxShadow: `0 0 0px ${glowColor}` },
+      { backgroundColor: softGlow, boxShadow: `0 0 18px ${glowColor}`, duration: 0.4 },
+      '-=0.35'
     );
-    gsap.fromTo(activeRangeEl, { backgroundColor: 'rgba(15,23,42,0.2)' }, { backgroundColor: 'rgba(59,130,246,0.12)', duration: 0.35, yoyo: true, repeat: 1 });
-  }, [showCinematicFeedback, cinematicIndex, submittedText]);
+
+    stepTl.to(activeRangeEl, { boxShadow: `0 0 6px ${glowColor}`, duration: 0.8, ease: 'power1.inOut' });
+
+    const detailCard = document.querySelector('.cinematic-detail-card');
+    if (detailCard) {
+      stepTl.fromTo(detailCard, { opacity: 0.3, y: 6 }, { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }, '-=0.6');
+    }
+
+    activeRangeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    return () => { stepTl.kill(); };
+  }, [showCinematicFeedback, cinematicIndex, submittedText, activeCinematicRange?.polarity]);
 
   useEffect(() => {
     observerCleanupRef.current?.();
@@ -4507,39 +4603,73 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       </section>
 
       {assessment && (
-        <section className="writing-hub-card" style={getShellCardStyle('dark')}>
-          <h3 style={{ marginTop: 0, color: '#f8fbff' }}>Feedback summary</h3>
-          <p style={{ margin: '0 0 8px', color: '#bfdbfe', fontWeight: 700 }}>Score: {assessment.total_score}</p>
-          <p style={{ margin: '0 0 8px', color: '#cbd5e1' }}>
-            Alignment: {toAlignmentLabel(aiFeedback?.alignment)}. Full rubric, strengths, mistakes, and improvement guidance are in the cinematic review.
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 10, marginTop: 12 }}>
+        <section className="writing-hub-card feedback-result-card" style={{ ...getShellCardStyle('dark'), borderImage: 'linear-gradient(135deg, rgba(56,189,248,0.45), rgba(124,58,237,0.45)) 1', borderWidth: 1, borderStyle: 'solid', overflow: 'hidden', position: 'relative' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 30% 0%, rgba(56,189,248,0.08) 0%, transparent 60%)', pointerEvents: 'none' }} />
+          <div style={{ position: 'relative', display: 'grid', gap: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)', color: '#fff', fontWeight: 900, fontSize: 18, boxShadow: '0 0 20px rgba(99,102,241,0.4)' }}>{assessment.total_score}</span>
+                <div>
+                  <p style={{ margin: 0, color: '#f8fafc', fontWeight: 800, fontSize: 16 }}>{toAlignmentLabel(aiFeedback?.alignment)}</p>
+                  <p style={{ margin: 0, color: '#94a3b8', fontSize: 12 }}>Score out of {rubricRows.reduce((sum, r) => sum + 5, 0)}</p>
+                </div>
+              </div>
+            </div>
+
+            {((aiFeedback?.what_is_working ?? aiFeedback?.strengths ?? []).length > 0 || (aiFeedback?.what_is_missing ?? aiFeedback?.weaknesses ?? []).length > 0) && (
+              <div style={{ display: 'grid', gap: 8 }}>
+                {(() => {
+                  const topStrength = (aiFeedback?.what_is_working ?? aiFeedback?.strengths ?? [])[0];
+                  if (!topStrength) return null;
+                  return (
+                    <div className="feedback-insight-row" style={{ display: 'flex', gap: 8, alignItems: 'flex-start', borderRadius: 10, background: 'rgba(6,78,59,0.18)', border: '1px solid rgba(74,222,128,0.3)', padding: '10px 12px' }}>
+                      <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: 6, background: 'rgba(74,222,128,0.2)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>✓</span>
+                      <p style={{ margin: 0, color: '#bbf7d0', fontSize: 13, lineHeight: 1.5 }}><strong style={{ color: '#86efac' }}>Best part:</strong> {simplifyStudentLanguage(topStrength)}</p>
+                    </div>
+                  );
+                })()}
+                {(() => {
+                  const topIssue = (aiFeedback?.what_is_missing ?? aiFeedback?.weaknesses ?? [])[0];
+                  if (!topIssue) return null;
+                  return (
+                    <div className="feedback-insight-row" style={{ display: 'flex', gap: 8, alignItems: 'flex-start', borderRadius: 10, background: 'rgba(127,29,29,0.15)', border: '1px solid rgba(248,113,113,0.3)', padding: '10px 12px' }}>
+                      <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: 6, background: 'rgba(248,113,113,0.2)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>!</span>
+                      <p style={{ margin: 0, color: '#fecaca', fontSize: 13, lineHeight: 1.5 }}><strong style={{ color: '#fca5a5' }}>Biggest issue:</strong> {simplifyStudentLanguage(topIssue)}</p>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
             <button
               type="button"
-              onClick={beginRetrySamePrompt}
+              onClick={() => setShowCinematicFeedback(true)}
               disabled={busy}
-              style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)' }}
+              className="writing-primary-button cinematic-trigger-button"
+              style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #7c3aed 0%, #2563eb 50%, #06b6d4 100%)', boxShadow: '0 0 28px rgba(99,102,241,0.35), 0 4px 14px rgba(0,0,0,0.3)' }}
             >
-              Retry this prompt
+              Review full feedback
             </button>
-            <button
-              type="button"
-              onClick={() => setShowPromptChooser(true)}
-              disabled={busy}
-              style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}
-            >
-              New prompt
-            </button>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 10 }}>
+              <button
+                type="button"
+                onClick={beginRetrySamePrompt}
+                disabled={busy}
+                style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)', fontSize: 14, padding: '12px 14px' }}
+              >
+                Retry this prompt
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowPromptChooser(true)}
+                disabled={busy}
+                style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', fontSize: 14, padding: '12px 14px' }}
+              >
+                New prompt
+              </button>
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowCinematicFeedback(true)}
-            disabled={busy}
-            className="writing-primary-button cinematic-trigger-button"
-            style={{ ...primaryButtonStyle, marginTop: 10 }}
-          >
-            Reopen cinematic AI review
-          </button>
         </section>
       )}
 
@@ -4551,32 +4681,38 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
             position: 'fixed',
             inset: 0,
             zIndex: 120,
-            background: 'rgba(2,6,23,0.82)',
+            background: 'rgba(2,6,23,0.88)',
+            backdropFilter: 'blur(6px)',
             display: 'grid',
             placeItems: 'center',
             padding: 14,
           }}
+          onClick={(e: React.MouseEvent) => { if (e.target === e.currentTarget) setShowCinematicFeedback(false); }}
         >
           <div
             className="simple-cinematic-panel"
             style={{
-              width: 'min(980px, 100%)',
+              width: 'min(920px, 100%)',
               maxHeight: '92vh',
               overflow: 'auto',
-              borderRadius: 16,
-              border: '1px solid rgba(148,163,184,0.5)',
-              background: 'linear-gradient(180deg, #0b1224 0%, #07101f 100%)',
-              padding: 16,
+              borderRadius: 20,
+              border: '1px solid rgba(148,163,184,0.3)',
+              background: 'linear-gradient(180deg, #0c1527 0%, #080e1c 100%)',
+              padding: '18px 16px',
               color: '#e2e8f0',
               display: 'grid',
-              gap: 12,
+              gap: 14,
+              boxShadow: '0 0 60px rgba(99,102,241,0.12), 0 25px 50px rgba(0,0,0,0.5)',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
-              <h3 style={{ margin: 0, color: '#f8fafc' }}>AI Cinematic Feedback</h3>
-              <span style={{ borderRadius: 999, border: '1px solid rgba(148,163,184,0.45)', padding: '3px 10px', color: '#cbd5e1', fontSize: 12 }}>
-                {cinematicModeLabel}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 6, height: 28, borderRadius: 4, background: 'linear-gradient(180deg, #7c3aed, #2563eb)', boxShadow: '0 0 12px rgba(99,102,241,0.4)' }} />
+                <div>
+                  <h3 style={{ margin: 0, color: '#f8fafc', fontSize: 16 }}>Writing Coach Review</h3>
+                  <p style={{ margin: 0, color: '#64748b', fontSize: 11, fontWeight: 600 }}>{cinematicModeLabel}</p>
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={() => setShowCinematicFeedback(false)}
@@ -4586,7 +4722,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
               </button>
             </div>
 
-            <div ref={cinematicTextPanelRef} style={{ position: 'relative', borderRadius: 12, border: '1px solid rgba(148,163,184,0.35)', background: 'rgba(15,23,42,0.62)', padding: 12, lineHeight: 1.7 }}>
+            <div ref={cinematicTextPanelRef} className="cinematic-text-panel" style={{ position: 'relative', borderRadius: 14, border: '1px solid rgba(148,163,184,0.25)', background: 'linear-gradient(180deg, rgba(15,23,42,0.7) 0%, rgba(15,23,42,0.55) 100%)', padding: '14px 16px', lineHeight: 1.75, fontSize: 15 }}>
               <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} aria-hidden="true">
                 <path ref={cinematicTracePathRef} d="" stroke={activeCinematicRange?.polarity === 'strong' ? '#4ade80' : '#f87171'} strokeWidth="2.5" fill="none" strokeLinecap="round" />
               </svg>
@@ -4594,71 +4730,131 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                 ? renderAnnotatedText(submittedText, cinematicRanges, cinematicIndex, handleRangeMount)
                 : 'No submission text available.'}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
-              <p style={{ margin: 0, color: '#cbd5e1', fontSize: 13 }}>
-                {cinematicRanges.length > 0 ? `Step ${(cinematicIndex ?? 0) + 1} of ${cinematicRanges.length}` : 'No highlight steps available'}
-              </p>
+            <div className="cinematic-nav-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {cinematicRanges.map((r, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setCinematicIndex(idx)}
+                    aria-label={`Step ${idx + 1}`}
+                    style={{
+                      width: idx === (cinematicIndex ?? 0) ? 22 : 8,
+                      height: 8,
+                      borderRadius: 999,
+                      border: 'none',
+                      cursor: 'pointer',
+                      background: idx === (cinematicIndex ?? 0)
+                        ? (r.polarity === 'strong' ? 'linear-gradient(90deg, #4ade80, #22d3ee)' : 'linear-gradient(90deg, #f87171, #fb923c)')
+                        : 'rgba(100,116,139,0.4)',
+                      boxShadow: idx === (cinematicIndex ?? 0)
+                        ? (r.polarity === 'strong' ? '0 0 10px rgba(74,222,128,0.5)' : '0 0 10px rgba(248,113,113,0.5)')
+                        : 'none',
+                      transition: 'all 250ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+                      padding: 0,
+                    }}
+                  />
+                ))}
+                <span style={{ color: '#94a3b8', fontSize: 12, marginLeft: 6 }}>
+                  {cinematicRanges.length > 0 ? `${(cinematicIndex ?? 0) + 1} / ${cinematicRanges.length}` : ''}
+                </span>
+              </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button
                   type="button"
                   onClick={() => setCinematicIndex((prev) => Math.max(0, (prev ?? 0) - 1))}
                   disabled={cinematicRanges.length === 0 || (cinematicIndex ?? 0) <= 0}
-                  style={{ borderRadius: 10, border: '1px solid rgba(148,163,184,0.45)', background: 'rgba(30,41,59,0.7)', color: '#e2e8f0', padding: '8px 12px' }}
+                  style={{ borderRadius: 10, border: '1px solid rgba(148,163,184,0.35)', background: 'rgba(30,41,59,0.6)', color: '#e2e8f0', padding: '8px 14px', fontSize: 13, fontWeight: 700, transition: 'transform 120ms ease, box-shadow 120ms ease' }}
                 >
-                  Back
+                  ← Back
                 </button>
                 <button
                   type="button"
                   onClick={() => setCinematicIndex((prev) => Math.min(cinematicRanges.length - 1, (prev ?? 0) + 1))}
                   disabled={cinematicRanges.length === 0 || (cinematicIndex ?? 0) >= cinematicRanges.length - 1}
-                  style={{ borderRadius: 10, border: '1px solid rgba(148,163,184,0.45)', background: 'rgba(30,41,59,0.7)', color: '#e2e8f0', padding: '8px 12px' }}
+                  style={{ borderRadius: 10, border: '1px solid rgba(96,165,250,0.4)', background: 'linear-gradient(135deg, rgba(37,99,235,0.3), rgba(30,41,59,0.6))', color: '#e2e8f0', padding: '8px 14px', fontSize: 13, fontWeight: 700, transition: 'transform 120ms ease, box-shadow 120ms ease' }}
                 >
-                  Next
+                  Next →
                 </button>
               </div>
             </div>
-            <div style={{ borderRadius: 12, border: `1px solid ${activeCinematicRange?.polarity === 'strong' ? 'rgba(34,197,94,0.45)' : 'rgba(248,113,113,0.45)'}`, background: 'rgba(15,23,42,0.62)', padding: 12 }}>
-              <p style={{ margin: '0 0 4px', color: activeCinematicRange?.polarity === 'strong' ? '#86efac' : '#fca5a5', fontWeight: 700 }}>
-                {activeCinematicDetail.label}
-              </p>
-              <p style={{ margin: 0, color: '#cbd5e1' }}>{activeCinematicDetail.detail}</p>
+            <div className="cinematic-detail-card" style={{ borderRadius: 14, border: `1px solid ${activeCinematicRange?.polarity === 'strong' ? 'rgba(34,197,94,0.45)' : 'rgba(248,113,113,0.45)'}`, background: activeCinematicRange?.polarity === 'strong' ? 'rgba(6,78,59,0.15)' : 'rgba(127,29,29,0.12)', padding: 14, display: 'grid', gap: 8, boxShadow: `0 0 20px ${activeCinematicRange?.polarity === 'strong' ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)'}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 8, background: activeCinematicRange?.polarity === 'strong' ? 'rgba(74,222,128,0.2)' : 'rgba(248,113,113,0.2)', fontSize: 13, flexShrink: 0 }}>
+                  {activeCinematicRange?.polarity === 'strong' ? '✓' : '✎'}
+                </span>
+                <p style={{ margin: 0, color: activeCinematicRange?.polarity === 'strong' ? '#86efac' : '#fca5a5', fontWeight: 800, fontSize: 14 }}>
+                  {activeCinematicDetail.label}
+                </p>
+              </div>
+              <p style={{ margin: 0, color: '#e2e8f0', fontSize: 14, lineHeight: 1.6 }}>{activeCinematicDetail.detail}</p>
+              {activeCinematicDetail.correction && (
+                <div style={{ borderRadius: 10, background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(96,165,250,0.3)', padding: '10px 12px' }}>
+                  <p style={{ margin: 0, color: '#93c5fd', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8 }}>Better version</p>
+                  <p style={{ margin: '4px 0 0', color: '#dbeafe', fontSize: 14, fontStyle: 'italic', lineHeight: 1.5 }}>"{activeCinematicDetail.correction}"</p>
+                </div>
+              )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 8 }}>
-              <div style={{ borderRadius: 10, border: '1px solid rgba(16,185,129,0.45)', background: 'rgba(6,78,59,0.2)', padding: 10 }}>
-                <strong style={{ color: '#86efac' }}>Strong parts (green)</strong>
-                <p style={{ margin: '6px 0 0' }}>{(aiFeedback?.what_is_working ?? aiFeedback?.strengths ?? []).slice(0, 3).join(' • ') || 'No strong-part summary available.'}</p>
-              </div>
-              <div style={{ borderRadius: 10, border: '1px solid rgba(248,113,113,0.45)', background: 'rgba(127,29,29,0.24)', padding: 10 }}>
-                <strong style={{ color: '#fca5a5' }}>Mistakes to fix (red)</strong>
-                <p style={{ margin: '6px 0 0' }}>{(aiFeedback?.what_is_missing ?? aiFeedback?.weaknesses ?? []).slice(0, 3).join(' • ') || 'No mistake summary available.'}</p>
-              </div>
-            </div>
-
-            <div style={{ borderRadius: 12, border: '1px solid rgba(148,163,184,0.35)', background: 'rgba(15,23,42,0.62)', padding: 12, display: 'grid', gap: 10 }}>
-              <strong style={{ color: '#bfdbfe' }}>Rubric view</strong>
-              {rubricRows.map((row) => {
-                if (row.value == null) return <p key={row.key} style={{ margin: 0, color: '#94a3b8' }}>{row.label}: unavailable</p>;
-                const percent = Math.max(0, Math.min(100, Math.round((row.value / 5) * 100)));
+            <div style={{ display: 'grid', gap: 8 }}>
+              {(() => {
+                const model = aiFeedback?.example_revision_start?.trim();
+                if (!model) return null;
                 return (
-                  <div key={row.key} style={{ display: 'grid', gap: 4 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#cbd5e1', fontSize: 13 }}>
-                      <span>{row.label}</span><strong>{row.value}/5</strong>
+                  <div style={{ borderRadius: 12, background: 'linear-gradient(135deg, rgba(37,99,235,0.1) 0%, rgba(124,58,237,0.08) 100%)', border: '1px solid rgba(96,165,250,0.25)', padding: '12px 14px', display: 'grid', gap: 6 }}>
+                    <p style={{ margin: 0, color: '#93c5fd', fontSize: 11, fontWeight: 800, letterSpacing: 0.8, textTransform: 'uppercase' }}>Revision starter</p>
+                    <p style={{ margin: 0, color: '#e2e8f0', fontSize: 14, lineHeight: 1.6, fontStyle: 'italic' }}>"{model}"</p>
+                    <p style={{ margin: 0, color: '#64748b', fontSize: 11 }}>Use this as a starting point — then build on it in your own words.</p>
+                  </div>
+                );
+              })()}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 8 }}>
+                <div style={{ borderRadius: 10, border: '1px solid rgba(74,222,128,0.25)', background: 'rgba(6,78,59,0.12)', padding: 10, display: 'grid', gap: 4 }}>
+                  <strong style={{ color: '#86efac', fontSize: 12 }}>What works</strong>
+                  {(aiFeedback?.what_is_working ?? aiFeedback?.strengths ?? []).slice(0, 2).map((s, i) => (
+                    <p key={i} style={{ margin: 0, color: '#bbf7d0', fontSize: 12, lineHeight: 1.45 }}>• {simplifyStudentLanguage(s)}</p>
+                  ))}
+                  {!(aiFeedback?.what_is_working ?? aiFeedback?.strengths ?? []).length && <p style={{ margin: 0, color: '#64748b', fontSize: 12 }}>No strengths identified yet.</p>}
+                </div>
+                <div style={{ borderRadius: 10, border: '1px solid rgba(248,113,113,0.25)', background: 'rgba(127,29,29,0.1)', padding: 10, display: 'grid', gap: 4 }}>
+                  <strong style={{ color: '#fca5a5', fontSize: 12 }}>What to fix</strong>
+                  {(aiFeedback?.what_is_missing ?? aiFeedback?.weaknesses ?? []).slice(0, 2).map((s, i) => (
+                    <p key={i} style={{ margin: 0, color: '#fecaca', fontSize: 12, lineHeight: 1.45 }}>• {simplifyStudentLanguage(s)}</p>
+                  ))}
+                  {!(aiFeedback?.what_is_missing ?? aiFeedback?.weaknesses ?? []).length && <p style={{ margin: 0, color: '#64748b', fontSize: 12 }}>No issues identified yet.</p>}
+                </div>
+              </div>
+            </div>
+
+            <div className="cinematic-rubric-section" style={{ borderRadius: 14, border: '1px solid rgba(148,163,184,0.3)', background: 'rgba(15,23,42,0.55)', padding: 14, display: 'grid', gap: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <strong style={{ color: '#bfdbfe', fontSize: 13, letterSpacing: 0.5 }}>Rubric breakdown</strong>
+                <span style={{ color: '#64748b', fontSize: 11 }}>{cinematicTrust.mode === 'trusted' ? 'Precision markers' : 'Guided markers'}</span>
+              </div>
+              {rubricRows.map((row) => {
+                if (row.value == null) return <p key={row.key} style={{ margin: 0, color: '#64748b', fontSize: 13 }}>{row.label}: not assessed</p>;
+                const percent = Math.max(0, Math.min(100, Math.round((row.value / 5) * 100)));
+                const scoreColor = row.value >= 4 ? '#4ade80' : row.value >= 3 ? '#38bdf8' : row.value >= 2 ? '#fbbf24' : '#f87171';
+                const rubricReason = buildRubricReason(row.key, row.value, assessment?.weakness_tags ?? [], aiFeedback);
+                return (
+                  <div key={row.key} style={{ display: 'grid', gap: 5 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: '#e2e8f0', fontSize: 13, fontWeight: 700 }}>{row.label}</span>
+                      <span style={{ color: scoreColor, fontWeight: 800, fontSize: 14 }}>{row.value}/5</span>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(20, minmax(0,1fr))', gap: 3 }}>
-                      {Array.from({ length: 20 }).map((_, idx) => (
-                        <span key={idx} style={{ height: 6, borderRadius: 999, background: idx < Math.round(percent / 5) ? 'linear-gradient(90deg,#38bdf8,#22c55e)' : 'rgba(71,85,105,0.55)', boxShadow: idx < Math.round(percent / 5) ? '0 0 8px rgba(56,189,248,0.35)' : 'none' }} />
-                      ))}
+                    <div style={{ height: 5, borderRadius: 999, background: 'rgba(71,85,105,0.4)', overflow: 'hidden' }}>
+                      <div className="rubric-bar-fill" style={{ height: '100%', width: `${percent}%`, background: `linear-gradient(90deg, ${scoreColor}, ${scoreColor}dd)`, borderRadius: 999, boxShadow: `0 0 10px ${scoreColor}55`, transition: 'width 600ms cubic-bezier(0.34, 1.56, 0.64, 1)' }} />
                     </div>
+                    {rubricReason && <p style={{ margin: 0, color: '#94a3b8', fontSize: 12, lineHeight: 1.45 }}>{rubricReason}</p>}
                   </div>
                 );
               })}
-              <p style={{ margin: 0, color: '#cbd5e1' }}>
-                How to improve: {improvementGuidance}
-              </p>
-              <p style={{ margin: 0, color: '#93c5fd', fontSize: 12 }}>
-                Review source: {cinematicTrust.mode === 'trusted' ? 'Exact phrase-level markers' : 'Guided sentence-level markers'}
-              </p>
+              {improvementGuidance && (
+                <div style={{ borderTop: '1px solid rgba(148,163,184,0.15)', paddingTop: 10, marginTop: 2 }}>
+                  <p style={{ margin: 0, color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Next step</p>
+                  <p style={{ margin: '3px 0 0', color: '#cbd5e1', fontSize: 13, lineHeight: 1.5 }}>{improvementGuidance}</p>
+                </div>
+              )}
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 10 }}>
