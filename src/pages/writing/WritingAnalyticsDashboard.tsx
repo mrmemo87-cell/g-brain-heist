@@ -98,6 +98,8 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
       ? monitoring.student_rows.map((row) => [row.student_id, toDisplayLabel(row.student_name, row.student_id)])
       : []
   );
+  const retryInsights = data?.retry_insights;
+  const toPercent = (value: number): string => `${Math.round(value * 100)}%`;
 
   const buildPath = (basePath: string, params: Record<string, string | number | undefined>): string =>
     `${basePath}${serializeAdminDrilldownFilters(params)}`;
@@ -210,6 +212,78 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
           </tbody>
         </table>
       </section>
+
+      {retryInsights && (
+        <section style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, overflowX: 'auto', background: '#0f172a' }}>
+          <h3 style={{ marginTop: 0 }}>Retry-cycle insights (simple-loop metadata)</h3>
+          <p style={{ marginTop: 0, color: '#cbd5e1', fontSize: 12 }}>
+            Coverage: {retryInsights.retry_metadata_attempts}/{retryInsights.total_attempts} attempts have retry metadata ({toPercent(retryInsights.retry_metadata_coverage_rate)}).
+          </p>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+            <span style={{ background: '#1e3a8a', color: '#bfdbfe', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Cycles: {retryInsights.retry_cycle_count}</span>
+            <span style={{ background: '#164e63', color: '#a5f3fc', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Avg attempts/cycle: {retryInsights.average_attempts_per_cycle}</span>
+            <span style={{ background: '#14532d', color: '#bbf7d0', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Improved cycles: {retryInsights.cycles_improved_count}</span>
+            <span style={{ background: '#7f1d1d', color: '#fecaca', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Not improved: {retryInsights.cycles_not_improved_count}</span>
+            <span style={{ background: '#365314', color: '#d9f99d', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Cycle improvement rate: {toPercent(retryInsights.improved_cycle_rate)}</span>
+            <span style={{ background: '#312e81', color: '#c7d2fe', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Avg same-prompt Δ: {retryInsights.average_same_prompt_score_delta ?? '—'}</span>
+          </div>
+
+          <div style={{ display: 'grid', gap: 10 }}>
+            <div>
+              <h4 style={{ margin: '0 0 4px' }}>Retry depth distribution</h4>
+              <p style={{ margin: 0, color: '#cbd5e1', fontSize: 12 }}>
+                {retryInsights.retry_depth_distribution.length
+                  ? retryInsights.retry_depth_distribution.map((item) => `${item.attempts} attempts: ${item.cycle_count} cycles`).join(' • ')
+                  : 'No retry-cycle depth data yet.'}
+              </p>
+            </div>
+            <div>
+              <h4 style={{ margin: '0 0 4px' }}>Most repeated cycle tags</h4>
+              <p style={{ margin: 0, color: '#cbd5e1', fontSize: 12 }}>
+                {retryInsights.most_repeated_cycle_tags.length
+                  ? retryInsights.most_repeated_cycle_tags.map((item) => `${toTeacherWeaknessLabel(item.tag)} (${item.count})`).join(' • ')
+                  : 'No repeated tag pattern available yet.'}
+              </p>
+            </div>
+          </div>
+
+          <h4 style={{ marginBottom: 6 }}>Student retry profile</h4>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead>
+              <tr>
+                <th align="left">Student</th>
+                <th align="left">Cycles</th>
+                <th align="left">Avg attempts/cycle</th>
+                <th align="left">Same-prompt retries</th>
+                <th align="left">Avg same-prompt Δ</th>
+                <th align="left">Recurring tags</th>
+                <th align="left">Signal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {retryInsights.student_retry_profiles.slice(0, 20).map((profile) => (
+                <tr key={profile.student_id}>
+                  <td>{studentLabelsById.get(profile.student_id) ?? profile.student_id}</td>
+                  <td>{profile.retry_cycle_count}</td>
+                  <td>{profile.average_attempts_per_cycle}</td>
+                  <td>{profile.same_prompt_retry_count}</td>
+                  <td>{profile.average_same_prompt_score_delta ?? '—'}</td>
+                  <td>{profile.recurring_mistake_tags.map(toTeacherWeaknessLabel).join(', ') || '—'}</td>
+                  <td>
+                    {profile.needs_intervention ? (
+                      <span style={{ background: '#7f1d1d', color: '#fecaca', borderRadius: 999, padding: '1px 7px', fontSize: 11 }}>Needs intervention</span>
+                    ) : profile.fast_gains ? (
+                      <span style={{ background: '#14532d', color: '#bbf7d0', borderRadius: 999, padding: '1px 7px', fontSize: 11 }}>Fast gains</span>
+                    ) : (
+                      <span style={{ background: '#334155', color: '#e2e8f0', borderRadius: 999, padding: '1px 7px', fontSize: 11 }}>Monitor</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
 
       <section style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, background: '#0f172a' }}>
         <h3 style={{ marginTop: 0 }}>Main class weaknesses</h3>
