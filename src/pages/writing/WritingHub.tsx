@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { MutableRefObject } from 'react';
 import { createPortal } from 'react-dom';
 import gsap from 'gsap';
+import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
+import { Observer } from 'gsap/Observer';
 import {
   getCurrentWeeklyPlan,
   getStudentGenrePathStatuses,
@@ -137,6 +139,8 @@ interface WritingMissionRecommendation {
   source: 'quest' | 'category_fallback';
   mission?: Pick<QuestMissionRow, 'id' | 'title' | 'subject' | 'difficulty' | 'mission_type'>;
 }
+
+gsap.registerPlugin(DrawSVGPlugin, Observer);
 
 const toAlignmentLabel = (alignment?: WritingAiFeedbackAssist['alignment']): string => {
   const labels: Record<NonNullable<WritingAiFeedbackAssist['alignment']>, string> = {
@@ -301,17 +305,33 @@ const toWordCountLabel = (targetWords: number): string => {
 
 const getHighlightAnimationDurationMs = (segmentLength: number): number => Math.max(140, Math.min(360, segmentLength * 14));
 
-const getWordCounterTone = (typedWords: number, targetWords: number): { label: string; accent: string; glow: string; track: string; progress: number } => {
+const getWordCounterTone = (
+  typedWords: number,
+  targetWords: number
+): { label: string; accent: string; glow: string; track: string; progress: number; microcopy: string } => {
   const safeTarget = Math.max(1, targetWords);
   const targetRange = computeWordCountRange(safeTarget);
+  const nearStart = Math.max(1, targetRange.min - Math.ceil(safeTarget * 0.12));
+  const overLong = Math.ceil(targetRange.max * 1.18);
   const progress = Math.max(0, Math.min(100, Math.round((typedWords / safeTarget) * 100)));
-  if (typedWords < targetRange.min) {
+  if (typedWords < nearStart) {
     return {
       label: 'Too short',
       accent: '#60a5fa',
       glow: 'rgba(96,165,250,0.35)',
       track: 'linear-gradient(90deg, #2563eb 0%, #38bdf8 100%)',
       progress,
+      microcopy: 'Add key ideas and one supporting detail.',
+    };
+  }
+  if (typedWords < targetRange.min) {
+    return {
+      label: 'Almost there',
+      accent: '#22d3ee',
+      glow: 'rgba(34,211,238,0.35)',
+      track: 'linear-gradient(90deg, #0891b2 0%, #22d3ee 100%)',
+      progress,
+      microcopy: 'Great pace—add a few lines to reach target.',
     };
   }
   if (typedWords <= targetRange.max) {
@@ -321,14 +341,26 @@ const getWordCounterTone = (typedWords: number, targetWords: number): { label: s
       glow: 'rgba(74,222,128,0.35)',
       track: 'linear-gradient(90deg, #22c55e 0%, #34d399 100%)',
       progress,
+      microcopy: 'Perfect range. Focus on clarity and accuracy.',
+    };
+  }
+  if (typedWords <= overLong) {
+    return {
+      label: 'Slightly long',
+      accent: '#fb923c',
+      glow: 'rgba(251,146,60,0.35)',
+      track: 'linear-gradient(90deg, #f59e0b 0%, #fb923c 100%)',
+      progress,
+      microcopy: 'Trim repeated points to stay sharp.',
     };
   }
   return {
-    label: 'Over target',
+    label: 'Too long',
     accent: '#f97316',
     glow: 'rgba(249,115,22,0.35)',
     track: 'linear-gradient(90deg, #f59e0b 0%, #f97316 100%)',
     progress,
+    microcopy: 'Cut repetition and keep your strongest ideas.',
   };
 };
 
@@ -4101,13 +4133,19 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   const [showCinematicFeedback, setShowCinematicFeedback] = useState(false);
   const [cinematicIndex, setCinematicIndex] = useState<number | null>(null);
   const [cinematicDone, setCinematicDone] = useState(false);
+  const [showPromptChooser, setShowPromptChooser] = useState(false);
   const [revisionCycleId, setRevisionCycleId] = useState<string>(() => createRevisionCycleId());
   const [attemptNumber, setAttemptNumber] = useState<number>(1);
   const [lastAttemptId, setLastAttemptId] = useState<string | null>(null);
   const [lastRetryKind, setLastRetryKind] = useState<'same_prompt' | 'new_prompt'>('new_prompt');
   const responseFieldRef = useRef<HTMLTextAreaElement | null>(null);
+  const cinematicTextPanelRef = useRef<HTMLDivElement | null>(null);
+  const cinematicRangeRefs = useRef<Record<number, HTMLSpanElement | null>>({});
+  const cinematicTracePathRef = useRef<SVGPathElement | null>(null);
+  const observerCleanupRef = useRef<(() => void) | null>(null);
   const targetWordCount = grade <= 7 ? 80 : grade <= 9 ? 120 : 160;
   const wordCount = countWords(draft);
+  const wordTone = useMemo(() => getWordCounterTone(wordCount, targetWordCount), [wordCount, targetWordCount]);
   const isVeryShortDraft = wordCount > 0 && wordCount < Math.max(10, Math.floor(targetWordCount * 0.2));
   const availablePromptCount = useMemo(() => {
     const promptRes = listWritingPrompts({ genre: activeGenre, grade, is_active: true });
@@ -4124,6 +4162,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     setAiFeedback(null);
     setSubmittedText('');
     setShowCinematicFeedback(false);
+    setShowPromptChooser(false);
     setCinematicIndex(null);
     setCinematicDone(false);
     setRevisionCycleId(createRevisionCycleId());
@@ -4145,24 +4184,26 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     setTimeout(() => responseFieldRef.current?.focus(), 0);
   };
 
-  const loadFreshPrompt = async () => {
+  const loadFreshPrompt = async (genreOverride?: SupportedGenre) => {
     if (busy) return;
     setBusy(true);
     setError('');
     setNotice(hasPromptRotation ? 'Loading a new prompt…' : 'Checking for a different prompt…');
     try {
-      const stateRes = getStudentWritingState(studentId, activeGenre);
+      const nextGenre = genreOverride ?? activeGenre;
+      if (nextGenre !== activeGenre) setActiveGenre(nextGenre);
+      const stateRes = getStudentWritingState(studentId, nextGenre);
       const weaknessTags = stateRes.ok && stateRes.data?.latest_assessment ? stateRes.data.latest_assessment.weakness_tags.slice(0, 4) : [];
       const previousPrompt = promptText;
       const nextPrompt = await getSmartWritingPromptForStudent({
         student_id: studentId,
         grade,
-        genre: activeGenre,
+        genre: nextGenre,
         current_prompt_text: promptText,
         weakness_tags: weaknessTags,
         use_ai_polish: true,
       });
-      let resolvedPrompt = defaultPromptByGenre[activeGenre];
+      let resolvedPrompt = defaultPromptByGenre[nextGenre];
       if (nextPrompt.ok && nextPrompt.data?.prompt_text?.trim()) {
         resolvedPrompt = nextPrompt.data.prompt_text.trim();
       }
@@ -4170,7 +4211,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
         setNotice(
           hasPromptRotation
             ? 'Prompt pool returned the same task. You can still retry this prompt now, and we will rotate on the next request.'
-            : 'Only one active essay prompt is currently enabled, so New prompt keeps the same task.'
+            : `Only one active ${toGenreLabel(nextGenre).toLowerCase()} prompt is enabled, so New prompt keeps the same task.`
         );
       } else {
         setNotice('New prompt ready. Write and submit.');
@@ -4187,6 +4228,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       setAttemptNumber(1);
       setLastAttemptId(null);
       setLastRetryKind('new_prompt');
+      setShowPromptChooser(false);
       setTimeout(() => responseFieldRef.current?.focus(), 0);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unable to load a new prompt.');
@@ -4229,7 +4271,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     }
 
     setAssessment(result.data.assessment_result);
-    setSubmittedText(draft.trim());
+    setSubmittedText(draft);
     setLastAttemptId(result.data.attempt_id ?? null);
     setRevisionCycleId(currentCycleId);
     setAttemptNumber(currentAttemptNumber + 1);
@@ -4286,6 +4328,32 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     ].filter(Boolean).join(' ') || 'Focus on the mistake tags, then rewrite for clearer task coverage and language control.',
     [aiFeedback]
   );
+  const cinematicModeLabel =
+    cinematicTrust.mode === 'trusted'
+      ? 'Precision review mode'
+      : cinematicTrust.mode === 'stale_feedback'
+        ? 'Guided review mode'
+        : 'Guided review mode';
+  const activeCinematicRange = cinematicIndex != null ? cinematicRanges[cinematicIndex] ?? null : null;
+  const activeCinematicDetail = useMemo(
+    () => describeHighlight(activeCinematicRange, submittedText, aiFeedback),
+    [activeCinematicRange, submittedText, aiFeedback]
+  );
+  const rubricRows = useMemo(
+    () => [
+      { key: 'content', label: 'Content', value: assessment?.subscores.content ?? null },
+      { key: 'organisation', label: 'Organization', value: assessment?.subscores.organisation ?? null },
+      { key: 'language', label: 'Language', value: assessment?.subscores.language ?? null },
+      { key: 'communicative_achievement', label: 'Communicative Achievement', value: assessment?.subscores.communicative_achievement ?? null },
+    ],
+    [assessment]
+  );
+
+  const handleRangeMount = (index: number, element: HTMLSpanElement | null) => {
+    const refs = cinematicRangeRefs.current ?? {};
+    refs[index] = element;
+    cinematicRangeRefs.current = refs;
+  };
 
   useEffect(() => {
     if (!showCinematicFeedback) return;
@@ -4319,6 +4387,57 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     };
   }, [showCinematicFeedback, cinematicRanges, submittedText]);
 
+  useEffect(() => {
+    if (!showCinematicFeedback || cinematicIndex == null) return;
+    const panel = cinematicTextPanelRef.current;
+    const activeRangeEl = (cinematicRangeRefs.current ?? {})[cinematicIndex];
+    const pathEl = cinematicTracePathRef.current;
+    if (!panel || !activeRangeEl || !pathEl) return;
+
+    const panelRect = panel.getBoundingClientRect();
+    const lineRects = getVisualLineRectsForHighlight(panel, activeRangeEl);
+    const activeRect = lineRects[0];
+    if (!activeRect) return;
+    const y = activeRect.top + activeRect.height + 6;
+    const startX = Math.max(8, activeRect.left - panelRect.left - 8);
+    const endX = Math.min(panelRect.width - 8, activeRect.left - panelRect.left + activeRect.width + 8);
+    pathEl.setAttribute('d', `M ${startX} ${y} L ${endX} ${y}`);
+
+    gsap.fromTo(
+      pathEl,
+      { drawSVG: '0% 0%', opacity: 0.35 },
+      { drawSVG: '0% 100%', opacity: 1, duration: 0.72, ease: 'power2.out' }
+    );
+    gsap.fromTo(activeRangeEl, { backgroundColor: 'rgba(15,23,42,0.2)' }, { backgroundColor: 'rgba(59,130,246,0.12)', duration: 0.35, yoyo: true, repeat: 1 });
+  }, [showCinematicFeedback, cinematicIndex, submittedText]);
+
+  useEffect(() => {
+    observerCleanupRef.current?.();
+    observerCleanupRef.current = null;
+    if (!showCinematicFeedback || cinematicRanges.length === 0) return;
+    const panel = cinematicTextPanelRef.current;
+    if (!panel || typeof window === 'undefined') return;
+    const observer = Observer.create({
+      target: panel,
+      wheelSpeed: -1,
+      tolerance: 8,
+      preventDefault: false,
+      type: 'wheel,touch,pointer',
+      onUp: () => setCinematicIndex((prev) => Math.max(0, (prev ?? 0) - 1)),
+      onDown: () => setCinematicIndex((prev) => Math.min(cinematicRanges.length - 1, (prev ?? 0) + 1)),
+    });
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'ArrowRight') setCinematicIndex((prev) => Math.min(cinematicRanges.length - 1, (prev ?? 0) + 1));
+      if (event.key === 'ArrowLeft') setCinematicIndex((prev) => Math.max(0, (prev ?? 0) - 1));
+    };
+    window.addEventListener('keydown', onKeyDown);
+    observerCleanupRef.current = () => {
+      observer.kill();
+      window.removeEventListener('keydown', onKeyDown);
+    };
+    return observerCleanupRef.current;
+  }, [showCinematicFeedback, cinematicRanges.length]);
+
   return (
     <div style={{ ...getPageStyle('dark'), gap: 14 }}>
       <section className="writing-hub-card" style={getMissionCardStyle('dark')}>
@@ -4331,7 +4450,17 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       <section className="writing-hub-card" style={getShellCardStyle('dark')}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
           <h3 style={{ margin: 0, color: '#f8fbff' }}>Prompt</h3>
-          <span style={{ ...sectionLabelPillStyle, color: '#93c5fd' }}>Target: {toWordCountLabel(targetWordCount)}</span>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            <span style={{ ...sectionLabelPillStyle, color: '#93c5fd' }}>Genre: {toGenreLabel(activeGenre)}</span>
+            <span style={{ ...sectionLabelPillStyle, color: '#93c5fd' }}>Target: {toWordCountLabel(targetWordCount)}</span>
+            <button
+              type="button"
+              onClick={() => setShowPromptChooser(true)}
+              style={{ borderRadius: 999, border: '1px solid rgba(147,197,253,0.45)', background: 'rgba(30,58,138,0.25)', color: '#bfdbfe', fontSize: 11, fontWeight: 800, padding: '5px 10px' }}
+            >
+              Change genre
+            </button>
+          </div>
         </div>
         <p style={{ margin: '10px 0 0', color: '#dbe7ff', whiteSpace: 'pre-wrap' }}>{promptText}</p>
       </section>
@@ -4339,7 +4468,16 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       <section className="writing-hub-card" style={getShellCardStyle('dark')}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
           <h3 style={{ margin: 0, color: '#f8fbff' }}>Your response</h3>
-          <span style={{ color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>{wordCount} words</span>
+          <span style={{ color: wordTone.accent, fontSize: 12, fontWeight: 700 }}>{wordCount} words · {wordTone.label}</span>
+        </div>
+        <div style={{ marginTop: 8, borderRadius: 12, border: `1px solid ${wordTone.glow}`, background: 'rgba(15,23,42,0.8)', padding: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
+            <span style={{ color: '#cbd5e1', fontSize: 12 }}>Target range: {toWordCountLabel(targetWordCount)}</span>
+            <span style={{ color: wordTone.accent, fontSize: 12, fontWeight: 700 }}>{wordTone.microcopy}</span>
+          </div>
+          <div style={{ marginTop: 8, height: 7, borderRadius: 999, background: 'rgba(71,85,105,0.45)', overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${wordTone.progress}%`, background: wordTone.track, transition: 'width 220ms ease' }} />
+          </div>
         </div>
         {isVeryShortDraft && (
           <p style={{ margin: '8px 0 0', color: '#fbbf24', fontSize: 12 }}>
@@ -4364,7 +4502,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
           {busy ? 'Submitting…' : 'Submit for feedback'}
         </button>
         <p style={{ margin: '8px 0 0', color: '#94a3b8', fontSize: 12 }}>
-          Path: Essay (fixed for now). Genre switching is hidden because the student route currently opens only the essay track.
+          You can switch genre before your next submission from the prompt card.
         </p>
       </section>
 
@@ -4386,7 +4524,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
             </button>
             <button
               type="button"
-              onClick={() => void loadFreshPrompt()}
+              onClick={() => setShowPromptChooser(true)}
               disabled={busy}
               style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}
             >
@@ -4436,6 +4574,9 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
               <h3 style={{ margin: 0, color: '#f8fafc' }}>AI Cinematic Feedback</h3>
+              <span style={{ borderRadius: 999, border: '1px solid rgba(148,163,184,0.45)', padding: '3px 10px', color: '#cbd5e1', fontSize: 12 }}>
+                {cinematicModeLabel}
+              </span>
               <button
                 type="button"
                 onClick={() => setShowCinematicFeedback(false)}
@@ -4445,10 +4586,42 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
               </button>
             </div>
 
-            <div style={{ borderRadius: 12, border: '1px solid rgba(148,163,184,0.35)', background: 'rgba(15,23,42,0.62)', padding: 12, lineHeight: 1.7 }}>
+            <div ref={cinematicTextPanelRef} style={{ position: 'relative', borderRadius: 12, border: '1px solid rgba(148,163,184,0.35)', background: 'rgba(15,23,42,0.62)', padding: 12, lineHeight: 1.7 }}>
+              <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} aria-hidden="true">
+                <path ref={cinematicTracePathRef} d="" stroke={activeCinematicRange?.polarity === 'strong' ? '#4ade80' : '#f87171'} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+              </svg>
               {submittedText
-                ? renderAnnotatedText(submittedText, cinematicRanges, cinematicIndex)
+                ? renderAnnotatedText(submittedText, cinematicRanges, cinematicIndex, handleRangeMount)
                 : 'No submission text available.'}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+              <p style={{ margin: 0, color: '#cbd5e1', fontSize: 13 }}>
+                {cinematicRanges.length > 0 ? `Step ${(cinematicIndex ?? 0) + 1} of ${cinematicRanges.length}` : 'No highlight steps available'}
+              </p>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setCinematicIndex((prev) => Math.max(0, (prev ?? 0) - 1))}
+                  disabled={cinematicRanges.length === 0 || (cinematicIndex ?? 0) <= 0}
+                  style={{ borderRadius: 10, border: '1px solid rgba(148,163,184,0.45)', background: 'rgba(30,41,59,0.7)', color: '#e2e8f0', padding: '8px 12px' }}
+                >
+                  Back
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCinematicIndex((prev) => Math.min(cinematicRanges.length - 1, (prev ?? 0) + 1))}
+                  disabled={cinematicRanges.length === 0 || (cinematicIndex ?? 0) >= cinematicRanges.length - 1}
+                  style={{ borderRadius: 10, border: '1px solid rgba(148,163,184,0.45)', background: 'rgba(30,41,59,0.7)', color: '#e2e8f0', padding: '8px 12px' }}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+            <div style={{ borderRadius: 12, border: `1px solid ${activeCinematicRange?.polarity === 'strong' ? 'rgba(34,197,94,0.45)' : 'rgba(248,113,113,0.45)'}`, background: 'rgba(15,23,42,0.62)', padding: 12 }}>
+              <p style={{ margin: '0 0 4px', color: activeCinematicRange?.polarity === 'strong' ? '#86efac' : '#fca5a5', fontWeight: 700 }}>
+                {activeCinematicDetail.label}
+              </p>
+              <p style={{ margin: 0, color: '#cbd5e1' }}>{activeCinematicDetail.detail}</p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 8 }}>
@@ -4462,17 +4635,29 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
               </div>
             </div>
 
-            <div style={{ borderRadius: 12, border: '1px solid rgba(148,163,184,0.35)', background: 'rgba(15,23,42,0.62)', padding: 12, display: 'grid', gap: 6 }}>
+            <div style={{ borderRadius: 12, border: '1px solid rgba(148,163,184,0.35)', background: 'rgba(15,23,42,0.62)', padding: 12, display: 'grid', gap: 10 }}>
               <strong style={{ color: '#bfdbfe' }}>Rubric view</strong>
-              <p style={{ margin: 0 }}>Content: {assessment.subscores.content}</p>
-              <p style={{ margin: 0 }}>Organization: {assessment.subscores.organisation}</p>
-              <p style={{ margin: 0 }}>Language: {assessment.subscores.language}</p>
-              <p style={{ margin: 0 }}>Communicative achievement: {assessment.subscores.communicative_achievement ?? '—'}</p>
+              {rubricRows.map((row) => {
+                if (row.value == null) return <p key={row.key} style={{ margin: 0, color: '#94a3b8' }}>{row.label}: unavailable</p>;
+                const percent = Math.max(0, Math.min(100, Math.round((row.value / 5) * 100)));
+                return (
+                  <div key={row.key} style={{ display: 'grid', gap: 4 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#cbd5e1', fontSize: 13 }}>
+                      <span>{row.label}</span><strong>{row.value}/5</strong>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(20, minmax(0,1fr))', gap: 3 }}>
+                      {Array.from({ length: 20 }).map((_, idx) => (
+                        <span key={idx} style={{ height: 6, borderRadius: 999, background: idx < Math.round(percent / 5) ? 'linear-gradient(90deg,#38bdf8,#22c55e)' : 'rgba(71,85,105,0.55)', boxShadow: idx < Math.round(percent / 5) ? '0 0 8px rgba(56,189,248,0.35)' : 'none' }} />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
               <p style={{ margin: 0, color: '#cbd5e1' }}>
                 How to improve: {improvementGuidance}
               </p>
               <p style={{ margin: 0, color: '#93c5fd', fontSize: 12 }}>
-                Trust mode: {cinematicTrust.mode === 'trusted' ? 'Trusted anchors' : 'Safe fallback highlights'}
+                Review source: {cinematicTrust.mode === 'trusted' ? 'Exact phrase-level markers' : 'Guided sentence-level markers'}
               </p>
             </div>
 
@@ -4488,7 +4673,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                 type="button"
                 onClick={() => {
                   setShowCinematicFeedback(false);
-                  void loadFreshPrompt();
+                  setShowPromptChooser(true);
                 }}
                 style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}
               >
@@ -4496,6 +4681,46 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
               </button>
             </div>
             {!cinematicDone && <p style={{ margin: 0, color: '#93c5fd', fontSize: 12 }}>Review animation in progress…</p>}
+          </div>
+        </div>
+      )}
+
+      {showPromptChooser && (
+        <div role="dialog" aria-modal="true" style={{ position: 'fixed', inset: 0, zIndex: 122, background: 'rgba(2,6,23,0.8)', display: 'grid', placeItems: 'center', padding: 14 }}>
+          <div style={{ width: 'min(820px, 100%)', borderRadius: 18, border: '1px solid rgba(148,163,184,0.45)', background: 'linear-gradient(180deg,#0b1224,#07101f)', padding: 16, display: 'grid', gap: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+              <div>
+                <p style={{ margin: 0, color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Choose your next challenge</p>
+                <h3 style={{ margin: '4px 0 0', color: '#f8fafc' }}>Pick a genre, then load a fresh prompt</h3>
+              </div>
+              <button type="button" onClick={() => setShowPromptChooser(false)} style={{ borderRadius: 8, border: '1px solid rgba(148,163,184,0.45)', background: 'rgba(15,23,42,0.9)', color: '#e2e8f0', padding: '8px 10px' }}>
+                Close
+              </button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: 10 }}>
+              {SUPPORTED_GENRES.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => {
+                    void loadFreshPrompt(item);
+                    setShowCinematicFeedback(false);
+                  }}
+                  disabled={busy}
+                  style={{
+                    borderRadius: 12,
+                    border: item === activeGenre ? '1px solid rgba(74,222,128,0.7)' : '1px solid rgba(148,163,184,0.35)',
+                    background: item === activeGenre ? 'rgba(6,78,59,0.35)' : 'rgba(15,23,42,0.75)',
+                    color: '#e2e8f0',
+                    padding: '12px 10px',
+                    textAlign: 'left',
+                  }}
+                >
+                  <strong style={{ display: 'block' }}>{toGenreLabel(item)}</strong>
+                  <span style={{ fontSize: 12, color: '#93c5fd' }}>{item === activeGenre ? 'Current genre' : 'Switch and load prompt'}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
