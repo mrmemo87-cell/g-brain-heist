@@ -3,7 +3,7 @@ import type { MutableRefObject } from 'react';
 import { createPortal } from 'react-dom';
 import gsap from 'gsap';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
-import { Observer } from 'gsap/observer';
+import { Observer } from 'gsap/Observer';
 import {
   getCurrentWeeklyPlan,
   getStudentGenrePathStatuses,
