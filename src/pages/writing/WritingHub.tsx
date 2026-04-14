@@ -4537,94 +4537,134 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   return (
     <div style={{ ...getPageStyle('dark'), gap: 14 }}>
       <section className="writing-hub-card" style={getMissionCardStyle('dark')}>
-        <p style={{ ...sectionLabelPillStyle, margin: 0 }}>Student Writing Hub</p>
-        <h2 style={{ margin: '8px 0 10px', color: '#f8fbff' }}>Write → Feedback → Retry</h2>
-        <p style={{ margin: 0, color: '#cbd5e1' }}>{notice}</p>
-        {error && <p style={{ margin: '8px 0 0', color: '#fca5a5' }}>{error}</p>}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ width: 52, height: 52, borderRadius: 16, background: 'linear-gradient(135deg, #7c3aed 0%, #6366f1 50%, #2563eb 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, boxShadow: '0 0 28px rgba(99,102,241,0.35), 0 4px 12px rgba(0,0,0,0.2)', flexShrink: 0 }}>✍️</div>
+          <div>
+            <h2 style={{ margin: 0, color: '#f8fbff', fontSize: 22, fontWeight: 800, letterSpacing: -0.3 }}>Your Writing Space</h2>
+            <p style={{ margin: '4px 0 0', color: '#a5b4fc', fontSize: 14, lineHeight: 1.4 }}>Write your best, get expert feedback, and level up</p>
+          </div>
+        </div>
+        {notice && <p style={{ margin: '14px 0 0', color: '#a5b4fc', fontSize: 14, lineHeight: 1.5, padding: '10px 14px', borderRadius: 12, background: 'rgba(30,58,138,0.18)', border: '1px solid rgba(147,197,253,0.2)' }}>{notice}</p>}
+        {error && <p style={{ margin: '8px 0 0', color: '#fca5a5', fontSize: 14, lineHeight: 1.5, padding: '10px 14px', borderRadius: 12, background: 'rgba(127,29,29,0.15)', border: '1px solid rgba(248,113,113,0.25)' }}>{error}</p>}
       </section>
 
-      <section className="writing-hub-card" style={getShellCardStyle('dark')}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
-          <h3 style={{ margin: 0, color: '#f8fbff' }}>Prompt</h3>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-            <span style={{ ...sectionLabelPillStyle, color: '#93c5fd' }}>Genre: {toGenreLabel(activeGenre)}</span>
-            <span style={{ ...sectionLabelPillStyle, color: '#93c5fd' }}>Target: {toWordCountLabel(targetWordCount)}</span>
+      <section className="writing-hub-card" style={{ ...getShellCardStyle('dark'), padding: '22px 22px 24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
+          <h3 style={{ margin: 0, color: '#e0e7ff', fontSize: 13, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase' as const }}>📝 Today's Prompt</h3>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, borderRadius: 10, padding: '6px 12px', background: 'linear-gradient(135deg, rgba(124,58,237,0.15), rgba(99,102,241,0.1))', border: '1px solid rgba(167,139,250,0.25)', color: '#c4b5fd', fontSize: 13, fontWeight: 700 }}>
+              {toGenreLabel(activeGenre)}
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, borderRadius: 10, padding: '6px 12px', background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(34,211,238,0.2)', color: '#67e8f9', fontSize: 13, fontWeight: 700 }}>
+              🎯 {toWordCountLabel(targetWordCount)}
+            </span>
             <button
               type="button"
               onClick={() => setShowPromptChooser(true)}
-              style={{ borderRadius: 999, border: '1px solid rgba(147,197,253,0.45)', background: 'rgba(30,58,138,0.25)', color: '#bfdbfe', fontSize: 11, fontWeight: 800, padding: '5px 10px' }}
+              style={{ borderRadius: 10, border: '1px solid rgba(148,163,184,0.25)', background: 'rgba(30,41,59,0.4)', color: '#94a3b8', fontSize: 13, fontWeight: 600, padding: '6px 14px', cursor: 'pointer', transition: 'all 180ms ease' }}
             >
-              Change genre
+              Switch genre
             </button>
           </div>
         </div>
-        <p style={{ margin: '10px 0 0', color: '#dbe7ff', whiteSpace: 'pre-wrap' }}>{promptText}</p>
+        <div style={{ borderRadius: 14, background: 'linear-gradient(135deg, rgba(15,23,42,0.6) 0%, rgba(30,41,59,0.3) 100%)', border: '1px solid rgba(148,163,184,0.12)', padding: '18px 20px', position: 'relative' }}>
+          <div style={{ position: 'absolute', top: 10, left: 14, color: 'rgba(148,163,184,0.2)', fontSize: 36, lineHeight: 1, fontFamily: 'Georgia, serif', pointerEvents: 'none' }}>"</div>
+          <p style={{ margin: 0, color: '#e2e8f0', whiteSpace: 'pre-wrap', fontSize: 16, lineHeight: 1.75, paddingLeft: 8 }}>{promptText}</p>
+        </div>
       </section>
 
-      <section className="writing-hub-card" style={getShellCardStyle('dark')}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-          <h3 style={{ margin: 0, color: '#f8fbff' }}>Your response</h3>
-          <span style={{ color: wordTone.accent, fontSize: 12, fontWeight: 700 }}>{wordCount} words · {wordTone.label}</span>
-        </div>
-        <div style={{ marginTop: 8, borderRadius: 12, border: `1px solid ${wordTone.glow}`, background: 'rgba(15,23,42,0.8)', padding: 10 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
-            <span style={{ color: '#cbd5e1', fontSize: 12 }}>Target range: {toWordCountLabel(targetWordCount)}</span>
-            <span style={{ color: wordTone.accent, fontSize: 12, fontWeight: 700 }}>{wordTone.microcopy}</span>
-          </div>
-          <div style={{ marginTop: 8, height: 7, borderRadius: 999, background: 'rgba(71,85,105,0.45)', overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${wordTone.progress}%`, background: wordTone.track, transition: 'width 220ms ease' }} />
+      <section className="writing-hub-card" style={{ ...getShellCardStyle('dark'), padding: '22px 22px 24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+          <h3 style={{ margin: 0, color: '#e0e7ff', fontSize: 13, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase' as const }}>✏️ Your Response</h3>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, padding: '6px 14px', borderRadius: 12, background: `${wordTone.glow}`, border: `1px solid ${wordTone.accent}33`, transition: 'all 250ms ease' }}>
+            <span style={{ color: wordTone.accent, fontSize: 22, fontWeight: 800, lineHeight: 1, transition: 'color 200ms ease' }}>{wordCount}</span>
+            <span style={{ color: '#94a3b8', fontSize: 12, fontWeight: 600 }}>/ {toWordCountLabel(targetWordCount)}</span>
           </div>
         </div>
+
+        <div style={{ marginBottom: 14, borderRadius: 12, background: 'rgba(15,23,42,0.35)', border: '1px solid rgba(148,163,184,0.1)', padding: '10px 14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+            <span style={{ color: '#94a3b8', fontSize: 12, fontWeight: 600 }}>Word count progress</span>
+            <span style={{ color: wordTone.accent, fontSize: 13, fontWeight: 700, transition: 'color 250ms ease' }}>{wordTone.microcopy}</span>
+          </div>
+          <div style={{ height: 8, borderRadius: 999, background: 'rgba(71,85,105,0.3)', overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${wordTone.progress}%`, background: wordTone.track, borderRadius: 999, transition: 'width 400ms cubic-bezier(0.34, 1.56, 0.64, 1)', boxShadow: `0 0 12px ${wordTone.accent}50` }} />
+          </div>
+        </div>
+
         {isVeryShortDraft && (
-          <p style={{ margin: '8px 0 0', color: '#fbbf24', fontSize: 12 }}>
-            This looks very short. You can submit, but a longer answer will get more useful feedback.
-          </p>
+          <div style={{ margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 12, background: 'rgba(234,179,8,0.06)', border: '1px solid rgba(234,179,8,0.18)' }}>
+            <span style={{ fontSize: 18, flexShrink: 0 }}>💡</span>
+            <p style={{ margin: 0, color: '#fde68a', fontSize: 14, lineHeight: 1.5 }}>
+              Keep going! More detail = better feedback for you.
+            </p>
+          </div>
         )}
+
         <textarea
           ref={responseFieldRef}
           value={draft}
           onChange={(e: { target: { value: string } }) => setDraft(e.target.value)}
-          placeholder="Write your response here…"
-          style={{ ...fieldStyle, marginTop: 10, minHeight: 180 }}
+          placeholder={"Start writing here…\n\nTake your time — your ideas matter more than perfect grammar."}
+          style={{ ...fieldStyle, marginTop: 0, minHeight: 260, resize: 'vertical', lineHeight: 1.85, fontSize: 16, borderRadius: 16, border: '1px solid rgba(148,163,184,0.15)', background: 'rgba(8,14,28,0.65)', padding: '18px 20px', transition: 'border-color 200ms ease, box-shadow 200ms ease', color: '#f1f5f9' }}
           aria-label="Writing response"
         />
+
         <button
           type="button"
           onClick={() => void submitAttempt(lastRetryKind)}
           disabled={busy || !draft.trim()}
           className="writing-primary-button"
-          style={{ ...primaryButtonStyle, opacity: busy ? 0.7 : 1, cursor: busy ? 'not-allowed' : 'pointer' }}
+          style={{
+            ...primaryButtonStyle,
+            marginTop: 14,
+            padding: '16px 20px',
+            borderRadius: 14,
+            fontSize: 16,
+            fontWeight: 800,
+            background: busy ? 'rgba(71,85,105,0.5)' : 'linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #a855f7 100%)',
+            opacity: (!draft.trim() && !busy) ? 0.5 : 1,
+            cursor: busy || !draft.trim() ? 'not-allowed' : 'pointer',
+            boxShadow: draft.trim() && !busy ? '0 8px 32px rgba(99,102,241,0.4), 0 0 0 1px rgba(167,139,250,0.3)' : 'none',
+            transition: 'all 250ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+            letterSpacing: 0.3,
+          }}
         >
-          {busy ? 'Submitting…' : 'Submit for feedback'}
+          {busy ? '✨ Analyzing your writing…' : 'Submit for Feedback →'}
         </button>
-        <p style={{ margin: '8px 0 0', color: '#94a3b8', fontSize: 12 }}>
-          You can switch genre before your next submission from the prompt card.
+        <p style={{ margin: '12px 0 0', color: '#64748b', fontSize: 12, textAlign: 'center', lineHeight: 1.5 }}>
+          Tip: You can switch genre from the prompt card above before your next try.
         </p>
       </section>
 
       {assessment && (
-        <section className="writing-hub-card feedback-result-card" style={{ ...getShellCardStyle('dark'), borderImage: 'linear-gradient(135deg, rgba(56,189,248,0.45), rgba(124,58,237,0.45)) 1', borderWidth: 1, borderStyle: 'solid', overflow: 'hidden', position: 'relative' }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 30% 0%, rgba(56,189,248,0.08) 0%, transparent 60%)', pointerEvents: 'none' }} />
-          <div style={{ position: 'relative', display: 'grid', gap: 12 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)', color: '#fff', fontWeight: 900, fontSize: 18, boxShadow: '0 0 20px rgba(99,102,241,0.4)' }}>{assessment.total_score}</span>
-                <div>
-                  <p style={{ margin: 0, color: '#f8fafc', fontWeight: 800, fontSize: 16 }}>{toAlignmentLabel(aiFeedback?.alignment)}</p>
-                  <p style={{ margin: 0, color: '#94a3b8', fontSize: 12 }}>Score out of {rubricRows.reduce((sum, r) => sum + 5, 0)}</p>
-                </div>
+        <section className="writing-hub-card feedback-result-card" style={{ ...getShellCardStyle('dark'), padding: '24px 22px', borderRadius: 22, border: '1px solid rgba(99,102,241,0.3)', overflow: 'hidden', position: 'relative', background: 'linear-gradient(135deg, rgba(15,23,42,0.95) 0%, rgba(10,17,32,0.98) 100%)' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 20% -10%, rgba(99,102,241,0.12) 0%, transparent 55%), radial-gradient(ellipse at 80% 100%, rgba(6,182,212,0.06) 0%, transparent 50%)', pointerEvents: 'none' }} />
+          <div style={{ position: 'relative', display: 'grid', gap: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ position: 'relative', width: 56, height: 56, borderRadius: 16, background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #a855f7 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 30px rgba(99,102,241,0.4), 0 4px 12px rgba(0,0,0,0.3)' }}>
+                <span style={{ color: '#fff', fontWeight: 900, fontSize: 22, lineHeight: 1 }}>{assessment.total_score}</span>
+              </div>
+              <div style={{ flex: 1 }}>
+                <h3 style={{ margin: 0, color: '#f8fafc', fontWeight: 800, fontSize: 20 }}>Your Feedback is Ready! 🎉</h3>
+                <p style={{ margin: '4px 0 0', color: '#a5b4fc', fontSize: 14 }}>
+                  {toAlignmentLabel(aiFeedback?.alignment)} · Score {assessment.total_score} out of {rubricRows.reduce((sum, r) => sum + 5, 0)}
+                </p>
               </div>
             </div>
 
             {((aiFeedback?.what_is_working ?? aiFeedback?.strengths ?? []).length > 0 || (aiFeedback?.what_is_missing ?? aiFeedback?.weaknesses ?? []).length > 0) && (
-              <div style={{ display: 'grid', gap: 8 }}>
+              <div style={{ display: 'grid', gap: 10 }}>
                 {(() => {
                   const topStrength = (aiFeedback?.what_is_working ?? aiFeedback?.strengths ?? [])[0];
                   if (!topStrength) return null;
                   return (
-                    <div className="feedback-insight-row" style={{ display: 'flex', gap: 8, alignItems: 'flex-start', borderRadius: 10, background: 'rgba(6,78,59,0.18)', border: '1px solid rgba(74,222,128,0.3)', padding: '10px 12px' }}>
-                      <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: 6, background: 'rgba(74,222,128,0.2)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>✓</span>
-                      <p style={{ margin: 0, color: '#bbf7d0', fontSize: 13, lineHeight: 1.5 }}><strong style={{ color: '#86efac' }}>Best part:</strong> {simplifyStudentLanguage(topStrength)}</p>
+                    <div className="feedback-insight-row" style={{ display: 'flex', gap: 12, alignItems: 'flex-start', borderRadius: 14, background: 'rgba(6,78,59,0.18)', border: '1px solid rgba(74,222,128,0.25)', padding: '14px 16px' }}>
+                      <span style={{ flexShrink: 0, width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(135deg, rgba(74,222,128,0.25), rgba(34,197,94,0.15))', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>✅</span>
+                      <div>
+                        <p style={{ margin: 0, color: '#86efac', fontSize: 13, fontWeight: 700, marginBottom: 3 }}>What you did well</p>
+                        <p style={{ margin: 0, color: '#d1fae5', fontSize: 15, lineHeight: 1.6 }}>{simplifyStudentLanguage(topStrength)}</p>
+                      </div>
                     </div>
                   );
                 })()}
@@ -4632,9 +4672,12 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                   const topIssue = (aiFeedback?.what_is_missing ?? aiFeedback?.weaknesses ?? [])[0];
                   if (!topIssue) return null;
                   return (
-                    <div className="feedback-insight-row" style={{ display: 'flex', gap: 8, alignItems: 'flex-start', borderRadius: 10, background: 'rgba(127,29,29,0.15)', border: '1px solid rgba(248,113,113,0.3)', padding: '10px 12px' }}>
-                      <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: 6, background: 'rgba(248,113,113,0.2)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>!</span>
-                      <p style={{ margin: 0, color: '#fecaca', fontSize: 13, lineHeight: 1.5 }}><strong style={{ color: '#fca5a5' }}>Biggest issue:</strong> {simplifyStudentLanguage(topIssue)}</p>
+                    <div className="feedback-insight-row" style={{ display: 'flex', gap: 12, alignItems: 'flex-start', borderRadius: 14, background: 'rgba(127,29,29,0.12)', border: '1px solid rgba(248,113,113,0.2)', padding: '14px 16px' }}>
+                      <span style={{ flexShrink: 0, width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(135deg, rgba(248,113,113,0.2), rgba(239,68,68,0.1))', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>🔧</span>
+                      <div>
+                        <p style={{ margin: 0, color: '#fca5a5', fontSize: 13, fontWeight: 700, marginBottom: 3 }}>Focus on next</p>
+                        <p style={{ margin: 0, color: '#fecaca', fontSize: 15, lineHeight: 1.6 }}>{simplifyStudentLanguage(topIssue)}</p>
+                      </div>
                     </div>
                   );
                 })()}
@@ -4646,9 +4689,9 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
               onClick={() => setShowCinematicFeedback(true)}
               disabled={busy}
               className="writing-primary-button cinematic-trigger-button"
-              style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #7c3aed 0%, #2563eb 50%, #06b6d4 100%)', boxShadow: '0 0 28px rgba(99,102,241,0.35), 0 4px 14px rgba(0,0,0,0.3)' }}
+              style={{ ...primaryButtonStyle, marginTop: 4, padding: '18px 20px', borderRadius: 14, background: 'linear-gradient(135deg, #7c3aed 0%, #2563eb 50%, #06b6d4 100%)', boxShadow: '0 0 36px rgba(99,102,241,0.3), 0 6px 20px rgba(0,0,0,0.3)', fontSize: 17, fontWeight: 800, letterSpacing: 0.3 }}
             >
-              Review full feedback
+              📖 See Your Detailed Feedback
             </button>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 10 }}>
@@ -4656,17 +4699,17 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                 type="button"
                 onClick={beginRetrySamePrompt}
                 disabled={busy}
-                style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)', fontSize: 14, padding: '12px 14px' }}
+                style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)', fontSize: 14, padding: '14px 14px', borderRadius: 12, boxShadow: '0 4px 14px rgba(14,165,233,0.25)' }}
               >
-                Retry this prompt
+                ✍️ Retry this prompt
               </button>
               <button
                 type="button"
                 onClick={() => setShowPromptChooser(true)}
                 disabled={busy}
-                style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', fontSize: 14, padding: '12px 14px' }}
+                style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', fontSize: 14, padding: '14px 14px', borderRadius: 12, boxShadow: '0 4px 14px rgba(16,185,129,0.25)' }}
               >
-                New prompt
+                🆕 New prompt
               </button>
             </div>
           </div>
@@ -4692,37 +4735,37 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
           <div
             className="simple-cinematic-panel"
             style={{
-              width: 'min(920px, 100%)',
+              width: 'min(940px, 100%)',
               maxHeight: '92vh',
               overflow: 'auto',
-              borderRadius: 20,
-              border: '1px solid rgba(148,163,184,0.3)',
+              borderRadius: 24,
+              border: '1px solid rgba(148,163,184,0.2)',
               background: 'linear-gradient(180deg, #0c1527 0%, #080e1c 100%)',
-              padding: '18px 16px',
+              padding: '24px 22px',
               color: '#e2e8f0',
               display: 'grid',
-              gap: 14,
-              boxShadow: '0 0 60px rgba(99,102,241,0.12), 0 25px 50px rgba(0,0,0,0.5)',
+              gap: 18,
+              boxShadow: '0 0 80px rgba(99,102,241,0.15), 0 25px 60px rgba(0,0,0,0.5)',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 6, height: 28, borderRadius: 4, background: 'linear-gradient(180deg, #7c3aed, #2563eb)', boxShadow: '0 0 12px rgba(99,102,241,0.4)' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 6, height: 32, borderRadius: 4, background: 'linear-gradient(180deg, #7c3aed, #2563eb)', boxShadow: '0 0 14px rgba(99,102,241,0.4)' }} />
                 <div>
-                  <h3 style={{ margin: 0, color: '#f8fafc', fontSize: 16 }}>Writing Coach Review</h3>
-                  <p style={{ margin: 0, color: '#64748b', fontSize: 11, fontWeight: 600 }}>{cinematicModeLabel}</p>
+                  <h3 style={{ margin: 0, color: '#f8fafc', fontSize: 18, fontWeight: 800 }}>Your Writing Coach</h3>
+                  <p style={{ margin: '2px 0 0', color: '#a5b4fc', fontSize: 13, fontWeight: 600 }}>Step-by-step feedback on your writing</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowCinematicFeedback(false)}
-                style={{ borderRadius: 8, border: '1px solid rgba(148,163,184,0.45)', background: 'rgba(15,23,42,0.9)', color: '#e2e8f0', padding: '8px 10px' }}
+                style={{ borderRadius: 10, border: '1px solid rgba(148,163,184,0.3)', background: 'rgba(15,23,42,0.9)', color: '#e2e8f0', padding: '8px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 150ms ease' }}
               >
-                Close
+                ✕ Close
               </button>
             </div>
 
-            <div ref={cinematicTextPanelRef} className="cinematic-text-panel" style={{ position: 'relative', borderRadius: 14, border: '1px solid rgba(148,163,184,0.25)', background: 'linear-gradient(180deg, rgba(15,23,42,0.7) 0%, rgba(15,23,42,0.55) 100%)', padding: '14px 16px', lineHeight: 1.75, fontSize: 15 }}>
+            <div ref={cinematicTextPanelRef} className="cinematic-text-panel" style={{ position: 'relative', borderRadius: 16, border: '1px solid rgba(148,163,184,0.18)', background: 'linear-gradient(180deg, rgba(15,23,42,0.7) 0%, rgba(15,23,42,0.5) 100%)', padding: '18px 20px', lineHeight: 1.85, fontSize: 16 }}>
               <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} aria-hidden="true">
                 <path ref={cinematicTracePathRef} d="" stroke={activeCinematicRange?.polarity === 'strong' ? '#4ade80' : '#f87171'} strokeWidth="2.5" fill="none" strokeLinecap="round" />
               </svg>
@@ -4755,7 +4798,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                     }}
                   />
                 ))}
-                <span style={{ color: '#94a3b8', fontSize: 12, marginLeft: 6 }}>
+                <span style={{ color: '#94a3b8', fontSize: 13, marginLeft: 8, fontWeight: 600 }}>
                   {cinematicRanges.length > 0 ? `${(cinematicIndex ?? 0) + 1} / ${cinematicRanges.length}` : ''}
                 </span>
               </div>
@@ -4764,7 +4807,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                   type="button"
                   onClick={() => setCinematicIndex((prev) => Math.max(0, (prev ?? 0) - 1))}
                   disabled={cinematicRanges.length === 0 || (cinematicIndex ?? 0) <= 0}
-                  style={{ borderRadius: 10, border: '1px solid rgba(148,163,184,0.35)', background: 'rgba(30,41,59,0.6)', color: '#e2e8f0', padding: '8px 14px', fontSize: 13, fontWeight: 700, transition: 'transform 120ms ease, box-shadow 120ms ease' }}
+                  style={{ borderRadius: 12, border: '1px solid rgba(148,163,184,0.35)', background: 'rgba(30,41,59,0.6)', color: '#e2e8f0', padding: '10px 18px', fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: 'transform 120ms ease, box-shadow 120ms ease' }}
                 >
                   ← Back
                 </button>
@@ -4772,26 +4815,26 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                   type="button"
                   onClick={() => setCinematicIndex((prev) => Math.min(cinematicRanges.length - 1, (prev ?? 0) + 1))}
                   disabled={cinematicRanges.length === 0 || (cinematicIndex ?? 0) >= cinematicRanges.length - 1}
-                  style={{ borderRadius: 10, border: '1px solid rgba(96,165,250,0.4)', background: 'linear-gradient(135deg, rgba(37,99,235,0.3), rgba(30,41,59,0.6))', color: '#e2e8f0', padding: '8px 14px', fontSize: 13, fontWeight: 700, transition: 'transform 120ms ease, box-shadow 120ms ease' }}
+                  style={{ borderRadius: 12, border: '1px solid rgba(96,165,250,0.4)', background: 'linear-gradient(135deg, rgba(37,99,235,0.3), rgba(30,41,59,0.6))', color: '#e2e8f0', padding: '10px 18px', fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: 'transform 120ms ease, box-shadow 120ms ease' }}
                 >
                   Next →
                 </button>
               </div>
             </div>
-            <div className="cinematic-detail-card" style={{ borderRadius: 14, border: `1px solid ${activeCinematicRange?.polarity === 'strong' ? 'rgba(34,197,94,0.45)' : 'rgba(248,113,113,0.45)'}`, background: activeCinematicRange?.polarity === 'strong' ? 'rgba(6,78,59,0.15)' : 'rgba(127,29,29,0.12)', padding: 14, display: 'grid', gap: 8, boxShadow: `0 0 20px ${activeCinematicRange?.polarity === 'strong' ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)'}` }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 8, background: activeCinematicRange?.polarity === 'strong' ? 'rgba(74,222,128,0.2)' : 'rgba(248,113,113,0.2)', fontSize: 13, flexShrink: 0 }}>
+            <div className="cinematic-detail-card" style={{ borderRadius: 16, border: `1px solid ${activeCinematicRange?.polarity === 'strong' ? 'rgba(34,197,94,0.4)' : 'rgba(248,113,113,0.4)'}`, background: activeCinematicRange?.polarity === 'strong' ? 'rgba(6,78,59,0.15)' : 'rgba(127,29,29,0.12)', padding: '16px 18px', display: 'grid', gap: 10, boxShadow: `0 0 24px ${activeCinematicRange?.polarity === 'strong' ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)'}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30, borderRadius: 10, background: activeCinematicRange?.polarity === 'strong' ? 'rgba(74,222,128,0.2)' : 'rgba(248,113,113,0.2)', fontSize: 15, flexShrink: 0 }}>
                   {activeCinematicRange?.polarity === 'strong' ? '✓' : '✎'}
                 </span>
-                <p style={{ margin: 0, color: activeCinematicRange?.polarity === 'strong' ? '#86efac' : '#fca5a5', fontWeight: 800, fontSize: 14 }}>
+                <p style={{ margin: 0, color: activeCinematicRange?.polarity === 'strong' ? '#86efac' : '#fca5a5', fontWeight: 800, fontSize: 16 }}>
                   {activeCinematicDetail.label}
                 </p>
               </div>
-              <p style={{ margin: 0, color: '#e2e8f0', fontSize: 14, lineHeight: 1.6 }}>{activeCinematicDetail.detail}</p>
+              <p style={{ margin: 0, color: '#e2e8f0', fontSize: 15, lineHeight: 1.7 }}>{activeCinematicDetail.detail}</p>
               {activeCinematicDetail.correction && (
-                <div style={{ borderRadius: 10, background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(96,165,250,0.3)', padding: '10px 12px' }}>
-                  <p style={{ margin: 0, color: '#93c5fd', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8 }}>Better version</p>
-                  <p style={{ margin: '4px 0 0', color: '#dbeafe', fontSize: 14, fontStyle: 'italic', lineHeight: 1.5 }}>"{activeCinematicDetail.correction}"</p>
+                <div style={{ borderRadius: 12, background: 'rgba(37,99,235,0.1)', border: '1px solid rgba(96,165,250,0.25)', padding: '12px 14px' }}>
+                  <p style={{ margin: 0, color: '#93c5fd', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8 }}>Better version</p>
+                  <p style={{ margin: '6px 0 0', color: '#dbeafe', fontSize: 15, fontStyle: 'italic', lineHeight: 1.6 }}>"{activeCinematicDetail.correction}"</p>
                 </div>
               )}
             </div>
@@ -4801,35 +4844,35 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                 const model = aiFeedback?.example_revision_start?.trim();
                 if (!model) return null;
                 return (
-                  <div style={{ borderRadius: 12, background: 'linear-gradient(135deg, rgba(37,99,235,0.1) 0%, rgba(124,58,237,0.08) 100%)', border: '1px solid rgba(96,165,250,0.25)', padding: '12px 14px', display: 'grid', gap: 6 }}>
-                    <p style={{ margin: 0, color: '#93c5fd', fontSize: 11, fontWeight: 800, letterSpacing: 0.8, textTransform: 'uppercase' }}>Revision starter</p>
-                    <p style={{ margin: 0, color: '#e2e8f0', fontSize: 14, lineHeight: 1.6, fontStyle: 'italic' }}>"{model}"</p>
-                    <p style={{ margin: 0, color: '#64748b', fontSize: 11 }}>Use this as a starting point — then build on it in your own words.</p>
+                  <div style={{ borderRadius: 14, background: 'linear-gradient(135deg, rgba(37,99,235,0.1) 0%, rgba(124,58,237,0.08) 100%)', border: '1px solid rgba(96,165,250,0.25)', padding: '14px 16px', display: 'grid', gap: 8 }}>
+                    <p style={{ margin: 0, color: '#93c5fd', fontSize: 12, fontWeight: 800, letterSpacing: 0.8, textTransform: 'uppercase' }}>Revision starter</p>
+                    <p style={{ margin: 0, color: '#e2e8f0', fontSize: 15, lineHeight: 1.65, fontStyle: 'italic' }}>"{model}"</p>
+                    <p style={{ margin: 0, color: '#64748b', fontSize: 12 }}>Use this as a starting point — then build on it in your own words.</p>
                   </div>
                 );
               })()}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 8 }}>
-                <div style={{ borderRadius: 10, border: '1px solid rgba(74,222,128,0.25)', background: 'rgba(6,78,59,0.12)', padding: 10, display: 'grid', gap: 4 }}>
-                  <strong style={{ color: '#86efac', fontSize: 12 }}>What works</strong>
+                <div style={{ borderRadius: 12, border: '1px solid rgba(74,222,128,0.25)', background: 'rgba(6,78,59,0.12)', padding: '12px 14px', display: 'grid', gap: 6 }}>
+                  <strong style={{ color: '#86efac', fontSize: 13, fontWeight: 700 }}>What works</strong>
                   {(aiFeedback?.what_is_working ?? aiFeedback?.strengths ?? []).slice(0, 2).map((s, i) => (
-                    <p key={i} style={{ margin: 0, color: '#bbf7d0', fontSize: 12, lineHeight: 1.45 }}>• {simplifyStudentLanguage(s)}</p>
+                    <p key={i} style={{ margin: 0, color: '#bbf7d0', fontSize: 14, lineHeight: 1.55 }}>• {simplifyStudentLanguage(s)}</p>
                   ))}
-                  {!(aiFeedback?.what_is_working ?? aiFeedback?.strengths ?? []).length && <p style={{ margin: 0, color: '#64748b', fontSize: 12 }}>No strengths identified yet.</p>}
+                  {!(aiFeedback?.what_is_working ?? aiFeedback?.strengths ?? []).length && <p style={{ margin: 0, color: '#64748b', fontSize: 13 }}>No strengths identified yet.</p>}
                 </div>
-                <div style={{ borderRadius: 10, border: '1px solid rgba(248,113,113,0.25)', background: 'rgba(127,29,29,0.1)', padding: 10, display: 'grid', gap: 4 }}>
-                  <strong style={{ color: '#fca5a5', fontSize: 12 }}>What to fix</strong>
+                <div style={{ borderRadius: 12, border: '1px solid rgba(248,113,113,0.25)', background: 'rgba(127,29,29,0.1)', padding: '12px 14px', display: 'grid', gap: 6 }}>
+                  <strong style={{ color: '#fca5a5', fontSize: 13, fontWeight: 700 }}>What to fix</strong>
                   {(aiFeedback?.what_is_missing ?? aiFeedback?.weaknesses ?? []).slice(0, 2).map((s, i) => (
-                    <p key={i} style={{ margin: 0, color: '#fecaca', fontSize: 12, lineHeight: 1.45 }}>• {simplifyStudentLanguage(s)}</p>
+                    <p key={i} style={{ margin: 0, color: '#fecaca', fontSize: 14, lineHeight: 1.55 }}>• {simplifyStudentLanguage(s)}</p>
                   ))}
-                  {!(aiFeedback?.what_is_missing ?? aiFeedback?.weaknesses ?? []).length && <p style={{ margin: 0, color: '#64748b', fontSize: 12 }}>No issues identified yet.</p>}
+                  {!(aiFeedback?.what_is_missing ?? aiFeedback?.weaknesses ?? []).length && <p style={{ margin: 0, color: '#64748b', fontSize: 13 }}>No issues identified yet.</p>}
                 </div>
               </div>
             </div>
 
-            <div className="cinematic-rubric-section" style={{ borderRadius: 14, border: '1px solid rgba(148,163,184,0.3)', background: 'rgba(15,23,42,0.55)', padding: 14, display: 'grid', gap: 12 }}>
+            <div className="cinematic-rubric-section" style={{ borderRadius: 16, border: '1px solid rgba(148,163,184,0.3)', background: 'rgba(15,23,42,0.55)', padding: '16px 18px', display: 'grid', gap: 14 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <strong style={{ color: '#bfdbfe', fontSize: 13, letterSpacing: 0.5 }}>Rubric breakdown</strong>
-                <span style={{ color: '#64748b', fontSize: 11 }}>{cinematicTrust.mode === 'trusted' ? 'Precision markers' : 'Guided markers'}</span>
+                <strong style={{ color: '#bfdbfe', fontSize: 15, fontWeight: 800, letterSpacing: 0.5 }}>Rubric breakdown</strong>
+                <span style={{ color: '#64748b', fontSize: 12 }}>{cinematicTrust.mode === 'trusted' ? 'Precision markers' : 'Guided markers'}</span>
               </div>
               {rubricRows.map((row) => {
                 if (row.value == null) return <p key={row.key} style={{ margin: 0, color: '#64748b', fontSize: 13 }}>{row.label}: not assessed</p>;
@@ -4839,20 +4882,20 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                 return (
                   <div key={row.key} style={{ display: 'grid', gap: 5 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ color: '#e2e8f0', fontSize: 13, fontWeight: 700 }}>{row.label}</span>
-                      <span style={{ color: scoreColor, fontWeight: 800, fontSize: 14 }}>{row.value}/5</span>
+                      <span style={{ color: '#e2e8f0', fontSize: 14, fontWeight: 700 }}>{row.label}</span>
+                      <span style={{ color: scoreColor, fontWeight: 800, fontSize: 15 }}>{row.value}/5</span>
                     </div>
-                    <div style={{ height: 5, borderRadius: 999, background: 'rgba(71,85,105,0.4)', overflow: 'hidden' }}>
+                    <div style={{ height: 7, borderRadius: 999, background: 'rgba(71,85,105,0.4)', overflow: 'hidden' }}>
                       <div className="rubric-bar-fill" style={{ height: '100%', width: `${percent}%`, background: `linear-gradient(90deg, ${scoreColor}, ${scoreColor}dd)`, borderRadius: 999, boxShadow: `0 0 10px ${scoreColor}55`, transition: 'width 600ms cubic-bezier(0.34, 1.56, 0.64, 1)' }} />
                     </div>
-                    {rubricReason && <p style={{ margin: 0, color: '#94a3b8', fontSize: 12, lineHeight: 1.45 }}>{rubricReason}</p>}
+                    {rubricReason && <p style={{ margin: 0, color: '#94a3b8', fontSize: 13, lineHeight: 1.5 }}>{rubricReason}</p>}
                   </div>
                 );
               })}
               {improvementGuidance && (
                 <div style={{ borderTop: '1px solid rgba(148,163,184,0.15)', paddingTop: 10, marginTop: 2 }}>
-                  <p style={{ margin: 0, color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Next step</p>
-                  <p style={{ margin: '3px 0 0', color: '#cbd5e1', fontSize: 13, lineHeight: 1.5 }}>{improvementGuidance}</p>
+                  <p style={{ margin: 0, color: '#93c5fd', fontSize: 13, fontWeight: 700 }}>Next step</p>
+                  <p style={{ margin: '4px 0 0', color: '#cbd5e1', fontSize: 14, lineHeight: 1.55 }}>{improvementGuidance}</p>
                 </div>
               )}
             </div>
@@ -4861,9 +4904,9 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
               <button
                 type="button"
                 onClick={beginRetrySamePrompt}
-                style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)' }}
+                style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)', fontSize: 15, padding: '14px 16px', borderRadius: 12 }}
               >
-                Retry this prompt
+                ✍️ Retry this prompt
               </button>
               <button
                 type="button"
@@ -4871,9 +4914,9 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                   setShowCinematicFeedback(false);
                   setShowPromptChooser(true);
                 }}
-                style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}
+                style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', fontSize: 15, padding: '14px 16px', borderRadius: 12 }}
               >
-                New prompt
+                🆕 New prompt
               </button>
             </div>
             {!cinematicDone && <p style={{ margin: 0, color: '#93c5fd', fontSize: 12 }}>Review animation in progress…</p>}

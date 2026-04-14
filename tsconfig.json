@@ -28,6 +28,9 @@
       ],
       "@tanstack/react-query": [
         "./src/lib/simple-react-query"
+      ],
+      "gsap/Observer": [
+        "./src/gsap-observer.d.ts"
       ]
     },
     "allowImportingTsExtensions": true,
