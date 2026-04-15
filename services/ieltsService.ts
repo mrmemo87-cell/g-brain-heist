@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import { tryConsumePilotQuota } from './tierService';
+import { isPro, tryConsumePilotQuota } from './tierService';
 import type {
   IELTSUserProfile,
   IELTSReadingSet,
@@ -587,7 +587,7 @@ export const getUserTier = async () => {
   // Check school-based subscription tier first
   try {
     const { data: effectiveTier, error: rpcError } = await supabase.rpc('get_effective_tier');
-    if (!rpcError && effectiveTier === 'pro') {
+    if (!rpcError && isPro(effectiveTier)) {
       return 'prime_prep_user'; // School subscription grants full IELTS access
     }
   } catch {
