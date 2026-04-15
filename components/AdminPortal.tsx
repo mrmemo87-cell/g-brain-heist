@@ -1644,10 +1644,16 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     }
 
     try {
-      await CompetitionService.deletePlayer(userId);
+      const result = await CompetitionService.deletePlayer(userId);
       setUsers(prev => prev.filter(u => u.id !== userId));
       await refreshAdminData();
-      addToast(`🗑️ Deleted ${username}`, 'success');
+
+      const totalRowsDeleted = Object.values(result.rows_deleted || {}).reduce((sum, count) => sum + Number(count || 0), 0);
+      const warningSuffix = result.warnings?.length ? ` ⚠️ ${result.warnings.length} warning(s).` : '';
+      addToast(
+        `🗑️ Deleted ${username}. Auth deleted: ${result.auth_deleted ? 'yes' : 'no'}. Rows: ${totalRowsDeleted}. Storage objects: ${result.storage_deleted}.${warningSuffix}`,
+        result.warnings?.length ? 'info' : 'success'
+      );
     } catch (error) {
       reportRpcError('Failed to delete user:', error, 'Failed to delete user');
     }
