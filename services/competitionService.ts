@@ -452,14 +452,41 @@ export const setPlayerBanned = async (userId: string, isBanned: boolean): Promis
   return isBanned;
 };
 
-export const deletePlayer = async (userId: string): Promise<void> => {
-  const { error } = await supabase.rpc('rpc_admin_delete_user', {
-    p_user_id: userId,
+export interface AdminDeleteUserResult {
+  success: boolean;
+  auth_deleted: boolean;
+  rows_deleted: Record<string, number>;
+  storage_deleted: number;
+  warnings: string[];
+  storage_paths?: string[];
+  error?: string;
+}
+
+export const deletePlayer = async (userId: string, dryRun = false): Promise<AdminDeleteUserResult> => {
+  const { data, error } = await supabase.functions.invoke('admin_delete_user', {
+    body: {
+      user_id: userId,
+      dry_run: dryRun,
+    },
+    headers: {
+      'Content-Type': 'application/json',
+    },
   });
 
   if (error) {
     throw new Error(error.message || 'Failed to delete player');
   }
+
+  if (!data || typeof data !== 'object') {
+    throw new Error('Unexpected delete-user response');
+  }
+
+  const payload = data as AdminDeleteUserResult;
+  if (!payload.success) {
+    throw new Error(payload.error || 'Failed to delete player');
+  }
+
+  return payload;
 };
 
 export const searchPlayers = async (query: string, limit = 20) => {

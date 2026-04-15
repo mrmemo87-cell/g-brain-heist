@@ -801,28 +801,16 @@ begin
     raise exception 'cannot_delete_self';
   end if;
 
-  begin
-    if v_delete_proc is not null then
-      perform auth.delete_user(p_user_id);
-    elsif v_admin_delete_proc is not null then
-      perform auth.admin_delete_user(p_user_id);
-    end if;
-  exception when others then
-    null;
-  end;
-
-  delete from users
-  where id = p_user_id
-  returning id into v_deleted;
-
-  if not found then
-    raise exception 'user_not_found';
-  end if;
-
   insert into rpc_event_log(function_name, log_level, message, user_id, context)
-  values ('rpc_admin_delete_user', 'info', 'user_deleted', v_actor, json_build_object('target', p_user_id));
+  values (
+    'rpc_admin_delete_user',
+    'error',
+    'deprecated_use_admin_delete_user_edge_function',
+    v_actor,
+    json_build_object('target', p_user_id, 'deprecated', true)
+  );
 
-  return query select v_deleted;
+  raise exception 'rpc_admin_delete_user is deprecated. Use edge function admin_delete_user.';
 exception when others then
   insert into rpc_event_log(function_name, log_level, message, user_id, context)
   values ('rpc_admin_delete_user', 'error', SQLERRM, v_actor, json_build_object('target', p_user_id));
