@@ -158,9 +158,22 @@ serve(async (req) => {
       });
     }
 
-    const body = (await req.json()) as DeleteRequest;
-    targetUserId = String(body.user_id ?? "").trim();
-    dryRun = Boolean(body.dry_run);
+    let body: DeleteRequest | null = null;
+    try {
+      body = (await req.json()) as DeleteRequest;
+    } catch {
+      return json(req, 400, {
+        success: false,
+        auth_deleted: false,
+        rows_deleted: {},
+        storage_deleted: 0,
+        warnings: ["Request body must be valid JSON."],
+        error: "invalid_json_body",
+      });
+    }
+
+    targetUserId = String(body?.user_id ?? "").trim();
+    dryRun = Boolean(body?.dry_run);
 
     if (!isUuid(targetUserId)) {
       return json(req, 400, {
