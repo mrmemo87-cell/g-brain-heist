@@ -586,7 +586,8 @@ export const CONFIG = {
   TOTAL_COIN_LOOT: 100000,
   TOTAL_XP_LOOT: 5000,
   TOTAL_GEM_LOOT: 5,
-  MAX_COINS_PER_PLAYER: 20000,
+  // Must stay <= rpc_claim_clan_territory_reward official safety cap (10,000) to avoid payout rejection.
+  MAX_COINS_PER_PLAYER: 10000,
   MAX_XP_PER_PLAYER: 1000,
   MAX_GEMS_PER_PLAYER: 1,
   GEM_ELIGIBILITY_MIN_QUESTIONS: 5,
