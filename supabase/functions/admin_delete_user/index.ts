@@ -33,7 +33,7 @@ const buildCorsHeaders = (req: Request) => {
   };
 };
 
-const FUNCTION_VERSION = "admin_delete_user_debug_v3";
+const FUNCTION_VERSION = "admin_delete_user_debug_v4";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -316,7 +316,7 @@ serve(async (req) => {
       { table: "ielts_prime_applications", columns: ["user_id"] },
       { table: "ielts_notification_preferences", columns: ["user_id"] },
       // Preserve admin audit history; schema is not user_id-based in production.
-      { table: "question_attempts", columns: ["student_id", "user_id"] },
+      { table: "question_attempts", columns: ["student_id"] },
       { table: "attempts", columns: ["user_id"] },
       { table: "activity_reactions", columns: ["user_id"] },
       { table: "activities", columns: ["actor_id", "target_id"] },
@@ -353,8 +353,42 @@ serve(async (req) => {
       { table: "ielts_users", columns: ["id"] },
     ];
 
+    const resolveValidUserColumns = async (table: string, columns: string[]) => {
+      const validColumns: string[] = [];
+
+      for (const column of unique(columns)) {
+        const { error } = await admin.from(table).select(column, { count: "exact", head: true }).eq(column, targetUserId);
+
+        if (!error) {
+          validColumns.push(column);
+          continue;
+        }
+
+        if (error.code === "42703") {
+          warnings.push(`invalid_user_column:${table}.${column}`);
+          continue;
+        }
+
+        if (error.code === "42P01") {
+          warnings.push(`table_missing:${table}`);
+          return [];
+        }
+
+        warnings.push(`column_probe_failed:${table}.${column}:${formatPgError(error)}`);
+      }
+
+      return validColumns;
+    };
+
     for (const spec of directUserDeletes) {
-      const filter = spec.columns.map((c) => `${c}.eq.${targetUserId}`).join(",");
+      const validColumns = await resolveValidUserColumns(spec.table, spec.columns);
+      if (validColumns.length === 0) {
+        rowsDeleted[spec.table] = 0;
+        warnings.push(`no_valid_user_columns:${spec.table}`);
+        continue;
+      }
+
+      const filter = validColumns.map((c) => `${c}.eq.${targetUserId}`).join(",");
       await deleteRows(spec.table, (q) => q.or(filter));
     }
 
