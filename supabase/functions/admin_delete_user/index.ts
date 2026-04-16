@@ -16,10 +16,20 @@ type DeleteResponse = {
   error?: string;
 };
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
+const buildCorsHeaders = (req: Request) => {
+  const origin = req.headers.get("origin") ?? "*";
+  const requestedHeaders =
+    req.headers.get("access-control-request-headers") ??
+    "authorization, x-client-info, apikey, content-type, x-supabase-api-version";
+
+  return {
+    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Headers": requestedHeaders,
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Max-Age": "86400",
+    Vary: "Origin, Access-Control-Request-Headers",
+  };
 };
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
@@ -33,10 +43,10 @@ const admin = createClient(supabaseUrl, serviceRoleKey, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 
-const json = (status: number, payload: DeleteResponse) =>
+const json = (req: Request, status: number, payload: DeleteResponse) =>
   new Response(JSON.stringify(payload), {
     status,
-    headers: { "Content-Type": "application/json", ...corsHeaders },
+    headers: { "Content-Type": "application/json", ...buildCorsHeaders(req) },
   });
 
 const isUuid = (value: string) =>
@@ -49,11 +59,14 @@ const unique = (values: string[]) => [...new Set(values)];
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response(null, {
+      status: 204,
+      headers: buildCorsHeaders(req),
+    });
   }
 
   if (req.method !== "POST") {
-    return json(405, {
+    return json(req, 405, {
       success: false,
       auth_deleted: false,
       rows_deleted: {},
@@ -94,7 +107,7 @@ serve(async (req) => {
     const authHeader = req.headers.get("Authorization") ?? "";
     const token = authHeader.replace(/^Bearer\s+/i, "").trim();
     if (!token) {
-      return json(401, {
+      return json(req, 401, {
         success: false,
         auth_deleted: false,
         rows_deleted: {},
@@ -106,7 +119,7 @@ serve(async (req) => {
 
     const { data: authData, error: authError } = await admin.auth.getUser(token);
     if (authError || !authData?.user) {
-      return json(401, {
+      return json(req, 401, {
         success: false,
         auth_deleted: false,
         rows_deleted: {},
@@ -124,7 +137,7 @@ serve(async (req) => {
       .maybeSingle();
 
     if (superadminError) {
-      return json(403, {
+      return json(req, 403, {
         success: false,
         auth_deleted: false,
         rows_deleted: {},
@@ -135,7 +148,7 @@ serve(async (req) => {
     }
 
     if (!superadminRow?.user_id) {
-      return json(403, {
+      return json(req, 403, {
         success: false,
         auth_deleted: false,
         rows_deleted: {},
@@ -150,7 +163,7 @@ serve(async (req) => {
     dryRun = Boolean(body.dry_run);
 
     if (!isUuid(targetUserId)) {
-      return json(400, {
+      return json(req, 400, {
         success: false,
         auth_deleted: false,
         rows_deleted: {},
@@ -161,7 +174,7 @@ serve(async (req) => {
     }
 
     if (targetUserId === actorId) {
-      return json(400, {
+      return json(req, 400, {
         success: false,
         auth_deleted: false,
         rows_deleted: {},
@@ -337,7 +350,7 @@ serve(async (req) => {
 
     await audit("success");
 
-    return json(200, {
+    return json(req, 200, {
       success: true,
       auth_deleted: dryRun ? false : true,
       rows_deleted: rowsDeleted,
@@ -349,7 +362,7 @@ serve(async (req) => {
     const message = error instanceof Error ? error.message : "unknown_error";
     warnings.push(message);
     await audit("failure");
-    return json(500, {
+    return json(req, 500, {
       success: false,
       auth_deleted: false,
       rows_deleted: rowsDeleted,
