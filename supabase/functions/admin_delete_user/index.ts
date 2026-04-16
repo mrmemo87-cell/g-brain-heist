@@ -259,7 +259,7 @@ serve(async (req) => {
     }
 
     // Deletion helpers
-    const countRows = async (table: string, apply: (q: any) => any) => {
+    const countRows = async (table: string, apply: (q: any) => any): Promise<number | null> => {
       const query = apply(admin.from(table).select("*", { count: "exact", head: true }));
       const { count, error } = await query;
       if (error) {
@@ -267,15 +267,17 @@ serve(async (req) => {
           warnings.push(`table_missing:${table}`);
           return 0;
         }
-        throw new Error(`count_failed:${table}:${formatPgError(error)}`);
+        warnings.push(`count_failed:${table}:${formatPgError(error)}`);
+        return null;
       }
       return count ?? 0;
     };
 
     const deleteRows = async (table: string, apply: (q: any) => any) => {
       const count = await countRows(table, apply);
-      rowsDeleted[table] = count;
-      if (dryRun || count === 0) return;
+      rowsDeleted[table] = count ?? 0;
+      if (dryRun) return;
+      if (count === 0) return;
 
       const query = apply(admin.from(table).delete());
       const { error } = await query;
