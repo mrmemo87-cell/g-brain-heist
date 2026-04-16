@@ -33,25 +33,25 @@ const Toast: React.FC<ToastProps> = ({ id, message, type, retryAction, onDismiss
 
   const typeStyles = {
     success: {
-      container: 'border-emerald-400/60 bg-emerald-950/90 text-emerald-100',
+      container: 'border-emerald-300 bg-emerald-900 text-emerald-50',
       badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40',
       title: 'Success update',
       action: 'Got it',
     },
     error: {
-      container: 'border-rose-400/60 bg-rose-950/90 text-rose-100',
+      container: 'border-rose-300 bg-rose-900 text-rose-50',
       badge: 'bg-rose-500/20 text-rose-300 border-rose-400/40',
       title: 'Action needed',
       action: retryAction ? 'Retry now' : 'Dismiss',
     },
     info: {
-      container: 'border-sky-400/60 bg-sky-950/90 text-sky-100',
+      container: 'border-sky-300 bg-sky-900 text-sky-50',
       badge: 'bg-sky-500/20 text-sky-300 border-sky-400/40',
       title: 'Heads up',
       action: 'Understood',
     },
     warning: {
-      container: 'border-amber-400/60 bg-amber-950/90 text-amber-100',
+      container: 'border-amber-300 bg-amber-900 text-amber-50',
       badge: 'bg-amber-500/20 text-amber-300 border-amber-400/40',
       title: 'Warning',
       action: 'Review',
@@ -65,7 +65,7 @@ const Toast: React.FC<ToastProps> = ({ id, message, type, retryAction, onDismiss
     <div
       role="status"
       aria-live="polite"
-      className={`pointer-events-auto w-[min(92vw,420px)] rounded-2xl border shadow-2xl backdrop-blur-md transition-all duration-300 ${style.container} ${animationClasses}`}
+      className={`pointer-events-auto w-[min(92vw,420px)] rounded-2xl border shadow-2xl ring-1 ring-white/20 transition-all duration-300 ${style.container} ${animationClasses}`}
     >
       <div className="p-4">
         <div className="flex items-start gap-3">
