@@ -2,7 +2,7 @@ import React from 'react';
 import { useAdmin } from '../AdminContext';
 import * as CompetitionService from '../../../services/competitionService';
 
-const IGNORED_DETAIL_KEYS = new Set(['crest_url', 'description', 'name']);
+const IGNORED_DETAIL_KEYS = new Set(['crest_url', 'description', 'name', 'leader_id']);
 
 const formatLabel = (key: string) => key.replace(/_/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
 
@@ -28,19 +28,69 @@ const ClansTab: React.FC = () => {
     transferClanLeadership,
   } = useAdmin();
 
+  const refreshClans = async () => {
+    try {
+      const { data: clans, error: clansError } = await supabase.from('clans').select('*').order('name');
+      if (clansError) throw clansError;
+
+      const clanRows = clans || [];
+      const leaderIds = Array.from(new Set(clanRows.map((clan: any) => clan.leader_id).filter(Boolean)));
+      const clanIds = clanRows.map((clan: any) => clan.id).filter(Boolean);
+
+      const leaderMap = new Map<string, any>();
+      if (leaderIds.length > 0) {
+        const { data: leaders, error: leadersError } = await supabase
+          .from('users')
+          .select('id, username, email, school_id, schools:school_id(name)')
+          .in('id', leaderIds);
+        if (leadersError) throw leadersError;
+        (leaders || []).forEach((leader: any) => {
+          leaderMap.set(leader.id, leader);
+        });
+      }
+
+      const memberMap = new Map<string, string[]>();
+      if (clanIds.length > 0) {
+        const { data: members, error: membersError } = await supabase
+          .from('clan_members')
+          .select('clan_id, users:user_id(username, email)')
+          .in('clan_id', clanIds);
+        if (membersError) throw membersError;
+
+        (members || []).forEach((row: any) => {
+          const username = row.users?.username || row.users?.email || 'Unknown user';
+          if (!memberMap.has(row.clan_id)) memberMap.set(row.clan_id, []);
+          memberMap.get(row.clan_id)?.push(username);
+        });
+
+        memberMap.forEach((usernames) => usernames.sort((a, b) => a.localeCompare(b)));
+      }
+
+      const enrichedClans = clanRows.map((clan: any) => {
+        const leader = clan.leader_id ? leaderMap.get(clan.leader_id) : null;
+        const schoolName = leader?.schools?.name || leader?.school_id || 'Independent / No school';
+
+        return {
+          ...clan,
+          leader_name: leader?.username || leader?.email || 'Unknown leader',
+          school_name: schoolName,
+          member_usernames: memberMap.get(clan.id) || [],
+        };
+      });
+
+      setClanList(enrichedClans);
+      addToast(`Loaded ${enrichedClans.length} clans`, 'success');
+    } catch (error) {
+      reportRpcError('Failed to load clans:', error, 'Failed to load clans');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="card-glass p-6 border-2 border-blue-400/50">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-3xl font-heading font-bold text-blue-300">🛡️ Clan Management</h3>
-          <button onClick={async () => {
-            try {
-              const { data, error } = await supabase.from('clans').select('*').order('name');
-              if (error) throw error;
-              setClanList(data || []);
-              addToast(`Loaded ${data?.length ?? 0} clans`, 'success');
-            } catch (error) { reportRpcError('Failed to load clans:', error, 'Failed to load clans'); }
-          }} className="bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-white px-4 py-2 rounded-lg font-semibold">
+          <button onClick={refreshClans} className="bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-white px-4 py-2 rounded-lg font-semibold">
             🔄 Refresh Clans
           </button>
         </div>
@@ -55,7 +105,7 @@ const ClansTab: React.FC = () => {
         {clanList.length > 0 && (
           <div className="grid grid-cols-1 gap-4">
             {clanList.map(c => {
-              const detailEntries = Object.entries(c || {}).filter(([key]) => !IGNORED_DETAIL_KEYS.has(key));
+              const detailEntries = Object.entries(c || {}).filter(([key]) => !IGNORED_DETAIL_KEYS.has(key) && key !== 'member_usernames');
 
               return (
                 <div key={c.id} className={`rounded-xl border-2 p-4 transition-all ${selectedClan?.id === c.id ? 'border-blue-400 bg-blue-500/10 shadow-[0_0_20px_rgba(59,130,246,0.4)]' : 'border-gray-600 bg-black/30 hover:border-blue-400/50'}`}>
@@ -65,6 +115,7 @@ const ClansTab: React.FC = () => {
                       <div>
                         <p className="font-bold text-white text-lg">{c.name}</p>
                         <p className="text-xs text-gray-400">{c.member_count ?? 0} members • Created {c.created_at ? new Date(c.created_at).toLocaleDateString() : 'N/A'}</p>
+                        <p className="text-xs text-cyan-300/90 mt-0.5">🏫 {c.school_name || 'Independent / No school'}</p>
                         {c.description && <p className="text-xs text-gray-400 mt-1">{c.description}</p>}
                       </div>
                     </div>
@@ -94,6 +145,14 @@ const ClansTab: React.FC = () => {
                   <div className="mt-3 rounded-lg border border-blue-400/20 bg-black/20 p-3">
                     <p className="text-[11px] uppercase tracking-wide text-blue-200 mb-2">Full Clan Details</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 text-xs">
+                      <div className="rounded border border-blue-400/15 bg-black/30 px-2 py-1.5">
+                        <p className="text-[10px] uppercase tracking-wide text-gray-400">Leader Username</p>
+                        <p className="text-gray-100 break-words">{c.leader_name || '—'}</p>
+                      </div>
+                      <div className="rounded border border-blue-400/15 bg-black/30 px-2 py-1.5 md:col-span-2 xl:col-span-2">
+                        <p className="text-[10px] uppercase tracking-wide text-gray-400">Member Usernames</p>
+                        <p className="text-gray-100 break-words">{(c.member_usernames || []).length > 0 ? c.member_usernames.join(', ') : '—'}</p>
+                      </div>
                       {detailEntries.map(([key, value]) => (
                         <div key={key} className="rounded border border-blue-400/15 bg-black/30 px-2 py-1.5">
                           <p className="text-[10px] uppercase tracking-wide text-gray-400">{formatLabel(key)}</p>
