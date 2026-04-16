@@ -269,21 +269,7 @@ serve(async (req) => {
       }
     };
 
-    // Step 2: Non-FK payload/manual deletes
-    const payloadTables = [
-      "bh_writing_attempts",
-      "bh_writing_weekly_plans",
-      "bh_writing_daily_tasks",
-      "bh_writing_daily_submissions",
-      "bh_writing_daily_evaluations",
-      "bh_writing_monthly_reports",
-      "bh_writing_memory_snapshots",
-      "bh_writing_review_signals",
-    ];
-
-    for (const table of payloadTables) {
-      await deleteRows(table, (q) => q.or(`payload->>student_id.eq.${targetUserId},payload->>user_id.eq.${targetUserId}`));
-    }
+  // Step 2 temporarily disabled while isolating JSON filter crash
 
     // Step 3: Explicit FK/non-cascade cleanup where schema may vary
     const directUserDeletes: Array<{ table: string; columns: string[] }> = [
