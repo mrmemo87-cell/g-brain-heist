@@ -4749,18 +4749,18 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
             className="simple-cinematic-panel"
             style={{
               width: 'min(940px, 100%)',
-              height: 'calc(100dvh - (env(safe-area-inset-top) + env(safe-area-inset-bottom) + 16px))',
-              maxHeight: 'calc(100dvh - (env(safe-area-inset-top) + env(safe-area-inset-bottom) + 16px))',
+              height: 'calc(100dvh - (env(safe-area-inset-top) + env(safe-area-inset-bottom) + 12px))',
+              maxHeight: 'calc(100dvh - (env(safe-area-inset-top) + env(safe-area-inset-bottom) + 12px))',
               minHeight: 0,
               overflow: 'hidden',
               borderRadius: 24,
               border: '1px solid rgba(148,163,184,0.2)',
               background: 'linear-gradient(180deg, #0c1527 0%, #080e1c 100%)',
-              padding: '24px 22px',
+              padding: 'max(16px, calc(12px + env(safe-area-inset-top))) 18px max(14px, calc(10px + env(safe-area-inset-bottom)))',
               color: '#e2e8f0',
-              display: 'grid',
-              gridTemplateRows: 'auto minmax(0, 1fr) auto auto auto auto',
-              gap: 18,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12,
               boxShadow: '0 0 80px rgba(99,102,241,0.15), 0 25px 60px rgba(0,0,0,0.5)',
             }}
           >
@@ -4781,22 +4781,40 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
               </button>
             </div>
 
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, border: '1px solid rgba(148,163,184,0.24)', background: 'rgba(15,23,42,0.58)', flexShrink: 0 }}>
+              <span style={{ color: activeCinematicRange?.polarity === 'strong' ? '#86efac' : '#fca5a5', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.65 }}>
+                Highlight
+              </span>
+              <p style={{ margin: 0, color: '#cbd5e1', fontSize: 13, lineHeight: 1.45, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {activeCinematicRange?.sourceExactText?.trim() || activeCinematicDetail.detail}
+              </p>
+            </div>
+
+            <div
+              style={{
+                minHeight: 0,
+                flex: '1 1 auto',
+                overflowY: 'auto',
+                overflowX: 'hidden',
+                WebkitOverflowScrolling: 'touch',
+                overscrollBehavior: 'contain',
+                display: 'grid',
+                gap: 12,
+                alignContent: 'start',
+                paddingBottom: 4,
+              }}
+            >
             <div
               ref={cinematicTextPanelRef}
               className="cinematic-text-panel"
               style={{
                 position: 'relative',
                 minHeight: 0,
-                maxHeight: 'min(46dvh, 420px)',
-                overflowY: 'auto',
-                overflowX: 'hidden',
-                WebkitOverflowScrolling: 'touch',
-                overscrollBehavior: 'contain',
+                overflow: 'hidden',
                 borderRadius: 16,
                 border: '1px solid rgba(148,163,184,0.18)',
                 background: 'linear-gradient(180deg, rgba(15,23,42,0.7) 0%, rgba(15,23,42,0.5) 100%)',
                 padding: '18px 20px',
-                paddingBottom: 28,
                 lineHeight: 1.85,
                 fontSize: 16,
               }}
@@ -4807,54 +4825,6 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
               {submittedText
                 ? renderAnnotatedText(submittedText, cinematicRanges, cinematicIndex, handleRangeMount)
                 : 'No submission text available.'}
-            </div>
-            <div className="cinematic-nav-bar" style={{ paddingTop: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                {cinematicRanges.map((r, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setCinematicIndex(idx)}
-                    aria-label={`Step ${idx + 1}`}
-                    style={{
-                      width: idx === (cinematicIndex ?? 0) ? 22 : 8,
-                      height: 8,
-                      borderRadius: 999,
-                      border: 'none',
-                      cursor: 'pointer',
-                      background: idx === (cinematicIndex ?? 0)
-                        ? (r.polarity === 'strong' ? 'linear-gradient(90deg, #4ade80, #22d3ee)' : 'linear-gradient(90deg, #f87171, #fb923c)')
-                        : 'rgba(100,116,139,0.4)',
-                      boxShadow: idx === (cinematicIndex ?? 0)
-                        ? (r.polarity === 'strong' ? '0 0 10px rgba(74,222,128,0.5)' : '0 0 10px rgba(248,113,113,0.5)')
-                        : 'none',
-                      transition: 'all 250ms cubic-bezier(0.34, 1.56, 0.64, 1)',
-                      padding: 0,
-                    }}
-                  />
-                ))}
-                <span style={{ color: '#94a3b8', fontSize: 13, marginLeft: 8, fontWeight: 600 }}>
-                  {cinematicRanges.length > 0 ? `${(cinematicIndex ?? 0) + 1} / ${cinematicRanges.length}` : ''}
-                </span>
-              </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button
-                  type="button"
-                  onClick={() => setCinematicIndex((prev) => Math.max(0, (prev ?? 0) - 1))}
-                  disabled={cinematicRanges.length === 0 || (cinematicIndex ?? 0) <= 0}
-                  style={{ borderRadius: 12, border: '1px solid rgba(148,163,184,0.35)', background: 'rgba(30,41,59,0.6)', color: '#e2e8f0', padding: '10px 18px', fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: 'transform 120ms ease, box-shadow 120ms ease' }}
-                >
-                  ← Back
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCinematicIndex((prev) => Math.min(cinematicRanges.length - 1, (prev ?? 0) + 1))}
-                  disabled={cinematicRanges.length === 0 || (cinematicIndex ?? 0) >= cinematicRanges.length - 1}
-                  style={{ borderRadius: 12, border: '1px solid rgba(96,165,250,0.4)', background: 'linear-gradient(135deg, rgba(37,99,235,0.3), rgba(30,41,59,0.6))', color: '#e2e8f0', padding: '10px 18px', fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: 'transform 120ms ease, box-shadow 120ms ease' }}
-                >
-                  Next →
-                </button>
-              </div>
             </div>
             <div className="cinematic-detail-card" style={{ borderRadius: 16, border: `1px solid ${activeCinematicRange?.polarity === 'strong' ? 'rgba(34,197,94,0.4)' : 'rgba(248,113,113,0.4)'}`, background: activeCinematicRange?.polarity === 'strong' ? 'rgba(6,78,59,0.15)' : 'rgba(127,29,29,0.12)', padding: '16px 18px', display: 'grid', gap: 10, boxShadow: `0 0 24px ${activeCinematicRange?.polarity === 'strong' ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)'}` }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -4934,8 +4904,58 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                 </div>
               )}
             </div>
+            </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 10 }}>
+            <div style={{ display: 'grid', gap: 10, flexShrink: 0, paddingTop: 2 }}>
+              <div className="cinematic-nav-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {cinematicRanges.map((r, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setCinematicIndex(idx)}
+                      aria-label={`Step ${idx + 1}`}
+                      style={{
+                        width: idx === (cinematicIndex ?? 0) ? 22 : 8,
+                        height: 8,
+                        borderRadius: 999,
+                        border: 'none',
+                        cursor: 'pointer',
+                        background: idx === (cinematicIndex ?? 0)
+                          ? (r.polarity === 'strong' ? 'linear-gradient(90deg, #4ade80, #22d3ee)' : 'linear-gradient(90deg, #f87171, #fb923c)')
+                          : 'rgba(100,116,139,0.4)',
+                        boxShadow: idx === (cinematicIndex ?? 0)
+                          ? (r.polarity === 'strong' ? '0 0 10px rgba(74,222,128,0.5)' : '0 0 10px rgba(248,113,113,0.5)')
+                          : 'none',
+                        transition: 'all 250ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+                        padding: 0,
+                      }}
+                    />
+                  ))}
+                  <span style={{ color: '#94a3b8', fontSize: 13, marginLeft: 8, fontWeight: 600 }}>
+                    {cinematicRanges.length > 0 ? `${(cinematicIndex ?? 0) + 1} / ${cinematicRanges.length}` : ''}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    type="button"
+                    onClick={() => setCinematicIndex((prev) => Math.max(0, (prev ?? 0) - 1))}
+                    disabled={cinematicRanges.length === 0 || (cinematicIndex ?? 0) <= 0}
+                    style={{ borderRadius: 12, border: '1px solid rgba(148,163,184,0.35)', background: 'rgba(30,41,59,0.6)', color: '#e2e8f0', padding: '10px 18px', fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: 'transform 120ms ease, box-shadow 120ms ease' }}
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCinematicIndex((prev) => Math.min(cinematicRanges.length - 1, (prev ?? 0) + 1))}
+                    disabled={cinematicRanges.length === 0 || (cinematicIndex ?? 0) >= cinematicRanges.length - 1}
+                    style={{ borderRadius: 12, border: '1px solid rgba(96,165,250,0.4)', background: 'linear-gradient(135deg, rgba(37,99,235,0.3), rgba(30,41,59,0.6))', color: '#e2e8f0', padding: '10px 18px', fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: 'transform 120ms ease, box-shadow 120ms ease' }}
+                  >
+                    Next →
+                  </button>
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 10 }}>
               <button
                 type="button"
                 onClick={beginRetrySamePrompt}
@@ -4953,6 +4973,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
               >
                 🆕 New prompt
               </button>
+            </div>
             </div>
             {!cinematicDone && <p style={{ margin: 0, color: '#93c5fd', fontSize: 12 }}>Review animation in progress…</p>}
           </div>
