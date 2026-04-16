@@ -2295,7 +2295,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         <div className={cinematicViewClass}>
           {renderView()}
         </div>
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-3 px-4 pointer-events-none">
+        <div className="fixed inset-0 z-[10001] flex flex-col items-center justify-center gap-3 px-4 pointer-events-none">
           {toasts.map(toast => (
             <Toast
               key={toast.id}
