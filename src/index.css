@@ -1699,6 +1699,26 @@ button {
   background-color: #f8fafc !important;
 }
 
+/* Keep native dropdown menus readable in dark admin portals */
+.admin-portal select,
+.school-admin-portal select {
+  color-scheme: dark;
+}
+
+.admin-portal select option,
+.admin-portal select optgroup,
+.school-admin-portal select option,
+.school-admin-portal select optgroup {
+  background-color: #0b1223;
+  color: #f8fafc;
+}
+
+.admin-portal select option:checked,
+.school-admin-portal select option:checked {
+  background-color: #1d4ed8;
+  color: #ffffff;
+}
+
 /* Professional buttons */
 .teacher-portal-light .btn-primary {
   background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
