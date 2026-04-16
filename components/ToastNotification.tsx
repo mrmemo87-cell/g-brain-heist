@@ -37,7 +37,7 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({ maxToasts = 3 })
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-2 px-4 pointer-events-none">
+    <div className="fixed inset-0 z-[10001] flex flex-col items-center justify-center gap-2 px-4 pointer-events-none">
       {toasts.map((toast, index) => (
         <Toast 
           key={toast.id} 
