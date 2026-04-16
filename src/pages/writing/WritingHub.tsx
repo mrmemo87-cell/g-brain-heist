@@ -1052,6 +1052,102 @@ if (!prefersStrength && grammar) return { label: 'Grammar fix', detail: toTeache
 
 const normalizeComparisonText = (value: string): string => value.replace(/\s+/g, ' ').trim().toLowerCase();
 
+const normalizeForComparison = (text: string): string => text
+  .trim()
+  .replace(/\s+/g, ' ')
+  .replace(/\s+([,.;:!?])/g, '$1')
+  .replace(/([,.;:!?])(?=\S)/g, '$1 ')
+  .replace(/\s+/g, ' ')
+  .toLowerCase();
+
+const stripOuterPunctuation = (text: string): string => text.replace(/^[\s"'“”‘’.,;:!?()[\]{}-]+|[\s"'“”‘’.,;:!?()[\]{}-]+$/g, '');
+
+const isMeaningfullyDifferent = (a: string, b: string): boolean => {
+  const normalizedA = stripOuterPunctuation(normalizeForComparison(a));
+  const normalizedB = stripOuterPunctuation(normalizeForComparison(b));
+  if (!normalizedA && !normalizedB) return false;
+  return normalizedA !== normalizedB;
+};
+
+type GuidedIssueKind = 'grammar' | 'punctuation' | 'phrase' | 'strength' | 'support' | 'clarity';
+
+type GuidedReviewIssue = {
+  id: string;
+  kind: GuidedIssueKind;
+  label: string;
+  originalSentence: string;
+  diagnosis: string;
+  improvedSentence: string | null;
+  whyThisIsStronger: string;
+  coachingNote: string | null;
+  evidenceSpan: string;
+};
+
+const bannedFeedbackPatterns = [
+  /^this sentence has a grammar mistake\.?$/i,
+  /^this sentence needs a small grammar fix\.?$/i,
+  /^this is better\.?$/i,
+  /^this is unclear\.?$/i,
+];
+
+const containsMeaningfulTokenOverlap = (source: string, target: string): boolean => {
+  const sourceTokens = new Set(
+    normalizeForComparison(source)
+      .split(' ')
+      .map((token) => token.replace(/[^a-z0-9]/gi, '').trim())
+      .filter((token) => token.length >= 4)
+  );
+  if (sourceTokens.size === 0) return true;
+  const targetTokens = normalizeForComparison(target)
+    .split(' ')
+    .map((token) => token.replace(/[^a-z0-9]/gi, '').trim())
+    .filter((token) => token.length >= 4);
+  return targetTokens.some((token) => sourceTokens.has(token));
+};
+
+const validateIssueConsistency = (issue: GuidedReviewIssue): { valid: boolean; reason?: string } => {
+  if (!issue.originalSentence.trim()) return { valid: false, reason: 'missing_original_sentence' };
+  const consistencyFields = [issue.diagnosis, issue.whyThisIsStronger, issue.coachingNote ?? ''].join(' ').trim();
+  if (!consistencyFields) return { valid: false, reason: 'missing_explanation_fields' };
+  if (!containsMeaningfulTokenOverlap(issue.originalSentence, consistencyFields)) {
+    return { valid: false, reason: 'explanation_not_grounded_in_sentence' };
+  }
+  if (issue.improvedSentence && !isMeaningfullyDifferent(issue.originalSentence, issue.improvedSentence)) {
+    return { valid: false, reason: 'non_meaningful_rewrite' };
+  }
+  return { valid: true };
+};
+
+const remapIssueType = (issue: GuidedReviewIssue): GuidedReviewIssue => {
+  if (issue.kind === 'grammar') {
+    if (!issue.improvedSentence || !isMeaningfullyDifferent(issue.originalSentence, issue.improvedSentence)) {
+      return {
+        ...issue,
+        kind: 'clarity',
+        label: 'Clearer phrasing',
+        improvedSentence: null,
+        whyThisIsStronger: 'No grammar rewrite is needed here. Focus on making the idea clearer or more specific.',
+      };
+    }
+  }
+  return issue;
+};
+
+const getSafeIssueExplanation = (issue: GuidedReviewIssue): GuidedReviewIssue => {
+  const diagnosis = issue.diagnosis.trim();
+  const hasBannedCopy = bannedFeedbackPatterns.some((pattern) => pattern.test(diagnosis));
+  if (!hasBannedCopy) return issue;
+  const fallbackDiagnosis = issue.kind === 'grammar'
+    ? `Adjust this sentence for grammar accuracy: "${issue.originalSentence}".`
+    : issue.kind === 'support'
+      ? `Develop this idea with one specific reason or example: "${issue.originalSentence}".`
+      : `Clarify what you mean in this sentence: "${issue.originalSentence}".`;
+  return {
+    ...issue,
+    diagnosis: fallbackDiagnosis,
+  };
+};
+
 const pickLessonFixForRange = (
   range: TextAnchorRange | null,
   snippet: string,
@@ -4488,17 +4584,74 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     () => pickLessonFixForRange(activeCinematicRange, activeSnippet, aiFeedback),
     [activeCinematicRange, activeSnippet, aiFeedback]
   );
-  const issueTypeLabel = useMemo(() => {
-    if (activeLessonFix?.kind === 'grammar') return 'Grammar issue';
-    if (activeLessonFix?.kind === 'punctuation') return 'Punctuation issue';
-    if (activeLessonFix?.kind === 'phrase') return 'Wording upgrade';
-    return activeCinematicRange?.polarity === 'strong' ? 'Strong example' : 'Writing issue';
-  }, [activeLessonFix, activeCinematicRange?.polarity]);
-  const betterVersionText = activeLessonFix?.betterVersion || activeCinematicDetail.correction || activeSnippet;
-  const whatToImproveText = simplifyStudentLanguage(activeLessonFix?.why || activeCinematicDetail.detail);
-  const whyItMattersText = simplifyStudentLanguage(
-    aiFeedback?.next_move || aiFeedback?.next_steps?.[0] || 'Clear edits make your writing easier to understand and raise your rubric score.'
-  );
+  const activeReviewIssue = useMemo((): GuidedReviewIssue => {
+    const originalSentence = activeSnippet || activeCinematicRange?.sourceExactText || 'No snippet available.';
+    const candidateImproved = activeLessonFix?.betterVersion || activeCinematicDetail.correction || '';
+    const improvedSentence = candidateImproved && isMeaningfullyDifferent(originalSentence, candidateImproved)
+      ? candidateImproved
+      : null;
+    const kind: GuidedIssueKind = activeCinematicRange?.polarity === 'strong'
+      ? 'strength'
+      : activeLessonFix?.kind === 'grammar'
+        ? 'grammar'
+        : activeLessonFix?.kind === 'punctuation'
+          ? 'punctuation'
+          : activeLessonFix?.kind === 'phrase'
+            ? /support|evidence|example|reason|detail/i.test(activeLessonFix?.why ?? '')
+              ? 'support'
+              : 'clarity'
+            : 'clarity';
+    const label =
+      kind === 'grammar' ? 'Grammar issue' :
+        kind === 'punctuation' ? 'Punctuation issue' :
+          kind === 'support' ? 'Develop the idea' :
+            kind === 'clarity' ? 'Make it clearer' :
+              kind === 'strength' ? 'Strong example' : 'Writing issue';
+    const diagnosis = simplifyStudentLanguage(activeLessonFix?.why || activeCinematicDetail.detail).trim() || `Improve this sentence: "${originalSentence}"`;
+    const whyThisIsStronger = kind === 'grammar'
+      ? `The revision fixes grammar so the sentence reads correctly: "${originalSentence}".`
+      : kind === 'punctuation'
+        ? `The revision improves punctuation, which makes your sentence easier to read.`
+        : kind === 'support'
+          ? 'Adding a concrete detail or example makes your point more convincing.'
+          : kind === 'strength'
+            ? 'Keep this sentence style in future paragraphs because it is clear and purposeful.'
+            : improvedSentence
+              ? 'The revised version is clearer and easier for the reader to follow.'
+              : 'This sentence already works; refine it only if you can add more precision.';
+    const scopedCoaching = kind === 'strength'
+      ? null
+      : simplifyStudentLanguage(activeLessonFix?.why || '').trim() || null;
+
+    return {
+      id: `${activeCinematicRange?.start ?? 'none'}-${activeCinematicRange?.end ?? 'none'}-${kind}`,
+      kind,
+      label,
+      originalSentence,
+      diagnosis,
+      improvedSentence,
+      whyThisIsStronger,
+      coachingNote: scopedCoaching,
+      evidenceSpan: `${activeCinematicRange?.start ?? 0}:${activeCinematicRange?.end ?? 0}`,
+    };
+  }, [activeSnippet, activeLessonFix, activeCinematicDetail, activeCinematicRange]);
+  const normalizedReviewIssue = useMemo(() => getSafeIssueExplanation(remapIssueType(activeReviewIssue)), [activeReviewIssue]);
+  const issueConsistency = useMemo(() => validateIssueConsistency(normalizedReviewIssue), [normalizedReviewIssue]);
+  const issueTypeLabel = normalizedReviewIssue.label;
+  const whatToImproveText = normalizedReviewIssue.diagnosis;
+  const betterVersionText = normalizedReviewIssue.improvedSentence;
+  const whyItMattersText = issueConsistency.valid
+    ? normalizedReviewIssue.whyThisIsStronger
+    : `Focus on this sentence only: "${normalizedReviewIssue.originalSentence}". Improve clarity with one concrete edit.`;
+
+  useEffect(() => {
+    if (issueConsistency.valid || process.env['NODE_ENV'] === 'production') return;
+    console.warn('Guided review issue consistency check failed', {
+      reason: issueConsistency.reason,
+      issueId: normalizedReviewIssue.id,
+      evidenceSpan: normalizedReviewIssue.evidenceSpan,
+    });
+  }, [issueConsistency, normalizedReviewIssue.id, normalizedReviewIssue.evidenceSpan]);
   const rubricRows = useMemo(
     () => [
       { key: 'content', label: 'Content', value: assessment?.subscores.content ?? null },
@@ -4912,17 +5065,19 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                 display: 'grid',
                 gap: 12,
                 alignContent: 'start',
-                paddingBottom: 96,
+                paddingBottom: 'calc(130px + env(safe-area-inset-bottom))',
               }}
             >
               <div className="cinematic-detail-card" style={{ borderRadius: 18, border: '1px solid rgba(99,102,241,0.32)', background: 'linear-gradient(180deg, rgba(15,23,42,0.9), rgba(12,20,36,0.92))', padding: '18px 16px', display: 'grid', gap: 14, boxShadow: '0 10px 30px rgba(2,6,23,0.45)' }}>
                 <div style={{ display: 'grid', gap: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
                     <span style={{ color: '#bfdbfe', fontSize: 12, fontWeight: 800, letterSpacing: 0.8, textTransform: 'uppercase' }}>Original sentence</span>
-                    <span style={{ color: '#fca5a5', fontSize: 11, border: '1px solid rgba(248,113,113,0.35)', padding: '3px 8px', borderRadius: 999 }}>Needs fix</span>
+                    <span style={{ color: '#fca5a5', fontSize: 11, border: '1px solid rgba(248,113,113,0.35)', padding: '3px 8px', borderRadius: 999 }}>
+                      {normalizedReviewIssue.improvedSentence ? 'Needs fix' : 'No rewrite needed'}
+                    </span>
                   </div>
                   <p style={{ margin: 0, color: '#f8fafc', fontSize: 22, lineHeight: 1.75, fontWeight: 500 }}>
-                    {renderPhraseComparison(activeSnippet || 'No snippet available.', activeLessonFix?.original ?? null, 'warning')}
+                    {renderPhraseComparison(normalizedReviewIssue.originalSentence || 'No snippet available.', activeLessonFix?.original ?? null, 'warning')}
                   </p>
                 </div>
 
@@ -4931,12 +5086,20 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                   <p style={{ margin: 0, color: '#e2e8f0', fontSize: 15, lineHeight: 1.65 }}>{whatToImproveText}</p>
                 </div>
 
-                <div style={{ borderRadius: 14, border: '1px solid rgba(74,222,128,0.35)', background: 'linear-gradient(180deg, rgba(6,78,59,0.3), rgba(6,95,70,0.16))', padding: '14px 14px', display: 'grid', gap: 7 }}>
-                  <p style={{ margin: 0, color: '#86efac', fontSize: 12, fontWeight: 800, letterSpacing: 0.8, textTransform: 'uppercase' }}>Better version</p>
-                  <p style={{ margin: 0, color: '#ecfdf5', fontSize: 21, lineHeight: 1.75, fontWeight: 500 }}>
-                    {renderPhraseComparison(betterVersionText || 'No corrected text available.', activeLessonFix?.betterVersion ?? null, 'success')}
-                  </p>
-                </div>
+                {betterVersionText ? (
+                  <div style={{ borderRadius: 14, border: '1px solid rgba(74,222,128,0.35)', background: 'linear-gradient(180deg, rgba(6,78,59,0.3), rgba(6,95,70,0.16))', padding: '14px 14px', display: 'grid', gap: 7 }}>
+                    <p style={{ margin: 0, color: '#86efac', fontSize: 12, fontWeight: 800, letterSpacing: 0.8, textTransform: 'uppercase' }}>Better version</p>
+                    <p style={{ margin: 0, color: '#ecfdf5', fontSize: 21, lineHeight: 1.75, fontWeight: 500 }}>
+                      {renderPhraseComparison(betterVersionText, activeLessonFix?.betterVersion ?? null, 'success')}
+                    </p>
+                  </div>
+                ) : (
+                  <div style={{ borderRadius: 14, border: '1px solid rgba(125,211,252,0.3)', background: 'linear-gradient(180deg, rgba(15,23,42,0.55), rgba(15,23,42,0.32))', padding: '12px 14px' }}>
+                    <p style={{ margin: 0, color: '#bae6fd', fontSize: 14, lineHeight: 1.6 }}>
+                      {normalizedReviewIssue.kind === 'grammar' ? 'No grammar rewrite needed here.' : 'This sentence is already clear. Improve it only if you can add more specific detail.'}
+                    </p>
+                  </div>
+                )}
 
                 <div style={{ display: 'grid', gap: 8 }}>
                   <p style={{ margin: 0, color: '#c4b5fd', fontSize: 11, fontWeight: 800, letterSpacing: 0.8, textTransform: 'uppercase' }}>Why this matters</p>
@@ -5005,7 +5168,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
               </details>
             </div>
 
-            <div className="cinematic-nav-bar" style={{ position: 'absolute', left: 16, right: 16, bottom: 'max(10px, calc(8px + env(safe-area-inset-bottom)))', borderRadius: 14, border: '1px solid rgba(99,102,241,0.32)', background: 'rgba(2,6,23,0.92)', padding: '10px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+            <div className="cinematic-nav-bar" style={{ position: 'fixed', left: '50%', transform: 'translateX(-50%)', width: 'min(900px, calc(100vw - 24px))', bottom: 'max(8px, calc(env(safe-area-inset-bottom) + 6px))', borderRadius: 16, border: '1px solid rgba(99,102,241,0.35)', background: 'rgba(2,6,23,0.82)', backdropFilter: 'blur(12px) saturate(1.2)', WebkitBackdropFilter: 'blur(12px) saturate(1.2)', boxShadow: '0 -8px 30px rgba(2,6,23,0.4), 0 0 24px rgba(99,102,241,0.15)', padding: '12px 14px calc(12px + env(safe-area-inset-bottom))', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, zIndex: 5 }}>
               <div style={{ color: '#94a3b8', fontSize: 12, fontWeight: 700 }}>
                 {cinematicRanges.length > 0 ? `${(cinematicIndex ?? 0) + 1} / ${cinematicRanges.length}` : '0 / 0'}
               </div>
@@ -5014,7 +5177,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                   type="button"
                   onClick={() => setCinematicIndex((prev) => Math.max(0, (prev ?? 0) - 1))}
                   disabled={cinematicRanges.length === 0 || (cinematicIndex ?? 0) <= 0}
-                  style={{ borderRadius: 11, border: '1px solid rgba(148,163,184,0.35)', background: 'rgba(30,41,59,0.6)', color: '#e2e8f0', padding: '10px 14px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
+                  style={{ borderRadius: 11, border: '1px solid rgba(148,163,184,0.35)', background: 'rgba(30,41,59,0.6)', color: '#e2e8f0', padding: '12px 16px', fontSize: 14, fontWeight: 700, cursor: 'pointer', minHeight: 44 }}
                 >
                   ← Back
                 </button>
@@ -5022,7 +5185,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                   type="button"
                   onClick={() => setCinematicIndex((prev) => Math.min(cinematicRanges.length - 1, (prev ?? 0) + 1))}
                   disabled={cinematicRanges.length === 0 || (cinematicIndex ?? 0) >= cinematicRanges.length - 1}
-                  style={{ borderRadius: 11, border: '1px solid rgba(96,165,250,0.4)', background: 'linear-gradient(135deg, rgba(37,99,235,0.32), rgba(30,41,59,0.8))', color: '#e2e8f0', padding: '10px 14px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
+                  style={{ borderRadius: 11, border: '1px solid rgba(96,165,250,0.4)', background: 'linear-gradient(135deg, rgba(37,99,235,0.32), rgba(30,41,59,0.8))', color: '#e2e8f0', padding: '12px 16px', fontSize: 14, fontWeight: 700, cursor: 'pointer', minHeight: 44 }}
                 >
                   Next →
                 </button>
@@ -5092,6 +5255,14 @@ export const seedWritingHubForDemo = (studentId: string, grade: number, genre: W
     student_response:
       'This response describes the event, explains why it mattered, and gives one practical suggestion for next time.',
   });
+};
+
+export {
+  getSafeIssueExplanation,
+  isMeaningfullyDifferent,
+  normalizeForComparison,
+  remapIssueType,
+  validateIssueConsistency,
 };
 
 export default WritingHub;
