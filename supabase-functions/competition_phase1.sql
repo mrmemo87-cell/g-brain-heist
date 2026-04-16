@@ -197,7 +197,8 @@ as $$
     select 1 from users u
     where u.id = auth.uid()
       and (u.is_admin = true or u.role = 'admin')
-  );
+  )
+  or is_superadmin(auth.uid());
 $$;
 
 -- Admin: List users for the admin portal (security definer to bypass RLS)
