@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { getEnvVar } from './env.js';
 import type {
   AttemptSubmissionResult,
   Batch,
@@ -9,6 +10,9 @@ import type {
   Announcement,
   AdminOverviewStats,
 } from '../types';
+
+const supabaseUrl = getEnvVar('VITE_SUPABASE_URL') ?? '';
+const supabaseAnonKey = getEnvVar('VITE_SUPABASE_ANON_KEY') ?? '';
 
 // Types for dynamic school data
 export interface SchoolGradeInfo {
@@ -507,18 +511,34 @@ export interface AdminDeleteUserResult {
 }
 
 export const deletePlayer = async (userId: string, dryRun = false): Promise<AdminDeleteUserResult> => {
-  const { data, error } = await supabase.functions.invoke('admin_delete_user', {
-    body: {
-      user_id: userId,
-      dry_run: dryRun,
-    },
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession();
+  if (sessionError || !session?.access_token) {
+    throw new Error(sessionError?.message || 'Not authenticated');
+  }
+
+  const response = await fetch(`${supabaseUrl}/functions/v1/admin_delete_user`, {
+    method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+      apikey: supabaseAnonKey,
     },
+    body: JSON.stringify({
+      user_id: userId,
+      dry_run: dryRun,
+    }),
   });
 
-  if (error) {
-    throw new Error(error.message || 'Failed to delete player');
+  const data = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message =
+      data && typeof data === 'object' && 'error' in data && typeof (data as { error?: unknown }).error === 'string'
+        ? (data as { error: string }).error
+        : 'Failed to delete player';
+    throw new Error(message);
   }
 
   if (!data || typeof data !== 'object') {
