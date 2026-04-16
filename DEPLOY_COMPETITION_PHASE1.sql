@@ -37,7 +37,8 @@ AS $$
     SELECT 1 FROM users u
     WHERE u.id = auth.uid()
       AND (u.is_admin = TRUE OR u.role = 'admin')
-  );
+  )
+  OR is_superadmin(auth.uid());
 $$;
 
 -- ============================================
