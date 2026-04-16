@@ -57,6 +57,12 @@ const asObjectArray = (value: unknown): Array<Record<string, unknown>> =>
 
 const unique = (values: string[]) => [...new Set(values)];
 
+const formatPgError = (error: unknown) => {
+  const e = error as { message?: string; details?: string; hint?: string; code?: string } | null;
+  const parts = [e?.message, e?.details, e?.hint, e?.code].filter((v): v is string => Boolean(v));
+  return parts.join(" | ") || JSON.stringify(error);
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -254,14 +260,14 @@ serve(async (req) => {
 
     // Deletion helpers
     const countRows = async (table: string, apply: (q: any) => any) => {
-      const query = apply(admin.from(table).select("id", { count: "exact", head: true }));
+      const query = apply(admin.from(table).select("*", { count: "exact", head: true }));
       const { count, error } = await query;
       if (error) {
         if (error.code === "42P01") {
           warnings.push(`table_missing:${table}`);
           return 0;
         }
-        throw new Error(`count_failed:${table}:${error.message}`);
+        throw new Error(`count_failed:${table}:${formatPgError(error)}`);
       }
       return count ?? 0;
     };
@@ -278,7 +284,7 @@ serve(async (req) => {
           warnings.push(`table_missing:${table}`);
           return;
         }
-        throw new Error(`delete_failed:${table}:${error.message}`);
+        throw new Error(`delete_failed:${table}:${formatPgError(error)}`);
       }
     };
 
