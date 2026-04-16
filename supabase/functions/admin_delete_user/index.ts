@@ -7,6 +7,7 @@ type DeleteRequest = {
 };
 
 type DeleteResponse = {
+  version: string;
   success: boolean;
   auth_deleted: boolean;
   rows_deleted: Record<string, number>;
@@ -31,6 +32,8 @@ const buildCorsHeaders = (req: Request) => {
     Vary: "Origin, Access-Control-Request-Headers",
   };
 };
+
+const FUNCTION_VERSION = "admin_delete_user_debug_v3";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -73,6 +76,7 @@ serve(async (req) => {
 
   if (req.method !== "POST") {
     return json(req, 405, {
+      version: FUNCTION_VERSION,
       success: false,
       auth_deleted: false,
       rows_deleted: {},
@@ -114,6 +118,7 @@ serve(async (req) => {
     const token = authHeader.replace(/^Bearer\s+/i, "").trim();
     if (!token) {
       return json(req, 401, {
+        version: FUNCTION_VERSION,
         success: false,
         auth_deleted: false,
         rows_deleted: {},
@@ -126,6 +131,7 @@ serve(async (req) => {
     const { data: authData, error: authError } = await admin.auth.getUser(token);
     if (authError || !authData?.user) {
       return json(req, 401, {
+        version: FUNCTION_VERSION,
         success: false,
         auth_deleted: false,
         rows_deleted: {},
@@ -144,6 +150,7 @@ serve(async (req) => {
 
     if (superadminError) {
       return json(req, 403, {
+        version: FUNCTION_VERSION,
         success: false,
         auth_deleted: false,
         rows_deleted: {},
@@ -155,6 +162,7 @@ serve(async (req) => {
 
     if (!superadminRow?.user_id) {
       return json(req, 403, {
+        version: FUNCTION_VERSION,
         success: false,
         auth_deleted: false,
         rows_deleted: {},
@@ -169,6 +177,7 @@ serve(async (req) => {
       body = (await req.json()) as DeleteRequest;
     } catch {
       return json(req, 400, {
+        version: FUNCTION_VERSION,
         success: false,
         auth_deleted: false,
         rows_deleted: {},
@@ -183,6 +192,7 @@ serve(async (req) => {
 
     if (!isUuid(targetUserId)) {
       return json(req, 400, {
+        version: FUNCTION_VERSION,
         success: false,
         auth_deleted: false,
         rows_deleted: {},
@@ -194,6 +204,7 @@ serve(async (req) => {
 
     if (targetUserId === actorId) {
       return json(req, 400, {
+        version: FUNCTION_VERSION,
         success: false,
         auth_deleted: false,
         rows_deleted: {},
@@ -278,6 +289,9 @@ serve(async (req) => {
       rowsDeleted[table] = count ?? 0;
       if (dryRun) return;
       if (count === 0) return;
+      if (count === null) {
+        warnings.push(`count_unknown_delete_attempted:${table}`);
+      }
 
       const query = apply(admin.from(table).delete());
       const { error } = await query;
@@ -358,6 +372,7 @@ serve(async (req) => {
     await audit("success");
 
     return json(req, 200, {
+      version: FUNCTION_VERSION,
       success: true,
       auth_deleted: dryRun ? false : true,
       rows_deleted: rowsDeleted,
@@ -370,6 +385,7 @@ serve(async (req) => {
     warnings.push(message);
     await audit("failure");
     return json(req, 500, {
+      version: FUNCTION_VERSION,
       success: false,
       auth_deleted: false,
       rows_deleted: rowsDeleted,
