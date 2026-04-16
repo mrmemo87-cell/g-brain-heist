@@ -4502,10 +4502,23 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       stepTl.fromTo(detailCard, { opacity: 0.3, y: 6 }, { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }, '-=0.6');
     }
 
-    activeRangeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    scrollLineIntoComfortZone(panel, lineRects[0] ?? null);
 
     return () => { stepTl.kill(); };
   }, [showCinematicFeedback, cinematicIndex, submittedText, activeCinematicRange?.polarity]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined' || !showCinematicFeedback) return;
+    const { style } = document.body;
+    const previousOverflow = style.overflow;
+    const previousOverscrollBehaviorY = style.overscrollBehaviorY;
+    style.overflow = 'hidden';
+    style.overscrollBehaviorY = 'none';
+    return () => {
+      style.overflow = previousOverflow;
+      style.overscrollBehaviorY = previousOverscrollBehaviorY;
+    };
+  }, [showCinematicFeedback]);
 
   useEffect(() => {
     observerCleanupRef.current?.();
@@ -4736,14 +4749,17 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
             className="simple-cinematic-panel"
             style={{
               width: 'min(940px, 100%)',
-              maxHeight: '92vh',
-              overflow: 'auto',
+              height: 'calc(100dvh - (env(safe-area-inset-top) + env(safe-area-inset-bottom) + 16px))',
+              maxHeight: 'calc(100dvh - (env(safe-area-inset-top) + env(safe-area-inset-bottom) + 16px))',
+              minHeight: 0,
+              overflow: 'hidden',
               borderRadius: 24,
               border: '1px solid rgba(148,163,184,0.2)',
               background: 'linear-gradient(180deg, #0c1527 0%, #080e1c 100%)',
               padding: '24px 22px',
               color: '#e2e8f0',
               display: 'grid',
+              gridTemplateRows: 'auto minmax(0, 1fr) auto auto auto auto',
               gap: 18,
               boxShadow: '0 0 80px rgba(99,102,241,0.15), 0 25px 60px rgba(0,0,0,0.5)',
             }}
@@ -4765,7 +4781,26 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
               </button>
             </div>
 
-            <div ref={cinematicTextPanelRef} className="cinematic-text-panel" style={{ position: 'relative', borderRadius: 16, border: '1px solid rgba(148,163,184,0.18)', background: 'linear-gradient(180deg, rgba(15,23,42,0.7) 0%, rgba(15,23,42,0.5) 100%)', padding: '18px 20px', lineHeight: 1.85, fontSize: 16 }}>
+            <div
+              ref={cinematicTextPanelRef}
+              className="cinematic-text-panel"
+              style={{
+                position: 'relative',
+                minHeight: 0,
+                maxHeight: 'min(46dvh, 420px)',
+                overflowY: 'auto',
+                overflowX: 'hidden',
+                WebkitOverflowScrolling: 'touch',
+                overscrollBehavior: 'contain',
+                borderRadius: 16,
+                border: '1px solid rgba(148,163,184,0.18)',
+                background: 'linear-gradient(180deg, rgba(15,23,42,0.7) 0%, rgba(15,23,42,0.5) 100%)',
+                padding: '18px 20px',
+                paddingBottom: 28,
+                lineHeight: 1.85,
+                fontSize: 16,
+              }}
+            >
               <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} aria-hidden="true">
                 <path ref={cinematicTracePathRef} d="" stroke={activeCinematicRange?.polarity === 'strong' ? '#4ade80' : '#f87171'} strokeWidth="2.5" fill="none" strokeLinecap="round" />
               </svg>
@@ -4773,7 +4808,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                 ? renderAnnotatedText(submittedText, cinematicRanges, cinematicIndex, handleRangeMount)
                 : 'No submission text available.'}
             </div>
-            <div className="cinematic-nav-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+            <div className="cinematic-nav-bar" style={{ paddingTop: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 {cinematicRanges.map((r, idx) => (
                   <button
