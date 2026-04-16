@@ -315,7 +315,7 @@ serve(async (req) => {
       { table: "ielts_memberships", columns: ["user_id"] },
       { table: "ielts_prime_applications", columns: ["user_id"] },
       { table: "ielts_notification_preferences", columns: ["user_id"] },
-      { table: "ielts_admin_audit_log", columns: ["user_id"] },
+      // Preserve admin audit history; schema is not user_id-based in production.
       { table: "question_attempts", columns: ["student_id", "user_id"] },
       { table: "attempts", columns: ["user_id"] },
       { table: "activity_reactions", columns: ["user_id"] },
