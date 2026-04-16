@@ -2,12 +2,30 @@ import React from 'react';
 import { useAdmin } from '../AdminContext';
 import * as CompetitionService from '../../../services/competitionService';
 
+const IGNORED_DETAIL_KEYS = new Set(['crest_url', 'description', 'name']);
+
+const formatLabel = (key: string) => key.replace(/_/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
+
+const formatValue = (value: unknown) => {
+  if (value === null || value === undefined || value === '') return '—';
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  if (typeof value === 'object') return JSON.stringify(value);
+  return String(value);
+};
+
+const formatMaybeDate = (value: unknown) => {
+  if (typeof value !== 'string') return formatValue(value);
+  const parsed = Date.parse(value);
+  if (Number.isNaN(parsed)) return value;
+  return new Date(parsed).toLocaleString();
+};
+
 const ClansTab: React.FC = () => {
   const {
-    addToast, clanEditDescription, clanEditName, clanList, clanMembers, clanMembersLoading, 
-    loadClanMembers, removeClanMember, reportRpcError, selectedClan, setClanEditDescription, 
-    setClanEditName, setClanList, setClanMembers, setSelectedClan, supabase, 
-    transferClanLeadership, users,
+    addToast, clanEditDescription, clanEditName, clanList, clanMembers, clanMembersLoading,
+    loadClanMembers, removeClanMember, reportRpcError, selectedClan, setClanEditDescription,
+    setClanEditName, setClanList, setClanMembers, setSelectedClan, supabase,
+    transferClanLeadership,
   } = useAdmin();
 
   return (
@@ -35,42 +53,58 @@ const ClansTab: React.FC = () => {
         )}
 
         {clanList.length > 0 && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {clanList.map(c => (
-              <div key={c.id} className={`rounded-xl border-2 p-4 transition-all ${selectedClan?.id === c.id ? 'border-blue-400 bg-blue-500/10 shadow-[0_0_20px_rgba(59,130,246,0.4)]' : 'border-gray-600 bg-black/30 hover:border-blue-400/50'}`}>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    {c.crest_url && <img src={c.crest_url} alt="" className="w-8 h-8 rounded" />}
-                    <div>
-                      <p className="font-bold text-white text-lg">{c.name}</p>
-                      <p className="text-xs text-gray-400">{c.member_count ?? 0} members • Created {c.created_at ? new Date(c.created_at).toLocaleDateString() : 'N/A'}</p>
+          <div className="grid grid-cols-1 gap-4">
+            {clanList.map(c => {
+              const detailEntries = Object.entries(c || {}).filter(([key]) => !IGNORED_DETAIL_KEYS.has(key));
+
+              return (
+                <div key={c.id} className={`rounded-xl border-2 p-4 transition-all ${selectedClan?.id === c.id ? 'border-blue-400 bg-blue-500/10 shadow-[0_0_20px_rgba(59,130,246,0.4)]' : 'border-gray-600 bg-black/30 hover:border-blue-400/50'}`}>
+                  <div className="flex items-start justify-between gap-4 mb-2">
+                    <div className="flex items-start gap-3">
+                      {c.crest_url && <img src={c.crest_url} alt="" className="w-10 h-10 rounded-lg object-cover border border-blue-300/30" />}
+                      <div>
+                        <p className="font-bold text-white text-lg">{c.name}</p>
+                        <p className="text-xs text-gray-400">{c.member_count ?? 0} members • Created {c.created_at ? new Date(c.created_at).toLocaleDateString() : 'N/A'}</p>
+                        {c.description && <p className="text-xs text-gray-400 mt-1">{c.description}</p>}
+                      </div>
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                      <button onClick={() => {
+                        setSelectedClan(c);
+                        setClanEditName(c.name || '');
+                        setClanEditDescription(c.description || '');
+                        loadClanMembers(c.id);
+                      }} className="bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400 text-white text-xs px-3 py-1.5 rounded">
+                        👁️ Manage
+                      </button>
+                      <button onClick={async () => {
+                        if (!confirm(`Disband "${c.name}"? This permanently deletes the clan and all its data.`)) return;
+                        try {
+                          await CompetitionService.disbandClan(c.id);
+                          addToast(`${c.name} disbanded`, 'success');
+                          setClanList(prev => prev.filter(x => x.id !== c.id));
+                          if (selectedClan?.id === c.id) setSelectedClan(null);
+                        } catch (error) { reportRpcError('Failed to disband:', error, 'Failed to disband clan'); }
+                      }} className="bg-red-500/20 hover:bg-red-500/30 border border-red-400 text-white text-xs px-3 py-1.5 rounded">
+                        💣 Disband
+                      </button>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => {
-                      setSelectedClan(c);
-                      setClanEditName(c.name || '');
-                      setClanEditDescription(c.description || '');
-                      loadClanMembers(c.id);
-                    }} className="bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400 text-white text-xs px-3 py-1.5 rounded">
-                      👁️ Manage
-                    </button>
-                    <button onClick={async () => {
-                      if (!confirm(`Disband "${c.name}"? This permanently deletes the clan and all its data.`)) return;
-                      try {
-                        await CompetitionService.disbandClan(c.id);
-                        addToast(`${c.name} disbanded`, 'success');
-                        setClanList(prev => prev.filter(x => x.id !== c.id));
-                        if (selectedClan?.id === c.id) setSelectedClan(null);
-                      } catch (error) { reportRpcError('Failed to disband:', error, 'Failed to disband clan'); }
-                    }} className="bg-red-500/20 hover:bg-red-500/30 border border-red-400 text-white text-xs px-3 py-1.5 rounded">
-                      💣 Disband
-                    </button>
+
+                  <div className="mt-3 rounded-lg border border-blue-400/20 bg-black/20 p-3">
+                    <p className="text-[11px] uppercase tracking-wide text-blue-200 mb-2">Full Clan Details</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 text-xs">
+                      {detailEntries.map(([key, value]) => (
+                        <div key={key} className="rounded border border-blue-400/15 bg-black/30 px-2 py-1.5">
+                          <p className="text-[10px] uppercase tracking-wide text-gray-400">{formatLabel(key)}</p>
+                          <p className="text-gray-100 break-all">{/(^|_)at$/i.test(key) ? formatMaybeDate(value) : formatValue(value)}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-                {c.description && <p className="text-xs text-gray-400 mt-1">{c.description}</p>}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
