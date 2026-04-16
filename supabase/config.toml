@@ -1,0 +1,2 @@
+[functions.admin_delete_user]
+verify_jwt = false

@@ -422,12 +422,56 @@ export const updatePlayerAcademics = async (
 };
 
 export const resetPlayerAcademics = async (userId: string): Promise<void> => {
-  const { error } = await supabase.rpc('rpc_admin_reset_user_academics', {
+  const { error: rpcError } = await supabase.rpc('rpc_admin_reset_user_academics', {
     p_user_id: userId,
   });
 
-  if (error) {
-    throw new Error(error.message || 'Failed to reset user school/grade/class');
+  // Some deployments still have a legacy RPC that resets `users.school` but not `users.school_id`.
+  // Run a best-effort canonical reset so school/class-dependent features observe the change immediately.
+  const clearCanonicalColumns = async (): Promise<Error | null> => {
+    const { error: canonicalError } = await supabase
+      .from('users')
+      .update({
+        school_id: null,
+        grade: null,
+        batch: null,
+      })
+      .eq('id', userId);
+
+    if (!canonicalError) {
+      return null;
+    }
+
+    // Fallback for older schemas that only expose `users.school`.
+    const { error: legacyError } = await supabase
+      .from('users')
+      .update({
+        school: null as any,
+        grade: null,
+        batch: null,
+      })
+      .eq('id', userId);
+
+    if (!legacyError) {
+      return null;
+    }
+
+    return new Error(canonicalError.message || legacyError.message || 'Failed to reset user school/grade/class');
+  };
+
+  const columnResetError = await clearCanonicalColumns();
+
+  // Best-effort relation cleanup so school/class assignment is fully cleared for both students and school admins.
+  await Promise.all([
+    supabase.from('school_members').delete().eq('user_id', userId),
+    supabase.from('class_students').delete().eq('student_id', userId),
+    supabase.from('brains_heist_class_memberships').delete().eq('student_id', userId),
+  ]).catch(() => {
+    // Ignore relation cleanup failures (table might be absent or RLS-restricted in some environments).
+  });
+
+  if (rpcError && columnResetError) {
+    throw new Error(rpcError.message || columnResetError.message || 'Failed to reset user school/grade/class');
   }
 };
 
