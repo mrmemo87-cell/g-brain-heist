@@ -2336,6 +2336,40 @@ export interface TeacherWritingReport {
   };
 }
 
+export interface TeacherWritingAttemptRecord {
+  row_id: string;
+  attempt_id: string;
+  student_id: string;
+  genre: string;
+  attempt_type: string | null;
+  attempt_number: number | null;
+  retry_kind: string | null;
+  revision_cycle_id: string | null;
+  parent_attempt_id: string | null;
+  prompt_id: string | null;
+  prompt_text: string;
+  student_submission: string;
+  assessment: Record<string, unknown>;
+  rich_feedback: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface TeacherSavedWritingReport {
+  id: string;
+  student_id: string;
+  attempt_id: string | null;
+  report_mode: 'student' | 'attempt';
+  month: string | null;
+  genre: string | null;
+  status: 'draft' | 'final';
+  report_payload: Record<string, unknown>;
+  teacher_comment: string | null;
+  created_by: string;
+  updated_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export const mapCalibrationCaseToTeacherReport = (
   c: WritingCalibrationCase,
   month: string,
@@ -2418,6 +2452,113 @@ export const getTeacherWritingReport = async (input: {
     return ok(data as TeacherWritingReport);
   } catch (error) {
     return badRequest(error instanceof Error ? error.message : 'Unable to generate teacher writing report.');
+  }
+};
+
+export const getTeacherAttemptListScoped = async (input: {
+  student_id: string;
+  genre?: SupportedGenre;
+  limit?: number;
+}): Promise<ServiceResponse<TeacherWritingAttemptRecord[]>> => {
+  try {
+    const { supabase } = await import('../../../services/supabaseClient.js');
+    const { data, error } = await supabase.rpc('rpc_bh_writing_teacher_attempts', {
+      p_student_id: input.student_id,
+      p_genre: input.genre ?? null,
+      p_limit: input.limit ?? 80,
+    });
+    if (error || !data) return badRequest(error?.message ?? 'Unable to load teacher attempt list.');
+    return ok(data as TeacherWritingAttemptRecord[]);
+  } catch (error) {
+    return badRequest(error instanceof Error ? error.message : 'Unable to load teacher attempt list.');
+  }
+};
+
+export const getTeacherGeneralReportScoped = async (input: {
+  student_id: string;
+  month?: string;
+  genre?: SupportedGenre;
+}): Promise<ServiceResponse<Record<string, unknown>>> => {
+  try {
+    const { supabase } = await import('../../../services/supabaseClient.js');
+    const { data, error } = await supabase.rpc('rpc_bh_writing_teacher_general_report', {
+      p_student_id: input.student_id,
+      p_month: input.month ?? null,
+      p_genre: input.genre ?? null,
+    });
+    if (error || !data) return badRequest(error?.message ?? 'Unable to load teacher general report.');
+    return ok(data as Record<string, unknown>);
+  } catch (error) {
+    return badRequest(error instanceof Error ? error.message : 'Unable to load teacher general report.');
+  }
+};
+
+export const getTeacherAttemptReportScoped = async (input: {
+  student_id: string;
+  attempt_id: string;
+  genre?: SupportedGenre;
+}): Promise<ServiceResponse<Record<string, unknown>>> => {
+  try {
+    const { supabase } = await import('../../../services/supabaseClient.js');
+    const { data, error } = await supabase.rpc('rpc_bh_writing_teacher_attempt_report', {
+      p_student_id: input.student_id,
+      p_attempt_id: input.attempt_id,
+      p_genre: input.genre ?? null,
+    });
+    if (error || !data) return badRequest(error?.message ?? 'Unable to load teacher attempt report.');
+    return ok(data as Record<string, unknown>);
+  } catch (error) {
+    return badRequest(error instanceof Error ? error.message : 'Unable to load teacher attempt report.');
+  }
+};
+
+export const getTeacherSavedReportsScoped = async (input: {
+  student_id: string;
+  attempt_id?: string;
+  mode?: 'student' | 'attempt';
+}): Promise<ServiceResponse<TeacherSavedWritingReport[]>> => {
+  try {
+    const { supabase } = await import('../../../services/supabaseClient.js');
+    const { data, error } = await supabase.rpc('rpc_bh_writing_teacher_reports', {
+      p_student_id: input.student_id,
+      p_attempt_id: input.attempt_id ?? null,
+      p_mode: input.mode ?? null,
+    });
+    if (error || !data) return badRequest(error?.message ?? 'Unable to load saved teacher reports.');
+    return ok(data as TeacherSavedWritingReport[]);
+  } catch (error) {
+    return badRequest(error instanceof Error ? error.message : 'Unable to load saved teacher reports.');
+  }
+};
+
+export const saveTeacherReportScoped = async (input: {
+  report_id?: string;
+  student_id: string;
+  attempt_id?: string;
+  mode: 'student' | 'attempt';
+  month?: string;
+  genre?: SupportedGenre;
+  status: 'draft' | 'final';
+  report_payload: Record<string, unknown>;
+  teacher_comment?: string;
+}): Promise<ServiceResponse<TeacherSavedWritingReport>> => {
+  try {
+    const { supabase } = await import('../../../services/supabaseClient.js');
+    const { data, error } = await supabase.rpc('rpc_bh_writing_save_teacher_report', {
+      p_report_id: input.report_id ?? null,
+      p_student_id: input.student_id,
+      p_attempt_id: input.attempt_id ?? null,
+      p_mode: input.mode,
+      p_month: input.month ?? null,
+      p_genre: input.genre ?? null,
+      p_status: input.status,
+      p_report_payload: input.report_payload ?? {},
+      p_teacher_comment: input.teacher_comment ?? null,
+    });
+    if (error || !data) return badRequest(error?.message ?? 'Unable to save teacher report.');
+    return ok(data as TeacherSavedWritingReport);
+  } catch (error) {
+    return badRequest(error instanceof Error ? error.message : 'Unable to save teacher report.');
   }
 };
 
