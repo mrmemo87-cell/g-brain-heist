@@ -85,6 +85,11 @@ const toTeacherWeaknessLabel = (tag: string): string =>
     .trim()
     .replace(/\b\w/g, (char) => char.toUpperCase());
 
+const formatScoreLabel = (score: number | null | undefined): string => {
+  if (score == null || Number.isNaN(score)) return '—';
+  return score <= 11 ? `${score}/11 (band)` : `${score}`;
+};
+
 const chipStyle = (mode: 'danger' | 'success' | 'neutral' | 'info') => {
   const map = {
     danger: { background: '#3a1212', color: '#fecaca', border: '1px solid #7f1d1d' },
@@ -237,19 +242,22 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
   };
 
   const buildPrintableReportHtml = (report: TeacherWritingReport): string => {
+    const completionPercent = report.overall_summary.completion_rate_percent;
+    const latestScore = report.overall_summary.latest_score;
+    const strengths = report.strengths.length ? report.strengths : ['No strengths captured yet'];
+    const weakAreas = report.priority_weak_areas.length ? report.priority_weak_areas.map(toTeacherWeaknessLabel) : ['No repeated weak areas yet'];
+    const actions = report.teacher_actions.length ? report.teacher_actions : ['No actions generated yet'];
+    const generatedAt = new Date().toLocaleString();
     const rows = [
-      ['Student', report.student.student_name],
-      ['Grade', report.student.grade ?? '—'],
-      ['Class', report.student.class_name ?? 'Unassigned'],
       ['Reporting period', report.period],
       ['Genre', report.genre],
-      ['Latest score', report.overall_summary.latest_score ?? '—'],
-      ['Completion', `${report.overall_summary.completion_rate_percent}% (${report.overall_summary.completed_tasks}/${report.overall_summary.total_tasks})`],
+      ['Latest score', formatScoreLabel(latestScore)],
+      ['Completion', `${completionPercent}% (${report.overall_summary.completed_tasks}/${report.overall_summary.total_tasks})`],
       ['Trend delta', report.overall_summary.score_trend_delta ?? '—'],
       ['Progress summary', report.student_friendly_summary.progress_summary],
-      ['Priority weak areas', report.priority_weak_areas.join(', ') || 'None detected yet'],
-      ['Teacher actions', report.teacher_actions.join(' • ') || 'No actions generated yet'],
-      ['Strengths', report.strengths.join(' • ') || 'No strengths captured yet'],
+      ['Priority weak areas', weakAreas.join(', ')],
+      ['Teacher actions', actions.join(' • ')],
+      ['Strengths', strengths.join(' • ')],
     ];
     const renderedRows = rows
       .map(([label, value]) => `<tr><th>${label}</th><td>${value}</td></tr>`)
@@ -257,29 +265,53 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
     return `<!doctype html>
 <html><head><meta charset="utf-8"/><title>Writing Report Card</title>
 <style>
-body{font-family:Inter,Segoe UI,Arial,sans-serif;padding:24px;color:#0f172a}
-h1{margin:0 0 4px;font-size:24px} p{margin:0 0 16px;color:#475569}
-table{width:100%;border-collapse:collapse} th,td{border:1px solid #cbd5e1;padding:10px;vertical-align:top}
-th{background:#f1f5f9;text-align:left;width:230px}
-.meta{margin-top:14px;font-size:12px;color:#64748b}
+body{font-family:Inter,Segoe UI,Arial,sans-serif;padding:26px;color:#0f172a;background:#f8fafc}
+.card{border:1px solid #cbd5e1;border-radius:14px;background:#fff;overflow:hidden}
+.header{padding:18px 22px;background:linear-gradient(120deg,#1e293b,#334155);color:#f8fafc}
+.header h1{margin:0;font-size:28px;letter-spacing:.3px}
+.header p{margin:6px 0 0;color:#cbd5e1}
+.meta-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:16px 22px;background:#eef2ff;border-bottom:1px solid #cbd5e1}
+.meta-box{background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:10px}
+.meta-box .label{font-size:11px;text-transform:uppercase;color:#64748b;font-weight:700;letter-spacing:.35px}
+.meta-box .value{margin-top:4px;font-size:18px;font-weight:800;color:#0f172a}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid #e2e8f0;padding:10px 12px;vertical-align:top}
+th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:uppercase;letter-spacing:.35px}
+.student-bar{padding:14px 22px;background:#f8fafc;border-bottom:1px solid #e2e8f0;font-size:16px}
+.meta{padding:14px 22px;font-size:12px;color:#64748b}
 </style></head>
 <body>
-  <h1>Writing Report Card</h1>
-  <p>Teacher view • generated ${new Date().toLocaleString()}</p>
-  <table>${renderedRows}</table>
-  <div class="meta">Confidential — For teacher and student support planning.</div>
+  <article class="card">
+    <header class="header">
+      <h1>Writing Report Card</h1>
+      <p>Teacher report • generated ${generatedAt}</p>
+    </header>
+    <div class="student-bar"><strong>${report.student.student_name}</strong> · Grade ${report.student.grade ?? '—'} · ${report.student.class_name ?? 'Unassigned'}</div>
+    <section class="meta-grid">
+      <div class="meta-box"><div class="label">Latest score</div><div class="value">${formatScoreLabel(latestScore)}</div></div>
+      <div class="meta-box"><div class="label">Completion</div><div class="value">${completionPercent}%</div></div>
+      <div class="meta-box"><div class="label">Weak areas</div><div class="value">${weakAreas.length}</div></div>
+      <div class="meta-box"><div class="label">Actions</div><div class="value">${actions.length}</div></div>
+    </section>
+    <table>${renderedRows}</table>
+    <div class="meta">Confidential — for teacher and student support planning.</div>
+  </article>
 </body></html>`;
   };
 
   const printOpenReport = (): void => {
     if (!openReportData || typeof window === 'undefined') return;
-    const printWindow = window.open('', '_blank', 'noopener,noreferrer,width=980,height=760');
+    const printWindow = window.open('', '_blank', 'width=1080,height=820');
     if (!printWindow) return;
     printWindow.document.open();
     printWindow.document.write(buildPrintableReportHtml(openReportData));
     printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
+    const triggerPrint = (): void => {
+      printWindow.focus();
+      printWindow.print();
+    };
+    printWindow.onload = triggerPrint;
+    window.setTimeout(triggerPrint, 350);
   };
 
   const handleExportStudent = (studentId: string): void => {
@@ -420,14 +452,24 @@ th{background:#f1f5f9;text-align:left;width:230px}
 
         {selectedRow ? (
           <aside ref={detailsRef} style={{ ...shellCard, padding: 12, display: 'grid', gap: 8, boxShadow: '0 10px 28px rgba(15,23,42,0.3)' }}>
-            <strong style={{ color: '#93c5fd' }}>Student details</strong>
-            <span>{toDisplayLabel(selectedRow.student_name, selectedRow.student_id)}</span>
-            <span>Grade {selectedRow.current_grade}</span>
-            <span>Completion {Math.round(selectedRow.completion_rate * 100)}%</span>
-            <span>Latest score {selectedRow.latest_score ?? '—'}</span>
-            <span>Recent trend: {toTrendLabel(selectedRow)}</span>
-            <span>Weak areas: {selectedRow.repeated_weakness_hotspots.length ? selectedRow.repeated_weakness_hotspots.map(toTeacherWeaknessLabel).join(', ') : 'No repeated weak areas yet'}</span>
-            <span>Next focus: {selectedRow.weekly_target_summary}</span>
+            <strong style={{ color: '#93c5fd', fontSize: 16 }}>Student details</strong>
+            <div style={{ border: '1px solid #1e293b', borderRadius: 10, padding: 10, background: '#0b1327' }}>
+              <div style={{ fontSize: 18, fontWeight: 800 }}>{toDisplayLabel(selectedRow.student_name, selectedRow.student_id)}</div>
+              <div style={{ color: '#94a3b8', marginTop: 3 }}>Grade {selectedRow.current_grade} · {selectedRow.class_name ?? 'Unassigned'}</div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
+              <article style={{ border: '1px solid #1e293b', borderRadius: 10, padding: 10, background: '#111827' }}>
+                <div style={{ color: '#93c5fd', fontSize: 12 }}>Completion</div>
+                <strong style={{ fontSize: 20 }}>{Math.round(selectedRow.completion_rate * 100)}%</strong>
+              </article>
+              <article style={{ border: '1px solid #1e293b', borderRadius: 10, padding: 10, background: '#111827' }}>
+                <div style={{ color: '#93c5fd', fontSize: 12 }}>Latest score</div>
+                <strong style={{ fontSize: 20 }}>{formatScoreLabel(selectedRow.latest_score)}</strong>
+              </article>
+            </div>
+            <div><strong>Recent trend:</strong> {toTrendLabel(selectedRow)}</div>
+            <div><strong>Weak areas:</strong> {selectedRow.repeated_weakness_hotspots.length ? selectedRow.repeated_weakness_hotspots.map(toTeacherWeaknessLabel).join(', ') : 'No repeated weak areas yet'}</div>
+            <div><strong>Next focus:</strong> {selectedRow.weekly_target_summary}</div>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               <button type="button" onClick={() => setSelectedStudentId(selectedRow.student_id)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 8px' }}>View summary</button>
               <button type="button" onClick={() => openReport(selectedRow.student_id)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 8px' }}>Open report</button>
@@ -451,10 +493,24 @@ th{background:#f1f5f9;text-align:left;width:230px}
             {reportError ? <div style={{ color: '#fca5a5' }}>{reportError}</div> : null}
             {openReportData ? (
               <div style={{ display: 'grid', gap: 8 }}>
-                <div><strong>{openReportData.student.student_name}</strong> · Grade {openReportData.student.grade ?? '—'} · {openReportData.student.class_name}</div>
-                <div>Period: {openReportData.period} · Genre: {openReportData.genre}</div>
-                <div>Latest score: {openReportData.overall_summary.latest_score ?? '—'} · Completion: {openReportData.overall_summary.completion_rate_percent}%</div>
-                <div><strong>Priority weak areas:</strong> {openReportData.priority_weak_areas.join(', ') || 'None detected yet'}</div>
+                <div style={{ fontSize: 22, fontWeight: 800 }}>{openReportData.student.student_name}</div>
+                <div style={{ color: '#cbd5e1' }}>Grade {openReportData.student.grade ?? '—'} · {openReportData.student.class_name}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
+                  <article style={{ border: '1px solid #1e293b', borderRadius: 10, padding: 10, background: '#0b1327' }}>
+                    <div style={{ color: '#93c5fd', fontSize: 12 }}>Reporting period</div>
+                    <strong>{openReportData.period}</strong>
+                  </article>
+                  <article style={{ border: '1px solid #1e293b', borderRadius: 10, padding: 10, background: '#0b1327' }}>
+                    <div style={{ color: '#93c5fd', fontSize: 12 }}>Latest score</div>
+                    <strong>{formatScoreLabel(openReportData.overall_summary.latest_score)}</strong>
+                  </article>
+                  <article style={{ border: '1px solid #1e293b', borderRadius: 10, padding: 10, background: '#0b1327' }}>
+                    <div style={{ color: '#93c5fd', fontSize: 12 }}>Completion</div>
+                    <strong>{openReportData.overall_summary.completion_rate_percent}%</strong>
+                  </article>
+                </div>
+                <div><strong>Genre:</strong> {openReportData.genre}</div>
+                <div><strong>Priority weak areas:</strong> {openReportData.priority_weak_areas.map(toTeacherWeaknessLabel).join(', ') || 'None detected yet'}</div>
                 <div><strong>Teacher actions:</strong> {openReportData.teacher_actions.join(' • ') || 'No actions generated yet'}</div>
                 <div><strong>Progress summary:</strong> {openReportData.student_friendly_summary.progress_summary}</div>
               </div>

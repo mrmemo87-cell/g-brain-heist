@@ -110,6 +110,14 @@ const parseList = (value: string): string[] =>
     .map((item) => item.trim())
     .filter(Boolean);
 
+const isUuid = (value?: string): boolean =>
+  Boolean(value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.trim()));
+
+const formatScore = (score: number | null | undefined): string => {
+  if (score == null || Number.isNaN(score)) return '—';
+  return score <= 11 ? `${score}/11 (band)` : `${score}`;
+};
+
 export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
   mode,
   studentId,
@@ -326,6 +334,10 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
 
   useEffect(() => {
     if (mode !== 'teacher' || !selectedStudentId) return;
+    if (!isUuid(selectedStudentId)) {
+      setTeacherReportError(`Selected student reference "${selectedStudentId}" is not a valid UUID yet. Please refresh writing data or run migration 20260417183000.`);
+      return;
+    }
     let cancelled = false;
     setTeacherLoading(true);
     setEditor(EMPTY_DRAFT);
@@ -367,6 +379,7 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
       setAttemptReport(null);
       return;
     }
+    if (!isUuid(selectedStudentId)) return;
     let cancelled = false;
     setTeacherLoading(true);
     void Promise.all([
@@ -405,7 +418,7 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
     if (!studentId && !teacherRows) return <div style={{ padding: 12, color: '#e5e7eb' }}>No export data available.</div>;
 
     return (
-      <div style={{ padding: 12, color: '#e5e7eb', display: 'grid', gap: 10 }}>
+      <div style={{ padding: 12, color: '#e5e7eb', display: 'grid', gap: 12 }}>
         <h2 style={{ margin: 0 }}>Writing Export Center</h2>
         {!studentId && teacherRows ? (
           <div style={{ position: 'sticky', top: 0, zIndex: 3, background: '#020617', border: '1px solid #1e293b', borderRadius: 10, padding: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -416,7 +429,7 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
 
         <div style={{ display: 'grid', gridTemplateColumns: studentId ? 'minmax(0, 1fr)' : 'minmax(0, 2fr) minmax(280px, 1fr)', gap: 10 }}>
           {!studentId && teacherRows ? (
-            <article style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: '#0f172a', overflowX: 'auto' }}>
+            <article style={{ border: '1px solid #334155', borderRadius: 12, padding: 14, background: 'linear-gradient(180deg, #0f172a, #0b1327)', overflowX: 'auto' }}>
               <h3 style={{ margin: 0 }}>Teacher Writing Class Summary</h3>
               <div style={{ fontSize: 12, opacity: 0.85, marginBottom: 8 }}>Month: {month}</div>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -431,11 +444,11 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
                 </thead>
                 <tbody>
                   {visibleRows.map((row) => (
-                    <tr key={row.student_id}>
+                    <tr key={row.student_id} style={{ borderTop: '1px solid #1e293b' }}>
                       <td>{row.student_name}</td>
                       <td>{row.grade}</td>
                       <td>{Math.round(row.completion_rate * 100)}%</td>
-                      <td>{row.latest_score ?? '—'}</td>
+                      <td>{formatScore(row.latest_score)}</td>
                       <td>
                         <button type="button" onClick={() => setSelectedStudentId(row.student_id)} style={{ borderRadius: 6, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '4px 8px' }}>Open student</button>
                       </td>
@@ -446,9 +459,14 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
             </article>
           ) : null}
 
-          <aside id="selected-student-report" style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: '#0f172a', display: 'grid', gap: 10 }}>
+          <aside id="selected-student-report" style={{ border: '1px solid #334155', borderRadius: 12, padding: 14, background: 'linear-gradient(180deg, #0f172a, #0b1327)', display: 'grid', gap: 10 }}>
             <strong>Selected student workspace</strong>
             {!selectedStudentId ? <div>Select a student row to load details.</div> : null}
+            {selectedStudentId && !isUuid(selectedStudentId) ? (
+              <div style={{ border: '1px solid #7f1d1d', background: '#3a1212', color: '#fecaca', borderRadius: 8, padding: 10 }}>
+                This student id is not UUID-shaped (`{selectedStudentId}`), so secure teacher RPCs will fail with 400 until data is normalized.
+              </div>
+            ) : null}
             {teacherSummaryReport ? renderTeacherSummary(teacherSummaryReport) : null}
 
             {selectedStudentId ? (
@@ -472,7 +490,7 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
                       }}
                     >
                       <div><strong>{item.attempt_type ?? 'attempt'}</strong> · {new Date(item.created_at).toLocaleString()}</div>
-                      <div style={{ fontSize: 12, opacity: 0.85 }}>Score: {String((item.assessment as Record<string, unknown>)?.['total_score'] ?? '—')} · Retry: {item.retry_kind ?? '—'}</div>
+                      <div style={{ fontSize: 12, opacity: 0.85 }}>Score: {formatScore(Number((item.assessment as Record<string, unknown>)?.['total_score'] ?? NaN))} · Retry mode: {item.retry_kind === 'same_prompt' ? 'Retry prompt' : item.retry_kind === 'new_prompt' ? 'New prompt' : item.retry_kind ?? '—'}</div>
                     </button>
                   ))}
                 </div>
