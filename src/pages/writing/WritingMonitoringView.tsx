@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import gsap from 'gsap';
 import {
   getTeacherMonitoringOverviewScoped,
   getTeacherWritingReport,
@@ -120,6 +121,9 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
   errorMessage,
   filterQuery = '',
 }) => {
+  const headerRef = useRef<HTMLDivElement | null>(null);
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const detailsRef = useRef<HTMLElement | null>(null);
   const isTestRuntime = typeof process !== 'undefined' && process.env?.['NODE_ENV'] === 'test';
   const seededOverview = isTestRuntime ? getWritingMonitoringOverview(month) : null;
   const [overview, setOverview] = useState<WritingMonitoringOverview | null>(seededOverview?.ok ? seededOverview.data ?? null : null);
@@ -200,6 +204,16 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
   }, [month, isTestRuntime]);
 
   useEffect(() => {
+    const nodes = [headerRef.current, listRef.current, detailsRef.current].filter(Boolean);
+    if (nodes.length === 0) return;
+    gsap.fromTo(
+      nodes,
+      { y: 16, autoAlpha: 0, scale: 0.99 },
+      { y: 0, autoAlpha: 1, scale: 1, duration: 0.55, stagger: 0.08, ease: 'power2.out' }
+    );
+  }, [month]);
+
+  useEffect(() => {
     if (!selectedStudentId && rows[0]?.student_id) setSelectedStudentId(rows[0].student_id);
   }, [rows, selectedStudentId]);
 
@@ -220,6 +234,52 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
         setOpenReportData(result.data);
       })
       .finally(() => setIsReportLoading(false));
+  };
+
+  const buildPrintableReportHtml = (report: TeacherWritingReport): string => {
+    const rows = [
+      ['Student', report.student.student_name],
+      ['Grade', report.student.grade ?? '—'],
+      ['Class', report.student.class_name ?? 'Unassigned'],
+      ['Reporting period', report.period],
+      ['Genre', report.genre],
+      ['Latest score', report.overall_summary.latest_score ?? '—'],
+      ['Completion', `${report.overall_summary.completion_rate_percent}% (${report.overall_summary.completed_tasks}/${report.overall_summary.total_tasks})`],
+      ['Trend delta', report.overall_summary.score_trend_delta ?? '—'],
+      ['Progress summary', report.student_friendly_summary.progress_summary],
+      ['Priority weak areas', report.priority_weak_areas.join(', ') || 'None detected yet'],
+      ['Teacher actions', report.teacher_actions.join(' • ') || 'No actions generated yet'],
+      ['Strengths', report.strengths.join(' • ') || 'No strengths captured yet'],
+    ];
+    const renderedRows = rows
+      .map(([label, value]) => `<tr><th>${label}</th><td>${value}</td></tr>`)
+      .join('');
+    return `<!doctype html>
+<html><head><meta charset="utf-8"/><title>Writing Report Card</title>
+<style>
+body{font-family:Inter,Segoe UI,Arial,sans-serif;padding:24px;color:#0f172a}
+h1{margin:0 0 4px;font-size:24px} p{margin:0 0 16px;color:#475569}
+table{width:100%;border-collapse:collapse} th,td{border:1px solid #cbd5e1;padding:10px;vertical-align:top}
+th{background:#f1f5f9;text-align:left;width:230px}
+.meta{margin-top:14px;font-size:12px;color:#64748b}
+</style></head>
+<body>
+  <h1>Writing Report Card</h1>
+  <p>Teacher view • generated ${new Date().toLocaleString()}</p>
+  <table>${renderedRows}</table>
+  <div class="meta">Confidential — For teacher and student support planning.</div>
+</body></html>`;
+  };
+
+  const printOpenReport = (): void => {
+    if (!openReportData || typeof window === 'undefined') return;
+    const printWindow = window.open('', '_blank', 'noopener,noreferrer,width=980,height=760');
+    if (!printWindow) return;
+    printWindow.document.open();
+    printWindow.document.write(buildPrintableReportHtml(openReportData));
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
   };
 
   const handleExportStudent = (studentId: string): void => {
@@ -253,8 +313,11 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
       <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Weekly target</span>
       <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Teacher/Admin Writing Monitor</span>
 
-      <section style={{ ...shellCard, padding: 14, display: 'grid', gap: 10 }}>
+      <section ref={headerRef} style={{ ...shellCard, padding: 14, display: 'grid', gap: 10, boxShadow: '0 16px 42px rgba(15,23,42,0.35)' }}>
         <h2 style={{ margin: 0, color: '#ffffff', fontSize: 24 }}>Writing Monitor</h2>
+        <p style={{ margin: 0, color: '#cbd5e1', fontSize: 13 }}>
+          Clear weekly snapshot for teachers: who needs intervention, who is improving, and who is ready for monthly report cards.
+        </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10 }}>
           <article style={{ ...shellCard, padding: 12 }}><div style={{ color: '#94a3b8', fontSize: 12 }}>Students needing support</div><strong style={{ fontSize: 24 }}>{stalledCount}</strong></article>
           <article style={{ ...shellCard, padding: 12 }}><div style={{ color: '#94a3b8', fontSize: 12 }}>Students improving</div><strong style={{ fontSize: 24 }}>{improvingCount}</strong></article>
@@ -305,7 +368,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
       </section>
 
       <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'minmax(0, 2fr) minmax(320px, 1fr)' }}>
-        <div style={{ ...shellCard, overflowX: 'auto', maxHeight: '70vh' }}>
+        <div ref={listRef} style={{ ...shellCard, overflowX: 'auto', maxHeight: '70vh', boxShadow: '0 10px 28px rgba(15,23,42,0.3)' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', background: 'transparent' }}>
             <thead>
               <tr>
@@ -356,7 +419,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
         </div>
 
         {selectedRow ? (
-          <aside style={{ ...shellCard, padding: 12, display: 'grid', gap: 8 }}>
+          <aside ref={detailsRef} style={{ ...shellCard, padding: 12, display: 'grid', gap: 8, boxShadow: '0 10px 28px rgba(15,23,42,0.3)' }}>
             <strong style={{ color: '#93c5fd' }}>Student details</strong>
             <span>{toDisplayLabel(selectedRow.student_name, selectedRow.student_id)}</span>
             <span>Grade {selectedRow.current_grade}</span>
@@ -379,7 +442,10 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
           <div style={{ ...shellCard, width: 'min(880px, 100%)', maxHeight: '88vh', overflow: 'auto', padding: 14, display: 'grid', gap: 10 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
               <h3 style={{ margin: 0 }}>Student writing report</h3>
-              <button type="button" onClick={() => setIsReportOpen(false)} style={{ borderRadius: 7, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 10px' }}>Close</button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button type="button" onClick={printOpenReport} disabled={!openReportData || isReportLoading} style={{ borderRadius: 7, border: '1px solid #14532d', background: '#166534', color: '#f0fdf4', padding: '6px 10px', cursor: openReportData ? 'pointer' : 'not-allowed', opacity: openReportData ? 1 : 0.5 }}>Print report card</button>
+                <button type="button" onClick={() => setIsReportOpen(false)} style={{ borderRadius: 7, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 10px' }}>Close</button>
+              </div>
             </div>
             {isReportLoading ? <div>Loading report…</div> : null}
             {reportError ? <div style={{ color: '#fca5a5' }}>{reportError}</div> : null}

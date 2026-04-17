@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import gsap from 'gsap';
 import {
   getWritingAnalyticsDashboard,
   getWritingMonitoringOverview,
@@ -36,6 +37,7 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
   promptBankBasePath = '/writing/prompts',
   onNavigate,
 }) => {
+  const shellRef = useRef<HTMLDivElement | null>(null);
   const isTestRuntime = typeof process !== 'undefined' && process.env?.['NODE_ENV'] === 'test';
   const seededDashboard = isTestRuntime ? getWritingAnalyticsDashboard({ grade: gradeFilter, genre: genreFilter }) : null;
   const seededMonitoring = isTestRuntime ? getWritingMonitoringOverview() : null;
@@ -67,6 +69,13 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
       cancelled = true;
     };
   }, [gradeFilter, genreFilter, isTestRuntime]);
+
+  useEffect(() => {
+    if (!shellRef.current) return;
+    const cards = Array.from(shellRef.current.querySelectorAll<HTMLElement>('[data-analytics-card="true"]'));
+    if (cards.length === 0) return;
+    gsap.fromTo(cards, { y: 14, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.45, stagger: 0.06, ease: 'power2.out' });
+  }, [dashboard, monitoring]);
   const data = dashboard;
   const isLikelyInternalId = (value?: string): boolean =>
     !value || /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.trim());
@@ -154,10 +163,17 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
   }
 
   return (
-    <div style={{ padding: 12, color: '#f3f4f6', display: 'grid', gap: 10 }}>
+    <div ref={shellRef} style={{ padding: 12, color: '#f3f4f6', display: 'grid', gap: 10 }}>
       <h2 style={{ margin: 0, color: '#ffffff' }}>Writing Analytics</h2>
       <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Writing Analytics Dashboard</span>
-      <div style={{ position: 'sticky', top: 0, zIndex: 3, background: '#020617', border: '1px solid #1e293b', borderRadius: 10, padding: 10, display: 'grid', gap: 8 }}>
+      <section data-analytics-card="true" style={{ border: '1px solid #1d4ed8', borderRadius: 12, padding: 12, background: 'linear-gradient(145deg, rgba(30,58,138,0.35), rgba(2,6,23,0.9))' }}>
+        <strong style={{ display: 'block', marginBottom: 6, color: '#bfdbfe' }}>What this dashboard is for</strong>
+        <p style={{ margin: 0, color: '#dbeafe', fontSize: 13 }}>
+          This view is class-level pattern analysis: it helps you see repeated weak skills, retry behavior, and where teaching interventions are needed.
+          It is different from <strong>Writing Monitor</strong>, which is your student-by-student tracking list.
+        </p>
+      </section>
+      <div data-analytics-card="true" style={{ position: 'sticky', top: 0, zIndex: 3, background: '#020617', border: '1px solid #1e293b', borderRadius: 10, padding: 10, display: 'grid', gap: 8 }}>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           <span style={{ background: '#7f1d1d', color: '#fecaca', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Needs support: {data.summary.stalled_count}</span>
           <span style={{ background: '#14532d', color: '#bbf7d0', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Improving: {data.summary.improving_count}</span>
@@ -175,7 +191,7 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
         </div>
       </div>
 
-      <section style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, overflowX: 'auto', background: '#0f172a' }}>
+      <section data-analytics-card="true" style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, overflowX: 'auto', background: '#0f172a' }}>
         <h3 style={{ marginTop: 0 }}>Student summary table</h3>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
@@ -214,7 +230,7 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
       </section>
 
       {retryInsights && (
-        <section style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, overflowX: 'auto', background: '#0f172a' }}>
+        <section data-analytics-card="true" style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, overflowX: 'auto', background: '#0f172a' }}>
           <h3 style={{ marginTop: 0 }}>Retry-cycle insights (simple-loop metadata)</h3>
           <p style={{ marginTop: 0, color: '#cbd5e1', fontSize: 12 }}>
             Coverage: {retryInsights.retry_metadata_attempts}/{retryInsights.total_attempts} attempts have retry metadata ({toPercent(retryInsights.retry_metadata_coverage_rate)}).
@@ -285,7 +301,7 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
         </section>
       )}
 
-      <section style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, background: '#0f172a' }}>
+      <section data-analytics-card="true" style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, background: '#0f172a' }}>
         <h3 style={{ marginTop: 0 }}>Main class weaknesses</h3>
         <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Weakness hotspots</span>
         <ul style={{ margin: 0, paddingLeft: 18 }}>
@@ -303,7 +319,7 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
         </ul>
       </section>
 
-      <section style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, overflowX: 'auto', background: '#0f172a' }}>
+      <section data-analytics-card="true" style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, overflowX: 'auto', background: '#0f172a' }}>
         <h3 style={{ marginTop: 0 }}>Prompt effectiveness</h3>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
