@@ -7979,9 +7979,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     { id: 'reports', label: 'Reports', icon: '📊', description: 'Student Performance', proOnly: true },
     ...(canAccessWritingInsights
       ? [
-          { id: 'writing-monitoring' as const, label: 'Writing Monitor', icon: '📝', description: 'Teacher writing progress', proOnly: true },
-          { id: 'writing-analytics' as const, label: 'Writing Analytics', icon: '📈', description: 'Writing trends & drill-downs', proOnly: true },
-          { id: 'writing-export-center' as const, label: 'Writing Reports', icon: '📤', description: 'Export-ready Writing Hub reports', proOnly: true },
+          { id: 'writing-monitoring' as const, label: 'Writing Monitor', icon: '📝', description: 'Student-by-student progress tracker', proOnly: true },
+          { id: 'writing-analytics' as const, label: 'Writing Analytics', icon: '📈', description: 'Class patterns, retry behavior, weak-skill trends', proOnly: true },
+          { id: 'writing-export-center' as const, label: 'Writing Reports', icon: '📤', description: 'Create, edit, save, and export report cards', proOnly: true },
         ]
       : []),
     { id: 'lockdown', label: 'Lockdown Mode', icon: '🔒', description: 'Host Live Classroom Sessions' },
