@@ -26,6 +26,7 @@ interface WritingAnalyticsDashboardProps {
 type SortKey = 'student' | 'completion' | 'score';
 type InputChangeEvent = { target: { value: string } };
 type SelectChangeEvent = { target: { value: string } };
+type MonitoringRow = WritingMonitoringOverview['student_rows'][number] & { class_name?: string | null };
 
 export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps> = ({
   gradeFilter,
@@ -136,9 +137,9 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
       : null,
   ].filter(Boolean) as string[];
 
-  const summaryRows = useMemo(() => {
+  const summaryRows = useMemo<MonitoringRow[]>(() => {
     if (!monitoring) return [];
-    const filtered = monitoring.student_rows.filter((row) => {
+    const filtered: MonitoringRow[] = monitoring.student_rows.filter((row) => {
       const weak = row.repeated_weakness_hotspots.map(toTeacherWeaknessLabel).join(', ');
       const searchable = `${toDisplayLabel(row.student_name, row.student_id)} ${row.weekly_target_summary} ${weak}`.toLowerCase();
       return !searchQuery || searchable.includes(searchQuery.toLowerCase());

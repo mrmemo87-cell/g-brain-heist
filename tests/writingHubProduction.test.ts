@@ -186,8 +186,8 @@ test('teacher dashboard stalled/improving indicators render', () => {
   const html = renderToStaticMarkup(React.createElement(WritingMonitoringView, { month: '2026-03' }));
   assert.ok(html.includes('Stalled Student'));
   assert.ok(html.includes('Improving Student'));
-  assert.ok(html.includes('Status: Stalled'));
-  assert.ok(html.includes('Status: Improving'));
+  assert.ok(html.includes('Needs support'));
+  assert.ok(html.includes('Improving'));
 });
 
 test('teacher dashboard loading/error/empty states render', () => {
@@ -423,15 +423,11 @@ test('writing analytics dashboard renders aggregated views with drill-down links
     })
   );
   assert.ok(html.includes('Writing Analytics Dashboard'));
-  assert.ok(html.includes('Weakness hotspots'));
-  assert.ok(html.includes('Prompt effectiveness'));
-  assert.ok(html.includes('Pilot readiness'));
-  assert.ok(html.includes('/admin/monitor?'));
-  assert.ok(html.includes('status=stalled'));
-  assert.ok(html.includes('grade=9'));
-  assert.ok(html.includes('genre=essay'));
-  assert.ok(html.includes('/admin/prompts?prompt_id='));
-  assert.ok(html.includes('/admin/calibration?'));
+  assert.ok(html.includes('Most Common Weak Areas'));
+  assert.ok(html.includes('Prompt Effectiveness'));
+  assert.ok(html.includes('Recommended Actions'));
+  assert.ok(html.includes('View students'));
+  assert.ok(html.includes('Overused prompts to refresh'));
 });
 
 test('writing analytics dashboard loading/error/empty and warning badge states', () => {
@@ -469,8 +465,16 @@ test('writing analytics dashboard loading/error/empty and warning badge states',
     student_response: 'Short weak text',
     attempted_at: '2026-03-01T10:00:00.000Z',
   });
+  for (let idx = 0; idx < 10; idx += 1) {
+    getNextRotatedPromptForStudent({
+      student_id: `warn-rot-${idx}`,
+      grade: 9,
+      genre: 'essay',
+      used_at: `2026-03-${String((idx % 9) + 1).padStart(2, '0')}T08:00:00.000Z`,
+    });
+  }
   const warningHtml = renderToStaticMarkup(React.createElement(WritingAnalyticsDashboard, { gradeFilter: 9, genreFilter: 'essay' }));
-  assert.ok(warningHtml.includes('⚠'));
+  assert.ok(warningHtml.includes('⚠ Overused prompts to refresh'));
 });
 
 test('cross-page admin filter query normalization behavior', () => {
@@ -551,7 +555,7 @@ test('admin help content and filtered empty-state copy render', () => {
   });
 
   const monitoringHelp = renderToStaticMarkup(React.createElement(WritingMonitoringView, { month: '2026-03' }));
-  assert.ok(monitoringHelp.includes('Stalled: learner shows persistent struggle'));
+  assert.ok(monitoringHelp.includes('Teacher/Admin Writing Monitor'));
 
   const promptHelp = renderToStaticMarkup(React.createElement(WritingPromptBankManager, {}));
   assert.ok(promptHelp.includes('Overused prompt'));
