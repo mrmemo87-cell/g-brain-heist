@@ -232,7 +232,13 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
     void getTeacherWritingReport({ student_id: studentId, month, include_snippet: false })
       .then((result) => {
         if (!result.ok || !result.data) {
-          setReportError(result.error ?? 'Unable to load report.');
+          const errorMsg = result.error ?? 'Unable to load report.';
+          if (errorMsg.includes('Could not choose the best candidate function')) {
+            setReportError('Database function configuration issue. Please contact your administrator.');
+            console.error('RPC Overload Error:', errorMsg);
+          } else {
+            setReportError(errorMsg);
+          }
           setOpenReportData(null);
           return;
         }
@@ -341,56 +347,69 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
   const monthlyReadyCount = allRows.filter((row) => row.ready_for_monthly_review).length;
 
   return (
-    <div style={{ padding: 14, color: '#f3f4f6', display: 'grid', gap: 12 }}>
+    <div style={{ padding: 20, color: '#f3f4f6', display: 'grid', gap: 20, background: '#0a0f1a' }}>
       <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Weekly target</span>
       <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Teacher/Admin Writing Monitor</span>
 
-      <section ref={headerRef} style={{ ...shellCard, padding: 14, display: 'grid', gap: 10, boxShadow: '0 16px 42px rgba(15,23,42,0.35)' }}>
-        <h2 style={{ margin: 0, color: '#ffffff', fontSize: 24 }}>Writing Monitor</h2>
-        <p style={{ margin: 0, color: '#cbd5e1', fontSize: 13 }}>
-          Clear weekly snapshot for teachers: who needs intervention, who is improving, and who is ready for monthly report cards.
-        </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10 }}>
-          <article style={{ ...shellCard, padding: 12 }}><div style={{ color: '#94a3b8', fontSize: 12 }}>Students needing support</div><strong style={{ fontSize: 24 }}>{stalledCount}</strong></article>
-          <article style={{ ...shellCard, padding: 12 }}><div style={{ color: '#94a3b8', fontSize: 12 }}>Students improving</div><strong style={{ fontSize: 24 }}>{improvingCount}</strong></article>
-          <article style={{ ...shellCard, padding: 12 }}><div style={{ color: '#94a3b8', fontSize: 12 }}>Ready for monthly review</div><strong style={{ fontSize: 24 }}>{monthlyReadyCount}</strong></article>
+      {/* Header Section */}
+      <section ref={headerRef} style={{ display: 'grid', gap: 16 }}>
+        <div>
+          <h1 style={{ margin: 0, color: '#ffffff', fontSize: 32, fontWeight: 900, letterSpacing: -0.5 }}>Writing Hub</h1>
+          <p style={{ margin: '8px 0 0', color: '#94a3b8', fontSize: 14 }}>Teacher dashboard for monitoring student writing progress, trends, and performance</p>
+        </div>
+
+        {/* Key Metrics */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
+          <div style={{ ...shellCard, padding: 16, display: 'grid', gap: 8, border: '1px solid #1e293b' }}>
+            <div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>Needing Support</div>
+            <div style={{ fontSize: 36, fontWeight: 900, color: '#fca5a5' }}>{stalledCount}</div>
+            <div style={{ fontSize: 12, color: '#cbd5e1' }}>students</div>
+          </div>
+          <div style={{ ...shellCard, padding: 16, display: 'grid', gap: 8, border: '1px solid #1e293b' }}>
+            <div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>Improving</div>
+            <div style={{ fontSize: 36, fontWeight: 900, color: '#86efac' }}>{improvingCount}</div>
+            <div style={{ fontSize: 12, color: '#cbd5e1' }}>students</div>
+          </div>
+          <div style={{ ...shellCard, padding: 16, display: 'grid', gap: 8, border: '1px solid #1e293b' }}>
+            <div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>Ready for Review</div>
+            <div style={{ fontSize: 36, fontWeight: 900, color: '#93c5fd' }}>{monthlyReadyCount}</div>
+            <div style={{ fontSize: 12, color: '#cbd5e1' }}>students</div>
+          </div>
         </div>
       </section>
 
-      <section style={{ ...shellCard, padding: 12, display: 'grid', gap: 10 }}>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button type="button" onClick={() => setActiveQuickFilter('stalled')} style={{ ...chipStyle(activeQuickFilter === 'stalled' ? 'danger' : 'neutral'), cursor: 'pointer' }}>View stalled</button>
-          <button type="button" onClick={() => setActiveQuickFilter('improving')} style={{ ...chipStyle(activeQuickFilter === 'improving' ? 'success' : 'neutral'), cursor: 'pointer' }}>View improving</button>
-          <button type="button" onClick={() => setActiveQuickFilter('all')} style={{ ...chipStyle(activeQuickFilter === 'all' ? 'info' : 'neutral'), cursor: 'pointer' }}>View all</button>
+      {/* Filters Section */}
+      <section style={{ ...shellCard, padding: 16, display: 'grid', gap: 12, border: '1px solid #1e293b' }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: 0.5 }}>Quick Filter:</span>
+          <button type="button" onClick={() => setActiveQuickFilter('all')} style={{ ...chipStyle(activeQuickFilter === 'all' ? 'info' : 'neutral'), cursor: 'pointer', border: 'none', fontSize: 12 }}>All students</button>
+          <button type="button" onClick={() => setActiveQuickFilter('improving')} style={{ ...chipStyle(activeQuickFilter === 'improving' ? 'success' : 'neutral'), cursor: 'pointer', border: 'none', fontSize: 12 }}>Improving</button>
+          <button type="button" onClick={() => setActiveQuickFilter('stalled')} style={{ ...chipStyle(activeQuickFilter === 'stalled' ? 'danger' : 'neutral'), cursor: 'pointer', border: 'none', fontSize: 12 }}>Needs support</button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(165px, 1fr))', gap: 8 }}>
-          <input value={searchQuery} onChange={(event: InputChangeEvent) => setSearchQuery(event.target.value)} placeholder="Search student name" style={{ background: '#020617', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '8px 10px' }} />
-          <select value={classFilter} onChange={(event: SelectChangeEvent) => setClassFilter(event.target.value)} style={{ background: '#020617', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '8px 10px' }}>
-            <option value="all">Class: All classes</option>
-            {classOptions.map((value) => <option key={value} value={value}>{value}</option>)}
-          </select>
-          <select value={gradeFilter} onChange={(event: SelectChangeEvent) => setGradeFilter(event.target.value)} style={{ background: '#020617', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '8px 10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10 }}>
+          <input value={searchQuery} onChange={(event: InputChangeEvent) => setSearchQuery(event.target.value)} placeholder="Search by name..." type="text" style={{ background: '#0f1728', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '10px 12px', fontSize: 13 }} />
+          <select value={gradeFilter} onChange={(event: SelectChangeEvent) => setGradeFilter(event.target.value)} style={{ background: '#0f1728', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '10px 12px', fontSize: 13 }}>
             <option value="all">Grade: All</option>
             {gradeOptions.map((value) => <option key={value} value={value}>Grade {value}</option>)}
           </select>
-          <select value={weakAreaFilter} onChange={(event: SelectChangeEvent) => setWeakAreaFilter(event.target.value)} style={{ background: '#020617', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '8px 10px' }}>
-            <option value="all">Weak area: All</option>
+          <select value={weakAreaFilter} onChange={(event: SelectChangeEvent) => setWeakAreaFilter(event.target.value)} style={{ background: '#0f1728', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '10px 12px', fontSize: 13 }}>
+            <option value="all">All weak areas</option>
             {overview.hotspot_tags.map((tag) => <option key={tag} value={tag}>{toTeacherWeaknessLabel(tag)}</option>)}
           </select>
-          <select value={supportFilter} onChange={(event: SelectChangeEvent) => setSupportFilter(event.target.value as SupportFilter)} style={{ background: '#020617', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '8px 10px' }}>
-            <option value="all">Support status: All</option>
+          <select value={supportFilter} onChange={(event: SelectChangeEvent) => setSupportFilter(event.target.value as SupportFilter)} style={{ background: '#0f1728', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '10px 12px', fontSize: 13 }}>
+            <option value="all">Status: All</option>
             <option value="needs_support">Needs support</option>
             <option value="improving">Improving</option>
             <option value="stable">Stable</option>
           </select>
-          <select value={readinessFilter} onChange={(event: SelectChangeEvent) => setReadinessFilter(event.target.value as ReadinessFilter)} style={{ background: '#020617', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '8px 10px' }}>
+          <select value={readinessFilter} onChange={(event: SelectChangeEvent) => setReadinessFilter(event.target.value as ReadinessFilter)} style={{ background: '#0f1728', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '10px 12px', fontSize: 13 }}>
             <option value="all">Readiness: All</option>
             <option value="ready">Ready for review</option>
             <option value="not_ready">Not ready</option>
           </select>
-          <select value={sortKey} onChange={(event: SelectChangeEvent) => setSortKey(event.target.value as SortKey)} style={{ background: '#020617', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '8px 10px' }}>
-            <option value="student">Sort: Student A-Z</option>
+          <select value={sortKey} onChange={(event: SelectChangeEvent) => setSortKey(event.target.value as SortKey)} style={{ background: '#0f1728', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '10px 12px', fontSize: 13 }}>
+            <option value="student">Sort: A-Z</option>
             <option value="score_desc">Score: High to low</option>
             <option value="score_asc">Score: Low to high</option>
             <option value="completion_desc">Completion: High to low</option>
@@ -399,129 +418,185 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
         </div>
       </section>
 
-      <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'minmax(0, 2fr) minmax(320px, 1fr)' }}>
-        <div ref={listRef} style={{ ...shellCard, overflowX: 'auto', maxHeight: '70vh', boxShadow: '0 10px 28px rgba(15,23,42,0.3)' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', background: 'transparent' }}>
-            <thead>
-              <tr>
-                <th align="left" style={tableHeaderCellStyle}>Student</th>
-                <th align="left" style={tableHeaderCellStyle}>Grade</th>
-                <th align="left" style={tableHeaderCellStyle}>Completion</th>
-                <th align="left" style={tableHeaderCellStyle}>Latest score</th>
-                <th align="left" style={tableHeaderCellStyle}>Weak areas</th>
-                <th align="left" style={tableHeaderCellStyle}>Recent trend</th>
-                <th align="left" style={tableHeaderCellStyle}>Support</th>
-                <th align="left" style={tableHeaderCellStyle}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => {
-                const selected = selectedRow?.student_id === row.student_id;
-                return (
-                  <tr key={row.student_id} onClick={() => setSelectedStudentId(row.student_id)} style={{ cursor: 'pointer', background: selected ? '#0b1f36' : 'transparent' }}>
-                    <td style={tableCellStyle}><strong>{toDisplayLabel(row.student_name, row.student_id)}</strong><div style={{ color: '#94a3b8', fontSize: 12 }}>{row.class_name ?? 'Unassigned'}</div></td>
-                    <td style={tableCellStyle}>{row.current_grade}</td>
-                    <td style={tableCellStyle}>{Math.round(row.completion_rate * 100)}%</td>
-                    <td style={tableCellStyle}>{row.latest_score ?? '—'}</td>
-                    <td style={tableCellStyle}>{row.repeated_weakness_hotspots.length ? row.repeated_weakness_hotspots.map(toTeacherWeaknessLabel).join(', ') : 'No repeated weak areas yet'}</td>
-                    <td style={tableCellStyle}>{toTrendLabel(row)}</td>
-                    <td style={tableCellStyle}>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                        {row.stalled ? <span style={chipStyle('danger')}>Needs support</span> : null}
-                        {row.stalled ? <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Status: Stalled</span> : null}
-                        {row.improving ? <span style={chipStyle('success')}>Improving</span> : null}
-                        {row.improving ? <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Status: Improving</span> : null}
-                        {!row.stalled && !row.improving ? <span style={chipStyle('neutral')}>Stable</span> : null}
-                        {row.ready_for_monthly_review ? <span style={chipStyle('info')}>Ready</span> : null}
-                      </div>
-                    </td>
-                    <td style={tableCellStyle}>
-                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                        <button type="button" onClick={(event: { stopPropagation: () => void }) => { event.stopPropagation(); setSelectedStudentId(row.student_id); }} style={{ borderRadius: 7, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '4px 8px' }}>View summary</button>
-                        <button type="button" onClick={(event: { stopPropagation: () => void }) => { event.stopPropagation(); openReport(row.student_id); }} style={{ borderRadius: 7, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '4px 8px' }}>Open report</button>
-                        <button type="button" onClick={(event: { stopPropagation: () => void }) => { event.stopPropagation(); handleExportStudent(row.student_id); }} style={{ borderRadius: 7, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '4px 8px' }}>Export</button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          {rows.length === 0 ? <div style={{ padding: 12, color: '#cbd5e1' }}>No monitoring matches for current filters.</div> : null}
+      {/* Main Content: Table + Details */}
+      <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 380px)' }}>
+        {/* Student Roster Table */}
+        <div ref={listRef} style={{ ...shellCard, overflow: 'hidden', border: '1px solid #1e293b', boxShadow: '0 10px 28px rgba(15,23,42,0.3)' }}>
+          <div style={{ overflowX: 'auto', maxHeight: '65vh' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', background: 'transparent' }}>
+              <thead>
+                <tr style={{ background: '#111b31', borderBottom: '2px solid #334155' }}>
+                  <th align="left" style={{ ...tableHeaderCellStyle, borderBottom: '2px solid #334155' }}>Student</th>
+                  <th align="center" style={{ ...tableHeaderCellStyle, borderBottom: '2px solid #334155', width: '70px' }}>Grade</th>
+                  <th align="center" style={{ ...tableHeaderCellStyle, borderBottom: '2px solid #334155', width: '90px' }}>Complete</th>
+                  <th align="center" style={{ ...tableHeaderCellStyle, borderBottom: '2px solid #334155', width: '70px' }}>Score</th>
+                  <th align="left" style={{ ...tableHeaderCellStyle, borderBottom: '2px solid #334155' }}>Status</th>
+                  <th align="center" style={{ ...tableHeaderCellStyle, borderBottom: '2px solid #334155', width: '60px' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row) => {
+                  const selected = selectedRow?.student_id === row.student_id;
+                  const statusColor = row.stalled ? '#f87171' : row.improving ? '#86efac' : '#cbd5e1';
+                  return (
+                    <tr key={row.student_id} onClick={() => setSelectedStudentId(row.student_id)} style={{ cursor: 'pointer', background: selected ? 'rgba(59, 130, 246, 0.08)' : 'transparent', borderBottom: '1px solid #1e293b', transition: 'background 200ms ease' }}>
+                      <td style={{ ...tableCellStyle, paddingLeft: 14, borderLeft: selected ? '3px solid #3b82f6' : '3px solid transparent' }}>
+                        <div><strong style={{ color: '#f8fafc' }}>{toDisplayLabel(row.student_name, row.student_id)}</strong></div>
+                        <div style={{ fontSize: 11, color: '#64748b', marginTop: 3 }}>{row.class_name ?? 'Unassigned'}</div>
+                      </td>
+                      <td style={{ ...tableCellStyle, textAlign: 'center' }}><strong>{row.current_grade}</strong></td>
+                      <td style={{ ...tableCellStyle, textAlign: 'center' }}><strong style={{ color: '#93c5fd' }}>{Math.round(row.completion_rate * 100)}%</strong></td>
+                      <td style={{ ...tableCellStyle, textAlign: 'center' }}><strong>{row.latest_score ?? '—'}</strong></td>
+                      <td style={{ ...tableCellStyle }}>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                          {row.stalled ? <span style={{ ...chipStyle('danger'), fontSize: 11 }}>Needs support</span> : null}
+                          {row.improving ? <span style={{ ...chipStyle('success'), fontSize: 11 }}>Improving</span> : null}
+                          {!row.stalled && !row.improving ? <span style={{ ...chipStyle('neutral'), fontSize: 11 }}>Stable</span> : null}
+                        </div>
+                      </td>
+                      <td style={{ ...tableCellStyle, textAlign: 'center' }}>
+                        <button type="button" onClick={(event: { stopPropagation: () => void }) => { event.stopPropagation(); openReport(row.student_id); }} style={{ borderRadius: 6, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '5px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer', transition: 'all 150ms ease' }}>Report</button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            {rows.length === 0 ? <div style={{ padding: 20, textAlign: 'center', color: '#cbd5e1' }}>No students match your filters</div> : null}
+          </div>
         </div>
 
+        {/* Student Details Card */}
         {selectedRow ? (
-          <aside ref={detailsRef} style={{ ...shellCard, padding: 12, display: 'grid', gap: 8, boxShadow: '0 10px 28px rgba(15,23,42,0.3)' }}>
-            <strong style={{ color: '#93c5fd', fontSize: 16 }}>Student details</strong>
-            <div style={{ border: '1px solid #1e293b', borderRadius: 10, padding: 10, background: '#0b1327' }}>
-              <div style={{ fontSize: 18, fontWeight: 800 }}>{toDisplayLabel(selectedRow.student_name, selectedRow.student_id)}</div>
-              <div style={{ color: '#94a3b8', marginTop: 3 }}>Grade {selectedRow.current_grade} · {selectedRow.class_name ?? 'Unassigned'}</div>
+          <aside ref={detailsRef} style={{ ...shellCard, padding: 16, display: 'grid', gap: 14, border: '1px solid #1e293b', boxShadow: '0 10px 28px rgba(15,23,42,0.3)', height: 'fit-content', position: 'sticky', top: 20 }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 }}>Student</div>
+              <div style={{ fontSize: 20, fontWeight: 900, color: '#f8fafc' }}>{toDisplayLabel(selectedRow.student_name, selectedRow.student_id)}</div>
+              <div style={{ fontSize: 12, color: '#cbd5e1', marginTop: 4 }}>Grade {selectedRow.current_grade} • {selectedRow.class_name ?? 'Unassigned'}</div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
-              <article style={{ border: '1px solid #1e293b', borderRadius: 10, padding: 10, background: '#111827' }}>
-                <div style={{ color: '#93c5fd', fontSize: 12 }}>Completion</div>
-                <strong style={{ fontSize: 20 }}>{Math.round(selectedRow.completion_rate * 100)}%</strong>
-              </article>
-              <article style={{ border: '1px solid #1e293b', borderRadius: 10, padding: 10, background: '#111827' }}>
-                <div style={{ color: '#93c5fd', fontSize: 12 }}>Latest score</div>
-                <strong style={{ fontSize: 20 }}>{formatScoreLabel(selectedRow.latest_score)}</strong>
-              </article>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, borderTop: '1px solid #1e293b', paddingTop: 14 }}>
+              <div style={{ display: 'grid', gap: 4 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase' }}>Completion</div>
+                <div style={{ fontSize: 24, fontWeight: 900, color: '#93c5fd' }}>{Math.round(selectedRow.completion_rate * 100)}%</div>
+              </div>
+              <div style={{ display: 'grid', gap: 4 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase' }}>Latest</div>
+                <div style={{ fontSize: 24, fontWeight: 900, color: '#fbbf24' }}>{formatScoreLabel(selectedRow.latest_score)}</div>
+              </div>
             </div>
-            <div><strong>Recent trend:</strong> {toTrendLabel(selectedRow)}</div>
-            <div><strong>Weak areas:</strong> {selectedRow.repeated_weakness_hotspots.length ? selectedRow.repeated_weakness_hotspots.map(toTeacherWeaknessLabel).join(', ') : 'No repeated weak areas yet'}</div>
-            <div><strong>Next focus:</strong> {selectedRow.weekly_target_summary}</div>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              <button type="button" onClick={() => setSelectedStudentId(selectedRow.student_id)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 8px' }}>View summary</button>
-              <button type="button" onClick={() => openReport(selectedRow.student_id)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 8px' }}>Open report</button>
-              <button type="button" onClick={() => handleExportStudent(selectedRow.student_id)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 8px' }}>Export</button>
+
+            <div style={{ borderTop: '1px solid #1e293b', paddingTop: 14, display: 'grid', gap: 12 }}>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Trend</div>
+                <div style={{ fontSize: 14, color: toTrendLabel(selectedRow) === 'Improving' ? '#86efac' : toTrendLabel(selectedRow) === 'Declining' ? '#f87171' : '#cbd5e1', fontWeight: 600 }}>{toTrendLabel(selectedRow)}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Focus Areas</div>
+                <div style={{ fontSize: 13, color: '#e2e8f0', lineHeight: 1.5 }}>
+                  {selectedRow.repeated_weakness_hotspots.length ? selectedRow.repeated_weakness_hotspots.map(toTeacherWeaknessLabel).join(', ') : <span style={{ color: '#64748b' }}>No repeated weak areas</span>}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Next Target</div>
+                <div style={{ fontSize: 13, color: '#e2e8f0', lineHeight: 1.5 }}>
+                  {selectedRow.weekly_target_summary}
+                </div>
+              </div>
             </div>
+
+            <button type="button" onClick={() => openReport(selectedRow.student_id)} style={{ borderRadius: 8, border: '1px solid #3b82f6', background: 'rgba(59, 130, 246, 0.1)', color: '#93c5fd', padding: '12px 14px', fontWeight: 700, cursor: 'pointer', fontSize: 13, transition: 'all 150ms ease' }}>Open Full Report</button>
           </aside>
         ) : null}
       </div>
 
+      {/* Report Modal */}
       {isReportOpen ? (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(2,6,23,0.72)', zIndex: 30, display: 'grid', placeItems: 'center', padding: 16 }}>
-          <div style={{ ...shellCard, width: 'min(880px, 100%)', maxHeight: '88vh', overflow: 'auto', padding: 14, display: 'grid', gap: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
-              <h3 style={{ margin: 0 }}>Student writing report</h3>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(2,6,23,0.85)', zIndex: 40, display: 'grid', placeItems: 'center', padding: 16 }}>
+          <div style={{ ...shellCard, width: 'min(900px, 100%)', maxHeight: '90vh', overflow: 'auto', padding: 20, display: 'grid', gap: 14, border: '1px solid #1e293b', boxShadow: '0 20px 60px rgba(0,0,0,0.8)' }}>
+            {/* Report Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, borderBottom: '1px solid #1e293b', paddingBottom: 14 }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: 24, fontWeight: 900, color: '#f8fafc' }}>Writing Report Card</h2>
+                <p style={{ margin: '6px 0 0', fontSize: 12, color: '#94a3b8' }}>Teacher report for {openReportData?.period}</p>
+              </div>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="button" onClick={printOpenReport} disabled={!openReportData || isReportLoading} style={{ borderRadius: 7, border: '1px solid #14532d', background: '#166534', color: '#f0fdf4', padding: '6px 10px', cursor: openReportData ? 'pointer' : 'not-allowed', opacity: openReportData ? 1 : 0.5 }}>Print report card</button>
-                <button type="button" onClick={() => setIsReportOpen(false)} style={{ borderRadius: 7, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 10px' }}>Close</button>
+                <button type="button" onClick={printOpenReport} disabled={!openReportData || isReportLoading} style={{ borderRadius: 8, border: '1px solid #14532d', background: '#166534', color: '#f0fdf4', padding: '10px 14px', cursor: openReportData && !isReportLoading ? 'pointer' : 'not-allowed', opacity: openReportData && !isReportLoading ? 1 : 0.5, fontWeight: 700, fontSize: 13 }}>Print Card</button>
+                <button type="button" onClick={() => setIsReportOpen(false)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '10px 14px', fontWeight: 700, fontSize: 13 }}>Close</button>
               </div>
             </div>
-            {isReportLoading ? <div>Loading report…</div> : null}
-            {reportError ? <div style={{ color: '#fca5a5' }}>{reportError}</div> : null}
-            {openReportData ? (
-              <div style={{ display: 'grid', gap: 8 }}>
-                <div style={{ fontSize: 22, fontWeight: 800 }}>{openReportData.student.student_name}</div>
-                <div style={{ color: '#cbd5e1' }}>Grade {openReportData.student.grade ?? '—'} · {openReportData.student.class_name}</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
-                  <article style={{ border: '1px solid #1e293b', borderRadius: 10, padding: 10, background: '#0b1327' }}>
-                    <div style={{ color: '#93c5fd', fontSize: 12 }}>Reporting period</div>
-                    <strong>{openReportData.period}</strong>
-                  </article>
-                  <article style={{ border: '1px solid #1e293b', borderRadius: 10, padding: 10, background: '#0b1327' }}>
-                    <div style={{ color: '#93c5fd', fontSize: 12 }}>Latest score</div>
-                    <strong>{formatScoreLabel(openReportData.overall_summary.latest_score)}</strong>
-                  </article>
-                  <article style={{ border: '1px solid #1e293b', borderRadius: 10, padding: 10, background: '#0b1327' }}>
-                    <div style={{ color: '#93c5fd', fontSize: 12 }}>Completion</div>
-                    <strong>{openReportData.overall_summary.completion_rate_percent}%</strong>
-                  </article>
+
+            {isReportLoading && <div style={{ padding: 20, textAlign: 'center', color: '#cbd5e1' }}>Loading report…</div>}
+            {reportError && <div style={{ padding: 16, background: 'rgba(244, 63, 94, 0.1)', border: '1px solid #7f1d1d', borderRadius: 8, color: '#fca5a5' }}>⚠ {reportError}</div>}
+
+            {openReportData && (
+              <div style={{ display: 'grid', gap: 16 }}>
+                {/* Student Info */}
+                <div style={{ display: 'grid', gap: 8, background: 'rgba(30, 41, 59, 0.5)', borderRadius: 10, padding: 14, border: '1px solid #1e293b' }}>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: '#f8fafc' }}>{openReportData.student.student_name}</div>
+                  <div style={{ fontSize: 13, color: '#cbd5e1' }}>Grade {openReportData.student.grade ?? '—'} • {openReportData.student.class_name ?? 'Unassigned'}</div>
                 </div>
-                <div><strong>Genre:</strong> {openReportData.genre}</div>
-                <div><strong>Priority weak areas:</strong> {openReportData.priority_weak_areas.map(toTeacherWeaknessLabel).join(', ') || 'None detected yet'}</div>
-                <div><strong>Teacher actions:</strong> {openReportData.teacher_actions.join(' • ') || 'No actions generated yet'}</div>
-                <div><strong>Progress summary:</strong> {openReportData.student_friendly_summary.progress_summary}</div>
+
+                {/* Key Metrics Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
+                  <div style={{ background: 'rgba(59, 130, 246, 0.08)', border: '1px solid #1e3a8a', borderRadius: 10, padding: 12 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>Latest Score</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: '#93c5fd' }}>{formatScoreLabel(openReportData.overall_summary.latest_score)}</div>
+                  </div>
+                  <div style={{ background: 'rgba(34, 197, 94, 0.08)', border: '1px solid #15803d', borderRadius: 10, padding: 12 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>Completion</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: '#86efac' }}>{openReportData.overall_summary.completion_rate_percent}%</div>
+                  </div>
+                  <div style={{ background: 'rgba(249, 115, 22, 0.08)', border: '1px solid #92400e', borderRadius: 10, padding: 12 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>Tasks Done</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: '#fbbf24' }}>{openReportData.overall_summary.completed_tasks}/{openReportData.overall_summary.total_tasks}</div>
+                  </div>
+                </div>
+
+                {/* Detailed Info */}
+                <div style={{ display: 'grid', gap: 12, borderTop: '1px solid #1e293b', paddingTop: 14 }}>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Genre</div>
+                    <div style={{ fontSize: 14, color: '#e2e8f0' }}>{openReportData.genre}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Priority Weak Areas</div>
+                    <div style={{ fontSize: 14, color: '#e2e8f0' }}>
+                      {openReportData.priority_weak_areas.length ? openReportData.priority_weak_areas.map(toTeacherWeaknessLabel).join(', ') : <span style={{ color: '#64748b' }}>No weaknesses detected</span>}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Progress Summary</div>
+                    <div style={{ fontSize: 14, color: '#e2e8f0', lineHeight: 1.6 }}>
+                      {openReportData.student_friendly_summary.progress_summary}
+                    </div>
+                  </div>
+                  {openReportData.teacher_actions.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Teacher Actions</div>
+                      <ul style={{ margin: 0, paddingLeft: 20, color: '#e2e8f0', fontSize: 14, lineHeight: 1.6 }}>
+                        {openReportData.teacher_actions.map((action, idx) => <li key={idx}>{action}</li>)}
+                      </ul>
+                    </div>
+                  )}
+                  {openReportData.strengths.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Strengths</div>
+                      <ul style={{ margin: 0, paddingLeft: 20, color: '#e2e8f0', fontSize: 14, lineHeight: 1.6 }}>
+                        {openReportData.strengths.map((strength, idx) => <li key={idx}>{strength}</li>)}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ fontSize: 11, color: '#64748b', textAlign: 'center', borderTop: '1px solid #1e293b', paddingTop: 12 }}>
+                  Confidential — for teacher and student support planning
+                </div>
               </div>
-            ) : null}
+            )}
           </div>
         </div>
       ) : null}
-
-      <small style={{ color: '#cbd5e1' }}>{WRITING_ADMIN_HELP.stalled}</small>
-      <small style={{ color: '#cbd5e1' }}>{WRITING_ADMIN_HELP.improving}</small>
-      <small style={{ color: '#cbd5e1' }}>{WRITING_ADMIN_HELP.monthly_ready}</small>
     </div>
   );
 };

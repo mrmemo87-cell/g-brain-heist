@@ -523,9 +523,40 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
             {selectedStudentId ? (
               <section style={{ border: '1px solid #334155', borderRadius: 8, padding: 10, display: 'grid', gap: 8 }}>
                 <strong>Editable report builder (student-level + attempt-level)</strong>
+                {teacherLoading && <small style={{ color: '#94a3b8' }}>Loading reports…</small>}
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <button type="button" onClick={() => generalReport && hydrateEditorFromGeneral(generalReport)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#fff', padding: '6px 8px' }}>Generate student report template</button>
-                  <button type="button" onClick={() => attemptReport && hydrateEditorFromAttempt(attemptReport)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#fff', padding: '6px 8px' }}>Generate attempt report template</button>
+                  <button 
+                    type="button" 
+                    disabled={!generalReport || teacherLoading}
+                    onClick={() => generalReport && hydrateEditorFromGeneral(generalReport)} 
+                    title={!generalReport && !teacherLoading ? 'No student report available' : ''}
+                    style={{ 
+                      borderRadius: 8, 
+                      border: '1px solid #334155', 
+                      background: generalReport && !teacherLoading ? '#1e293b' : '#0f172a',
+                      color: generalReport && !teacherLoading ? '#fff' : '#64748b',
+                      padding: '6px 8px',
+                      cursor: generalReport && !teacherLoading ? 'pointer' : 'not-allowed',
+                      opacity: generalReport && !teacherLoading ? 1 : 0.5
+                    }}>
+                    Generate student report template
+                  </button>
+                  <button 
+                    type="button" 
+                    disabled={!attemptReport || teacherLoading}
+                    onClick={() => attemptReport && hydrateEditorFromAttempt(attemptReport)}
+                    title={!attemptReport && !teacherLoading ? 'Select an attempt first' : ''}
+                    style={{ 
+                      borderRadius: 8, 
+                      border: '1px solid #334155', 
+                      background: attemptReport && !teacherLoading ? '#1e293b' : '#0f172a',
+                      color: attemptReport && !teacherLoading ? '#fff' : '#64748b',
+                      padding: '6px 8px',
+                      cursor: attemptReport && !teacherLoading ? 'pointer' : 'not-allowed',
+                      opacity: attemptReport && !teacherLoading ? 1 : 0.5
+                    }}>
+                    Generate attempt report template
+                  </button>
                   <button type="button" onClick={exportEditorAsText} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#fff', padding: '6px 8px' }}>Export edited report</button>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>

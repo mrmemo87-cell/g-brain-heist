@@ -2442,7 +2442,7 @@ export const getTeacherWritingReport = async (input: {
       p_student_id: input.student_id,
       p_month: input.month ?? null,
       p_genre: input.genre ?? null,
-      p_include_snippet: Boolean(input.include_snippet),
+      p_include_snippet: input.include_snippet ?? false,
     });
 
     if (error || !data) {

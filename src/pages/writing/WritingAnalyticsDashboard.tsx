@@ -163,224 +163,179 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
   }
 
   return (
-    <div ref={shellRef} style={{ padding: 12, color: '#f3f4f6', display: 'grid', gap: 10 }}>
-      <h2 style={{ margin: 0, color: '#ffffff' }}>Writing Analytics</h2>
+    <div ref={shellRef} style={{ padding: 20, color: '#f3f4f6', display: 'grid', gap: 20, background: '#0a0f1a' }}>
+      <section>
+        <h1 style={{ margin: 0, fontSize: 32, fontWeight: 900, color: '#ffffff', letterSpacing: -0.5 }}>Writing Analytics</h1>
+        <p style={{ margin: '8px 0 0', color: '#94a3b8', fontSize: 14 }}>Class-level patterns, retry trends, and intervention opportunities</p>
+      </section>
       <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Writing Analytics Dashboard</span>
-      <section data-analytics-card="true" style={{ border: '1px solid #1d4ed8', borderRadius: 12, padding: 12, background: 'linear-gradient(145deg, rgba(30,58,138,0.35), rgba(2,6,23,0.9))' }}>
-        <strong style={{ display: 'block', marginBottom: 6, color: '#bfdbfe' }}>What this dashboard is for</strong>
-        <p style={{ margin: 0, color: '#dbeafe', fontSize: 13 }}>
-          This view is class-level pattern analysis: it helps you see repeated weak skills, retry behavior, and where teaching interventions are needed.
-          It is different from <strong>Writing Monitor</strong>, which is your student-by-student tracking list.
+
+      <section data-analytics-card="true" style={{ border: '1px solid #1e3a8a', borderRadius: 12, padding: 14, background: 'rgba(30, 58, 138, 0.12)', display: 'grid', gap: 8 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#93c5fd', letterSpacing: 0.5, textTransform: 'uppercase' }}>About this view</div>
+        <p style={{ margin: 0, color: '#cbd5e1', fontSize: 13, lineHeight: 1.5 }}>
+          See class-wide patterns in weak skills and retry behavior. Different from Writing Monitor, which tracks individual students one-by-one.
         </p>
       </section>
-      <div data-analytics-card="true" style={{ position: 'sticky', top: 0, zIndex: 3, background: '#020617', border: '1px solid #1e293b', borderRadius: 10, padding: 10, display: 'grid', gap: 8 }}>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          <span style={{ background: '#7f1d1d', color: '#fecaca', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Needs support: {data.summary.stalled_count}</span>
-          <span style={{ background: '#14532d', color: '#bbf7d0', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Improving: {data.summary.improving_count}</span>
-          <span style={{ background: '#1e3a8a', color: '#bfdbfe', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Total students: {data.summary.total_students}</span>
+
+      <div data-analytics-card="true" style={{ position: 'sticky', top: 0, zIndex: 3, background: '#0a0f1a', border: '1px solid #1e293b', borderRadius: 12, padding: 14, display: 'grid', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
+          <div style={{ display: 'grid', gap: 4 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase' }}>Needing Support</div>
+            <div style={{ fontSize: 28, fontWeight: 900, color: '#f87171' }}>{data?.summary.stalled_count ?? 0}</div>
+          </div>
+          <div style={{ display: 'grid', gap: 4 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase' }}>Improving</div>
+            <div style={{ fontSize: 28, fontWeight: 900, color: '#86efac' }}>{data?.summary.improving_count ?? 0}</div>
+          </div>
+          <div style={{ display: 'grid', gap: 4 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase' }}>Total</div>
+            <div style={{ fontSize: 28, fontWeight: 900, color: '#93c5fd' }}>{data?.summary.total_students ?? 0}</div>
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <input value={searchQuery} onChange={(event: InputChangeEvent) => setSearchQuery(event.target.value)} placeholder="Search student or weakness" style={{ flex: '1 1 220px', background: '#020617', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '8px 10px' }} />
-          <select value={sortKey} onChange={(event: SelectChangeEvent) => setSortKey(event.target.value as SortKey)} style={{ background: '#020617', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '8px 10px' }}>
-            <option value="student">Sort: Student</option>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <input value={searchQuery} onChange={(event: InputChangeEvent) => setSearchQuery(event.target.value)} placeholder="Search by name or weakness..." type="text" style={{ background: '#0f1728', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '10px 12px', fontSize: 13 }} />
+          <select value={sortKey} onChange={(event: SelectChangeEvent) => setSortKey(event.target.value as SortKey)} style={{ background: '#0f1728', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '10px 12px', fontSize: 13 }}>
+            <option value="student">Sort: A-Z</option>
             <option value="completion">Sort: Completion</option>
-            <option value="score">Sort: Latest score</option>
+            <option value="score">Sort: Latest Score</option>
           </select>
-          <a href={buildPath(monitoringBasePath, { status: 'stalled', grade: gradeFilter, genre: genreFilter })} onClick={(event: any) => navigateTo(buildPath(monitoringBasePath, { status: 'stalled', grade: gradeFilter, genre: genreFilter }), event)}>View stalled</a>
-          <a href={buildPath(monitoringBasePath, { status: 'improving', grade: gradeFilter, genre: genreFilter })} onClick={(event: any) => navigateTo(buildPath(monitoringBasePath, { status: 'improving', grade: gradeFilter, genre: genreFilter }), event)}>View improving</a>
         </div>
       </div>
 
-      <section data-analytics-card="true" style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, overflowX: 'auto', background: '#0f172a' }}>
-        <h3 style={{ marginTop: 0 }}>Student summary table</h3>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-          <thead>
-            <tr>
-              <th align="left">Student</th>
-              <th align="left">Grade</th>
-              <th align="left">Completion</th>
-              <th align="left">Latest score</th>
-              <th align="left">Main weakness</th>
-              <th align="left">Recent trend</th>
-              <th align="left">Next focus</th>
-              <th align="left">Flags</th>
-            </tr>
-          </thead>
-          <tbody>
-            {summaryRows.map((row) => (
-              <tr key={row.student_id}>
-                <td>{toDisplayLabel(row.student_name, row.student_id)}</td>
-                <td>{row.current_grade}</td>
-                <td>{Math.round(row.completion_rate * 100)}%</td>
-                <td>{row.latest_score ?? '—'}</td>
-                <td>{row.repeated_weakness_hotspots.map(toTeacherWeaknessLabel).join(', ') || '—'}</td>
-                <td>ΔC {row.subscale_trend.content}, ΔCom {row.subscale_trend.communicative_achievement}, ΔO {row.subscale_trend.organisation}, ΔL {row.subscale_trend.language}</td>
-                <td>{row.weekly_target_summary}</td>
-                <td>
-                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                    {row.stalled ? <span style={{ background: '#7f1d1d', color: '#fecaca', borderRadius: 999, padding: '1px 7px', fontSize: 11 }}>Needs support</span> : null}
-                    {row.improving ? <span style={{ background: '#14532d', color: '#bbf7d0', borderRadius: 999, padding: '1px 7px', fontSize: 11 }}>Improving</span> : null}
-                    {row.ready_for_monthly_review ? <span style={{ background: '#1e3a8a', color: '#bfdbfe', borderRadius: 999, padding: '1px 7px', fontSize: 11 }}>Ready</span> : null}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
-
-      {retryInsights && (
-        <section data-analytics-card="true" style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, overflowX: 'auto', background: '#0f172a' }}>
-          <h3 style={{ marginTop: 0 }}>Retry-cycle insights (simple-loop metadata)</h3>
-          <p style={{ marginTop: 0, color: '#cbd5e1', fontSize: 12 }}>
-            Coverage: {retryInsights.retry_metadata_attempts}/{retryInsights.total_attempts} attempts have retry metadata ({toPercent(retryInsights.retry_metadata_coverage_rate)}).
-          </p>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
-            <span style={{ background: '#1e3a8a', color: '#bfdbfe', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Cycles: {retryInsights.retry_cycle_count}</span>
-            <span style={{ background: '#164e63', color: '#a5f3fc', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Avg attempts/cycle: {retryInsights.average_attempts_per_cycle}</span>
-            <span style={{ background: '#14532d', color: '#bbf7d0', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Improved cycles: {retryInsights.cycles_improved_count}</span>
-            <span style={{ background: '#7f1d1d', color: '#fecaca', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Not improved: {retryInsights.cycles_not_improved_count}</span>
-            <span style={{ background: '#365314', color: '#d9f99d', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Cycle improvement rate: {toPercent(retryInsights.improved_cycle_rate)}</span>
-            <span style={{ background: '#312e81', color: '#c7d2fe', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Avg same-prompt Δ: {retryInsights.average_same_prompt_score_delta ?? '—'}</span>
-          </div>
-
-          <div style={{ display: 'grid', gap: 10 }}>
-            <div>
-              <h4 style={{ margin: '0 0 4px' }}>Retry depth distribution</h4>
-              <p style={{ margin: 0, color: '#cbd5e1', fontSize: 12 }}>
-                {retryInsights.retry_depth_distribution.length
-                  ? retryInsights.retry_depth_distribution.map((item) => `${item.attempts} attempts: ${item.cycle_count} cycles`).join(' • ')
-                  : 'No retry-cycle depth data yet.'}
-              </p>
-            </div>
-            <div>
-              <h4 style={{ margin: '0 0 4px' }}>Most repeated cycle tags</h4>
-              <p style={{ margin: 0, color: '#cbd5e1', fontSize: 12 }}>
-                {retryInsights.most_repeated_cycle_tags.length
-                  ? retryInsights.most_repeated_cycle_tags.map((item) => `${toTeacherWeaknessLabel(item.tag)} (${item.count})`).join(' • ')
-                  : 'No repeated tag pattern available yet.'}
-              </p>
-            </div>
-          </div>
-
-          <h4 style={{ marginBottom: 6 }}>Student retry profile</h4>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-            <thead>
-              <tr>
-                <th align="left">Student</th>
-                <th align="left">Cycles</th>
-                <th align="left">Avg attempts/cycle</th>
-                <th align="left">Same-prompt retries</th>
-                <th align="left">Avg same-prompt Δ</th>
-                <th align="left">Recurring tags</th>
-                <th align="left">Signal</th>
-              </tr>
-            </thead>
-            <tbody>
-              {retryInsights.student_retry_profiles.slice(0, 20).map((profile) => (
-                <tr key={profile.student_id}>
-                  <td>{studentLabelsById.get(profile.student_id) ?? profile.student_id}</td>
-                  <td>{profile.retry_cycle_count}</td>
-                  <td>{profile.average_attempts_per_cycle}</td>
-                  <td>{profile.same_prompt_retry_count}</td>
-                  <td>{profile.average_same_prompt_score_delta ?? '—'}</td>
-                  <td>{profile.recurring_mistake_tags.map(toTeacherWeaknessLabel).join(', ') || '—'}</td>
-                  <td>
-                    {profile.needs_intervention ? (
-                      <span style={{ background: '#7f1d1d', color: '#fecaca', borderRadius: 999, padding: '1px 7px', fontSize: 11 }}>Needs intervention</span>
-                    ) : profile.fast_gains ? (
-                      <span style={{ background: '#14532d', color: '#bbf7d0', borderRadius: 999, padding: '1px 7px', fontSize: 11 }}>Fast gains</span>
-                    ) : (
-                      <span style={{ background: '#334155', color: '#e2e8f0', borderRadius: 999, padding: '1px 7px', fontSize: 11 }}>Monitor</span>
-                    )}
-                  </td>
+      {data && (
+        <section data-analytics-card="true" style={{ border: '1px solid #1e293b', borderRadius: 12, padding: 16, background: 'rgba(15, 23, 42, 0.5)' }}>
+          <h2 style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 800, color: '#f8fafc' }}>Student Summary</h2>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <thead>
+                <tr style={{ background: '#111b31', borderBottom: '2px solid #334155' }}>
+                  <th align="left" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Student</th>
+                  <th align="center" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Grade</th>
+                  <th align="center" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Complete</th>
+                  <th align="center" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Score</th>
+                  <th align="left" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Focus Areas</th>
+                  <th align="center" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {summaryRows.length > 0 ? (
+                  summaryRows.map((row) => (
+                    <tr key={row.student_id} style={{ borderBottom: '1px solid #1e293b', color: '#e2e8f0' }}>
+                      <td style={{ padding: '11px 12px' }}>
+                        <div style={{ fontWeight: 600 }}>{toDisplayLabel(row.student_name, row.student_id)}</div>
+                        <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{row.class_name ?? 'Unassigned'}</div>
+                      </td>
+                      <td style={{ padding: '11px 12px', textAlign: 'center', fontWeight: 600 }}>{row.current_grade}</td>
+                      <td style={{ padding: '11px 12px', textAlign: 'center', fontWeight: 600, color: '#93c5fd' }}>{Math.round(row.completion_rate * 100)}%</td>
+                      <td style={{ padding: '11px 12px', textAlign: 'center', fontWeight: 600 }}>{row.latest_score ?? '—'}</td>
+                      <td style={{ padding: '11px 12px', fontSize: 12 }}>
+                        {row.repeated_weakness_hotspots.length ? row.repeated_weakness_hotspots.map(toTeacherWeaknessLabel).join(', ') : <span style={{ color: '#64748b' }}>—</span>}
+                      </td>
+                      <td style={{ padding: '11px 12px', textAlign: 'center' }}>
+                        {row.stalled && <span style={{ background: '#7f1d1d', color: '#fecaca', borderRadius: 6, padding: '4px 8px', fontSize: 11, fontWeight: 600 }}>Needs support</span>}
+                        {row.improving && !row.stalled && <span style={{ background: '#14532d', color: '#bbf7d0', borderRadius: 6, padding: '4px 8px', fontSize: 11, fontWeight: 600 }}>Improving</span>}
+                        {!row.stalled && !row.improving && <span style={{ background: '#1e293b', color: '#cbd5e1', borderRadius: 6, padding: '4px 8px', fontSize: 11, fontWeight: 600 }}>Stable</span>}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} style={{ padding: '20px 12px', textAlign: 'center', color: '#64748b' }}>
+                      No students found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </section>
       )}
 
-      <section data-analytics-card="true" style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, background: '#0f172a' }}>
-        <h3 style={{ marginTop: 0 }}>Main class weaknesses</h3>
-        <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Weakness hotspots</span>
-        <ul style={{ margin: 0, paddingLeft: 18 }}>
-          {data.most_common_weakness_tags.map((item) => (
-            <li key={item.tag}>
-              {toTeacherWeaknessLabel(item.tag)} ({item.count} students){' '}
-              <a
-                href={buildPath(monitoringBasePath, { weakness_tag: item.tag, grade: gradeFilter, genre: genreFilter })}
-                onClick={(event: any) => navigateTo(buildPath(monitoringBasePath, { weakness_tag: item.tag, grade: gradeFilter, genre: genreFilter }), event)}
-              >
-                Open students
-              </a>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section data-analytics-card="true" style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, overflowX: 'auto', background: '#0f172a' }}>
-        <h3 style={{ marginTop: 0 }}>Prompt effectiveness</h3>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-          <thead>
-            <tr>
-              <th align="left">Prompt</th>
-              <th align="left">Usage</th>
-              <th align="left">Avg score</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.prompt_effectiveness.map((item) => (
-              <tr key={item.prompt_id}>
-                <td>{item.title}</td>
-                <td>{item.usage_count}</td>
-                <td>{item.average_score ?? '—'}</td>
-              </tr>
+      {data && data.most_common_weakness_tags && data.most_common_weakness_tags.length > 0 && (
+        <section data-analytics-card="true" style={{ border: '1px solid #1e293b', borderRadius: 12, padding: 16, background: 'rgba(15, 23, 42, 0.5)' }}>
+          <h2 style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 800, color: '#f8fafc' }}>Most Common Weak Areas</h2>
+          <div style={{ display: 'grid', gap: 8 }}>
+            {data.most_common_weakness_tags.map((item) => (
+              <div key={item.tag} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'rgba(30, 41, 59, 0.3)', borderRadius: 8, border: '1px solid #1e293b' }}>
+                <div>
+                  <div style={{ fontWeight: 600, color: '#e2e8f0' }}>{toTeacherWeaknessLabel(item.tag)}</div>
+                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{item.count} students</div>
+                </div>
+                <button
+                  onClick={(event: any) => navigateTo(buildPath(monitoringBasePath, { weakness_tag: item.tag, grade: gradeFilter, genre: genreFilter }), event)}
+                  style={{ borderRadius: 6, border: '1px solid #334155', background: '#1e293b', color: '#93c5fd', padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+                >
+                  View students
+                </button>
+              </div>
             ))}
-          </tbody>
-        </table>
-      </section>
+          </div>
+        </section>
+      )}
 
-      <section style={{ border: '1px solid #475569', borderRadius: 10, padding: 12, background: '#0f172a' }}>
-        <h3 style={{ marginTop: 0 }}>Recommended next actions</h3>
-        <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Pilot readiness</span>
-        <small style={{ color: '#cbd5e1' }}>{WRITING_ADMIN_HELP.overused_prompt}</small>
-        <br />
-        <small style={{ color: '#cbd5e1' }}>{WRITING_ADMIN_HELP.low_improvement_tag}</small>
-        <p>
-          Monthly reviews to run:{' '}
-          {data.pilot_readiness.monthly_comparison_ready_students
-            .map((studentId) => studentLabelsById.get(studentId) ?? 'Student')
-            .join(', ') || 'None'}
-        </p>
-        <p>
-          Refresh overused prompts:{' '}
-          {data.pilot_readiness.overused_prompts.map((id) => (
-            <span key={id}>
-              <a href={buildPath(promptBankBasePath, { prompt_id: id, status: 'active' })}>Prompt {id.slice(0, 8)}</a>{' '}
-            </span>
-          ))}
-          {data.pilot_readiness.overused_prompts.length === 0 ? 'None' : ''}
-        </p>
-        <p>
-          Weaknesses needing intervention:{' '}
-          {data.pilot_readiness.low_improvement_target_tags.map((tag) => (
-            <span key={tag}>
-              <a href={buildPath(calibrationBasePath, { weakness_tag: tag, grade: gradeFilter, genre: genreFilter })}>
-                {toTeacherWeaknessLabel(tag)}
-              </a>{' '}
-            </span>
-          ))}
-          {data.pilot_readiness.low_improvement_target_tags.length === 0 ? 'None' : ''}
-        </p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {pilotWarnings.map((warning) => (
-            <span key={warning} style={{ background: '#7f1d1d', color: '#fecaca', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>
-              ⚠ {warning}
-            </span>
-          ))}
-        </div>
-      </section>
+      {data && data.prompt_effectiveness && data.prompt_effectiveness.length > 0 && (
+        <section data-analytics-card="true" style={{ border: '1px solid #1e293b', borderRadius: 12, padding: 16, background: 'rgba(15, 23, 42, 0.5)' }}>
+          <h2 style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 800, color: '#f8fafc' }}>Prompt Effectiveness</h2>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <thead>
+                <tr style={{ background: '#111b31', borderBottom: '2px solid #334155' }}>
+                  <th align="left" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Prompt</th>
+                  <th align="center" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Used</th>
+                  <th align="center" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Avg Score</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.prompt_effectiveness.map((item) => (
+                  <tr key={item.prompt_id} style={{ borderBottom: '1px solid #1e293b', color: '#e2e8f0' }}>
+                    <td style={{ padding: '11px 12px', fontWeight: 600 }}>{item.title}</td>
+                    <td style={{ padding: '11px 12px', textAlign: 'center' }}>{item.usage_count}</td>
+                    <td style={{ padding: '11px 12px', textAlign: 'center' }}>{item.average_score ?? '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {data && (
+        <section data-analytics-card="true" style={{ border: '1px solid #1e293b', borderRadius: 12, padding: 16, background: 'rgba(15, 23, 42, 0.5)' }}>
+          <h2 style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 800, color: '#f8fafc' }}>Recommended Actions</h2>
+          <div style={{ display: 'grid', gap: 10 }}>
+            {data.pilot_readiness.monthly_comparison_ready_students.length > 0 && (
+              <div style={{ padding: '12px', background: 'rgba(34, 197, 94, 0.08)', borderRadius: 8, border: '1px solid #14532d' }}>
+                <div style={{ fontWeight: 600, color: '#86efac', marginBottom: 4 }}>✓ Ready for monthly reviews:</div>
+                <div style={{ color: '#e2e8f0', fontSize: 13 }}>
+                  {data.pilot_readiness.monthly_comparison_ready_students.map((studentId) => studentLabelsById.get(studentId) ?? 'Student').join(', ') || 'None'}
+                </div>
+              </div>
+            )}
+            {data.pilot_readiness.overused_prompts.length > 0 && (
+              <div style={{ padding: '12px', background: 'rgba(249, 115, 22, 0.08)', borderRadius: 8, border: '1px solid #92400e' }}>
+                <div style={{ fontWeight: 600, color: '#fbbf24', marginBottom: 4 }}>⚠ Overused prompts to refresh:</div>
+                <div style={{ color: '#e2e8f0', fontSize: 13 }}>
+                  {data.pilot_readiness.overused_prompts.map((id, idx) => (
+                    <span key={id}>
+                      Prompt {id.slice(0, 8)}
+                      {idx < data.pilot_readiness.overused_prompts.length - 1 ? ', ' : ''}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {data.pilot_readiness.low_improvement_target_tags.length > 0 && (
+              <div style={{ padding: '12px', background: 'rgba(244, 63, 94, 0.08)', borderRadius: 8, border: '1px solid #7f1d1d' }}>
+                <div style={{ fontWeight: 600, color: '#f87171', marginBottom: 4 }}>! Weaknesses needing intervention:</div>
+                <div style={{ color: '#e2e8f0', fontSize: 13 }}>
+                  {data.pilot_readiness.low_improvement_target_tags.map((tag) => toTeacherWeaknessLabel(tag)).join(', ')}
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
     </div>
   );
 };
