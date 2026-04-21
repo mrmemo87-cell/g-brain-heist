@@ -2720,6 +2720,22 @@ const WritingHubLegacy: React.FC<WritingHubProps> = ({ studentId, studentName, g
     reviewAnimationTimelineMs,
   ]);
 
+  const handlePasteCapture = (event: any) => {
+    const target = event?.target;
+    const isTextInput =
+      target instanceof HTMLTextAreaElement
+      || (target instanceof HTMLInputElement && ['text', 'search', 'email', 'url', 'tel', 'password', ''].includes(target.type || 'text'))
+      || Boolean(target?.isContentEditable);
+    if (!isTextInput) return;
+    event.preventDefault();
+    setUiNotice('Pasting is disabled in Writing Hub. Please type your own response.');
+  };
+
+  const handleCopyCapture = (event: any) => {
+    event.preventDefault();
+    setUiNotice('Copying is disabled on this page.');
+  };
+
   const renderLoadingSkeleton = () => (
     <>
       <section className="writing-hub-card" style={missionCardStyle}>
@@ -2735,7 +2751,13 @@ const WritingHubLegacy: React.FC<WritingHubProps> = ({ studentId, studentName, g
   );
 
   return (
-    <div ref={writingHubRootRef} style={pageStyle} className={`writing-hub-root writing-hub-theme-${themeMode}`}>
+    <div
+      ref={writingHubRootRef}
+      style={pageStyle}
+      className={`writing-hub-root writing-hub-theme-${themeMode}`}
+      onPasteCapture={handlePasteCapture}
+      onCopyCapture={handleCopyCapture}
+    >
       <style>{`
         .writing-hub-root {
           --hub-bg: #020617;
@@ -5097,8 +5119,24 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     return observerCleanupRef.current;
   }, [showCinematicFeedback, cinematicRanges.length]);
 
+  const handlePasteCapture = (event: any) => {
+    const target = event?.target;
+    const isTextInput =
+      target instanceof HTMLTextAreaElement
+      || (target instanceof HTMLInputElement && ['text', 'search', 'email', 'url', 'tel', 'password', ''].includes(target.type || 'text'))
+      || Boolean(target?.isContentEditable);
+    if (!isTextInput) return;
+    event.preventDefault();
+    setNotice('Pasting is disabled in Writing Hub. Please type your own response.');
+  };
+
+  const handleCopyCapture = (event: any) => {
+    event.preventDefault();
+    setNotice('Copying is disabled on this page.');
+  };
+
   return (
-    <div style={{ ...getPageStyle('dark'), gap: 14 }}>
+    <div style={{ ...getPageStyle('dark'), gap: 14 }} onPasteCapture={handlePasteCapture} onCopyCapture={handleCopyCapture}>
       <section className="writing-hub-card" style={getMissionCardStyle('dark')}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <div style={{ width: 52, height: 52, borderRadius: 16, background: 'linear-gradient(135deg, #7c3aed 0%, #6366f1 50%, #2563eb 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, boxShadow: '0 0 28px rgba(99,102,241,0.35), 0 4px 12px rgba(0,0,0,0.2)', flexShrink: 0 }}>✍️</div>
