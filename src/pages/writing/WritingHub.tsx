@@ -1711,6 +1711,8 @@ const WritingHubLegacy: React.FC<WritingHubProps> = ({ studentId, studentName, g
   const [showTaskTypeGuide, setShowTaskTypeGuide] = useState(false);
   const [showTaskContextModal, setShowTaskContextModal] = useState(false);
   const [showAiReviewModal, setShowAiReviewModal] = useState(false);
+  const [aiReviewViewMode, setAiReviewViewMode] = useState<'full' | 'cinematic'>('full');
+  const [showDetailedFeedback, setShowDetailedFeedback] = useState(false);
   const [showProgressDetailsModal, setShowProgressDetailsModal] = useState(false);
   const [submittedPracticeText, setSubmittedPracticeText] = useState('');
   const [reviewScanComplete, setReviewScanComplete] = useState(false);
@@ -1932,6 +1934,29 @@ const WritingHubLegacy: React.FC<WritingHubProps> = ({ studentId, studentName, g
   const activeReviewNote = useMemo(
     () => describeHighlight(activeReviewRange, submittedPracticeText, aiFeedbackDetails),
     [activeReviewRange, submittedPracticeText, aiFeedbackDetails]
+  );
+  const fullFeedbackStrengths = useMemo(
+    () => (aiFeedbackDetails?.what_is_working ?? aiFeedbackDetails?.strengths ?? []).filter((item) => Boolean(item?.trim())),
+    [aiFeedbackDetails]
+  );
+  const fullFeedbackImprovements = useMemo(
+    () => (aiFeedbackDetails?.what_is_missing ?? aiFeedbackDetails?.weaknesses ?? []).filter((item) => Boolean(item?.trim())),
+    [aiFeedbackDetails]
+  );
+  const fullFeedbackGrammarFixes = useMemo(
+    () => [
+      ...(aiFeedbackDetails?.grammar_fixes ?? []).map((item) => ({ ...item, category: 'Grammar' as const })),
+      ...(aiFeedbackDetails?.punctuation_fixes ?? []).map((item) => ({ ...item, category: 'Punctuation' as const })),
+    ].filter((item) => item.original?.trim() && item.better_version?.trim()),
+    [aiFeedbackDetails]
+  );
+  const fullFeedbackPhraseUpgrades = useMemo(
+    () => (aiFeedbackDetails?.natural_phrase_upgrades ?? []).filter((item) => item.original?.trim() && item.better_version?.trim()),
+    [aiFeedbackDetails]
+  );
+  const fullFeedbackStyleTone = useMemo(
+    () => (aiFeedbackDetails?.style_tone_feedback ?? []).filter((item) => item.evidence?.trim() || item.suggestion?.trim()),
+    [aiFeedbackDetails]
   );
 
   useEffect(() => {
@@ -2548,7 +2573,8 @@ const WritingHubLegacy: React.FC<WritingHubProps> = ({ studentId, studentName, g
     try {
       const aiResult = await loadRichFeedback(safeInitialResponse, promptForSubmission, latestWeaknesses, 'initial');
       if (aiResult.ok) {
-        setShowAiReviewModal(true);
+        setAiReviewViewMode('full');
+        setShowAiReviewModal(false);
         setUiNotice('Your writing week is ready. Here is your first AI coaching feedback.');
       } else {
         setError(`Your week is ready, but AI feedback is unavailable: ${aiResult.error}`);
@@ -2601,7 +2627,8 @@ const WritingHubLegacy: React.FC<WritingHubProps> = ({ studentId, studentName, g
       if (!aiResult.ok) {
         setError(`Saved your submission, but AI analysis is unavailable: ${aiResult.error}`);
       } else {
-        setShowAiReviewModal(true);
+        setAiReviewViewMode('full');
+        setShowAiReviewModal(false);
       }
     } catch (aiError) {
       console.error('Writing feedback assist failed:', aiError);
@@ -2631,6 +2658,7 @@ const WritingHubLegacy: React.FC<WritingHubProps> = ({ studentId, studentName, g
     setAiMonthlyWording('');
     setIsAnalyzingRichFeedback(false);
     setShowAiReviewModal(false);
+    setShowDetailedFeedback(false);
     setSubmittedPracticeText('');
     setReviewScanComplete(false);
     setReviewActiveIndex(null);
@@ -3399,16 +3427,96 @@ const WritingHubLegacy: React.FC<WritingHubProps> = ({ studentId, studentName, g
                 ) : aiFeedbackDetails ? (
                   <div style={{ display: 'grid', gap: 10 }}>
                     <p style={{ margin: 0, color: 'var(--hub-text-accent-2)', fontSize: 14 }}>
-                      AI review is ready. Open the cinematic feedback view to see strengths, corrections, and your next move.
+                      AI review is ready. Expand detailed feedback for a clear, full report.
                     </p>
                     <button
                       type="button"
-                      onClick={() => setShowAiReviewModal(true)}
-                      className="writing-primary-button cinematic-trigger-button"
-                      style={{ ...primaryButtonStyle, marginTop: 0 }}
+                      onClick={() => {
+                        setShowDetailedFeedback((prev) => !prev);
+                      }}
+                      className="writing-primary-button"
+                      style={{ ...primaryButtonStyle, marginTop: 0, background: 'var(--hub-muted-surface-soft)', color: 'var(--hub-text-strong)' }}
                     >
-                      Open cinematic AI review
+                      {showDetailedFeedback ? 'Hide detailed feedback' : 'Show detailed feedback'}
                     </button>
+                    {showDetailedFeedback && (
+                      <div style={{ borderRadius: 14, border: '1px solid #e2e8f0', background: '#f8fafc', padding: '20px 18px', color: '#0f172a', display: 'grid', gap: 20 }}>
+                        <section>
+                          <p style={{ margin: 0, fontSize: 18, fontWeight: 900, color: '#0f172a' }}>
+                            Total: {progressAssessment?.total_score != null ? `${progressAssessment.total_score}/20` : '—'}
+                          </p>
+                          <p style={{ margin: '8px 0 0', fontSize: 16, lineHeight: 1.8 }}>
+                            {aiFeedbackDetails.task_understanding || toAlignmentLabel(aiFeedbackDetails.alignment)}
+                          </p>
+                        </section>
+
+                        <section style={{ display: 'grid', gap: 8 }}>
+                          <h4 style={{ margin: 0, fontSize: 32, lineHeight: 1.2, fontWeight: 900 }}>What’s good</h4>
+                          <ul style={{ margin: 0, paddingLeft: 30, display: 'grid', gap: 8 }}>
+                            {(fullFeedbackStrengths.length > 0 ? fullFeedbackStrengths : ['You already have a useful starting point with clear ideas.']).map((item, idx) => (
+                              <li key={`inline-good-${idx}`} style={{ fontSize: 20, lineHeight: 1.8, fontWeight: 600 }}>
+                                {simplifyStudentLanguage(item)}
+                              </li>
+                            ))}
+                          </ul>
+                        </section>
+
+                        <section style={{ display: 'grid', gap: 8 }}>
+                          <h4 style={{ margin: 0, fontSize: 32, lineHeight: 1.2, fontWeight: 900 }}>Main things to improve</h4>
+                          <ol style={{ margin: 0, paddingLeft: 30, display: 'grid', gap: 10 }}>
+                            {(fullFeedbackImprovements.length > 0 ? fullFeedbackImprovements : ['Focus on clearer wording and more specific support.']).map((item, idx) => (
+                              <li key={`inline-improve-${idx}`} style={{ fontSize: 20, lineHeight: 1.8, fontWeight: 700 }}>
+                                {simplifyStudentLanguage(item)}
+                              </li>
+                            ))}
+                          </ol>
+                        </section>
+
+                        {fullFeedbackGrammarFixes.length > 0 && (
+                          <section style={{ display: 'grid', gap: 8 }}>
+                            <h4 style={{ margin: 0, fontSize: 30, lineHeight: 1.2, fontWeight: 900 }}>Grammar</h4>
+                            <ul style={{ margin: 0, paddingLeft: 30, display: 'grid', gap: 12 }}>
+                              {fullFeedbackGrammarFixes.slice(0, 6).map((item, idx) => (
+                                <li key={`inline-grammar-${idx}`} style={{ fontSize: 18, lineHeight: 1.75 }}>
+                                  <p style={{ margin: 0, fontWeight: 800 }}>{item.original}</p>
+                                  <p style={{ margin: '2px 0 0', fontSize: 18, fontWeight: 800 }}>→ better: {item.better_version}</p>
+                                  {item.issue && <p style={{ margin: '4px 0 0', color: '#334155' }}>{item.issue}</p>}
+                                </li>
+                              ))}
+                            </ul>
+                          </section>
+                        )}
+
+                        {(fullFeedbackPhraseUpgrades.length > 0 || fullFeedbackStyleTone.length > 0) && (
+                          <section style={{ display: 'grid', gap: 8 }}>
+                            <h4 style={{ margin: 0, fontSize: 30, lineHeight: 1.2, fontWeight: 900 }}>Word choice / phrasing</h4>
+                            <ul style={{ margin: 0, paddingLeft: 30, display: 'grid', gap: 12 }}>
+                              {fullFeedbackPhraseUpgrades.slice(0, 4).map((item, idx) => (
+                                <li key={`inline-phrase-${idx}`} style={{ fontSize: 18, lineHeight: 1.75 }}>
+                                  <p style={{ margin: 0, fontWeight: 800 }}>{item.original}</p>
+                                  <p style={{ margin: '2px 0 0', fontSize: 18, fontWeight: 800 }}>→ better: {item.better_version}</p>
+                                  {item.why_it_helps && <p style={{ margin: '4px 0 0', color: '#334155' }}>{item.why_it_helps}</p>}
+                                </li>
+                              ))}
+                              {fullFeedbackStyleTone.slice(0, 3).map((item, idx) => (
+                                <li key={`inline-style-${idx}`} style={{ fontSize: 18, lineHeight: 1.75 }}>
+                                  <p style={{ margin: 0, fontWeight: 800 }}>{item.evidence || 'Style note'}</p>
+                                  {item.issue && <p style={{ margin: '4px 0 0' }}>{item.issue}</p>}
+                                  {item.suggestion && <p style={{ margin: '2px 0 0', fontWeight: 800 }}>→ better: {item.suggestion}</p>}
+                                </li>
+                              ))}
+                            </ul>
+                          </section>
+                        )}
+
+                        <section style={{ borderRadius: 12, border: '1px solid #cbd5e1', background: '#eef2ff', padding: '14px 14px' }}>
+                          <h4 style={{ margin: 0, fontSize: 30, lineHeight: 1.2, fontWeight: 900 }}>Improvement point</h4>
+                          <p style={{ margin: '8px 0 0', fontSize: 19, lineHeight: 1.8, fontWeight: 600 }}>
+                            {aiFeedbackDetails.next_move || (aiFeedbackDetails.next_steps ?? [])[0] || 'Pick one point and rewrite that sentence first.'}
+                          </p>
+                        </section>
+                      </div>
+                    )}
                     <p style={{ margin: 0, color: 'var(--hub-text-accent-2)', fontSize: 13 }}>
                       {feedback || (completedTasksCount > 0 ? `Great consistency. You completed ${completedTasksCount} task${completedTasksCount === 1 ? '' : 's'} this week.` : 'Great start. Your progress grows every day you submit.')}
                     </p>
@@ -3841,7 +3949,9 @@ const WritingHubLegacy: React.FC<WritingHubProps> = ({ studentId, studentName, g
                   <span>Brains Heist</span>
                 </div>
                 <p style={{ margin: 0, color: 'var(--hub-text-accent-2)', fontSize: 12, fontWeight: 900, letterSpacing: 0.9, textTransform: 'uppercase' }}>AI Feedback</p>
-                <h3 style={{ margin: 0, color: 'var(--hub-text-strong)', fontSize: 22, textShadow: '0 1px 0 color-mix(in srgb, var(--hub-text) 14%, transparent)' }}>Submitted · Smart review in progress</h3>
+                <h3 style={{ margin: 0, color: 'var(--hub-text-strong)', fontSize: 22, textShadow: '0 1px 0 color-mix(in srgb, var(--hub-text) 14%, transparent)' }}>
+                  {aiReviewViewMode === 'full' ? 'Submitted · Full feedback report' : 'Submitted · Smart review in progress'}
+                </h3>
               </div>
               <button
                 type="button"
@@ -3881,166 +3991,345 @@ const WritingHubLegacy: React.FC<WritingHubProps> = ({ studentId, studentName, g
                 <span className="ai-review-status-dot" />
                 {reviewScanComplete ? 'Highlights locked' : 'Live analysis'}
               </span>
+              <div style={{ marginLeft: 'auto', display: 'inline-flex', borderRadius: 999, border: '1px solid var(--hub-border)', background: 'var(--hub-panel)', padding: 3, gap: 4 }}>
+                <button
+                  type="button"
+                  onClick={() => setAiReviewViewMode('full')}
+                  style={{
+                    borderRadius: 999,
+                    border: 'none',
+                    background: aiReviewViewMode === 'full' ? 'var(--hub-accent-surface)' : 'transparent',
+                    color: aiReviewViewMode === 'full' ? 'var(--hub-text-strong)' : 'var(--hub-text-muted)',
+                    fontWeight: 800,
+                    fontSize: 12,
+                    padding: '6px 10px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Full feedback
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAiReviewViewMode('cinematic')}
+                  style={{
+                    borderRadius: 999,
+                    border: 'none',
+                    background: aiReviewViewMode === 'cinematic' ? 'var(--hub-accent-surface)' : 'transparent',
+                    color: aiReviewViewMode === 'cinematic' ? 'var(--hub-text-strong)' : 'var(--hub-text-muted)',
+                    fontWeight: 800,
+                    fontSize: 12,
+                    padding: '6px 10px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cinematic
+                </button>
+              </div>
             </div>
 
-            <div className="ai-review-body" style={{ position: 'relative', zIndex: 1 }}>
+            {aiReviewViewMode === 'full' ? (
               <div
-                className="ai-review-essay-panel"
-                ref={reviewEssayPanelRef}
                 style={{
                   position: 'relative',
                   zIndex: 1,
+                  minHeight: 0,
+                  overflowY: 'auto',
                   borderRadius: 14,
                   border: '1px solid var(--hub-border)',
                   background: 'var(--hub-panel)',
-                  padding: 12,
-                  color: 'var(--hub-text)',
-                  lineHeight: 1.74,
-                  fontSize: 'clamp(16px, 3.2vw, 18px)',
-                  whiteSpace: 'pre-wrap',
-                  overflowY: 'auto',
-                  overflowX: 'hidden',
+                  padding: '18px 18px 24px',
+                  color: 'var(--hub-text-strong)',
+                  display: 'grid',
+                  gap: 18,
                 }}
               >
-              {renderAnnotatedText(submittedPracticeText, visibleSubmittedHighlightRanges, reviewActiveIndex, handleReviewHighlightMount)}
-              {activeLineMeasure.rects.map((line, idx) => {
-                return (
-                  <span
-                    key={`line-overlay-${idx}`}
-                    ref={(element: HTMLSpanElement | null) => {
-                      const currentRefs = activeLineOverlayRefs.current ?? [];
-                      currentRefs[idx] = element;
-                      activeLineOverlayRefs.current = currentRefs;
-                    }}
-                    aria-hidden="true"
-                    style={{
-                      position: 'absolute',
-                      left: line.left - 2,
-                      top: line.top + 1,
-                      width: line.width + 4,
-                      height: Math.max(8, line.height - 1),
-                      borderRadius: 4,
-                      pointerEvents: 'none',
-                      mixBlendMode: 'multiply',
-                      background: activeReviewRange?.polarity === 'strong'
-                        ? 'linear-gradient(180deg, color-mix(in srgb, var(--hub-marker-strong) 88%, transparent) 0%, var(--hub-marker-strong) 45%, color-mix(in srgb, var(--hub-marker-strong) 86%, transparent) 100%)'
-                        : 'linear-gradient(180deg, color-mix(in srgb, var(--hub-marker-weak) 88%, transparent) 0%, var(--hub-marker-weak) 45%, color-mix(in srgb, var(--hub-marker-weak) 86%, transparent) 100%)',
-                      boxShadow: 'none',
-                    }}
-                  />
-                );
-              })}
-              </div>
+                <section style={{ borderRadius: 12, background: 'var(--hub-muted-surface)', border: '1px solid var(--hub-border-strong)', padding: '14px 14px' }}>
+                  <p style={{ margin: 0, fontSize: 14, color: 'var(--hub-text-accent)', fontWeight: 800 }}>Overall</p>
+                  <p style={{ margin: '6px 0 0', fontSize: 28, fontWeight: 900, color: 'var(--hub-text-strong)' }}>
+                    {progressAssessment?.total_score != null ? `${progressAssessment.total_score}/20` : '—'}
+                  </p>
+                  <p style={{ margin: '6px 0 0', fontSize: 16, lineHeight: 1.6, color: 'var(--hub-text)' }}>
+                    {aiFeedbackDetails?.task_understanding || toAlignmentLabel(aiFeedbackDetails?.alignment)}
+                  </p>
+                  <p style={{ margin: '8px 0 0', fontSize: 16, lineHeight: 1.7, color: 'var(--hub-text)' }}>
+                    {aiFeedbackDetails?.submission_read || 'You completed your writing attempt. Keep your ideas and now polish precision and clarity.'}
+                  </p>
+                </section>
 
-              <div className="ai-review-feedback-card" style={{ position: 'relative', zIndex: 1, borderRadius: 12, border: `1px solid ${activeReviewRange?.polarity === 'strong' ? 'var(--hub-border-strong)' : 'var(--hub-border)'}`, background: 'var(--hub-muted-surface)', padding: '12px 12px' }}>
-                {activeReviewRange ? (
-                  <>
-                    <p style={{ margin: '0 0 8px', color: activeReviewRange.polarity === 'strong' ? 'var(--hub-text-accent-2)' : 'var(--hub-feedback-weak)', fontWeight: 800, fontSize: 'clamp(15px, 2.6vw, 17px)' }}>
-                      {activeReviewNote.label}
-                    </p>
-                    <p style={{ margin: 0, color: 'var(--hub-text)', fontSize: 'clamp(15px, 2.8vw, 17px)', lineHeight: 1.7 }}>{activeReviewNote.detail}</p>
-                    {activeReviewNote.correction && (
-                      <p style={{ margin: '10px 0 0', color: 'var(--hub-text-accent-2)', fontSize: 'clamp(15px, 2.7vw, 17px)', lineHeight: 1.7 }}>
-                        Better version: {activeReviewNote.correction}
-                      </p>
-                    )}
-                  </>
-                ) : (
-                  <p style={{ margin: 0, color: 'var(--hub-subtext)', fontSize: 13 }}>Select a highlight to view detailed guidance.</p>
+                <section style={{ display: 'grid', gap: 8 }}>
+                  <h4 style={{ margin: 0, fontSize: 34, fontWeight: 900, color: 'var(--hub-text-strong)' }}>What’s good</h4>
+                  {fullFeedbackStrengths.length > 0 ? (
+                    <ul style={{ margin: 0, paddingLeft: 30, display: 'grid', gap: 8 }}>
+                      {fullFeedbackStrengths.map((item, idx) => (
+                        <li key={`full-good-${idx}`} style={{ fontSize: 20, lineHeight: 1.8, fontWeight: 600, color: 'var(--hub-text)' }}>
+                          {simplifyStudentLanguage(item)}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p style={{ margin: 0, fontSize: 18, lineHeight: 1.8, color: 'var(--hub-subtext)' }}>You have a clear starting point. Keep your key idea and structure.</p>
+                  )}
+                </section>
+
+                <section style={{ display: 'grid', gap: 8 }}>
+                  <h4 style={{ margin: 0, fontSize: 34, fontWeight: 900, color: 'var(--hub-text-strong)' }}>Main things to improve</h4>
+                  {fullFeedbackImprovements.length > 0 ? (
+                    <ol style={{ margin: 0, paddingLeft: 30, display: 'grid', gap: 10 }}>
+                      {fullFeedbackImprovements.map((item, idx) => (
+                        <li key={`full-improve-${idx}`} style={{ fontSize: 20, lineHeight: 1.8, fontWeight: 700, color: 'var(--hub-text)' }}>
+                          {simplifyStudentLanguage(item)}
+                        </li>
+                      ))}
+                    </ol>
+                  ) : (
+                    <p style={{ margin: 0, fontSize: 18, lineHeight: 1.8, color: 'var(--hub-subtext)' }}>Focus on one section at a time and make each sentence more precise.</p>
+                  )}
+                </section>
+
+                {fullFeedbackGrammarFixes.length > 0 && (
+                  <section style={{ display: 'grid', gap: 8 }}>
+                    <h4 style={{ margin: 0, fontSize: 30, fontWeight: 900, color: 'var(--hub-text-strong)' }}>Grammar & punctuation</h4>
+                    <ul style={{ margin: 0, paddingLeft: 30, display: 'grid', gap: 12 }}>
+                      {fullFeedbackGrammarFixes.slice(0, 6).map((item, idx) => (
+                        <li key={`full-fix-${idx}`} style={{ fontSize: 18, lineHeight: 1.75, color: 'var(--hub-text)' }}>
+                          <p style={{ margin: 0, fontWeight: 800 }}>{item.category}</p>
+                          <p style={{ margin: '4px 0 0' }}>
+                            <strong>{item.original}</strong>
+                          </p>
+                          <p style={{ margin: '2px 0 0', fontWeight: 800, color: 'var(--hub-text-accent-2)' }}>→ better: {item.better_version}</p>
+                          {item.issue && <p style={{ margin: '4px 0 0', color: 'var(--hub-subtext)' }}>{item.issue}</p>}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
                 )}
-              </div>
 
-              {reviewScanComplete && (
+                {(fullFeedbackPhraseUpgrades.length > 0 || fullFeedbackStyleTone.length > 0) && (
+                  <section style={{ display: 'grid', gap: 8 }}>
+                    <h4 style={{ margin: 0, fontSize: 30, fontWeight: 900, color: 'var(--hub-text-strong)' }}>Word choice / phrasing</h4>
+                    <ul style={{ margin: 0, paddingLeft: 30, display: 'grid', gap: 10 }}>
+                      {fullFeedbackPhraseUpgrades.slice(0, 5).map((item, idx) => (
+                        <li key={`full-phrase-${idx}`} style={{ fontSize: 18, lineHeight: 1.75, color: 'var(--hub-text)' }}>
+                          <p style={{ margin: 0 }}><strong>{item.original}</strong></p>
+                          <p style={{ margin: '2px 0 0', fontWeight: 800, color: 'var(--hub-text-accent-2)' }}>→ better: {item.better_version}</p>
+                          {item.why_it_helps && <p style={{ margin: '4px 0 0', color: 'var(--hub-subtext)' }}>{item.why_it_helps}</p>}
+                        </li>
+                      ))}
+                      {fullFeedbackStyleTone.slice(0, 3).map((item, idx) => (
+                        <li key={`full-style-${idx}`} style={{ fontSize: 18, lineHeight: 1.75, color: 'var(--hub-text)' }}>
+                          <p style={{ margin: 0 }}><strong>{item.evidence || 'Style/tone note'}</strong></p>
+                          {item.issue && <p style={{ margin: '4px 0 0' }}>{item.issue}</p>}
+                          {item.suggestion && <p style={{ margin: '2px 0 0', fontWeight: 800, color: 'var(--hub-text-accent-2)' }}>→ better: {item.suggestion}</p>}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+
+                <section style={{ borderRadius: 12, border: '1px solid var(--hub-next-border)', background: 'var(--hub-next-bg)', padding: '14px 14px', display: 'grid', gap: 8 }}>
+                  <h4 style={{ margin: 0, fontSize: 28, fontWeight: 900, color: 'var(--hub-next-heading)' }}>Improvement point</h4>
+                  <p style={{ margin: 0, fontSize: 18, lineHeight: 1.8, color: 'var(--hub-next-text)' }}>
+                    {aiFeedbackDetails?.next_move || (aiFeedbackDetails?.next_steps ?? [])[0] || 'Pick one improvement item and rewrite that sentence first.'}
+                  </p>
+                  {(aiFeedbackDetails?.next_steps ?? []).slice(0, 3).length > 0 && (
+                    <ul style={{ margin: 0, paddingLeft: 26, display: 'grid', gap: 6 }}>
+                      {(aiFeedbackDetails?.next_steps ?? []).slice(0, 3).map((item, idx) => (
+                        <li key={`full-next-${idx}`} style={{ fontSize: 17, lineHeight: 1.7, color: 'var(--hub-next-text)' }}>{item}</li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+              </div>
+            ) : (
+              <div className="ai-review-body" style={{ position: 'relative', zIndex: 1 }}>
                 <div
-                  className="ai-review-next-card"
+                  className="ai-review-essay-panel"
+                  ref={reviewEssayPanelRef}
                   style={{
                     position: 'relative',
                     zIndex: 1,
-                    borderRadius: 12,
-                    border: '1px solid var(--hub-next-border)',
-                    background: 'var(--hub-next-bg)',
-                    padding: '12px 12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    flexWrap: 'wrap',
+                    borderRadius: 14,
+                    border: '1px solid var(--hub-border)',
+                    background: 'var(--hub-panel)',
+                    padding: 12,
+                    color: 'var(--hub-text)',
+                    lineHeight: 1.74,
+                    fontSize: 'clamp(16px, 3.2vw, 18px)',
+                    whiteSpace: 'pre-wrap',
+                    overflowY: 'auto',
+                    overflowX: 'hidden',
                   }}
                 >
-                  <p style={{ margin: 0, color: 'var(--hub-next-heading)', fontWeight: 800, fontSize: 'clamp(14px, 2.3vw, 16px)' }}>Next action</p>
-                  <p style={{ margin: 0, color: 'var(--hub-next-text)', fontSize: 'clamp(14px, 2.4vw, 16px)', lineHeight: 1.6, flex: '1 1 280px' }}>
-                    {aiFeedbackDetails?.next_move || (aiFeedbackDetails?.next_steps ?? []).slice(0, 1)[0] || 'Pick one red highlight and revise that sentence now.'}
+                {renderAnnotatedText(submittedPracticeText, visibleSubmittedHighlightRanges, reviewActiveIndex, handleReviewHighlightMount)}
+                {activeLineMeasure.rects.map((line, idx) => {
+                  return (
+                    <span
+                      key={`line-overlay-${idx}`}
+                      ref={(element: HTMLSpanElement | null) => {
+                        const currentRefs = activeLineOverlayRefs.current ?? [];
+                        currentRefs[idx] = element;
+                        activeLineOverlayRefs.current = currentRefs;
+                      }}
+                      aria-hidden="true"
+                      style={{
+                        position: 'absolute',
+                        left: line.left - 2,
+                        top: line.top + 1,
+                        width: line.width + 4,
+                        height: Math.max(8, line.height - 1),
+                        borderRadius: 4,
+                        pointerEvents: 'none',
+                        mixBlendMode: 'multiply',
+                        background: activeReviewRange?.polarity === 'strong'
+                          ? 'linear-gradient(180deg, color-mix(in srgb, var(--hub-marker-strong) 88%, transparent) 0%, var(--hub-marker-strong) 45%, color-mix(in srgb, var(--hub-marker-strong) 86%, transparent) 100%)'
+                          : 'linear-gradient(180deg, color-mix(in srgb, var(--hub-marker-weak) 88%, transparent) 0%, var(--hub-marker-weak) 45%, color-mix(in srgb, var(--hub-marker-weak) 86%, transparent) 100%)',
+                        boxShadow: 'none',
+                      }}
+                    />
+                  );
+                })}
+                </div>
+
+                <div className="ai-review-feedback-card" style={{ position: 'relative', zIndex: 1, borderRadius: 12, border: `1px solid ${activeReviewRange?.polarity === 'strong' ? 'var(--hub-border-strong)' : 'var(--hub-border)'}`, background: 'var(--hub-muted-surface)', padding: '12px 12px' }}>
+                  {activeReviewRange ? (
+                    <>
+                      <p style={{ margin: '0 0 8px', color: activeReviewRange.polarity === 'strong' ? 'var(--hub-text-accent-2)' : 'var(--hub-feedback-weak)', fontWeight: 800, fontSize: 'clamp(15px, 2.6vw, 17px)' }}>
+                        {activeReviewNote.label}
+                      </p>
+                      <p style={{ margin: 0, color: 'var(--hub-text)', fontSize: 'clamp(15px, 2.8vw, 17px)', lineHeight: 1.7 }}>{activeReviewNote.detail}</p>
+                      {activeReviewNote.correction && (
+                        <p style={{ margin: '10px 0 0', color: 'var(--hub-text-accent-2)', fontSize: 'clamp(15px, 2.7vw, 17px)', lineHeight: 1.7 }}>
+                          Better version: {activeReviewNote.correction}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p style={{ margin: 0, color: 'var(--hub-subtext)', fontSize: 13 }}>Select a highlight to view detailed guidance.</p>
+                  )}
+                </div>
+
+                {reviewScanComplete && (
+                  <div
+                    className="ai-review-next-card"
+                    style={{
+                      position: 'relative',
+                      zIndex: 1,
+                      borderRadius: 12,
+                      border: '1px solid var(--hub-next-border)',
+                      background: 'var(--hub-next-bg)',
+                      padding: '12px 12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <p style={{ margin: 0, color: 'var(--hub-next-heading)', fontWeight: 800, fontSize: 'clamp(14px, 2.3vw, 16px)' }}>Next action</p>
+                    <p style={{ margin: 0, color: 'var(--hub-next-text)', fontSize: 'clamp(14px, 2.4vw, 16px)', lineHeight: 1.6, flex: '1 1 280px' }}>
+                      {aiFeedbackDetails?.next_move || (aiFeedbackDetails?.next_steps ?? []).slice(0, 1)[0] || 'Pick one red highlight and revise that sentence now.'}
+                    </p>
+                    <button
+                    type="button"
+                    onClick={() => {
+                      setPracticeResponse(submittedPracticeText);
+                      setShowAiReviewModal(false);
+                      setUiNotice('Revision mode is on. Review Your Feedback card, then improve one highlighted sentence and submit again.');
+                      window.setTimeout(() => {
+                        feedbackCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }, 40);
+                    }}
+                    style={{
+                      justifySelf: 'start',
+                      borderRadius: 10,
+                      border: '1px solid var(--hub-cta-border)',
+                      background: 'var(--hub-cta-bg)',
+                      color: 'var(--hub-cta-text)',
+                      padding: '9px 12px',
+                      fontWeight: 700,
+                      fontSize: 14,
+                      cursor: 'pointer',
+                    }}
+                    >
+                      Start revision
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+            <div style={{ position: 'relative', zIndex: 1, borderTop: '1px solid var(--hub-border)', paddingTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+              {aiReviewViewMode === 'cinematic' ? (
+                <>
+                  <p style={{ margin: 0, color: 'var(--hub-text-strong)', fontSize: 12, fontWeight: 800 }}>
+                    {reviewScanPlan.length > 0
+                      ? `Highlight ${(reviewActiveIndex ?? 0) + 1} of ${visibleSubmittedHighlightRanges.length}`
+                      : 'No highlights available yet'}
+                  </p>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      type="button"
+                      onClick={() => handleReviewStepNavigation('previous')}
+                      disabled={reviewScanPlan.length === 0 || (reviewActiveIndex ?? 0) <= 0}
+                      style={{
+                        borderRadius: 10,
+                        border: '1px solid var(--hub-nav-button-border)',
+                        background: 'var(--hub-nav-button-bg)',
+                        color: 'var(--hub-text)',
+                        padding: '7px 12px',
+                        fontSize: 14,
+                        fontWeight: 700,
+                        cursor: reviewScanPlan.length === 0 || (reviewActiveIndex ?? 0) <= 0 ? 'not-allowed' : 'pointer',
+                        opacity: reviewScanPlan.length === 0 || (reviewActiveIndex ?? 0) <= 0 ? 0.55 : 1,
+                      }}
+                    >
+                      Previous
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleReviewStepNavigation('next')}
+                      disabled={reviewScanPlan.length === 0 || (reviewActiveIndex ?? 0) >= Math.max(0, visibleSubmittedHighlightRanges.length - 1)}
+                      style={{
+                        borderRadius: 10,
+                        border: '1px solid var(--hub-nav-button-border)',
+                        background: 'var(--hub-nav-button-bg)',
+                        color: 'var(--hub-text)',
+                        padding: '7px 12px',
+                        fontSize: 14,
+                        fontWeight: 700,
+                        cursor: reviewScanPlan.length === 0 || (reviewActiveIndex ?? 0) >= Math.max(0, visibleSubmittedHighlightRanges.length - 1) ? 'not-allowed' : 'pointer',
+                        opacity: reviewScanPlan.length === 0 || (reviewActiveIndex ?? 0) >= Math.max(0, visibleSubmittedHighlightRanges.length - 1) ? 0.55 : 1,
+                      }}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p style={{ margin: 0, color: 'var(--hub-text-soft)', fontSize: 13, fontWeight: 700 }}>
+                    Clear structure + larger text mode for easier review.
                   </p>
                   <button
-                  type="button"
-                  onClick={() => {
-                    setPracticeResponse(submittedPracticeText);
-                    setShowAiReviewModal(false);
-                    setUiNotice('Revision mode is on. Review Your Feedback card, then improve one highlighted sentence and submit again.');
-                    window.setTimeout(() => {
-                      feedbackCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 40);
-                  }}
-                  style={{
-                    justifySelf: 'start',
-                    borderRadius: 10,
-                    border: '1px solid var(--hub-cta-border)',
-                    background: 'var(--hub-cta-bg)',
-                    color: 'var(--hub-cta-text)',
-                    padding: '9px 12px',
-                    fontWeight: 700,
-                    fontSize: 14,
-                    cursor: 'pointer',
-                  }}
+                    type="button"
+                    onClick={() => {
+                      setPracticeResponse(submittedPracticeText);
+                      setShowAiReviewModal(false);
+                      setUiNotice('Revision mode is on. Use your full feedback notes to rewrite clearly.');
+                    }}
+                    style={{
+                      borderRadius: 10,
+                      border: '1px solid var(--hub-cta-border)',
+                      background: 'var(--hub-cta-bg)',
+                      color: 'var(--hub-cta-text)',
+                      padding: '9px 12px',
+                      fontWeight: 700,
+                      fontSize: 14,
+                      cursor: 'pointer',
+                    }}
                   >
                     Start revision
                   </button>
-                </div>
+                </>
               )}
-            </div>
-            <div style={{ position: 'relative', zIndex: 1, borderTop: '1px solid var(--hub-border)', paddingTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-              <p style={{ margin: 0, color: 'var(--hub-text-strong)', fontSize: 12, fontWeight: 800 }}>
-                {reviewScanPlan.length > 0
-                  ? `Highlight ${(reviewActiveIndex ?? 0) + 1} of ${visibleSubmittedHighlightRanges.length}`
-                  : 'No highlights available yet'}
-              </p>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button
-                  type="button"
-                  onClick={() => handleReviewStepNavigation('previous')}
-                  disabled={reviewScanPlan.length === 0 || (reviewActiveIndex ?? 0) <= 0}
-                  style={{
-                    borderRadius: 10,
-                    border: '1px solid var(--hub-nav-button-border)',
-                    background: 'var(--hub-nav-button-bg)',
-                    color: 'var(--hub-text)',
-                    padding: '7px 12px',
-                    fontSize: 14,
-                    fontWeight: 700,
-                    cursor: reviewScanPlan.length === 0 || (reviewActiveIndex ?? 0) <= 0 ? 'not-allowed' : 'pointer',
-                    opacity: reviewScanPlan.length === 0 || (reviewActiveIndex ?? 0) <= 0 ? 0.55 : 1,
-                  }}
-                >
-                  Previous
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleReviewStepNavigation('next')}
-                  disabled={reviewScanPlan.length === 0 || (reviewActiveIndex ?? 0) >= Math.max(0, visibleSubmittedHighlightRanges.length - 1)}
-                  style={{
-                    borderRadius: 10,
-                    border: '1px solid var(--hub-nav-button-border)',
-                    background: 'var(--hub-nav-button-bg)',
-                    color: 'var(--hub-text)',
-                    padding: '7px 12px',
-                    fontSize: 14,
-                    fontWeight: 700,
-                    cursor: reviewScanPlan.length === 0 || (reviewActiveIndex ?? 0) >= Math.max(0, visibleSubmittedHighlightRanges.length - 1) ? 'not-allowed' : 'pointer',
-                    opacity: reviewScanPlan.length === 0 || (reviewActiveIndex ?? 0) >= Math.max(0, visibleSubmittedHighlightRanges.length - 1) ? 0.55 : 1,
-                  }}
-                >
-                  Next
-                </button>
-              </div>
             </div>
           </div>
         </div>
