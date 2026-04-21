@@ -630,6 +630,24 @@ export interface StudentWritingHubSnapshot {
   first_attempt_rich_feedback_created_at: string | null;
 }
 
+export interface StudentWritingHistoryEntry {
+  id: string;
+  genre: SupportedGenre;
+  attempt_type: WritingAttempt['attempt_type'];
+  created_at: string;
+  prompt_text: string;
+  student_submission: string;
+  total_score: number | null;
+  has_feedback: boolean;
+  feedback_summary: string | null;
+  feedback_next_move: string | null;
+}
+
+export interface StudentWritingHistoryByGenre {
+  genre: SupportedGenre;
+  entries: StudentWritingHistoryEntry[];
+}
+
 export interface StudentGenrePathStatus {
   genre: SupportedGenre;
   status: 'not_started' | 'week_active' | 'week_complete';
@@ -655,6 +673,48 @@ export const getStudentWritingHubSnapshot = (studentId: string, genre?: Supporte
     first_attempt_rich_feedback_source_submission_type: firstInitialAttempt?.rich_feedback_source_submission_type ?? null,
     first_attempt_rich_feedback_created_at: firstInitialAttempt?.rich_feedback_created_at ?? null,
   });
+};
+
+export const listStudentWritingHistoryByGenre = (studentId: string): ServiceResponse<StudentWritingHistoryByGenre[]> => {
+  if (!studentId?.trim()) return badRequest('student_id is required.');
+
+  hydrateStore();
+  const byGenre = new Map<SupportedGenre, StudentWritingHistoryEntry[]>();
+  GENRE_KEYS.forEach((genre) => byGenre.set(genre, []));
+
+  const studentAttempts = store.attempts
+    .filter((attempt) => attempt.student_id === studentId)
+    .sort((a, b) => b.created_at.localeCompare(a.created_at));
+
+  studentAttempts.forEach((attempt) => {
+    const feedback = (attempt.rich_feedback && typeof attempt.rich_feedback === 'object')
+      ? (attempt.rich_feedback as Record<string, unknown>)
+      : null;
+    const summary = typeof feedback?.['task_understanding'] === 'string' && feedback['task_understanding'].trim()
+      ? feedback['task_understanding'].trim()
+      : null;
+    const nextMove = typeof feedback?.['next_move'] === 'string' && feedback['next_move'].trim()
+      ? feedback['next_move'].trim()
+      : null;
+
+    const entry: StudentWritingHistoryEntry = {
+      id: attempt.id,
+      genre: attempt.genre,
+      attempt_type: attempt.attempt_type,
+      created_at: attempt.created_at,
+      prompt_text: attempt.prompt_text?.trim() ?? '',
+      student_submission: attempt.student_submission?.trim() ?? '',
+      total_score: attempt.assessment?.total_score ?? null,
+      has_feedback: Boolean(feedback),
+      feedback_summary: summary,
+      feedback_next_move: nextMove,
+    };
+    const currentEntries = byGenre.get(attempt.genre) ?? [];
+    currentEntries.push(entry);
+    byGenre.set(attempt.genre, currentEntries);
+  });
+
+  return ok(GENRE_KEYS.map((genre) => ({ genre, entries: byGenre.get(genre) ?? [] })));
 };
 
 export const getStudentPromptAttemptCount = (input: {
