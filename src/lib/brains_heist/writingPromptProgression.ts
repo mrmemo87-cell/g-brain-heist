@@ -35,6 +35,9 @@ export interface StructuredWritingPrompt {
   context_tags: WritingPromptContextTag[];
 }
 
+export const EMAIL_STARTER_PROMPT_TEXT =
+  'Write a formal email to a local community partner suggesting a collaboration on a student project. In your email, clearly explain the purpose of the project, outline the expected benefits for both students and the community, and provide one strong, evidence-based reason why they should support this initiative.';
+
 export const FALLBACK_PROMPT_BY_GENRE: Record<SupportedGenre, string> = {
   essay:
     'Your school plans to cut one student program due to budget limits. Write an essay for the principal arguing which program should be protected, why it matters to students, and one realistic improvement to make it stronger.',
@@ -46,8 +49,7 @@ export const FALLBACK_PROMPT_BY_GENRE: Record<SupportedGenre, string> = {
     'Write a review of a school or community event for younger students deciding whether to attend next time. Evaluate what worked, explain why it mattered, and recommend one specific improvement.',
   report:
     'Write a report for school leaders about a recent activity or campaign. Summarize key outcomes, explain why they mattered, and present one evidence-based recommendation for improvement.',
-  email:
-    'Write an email to an event organizer about an event you attended. Explain what impact it had, why that impact mattered, and suggest one clear improvement they could act on.',
+  email: EMAIL_STARTER_PROMPT_TEXT,
   paragraph:
     'Write one focused paragraph for your class blog about an event that affected students. Explain why it mattered and include one concrete idea to make future events better.',
 };
@@ -81,8 +83,7 @@ export const STRUCTURED_WRITING_PROMPT_BANK: StructuredWritingPrompt[] = [
     id: 'sys-email-stretch-community-partnership',
     genre: 'email',
     title: 'Community partnership proposal email',
-    prompt_text:
-      'Write a formal email to a local community partner proposing a joint student project. Present the project purpose, expected benefits, and one evidence-based reason they should support it.',
+    prompt_text: EMAIL_STARTER_PROMPT_TEXT,
     grade_band: '10-12',
     target_word_count: 170,
     difficulty_level: 'stretch',

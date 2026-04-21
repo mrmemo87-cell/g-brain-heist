@@ -24,6 +24,7 @@ import {
   SerializedWritingPersistenceStore,
 } from './writingRepository.js';
 import {
+  EMAIL_STARTER_PROMPT_TEXT,
   FALLBACK_PROMPT_BY_GENRE,
   gradeToDifficultyLevel,
   parseFocusAndContextTags,
@@ -1994,6 +1995,13 @@ export const getSmartWritingPromptForStudent = async (input: {
     .slice(0, 5);
   const recentPromptTexts = recentAttempts.map((attempt) => normalizePromptText(attempt.prompt_text ?? '')).filter(Boolean);
   const currentPromptNormalized = input.current_prompt_text ? normalizePromptText(input.current_prompt_text) : null;
+  const normalizedStarterEmailPrompt = normalizePromptText(EMAIL_STARTER_PROMPT_TEXT);
+  const hasCompletedStarterEmailPrompt = store.attempts.some(
+    (attempt) =>
+      attempt.student_id === input.student_id &&
+      attempt.genre === 'email' &&
+      normalizePromptText(attempt.prompt_text ?? '') === normalizedStarterEmailPrompt
+  );
 
   const allCandidates = store.promptBank
     .filter((prompt) => !prompt.is_archived && prompt.is_active)
@@ -2002,6 +2010,23 @@ export const getSmartWritingPromptForStudent = async (input: {
 
   const exactDifficultyCandidates = allCandidates.filter((prompt) => prompt.difficulty_label === targetDifficulty);
   const candidates = exactDifficultyCandidates.length > 0 ? exactDifficultyCandidates : allCandidates;
+
+  if (input.genre === 'email' && !hasCompletedStarterEmailPrompt) {
+    const starterPromptRecord = allCandidates.find((prompt) => normalizePromptText(prompt.prompt_text) === normalizedStarterEmailPrompt) ?? null;
+    return ok({
+      prompt_text: EMAIL_STARTER_PROMPT_TEXT,
+      base_prompt_text: EMAIL_STARTER_PROMPT_TEXT,
+      genre: input.genre,
+      prompt_id: starterPromptRecord?.id ?? null,
+      difficulty_level: starterPromptRecord?.difficulty_label ?? targetDifficulty,
+      target_word_count: starterPromptRecord?.target_word_count ?? (normalizedGrade <= 7 ? 80 : normalizedGrade <= 9 ? 120 : 160),
+      focus_tags: starterPromptRecord?.focus_tags ?? uniqueFocusTargets,
+      context_tags: starterPromptRecord?.context_tags ?? ['community'],
+      mission_hint_categories: [...new Set(weaknessTags.map((tag) => WEAKNESS_TAG_TO_MISSION_CATEGORY[tag as keyof typeof WEAKNESS_TAG_TO_MISSION_CATEGORY]).filter(Boolean))],
+      selection_source: 'fallback_default',
+      used_weakness_tags: weaknessTags,
+    });
+  }
 
   if (candidates.length === 0) {
     const fallback = FALLBACK_PROMPT_BY_GENRE[input.genre];

@@ -17,6 +17,7 @@ import {
   getCurrentWeeklyPlan,
   getMonthlyWritingReport,
   getStudentWritingState,
+  getSmartWritingPromptForStudent,
   getTodayWritingTask,
   getWeeklyWritingReview,
   listWritingPrompts,
@@ -263,6 +264,37 @@ test('prompt rotation avoids repetitive recent prompts for student', () => {
   assert.strictEqual(second.ok, true);
   assert.strictEqual(third.ok, true);
   assert.notStrictEqual(first.data!.id, second.data!.id);
+});
+
+test('email starter prompt is assigned until student completes it', async () => {
+  __resetWritingIntegrationStoreForTests();
+  const starterPromptText =
+    'Write a formal email to a local community partner suggesting a collaboration on a student project. In your email, clearly explain the purpose of the project, outline the expected benefits for both students and the community, and provide one strong, evidence-based reason why they should support this initiative.';
+
+  const firstSelection = await getSmartWritingPromptForStudent({
+    student_id: 'starter-1',
+    grade: 8,
+    genre: 'email',
+  });
+  assert.strictEqual(firstSelection.ok, true);
+  assert.strictEqual(firstSelection.data!.prompt_text, starterPromptText);
+
+  submitInitialWritingAssessment({
+    student_id: 'starter-1',
+    grade: 8,
+    genre: 'email',
+    prompt_text: starterPromptText,
+    target_word_count: 120,
+    student_response: 'Dear Community Partner, our class proposes a recycling project supported by attendance and waste data.',
+  });
+
+  const secondSelection = await getSmartWritingPromptForStudent({
+    student_id: 'starter-1',
+    grade: 8,
+    genre: 'email',
+  });
+  assert.strictEqual(secondSelection.ok, true);
+  assert.notStrictEqual(secondSelection.data!.prompt_text, '');
 });
 
 test('student/teacher/admin exports produce html and pdf-ready payloads', () => {
