@@ -17,6 +17,7 @@ import {
   subscribeToWritingHydrationStatus,
   getStudentWritingState,
   getStudentWritingHubSnapshot,
+  listStudentWritingHistoryByGenre,
   getSmartWritingPromptForStudent,
   listWritingPrompts,
   getTodayWritingTask,
@@ -1285,6 +1286,25 @@ const SUPPORTED_GENRES: SupportedGenre[] = ['essay', 'story', 'article', 'review
 const defaultPromptByGenre: Record<SupportedGenre, string> = FALLBACK_PROMPT_BY_GENRE;
 
 const toGenreLabel = (genre: SupportedGenre): string => genre.charAt(0).toUpperCase() + genre.slice(1);
+const toAttemptTypeLabel = (attemptType: 'initial_assessment' | 'daily_practice'): string =>
+  attemptType === 'initial_assessment' ? 'Initial assessment' : 'Daily practice';
+const formatHistoryDate = (isoDate: string): string => {
+  const parsed = new Date(isoDate);
+  if (Number.isNaN(parsed.getTime())) return 'Unknown date';
+  return parsed.toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+};
+const compactSnippet = (text: string, max = 180): string => {
+  const normalized = text.replace(/\s+/g, ' ').trim();
+  if (!normalized) return 'No writing text saved for this attempt.';
+  if (normalized.length <= max) return normalized;
+  return `${normalized.slice(0, max).trimEnd()}…`;
+};
 const toGenreStateCopy = (
   status: 'not_started' | 'week_active' | 'week_complete',
   day: number | null,
@@ -1869,6 +1889,7 @@ const WritingHubLegacy: React.FC<WritingHubProps> = ({ studentId, studentName, g
   const weeklyReview = getWeeklyWritingReview(studentId, activeGenre);
   const monthlyReport = getMonthlyWritingReport(studentId, month, activeGenre);
   const hubSnapshot = getStudentWritingHubSnapshot(studentId, activeGenre);
+  const writingHistoryByGenre = listStudentWritingHistoryByGenre(studentId);
   const genreStatuses = getStudentGenrePathStatuses(studentId, SUPPORTED_GENRES);
 
   const totalPlannedTasks = stateRes.ok && stateRes.data ? stateRes.data.active_daily_tasks.length : 0;
@@ -3887,6 +3908,75 @@ const WritingHubLegacy: React.FC<WritingHubProps> = ({ studentId, studentName, g
             </section>
           )}
 
+          {writingHistoryByGenre.ok && (
+            <section className="writing-hub-card" style={{ ...shellCardStyle, display: 'grid', gap: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <p style={{ ...dashboardSectionTitleStyle, color: 'var(--hub-text-accent-2)', margin: 0 }}>Writing Archive</p>
+                <span style={{ ...sectionLabelPillStyle, color: 'var(--hub-text-accent)' }}>All genres</span>
+              </div>
+              <h3 style={{ margin: 0, fontSize: 21, color: 'var(--hub-text-strong)' }}>Your previous writing + feedback, ready anytime</h3>
+              <p style={{ margin: 0, color: 'var(--hub-subtext)', fontSize: 14 }}>
+                Browse every saved attempt by genre. Open this area anytime to review your old writing and the coaching notes that came with it.
+              </p>
+              <div style={{ display: 'grid', gap: 10 }}>
+                {writingHistoryByGenre.data?.map((genreHistory) => (
+                  <article
+                    key={`history-${genreHistory.genre}`}
+                    style={{
+                      borderRadius: 12,
+                      border: '1px solid var(--hub-border)',
+                      background: 'var(--hub-muted-surface-soft)',
+                      padding: 12,
+                      display: 'grid',
+                      gap: 10,
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <p style={{ margin: 0, color: 'var(--hub-text-strong)', fontWeight: 800 }}>{toGenreLabel(genreHistory.genre)}</p>
+                      <span style={{ color: 'var(--hub-text-accent)', fontSize: 12, fontWeight: 700 }}>
+                        {genreHistory.entries.length} saved {genreHistory.entries.length === 1 ? 'entry' : 'entries'}
+                      </span>
+                    </div>
+                    {genreHistory.entries.length === 0 ? (
+                      <p style={{ margin: 0, color: 'var(--hub-subtext)', fontSize: 13 }}>No saved writing for this genre yet.</p>
+                    ) : (
+                      <div style={{ display: 'grid', gap: 8 }}>
+                        {genreHistory.entries.map((entry) => (
+                          <div
+                            key={entry.id}
+                            style={{
+                              borderRadius: 10,
+                              border: '1px solid var(--hub-border)',
+                              background: 'var(--hub-overlay-soft)',
+                              padding: 10,
+                              display: 'grid',
+                              gap: 6,
+                            }}
+                          >
+                            <p style={{ margin: 0, color: 'var(--hub-text-accent)', fontSize: 12, fontWeight: 700 }}>
+                              {toAttemptTypeLabel(entry.attempt_type)} · {formatHistoryDate(entry.created_at)} · Score {entry.total_score ?? '--'}/20
+                            </p>
+                            <p style={{ margin: 0, color: 'var(--hub-text)', fontSize: 13 }}>
+                              <strong>Prompt:</strong> {compactSnippet(entry.prompt_text, 140)}
+                            </p>
+                            <p style={{ margin: 0, color: 'var(--hub-text)', fontSize: 13 }}>
+                              <strong>Your writing:</strong> {compactSnippet(entry.student_submission)}
+                            </p>
+                            <p style={{ margin: 0, color: 'var(--hub-text-accent-2)', fontSize: 13 }}>
+                              <strong>Feedback:</strong> {entry.has_feedback
+                                ? compactSnippet(entry.feedback_summary || entry.feedback_next_move || 'Feedback was saved and is ready to review.', 170)
+                                : 'Feedback not saved for this entry yet.'}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </article>
+                ))}
+              </div>
+            </section>
+          )}
+
           {dashboard.ok && dashboard.data && (
             <p style={{ margin: 0, color: '#64748b', fontSize: 12, textAlign: 'center' }}>
               Mission progress: {dashboard.data.completed_tasks_count} completed · latest score {dashboard.data.latest_total_score ?? '--'}
@@ -4706,6 +4796,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     () => buildWritingDraftStorageKey(studentId, activeGenre, promptText),
     [studentId, activeGenre, promptText]
   );
+  const writingHistoryByGenre = listStudentWritingHistoryByGenre(studentId);
 
   useEffect(() => {
     setActiveGenre(genre);
@@ -4741,17 +4832,14 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   }, [draftStorageKey]);
 
   useEffect(() => {
-    const result = getStudentPromptAttemptCount({
-      student_id: studentId,
-      genre: activeGenre,
-      prompt_text: promptText,
-    });
-    if (!result.ok || !result.data) {
+    const historyResult = listStudentWritingHistoryByGenre(studentId);
+    if (!historyResult.ok || !historyResult.data) {
       setPromptHistoryCount(0);
       return;
     }
-    setPromptHistoryCount(result.data.count);
-  }, [studentId, activeGenre, promptText, assessment?.total_score]);
+    const activeGenreHistory = historyResult.data.find((item) => item.genre === activeGenre);
+    setPromptHistoryCount(activeGenreHistory?.entries.length ?? 0);
+  }, [studentId, activeGenre, assessment?.total_score]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -4906,7 +4994,16 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
         genre: activeGenre,
       });
       if (ai.ok && ai.data) {
-        setAiFeedback((ai.data.result ?? null) as WritingAiFeedbackAssist | null);
+        const parsedFeedback = (ai.data.result ?? null) as WritingAiFeedbackAssist | null;
+        setAiFeedback(parsedFeedback);
+        if (parsedFeedback) {
+          persistInitialWritingRichFeedback({
+            student_id: studentId,
+            genre: activeGenre,
+            rich_feedback: parsedFeedback,
+            created_at: new Date().toISOString(),
+          });
+        }
       } else {
         setAiFeedback(null);
       }
@@ -4914,11 +5011,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       setAiFeedback(null);
     } finally {
       setBusy(false);
-      setNotice('Feedback ready. Choose Retry this prompt or New prompt.');
-      setShowCinematicFeedback(true);
-      setCinematicDone(false);
-      setCinematicIndex(null);
-      setShowFullEssayContext(false);
+      setNotice('Feedback is ready below. Revise and submit again when you are ready.');
     }
   };
 
@@ -5214,439 +5307,169 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     setNotice('Copying is disabled on this page.');
   };
 
+  const strengths = (aiFeedback?.what_is_working ?? aiFeedback?.strengths ?? []).filter(Boolean).slice(0, 4);
+  const improvements = (aiFeedback?.what_is_missing ?? aiFeedback?.weaknesses ?? []).filter(Boolean).slice(0, 4);
+  const grammarFixes = [
+    ...(aiFeedback?.grammar_fixes ?? []).map((item) => ({ ...item, type: 'Grammar' })),
+    ...(aiFeedback?.punctuation_fixes ?? []).map((item) => ({ ...item, type: 'Punctuation' })),
+  ].slice(0, 6);
+
   return (
-    <div style={{ ...getPageStyle('dark'), gap: 14 }} onPasteCapture={handlePasteCapture} onCopyCapture={handleCopyCapture}>
-      <section className="writing-hub-card" style={getMissionCardStyle('dark')}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ width: 52, height: 52, borderRadius: 16, background: 'linear-gradient(135deg, #7c3aed 0%, #6366f1 50%, #2563eb 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, boxShadow: '0 0 28px rgba(99,102,241,0.35), 0 4px 12px rgba(0,0,0,0.2)', flexShrink: 0 }}>✍️</div>
-          <div>
-            <h2 style={{ margin: 0, color: '#f8fbff', fontSize: 22, fontWeight: 800, letterSpacing: -0.3 }}>Your Writing Space</h2>
-            <p style={{ margin: '4px 0 0', color: '#a5b4fc', fontSize: 14, lineHeight: 1.4 }}>Write your best, get expert feedback, and level up</p>
-          </div>
-        </div>
-        {notice && <p style={{ margin: '14px 0 0', color: '#a5b4fc', fontSize: 14, lineHeight: 1.5, padding: '10px 14px', borderRadius: 12, background: 'rgba(30,58,138,0.18)', border: '1px solid rgba(147,197,253,0.2)' }}>{notice}</p>}
-        {error && <p style={{ margin: '8px 0 0', color: '#fca5a5', fontSize: 14, lineHeight: 1.5, padding: '10px 14px', borderRadius: 12, background: 'rgba(127,29,29,0.15)', border: '1px solid rgba(248,113,113,0.25)' }}>{error}</p>}
+    <div style={{ padding: 16, width: '100%', maxWidth: 980, margin: '0 auto', display: 'grid', gap: 14, color: '#0f172a', background: '#f8fafc' }} onPasteCapture={handlePasteCapture} onCopyCapture={handleCopyCapture}>
+      <section style={{ borderRadius: 12, border: '1px solid #dbeafe', background: '#ffffff', padding: 16 }}>
+        <h2 style={{ margin: 0, fontSize: 22 }}>Writing Hub</h2>
+        <p style={{ margin: '6px 0 0', color: '#475569' }}>Simple writing flow: write → submit → read feedback → revise.</p>
+        {notice && <p style={{ margin: '10px 0 0', color: '#1d4ed8' }}>{notice}</p>}
+        {error && <p style={{ margin: '10px 0 0', color: '#b91c1c' }}>{error}</p>}
       </section>
 
-      <section className="writing-hub-card" style={{ ...getShellCardStyle('dark'), padding: '22px 22px 24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
-          <h3 style={{ margin: 0, color: '#e0e7ff', fontSize: 13, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase' as const }}>📝 Today's Prompt</h3>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, borderRadius: 10, padding: '6px 12px', background: 'linear-gradient(135deg, rgba(124,58,237,0.15), rgba(99,102,241,0.1))', border: '1px solid rgba(167,139,250,0.25)', color: '#c4b5fd', fontSize: 13, fontWeight: 700 }}>
-              {toGenreLabel(activeGenre)}
-            </span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, borderRadius: 10, padding: '6px 12px', background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(34,211,238,0.2)', color: '#67e8f9', fontSize: 13, fontWeight: 700 }}>
-              🎯 {toWordCountLabel(targetWordCount)}
-            </span>
-            <span
-              title="How many times you already attempted this exact prompt"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, borderRadius: 10, padding: '6px 12px', background: 'rgba(148,163,184,0.14)', border: '1px solid rgba(148,163,184,0.25)', color: '#cbd5e1', fontSize: 12, fontWeight: 700 }}
-            >
-              🕘 Prompt history: {promptHistoryCount}
-            </span>
+      <section style={{ borderRadius: 12, border: '1px solid #dbeafe', background: '#ffffff', padding: 16, display: 'grid', gap: 10 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+          <strong>{toGenreLabel(activeGenre)}</strong>
+          <span style={{ color: '#0369a1' }}>🎯 {toWordCountLabel(targetWordCount)}</span>
+          <span style={{ color: '#334155' }}>🕘 Prompt history: {promptHistoryCount}</span>
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {SUPPORTED_GENRES.map((item) => (
             <button
+              key={item}
               type="button"
-              onClick={() => setShowPromptChooser(true)}
-              style={{ borderRadius: 10, border: '1px solid rgba(148,163,184,0.25)', background: 'rgba(30,41,59,0.4)', color: '#94a3b8', fontSize: 13, fontWeight: 600, padding: '6px 14px', cursor: 'pointer', transition: 'all 180ms ease' }}
+              onClick={() => void loadFreshPrompt(item)}
+              disabled={busy}
+              style={{
+                borderRadius: 8,
+                border: item === activeGenre ? '1px solid #2563eb' : '1px solid #cbd5e1',
+                background: item === activeGenre ? '#eff6ff' : '#ffffff',
+                color: '#0f172a',
+                padding: '6px 10px',
+                cursor: 'pointer',
+              }}
             >
-              Switch genre
+              {toGenreLabel(item)}
             </button>
-          </div>
+          ))}
         </div>
-        <div style={{ borderRadius: 14, background: 'linear-gradient(135deg, rgba(15,23,42,0.6) 0%, rgba(30,41,59,0.3) 100%)', border: '1px solid rgba(148,163,184,0.12)', padding: '18px 20px', position: 'relative' }}>
-          <div style={{ position: 'absolute', top: 10, left: 14, color: 'rgba(148,163,184,0.2)', fontSize: 36, lineHeight: 1, fontFamily: 'Georgia, serif', pointerEvents: 'none' }}>"</div>
-          <p style={{ margin: 0, color: '#e2e8f0', whiteSpace: 'pre-wrap', fontSize: 16, lineHeight: 1.75, paddingLeft: 8 }}>{promptText}</p>
-        </div>
+        <p style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{promptText}</p>
       </section>
 
-      <section className="writing-hub-card" style={{ ...getShellCardStyle('dark'), padding: '22px 22px 24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-          <h3 style={{ margin: 0, color: '#e0e7ff', fontSize: 13, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase' as const }}>✏️ Your Response</h3>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, padding: '6px 14px', borderRadius: 12, background: `${wordTone.glow}`, border: `1px solid ${wordTone.accent}33`, transition: 'all 250ms ease' }}>
-            <span style={{ color: wordTone.accent, fontSize: 22, fontWeight: 800, lineHeight: 1, transition: 'color 200ms ease' }}>{wordCount}</span>
-            <span style={{ color: '#94a3b8', fontSize: 12, fontWeight: 600 }}>/ {toWordCountLabel(targetWordCount)}</span>
-          </div>
+      <section style={{ borderRadius: 12, border: '1px solid #dbeafe', background: '#ffffff', padding: 16, display: 'grid', gap: 10 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <strong>Your response</strong>
+          <span style={{ color: wordTone.accent }}>{wordCount} / {toWordCountLabel(targetWordCount)}</span>
         </div>
-
-        <div style={{ marginBottom: 14, borderRadius: 12, background: 'rgba(15,23,42,0.35)', border: '1px solid rgba(148,163,184,0.1)', padding: '10px 14px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-            <span style={{ color: '#94a3b8', fontSize: 12, fontWeight: 600 }}>Word count progress</span>
-            <span style={{ color: wordTone.accent, fontSize: 13, fontWeight: 700, transition: 'color 250ms ease' }}>{wordTone.microcopy}</span>
-          </div>
-          <div style={{ height: 8, borderRadius: 999, background: 'rgba(71,85,105,0.3)', overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${wordTone.progress}%`, background: wordTone.track, borderRadius: 999, transition: 'width 400ms cubic-bezier(0.34, 1.56, 0.64, 1)', boxShadow: `0 0 12px ${wordTone.accent}50` }} />
-          </div>
-        </div>
-
-        {isVeryShortDraft && (
-          <div style={{ margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 12, background: 'rgba(234,179,8,0.06)', border: '1px solid rgba(234,179,8,0.18)' }}>
-            <span style={{ fontSize: 18, flexShrink: 0 }}>💡</span>
-            <p style={{ margin: 0, color: '#fde68a', fontSize: 14, lineHeight: 1.5 }}>
-              Keep going! More detail = better feedback for you.
-            </p>
-          </div>
-        )}
-
         <textarea
           ref={responseFieldRef}
           value={draft}
           onChange={(e: { target: { value: string } }) => setDraft(e.target.value)}
-          placeholder={"Start writing here…\n\nTake your time — your ideas matter more than perfect grammar."}
-          style={{ ...fieldStyle, marginTop: 0, minHeight: 260, resize: 'vertical', lineHeight: 1.85, fontSize: 16, borderRadius: 16, border: '1px solid rgba(148,163,184,0.15)', background: 'rgba(8,14,28,0.65)', padding: '18px 20px', transition: 'border-color 200ms ease, box-shadow 200ms ease', color: '#f1f5f9' }}
-          aria-label="Writing response"
+          placeholder="Write your response here."
+          style={{ minHeight: 220, borderRadius: 8, border: '1px solid #cbd5e1', padding: 12, fontSize: 15, lineHeight: 1.6, color: '#0f172a', background: '#ffffff' }}
         />
-
-        <button
-          type="button"
-          onClick={() => void submitAttempt(lastRetryKind)}
-          disabled={busy || !draft.trim()}
-          className="writing-primary-button"
-          style={{
-            ...primaryButtonStyle,
-            marginTop: 14,
-            padding: '16px 20px',
-            borderRadius: 14,
-            fontSize: 16,
-            fontWeight: 800,
-            background: busy ? 'rgba(71,85,105,0.5)' : 'linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #a855f7 100%)',
-            opacity: (!draft.trim() && !busy) ? 0.5 : 1,
-            cursor: busy || !draft.trim() ? 'not-allowed' : 'pointer',
-            boxShadow: draft.trim() && !busy ? '0 8px 32px rgba(99,102,241,0.4), 0 0 0 1px rgba(167,139,250,0.3)' : 'none',
-            transition: 'all 250ms cubic-bezier(0.34, 1.56, 0.64, 1)',
-            letterSpacing: 0.3,
-          }}
-        >
-          {busy ? '✨ Analyzing your writing…' : 'Submit for Feedback →'}
-        </button>
-        <p style={{ margin: '12px 0 0', color: '#64748b', fontSize: 12, textAlign: 'center', lineHeight: 1.5 }}>
-          Tip: You can switch genre from the prompt card above before your next try.
-        </p>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => void submitAttempt(lastRetryKind)}
+            disabled={busy || !draft.trim()}
+            style={{ borderRadius: 8, border: '1px solid #2563eb', background: '#2563eb', color: '#ffffff', padding: '10px 14px', cursor: 'pointer' }}
+          >
+            {busy ? 'Analyzing…' : 'Submit'}
+          </button>
+          <button
+            type="button"
+            onClick={beginRetrySamePrompt}
+            disabled={busy}
+            style={{ borderRadius: 8, border: '1px solid #cbd5e1', background: '#ffffff', color: '#0f172a', padding: '10px 14px', cursor: 'pointer' }}
+          >
+            Retry this prompt
+          </button>
+          <button
+            type="button"
+            onClick={() => void loadFreshPrompt(activeGenre)}
+            disabled={busy}
+            style={{ borderRadius: 8, border: '1px solid #cbd5e1', background: '#ffffff', color: '#0f172a', padding: '10px 14px', cursor: 'pointer' }}
+          >
+            New prompt
+          </button>
+        </div>
       </section>
 
       {assessment && (
-        <section className="writing-hub-card feedback-result-card" style={{ ...getShellCardStyle('dark'), padding: '24px 22px', borderRadius: 22, border: '1px solid rgba(99,102,241,0.3)', overflow: 'hidden', position: 'relative', background: 'linear-gradient(135deg, rgba(15,23,42,0.95) 0%, rgba(10,17,32,0.98) 100%)' }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 20% -10%, rgba(99,102,241,0.12) 0%, transparent 55%), radial-gradient(ellipse at 80% 100%, rgba(6,182,212,0.06) 0%, transparent 50%)', pointerEvents: 'none' }} />
-          <div style={{ position: 'relative', display: 'grid', gap: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              <div style={{ position: 'relative', width: 56, height: 56, borderRadius: 16, background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #a855f7 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 30px rgba(99,102,241,0.4), 0 4px 12px rgba(0,0,0,0.3)' }}>
-                <span style={{ color: '#fff', fontWeight: 900, fontSize: 22, lineHeight: 1 }}>{assessment.total_score}</span>
-              </div>
-              <div style={{ flex: 1 }}>
-                <h3 style={{ margin: 0, color: '#f8fafc', fontWeight: 800, fontSize: 20 }}>Your Feedback is Ready! 🎉</h3>
-                <p style={{ margin: '4px 0 0', color: '#a5b4fc', fontSize: 14 }}>
-                  {toAlignmentLabel(aiFeedback?.alignment)} · Score {assessment.total_score} out of {rubricRows.reduce((sum, r) => sum + 5, 0)}
-                </p>
-              </div>
+        <section style={{ borderRadius: 12, border: '1px solid #dbeafe', background: '#ffffff', padding: 16, display: 'grid', gap: 12 }}>
+          <h3 style={{ margin: 0 }}>Detailed feedback</h3>
+          <p style={{ margin: 0 }}><strong>Score:</strong> {assessment.total_score}/20</p>
+          <p style={{ margin: 0 }}><strong>Task alignment:</strong> {toAlignmentLabel(aiFeedback?.alignment)}</p>
+          {aiFeedback?.task_understanding && <p style={{ margin: 0 }}>{aiFeedback.task_understanding}</p>}
+
+          {strengths.length > 0 && (
+            <div>
+              <p style={{ margin: '0 0 6px' }}><strong>✅ What works well</strong></p>
+              <ul style={{ margin: 0, paddingLeft: 22 }}>
+                {strengths.map((item, idx) => <li key={`s-${idx}`}>{simplifyStudentLanguage(item)}</li>)}
+              </ul>
             </div>
+          )}
 
-            {((aiFeedback?.what_is_working ?? aiFeedback?.strengths ?? []).length > 0 || (aiFeedback?.what_is_missing ?? aiFeedback?.weaknesses ?? []).length > 0) && (
-              <div style={{ display: 'grid', gap: 10 }}>
-                {(() => {
-                  const topStrength = (aiFeedback?.what_is_working ?? aiFeedback?.strengths ?? [])[0];
-                  if (!topStrength) return null;
-                  return (
-                    <div className="feedback-insight-row" style={{ display: 'flex', gap: 12, alignItems: 'flex-start', borderRadius: 14, background: 'rgba(6,78,59,0.18)', border: '1px solid rgba(74,222,128,0.25)', padding: '14px 16px' }}>
-                      <span style={{ flexShrink: 0, width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(135deg, rgba(74,222,128,0.25), rgba(34,197,94,0.15))', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>✅</span>
-                      <div>
-                        <p style={{ margin: 0, color: '#86efac', fontSize: 13, fontWeight: 700, marginBottom: 3 }}>What you did well</p>
-                        <p style={{ margin: 0, color: '#d1fae5', fontSize: 15, lineHeight: 1.6 }}>{simplifyStudentLanguage(topStrength)}</p>
-                      </div>
-                    </div>
-                  );
-                })()}
-                {(() => {
-                  const topIssue = (aiFeedback?.what_is_missing ?? aiFeedback?.weaknesses ?? [])[0];
-                  if (!topIssue) return null;
-                  return (
-                    <div className="feedback-insight-row" style={{ display: 'flex', gap: 12, alignItems: 'flex-start', borderRadius: 14, background: 'rgba(127,29,29,0.12)', border: '1px solid rgba(248,113,113,0.2)', padding: '14px 16px' }}>
-                      <span style={{ flexShrink: 0, width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(135deg, rgba(248,113,113,0.2), rgba(239,68,68,0.1))', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>🔧</span>
-                      <div>
-                        <p style={{ margin: 0, color: '#fca5a5', fontSize: 13, fontWeight: 700, marginBottom: 3 }}>Focus on next</p>
-                        <p style={{ margin: 0, color: '#fecaca', fontSize: 15, lineHeight: 1.6 }}>{simplifyStudentLanguage(topIssue)}</p>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-            )}
-
-            <button
-              type="button"
-              onClick={() => setShowCinematicFeedback(true)}
-              disabled={busy}
-              className="writing-primary-button cinematic-trigger-button"
-              style={{ ...primaryButtonStyle, marginTop: 4, padding: '18px 20px', borderRadius: 14, background: 'linear-gradient(135deg, #7c3aed 0%, #2563eb 50%, #06b6d4 100%)', boxShadow: '0 0 36px rgba(99,102,241,0.3), 0 6px 20px rgba(0,0,0,0.3)', fontSize: 17, fontWeight: 800, letterSpacing: 0.3 }}
-            >
-              📖 See Your Detailed Feedback
-            </button>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 10 }}>
-              <button
-                type="button"
-                onClick={beginRetrySamePrompt}
-                disabled={busy}
-                style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)', fontSize: 14, padding: '14px 14px', borderRadius: 12, boxShadow: '0 4px 14px rgba(14,165,233,0.25)' }}
-              >
-                ✍️ Retry this prompt
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowPromptChooser(true)}
-                disabled={busy}
-                style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', fontSize: 14, padding: '14px 14px', borderRadius: 12, boxShadow: '0 4px 14px rgba(16,185,129,0.25)' }}
-              >
-                🆕 New prompt
-              </button>
+          {improvements.length > 0 && (
+            <div>
+              <p style={{ margin: '0 0 6px' }}><strong>➡️ What to improve next</strong></p>
+              <ul style={{ margin: 0, paddingLeft: 22 }}>
+                {improvements.map((item, idx) => <li key={`w-${idx}`}>{simplifyStudentLanguage(item)}</li>)}
+              </ul>
             </div>
-          </div>
+          )}
+
+          {grammarFixes.length > 0 && (
+            <div>
+              <p style={{ margin: '0 0 6px' }}><strong>✏️ Quick fixes</strong></p>
+              <ul style={{ margin: 0, paddingLeft: 22 }}>
+                {grammarFixes.map((item, idx) => (
+                  <li key={`g-${idx}`}>
+                    <strong>{item.type}:</strong> {item.original} → <strong>{item.better_version}</strong>
+                    {item.issue ? ` (${item.issue})` : ''}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <p style={{ margin: 0 }}>
+            <strong>Next action:</strong> {aiFeedback?.next_move || (aiFeedback?.next_steps ?? [])[0] || 'Revise one weak sentence and submit again.'}
+          </p>
         </section>
       )}
 
-      {showCinematicFeedback && assessment && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 120,
-            background: 'rgba(2,6,23,0.88)',
-            backdropFilter: 'blur(6px)',
-            display: 'grid',
-            placeItems: 'center',
-            padding: 14,
-          }}
-          onClick={(e: React.MouseEvent<HTMLDivElement>) => { if (e.target === e.currentTarget) setShowCinematicFeedback(false); }}
-        >
-          <div
-            className="simple-cinematic-panel"
-            style={{
-              width: 'min(940px, 100%)',
-              height: 'calc(100dvh - (env(safe-area-inset-top) + env(safe-area-inset-bottom) + 12px))',
-              maxHeight: 'calc(100dvh - (env(safe-area-inset-top) + env(safe-area-inset-bottom) + 12px))',
-              minHeight: 0,
-              overflow: 'hidden',
-              borderRadius: 24,
-              border: '1px solid rgba(148,163,184,0.2)',
-              background: 'linear-gradient(180deg, #0c1527 0%, #080e1c 100%)',
-              padding: 'max(16px, calc(12px + env(safe-area-inset-top))) 18px max(14px, calc(10px + env(safe-area-inset-bottom)))',
-              color: '#e2e8f0',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 12,
-              boxShadow: '0 0 80px rgba(99,102,241,0.15), 0 25px 60px rgba(0,0,0,0.5)',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
-              <div style={{ display: 'grid', gap: 3 }}>
-                <p style={{ margin: 0, color: '#93c5fd', fontSize: 12, fontWeight: 800, letterSpacing: 0.6, textTransform: 'uppercase' }}>
-                  {cinematicModeLabel}
-                </p>
-                <h3 style={{ margin: 0, color: '#f8fafc', fontSize: 20, fontWeight: 800 }}>Writing Coach Review</h3>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                  <p style={{ margin: 0, color: '#94a3b8', fontSize: 13 }}>
-                    Issue {(cinematicIndex ?? 0) + 1} of {Math.max(1, cinematicRanges.length)}
-                  </p>
-                  <span style={{ color: '#f5d0fe', fontSize: 11, borderRadius: 999, border: '1px solid rgba(192,132,252,0.35)', padding: '2px 8px' }}>{issueTypeLabel}</span>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowCinematicFeedback(false)}
-                style={{ borderRadius: 10, border: '1px solid rgba(148,163,184,0.3)', background: 'rgba(15,23,42,0.9)', color: '#e2e8f0', padding: '8px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
-              >
-                ✕ Close
-              </button>
-            </div>
-
-            <div
-              style={{
-                minHeight: 0,
-                flex: '1 1 auto',
-                overflowY: 'auto',
-                overflowX: 'hidden',
-                WebkitOverflowScrolling: 'touch',
-                overscrollBehavior: 'contain',
-                display: 'grid',
-                gap: 12,
-                alignContent: 'start',
-                paddingBottom: 'calc(130px + env(safe-area-inset-bottom))',
-              }}
-            >
-              <div className="cinematic-detail-card" style={{ borderRadius: 18, border: '1px solid rgba(99,102,241,0.32)', background: 'linear-gradient(180deg, rgba(15,23,42,0.9), rgba(12,20,36,0.92))', padding: '18px 16px', display: 'grid', gap: 14, boxShadow: '0 10px 30px rgba(2,6,23,0.45)' }}>
-                <div style={{ display: 'grid', gap: 8 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-                    <span style={{ color: '#bfdbfe', fontSize: 12, fontWeight: 800, letterSpacing: 0.8, textTransform: 'uppercase' }}>Original sentence</span>
-                    <span style={{ color: '#fca5a5', fontSize: 11, border: '1px solid rgba(248,113,113,0.35)', padding: '3px 8px', borderRadius: 999 }}>
-                      {normalizedReviewIssue.improvedSentence ? 'Needs fix' : 'No rewrite needed'}
-                    </span>
-                  </div>
-                  <p style={{ margin: 0, color: '#f8fafc', fontSize: 22, lineHeight: 1.75, fontWeight: 500 }}>
-                    {renderPhraseComparison(normalizedReviewIssue.originalSentence || 'No snippet available.', activeLessonFix?.original ?? null, 'warning')}
-                  </p>
-                </div>
-
-                <div style={{ display: 'grid', gap: 8 }}>
-                  <p style={{ margin: 0, color: '#fbcfe8', fontSize: 11, fontWeight: 800, letterSpacing: 0.8, textTransform: 'uppercase' }}>What to improve</p>
-                  <p style={{ margin: 0, color: '#e2e8f0', fontSize: 15, lineHeight: 1.65 }}>{whatToImproveText}</p>
-                </div>
-
-                {betterVersionText ? (
-                  <div style={{ borderRadius: 14, border: '1px solid rgba(74,222,128,0.35)', background: 'linear-gradient(180deg, rgba(6,78,59,0.3), rgba(6,95,70,0.16))', padding: '14px 14px', display: 'grid', gap: 7 }}>
-                    <p style={{ margin: 0, color: '#86efac', fontSize: 12, fontWeight: 800, letterSpacing: 0.8, textTransform: 'uppercase' }}>Better version</p>
-                    <p style={{ margin: 0, color: '#ecfdf5', fontSize: 21, lineHeight: 1.75, fontWeight: 500 }}>
-                      {renderPhraseComparison(betterVersionText, activeLessonFix?.betterVersion ?? null, 'success')}
+      {writingHistoryByGenre.ok && (
+        <section style={{ borderRadius: 12, border: '1px solid #dbeafe', background: '#ffffff', padding: 16, display: 'grid', gap: 10 }}>
+          <h3 style={{ margin: 0 }}>Writing archive</h3>
+          <p style={{ margin: 0, color: '#475569' }}>All previous writing by genre with saved feedback.</p>
+          {writingHistoryByGenre.data?.map((genreHistory) => (
+            <details key={`simple-history-${genreHistory.genre}`} style={{ borderRadius: 8, border: '1px solid #e2e8f0', padding: 10 }}>
+              <summary style={{ cursor: 'pointer', fontWeight: 700 }}>
+                {toGenreLabel(genreHistory.genre)} · {genreHistory.entries.length} saved {genreHistory.entries.length === 1 ? 'entry' : 'entries'}
+              </summary>
+              <div style={{ marginTop: 8, display: 'grid', gap: 8 }}>
+                {genreHistory.entries.length === 0 ? (
+                  <p style={{ margin: 0, color: '#64748b' }}>No saved writing for this genre yet.</p>
+                ) : genreHistory.entries.map((entry) => (
+                  <div key={entry.id} style={{ borderRadius: 8, border: '1px solid #e2e8f0', padding: 10, display: 'grid', gap: 4 }}>
+                    <p style={{ margin: 0 }}><strong>{toAttemptTypeLabel(entry.attempt_type)}</strong> · {formatHistoryDate(entry.created_at)} · Score {entry.total_score ?? '--'}/20</p>
+                    <p style={{ margin: 0 }}><strong>Prompt:</strong> {compactSnippet(entry.prompt_text, 120)}</p>
+                    <p style={{ margin: 0 }}><strong>Writing:</strong> {compactSnippet(entry.student_submission, 140)}</p>
+                    <p style={{ margin: 0 }}><strong>Feedback:</strong> {entry.has_feedback
+                      ? compactSnippet(entry.feedback_summary || entry.feedback_next_move || 'Feedback was saved and is ready to review.', 150)
+                      : 'Feedback not saved for this entry yet.'}
                     </p>
                   </div>
-                ) : (
-                  <div style={{ borderRadius: 14, border: '1px solid rgba(125,211,252,0.3)', background: 'linear-gradient(180deg, rgba(15,23,42,0.55), rgba(15,23,42,0.32))', padding: '12px 14px' }}>
-                    <p style={{ margin: 0, color: '#bae6fd', fontSize: 14, lineHeight: 1.6 }}>
-                      {normalizedReviewIssue.kind === 'grammar' ? 'No grammar rewrite needed here.' : 'This sentence is already clear. Improve it only if you can add more specific detail.'}
-                    </p>
-                  </div>
-                )}
-
-                <div style={{ display: 'grid', gap: 8 }}>
-                  <p style={{ margin: 0, color: '#c4b5fd', fontSize: 11, fontWeight: 800, letterSpacing: 0.8, textTransform: 'uppercase' }}>Why this matters</p>
-                  <p style={{ margin: 0, color: '#cbd5e1', fontSize: 14, lineHeight: 1.65 }}>{whyItMattersText}</p>
-                </div>
+                ))}
               </div>
-
-              <div style={{ borderRadius: 14, border: '1px solid rgba(148,163,184,0.24)', background: 'rgba(15,23,42,0.5)', padding: '12px 14px' }}>
-                <button
-                  type="button"
-                  onClick={() => setShowFullEssayContext((prev) => !prev)}
-                  style={{ width: '100%', textAlign: 'left', border: 'none', background: 'transparent', color: '#93c5fd', fontSize: 13, fontWeight: 700, padding: 0, cursor: 'pointer' }}
-                >
-                  {showFullEssayContext ? 'Hide full essay context' : 'Show full essay context'}
-                </button>
-                {showFullEssayContext && (
-                  <div
-                    ref={cinematicTextPanelRef}
-                    className="cinematic-text-panel"
-                    style={{ marginTop: 10, position: 'relative', borderRadius: 12, border: '1px solid rgba(148,163,184,0.2)', background: 'rgba(2,6,23,0.45)', padding: '12px 14px', lineHeight: 1.75, fontSize: 15 }}
-                  >
-                    <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} aria-hidden="true">
-                      <path ref={cinematicTracePathRef} d="" stroke={activeCinematicRange?.polarity === 'strong' ? '#4ade80' : '#f87171'} strokeWidth="2.5" fill="none" strokeLinecap="round" />
-                    </svg>
-                    {submittedText ? renderAnnotatedText(submittedText, cinematicRanges, cinematicIndex, handleRangeMount) : 'No submission text available.'}
-                  </div>
-                )}
-              </div>
-
-              <details className="cinematic-rubric-section" style={{ borderRadius: 14, border: '1px solid rgba(148,163,184,0.18)', background: 'rgba(15,23,42,0.35)', padding: '12px 14px' }}>
-                <summary style={{ cursor: 'pointer', color: '#94a3b8', fontSize: 13, fontWeight: 700 }}>More coaching details (rubric + starter + actions)</summary>
-                <div style={{ display: 'grid', gap: 12, marginTop: 10 }}>
-                  {(() => {
-                    const model = aiFeedback?.example_revision_start?.trim();
-                    if (!model) return null;
-                    return <p style={{ margin: 0, color: '#cbd5e1', fontSize: 14, lineHeight: 1.6 }}><strong style={{ color: '#bfdbfe' }}>Revision starter:</strong> “{model}”</p>;
-                  })()}
-                  <div style={{ display: 'grid', gap: 8 }}>
-                    {rubricRows.map((row) => {
-                      if (row.value == null) return <p key={row.key} style={{ margin: 0, color: '#64748b', fontSize: 12 }}>{row.label}: not assessed</p>;
-                      const rubricReason = buildRubricReason(row.key, row.value, assessment?.weakness_tags ?? [], aiFeedback);
-                      return <p key={row.key} style={{ margin: 0, color: '#94a3b8', fontSize: 13 }}>{row.label}: {row.value}/5{rubricReason ? ` — ${rubricReason}` : ''}</p>;
-                    })}
-                  </div>
-                  {improvementGuidance && <p style={{ margin: 0, color: '#cbd5e1', fontSize: 13 }}>{improvementGuidance}</p>}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 8 }}>
-                    <button
-                      type="button"
-                      onClick={beginRetrySamePrompt}
-                      style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)', fontSize: 14, padding: '11px 12px', borderRadius: 11 }}
-                    >
-                      ✍️ Retry
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowCinematicFeedback(false);
-                        setShowPromptChooser(true);
-                      }}
-                      style={{ ...primaryButtonStyle, marginTop: 0, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', fontSize: 14, padding: '11px 12px', borderRadius: 11 }}
-                    >
-                      🆕 New prompt
-                    </button>
-                  </div>
-                </div>
-              </details>
-            </div>
-
-            <div className="cinematic-nav-bar" style={{ position: 'fixed', left: '50%', transform: 'translateX(-50%)', width: 'min(900px, calc(100vw - 24px))', bottom: 'max(8px, calc(env(safe-area-inset-bottom) + 6px))', borderRadius: 16, border: '1px solid rgba(99,102,241,0.35)', background: 'rgba(2,6,23,0.82)', backdropFilter: 'blur(12px) saturate(1.2)', WebkitBackdropFilter: 'blur(12px) saturate(1.2)', boxShadow: '0 -8px 30px rgba(2,6,23,0.4), 0 0 24px rgba(99,102,241,0.15)', padding: '12px 14px calc(12px + env(safe-area-inset-bottom))', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, zIndex: 5 }}>
-              <div style={{ color: '#94a3b8', fontSize: 12, fontWeight: 700 }}>
-                {cinematicRanges.length > 0 ? `${(cinematicIndex ?? 0) + 1} / ${cinematicRanges.length}` : '0 / 0'}
-              </div>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <button
-                  type="button"
-                  onClick={() => setCinematicIndex((prev) => Math.max(0, (prev ?? 0) - 1))}
-                  disabled={cinematicRanges.length === 0 || (cinematicIndex ?? 0) <= 0}
-                  style={{ borderRadius: 11, border: '1px solid rgba(148,163,184,0.35)', background: 'rgba(30,41,59,0.6)', color: '#e2e8f0', padding: '12px 16px', fontSize: 14, fontWeight: 700, cursor: 'pointer', minHeight: 44 }}
-                >
-                  ← Back
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCinematicIndex((prev) => Math.min(cinematicRanges.length - 1, (prev ?? 0) + 1))}
-                  disabled={cinematicRanges.length === 0 || (cinematicIndex ?? 0) >= cinematicRanges.length - 1}
-                  style={{ borderRadius: 11, border: '1px solid rgba(96,165,250,0.4)', background: 'linear-gradient(135deg, rgba(37,99,235,0.32), rgba(30,41,59,0.8))', color: '#e2e8f0', padding: '12px 16px', fontSize: 14, fontWeight: 700, cursor: 'pointer', minHeight: 44 }}
-                >
-                  Next →
-                </button>
-              </div>
-            </div>
-            {!cinematicDone && <p style={{ margin: 0, color: '#93c5fd', fontSize: 12 }}>Review animation in progress…</p>}
-          </div>
-        </div>
-      )}
-
-      {showPromptChooser && (
-        <div role="dialog" aria-modal="true" style={{ position: 'fixed', inset: 0, zIndex: 122, background: 'rgba(2,6,23,0.8)', display: 'grid', placeItems: 'center', padding: 14 }}>
-          <div style={{ width: 'min(820px, 100%)', borderRadius: 18, border: '1px solid rgba(148,163,184,0.45)', background: 'linear-gradient(180deg,#0b1224,#07101f)', padding: 16, display: 'grid', gap: 12 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-              <div>
-                <p style={{ margin: 0, color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>Choose your next challenge</p>
-                <h3 style={{ margin: '4px 0 0', color: '#f8fafc' }}>Pick a genre, then load a fresh prompt</h3>
-              </div>
-              <button type="button" onClick={() => setShowPromptChooser(false)} style={{ borderRadius: 8, border: '1px solid rgba(148,163,184,0.45)', background: 'rgba(15,23,42,0.9)', color: '#e2e8f0', padding: '8px 10px' }}>
-                Close
-              </button>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: 10 }}>
-              {SUPPORTED_GENRES.map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  onClick={() => {
-                    void loadFreshPrompt(item);
-                    setShowCinematicFeedback(false);
-                  }}
-                  disabled={busy}
-                  style={{
-                    borderRadius: 12,
-                    border: item === activeGenre ? '1px solid rgba(74,222,128,0.7)' : '1px solid rgba(148,163,184,0.35)',
-                    background: item === activeGenre ? 'rgba(6,78,59,0.35)' : 'rgba(15,23,42,0.75)',
-                    color: '#e2e8f0',
-                    padding: '12px 10px',
-                    textAlign: 'left',
-                  }}
-                >
-                  <strong style={{ display: 'block' }}>{toGenreLabel(item)}</strong>
-                  <span style={{ fontSize: 12, color: '#93c5fd' }}>{item === activeGenre ? 'Current genre' : 'Switch and load prompt'}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+            </details>
+          ))}
+        </section>
       )}
     </div>
   );
 };
 
 export const WritingHub: React.FC<WritingHubProps> = (props) => {
-  const [legacyForced] = useState<boolean>(() => isLegacyForced());
-  if (legacyForced) return <WritingHubLegacy {...props} />;
   return <WritingHubSimpleLoop {...props} />;
 };
 
