@@ -5316,14 +5316,15 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
 
   return (
     <div style={{ padding: 16, width: '100%', maxWidth: 980, margin: '0 auto', display: 'grid', gap: 14, color: '#0f172a', background: '#f8fafc' }} onPasteCapture={handlePasteCapture} onCopyCapture={handleCopyCapture}>
-      <section style={{ borderRadius: 12, border: '1px solid #dbeafe', background: '#ffffff', padding: 16 }}>
-        <h2 style={{ margin: 0, fontSize: 22 }}>Writing Hub</h2>
+      <section data-testid="writing-hub-student-view" style={{ borderRadius: 12, border: '1px solid #dbeafe', background: '#ffffff', padding: 16 }}>
+        <h2 data-testid="writing-hub-title" style={{ margin: 0, fontSize: 22 }}>Your Writing Space</h2>
         <p style={{ margin: '6px 0 0', color: '#475569' }}>Simple writing flow: write → submit → read feedback → revise.</p>
         {notice && <p style={{ margin: '10px 0 0', color: '#1d4ed8' }}>{notice}</p>}
         {error && <p style={{ margin: '10px 0 0', color: '#b91c1c' }}>{error}</p>}
       </section>
 
-      <section style={{ borderRadius: 12, border: '1px solid #dbeafe', background: '#ffffff', padding: 16, display: 'grid', gap: 10 }}>
+      <section data-testid="writing-hub-today-section" style={{ borderRadius: 12, border: '1px solid #dbeafe', background: '#ffffff', padding: 16, display: 'grid', gap: 10 }}>
+        <h3 style={{ margin: 0, fontSize: 16 }}>Today</h3>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
           <strong>{toGenreLabel(activeGenre)}</strong>
           <span style={{ color: '#0369a1' }}>🎯 {toWordCountLabel(targetWordCount)}</span>
@@ -5352,9 +5353,9 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
         <p style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{promptText}</p>
       </section>
 
-      <section style={{ borderRadius: 12, border: '1px solid #dbeafe', background: '#ffffff', padding: 16, display: 'grid', gap: 10 }}>
+      <section data-testid="writing-hub-response-section" style={{ borderRadius: 12, border: '1px solid #dbeafe', background: '#ffffff', padding: 16, display: 'grid', gap: 10 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <strong>Your response</strong>
+          <strong>Your Response</strong>
           <span style={{ color: wordTone.accent }}>{wordCount} / {toWordCountLabel(targetWordCount)}</span>
         </div>
         <textarea
@@ -5371,7 +5372,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
             disabled={busy || !draft.trim()}
             style={{ borderRadius: 8, border: '1px solid #2563eb', background: '#2563eb', color: '#ffffff', padding: '10px 14px', cursor: 'pointer' }}
           >
-            {busy ? 'Analyzing…' : 'Submit'}
+            {busy ? 'Analyzing…' : 'Submit for Feedback'}
           </button>
           <button
             type="button"
@@ -5391,53 +5392,6 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
           </button>
         </div>
       </section>
-
-      {writingHistoryByGenre.ok && (
-        <section className="writing-hub-card" style={{ ...getShellCardStyle('dark'), padding: '20px 20px 22px', display: 'grid', gap: 10 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <p style={{ ...dashboardSectionTitleStyle, color: '#a5b4fc', margin: 0 }}>Writing Archive</p>
-            <span style={{ ...sectionLabelPillStyle, color: '#c4b5fd', borderColor: 'rgba(167, 139, 250, 0.4)', background: 'rgba(76, 29, 149, 0.24)' }}>All genres</span>
-          </div>
-          <h3 style={{ margin: 0, color: '#f8fafc', fontSize: 19 }}>Previous writing and feedback (ready anytime)</h3>
-          <p style={{ margin: 0, color: '#94a3b8', fontSize: 13 }}>
-            Expand any genre to review earlier attempts, your writing text, and saved coaching notes.
-          </p>
-          <div style={{ display: 'grid', gap: 8 }}>
-            {writingHistoryByGenre.data?.map((genreHistory) => (
-              <details key={`simple-history-${genreHistory.genre}`} style={{ borderRadius: 12, border: '1px solid rgba(148,163,184,0.22)', background: 'rgba(15,23,42,0.52)', padding: '8px 10px' }}>
-                <summary style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, color: '#e2e8f0', fontWeight: 700 }}>
-                  <span>{toGenreLabel(genreHistory.genre)}</span>
-                  <span style={{ color: '#93c5fd', fontSize: 12 }}>{genreHistory.entries.length} saved {genreHistory.entries.length === 1 ? 'entry' : 'entries'}</span>
-                </summary>
-                <div style={{ marginTop: 8, display: 'grid', gap: 7 }}>
-                  {genreHistory.entries.length === 0 ? (
-                    <p style={{ margin: 0, color: '#64748b', fontSize: 13 }}>No saved writing for this genre yet.</p>
-                  ) : (
-                    genreHistory.entries.map((entry) => (
-                      <div key={entry.id} style={{ borderRadius: 10, border: '1px solid rgba(148,163,184,0.2)', background: 'rgba(2,6,23,0.45)', padding: '9px 10px', display: 'grid', gap: 5 }}>
-                        <p style={{ margin: 0, color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>
-                          {toAttemptTypeLabel(entry.attempt_type)} · {formatHistoryDate(entry.created_at)} · Score {entry.total_score ?? '--'}/20
-                        </p>
-                        <p style={{ margin: 0, color: '#cbd5e1', fontSize: 12 }}>
-                          <strong style={{ color: '#e2e8f0' }}>Prompt:</strong> {compactSnippet(entry.prompt_text, 120)}
-                        </p>
-                        <p style={{ margin: 0, color: '#cbd5e1', fontSize: 12 }}>
-                          <strong style={{ color: '#e2e8f0' }}>Writing:</strong> {compactSnippet(entry.student_submission, 140)}
-                        </p>
-                        <p style={{ margin: 0, color: '#c4b5fd', fontSize: 12 }}>
-                          <strong style={{ color: '#ddd6fe' }}>Feedback:</strong> {entry.has_feedback
-                            ? compactSnippet(entry.feedback_summary || entry.feedback_next_move || 'Feedback was saved and is ready to review.', 150)
-                            : 'Feedback not saved for this entry yet.'}
-                        </p>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </details>
-            ))}
-          </div>
-        </section>
-      )}
 
       {assessment && (
         <section style={{ borderRadius: 12, border: '1px solid #dbeafe', background: '#ffffff', padding: 16, display: 'grid', gap: 12 }}>
