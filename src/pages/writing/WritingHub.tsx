@@ -5309,10 +5309,38 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
 
   const strengths = (aiFeedback?.what_is_working ?? aiFeedback?.strengths ?? []).filter(Boolean).slice(0, 4);
   const improvements = (aiFeedback?.what_is_missing ?? aiFeedback?.weaknesses ?? []).filter(Boolean).slice(0, 4);
-  const grammarFixes = [
-    ...(aiFeedback?.grammar_fixes ?? []).map((item) => ({ ...item, type: 'Grammar' })),
-    ...(aiFeedback?.punctuation_fixes ?? []).map((item) => ({ ...item, type: 'Punctuation' })),
-  ].slice(0, 6);
+  const quickFixes = [
+    ...(aiFeedback?.grammar_fixes ?? []).map((item) => ({
+      type: 'Grammar',
+      original: item.original,
+      betterVersion: item.better_version,
+      explanation: null as string | null,
+    })),
+    ...(aiFeedback?.punctuation_fixes ?? []).map((item) => ({
+      type: 'Punctuation',
+      original: item.original,
+      betterVersion: item.better_version,
+      explanation: null as string | null,
+    })),
+    ...(aiFeedback?.natural_phrase_upgrades ?? []).map((item) => ({
+      type: 'Better phrasing',
+      original: item.original,
+      betterVersion: item.better_version,
+      explanation: item.why_it_helps ?? null,
+    })),
+    ...(aiFeedback?.style_tone_feedback ?? []).map((item) => ({
+      type: 'Style & tone',
+      original: item.evidence,
+      betterVersion: item.suggestion,
+      explanation: item.issue ?? null,
+    })),
+  ].filter((item) => item.original?.trim() && item.betterVersion?.trim()).slice(0, 8);
+  const rubricScores = assessment ? [
+    { key: 'content', label: 'Content', value: assessment.subscores.content },
+    { key: 'language', label: 'Language', value: assessment.subscores.language },
+    { key: 'organization', label: 'Organization', value: assessment.subscores.organisation },
+    { key: 'communicative_achievement', label: 'Communicative achievement', value: assessment.subscores.communicative_achievement },
+  ] : [];
 
   return (
     <div style={{ padding: 16, width: '100%', maxWidth: 980, margin: '0 auto', display: 'grid', gap: 14, color: '#0f172a', background: '#f8fafc' }} onPasteCapture={handlePasteCapture} onCopyCapture={handleCopyCapture}>
@@ -5397,6 +5425,24 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
         <section style={{ borderRadius: 12, border: '1px solid #dbeafe', background: '#ffffff', padding: 16, display: 'grid', gap: 12 }}>
           <h3 style={{ margin: 0 }}>Detailed feedback</h3>
           <p style={{ margin: 0 }}><strong>Score:</strong> {assessment.total_score}/20</p>
+          <div style={{ display: 'grid', gap: 10, marginTop: 2 }}>
+            {rubricScores.map((item) => {
+              const safeScore = Math.max(0, Math.min(5, Number(item.value ?? 0)));
+              const progress = `${Math.round((safeScore / 5) * 100)}%`;
+              const barColor = safeScore >= 4 ? '#16a34a' : safeScore >= 3 ? '#ca8a04' : '#dc2626';
+              return (
+                <div key={item.key} style={{ display: 'grid', gap: 6 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 14 }}>
+                    <strong>{item.label}</strong>
+                    <span style={{ color: '#475569' }}>{item.value != null ? `${item.value}/5` : '—/5'}</span>
+                  </div>
+                  <div style={{ width: '100%', height: 9, borderRadius: 999, background: '#e2e8f0', overflow: 'hidden' }}>
+                    <div style={{ width: progress, height: '100%', borderRadius: 999, background: barColor, transition: 'width 0.45s ease' }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
           <p style={{ margin: 0 }}><strong>Task alignment:</strong> {toAlignmentLabel(aiFeedback?.alignment)}</p>
           {aiFeedback?.task_understanding && <p style={{ margin: 0 }}>{aiFeedback.task_understanding}</p>}
 
@@ -5411,21 +5457,30 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
 
           {improvements.length > 0 && (
             <div>
-              <p style={{ margin: '0 0 6px' }}><strong>➡️ What to improve next</strong></p>
-              <ul style={{ margin: 0, paddingLeft: 22 }}>
-                {improvements.map((item, idx) => <li key={`w-${idx}`}>{simplifyStudentLanguage(item)}</li>)}
+              <p style={{ margin: '2px 0 8px' }}><strong>➡️ What to improve next</strong></p>
+              <ul style={{ margin: 0, paddingLeft: 22, display: 'grid', gap: 8 }}>
+                {improvements.map((item, idx) => (
+                  <li key={`w-${idx}`} style={{ lineHeight: 1.55 }}>
+                    {simplifyStudentLanguage(item)}
+                  </li>
+                ))}
               </ul>
             </div>
           )}
 
-          {grammarFixes.length > 0 && (
+          {quickFixes.length > 0 && (
             <div>
-              <p style={{ margin: '0 0 6px' }}><strong>✏️ Quick fixes</strong></p>
-              <ul style={{ margin: 0, paddingLeft: 22 }}>
-                {grammarFixes.map((item, idx) => (
-                  <li key={`g-${idx}`}>
-                    <strong>{item.type}:</strong> {item.original} → <strong>{item.better_version}</strong>
-                    {item.issue ? ` (${item.issue})` : ''}
+              <p style={{ margin: '2px 0 8px' }}><strong>✏️ Quick fixes</strong></p>
+              <ul style={{ margin: 0, paddingLeft: 22, display: 'grid', gap: 12 }}>
+                {quickFixes.map((item, idx) => (
+                  <li key={`g-${idx}`} style={{ lineHeight: 1.6 }}>
+                    <div style={{ marginBottom: 4 }}><strong>{item.type}</strong></div>
+                    <div>
+                      {item.original} → <strong>{item.betterVersion}</strong>
+                    </div>
+                    {item.explanation && (
+                      <div style={{ color: '#475569', marginTop: 4 }}>{simplifyStudentLanguage(item.explanation)}</div>
+                    )}
                   </li>
                 ))}
               </ul>
