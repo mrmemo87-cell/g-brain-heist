@@ -43,8 +43,13 @@ const withStudentBinding = <T extends Record<string, unknown>>(row: T, studentId
   }
   return row;
 };
-const withLegacyStudentFilter = (query: any, studentId: string) =>
-  query.or(`payload->>student_id.eq.${studentId},payload->>user_id.eq.${studentId}`);
+const fetchLegacyPayloadRows = async (table: string, studentId: string): Promise<{ data: any[]; error: { message: string } | null }> => {
+  const primaryRes = await supabase.from(table).select('*').eq('payload->>student_id', studentId);
+  if (primaryRes.error) return { data: [], error: primaryRes.error };
+  if ((primaryRes.data ?? []).length > 0) return { data: primaryRes.data ?? [], error: null };
+  const legacyRes = await supabase.from(table).select('*').eq('payload->>user_id', studentId);
+  return { data: legacyRes.data ?? [], error: legacyRes.error };
+};
 const readStudentKey = (row: unknown): string | null => readKey(row, 'student_id') ?? readKey(row, 'user_id');
 
 export const loadWritingStoreSnapshot = async (): Promise<SerializedWritingPersistenceStore | null> => {
@@ -76,13 +81,13 @@ export const loadWritingStoreSnapshot = async (): Promise<SerializedWritingPersi
   ] = await Promise.all([
     supabase.from('bh_writing_student_profiles').select('*').eq('student_id', activeStudentId),
     supabase.from('bh_writing_student_states').select('*').eq('student_id', activeStudentId),
-    withLegacyStudentFilter(supabase.from('bh_writing_attempts').select('*'), activeStudentId),
-    withLegacyStudentFilter(supabase.from('bh_writing_weekly_plans').select('*'), activeStudentId),
-    withLegacyStudentFilter(supabase.from('bh_writing_daily_tasks').select('*'), activeStudentId),
-    withLegacyStudentFilter(supabase.from('bh_writing_daily_submissions').select('*'), activeStudentId),
-    withLegacyStudentFilter(supabase.from('bh_writing_daily_evaluations').select('*'), activeStudentId),
-    withLegacyStudentFilter(supabase.from('bh_writing_monthly_reports').select('*'), activeStudentId),
-    withLegacyStudentFilter(supabase.from('bh_writing_memory_snapshots').select('*'), activeStudentId),
+    fetchLegacyPayloadRows('bh_writing_attempts', activeStudentId),
+    fetchLegacyPayloadRows('bh_writing_weekly_plans', activeStudentId),
+    fetchLegacyPayloadRows('bh_writing_daily_tasks', activeStudentId),
+    fetchLegacyPayloadRows('bh_writing_daily_submissions', activeStudentId),
+    fetchLegacyPayloadRows('bh_writing_daily_evaluations', activeStudentId),
+    fetchLegacyPayloadRows('bh_writing_monthly_reports', activeStudentId),
+    fetchLegacyPayloadRows('bh_writing_memory_snapshots', activeStudentId),
     Promise.resolve({ data: [], error: null } as { data: any[]; error: null }),
     Promise.resolve({ data: [], error: null } as { data: any[]; error: null }),
     supabase.from('bh_writing_calibration_followups').select('*').eq('student_id', activeStudentId),
