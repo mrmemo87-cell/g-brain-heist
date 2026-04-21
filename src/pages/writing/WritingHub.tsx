@@ -1713,6 +1713,7 @@ const WritingHubLegacy: React.FC<WritingHubProps> = ({ studentId, studentName, g
   const [showTaskContextModal, setShowTaskContextModal] = useState(false);
   const [showAiReviewModal, setShowAiReviewModal] = useState(false);
   const [aiReviewViewMode, setAiReviewViewMode] = useState<'full' | 'cinematic'>('full');
+  const [showDetailedFeedback, setShowDetailedFeedback] = useState(false);
   const [showProgressDetailsModal, setShowProgressDetailsModal] = useState(false);
   const [submittedPracticeText, setSubmittedPracticeText] = useState('');
   const [reviewScanComplete, setReviewScanComplete] = useState(false);
@@ -2574,7 +2575,7 @@ const WritingHubLegacy: React.FC<WritingHubProps> = ({ studentId, studentName, g
       const aiResult = await loadRichFeedback(safeInitialResponse, promptForSubmission, latestWeaknesses, 'initial');
       if (aiResult.ok) {
         setAiReviewViewMode('full');
-        setShowAiReviewModal(true);
+        setShowAiReviewModal(false);
         setUiNotice('Your writing week is ready. Here is your first AI coaching feedback.');
       } else {
         setError(`Your week is ready, but AI feedback is unavailable: ${aiResult.error}`);
@@ -2628,7 +2629,7 @@ const WritingHubLegacy: React.FC<WritingHubProps> = ({ studentId, studentName, g
         setError(`Saved your submission, but AI analysis is unavailable: ${aiResult.error}`);
       } else {
         setAiReviewViewMode('full');
-        setShowAiReviewModal(true);
+        setShowAiReviewModal(false);
       }
     } catch (aiError) {
       console.error('Writing feedback assist failed:', aiError);
@@ -2658,6 +2659,7 @@ const WritingHubLegacy: React.FC<WritingHubProps> = ({ studentId, studentName, g
     setAiMonthlyWording('');
     setIsAnalyzingRichFeedback(false);
     setShowAiReviewModal(false);
+    setShowDetailedFeedback(false);
     setSubmittedPracticeText('');
     setReviewScanComplete(false);
     setReviewActiveIndex(null);
@@ -3448,19 +3450,96 @@ const WritingHubLegacy: React.FC<WritingHubProps> = ({ studentId, studentName, g
                 ) : aiFeedbackDetails ? (
                   <div style={{ display: 'grid', gap: 10 }}>
                     <p style={{ margin: 0, color: 'var(--hub-text-accent-2)', fontSize: 14 }}>
-                      AI review is ready. Open the cinematic feedback view to see strengths, corrections, and your next move.
+                      AI review is ready. Expand detailed feedback for a clear, full report.
                     </p>
                     <button
                       type="button"
                       onClick={() => {
-                        setAiReviewViewMode('full');
-                        setShowAiReviewModal(true);
+                        setShowDetailedFeedback((prev) => !prev);
                       }}
-                      className="writing-primary-button cinematic-trigger-button"
-                      style={{ ...primaryButtonStyle, marginTop: 0 }}
+                      className="writing-primary-button"
+                      style={{ ...primaryButtonStyle, marginTop: 0, background: 'var(--hub-muted-surface-soft)', color: 'var(--hub-text-strong)' }}
                     >
-                      Open detailed AI feedback
+                      {showDetailedFeedback ? 'Hide detailed feedback' : 'Show detailed feedback'}
                     </button>
+                    {showDetailedFeedback && (
+                      <div style={{ borderRadius: 14, border: '1px solid #e2e8f0', background: '#f8fafc', padding: '20px 18px', color: '#0f172a', display: 'grid', gap: 20 }}>
+                        <section>
+                          <p style={{ margin: 0, fontSize: 18, fontWeight: 900, color: '#0f172a' }}>
+                            Total: {progressAssessment?.total_score != null ? `${progressAssessment.total_score}/20` : '—'}
+                          </p>
+                          <p style={{ margin: '8px 0 0', fontSize: 16, lineHeight: 1.8 }}>
+                            {aiFeedbackDetails.task_understanding || toAlignmentLabel(aiFeedbackDetails.alignment)}
+                          </p>
+                        </section>
+
+                        <section style={{ display: 'grid', gap: 8 }}>
+                          <h4 style={{ margin: 0, fontSize: 32, lineHeight: 1.2, fontWeight: 900 }}>What’s good</h4>
+                          <ul style={{ margin: 0, paddingLeft: 30, display: 'grid', gap: 8 }}>
+                            {(fullFeedbackStrengths.length > 0 ? fullFeedbackStrengths : ['You already have a useful starting point with clear ideas.']).map((item, idx) => (
+                              <li key={`inline-good-${idx}`} style={{ fontSize: 20, lineHeight: 1.8, fontWeight: 600 }}>
+                                {simplifyStudentLanguage(item)}
+                              </li>
+                            ))}
+                          </ul>
+                        </section>
+
+                        <section style={{ display: 'grid', gap: 8 }}>
+                          <h4 style={{ margin: 0, fontSize: 32, lineHeight: 1.2, fontWeight: 900 }}>Main things to improve</h4>
+                          <ol style={{ margin: 0, paddingLeft: 30, display: 'grid', gap: 10 }}>
+                            {(fullFeedbackImprovements.length > 0 ? fullFeedbackImprovements : ['Focus on clearer wording and more specific support.']).map((item, idx) => (
+                              <li key={`inline-improve-${idx}`} style={{ fontSize: 20, lineHeight: 1.8, fontWeight: 700 }}>
+                                {simplifyStudentLanguage(item)}
+                              </li>
+                            ))}
+                          </ol>
+                        </section>
+
+                        {fullFeedbackGrammarFixes.length > 0 && (
+                          <section style={{ display: 'grid', gap: 8 }}>
+                            <h4 style={{ margin: 0, fontSize: 30, lineHeight: 1.2, fontWeight: 900 }}>Grammar</h4>
+                            <ul style={{ margin: 0, paddingLeft: 30, display: 'grid', gap: 12 }}>
+                              {fullFeedbackGrammarFixes.slice(0, 6).map((item, idx) => (
+                                <li key={`inline-grammar-${idx}`} style={{ fontSize: 18, lineHeight: 1.75 }}>
+                                  <p style={{ margin: 0, fontWeight: 800 }}>{item.original}</p>
+                                  <p style={{ margin: '2px 0 0', fontSize: 18, fontWeight: 800 }}>→ better: {item.better_version}</p>
+                                  {item.issue && <p style={{ margin: '4px 0 0', color: '#334155' }}>{item.issue}</p>}
+                                </li>
+                              ))}
+                            </ul>
+                          </section>
+                        )}
+
+                        {(fullFeedbackPhraseUpgrades.length > 0 || fullFeedbackStyleTone.length > 0) && (
+                          <section style={{ display: 'grid', gap: 8 }}>
+                            <h4 style={{ margin: 0, fontSize: 30, lineHeight: 1.2, fontWeight: 900 }}>Word choice / phrasing</h4>
+                            <ul style={{ margin: 0, paddingLeft: 30, display: 'grid', gap: 12 }}>
+                              {fullFeedbackPhraseUpgrades.slice(0, 4).map((item, idx) => (
+                                <li key={`inline-phrase-${idx}`} style={{ fontSize: 18, lineHeight: 1.75 }}>
+                                  <p style={{ margin: 0, fontWeight: 800 }}>{item.original}</p>
+                                  <p style={{ margin: '2px 0 0', fontSize: 18, fontWeight: 800 }}>→ better: {item.better_version}</p>
+                                  {item.why_it_helps && <p style={{ margin: '4px 0 0', color: '#334155' }}>{item.why_it_helps}</p>}
+                                </li>
+                              ))}
+                              {fullFeedbackStyleTone.slice(0, 3).map((item, idx) => (
+                                <li key={`inline-style-${idx}`} style={{ fontSize: 18, lineHeight: 1.75 }}>
+                                  <p style={{ margin: 0, fontWeight: 800 }}>{item.evidence || 'Style note'}</p>
+                                  {item.issue && <p style={{ margin: '4px 0 0' }}>{item.issue}</p>}
+                                  {item.suggestion && <p style={{ margin: '2px 0 0', fontWeight: 800 }}>→ better: {item.suggestion}</p>}
+                                </li>
+                              ))}
+                            </ul>
+                          </section>
+                        )}
+
+                        <section style={{ borderRadius: 12, border: '1px solid #cbd5e1', background: '#eef2ff', padding: '14px 14px' }}>
+                          <h4 style={{ margin: 0, fontSize: 30, lineHeight: 1.2, fontWeight: 900 }}>Improvement point</h4>
+                          <p style={{ margin: '8px 0 0', fontSize: 19, lineHeight: 1.8, fontWeight: 600 }}>
+                            {aiFeedbackDetails.next_move || (aiFeedbackDetails.next_steps ?? [])[0] || 'Pick one point and rewrite that sentence first.'}
+                          </p>
+                        </section>
+                      </div>
+                    )}
                     <p style={{ margin: 0, color: 'var(--hub-text-accent-2)', fontSize: 13 }}>
                       {feedback || (completedTasksCount > 0 ? `Great consistency. You completed ${completedTasksCount} task${completedTasksCount === 1 ? '' : 's'} this week.` : 'Great start. Your progress grows every day you submit.')}
                     </p>
