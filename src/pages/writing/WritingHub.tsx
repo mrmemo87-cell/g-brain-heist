@@ -17,6 +17,7 @@ import {
   subscribeToWritingHydrationStatus,
   getStudentWritingState,
   getStudentWritingHubSnapshot,
+  listStudentWritingHistoryByGenre,
   getSmartWritingPromptForStudent,
   listWritingPrompts,
   getTodayWritingTask,
@@ -1285,6 +1286,25 @@ const SUPPORTED_GENRES: SupportedGenre[] = ['essay', 'story', 'article', 'review
 const defaultPromptByGenre: Record<SupportedGenre, string> = FALLBACK_PROMPT_BY_GENRE;
 
 const toGenreLabel = (genre: SupportedGenre): string => genre.charAt(0).toUpperCase() + genre.slice(1);
+const toAttemptTypeLabel = (attemptType: 'initial_assessment' | 'daily_practice'): string =>
+  attemptType === 'initial_assessment' ? 'Initial assessment' : 'Daily practice';
+const formatHistoryDate = (isoDate: string): string => {
+  const parsed = new Date(isoDate);
+  if (Number.isNaN(parsed.getTime())) return 'Unknown date';
+  return parsed.toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+};
+const compactSnippet = (text: string, max = 180): string => {
+  const normalized = text.replace(/\s+/g, ' ').trim();
+  if (!normalized) return 'No writing text saved for this attempt.';
+  if (normalized.length <= max) return normalized;
+  return `${normalized.slice(0, max).trimEnd()}…`;
+};
 const toGenreStateCopy = (
   status: 'not_started' | 'week_active' | 'week_complete',
   day: number | null,
@@ -1869,6 +1889,7 @@ const WritingHubLegacy: React.FC<WritingHubProps> = ({ studentId, studentName, g
   const weeklyReview = getWeeklyWritingReview(studentId, activeGenre);
   const monthlyReport = getMonthlyWritingReport(studentId, month, activeGenre);
   const hubSnapshot = getStudentWritingHubSnapshot(studentId, activeGenre);
+  const writingHistoryByGenre = listStudentWritingHistoryByGenre(studentId);
   const genreStatuses = getStudentGenrePathStatuses(studentId, SUPPORTED_GENRES);
 
   const totalPlannedTasks = stateRes.ok && stateRes.data ? stateRes.data.active_daily_tasks.length : 0;
@@ -3887,6 +3908,75 @@ const WritingHubLegacy: React.FC<WritingHubProps> = ({ studentId, studentName, g
             </section>
           )}
 
+          {writingHistoryByGenre.ok && (
+            <section className="writing-hub-card" style={{ ...shellCardStyle, display: 'grid', gap: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <p style={{ ...dashboardSectionTitleStyle, color: 'var(--hub-text-accent-2)', margin: 0 }}>Writing Archive</p>
+                <span style={{ ...sectionLabelPillStyle, color: 'var(--hub-text-accent)' }}>All genres</span>
+              </div>
+              <h3 style={{ margin: 0, fontSize: 21, color: 'var(--hub-text-strong)' }}>Your previous writing + feedback, ready anytime</h3>
+              <p style={{ margin: 0, color: 'var(--hub-subtext)', fontSize: 14 }}>
+                Browse every saved attempt by genre. Open this area anytime to review your old writing and the coaching notes that came with it.
+              </p>
+              <div style={{ display: 'grid', gap: 10 }}>
+                {writingHistoryByGenre.data?.map((genreHistory) => (
+                  <article
+                    key={`history-${genreHistory.genre}`}
+                    style={{
+                      borderRadius: 12,
+                      border: '1px solid var(--hub-border)',
+                      background: 'var(--hub-muted-surface-soft)',
+                      padding: 12,
+                      display: 'grid',
+                      gap: 10,
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <p style={{ margin: 0, color: 'var(--hub-text-strong)', fontWeight: 800 }}>{toGenreLabel(genreHistory.genre)}</p>
+                      <span style={{ color: 'var(--hub-text-accent)', fontSize: 12, fontWeight: 700 }}>
+                        {genreHistory.entries.length} saved {genreHistory.entries.length === 1 ? 'entry' : 'entries'}
+                      </span>
+                    </div>
+                    {genreHistory.entries.length === 0 ? (
+                      <p style={{ margin: 0, color: 'var(--hub-subtext)', fontSize: 13 }}>No saved writing for this genre yet.</p>
+                    ) : (
+                      <div style={{ display: 'grid', gap: 8 }}>
+                        {genreHistory.entries.map((entry) => (
+                          <div
+                            key={entry.id}
+                            style={{
+                              borderRadius: 10,
+                              border: '1px solid var(--hub-border)',
+                              background: 'var(--hub-overlay-soft)',
+                              padding: 10,
+                              display: 'grid',
+                              gap: 6,
+                            }}
+                          >
+                            <p style={{ margin: 0, color: 'var(--hub-text-accent)', fontSize: 12, fontWeight: 700 }}>
+                              {toAttemptTypeLabel(entry.attempt_type)} · {formatHistoryDate(entry.created_at)} · Score {entry.total_score ?? '--'}/20
+                            </p>
+                            <p style={{ margin: 0, color: 'var(--hub-text)', fontSize: 13 }}>
+                              <strong>Prompt:</strong> {compactSnippet(entry.prompt_text, 140)}
+                            </p>
+                            <p style={{ margin: 0, color: 'var(--hub-text)', fontSize: 13 }}>
+                              <strong>Your writing:</strong> {compactSnippet(entry.student_submission)}
+                            </p>
+                            <p style={{ margin: 0, color: 'var(--hub-text-accent-2)', fontSize: 13 }}>
+                              <strong>Feedback:</strong> {entry.has_feedback
+                                ? compactSnippet(entry.feedback_summary || entry.feedback_next_move || 'Feedback was saved and is ready to review.', 170)
+                                : 'Feedback not saved for this entry yet.'}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </article>
+                ))}
+              </div>
+            </section>
+          )}
+
           {dashboard.ok && dashboard.data && (
             <p style={{ margin: 0, color: '#64748b', fontSize: 12, textAlign: 'center' }}>
               Mission progress: {dashboard.data.completed_tasks_count} completed · latest score {dashboard.data.latest_total_score ?? '--'}
@@ -4706,6 +4796,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     () => buildWritingDraftStorageKey(studentId, activeGenre, promptText),
     [studentId, activeGenre, promptText]
   );
+  const writingHistoryByGenre = listStudentWritingHistoryByGenre(studentId);
 
   useEffect(() => {
     setActiveGenre(genre);
@@ -5322,6 +5413,53 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
           Tip: You can switch genre from the prompt card above before your next try.
         </p>
       </section>
+
+      {writingHistoryByGenre.ok && (
+        <section className="writing-hub-card" style={{ ...getShellCardStyle('dark'), padding: '20px 20px 22px', display: 'grid', gap: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <p style={{ ...dashboardSectionTitleStyle, color: '#a5b4fc', margin: 0 }}>Writing Archive</p>
+            <span style={{ ...sectionLabelPillStyle, color: '#c4b5fd', borderColor: 'rgba(167, 139, 250, 0.4)', background: 'rgba(76, 29, 149, 0.24)' }}>All genres</span>
+          </div>
+          <h3 style={{ margin: 0, color: '#f8fafc', fontSize: 19 }}>Previous writing and feedback (ready anytime)</h3>
+          <p style={{ margin: 0, color: '#94a3b8', fontSize: 13 }}>
+            Expand any genre to review earlier attempts, your writing text, and saved coaching notes.
+          </p>
+          <div style={{ display: 'grid', gap: 8 }}>
+            {writingHistoryByGenre.data?.map((genreHistory) => (
+              <details key={`simple-history-${genreHistory.genre}`} style={{ borderRadius: 12, border: '1px solid rgba(148,163,184,0.22)', background: 'rgba(15,23,42,0.52)', padding: '8px 10px' }}>
+                <summary style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, color: '#e2e8f0', fontWeight: 700 }}>
+                  <span>{toGenreLabel(genreHistory.genre)}</span>
+                  <span style={{ color: '#93c5fd', fontSize: 12 }}>{genreHistory.entries.length} saved {genreHistory.entries.length === 1 ? 'entry' : 'entries'}</span>
+                </summary>
+                <div style={{ marginTop: 8, display: 'grid', gap: 7 }}>
+                  {genreHistory.entries.length === 0 ? (
+                    <p style={{ margin: 0, color: '#64748b', fontSize: 13 }}>No saved writing for this genre yet.</p>
+                  ) : (
+                    genreHistory.entries.map((entry) => (
+                      <div key={entry.id} style={{ borderRadius: 10, border: '1px solid rgba(148,163,184,0.2)', background: 'rgba(2,6,23,0.45)', padding: '9px 10px', display: 'grid', gap: 5 }}>
+                        <p style={{ margin: 0, color: '#93c5fd', fontSize: 12, fontWeight: 700 }}>
+                          {toAttemptTypeLabel(entry.attempt_type)} · {formatHistoryDate(entry.created_at)} · Score {entry.total_score ?? '--'}/20
+                        </p>
+                        <p style={{ margin: 0, color: '#cbd5e1', fontSize: 12 }}>
+                          <strong style={{ color: '#e2e8f0' }}>Prompt:</strong> {compactSnippet(entry.prompt_text, 120)}
+                        </p>
+                        <p style={{ margin: 0, color: '#cbd5e1', fontSize: 12 }}>
+                          <strong style={{ color: '#e2e8f0' }}>Writing:</strong> {compactSnippet(entry.student_submission, 140)}
+                        </p>
+                        <p style={{ margin: 0, color: '#c4b5fd', fontSize: 12 }}>
+                          <strong style={{ color: '#ddd6fe' }}>Feedback:</strong> {entry.has_feedback
+                            ? compactSnippet(entry.feedback_summary || entry.feedback_next_move || 'Feedback was saved and is ready to review.', 150)
+                            : 'Feedback not saved for this entry yet.'}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </details>
+            ))}
+          </div>
+        </section>
+      )}
 
       {assessment && (
         <section className="writing-hub-card feedback-result-card" style={{ ...getShellCardStyle('dark'), padding: '24px 22px', borderRadius: 22, border: '1px solid rgba(99,102,241,0.3)', overflow: 'hidden', position: 'relative', background: 'linear-gradient(135deg, rgba(15,23,42,0.95) 0%, rgba(10,17,32,0.98) 100%)' }}>
