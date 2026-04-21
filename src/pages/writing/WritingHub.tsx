@@ -23,6 +23,7 @@ import {
   getWeeklyWritingReview,
   submitDailyWritingPractice,
   submitInitialWritingAssessment,
+  getStudentPromptAttemptCount,
 } from '../../lib/brains_heist/writingIntegrationService.js';
 import { FALLBACK_PROMPT_BY_GENRE, WEAKNESS_TAG_TO_MISSION_CATEGORY } from '../../lib/brains_heist/writingPromptProgression.js';
 import { quest_get_missions, QuestMissionRow } from '../../../services/gameService.js';
@@ -4553,6 +4554,8 @@ const isLegacyForced = (): boolean => {
 };
 
 const createRevisionCycleId = (): string => `rev_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+const buildWritingDraftStorageKey = (studentId: string, genre: SupportedGenre, promptText: string): string =>
+  `writing_hub_draft:${studentId}:${genre}:${normalizePromptForComparison(promptText).slice(0, 120)}`;
 
 const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentName, grade, genre }) => {
   const [activeGenre, setActiveGenre] = useState<SupportedGenre>(genre);
@@ -4582,6 +4585,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   const [attemptNumber, setAttemptNumber] = useState<number>(1);
   const [lastAttemptId, setLastAttemptId] = useState<string | null>(null);
   const [lastRetryKind, setLastRetryKind] = useState<'same_prompt' | 'new_prompt'>('new_prompt');
+  const [promptHistoryCount, setPromptHistoryCount] = useState<number>(0);
   const responseFieldRef = useRef<HTMLTextAreaElement | null>(null);
   const cinematicTextPanelRef = useRef<HTMLDivElement | null>(null);
   const cinematicRangeRefs = useRef<Record<number, HTMLSpanElement | null>>({});
@@ -4597,6 +4601,10 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     return Math.max(1, promptRes.data.length);
   }, [activeGenre, grade]);
   const hasPromptRotation = availablePromptCount > 1;
+  const draftStorageKey = useMemo(
+    () => buildWritingDraftStorageKey(studentId, activeGenre, promptText),
+    [studentId, activeGenre, promptText]
+  );
 
   useEffect(() => {
     setActiveGenre(genre);
@@ -4615,6 +4623,67 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     setLastAttemptId(null);
     setLastRetryKind('new_prompt');
   }, [genre]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const savedPayload = window.localStorage.getItem(draftStorageKey);
+      if (!savedPayload) return;
+      const parsed = JSON.parse(savedPayload) as { draft?: string };
+      const recovered = parsed?.draft?.trim() ? parsed.draft : '';
+      if (!recovered) return;
+      setDraft((current) => (current.trim() ? current : recovered));
+      setNotice('Recovered your draft. Keep going — your progress is safe.');
+    } catch {
+      // Ignore malformed local draft payload.
+    }
+  }, [draftStorageKey]);
+
+  useEffect(() => {
+    const result = getStudentPromptAttemptCount({
+      student_id: studentId,
+      genre: activeGenre,
+      prompt_text: promptText,
+    });
+    if (!result.ok || !result.data) {
+      setPromptHistoryCount(0);
+      return;
+    }
+    setPromptHistoryCount(result.data.count);
+  }, [studentId, activeGenre, promptText, assessment?.total_score]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const timer = window.setTimeout(() => {
+      try {
+        if (!draft.trim()) {
+          window.localStorage.removeItem(draftStorageKey);
+          return;
+        }
+        window.localStorage.setItem(
+          draftStorageKey,
+          JSON.stringify({
+            draft,
+            updated_at: new Date().toISOString(),
+          })
+        );
+      } catch {
+        // Ignore storage quota / access failures.
+      }
+    }, 500);
+    return () => window.clearTimeout(timer);
+  }, [draft, draftStorageKey]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!draft.trim()) return;
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [draft]);
 
   const beginRetrySamePrompt = () => {
     setLastRetryKind('same_prompt');
@@ -4722,6 +4791,9 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     setRevisionCycleId(currentCycleId);
     setAttemptNumber(currentAttemptNumber + 1);
     setLastRetryKind(retryKind);
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(draftStorageKey);
+    }
 
     try {
       const ai = await requestWritingAiAssist({
@@ -5048,6 +5120,12 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
             </span>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, borderRadius: 10, padding: '6px 12px', background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(34,211,238,0.2)', color: '#67e8f9', fontSize: 13, fontWeight: 700 }}>
               🎯 {toWordCountLabel(targetWordCount)}
+            </span>
+            <span
+              title="How many times you already attempted this exact prompt"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, borderRadius: 10, padding: '6px 12px', background: 'rgba(148,163,184,0.14)', border: '1px solid rgba(148,163,184,0.25)', color: '#cbd5e1', fontSize: 12, fontWeight: 700 }}
+            >
+              🕘 Prompt history: {promptHistoryCount}
             </span>
             <button
               type="button"
