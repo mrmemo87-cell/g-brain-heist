@@ -657,6 +657,25 @@ export const getStudentWritingHubSnapshot = (studentId: string, genre?: Supporte
   });
 };
 
+export const getStudentPromptAttemptCount = (input: {
+  student_id: string;
+  genre: SupportedGenre;
+  prompt_text: string;
+}): ServiceResponse<{ count: number }> => {
+  if (!input.student_id?.trim()) return badRequest('student_id is required.');
+  if (!input.prompt_text?.trim()) return badRequest('prompt_text is required.');
+  hydrateStore();
+  const normalizePrompt = (value: string): string => value.replace(/\s+/g, ' ').trim().toLowerCase();
+  const targetPrompt = normalizePrompt(input.prompt_text);
+  const count = store.attempts.filter(
+    (attempt) =>
+      attempt.student_id === input.student_id &&
+      attempt.genre === input.genre &&
+      normalizePrompt(attempt.prompt_text ?? '') === targetPrompt
+  ).length;
+  return ok({ count });
+};
+
 export const persistInitialWritingRichFeedback = (input: {
   student_id: string;
   genre: SupportedGenre;
