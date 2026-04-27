@@ -12,6 +12,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
   private discoveryChannels: any[] = [];
   private discoveryBroadcastInterval: any;
   private tickInterval: any = null;
+  private clientClockInterval: any = null;
   private visibilityListener: (() => void) | null = null;
   private scheduledBroadcastTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -84,14 +85,15 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
   }
 
   private commitStateIfChanged(next: ClanTerritoryGameState, reason: string) {
-    const sig = this.computeStateSignature(next);
+    const normalized = this.reconcileStateWithWallClock(next);
+    const sig = this.computeStateSignature(normalized);
 
     if (sig === this.lastStateSignature) {
       // No meaningful change (even if object reference differs)
       return;
     }
 
-    this.state = next;
+    this.state = normalized;
     this.lastStateSignature = sig;
 
     if (this.onStateUpdate) this.onStateUpdate(this.state);
@@ -107,6 +109,28 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
         }, 0);
       }
     }
+  }
+
+  private reconcileStateWithWallClock(state: ClanTerritoryGameState): ClanTerritoryGameState {
+    if (state.phase !== "ACTIVE" || typeof state.gameEndTime !== "number") {
+      return state;
+    }
+
+    const remaining = Math.max(0, Math.floor((state.gameEndTime - Date.now()) / 1000));
+    const shouldEnd = remaining <= 0;
+    const nextPhase = shouldEnd ? "ENDED" : "ACTIVE";
+    const nextReason = shouldEnd ? state.endReason ?? "TIME_UP" : state.endReason;
+
+    if (state.timer === remaining && state.phase === nextPhase && state.endReason === nextReason) {
+      return state;
+    }
+
+    return {
+      ...state,
+      timer: remaining,
+      phase: nextPhase,
+      endReason: nextReason,
+    };
   }
 
   // ---- public API ----
@@ -356,6 +380,10 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
       clearInterval(this.tickInterval);
       this.tickInterval = null;
     }
+    if (this.clientClockInterval) {
+      clearInterval(this.clientClockInterval);
+      this.clientClockInterval = null;
+    }
 
     if (this.visibilityListener) {
       document.removeEventListener("visibilitychange", this.visibilityListener);
@@ -374,14 +402,17 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     this.onStateUpdate = null;
   }
 
-  async sendAction(roomId: RoomId, action: GameAction): Promise<void> {
-    // Wait for channel ready
-    if (!this.channel || this.channel.state !== "joined") {
-      await new Promise<void>((resolve, reject) => {
+  private async ensureChannelJoined(roomId: RoomId): Promise<void> {
+    if (!this.channel) {
+      this.setupChannel(roomId);
+    }
+
+    const waitForJoined = async (timeoutMs: number) =>
+      new Promise<void>((resolve, reject) => {
         const timeout = setTimeout(() => {
           clearInterval(check);
           reject(new Error("Channel subscription timeout: Unable to send action"));
-        }, 5000);
+        }, timeoutMs);
 
         const check = setInterval(() => {
           if (this.channel && this.channel.state === "joined") {
@@ -391,7 +422,22 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
           }
         }, 100);
       });
+
+    try {
+      await waitForJoined(5000);
+    } catch (error) {
+      // Rebuild the channel once if the previous socket is stale after long background periods.
+      if (this.channel) {
+        supabase.removeChannel(this.channel);
+        this.channel = null;
+      }
+      this.setupChannel(roomId);
+      await waitForJoined(5000);
     }
+  }
+
+  async sendAction(roomId: RoomId, action: GameAction): Promise<void> {
+    await this.ensureChannelJoined(roomId);
 
     if (this.channel && this.channel.state === "joined") {
       if (this.isHost && action.type === "DISMISS_ARENA") {
@@ -416,6 +462,12 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
 
     if (!this.isHost) {
       // Clients do not tick. Host is authoritative.
+      if (this.clientClockInterval) {
+        clearInterval(this.clientClockInterval);
+      }
+      this.clientClockInterval = setInterval(() => {
+        this.commitStateIfChanged(this.state, "CLIENT_CLOCK");
+      }, 1000);
       return;
     }
 
