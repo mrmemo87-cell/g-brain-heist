@@ -4,6 +4,7 @@ import { tryConsumePilotQuota } from '../services/tierService';
 import type { Profile } from '../types';
 import ProfessionalCambridgeReport, { generateSerialNumber } from './ProfessionalCambridgeReport';
 import type { ProfessionalReportData } from './ProfessionalCambridgeReport';
+import { sanitizeCommunicativeAchievementText } from '../src/lib/writingCommunicativeAchievement';
 
 interface CambridgeTest {
   id: string;
@@ -1476,7 +1477,15 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
             language: marks?.part2?.language || 0,
             spellingMistakes: feedback?.part2?.spellingMistakes || [],
             grammarMistakes: feedback?.part2?.grammarMistakes || [],
-            markJustifications: feedback?.part2?.markJustifications || null,
+            markJustifications: feedback?.part2?.markJustifications
+              ? {
+                  ...feedback.part2.markJustifications,
+                  communicativeAchievement: sanitizeCommunicativeAchievementText(
+                    feedback.part2.markJustifications.communicativeAchievement,
+                    '',
+                  ),
+                }
+              : null,
           },
           markedBy: answers.marked_by || null,
           markedAt: answers.marked_at || null,

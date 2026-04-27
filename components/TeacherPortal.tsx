@@ -26,6 +26,7 @@ import { notificationService } from '../services/notificationService';
 import WritingMonitoringView from '../src/pages/writing/WritingMonitoringView';
 import WritingAnalyticsDashboard from '../src/pages/writing/WritingAnalyticsDashboard';
 import WritingExportCenter from '../src/pages/writing/WritingExportCenter';
+import { normalizePart2CommunicativeAchievement, sanitizeCommunicativeAchievementText } from '../src/lib/writingCommunicativeAchievement';
 
 interface TeacherPortalProps {
   profile: Profile;
@@ -59,6 +60,7 @@ const MAX_QUESTION_XP = 30;
 const getQuestionTopicLabel = (question: TeacherQuestion) => question.topic_name || question.topic || 'General';
 
 const WRITING_TEST_NAMES = ['Cambridge Writing Test 1', 'Cambridge Writing Test 2'];
+const DEFAULT_WRITING_MARK = 3;
 
 const WRITING_TEST_METADATA: Record<string, {
   part1Label: string;
@@ -1600,7 +1602,15 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           correctedVersion: existingFeedback.part2?.correctedVersion || '',
           spellingMistakes: existingFeedback.part2?.spellingMistakes || [],
           grammarMistakes: existingFeedback.part2?.grammarMistakes || [],
-          markJustifications: existingFeedback.part2?.markJustifications,
+          markJustifications: existingFeedback.part2?.markJustifications
+            ? {
+                ...existingFeedback.part2.markJustifications,
+                communicativeAchievement: sanitizeCommunicativeAchievementText(
+                  existingFeedback.part2.markJustifications.communicativeAchievement,
+                  'Communicative Achievement feedback was unavailable. Please review manually.',
+                ),
+              }
+            : undefined,
           modelAnswer: existingFeedback.part2?.modelAnswer,
         },
         overallComments: existingFeedback.overallComments || '',
@@ -1637,6 +1647,48 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [cambridgeDrawerOpen]);
 
+  const buildMarkSet = (
+    suggestedMarks: Record<string, unknown> | undefined,
+    existingMarks: { content?: number; organisation?: number; language?: number; communicativeAchievement?: number } = {},
+    isPart1: boolean = false,
+  ) => {
+    const fallback = (value: unknown, existing: number | undefined) =>
+      typeof value === 'number' && Number.isFinite(value) ? value : (existing ?? DEFAULT_WRITING_MARK);
+
+    const base = {
+      content: fallback(suggestedMarks?.content, existingMarks.content),
+      organisation: fallback(suggestedMarks?.organisation, existingMarks.organisation),
+      language: fallback(suggestedMarks?.language, existingMarks.language),
+    };
+
+    if (isPart1) return base;
+
+    return {
+      ...base,
+      communicativeAchievement: fallback(
+        suggestedMarks?.communicativeAchievement,
+        existingMarks.communicativeAchievement,
+      ),
+    };
+  };
+
+  const sanitizePart2Feedback = (part2: any) => {
+    const markJustifications = part2?.markJustifications && typeof part2.markJustifications === 'object'
+      ? {
+          ...part2.markJustifications,
+          communicativeAchievement: sanitizeCommunicativeAchievementText(
+            part2.markJustifications.communicativeAchievement,
+            'Communicative Achievement feedback was unavailable. Please review manually.',
+          ),
+        }
+      : part2?.markJustifications;
+
+    return {
+      ...part2,
+      markJustifications,
+    };
+  };
+
   // Submit writing marks
   const submitWritingMarks = async (releaseToStudent: boolean = false) => {
     if (!selectedCambridgeStudent) {
@@ -1655,6 +1707,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     
     const updatedFeedback = {
       ...writingFeedback,
+      part2: sanitizePart2Feedback(writingFeedback.part2),
       releasedToStudent: releaseToStudent,
     };
 
@@ -2158,10 +2211,21 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     } else if (sentences.length >= 3) {
       organisationScore = 5;
     }
+
+    let communicativeAchievementScore = 4;
+    if (totalErrors > 8) {
+      communicativeAchievementScore = 1;
+    } else if (totalErrors > 5) {
+      communicativeAchievementScore = 2;
+    } else if (wordCount < 80) {
+      communicativeAchievementScore = 3;
+    } else if (structureIssues.length === 0 && sentences.length >= 4) {
+      communicativeAchievementScore = 5;
+    }
     
     const marks: Record<string, number> = isPart1
       ? { content: contentScore, organisation: organisationScore, language: languageScore }
-      : { content: contentScore, communicativeAchievement: organisationScore, organisation: organisationScore, language: languageScore };
+      : { content: contentScore, communicativeAchievement: communicativeAchievementScore, organisation: organisationScore, language: languageScore };
     
     return {
       feedback: feedbackParts.join('\n'),
@@ -2215,6 +2279,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       }
 
       const data = await response.json();
+      if (data?.part2) {
+        const validation = normalizePart2CommunicativeAchievement(data.part2);
+        if (validation.errors.length > 0) {
+          throw new Error(`Invalid communicative achievement data: ${validation.errors.join('; ')}`);
+        }
+        data.part2 = sanitizePart2Feedback(data.part2);
+      }
       
       console.log('=== GPT PROOFREAD RESPONSE ===');
       console.log('Full response:', JSON.stringify(data, null, 2));
@@ -2241,11 +2312,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         }));
         setWritingMarks(prev => ({
           ...prev,
-          part1: {
-            content: p1.suggestedMarks?.content ?? prev.part1.content,
-            organisation: p1.suggestedMarks?.organisation ?? prev.part1.organisation,
-            language: p1.suggestedMarks?.language ?? prev.part1.language,
-          }
+          part1: buildMarkSet(
+            p1.suggestedMarks,
+            prev.part1,
+            true,
+          )
         }));
       }
 
@@ -2265,12 +2336,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         }));
         setWritingMarks(prev => ({
           ...prev,
-          part2: {
-            content: p2.suggestedMarks?.content ?? prev.part2.content,
-            communicativeAchievement: p2.suggestedMarks?.communicativeAchievement ?? prev.part2.communicativeAchievement,
-            organisation: p2.suggestedMarks?.organisation ?? prev.part2.organisation,
-            language: p2.suggestedMarks?.language ?? prev.part2.language,
-          }
+          part2: buildMarkSet(
+            p2.suggestedMarks,
+            prev.part2,
+            false,
+          )
         }));
       }
 
@@ -2371,20 +2441,19 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         }
 
         const data = await response.json();
+        if (data?.part2) {
+          const validation = normalizePart2CommunicativeAchievement(data.part2);
+          if (validation.errors.length > 0) {
+            throw new Error(`Invalid communicative achievement data: ${validation.errors.join('; ')}`);
+          }
+          data.part2 = sanitizePart2Feedback(data.part2);
+        }
         console.log(`GPT response for ${student.student_name}:`, data);
 
         // Calculate marks from GPT response
-        const part1Marks = {
-          content: data?.part1?.suggestedMarks?.content ?? 3,
-          organisation: data?.part1?.suggestedMarks?.organisation ?? 3,
-          language: data?.part1?.suggestedMarks?.language ?? 3,
-        };
-        const part2Marks = {
-          content: data?.part2?.suggestedMarks?.content ?? 3,
-          communicativeAchievement: data?.part2?.suggestedMarks?.communicativeAchievement ?? 3,
-          organisation: data?.part2?.suggestedMarks?.organisation ?? 3,
-          language: data?.part2?.suggestedMarks?.language ?? 3,
-        };
+        const existingMarks = answers.marks || {};
+        const part1Marks = buildMarkSet(data?.part1?.suggestedMarks, existingMarks.part1, true);
+        const part2Marks = buildMarkSet(data?.part2?.suggestedMarks, existingMarks.part2, false);
 
         const part1Total = part1Marks.content + part1Marks.organisation + part1Marks.language;
         const part2Total = part2Marks.content + part2Marks.communicativeAchievement + 
