@@ -862,12 +862,24 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     }
   };
 
-  const handleStartGame = () => {
-    if (roomId) transport.sendAction(roomId, { type: "START_GAME", payload: { duration: durationMinutes * 60 } });
+  const handleStartGame = async () => {
+    if (!roomId) return;
+    try {
+      await transport.sendAction(roomId, { type: "START_GAME", payload: { duration: durationMinutes * 60 } });
+    } catch (error) {
+      console.error("Failed to start arena:", error);
+      alert("Unable to start arena right now. Please wait a moment and try again.");
+    }
   };
 
-  const handleEndGame = () => {
-    if (roomId) transport.sendAction(roomId, { type: "END_GAME" });
+  const handleEndGame = async () => {
+    if (!roomId) return;
+    try {
+      await transport.sendAction(roomId, { type: "END_GAME" });
+    } catch (error) {
+      console.error("Failed to end arena:", error);
+      alert("Unable to end arena right now. Please try again.");
+    }
   };
 
   const handleTeacherExit = async () => {
@@ -884,8 +896,14 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     onExit();
   };
 
-  const handleKickPlayer = (pid: string) => {
-    if (roomId) transport.sendAction(roomId, { type: "KICK_PLAYER", payload: { playerId: pid } });
+  const handleKickPlayer = async (pid: string) => {
+    if (!roomId) return;
+    try {
+      await transport.sendAction(roomId, { type: "KICK_PLAYER", payload: { playerId: pid } });
+    } catch (error) {
+      console.error("Failed to remove player:", error);
+      alert("Unable to remove this player right now. Please try again.");
+    }
   };
 
   const missingClanAssignment = !resolvedClanId || !resolvedClanName;
