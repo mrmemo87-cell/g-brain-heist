@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.46.1";
 import OpenAI from "https://esm.sh/openai@4.52.3";
+import { normalizePart2CommunicativeAchievement } from "../../../src/lib/writingCommunicativeAchievement.ts";
 
 // Same pattern as ielts_session - top-level initialization
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -204,7 +205,17 @@ Return valid JSON only.`;
       console.log("OpenAI response received");
       
       if (!content) throw new Error("No GPT response");
-      return JSON.parse(content);
+
+      const parsed = JSON.parse(content);
+
+      if (!isPart1 && parsed && typeof parsed === "object") {
+        const validation = normalizePart2CommunicativeAchievement(parsed);
+        if (validation.errors.length > 0) {
+          throw new Error(`Invalid Part 2 communicative achievement payload: ${validation.errors.join("; ")}`);
+        }
+      }
+
+      return parsed;
     }
 
     const result: { part1?: unknown; part2?: unknown } = {};
