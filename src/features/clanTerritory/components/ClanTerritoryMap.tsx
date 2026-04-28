@@ -344,6 +344,23 @@ const MAP_CONFIGS: Record<string, MapConfig> = {
     },
     regionAliases: {},
   },
+  "blueprints/school_rooms": {
+    svg: "",
+    maxZones: 10,
+    zoneToRegion: {
+      basement: "basement",
+      rooftop: "rooftop",
+      "principal-office": "principal-office",
+      library: "library",
+      gymnasium: "gymnasium",
+      "main-hall": "main-hall",
+      cafeteria: "cafeteria",
+      "art-room": "art-room",
+      "science-lab": "science-lab",
+      "server-room": "server-room",
+    },
+    regionAliases: {},
+  },
   usa: {
     svg: usaMapSvgRaw,
     maxZones: 51,
@@ -406,6 +423,10 @@ const MAP_CONFIGS: Record<string, MapConfig> = {
 
 const NEUTRAL_TERRITORY_SHADE = "#1f2937";
 const NEUTRAL_TERRITORY_STROKE = "#475569";
+const escapeSvgIdSelector = (id: string) =>
+  typeof CSS !== "undefined" && typeof CSS.escape === "function"
+    ? CSS.escape(id)
+    : id.replace(/"/g, '\\"');
 
 const getZoneControl = (
   state: ZoneState | undefined
@@ -514,6 +535,8 @@ export type ClanTerritoryMapProps = {
   hideLegend?: boolean;
   overlay?: ReactNode;
   mapId?: string;
+  selectedZoneId?: ZoneId | null;
+  onZoneSelect?: (zoneId: ZoneId) => void;
 };
 
 export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
@@ -523,7 +546,10 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   hideLegend = false,
   overlay,
   mapId = "default",
+  selectedZoneId = null,
+  onZoneSelect,
 }) => {
+  const [hoveredZoneId, setHoveredZoneId] = useState<ZoneId | null>(null);
   const [cityLoaded, setCityLoaded] = useState(false);
   const [usaLoaded, setUsaLoaded] = useState(false);
   // Version counter that increments whenever a public country map finishes loading
@@ -579,9 +605,10 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     }
 
     const controller = new AbortController();
-    // Abort the fetch after 10 s so hung requests don't block the UI indefinitely.
+    // Abort the fetch after 20 s so slower mobile devices can still complete
+    // large-map downloads/parsing without hanging forever.
     let timeoutTriggered = false;
-    const timeoutId = setTimeout(() => { timeoutTriggered = true; controller.abort(); }, 10_000);
+    const timeoutId = setTimeout(() => { timeoutTriggered = true; controller.abort(); }, 20_000);
 
     setPublicMapLoadError(null);
     fetch(`/maps/${mapId}.svg`, { signal: controller.signal })
@@ -721,6 +748,55 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     requestAnimationFrame(() => requestAnimationFrame(normalize));
   }, [mapConfig.svg, mapId]);
 
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+
+    const listeners: Array<{ el: SVGElement; click: EventListener; enter: EventListener; leave: EventListener }> = [];
+
+    Object.entries(mapConfig.zoneToRegion).forEach(([zoneId, regionIds]) => {
+      const baseList = Array.isArray(regionIds) ? regionIds : [regionIds];
+      const expandedIds = baseList.flatMap((rid) => [rid, ...(mapConfig.regionAliases[rid] ?? [])]);
+
+      expandedIds.forEach((rid) => {
+        const region = svg.querySelector<SVGElement>(`#${escapeSvgIdSelector(rid)}`);
+        if (!region) return;
+
+        const clickableElements =
+          region.tagName.toLowerCase() === "g"
+            ? Array.from(region.querySelectorAll<SVGElement>("path, rect, circle, ellipse, polygon, polyline, line"))
+            : [region];
+
+        clickableElements.forEach((el) => {
+          el.style.cursor = onZoneSelect ? "pointer" : "default";
+
+          const click: EventListener = (event) => {
+            if (!onZoneSelect) return;
+            event.preventDefault();
+            event.stopPropagation();
+            onZoneSelect(zoneId as ZoneId);
+          };
+          const enter: EventListener = () => setHoveredZoneId(zoneId as ZoneId);
+          const leave: EventListener = () => setHoveredZoneId((prev) => (prev === zoneId ? null : prev));
+
+          el.addEventListener("click", click);
+          el.addEventListener("mouseenter", enter);
+          el.addEventListener("mouseleave", leave);
+          listeners.push({ el, click, enter, leave });
+        });
+      });
+    });
+
+    return () => {
+      listeners.forEach(({ el, click, enter, leave }) => {
+        el.removeEventListener("click", click);
+        el.removeEventListener("mouseenter", enter);
+        el.removeEventListener("mouseleave", leave);
+      });
+      setHoveredZoneId(null);
+    };
+  }, [mapConfig, onZoneSelect]);
+
   // Re-normalize viewBox when container size changes (fixes iOS "blank until interaction")
   useEffect(() => {
     const container = containerRef.current;
@@ -817,6 +893,8 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       const { clanId, contested } = getZoneControl(state);
       const clan = clanId ? clans[clanId] : null;
       const clanColor = clanId ? (clan?.color ?? getClanColor(clanId)) : null;
+      const isSelected = selectedZoneId === zoneId;
+      const isHovered = hoveredZoneId === zoneId;
 
       let fill = NEUTRAL_TERRITORY_SHADE;
       let stroke = NEUTRAL_TERRITORY_STROKE;
@@ -832,6 +910,16 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         dashArray = contested ? "8 6" : "";
       }
 
+      if (isSelected) {
+        stroke = "#facc15";
+        strokeWidth = "5";
+        opacity = Math.min(1, opacity + 0.08);
+      } else if (isHovered) {
+        stroke = "#38bdf8";
+        strokeWidth = String(Math.max(Number.parseFloat(strokeWidth) + 1, 3));
+        opacity = Math.min(1, opacity + 0.05);
+      }
+
       const filter = clanColor ? `drop-shadow(0 0 ${contested ? 16 : 10}px ${stroke})` : "";
 
       const baseList = Array.isArray(regionIds) ? regionIds : [regionIds];
@@ -842,7 +930,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         if (lastStyleKeyRef.current[rid] === styleKey) return;
         lastStyleKeyRef.current[rid] = styleKey;
 
-        const region = svg.querySelector<SVGElement>(`#${CSS.escape(rid)}`);
+        const region = svg.querySelector<SVGElement>(`#${escapeSvgIdSelector(rid)}`);
         if (!region) return;
 
         region.removeAttribute("class");
@@ -862,7 +950,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         }
       });
     });
-  }, [zones, clans, mapId, mapConfig]);
+  }, [zones, clans, mapId, mapConfig, selectedZoneId, hoveredZoneId]);
 
   const activeClanIds = useMemo(() => {
     const ids = new Set<ClanId>();

@@ -1115,27 +1115,40 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
             {/* Map Selection */}
             <div className="space-y-3">
               <label className="block text-sm font-bold text-white">Territory Map</label>
-              <div className="grid grid-cols-2 gap-3">
-                {MAP_CATALOG.map(({ id, emoji, label, desc }) => {
-                  const locked = isMapLocked(id);
+              <div className="space-y-4">
+                {(["countries", "blueprints"] as const).map((category) => {
+                  const entries = MAP_CATALOG.filter((entry) => entry.category === category);
+                  if (entries.length === 0) return null;
                   return (
-                    <button
-                      key={id}
-                      onClick={() => !locked && setSelectedMap(id)}
-                      disabled={locked}
-                      className={`p-4 rounded-xl border-2 transition relative ${
-                        locked ? 'opacity-40 cursor-not-allowed border-slate-800 bg-slate-900/30' :
-                        selectedMap === id ? 'border-cyan-400 bg-cyan-500/20' : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
-                      }`}
-                    >
-                      <div className="text-left space-y-1">
-                        <p className="font-bold text-white">{emoji} {label}</p>
-                        <p className="text-xs text-gray-400">{desc}</p>
+                    <div key={category} className="space-y-2">
+                      <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+                        {category}
+                      </h4>
+                      <div className="grid grid-cols-2 gap-3">
+                        {entries.map(({ id, emoji, label, desc }) => {
+                          const locked = isMapLocked(id);
+                          return (
+                            <button
+                              key={id}
+                              onClick={() => !locked && setSelectedMap(id)}
+                              disabled={locked}
+                              className={`p-4 rounded-xl border-2 transition relative ${
+                                locked ? 'opacity-40 cursor-not-allowed border-slate-800 bg-slate-900/30' :
+                                selectedMap === id ? 'border-cyan-400 bg-cyan-500/20' : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
+                              }`}
+                            >
+                              <div className="text-left space-y-1">
+                                <p className="font-bold text-white">{emoji} {label}</p>
+                                <p className="text-xs text-gray-400">{desc}</p>
+                              </div>
+                              {locked && (
+                                <span className="absolute top-2 right-2 text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">PRO</span>
+                              )}
+                            </button>
+                          );
+                        })}
                       </div>
-                      {locked && (
-                        <span className="absolute top-2 right-2 text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">PRO</span>
-                      )}
-                    </button>
+                    </div>
                   );
                 })}
               </div>
