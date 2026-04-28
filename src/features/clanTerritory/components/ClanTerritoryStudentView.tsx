@@ -585,6 +585,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
             zones={gameState.zones}
             clans={clansWithColors}
             mapId={gameState.mapId}
+            selectedZoneId={effectiveZoneId}
             containerClassName="w-full h-full"
             showControls={false}
           />
@@ -677,6 +678,11 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
               zones={gameState.zones}
               clans={clansWithColors}
               mapId={gameState.mapId}
+              selectedZoneId={effectiveZoneId}
+              onZoneSelect={(zoneId) => {
+                applyLocalZoneOverride(zoneId);
+                onSelectZone(zoneId);
+              }}
               hideHeader
               hideLegend
               showControls={false}
@@ -747,6 +753,11 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
                 zones={gameState.zones} 
                 clans={clansWithColors} 
                 mapId={gameState.mapId}
+                selectedZoneId={effectiveZoneId}
+                onZoneSelect={(zoneId) => {
+                  applyLocalZoneOverride(zoneId);
+                  onSelectZone(zoneId);
+                }}
                 hideHeader
                 hideLegend
                 containerClassName="w-full h-full"
@@ -800,6 +811,11 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
                   zones={gameState.zones} 
                   clans={clansWithColors} 
                   mapId={gameState.mapId}
+                  selectedZoneId={effectiveZoneId}
+                  onZoneSelect={(zoneId) => {
+                    applyLocalZoneOverride(zoneId);
+                    onSelectZone(zoneId);
+                  }}
                   hideHeader
                   hideLegend
                   containerClassName="w-full h-full"
