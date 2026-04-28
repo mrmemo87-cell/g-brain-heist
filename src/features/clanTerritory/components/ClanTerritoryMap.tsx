@@ -601,9 +601,10 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     }
 
     const controller = new AbortController();
-    // Abort the fetch after 10 s so hung requests don't block the UI indefinitely.
+    // Abort the fetch after 30 s so large custom maps still load on slower student
+    // mobile connections while still protecting against permanently hung requests.
     let timeoutTriggered = false;
-    const timeoutId = setTimeout(() => { timeoutTriggered = true; controller.abort(); }, 10_000);
+    const timeoutId = setTimeout(() => { timeoutTriggered = true; controller.abort(); }, 30_000);
 
     setPublicMapLoadError(null);
     fetch(`/maps/${mapId}.svg`, { signal: controller.signal })
