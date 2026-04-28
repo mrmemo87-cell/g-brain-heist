@@ -551,6 +551,19 @@ export const SPAIN_ZONES: readonly Zone[] = [
   { id: "zone-17", name: "Valencia", baseValue: 150 },
 ];
 
+export const SCHOOL_ROOMS_ZONES: readonly Zone[] = [
+  { id: "basement", name: "Basement", baseValue: 150 },
+  { id: "rooftop", name: "Rooftop", baseValue: 150 },
+  { id: "principal-office", name: "Principal Office", baseValue: 150 },
+  { id: "library", name: "Library", baseValue: 150 },
+  { id: "gymnasium", name: "Gymnasium", baseValue: 150 },
+  { id: "main-hall", name: "Main Hall", baseValue: 150 },
+  { id: "cafeteria", name: "Cafeteria", baseValue: 150 },
+  { id: "art-room", name: "Art Room", baseValue: 150 },
+  { id: "science-lab", name: "Science Lab", baseValue: 150 },
+  { id: "server-room", name: "Server Room", baseValue: 150 },
+];
+
 // Map-specific zone configurations
 export const MAP_ZONES: Readonly<Record<MapId, readonly Zone[]>> = {
   default: ZONES,
@@ -575,6 +588,7 @@ export const MAP_ZONES: Readonly<Record<MapId, readonly Zone[]>> = {
   russia: RUSSIA_ZONES,
   "saudi-arabia": SAUDI_ARABIA_ZONES,
   spain: SPAIN_ZONES,
+  "blueprints/school_rooms": SCHOOL_ROOMS_ZONES,
 };
 
 // Helper to get zones for a specific map
