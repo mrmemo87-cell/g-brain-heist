@@ -576,7 +576,11 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       setActionError('Mission run was not initialized. Exit and restart to avoid losing rewards.');
       return;
     }
+    if (isSubmitting) {
+      return;
+    }
 
+    setIsSubmitting(true);
     try {
       const latestRun = await quest_resume_run(runId);
       const serverNode = (Array.isArray(latestRun.route) ? latestRun.route : [])[latestRun.current_node] as QuestNode | undefined;
@@ -638,11 +642,15 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       } catch {
         // keep local state if resume also fails
       }
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [runId, onGrantReward, spawnParticles, syncRunStateFromServer, correctCount, answeredCount, totalTimeLimitSeconds, totalAnswerTimeSeconds, requireFinalProfileValues]);
+  }, [runId, isSubmitting, onGrantReward, spawnParticles, syncRunStateFromServer, correctCount, answeredCount, totalTimeLimitSeconds, totalAnswerTimeSeconds, requireFinalProfileValues]);
 
   // ── Node click handler ──
   const handleNodeClick = useCallback((index: number) => {
+    if (isSubmitting) return;
+
     const node = route[index];
     if (!node) return;
     if (node.state !== 'active') return;
@@ -682,7 +690,7 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
         openChest();
         break;
     }
-  }, [route, advanceToNode, openChest]);
+  }, [route, isSubmitting, advanceToNode, openChest]);
 
   // ── Retreat (server RPC) ──
   const handleRetreatConfirm = useCallback(async () => {
