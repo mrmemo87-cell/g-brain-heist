@@ -120,6 +120,35 @@ type CriticalBootResult = {
   profile: Profile | null;
 };
 
+const getBaseProfileForBoot = async (user: BootUserIdentity): Promise<Profile> => {
+  const profile = await ensureProfileExistsForUser(user);
+
+  const normalizedProfile = profile as any;
+
+  if (typeof normalizedProfile.gemstones !== 'number') {
+    normalizedProfile.gemstones = 0;
+  }
+
+  normalizedProfile.is_admin = typeof normalizedProfile.is_admin === 'boolean'
+    ? normalizedProfile.is_admin
+    : normalizedProfile.role === 'admin';
+  normalizedProfile.is_banned = isBannedFlag(normalizedProfile.is_banned);
+  if (normalizedProfile.is_banned) {
+    storeBanMessage(BAN_MESSAGE);
+    await supabase.auth.signOut();
+    throw new Error(BAN_MESSAGE);
+  }
+  normalizedProfile.total_score = calculateTotalScore(normalizedProfile.xp ?? 0, normalizedProfile.pvp_score ?? 0);
+
+  // Keep boot resilient: avoid extra RPCs/joins here. App can hydrate richer data after first paint.
+  if (normalizedProfile.role !== 'student') {
+    normalizedProfile.ap_now = normalizedProfile.ap_max || 100;
+    normalizedProfile.last_ap_update = new Date().toISOString();
+  }
+
+  return normalizedProfile as Profile;
+};
+
 const createAbortError = (message = 'Request aborted') => {
   const error = new Error(message) as Error & { name: string };
   error.name = 'AbortError';
@@ -1364,6 +1393,58 @@ export const resetGameData = (): void => {
 
 let whoamiInFlight: Promise<Profile> | null = null;
 
+type BootUserIdentity = {
+  id: string;
+  email?: string | null;
+  user_metadata?: Record<string, unknown> | null;
+};
+
+const fetchBaseProfileRow = async (userId: string) => {
+  return await supabase
+    .from('users')
+    .select('id, email, username, role, grade, batch, xp, coins, gemstones, level, streak, avatar_url, ap_now, ap_max, last_ap_update, is_admin, is_banned, pvp_score, tutorial_completed, school_id, clan_id, clan_role, clan_custom_title, clan_name, clan_total_score, last_seen, attack_power, defense_power')
+    .eq('id', userId)
+    .single();
+};
+
+const ensureProfileExistsForUser = async (user: BootUserIdentity) => {
+  const existing = await fetchBaseProfileRow(user.id);
+  if (!existing.error && existing.data) {
+    return existing.data;
+  }
+
+  if (existing.error?.code !== 'PGRST116') {
+    throw new Error(`Failed to load profile: ${existing.error?.message || 'unknown error'}`);
+  }
+
+  console.log('Profile not found for OAuth user, creating new profile...');
+  const emailUsername = user.email?.split('@')[0] || 'user';
+  const displayName = (user.user_metadata?.['full_name'] as string | undefined)
+    || (user.user_metadata?.['name'] as string | undefined);
+  const username = displayName || emailUsername;
+
+  const { data: createdProfile, error: createError } = await supabase
+    .from('users')
+    .insert({
+      id: user.id,
+      email: user.email,
+      username,
+      role: 'student',
+      grade: null,
+      batch: 'N/A' as Batch,
+      avatar_url: (user.user_metadata?.['avatar_url'] as string | undefined) || `https://picsum.photos/seed/${username}/100/100`,
+    })
+    .select('id, email, username, role, grade, batch, xp, coins, gemstones, level, streak, avatar_url, ap_now, ap_max, last_ap_update, is_admin, is_banned, pvp_score, tutorial_completed, school_id, clan_id, clan_role, clan_custom_title, clan_name, clan_total_score, last_seen, attack_power, defense_power')
+    .single();
+
+  if (createError || !createdProfile) {
+    throw new Error(`Failed to create user profile: ${createError?.message || 'unknown error'}`);
+  }
+
+  console.log('OAuth profile created successfully for:', user.email);
+  return createdProfile;
+};
+
 /**
  * Lightweight whoami for teachers — only fetches profile + school info.
  * Skips: AP regen, streak, inventory, clan, cosmetics, XP status, shared player list.
@@ -1425,7 +1506,7 @@ export const whoami = async (): Promise<Profile> => {
     return whoamiInFlight;
   }
 
-  whoamiInFlight = (async () => {
+  const inFlightPromise = (async () => {
       // Get current authenticated user with retry logic
       const user = await getCurrentUser();
   
@@ -1466,37 +1547,7 @@ export const whoami = async (): Promise<Profile> => {
   
     // If profile doesn't exist (OAuth user), create it
     if (profileError && profileError.code === 'PGRST116') {
-      console.log('Profile not found for OAuth user, creating new profile...');
-      
-      // Extract username from email or use name from OAuth provider
-      const emailUsername = user.email?.split('@')[0] || 'user';
-      const displayName = user.user_metadata?.['full_name'] || user.user_metadata?.['name'];
-      const username = displayName || emailUsername;
-  
-      // Create user profile with default student role
-      const profileData = {
-          id: user.id,
-          email: user.email,
-          username: username,
-          role: 'student', // Default to student for OAuth users
-          grade: null,
-          batch: 'N/A' as Batch,
-          avatar_url: user.user_metadata?.['avatar_url'] || `https://picsum.photos/seed/${username}/100/100`,
-      };
-  
-      const { data: newProfile, error: createError } = await supabase
-          .from('users')
-          .insert(profileData)
-          .select()
-          .single();
-  
-      if (createError) {
-          console.error('Failed to create OAuth profile:', createError);
-          throw new Error(`Failed to create user profile: ${createError.message}`);
-      }
-  
-      profile = newProfile;
-      console.log('OAuth profile created successfully for:', user.email);
+      profile = await ensureProfileExistsForUser(user);
     } else if (profileError) {
       console.error('Profile fetch error:', profileError);
       throw new Error(`Failed to load profile: ${profileError.message} (Code: ${profileError.code})`);
@@ -1830,10 +1881,14 @@ export const whoami = async (): Promise<Profile> => {
     return profile;
   })();
 
+  whoamiInFlight = inFlightPromise;
+
   try {
-    return await whoamiInFlight;
+    return await inFlightPromise;
   } finally {
-    whoamiInFlight = null;
+    if (whoamiInFlight === inFlightPromise) {
+      whoamiInFlight = null;
+    }
   }
 };
 
@@ -1855,15 +1910,38 @@ export const getCriticalBootData = async ({
     return { session: null, profile: null };
   }
 
-  const attemptWhoami = async () => withTimeout(whoami(), timeoutMs, signal, 'whoami');
+  const resetWhoamiInFlight = () => {
+    whoamiInFlight = null;
+  };
+
+  const attemptWhoami = () => withTimeout(whoami(), timeoutMs, signal, 'whoami');
+
+  const firstAttempt = attemptWhoami();
 
   try {
-    const profile = await attemptWhoami();
+    const profile = await firstAttempt;
     return { session: data.session, profile };
   } catch (error) {
     if (isTimeoutError(error) && retryOnTimeout > 0) {
-      const profile = await attemptWhoami();
-      return { session: data.session, profile };
+      resetWhoamiInFlight();
+      const retryAttempt = attemptWhoami();
+      try {
+        const profile = await retryAttempt;
+        return { session: data.session, profile };
+      } catch (retryError) {
+        if (isTimeoutError(retryError)) {
+          resetWhoamiInFlight();
+          console.warn('[boot] whoami timed out twice, falling back to base profile');
+          const fallbackProfile = await withTimeout(
+            getBaseProfileForBoot(data.session.user),
+            Math.max(5000, Math.floor(timeoutMs / 2)),
+            signal,
+            'base profile bootstrap'
+          );
+          return { session: data.session, profile: fallbackProfile };
+        }
+        throw retryError;
+      }
     }
     throw error;
   }
