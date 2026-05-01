@@ -94,6 +94,27 @@ const formatScoreLabel = (score: number | null | undefined): string => {
 
 type ReportConfidenceState = 'no_data' | 'partial_data' | 'full_insight';
 
+
+const extractAttemptFeedbackText = (attempt: TeacherWritingAttemptRecord): string => {
+  const richFeedback = (attempt.rich_feedback ?? {}) as Record<string, unknown>;
+  const direct = [
+    richFeedback['teacher_feedback'],
+    richFeedback['summary'],
+    richFeedback['task_understanding'],
+    richFeedback['next_move'],
+  ].find((value) => typeof value === 'string' && value.trim().length > 0) as string | undefined;
+  if (direct) return direct.trim();
+
+  const assessment = (attempt.assessment ?? {}) as Record<string, unknown>;
+  const assessmentSummary = assessment['subscale_summary'];
+  if (Array.isArray(assessmentSummary)) {
+    const lines = assessmentSummary.filter((item) => typeof item === 'string' && item.trim().length > 0) as string[];
+    if (lines.length > 0) return lines.join('\n');
+  }
+
+  return 'No feedback available yet.';
+};
+
 const getReportConfidenceState = (report: TeacherWritingReport): ReportConfidenceState => {
   const completedTasks = report.overall_summary.completed_tasks;
   const completionRate = report.overall_summary.completion_rate_percent;
@@ -656,8 +677,7 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                       <div style={{ display: 'grid', gap: 10 }}>
                         {attemptRows.map((attempt) => {
                           const assessment = (attempt.assessment ?? {}) as { total_score?: number };
-                          const feedback = (attempt.rich_feedback ?? {}) as { teacher_feedback?: string; summary?: string };
-                          return (
+                                                    return (
                             <article key={attempt.row_id} style={{ border: '1px solid #1e293b', borderRadius: 8, padding: 10, background: '#0f172a' }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
                                 <strong>{attempt.genre || 'Unknown genre'}</strong>
@@ -666,7 +686,7 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                               <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 6 }}>{attempt.created_at}</div>
                               <div style={{ fontSize: 13, color: '#e2e8f0', whiteSpace: 'pre-wrap', marginBottom: 8 }}>{attempt.student_submission || 'No submission text.'}</div>
                               <div style={{ fontSize: 12, color: '#94a3b8', textTransform: 'uppercase' }}>Feedback</div>
-                              <div style={{ fontSize: 13, color: '#cbd5e1', whiteSpace: 'pre-wrap' }}>{feedback.teacher_feedback ?? feedback.summary ?? 'No feedback available yet.'}</div>
+                              <div style={{ fontSize: 13, color: '#cbd5e1', whiteSpace: 'pre-wrap' }}>{extractAttemptFeedbackText(attempt)}</div>
                             </article>
                           );
                         })}

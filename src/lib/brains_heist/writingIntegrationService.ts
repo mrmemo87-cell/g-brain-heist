@@ -2490,6 +2490,10 @@ export const mapCalibrationCaseToTeacherReport = (
     ? topTargets.map((tag) => `Practice target: ${tag}`)
     : ['Complete the next two daily writing tasks to unlock clearer trend data.'];
 
+  const completedTasks = c.latest_practice_evaluations.length;
+  const totalTasks = c.generated_daily_tasks.length;
+  const completionRatePercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
   return {
     report_type: 'teacher_writing_report',
     generated_at: new Date().toISOString(),
@@ -2505,9 +2509,9 @@ export const mapCalibrationCaseToTeacherReport = (
     overall_summary: {
       latest_score: c.latest_assessment?.total_score ?? null,
       score_trend_delta: null,
-      completion_rate_percent: 0,
-      completed_tasks: c.latest_practice_evaluations.length,
-      total_tasks: c.generated_daily_tasks.length,
+      completion_rate_percent: completionRatePercent,
+      completed_tasks: completedTasks,
+      total_tasks: totalTasks,
     },
     strengths,
     priority_weak_areas: c.latest_assessment?.weakness_tags ?? [],
