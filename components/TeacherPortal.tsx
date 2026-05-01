@@ -6894,6 +6894,14 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         if (WRITING_TEST_NAMES.includes(quizName)) {
           const writingMeta = WRITING_TEST_METADATA[quizName] ?? WRITING_TEST_METADATA['Cambridge Writing Test 1'];
           const feedback = answers.feedback || {};
+          const earlierAttempts = cambridgeScores
+            .filter((row) =>
+              row.student_name === selectedCambridgeStudent.student_name &&
+              WRITING_TEST_NAMES.includes(row.quiz_name) &&
+              row.submitted_at <= selectedCambridgeStudent.submitted_at
+            )
+            .sort((a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime())
+            .slice(0, 8);
           
           return createPortal(
             <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-2 sm:p-4 overflow-y-auto" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -6938,6 +6946,30 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 </div>
 
                 <div className="p-6 space-y-6">
+                  {earlierAttempts.length > 0 && (
+                    <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
+                      <h3 className="text-sm font-bold text-slate-700 mb-3">📚 Earlier Writing Submissions (student timeline)</h3>
+                      <div className="space-y-2">
+                        {earlierAttempts.map((attempt, index) => {
+                          const prev = earlierAttempts[index + 1];
+                          const trend = !prev ? '—' : attempt.percentage > prev.percentage ? '↑' : attempt.percentage < prev.percentage ? '↓' : '→';
+                          const attemptAnswers = attempt.answers || {};
+                          const attemptFeedback = attemptAnswers.feedback || {};
+                          const allIssues = [...(attemptFeedback?.part1?.grammarMistakes || []), ...(attemptFeedback?.part2?.grammarMistakes || [])];
+                          const { grammar, punctuation } = splitGrammarAndPunctuation(allIssues);
+                          return (
+                            <div key={attempt.id || `${attempt.submitted_at}-${index}`} className="grid grid-cols-5 gap-2 text-xs items-center bg-white border border-slate-200 rounded-lg p-2">
+                              <span>{new Date(attempt.submitted_at).toLocaleDateString()}</span>
+                              <span>{attempt.score}/35</span>
+                              <span>{attempt.percentage}%</span>
+                              <span>G:{grammar.length} • P:{punctuation.length}</span>
+                              <span className={trend === '↑' ? 'text-green-600 font-semibold' : trend === '↓' ? 'text-red-600 font-semibold' : 'text-slate-500'}>{trend}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                   {/* Part 1 */}
                   <div className="border-2 border-blue-200 rounded-xl overflow-hidden">
                     <div className="bg-blue-100 p-4">

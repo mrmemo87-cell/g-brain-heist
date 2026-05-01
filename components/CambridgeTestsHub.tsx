@@ -1067,6 +1067,14 @@ interface WritingFeedbackView {
   overallComments?: string;
 }
 
+interface WritingSubmissionHistoryItem {
+  submittedAt: string;
+  percentage: number;
+  score: number;
+  grammarIssues: number;
+  punctuationIssues: number;
+}
+
 const getProgressBarColor = (value: number) => {
   if (value >= 80) return '#22c55e';
   if (value >= 60) return '#eab308';
@@ -1088,6 +1096,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
   const [feedbackData, setFeedbackData] = useState<WritingFeedbackView | null>(null);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [activeFeedbackPart, setActiveFeedbackPart] = useState<'part1' | 'part2'>('part1');
+  const [feedbackHistory, setFeedbackHistory] = useState<WritingSubmissionHistoryItem[]>([]);
   const [showStudentReport, setShowStudentReport] = useState(false);
   const [studentReportData, setStudentReportData] = useState<ProfessionalReportData | null>(null);
   const [studentReportLoading, setStudentReportLoading] = useState(false);
@@ -1431,6 +1440,13 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       }
 
       const { data, error } = await feedbackQuery.single();
+      const { data: historyRows } = await supabase
+        .from('quiz_scores')
+        .select('score, percentage, submitted_at, answers')
+        .eq('student_name', profile.username)
+        .eq('quiz_name', test.name)
+        .order('submitted_at', { ascending: false })
+        .limit(8);
 
       if (error) throw error;
 
@@ -1503,11 +1519,30 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
           markedAt: answers.marked_at || null,
           overallComments: feedback?.overallComments || '',
         });
+        if (historyRows) {
+          const parsedHistory = historyRows.map((row: any) => {
+            const rowAnswers = typeof row.answers === 'string' ? JSON.parse(row.answers) : row.answers;
+            const rowFeedback = rowAnswers?.feedback || {};
+            const issues = [...(rowFeedback?.part1?.grammarMistakes || []), ...(rowFeedback?.part2?.grammarMistakes || [])];
+            const { grammar, punctuation } = classifyGrammarAndPunctuation(issues);
+            return {
+              submittedAt: row.submitted_at,
+              score: Number(row.score || 0),
+              percentage: Number(row.percentage || 0),
+              grammarIssues: grammar.length,
+              punctuationIssues: punctuation.length,
+            };
+          });
+          setFeedbackHistory(parsedHistory);
+        } else {
+          setFeedbackHistory([]);
+        }
         setActiveFeedbackPart('part1');
       }
     } catch (err) {
       console.error('Error fetching writing feedback:', err);
       setFeedbackData(null);
+      setFeedbackHistory([]);
     } finally {
       setFeedbackLoading(false);
     }
@@ -2397,6 +2432,26 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       <div style={{ width: `${feedbackData.percentage}%`, background: getProgressBarColor(feedbackData.percentage), height: '100%', transition: 'width 350ms ease' }} />
                     </div>
                   </div>
+                  {feedbackHistory.length > 0 && (
+                    <div style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px', padding: '12px', marginBottom: '20px' }}>
+                      <h5 style={{ margin: '0 0 10px', color: '#fff', fontSize: '14px' }}>📚 Earlier Submissions Timeline</h5>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {feedbackHistory.map((item, index) => {
+                          const prev = feedbackHistory[index + 1];
+                          const trend = !prev ? '—' : item.percentage > prev.percentage ? '↑' : item.percentage < prev.percentage ? '↓' : '→';
+                          return (
+                            <div key={`${item.submittedAt}-${index}`} style={{ display: 'grid', gridTemplateColumns: '1.2fr .8fr .8fr .8fr .5fr', gap: '8px', alignItems: 'center', color: 'rgba(255,255,255,0.9)', fontSize: '12px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', padding: '8px' }}>
+                              <span>{new Date(item.submittedAt).toLocaleDateString()}</span>
+                              <span>{item.score}/35</span>
+                              <span>{item.percentage}%</span>
+                              <span>G:{item.grammarIssues} • P:{item.punctuationIssues}</span>
+                              <span style={{ color: trend === '↑' ? '#4ade80' : trend === '↓' ? '#f87171' : '#cbd5e1' }}>{trend}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Part Selector Tabs */}
                   <div style={{
