@@ -548,7 +548,7 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                 <div><small style={{ color: '#94a3b8' }}>Latest score</small><div>{formatScoreLabel(row.latest_score)}</div></div>
                 <div style={{ fontSize: 13, color: '#cbd5e1' }}><strong>Why flagged:</strong> {getWhyFlagged(row)}</div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <button type="button" onClick={(e: { stopPropagation: () => void }) => { e.stopPropagation(); openReport(row.student_id); }} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '7px 10px' }}>Review</button>
+                  <button type="button" onClick={(event: React.MouseEvent<HTMLButtonElement>) => { event.stopPropagation(); openReport(row.student_id); }} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '7px 10px' }}>Review</button>
                 </div>
               </article>
             );
@@ -560,7 +560,7 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
       {/* Report Modal */}
       {isReportOpen ? (
         <div onClick={() => setIsReportOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(2,6,23,0.85)', zIndex: 40, display: 'grid', placeItems: 'center', padding: 16 }}>
-          <div onClick={(event) => event.stopPropagation()} style={{ ...shellCard, width: 'min(900px, 100%)', maxHeight: '90vh', overflow: 'auto', padding: 20, display: 'grid', gap: 14, border: '1px solid #1e293b', boxShadow: '0 20px 60px rgba(0,0,0,0.8)' }}>
+          <div onClick={(event: React.MouseEvent<HTMLDivElement>) => event.stopPropagation()} style={{ ...shellCard, width: 'min(900px, 100%)', maxHeight: '90vh', overflow: 'auto', padding: 20, display: 'grid', gap: 14, border: '1px solid #1e293b', boxShadow: '0 20px 60px rgba(0,0,0,0.8)' }}>
             {/* Report Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, borderBottom: '1px solid #1e293b', paddingBottom: 14 }}>
               <div>
