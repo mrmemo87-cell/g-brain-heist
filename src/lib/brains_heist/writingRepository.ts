@@ -52,8 +52,15 @@ const fetchLegacyPayloadRows = async (table: string, studentId: string): Promise
 };
 const readStudentKey = (row: unknown): string | null => readKey(row, 'student_id') ?? readKey(row, 'user_id');
 
-export const loadWritingStoreSnapshot = async (): Promise<SerializedWritingPersistenceStore | null> => {
+interface LoadWritingStoreSnapshotOptions {
+  includeLegacyDailyWorkflow?: boolean;
+}
+
+export const loadWritingStoreSnapshot = async (
+  options: LoadWritingStoreSnapshotOptions = {}
+): Promise<SerializedWritingPersistenceStore | null> => {
   if (!canUseSupabase()) return null;
+  const includeLegacyDailyWorkflow = options.includeLegacyDailyWorkflow === true;
   const {
     data: { user },
     error: authError,
@@ -82,10 +89,18 @@ export const loadWritingStoreSnapshot = async (): Promise<SerializedWritingPersi
     supabase.from('bh_writing_student_profiles').select('*').eq('student_id', activeStudentId),
     supabase.from('bh_writing_student_states').select('*').eq('student_id', activeStudentId),
     fetchLegacyPayloadRows('bh_writing_attempts', activeStudentId),
-    fetchLegacyPayloadRows('bh_writing_weekly_plans', activeStudentId),
-    fetchLegacyPayloadRows('bh_writing_daily_tasks', activeStudentId),
-    fetchLegacyPayloadRows('bh_writing_daily_submissions', activeStudentId),
-    fetchLegacyPayloadRows('bh_writing_daily_evaluations', activeStudentId),
+    includeLegacyDailyWorkflow
+      ? fetchLegacyPayloadRows('bh_writing_weekly_plans', activeStudentId)
+      : Promise.resolve({ data: [], error: null } as { data: any[]; error: null }),
+    includeLegacyDailyWorkflow
+      ? fetchLegacyPayloadRows('bh_writing_daily_tasks', activeStudentId)
+      : Promise.resolve({ data: [], error: null } as { data: any[]; error: null }),
+    includeLegacyDailyWorkflow
+      ? fetchLegacyPayloadRows('bh_writing_daily_submissions', activeStudentId)
+      : Promise.resolve({ data: [], error: null } as { data: any[]; error: null }),
+    includeLegacyDailyWorkflow
+      ? fetchLegacyPayloadRows('bh_writing_daily_evaluations', activeStudentId)
+      : Promise.resolve({ data: [], error: null } as { data: any[]; error: null }),
     fetchLegacyPayloadRows('bh_writing_monthly_reports', activeStudentId),
     fetchLegacyPayloadRows('bh_writing_memory_snapshots', activeStudentId),
     Promise.resolve({ data: [], error: null } as { data: any[]; error: null }),
@@ -104,10 +119,10 @@ export const loadWritingStoreSnapshot = async (): Promise<SerializedWritingPersi
   const profileRows = readRows<any>(profilesRes, 'profiles');
   const stateRows = readRows<any>(statesRes, 'states');
   const attemptRows = readRows<any>(attemptsRes, 'attempts');
-  const weeklyRows = readRows<any>(weeklyRes, 'weekly_plans');
-  const taskRows = readRows<any>(tasksRes, 'daily_tasks');
-  const submissionRows = readRows<any>(submissionsRes, 'daily_submissions');
-  const evaluationRows = readRows<any>(evalsRes, 'daily_evaluations');
+  const weeklyRows = includeLegacyDailyWorkflow ? readRows<any>(weeklyRes, 'weekly_plans') : [];
+  const taskRows = includeLegacyDailyWorkflow ? readRows<any>(tasksRes, 'daily_tasks') : [];
+  const submissionRows = includeLegacyDailyWorkflow ? readRows<any>(submissionsRes, 'daily_submissions') : [];
+  const evaluationRows = includeLegacyDailyWorkflow ? readRows<any>(evalsRes, 'daily_evaluations') : [];
   const reportRows = readRows<any>(reportsRes, 'monthly_reports');
   const memoryRows = readRows<any>(memoriesRes, 'memory_snapshots');
   // Optional for students: admin-only tables can fail RLS and should not collapse hydration.
