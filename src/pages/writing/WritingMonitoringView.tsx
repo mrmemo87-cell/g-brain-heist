@@ -691,26 +691,44 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                                 <div style={{ fontSize: 13, color: '#cbd5e1', whiteSpace: 'pre-wrap' }}>{extractAttemptFeedbackText(attempt)}</div>
                                 {(() => {
                                   const assessmentFull = (attempt.assessment ?? {}) as Record<string, unknown>;
-                                  const scoreBreakdown = (assessmentFull['score_breakdown'] ?? {}) as Record<string, number | null | undefined>;
-                                  const criterionFeedback = (assessmentFull['criterion_feedback'] ?? {}) as Record<string, string | null | undefined>;
+                                  const subscores = (assessmentFull['subscores'] ?? {}) as Record<string, number | null | undefined>;
+                                  const criterionFeedback = (assessmentFull['band_justification'] ?? {}) as Record<string, string | null | undefined>;
+                                  const weaknessTags = Array.isArray(assessmentFull['weakness_tags'])
+                                    ? (assessmentFull['weakness_tags'] as string[])
+                                    : [];
+                                  const missedContentPoints = Array.isArray(assessmentFull['missed_content_points'])
+                                    ? (assessmentFull['missed_content_points'] as string[])
+                                    : [];
                                   const rows = [
-                                    ['Content', scoreBreakdown['content'], criterionFeedback['content']],
-                                    ['Communicative Achievement', scoreBreakdown['communicative_achievement'], criterionFeedback['communicative_achievement']],
-                                    ['Organisation', scoreBreakdown['organisation'], criterionFeedback['organisation']],
-                                    ['Language', scoreBreakdown['language'], criterionFeedback['language']],
+                                    ['Content', subscores['content'], criterionFeedback['content']],
+                                    ['Communicative Achievement', subscores['communicative_achievement'], criterionFeedback['communicative_achievement']],
+                                    ['Organisation', subscores['organisation'], criterionFeedback['organisation']],
+                                    ['Language', subscores['language'], criterionFeedback['language']],
                                   ] as const;
                                   const hasAny = rows.some(([, score, comment]) => score != null || (typeof comment === 'string' && comment.trim().length > 0));
-                                  if (!hasAny) return null;
+                                  if (!hasAny && weaknessTags.length === 0 && missedContentPoints.length === 0) return null;
                                   return (
                                     <div style={{ border: '1px solid #334155', borderRadius: 8, padding: 8, background: '#020617' }}>
                                       <div style={{ fontSize: 11, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6 }}>AI grading breakdown</div>
                                       <div style={{ display: 'grid', gap: 6 }}>
                                         {rows.map(([label, score, comment]) => (
                                           <div key={label} style={{ borderTop: '1px solid #1e293b', paddingTop: 6 }}>
-                                            <div style={{ fontSize: 12, color: '#e2e8f0', fontWeight: 700 }}>{label}: {score ?? '—'}</div>
+                                            <div style={{ fontSize: 12, color: '#e2e8f0', fontWeight: 700 }}>{label}: {score ?? '—'}/5</div>
                                             <div style={{ fontSize: 12, color: '#cbd5e1', whiteSpace: 'pre-wrap' }}>{comment?.trim() || 'No criterion note provided.'}</div>
                                           </div>
                                         ))}
+                                        {missedContentPoints.length > 0 ? (
+                                          <div style={{ borderTop: '1px solid #1e293b', paddingTop: 6 }}>
+                                            <div style={{ fontSize: 12, color: '#fca5a5', fontWeight: 700 }}>Missed content points</div>
+                                            <div style={{ fontSize: 12, color: '#fecaca', whiteSpace: 'pre-wrap' }}>{missedContentPoints.join('; ')}</div>
+                                          </div>
+                                        ) : null}
+                                        {weaknessTags.length > 0 ? (
+                                          <div style={{ borderTop: '1px solid #1e293b', paddingTop: 6 }}>
+                                            <div style={{ fontSize: 12, color: '#fbbf24', fontWeight: 700 }}>Detected mistakes</div>
+                                            <div style={{ fontSize: 12, color: '#fde68a', whiteSpace: 'pre-wrap' }}>{weaknessTags.map(toTeacherWeaknessLabel).join(', ')}</div>
+                                          </div>
+                                        ) : null}
                                       </div>
                                     </div>
                                   );
