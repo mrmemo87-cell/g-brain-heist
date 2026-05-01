@@ -3,6 +3,8 @@ import gsap from 'gsap';
 import {
   getTeacherMonitoringOverviewScoped,
   getTeacherWritingReport,
+  getTeacherAttemptListScoped,
+  TeacherWritingAttemptRecord,
   getWritingMonitoringOverview,
   TeacherWritingReport,
   WritingMonitoringOverview,
@@ -170,7 +172,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
   const [isReportLoading, setIsReportLoading] = useState(false);
   const [reportError, setReportError] = useState('');
   const [openReportData, setOpenReportData] = useState<TeacherWritingReport | null>(null);
-  const [showFullSubmission, setShowFullSubmission] = useState(false);
+  const [attemptRows, setAttemptRows] = useState<TeacherWritingAttemptRecord[]>([]);
 
   const filters = parseAdminDrilldownFilters(filterQuery);
 
@@ -193,7 +195,8 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
       if (activeQuickFilter === 'stalled' && !row.stalled) return false;
       if (activeQuickFilter === 'improving' && !row.improving) return false;
       if (gradeFilter !== 'all' && String(row.current_grade) !== gradeFilter) return false;
-      if (classFilter !== 'all' && (row.class_name ?? 'Unassigned') !== classFilter) return false;
+      const normalizedClass = (row.class_name ?? '').trim() || 'Unassigned';
+      if (classFilter !== 'all' && normalizedClass !== classFilter) return false;
       if (weakAreaFilter !== 'all' && !row.repeated_weakness_hotspots.includes(weakAreaFilter)) return false;
 
       const trendLabel = toTrendLabel(row);
@@ -251,18 +254,30 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
     if (!selectedStudentId && rows[0]?.student_id) setSelectedStudentId(rows[0].student_id);
   }, [rows, selectedStudentId]);
 
+
+  useEffect(() => {
+    if (!isReportOpen) return;
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') setIsReportOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isReportOpen]);
   const selectedRow = rows.find((row) => row.student_id === selectedStudentId) ?? rows[0];
 
   const openReport = (studentId: string): void => {
     setSelectedStudentId(studentId);
     setIsReportOpen(true);
     setIsReportLoading(true);
-    setShowFullSubmission(false);
     setReportError('');
-    void getTeacherWritingReport({ student_id: studentId, month, include_snippet: false })
-      .then((result) => {
-        if (!result.ok || !result.data) {
-          const errorMsg = result.error ?? 'Unable to load report.';
+    setAttemptRows([]);
+    void Promise.all([
+      getTeacherWritingReport({ student_id: studentId, month, include_snippet: true }),
+      getTeacherAttemptListScoped({ student_id: studentId, limit: 80 }),
+    ])
+      .then(([reportResult, attemptsResult]) => {
+        if (!reportResult.ok || !reportResult.data) {
+          const errorMsg = reportResult.error ?? 'Unable to load report.';
           if (errorMsg.includes('Could not choose the best candidate function')) {
             setReportError('Database function configuration issue. Please contact your administrator.');
             console.error('RPC Overload Error:', errorMsg);
@@ -272,7 +287,8 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
           setOpenReportData(null);
           return;
         }
-        setOpenReportData(result.data);
+        setOpenReportData(reportResult.data);
+        if (attemptsResult.ok && attemptsResult.data) setAttemptRows(attemptsResult.data);
         setActionedToday((prev) => new Set(prev).add(studentId));
       })
       .finally(() => setIsReportLoading(false));
@@ -532,7 +548,7 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                 <div><small style={{ color: '#94a3b8' }}>Latest score</small><div>{formatScoreLabel(row.latest_score)}</div></div>
                 <div style={{ fontSize: 13, color: '#cbd5e1' }}><strong>Why flagged:</strong> {getWhyFlagged(row)}</div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <button type="button" onClick={(e: { stopPropagation: () => void }) => { e.stopPropagation(); openReport(row.student_id); }} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '7px 10px' }}>Review</button>
+                  <button type="button" onClick={(event: React.MouseEvent<HTMLButtonElement>) => { event.stopPropagation(); openReport(row.student_id); }} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '7px 10px' }}>Review</button>
                 </div>
               </article>
             );
@@ -543,13 +559,13 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
 
       {/* Report Modal */}
       {isReportOpen ? (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(2,6,23,0.85)', zIndex: 40, display: 'grid', placeItems: 'center', padding: 16 }}>
-          <div style={{ ...shellCard, width: 'min(900px, 100%)', maxHeight: '90vh', overflow: 'auto', padding: 20, display: 'grid', gap: 14, border: '1px solid #1e293b', boxShadow: '0 20px 60px rgba(0,0,0,0.8)' }}>
+        <div onClick={() => setIsReportOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(2,6,23,0.85)', zIndex: 40, display: 'grid', placeItems: 'center', padding: 16 }}>
+          <div onClick={(event: React.MouseEvent<HTMLDivElement>) => event.stopPropagation()} style={{ ...shellCard, width: 'min(900px, 100%)', maxHeight: '90vh', overflow: 'auto', padding: 20, display: 'grid', gap: 14, border: '1px solid #1e293b', boxShadow: '0 20px 60px rgba(0,0,0,0.8)' }}>
             {/* Report Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, borderBottom: '1px solid #1e293b', paddingBottom: 14 }}>
               <div>
                 <h2 style={{ margin: 0, fontSize: 24, fontWeight: 900, color: '#f8fafc' }}>Student Review</h2>
-                <p style={{ margin: '6px 0 0', fontSize: 12, color: '#94a3b8' }}>Sensitive content protected</p>
+                <p style={{ margin: '6px 0 0', fontSize: 12, color: '#94a3b8' }}>Teacher full access: submissions and feedback visible.</p>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button type="button" onClick={() => setIsReportOpen(false)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '10px 14px', fontWeight: 700, fontSize: 13 }}>Close</button>
@@ -633,15 +649,28 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                     </>
                   ) : null}
                   <div style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: '#0b1223' }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, textTransform: 'uppercase' }}>Student Writing</div>
-                    {!showFullSubmission ? (
-                      <>
-                        <div style={{ fontSize: 13, color: '#cbd5e1' }}>Detailed writing text is protected by default.</div>
-                        <button type="button" onClick={() => setShowFullSubmission(true)} style={{ marginTop: 10, borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '7px 10px' }}>View Full Submission</button>
-                        <div style={{ marginTop: 6, fontSize: 12, color: '#94a3b8' }}>Viewing full submission is a sensitive action and may be logged.</div>
-                      </>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, textTransform: 'uppercase' }}>Attempt history (genre, submission, feedback)</div>
+                    {attemptRows.length === 0 ? (
+                      <div style={{ fontSize: 13, color: '#cbd5e1' }}>No attempts available yet.</div>
                     ) : (
-                      <div style={{ fontSize: 13, color: '#fbbf24' }}>You don’t have permission to view this content.</div>
+                      <div style={{ display: 'grid', gap: 10 }}>
+                        {attemptRows.map((attempt) => {
+                          const assessment = (attempt.assessment ?? {}) as { total_score?: number };
+                          const feedback = (attempt.rich_feedback ?? {}) as { teacher_feedback?: string; summary?: string };
+                          return (
+                            <article key={attempt.row_id} style={{ border: '1px solid #1e293b', borderRadius: 8, padding: 10, background: '#0f172a' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
+                                <strong>{attempt.genre || 'Unknown genre'}</strong>
+                                <span style={{ color: '#93c5fd' }}>{formatScoreLabel(assessment.total_score ?? null)}</span>
+                              </div>
+                              <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 6 }}>{attempt.created_at}</div>
+                              <div style={{ fontSize: 13, color: '#e2e8f0', whiteSpace: 'pre-wrap', marginBottom: 8 }}>{attempt.student_submission || 'No submission text.'}</div>
+                              <div style={{ fontSize: 12, color: '#94a3b8', textTransform: 'uppercase' }}>Feedback</div>
+                              <div style={{ fontSize: 13, color: '#cbd5e1', whiteSpace: 'pre-wrap' }}>{feedback.teacher_feedback ?? feedback.summary ?? 'No feedback available yet.'}</div>
+                            </article>
+                          );
+                        })}
+                      </div>
                     )}
                   </div>
                 </div>
