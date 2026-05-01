@@ -2093,12 +2093,13 @@ export const tasks_list = async (): Promise<Task[]> => {
     
     dailyPvpWins = pvpData?.length || 0;
     
-    // Query database for this week's task claims
+    // Query database for this week's DAILY task claims
     const { data: weeklyData } = await supabase
       .from('activities')
       .select('id')
       .eq('actor_id', user.id)
       .eq('kind', 'task_claimed')
+      .eq('data->>task_kind', 'daily')
       .gte('created_at', weekStart.toISOString());
     
     weeklyTasksCompleted = weeklyData?.length || 0;
@@ -2205,11 +2206,6 @@ export const tasks_list = async (): Promise<Task[]> => {
     ? [...new Set([...claimedWeeklyFromDb, ...claimedWeeklyTasks])]
     : [...new Set([...claimedWeeklyTasks])];
   
-  const completedUnclaimedDailyTasks = [
-    dailyQuestsCompleted >= 3 && !allClaimedDailyTasks.includes('task_d1'),
-    dailyPvpWins >= 1 && !allClaimedDailyTasks.includes('task_d2'),
-  ].filter(Boolean).length;
-
   const tasks: Task[] = [
     {
       id: 'task_d1',
@@ -2235,10 +2231,10 @@ export const tasks_list = async (): Promise<Task[]> => {
     },
     {
       id: 'task_w1',
-      title: 'Complete 15 Daily Tasks this week',
+      title: 'Complete 14 Daily Tasks this week',
       kind: 'weekly',
-      progress: weeklyTasksCompleted + completedUnclaimedDailyTasks,
-      target: 15,
+      progress: weeklyTasksCompleted,
+      target: 14,
       reward_preview: '500 XP, 400 Coins, +1 Item Crate, +5 Gemstones',
       expires_at: weeklyExpiry,
       claimed: allClaimedWeeklyTasks.includes('task_w1'),

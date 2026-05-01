@@ -235,9 +235,19 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast, onN
   const handleActivate = async (inv_id: string) => {
       setActivatingId(inv_id);
       try {
+          setItems(prev =>
+            prev.map(item =>
+              (item.inv_id || item.id) === inv_id
+                ? {
+                    ...item,
+                    state: 'active',
+                    activated_at: new Date().toISOString(),
+                  }
+                : item
+            )
+          );
           await GameService.inventory_activate(inv_id);
           audioService.play('activate');
-          addToast("Item activated!", "success");
           fetchInventory(); // Refetch to show new state
 
           try {
@@ -247,6 +257,8 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast, onN
             console.warn('Failed to refresh profile after activation:', profileError);
           }
       } catch (error: any) {
+          // Roll back from canonical source if optimistic update fails.
+          await fetchInventory();
           addToast(error.message || "Failed to activate item.", "error");
       } finally {
           setActivatingId(null);
@@ -354,6 +366,25 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast, onN
   }, {} as Record<string, { item: InventoryItem; count: number }>);
   
   const displayItems = Object.values(groupedItems);
+  const kindPriority: Record<string, number> = {
+    shield: 1,
+    firewall: 2,
+    encryption_key: 3,
+    exploit_kit: 4,
+    booster: 5,
+    major_booster: 6,
+    cosmetic: 7,
+    mystery: 8,
+    cracker: 9,
+  };
+  const sortInventorySlots = (a: { item: InventoryItem; count: number }, b: { item: InventoryItem; count: number }) => {
+    const kindDiff = (kindPriority[a.item.kind] ?? 99) - (kindPriority[b.item.kind] ?? 99);
+    if (kindDiff !== 0) return kindDiff;
+    const aExpiry = a.item.expires_at ? new Date(a.item.expires_at).getTime() : Number.MAX_SAFE_INTEGER;
+    const bExpiry = b.item.expires_at ? new Date(b.item.expires_at).getTime() : Number.MAX_SAFE_INTEGER;
+    if (aExpiry !== bExpiry) return aExpiry - bExpiry;
+    return a.item.name.localeCompare(b.item.name);
+  };
   const sectionDefinitions = [
     {
       id: 'active',
@@ -384,7 +415,7 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast, onN
         }
         return matches;
       });
-      return { ...section, items: itemsInSection };
+      return { ...section, items: itemsInSection.sort(sortInventorySlots) };
     })
     .filter(section => section.items.length > 0);
 
@@ -395,7 +426,7 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast, onN
       label: 'Other Inventory',
       description: 'Fallback stash for unexpected states.',
       states: [],
-      items: uncategorized,
+      items: uncategorized.sort(sortInventorySlots),
     });
   }
 

@@ -392,6 +392,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
     
     const status = getOnlineStatus(entry.last_seen);
     const metricLabel = tab === 'score' ? 'Score' : tab === 'xp' ? 'XP' : 'PvP';
+    const displayName = entry.username.length > 12 ? `${entry.username.slice(0, 12)}…` : entry.username;
 
     return (
       <div
@@ -424,7 +425,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
         <div className="flex-1">
           <p className="font-semibold text-white">
             <ClickableUsername userId={entry.id} username={entry.username} className="cursor-pointer text-cyan-300 hover:text-cyan-200 transition-colors underline decoration-dotted decoration-cyan-400/60 underline-offset-2">
-              {entry.username}
+              <span title={entry.username}>{displayName}</span>
             </ClickableUsername>
             <BrainsMasterBadge showBadge={entry.brains_master_show_badge} until={entry.brains_master_until} />
             {entry.is_self && ' (You)'}
