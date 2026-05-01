@@ -516,7 +516,7 @@ export const assessWritingExam = (input: WritingAssessmentInput): WritingAssessm
     throw new Error(`Unsupported grade: ${input.grade}. Expected 6-12.`);
   }
 
-  const scoreMode: ScoreMode = input.grade >= 10 ? 'B1B2_4_scale' : 'A2_3_scale';
+  const scoreMode: ScoreMode = 'B1B2_4_scale';
   const actualWordCount = countWords(input.studentResponse);
   const contentPoints = extractContentPoints(input.promptText);
   const coverage = detectCoverage(contentPoints, input.studentResponse);
@@ -543,7 +543,7 @@ export const assessWritingExam = (input: WritingAssessmentInput): WritingAssessm
   );
 
   const communicativeScore = communicativeScored.band;
-  const totalScore = contentScored.band + organisationScored.band + languageScored.band + (communicativeScore ?? 0);
+  const totalScore = contentScored.band + organisationScored.band + languageScored.band + communicativeScore;
 
   const result: WritingAssessmentResult = {
     grade: String(input.grade),
