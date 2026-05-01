@@ -139,6 +139,7 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
   const [savedReports, setSavedReports] = useState<TeacherSavedWritingReport[]>([]);
   const [editor, setEditor] = useState<EditableTeacherReportDraft>(EMPTY_DRAFT);
   const [editorMessage, setEditorMessage] = useState('');
+  const [showAttemptSubmissionText, setShowAttemptSubmissionText] = useState(false);
 
   const visibleRows = useMemo(
     () => (teacherRows ?? []).filter((row) => !searchQuery || row.student_name.toLowerCase().includes(searchQuery.toLowerCase()) || row.student_id.toLowerCase().includes(searchQuery.toLowerCase())),
@@ -377,6 +378,7 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
   useEffect(() => {
     if (mode !== 'teacher' || !selectedStudentId || !selectedAttemptId) {
       setAttemptReport(null);
+      setShowAttemptSubmissionText(false);
       return;
     }
     if (!isUuid(selectedStudentId)) return;
@@ -419,7 +421,34 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
 
     return (
       <div style={{ padding: 12, color: '#e5e7eb', display: 'grid', gap: 12 }}>
-        <h2 style={{ margin: 0 }}>Writing Export Center</h2>
+        <h2 style={{ margin: 0 }}>Quick Reports</h2>
+        <p style={{ margin: 0, color: '#94a3b8' }}>Generate clean reports without advanced setup.</p>
+        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
+          {(
+            [
+              ['Student Progress Summary', 'Fast snapshot of score, completion, and growth areas.', false],
+              ['Parent-Ready Report', 'Plain language strengths, growth targets, and next steps.', false],
+              ['Class Snapshot', 'Class-level completion and performance overview.', true],
+            ] as Array<[title: string, desc: string, isReady: boolean]>
+          ).map(([title, desc, isReady]) => (
+            <article key={title} style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: 'linear-gradient(180deg, #0f172a, #0b1327)' }}>
+              <div style={{ fontWeight: 700 }}>{title}</div>
+              <div style={{ fontSize: 12, color: '#cbd5e1', margin: '6px 0 10px' }}>{desc}</div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (isReady) exportCsv();
+                }}
+                disabled={!isReady}
+                style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 10px' }}
+              >
+                {isReady ? 'Export CSV' : 'Use Advanced Tools'}
+              </button>
+            </article>
+          ))}
+        </section>
+        <details>
+          <summary style={{ cursor: 'pointer', color: '#93c5fd', fontWeight: 700 }}>Open Advanced Report Tools</summary>
         {!studentId && teacherRows ? (
           <div style={{ position: 'sticky', top: 0, zIndex: 3, background: '#020617', border: '1px solid #1e293b', borderRadius: 10, padding: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <input value={searchQuery} onChange={(event: InputChangeEvent) => setSearchQuery(event.target.value)} placeholder="Search student" style={{ flex: '1 1 220px', background: '#020617', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '8px 10px' }} />
@@ -504,7 +533,15 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 8 }}>
                   <article style={{ border: '1px solid #1f2937', borderRadius: 8, padding: 8, background: '#020617' }}>
                     <div style={{ marginBottom: 6 }}><strong>Full student submission</strong></div>
-                    <pre style={{ margin: 0, whiteSpace: 'pre-wrap', maxHeight: 240, overflow: 'auto' }}>{selectedAttempt.student_submission || 'No submission text found.'}</pre>
+                    {!showAttemptSubmissionText ? (
+                      <div style={{ display: 'grid', gap: 6 }}>
+                        <div style={{ fontSize: 12, color: '#cbd5e1' }}>Detailed writing text is protected by default.</div>
+                        <button type="button" onClick={() => setShowAttemptSubmissionText(true)} style={{ width: 'fit-content', borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 9px' }}>View Full Submission</button>
+                        <small style={{ color: '#94a3b8' }}>Viewing full submission is a sensitive action and may be logged.</small>
+                      </div>
+                    ) : (
+                      <pre style={{ margin: 0, whiteSpace: 'pre-wrap', maxHeight: 240, overflow: 'auto' }}>{selectedAttempt.student_submission || 'No submission text found.'}</pre>
+                    )}
                   </article>
                   <article style={{ border: '1px solid #1f2937', borderRadius: 8, padding: 8, background: '#020617' }}>
                     <div style={{ marginBottom: 6 }}><strong>AI evaluation / assessment</strong></div>
@@ -651,6 +688,7 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
             ) : null}
           </aside>
         </div>
+        </details>
       </div>
     );
   }
