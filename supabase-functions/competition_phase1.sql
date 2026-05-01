@@ -1233,6 +1233,8 @@ begin
     on ar.announcement_id = a.id
    and ar.user_id = v_user
   where ar.id is null
+    and coalesce(a.active, true) = true
+    and (a.expires_at is null or a.expires_at > now())
   order by a.created_at desc
   limit 1;
 exception when others then
