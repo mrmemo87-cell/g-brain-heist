@@ -82,6 +82,16 @@ const WRITING_TEST_METADATA: Record<string, {
   },
 };
 
+const scoreProgressColor = (percentage: number) => (
+  percentage >= 80 ? 'bg-green-500' : percentage >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+);
+
+const splitGrammarAndPunctuation = (items: { wrong: string; correct: string; explanation: string }[] = []) => {
+  const punctuation = items.filter((item) => /punct|comma|full stop|period|apostrophe|quote|capital/i.test(item.explanation || item.wrong));
+  const grammar = items.filter((item) => !punctuation.includes(item));
+  return { grammar, punctuation };
+};
+
 const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, onLockdown, isSchoolAdmin, onOpenSchoolAdmin, onOpenAdmissions }) => {
   const [view, setView] = useState<PortalView>('dashboard');
   const [teacher, setTeacher] = useState<Teacher | null>(null);
@@ -6955,6 +6965,11 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                           </div>
                         </div>
                       )}
+                      {answers.marks?.part1 && (
+                        <div className="mt-3 h-2 w-full rounded-full bg-slate-200 overflow-hidden">
+                          <div className={`h-full ${scoreProgressColor(Math.round(((answers.marks.part1.content + answers.marks.part1.organisation + answers.marks.part1.language) / 15) * 100))}`} style={{ width: `${Math.round(((answers.marks.part1.content + answers.marks.part1.organisation + answers.marks.part1.language) / 15) * 100)}%` }} />
+                        </div>
+                      )}
                       
                       {/* Teacher Feedback for Part 1 */}
                       {feedback.part1?.feedback && (
@@ -6970,6 +6985,17 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                           <p className="text-gray-700 whitespace-pre-wrap">{feedback.part1.correctedVersion}</p>
                         </div>
                       )}
+                      {feedback.part1?.grammarMistakes?.length > 0 && (() => {
+                        const { grammar, punctuation } = splitGrammarAndPunctuation(feedback.part1.grammarMistakes);
+                        return (
+                          <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-xs">
+                            <h4 className="text-sm font-bold text-yellow-800 mb-2">🛠️ Grammar & punctuation details</h4>
+                            {grammar.map((m, i) => <p key={`g1-${i}`} className="mb-1"><span className="line-through text-red-600">{m.wrong}</span> → <span className="text-green-700 font-semibold">{m.correct}</span> — {m.explanation}</p>)}
+                            {punctuation.length > 0 && <p className="mt-2 font-semibold text-yellow-800">Punctuation/capitalization</p>}
+                            {punctuation.map((m, i) => <p key={`p1-${i}`} className="mb-1"><span className="line-through text-red-600">{m.wrong}</span> → <span className="text-green-700 font-semibold">{m.correct}</span> — {m.explanation}</p>)}
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
 
@@ -7004,6 +7030,11 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                           </div>
                         </div>
                       )}
+                      {answers.marks?.part2 && (
+                        <div className="mt-3 h-2 w-full rounded-full bg-slate-200 overflow-hidden">
+                          <div className={`h-full ${scoreProgressColor(Math.round(((answers.marks.part2.content + answers.marks.part2.communicativeAchievement + answers.marks.part2.organisation + answers.marks.part2.language) / 20) * 100))}`} style={{ width: `${Math.round(((answers.marks.part2.content + answers.marks.part2.communicativeAchievement + answers.marks.part2.organisation + answers.marks.part2.language) / 20) * 100)}%` }} />
+                        </div>
+                      )}
                       
                       {/* Teacher Feedback for Part 2 */}
                       {feedback.part2?.feedback && (
@@ -7019,6 +7050,17 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                           <p className="text-gray-700 whitespace-pre-wrap">{feedback.part2.correctedVersion}</p>
                         </div>
                       )}
+                      {feedback.part2?.grammarMistakes?.length > 0 && (() => {
+                        const { grammar, punctuation } = splitGrammarAndPunctuation(feedback.part2.grammarMistakes);
+                        return (
+                          <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-xs">
+                            <h4 className="text-sm font-bold text-yellow-800 mb-2">🛠️ Grammar & punctuation details</h4>
+                            {grammar.map((m, i) => <p key={`g2-${i}`} className="mb-1"><span className="line-through text-red-600">{m.wrong}</span> → <span className="text-green-700 font-semibold">{m.correct}</span> — {m.explanation}</p>)}
+                            {punctuation.length > 0 && <p className="mt-2 font-semibold text-yellow-800">Punctuation/capitalization</p>}
+                            {punctuation.map((m, i) => <p key={`p2-${i}`} className="mb-1"><span className="line-through text-red-600">{m.wrong}</span> → <span className="text-green-700 font-semibold">{m.correct}</span> — {m.explanation}</p>)}
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
 
