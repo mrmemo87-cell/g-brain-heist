@@ -351,7 +351,7 @@ const hydrateStore = (): Promise<void> => {
     return hydrationInFlight;
   }
 
-  const dbLoadPromise = loadWritingStoreSnapshot();
+  const dbLoadPromise = loadWritingStoreSnapshot({ includeLegacyDailyWorkflow: false });
   const dbLoad = Promise.race([
     dbLoadPromise,
     new Promise<null>((resolve) => {
