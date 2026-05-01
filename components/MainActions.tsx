@@ -276,8 +276,7 @@ const MainActions: React.FC<MainActionsProps> = ({
   };
   const displaySchoolName = schoolName || 'My School';
   const displaySchoolLogo = schoolLogoUrl || defaultSchoolIcon;
-  const missionIconClass = 'h-full w-full rounded-full object-cover drop-shadow-[0_0_26px_rgba(255,255,255,0.45)] brightness-110 contrast-110 saturate-125';
-  const attackMissionIconClass = 'h-full w-full rounded-full object-contain p-3 drop-shadow-[0_0_26px_rgba(255,255,255,0.45)] brightness-110 contrast-110 saturate-125';
+  const missionIconClass = 'h-[10.5rem] w-[10.5rem] object-contain drop-shadow-[0_0_26px_rgba(255,255,255,0.45)] brightness-110 contrast-110 saturate-125';
   const inviteText = 'Join me on Brains Heist — the gamified learning platform! 🧠⚡';
   const inviteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://brainsheist.com';
   const inviteMessage = `${inviteText} ${inviteUrl}`;
@@ -477,7 +476,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={locked ? handleLocked('Launch Attack') : handlePilotClick('Launch Attack', onStartPvp)}
-              icon={<img src="/mission-console-images/attack.webp" alt="" className={attackMissionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
+              icon={<img src="/mission-console-images/attack.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
               label="Launch Attack"
               circleIcon
@@ -636,7 +635,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               subtitle={isIndividual ? '🏫 School Only' : undefined}
               color="0, 191, 255"
               glowClass="glow-ion"
-              className={`col-span-2 min-h-[18rem]${isIndividual ? ' opacity-50 pointer-events-none' : ''}`}
+              className={`min-h-[18rem]${isIndividual ? ' opacity-50 pointer-events-none' : ''}`}
               locked={locked || isIndividual}
               quotaInfo={q('IELTS Prep')}
               quotaLabel={ql('IELTS Prep')}
@@ -653,7 +652,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               subtitle={isIndividual ? '🏫 School Only' : 'Practice reading & grammar'}
               color="102, 126, 234"
               glowClass="glow-ion"
-              className={`col-span-2 min-h-[18rem]${isIndividual ? ' opacity-50 pointer-events-none' : ''}`}
+              className={`min-h-[18rem]${isIndividual ? ' opacity-50 pointer-events-none' : ''}`}
               locked={locked || isIndividual}
               quotaInfo={q('Cambridge Tests')}
               quotaLabel={ql('Cambridge Tests')}
