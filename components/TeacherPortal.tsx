@@ -82,6 +82,16 @@ const WRITING_TEST_METADATA: Record<string, {
   },
 };
 
+const scoreProgressColor = (percentage: number) => (
+  percentage >= 80 ? 'bg-green-500' : percentage >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+);
+
+const splitGrammarAndPunctuation = (items: { wrong: string; correct: string; explanation: string }[] = []) => {
+  const punctuation = items.filter((item) => /punct|comma|full stop|period|apostrophe|quote|capital/i.test(item.explanation || item.wrong));
+  const grammar = items.filter((item) => !punctuation.includes(item));
+  return { grammar, punctuation };
+};
+
 const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, onLockdown, isSchoolAdmin, onOpenSchoolAdmin, onOpenAdmissions }) => {
   const [view, setView] = useState<PortalView>('dashboard');
   const [teacher, setTeacher] = useState<Teacher | null>(null);
@@ -6884,6 +6894,14 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         if (WRITING_TEST_NAMES.includes(quizName)) {
           const writingMeta = WRITING_TEST_METADATA[quizName] ?? WRITING_TEST_METADATA['Cambridge Writing Test 1'];
           const feedback = answers.feedback || {};
+          const earlierAttempts = cambridgeScores
+            .filter((row) =>
+              row.student_name === selectedCambridgeStudent.student_name &&
+              WRITING_TEST_NAMES.includes(row.quiz_name) &&
+              row.submitted_at <= selectedCambridgeStudent.submitted_at
+            )
+            .sort((a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime())
+            .slice(0, 8);
           
           return createPortal(
             <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-2 sm:p-4 overflow-y-auto" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -6928,6 +6946,30 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 </div>
 
                 <div className="p-6 space-y-6">
+                  {earlierAttempts.length > 0 && (
+                    <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
+                      <h3 className="text-sm font-bold text-slate-700 mb-3">📚 Earlier Writing Submissions (student timeline)</h3>
+                      <div className="space-y-2">
+                        {earlierAttempts.map((attempt, index) => {
+                          const prev = earlierAttempts[index + 1];
+                          const trend = !prev ? '—' : attempt.percentage > prev.percentage ? '↑' : attempt.percentage < prev.percentage ? '↓' : '→';
+                          const attemptAnswers = attempt.answers || {};
+                          const attemptFeedback = attemptAnswers.feedback || {};
+                          const allIssues = [...(attemptFeedback?.part1?.grammarMistakes || []), ...(attemptFeedback?.part2?.grammarMistakes || [])];
+                          const { grammar, punctuation } = splitGrammarAndPunctuation(allIssues);
+                          return (
+                            <div key={attempt.id || `${attempt.submitted_at}-${index}`} className="grid grid-cols-5 gap-2 text-xs items-center bg-white border border-slate-200 rounded-lg p-2">
+                              <span>{new Date(attempt.submitted_at).toLocaleDateString()}</span>
+                              <span>{attempt.score}/35</span>
+                              <span>{attempt.percentage}%</span>
+                              <span>G:{grammar.length} • P:{punctuation.length}</span>
+                              <span className={trend === '↑' ? 'text-green-600 font-semibold' : trend === '↓' ? 'text-red-600 font-semibold' : 'text-slate-500'}>{trend}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                   {/* Part 1 */}
                   <div className="border-2 border-blue-200 rounded-xl overflow-hidden">
                     <div className="bg-blue-100 p-4">
@@ -6955,6 +6997,11 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                           </div>
                         </div>
                       )}
+                      {answers.marks?.part1 && (
+                        <div className="mt-3 h-2 w-full rounded-full bg-slate-200 overflow-hidden">
+                          <div className={`h-full ${scoreProgressColor(Math.round(((answers.marks.part1.content + answers.marks.part1.organisation + answers.marks.part1.language) / 15) * 100))}`} style={{ width: `${Math.round(((answers.marks.part1.content + answers.marks.part1.organisation + answers.marks.part1.language) / 15) * 100)}%` }} />
+                        </div>
+                      )}
                       
                       {/* Teacher Feedback for Part 1 */}
                       {feedback.part1?.feedback && (
@@ -6970,6 +7017,17 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                           <p className="text-gray-700 whitespace-pre-wrap">{feedback.part1.correctedVersion}</p>
                         </div>
                       )}
+                      {feedback.part1?.grammarMistakes?.length > 0 && (() => {
+                        const { grammar, punctuation } = splitGrammarAndPunctuation(feedback.part1.grammarMistakes);
+                        return (
+                          <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-xs">
+                            <h4 className="text-sm font-bold text-yellow-800 mb-2">🛠️ Grammar & punctuation details</h4>
+                            {grammar.map((m, i) => <p key={`g1-${i}`} className="mb-1"><span className="line-through text-red-600">{m.wrong}</span> → <span className="text-green-700 font-semibold">{m.correct}</span> — {m.explanation}</p>)}
+                            {punctuation.length > 0 && <p className="mt-2 font-semibold text-yellow-800">Punctuation/capitalization</p>}
+                            {punctuation.map((m, i) => <p key={`p1-${i}`} className="mb-1"><span className="line-through text-red-600">{m.wrong}</span> → <span className="text-green-700 font-semibold">{m.correct}</span> — {m.explanation}</p>)}
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
 
@@ -7004,6 +7062,11 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                           </div>
                         </div>
                       )}
+                      {answers.marks?.part2 && (
+                        <div className="mt-3 h-2 w-full rounded-full bg-slate-200 overflow-hidden">
+                          <div className={`h-full ${scoreProgressColor(Math.round(((answers.marks.part2.content + answers.marks.part2.communicativeAchievement + answers.marks.part2.organisation + answers.marks.part2.language) / 20) * 100))}`} style={{ width: `${Math.round(((answers.marks.part2.content + answers.marks.part2.communicativeAchievement + answers.marks.part2.organisation + answers.marks.part2.language) / 20) * 100)}%` }} />
+                        </div>
+                      )}
                       
                       {/* Teacher Feedback for Part 2 */}
                       {feedback.part2?.feedback && (
@@ -7019,6 +7082,17 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                           <p className="text-gray-700 whitespace-pre-wrap">{feedback.part2.correctedVersion}</p>
                         </div>
                       )}
+                      {feedback.part2?.grammarMistakes?.length > 0 && (() => {
+                        const { grammar, punctuation } = splitGrammarAndPunctuation(feedback.part2.grammarMistakes);
+                        return (
+                          <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-xs">
+                            <h4 className="text-sm font-bold text-yellow-800 mb-2">🛠️ Grammar & punctuation details</h4>
+                            {grammar.map((m, i) => <p key={`g2-${i}`} className="mb-1"><span className="line-through text-red-600">{m.wrong}</span> → <span className="text-green-700 font-semibold">{m.correct}</span> — {m.explanation}</p>)}
+                            {punctuation.length > 0 && <p className="mt-2 font-semibold text-yellow-800">Punctuation/capitalization</p>}
+                            {punctuation.map((m, i) => <p key={`p2-${i}`} className="mb-1"><span className="line-through text-red-600">{m.wrong}</span> → <span className="text-green-700 font-semibold">{m.correct}</span> — {m.explanation}</p>)}
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
 

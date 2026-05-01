@@ -642,6 +642,14 @@ export interface StudentWritingHistoryEntry {
   has_feedback: boolean;
   feedback_summary: string | null;
   feedback_next_move: string | null;
+  grammar_issue_count: number;
+  punctuation_issue_count: number;
+  feedback_quick_fixes: Array<{
+    type: string;
+    original: string;
+    better: string;
+    explanation: string;
+  }>;
 }
 
 export interface StudentWritingHistoryByGenre {
@@ -709,6 +717,16 @@ export const listStudentWritingHistoryByGenre = (studentId: string): ServiceResp
       has_feedback: Boolean(feedback),
       feedback_summary: summary,
       feedback_next_move: nextMove,
+      grammar_issue_count: attempt.assessment?.weakness_tags?.filter((tag) => /grammar|agreement|tense|article|preposition/i.test(String(tag))).length ?? 0,
+      punctuation_issue_count: attempt.assessment?.weakness_tags?.filter((tag) => /punctuation|capital/i.test(String(tag))).length ?? 0,
+      feedback_quick_fixes: Array.isArray(feedback?.['quick_fixes'])
+          ? (feedback?.['quick_fixes'] as Array<Record<string, unknown>>).map((item) => ({
+            type: typeof item?.['type'] === 'string' ? item['type'] : 'Language',
+            original: typeof item?.['original'] === 'string' ? item['original'] : '',
+            better: typeof item?.['betterVersion'] === 'string' ? item['betterVersion'] : '',
+            explanation: typeof item?.['explanation'] === 'string' ? item['explanation'] : '',
+          }))
+        : [],
     };
     const currentEntries = byGenre.get(attempt.genre) ?? [];
     currentEntries.push(entry);

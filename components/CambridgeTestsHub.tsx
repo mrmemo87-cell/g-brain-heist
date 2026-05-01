@@ -1067,6 +1067,26 @@ interface WritingFeedbackView {
   overallComments?: string;
 }
 
+interface WritingSubmissionHistoryItem {
+  submittedAt: string;
+  percentage: number;
+  score: number;
+  grammarIssues: number;
+  punctuationIssues: number;
+}
+
+const getProgressBarColor = (value: number) => {
+  if (value >= 80) return '#22c55e';
+  if (value >= 60) return '#eab308';
+  return '#ef4444';
+};
+
+const classifyGrammarAndPunctuation = (items: MistakeItem[] = []) => {
+  const punctuation = items.filter((item) => /punct|comma|full stop|period|apostrophe|quote|capital/i.test(item.explanation || item.wrong));
+  const grammar = items.filter((item) => !punctuation.includes(item));
+  return { grammar, punctuation };
+};
+
 const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }) => {
   const [tests, setTests] = useState<CambridgeTest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1076,6 +1096,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
   const [feedbackData, setFeedbackData] = useState<WritingFeedbackView | null>(null);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [activeFeedbackPart, setActiveFeedbackPart] = useState<'part1' | 'part2'>('part1');
+  const [feedbackHistory, setFeedbackHistory] = useState<WritingSubmissionHistoryItem[]>([]);
   const [showStudentReport, setShowStudentReport] = useState(false);
   const [studentReportData, setStudentReportData] = useState<ProfessionalReportData | null>(null);
   const [studentReportLoading, setStudentReportLoading] = useState(false);
@@ -1419,6 +1440,13 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       }
 
       const { data, error } = await feedbackQuery.single();
+      const { data: historyRows } = await supabase
+        .from('quiz_scores')
+        .select('score, percentage, submitted_at, answers')
+        .eq('student_name', profile.username)
+        .eq('quiz_name', test.name)
+        .order('submitted_at', { ascending: false })
+        .limit(8);
 
       if (error) throw error;
 
@@ -1491,11 +1519,30 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
           markedAt: answers.marked_at || null,
           overallComments: feedback?.overallComments || '',
         });
+        if (historyRows) {
+          const parsedHistory = historyRows.map((row: any) => {
+            const rowAnswers = typeof row.answers === 'string' ? JSON.parse(row.answers) : row.answers;
+            const rowFeedback = rowAnswers?.feedback || {};
+            const issues = [...(rowFeedback?.part1?.grammarMistakes || []), ...(rowFeedback?.part2?.grammarMistakes || [])];
+            const { grammar, punctuation } = classifyGrammarAndPunctuation(issues);
+            return {
+              submittedAt: row.submitted_at,
+              score: Number(row.score || 0),
+              percentage: Number(row.percentage || 0),
+              grammarIssues: grammar.length,
+              punctuationIssues: punctuation.length,
+            };
+          });
+          setFeedbackHistory(parsedHistory);
+        } else {
+          setFeedbackHistory([]);
+        }
         setActiveFeedbackPart('part1');
       }
     } catch (err) {
       console.error('Error fetching writing feedback:', err);
       setFeedbackData(null);
+      setFeedbackHistory([]);
     } finally {
       setFeedbackLoading(false);
     }
@@ -2381,7 +2428,30 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                     <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px' }}>
                       Total Score ({feedbackData.percentage}%)
                     </div>
+                    <div style={{ marginTop: '10px', background: 'rgba(255,255,255,0.14)', borderRadius: '999px', height: '12px', overflow: 'hidden' }}>
+                      <div style={{ width: `${feedbackData.percentage}%`, background: getProgressBarColor(feedbackData.percentage), height: '100%', transition: 'width 350ms ease' }} />
+                    </div>
                   </div>
+                  {feedbackHistory.length > 0 && (
+                    <div style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px', padding: '12px', marginBottom: '20px' }}>
+                      <h5 style={{ margin: '0 0 10px', color: '#fff', fontSize: '14px' }}>📚 Earlier Submissions Timeline</h5>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {feedbackHistory.map((item, index) => {
+                          const prev = feedbackHistory[index + 1];
+                          const trend = !prev ? '—' : item.percentage > prev.percentage ? '↑' : item.percentage < prev.percentage ? '↓' : '→';
+                          return (
+                            <div key={`${item.submittedAt}-${index}`} style={{ display: 'grid', gridTemplateColumns: '1.2fr .8fr .8fr .8fr .5fr', gap: '8px', alignItems: 'center', color: 'rgba(255,255,255,0.9)', fontSize: '12px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', padding: '8px' }}>
+                              <span>{new Date(item.submittedAt).toLocaleDateString()}</span>
+                              <span>{item.score}/35</span>
+                              <span>{item.percentage}%</span>
+                              <span>G:{item.grammarIssues} • P:{item.punctuationIssues}</span>
+                              <span style={{ color: trend === '↑' ? '#4ade80' : trend === '↓' ? '#f87171' : '#cbd5e1' }}>{trend}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Part Selector Tabs */}
                   <div style={{
@@ -2461,8 +2531,12 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                     </div>
                   )}
 
-                  {/* Grammar Mistakes */}
-                  {((activeFeedbackPart === 'part1' ? feedbackData.part1.grammarMistakes : feedbackData.part2.grammarMistakes) || []).length > 0 && (
+                  {/* Grammar + Punctuation Mistakes */}
+                  {(() => {
+                    const issueList = (activeFeedbackPart === 'part1' ? feedbackData.part1.grammarMistakes : feedbackData.part2.grammarMistakes) || [];
+                    const { grammar, punctuation } = classifyGrammarAndPunctuation(issueList);
+                    if (issueList.length === 0) return null;
+                    return (
                     <div style={{
                       background: '#fefce8',
                       borderRadius: '12px',
@@ -2470,11 +2544,10 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       marginBottom: '15px',
                       border: '1px solid #fde047',
                     }}>
-                      <h5 style={{ margin: '0 0 12px', color: '#854d0e', fontSize: '14px', fontWeight: 'bold' }}>
-                        📝 Grammar Mistakes ({(activeFeedbackPart === 'part1' ? feedbackData.part1.grammarMistakes : feedbackData.part2.grammarMistakes)?.length || 0})
-                      </h5>
+                      <h5 style={{ margin: '0 0 12px', color: '#854d0e', fontSize: '14px', fontWeight: 'bold' }}>📝 Grammar & Punctuation Issues ({issueList.length})</h5>
+                      {grammar.length > 0 && <p style={{ margin: '0 0 8px', color: '#713f12', fontSize: '12px' }}>Grammar issues: {grammar.length}</p>}
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {(activeFeedbackPart === 'part1' ? feedbackData.part1.grammarMistakes : feedbackData.part2.grammarMistakes)?.map((m, i) => (
+                        {grammar.map((m, i) => (
                           <div key={i} style={{
                             background: '#fff',
                             padding: '10px 12px',
@@ -2490,8 +2563,26 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                           </div>
                         ))}
                       </div>
+                      {punctuation.length > 0 && (
+                        <>
+                          <p style={{ margin: '12px 0 8px', color: '#713f12', fontSize: '12px' }}>Punctuation/capitalization issues: {punctuation.length}</p>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {punctuation.map((m, i) => (
+                              <div key={`p-${i}`} style={{ background: '#fff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                                <div style={{ marginBottom: '4px' }}>
+                                  <span style={{ color: '#dc2626', textDecoration: 'line-through', fontWeight: 500 }}>{m.wrong}</span>
+                                  <span style={{ margin: '0 8px', color: '#6b7280' }}>→</span>
+                                  <span style={{ color: '#16a34a', fontWeight: 600 }}>{m.correct}</span>
+                                </div>
+                                <p style={{ margin: 0, fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>{m.explanation}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      )}
                     </div>
-                  )}
+                    );
+                  })()}
 
                   {/* Mark Justifications */}
                   {(activeFeedbackPart === 'part1' ? feedbackData.part1.markJustifications : feedbackData.part2.markJustifications) && (
