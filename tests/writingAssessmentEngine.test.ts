@@ -36,7 +36,7 @@ test('supports all required genres with valid JSON output skeleton', () => {
   }
 });
 
-test('grade 8-9 keeps official 3 subscales and hidden coaching signals', () => {
+test('grade 8-9 uses unified 4-subscale scoring and still exposes hidden coaching signals', () => {
   const result = assessWritingExam({
     promptText: fakePrompt,
     grade: 8,
@@ -46,8 +46,8 @@ test('grade 8-9 keeps official 3 subscales and hidden coaching signals', () => {
       'First, I describe the main event. Then I explain why it mattered for readers in our school community. Finally, I add one recommendation for future events.',
   });
 
-  assert.strictEqual(result.score_mode, 'A2_3_scale');
-  assert.strictEqual(result.subscores.communicative_achievement, null);
+  assert.strictEqual(result.score_mode, 'B1B2_4_scale');
+  assert.equal(typeof result.subscores.communicative_achievement, 'number');
   assert.ok(result.hidden_coaching_signals);
   assert.equal(typeof result.hidden_coaching_signals?.register, 'number');
 });
