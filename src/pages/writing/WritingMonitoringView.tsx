@@ -89,7 +89,7 @@ const toTeacherWeaknessLabel = (tag: string): string =>
 
 const formatScoreLabel = (score: number | null | undefined): string => {
   if (score == null || Number.isNaN(score)) return '—';
-  return score <= 11 ? `${score}/11 (band)` : `${score}`;
+  return `${score}/20`;
 };
 
 type ReportConfidenceState = 'no_data' | 'partial_data' | 'full_insight';

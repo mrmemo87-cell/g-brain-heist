@@ -542,7 +542,7 @@ export const assessWritingExam = (input: WritingAssessmentInput): WritingAssessm
     communicativeScored
   );
 
-  const communicativeScore = input.grade >= 10 ? communicativeScored.band : null;
+  const communicativeScore = communicativeScored.band;
   const totalScore = contentScored.band + organisationScored.band + languageScored.band + (communicativeScore ?? 0);
 
   const result: WritingAssessmentResult = {
@@ -560,10 +560,7 @@ export const assessWritingExam = (input: WritingAssessmentInput): WritingAssessm
     total_score: totalScore,
     band_justification: {
       content: contentScored.comment,
-      communicative_achievement:
-        communicativeScore === null
-          ? 'Communicative Achievement is tracked through coaching signals at this grade band.'
-          : communicativeScored.comment,
+      communicative_achievement: communicativeScored.comment,
       organisation: organisationScored.comment,
       language: languageScored.comment,
     },

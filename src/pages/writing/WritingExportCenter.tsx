@@ -115,7 +115,7 @@ const isUuid = (value?: string): boolean =>
 
 const formatScore = (score: number | null | undefined): string => {
   if (score == null || Number.isNaN(score)) return '—';
-  return score <= 11 ? `${score}/11 (band)` : `${score}`;
+  return `${score}/20`;
 };
 
 export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
