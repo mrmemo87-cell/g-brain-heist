@@ -342,7 +342,9 @@ export const getUnreadSchoolRequestMessageCount = (
 
   return messages.reduce((count, message) => {
     const senderRole = (message.sender_role || '').toLowerCase();
-    const isIncomingForViewer = isAdminViewer ? senderRole !== 'admin' : senderRole === 'admin';
+    // Applicant should treat any non-applicant sender as incoming (admin, superadmin, moderator, etc.)
+    // Admin should treat any non-admin sender as incoming.
+    const isIncomingForViewer = isAdminViewer ? senderRole !== 'admin' : senderRole !== 'applicant';
     if (!isIncomingForViewer) return count;
 
     if (!message.created_at) {
