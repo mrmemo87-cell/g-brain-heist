@@ -599,6 +599,14 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
 
       const chestXp = result.chest_rewards.xp;
       const chestCoins = result.chest_rewards.coins;
+      const latestRunXp = Number(latestRun.rewards_xp ?? 0);
+      const latestRunCoins = Number(latestRun.rewards_coins ?? 0);
+      const effectiveTotalRunXp = result.total_run_xp > 0
+        ? result.total_run_xp
+        : Math.max(0, latestRunXp + chestXp);
+      const effectiveTotalRunCoins = result.total_run_coins > 0
+        ? result.total_run_coins
+        : Math.max(0, latestRunCoins + chestCoins);
 
       const finalValues = requireFinalProfileValues(result.final_profile_values as any, 'Final chest');
       onGrantReward(
@@ -618,8 +626,8 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       setChestResult({
         chest_tier: result.chest_tier,
         chest_rewards: result.chest_rewards,
-        total_run_xp: result.total_run_xp,
-        total_run_coins: result.total_run_coins,
+        total_run_xp: effectiveTotalRunXp,
+        total_run_coins: effectiveTotalRunCoins,
         rewards_persisted: true,
         streak_peak: result.streak_peak,
         perfect_run: result.perfect_run,
