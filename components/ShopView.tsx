@@ -365,18 +365,16 @@ const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, ad
         const receipt = await GameService.shop_buy(item.id, quantity);
         audioService.play('buy');
         onPurchase({ coins: -receipt.coins_spent, gemstones: -receipt.gemstones_spent });
-        const costParts = [
-            receipt.coins_spent ? `${receipt.coins_spent} coins` : null,
-            receipt.gemstones_spent ? `${receipt.gemstones_spent} gemstones` : null,
-        ].filter(Boolean).join(' & ');
-        addToast(`Purchased ${quantity}x ${item.name} for ${costParts || 'free'}!`, 'success');
+        setItems(prev =>
+          prev.map(shopItem =>
+            shopItem.id === item.id
+              ? { ...shopItem, owned_today: shopItem.owned_today + quantity }
+              : shopItem
+          )
+        );
         setSelectedItem(null);
-        // Refetch shop list to update owned_today counts
-        setStage('loading');
-        GameService.shop_list().then(data => {
-            setItems(data);
-            setStage('idle');
-        });
+        // Silent background sync to reconcile with server and keep UX instant.
+        GameService.shop_list().then(data => setItems(data)).catch(() => {});
     } catch (error: any) {
         console.error("Purchase failed:", error);
         addToast(error.message || 'Purchase failed', 'error');
@@ -389,13 +387,13 @@ const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, ad
             id: 'defense',
             label: 'Defensive Arsenal',
             description: 'Shields, firewalls, and cryptographic wards that soak up enemy strikes.',
-            matcher: (item: ShopItem) => ['shield', 'firewall', 'encryption_key'].includes(item.kind),
+            matcher: (item: ShopItem) => ['shield', 'firewall'].includes(item.kind),
         },
         {
             id: 'boost',
             label: 'Boosters & Exploits',
             description: 'Tempo-shifting tools that spike damage, XP, or resource gains.',
-            matcher: (item: ShopItem) => ['booster', 'major_booster', 'exploit_kit'].includes(item.kind),
+            matcher: (item: ShopItem) => ['booster', 'major_booster', 'exploit_kit', 'encryption_key'].includes(item.kind),
         },
         {
             id: 'cosmetic',
