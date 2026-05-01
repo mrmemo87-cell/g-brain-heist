@@ -143,16 +143,25 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
   const [weakAreaFilter, setWeakAreaFilter] = useState<string>('all');
   const [activeQuickFilter, setActiveQuickFilter] = useState<'all' | 'stalled' | 'improving'>('all');
   const [isReportOpen, setIsReportOpen] = useState(false);
+  const [activeQueueTab, setActiveQueueTab] = useState<'urgent' | 'improving' | 'on_track' | 'all'>('all');
+  const [actionedToday, setActionedToday] = useState<Set<string>>(new Set());
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [isPracticeOpen, setIsPracticeOpen] = useState(false);
   const [isReportLoading, setIsReportLoading] = useState(false);
   const [reportError, setReportError] = useState('');
   const [openReportData, setOpenReportData] = useState<TeacherWritingReport | null>(null);
+  const [showFullSubmission, setShowFullSubmission] = useState(false);
 
   const filters = parseAdminDrilldownFilters(filterQuery);
 
   const allRows: MonitoringRow[] = useMemo(() => (overview?.student_rows ?? []).map((row) => ({ ...row })), [overview]);
 
   const gradeOptions = useMemo(() => [...new Set(allRows.map((row) => String(row.current_grade)))].sort((a, b) => Number(a) - Number(b)), [allRows]);
-  const classOptions = useMemo(() => ['Unassigned'], []);
+  const classOptions = useMemo(() => {
+    const classes = [...new Set(allRows.map((row) => (row.class_name ?? '').trim()).filter(Boolean))].sort();
+    const hasUnassigned = allRows.some((row) => !(row.class_name ?? '').trim());
+    return hasUnassigned ? [...classes, 'Unassigned'] : classes;
+  }, [allRows]);
 
   const rows = useMemo(() => {
     const filtered = allRows.filter((row) => {
@@ -228,6 +237,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
     setSelectedStudentId(studentId);
     setIsReportOpen(true);
     setIsReportLoading(true);
+    setShowFullSubmission(false);
     setReportError('');
     void getTeacherWritingReport({ student_id: studentId, month, include_snippet: false })
       .then((result) => {
@@ -243,10 +253,29 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
           return;
         }
         setOpenReportData(result.data);
+        setActionedToday((prev) => new Set(prev).add(studentId));
       })
       .finally(() => setIsReportLoading(false));
   };
 
+
+  useEffect(() => {
+    if (activeQueueTab !== 'all') return;
+    if (allRows.some((row) => row.stalled)) setActiveQueueTab('urgent');
+  }, [allRows, activeQueueTab]);
+
+  const queueRows = useMemo(() => {
+    if (activeQueueTab === 'all') return rows;
+    if (activeQueueTab === 'urgent') return rows.filter((row) => row.stalled);
+    if (activeQueueTab === 'improving') return rows.filter((row) => row.improving && !row.stalled);
+    return rows.filter((row) => !row.stalled && !row.improving);
+  }, [rows, activeQueueTab]);
+
+  const getWhyFlagged = (row: MonitoringRow): string => {
+    if (row.stalled) return 'Repeated grammar accuracy weakness in recent attempts.';
+    if (row.improving) return 'Recent writing indicators show consistent progress.';
+    return 'Stable progress with no high-priority risk signal.';
+  };
   const buildPrintableReportHtml = (report: TeacherWritingReport): string => {
     const completionPercent = report.overall_summary.completion_rate_percent;
     const latestScore = report.overall_summary.latest_score;
@@ -269,7 +298,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
       .map(([label, value]) => `<tr><th>${label}</th><td>${value}</td></tr>`)
       .join('');
     return `<!doctype html>
-<html><head><meta charset="utf-8"/><title>Writing Report Card</title>
+<html><head><meta charset="utf-8"/><title>Student Writing Review</title>
 <style>
 body{font-family:Inter,Segoe UI,Arial,sans-serif;padding:26px;color:#0f172a;background:#f8fafc}
 .card{border:1px solid #cbd5e1;border-radius:14px;background:#fff;overflow:hidden}
@@ -336,7 +365,23 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
     downloadText(`writing-summary-${studentId}-${month}.txt`, content);
   };
 
-  if (isLoading) return <div style={{ padding: 12, color: '#e5e7eb' }}>Loading writing monitor…</div>;
+  if (isLoading) {
+    return (
+      <div style={{ padding: 20, display: 'grid', gap: 12, background: '#0a0f1a' }}>
+        {[1, 2, 3].map((item) => (
+          <div key={item} style={{ ...shellCard, padding: 14, border: '1px solid #1e293b', display: 'grid', gap: 10 }}>
+            <div style={{ width: '40%', height: 16, background: '#1e293b', borderRadius: 6 }} />
+            <div style={{ width: '70%', height: 12, background: '#1e293b', borderRadius: 6 }} />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(80px, 1fr))', gap: 8 }}>
+              <div style={{ height: 36, background: '#111827', borderRadius: 8 }} />
+              <div style={{ height: 36, background: '#111827', borderRadius: 8 }} />
+              <div style={{ height: 36, background: '#111827', borderRadius: 8 }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
   if (errorMessage) return <div style={{ padding: 12, color: '#fca5a5' }}>Unable to load writing monitor: {errorMessage}</div>;
   if (loadError) return <div style={{ padding: 12, color: '#e5e7eb' }}>{loadError}</div>;
   if (!overview) return <div style={{ padding: 12, color: '#e5e7eb' }}>No writing monitoring data available yet.</div>;
@@ -354,31 +399,83 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
       {/* Header Section */}
       <section ref={headerRef} style={{ display: 'grid', gap: 16 }}>
         <div>
-          <h1 style={{ margin: 0, color: '#ffffff', fontSize: 32, fontWeight: 900, letterSpacing: -0.5 }}>Writing Hub</h1>
-          <p style={{ margin: '8px 0 0', color: '#94a3b8', fontSize: 14 }}>Teacher dashboard for monitoring student writing progress, trends, and performance</p>
+          <h1 style={{ margin: 0, color: '#ffffff', fontSize: 32, fontWeight: 900, letterSpacing: -0.5 }}>Today’s Focus</h1>
+          <p style={{ margin: '8px 0 0', color: '#94a3b8', fontSize: 14 }}>Start with students who need action now.</p>
         </div>
 
         {/* Key Metrics */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 14 }}>
           <div style={{ ...shellCard, padding: 16, display: 'grid', gap: 8, border: '1px solid #1e293b' }}>
-            <div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>Needing Support</div>
+            <div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>Urgent</div>
             <div style={{ fontSize: 36, fontWeight: 900, color: '#fca5a5' }}>{stalledCount}</div>
-            <div style={{ fontSize: 12, color: '#cbd5e1' }}>students</div>
+            <div style={{ fontSize: 12, color: '#cbd5e1' }}>Need support now</div>
           </div>
           <div style={{ ...shellCard, padding: 16, display: 'grid', gap: 8, border: '1px solid #1e293b' }}>
             <div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>Improving</div>
             <div style={{ fontSize: 36, fontWeight: 900, color: '#86efac' }}>{improvingCount}</div>
-            <div style={{ fontSize: 12, color: '#cbd5e1' }}>students</div>
+            <div style={{ fontSize: 12, color: '#cbd5e1' }}>Making progress</div>
           </div>
           <div style={{ ...shellCard, padding: 16, display: 'grid', gap: 8, border: '1px solid #1e293b' }}>
-            <div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>Ready for Review</div>
+            <div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>On Track</div>
             <div style={{ fontSize: 36, fontWeight: 900, color: '#93c5fd' }}>{monthlyReadyCount}</div>
-            <div style={{ fontSize: 12, color: '#cbd5e1' }}>students</div>
+            <div style={{ fontSize: 12, color: '#cbd5e1' }}>Stable progress</div>
           </div>
+          <div style={{ ...shellCard, padding: 16, display: 'grid', gap: 8, border: '1px solid #1e293b' }}>
+            <div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>Actioned Today</div>
+            <div style={{ fontSize: 36, fontWeight: 900, color: '#c4b5fd' }}>{actionedToday.size}</div>
+            <div style={{ fontSize: 12, color: '#cbd5e1' }}>Handled today</div>
+          </div>
+        </div>
+
+      </section>
+
+      <section style={{ ...shellCard, padding: 12, border: '1px solid #1e293b', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {[
+          ['urgent', `Urgent (${allRows.filter((row) => row.stalled).length})`],
+          ['improving', `Improving (${allRows.filter((row) => row.improving && !row.stalled).length})`],
+          ['on_track', `On Track (${allRows.filter((row) => !row.stalled && !row.improving).length})`],
+          ['all', `All Students (${rows.length})`],
+        ].map(([key, label]) => (
+          <button key={key} type="button" onClick={() => setActiveQueueTab(key as any)} style={{ ...chipStyle(activeQueueTab === key ? 'info' : 'neutral'), border: 'none', cursor: 'pointer' }}>{label}</button>
+        ))}
+      </section>
+      <section style={{ ...shellCard, padding: 12, border: '1px solid #1e293b', display: 'grid', gap: 8 }}>
+        <div style={{ fontSize: 12, color: '#94a3b8', fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase' }}>Active filters</div>
+        <div style={{ fontSize: 13, color: '#e2e8f0' }}>
+          {[
+            `Tab: ${activeQueueTab.replace('_', ' ')}`,
+            classFilter !== 'all' ? `Class: ${classFilter}` : '',
+            gradeFilter !== 'all' ? `Grade: ${gradeFilter}` : '',
+            weakAreaFilter !== 'all' ? `Weak area: ${toTeacherWeaknessLabel(weakAreaFilter)}` : '',
+            supportFilter !== 'all' ? `Status: ${supportFilter.replace('_', ' ')}` : '',
+            readinessFilter !== 'all' ? `Readiness: ${readinessFilter.replace('_', ' ')}` : '',
+            activeQuickFilter !== 'all' ? `Quick filter: ${activeQuickFilter}` : '',
+            searchQuery ? `Search: "${searchQuery}"` : '',
+          ].filter(Boolean).join(' • ') || 'No extra filters applied'}
+        </div>
+        <div>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveQueueTab(allRows.some((row) => row.stalled) ? 'urgent' : 'all');
+              setClassFilter('all');
+              setGradeFilter('all');
+              setWeakAreaFilter('all');
+              setSupportFilter('all');
+              setReadinessFilter('all');
+              setActiveQuickFilter('all');
+              setSearchQuery('');
+              setSortKey('student');
+            }}
+            style={{ borderRadius: 8, border: '1px solid #334155', background: '#111827', color: '#f8fafc', padding: '8px 12px' }}
+          >
+            Reset all filters
+          </button>
         </div>
       </section>
 
       {/* Filters Section */}
+
       <section style={{ ...shellCard, padding: 16, display: 'grid', gap: 12, border: '1px solid #1e293b' }}>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
           <span style={{ fontSize: 12, fontWeight: 700, color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: 0.5 }}>Quick Filter:</span>
@@ -388,6 +485,7 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10 }}>
+          <select value={classFilter} onChange={(event: SelectChangeEvent) => setClassFilter(event.target.value)} style={{ background: "#0f1728", border: "1px solid #334155", color: "#f8fafc", borderRadius: 8, padding: "10px 12px", fontSize: 13 }}><option value="all">All Classes</option>{classOptions.map((value) => <option key={value} value={value}>{value}</option>)}</select>
           <input value={searchQuery} onChange={(event: InputChangeEvent) => setSearchQuery(event.target.value)} placeholder="Search by name..." type="text" style={{ background: '#0f1728', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '10px 12px', fontSize: 13 }} />
           <select value={gradeFilter} onChange={(event: SelectChangeEvent) => setGradeFilter(event.target.value)} style={{ background: '#0f1728', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '10px 12px', fontSize: 13 }}>
             <option value="all">Grade: All</option>
@@ -418,52 +516,37 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
         </div>
       </section>
 
-      {/* Main Content: Table + Details */}
-      <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 380px)' }}>
-        {/* Student Roster Table */}
-        <div ref={listRef} style={{ ...shellCard, overflow: 'hidden', border: '1px solid #1e293b', boxShadow: '0 10px 28px rgba(15,23,42,0.3)' }}>
-          <div style={{ overflowX: 'auto', maxHeight: '65vh' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', background: 'transparent' }}>
-              <thead>
-                <tr style={{ background: '#111b31', borderBottom: '2px solid #334155' }}>
-                  <th align="left" style={{ ...tableHeaderCellStyle, borderBottom: '2px solid #334155' }}>Student</th>
-                  <th align="center" style={{ ...tableHeaderCellStyle, borderBottom: '2px solid #334155', width: '70px' }}>Grade</th>
-                  <th align="center" style={{ ...tableHeaderCellStyle, borderBottom: '2px solid #334155', width: '90px' }}>Complete</th>
-                  <th align="center" style={{ ...tableHeaderCellStyle, borderBottom: '2px solid #334155', width: '70px' }}>Score</th>
-                  <th align="left" style={{ ...tableHeaderCellStyle, borderBottom: '2px solid #334155' }}>Status</th>
-                  <th align="center" style={{ ...tableHeaderCellStyle, borderBottom: '2px solid #334155', width: '60px' }}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => {
-                  const selected = selectedRow?.student_id === row.student_id;
-                  const statusColor = row.stalled ? '#f87171' : row.improving ? '#86efac' : '#cbd5e1';
-                  return (
-                    <tr key={row.student_id} onClick={() => setSelectedStudentId(row.student_id)} style={{ cursor: 'pointer', background: selected ? 'rgba(59, 130, 246, 0.08)' : 'transparent', borderBottom: '1px solid #1e293b', transition: 'background 200ms ease' }}>
-                      <td style={{ ...tableCellStyle, paddingLeft: 14, borderLeft: selected ? '3px solid #3b82f6' : '3px solid transparent' }}>
-                        <div><strong style={{ color: '#f8fafc' }}>{toDisplayLabel(row.student_name, row.student_id)}</strong></div>
-                        <div style={{ fontSize: 11, color: '#64748b', marginTop: 3 }}>{row.class_name ?? 'Unassigned'}</div>
-                      </td>
-                      <td style={{ ...tableCellStyle, textAlign: 'center' }}><strong>{row.current_grade}</strong></td>
-                      <td style={{ ...tableCellStyle, textAlign: 'center' }}><strong style={{ color: '#93c5fd' }}>{Math.round(row.completion_rate * 100)}%</strong></td>
-                      <td style={{ ...tableCellStyle, textAlign: 'center' }}><strong>{row.latest_score ?? '—'}</strong></td>
-                      <td style={{ ...tableCellStyle }}>
-                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                          {row.stalled ? <span style={{ ...chipStyle('danger'), fontSize: 11 }}>Needs support</span> : null}
-                          {row.improving ? <span style={{ ...chipStyle('success'), fontSize: 11 }}>Improving</span> : null}
-                          {!row.stalled && !row.improving ? <span style={{ ...chipStyle('neutral'), fontSize: 11 }}>Stable</span> : null}
-                        </div>
-                      </td>
-                      <td style={{ ...tableCellStyle, textAlign: 'center' }}>
-                        <button type="button" onClick={(event: { stopPropagation: () => void }) => { event.stopPropagation(); openReport(row.student_id); }} style={{ borderRadius: 6, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '5px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer', transition: 'all 150ms ease' }}>Report</button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-            {rows.length === 0 ? <div style={{ padding: 20, textAlign: 'center', color: '#cbd5e1' }}>No students match your filters</div> : null}
-          </div>
+      {/* Main Content: Queue Cards + Details */}
+      <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
+        <div ref={listRef} style={{ display: 'grid', gap: 12 }}>
+          {queueRows.map((row) => {
+            const selected = selectedRow?.student_id === row.student_id;
+            const statusLabel = row.stalled ? 'Urgent' : row.improving ? 'Improving' : 'On Track';
+            return (
+              <article key={row.student_id} onClick={() => setSelectedStudentId(row.student_id)} style={{ ...shellCard, padding: 14, border: selected ? '1px solid #3b82f6' : '1px solid #1e293b', cursor: 'pointer', display: 'grid', gap: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: 16 }}>{toDisplayLabel(row.student_name, row.student_id)}</div>
+                    <div style={{ fontSize: 12, color: '#94a3b8' }}>{row.class_name ?? 'Unassigned'} • Grade {row.current_grade}</div>
+                  </div>
+                  <span style={{ ...chipStyle(row.stalled ? 'danger' : row.improving ? 'success' : 'neutral') }}>{statusLabel}</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8 }}>
+                  <div><small style={{ color: '#94a3b8' }}>Latest score</small><div>{formatScoreLabel(row.latest_score)}</div></div>
+                  <div><small style={{ color: '#94a3b8' }}>Trend</small><div>{toTrendLabel(row)}</div></div>
+                  <div><small style={{ color: '#94a3b8' }}>Completion</small><div>{Math.round(row.completion_rate * 100)}%</div></div>
+                </div>
+                <div style={{ fontSize: 13, color: '#cbd5e1' }}><strong>Top weak area:</strong> {row.repeated_weakness_hotspots[0] ? toTeacherWeaknessLabel(row.repeated_weakness_hotspots[0]) : '—'}</div>
+                <div style={{ fontSize: 13, color: '#cbd5e1' }}><strong>Why flagged:</strong> {getWhyFlagged(row)}</div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button type="button" onClick={(e: { stopPropagation: () => void }) => { e.stopPropagation(); openReport(row.student_id); }} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '7px 10px' }}>Review</button>
+                  <button type="button" onClick={(e: { stopPropagation: () => void }) => { e.stopPropagation(); setSelectedStudentId(row.student_id); setIsFeedbackOpen(true); }} style={{ borderRadius: 8, border: '1px solid #334155', background: '#111827', color: '#f8fafc', padding: '7px 10px' }}>Give Feedback</button>
+                  <button type="button" onClick={(e: { stopPropagation: () => void }) => { e.stopPropagation(); handleExportStudent(row.student_id); }} style={{ borderRadius: 8, border: '1px solid #334155', background: '#111827', color: '#f8fafc', padding: '7px 10px' }}>Generate Report</button>
+                </div>
+              </article>
+            );
+          })}
+          {queueRows.length === 0 ? <div style={{ ...shellCard, padding: 20, textAlign: 'center', color: '#cbd5e1' }}>{activeQueueTab === 'urgent' ? 'No urgent students right now. Nice — check Improving or All Students.' : 'No students match these filters.'}</div> : null}
         </div>
 
         {/* Student Details Card */}
@@ -517,11 +600,10 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
             {/* Report Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, borderBottom: '1px solid #1e293b', paddingBottom: 14 }}>
               <div>
-                <h2 style={{ margin: 0, fontSize: 24, fontWeight: 900, color: '#f8fafc' }}>Writing Report Card</h2>
-                <p style={{ margin: '6px 0 0', fontSize: 12, color: '#94a3b8' }}>Teacher report for {openReportData?.period}</p>
+                <h2 style={{ margin: 0, fontSize: 24, fontWeight: 900, color: '#f8fafc' }}>Student Review</h2>
+                <p style={{ margin: '6px 0 0', fontSize: 12, color: '#94a3b8' }}>Sensitive content protected</p>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="button" onClick={printOpenReport} disabled={!openReportData || isReportLoading} style={{ borderRadius: 8, border: '1px solid #14532d', background: '#166534', color: '#f0fdf4', padding: '10px 14px', cursor: openReportData && !isReportLoading ? 'pointer' : 'not-allowed', opacity: openReportData && !isReportLoading ? 1 : 0.5, fontWeight: 700, fontSize: 13 }}>Print Card</button>
                 <button type="button" onClick={() => setIsReportOpen(false)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '10px 14px', fontWeight: 700, fontSize: 13 }}>Close</button>
               </div>
             </div>
@@ -534,7 +616,7 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                 {/* Student Info */}
                 <div style={{ display: 'grid', gap: 8, background: 'rgba(30, 41, 59, 0.5)', borderRadius: 10, padding: 14, border: '1px solid #1e293b' }}>
                   <div style={{ fontSize: 18, fontWeight: 900, color: '#f8fafc' }}>{openReportData.student.student_name}</div>
-                  <div style={{ fontSize: 13, color: '#cbd5e1' }}>Grade {openReportData.student.grade ?? '—'} • {openReportData.student.class_name ?? 'Unassigned'}</div>
+                  <div style={{ fontSize: 13, color: '#cbd5e1' }}>Grade {openReportData.student.grade ?? '—'} • {openReportData.student.class_name ?? 'Unassigned'} • {selectedRow?.stalled ? 'Urgent' : selectedRow?.improving ? 'Improving' : 'On Track'}</div>
                 </div>
 
                 {/* Key Metrics Grid */}
@@ -548,52 +630,78 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                     <div style={{ fontSize: 22, fontWeight: 900, color: '#86efac' }}>{openReportData.overall_summary.completion_rate_percent}%</div>
                   </div>
                   <div style={{ background: 'rgba(249, 115, 22, 0.08)', border: '1px solid #92400e', borderRadius: 10, padding: 12 }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>Tasks Done</div>
-                    <div style={{ fontSize: 22, fontWeight: 900, color: '#fbbf24' }}>{openReportData.overall_summary.completed_tasks}/{openReportData.overall_summary.total_tasks}</div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>Trend</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: '#fbbf24' }}>{openReportData.overall_summary.score_trend_delta ?? '—'}</div>
                   </div>
                 </div>
 
                 {/* Detailed Info */}
                 <div style={{ display: 'grid', gap: 12, borderTop: '1px solid #1e293b', paddingTop: 14 }}>
                   <div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Genre</div>
-                    <div style={{ fontSize: 14, color: '#e2e8f0' }}>{openReportData.genre}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Strengths</div>
+                    <div style={{ fontSize: 14, color: '#e2e8f0' }}>{openReportData.strengths.length ? openReportData.strengths.join(', ') : 'No strengths captured yet.'}</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Priority Weak Areas</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Needs Work</div>
                     <div style={{ fontSize: 14, color: '#e2e8f0' }}>
                       {openReportData.priority_weak_areas.length ? openReportData.priority_weak_areas.map(toTeacherWeaknessLabel).join(', ') : <span style={{ color: '#64748b' }}>No weaknesses detected</span>}
                     </div>
                   </div>
                   <div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Progress Summary</div>
-                    <div style={{ fontSize: 14, color: '#e2e8f0', lineHeight: 1.6 }}>
-                      {openReportData.student_friendly_summary.progress_summary}
-                    </div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Repeated Patterns</div>
+                    <div style={{ fontSize: 14, color: '#e2e8f0', lineHeight: 1.6 }}>{openReportData.repeated_error_patterns.length ? openReportData.repeated_error_patterns.join(', ') : 'No repeated patterns detected.'}</div>
                   </div>
-                  {openReportData.teacher_actions.length > 0 && (
-                    <div>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Teacher Actions</div>
-                      <ul style={{ margin: 0, paddingLeft: 20, color: '#e2e8f0', fontSize: 14, lineHeight: 1.6 }}>
-                        {openReportData.teacher_actions.map((action, idx) => <li key={idx}>{action}</li>)}
-                      </ul>
-                    </div>
-                  )}
-                  {openReportData.strengths.length > 0 && (
-                    <div>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Strengths</div>
-                      <ul style={{ margin: 0, paddingLeft: 20, color: '#e2e8f0', fontSize: 14, lineHeight: 1.6 }}>
-                        {openReportData.strengths.map((strength, idx) => <li key={idx}>{strength}</li>)}
-                      </ul>
-                    </div>
-                  )}
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Quick Teacher Summary</div>
+                    <div style={{ fontSize: 14, color: '#e2e8f0', lineHeight: 1.6 }}>{openReportData.student_friendly_summary.progress_summary}</div>
+                  </div>
+                  <div style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: '#0b1223' }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, textTransform: 'uppercase' }}>Student Writing</div>
+                    {!showFullSubmission ? (
+                      <>
+                        <div style={{ fontSize: 13, color: '#cbd5e1' }}>Detailed writing text is protected by default.</div>
+                        <button type="button" onClick={() => setShowFullSubmission(true)} style={{ marginTop: 10, borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '7px 10px' }}>View Full Submission</button>
+                        <div style={{ marginTop: 6, fontSize: 12, color: '#94a3b8' }}>Viewing full submission is a sensitive action and may be logged.</div>
+                      </>
+                    ) : (
+                      <div style={{ fontSize: 13, color: '#fbbf24' }}>You don’t have permission to view this content.</div>
+                    )}
+                  </div>
                 </div>
-
-                <div style={{ fontSize: 11, color: '#64748b', textAlign: 'center', borderTop: '1px solid #1e293b', paddingTop: 12 }}>
-                  Confidential — for teacher and student support planning
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', borderTop: '1px solid #1e293b', paddingTop: 12 }}>
+                  <button type="button" onClick={() => setIsFeedbackOpen(true)} style={{ borderRadius: 8, border: '1px solid #3b82f6', background: '#1d4ed8', color: '#fff', padding: '8px 12px' }}>Give Feedback</button>
+                  <button type="button" onClick={() => setIsPracticeOpen(true)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#111827', color: '#fff', padding: '8px 12px' }}>Assign Practice</button>
+                  <button type="button" onClick={() => selectedRow && handleExportStudent(selectedRow.student_id)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#111827', color: '#fff', padding: '8px 12px' }}>Generate Report</button>
+                  <button type="button" onClick={() => setIsReportOpen(false)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#fff', padding: '8px 12px' }}>Close</button>
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      ) : null}
+      {isFeedbackOpen ? (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(2,6,23,0.7)', zIndex: 50, display: 'grid', placeItems: 'center', padding: 16 }}>
+          <div style={{ ...shellCard, width: 'min(640px, 100%)', padding: 16, display: 'grid', gap: 10 }}>
+            <h3 style={{ margin: 0 }}>Give Feedback</h3>
+            <textarea defaultValue="Praise:\n\nGrowth target:\n\nNext step:" style={{ minHeight: 180, background: '#0f172a', color: '#fff', border: '1px solid #334155', borderRadius: 8, padding: 10 }} />
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button type="button" style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#fff', padding: '8px 12px' }}>Save Draft</button>
+              <button type="button" style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#fff', padding: '8px 12px' }}>Copy Feedback</button>
+              <button type="button" onClick={() => setIsFeedbackOpen(false)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#0f172a', color: '#fff', padding: '8px 12px' }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      {isPracticeOpen ? (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(2,6,23,0.7)', zIndex: 50, display: 'grid', placeItems: 'center', padding: 16 }}>
+          <div style={{ ...shellCard, width: 'min(560px, 100%)', padding: 16, display: 'grid', gap: 10 }}>
+            <h3 style={{ margin: 0 }}>Assign Practice</h3>
+            <div style={{ color: '#cbd5e1' }}>Suggested task: Short sentence accuracy practice.</div>
+            <div style={{ fontSize: 12, color: '#94a3b8' }}>Practice assignment will be connected in the next phase.</div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button type="button" disabled style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#64748b', padding: '8px 12px' }}>Assign</button>
+              <button type="button" onClick={() => setIsPracticeOpen(false)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#0f172a', color: '#fff', padding: '8px 12px' }}>Cancel</button>
+            </div>
           </div>
         </div>
       ) : null}
