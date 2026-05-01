@@ -5530,9 +5530,32 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                     <p style={{ margin: 0, color: '#475569', fontSize: 13 }}>
                       <strong>Issues:</strong> Grammar {entry.grammar_issue_count} · Punctuation {entry.punctuation_issue_count}
                     </p>
+                    <div style={{ display: 'grid', gap: 6, marginTop: 2 }}>
+                      {[
+                        { label: 'Content', value: entry.rubric_scores.content },
+                        { label: 'Organization', value: entry.rubric_scores.organisation },
+                        { label: 'Language', value: entry.rubric_scores.language },
+                        { label: 'Communicative Achievement', value: entry.rubric_scores.communicative_achievement },
+                      ].map((item) => {
+                        const score = item.value == null ? 0 : Math.max(0, Math.min(5, item.value));
+                        const pct = Math.round((score / 5) * 100);
+                        const color = score >= 4 ? '#16a34a' : score >= 3 ? '#ca8a04' : '#dc2626';
+                        return (
+                          <div key={`${entry.id}-${item.label}`} style={{ display: 'grid', gap: 4 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#334155' }}>
+                              <span><strong>{item.label}</strong></span>
+                              <span>{item.value != null ? `${item.value}/5` : '—/5'}</span>
+                            </div>
+                            <div style={{ height: 7, borderRadius: 999, background: '#e2e8f0', overflow: 'hidden' }}>
+                              <div style={{ width: `${pct}%`, height: '100%', borderRadius: 999, background: color }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                     {entry.feedback_quick_fixes.length > 0 && (
                       <details style={{ marginTop: 4 }}>
-                        <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Detailed grammar / punctuation feedback</summary>
+                        <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Word-by-word corrections</summary>
                         <ul style={{ margin: '6px 0 0', paddingLeft: 18, display: 'grid', gap: 6 }}>
                           {entry.feedback_quick_fixes.map((fix, fixIdx) => (
                             <li key={`${entry.id}-fix-${fixIdx}`} style={{ fontSize: 13, color: '#334155' }}>
@@ -5542,6 +5565,11 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                           ))}
                         </ul>
                       </details>
+                    )}
+                    {entry.feedback_quick_fixes.length === 0 && (
+                      <p style={{ margin: 0, fontSize: 12, color: '#64748b' }}>
+                        Detailed word-level corrections are not available for this submission yet. Re-submit to generate full AI corrections.
+                      </p>
                     )}
                   </div>
                 ))}

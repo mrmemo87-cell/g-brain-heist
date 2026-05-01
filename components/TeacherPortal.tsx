@@ -6957,6 +6957,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                           const attemptFeedback = attemptAnswers.feedback || {};
                           const allIssues = [...(attemptFeedback?.part1?.grammarMistakes || []), ...(attemptFeedback?.part2?.grammarMistakes || [])];
                           const { grammar, punctuation } = splitGrammarAndPunctuation(allIssues);
+                          const part1Marks = attemptAnswers?.marks?.part1 || null;
+                          const part2Marks = attemptAnswers?.marks?.part2 || null;
                           return (
                             <div key={attempt.id || `${attempt.submitted_at}-${index}`} className="grid grid-cols-5 gap-2 text-xs items-center bg-white border border-slate-200 rounded-lg p-2">
                               <span>{new Date(attempt.submitted_at).toLocaleDateString()}</span>
@@ -6964,6 +6966,30 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                               <span>{attempt.percentage}%</span>
                               <span>G:{grammar.length} • P:{punctuation.length}</span>
                               <span className={trend === '↑' ? 'text-green-600 font-semibold' : trend === '↓' ? 'text-red-600 font-semibold' : 'text-slate-500'}>{trend}</span>
+                              <div className="col-span-5 mt-1 grid gap-1">
+                                {part1Marks && (
+                                  <p className="text-[11px] text-slate-600 m-0">
+                                    Part 1 — Content {part1Marks.content}/5 · Organization {part1Marks.organisation}/5 · Language {part1Marks.language}/5
+                                  </p>
+                                )}
+                                {part2Marks && (
+                                  <p className="text-[11px] text-slate-600 m-0">
+                                    Part 2 — Content {part2Marks.content}/5 · Communicative Achievement {part2Marks.communicativeAchievement}/5 · Organization {part2Marks.organisation}/5 · Language {part2Marks.language}/5
+                                  </p>
+                                )}
+                                {allIssues.length > 0 && (
+                                  <details>
+                                    <summary className="cursor-pointer font-semibold text-[11px] text-slate-700">Word-level corrections ({allIssues.length})</summary>
+                                    <div className="mt-1 grid gap-1">
+                                      {allIssues.slice(0, 8).map((issue, issueIdx) => (
+                                        <p key={`${attempt.id}-issue-${issueIdx}`} className="text-[11px] text-slate-700 m-0">
+                                          <span className="line-through text-red-600">{issue.wrong}</span> → <span className="text-green-700 font-semibold">{issue.correct}</span> — {issue.explanation}
+                                        </p>
+                                      ))}
+                                    </div>
+                                  </details>
+                                )}
+                              </div>
                             </div>
                           );
                         })}

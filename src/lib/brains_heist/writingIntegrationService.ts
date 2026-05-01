@@ -650,6 +650,12 @@ export interface StudentWritingHistoryEntry {
     better: string;
     explanation: string;
   }>;
+  rubric_scores: {
+    content: number | null;
+    organisation: number | null;
+    language: number | null;
+    communicative_achievement: number | null;
+  };
 }
 
 export interface StudentWritingHistoryByGenre {
@@ -727,6 +733,12 @@ export const listStudentWritingHistoryByGenre = (studentId: string): ServiceResp
             explanation: typeof item?.['explanation'] === 'string' ? item['explanation'] : '',
           }))
         : [],
+      rubric_scores: {
+        content: attempt.assessment?.subscores?.content ?? null,
+        organisation: attempt.assessment?.subscores?.organisation ?? null,
+        language: attempt.assessment?.subscores?.language ?? null,
+        communicative_achievement: attempt.assessment?.subscores?.communicative_achievement ?? null,
+      },
     };
     const currentEntries = byGenre.get(attempt.genre) ?? [];
     currentEntries.push(entry);
