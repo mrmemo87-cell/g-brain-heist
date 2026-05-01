@@ -90,6 +90,26 @@ const formatScoreLabel = (score: number | null | undefined): string => {
   return score <= 11 ? `${score}/11 (band)` : `${score}`;
 };
 
+type ReportConfidenceState = 'no_data' | 'partial_data' | 'full_insight';
+
+const getReportConfidenceState = (report: TeacherWritingReport): ReportConfidenceState => {
+  const completedTasks = report.overall_summary.completed_tasks;
+  const completionRate = report.overall_summary.completion_rate_percent;
+  const hasScore = report.overall_summary.latest_score != null && !Number.isNaN(report.overall_summary.latest_score);
+  const hasNoAttempts = completedTasks <= 0;
+
+  if (hasNoAttempts && !hasScore) return 'no_data';
+  if (completionRate <= 0 && !hasScore) return 'no_data';
+
+  const strengths = report.strengths.filter((item) => Boolean(item?.trim()));
+  const weakAreas = report.priority_weak_areas.filter((item) => Boolean(item?.trim()));
+  const hasMissingAnalysis = !report.latest_evaluation || !report.monthly_summary;
+  const veryLowAttempts = completedTasks < 2;
+
+  if (veryLowAttempts || weakAreas.length === 0 || hasMissingAnalysis || strengths.length === 0) return 'partial_data';
+  return 'full_insight';
+};
+
 const chipStyle = (mode: 'danger' | 'success' | 'neutral' | 'info') => {
   const map = {
     danger: { background: '#3a1212', color: '#fecaca', border: '1px solid #7f1d1d' },
@@ -541,10 +561,29 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
 
             {openReportData && (
               <div style={{ display: 'grid', gap: 16 }}>
+                {(() => {
+                  const confidenceState = getReportConfidenceState(openReportData);
+                  const hasWeaknesses = openReportData.priority_weak_areas.length > 0;
+                  const showAdvancedAnalysis = confidenceState === 'full_insight';
+                  const showPartialMessage = confidenceState === 'partial_data';
+                  const showNoDataMessage = confidenceState === 'no_data';
+                  const statusLabel = showNoDataMessage
+                    ? 'No Data'
+                    : selectedRow?.stalled
+                      ? 'Urgent'
+                      : selectedRow?.improving
+                        ? 'Improving'
+                        : 'On Track';
+                  const suggestedNextStep = hasWeaknesses
+                    ? openReportData.teacher_actions[0] ?? openReportData.student_friendly_summary.next_steps?.[0] ?? null
+                    : null;
+
+                  return (
+                    <>
                 {/* Student Info */}
                 <div style={{ display: 'grid', gap: 8, background: 'rgba(30, 41, 59, 0.5)', borderRadius: 10, padding: 14, border: '1px solid #1e293b' }}>
                   <div style={{ fontSize: 18, fontWeight: 900, color: '#f8fafc' }}>{openReportData.student.student_name}</div>
-                  <div style={{ fontSize: 13, color: '#cbd5e1' }}>Grade {openReportData.student.grade ?? '—'} • {openReportData.student.class_name ?? 'Unassigned'} • {selectedRow?.stalled ? 'Urgent' : selectedRow?.improving ? 'Improving' : 'On Track'}</div>
+                  <div style={{ fontSize: 13, color: '#cbd5e1' }}>Grade {openReportData.student.grade ?? '—'} • {openReportData.student.class_name ?? 'Unassigned'} • {statusLabel}</div>
                 </div>
 
                 {/* Key Metrics Grid */}
@@ -568,25 +607,31 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>What’s happening</div>
                     <div style={{ fontSize: 14, color: '#e2e8f0' }}>
-                      Latest score {formatScoreLabel(openReportData.overall_summary.latest_score)} with completion {openReportData.overall_summary.completion_rate_percent}%.
+                      {showNoDataMessage
+                        ? 'No writing data available yet. Ask the student to complete a task to generate insights.'
+                        : showPartialMessage
+                          ? 'Not enough data to identify clear strengths or weaknesses yet.'
+                          : `Latest score ${formatScoreLabel(openReportData.overall_summary.latest_score)} with completion ${openReportData.overall_summary.completion_rate_percent}%.`}
                     </div>
                   </div>
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Strength</div>
-                    <div style={{ fontSize: 14, color: '#e2e8f0' }}>{openReportData.strengths.length ? openReportData.strengths.join(', ') : 'No strengths captured yet.'}</div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Needs Work</div>
-                    <div style={{ fontSize: 14, color: '#e2e8f0' }}>
-                      {openReportData.priority_weak_areas.length ? openReportData.priority_weak_areas.map(toTeacherWeaknessLabel).join(', ') : <span style={{ color: '#64748b' }}>No weaknesses detected</span>}
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Suggested next step</div>
-                    <div style={{ fontSize: 14, color: '#e2e8f0', lineHeight: 1.6 }}>
-                      {openReportData.teacher_actions[0] ?? openReportData.student_friendly_summary.next_steps?.[0] ?? openReportData.student_friendly_summary.progress_summary}
-                    </div>
-                  </div>
+                  {showAdvancedAnalysis ? (
+                    <>
+                      <div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Strength</div>
+                        <div style={{ fontSize: 14, color: '#e2e8f0' }}>{openReportData.strengths.join(', ')}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Needs Work</div>
+                        <div style={{ fontSize: 14, color: '#e2e8f0' }}>{openReportData.priority_weak_areas.map(toTeacherWeaknessLabel).join(', ')}</div>
+                      </div>
+                      {suggestedNextStep ? (
+                        <div>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Suggested next step</div>
+                          <div style={{ fontSize: 14, color: '#e2e8f0', lineHeight: 1.6 }}>{suggestedNextStep}</div>
+                        </div>
+                      ) : null}
+                    </>
+                  ) : null}
                   <div style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: '#0b1223' }}>
                     <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, textTransform: 'uppercase' }}>Student Writing</div>
                     {!showFullSubmission ? (
@@ -605,6 +650,9 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                   <button type="button" onClick={() => selectedRow && handleExportStudent(selectedRow.student_id)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#111827', color: '#fff', padding: '8px 12px' }}>Generate Report</button>
                   <button type="button" onClick={() => setIsReportOpen(false)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#fff', padding: '8px 12px' }}>Close</button>
                 </div>
+                    </>
+                  );
+                })()}
               </div>
             )}
           </div>
