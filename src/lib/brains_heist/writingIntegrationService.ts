@@ -700,8 +700,20 @@ export const listStudentWritingHistoryByGenre = (studentId: string): ServiceResp
   const studentAttempts = store.attempts
     .filter((attempt) => attempt.student_id === studentId)
     .sort((a, b) => b.created_at.localeCompare(a.created_at));
-
+  const dedupedAttempts = new Map<string, WritingAttempt>();
   studentAttempts.forEach((attempt) => {
+    const key = `${attempt.genre}|${attempt.attempt_type}|${attempt.created_at}|${(attempt.student_submission ?? '').trim()}`;
+    const current = dedupedAttempts.get(key);
+    if (!current) {
+      dedupedAttempts.set(key, attempt);
+      return;
+    }
+    const currentHasRich = Boolean(current.rich_feedback && typeof current.rich_feedback === 'object');
+    const nextHasRich = Boolean(attempt.rich_feedback && typeof attempt.rich_feedback === 'object');
+    if (!currentHasRich && nextHasRich) dedupedAttempts.set(key, attempt);
+  });
+
+  Array.from(dedupedAttempts.values()).forEach((attempt) => {
     const feedback = (attempt.rich_feedback && typeof attempt.rich_feedback === 'object')
       ? (attempt.rich_feedback as Record<string, unknown>)
       : null;
@@ -732,7 +744,26 @@ export const listStudentWritingHistoryByGenre = (studentId: string): ServiceResp
             better: typeof item?.['betterVersion'] === 'string' ? item['betterVersion'] : '',
             explanation: typeof item?.['explanation'] === 'string' ? item['explanation'] : '',
           }))
-        : [],
+        : [
+            ...(((feedback?.['grammar_fixes'] as Array<Record<string, unknown>> | undefined) ?? []).map((item) => ({
+              type: 'Grammar',
+              original: typeof item?.['original'] === 'string' ? item['original'] : '',
+              better: typeof item?.['better_version'] === 'string' ? item['better_version'] : '',
+              explanation: '',
+            }))),
+            ...(((feedback?.['punctuation_fixes'] as Array<Record<string, unknown>> | undefined) ?? []).map((item) => ({
+              type: 'Punctuation',
+              original: typeof item?.['original'] === 'string' ? item['original'] : '',
+              better: typeof item?.['better_version'] === 'string' ? item['better_version'] : '',
+              explanation: '',
+            }))),
+            ...(((feedback?.['natural_phrase_upgrades'] as Array<Record<string, unknown>> | undefined) ?? []).map((item) => ({
+              type: 'Phrasing',
+              original: typeof item?.['original'] === 'string' ? item['original'] : '',
+              better: typeof item?.['better_version'] === 'string' ? item['better_version'] : '',
+              explanation: typeof item?.['why_it_helps'] === 'string' ? item['why_it_helps'] : '',
+            }))),
+          ],
       rubric_scores: {
         content: attempt.assessment?.subscores?.content ?? null,
         organisation: attempt.assessment?.subscores?.organisation ?? null,
