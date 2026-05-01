@@ -95,9 +95,11 @@ type ReportConfidenceState = 'no_data' | 'partial_data' | 'full_insight';
 const getReportConfidenceState = (report: TeacherWritingReport): ReportConfidenceState => {
   const completedTasks = report.overall_summary.completed_tasks;
   const completionRate = report.overall_summary.completion_rate_percent;
+  const hasScore = report.overall_summary.latest_score != null && !Number.isNaN(report.overall_summary.latest_score);
   const hasNoAttempts = completedTasks <= 0;
 
-  if (completionRate <= 0 || hasNoAttempts) return 'no_data';
+  if (hasNoAttempts && !hasScore) return 'no_data';
+  if (completionRate <= 0 && !hasScore) return 'no_data';
 
   const strengths = report.strengths.filter((item) => Boolean(item?.trim()));
   const weakAreas = report.priority_weak_areas.filter((item) => Boolean(item?.trim()));
@@ -565,6 +567,13 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                   const showAdvancedAnalysis = confidenceState === 'full_insight';
                   const showPartialMessage = confidenceState === 'partial_data';
                   const showNoDataMessage = confidenceState === 'no_data';
+                  const statusLabel = showNoDataMessage
+                    ? 'No Data'
+                    : selectedRow?.stalled
+                      ? 'Urgent'
+                      : selectedRow?.improving
+                        ? 'Improving'
+                        : 'On Track';
                   const suggestedNextStep = hasWeaknesses
                     ? openReportData.teacher_actions[0] ?? openReportData.student_friendly_summary.next_steps?.[0] ?? null
                     : null;
@@ -574,7 +583,7 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                 {/* Student Info */}
                 <div style={{ display: 'grid', gap: 8, background: 'rgba(30, 41, 59, 0.5)', borderRadius: 10, padding: 14, border: '1px solid #1e293b' }}>
                   <div style={{ fontSize: 18, fontWeight: 900, color: '#f8fafc' }}>{openReportData.student.student_name}</div>
-                  <div style={{ fontSize: 13, color: '#cbd5e1' }}>Grade {openReportData.student.grade ?? '—'} • {openReportData.student.class_name ?? 'Unassigned'} • {selectedRow?.stalled ? 'Urgent' : selectedRow?.improving ? 'Improving' : 'On Track'}</div>
+                  <div style={{ fontSize: 13, color: '#cbd5e1' }}>Grade {openReportData.student.grade ?? '—'} • {openReportData.student.class_name ?? 'Unassigned'} • {statusLabel}</div>
                 </div>
 
                 {/* Key Metrics Grid */}
