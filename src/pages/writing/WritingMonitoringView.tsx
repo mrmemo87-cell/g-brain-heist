@@ -144,6 +144,7 @@ const chipStyle = (mode: 'danger' | 'success' | 'neutral' | 'info') => {
 };
 
 const toTrendLabel = (row: MonitoringRow): 'Improving' | 'Stable' | 'Declining' | 'No recent data' => {
+  if ((row.attempts_count ?? 0) < 2) return 'No recent data';
   const deltas = Object.values(row.subscale_trend);
   if (deltas.every((value) => value === 0)) return 'No recent data';
   const positives = deltas.filter((value) => value > 0).length;
@@ -334,7 +335,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
     return 'Stable progress with no high-priority risk signal.';
   };
   const buildPrintableReportHtml = (report: TeacherWritingReport): string => {
-    const completionPercent = report.overall_summary.completion_rate_percent;
+    const submissionCount = report.overall_summary.completed_tasks;
     const latestScore = report.overall_summary.latest_score;
     const strengths = report.strengths.length ? report.strengths : ['No strengths captured yet'];
     const weakAreas = report.priority_weak_areas.length ? report.priority_weak_areas.map(toTeacherWeaknessLabel) : ['No repeated weak areas yet'];
@@ -344,7 +345,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
       ['Reporting period', report.period],
       ['Genre', report.genre],
       ['Latest score', formatScoreLabel(latestScore)],
-      ['Completion', `${completionPercent}% (${report.overall_summary.completed_tasks}/${report.overall_summary.total_tasks})`],
+      ['Submissions', `${submissionCount}`],
       ['Trend delta', report.overall_summary.score_trend_delta ?? '—'],
       ['Progress summary', report.student_friendly_summary.progress_summary],
       ['Priority weak areas', weakAreas.join(', ')],
@@ -381,7 +382,7 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
     <div class="student-bar"><strong>${report.student.student_name}</strong> · Grade ${report.student.grade ?? '—'} · ${report.student.class_name ?? 'Unassigned'}</div>
     <section class="meta-grid">
       <div class="meta-box"><div class="label">Latest score</div><div class="value">${formatScoreLabel(latestScore)}</div></div>
-      <div class="meta-box"><div class="label">Completion</div><div class="value">${completionPercent}%</div></div>
+      <div class="meta-box"><div class="label">Submissions</div><div class="value">${submissionCount}</div></div>
       <div class="meta-box"><div class="label">Weak areas</div><div class="value">${weakAreas.length}</div></div>
       <div class="meta-box"><div class="label">Actions</div><div class="value">${actions.length}</div></div>
     </section>
@@ -412,7 +413,7 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
     const content = [
       `Student: ${toDisplayLabel(targetRow.student_name, targetRow.student_id)}`,
       `Grade: ${targetRow.current_grade}`,
-      `Completion: ${Math.round(targetRow.completion_rate * 100)}%`,
+      `Submissions: ${targetRow.attempts_count ?? 0}`,
       `Latest score: ${targetRow.latest_score ?? 'No score yet'}`,
       `Recent trend: ${toTrendLabel(targetRow)}`,
       `Weak areas: ${targetRow.repeated_weakness_hotspots.map(toTeacherWeaknessLabel).join(', ') || 'None yet'}`,
@@ -630,12 +631,12 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                     <div style={{ fontSize: 22, fontWeight: 900, color: '#93c5fd' }}>{formatScoreLabel(openReportData.overall_summary.latest_score)}</div>
                   </div>
                   <div style={{ background: 'rgba(34, 197, 94, 0.08)', border: '1px solid #15803d', borderRadius: 10, padding: 12 }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>Completion</div>
-                    <div style={{ fontSize: 22, fontWeight: 900, color: '#86efac' }}>{openReportData.overall_summary.completion_rate_percent}%</div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>Submissions</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: '#86efac' }}>{attemptRows.length || openReportData.overall_summary.completed_tasks}</div>
                   </div>
                   <div style={{ background: 'rgba(249, 115, 22, 0.08)', border: '1px solid #92400e', borderRadius: 10, padding: 12 }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>Trend</div>
-                    <div style={{ fontSize: 22, fontWeight: 900, color: '#fbbf24' }}>{openReportData.overall_summary.score_trend_delta ?? '—'}</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: '#fbbf24' }}>{(attemptRows.length || openReportData.overall_summary.completed_tasks) < 2 ? '—' : (openReportData.overall_summary.score_trend_delta ?? '—')}</div>
                   </div>
                 </div>
 
@@ -648,7 +649,7 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                         ? 'No writing data available yet. Ask the student to complete a task to generate insights.'
                         : showPartialMessage
                           ? 'Not enough data to identify clear strengths or weaknesses yet.'
-                          : `Latest score ${formatScoreLabel(openReportData.overall_summary.latest_score)} with completion ${openReportData.overall_summary.completion_rate_percent}%.`}
+                          : `Latest score ${formatScoreLabel(openReportData.overall_summary.latest_score)} across ${(attemptRows.length || openReportData.overall_summary.completed_tasks)} submission${(attemptRows.length || openReportData.overall_summary.completed_tasks) === 1 ? '' : 's'}.`}
                     </div>
                   </div>
                   {showAdvancedAnalysis ? (
@@ -686,7 +687,35 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                               <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 6 }}>{attempt.created_at}</div>
                               <div style={{ fontSize: 13, color: '#e2e8f0', whiteSpace: 'pre-wrap', marginBottom: 8 }}>{attempt.student_submission || 'No submission text.'}</div>
                               <div style={{ fontSize: 12, color: '#94a3b8', textTransform: 'uppercase' }}>Feedback</div>
-                              <div style={{ fontSize: 13, color: '#cbd5e1', whiteSpace: 'pre-wrap' }}>{extractAttemptFeedbackText(attempt)}</div>
+                              <div style={{ display: 'grid', gap: 8 }}>
+                                <div style={{ fontSize: 13, color: '#cbd5e1', whiteSpace: 'pre-wrap' }}>{extractAttemptFeedbackText(attempt)}</div>
+                                {(() => {
+                                  const assessmentFull = (attempt.assessment ?? {}) as Record<string, unknown>;
+                                  const scoreBreakdown = (assessmentFull['score_breakdown'] ?? {}) as Record<string, number | null | undefined>;
+                                  const criterionFeedback = (assessmentFull['criterion_feedback'] ?? {}) as Record<string, string | null | undefined>;
+                                  const rows = [
+                                    ['Content', scoreBreakdown['content'], criterionFeedback['content']],
+                                    ['Communicative Achievement', scoreBreakdown['communicative_achievement'], criterionFeedback['communicative_achievement']],
+                                    ['Organisation', scoreBreakdown['organisation'], criterionFeedback['organisation']],
+                                    ['Language', scoreBreakdown['language'], criterionFeedback['language']],
+                                  ] as const;
+                                  const hasAny = rows.some(([, score, comment]) => score != null || (typeof comment === 'string' && comment.trim().length > 0));
+                                  if (!hasAny) return null;
+                                  return (
+                                    <div style={{ border: '1px solid #334155', borderRadius: 8, padding: 8, background: '#020617' }}>
+                                      <div style={{ fontSize: 11, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6 }}>AI grading breakdown</div>
+                                      <div style={{ display: 'grid', gap: 6 }}>
+                                        {rows.map(([label, score, comment]) => (
+                                          <div key={label} style={{ borderTop: '1px solid #1e293b', paddingTop: 6 }}>
+                                            <div style={{ fontSize: 12, color: '#e2e8f0', fontWeight: 700 }}>{label}: {score ?? '—'}</div>
+                                            <div style={{ fontSize: 12, color: '#cbd5e1', whiteSpace: 'pre-wrap' }}>{comment?.trim() || 'No criterion note provided.'}</div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  );
+                                })()}
+                              </div>
                             </article>
                           );
                         })}

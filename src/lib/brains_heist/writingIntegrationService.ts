@@ -996,6 +996,7 @@ export interface WritingMonitoringOverview {
     stalled: boolean;
     improving: boolean;
     ready_for_monthly_review: boolean;
+    attempts_count: number;
   }>;
   hotspot_tags: string[];
   stalled_students: string[];
@@ -1375,15 +1376,20 @@ export const getWritingMonitoringOverview = (
       .map(([tag]) => tag);
     hotspots.forEach((tag) => hotspotCounter.set(tag, (hotspotCounter.get(tag) ?? 0) + 1));
 
+    const attemptsCount = store.attempts.filter((item) => item.student_id === studentId && item.genre === laneGenre).length;
+    const hasSubmissions = attemptsCount > 0 || latestScore != null;
+
     const trendValues = Object.values(trend);
     const positiveTrendCount = trendValues.filter((value) => value > 0).length;
     const negativeTrendCount = trendValues.filter((value) => value < 0).length;
     const lowCompletionRisk =
       totalTasks > 0 && completed > 0 && completionRate < WRITING_PILOT_GUARDRAILS.stalled_completion_rate_threshold;
     const stalled =
-      state.adaptation_trend.failure_streak >= WRITING_PILOT_GUARDRAILS.stalled_failure_streak_threshold ||
-      lowCompletionRisk ||
-      negativeTrendCount >= 2;
+      hasSubmissions && (
+        state.adaptation_trend.failure_streak >= WRITING_PILOT_GUARDRAILS.stalled_failure_streak_threshold ||
+        lowCompletionRisk ||
+        negativeTrendCount >= 2
+      );
     const improving =
       !stalled &&
       (state.adaptation_trend.success_streak >= WRITING_PILOT_GUARDRAILS.improving_success_streak_threshold ||
@@ -1414,6 +1420,7 @@ export const getWritingMonitoringOverview = (
       stalled,
       improving,
       ready_for_monthly_review: readyForMonthlyReview,
+      attempts_count: attemptsCount,
     });
   }
 
