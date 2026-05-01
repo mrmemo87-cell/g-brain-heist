@@ -92,6 +92,7 @@ serve(async (req) => {
   let storageDeleted = 0;
   let actorId = "";
   let targetUserId = "";
+  let targetUserEmail = "";
   let dryRun = false;
 
   const audit = async (result: "success" | "failure") => {
@@ -103,6 +104,7 @@ serve(async (req) => {
       context: {
         actor_id: actorId || null,
         target_user_id: targetUserId || null,
+        target_user_email: targetUserEmail || null,
         timestamp: new Date().toISOString(),
         dry_run: dryRun,
         result,
@@ -213,6 +215,21 @@ serve(async (req) => {
         error: "cannot_delete_self",
       });
     }
+
+    const { data: targetAuthUser, error: targetAuthLookupError } = await admin.auth.admin.getUserById(targetUserId);
+    if (targetAuthLookupError || !targetAuthUser?.user) {
+      return json(req, 404, {
+        version: FUNCTION_VERSION,
+        success: false,
+        auth_deleted: false,
+        rows_deleted: {},
+        storage_deleted: 0,
+        warnings,
+        error: targetAuthLookupError?.message || "target_auth_user_not_found",
+      });
+    }
+
+    targetUserEmail = String(targetAuthUser.user.email ?? "").trim().toLowerCase();
 
     // Step 1: Storage discovery/cleanup
     const storageTargets = [
@@ -392,8 +409,12 @@ serve(async (req) => {
       await deleteRows(spec.table, (q) => q.or(filter));
     }
 
-    // Step 4: delete public.users row
+    // Step 4: delete public.users rows by id and (defensively) by email.
+    // Older data may contain orphan rows where email is still occupied by a previously deleted account.
     await deleteRows("users", (q) => q.eq("id", targetUserId));
+    if (targetUserEmail) {
+      await deleteRows("users", (q) => q.eq("email", targetUserEmail));
+    }
 
     // Step 5: delete auth user last
     if (!dryRun) {
