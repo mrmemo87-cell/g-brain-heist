@@ -705,8 +705,29 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                                     ['Organisation', subscores['organisation'], criterionFeedback['organisation']],
                                     ['Language', subscores['language'], criterionFeedback['language']],
                                   ] as const;
+                                  const richFeedback = (attempt.rich_feedback ?? {}) as Record<string, unknown>;
+                                  const wordLevelFixes = [
+                                    ...((richFeedback['grammar_fixes'] as Array<Record<string, string>> | undefined) ?? []).map((fix) => ({
+                                      type: 'Grammar',
+                                      wrong: fix['original'] ?? '',
+                                      correct: fix['better_version'] ?? '',
+                                      explanation: '',
+                                    })),
+                                    ...((richFeedback['punctuation_fixes'] as Array<Record<string, string>> | undefined) ?? []).map((fix) => ({
+                                      type: 'Punctuation',
+                                      wrong: fix['original'] ?? '',
+                                      correct: fix['better_version'] ?? '',
+                                      explanation: '',
+                                    })),
+                                    ...((richFeedback['natural_phrase_upgrades'] as Array<Record<string, string>> | undefined) ?? []).map((fix) => ({
+                                      type: 'Phrasing',
+                                      wrong: fix['original'] ?? '',
+                                      correct: fix['better_version'] ?? '',
+                                      explanation: fix['why_it_helps'] ?? '',
+                                    })),
+                                  ].filter((fix) => fix.wrong.trim() && fix.correct.trim());
                                   const hasAny = rows.some(([, score, comment]) => score != null || (typeof comment === 'string' && comment.trim().length > 0));
-                                  if (!hasAny && weaknessTags.length === 0 && missedContentPoints.length === 0) return null;
+                                  if (!hasAny && weaknessTags.length === 0 && missedContentPoints.length === 0 && wordLevelFixes.length === 0) return null;
                                   return (
                                     <div style={{ border: '1px solid #334155', borderRadius: 8, padding: 8, background: '#020617' }}>
                                       <div style={{ fontSize: 11, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6 }}>AI grading breakdown</div>
@@ -714,6 +735,16 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                                         {rows.map(([label, score, comment]) => (
                                           <div key={label} style={{ borderTop: '1px solid #1e293b', paddingTop: 6 }}>
                                             <div style={{ fontSize: 12, color: '#e2e8f0', fontWeight: 700 }}>{label}: {score ?? '—'}/5</div>
+                                            <div style={{ marginTop: 4, width: '100%', height: 7, borderRadius: 999, background: '#1e293b', overflow: 'hidden' }}>
+                                              <div
+                                                style={{
+                                                  width: `${Math.max(0, Math.min(100, ((score ?? 0) / 5) * 100))}%`,
+                                                  height: '100%',
+                                                  borderRadius: 999,
+                                                  background: (score ?? 0) >= 4 ? '#22c55e' : (score ?? 0) >= 3 ? '#eab308' : '#ef4444',
+                                                }}
+                                              />
+                                            </div>
                                             <div style={{ fontSize: 12, color: '#cbd5e1', whiteSpace: 'pre-wrap' }}>{comment?.trim() || 'No criterion note provided.'}</div>
                                           </div>
                                         ))}
@@ -727,6 +758,21 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                                           <div style={{ borderTop: '1px solid #1e293b', paddingTop: 6 }}>
                                             <div style={{ fontSize: 12, color: '#fbbf24', fontWeight: 700 }}>Detected mistakes</div>
                                             <div style={{ fontSize: 12, color: '#fde68a', whiteSpace: 'pre-wrap' }}>{weaknessTags.map(toTeacherWeaknessLabel).join(', ')}</div>
+                                          </div>
+                                        ) : null}
+                                        {wordLevelFixes.length > 0 ? (
+                                          <div style={{ borderTop: '1px solid #1e293b', paddingTop: 6 }}>
+                                            <div style={{ fontSize: 12, color: '#93c5fd', fontWeight: 700 }}>Word-by-word corrections</div>
+                                            <div style={{ display: 'grid', gap: 4, marginTop: 4 }}>
+                                              {wordLevelFixes.map((fix, fixIdx) => (
+                                                <div key={`${attempt.row_id}-fix-${fixIdx}`} style={{ fontSize: 12, color: '#dbeafe' }}>
+                                                  <strong>{fix.type}:</strong>{' '}
+                                                  <span style={{ color: '#fca5a5', textDecoration: 'line-through' }}>{fix.wrong}</span>{' '}
+                                                  → <span style={{ color: '#86efac', fontWeight: 700 }}>{fix.correct}</span>
+                                                  {fix.explanation ? <span style={{ color: '#cbd5e1' }}> ({fix.explanation})</span> : null}
+                                                </div>
+                                              ))}
+                                            </div>
                                           </div>
                                         ) : null}
                                       </div>
