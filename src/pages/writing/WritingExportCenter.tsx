@@ -424,11 +424,13 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
         <h2 style={{ margin: 0 }}>Quick Reports</h2>
         <p style={{ margin: 0, color: '#94a3b8' }}>Generate clean reports without advanced setup.</p>
         <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
-          {[
-            ['Student Progress Summary', 'Fast snapshot of score, completion, and growth areas.', false],
-            ['Parent-Ready Report', 'Plain language strengths, growth targets, and next steps.', false],
-            ['Class Snapshot', 'Class-level completion and performance overview.', true],
-          ].map(([title, desc, isReady]) => (
+          {(
+            [
+              ['Student Progress Summary', 'Fast snapshot of score, completion, and growth areas.', false],
+              ['Parent-Ready Report', 'Plain language strengths, growth targets, and next steps.', false],
+              ['Class Snapshot', 'Class-level completion and performance overview.', true],
+            ] as Array<[title: string, desc: string, isReady: boolean]>
+          ).map(([title, desc, isReady]) => (
             <article key={title} style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: 'linear-gradient(180deg, #0f172a, #0b1327)' }}>
               <div style={{ fontWeight: 700 }}>{title}</div>
               <div style={{ fontSize: 12, color: '#cbd5e1', margin: '6px 0 10px' }}>{desc}</div>
