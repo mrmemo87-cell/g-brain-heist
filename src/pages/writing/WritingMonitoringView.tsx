@@ -404,9 +404,9 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
         </div>
 
         {/* Key Metrics */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14 }}>
           <div style={{ ...shellCard, padding: 16, display: 'grid', gap: 8, border: '1px solid #1e293b' }}>
-            <div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>Urgent</div>
+            <div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>Need Help</div>
             <div style={{ fontSize: 36, fontWeight: 900, color: '#fca5a5' }}>{stalledCount}</div>
             <div style={{ fontSize: 12, color: '#cbd5e1' }}>Need support now</div>
           </div>
@@ -420,18 +420,14 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
             <div style={{ fontSize: 36, fontWeight: 900, color: '#93c5fd' }}>{monthlyReadyCount}</div>
             <div style={{ fontSize: 12, color: '#cbd5e1' }}>Stable progress</div>
           </div>
-          <div style={{ ...shellCard, padding: 16, display: 'grid', gap: 8, border: '1px solid #1e293b' }}>
-            <div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>Actioned Today</div>
-            <div style={{ fontSize: 36, fontWeight: 900, color: '#c4b5fd' }}>{actionedToday.size}</div>
-            <div style={{ fontSize: 12, color: '#cbd5e1' }}>Handled today</div>
-          </div>
         </div>
+        <div style={{ fontSize: 12, color: '#94a3b8' }}>Actioned today: {actionedToday.size} • Start with Need Help, then check Improving.</div>
 
       </section>
 
       <section style={{ ...shellCard, padding: 12, border: '1px solid #1e293b', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {[
-          ['urgent', `Urgent (${allRows.filter((row) => row.stalled).length})`],
+          ['urgent', `Need Help (${allRows.filter((row) => row.stalled).length})`],
           ['improving', `Improving (${allRows.filter((row) => row.improving && !row.stalled).length})`],
           ['on_track', `On Track (${allRows.filter((row) => !row.stalled && !row.improving).length})`],
           ['all', `All Students (${rows.length})`],
@@ -439,54 +435,16 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
           <button key={key} type="button" onClick={() => setActiveQueueTab(key as any)} style={{ ...chipStyle(activeQueueTab === key ? 'info' : 'neutral'), border: 'none', cursor: 'pointer' }}>{label}</button>
         ))}
       </section>
-      <section style={{ ...shellCard, padding: 12, border: '1px solid #1e293b', display: 'grid', gap: 8 }}>
-        <div style={{ fontSize: 12, color: '#94a3b8', fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase' }}>Active filters</div>
-        <div style={{ fontSize: 13, color: '#e2e8f0' }}>
-          {[
-            `Tab: ${activeQueueTab.replace('_', ' ')}`,
-            classFilter !== 'all' ? `Class: ${classFilter}` : '',
-            gradeFilter !== 'all' ? `Grade: ${gradeFilter}` : '',
-            weakAreaFilter !== 'all' ? `Weak area: ${toTeacherWeaknessLabel(weakAreaFilter)}` : '',
-            supportFilter !== 'all' ? `Status: ${supportFilter.replace('_', ' ')}` : '',
-            readinessFilter !== 'all' ? `Readiness: ${readinessFilter.replace('_', ' ')}` : '',
-            activeQuickFilter !== 'all' ? `Quick filter: ${activeQuickFilter}` : '',
-            searchQuery ? `Search: "${searchQuery}"` : '',
-          ].filter(Boolean).join(' • ') || 'No extra filters applied'}
-        </div>
-        <div>
-          <button
-            type="button"
-            onClick={() => {
-              setActiveQueueTab(allRows.some((row) => row.stalled) ? 'urgent' : 'all');
-              setClassFilter('all');
-              setGradeFilter('all');
-              setWeakAreaFilter('all');
-              setSupportFilter('all');
-              setReadinessFilter('all');
-              setActiveQuickFilter('all');
-              setSearchQuery('');
-              setSortKey('student');
-            }}
-            style={{ borderRadius: 8, border: '1px solid #334155', background: '#111827', color: '#f8fafc', padding: '8px 12px' }}
-          >
-            Reset all filters
-          </button>
-        </div>
-      </section>
-
       {/* Filters Section */}
 
       <section style={{ ...shellCard, padding: 16, display: 'grid', gap: 12, border: '1px solid #1e293b' }}>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: 0.5 }}>Quick Filter:</span>
-          <button type="button" onClick={() => setActiveQuickFilter('all')} style={{ ...chipStyle(activeQuickFilter === 'all' ? 'info' : 'neutral'), cursor: 'pointer', border: 'none', fontSize: 12 }}>All students</button>
-          <button type="button" onClick={() => setActiveQuickFilter('improving')} style={{ ...chipStyle(activeQuickFilter === 'improving' ? 'success' : 'neutral'), cursor: 'pointer', border: 'none', fontSize: 12 }}>Improving</button>
-          <button type="button" onClick={() => setActiveQuickFilter('stalled')} style={{ ...chipStyle(activeQuickFilter === 'stalled' ? 'danger' : 'neutral'), cursor: 'pointer', border: 'none', fontSize: 12 }}>Needs support</button>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
           <select value={classFilter} onChange={(event: SelectChangeEvent) => setClassFilter(event.target.value)} style={{ background: "#0f1728", border: "1px solid #334155", color: "#f8fafc", borderRadius: 8, padding: "10px 12px", fontSize: 13 }}><option value="all">All Classes</option>{classOptions.map((value) => <option key={value} value={value}>{value}</option>)}</select>
           <input value={searchQuery} onChange={(event: InputChangeEvent) => setSearchQuery(event.target.value)} placeholder="Search by name..." type="text" style={{ background: '#0f1728', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '10px 12px', fontSize: 13 }} />
+        </div>
+        <details>
+          <summary style={{ cursor: 'pointer', color: '#93c5fd', fontSize: 13 }}>More filters</summary>
+          <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10 }}>
           <select value={gradeFilter} onChange={(event: SelectChangeEvent) => setGradeFilter(event.target.value)} style={{ background: '#0f1728', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '10px 12px', fontSize: 13 }}>
             <option value="all">Grade: All</option>
             {gradeOptions.map((value) => <option key={value} value={value}>Grade {value}</option>)}
@@ -513,11 +471,31 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
             <option value="completion_desc">Completion: High to low</option>
             <option value="completion_asc">Completion: Low to high</option>
           </select>
+          </div>
+        </details>
+        <div>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveQueueTab(allRows.some((row) => row.stalled) ? 'urgent' : 'all');
+              setClassFilter('all');
+              setGradeFilter('all');
+              setWeakAreaFilter('all');
+              setSupportFilter('all');
+              setReadinessFilter('all');
+              setActiveQuickFilter('all');
+              setSearchQuery('');
+              setSortKey('student');
+            }}
+            style={{ borderRadius: 8, border: '1px solid #334155', background: 'transparent', color: '#cbd5e1', padding: '6px 10px', fontSize: 12 }}
+          >
+            Reset filters
+          </button>
         </div>
       </section>
 
-      {/* Main Content: Queue Cards + Details */}
-      <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
+      {/* Main Content: Queue Cards */}
+      <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'minmax(0, 1fr)' }}>
         <div ref={listRef} style={{ display: 'grid', gap: 12 }}>
           {queueRows.map((row) => {
             const selected = selectedRow?.student_id === row.student_id;
@@ -531,66 +509,16 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                   </div>
                   <span style={{ ...chipStyle(row.stalled ? 'danger' : row.improving ? 'success' : 'neutral') }}>{statusLabel}</span>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8 }}>
-                  <div><small style={{ color: '#94a3b8' }}>Latest score</small><div>{formatScoreLabel(row.latest_score)}</div></div>
-                  <div><small style={{ color: '#94a3b8' }}>Trend</small><div>{toTrendLabel(row)}</div></div>
-                  <div><small style={{ color: '#94a3b8' }}>Completion</small><div>{Math.round(row.completion_rate * 100)}%</div></div>
-                </div>
-                <div style={{ fontSize: 13, color: '#cbd5e1' }}><strong>Top weak area:</strong> {row.repeated_weakness_hotspots[0] ? toTeacherWeaknessLabel(row.repeated_weakness_hotspots[0]) : '—'}</div>
+                <div><small style={{ color: '#94a3b8' }}>Latest score</small><div>{formatScoreLabel(row.latest_score)}</div></div>
                 <div style={{ fontSize: 13, color: '#cbd5e1' }}><strong>Why flagged:</strong> {getWhyFlagged(row)}</div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <button type="button" onClick={(e: { stopPropagation: () => void }) => { e.stopPropagation(); openReport(row.student_id); }} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '7px 10px' }}>Review</button>
-                  <button type="button" onClick={(e: { stopPropagation: () => void }) => { e.stopPropagation(); setSelectedStudentId(row.student_id); setIsFeedbackOpen(true); }} style={{ borderRadius: 8, border: '1px solid #334155', background: '#111827', color: '#f8fafc', padding: '7px 10px' }}>Give Feedback</button>
-                  <button type="button" onClick={(e: { stopPropagation: () => void }) => { e.stopPropagation(); handleExportStudent(row.student_id); }} style={{ borderRadius: 8, border: '1px solid #334155', background: '#111827', color: '#f8fafc', padding: '7px 10px' }}>Generate Report</button>
                 </div>
               </article>
             );
           })}
-          {queueRows.length === 0 ? <div style={{ ...shellCard, padding: 20, textAlign: 'center', color: '#cbd5e1' }}>{activeQueueTab === 'urgent' ? 'No urgent students right now. Nice — check Improving or All Students.' : 'No students match these filters.'}</div> : null}
+          {queueRows.length === 0 ? <div style={{ ...shellCard, padding: 20, textAlign: 'center', color: '#cbd5e1' }}>{activeQueueTab === 'urgent' ? 'No students need help right now. Nice — check Improving or All Students.' : 'No students match these filters.'}</div> : null}
         </div>
-
-        {/* Student Details Card */}
-        {selectedRow ? (
-          <aside ref={detailsRef} style={{ ...shellCard, padding: 16, display: 'grid', gap: 14, border: '1px solid #1e293b', boxShadow: '0 10px 28px rgba(15,23,42,0.3)', height: 'fit-content', position: 'sticky', top: 20 }}>
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 }}>Student</div>
-              <div style={{ fontSize: 20, fontWeight: 900, color: '#f8fafc' }}>{toDisplayLabel(selectedRow.student_name, selectedRow.student_id)}</div>
-              <div style={{ fontSize: 12, color: '#cbd5e1', marginTop: 4 }}>Grade {selectedRow.current_grade} • {selectedRow.class_name ?? 'Unassigned'}</div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, borderTop: '1px solid #1e293b', paddingTop: 14 }}>
-              <div style={{ display: 'grid', gap: 4 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase' }}>Completion</div>
-                <div style={{ fontSize: 24, fontWeight: 900, color: '#93c5fd' }}>{Math.round(selectedRow.completion_rate * 100)}%</div>
-              </div>
-              <div style={{ display: 'grid', gap: 4 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase' }}>Latest</div>
-                <div style={{ fontSize: 24, fontWeight: 900, color: '#fbbf24' }}>{formatScoreLabel(selectedRow.latest_score)}</div>
-              </div>
-            </div>
-
-            <div style={{ borderTop: '1px solid #1e293b', paddingTop: 14, display: 'grid', gap: 12 }}>
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Trend</div>
-                <div style={{ fontSize: 14, color: toTrendLabel(selectedRow) === 'Improving' ? '#86efac' : toTrendLabel(selectedRow) === 'Declining' ? '#f87171' : '#cbd5e1', fontWeight: 600 }}>{toTrendLabel(selectedRow)}</div>
-              </div>
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Focus Areas</div>
-                <div style={{ fontSize: 13, color: '#e2e8f0', lineHeight: 1.5 }}>
-                  {selectedRow.repeated_weakness_hotspots.length ? selectedRow.repeated_weakness_hotspots.map(toTeacherWeaknessLabel).join(', ') : <span style={{ color: '#64748b' }}>No repeated weak areas</span>}
-                </div>
-              </div>
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Next Target</div>
-                <div style={{ fontSize: 13, color: '#e2e8f0', lineHeight: 1.5 }}>
-                  {selectedRow.weekly_target_summary}
-                </div>
-              </div>
-            </div>
-
-            <button type="button" onClick={() => openReport(selectedRow.student_id)} style={{ borderRadius: 8, border: '1px solid #3b82f6', background: 'rgba(59, 130, 246, 0.1)', color: '#93c5fd', padding: '12px 14px', fontWeight: 700, cursor: 'pointer', fontSize: 13, transition: 'all 150ms ease' }}>Open Full Report</button>
-          </aside>
-        ) : null}
       </div>
 
       {/* Report Modal */}
@@ -638,7 +566,13 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                 {/* Detailed Info */}
                 <div style={{ display: 'grid', gap: 12, borderTop: '1px solid #1e293b', paddingTop: 14 }}>
                   <div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Strengths</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>What’s happening</div>
+                    <div style={{ fontSize: 14, color: '#e2e8f0' }}>
+                      Latest score {formatScoreLabel(openReportData.overall_summary.latest_score)} with completion {openReportData.overall_summary.completion_rate_percent}%.
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Strength</div>
                     <div style={{ fontSize: 14, color: '#e2e8f0' }}>{openReportData.strengths.length ? openReportData.strengths.join(', ') : 'No strengths captured yet.'}</div>
                   </div>
                   <div>
@@ -648,12 +582,10 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                     </div>
                   </div>
                   <div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Repeated Patterns</div>
-                    <div style={{ fontSize: 14, color: '#e2e8f0', lineHeight: 1.6 }}>{openReportData.repeated_error_patterns.length ? openReportData.repeated_error_patterns.join(', ') : 'No repeated patterns detected.'}</div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Quick Teacher Summary</div>
-                    <div style={{ fontSize: 14, color: '#e2e8f0', lineHeight: 1.6 }}>{openReportData.student_friendly_summary.progress_summary}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Suggested next step</div>
+                    <div style={{ fontSize: 14, color: '#e2e8f0', lineHeight: 1.6 }}>
+                      {openReportData.teacher_actions[0] ?? openReportData.student_friendly_summary.next_steps?.[0] ?? openReportData.student_friendly_summary.progress_summary}
+                    </div>
                   </div>
                   <div style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: '#0b1223' }}>
                     <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, textTransform: 'uppercase' }}>Student Writing</div>
@@ -670,7 +602,6 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', borderTop: '1px solid #1e293b', paddingTop: 12 }}>
                   <button type="button" onClick={() => setIsFeedbackOpen(true)} style={{ borderRadius: 8, border: '1px solid #3b82f6', background: '#1d4ed8', color: '#fff', padding: '8px 12px' }}>Give Feedback</button>
-                  <button type="button" onClick={() => setIsPracticeOpen(true)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#111827', color: '#fff', padding: '8px 12px' }}>Assign Practice</button>
                   <button type="button" onClick={() => selectedRow && handleExportStudent(selectedRow.student_id)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#111827', color: '#fff', padding: '8px 12px' }}>Generate Report</button>
                   <button type="button" onClick={() => setIsReportOpen(false)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#fff', padding: '8px 12px' }}>Close</button>
                 </div>
@@ -683,7 +614,14 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(2,6,23,0.7)', zIndex: 50, display: 'grid', placeItems: 'center', padding: 16 }}>
           <div style={{ ...shellCard, width: 'min(640px, 100%)', padding: 16, display: 'grid', gap: 10 }}>
             <h3 style={{ margin: 0 }}>Give Feedback</h3>
-            <textarea defaultValue="Praise:\n\nGrowth target:\n\nNext step:" style={{ minHeight: 180, background: '#0f172a', color: '#fff', border: '1px solid #334155', borderRadius: 8, padding: 10 }} />
+            <textarea
+              defaultValue={`Praise:
+
+Growth target:
+
+Next step:`}
+              style={{ minHeight: 180, background: '#0f172a', color: '#fff', border: '1px solid #334155', borderRadius: 8, padding: 10 }}
+            />
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button type="button" style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#fff', padding: '8px 12px' }}>Save Draft</button>
               <button type="button" style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#fff', padding: '8px 12px' }}>Copy Feedback</button>

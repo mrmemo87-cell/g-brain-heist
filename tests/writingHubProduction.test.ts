@@ -193,7 +193,10 @@ test('teacher dashboard stalled/improving indicators render', () => {
 test('teacher dashboard loading/error/empty states render', () => {
   __resetWritingIntegrationStoreForTests();
   const loadingHtml = renderToStaticMarkup(React.createElement(WritingMonitoringView, { isLoading: true }));
-  assert.ok(loadingHtml.includes('Loading writing monitor'));
+  assert.ok(
+    loadingHtml.includes('background:#0a0f1a'),
+    `Expected monitoring loading skeleton container. First 500 chars:\n${loadingHtml.slice(0, 500)}`
+  );
 
   const errorHtml = renderToStaticMarkup(
     React.createElement(WritingMonitoringView, { errorMessage: 'network unavailable' })
@@ -253,7 +256,7 @@ test('admin calibration review renders full decision chain', () => {
   const html = renderToStaticMarkup(
     React.createElement(WritingCalibrationReview, { studentId: 'cal-1', month: '2026-03' })
   );
-  assert.ok(html.includes('Admin Calibration Review'), `Expected calibration header in HTML. First 500 chars:\n${html.slice(0, 500)}`);
+  assert.ok(html.includes('Writing Calibration Review'), `Expected calibration header in HTML. First 500 chars:\n${html.slice(0, 500)}`);
   assert.ok(html.includes('Calibration Student'), `Expected student label in calibration HTML. First 500 chars:\n${html.slice(0, 500)}`);
   assert.ok(html.includes('Latest assessment result'), `Expected assessment section in calibration HTML. First 500 chars:\n${html.slice(0, 500)}`);
   assert.ok(html.includes('Weakness tags'), `Expected weakness tags line in calibration HTML. First 500 chars:\n${html.slice(0, 500)}`);

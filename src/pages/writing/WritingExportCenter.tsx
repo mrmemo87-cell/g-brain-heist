@@ -442,13 +442,13 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
                 disabled={!isReady}
                 style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 10px' }}
               >
-                {isReady ? 'Generate' : 'Use Advanced Tools'}
+                {isReady ? 'Export CSV' : 'Use Advanced Tools'}
               </button>
             </article>
           ))}
         </section>
         <details>
-          <summary style={{ cursor: 'pointer', color: '#93c5fd', fontWeight: 700 }}>Show Advanced Report Tools</summary>
+          <summary style={{ cursor: 'pointer', color: '#93c5fd', fontWeight: 700 }}>Open Advanced Report Tools</summary>
         {!studentId && teacherRows ? (
           <div style={{ position: 'sticky', top: 0, zIndex: 3, background: '#020617', border: '1px solid #1e293b', borderRadius: 10, padding: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <input value={searchQuery} onChange={(event: InputChangeEvent) => setSearchQuery(event.target.value)} placeholder="Search student" style={{ flex: '1 1 220px', background: '#020617', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '8px 10px' }} />
