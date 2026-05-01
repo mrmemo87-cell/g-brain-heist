@@ -606,7 +606,9 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       );
 
       if (!isDisposed) {
-        setApplicationsUnreadTotal(unreadCounts.reduce((sum, count) => sum + count, 0));
+        const unreadMessagesTotal = unreadCounts.reduce((sum, count) => sum + count, 0);
+        const pendingRequestsTotal = schoolRequests.filter((request) => request.status === 'pending').length;
+        setApplicationsUnreadTotal(unreadMessagesTotal + pendingRequestsTotal);
       }
     };
 
