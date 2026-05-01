@@ -277,6 +277,7 @@ const MainActions: React.FC<MainActionsProps> = ({
   const displaySchoolName = schoolName || 'My School';
   const displaySchoolLogo = schoolLogoUrl || defaultSchoolIcon;
   const missionIconClass = 'h-full w-full rounded-full object-cover drop-shadow-[0_0_26px_rgba(255,255,255,0.45)] brightness-110 contrast-110 saturate-125';
+  const attackMissionIconClass = 'h-full w-full rounded-full object-contain p-3 drop-shadow-[0_0_26px_rgba(255,255,255,0.45)] brightness-110 contrast-110 saturate-125';
   const inviteText = 'Join me on Brains Heist — the gamified learning platform! 🧠⚡';
   const inviteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://brainsheist.com';
   const inviteMessage = `${inviteText} ${inviteUrl}`;
@@ -476,7 +477,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={locked ? handleLocked('Launch Attack') : handlePilotClick('Launch Attack', onStartPvp)}
-              icon={<img src="/mission-console-images/attack.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
+              icon={<img src="/mission-console-images/attack.webp" alt="" className={attackMissionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
               label="Launch Attack"
               circleIcon
