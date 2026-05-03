@@ -206,6 +206,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, focusTargetUserId, onComplet
 
   useGSAP(() => {
     if (stage !== 'cinematic' || !selectedTarget) return;
+    if (!reticleRef.current || !beamPathRef.current || !impactRingRef.current || !impactFlashRef.current || !outcomeBannerRef.current) return;
 
     const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
 
@@ -710,25 +711,26 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, focusTargetUserId, onComplet
 
           {/* Center — phase indicator */}
           <div className="relative flex flex-col items-center justify-center w-28 h-28 md:w-36 md:h-36">
-            {breachPhase === 'lockon' && (
-              <svg className="w-24 h-24 md:w-28 md:h-28 breach-target-reticle" viewBox="0 0 120 120" fill="none" data-sfx="lockon">
-                <circle ref={reticleRef} cx="60" cy="60" r="44" stroke="rgba(248,113,113,0.95)" strokeWidth="3.5" />
-                <circle cx="60" cy="60" r="8" stroke="rgba(248,113,113,0.8)" strokeWidth="2" />
-                <path d="M60 6V24M60 96V114M6 60H24M96 60H114" stroke="rgba(248,113,113,0.75)" strokeWidth="2" />
-              </svg>
-            )}
-            {breachPhase === 'charge' && <div className="breach-energy-core"></div>}
-            {breachPhase === 'impact' && (
-              <div className="text-6xl md:text-7xl breach-explosion-burst">💥</div>
-            )}
-            {breachPhase === 'outcome' && (
-              <div ref={outcomeBannerRef} className={`breach-outcome-banner scale-90 opacity-0 ${
+            <svg
+              className={`w-24 h-24 md:w-28 md:h-28 breach-target-reticle transition-opacity duration-200 ${breachPhase === 'lockon' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+              viewBox="0 0 120 120"
+              fill="none"
+              data-sfx="lockon"
+            >
+              <circle ref={reticleRef} cx="60" cy="60" r="44" stroke="rgba(248,113,113,0.95)" strokeWidth="3.5" />
+              <circle cx="60" cy="60" r="8" stroke="rgba(248,113,113,0.8)" strokeWidth="2" />
+              <path d="M60 6V24M60 96V114M6 60H24M96 60H114" stroke="rgba(248,113,113,0.75)" strokeWidth="2" />
+            </svg>
+            <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 ${breachPhase === 'charge' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+              <div className="breach-energy-core"></div>
+            </div>
+            <div className={`absolute inset-0 flex items-center justify-center text-6xl md:text-7xl breach-explosion-burst transition-opacity duration-150 ${breachPhase === 'impact' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>💥</div>
+            <div ref={outcomeBannerRef} className={`breach-outcome-banner scale-90 opacity-0 ${breachPhase === 'outcome' ? 'pointer-events-auto' : 'pointer-events-none'} ${
                 breachOutcomeText === 'BREACHED' ? 'breach-win' :
                 breachOutcomeText === 'BLOCKED' ? 'breach-blocked' : 'breach-lose'
               }`}>
                 {breachOutcomeText}
-              </div>
-            )}
+            </div>
           </div>
 
           {/* Defender */}
@@ -773,21 +775,15 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, focusTargetUserId, onComplet
         <svg className="absolute inset-0 z-20 pointer-events-none" viewBox="0 0 1000 600" preserveAspectRatio="none">
           <line ref={beamPathRef} x1="260" y1="260" x2="740" y2="260" stroke="rgba(34,211,238,0.95)" strokeWidth="6" strokeLinecap="round" />
         </svg>
-        {breachPhase === 'charge' && (
-          <div className="absolute top-[42%] left-[18%] right-[18%] breach-attack-beam z-20">
+        <div className={`absolute top-[42%] left-[18%] right-[18%] breach-attack-beam z-20 transition-opacity duration-200 ${breachPhase === 'charge' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
             <div className="breach-energy-streak absolute left-[8%] top-1/2 w-10 h-1 -translate-y-1/2 rounded-full bg-cyan-300/70 blur-sm" />
             <div className="breach-energy-streak absolute left-[18%] top-1/2 w-8 h-1 -translate-y-1/2 rounded-full bg-cyan-200/60 blur-sm" />
             <div className="breach-energy-streak absolute left-[28%] top-1/2 w-12 h-1 -translate-y-1/2 rounded-full bg-cyan-100/50 blur-sm" />
-          </div>
-        )}
+        </div>
 
         {/* Impact effects */}
-        {breachPhase === 'impact' && (
-          <>
-            <div ref={impactRingRef} className="absolute right-[15%] md:right-[22%] top-[22%] w-48 h-48 breach-impact-ring z-20"></div>
-            <div ref={impactFlashRef} className="absolute right-[18%] md:right-[25%] top-[26%] w-36 h-36 rounded-full breach-impact-flash z-20"></div>
-          </>
-        )}
+        <div ref={impactRingRef} className={`absolute right-[15%] md:right-[22%] top-[22%] w-48 h-48 breach-impact-ring z-20 transition-opacity duration-150 ${breachPhase === 'impact' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}></div>
+        <div ref={impactFlashRef} className={`absolute right-[18%] md:right-[25%] top-[26%] w-36 h-36 rounded-full breach-impact-flash z-20 transition-opacity duration-150 ${breachPhase === 'impact' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}></div>
 
         {/* Bottom HUD — phase progress bar */}
         <div className="absolute bottom-0 left-0 right-0 z-20 px-6 pb-5">
