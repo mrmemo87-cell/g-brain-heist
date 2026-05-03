@@ -99,7 +99,21 @@ const JoinSchoolCard: React.FC<JoinSchoolCardProps> = ({ onJoined, initialRole =
 
     const channel = SchoolRequestService.subscribeToSchoolRequestMessageChanges(
       'join-school-card-unread',
-      () => {
+      (payload) => {
+        const incomingMessage = payload.new;
+        if (incomingMessage && incomingMessage.request_id) {
+          const senderRole = (incomingMessage.sender_role || '').toLowerCase();
+          const isIncomingForApplicant = senderRole !== 'applicant';
+          const lastSeenAt = SchoolRequestService.getSchoolRequestLastSeenAt(incomingMessage.request_id, 'applicant');
+          const createdAtMs = Date.parse(incomingMessage.created_at || '');
+          const lastSeenMs = lastSeenAt ? Date.parse(lastSeenAt) : 0;
+          const isUnread = Number.isNaN(createdAtMs) ? true : createdAtMs > lastSeenMs;
+
+          if (isIncomingForApplicant && isUnread && !isDisposed) {
+            setRequestUnreadCount((prev) => prev + 1);
+          }
+        }
+
         void refreshUnreadCount();
       }
     );
@@ -110,10 +124,18 @@ const JoinSchoolCard: React.FC<JoinSchoolCardProps> = ({ onJoined, initialRole =
     };
   }, []);
 
+  const hasUnreadAdminMessage = requestUnreadCount > 0;
+
   return (
     <>
-      <div className="relative mb-4 overflow-hidden rounded-xl border border-cyan-500/30 bg-gradient-to-br from-slate-900/95 to-slate-800/95 shadow-lg backdrop-blur-sm transition-all duration-300 hover:border-cyan-400/50">
-        {requestUnreadCount > 0 && (
+      <div
+        className={`relative mb-4 overflow-hidden rounded-xl border shadow-lg backdrop-blur-sm transition-all duration-300 ${
+          hasUnreadAdminMessage
+            ? 'border-orange-400/70 bg-gradient-to-br from-orange-900/45 via-amber-800/40 to-slate-900/95 hover:border-orange-300/80'
+            : 'border-cyan-500/30 bg-gradient-to-br from-slate-900/95 to-slate-800/95 hover:border-cyan-400/50'
+        }`}
+      >
+        {hasUnreadAdminMessage && (
           <span className="absolute right-2 top-2 z-10 inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-red-500 px-1 text-xs font-bold text-white shadow-lg ring-2 ring-slate-900">
             {Math.min(requestUnreadCount, 99)}
           </span>
@@ -124,19 +146,19 @@ const JoinSchoolCard: React.FC<JoinSchoolCardProps> = ({ onJoined, initialRole =
           className="w-full p-4 flex items-center justify-between text-left transition-all duration-200 hover:bg-white/5"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center border border-cyan-500/40 p-1.5">
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center border p-1.5 ${hasUnreadAdminMessage ? 'bg-orange-500/20 border-orange-300/60' : 'bg-cyan-500/20 border-cyan-500/40'}`}>
               <img src={neonIcon('school_unlock')} alt="" className="w-full h-full object-contain" />
             </div>
             <div>
               <h3 className="font-semibold text-white text-sm">Join Your School</h3>
-              <p className="text-xs text-gray-400">
+              <p className={`text-xs ${hasUnreadAdminMessage ? 'text-orange-200/90' : 'text-gray-400'}`}>
                 {isExpanded ? 'Click to collapse' : 'Get full access to school features'}
               </p>
             </div>
           </div>
           
           <svg 
-            className={`w-5 h-5 text-cyan-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} 
+            className={`w-5 h-5 transition-transform duration-300 ${hasUnreadAdminMessage ? 'text-orange-300' : 'text-cyan-400'} ${isExpanded ? 'rotate-180' : ''}`} 
             fill="none" 
             viewBox="0 0 24 24" 
             stroke="currentColor"
