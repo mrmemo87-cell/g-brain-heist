@@ -294,6 +294,22 @@ export const listSchoolRequestMessages = async (
   return { success: true, messages: data ?? [] };
 };
 
+
+export const SCHOOL_REQUEST_THREAD_SEEN_EVENT = 'school-request-thread-seen';
+
+const dispatchThreadSeenEvent = (requestId: string, viewerRole: SchoolRequestViewerRole, seenAt: string) => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.dispatchEvent(
+      new CustomEvent(SCHOOL_REQUEST_THREAD_SEEN_EVENT, {
+        detail: { requestId, viewerRole, seenAt },
+      })
+    );
+  } catch {
+    // Ignore event dispatch failures
+  }
+};
+
 const SCHOOL_REQUEST_LAST_SEEN_PREFIX = 'school-request-last-seen:';
 
 const getSchoolRequestLastSeenKey = (requestId: string, viewerRole: SchoolRequestViewerRole) =>
@@ -330,6 +346,7 @@ export const markSchoolRequestThreadSeen = (
   seenAt = new Date().toISOString()
 ) => {
   safeLocalStorageSet(getSchoolRequestLastSeenKey(requestId, viewerRole), seenAt);
+  dispatchThreadSeenEvent(requestId, viewerRole, seenAt);
 };
 
 export const getUnreadSchoolRequestMessageCount = (

@@ -614,6 +614,17 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
     void refreshApplicationsUnreadTotal();
 
+    const handleThreadSeen = (event: Event) => {
+      const customEvent = event as CustomEvent<{ viewerRole?: string }>;
+      if (customEvent.detail?.viewerRole === 'admin') {
+        void refreshApplicationsUnreadTotal();
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener(SchoolRequestService.SCHOOL_REQUEST_THREAD_SEEN_EVENT, handleThreadSeen);
+    }
+
     const channel = SchoolRequestService.subscribeToSchoolRequestMessageChanges(
       'admin-applications-nav-unread',
       () => {
@@ -623,6 +634,9 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
     return () => {
       isDisposed = true;
+      if (typeof window !== 'undefined') {
+        window.removeEventListener(SchoolRequestService.SCHOOL_REQUEST_THREAD_SEEN_EVENT, handleThreadSeen);
+      }
       void supabase.removeChannel(channel);
     };
   }, [schoolRequests]);

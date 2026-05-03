@@ -97,6 +97,17 @@ const JoinSchoolCard: React.FC<JoinSchoolCardProps> = ({ onJoined, initialRole =
 
     void refreshUnreadCount();
 
+    const handleThreadSeen = (event: Event) => {
+      const customEvent = event as CustomEvent<{ viewerRole?: string }>;
+      if (customEvent.detail?.viewerRole === 'applicant') {
+        void refreshUnreadCount();
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener(SchoolRequestService.SCHOOL_REQUEST_THREAD_SEEN_EVENT, handleThreadSeen);
+    }
+
     const channel = SchoolRequestService.subscribeToSchoolRequestMessageChanges(
       'join-school-card-unread',
       (payload) => {
@@ -120,6 +131,9 @@ const JoinSchoolCard: React.FC<JoinSchoolCardProps> = ({ onJoined, initialRole =
 
     return () => {
       isDisposed = true;
+      if (typeof window !== 'undefined') {
+        window.removeEventListener(SchoolRequestService.SCHOOL_REQUEST_THREAD_SEEN_EVENT, handleThreadSeen);
+      }
       void supabase.removeChannel(channel);
     };
   }, []);
@@ -269,7 +283,7 @@ const JoinSchoolCard: React.FC<JoinSchoolCardProps> = ({ onJoined, initialRole =
                 className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-purple-400/40 bg-purple-500/15 px-3 py-2 text-sm font-semibold text-purple-100 transition-colors hover:border-purple-300 hover:bg-purple-500/25"
               >
                 <img src={neonIcon('invite_teacher')} alt="" className="h-4 w-4 object-contain" />
-                Make a request
+                Open my applications / request school
               </button>
             </div>
           </div>
