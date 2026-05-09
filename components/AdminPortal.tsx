@@ -104,6 +104,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   // Custom grant amounts
   const [customCoinAmount, setCustomCoinAmount] = useState<Record<string, string>>({});
   const [customXpAmount, setCustomXpAmount] = useState<Record<string, string>>({});
+  const [customGemstoneAmount, setCustomGemstoneAmount] = useState<Record<string, string>>({});
   const [customLevelAmount, setCustomLevelAmount] = useState<Record<string, string>>({});
   const [showCustomGrant, setShowCustomGrant] = useState<Record<string, boolean>>({});
 
@@ -1194,6 +1195,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         p_user_id: userId,
         p_xp_delta: 0,
         p_coins_delta: amount,
+        p_gemstones_delta: 0,
       });
 
       if (error) throw error;
@@ -1215,6 +1217,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         p_user_id: userId,
         p_xp_delta: amount,
         p_coins_delta: 0,
+        p_gemstones_delta: 0,
       });
 
       if (error) throw error;
@@ -1469,13 +1472,35 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     }
   };
 
+  const grantGemstones = async (userId: string, amount: number) => {
+    try {
+      const user = users.find(u => u.id === userId);
+      if (!user) return;
+
+      const { error } = await supabase.rpc('rpc_admin_grant', {
+        p_user_id: userId,
+        p_xp_delta: 0,
+        p_coins_delta: 0,
+        p_gemstones_delta: amount,
+      });
+
+      if (error) throw error;
+
+      updateUserInState(userId, { gemstones: Number(user.gemstones ?? 0) + amount });
+      addToast(`💎 Granted ${amount} gemstones to ${user.username ?? user.email ?? 'Unknown'}`, 'success');
+      await refreshAdminData();
+    } catch (error) {
+      reportRpcError('Failed to grant gemstones:', error, 'Failed to grant gemstones');
+    }
+  };
+
   // Custom grant with any amount
   const grantCustomCoins = async (userId: string, amount: number) => {
     if (!amount || amount <= 0) { addToast('Enter a positive amount', 'error'); return; }
     try {
       const user = users.find(u => u.id === userId);
       if (!user) return;
-      const { error } = await supabase.rpc('rpc_admin_grant', { p_user_id: userId, p_xp_delta: 0, p_coins_delta: amount });
+      const { error } = await supabase.rpc('rpc_admin_grant', { p_user_id: userId, p_xp_delta: 0, p_coins_delta: amount, p_gemstones_delta: 0 });
       if (error) throw error;
       updateUserInState(userId, { coins: Number(user.coins ?? 0) + amount });
       addToast(`✨ Granted ${amount.toLocaleString()} coins to ${resolveUserLabel(user)}`, 'success');
@@ -1488,12 +1513,25 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     try {
       const user = users.find(u => u.id === userId);
       if (!user) return;
-      const { error } = await supabase.rpc('rpc_admin_grant', { p_user_id: userId, p_xp_delta: amount, p_coins_delta: 0 });
+      const { error } = await supabase.rpc('rpc_admin_grant', { p_user_id: userId, p_xp_delta: amount, p_coins_delta: 0, p_gemstones_delta: 0 });
       if (error) throw error;
       updateUserInState(userId, { xp: Number(user.xp ?? 0) + amount });
       addToast(`⚡ Granted ${amount.toLocaleString()} XP to ${resolveUserLabel(user)}`, 'success');
       setCustomXpAmount(prev => ({ ...prev, [userId]: '' }));
     } catch (error) { reportRpcError('Failed to grant XP:', error, 'Failed to grant XP'); }
+  };
+
+  const grantCustomGemstones = async (userId: string, amount: number) => {
+    if (!amount || amount <= 0) { addToast('Enter a positive amount', 'error'); return; }
+    try {
+      const user = users.find(u => u.id === userId);
+      if (!user) return;
+      const { error } = await supabase.rpc('rpc_admin_grant', { p_user_id: userId, p_xp_delta: 0, p_coins_delta: 0, p_gemstones_delta: amount });
+      if (error) throw error;
+      updateUserInState(userId, { gemstones: Number(user.gemstones ?? 0) + amount });
+      addToast(`💎 Granted ${amount.toLocaleString()} gemstones to ${resolveUserLabel(user)}`, 'success');
+      setCustomGemstoneAmount(prev => ({ ...prev, [userId]: '' }));
+    } catch (error) { reportRpcError('Failed to grant gemstones:', error, 'Failed to grant gemstones'); }
   };
 
   const setCustomLevel = async (userId: string, level: number) => {
@@ -1720,7 +1758,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     existingAnnouncements, announcementsLoading,
     showCustomGrant, setShowCustomGrant,
     customCoinAmount, setCustomCoinAmount, customXpAmount, setCustomXpAmount,
-    customLevelAmount, setCustomLevelAmount, roleChangeLoading,
+    customGemstoneAmount, setCustomGemstoneAmount, customLevelAmount, setCustomLevelAmount, roleChangeLoading,
     // Derived state
     uniqueQuizNames, uniqueClasses, filteredQuizScores, quizStats,
     filteredSchoolRequests, filteredSchoolMembers, currentSchoolAdmin,
@@ -1728,9 +1766,9 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     // Functions
     refreshAdminData, resetAllProgress, fetchQuizScores, exportCSV,
     openReport, openAnswerReflection, sendAnnouncement,
-    fetchAnnouncements, deleteAnnouncement, grantCoins, grantXP,
+    fetchAnnouncements, deleteAnnouncement, grantCoins, grantXP, grantGemstones,
     setUserLevel, resetUserAP, resetUserProgress, resetUserAcademics,
-    setUserBanState, deleteUser, grantCustomCoins, grantCustomXP,
+    setUserBanState, deleteUser, grantCustomCoins, grantCustomXP, grantCustomGemstones,
     setCustomLevel, changeUserRole, handleGradeChange, handleBatchChange,
     toggleAdminVisibility, loadSchoolMembers, loadSchoolQuotas,
     handleResetQuotas, handleSetQuota, handleExtendTrial, handleSetSchoolAdmin,
