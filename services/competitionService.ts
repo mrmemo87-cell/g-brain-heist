@@ -350,12 +350,14 @@ export const markAnnouncementSeen = async (announcementId: string): Promise<void
 export const grantPlayerRewards = async (
   userId: string,
   xpDelta: number,
-  coinsDelta: number
+  coinsDelta: number,
+  gemstonesDelta = 0
 ): Promise<void> => {
   const { error } = await supabase.rpc('rpc_admin_grant', {
     p_user_id: userId,
     p_xp_delta: xpDelta,
     p_coins_delta: coinsDelta,
+    p_gemstones_delta: gemstonesDelta,
   });
 
   if (error) {

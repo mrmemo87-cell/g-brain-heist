@@ -4,12 +4,12 @@ import ClickableUsername from '../../ClickableUsername';
 
 const UsersTab: React.FC = () => {
   const {
-    PAGE_SIZE, batchByGrade, changeUserRole, customCoinAmount, customLevelAmount, customXpAmount, 
-    deleteUser, gradeOptions, grantCoins, grantCustomCoins, grantCustomXP, grantXP, 
-    handleBatchChange, handleGradeChange, hasNextPage, resetUserAP, resetUserAcademics, 
-    resetUserProgress, resolveUserEmail, resolveUserLabel, roleChangeLoading, searchQuery, 
-    setCustomCoinAmount, setCustomLevel, setCustomLevelAmount, setCustomXpAmount, setSearchQuery, 
-    setShowCustomGrant, setUserBanState, setUserLevel, setUserPage, showCustomGrant, userPage, 
+    PAGE_SIZE, batchByGrade, changeUserRole, customCoinAmount, customGemstoneAmount, customLevelAmount, customXpAmount,
+    deleteUser, gradeOptions, grantCoins, grantCustomCoins, grantCustomGemstones, grantCustomXP, grantGemstones, grantXP,
+    handleBatchChange, handleGradeChange, hasNextPage, resetUserAP, resetUserAcademics,
+    resetUserProgress, resolveUserEmail, resolveUserLabel, roleChangeLoading, searchQuery,
+    setCustomCoinAmount, setCustomGemstoneAmount, setCustomLevel, setCustomLevelAmount, setCustomXpAmount, setSearchQuery,
+    setShowCustomGrant, setUserBanState, setUserLevel, setUserPage, showCustomGrant, userPage,
     users, usersError, usersLoading,
   } = useAdmin();
 
@@ -205,6 +205,12 @@ const UsersTab: React.FC = () => {
                   ⚡ +500 XP
                 </button>
                 <button
+                  onClick={() => grantGemstones(user.id, 10)}
+                  className="bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-400 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_15px_rgba(16,185,129,0.5)]"
+                >
+                  💎 +10 Gemstones
+                </button>
+                <button
                   onClick={() => resetUserAP(user.id)}
                   className="bg-green-600/30 hover:bg-green-600/50 border border-green-400 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_15px_rgba(34,197,94,0.5)]"
                 >
@@ -256,7 +262,7 @@ const UsersTab: React.FC = () => {
               {showCustomGrant[user.id] && (
                 <div className="mt-3 p-3 bg-black/30 border border-cyan-400/30 rounded-lg">
                   <p className="text-xs text-cyan-300 font-semibold mb-2">🎛️ Custom Grants & Level Set</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                     <div className="flex gap-1">
                       <input type="number" placeholder="Coins" value={customCoinAmount[user.id] || ''} onChange={(e) => setCustomCoinAmount(prev => ({ ...prev, [user.id]: e.target.value }))} className="flex-1 bg-black/50 border border-yellow-400/40 rounded px-2 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400" />
                       <button onClick={() => grantCustomCoins(user.id, parseInt(customCoinAmount[user.id]) || 0)} className="bg-yellow-600/40 hover:bg-yellow-600/60 border border-yellow-400 text-white text-xs px-2 py-1.5 rounded">💰 Grant</button>
@@ -264,6 +270,10 @@ const UsersTab: React.FC = () => {
                     <div className="flex gap-1">
                       <input type="number" placeholder="XP" value={customXpAmount[user.id] || ''} onChange={(e) => setCustomXpAmount(prev => ({ ...prev, [user.id]: e.target.value }))} className="flex-1 bg-black/50 border border-blue-400/40 rounded px-2 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-400" />
                       <button onClick={() => grantCustomXP(user.id, parseInt(customXpAmount[user.id]) || 0)} className="bg-blue-600/40 hover:bg-blue-600/60 border border-blue-400 text-white text-xs px-2 py-1.5 rounded">⚡ Grant</button>
+                    </div>
+                    <div className="flex gap-1">
+                      <input type="number" placeholder="Gemstones" value={customGemstoneAmount[user.id] || ''} onChange={(e) => setCustomGemstoneAmount(prev => ({ ...prev, [user.id]: e.target.value }))} className="flex-1 bg-black/50 border border-emerald-400/40 rounded px-2 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-emerald-400" />
+                      <button onClick={() => grantCustomGemstones(user.id, parseInt(customGemstoneAmount[user.id]) || 0)} className="bg-emerald-600/40 hover:bg-emerald-600/60 border border-emerald-400 text-white text-xs px-2 py-1.5 rounded">💎 Grant</button>
                     </div>
                     <div className="flex gap-1">
                       <input type="number" placeholder="Level" value={customLevelAmount[user.id] || ''} onChange={(e) => setCustomLevelAmount(prev => ({ ...prev, [user.id]: e.target.value }))} className="flex-1 bg-black/50 border border-purple-400/40 rounded px-2 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-purple-400" />
