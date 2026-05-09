@@ -413,6 +413,17 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     setPvpFocusTargetUserId(targetIdFromData);
   }, []);
 
+  useEffect(() => {
+    const handleProfileAttack = (event: Event) => {
+      const detail = (event as CustomEvent<{ targetUserId?: string | null }>).detail;
+      setPvpFocusTargetUserId(typeof detail?.targetUserId === 'string' ? detail.targetUserId : null);
+      handleViewChange('pvp');
+    };
+
+    window.addEventListener('bh:attack-profile', handleProfileAttack);
+    return () => window.removeEventListener('bh:attack-profile', handleProfileAttack);
+  }, [handleViewChange]);
+
   const removeToast = (id: number) => {
     setToasts((prevToasts: ToastMessage[]) => prevToasts.filter((toast: ToastMessage) => toast.id !== id));
   };

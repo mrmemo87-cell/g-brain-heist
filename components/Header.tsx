@@ -803,6 +803,11 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
           profile={profile}
           apValue={calculatedAP}
           onClose={() => setShowProfileModal(false)}
+          onAttack={() => {
+            setShowProfileModal(false);
+            onNavigate?.('pvp');
+          }}
+          attackLabel="Launch PvP"
         />
       )}
 

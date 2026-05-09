@@ -18,6 +18,8 @@ interface UserProfileModalProps {
   profile: Profile;
   apValue?: number;
   onClose: () => void;
+  onAttack?: () => void;
+  attackLabel?: string;
 }
 
 const RARITY_STYLES: Record<string, { border: string; bg: string; glow: string; text: string }> = {
@@ -50,7 +52,7 @@ const AchievementBadge: React.FC<{ achievement: UserAchievement }> = ({ achievem
   );
 };
 
-const UserProfileModal: React.FC<UserProfileModalProps> = ({ profile, apValue, onClose }) => {
+const UserProfileModal: React.FC<UserProfileModalProps> = ({ profile, apValue, onClose, onAttack, attackLabel = 'Launch Attack' }) => {
   const [achievements, setAchievements] = useState<UserAchievement[]>([]);
   const [totalEarned, setTotalEarned] = useState(0);
   const [loadingAchievements, setLoadingAchievements] = useState(true);
@@ -61,6 +63,18 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ profile, apValue, o
     : 'No clan yet';
   const bioText = profile.bio?.trim() || 'Add a short bio from Settings to let others know more about you.';
   const roleLabel = profile.role === 'admin' ? 'Admin' : profile.role === 'teacher' ? 'Teacher' : `Level ${profile.level}`;
+  const attackButtonLabel = isStaff ? 'Open PvP Arena' : attackLabel;
+  const handleAttackClick = () => {
+    if (onAttack) {
+      onAttack();
+      return;
+    }
+
+    window.dispatchEvent(new CustomEvent('bh:attack-profile', {
+      detail: { targetUserId: isStaff ? null : profile.id, targetUsername: profile.username },
+    }));
+    onClose();
+  };
 
   useEffect(() => {
     const fetchAchievements = async () => {
@@ -142,17 +156,39 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ profile, apValue, o
               </div>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-600 bg-slate-900 text-lg font-semibold text-white shadow-sm transition hover:border-cyan-400 hover:text-cyan-200"
-            aria-label="Close profile"
-          >
-            ✕
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleAttackClick}
+              className="group relative hidden overflow-hidden rounded-full border border-pink-300/60 bg-gradient-to-r from-fuchsia-600 via-rose-500 to-orange-400 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-white shadow-[0_0_22px_rgba(244,63,94,0.45)] transition hover:scale-105 hover:shadow-[0_0_34px_rgba(251,113,133,0.7)] sm:inline-flex"
+              aria-label={`${attackButtonLabel} for ${profile.username}`}
+            >
+              <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/35 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+              <span className="relative inline-flex items-center gap-2">⚔️ {attackButtonLabel}</span>
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-600 bg-slate-900 text-lg font-semibold text-white shadow-sm transition hover:border-cyan-400 hover:text-cyan-200"
+              aria-label="Close profile"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         <div className="grid gap-4 px-5 py-4">
+
+          <button
+            type="button"
+            onClick={handleAttackClick}
+            className="group relative -mt-1 overflow-hidden rounded-2xl border border-pink-300/70 bg-gradient-to-r from-fuchsia-600 via-rose-500 to-orange-400 px-5 py-3 text-sm font-black uppercase tracking-[0.2em] text-white shadow-[0_0_28px_rgba(244,63,94,0.5)] transition hover:-translate-y-0.5 hover:shadow-[0_0_44px_rgba(251,113,133,0.75)] sm:hidden"
+            aria-label={`${attackButtonLabel} for ${profile.username}`}
+          >
+            <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/35 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+            <span className="relative flex items-center justify-center gap-2">⚔️ {attackButtonLabel}</span>
+          </button>
+
           {/* Only show game stats for students */}
           {!isStaff && (
             <div className="grid grid-cols-2 gap-3">
