@@ -3,6 +3,8 @@ import { useLightMode } from '../src/contexts/LightModeContext';
 import { Profile } from '../types';
 import { deactivate_neon_frame, deactivate_flicker_theme, brains_master_toggle_badge } from '../services/gameService';
 import { isBrainsMasterActive } from '../src/utils/premiumHelpers';
+import AvatarWithFrame from './AvatarWithFrame';
+import { isFlickerThemeActive } from '../src/lib/cosmetics';
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -43,7 +45,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 }) => {
   const { isLightMode, toggleLightMode, autoEnabledReason, clearAutoEnabledReason } = useLightMode();
   const [hasNeonFrame, setHasNeonFrame] = useState(profile.active_cosmetic_frame === 'neon');
-  const [hasFlickerTheme, setHasFlickerTheme] = useState(profile.active_cosmetic_theme === 'flicker');
+  const [hasFlickerTheme, setHasFlickerTheme] = useState(isFlickerThemeActive(profile.active_cosmetic_theme));
   const [neonBusy, setNeonBusy] = useState(false);
   const [flickerBusy, setFlickerBusy] = useState(false);
   const [neonError, setNeonError] = useState<string | null>(null);
@@ -71,7 +73,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
   useEffect(() => {
     setHasNeonFrame(profile.active_cosmetic_frame === 'neon');
-    setHasFlickerTheme(profile.active_cosmetic_theme === 'flicker');
+    setHasFlickerTheme(isFlickerThemeActive(profile.active_cosmetic_theme));
   }, [profile.active_cosmetic_frame, profile.active_cosmetic_theme]);
 
   const handleNeonDeactivate = async () => {
@@ -228,6 +230,21 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           {/* Avatar Selection */}
           <div>
             <h3 className="font-heading text-xl mb-3" style={{ color: 'var(--amber-warn)' }}>Avatar</h3>
+            <div className="mb-4 flex items-center gap-3 rounded-2xl border border-white/10 bg-black/25 p-3">
+              <AvatarWithFrame
+                src={selectedAvatar || profile.avatar_url}
+                alt={profile.username || 'Current avatar'}
+                size="md"
+                hasNeonFrame={hasNeonFrame}
+                hasFlickerTheme={hasFlickerTheme}
+                hasGlitchEffect={profile.active_cosmetic_effect === 'glitch'}
+                fallbackFrameClassName="border-2 border-slate-700"
+              />
+              <div>
+                <p className="text-sm font-semibold text-white">Current avatar preview</p>
+                <p className="text-xs text-gray-400">Active cosmetics are rendered here the same way other players see them.</p>
+              </div>
+            </div>
             <div className="grid grid-cols-4 gap-2 mb-3">
               {avatarPresets.map((avatarUrl, idx) => (
                 <button

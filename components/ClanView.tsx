@@ -5,6 +5,7 @@ import { supabase } from '../services/supabaseClient';
 import BackButton from './BackButton';
 import { SyndicateRune, CoinIcon, DemoteIcon, KickIcon, LeaveIcon, ManageIcon, PromoteIcon } from './icons';
 import AvatarWithFrame from './AvatarWithFrame';
+import { isFlickerThemeActive } from '../src/lib/cosmetics';
 import ClickableUsername from './ClickableUsername';
 import BrainsMasterBadge from './BrainsMasterBadge';
 import { neonIcon } from './visualAssets';
@@ -1600,7 +1601,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                                         alt={member.username}
                                                         size="md"
                                                         hasNeonFrame={member.active_cosmetic_frame === 'neon'}
-                                                        hasGlitchTheme={member.active_cosmetic_theme === 'flicker'}
+                                                        hasFlickerTheme={isFlickerThemeActive(member.active_cosmetic_theme)}
                                                         hasGlitchEffect={member.active_cosmetic_effect === 'glitch'}
                                                     />
                                                     <div>
@@ -1740,7 +1741,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                                 alt={member.username}
                                                 size="md"
                                                 hasNeonFrame={member.active_cosmetic_frame === 'neon'}
-                                                hasGlitchTheme={member.active_cosmetic_theme === 'flicker'}
+                                                hasFlickerTheme={isFlickerThemeActive(member.active_cosmetic_theme)}
                                                 hasGlitchEffect={member.active_cosmetic_effect === 'glitch'}
                                             />
                                             <div>
@@ -1833,7 +1834,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                                 alt={member.username}
                                                 size="md"
                                                 hasNeonFrame={member.active_cosmetic_frame === 'neon'}
-                                                hasGlitchTheme={member.active_cosmetic_theme === 'flicker'}
+                                                hasFlickerTheme={isFlickerThemeActive(member.active_cosmetic_theme)}
                                                 hasGlitchEffect={member.active_cosmetic_effect === 'glitch'}
                                             />
                                             <div>

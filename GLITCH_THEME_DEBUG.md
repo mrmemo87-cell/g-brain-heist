@@ -50,7 +50,7 @@ SELECT
 FROM users
 WHERE id = 'USER_ID_HERE';
 ```
-- Should show: `active_cosmetic_theme = 'glitch'`
+- Should show: `active_cosmetic_theme = 'flicker'`
 - If NULL → Data didn't sync → Run migration Step 3
 - If 'glitch' → Continue to Step 5
 
@@ -110,7 +110,7 @@ Open browser DevTools:
 - Run Step 3 of the migration to sync existing cosmetics:
 ```sql
 UPDATE users
-SET active_cosmetic_theme = 'glitch'
+SET active_cosmetic_theme = 'flicker'
 WHERE id IN (
     SELECT DISTINCT inv.user_id
     FROM inventory inv
@@ -123,7 +123,7 @@ WHERE id IN (
 ### ❌ "fetchGlitchThemeOwners returns empty"
 **Fix**: Check if query is falling back to inventory
 - Add console.warn logging to cosmeticService.ts
-- Verify users table query works: `SELECT id FROM users WHERE active_cosmetic_theme = 'glitch';`
+- Verify users table query works: `SELECT id FROM users WHERE active_cosmetic_theme = 'flicker';`
 
 ### ❌ "React props show hasGlitchTheme=false"
 **Fix**: Check if view component is fetching glitch data

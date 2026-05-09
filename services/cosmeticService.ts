@@ -51,7 +51,7 @@ export const fetchFlickerThemeOwners = async (userIds: string[]): Promise<Set<st
       .from('users')
       .select('id')
       .in('id', userIds)
-      .eq('active_cosmetic_theme', 'glitch');
+      .in('active_cosmetic_theme', ['flicker', 'glitch']);
 
     if (error) {
       console.warn('Failed to fetch flicker theme owners from users table:', error.message);

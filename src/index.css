@@ -765,6 +765,70 @@ body.lite-mode [class*="border-gray-7"] {
   animation: glitch-effect-distort 0.5s infinite step-end, glitch-effect-noise 2s infinite step-end !important;
 }
 
+
+/* Combined cosmetic layering: green glitch stays strongest, while neon/flicker remain readable. */
+.neon-frame.glitch-effect-frame,
+.glitch-frame.glitch-effect-frame,
+.neon-frame.glitch-frame.glitch-effect-frame {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(0, 255, 255, 0.18) 0px,
+      rgba(0, 255, 255, 0.18) 2px,
+      transparent 2px,
+      transparent 5px
+    ),
+    conic-gradient(from 210deg, #00ff66, #00ffff, #ff00de, #00ff66, #2cf6c8, #00ff66) !important;
+  border: 2px solid #00ff66 !important;
+  outline: 2px solid rgba(44, 246, 200, 0.72);
+  outline-offset: 3px;
+  box-shadow:
+    0 0 12px rgba(44, 246, 200, 0.95),
+    0 0 24px rgba(124, 108, 255, 0.75),
+    0 0 34px rgba(255, 0, 222, 0.7),
+    0 0 46px rgba(0, 255, 0, 0.72),
+    inset 0 0 14px rgba(0, 255, 0, 0.5) !important;
+  animation: glitch-effect-flash 3s infinite, glitch-effect-distort 0.5s infinite step-end, glitch-shift 2.2s infinite !important;
+}
+
+.neon-frame.glitch-effect-frame::before,
+.glitch-frame.glitch-effect-frame::before,
+.neon-frame.glitch-frame.glitch-effect-frame::before {
+  inset: -16px;
+  background:
+    radial-gradient(circle, rgba(0, 255, 0, 0.45), rgba(0, 255, 255, 0.32), rgba(255, 0, 222, 0.24), transparent 72%) !important;
+  animation: glitch-rgb-shift 2.5s infinite, glitch-effect-distort 0.3s infinite step-end reverse !important;
+  opacity: 0.95;
+}
+
+.neon-frame.glitch-effect-frame::after,
+.glitch-frame.glitch-effect-frame::after,
+.neon-frame.glitch-frame.glitch-effect-frame::after {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(0, 255, 255, 0.35) 0px,
+      rgba(0, 255, 255, 0.35) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    rgba(0, 0, 0, 0.82);
+}
+
+.neon-frame-avatar.glitch-effect-avatar,
+.glitch-frame-avatar.glitch-effect-avatar,
+.neon-frame-avatar.glitch-frame-avatar.glitch-effect-avatar {
+  border: 3px solid #00ff66 !important;
+  box-shadow:
+    0 0 10px rgba(44, 246, 200, 0.9),
+    0 0 18px rgba(0, 255, 255, 0.82),
+    0 0 28px rgba(255, 0, 222, 0.68),
+    0 0 36px rgba(0, 255, 0, 0.62),
+    inset 0 0 10px rgba(0, 255, 0, 0.45) !important;
+  animation: glitch-rgb-shift 2s infinite cubic-bezier(0.68, -0.55, 0.265, 1.55), glitch-effect-distort 0.5s infinite step-end, glitch-effect-noise 2s infinite step-end !important;
+  filter: contrast(1.28) saturate(1.35) brightness(1.08) !important;
+}
+
 .glass-tile {
   border-radius: 18px;
   padding: 1.1rem;

@@ -4,6 +4,7 @@ import { supabase } from '../services/supabaseClient';
 import BackButton from './BackButton';
 import { ClanMember } from '../types';
 import AvatarWithFrame from './AvatarWithFrame';
+import { isFlickerThemeActive } from '../src/lib/cosmetics';
 import { fetchNeonFrameOwners, fetchFlickerThemeOwners, fetchGlitchEffectOwners } from '../services/cosmeticService';
 import { neonIcon } from './visualAssets';
 import ClickableUsername from './ClickableUsername';
@@ -21,7 +22,7 @@ type PlayerLeaderboardEntry = {
   last_seen?: string;
   role?: string;
   active_cosmetic_frame?: 'neon' | null;
-  active_cosmetic_theme?: 'flicker' | null;
+  active_cosmetic_theme?: 'flicker' | 'glitch' | null;
   active_cosmetic_effect?: 'glitch' | null;
   brains_master_show_badge?: boolean;
   brains_master_until?: string | null;
@@ -414,7 +415,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
             alt={entry.username}
             size="md"
             hasNeonFrame={entry.active_cosmetic_frame === 'neon'}
-            hasGlitchTheme={entry.active_cosmetic_theme === 'flicker'}
+            hasFlickerTheme={isFlickerThemeActive(entry.active_cosmetic_theme)}
             hasGlitchEffect={entry.active_cosmetic_effect === 'glitch'}
           />
           <div 
@@ -608,7 +609,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
                           alt={member.username}
                           size="md"
                           hasNeonFrame={member.active_cosmetic_frame === 'neon'}
-                          hasGlitchTheme={member.active_cosmetic_theme === 'flicker'}
+                          hasFlickerTheme={isFlickerThemeActive(member.active_cosmetic_theme)}
                           hasGlitchEffect={member.active_cosmetic_effect === 'glitch'}
                         />
                         <div>
