@@ -25,7 +25,7 @@ Press `F12` to open Developer Tools, then go to **Console** tab
 - You should see console logs like:
   ```
   [Cosmetic] Glitch theme owners fetched: Set(1) {"user_id_here"}
-  [ProfileCard] Rendering with cosmetics: {active_cosmetic_frame: null, active_cosmetic_theme: "glitch"}
+  [ProfileCard] Rendering with cosmetics: {active_cosmetic_frame: null, active_cosmetic_theme: "flicker"}
   [AvatarWithFrame] Glitch theme enabled for: username_here
   ```
 
@@ -139,7 +139,7 @@ If it doesn't → CSS is broken or not loaded
 **Problem**: User doesn't have active glitch in database
 **Solution**:
 1. Check inventory: `SELECT * FROM inventory WHERE item_id = 'item_cosmetic_theme' AND state = 'active' AND user_id = 'USER_ID';`
-2. If found: Update users table: `UPDATE users SET active_cosmetic_theme = 'glitch' WHERE id = 'USER_ID';`
+2. If found: Update users table: `UPDATE users SET active_cosmetic_theme = 'flicker' WHERE id = 'USER_ID';`
 3. If not found: User needs to purchase and activate glitch theme first
 
 ### Issue: Profile shows NULL for active_cosmetic_theme
@@ -150,7 +150,7 @@ If it doesn't → CSS is broken or not loaded
 **Solution**:
 1. Verify column exists: `SELECT column_name FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'active_cosmetic_theme';`
 2. If not found: Run migration again
-3. If found: Sync data: `UPDATE users SET active_cosmetic_theme = 'glitch' WHERE id IN (SELECT DISTINCT user_id FROM inventory WHERE item_id = 'item_cosmetic_theme' AND state = 'active');`
+3. If found: Sync data: `UPDATE users SET active_cosmetic_theme = 'flicker' WHERE id IN (SELECT DISTINCT user_id FROM inventory WHERE item_id = 'item_cosmetic_theme' AND state = 'active');`
 
 ### Issue: Console shows glitch enabled but nothing renders
 ```
@@ -190,7 +190,7 @@ After following these steps, tell me:
 
 1. **Console logs**: What do you see for glitch cosmetics?
    - Does it show the user ID in the Set?
-   - Does profile show `active_cosmetic_theme: "glitch"`?
+   - Does profile show `active_cosmetic_theme: "flicker"`?
    - Does AvatarWithFrame log the glitch enabled message?
 
 2. **DOM inspection**: 

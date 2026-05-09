@@ -4,6 +4,7 @@ import { Profile } from '../types';
 import { getPublicProfile } from '../services/gameService';
 import { ShieldIcon, BrainIcon } from './icons';
 import AvatarWithFrame from './AvatarWithFrame';
+import { isFlickerThemeActive } from '../src/lib/cosmetics';
 import DeveloperBadge from './DeveloperBadge';
 import { isDeveloperBadgeUser } from './DeveloperBadge';
 
@@ -84,7 +85,7 @@ const ProfileModal: React.FC<{ profile: Profile; onClose: () => void }> = ({ pro
             alt={profile.username}
             size="lg"
             hasNeonFrame={profile.active_cosmetic_frame === 'neon'}
-            hasGlitchTheme={profile.active_cosmetic_theme === 'flicker'}
+            hasFlickerTheme={isFlickerThemeActive(profile.active_cosmetic_theme)}
             hasGlitchEffect={profile.active_cosmetic_effect === 'glitch'}
             fallbackFrameClassName="border-2 border-pink-400/60"
           />

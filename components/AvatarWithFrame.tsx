@@ -1,4 +1,5 @@
 import React from 'react';
+import { isFlickerThemeActive, type ActiveCosmeticTheme } from '../src/lib/cosmetics';
 
 const sizeClassMap = {
   xs: 'w-6 h-6',
@@ -24,7 +25,10 @@ interface AvatarWithFrameProps {
   alt?: string;
   size?: AvatarSize;
   hasNeonFrame?: boolean;
+  hasFlickerTheme?: boolean;
+  /** @deprecated Use hasFlickerTheme. Kept for existing call sites during migration. */
   hasGlitchTheme?: boolean;
+  activeCosmeticTheme?: ActiveCosmeticTheme;
   hasGlitchEffect?: boolean;
   className?: string;
   imgClassName?: string;
@@ -44,7 +48,9 @@ const AvatarWithFrame: React.FC<AvatarWithFrameProps> = ({
   alt = 'Player avatar',
   size = 'md',
   hasNeonFrame = false,
-  hasGlitchTheme = false,
+  hasFlickerTheme,
+  hasGlitchTheme,
+  activeCosmeticTheme,
   hasGlitchEffect = false,
   className,
   imgClassName,
@@ -53,7 +59,9 @@ const AvatarWithFrame: React.FC<AvatarWithFrameProps> = ({
   title,
   tabIndex,
 }) => {
-  if (hasGlitchTheme) {
+  const flickerThemeActive = hasFlickerTheme ?? hasGlitchTheme ?? isFlickerThemeActive(activeCosmeticTheme);
+
+  if (flickerThemeActive) {
     console.log('[AvatarWithFrame] Flicker theme enabled for:', alt);
   }
   if (hasGlitchEffect) {
@@ -66,9 +74,9 @@ const AvatarWithFrame: React.FC<AvatarWithFrameProps> = ({
   const wrapperClass = combineClasses(
     'inline-flex rounded-full items-center justify-center transition-transform duration-150',
     hasNeonFrame ? combineClasses('neon-frame', neonPaddingClass ?? undefined) : undefined,
-    hasGlitchTheme ? 'glitch-frame' : undefined,
+    flickerThemeActive ? 'glitch-frame' : undefined,
     hasGlitchEffect ? 'glitch-effect-frame' : undefined,
-    !hasNeonFrame && !hasGlitchTheme && !hasGlitchEffect ? fallbackFrameClassName : undefined,
+    !hasNeonFrame && !flickerThemeActive && !hasGlitchEffect ? fallbackFrameClassName : undefined,
     onClick ? 'cursor-pointer' : undefined,
     className,
   );
@@ -77,7 +85,7 @@ const AvatarWithFrame: React.FC<AvatarWithFrameProps> = ({
     'rounded-full object-cover',
     sizeClasses,
     hasNeonFrame ? 'neon-frame-avatar' : undefined,
-    hasGlitchTheme ? 'glitch-frame-avatar' : undefined,
+    flickerThemeActive ? 'glitch-frame-avatar' : undefined,
     hasGlitchEffect ? 'glitch-effect-avatar' : undefined,
     imgClassName,
   );

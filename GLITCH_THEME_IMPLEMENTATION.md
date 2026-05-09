@@ -12,7 +12,7 @@ Successfully implemented the Glitch Theme cosmetic system with identical behavio
   - Synced existing active glitch cosmetics from inventory table
 
 ### 2. **Type Definitions (types.ts)**
-- Extended `Profile` interface with `active_cosmetic_theme?: 'glitch' | null`
+- Extended `Profile` interface with `active_cosmetic_theme?: 'flicker' | 'glitch' | null`
 - Updated `ClanMember` interface to include `active_cosmetic_theme` field
 - Updated `ClanMemberWithScore` interface similarly
 
@@ -137,7 +137,7 @@ Inventory System
     ↓
 inventory_activate() triggers sync
     ↓
-users.active_cosmetic_theme = 'glitch'
+users.active_cosmetic_theme = 'flicker'
     ↓
 Views query users table for visibility
     ↓

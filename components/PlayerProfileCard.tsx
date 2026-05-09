@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Profile, ActiveClanBuff } from '../types';
 import { TrophyIcon, BattleIcon, ShieldIcon, ClanIcon } from './icons';
 import AvatarWithFrame from './AvatarWithFrame';
+import { isFlickerThemeActive } from '../src/lib/cosmetics';
 import { getXpProgress } from '../src/lib/leveling';
 
 interface PlayerProfileCardProps {
@@ -191,7 +192,7 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
               alt={profile.username}
               size="lg"
               hasNeonFrame={profile.active_cosmetic_frame === 'neon'}
-              hasGlitchTheme={profile.active_cosmetic_theme === 'flicker'}
+              hasFlickerTheme={isFlickerThemeActive(profile.active_cosmetic_theme)}
               hasGlitchEffect={profile.active_cosmetic_effect === 'glitch'}
               imgClassName="sm:w-16 sm:h-16 animate-float"
               fallbackFrameClassName="border-4 border-pink-500/80"

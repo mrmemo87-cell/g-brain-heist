@@ -10,6 +10,7 @@ import BackButton from './BackButton';
 import { ShieldIcon, HackIcon, CoinIcon, XPIcon, GemIcon, BattleIcon, TrophyIcon } from './icons';
 import { createPortal } from 'react-dom';
 import AvatarWithFrame from './AvatarWithFrame';
+import { isFlickerThemeActive } from '../src/lib/cosmetics';
 import { fetchNeonFrameOwners, fetchFlickerThemeOwners, fetchGlitchEffectOwners } from '../services/cosmeticService';
 import { tryConsumePilotQuota } from '../services/tierService';
 import ClickableUsername from './ClickableUsername';
@@ -69,7 +70,7 @@ const TargetCard: React.FC<{ target: RaidTarget, onSelect: (target: RaidTarget) 
   
   const status = getOnlineStatus(target.last_seen);
   const hasNeonFrame = target.active_cosmetic_frame === 'neon';
-  const hasGlitchTheme = target.active_cosmetic_theme === 'flicker';
+  const hasFlickerTheme = isFlickerThemeActive(target.active_cosmetic_theme);
   const hasGlitchEffect = target.active_cosmetic_effect === 'glitch';
   
   return (
@@ -92,7 +93,7 @@ const TargetCard: React.FC<{ target: RaidTarget, onSelect: (target: RaidTarget) 
           alt={target.username}
           size="lg"
           hasNeonFrame={hasNeonFrame}
-          hasGlitchTheme={hasGlitchTheme}
+          hasFlickerTheme={hasFlickerTheme}
           hasGlitchEffect={hasGlitchEffect}
           fallbackFrameClassName="border-2 border-gray-600"
         />
@@ -146,7 +147,7 @@ interface ClanMember {
   role: string;
   avatar_url?: string;
   active_cosmetic_frame?: 'neon' | null;
-  active_cosmetic_theme?: 'glitch' | null;
+  active_cosmetic_theme?: 'flicker' | 'glitch' | null;
 }
 
 type TargetFilter = 'all' | 'nearby' | 'easy' | 'challenge' | 'rivals';
@@ -714,7 +715,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, focusTargetUserId, onComplet
                 alt={profile.username}
                 size="xl"
                 hasNeonFrame={profile.active_cosmetic_frame === 'neon'}
-                hasGlitchTheme={profile.active_cosmetic_theme === 'flicker'}
+                hasFlickerTheme={isFlickerThemeActive(profile.active_cosmetic_theme)}
                 hasGlitchEffect={profile.active_cosmetic_effect === 'glitch'}
                 className="shadow-[0_0_30px_rgba(34,211,238,0.6)]"
                 fallbackFrameClassName="border-4 border-cyan-500 shadow-[0_0_30px_rgba(34,211,238,0.6)]"
@@ -760,7 +761,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, focusTargetUserId, onComplet
                 alt={selectedTarget.username}
                 size="xl"
                 hasNeonFrame={selectedTarget.active_cosmetic_frame === 'neon'}
-                hasGlitchTheme={selectedTarget.active_cosmetic_theme === 'flicker'}
+                hasFlickerTheme={isFlickerThemeActive(selectedTarget.active_cosmetic_theme)}
                 hasGlitchEffect={selectedTarget.active_cosmetic_effect === 'glitch'}
                 className="shadow-[0_0_30px_rgba(236,72,153,0.6)]"
                 fallbackFrameClassName="border-4 border-pink-500 shadow-[0_0_30px_rgba(236,72,153,0.6)]"
@@ -973,7 +974,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, focusTargetUserId, onComplet
                         alt={member.username}
                         size="md"
                         hasNeonFrame={member.active_cosmetic_frame === 'neon'}
-                        hasGlitchTheme={member.active_cosmetic_theme === 'flicker'}
+                        hasFlickerTheme={isFlickerThemeActive(member.active_cosmetic_theme)}
                         hasGlitchEffect={member.active_cosmetic_effect === 'glitch'}
                         fallbackFrameClassName="border-2 border-gray-600"
                       />

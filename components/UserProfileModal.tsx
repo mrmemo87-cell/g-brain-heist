@@ -3,6 +3,8 @@ import { Profile } from '../types';
 import { APIcon, CoinIcon, GemIcon, ShieldIcon, StreakIcon, XPIcon, BrainIcon, TrophyIcon } from './icons';
 import { visualAssets } from './visualAssets';
 import { supabase } from '../services/supabaseClient';
+import AvatarWithFrame from './AvatarWithFrame';
+import { isFlickerThemeActive } from '../src/lib/cosmetics';
 
 interface UserAchievement {
   achievement_id: string;
@@ -143,9 +145,16 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ profile, apValue, o
         {/* Header */}
         <div className="sticky top-0 z-20 flex items-start justify-between border-b border-slate-800 bg-slate-900/95 px-5 py-4 backdrop-blur">
           <div className="flex items-center gap-4">
-            <div className={`relative h-14 w-14 overflow-hidden rounded-full border-2 ${profile.active_cosmetic_frame === 'neon' ? 'neon-frame neon-frame-sm' : 'border-pink-400/60'}`}>
-              <img src={profile.avatar_url} alt={profile.username} className="h-full w-full object-cover" />
-            </div>
+            <AvatarWithFrame
+              src={profile.avatar_url}
+              alt={profile.username}
+              size="md"
+              hasNeonFrame={profile.active_cosmetic_frame === 'neon'}
+              hasFlickerTheme={isFlickerThemeActive(profile.active_cosmetic_theme)}
+              hasGlitchEffect={profile.active_cosmetic_effect === 'glitch'}
+              imgClassName="h-14 w-14"
+              fallbackFrameClassName="border-2 border-pink-400/60"
+            />
             <div>
               <h3 className="text-lg font-bold text-white">{profile.username}</h3>
               <div className="flex items-center gap-2">

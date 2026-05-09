@@ -9,6 +9,8 @@ import { update_avatar, upload_avatar_file, update_username } from '../services/
 import { isAdmin } from '../services/adminService';
 import SettingsModal from './SettingsModal';
 import UserProfileModal from './UserProfileModal';
+import AvatarWithFrame from './AvatarWithFrame';
+import { isFlickerThemeActive } from '../src/lib/cosmetics';
 import { fetchSchoolPlanDetails, type SchoolPlanDetails, type SchoolPlan } from '../services/tierService';
 import { visualAssets, neonIcon } from './visualAssets';
 
@@ -271,7 +273,8 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
   };
 
   const hasNeonFrame = profile.active_cosmetic_frame === 'neon';
-  const hasFlickerTheme = profile.active_cosmetic_theme === 'flicker';
+  const hasFlickerTheme = isFlickerThemeActive(profile.active_cosmetic_theme);
+  const hasGlitchEffect = profile.active_cosmetic_effect === 'glitch';
 
   useEffect(() => {
     if (!mobileMenuOpen) {
@@ -438,13 +441,18 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                     setShowSettingsModal(true);
                     setMobileMenuOpen(false);
                   }}
-                  className={`relative overflow-hidden rounded-full ${hasFlickerTheme ? 'glitch-frame glitch-frame-sm' : hasNeonFrame ? 'neon-frame neon-frame-sm' : 'border border-pink-500/70'}`}
+                  className="relative rounded-full"
                   aria-label="Open settings"
                 >
-                  <img
+                  <AvatarWithFrame
                     src={profile.avatar_url || avatarPresets[0]}
                     alt={profile.username || 'Player avatar'}
-                    className={`h-10 w-10 rounded-full object-cover ${hasFlickerTheme ? 'glitch-frame-avatar' : hasNeonFrame ? 'neon-frame-avatar' : ''}`}
+                    size="sm"
+                    hasNeonFrame={hasNeonFrame}
+                    hasFlickerTheme={hasFlickerTheme}
+                    hasGlitchEffect={hasGlitchEffect}
+                    imgClassName="h-10 w-10"
+                    fallbackFrameClassName="border border-pink-500/70"
                   />
                 </button>
 
@@ -634,15 +642,17 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                     }
                   }}
                 >
-                  <div
-                    className={`flex-shrink-0 rounded-full transition-transform duration-200 hover:scale-110 ${hasFlickerTheme ? 'glitch-frame glitch-frame-sm' : hasNeonFrame ? 'neon-frame neon-frame-sm' : 'border-2 border-pink-500'}`}
-                  >
-                    <img
-                      src={profile.avatar_url}
-                      alt={profile.username}
-                      className={`w-7 h-7 rounded-full object-cover ${hasFlickerTheme ? 'glitch-frame-avatar' : hasNeonFrame ? 'neon-frame-avatar' : ''}`}
-                    />
-                  </div>
+                  <AvatarWithFrame
+                    src={profile.avatar_url}
+                    alt={profile.username}
+                    size="xs"
+                    hasNeonFrame={hasNeonFrame}
+                    hasFlickerTheme={hasFlickerTheme}
+                    hasGlitchEffect={hasGlitchEffect}
+                    className="flex-shrink-0 transition-transform duration-200 hover:scale-110"
+                    imgClassName="w-7 h-7"
+                    fallbackFrameClassName="border-2 border-pink-500"
+                  />
                   <span className="font-bold text-white text-sm underline decoration-dotted decoration-cyan-400/70 underline-offset-4 truncate max-w-[100px] lg:max-w-[140px] xl:max-w-none">
                     {profile.username}
                   </span>

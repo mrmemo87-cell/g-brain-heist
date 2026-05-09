@@ -53,7 +53,7 @@ export interface Profile {
   needs_setup?: boolean; // Whether user needs to complete profile setup
   avatar_url: string;
   active_cosmetic_frame?: 'neon' | null;
-  active_cosmetic_theme?: 'flicker' | null;
+  active_cosmetic_theme?: 'flicker' | 'glitch' | null;
   active_cosmetic_effect?: 'glitch' | null;
   bio?: string | null;
   level: number;
@@ -338,7 +338,7 @@ export interface RaidTarget {
   est_win_rate: number;
   avatar_url: string;
   active_cosmetic_frame?: 'neon' | null;
-  active_cosmetic_theme?: 'flicker' | null;
+  active_cosmetic_theme?: 'flicker' | 'glitch' | null;
   active_cosmetic_effect?: 'glitch' | null;
   last_seen?: string;
   clan_name?: string;
@@ -407,7 +407,7 @@ export interface ClanMember {
   deposited_coins?: number;
   avatar_url: string;
   active_cosmetic_frame?: 'neon' | null;
-  active_cosmetic_theme?: 'flicker' | null;
+  active_cosmetic_theme?: 'flicker' | 'glitch' | null;
   active_cosmetic_effect?: 'glitch' | null;
   custom_title?: string | null;
   bio?: string | null;
@@ -428,7 +428,7 @@ export interface ClanMemberWithScore {
     level: number;
     avatar_url: string;
   active_cosmetic_frame?: 'neon' | null;
-  active_cosmetic_theme?: 'glitch' | null;
+  active_cosmetic_theme?: 'flicker' | 'glitch' | null;
   active_cosmetic_effect?: 'glitch' | null;
   role: ClanRole;
     joined_at: string;
