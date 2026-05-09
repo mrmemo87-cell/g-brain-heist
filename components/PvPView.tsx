@@ -182,6 +182,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, focusTargetUserId, onComplet
   const impactFlashRef = useRef<HTMLDivElement | null>(null);
   const outcomeBannerRef = useRef<HTMLDivElement | null>(null);
   const phaseStatusRef = useRef<HTMLSpanElement | null>(null);
+  const autoAttackFocusRef = useRef<string | null>(null);
 
   const breachStatusText = useMemo(() => {
     if (breachPhase === 'lockon') return 'LOCKING TARGET...';
@@ -278,19 +279,6 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, focusTargetUserId, onComplet
   useEffect(() => {
     void loadTargets();
   }, [loadTargets]);
-
-  useEffect(() => {
-    if (!focusTargetUserId || stage !== 'targets') return;
-    const target = targets.find((candidate) => candidate.user_id === focusTargetUserId);
-    if (!target) {
-      addToast('Target is no longer available. Pick another opponent.', 'warning');
-      return;
-    }
-    setSelectedTarget(target);
-    setSearchTerm(target.username);
-    setDebouncedSearch(target.username.trim().toLowerCase());
-    addToast(`${target.username} is locked in. Hit their target card to attack.`, 'info');
-  }, [addToast, focusTargetUserId, stage, targets]);
 
   useEffect(() => {
     const handle = window.setTimeout(() => {
@@ -501,6 +489,34 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, focusTargetUserId, onComplet
       void loadTargets({ preserveTargets: true });
     }
   };
+
+  useEffect(() => {
+    autoAttackFocusRef.current = null;
+  }, [focusTargetUserId]);
+
+  useEffect(() => {
+    if (!focusTargetUserId || stage !== 'targets') return;
+    const target = targets.find((candidate) => candidate.user_id === focusTargetUserId);
+    if (!target) {
+      addToast('Target is no longer available. Pick another opponent.', 'warning');
+      return;
+    }
+
+    setSelectedTarget(target);
+    setSearchTerm(target.username);
+    setDebouncedSearch(target.username.trim().toLowerCase());
+
+    if (isTargetOnCooldown(target)) {
+      addToast(`${target.username} is on cooldown. Their target card shows when they can be attacked.`, 'info');
+      return;
+    }
+
+    if (autoAttackFocusRef.current === target.user_id) return;
+    autoAttackFocusRef.current = target.user_id;
+    addToast(`${target.username} is locked in. Launching attack now.`, 'info');
+    void handleAttack(target);
+  }, [addToast, focusTargetUserId, stage, targets]);
+
 
   const renderTargets = () => (
     <div className="w-full px-4 sm:px-6 py-6">
