@@ -68,6 +68,12 @@ const ProfileModal: React.FC<{ profile: Profile; onClose: () => void }> = ({ pro
 
   const bioText = profile.bio?.trim() || 'No bio set.';
   const showDeveloperBadge = isDeveloperBadgeUser(profile.id);
+  const handleAttackClick = () => {
+    window.dispatchEvent(new CustomEvent('bh:attack-profile', {
+      detail: { targetUserId: profile.id, targetUsername: profile.username },
+    }));
+    onClose();
+  };
 
   return (
     <ModalPortal onClose={onClose}>
@@ -93,16 +99,38 @@ const ProfileModal: React.FC<{ profile: Profile; onClose: () => void }> = ({ pro
             )}
           </div>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded-full border border-slate-600 px-3 py-1 text-sm text-slate-200 transition hover:bg-slate-700"
-        >
-          Close
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleAttackClick}
+            className="group relative hidden overflow-hidden rounded-full border border-pink-300/60 bg-gradient-to-r from-fuchsia-600 via-rose-500 to-orange-400 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-white shadow-[0_0_22px_rgba(244,63,94,0.45)] transition hover:scale-105 hover:shadow-[0_0_34px_rgba(251,113,133,0.7)] sm:inline-flex"
+            aria-label={`Attack ${profile.username}`}
+          >
+            <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/35 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+            <span className="relative inline-flex items-center gap-2">⚔️ Attack</span>
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full border border-slate-600 px-3 py-1 text-sm text-slate-200 transition hover:bg-slate-700"
+          >
+            Close
+          </button>
+        </div>
       </div>
 
       <div className="grid gap-4 px-5 py-4">
+
+        <button
+          type="button"
+          onClick={handleAttackClick}
+          className="group relative overflow-hidden rounded-2xl border border-pink-300/70 bg-gradient-to-r from-fuchsia-600 via-rose-500 to-orange-400 px-5 py-3 text-sm font-black uppercase tracking-[0.2em] text-white shadow-[0_0_28px_rgba(244,63,94,0.5)] transition hover:-translate-y-0.5 hover:shadow-[0_0_44px_rgba(251,113,133,0.75)] sm:hidden"
+          aria-label={`Attack ${profile.username}`}
+        >
+          <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/35 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+          <span className="relative flex items-center justify-center gap-2">⚔️ Attack</span>
+        </button>
+
         {/* Public Stats - Only show PvP, Attack, Defense */}
         <div className="grid grid-cols-3 gap-3">
           <StatPill

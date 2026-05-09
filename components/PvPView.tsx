@@ -283,10 +283,13 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, focusTargetUserId, onComplet
     if (!focusTargetUserId || stage !== 'targets') return;
     const target = targets.find((candidate) => candidate.user_id === focusTargetUserId);
     if (!target) {
-      addToast('Revenge target is no longer available. Pick another opponent.', 'warning');
+      addToast('Target is no longer available. Pick another opponent.', 'warning');
       return;
     }
     setSelectedTarget(target);
+    setSearchTerm(target.username);
+    setDebouncedSearch(target.username.trim().toLowerCase());
+    addToast(`${target.username} is locked in. Hit their target card to attack.`, 'info');
   }, [addToast, focusTargetUserId, stage, targets]);
 
   useEffect(() => {
