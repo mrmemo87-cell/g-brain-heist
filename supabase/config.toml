@@ -1,2 +1,5 @@
 [functions.admin_delete_user]
 verify_jwt = false
+
+[functions.visitor_assistant]
+verify_jwt = false

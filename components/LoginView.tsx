@@ -4,6 +4,7 @@ import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
 import { GoogleIcon } from './icons';
 import * as AuthService from '../services/authService';
 import { consumeBanMessage } from '../services/banMessage';
+import { askVisitorAssistant } from '../services/visitorAssistantService';
 
 /* ─── tiny inline icons (avoids new deps) ──────────────────────────────── */
 const CheckBadge = () => (
@@ -34,6 +35,11 @@ const TRUST_ITEMS = [
     'Support response within 24–48 hours',
 ] as const;
 
+type AssistantMessage = {
+    role: 'agent' | 'visitor';
+    text: string;
+};
+
 const HOW_IT_WORKS = [
     { step: '1', title: 'Create your school', desc: 'Sign up and register your school in under 2 minutes.' },
     { step: '2', title: 'Add students & classes', desc: 'Import rosters or invite students with a class code.' },
@@ -49,6 +55,19 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+    const [showDemoModal, setShowDemoModal] = useState(false);
+    const [demoForm, setDemoForm] = useState({ name: '', email: '', school: '', website: '', notes: '' });
+    const [demoSubmitted, setDemoSubmitted] = useState(false);
+    const [assistantOpen, setAssistantOpen] = useState(true);
+    const [assistantQuestion, setAssistantQuestion] = useState('');
+    const [assistantLoading, setAssistantLoading] = useState(false);
+    const [assistantError, setAssistantError] = useState<string | null>(null);
+    const [assistantMessages, setAssistantMessages] = useState<AssistantMessage[]>([
+        {
+            role: 'agent',
+            text: "Hi! I'm Byte, the Brains Heist AI assistant. Ask me anything about demos, pricing, onboarding, reports, class battles, or support.",
+        },
+    ]);
 
     // Refs for GSAP animations
     const cardRef = useRef<HTMLDivElement>(null);
@@ -361,6 +380,61 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
         }
     };
 
+    const buildDemoMailto = () => {
+        const subject = encodeURIComponent('Brains Heist demo request');
+        const body = encodeURIComponent([
+            `Name: ${demoForm.name}`,
+            `Email: ${demoForm.email}`,
+            `School / company: ${demoForm.school}`,
+            `Website: ${demoForm.website || 'Not provided'}`,
+            '',
+            `Notes: ${demoForm.notes || 'Please send available demo times.'}`,
+        ].join('\n'));
+        return `mailto:sales@brainsheist.com?subject=${subject}&body=${body}`;
+    };
+
+    const handleDemoSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setDemoSubmitted(true);
+        window.location.href = buildDemoMailto();
+    };
+
+    const handleAssistantAsk = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const question = assistantQuestion.trim();
+        if (!question || assistantLoading) return;
+
+        const nextMessages: AssistantMessage[] = [
+            ...assistantMessages,
+            { role: 'visitor', text: question },
+        ];
+
+        setAssistantMessages(nextMessages);
+        setAssistantQuestion('');
+        setAssistantError(null);
+        setAssistantLoading(true);
+
+        try {
+            const { reply } = await askVisitorAssistant(
+                nextMessages.map((message) => ({
+                    role: message.role === 'agent' ? 'assistant' : 'visitor',
+                    text: message.text,
+                })),
+            );
+            setAssistantMessages((messages) => [...messages, { role: 'agent', text: reply }]);
+        } catch (err: any) {
+            setAssistantError(err?.message || 'Byte is having trouble connecting. Please try again or contact support@brainsheist.com.');
+        } finally {
+            setAssistantLoading(false);
+        }
+    };
+
+    const openDemoFromAssistant = () => {
+        setAssistantOpen(false);
+        setShowDemoModal(true);
+    };
+
+
     /* ─── Auth form card (reused in both mobile & desktop) ─────────────── */
     const authCard = (
         <div ref={cardRef} className="bg-ink-900/50 backdrop-blur-sm border border-white/10 rounded-2xl p-5 sm:p-8 shadow-xl">
@@ -600,8 +674,26 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                             ))}
                         </div>
 
+                        {/* landing page CTAs */}
+                        <div className="mt-6 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setMode('signup')}
+                                className="inline-flex w-full sm:w-auto items-center justify-center rounded-full bg-ion-blue px-5 py-3 text-sm font-bold text-ink-900 shadow-[0_0_24px_rgba(34,211,238,0.28)] transition-all hover:bg-cyan-300"
+                            >
+                                Get started free
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setShowDemoModal(true)}
+                                className="inline-flex w-full sm:w-auto items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm font-bold text-white transition-all hover:border-cyan-300 hover:bg-cyan-300/10"
+                            >
+                                Book a demo
+                            </button>
+                        </div>
+
                         {/* IELTS link */}
-                        <div className="mt-6 flex justify-center lg:justify-start">
+                        <div className="mt-4 flex justify-center lg:justify-start">
                             <a
                                 href="/ielts"
                                 className="inline-flex items-center gap-1 text-xs px-3 py-1.5 border border-emerald-500/40 rounded-full hover:bg-emerald-500/10 transition-colors"
@@ -688,6 +780,152 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     </div>
                 </div>
             </section>
+
+            {showDemoModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-6 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="demo-modal-title">
+                    <div className="w-full max-w-2xl overflow-hidden rounded-3xl border border-cyan-300/30 bg-ink-900 shadow-[0_0_60px_rgba(34,211,238,0.18)]">
+                        <div className="flex items-start justify-between gap-4 border-b border-white/10 bg-white/[0.03] p-5 sm:p-6">
+                            <div>
+                                <p className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-300">For schools &amp; teams</p>
+                                <h2 id="demo-modal-title" className="mt-1 font-heading text-2xl font-bold text-white">Schedule your Brains Heist demo</h2>
+                                <p className="mt-2 text-sm text-gray-400">Tell us what you want to see and we will prepare a walkthrough for your school.</p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setShowDemoModal(false)}
+                                className="rounded-full border border-white/10 px-3 py-1 text-lg text-gray-300 transition-colors hover:border-red-300/60 hover:text-red-200"
+                                aria-label="Close demo form"
+                            >
+                                ×
+                            </button>
+                        </div>
+                        <form onSubmit={handleDemoSubmit} className="grid gap-4 p-5 sm:grid-cols-2 sm:p-6">
+                            <label className="text-sm font-medium text-gray-300">
+                                First name*
+                                <input
+                                    required
+                                    value={demoForm.name}
+                                    onChange={(e) => setDemoForm((form) => ({ ...form, name: e.target.value }))}
+                                    className="mt-1 w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-500 focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30"
+                                    placeholder="Ada"
+                                />
+                            </label>
+                            <label className="text-sm font-medium text-gray-300">
+                                Work email*
+                                <input
+                                    required
+                                    type="email"
+                                    value={demoForm.email}
+                                    onChange={(e) => setDemoForm((form) => ({ ...form, email: e.target.value }))}
+                                    className="mt-1 w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-500 focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30"
+                                    placeholder="leader@school.edu"
+                                />
+                            </label>
+                            <label className="text-sm font-medium text-gray-300">
+                                School / company*
+                                <input
+                                    required
+                                    value={demoForm.school}
+                                    onChange={(e) => setDemoForm((form) => ({ ...form, school: e.target.value }))}
+                                    className="mt-1 w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-500 focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30"
+                                    placeholder="North Star Academy"
+                                />
+                            </label>
+                            <label className="text-sm font-medium text-gray-300">
+                                Website
+                                <input
+                                    value={demoForm.website}
+                                    onChange={(e) => setDemoForm((form) => ({ ...form, website: e.target.value }))}
+                                    className="mt-1 w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-500 focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30"
+                                    placeholder="https://school.example"
+                                />
+                            </label>
+                            <label className="text-sm font-medium text-gray-300 sm:col-span-2">
+                                What should we cover?
+                                <textarea
+                                    value={demoForm.notes}
+                                    onChange={(e) => setDemoForm((form) => ({ ...form, notes: e.target.value }))}
+                                    rows={4}
+                                    className="mt-1 w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-500 focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30"
+                                    placeholder="Admission tests, reports, classroom battles, onboarding timeline..."
+                                />
+                            </label>
+                            {demoSubmitted && (
+                                <p className="rounded-xl border border-emerald-400/40 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100 sm:col-span-2">
+                                    Opening your email app with a prepared demo request. If it does not open, email sales@brainsheist.com.
+                                </p>
+                            )}
+                            <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
+                                <p className="text-xs text-gray-500">By submitting, you agree that Brains Heist may contact you about your demo request.</p>
+                                <button type="submit" className="rounded-full bg-ion-blue px-6 py-3 text-sm font-bold text-ink-900 transition-all hover:bg-cyan-300">
+                                    Request demo times
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            <div className="fixed bottom-5 right-5 z-40 w-[calc(100%-2.5rem)] max-w-sm">
+                {assistantOpen ? (
+                    <div className="overflow-hidden rounded-3xl border border-white/15 bg-white text-gray-900 shadow-2xl">
+                        <div className="flex items-center justify-between gap-3 border-b border-gray-200 p-4">
+                            <div className="flex items-center gap-3">
+                                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-emerald-300 text-xl shadow-inner">🤖</div>
+                                <div>
+                                    <p className="font-bold text-gray-950">Byte</p>
+                                    <p className="text-xs text-gray-500">AI admissions assistant</p>
+                                </div>
+                            </div>
+                            <button type="button" onClick={() => setAssistantOpen(false)} className="rounded-full px-2 py-1 text-gray-500 hover:bg-gray-100" aria-label="Minimize virtual assistant">×</button>
+                        </div>
+                        <div className="max-h-72 space-y-3 overflow-y-auto p-4 text-sm">
+                            {assistantMessages.map((message, index) => (
+                                <div key={`${message.role}-${index}`} className={`rounded-2xl px-3 py-2 ${message.role === 'agent' ? 'bg-gray-100 text-gray-800' : 'ml-8 bg-cyan-600 text-white'}`}>
+                                    {message.text}
+                                </div>
+                            ))}
+                            {assistantLoading && (
+                                <div className="inline-flex items-center gap-2 rounded-2xl bg-gray-100 px-3 py-2 text-gray-600">
+                                    <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-500" />
+                                    Byte is thinking...
+                                </div>
+                            )}
+                            {assistantError && (
+                                <div className="rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-red-700">
+                                    {assistantError}
+                                </div>
+                            )}
+                        </div>
+                        <div className="flex flex-wrap gap-2 border-t border-gray-200 px-4 py-3">
+                            <button type="button" onClick={openDemoFromAssistant} className="rounded-full bg-gray-950 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-800">Book a demo</button>
+                            <a href="mailto:sales@brainsheist.com?subject=Brains%20Heist%20sales%20question" className="rounded-full bg-gray-950 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-800">Connect with Sales</a>
+                            <a href="mailto:support@brainsheist.com?subject=Brains%20Heist%20support" className="rounded-full bg-gray-950 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-800">Support</a>
+                        </div>
+                        <form onSubmit={handleAssistantAsk} className="flex items-center gap-2 border-t border-gray-200 p-3">
+                            <input
+                                value={assistantQuestion}
+                                onChange={(e) => setAssistantQuestion(e.target.value)}
+                                disabled={assistantLoading}
+                                className="min-w-0 flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-100 disabled:bg-gray-100 disabled:text-gray-400"
+                                placeholder="Ask a question"
+                            />
+                            <button type="submit" disabled={assistantLoading} className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-950 text-white hover:bg-cyan-700 disabled:cursor-not-allowed disabled:bg-gray-400" aria-label="Send assistant question">➤</button>
+                        </form>
+                        <p className="border-t border-gray-200 px-4 py-3 text-[11px] leading-relaxed text-gray-500">
+                            Powered by AI for flexible visitor guidance. See our <a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="underline">Privacy Policy</a> for data details.
+                        </p>
+                    </div>
+                ) : (
+                    <button
+                        type="button"
+                        onClick={() => setAssistantOpen(true)}
+                        className="ml-auto flex items-center gap-2 rounded-full border border-cyan-300/40 bg-ink-900/95 px-4 py-3 text-sm font-bold text-white shadow-[0_0_28px_rgba(34,211,238,0.28)] backdrop-blur hover:bg-cyan-950"
+                    >
+                        <span className="text-lg">🤖</span> Ask Byte
+                    </button>
+                )}
+            </div>
 
             {/* ── FOOTER ───────────────────────────────────────────────────── */}
             <footer className="border-t border-white/5 px-4 py-8 sm:py-10">
