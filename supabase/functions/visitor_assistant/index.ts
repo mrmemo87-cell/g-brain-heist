@@ -30,6 +30,8 @@ type DemoLeadSaveResult =
 
 const followUpPromisePattern =
   /(?:^|[.!?]\s+)[^.!?]*(?:team|we|someone|representative|specialist|sales)[^.!?]*(?:follow up|reach out|contact|get in touch|email)[^.!?]*[.!?]?/gi;
+const savedLeadSubmissionPattern =
+  /\b(?:shall i go ahead and book this demo|would you like me to submit this|can i submit this for you|go ahead and book this demo|book this demo|submit this|submit it|submit the request|demo (?:is |has been |was )?booked|booked (?:a |the |your )?demo|calendar booking|calendar invite)\b/i;
 const demoLeadIntentPattern =
   /\b(demo|pricing|price|quote|sales|procurement|onboarding|enterprise|pilot|trial|buy|purchase|subscription|school plan|request|follow[- ]?up)\b/i;
 
@@ -93,8 +95,10 @@ const assistantInstructions = [
   "Brains Heist is a gamified English and Math platform for schools with admissions tests, Cambridge-style placement support, student/class management, leaderboards, reports, and live class battle modes.",
   "Help prospective school leaders, teachers, parents, and students with clear, flexible, accurate answers.",
   "Be warm, concise, and practical. Ask one useful follow-up question when needed.",
-  "When visitors ask for pricing, demos, procurement, onboarding, or enterprise questions, explain at a high level and invite them to book a demo or email sales@brainsheist.com.",
+  "Use plain text only. Do not use markdown, bold markers, italic markers, headings, markdown bullets, numbered markdown lists, or symbols that rely on markdown rendering.",
+  "When visitors ask for pricing, demos, procurement, onboarding, or enterprise questions, explain at a high level and invite them to request a demo or email sales@brainsheist.com.",
   "Only say the Brains Heist team will follow up, reach out, contact them, or use their email after the system confirms that the demo request was saved.",
+  "Never say a calendar demo is booked, scheduled, or confirmed because this assistant does not have calendar booking integration. Use wording like demo request saved or the team can follow up instead of demo booked.",
   "When visitors need account, billing, cancellation, privacy, or technical support, route them to support@brainsheist.com and avoid claiming you changed account data.",
   "Do not ask visitors to share passwords, payment card details, government IDs, or sensitive student records in chat.",
   "If you are uncertain about an internal policy, say so and route to the sales/support team instead of inventing details.",
@@ -299,11 +303,47 @@ const hasDemoLeadIntent = (messages: VisitorAssistantMessage[]) =>
     messages.map((message) => message.text).join("\n"),
   );
 
-const removeUnsavedFollowUpPromises = (reply: string) =>
+const savedDemoConfirmation =
+  "Done — your demo request has been saved. The Brains Heist team can follow up using the email you provided.";
+
+const normalizeReplySpacing = (reply: string) =>
   reply
-    .replace(followUpPromisePattern, "")
+    .replace(/[ \t]+\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
-    .trim() ||
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+
+const removeSentencesMatching = (reply: string, pattern: RegExp) =>
+  reply
+    .split(/(?<=[.!?])\s+|\n+/)
+    .filter((sentence) => {
+      pattern.lastIndex = 0;
+      return sentence.trim() && !pattern.test(sentence);
+    })
+    .join(" ");
+
+const sanitizePlainTextReply = (reply: string) =>
+  normalizeReplySpacing(
+    reply
+      .replace(/\*\*([^*]+)\*\*/g, "$1")
+      .replace(/__([^_]+)__/g, "$1")
+      .replace(/`([^`]+)`/g, "$1")
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1 ($2)")
+      .replace(/(^|\s)\*([^*\n]+)\*(?=\s|$)/g, "$1$2")
+      .split("\n")
+      .map((line) =>
+        line.replace(/^\s{0,3}(?:#{1,6}\s+|>\s+|[-*•]\s+|\d+[.)]\s+)/, ""),
+      )
+      .join("\n"),
+  );
+
+const removeSavedLeadSubmissionPhrases = (reply: string) =>
+  normalizeReplySpacing(
+    removeSentencesMatching(reply, savedLeadSubmissionPattern),
+  );
+
+const removeUnsavedFollowUpPromises = (reply: string) =>
+  normalizeReplySpacing(reply.replace(followUpPromisePattern, "")) ||
   "Thanks — I can help with demo or pricing next. Please share your name, school name, school country, email, and approximate student count so I can collect the request.";
 
 const saveDemoLead = async (
@@ -343,14 +383,14 @@ const saveDemoLead = async (
 
 const getLeadReplyInstructions = (saveResult: DemoLeadSaveResult) => {
   if (saveResult === "saved") {
-    return "The visitor's completed demo request was saved successfully. You may acknowledge that the Brains Heist team can follow up using the email provided, but do not repeat the exact success line because the system appends it.";
+    return "The visitor's completed demo request was saved successfully. Do not ask for permission to submit, save, or book it. Do not say a demo is booked or scheduled. You may briefly acknowledge the request in plain text, but do not repeat the exact success line because the system appends it.";
   }
 
   if (saveResult === "duplicate") {
-    return "The visitor provided an email that already has a demo request. Do not say the Brains Heist team will follow up, reach out, contact them, or use their email. Let them know a request with that email is already on file and they can use a different email or contact sales@brainsheist.com if they need to update it.";
+    return "The visitor provided an email that already has a demo request. Do not ask for permission to submit, save, or book it. Do not say a demo is booked or scheduled. Do not say the Brains Heist team will follow up, reach out, contact them, or use their email. Let them know a request with that email is already on file and they can use a different email or contact sales@brainsheist.com if they need to update it.";
   }
 
-  return "The visitor's demo request has not been saved by the system. Do not say the Brains Heist team will follow up, reach out, contact them, or use their email. If they want a demo/pricing follow-up, naturally ask for any missing basics: name, school name, school country, email, and approximate student count.";
+  return "The visitor's demo request has not been saved by the system. Do not say the Brains Heist team will follow up, reach out, contact them, or use their email. Do not say a demo is booked or scheduled. If they want a demo/pricing follow-up, naturally ask for any missing basics: name, school name, school country, email, and approximate student count.";
 };
 
 serve(async (req) => {
@@ -396,12 +436,17 @@ serve(async (req) => {
       });
     }
 
+    const plainReply = sanitizePlainTextReply(reply);
     const safeReply =
-      saveResult === "saved" ? reply : removeUnsavedFollowUpPromises(reply);
+      saveResult === "saved"
+        ? removeSavedLeadSubmissionPhrases(plainReply)
+        : removeUnsavedFollowUpPromises(plainReply);
     const finalReply =
       saveResult === "saved"
-        ? `${safeReply}\n\n✅ Your demo request has been saved. The Brains Heist team can follow up using the email you provided.`
-        : safeReply;
+        ? [safeReply, savedDemoConfirmation].filter(Boolean).join("\n\n")
+        : saveResult === "duplicate"
+          ? removeSavedLeadSubmissionPhrases(safeReply)
+          : safeReply;
 
     return json(200, { reply: finalReply, model });
   } catch (error) {
