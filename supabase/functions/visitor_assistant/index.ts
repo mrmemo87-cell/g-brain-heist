@@ -21,6 +21,14 @@ type DemoLead = {
   notes: string | null;
 };
 
+type CompleteDemoLead = DemoLead & {
+  name: string;
+  school_name: string;
+  email: string;
+  country: string;
+  student_count: number;
+};
+
 type DemoLeadSaveResult =
   | "saved"
   | "duplicate"
@@ -40,6 +48,8 @@ const model =
   Deno.env.get("GEMINI_VISITOR_ASSISTANT_MODEL") || "gemini-2.5-flash";
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
 const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+const telegramBotToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
+const telegramChatId = Deno.env.get("TELEGRAM_CHAT_ID");
 const supabaseAdmin =
   supabaseUrl && supabaseServiceRoleKey
     ? createClient(supabaseUrl, supabaseServiceRoleKey, {
@@ -280,15 +290,7 @@ const extractDemoLead = async (
   return parseLeadJson(extractGeminiText(payload as Record<string, unknown>));
 };
 
-const isCompleteDemoLead = (
-  lead: DemoLead | null,
-): lead is DemoLead & {
-  name: string;
-  school_name: string;
-  email: string;
-  country: string;
-  student_count: number;
-} =>
+const isCompleteDemoLead = (lead: DemoLead | null): lead is CompleteDemoLead =>
   Boolean(
     lead?.name &&
     lead.school_name &&
@@ -302,6 +304,56 @@ const hasDemoLeadIntent = (messages: VisitorAssistantMessage[]) =>
   demoLeadIntentPattern.test(
     messages.map((message) => message.text).join("\n"),
   );
+
+const buildTelegramLeadMessage = (lead: CompleteDemoLead) =>
+  [
+    "🔥 New Brains Heist Lead",
+    "",
+    `Name: ${lead.name}`,
+    `School: ${lead.school_name}`,
+    `Country: ${lead.country}`,
+    `Students: ${lead.student_count}`,
+    `Email: ${lead.email}`,
+  ].join("\n");
+
+const logTelegramError = (error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error("[visitor_assistant] Telegram notification failed", {
+    message: message.slice(0, 300),
+  });
+};
+
+const sendTelegramLeadNotification = async (lead: CompleteDemoLead) => {
+  if (!telegramBotToken || !telegramChatId) return;
+
+  const response = await fetch(
+    `https://api.telegram.org/bot${telegramBotToken}/sendMessage`,
+    {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        chat_id: telegramChatId,
+        text: buildTelegramLeadMessage(lead),
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as Record<
+      string,
+      unknown
+    > | null;
+    const description =
+      typeof payload?.description === "string" ? payload.description : null;
+    throw new Error(
+      description
+        ? `Telegram API returned ${response.status}: ${description}`
+        : `Telegram API returned ${response.status}.`,
+    );
+  }
+};
 
 const savedDemoConfirmation =
   "Done — your demo request has been saved. The Brains Heist team can follow up using the email you provided.";
@@ -377,6 +429,14 @@ const saveDemoLead = async (
     });
 
   if (insertError) throw insertError;
+
+  // Telegram notifications are sent only after a brand-new lead insert succeeds.
+  // Failures are logged but intentionally isolated from the assistant reply and DB save.
+  try {
+    await sendTelegramLeadNotification(lead);
+  } catch (error) {
+    logTelegramError(error);
+  }
 
   return "saved";
 };
