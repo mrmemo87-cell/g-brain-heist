@@ -2141,12 +2141,61 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                         />
                         {isStudent && (
                           <button
+                            type="button"
                             onMouseEnter={preloadWritingHub}
                             onFocus={preloadWritingHub}
                             onClick={() => handleViewChange('writing')}
-                            className="w-full rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-500 transition-colors"
+                            aria-label="Open Writing Hub"
+                            className="group relative w-full overflow-hidden rounded-3xl border border-cyan-300/30 bg-slate-950/80 p-0 text-left shadow-2xl shadow-indigo-950/40 transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-200/60 hover:shadow-cyan-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 active:scale-[0.99]"
                           >
-                            Open Writing Hub
+                            <span
+                              aria-hidden
+                              className="pointer-events-none absolute inset-0 opacity-90 transition-opacity duration-500 group-hover:opacity-100"
+                              style={{
+                                background:
+                                  'radial-gradient(circle at 16% 18%, rgba(34, 211, 238, 0.24), transparent 30%), radial-gradient(circle at 82% 20%, rgba(168, 85, 247, 0.26), transparent 32%), linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(30, 41, 92, 0.9) 52%, rgba(88, 28, 135, 0.82))',
+                              }}
+                            />
+                            <span
+                              aria-hidden
+                              className="absolute -right-12 -top-16 h-40 w-40 rounded-full border border-cyan-200/20 bg-cyan-300/10 blur-sm transition-transform duration-500 group-hover:scale-110"
+                            />
+                            <span
+                              aria-hidden
+                              className="absolute bottom-0 left-0 h-px w-full bg-gradient-to-r from-transparent via-cyan-200/80 to-transparent"
+                            />
+
+                            <span className="relative flex min-h-[12rem] flex-col gap-4 p-5 sm:min-h-[13rem] sm:p-6">
+                              <span className="flex items-start justify-between gap-4">
+                                <span className="min-w-0">
+                                  <span className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.22em] text-cyan-100 shadow-sm shadow-cyan-300/20">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 shadow-[0_0_12px_rgba(110,231,183,0.9)]" aria-hidden />
+                                    Student mission
+                                  </span>
+                                  <span className="mt-3 block font-heading text-3xl leading-none text-white drop-shadow-[0_0_18px_rgba(125,211,252,0.32)] sm:text-4xl">
+                                    Writing Hub
+                                  </span>
+                                  <span className="mt-2 block max-w-sm text-sm font-medium leading-5 text-cyan-50/80">
+                                    Draft, repair, and level up your writing with daily AI-coached missions.
+                                  </span>
+                                </span>
+
+                                <span className="relative grid h-20 w-20 shrink-0 place-items-center rounded-2xl border border-white/15 bg-white/10 shadow-2xl shadow-cyan-500/20 transition-transform duration-500 group-hover:rotate-3 group-hover:scale-105">
+                                  <span className="absolute inset-2 rounded-xl bg-gradient-to-br from-cyan-300/25 via-indigo-400/20 to-fuchsia-400/25 blur-md" aria-hidden />
+                                  <span className="relative text-5xl drop-shadow-[0_0_18px_rgba(255,255,255,0.45)]" aria-hidden>✍️</span>
+                                </span>
+                              </span>
+
+                              <span className="mt-auto flex flex-wrap items-center gap-2">
+                                <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-bold text-cyan-50">Daily draft</span>
+                                <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-bold text-cyan-50">AI coach</span>
+                                <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-bold text-cyan-50">Score growth</span>
+                                <span className="ml-auto inline-flex items-center gap-2 rounded-2xl border border-cyan-200/40 bg-cyan-200/15 px-4 py-2 text-sm font-black text-white shadow-lg shadow-cyan-500/10 transition-colors group-hover:bg-cyan-200/25">
+                                  Open Hub
+                                  <span className="transition-transform group-hover:translate-x-1" aria-hidden>→</span>
+                                </span>
+                              </span>
+                            </span>
                           </button>
                         )}
                       </>
