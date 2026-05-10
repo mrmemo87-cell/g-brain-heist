@@ -11,8 +11,9 @@ type VisitorAssistantPayload = {
   messages?: VisitorAssistantMessage[];
 };
 
-const openAiKey = Deno.env.get("OPENAI_API_KEY");
-const model = Deno.env.get("OPENAI_VISITOR_ASSISTANT_MODEL") || "gpt-5.2";
+const geminiKey = Deno.env.get("GEMINI_API_KEY");
+const model = Deno.env.get("GEMINI_VISITOR_ASSISTANT_MODEL") || "gemini-2.5-flash";
+
 const maxMessages = 10;
 const maxMessageChars = 1200;
 const maxReplyChars = 1400;
@@ -64,62 +65,67 @@ const assistantInstructions = [
   `Keep responses under ${maxReplyChars} characters.`,
 ].join("\n");
 
-const buildInput = (messages: VisitorAssistantMessage[]) =>
+const buildGeminiContents = (messages: VisitorAssistantMessage[]) =>
   messages.map((message) => ({
-    role: message.role === "assistant" ? "assistant" : "user",
-    content: message.text,
+    role: message.role === "assistant" ? "model" : "user",
+    parts: [{ text: message.text }],
   }));
 
-const extractOutputText = (payload: Record<string, unknown>): string => {
-  if (typeof payload.output_text === "string") return payload.output_text.trim();
+const extractGeminiText = (payload: Record<string, unknown>): string => {
+  const candidates = Array.isArray(payload.candidates) ? payload.candidates : [];
+  const first = candidates[0] as Record<string, unknown> | undefined;
+  const content = first?.content as Record<string, unknown> | undefined;
+  const parts = Array.isArray(content?.parts) ? content.parts : [];
 
-  const output = Array.isArray(payload.output) ? payload.output : [];
-  for (const item of output) {
-    if (!item || typeof item !== "object") continue;
-    const content = Array.isArray((item as Record<string, unknown>).content)
-      ? ((item as Record<string, unknown>).content as unknown[])
-      : [];
-    for (const contentItem of content) {
-      if (!contentItem || typeof contentItem !== "object") continue;
-      const text = (contentItem as Record<string, unknown>).text;
-      if (typeof text === "string" && text.trim()) return text.trim();
-    }
-  }
-
-  return "";
+  return parts
+    .map((part) => {
+      if (!part || typeof part !== "object") return "";
+      const text = (part as Record<string, unknown>).text;
+      return typeof text === "string" ? text : "";
+    })
+    .join("")
+    .trim();
 };
 
-const callOpenAi = async (messages: VisitorAssistantMessage[]): Promise<string> => {
-  if (!openAiKey) {
-    throw new Error("OPENAI_API_KEY is not configured.");
+const callGemini = async (messages: VisitorAssistantMessage[]): Promise<string> => {
+  if (!geminiKey) {
+    throw new Error("GEMINI_API_KEY is not configured.");
   }
 
-  const response = await fetch("https://api.openai.com/v1/responses", {
-    method: "POST",
-    headers: {
-      authorization: `Bearer ${openAiKey}`,
-      "content-type": "application/json",
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`,
+    {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: assistantInstructions }],
+        },
+        contents: buildGeminiContents(messages),
+        generationConfig: {
+          temperature: 0.45,
+          maxOutputTokens: 500,
+        },
+      }),
     },
-    body: JSON.stringify({
-      model,
-      instructions: assistantInstructions,
-      input: buildInput(messages),
-      max_output_tokens: 450,
-      reasoning: { effort: "medium" },
-    }),
-  });
+  );
 
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok) {
+    const errorPayload = payload as Record<string, unknown>;
+    const error = errorPayload.error as Record<string, unknown> | undefined;
     const message =
-      typeof payload?.error?.message === "string"
-        ? payload.error.message
-        : `OpenAI request failed with status ${response.status}.`;
+      typeof error?.message === "string"
+        ? error.message
+        : `Gemini request failed with status ${response.status}.`;
+
     throw new Error(message);
   }
 
-  return extractOutputText(payload as Record<string, unknown>).slice(0, maxReplyChars);
+  return extractGeminiText(payload as Record<string, unknown>).slice(0, maxReplyChars);
 };
 
 serve(async (req) => {
@@ -140,7 +146,7 @@ serve(async (req) => {
       return json(400, { error: "A visitor message is required." });
     }
 
-    const reply = await callOpenAi(messages);
+    const reply = await callGemini(messages);
 
     if (!reply) {
       return json(502, { error: "The AI assistant returned an empty response." });
