@@ -188,7 +188,7 @@ export const fetchOnboardingProfile = async (userId?: string): Promise<Partial<P
 
   const { data, error } = await supabase
     .from('users')
-    .select('id, username, grade, batch, role, school_id, school_name, needs_setup, tutorial_completed, account_tier')
+    .select('id, email, username, grade, batch, role, school_id, school_name, needs_setup, tutorial_completed, account_tier')
     .eq('id', resolvedUserId)
     .maybeSingle();
 
@@ -230,12 +230,34 @@ export const resolveNextOnboardingStep = async (options: ReadOnboardingResolutio
     getOnboardingState(userId ?? undefined),
   ]);
 
+  const flags = getOnboardingFlags();
   const resolution = resolveOnboarding({
     profile,
     onboardingState,
-    flags: getOnboardingFlags(),
+    flags,
     inviteToken: options.inviteToken,
     hasActiveAssignment: options.hasActiveAssignment,
+  });
+
+  console.debug('[ftue:resolver]', {
+    user_id: userId ?? profile?.id ?? null,
+    email: (profile as { email?: string | null } | null)?.email ?? null,
+    profile_role: profile?.role ?? null,
+    school_id: profile?.school_id ?? null,
+    tutorial_completed: profile?.tutorial_completed ?? null,
+    needsSetup: profile?.needs_setup ?? null,
+    onboarding_row: onboardingState ? {
+      segment: onboardingState.segment,
+      current_step: onboardingState.current_step,
+      core_completed_at: onboardingState.core_completed_at,
+      completed_steps: onboardingState.completed_steps,
+    } : null,
+    ftue_enabled: flags.ftue_enabled,
+    resolver_segment: resolution.segment,
+    resolver_eligible: resolution.eligible,
+    resolver_isComplete: resolution.isComplete,
+    resolver_current_step: resolution.state?.current_step ?? resolution.nextStep,
+    resolver_reason: resolution.reason,
   });
 
   if (resolution.eligible && !resolution.isComplete && userId) {
