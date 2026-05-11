@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { buildSetupCompletionOnboardingSeed } from '../src/features/onboarding/setupCompletion.js';
+import { buildSetupCompletionOnboardingSeed, buildSetupProfileFallback } from '../src/features/onboarding/setupCompletion.js';
 import { resolveOnboarding } from '../src/features/onboarding/onboardingResolver.js';
 import { isActiveLearnerFtue } from '../src/features/onboarding/ftueTakeover.js';
 import type { OnboardingFlags } from '../src/features/onboarding/onboardingTypes.js';
@@ -30,6 +30,7 @@ test('student selection seeds incomplete learner onboarding', () => {
     core_completed_at: null,
     metadata: {
       setup_path: 'school',
+      selected_role: 'student',
       school_name: 'Cipher School',
     },
   });
@@ -96,4 +97,47 @@ test('teacher selection bypasses learner FTUE', () => {
   assert.equal(seed, null);
   assert.equal(isActiveLearnerFtue(resolution), false);
   assert.equal(resolution.eligible, false);
+});
+
+
+test('profile refresh temporarily null after student setup still routes to learner FTUE when onboarding row exists', () => {
+  const onboardingState = {
+    user_id: 'student-refresh-pending',
+    segment: 'solo_learner' as const,
+    context_type: 'solo' as const,
+    context_id: null,
+    current_step: 'intent' as const,
+    completed_steps: [],
+    core_completed_at: null,
+    first_value_started_at: null,
+    first_value_completed_at: null,
+    metadata: { setup_path: 'individual', selected_role: 'student' },
+  };
+
+  const fallbackProfile = buildSetupProfileFallback({
+    userId: 'student-refresh-pending',
+    selectedRole: 'student',
+    onboardingState,
+  });
+
+  assert.deepEqual(fallbackProfile, {
+    id: 'student-refresh-pending',
+    role: 'student',
+    school_id: null,
+    needs_setup: false,
+    tutorial_completed: false,
+  });
+
+  const resolution = resolveOnboarding({
+    flags,
+    profile: null,
+    onboardingState,
+  });
+
+  assert.equal(resolution.reason, 'student_setup_profile_pending');
+  assert.equal(resolution.segment, 'solo_learner');
+  assert.equal(resolution.eligible, true);
+  assert.equal(resolution.isComplete, false);
+  assert.equal(resolution.nextStep, 'intent');
+  assert.equal(isActiveLearnerFtue(resolution), true);
 });

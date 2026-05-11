@@ -36,11 +36,39 @@ const hasLegacyCompletion = (input: OnboardingResolverInput): boolean => {
   return Boolean(profile.role && profile.tutorial_completed === true);
 };
 
+const isLearnerSegment = (segment: OnboardingSegment | null | undefined): segment is 'school_student' | 'solo_learner' =>
+  segment === 'school_student' || segment === 'solo_learner';
+
+const readSelectedSetupRole = (input: OnboardingResolverInput): UserRole | undefined => {
+  const selectedRole = input.onboardingState?.metadata?.['selected_role']
+    ?? input.onboardingState?.metadata?.['setup_selected_role'];
+  return typeof selectedRole === 'string' ? selectedRole as UserRole : undefined;
+};
+
+const resolveProfilelessSetupSegment = (input: OnboardingResolverInput): { segment: OnboardingSegment; context: OnboardingContextType; reason: string } | null => {
+  const stateSegment = input.onboardingState?.segment;
+  const selectedRole = readSelectedSetupRole(input);
+
+  // SetupWizard can successfully save the learner onboarding row before the
+  // immediate public.users refresh becomes readable. Only trust this fallback
+  // for explicit student setup rows so teacher/admin bypasses cannot be pulled
+  // into the learner FTUE by a missing profile read.
+  if (selectedRole !== 'student' || !isLearnerSegment(stateSegment)) return null;
+
+  return {
+    segment: stateSegment,
+    context: input.onboardingState?.context_type === 'school' ? 'school' : 'solo',
+    reason: 'student_setup_profile_pending',
+  };
+};
+
 const resolveSegment = (input: OnboardingResolverInput): { segment: OnboardingSegment; context: OnboardingContextType; reason: string } => {
   const { profile, flags, inviteToken } = input;
   const role = profile?.role as UserRole | undefined;
 
-  if (!profile) return { segment: 'none', context: 'none', reason: 'missing_profile' };
+  if (!profile) {
+    return resolveProfilelessSetupSegment(input) ?? { segment: 'none', context: 'none', reason: 'missing_profile' };
+  }
   if (inviteToken) return { segment: 'school_student', context: 'school', reason: 'invite_token_present' };
 
   if (role === 'school_admin') {
