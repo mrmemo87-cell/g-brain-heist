@@ -57,6 +57,51 @@ const OnboardingRouteGate: React.FC<OnboardingRouteGateProps> = ({
   const flags = getOnboardingFlags();
   const [bypass, setBypass] = React.useState(false);
   const { loading, error, resolution } = useOnboardingResolution({ profile, observeOnly });
+  const activeLearnerFtue = isActiveLearnerFtue(resolution);
+  const shouldRenderLearnerShell = Boolean(
+    flags.ftue_enabled
+    && !bypass
+    && !observeOnly
+    && !loading
+    && !error
+    && activeLearnerFtue,
+  );
+  const shouldSuppressLegacyTutorial = activeLearnerFtue;
+
+  React.useEffect(() => {
+    console.debug('[ftue:route-gate]', {
+      ftue_enabled: flags.ftue_enabled,
+      segment: resolution?.segment ?? 'unresolved',
+      eligible: resolution?.eligible ?? false,
+      completed: resolution?.isComplete ?? false,
+      current_step: resolution?.state?.current_step ?? resolution?.nextStep ?? null,
+      shouldRenderLearnerShell,
+      shouldSuppressLegacyTutorial,
+      falseCondition: !flags.ftue_enabled
+        ? 'ftue_enabled=false'
+        : bypass
+          ? 'route_gate_bypass=true'
+          : observeOnly
+            ? 'observeOnly=true'
+            : loading
+              ? 'resolver_loading=true'
+              : error
+                ? 'resolver_error'
+                : !resolution
+                  ? 'resolution=missing'
+                  : !resolution.eligible
+                    ? 'eligible=false'
+                    : resolution.isComplete
+                      ? 'completed=true'
+                      : !activeLearnerFtue
+                        ? `segment=${resolution.segment}`
+                        : null,
+      reason: resolution?.reason ?? null,
+      profileProvided: Boolean(profile),
+      loading,
+      error,
+    });
+  }, [activeLearnerFtue, bypass, error, flags.ftue_enabled, loading, observeOnly, profile, resolution, shouldRenderLearnerShell, shouldSuppressLegacyTutorial]);
 
   if (!flags.ftue_enabled || bypass || observeOnly) {
     return <>{children}</>;
@@ -73,7 +118,7 @@ const OnboardingRouteGate: React.FC<OnboardingRouteGateProps> = ({
     return <>{children}</>;
   }
 
-  if (isActiveLearnerFtue(resolution)) {
+  if (shouldRenderLearnerShell) {
     return <LearnerOnboardingShell resolution={resolution} profile={profile} onComplete={() => setBypass(true)} />;
   }
 
