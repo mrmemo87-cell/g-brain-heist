@@ -32,6 +32,22 @@ const normalizeState = (row: Record<string, unknown>): OnboardingState => ({
   updated_at: row['updated_at'] as string | undefined,
 });
 
+const markLegacyTutorialCompleteForFtue = async (userId: string): Promise<void> => {
+  // FTUE takeover intentionally leaves the legacy tutorial code in place for
+  // rollback, but a learner who completes/skips Phase 1A should not be shown the
+  // older tutorial modal on the next dashboard mount. Marking the legacy bit is
+  // a narrow compatibility bridge; disabling ftue_enabled still restores all
+  // legacy behavior for users who have not completed the new shell.
+  const { error } = await supabase
+    .from('users')
+    .update({ tutorial_completed: true })
+    .eq('id', userId);
+
+  if (error) {
+    console.warn('[onboarding] failed to suppress legacy tutorial after FTUE completion:', error.message);
+  }
+};
+
 export const getCurrentOnboardingUserId = async (): Promise<string | null> => {
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) return null;
@@ -133,6 +149,10 @@ export const markOnboardingStepComplete = async (
     core_completed_at: options.completeCoreFtue ? existing?.core_completed_at ?? now : existing?.core_completed_at ?? null,
     metadata: options.metadata,
   }, resolvedUserId);
+
+  if (options.completeCoreFtue) {
+    await markLegacyTutorialCompleteForFtue(resolvedUserId);
+  }
 
   await emitOnboardingEvent({
     event: 'ftue_step_completed',

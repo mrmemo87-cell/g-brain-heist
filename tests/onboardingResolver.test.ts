@@ -80,7 +80,7 @@ test('teacher ftue respects teacher feature flag', () => {
   assert.equal(enabled.nextStep, 'teacher_context');
 });
 
-test('legacy settled profiles are treated as complete to avoid onboarding loops', () => {
+test('legacy settled learners that already completed the tutorial are treated as complete', () => {
   const resolution = resolve({
     profile: {
       id: 'existing',
@@ -88,10 +88,47 @@ test('legacy settled profiles are treated as complete to avoid onboarding loops'
       role: 'student',
       school_id: null,
       needs_setup: false,
+      tutorial_completed: true,
     },
   });
 
   assert.equal(resolution.isComplete, true);
   assert.equal(resolution.nextStep, 'complete');
   assert.equal(resolution.featureRevealLevel, 'normal_dashboard');
+});
+
+test('eligible learners with incomplete legacy tutorial enter Phase 1A FTUE', () => {
+  const resolution = resolve({
+    profile: {
+      id: 'new-learner',
+      username: 'new-learner',
+      role: 'student',
+      school_id: null,
+      needs_setup: false,
+      tutorial_completed: false,
+    },
+  });
+
+  assert.equal(resolution.eligible, true);
+  assert.equal(resolution.isComplete, false);
+  assert.equal(resolution.segment, 'solo_learner');
+  assert.equal(resolution.nextStep, 'goal');
+  assert.equal(resolution.featureRevealLevel, 'ftue_active');
+});
+
+test('teacher legacy completion remains rollback-safe', () => {
+  const resolution = resolve({
+    profile: {
+      id: 'teacher-existing',
+      username: 'teacher-existing',
+      role: 'teacher',
+      school_id: null,
+      needs_setup: false,
+      tutorial_completed: false,
+    },
+  });
+
+  assert.equal(resolution.isComplete, true);
+  assert.equal(resolution.segment, 'teacher');
+  assert.equal(resolution.nextStep, 'complete');
 });

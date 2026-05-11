@@ -1,6 +1,7 @@
 import React from 'react';
 import { useOnboardingResolution } from '../../src/features/onboarding/useOnboardingResolution';
 import { getOnboardingFlags } from '../../src/features/onboarding/featureFlags';
+import { isActiveLearnerFtue } from '../../src/features/onboarding/ftueTakeover';
 import type { Profile } from '../../types';
 import LearnerOnboardingShell from './LearnerOnboardingShell';
 
@@ -36,11 +37,16 @@ const DefaultOnboardingFallback: React.FC<{ onContinue: () => void; loading?: bo
   </div>
 );
 
-const isLearnerSegment = (segment?: string) => segment === 'school_student' || segment === 'solo_learner';
-
 /**
  * Lightweight route protection shell. It now renders only the Phase 1A learner
  * FTUE when explicitly enabled; non-learner segments stay on existing routes.
+ *
+ * Coexistence note: while the resolver is loading in enforced mode, we keep the
+ * dashboard tree unmounted. That makes the Phase 1A shell the sole render owner
+ * for eligible learners and prevents legacy tutorial modals, broadcast banners,
+ * and old onboarding overlays from flashing over the new FTUE. Turning the FTUE
+ * flag off (or resolving a teacher/admin/non-eligible segment) immediately rolls
+ * back to the existing dashboard and legacy tutorial system.
  */
 const OnboardingRouteGate: React.FC<OnboardingRouteGateProps> = ({
   children,
@@ -50,13 +56,24 @@ const OnboardingRouteGate: React.FC<OnboardingRouteGateProps> = ({
 }) => {
   const flags = getOnboardingFlags();
   const [bypass, setBypass] = React.useState(false);
-  const { loading, resolution } = useOnboardingResolution({ profile, observeOnly });
+  const { loading, error, resolution } = useOnboardingResolution({ profile, observeOnly });
 
-  if (!flags.ftue_enabled || bypass || observeOnly || !resolution?.eligible || resolution.isComplete) {
+  if (!flags.ftue_enabled || bypass || observeOnly) {
     return <>{children}</>;
   }
 
-  if (isLearnerSegment(resolution.segment)) {
+  if (loading || (!resolution && !error)) {
+    return <>{fallback ?? <DefaultOnboardingFallback onContinue={() => setBypass(true)} loading />}</>;
+  }
+
+  // Resolver errors roll forward to the legacy dashboard to preserve rollback
+  // safety. This keeps auth/setup usable if the new onboarding tables or network
+  // are unavailable, but active learner resolutions below still take over fully.
+  if (error || !resolution?.eligible || resolution.isComplete) {
+    return <>{children}</>;
+  }
+
+  if (isActiveLearnerFtue(resolution)) {
     return <LearnerOnboardingShell resolution={resolution} profile={profile} onComplete={() => setBypass(true)} />;
   }
 
