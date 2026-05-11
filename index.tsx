@@ -14,6 +14,7 @@ import './src/styles/light-mode.css';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { lazyRetry } from './src/utils/lazyRetry';
+import OnboardingRouteGate from './components/onboarding/OnboardingRouteGate';
 
 // ── Lazy-loaded pages & modals (with automatic retry on stale-chunk errors) ──
 const FinishSetupModal = lazyRetry(() => import('./components/FinishSetupModal'), 'FinishSetupModal');
@@ -361,7 +362,11 @@ const Main: React.FC = () => {
     );
   }
 
-  return <App onLogout={handleLogout} />;
+  return (
+    <OnboardingRouteGate observeOnly={false}>
+      <App onLogout={handleLogout} />
+    </OnboardingRouteGate>
+  );
 };
 
 const IELTSMain: React.FC = () => {
