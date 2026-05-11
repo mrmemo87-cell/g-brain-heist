@@ -1,6 +1,9 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
 import type { Profile } from '../types';
+import { getOnboardingFlags } from '../src/features/onboarding/featureFlags';
+import { isActiveLearnerFtue, logLegacyTutorialSuppressionDebug } from '../src/features/onboarding/ftueTakeover';
+import { readOnboardingResolution } from '../src/features/onboarding/onboardingService';
 
 interface TutorialStep {
   title: string;
@@ -77,14 +80,93 @@ const buildTutorialSteps = (profile?: Profile | null): TutorialStep[] => {
   ];
 };
 
+const isLearnerProfile = (profile?: Profile | null): boolean => {
+  const role = profile?.role;
+  return role === 'student' || role === undefined || role === null;
+};
+
+type FtueKillSwitchStatus = 'checking' | 'kill' | 'allow';
+
 const TutorialModal: React.FC<TutorialModalProps> = ({ onComplete, onSkip, profile }) => {
+  const flags = getOnboardingFlags();
+  const isFtueLearnerCandidate = flags.ftue_enabled && isLearnerProfile(profile);
+  const syncSuppressionSnapshot = logLegacyTutorialSuppressionDebug('TutorialModal.render.syncKillSwitch', {
+    flags,
+    profile: profile ?? null,
+  });
+  const [ftueKillSwitchStatus, setFtueKillSwitchStatus] = useState<FtueKillSwitchStatus>(() => (
+    syncSuppressionSnapshot.suppress ? 'kill' : isFtueLearnerCandidate ? 'checking' : 'allow'
+  ));
   const [currentStep, setCurrentStep] = useState(0);
   const [fadeIn, setFadeIn] = useState(false);
   const tutorialSteps = useMemo(() => buildTutorialSteps(profile), [profile]);
 
   useEffect(() => {
+    if (syncSuppressionSnapshot.suppress) {
+      setFtueKillSwitchStatus('kill');
+      console.debug('[ftue:legacy-tutorial]', {
+        source: 'TutorialModal.hardKill.sync',
+        reason: 'sync_suppression_predicate_active',
+      });
+      return;
+    }
+
+    if (!isFtueLearnerCandidate) {
+      setFtueKillSwitchStatus('allow');
+      return;
+    }
+
+    let cancelled = false;
+    setFtueKillSwitchStatus('checking');
+    void readOnboardingResolution({ profile: profile ?? null })
+      .then((resolution) => {
+        if (cancelled) return;
+        const shouldKill = isActiveLearnerFtue(resolution);
+        console.debug('[ftue:legacy-tutorial]', {
+          source: 'TutorialModal.hardKill.asyncResolution',
+          hardKill: shouldKill,
+          resolution: {
+            eligible: resolution.eligible,
+            isComplete: resolution.isComplete,
+            segment: resolution.segment,
+            context: resolution.context,
+            nextStep: resolution.nextStep,
+            reason: resolution.reason,
+            featureRevealLevel: resolution.featureRevealLevel,
+          },
+          state: resolution.state ? {
+            segment: resolution.state.segment,
+            current_step: resolution.state.current_step,
+            core_completed_at: resolution.state.core_completed_at,
+            completed_steps: resolution.state.completed_steps,
+          } : null,
+        });
+        setFtueKillSwitchStatus(shouldKill ? 'kill' : 'allow');
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        console.warn('[ftue:legacy-tutorial] TutorialModal hard kill-switch resolution failed; allowing legacy rollback path.', error);
+        setFtueKillSwitchStatus('allow');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [flags.ftue_enabled, isFtueLearnerCandidate, profile, syncSuppressionSnapshot.suppress]);
+
+  useEffect(() => {
     setFadeIn(true);
   }, [currentStep]);
+
+  if (syncSuppressionSnapshot.suppress || ftueKillSwitchStatus === 'kill' || (isFtueLearnerCandidate && ftueKillSwitchStatus === 'checking')) {
+    console.debug('[ftue:legacy-tutorial]', {
+      source: 'TutorialModal.returnNull',
+      syncSuppress: syncSuppressionSnapshot.suppress,
+      ftueKillSwitchStatus,
+      isFtueLearnerCandidate,
+    });
+    return null;
+  }
 
   const handleNext = () => {
     if (currentStep < tutorialSteps.length - 1) {

@@ -33,7 +33,7 @@ import { fetchEffectiveTier, isPro as isProTier, invalidateTierCache, fetchSchoo
 // Uses lazyRetry to auto-recover from stale deployment chunk errors
 import { lazyRetry } from './src/utils/lazyRetry';
 import { getOnboardingFlags } from './src/features/onboarding/featureFlags';
-import { shouldSuppressLegacyTutorialForFtue } from './src/features/onboarding/ftueTakeover';
+import { logLegacyTutorialSuppressionDebug } from './src/features/onboarding/ftueTakeover';
 const IeltsHome = lazyRetry(() => import('./src/pages/ielts/IeltsHome'), 'IeltsHome');
 const importWritingHub = () => import('./src/pages/writing/WritingHub');
 const preloadWritingHub = (): void => {
@@ -851,10 +851,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       // any path where App mounts before/without the gate. Keep legacy tutorial
       // available only for rollback (ftue_enabled=false), teachers/admins, and
       // learners who are not in an active learner FTUE resolution.
-      const suppressLegacyTutorialForFtue = shouldSuppressLegacyTutorialForFtue({
+      const suppressLegacyTutorialForFtue = logLegacyTutorialSuppressionDebug('App.checkAuthAndSetup.beforeSetShowTutorial', {
         flags: getOnboardingFlags(),
         profile: profileData,
-      });
+      }).suppress;
       if (suppressLegacyTutorialForFtue) {
         setShowTutorial(false);
       }
@@ -2405,7 +2405,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
         {/* Legacy tutorial modal. Kept for rollback and non-FTUE segments; active
             learner FTUE is also suppressed here as a final render guard. */}
-        {showTutorial && !shouldSuppressLegacyTutorialForFtue({ flags: getOnboardingFlags(), profile }) && (
+        {showTutorial && !logLegacyTutorialSuppressionDebug('App.render.legacyTutorialConditional', { flags: getOnboardingFlags(), profile }).suppress && (
           <Suspense fallback={null}>
           <TutorialModal
             profile={profile}
