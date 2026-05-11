@@ -23,13 +23,13 @@ const readBooleanFlag = (flagName: keyof OnboardingFlags, envName: string, fallb
 };
 
 /**
- * Feature flags for the Phase 1 FTUE foundation. Defaults are intentionally off
- * so deploying the infrastructure cannot interrupt existing auth/setup flows.
- * Local QA can enable a flag with localStorage, e.g.
- * `brains_heist_ftue_enabled=true`.
+ * Feature flags for the Phase 1 FTUE foundation. Phase 1A learner FTUE is
+ * enabled by default so brand-new learner accounts are owned by the new shell.
+ * Rollback remains one flag away with VITE_FTUE_ENABLED=false or a local QA
+ * override such as `brains_heist_ftue_enabled=false`.
  */
 export const getOnboardingFlags = (): OnboardingFlags => ({
-  ftue_enabled: readBooleanFlag('ftue_enabled', 'VITE_FTUE_ENABLED', false),
+  ftue_enabled: readBooleanFlag('ftue_enabled', 'VITE_FTUE_ENABLED', true),
   progressive_reveal_enabled: readBooleanFlag('progressive_reveal_enabled', 'VITE_PROGRESSIVE_REVEAL_ENABLED', false),
   byte_ftue_enabled: readBooleanFlag('byte_ftue_enabled', 'VITE_BYTE_FTUE_ENABLED', false),
   teacher_ftue_enabled: readBooleanFlag('teacher_ftue_enabled', 'VITE_TEACHER_FTUE_ENABLED', false),

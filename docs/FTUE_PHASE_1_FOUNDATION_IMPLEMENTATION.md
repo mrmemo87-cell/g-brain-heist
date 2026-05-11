@@ -14,7 +14,7 @@ Implemented foundations:
 - Observe-only route gate.
 - SQL migration for `user_onboarding` and optional `onboarding_events`.
 
-The implementation is intentionally safe-by-default: `ftue_enabled` defaults to `false`, and the route gate is wired in observe-only mode so existing auth, setup, dashboard, school, XP, and mission flows continue unchanged.
+The Phase 1A learner shell now takes ownership by default for brand-new learner accounts: `ftue_enabled` defaults to `true`, and the enforced route gate renders the learner FTUE shell for incomplete `school_student` and `solo_learner` resolutions. Rollback remains safe with `VITE_FTUE_ENABLED=false` or `localStorage.setItem('brains_heist_ftue_enabled', 'false')`.
 
 ## Resolver strategy
 
@@ -85,26 +85,19 @@ Supported flags:
 
 Environment variables:
 
-- `VITE_FTUE_ENABLED`
+- `VITE_FTUE_ENABLED` (set to `false` to roll back Phase 1A learner FTUE; defaults to enabled)
 - `VITE_PROGRESSIVE_REVEAL_ENABLED`
 - `VITE_BYTE_FTUE_ENABLED`
 - `VITE_TEACHER_FTUE_ENABLED`
 - `VITE_ADMIN_FTUE_ENABLED`
 
-Local QA overrides can be set in local storage with keys such as `brains_heist_ftue_enabled=true`.
+Local QA overrides use the `brains_heist_` prefix, for example `brains_heist_ftue_enabled=false` to force legacy rollback or `brains_heist_ftue_enabled=true` to force-enable the shell.
 
 ## Route protection / rollout behavior
 
-`components/onboarding/OnboardingRouteGate.tsx` is wired around the main app in observe-only mode.
+`components/onboarding/OnboardingRouteGate.tsx` is wired around the main app in enforcement mode (`observeOnly={false}`) for Brains Heist routes. Incomplete learner resolutions render `LearnerOnboardingShell`; disabled flags, bypass, resolver errors, complete users, and non-learner segments fall through to the existing app.
 
-Observe-only mode means:
-
-- resolver state can be evaluated
-- onboarding state can be resumed/persisted
-- analytics events can be emitted
-- existing dashboards still render
-
-Future onboarding flow implementation can switch the gate to enforcement mode and render segment-specific screens from the resolver output.
+Observe-only remains available as a prop for diagnostics and safe future rollouts when a route should evaluate the resolver without taking render ownership.
 
 ## Future expansion points
 
