@@ -5,6 +5,7 @@ import { GoogleIcon } from './icons';
 import * as AuthService from '../services/authService';
 import { consumeBanMessage } from '../services/banMessage';
 import { askVisitorAssistant } from '../services/visitorAssistantService';
+import { submitDemoRequest } from '../services/demoRequestService';
 
 /* ─── tiny inline icons (avoids new deps) ──────────────────────────────── */
 const CheckBadge = () => (
@@ -56,8 +57,10 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     const [success, setSuccess] = useState<string | null>(null);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
     const [showDemoModal, setShowDemoModal] = useState(false);
-    const [demoForm, setDemoForm] = useState({ name: '', email: '', school: '', website: '', notes: '' });
+    const [demoForm, setDemoForm] = useState({ name: '', email: '', school: '', country: '', studentCount: '', website: '', notes: '' });
     const [demoSubmitted, setDemoSubmitted] = useState(false);
+    const [demoSubmitting, setDemoSubmitting] = useState(false);
+    const [demoSubmitError, setDemoSubmitError] = useState<string | null>(null);
     const [assistantOpen, setAssistantOpen] = useState(true);
     const [assistantQuestion, setAssistantQuestion] = useState('');
     const [assistantLoading, setAssistantLoading] = useState(false);
@@ -380,33 +383,50 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
         }
     };
 
-    const buildDemoMailto = () => {
-        const subject = encodeURIComponent('Brains Heist demo request');
-        const body = encodeURIComponent([
-            `Name: ${demoForm.name}`,
-            `Email: ${demoForm.email}`,
-            `School / company: ${demoForm.school}`,
-            `Website: ${demoForm.website || 'Not provided'}`,
-            '',
-            `Notes: ${demoForm.notes || 'Please send available demo times.'}`,
-        ].join('\n'));
-        return `mailto:sales@brainsheist.com?subject=${subject}&body=${body}`;
+    const resetDemoStatus = () => {
+        setDemoSubmitted(false);
+        setDemoSubmitError(null);
     };
 
-    const handleDemoSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        setDemoSubmitted(true);
-        window.location.href = buildDemoMailto();
+    const closeDemoModal = () => {
+        setShowDemoModal(false);
+        setDemoSubmitting(false);
+        resetDemoStatus();
     };
 
-    const handleAssistantAsk = async (e: React.FormEvent) => {
+    const handleDemoSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const question = assistantQuestion.trim();
-        if (!question || assistantLoading) return;
+        if (demoSubmitting) return;
+
+        setDemoSubmitting(true);
+        setDemoSubmitted(false);
+        setDemoSubmitError(null);
+
+        try {
+            await submitDemoRequest({
+                name: demoForm.name.trim(),
+                school_name: demoForm.school.trim(),
+                email: demoForm.email.trim(),
+                country: demoForm.country.trim() || undefined,
+                student_count: demoForm.studentCount.trim() ? Number(demoForm.studentCount) : null,
+                website: demoForm.website.trim() || undefined,
+                notes: demoForm.notes.trim() || undefined,
+            });
+            setDemoSubmitted(true);
+        } catch (err: any) {
+            setDemoSubmitError(err?.message || 'We could not send your demo request right now. Please check your details and try again.');
+        } finally {
+            setDemoSubmitting(false);
+        }
+    };
+
+    const submitAssistantPrompt = async (question: string) => {
+        const trimmedQuestion = question.trim();
+        if (!trimmedQuestion || assistantLoading) return;
 
         const nextMessages: AssistantMessage[] = [
             ...assistantMessages,
-            { role: 'visitor', text: question },
+            { role: 'visitor', text: trimmedQuestion },
         ];
 
         setAssistantMessages(nextMessages);
@@ -429,9 +449,15 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
         }
     };
 
+    const handleAssistantAsk = (e: React.FormEvent) => {
+        e.preventDefault();
+        void submitAssistantPrompt(assistantQuestion);
+    };
+
     const openDemoFromAssistant = () => {
         setAssistantOpen(false);
         setShowDemoModal(true);
+        resetDemoStatus();
     };
 
 
@@ -685,10 +711,10 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                             </button>
                             <button
                                 type="button"
-                                onClick={() => setShowDemoModal(true)}
+                                onClick={() => { resetDemoStatus(); setShowDemoModal(true); }}
                                 className="inline-flex w-full sm:w-auto items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm font-bold text-white transition-all hover:border-cyan-300 hover:bg-cyan-300/10"
                             >
-                                Book a demo
+                                Request demo
                             </button>
                         </div>
 
@@ -782,86 +808,129 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
             </section>
 
             {showDemoModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-6 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="demo-modal-title">
-                    <div className="w-full max-w-2xl overflow-hidden rounded-3xl border border-cyan-300/30 bg-ink-900 shadow-[0_0_60px_rgba(34,211,238,0.18)]">
-                        <div className="flex items-start justify-between gap-4 border-b border-white/10 bg-white/[0.03] p-5 sm:p-6">
+                <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/75 px-4 py-6 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="demo-modal-title">
+                    <div className="my-auto w-full max-w-2xl overflow-hidden rounded-3xl border border-cyan-300/30 bg-ink-900 shadow-[0_0_70px_rgba(34,211,238,0.2)]">
+                        <div className="flex items-start justify-between gap-4 border-b border-white/10 bg-gradient-to-br from-white/[0.08] via-cyan-400/[0.08] to-emerald-400/[0.05] p-5 sm:p-6">
                             <div>
                                 <p className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-300">For schools &amp; teams</p>
-                                <h2 id="demo-modal-title" className="mt-1 font-heading text-2xl font-bold text-white">Schedule your Brains Heist demo</h2>
-                                <p className="mt-2 text-sm text-gray-400">Tell us what you want to see and we will prepare a walkthrough for your school.</p>
+                                <h2 id="demo-modal-title" className="mt-1 font-heading text-2xl font-bold text-white">Request a Brains Heist demo</h2>
+                                <p className="mt-2 max-w-xl text-sm leading-relaxed text-gray-300">Share a few details and the Brains Heist team will prepare the right walkthrough for your school.</p>
                             </div>
                             <button
                                 type="button"
-                                onClick={() => setShowDemoModal(false)}
+                                onClick={closeDemoModal}
                                 className="rounded-full border border-white/10 px-3 py-1 text-lg text-gray-300 transition-colors hover:border-red-300/60 hover:text-red-200"
                                 aria-label="Close demo form"
                             >
                                 ×
                             </button>
                         </div>
-                        <form onSubmit={handleDemoSubmit} className="grid gap-4 p-5 sm:grid-cols-2 sm:p-6">
-                            <label className="text-sm font-medium text-gray-300">
-                                First name*
-                                <input
-                                    required
-                                    value={demoForm.name}
-                                    onChange={(e) => setDemoForm((form) => ({ ...form, name: e.target.value }))}
-                                    className="mt-1 w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-500 focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30"
-                                    placeholder="Ada"
-                                />
-                            </label>
-                            <label className="text-sm font-medium text-gray-300">
-                                Work email*
-                                <input
-                                    required
-                                    type="email"
-                                    value={demoForm.email}
-                                    onChange={(e) => setDemoForm((form) => ({ ...form, email: e.target.value }))}
-                                    className="mt-1 w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-500 focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30"
-                                    placeholder="leader@school.edu"
-                                />
-                            </label>
-                            <label className="text-sm font-medium text-gray-300">
-                                School / company*
-                                <input
-                                    required
-                                    value={demoForm.school}
-                                    onChange={(e) => setDemoForm((form) => ({ ...form, school: e.target.value }))}
-                                    className="mt-1 w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-500 focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30"
-                                    placeholder="North Star Academy"
-                                />
-                            </label>
-                            <label className="text-sm font-medium text-gray-300">
-                                Website
-                                <input
-                                    value={demoForm.website}
-                                    onChange={(e) => setDemoForm((form) => ({ ...form, website: e.target.value }))}
-                                    className="mt-1 w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-500 focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30"
-                                    placeholder="https://school.example"
-                                />
-                            </label>
-                            <label className="text-sm font-medium text-gray-300 sm:col-span-2">
-                                What should we cover?
-                                <textarea
-                                    value={demoForm.notes}
-                                    onChange={(e) => setDemoForm((form) => ({ ...form, notes: e.target.value }))}
-                                    rows={4}
-                                    className="mt-1 w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-500 focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30"
-                                    placeholder="Admission tests, reports, classroom battles, onboarding timeline..."
-                                />
-                            </label>
-                            {demoSubmitted && (
-                                <p className="rounded-xl border border-emerald-400/40 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100 sm:col-span-2">
-                                    Opening your email app with a prepared demo request. If it does not open, email sales@brainsheist.com.
-                                </p>
-                            )}
-                            <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
-                                <p className="text-xs text-gray-500">By submitting, you agree that Brains Heist may contact you about your demo request.</p>
-                                <button type="submit" className="rounded-full bg-ion-blue px-6 py-3 text-sm font-bold text-ink-900 transition-all hover:bg-cyan-300">
-                                    Request demo times
-                                </button>
+                        {demoSubmitted ? (
+                            <div className="p-5 sm:p-6">
+                                <div className="rounded-2xl border border-emerald-300/40 bg-emerald-400/10 p-5 text-emerald-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+                                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-300/20 text-2xl ring-1 ring-emerald-200/30">✓</div>
+                                    <h3 className="font-heading text-xl font-bold text-white">Demo request received.</h3>
+                                    <p className="mt-2 text-sm leading-relaxed text-emerald-50/90">The Brains Heist team can follow up using the email you provided.</p>
+                                </div>
+                                <div className="mt-5 flex justify-end">
+                                    <button type="button" onClick={closeDemoModal} className="rounded-full bg-ion-blue px-6 py-3 text-sm font-bold text-ink-900 transition-all hover:bg-cyan-300">
+                                        Done
+                                    </button>
+                                </div>
                             </div>
-                        </form>
+                        ) : (
+                            <form onSubmit={handleDemoSubmit} className="grid gap-4 p-5 sm:grid-cols-2 sm:p-6">
+                                <label className="text-sm font-medium text-gray-300">
+                                    First name*
+                                    <input
+                                        required
+                                        value={demoForm.name}
+                                        onChange={(e) => setDemoForm((form) => ({ ...form, name: e.target.value }))}
+                                        disabled={demoSubmitting}
+                                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-500 transition focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-60"
+                                        placeholder="Ada"
+                                    />
+                                </label>
+                                <label className="text-sm font-medium text-gray-300">
+                                    Work email*
+                                    <input
+                                        required
+                                        type="email"
+                                        value={demoForm.email}
+                                        onChange={(e) => setDemoForm((form) => ({ ...form, email: e.target.value }))}
+                                        disabled={demoSubmitting}
+                                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-500 transition focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-60"
+                                        placeholder="leader@school.edu"
+                                    />
+                                </label>
+                                <label className="text-sm font-medium text-gray-300">
+                                    School / company*
+                                    <input
+                                        required
+                                        value={demoForm.school}
+                                        onChange={(e) => setDemoForm((form) => ({ ...form, school: e.target.value }))}
+                                        disabled={demoSubmitting}
+                                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-500 transition focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-60"
+                                        placeholder="North Star Academy"
+                                    />
+                                </label>
+                                <label className="text-sm font-medium text-gray-300">
+                                    Country
+                                    <input
+                                        value={demoForm.country}
+                                        onChange={(e) => setDemoForm((form) => ({ ...form, country: e.target.value }))}
+                                        disabled={demoSubmitting}
+                                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-500 transition focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-60"
+                                        placeholder="United Kingdom"
+                                    />
+                                </label>
+                                <label className="text-sm font-medium text-gray-300">
+                                    Approx. students
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        inputMode="numeric"
+                                        value={demoForm.studentCount}
+                                        onChange={(e) => setDemoForm((form) => ({ ...form, studentCount: e.target.value }))}
+                                        disabled={demoSubmitting}
+                                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-500 transition focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-60"
+                                        placeholder="450"
+                                    />
+                                </label>
+                                <label className="text-sm font-medium text-gray-300">
+                                    Website
+                                    <input
+                                        value={demoForm.website}
+                                        onChange={(e) => setDemoForm((form) => ({ ...form, website: e.target.value }))}
+                                        disabled={demoSubmitting}
+                                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-500 transition focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-60"
+                                        placeholder="school.example.com"
+                                    />
+                                </label>
+                                <label className="text-sm font-medium text-gray-300 sm:col-span-2">
+                                    Notes
+                                    <textarea
+                                        value={demoForm.notes}
+                                        onChange={(e) => setDemoForm((form) => ({ ...form, notes: e.target.value }))}
+                                        disabled={demoSubmitting}
+                                        rows={4}
+                                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-500 transition focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-60"
+                                        placeholder="Cambridge stage mapping, admissions tests, reports, classroom battles, onboarding timeline..."
+                                    />
+                                </label>
+                                {demoSubmitError && (
+                                    <p className="rounded-xl border border-red-300/40 bg-red-400/10 px-4 py-3 text-sm leading-relaxed text-red-100 sm:col-span-2">
+                                        {demoSubmitError}
+                                    </p>
+                                )}
+                                <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
+                                    <p className="text-xs leading-relaxed text-gray-500">By submitting, you agree that Brains Heist may contact you about your demo request.</p>
+                                    <button type="submit" disabled={demoSubmitting} className="inline-flex items-center justify-center rounded-full bg-ion-blue px-6 py-3 text-sm font-bold text-ink-900 transition-all hover:bg-cyan-300 disabled:cursor-not-allowed disabled:bg-gray-500 disabled:text-gray-200">
+                                        {demoSubmitting ? 'Sending request...' : 'Send demo request'}
+                                    </button>
+                                </div>
+                            </form>
+                        )}
                     </div>
                 </div>
             )}
@@ -879,10 +948,10 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                             </div>
                             <button type="button" onClick={() => setAssistantOpen(false)} className="flex h-8 w-8 items-center justify-center rounded-full text-lg leading-none text-gray-400 transition hover:bg-white/80 hover:text-gray-700" aria-label="Minimize virtual assistant">×</button>
                         </div>
-                        <div className="max-h-[19rem] space-y-4 overflow-y-auto bg-gradient-to-b from-gray-50/80 to-white px-4 py-5 sm:px-5">
+                        <div className="max-h-[18rem] space-y-4 overflow-y-auto bg-gradient-to-b from-gray-50/80 to-white px-4 py-5 sm:max-h-[19rem] sm:px-5">
                             {assistantMessages.map((message, index) => (
                                 <div key={`${message.role}-${index}`} className={`flex ${message.role === 'agent' ? 'justify-start' : 'justify-end'}`}>
-                                    <div className={`max-w-[88%] whitespace-pre-line text-[14px] leading-[1.58] shadow-sm ${message.role === 'agent' ? 'rounded-[1.35rem] rounded-tl-md border border-gray-200/80 bg-white/90 px-4 py-3 text-gray-700 shadow-[0_10px_30px_rgba(15,23,42,0.06)]' : 'rounded-[1.35rem] rounded-tr-md bg-gradient-to-br from-cyan-600 to-teal-500 px-4 py-3 font-medium text-white shadow-[0_12px_28px_rgba(8,145,178,0.22)]'}`}>
+                                    <div className={`max-w-[88%] whitespace-pre-line text-[14px] leading-relaxed shadow-sm ${message.role === 'agent' ? 'rounded-[1.35rem] rounded-tl-md border border-gray-200/80 bg-white/95 px-4 py-3.5 text-gray-700 shadow-[0_10px_30px_rgba(15,23,42,0.06)]' : 'rounded-[1.35rem] rounded-tr-md bg-gradient-to-br from-cyan-600 to-teal-500 px-4 py-3.5 font-medium text-white shadow-[0_12px_28px_rgba(8,145,178,0.22)]'}`}>
                                         {message.text}
                                     </div>
                                 </div>
@@ -899,10 +968,12 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                                 </div>
                             )}
                         </div>
-                        <div className="flex flex-wrap gap-2 border-t border-gray-200/80 bg-white px-4 py-3 sm:px-5">
-                            <button type="button" onClick={openDemoFromAssistant} className="rounded-full border border-gray-200 bg-gray-950 px-3.5 py-2 text-[11px] font-bold tracking-wide text-white shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300 hover:bg-cyan-700 hover:shadow-[0_10px_22px_rgba(8,145,178,0.18)]">Book a demo</button>
-                            <a href="mailto:sales@brainsheist.com?subject=Brains%20Heist%20sales%20question" className="rounded-full border border-gray-200 bg-white px-3.5 py-2 text-[11px] font-bold tracking-wide text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-200 hover:bg-cyan-50 hover:text-cyan-800">Connect with Sales</a>
-                            <a href="mailto:support@brainsheist.com?subject=Brains%20Heist%20support" className="rounded-full border border-gray-200 bg-white px-3.5 py-2 text-[11px] font-bold tracking-wide text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-200 hover:bg-cyan-50 hover:text-cyan-800">Support</a>
+                        <div className="overflow-x-auto border-t border-gray-200/80 bg-white px-4 py-3 sm:px-5">
+                            <div className="flex min-w-max gap-2 sm:min-w-0 sm:flex-wrap">
+                                <button type="button" onClick={() => void submitAssistantPrompt('How much does Brains Heist cost for my school?')} disabled={assistantLoading} className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-bold tracking-wide text-gray-700 shadow-sm transition hover:border-cyan-200 hover:bg-cyan-50 hover:text-cyan-800 disabled:cursor-not-allowed disabled:opacity-60">Ask about pricing</button>
+                                <button type="button" onClick={openDemoFromAssistant} className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-[11px] font-bold tracking-wide text-cyan-900 shadow-sm transition hover:border-cyan-300 hover:bg-cyan-100 hover:text-cyan-950">Request demo</button>
+                                <button type="button" onClick={() => void submitAssistantPrompt('I need help with my Brains Heist account or setup.')} disabled={assistantLoading} className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-bold tracking-wide text-gray-700 shadow-sm transition hover:border-cyan-200 hover:bg-cyan-50 hover:text-cyan-800 disabled:cursor-not-allowed disabled:opacity-60">Get support</button>
+                            </div>
                         </div>
                         <form onSubmit={handleAssistantAsk} className="flex items-center gap-2 border-t border-gray-200/80 bg-gray-50/80 p-3 sm:p-4">
                             <input
@@ -914,7 +985,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                             />
                             <button type="submit" disabled={assistantLoading} className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-950 text-white shadow-[0_10px_22px_rgba(15,23,42,0.22)] transition hover:-translate-y-0.5 hover:bg-cyan-700 hover:shadow-[0_14px_28px_rgba(8,145,178,0.26)] disabled:cursor-not-allowed disabled:bg-gray-400 disabled:shadow-none" aria-label="Send assistant question">➤</button>
                         </form>
-                        <p className="border-t border-gray-200/80 bg-white px-4 py-3 text-[11px] leading-relaxed text-gray-500 sm:px-5">
+                        <p className="border-t border-gray-200/80 bg-white px-4 py-3.5 text-[11px] leading-relaxed text-gray-500 sm:px-5">
                             Powered by AI for flexible visitor guidance. See our <a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="font-semibold text-gray-600 underline decoration-gray-300 underline-offset-2 hover:text-cyan-700">Privacy Policy</a> for data details.
                         </p>
                     </div>
