@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import * as AuthService from '../../services/authService';
 import type { Batch, Grade } from '../../types';
 import SchoolRequestModal from '../SchoolRequestModal';
+import { updateOnboardingState } from '../../src/features/onboarding/onboardingService';
 
 interface SetupWizardProps {
   onComplete: () => void;
@@ -219,7 +220,21 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
         }
       }
 
-      // Success!
+      // Success! Seed Phase 1A learner FTUE state for new students only.
+      // Teachers/admins keep existing routes until their onboarding flows are built.
+      if (finalRole === 'student') {
+        await updateOnboardingState({
+          segment: path === 'school' ? 'school_student' : 'solo_learner',
+          context_type: path === 'school' ? 'school' : 'solo',
+          context_id: path === 'school' ? schoolId : null,
+          current_step: 'intent',
+          metadata: {
+            setup_path: path,
+            school_name: path === 'school' ? schoolName : undefined,
+          },
+        });
+      }
+
       onComplete();
     } catch (err) {
       console.error('Setup error:', err);
