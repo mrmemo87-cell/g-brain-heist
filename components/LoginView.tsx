@@ -866,54 +866,56 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                 </div>
             )}
 
-            <div className="fixed bottom-5 right-5 z-40 w-[calc(100%-2.5rem)] max-w-sm">
+            <div className="fixed bottom-4 right-4 z-40 w-[calc(100%-2rem)] max-w-sm sm:bottom-5 sm:right-5 sm:w-[calc(100%-2.5rem)]">
                 {assistantOpen ? (
-                    <div className="overflow-hidden rounded-3xl border border-white/15 bg-white text-gray-900 shadow-2xl">
-                        <div className="flex items-center justify-between gap-3 border-b border-gray-200 p-4">
+                    <div className="overflow-hidden rounded-[1.75rem] border border-white/25 bg-white/95 text-gray-900 shadow-[0_24px_80px_rgba(8,20,35,0.28)] ring-1 ring-gray-950/5 backdrop-blur-xl">
+                        <div className="flex items-center justify-between gap-3 border-b border-gray-200/70 bg-gradient-to-r from-white via-cyan-50/70 to-emerald-50/70 px-4 py-3.5">
                             <div className="flex items-center gap-3">
-                                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-emerald-300 text-xl shadow-inner">🤖</div>
+                                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-300 via-teal-300 to-emerald-300 text-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_10px_28px_rgba(20,184,166,0.28)] ring-1 ring-white/70">🤖</div>
                                 <div>
-                                    <p className="font-bold text-gray-950">Byte</p>
-                                    <p className="text-xs text-gray-500">AI admissions assistant</p>
+                                    <p className="text-sm font-extrabold tracking-tight text-gray-950">Byte</p>
+                                    <p className="text-[11px] font-medium text-gray-500">AI admissions assistant</p>
                                 </div>
                             </div>
-                            <button type="button" onClick={() => setAssistantOpen(false)} className="rounded-full px-2 py-1 text-gray-500 hover:bg-gray-100" aria-label="Minimize virtual assistant">×</button>
+                            <button type="button" onClick={() => setAssistantOpen(false)} className="flex h-8 w-8 items-center justify-center rounded-full text-lg leading-none text-gray-400 transition hover:bg-white/80 hover:text-gray-700" aria-label="Minimize virtual assistant">×</button>
                         </div>
-                        <div className="max-h-72 space-y-3 overflow-y-auto p-4 text-sm">
+                        <div className="max-h-[19rem] space-y-4 overflow-y-auto bg-gradient-to-b from-gray-50/80 to-white px-4 py-5 sm:px-5">
                             {assistantMessages.map((message, index) => (
-                                <div key={`${message.role}-${index}`} className={`rounded-2xl px-3 py-2 ${message.role === 'agent' ? 'bg-gray-100 text-gray-800' : 'ml-8 bg-cyan-600 text-white'}`}>
-                                    {message.text}
+                                <div key={`${message.role}-${index}`} className={`flex ${message.role === 'agent' ? 'justify-start' : 'justify-end'}`}>
+                                    <div className={`max-w-[88%] whitespace-pre-line text-[14px] leading-[1.58] shadow-sm ${message.role === 'agent' ? 'rounded-[1.35rem] rounded-tl-md border border-gray-200/80 bg-white/90 px-4 py-3 text-gray-700 shadow-[0_10px_30px_rgba(15,23,42,0.06)]' : 'rounded-[1.35rem] rounded-tr-md bg-gradient-to-br from-cyan-600 to-teal-500 px-4 py-3 font-medium text-white shadow-[0_12px_28px_rgba(8,145,178,0.22)]'}`}>
+                                        {message.text}
+                                    </div>
                                 </div>
                             ))}
                             {assistantLoading && (
-                                <div className="inline-flex items-center gap-2 rounded-2xl bg-gray-100 px-3 py-2 text-gray-600">
-                                    <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-500" />
+                                <div className="inline-flex max-w-[88%] items-center gap-2 rounded-[1.35rem] rounded-tl-md border border-gray-200/80 bg-white/90 px-4 py-3 text-[14px] leading-[1.58] text-gray-600 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+                                    <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.7)]" />
                                     Byte is thinking...
                                 </div>
                             )}
                             {assistantError && (
-                                <div className="rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-red-700">
+                                <div className="rounded-[1.35rem] border border-red-200 bg-red-50 px-4 py-3 text-[14px] leading-[1.58] text-red-700 shadow-sm">
                                     {assistantError}
                                 </div>
                             )}
                         </div>
-                        <div className="flex flex-wrap gap-2 border-t border-gray-200 px-4 py-3">
-                            <button type="button" onClick={openDemoFromAssistant} className="rounded-full bg-gray-950 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-800">Book a demo</button>
-                            <a href="mailto:sales@brainsheist.com?subject=Brains%20Heist%20sales%20question" className="rounded-full bg-gray-950 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-800">Connect with Sales</a>
-                            <a href="mailto:support@brainsheist.com?subject=Brains%20Heist%20support" className="rounded-full bg-gray-950 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-800">Support</a>
+                        <div className="flex flex-wrap gap-2 border-t border-gray-200/80 bg-white px-4 py-3 sm:px-5">
+                            <button type="button" onClick={openDemoFromAssistant} className="rounded-full border border-gray-200 bg-gray-950 px-3.5 py-2 text-[11px] font-bold tracking-wide text-white shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300 hover:bg-cyan-700 hover:shadow-[0_10px_22px_rgba(8,145,178,0.18)]">Book a demo</button>
+                            <a href="mailto:sales@brainsheist.com?subject=Brains%20Heist%20sales%20question" className="rounded-full border border-gray-200 bg-white px-3.5 py-2 text-[11px] font-bold tracking-wide text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-200 hover:bg-cyan-50 hover:text-cyan-800">Connect with Sales</a>
+                            <a href="mailto:support@brainsheist.com?subject=Brains%20Heist%20support" className="rounded-full border border-gray-200 bg-white px-3.5 py-2 text-[11px] font-bold tracking-wide text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-200 hover:bg-cyan-50 hover:text-cyan-800">Support</a>
                         </div>
-                        <form onSubmit={handleAssistantAsk} className="flex items-center gap-2 border-t border-gray-200 p-3">
+                        <form onSubmit={handleAssistantAsk} className="flex items-center gap-2 border-t border-gray-200/80 bg-gray-50/80 p-3 sm:p-4">
                             <input
                                 value={assistantQuestion}
                                 onChange={(e) => setAssistantQuestion(e.target.value)}
                                 disabled={assistantLoading}
-                                className="min-w-0 flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-100 disabled:bg-gray-100 disabled:text-gray-400"
+                                className="min-w-0 flex-1 rounded-full border border-gray-200 bg-white px-4 py-2.5 text-[14px] leading-relaxed shadow-inner outline-none transition placeholder:text-gray-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100 disabled:bg-gray-100 disabled:text-gray-400"
                                 placeholder="Ask a question"
                             />
-                            <button type="submit" disabled={assistantLoading} className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-950 text-white hover:bg-cyan-700 disabled:cursor-not-allowed disabled:bg-gray-400" aria-label="Send assistant question">➤</button>
+                            <button type="submit" disabled={assistantLoading} className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-950 text-white shadow-[0_10px_22px_rgba(15,23,42,0.22)] transition hover:-translate-y-0.5 hover:bg-cyan-700 hover:shadow-[0_14px_28px_rgba(8,145,178,0.26)] disabled:cursor-not-allowed disabled:bg-gray-400 disabled:shadow-none" aria-label="Send assistant question">➤</button>
                         </form>
-                        <p className="border-t border-gray-200 px-4 py-3 text-[11px] leading-relaxed text-gray-500">
-                            Powered by AI for flexible visitor guidance. See our <a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="underline">Privacy Policy</a> for data details.
+                        <p className="border-t border-gray-200/80 bg-white px-4 py-3 text-[11px] leading-relaxed text-gray-500 sm:px-5">
+                            Powered by AI for flexible visitor guidance. See our <a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="font-semibold text-gray-600 underline decoration-gray-300 underline-offset-2 hover:text-cyan-700">Privacy Policy</a> for data details.
                         </p>
                     </div>
                 ) : (
