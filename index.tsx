@@ -15,6 +15,7 @@ import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { lazyRetry } from './src/utils/lazyRetry';
 import OnboardingRouteGate from './components/onboarding/OnboardingRouteGate';
+import { decideNeedsSetup } from './src/features/onboarding/setupStatus';
 
 // ── Lazy-loaded pages & modals (with automatic retry on stale-chunk errors) ──
 const FinishSetupModal = lazyRetry(() => import('./components/FinishSetupModal'), 'FinishSetupModal');
@@ -98,6 +99,44 @@ const ProtectedRoute: React.FC<{ element: React.ReactElement }> = ({ element }) 
   return <Suspense fallback={<BrainsLoader message="Loading..." />}>{element}</Suspense>;
 };
 
+
+const readSetupProfileSnapshot = async (userId: string): Promise<{ needs_setup: boolean | null; role: string | null; school_id: string | null; tutorial_completed: boolean | null } | null> => {
+  const { data, error } = await supabase
+    .from('users')
+    .select('needs_setup, role, school_id, tutorial_completed')
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (error) {
+    console.warn('[ftue:setup-status] failed to read profile snapshot:', error.message);
+    return null;
+  }
+
+  return data as { needs_setup: boolean | null; role: string | null; school_id: string | null; tutorial_completed: boolean | null } | null;
+};
+
+const resolveSetupDecision = async (status: AuthService.UserSetupStatus, email?: string | null) => {
+  const shouldReadProfileSnapshot = Boolean(status.authenticated && status.needs_setup && status.user_id);
+  const profileSnapshot = shouldReadProfileSnapshot ? await readSetupProfileSnapshot(status.user_id as string) : null;
+  const decision = decideNeedsSetup({ status, profileNeedsSetup: profileSnapshot?.needs_setup });
+
+  console.debug('[ftue:setup-status]', {
+    user_id: status.user_id ?? null,
+    email: email ?? null,
+    profile_role: profileSnapshot?.role ?? status.role ?? null,
+    school_id: profileSnapshot?.school_id ?? status.school_id ?? null,
+    tutorial_completed: profileSnapshot?.tutorial_completed ?? null,
+    status_needs_setup: status.needs_setup,
+    profile_needs_setup: profileSnapshot?.needs_setup ?? null,
+    needsSetup: decision.needsSetup,
+    decisionReason: decision.reason,
+    statusReason: status.reason ?? null,
+    has_role: status.has_role ?? null,
+  });
+
+  return decision.needsSetup;
+};
+
 const MinimalFallback = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="skeleton-bone h-6 w-40 rounded-xl bg-white/10" />
@@ -162,10 +201,10 @@ const Main: React.FC = () => {
               // New accounts can take a few extra seconds while profile bootstrap
               // queries settle across regions; avoid noisy false timeout warnings.
               const status = await withTimeout(AuthService.checkUserSetupStatus(), 6000, 'check_user_setup_status');
-              // Individuals (no school) who already completed setup have needs_setup=false in DB
-              // but the RPC may still flag them because school_id IS NULL.
-              // If the user has a role set, they've completed onboarding — don't force setup again.
-              const actuallyNeedsSetup = status.needs_setup && !(status.has_role && status.reason === 'incomplete_profile');
+              // Trust explicit public.users.needs_setup over role defaults. New
+              // profiles may already have role='student' from DB/auth defaults,
+              // but still must enter SetupWizard until needs_setup is cleared.
+              const actuallyNeedsSetup = await resolveSetupDecision(status, session.user.email);
               setNeedsSetup(actuallyNeedsSetup);
               if (status.has_username) {
                 setSetupUsername(status.username);
@@ -216,33 +255,30 @@ const Main: React.FC = () => {
         setIsAuthenticated(!!session);
 
         if (session) {
-          // Check email verification first
-          AuthService.checkEmailVerification().then(verificationStatus => {
+          setIsLoading(true);
+          try {
+            const verificationStatus = await AuthService.checkEmailVerification();
             setUserEmail(verificationStatus.email);
-            
+
             if (!verificationStatus.isVerified) {
               setNeedsEmailVerification(true);
               setNeedsSetup(false);
             } else {
               setNeedsEmailVerification(false);
-              
-              // Setup check happens in background - don't block UI
-              setNeedsSetup(false); // Default to no setup required
-              AuthService.checkUserSetupStatus().then(status => {
-                // Individuals with a role set have completed onboarding — don't redirect
-                const actuallyNeedsSetup = status.needs_setup && !(status.has_role && status.reason === 'incomplete_profile');
-                setNeedsSetup(actuallyNeedsSetup);
-                if (status.has_username) {
-                  setSetupUsername(status.username);
-                }
-              }).catch(() => {
-                // Silently fail - user can proceed without setup check
-              });
+              const status = await AuthService.checkUserSetupStatus();
+              // Role can be defaulted before setup is complete; use the
+              // profile needs_setup flag to decide whether SetupWizard owns flow.
+              const actuallyNeedsSetup = await resolveSetupDecision(status, session.user.email);
+              setNeedsSetup(actuallyNeedsSetup);
+              if (status.has_username) {
+                setSetupUsername(status.username);
+              }
             }
-          }).catch(() => {
-            // If verification check fails, proceed without blocking
+          } catch (authStateErr) {
+            console.warn('Auth state setup check failed, proceeding with session:', authStateErr);
             setNeedsEmailVerification(false);
-          });
+            setNeedsSetup(false);
+          }
         } else {
           setNeedsSetup(false);
           setNeedsEmailVerification(false);

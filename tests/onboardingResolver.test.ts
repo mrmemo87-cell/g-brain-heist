@@ -132,3 +132,52 @@ test('teacher legacy completion remains rollback-safe', () => {
   assert.equal(resolution.segment, 'teacher');
   assert.equal(resolution.nextStep, 'complete');
 });
+
+test('student setup seed enters active learner FTUE', () => {
+  const resolution = resolve({
+    profile: {
+      id: 'student-seeded',
+      username: 'student-seeded',
+      role: 'student',
+      school_id: null,
+      needs_setup: false,
+      tutorial_completed: false,
+    },
+    onboardingState: {
+      user_id: 'student-seeded',
+      segment: 'solo_learner',
+      context_type: 'solo',
+      context_id: null,
+      current_step: 'intent',
+      completed_steps: [],
+      core_completed_at: null,
+      first_value_started_at: null,
+      first_value_completed_at: null,
+      metadata: { setup_path: 'individual' },
+    },
+  });
+
+  assert.equal(resolution.eligible, true);
+  assert.equal(resolution.isComplete, false);
+  assert.equal(resolution.segment, 'solo_learner');
+  assert.equal(resolution.nextStep, 'intent');
+});
+
+test('teacher setup bypasses learner FTUE while teacher Phase 1A flag is disabled', () => {
+  const resolution = resolve({
+    flags: { ...flags, teacher_ftue_enabled: false },
+    profile: {
+      id: 'teacher-new',
+      username: 'teacher-new',
+      role: 'teacher',
+      school_id: null,
+      needs_setup: false,
+      tutorial_completed: false,
+    },
+  });
+
+  assert.equal(resolution.eligible, false);
+  assert.equal(resolution.segment, 'none');
+  assert.equal(resolution.isComplete, true);
+  assert.equal(resolution.reason, 'complete');
+});
