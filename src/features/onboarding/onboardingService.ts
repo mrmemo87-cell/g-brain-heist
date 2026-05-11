@@ -3,6 +3,8 @@ import type { Profile } from '../../../types';
 import { getOnboardingFlags } from './featureFlags';
 import { emitOnboardingEvent } from './onboardingAnalytics';
 import { resolveOnboarding } from './onboardingResolver';
+import { ONBOARDING_PROFILE_SELECT } from './profileSelect';
+import { buildSetupProfileFallback } from './setupCompletion';
 import type {
   OnboardingResolution,
   OnboardingState,
@@ -11,6 +13,9 @@ import type {
 } from './onboardingTypes';
 
 const ONBOARDING_TABLE = 'user_onboarding';
+const PROFILE_REFRESH_RETRY_DELAYS_MS = [150, 350];
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const isMissingTableError = (error: { code?: string; message?: string } | null | undefined) => {
   if (!error) return false;
@@ -186,18 +191,33 @@ export const fetchOnboardingProfile = async (userId?: string): Promise<Partial<P
   const resolvedUserId = userId ?? await getCurrentOnboardingUserId();
   if (!resolvedUserId) return null;
 
-  const { data, error } = await supabase
-    .from('users')
-    .select('id, email, username, grade, batch, role, school_id, school_name, needs_setup, tutorial_completed, account_tier')
-    .eq('id', resolvedUserId)
-    .maybeSingle();
+  for (let attempt = 0; attempt <= PROFILE_REFRESH_RETRY_DELAYS_MS.length; attempt += 1) {
+    const { data, error } = await supabase
+      .from('users')
+      .select(ONBOARDING_PROFILE_SELECT)
+      .eq('id', resolvedUserId)
+      .maybeSingle();
 
-  if (error) {
-    console.warn('[onboarding] failed to fetch profile:', error.message);
-    return null;
+    if (error) {
+      console.warn('[onboarding] failed to fetch profile:', error.message);
+      return null;
+    }
+
+    if (data) return data as Partial<Profile>;
+
+    const retryDelay = PROFILE_REFRESH_RETRY_DELAYS_MS[attempt];
+    if (retryDelay !== undefined) {
+      await sleep(retryDelay);
+    }
   }
 
-  return data as Partial<Profile> | null;
+  return null;
+};
+
+const getSelectedRoleFromOnboardingState = (onboardingState?: OnboardingState | null): string | null => {
+  const selectedRole = onboardingState?.metadata?.['selected_role']
+    ?? onboardingState?.metadata?.['setup_selected_role'];
+  return typeof selectedRole === 'string' ? selectedRole : null;
 };
 
 interface ReadOnboardingResolutionOptions {
@@ -214,8 +234,14 @@ export const readOnboardingResolution = async (options: ReadOnboardingResolution
     getOnboardingState(userId ?? undefined),
   ]);
 
+  const resolvedProfile = profile ?? buildSetupProfileFallback({
+    userId,
+    selectedRole: getSelectedRoleFromOnboardingState(onboardingState),
+    onboardingState,
+  });
+
   return resolveOnboarding({
-    profile,
+    profile: resolvedProfile,
     onboardingState,
     flags: getOnboardingFlags(),
     inviteToken: options.inviteToken,
@@ -231,8 +257,13 @@ export const resolveNextOnboardingStep = async (options: ReadOnboardingResolutio
   ]);
 
   const flags = getOnboardingFlags();
+  const resolvedProfile = profile ?? buildSetupProfileFallback({
+    userId,
+    selectedRole: getSelectedRoleFromOnboardingState(onboardingState),
+    onboardingState,
+  });
   const resolution = resolveOnboarding({
-    profile,
+    profile: resolvedProfile,
     onboardingState,
     flags,
     inviteToken: options.inviteToken,
@@ -241,11 +272,12 @@ export const resolveNextOnboardingStep = async (options: ReadOnboardingResolutio
 
   console.debug('[ftue:resolver]', {
     user_id: userId ?? profile?.id ?? null,
-    email: (profile as { email?: string | null } | null)?.email ?? null,
-    profile_role: profile?.role ?? null,
-    school_id: profile?.school_id ?? null,
-    tutorial_completed: profile?.tutorial_completed ?? null,
-    needsSetup: profile?.needs_setup ?? null,
+    email: (resolvedProfile as { email?: string | null } | null)?.email ?? null,
+    profile_role: resolvedProfile?.role ?? null,
+    profile_fallback_used: !profile && Boolean(resolvedProfile),
+    school_id: resolvedProfile?.school_id ?? null,
+    tutorial_completed: resolvedProfile?.tutorial_completed ?? null,
+    needsSetup: resolvedProfile?.needs_setup ?? null,
     onboarding_row: onboardingState ? {
       segment: onboardingState.segment,
       current_step: onboardingState.current_step,
@@ -264,7 +296,7 @@ export const resolveNextOnboardingStep = async (options: ReadOnboardingResolutio
     const savedState = await updateOnboardingState({
       segment: resolution.segment === 'none' ? null : resolution.segment,
       context_type: resolution.context === 'none' ? null : resolution.context,
-      context_id: profile?.school_id ?? null,
+      context_id: resolvedProfile?.school_id ?? null,
       current_step: resolution.nextStep,
     }, userId);
 

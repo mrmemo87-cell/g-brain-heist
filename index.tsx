@@ -16,8 +16,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { lazyRetry } from './src/utils/lazyRetry';
 import OnboardingRouteGate from './components/onboarding/OnboardingRouteGate';
 import { decideNeedsSetup } from './src/features/onboarding/setupStatus';
-import { getOnboardingState, readOnboardingResolution } from './src/features/onboarding/onboardingService';
+import { getOnboardingState, readOnboardingResolution, fetchOnboardingProfile } from './src/features/onboarding/onboardingService';
 import { isActiveLearnerFtue } from './src/features/onboarding/ftueTakeover';
+import { ONBOARDING_PROFILE_SELECT } from './src/features/onboarding/profileSelect';
+import { buildSetupProfileFallback } from './src/features/onboarding/setupCompletion';
 import type { Profile } from './types';
 
 // ── Lazy-loaded pages & modals (with automatic retry on stale-chunk errors) ──
@@ -106,7 +108,7 @@ const ProtectedRoute: React.FC<{ element: React.ReactElement }> = ({ element }) 
 const readSetupProfileSnapshot = async (userId: string): Promise<Partial<Profile> | null> => {
   const { data, error } = await supabase
     .from('users')
-    .select('id, email, username, grade, batch, role, school_id, school_name, needs_setup, tutorial_completed, account_tier')
+    .select(ONBOARDING_PROFILE_SELECT)
     .eq('id', userId)
     .maybeSingle();
 
@@ -318,13 +320,6 @@ const Main: React.FC = () => {
 
   const handleSetupComplete = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    const savedProfile = user?.id ? await readSetupProfileSnapshot(user.id) : null;
-    const onboardingRow = user?.id ? await getOnboardingState(user.id) : null;
-    const resolverResult = await readOnboardingResolution({
-      userId: user?.id,
-      profile: savedProfile,
-    });
-    const shouldRenderLearnerShell = isActiveLearnerFtue(resolverResult);
     const selectedRole = (() => {
       try {
         const raw = window.sessionStorage.getItem('brains_heist_last_setup_ftue_debug');
@@ -333,9 +328,22 @@ const Main: React.FC = () => {
         return null;
       }
     })();
+    const savedProfileFromRead = user?.id ? await fetchOnboardingProfile(user.id) : null;
+    const onboardingRow = user?.id ? await getOnboardingState(user.id) : null;
+    const savedProfile = savedProfileFromRead ?? buildSetupProfileFallback({
+      userId: user?.id,
+      selectedRole: typeof selectedRole === 'string' ? selectedRole : null,
+      onboardingState: onboardingRow,
+    });
+    const resolverResult = await readOnboardingResolution({
+      userId: user?.id,
+      profile: savedProfile,
+    });
+    const shouldRenderLearnerShell = isActiveLearnerFtue(resolverResult);
     const snapshot = {
       selectedRole,
       savedProfileRole: savedProfile?.role ?? null,
+      profile_fallback_used: !savedProfileFromRead && Boolean(savedProfile),
       needs_setup: savedProfile?.needs_setup ?? null,
       school_id: savedProfile?.school_id ?? null,
       tutorial_completed: savedProfile?.tutorial_completed ?? null,
