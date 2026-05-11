@@ -26,9 +26,14 @@ const hasLegacyCompletion = (input: OnboardingResolverInput): boolean => {
   const { profile, onboardingState } = input;
   if (!profile || onboardingState) return false;
 
-  // Safety-first migration path: existing users with a settled role and no active
-  // legacy setup requirement should not be forced into the new FTUE foundation.
-  return Boolean(profile.role && profile.needs_setup === false);
+  // Safety-first migration path: teachers/admins and learners who already
+  // completed the legacy tutorial can stay on the old dashboard if their new
+  // FTUE state has not been created yet. Learners with tutorial_completed=false
+  // remain eligible so Phase 1A can take over instead of letting the legacy
+  // tutorial modal become their primary onboarding experience.
+  if (profile.needs_setup !== false) return false;
+  if (profile.role === 'teacher' || profile.role === 'admin' || profile.role === 'school_admin') return true;
+  return Boolean(profile.role && profile.tutorial_completed === true);
 };
 
 const resolveSegment = (input: OnboardingResolverInput): { segment: OnboardingSegment; context: OnboardingContextType; reason: string } => {

@@ -836,7 +836,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       const verified = await isEmailVerified();
       setEmailVerified(verified);
 
-      // Show tutorial if first time user (only check once on initial load)
+      // Legacy tutorial coexistence: the Phase 1A route gate owns active learner
+      // FTUE and keeps this dashboard tree unmounted until the shell completes.
+      // This fallback remains for rollback (ftue_enabled=false), teachers/admins,
+      // and learners who are not in an active FTUE resolution.
       if (!tutorialCheckedRef.current && profileData && !profileData.tutorial_completed) {
         setShowTutorial(true);
         setTutorialChecked(true);
@@ -2343,6 +2346,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           </div>
         )}
 
+        {/* Phase 1A learner FTUE suppresses broadcast overlays by render ownership:
+            OnboardingRouteGate does not mount App while FTUE is active. */}
         {activeAnnouncement && isPlayerMode && (
           <Suspense fallback={null}>
             <AnnouncementBanner
@@ -2380,7 +2385,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           />
         )}
 
-        {/* Tutorial Modal */}
+        {/* Legacy tutorial modal. Kept for rollback and non-FTUE segments; active
+            learner FTUE prevents this component from mounting over the new shell. */}
         {showTutorial && (
           <Suspense fallback={null}>
           <TutorialModal
