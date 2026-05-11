@@ -1,6 +1,4 @@
 -- Phase 1 FTUE foundation: minimal durable onboarding state + optional event log.
--- This migration is intentionally small. It does not change existing auth,
--- school, XP, mission, or dashboard tables.
 
 create table if not exists public.user_onboarding (
   user_id uuid primary key references public.users(id) on delete cascade,
@@ -44,23 +42,27 @@ create index if not exists idx_user_onboarding_current_step
 
 alter table public.user_onboarding enable row level security;
 
-create policy if not exists "user_onboarding_select_own"
+drop policy if exists "user_onboarding_select_own" on public.user_onboarding;
+create policy "user_onboarding_select_own"
   on public.user_onboarding
   for select
   using (auth.uid() = user_id);
 
-create policy if not exists "user_onboarding_insert_own"
+drop policy if exists "user_onboarding_insert_own" on public.user_onboarding;
+create policy "user_onboarding_insert_own"
   on public.user_onboarding
   for insert
   with check (auth.uid() = user_id);
 
-create policy if not exists "user_onboarding_update_own"
+drop policy if exists "user_onboarding_update_own" on public.user_onboarding;
+create policy "user_onboarding_update_own"
   on public.user_onboarding
   for update
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
-create policy if not exists "user_onboarding_delete_own"
+drop policy if exists "user_onboarding_delete_own" on public.user_onboarding;
+create policy "user_onboarding_delete_own"
   on public.user_onboarding
   for delete
   using (auth.uid() = user_id);
@@ -84,12 +86,14 @@ create index if not exists idx_onboarding_events_event_created
 
 alter table public.onboarding_events enable row level security;
 
-create policy if not exists "onboarding_events_insert_own"
+drop policy if exists "onboarding_events_insert_own" on public.onboarding_events;
+create policy "onboarding_events_insert_own"
   on public.onboarding_events
   for insert
   with check (auth.uid() = user_id or user_id is null);
 
-create policy if not exists "onboarding_events_select_own"
+drop policy if exists "onboarding_events_select_own" on public.onboarding_events;
+create policy "onboarding_events_select_own"
   on public.onboarding_events
   for select
   using (auth.uid() = user_id);
