@@ -2,6 +2,7 @@ import { supabase } from './supabaseClient';
 import { createTeacherProfile } from './rpcGateway';
 import { getAuthRedirectUrl, getEnvVar } from './env';
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './banMessage';
+import { EMAIL_ALREADY_REGISTERED_MESSAGE, toAuthSafeErrorMessage } from './authErrors';
 import type { Batch, Grade } from '../types';
 
 // Export supabase for use in components
@@ -169,7 +170,7 @@ export const signup = async (
     
     if (error) {
         console.error('Signup error:', error.message);
-        throw new Error(error.message);
+        throw new Error(toAuthSafeErrorMessage(error));
     }
     
     if (data.user) {
@@ -200,7 +201,7 @@ export const signup = async (
             
             if (!bootstrapResult.success) {
                 console.error('Profile bootstrap failed:', bootstrapResult.error);
-                throw new Error(bootstrapResult.error || 'Failed to join school');
+                throw new Error(toAuthSafeErrorMessage(bootstrapResult.error || 'Failed to join school'));
             }
             
             console.log('Signup successful with school join:', data.user.email);
@@ -277,14 +278,34 @@ export const createOAuthProfile = async (): Promise<void> => {
     }
 
     // Check if profile already exists
-    const { data: existingProfile } = await supabase
+    const { data: existingProfile, error: existingProfileError } = await supabase
         .from('users')
         .select('id')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
+
+    if (existingProfileError && existingProfileError.code !== 'PGRST116') {
+        throw new Error(`Failed to load user profile: ${existingProfileError.message}`);
+    }
 
     if (existingProfile) {
         return; // Profile already exists
+    }
+
+    if (user.email) {
+        const { data: profileByEmail, error: emailLookupError } = await supabase
+            .from('users')
+            .select('id')
+            .ilike('email', user.email)
+            .maybeSingle();
+
+        if (emailLookupError && emailLookupError.code !== 'PGRST116') {
+            throw new Error(`Failed to verify user profile email: ${emailLookupError.message}`);
+        }
+
+        if (profileByEmail && profileByEmail.id !== user.id) {
+            throw new Error(EMAIL_ALREADY_REGISTERED_MESSAGE);
+        }
     }
 
     // Extract username from email or use name from OAuth provider
@@ -306,11 +327,11 @@ export const createOAuthProfile = async (): Promise<void> => {
 
     const { error: profileError } = await supabase
         .from('users')
-        .insert(profileData);
+        .upsert(profileData, { onConflict: 'id' });
 
     if (profileError) {
         console.error('OAuth profile creation error:', profileError);
-        throw new Error(`Failed to create user profile: ${profileError.message}`);
+        throw new Error(toAuthSafeErrorMessage(profileError));
     }
 
     console.log('OAuth profile created successfully for:', user.email);

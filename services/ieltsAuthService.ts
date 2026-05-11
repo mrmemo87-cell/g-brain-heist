@@ -1,6 +1,7 @@
 import { supabase } from './supabaseClient';
 import { ensureIeltsProfile } from './ieltsService';
 import { getAuthRedirectUrl } from './env';
+import { toAuthSafeErrorMessage } from './authErrors';
 
 interface SignupPayload {
   email: string;
@@ -16,7 +17,7 @@ export const login = async (email: string, password: string): Promise<void> => {
   });
 
   if (error) {
-    throw new Error(error.message);
+    throw new Error(toAuthSafeErrorMessage(error));
   }
 
   await ensureIeltsProfile();
@@ -36,7 +37,7 @@ export const signup = async ({ email, password, username, fullName }: SignupPayl
   });
 
   if (error) {
-    throw new Error(error.message);
+    throw new Error(toAuthSafeErrorMessage(error));
   }
 
   const requiresVerification = !data.session;

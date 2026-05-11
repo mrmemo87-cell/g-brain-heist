@@ -33,7 +33,7 @@ const buildCorsHeaders = (req: Request) => {
   };
 };
 
-const FUNCTION_VERSION = "admin_delete_user_debug_v4";
+const FUNCTION_VERSION = "admin_delete_user_debug_v5";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -332,6 +332,15 @@ serve(async (req) => {
       { table: "ielts_memberships", columns: ["user_id"] },
       { table: "ielts_prime_applications", columns: ["user_id"] },
       { table: "ielts_notification_preferences", columns: ["user_id"] },
+      { table: "user_onboarding", columns: ["user_id"] },
+      { table: "onboarding_events", columns: ["user_id"] },
+      { table: "user_sessions", columns: ["user_id"] },
+      { table: "auth_tokens", columns: ["user_id"] },
+      { table: "password_reset_tokens", columns: ["user_id"] },
+      { table: "email_verification_tokens", columns: ["user_id"] },
+      { table: "bh_writing_student_profiles", columns: ["student_id"] },
+      { table: "bh_writing_student_states", columns: ["student_id"] },
+      { table: "bh_writing_calibration_followups", columns: ["student_id"] },
       // Preserve admin audit history; schema is not user_id-based in production.
       { table: "question_attempts", columns: ["student_id"] },
       { table: "attempts", columns: ["user_id"] },

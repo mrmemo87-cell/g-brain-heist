@@ -291,7 +291,15 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
   const addToast = useCallback((message: string, type: ToastMessage['type'] = 'info', retryAction?: () => void) => {
     const id = Date.now();
-    setToasts((prevToasts: ToastMessage[]) => [...prevToasts, { id, message, type, retryAction }]);
+    setToasts((prevToasts: ToastMessage[]) => {
+      const duplicateToast = prevToasts.find((toast) => toast.message === message && toast.type === type);
+      if (duplicateToast) {
+        return prevToasts.map((toast) =>
+          toast.id === duplicateToast.id ? { ...toast, id, retryAction: retryAction ?? toast.retryAction } : toast,
+        );
+      }
+      return [...prevToasts, { id, message, type, retryAction }];
+    });
   }, []);
 
   useEffect(() => {
