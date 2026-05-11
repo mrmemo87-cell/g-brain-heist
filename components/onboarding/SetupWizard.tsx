@@ -3,7 +3,7 @@ import * as AuthService from '../../services/authService';
 import type { Batch, Grade } from '../../types';
 import SchoolRequestModal from '../SchoolRequestModal';
 import { updateOnboardingState, fetchOnboardingProfile, getOnboardingState, readOnboardingResolution } from '../../src/features/onboarding/onboardingService';
-import { buildSetupCompletionOnboardingSeed } from '../../src/features/onboarding/setupCompletion';
+import { buildSetupCompletionOnboardingSeed, buildSetupProfileFallback } from '../../src/features/onboarding/setupCompletion';
 
 interface SetupWizardProps {
   onComplete: () => void;
@@ -230,11 +230,17 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
         schoolName,
       });
       const seededOnboardingRow = seedPatch ? await updateOnboardingState(seedPatch) : null;
-      const [savedProfile, onboardingRowAfterSeed] = await Promise.all([
-        fetchOnboardingProfile(),
-        getOnboardingState(),
+      const { data: { user } } = await AuthService.supabase.auth.getUser();
+      const [savedProfileFromRead, onboardingRowAfterSeed] = await Promise.all([
+        fetchOnboardingProfile(user?.id),
+        getOnboardingState(user?.id),
       ]);
-      const resolverResult = await readOnboardingResolution({ profile: savedProfile });
+      const savedProfile = savedProfileFromRead ?? buildSetupProfileFallback({
+        userId: user?.id,
+        selectedRole: finalRole,
+        onboardingState: onboardingRowAfterSeed ?? seededOnboardingRow,
+      });
+      const resolverResult = await readOnboardingResolution({ userId: user?.id, profile: savedProfile });
       const shouldRenderLearnerShell = Boolean(
         resolverResult.eligible
         && !resolverResult.isComplete
@@ -244,6 +250,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
       const debugSnapshot = {
         selectedRole: finalRole,
         savedProfileRole: savedProfile?.role ?? null,
+        profile_fallback_used: !savedProfileFromRead && Boolean(savedProfile),
         needs_setup: savedProfile?.needs_setup ?? null,
         school_id: savedProfile?.school_id ?? null,
         tutorial_completed: savedProfile?.tutorial_completed ?? null,

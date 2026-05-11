@@ -1,4 +1,5 @@
-import type { OnboardingStatePatch } from './onboardingTypes';
+import type { Profile } from '../../../types';
+import type { OnboardingState, OnboardingStatePatch } from './onboardingTypes';
 
 export type SetupCompletionPath = 'school' | 'individual' | null;
 export type SetupCompletionRole = 'student' | 'teacher';
@@ -34,7 +35,30 @@ export const buildSetupCompletionOnboardingSeed = ({
     core_completed_at: null,
     metadata: {
       setup_path: path,
+      selected_role: role,
       school_name: isSchoolPath ? schoolName ?? undefined : undefined,
     },
+  };
+};
+
+
+export const buildSetupProfileFallback = ({
+  userId,
+  selectedRole,
+  onboardingState,
+}: {
+  userId?: string | null;
+  selectedRole?: string | null;
+  onboardingState?: OnboardingState | null;
+}): Partial<Profile> | null => {
+  if (!userId || selectedRole !== 'student') return null;
+  if (onboardingState?.segment !== 'solo_learner' && onboardingState?.segment !== 'school_student') return null;
+
+  return {
+    id: userId,
+    role: 'student',
+    school_id: onboardingState.segment === 'school_student' ? onboardingState.context_id : null,
+    needs_setup: false,
+    tutorial_completed: false,
   };
 };
