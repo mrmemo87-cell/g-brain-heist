@@ -18,6 +18,7 @@ import OnboardingRouteGate from './components/onboarding/OnboardingRouteGate';
 import { decideNeedsSetup } from './src/features/onboarding/setupStatus';
 import { getOnboardingState, readOnboardingResolution, fetchOnboardingProfile } from './src/features/onboarding/onboardingService';
 import { isActiveLearnerFtue } from './src/features/onboarding/ftueTakeover';
+import { ONBOARDING_PROFILE_SELECT } from './src/features/onboarding/profileSelect';
 import { buildSetupProfileFallback } from './src/features/onboarding/setupCompletion';
 import type { Profile } from './types';
 
@@ -107,7 +108,7 @@ const ProtectedRoute: React.FC<{ element: React.ReactElement }> = ({ element }) 
 const readSetupProfileSnapshot = async (userId: string): Promise<Partial<Profile> | null> => {
   const { data, error } = await supabase
     .from('users')
-    .select('id, email, username, grade, batch, role, school_id, school_name, needs_setup, tutorial_completed, account_tier')
+    .select(ONBOARDING_PROFILE_SELECT)
     .eq('id', userId)
     .maybeSingle();
 

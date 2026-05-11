@@ -3,6 +3,7 @@ import type { Profile } from '../../../types';
 import { getOnboardingFlags } from './featureFlags';
 import { emitOnboardingEvent } from './onboardingAnalytics';
 import { resolveOnboarding } from './onboardingResolver';
+import { ONBOARDING_PROFILE_SELECT } from './profileSelect';
 import { buildSetupProfileFallback } from './setupCompletion';
 import type {
   OnboardingResolution,
@@ -193,7 +194,7 @@ export const fetchOnboardingProfile = async (userId?: string): Promise<Partial<P
   for (let attempt = 0; attempt <= PROFILE_REFRESH_RETRY_DELAYS_MS.length; attempt += 1) {
     const { data, error } = await supabase
       .from('users')
-      .select('id, email, username, grade, batch, role, school_id, school_name, needs_setup, tutorial_completed, account_tier')
+      .select(ONBOARDING_PROFILE_SELECT)
       .eq('id', resolvedUserId)
       .maybeSingle();
 
