@@ -16,6 +16,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { lazyRetry } from './src/utils/lazyRetry';
 import OnboardingRouteGate from './components/onboarding/OnboardingRouteGate';
 import { decideNeedsSetup } from './src/features/onboarding/setupStatus';
+import { getOnboardingState, readOnboardingResolution } from './src/features/onboarding/onboardingService';
+import { isActiveLearnerFtue } from './src/features/onboarding/ftueTakeover';
+import type { Profile } from './types';
 
 // ── Lazy-loaded pages & modals (with automatic retry on stale-chunk errors) ──
 const FinishSetupModal = lazyRetry(() => import('./components/FinishSetupModal'), 'FinishSetupModal');
@@ -100,10 +103,10 @@ const ProtectedRoute: React.FC<{ element: React.ReactElement }> = ({ element }) 
 };
 
 
-const readSetupProfileSnapshot = async (userId: string): Promise<{ needs_setup: boolean | null; role: string | null; school_id: string | null; tutorial_completed: boolean | null } | null> => {
+const readSetupProfileSnapshot = async (userId: string): Promise<Partial<Profile> | null> => {
   const { data, error } = await supabase
     .from('users')
-    .select('needs_setup, role, school_id, tutorial_completed')
+    .select('id, email, username, grade, batch, role, school_id, school_name, needs_setup, tutorial_completed, account_tier')
     .eq('id', userId)
     .maybeSingle();
 
@@ -112,7 +115,7 @@ const readSetupProfileSnapshot = async (userId: string): Promise<{ needs_setup: 
     return null;
   }
 
-  return data as { needs_setup: boolean | null; role: string | null; school_id: string | null; tutorial_completed: boolean | null } | null;
+  return data as Partial<Profile> | null;
 };
 
 const resolveSetupDecision = async (status: AuthService.UserSetupStatus, email?: string | null) => {
@@ -148,6 +151,8 @@ const Main: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [needsSetup, setNeedsSetup] = useState(false);
   const [setupUsername, setSetupUsername] = useState<string | undefined>();
+  const [postSetupProfile, setPostSetupProfile] = useState<Partial<Profile> | null>(null);
+  const [postSetupDebugSnapshot, setPostSetupDebugSnapshot] = useState<Record<string, unknown> | null>(null);
   const [initError, setInitError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [showEntryScreen, setShowEntryScreen] = useState(false);
@@ -206,6 +211,7 @@ const Main: React.FC = () => {
               // but still must enter SetupWizard until needs_setup is cleared.
               const actuallyNeedsSetup = await resolveSetupDecision(status, session.user.email);
               setNeedsSetup(actuallyNeedsSetup);
+              if (actuallyNeedsSetup) setPostSetupProfile(null);
               if (status.has_username) {
                 setSetupUsername(status.username);
               }
@@ -270,6 +276,7 @@ const Main: React.FC = () => {
               // profile needs_setup flag to decide whether SetupWizard owns flow.
               const actuallyNeedsSetup = await resolveSetupDecision(status, session.user.email);
               setNeedsSetup(actuallyNeedsSetup);
+              if (actuallyNeedsSetup) setPostSetupProfile(null);
               if (status.has_username) {
                 setSetupUsername(status.username);
               }
@@ -305,9 +312,52 @@ const Main: React.FC = () => {
     // Immediately set to false - the auth state change will confirm
     setIsAuthenticated(false);
     setNeedsSetup(false);
+    setPostSetupProfile(null);
+    setPostSetupDebugSnapshot(null);
   }, []);
 
-  const handleSetupComplete = useCallback(() => {
+  const handleSetupComplete = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const savedProfile = user?.id ? await readSetupProfileSnapshot(user.id) : null;
+    const onboardingRow = user?.id ? await getOnboardingState(user.id) : null;
+    const resolverResult = await readOnboardingResolution({
+      userId: user?.id,
+      profile: savedProfile,
+    });
+    const shouldRenderLearnerShell = isActiveLearnerFtue(resolverResult);
+    const selectedRole = (() => {
+      try {
+        const raw = window.sessionStorage.getItem('brains_heist_last_setup_ftue_debug');
+        return raw ? (JSON.parse(raw) as { selectedRole?: unknown }).selectedRole ?? null : null;
+      } catch {
+        return null;
+      }
+    })();
+    const snapshot = {
+      selectedRole,
+      savedProfileRole: savedProfile?.role ?? null,
+      needs_setup: savedProfile?.needs_setup ?? null,
+      school_id: savedProfile?.school_id ?? null,
+      tutorial_completed: savedProfile?.tutorial_completed ?? null,
+      onboarding_row_after_seed: onboardingRow ? {
+        segment: onboardingRow.segment,
+        current_step: onboardingRow.current_step,
+        core_completed_at: onboardingRow.core_completed_at,
+        completed_steps: onboardingRow.completed_steps,
+      } : null,
+      resolver_result: {
+        segment: resolverResult.segment,
+        eligible: resolverResult.eligible,
+        isComplete: resolverResult.isComplete,
+        current_step: resolverResult.state?.current_step ?? resolverResult.nextStep,
+        reason: resolverResult.reason,
+      },
+      shouldRenderLearnerShell,
+    };
+
+    console.debug('[ftue:setup-complete:main-refresh]', snapshot);
+    setPostSetupProfile(savedProfile);
+    setPostSetupDebugSnapshot(snapshot);
     setNeedsSetup(false);
   }, []);
 
@@ -399,9 +449,19 @@ const Main: React.FC = () => {
   }
 
   return (
-    <OnboardingRouteGate observeOnly={false}>
-      <App onLogout={handleLogout} />
-    </OnboardingRouteGate>
+    <>
+      {postSetupDebugSnapshot && (
+        <details className="fixed bottom-3 left-3 z-[100000] max-w-[min(28rem,calc(100vw-1.5rem))] rounded-xl border border-cyan-300/40 bg-slate-950/95 p-3 text-xs text-cyan-50 shadow-2xl shadow-cyan-950/40">
+          <summary className="cursor-pointer font-semibold">FTUE setup debug snapshot</summary>
+          <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-words text-[11px] leading-5 text-slate-200">
+            {JSON.stringify(postSetupDebugSnapshot, null, 2)}
+          </pre>
+        </details>
+      )}
+      <OnboardingRouteGate observeOnly={false} profile={postSetupProfile}>
+        <App onLogout={handleLogout} />
+      </OnboardingRouteGate>
+    </>
   );
 };
 

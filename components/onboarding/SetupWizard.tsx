@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import * as AuthService from '../../services/authService';
 import type { Batch, Grade } from '../../types';
 import SchoolRequestModal from '../SchoolRequestModal';
-import { updateOnboardingState } from '../../src/features/onboarding/onboardingService';
+import { updateOnboardingState, fetchOnboardingProfile, getOnboardingState, readOnboardingResolution } from '../../src/features/onboarding/onboardingService';
+import { buildSetupCompletionOnboardingSeed } from '../../src/features/onboarding/setupCompletion';
 
 interface SetupWizardProps {
   onComplete: () => void;
@@ -222,17 +223,56 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
 
       // Success! Seed Phase 1A learner FTUE state for new students only.
       // Teachers/admins keep existing routes until their onboarding flows are built.
-      if (finalRole === 'student') {
-        await updateOnboardingState({
-          segment: path === 'school' ? 'school_student' : 'solo_learner',
-          context_type: path === 'school' ? 'school' : 'solo',
-          context_id: path === 'school' ? schoolId : null,
-          current_step: 'intent',
-          metadata: {
-            setup_path: path,
-            school_name: path === 'school' ? schoolName : undefined,
-          },
-        });
+      const seedPatch = buildSetupCompletionOnboardingSeed({
+        role: finalRole,
+        path,
+        schoolId,
+        schoolName,
+      });
+      const seededOnboardingRow = seedPatch ? await updateOnboardingState(seedPatch) : null;
+      const [savedProfile, onboardingRowAfterSeed] = await Promise.all([
+        fetchOnboardingProfile(),
+        getOnboardingState(),
+      ]);
+      const resolverResult = await readOnboardingResolution({ profile: savedProfile });
+      const shouldRenderLearnerShell = Boolean(
+        resolverResult.eligible
+        && !resolverResult.isComplete
+        && (resolverResult.segment === 'school_student' || resolverResult.segment === 'solo_learner'),
+      );
+
+      const debugSnapshot = {
+        selectedRole: finalRole,
+        savedProfileRole: savedProfile?.role ?? null,
+        needs_setup: savedProfile?.needs_setup ?? null,
+        school_id: savedProfile?.school_id ?? null,
+        tutorial_completed: savedProfile?.tutorial_completed ?? null,
+        seeded_onboarding_row: seededOnboardingRow ? {
+          segment: seededOnboardingRow.segment,
+          current_step: seededOnboardingRow.current_step,
+          core_completed_at: seededOnboardingRow.core_completed_at,
+          completed_steps: seededOnboardingRow.completed_steps,
+        } : null,
+        onboarding_row_after_seed: onboardingRowAfterSeed ? {
+          segment: onboardingRowAfterSeed.segment,
+          current_step: onboardingRowAfterSeed.current_step,
+          core_completed_at: onboardingRowAfterSeed.core_completed_at,
+          completed_steps: onboardingRowAfterSeed.completed_steps,
+        } : null,
+        resolver_result: {
+          ftue_enabled: resolverResult.reason !== 'ftue_disabled',
+          segment: resolverResult.segment,
+          eligible: resolverResult.eligible,
+          isComplete: resolverResult.isComplete,
+          current_step: resolverResult.state?.current_step ?? resolverResult.nextStep,
+          reason: resolverResult.reason,
+        },
+        shouldRenderLearnerShell,
+      };
+
+      console.debug('[ftue:setup-complete]', debugSnapshot);
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.setItem('brains_heist_last_setup_ftue_debug', JSON.stringify(debugSnapshot));
       }
 
       onComplete();
