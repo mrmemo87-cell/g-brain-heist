@@ -200,12 +200,30 @@ export const fetchOnboardingProfile = async (userId?: string): Promise<Partial<P
   return data as Partial<Profile> | null;
 };
 
-export const resolveNextOnboardingStep = async (options: {
+interface ReadOnboardingResolutionOptions {
   userId?: string;
   profile?: Partial<Profile> | null;
   inviteToken?: string | null;
   hasActiveAssignment?: boolean;
-} = {}): Promise<OnboardingResolution> => {
+}
+
+export const readOnboardingResolution = async (options: ReadOnboardingResolutionOptions = {}): Promise<OnboardingResolution> => {
+  const userId = options.userId ?? await getCurrentOnboardingUserId();
+  const [profile, onboardingState] = await Promise.all([
+    options.profile !== undefined ? Promise.resolve(options.profile) : fetchOnboardingProfile(userId ?? undefined),
+    getOnboardingState(userId ?? undefined),
+  ]);
+
+  return resolveOnboarding({
+    profile,
+    onboardingState,
+    flags: getOnboardingFlags(),
+    inviteToken: options.inviteToken,
+    hasActiveAssignment: options.hasActiveAssignment,
+  });
+};
+
+export const resolveNextOnboardingStep = async (options: ReadOnboardingResolutionOptions = {}): Promise<OnboardingResolution> => {
   const userId = options.userId ?? await getCurrentOnboardingUserId();
   const [profile, onboardingState] = await Promise.all([
     options.profile !== undefined ? Promise.resolve(options.profile) : fetchOnboardingProfile(userId ?? undefined),

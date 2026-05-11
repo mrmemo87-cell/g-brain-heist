@@ -4,6 +4,7 @@ import { getOnboardingFlags } from './featureFlags';
 import { emitOnboardingEvent } from './onboardingAnalytics';
 import { resolveNextOnboardingStep } from './onboardingService';
 import type { OnboardingResolution } from './onboardingTypes';
+import { isActiveLearnerFtue } from './ftueTakeover';
 
 interface UseOnboardingResolutionOptions {
   profile?: Partial<Profile> | null;
@@ -47,6 +48,26 @@ export const useOnboardingResolution = ({
     setError(null);
     try {
       const nextResolution = await resolveNextOnboardingStep({ profile, inviteToken, hasActiveAssignment });
+      console.debug('[ftue:route-resolution]', {
+        source: observeOnly ? 'useOnboardingResolution.observeOnly' : 'useOnboardingResolution.enforced',
+        activeLearnerFtue: isActiveLearnerFtue(nextResolution),
+        profileSource: profile ? 'prop' : 'service.fetchOnboardingProfile',
+        resolution: {
+          eligible: nextResolution.eligible,
+          isComplete: nextResolution.isComplete,
+          segment: nextResolution.segment,
+          context: nextResolution.context,
+          nextStep: nextResolution.nextStep,
+          reason: nextResolution.reason,
+          featureRevealLevel: nextResolution.featureRevealLevel,
+        },
+        state: nextResolution.state ? {
+          segment: nextResolution.state.segment,
+          current_step: nextResolution.state.current_step,
+          core_completed_at: nextResolution.state.core_completed_at,
+          completed_steps: nextResolution.state.completed_steps,
+        } : null,
+      });
       setResolution(nextResolution);
 
       if (nextResolution.eligible && !nextResolution.isComplete) {
