@@ -32,6 +32,8 @@ import { fetchEffectiveTier, isPro as isProTier, invalidateTierCache, fetchSchoo
 // Lazy-loaded: only fetched when the user actually opens these views/modals
 // Uses lazyRetry to auto-recover from stale deployment chunk errors
 import { lazyRetry } from './src/utils/lazyRetry';
+import { getOnboardingFlags } from './src/features/onboarding/featureFlags';
+import { shouldSuppressLegacyTutorialForFtue } from './src/features/onboarding/ftueTakeover';
 const IeltsHome = lazyRetry(() => import('./src/pages/ielts/IeltsHome'), 'IeltsHome');
 const importWritingHub = () => import('./src/pages/writing/WritingHub');
 const preloadWritingHub = (): void => {
@@ -845,10 +847,18 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       setEmailVerified(verified);
 
       // Legacy tutorial coexistence: the Phase 1A route gate owns active learner
-      // FTUE and keeps this dashboard tree unmounted until the shell completes.
-      // This fallback remains for rollback (ftue_enabled=false), teachers/admins,
-      // and learners who are not in an active FTUE resolution.
-      if (!tutorialCheckedRef.current && profileData && !profileData.tutorial_completed) {
+      // FTUE, but this App-level predicate is a defensive suppression layer for
+      // any path where App mounts before/without the gate. Keep legacy tutorial
+      // available only for rollback (ftue_enabled=false), teachers/admins, and
+      // learners who are not in an active learner FTUE resolution.
+      const suppressLegacyTutorialForFtue = shouldSuppressLegacyTutorialForFtue({
+        flags: getOnboardingFlags(),
+        profile: profileData,
+      });
+      if (suppressLegacyTutorialForFtue) {
+        setShowTutorial(false);
+      }
+      if (!tutorialCheckedRef.current && profileData && !profileData.tutorial_completed && !suppressLegacyTutorialForFtue) {
         setShowTutorial(true);
         setTutorialChecked(true);
       } else if (!tutorialCheckedRef.current) {
@@ -2394,8 +2404,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         )}
 
         {/* Legacy tutorial modal. Kept for rollback and non-FTUE segments; active
-            learner FTUE prevents this component from mounting over the new shell. */}
-        {showTutorial && (
+            learner FTUE is also suppressed here as a final render guard. */}
+        {showTutorial && !shouldSuppressLegacyTutorialForFtue({ flags: getOnboardingFlags(), profile }) && (
           <Suspense fallback={null}>
           <TutorialModal
             profile={profile}
