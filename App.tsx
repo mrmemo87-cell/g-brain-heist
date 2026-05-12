@@ -1881,6 +1881,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                 viewerRole={profile?.is_admin ? 'admin' : profile?.role}
                 openMissionId={pendingQuestMissionId}
                 onOpenMissionHandled={() => setPendingQuestMissionId(null)}
+                currentProfile={profile}
               />
             );
         case 'pvp':
