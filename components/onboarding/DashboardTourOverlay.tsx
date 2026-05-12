@@ -80,6 +80,7 @@ interface TourCardLayout {
 const CARD_WIDTH = 416;
 const CARD_GAP = 22;
 const VIEWPORT_PADDING = 16;
+const SPOTLIGHT_PADDING = 12;
 const DESKTOP_MIN_WIDTH = 768;
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
@@ -422,21 +423,40 @@ const DashboardTourOverlay: React.FC<DashboardTourOverlayProps> = ({
 
   if (loading || !shouldShow) return null;
 
-  const ringStyle = targetRect ? {
-    top: Math.max(10, targetRect.top - 8),
-    left: Math.max(10, targetRect.left - 8),
-    width: Math.min(window.innerWidth - 20, targetRect.width + 16),
-    height: targetRect.height + 16,
+  const spotlightStyle = targetRect ? (() => {
+    const top = Math.max(0, targetRect.top - SPOTLIGHT_PADDING);
+    const left = Math.max(0, targetRect.left - SPOTLIGHT_PADDING);
+    return {
+      top,
+      left,
+      width: Math.min(window.innerWidth - left, targetRect.width + SPOTLIGHT_PADDING * 2),
+      height: Math.min(window.innerHeight - top, targetRect.height + SPOTLIGHT_PADDING * 2),
+    };
+  })() : undefined;
+  const ringStyle = spotlightStyle ? {
+    top: spotlightStyle.top,
+    left: spotlightStyle.left,
+    width: spotlightStyle.width,
+    height: spotlightStyle.height,
   } : undefined;
   const cardLayout = getTourCardLayout(targetRect, targetFound, step === 'base_unlocked');
   const hasAnchoredCue = cardLayout.placement !== 'center' && cardLayout.placement !== 'bottom' && cardLayout.cueStyle;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-[10000]" aria-live="polite" data-testid="dashboard-tour-overlay">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_10%,rgba(34,211,238,0.08),transparent_32%),linear-gradient(180deg,rgba(15,23,42,0.24),rgba(2,6,23,0.34))] backdrop-blur-[0.5px] transition-opacity duration-300" />
+      {spotlightStyle && targetFound ? (
+        <>
+          <div className="pointer-events-none fixed inset-x-0 top-0 bg-slate-950/48 backdrop-blur-[0.5px] transition-[height] duration-300" style={{ height: spotlightStyle.top }} aria-hidden />
+          <div className="pointer-events-none fixed inset-x-0 bottom-0 bg-slate-950/48 backdrop-blur-[0.5px] transition-[top] duration-300" style={{ top: spotlightStyle.top + spotlightStyle.height }} aria-hidden />
+          <div className="pointer-events-none fixed left-0 bg-slate-950/48 backdrop-blur-[0.5px] transition-[top,width,height] duration-300" style={{ top: spotlightStyle.top, width: spotlightStyle.left, height: spotlightStyle.height }} aria-hidden />
+          <div className="pointer-events-none fixed right-0 bg-slate-950/48 backdrop-blur-[0.5px] transition-[top,left,height] duration-300" style={{ top: spotlightStyle.top, left: spotlightStyle.left + spotlightStyle.width, height: spotlightStyle.height }} aria-hidden />
+        </>
+      ) : (
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_10%,rgba(34,211,238,0.08),transparent_32%),linear-gradient(180deg,rgba(15,23,42,0.24),rgba(2,6,23,0.34))] backdrop-blur-[0.5px] transition-opacity duration-300" aria-hidden />
+      )}
       {targetRect && targetFound && ringStyle && (
         <div
-          className="pointer-events-none fixed rounded-[1.35rem] border border-cyan-100/65 bg-cyan-200/[0.025] shadow-[0_0_0_1px_rgba(255,255,255,0.14),0_0_18px_rgba(34,211,238,0.22)] transition-[top,left,width,height,opacity,transform] duration-300 ease-out"
+          className="pointer-events-none fixed rounded-[1.35rem] border border-cyan-100/65 shadow-[0_0_0_1px_rgba(255,255,255,0.14),0_0_18px_rgba(34,211,238,0.22)] transition-[top,left,width,height,opacity,transform] duration-300 ease-out"
           style={ringStyle}
           aria-hidden
         />
