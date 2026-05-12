@@ -150,6 +150,12 @@ const MinimalFallback = () => (
   </div>
 );
 
+const MIN_RESUME_HIDDEN_MS = 45_000;
+const MIN_RESUME_REFRESH_INTERVAL_MS = 60_000;
+const RESUME_DEBOUNCE_MS = 300;
+const SESSION_EXPIRY_WINDOW_MS = 5 * 60_000;
+const PROFILE_STALE_MS = 5 * 60_000;
+
 const Main: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -167,6 +173,10 @@ const Main: React.FC = () => {
   const authRefreshInFlightRef = useRef<Promise<void> | null>(null);
   const authSequenceRef = useRef(0);
   const isAuthenticatedRef = useRef(isAuthenticated);
+  const lastHiddenAtRef = useRef<number | null>(null);
+  const lastResumeRefreshAtRef = useRef(0);
+  const lastSuccessfulAuthRefreshAtRef = useRef(0);
+  const resumeDebounceTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     isAuthenticatedRef.current = isAuthenticated;
@@ -282,6 +292,7 @@ const Main: React.FC = () => {
         setNeedsSetup(false);
         setNeedsEmailVerification(false);
       }
+      lastSuccessfulAuthRefreshAtRef.current = Date.now();
       setRetryCount(0); // Reset on success
     } catch (err) {
       console.error('Auth check failed:', err);
@@ -322,28 +333,121 @@ const Main: React.FC = () => {
       }
 
       const globalLoader = shouldUseGlobalAuthLoader(event, isAuthenticatedRef.current);
-      void checkAuthAndSetup({ reason: `auth-state:${event}`, globalLoader });
-    });
 
-    const refreshAfterResume = (event: Event) => {
-      logAuthFlow('visibilitychange/focus', {
-        event: event.type,
-        visibilityState: typeof document === 'undefined' ? 'unknown' : document.visibilityState,
-      });
-
-      if (!isResumeEvent(event)) return;
-      if (authRefreshInFlightRef.current) {
-        logAuthFlow('auth refresh skipped; already in flight', { reason: event.type });
+      if (!globalLoader && (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED')) {
+        logAuthFlow('auth refresh skipped; lightweight auth state event', { event });
+        setLoading(false, `auth-state:${event}:silent`);
         return;
       }
 
-      const refreshPromise = checkAuthAndSetup({ reason: `resume:${event.type}`, globalLoader: false });
+      void checkAuthAndSetup({ reason: `auth-state:${event}`, globalLoader });
+    });
+
+    const runResumeRefreshIfNeeded = async (trigger: string) => {
+      const now = Date.now();
+      const hiddenDurationMs = lastHiddenAtRef.current ? now - lastHiddenAtRef.current : null;
+      const sinceResumeRefreshMs = now - lastResumeRefreshAtRef.current;
+      const sinceAuthRefreshMs = now - lastSuccessfulAuthRefreshAtRef.current;
+      const isCallbackRoute = typeof window !== 'undefined' && isAuthCallbackPath(window.location.pathname);
+
+      if (authRefreshInFlightRef.current) {
+        logAuthFlow('resume refresh skipped; already in flight', { trigger });
+        return;
+      }
+
+      if (!isCallbackRoute && sinceResumeRefreshMs < MIN_RESUME_REFRESH_INTERVAL_MS) {
+        logAuthFlow('resume refresh skipped; throttled', {
+          trigger,
+          sinceResumeRefreshMs,
+          minIntervalMs: MIN_RESUME_REFRESH_INTERVAL_MS,
+        });
+        return;
+      }
+
+      if (!isCallbackRoute && hiddenDurationMs !== null && hiddenDurationMs < MIN_RESUME_HIDDEN_MS) {
+        logAuthFlow('resume refresh skipped; tab was hidden briefly', {
+          trigger,
+          hiddenDurationMs,
+          minHiddenMs: MIN_RESUME_HIDDEN_MS,
+          sinceAuthRefreshMs,
+        });
+        return;
+      }
+
+      let sessionExpiresSoon = false;
+      let hasSession = isAuthenticatedRef.current;
+      try {
+        const result = await withTimeout(supabase.auth.getSession(), 2500, 'resume getSession');
+        const session = result.data?.session;
+        hasSession = Boolean(session);
+        const expiresAtMs = session?.expires_at ? session.expires_at * 1000 : null;
+        sessionExpiresSoon = Boolean(expiresAtMs && expiresAtMs - now <= SESSION_EXPIRY_WINDOW_MS);
+      } catch (sessionErr) {
+        logAuthFlow('resume getSession check failed; falling back to staleness rules', {
+          trigger,
+          error: sessionErr instanceof Error ? sessionErr.message : String(sessionErr),
+        });
+      }
+
+      const profileStale = sinceAuthRefreshMs >= PROFILE_STALE_MS;
+      const hiddenExceededThreshold = hiddenDurationMs !== null && hiddenDurationMs >= MIN_RESUME_HIDDEN_MS;
+      const shouldRefresh = isCallbackRoute || !hasSession || sessionExpiresSoon || profileStale || hiddenExceededThreshold;
+
+      if (!shouldRefresh) {
+        logAuthFlow('resume refresh skipped; session/profile still fresh', {
+          trigger,
+          hiddenDurationMs,
+          sinceAuthRefreshMs,
+          sessionExpiresSoon,
+          hasSession,
+        });
+        return;
+      }
+
+      lastResumeRefreshAtRef.current = now;
+      logAuthFlow('resume refresh run silently', {
+        trigger,
+        hiddenDurationMs,
+        sinceAuthRefreshMs,
+        sessionExpiresSoon,
+        hasSession,
+        isCallbackRoute,
+      });
+
+      const refreshPromise = checkAuthAndSetup({ reason: `resume:${trigger}`, globalLoader: false });
       authRefreshInFlightRef.current = refreshPromise;
       void refreshPromise.finally(() => {
         if (authRefreshInFlightRef.current === refreshPromise) {
           authRefreshInFlightRef.current = null;
         }
       });
+    };
+
+    const refreshAfterResume = (event: Event) => {
+      const now = Date.now();
+      const visibilityState = typeof document === 'undefined' ? 'unknown' : document.visibilityState;
+
+      logAuthFlow('visibilitychange/focus', {
+        event: event.type,
+        visibilityState,
+      });
+
+      if (event.type === 'visibilitychange' && visibilityState === 'hidden') {
+        lastHiddenAtRef.current = now;
+        logAuthFlow('resume hidden timestamp recorded', { lastHiddenAt: now });
+        return;
+      }
+
+      if (!isResumeEvent(event)) return;
+
+      if (resumeDebounceTimerRef.current !== null) {
+        window.clearTimeout(resumeDebounceTimerRef.current);
+      }
+
+      resumeDebounceTimerRef.current = window.setTimeout(() => {
+        resumeDebounceTimerRef.current = null;
+        void runResumeRefreshIfNeeded(event.type);
+      }, RESUME_DEBOUNCE_MS);
     };
 
     document.addEventListener('visibilitychange', refreshAfterResume);
@@ -353,6 +457,9 @@ const Main: React.FC = () => {
       subscription.unsubscribe();
       document.removeEventListener('visibilitychange', refreshAfterResume);
       window.removeEventListener('focus', refreshAfterResume);
+      if (resumeDebounceTimerRef.current !== null) {
+        window.clearTimeout(resumeDebounceTimerRef.current);
+      }
     };
   }, [checkAuthAndSetup, logAuthFlow, resolveCallbackRoute, setLoading]);
 
