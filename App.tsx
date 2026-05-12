@@ -208,7 +208,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const bootStartRef = useRef<number>(performance.now());
   const bootTimingsRef = useRef<{ firstRender?: number; whoami?: number; nonCritical?: number }>({});
   const criticalAbortRef = useRef<AbortController | null>(null);
+  const criticalBootIdRef = useRef(0);
   const nonCriticalAbortRef = useRef<AbortController | null>(null);
+  const profileRefreshInFlightRef = useRef<Promise<void> | null>(null);
   const runNonCriticalLoadsRef = useRef<(targets?: NonCriticalKey[]) => void>(() => {});
   const isCambridgeView = view === 'cambridge';
   const isIeltsOnlyUser =
@@ -690,10 +692,23 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }, [tutorialChecked]);
 
   const startCriticalBoot = useCallback(async () => {
+    const bootId = ++criticalBootIdRef.current;
     criticalAbortRef.current?.abort();
     const criticalController = new AbortController();
     criticalAbortRef.current = criticalController;
     nonCriticalAbortRef.current?.abort();
+    if (import.meta.env.DEV) {
+      console.info('[auth-flow] auth refresh start', { bootId, pathname: window.location.pathname });
+      console.info('[auth-flow] loading state transition', { target: 'criticalLoading', next: true, reason: 'critical-boot:start' });
+    }
+    const bootWatchdog = window.setTimeout(() => {
+      if (criticalBootIdRef.current !== bootId || criticalController.signal.aborted) return;
+      console.warn('[auth-flow] critical boot timed out; clearing loading fallback', { bootId });
+      criticalController.abort();
+      setLoadError('timeout_error');
+      setCriticalLoading(false);
+      setIsInteractive(true);
+    }, 35000);
     setCriticalLoading(true);
     setLoadError(null);
     setSessionMissing(false);
@@ -803,6 +818,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
         setIsAdminMode(false);
         setAppMode('player');
+        if (import.meta.env.DEV) {
+          console.info('[auth-flow] loading state transition', { target: 'criticalLoading', next: false, reason: 'teacher-boot:resolved' });
+        }
         setCriticalLoading(false);
         requestAnimationFrame(() => setIsInteractive(true));
         return;
@@ -816,6 +834,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         setIsAdminMode(false);
         setAppMode('player');
         setView('school_admin');
+        if (import.meta.env.DEV) {
+          console.info('[auth-flow] loading state transition', { target: 'criticalLoading', next: false, reason: 'school-admin-boot:resolved' });
+        }
         setCriticalLoading(false);
         requestAnimationFrame(() => setIsInteractive(true));
         return;
@@ -884,6 +905,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         loadCachedData();
       }
 
+      if (import.meta.env.DEV) {
+        console.info('[auth-flow] loading state transition', { target: 'criticalLoading', next: false, reason: 'critical-boot:resolved' });
+      }
       setCriticalLoading(false);
 
       requestAnimationFrame(() => {
@@ -898,7 +922,15 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       console.error('Failed to load critical boot data:', error);
       setLoadError(classifyBootError(error));
       addToast(`Failed to load: ${error?.message || 'Unknown error'}`, 'error', startCriticalBoot);
+      if (import.meta.env.DEV) {
+        console.info('[auth-flow] loading state transition', { target: 'criticalLoading', next: false, reason: 'critical-boot:error' });
+      }
       setCriticalLoading(false);
+    } finally {
+      window.clearTimeout(bootWatchdog);
+      if (import.meta.env.DEV) {
+        console.info('[auth-flow] auth refresh end', { bootId, aborted: criticalController.signal.aborted });
+      }
     }
   }, [addToast, classifyBootError, logBootTiming, loadCachedData]);
 
@@ -1379,12 +1411,37 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   // Lightweight profile refresh (no loading screen)
   const refreshProfile = async () => {
     if (!isPlayerMode || isSchoolAdminRole) return;
+    if (profileRefreshInFlightRef.current) {
+      if (import.meta.env.DEV) {
+        console.info('[auth-flow] profile fetch skipped; already in flight');
+      }
+      return profileRefreshInFlightRef.current;
+    }
+
+    const refreshPromise = (async () => {
+      try {
+        if (import.meta.env.DEV) {
+          console.info('[auth-flow] profile fetch start');
+        }
+        const profileData = await GameService.whoami();
+        setProfile(profileData);
+        await refreshAssignment(profileData);
+      } catch (error) {
+        console.error('Failed to refresh profile:', error);
+      } finally {
+        if (import.meta.env.DEV) {
+          console.info('[auth-flow] profile fetch end');
+        }
+      }
+    })();
+
+    profileRefreshInFlightRef.current = refreshPromise;
     try {
-      const profileData = await GameService.whoami();
-      setProfile(profileData);
-      await refreshAssignment(profileData);
-    } catch (error) {
-      console.error('Failed to refresh profile:', error);
+      await refreshPromise;
+    } finally {
+      if (profileRefreshInFlightRef.current === refreshPromise) {
+        profileRefreshInFlightRef.current = null;
+      }
     }
   };
 
