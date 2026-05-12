@@ -35,32 +35,32 @@ const TOUR_STEPS: TourStepConfig[] = [
   {
     id: 'base_unlocked',
     eyebrow: 'Base online',
-    title: 'Dashboard unlocked',
-    copy: 'Base unlocked. I’ll show you the only controls you need right now.',
+    title: 'Command deck online',
+    copy: 'Four signals. Then you launch.',
     selectors: [],
     primaryCta: 'Show me',
   },
   {
     id: 'profile_progress',
     eyebrow: 'Agent badge',
-    title: 'Your command profile',
-    copy: 'This is your agent badge. Your avatar, level, XP bar, and stats live here.',
+    title: 'Command profile',
+    copy: 'Level, XP, and status live here.',
     selectors: ['[data-testid="dashboard-profile-card"]'],
     primaryCta: 'Got it',
   },
   {
     id: 'xp_rewards',
     eyebrow: 'Reward loop',
-    title: 'XP turns effort into progress',
-    copy: 'XP levels you up. Coins and rewards come from missions. Your first mission starts the loop.',
+    title: 'Progress loop',
+    copy: 'XP raises your level. Missions earn rewards.',
     selectors: ['[data-testid="profile-xp-progress"]', '[data-testid="dashboard-profile-card"]'],
     primaryCta: 'Find missions',
   },
   {
     id: 'first_mission',
     eyebrow: 'Mission ready',
-    title: 'Launch when ready',
-    copy: 'This is the mission button. Tap it to preview your first route and start earning.',
+    title: 'Launch point',
+    copy: 'Start here. Your first route is ready.',
     selectors: ['[data-testid="dashboard-start-quest"]'],
     primaryCta: 'Start mission',
     interactive: true,
@@ -69,6 +69,88 @@ const TOUR_STEPS: TourStepConfig[] = [
 
 const TARGET_RETRY_MS = 1200;
 const TARGET_RETRY_INTERVAL_MS = 120;
+
+interface TourCardLayout {
+  className: string;
+  style?: React.CSSProperties;
+  placement: 'center' | 'bottom' | 'right' | 'below' | 'above' | 'left';
+  cueStyle?: React.CSSProperties;
+}
+
+const CARD_WIDTH = 416;
+const CARD_GAP = 22;
+const VIEWPORT_PADDING = 16;
+const DESKTOP_MIN_WIDTH = 768;
+
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+
+const getTourCardLayout = (targetRect: DOMRect | null, targetFound: boolean, isIntro: boolean): TourCardLayout => {
+  if (typeof window === 'undefined') {
+    return { className: 'left-1/2 top-1/2 w-[min(92vw,28rem)] -translate-x-1/2 -translate-y-1/2 px-1', placement: 'center' };
+  }
+
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  const mobileSheet = 'inset-x-3 bottom-3 pb-[env(safe-area-inset-bottom)]';
+
+  if (viewportWidth < DESKTOP_MIN_WIDTH && targetFound && !isIntro) {
+    return { className: mobileSheet, placement: 'bottom' };
+  }
+
+  if (isIntro || !targetRect || !targetFound) {
+    return { className: 'left-1/2 top-1/2 w-[min(92vw,28rem)] -translate-x-1/2 -translate-y-1/2 px-1', placement: 'center' };
+  }
+
+  const maxCardLeft = viewportWidth - CARD_WIDTH - VIEWPORT_PADDING;
+  const idealTop = clamp(targetRect.top + targetRect.height / 2 - 132, VIEWPORT_PADDING, Math.max(VIEWPORT_PADDING, viewportHeight - 300));
+  const idealLeft = clamp(targetRect.left + targetRect.width / 2 - CARD_WIDTH / 2, VIEWPORT_PADDING, maxCardLeft);
+  const targetCenterY = targetRect.top + targetRect.height / 2;
+  const targetCenterX = targetRect.left + targetRect.width / 2;
+
+  const spaceRight = viewportWidth - targetRect.right;
+  if (spaceRight >= CARD_WIDTH + CARD_GAP + VIEWPORT_PADDING) {
+    const top = idealTop;
+    return {
+      className: 'w-[26rem]',
+      placement: 'right',
+      style: { left: targetRect.right + CARD_GAP, top },
+      cueStyle: { left: -7, top: clamp(targetCenterY - top - 7, 24, 236) },
+    };
+  }
+
+  const spaceBelow = viewportHeight - targetRect.bottom;
+  if (spaceBelow >= 230) {
+    const left = idealLeft;
+    return {
+      className: 'w-[26rem]',
+      placement: 'below',
+      style: { left, top: targetRect.bottom + CARD_GAP },
+      cueStyle: { top: -7, left: clamp(targetCenterX - left - 7, 28, CARD_WIDTH - 40) },
+    };
+  }
+
+  if (targetRect.top >= 230) {
+    const left = idealLeft;
+    return {
+      className: 'w-[26rem]',
+      placement: 'above',
+      style: { left, bottom: viewportHeight - targetRect.top + CARD_GAP },
+      cueStyle: { bottom: -7, left: clamp(targetCenterX - left - 7, 28, CARD_WIDTH - 40) },
+    };
+  }
+
+  if (targetRect.left >= CARD_WIDTH + CARD_GAP + VIEWPORT_PADDING) {
+    const top = idealTop;
+    return {
+      className: 'w-[26rem]',
+      placement: 'left',
+      style: { left: targetRect.left - CARD_WIDTH - CARD_GAP, top },
+      cueStyle: { right: -7, top: clamp(targetCenterY - top - 7, 24, 236) },
+    };
+  }
+
+  return { className: 'left-1/2 top-1/2 w-[min(92vw,28rem)] -translate-x-1/2 -translate-y-1/2 px-1', placement: 'center' };
+};
 
 const findTarget = (selectors: string[]): { element: HTMLElement; selector: string } | null => {
   for (const selector of selectors) {
@@ -341,27 +423,38 @@ const DashboardTourOverlay: React.FC<DashboardTourOverlayProps> = ({
   if (loading || !shouldShow) return null;
 
   const ringStyle = targetRect ? {
-    top: Math.max(10, targetRect.top - 10),
-    left: Math.max(10, targetRect.left - 10),
-    width: Math.min(window.innerWidth - 20, targetRect.width + 20),
-    height: targetRect.height + 20,
+    top: Math.max(10, targetRect.top - 8),
+    left: Math.max(10, targetRect.left - 8),
+    width: Math.min(window.innerWidth - 20, targetRect.width + 16),
+    height: targetRect.height + 16,
   } : undefined;
+  const cardLayout = getTourCardLayout(targetRect, targetFound, step === 'base_unlocked');
+  const hasAnchoredCue = cardLayout.placement !== 'center' && cardLayout.placement !== 'bottom' && cardLayout.cueStyle;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-[10000]" aria-live="polite" data-testid="dashboard-tour-overlay">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_12%,rgba(34,211,238,0.12),transparent_34%),linear-gradient(180deg,rgba(2,6,23,0.48),rgba(2,6,23,0.62))] backdrop-blur-[1.5px] transition-opacity duration-300" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_10%,rgba(34,211,238,0.08),transparent_32%),linear-gradient(180deg,rgba(15,23,42,0.24),rgba(2,6,23,0.34))] backdrop-blur-[0.5px] transition-opacity duration-300" />
       {targetRect && targetFound && ringStyle && (
         <div
-          className="pointer-events-none fixed rounded-[1.35rem] border border-cyan-100/80 bg-cyan-200/[0.03] shadow-[0_0_0_1px_rgba(255,255,255,0.16),0_0_28px_rgba(34,211,238,0.36)] transition-[top,left,width,height,opacity,transform] duration-300 ease-out"
+          className="pointer-events-none fixed rounded-[1.35rem] border border-cyan-100/65 bg-cyan-200/[0.025] shadow-[0_0_0_1px_rgba(255,255,255,0.14),0_0_18px_rgba(34,211,238,0.22)] transition-[top,left,width,height,opacity,transform] duration-300 ease-out"
           style={ringStyle}
           aria-hidden
         />
       )}
 
       <section
-        className={`pointer-events-auto fixed ${isFallback || step === 'base_unlocked' ? 'left-1/2 top-1/2 w-[min(92vw,28rem)] -translate-x-1/2 -translate-y-1/2 px-1' : 'inset-x-3 bottom-3 pb-[env(safe-area-inset-bottom)] md:bottom-6 md:left-auto md:right-6 md:w-[26rem] md:pb-0'}`}
+        className={`pointer-events-auto fixed ${cardLayout.className}`}
+        style={cardLayout.style}
+        data-placement={cardLayout.placement}
       >
-        <div key={step} className="animate-[dashboardTourCard_240ms_ease-out] overflow-hidden rounded-[1.75rem] border border-cyan-200/20 bg-slate-950/92 text-white shadow-[0_24px_70px_rgba(0,0,0,0.45),0_0_42px_rgba(14,165,233,0.12)] ring-1 ring-white/5 backdrop-blur-xl">
+        {hasAnchoredCue && (
+          <span
+            className="pointer-events-none absolute z-10 hidden h-3.5 w-3.5 rotate-45 rounded-[0.2rem] border border-cyan-200/20 bg-slate-950/92 shadow-[0_0_18px_rgba(34,211,238,0.22)] md:block"
+            style={cardLayout.cueStyle}
+            aria-hidden
+          />
+        )}
+        <div key={step} className="animate-[dashboardTourCard_240ms_ease-out] overflow-hidden rounded-[1.75rem] border border-cyan-200/20 bg-slate-950/88 text-white shadow-[0_22px_56px_rgba(0,0,0,0.34),0_0_28px_rgba(14,165,233,0.10)] ring-1 ring-white/5 backdrop-blur-xl">
           <div className="h-px bg-gradient-to-r from-transparent via-cyan-200/70 to-transparent" />
           <div className="space-y-4 p-4 sm:p-5">
             <div className="flex items-start gap-3">
