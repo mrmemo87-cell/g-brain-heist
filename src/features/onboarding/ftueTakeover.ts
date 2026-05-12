@@ -1,6 +1,7 @@
 import { resolveOnboarding } from './onboardingResolver.js';
 import type { OnboardingFlags, OnboardingResolution, OnboardingState } from './onboardingTypes.js';
 import type { Profile } from '../../../types';
+import { logOnboardingDebug } from './featureFlags.js';
 
 /**
  * Phase 1A learner FTUE is the render owner only for active, incomplete learner
@@ -115,9 +116,7 @@ export const logLegacyTutorialSuppressionDebug = (
   input: LegacyTutorialSuppressionInput,
 ): LegacyTutorialSuppressionDebugSnapshot => {
   const snapshot = getLegacyTutorialSuppressionDebugSnapshot(source, input);
-  if (typeof console !== 'undefined') {
-    console.debug('[ftue:legacy-tutorial]', snapshot);
-  }
+  logOnboardingDebug('[ftue:legacy-tutorial]', snapshot);
   return snapshot;
 };
 

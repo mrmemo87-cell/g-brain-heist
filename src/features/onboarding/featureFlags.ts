@@ -1,4 +1,4 @@
-import { getEnvVar } from '../../../services/env';
+import { getEnvVar } from '../../../services/env.js';
 import type { OnboardingFlags } from './onboardingTypes';
 
 const TRUE_VALUES = new Set(['1', 'true', 'yes', 'on', 'enabled']);
@@ -20,6 +20,26 @@ const parseBooleanFlag = (raw: string | undefined, fallback: boolean): boolean =
 const readBooleanFlag = (flagName: keyof OnboardingFlags, envName: string, fallback = false): boolean => {
   const override = readFlagOverride(flagName);
   return parseBooleanFlag(override ?? getEnvVar(envName), fallback);
+};
+
+const readDebugFlagOverride = (): string | undefined => {
+  if (typeof window === 'undefined') return undefined;
+  return window.localStorage.getItem('brains_heist_onboarding_debug')
+    ?? window.localStorage.getItem('brains_heist_ftue_debug')
+    ?? undefined;
+};
+
+export const isOnboardingDebugEnabled = (): boolean => (
+  parseBooleanFlag(readDebugFlagOverride() ?? getEnvVar('VITE_ONBOARDING_DEBUG') ?? getEnvVar('VITE_FTUE_DEBUG'), false)
+);
+
+export const logOnboardingDebug = (label: string, payload?: unknown): void => {
+  if (!isOnboardingDebugEnabled() || typeof console === 'undefined') return;
+  if (payload === undefined) {
+    console.debug(label);
+    return;
+  }
+  console.debug(label, payload);
 };
 
 /**

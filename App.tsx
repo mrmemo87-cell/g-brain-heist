@@ -27,6 +27,7 @@ import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './services/banMessag
 import { isEmailVerified } from './services/emailVerification';
 import EmailVerificationGate from './components/EmailVerificationGate';
 import UpgradeModal from './components/UpgradeModal';
+import DashboardTourOverlay from './components/onboarding/DashboardTourOverlay';
 import { fetchEffectiveTier, isPro as isProTier, invalidateTierCache, fetchSchoolPlanDetails, type AccountTier } from './services/tierService';
 
 // Lazy-loaded: only fetched when the user actually opens these views/modals
@@ -1400,6 +1401,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }, [retryNonCritical, refreshProfile]);
 
   const handleQuestAction = () => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('brains-heist:first-mission-cta-clicked'));
+    }
     if (activeAssignment) {
       const teacherName = activeAssignment.teacher_username || 'your teacher';
       addToast(`Assignment pending from ${teacherName}. Complete it before starting new quests.`, 'warning');
@@ -2378,6 +2382,13 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         <div className={cinematicViewClass}>
           {renderView()}
         </div>
+        {profile && view === 'dashboard' && isPlayerMode && !isTeacherRole && !isSchoolAdminRole && (
+          <DashboardTourOverlay
+            profile={profile}
+            active={isOnline}
+            onStartMission={handleQuestAction}
+          />
+        )}
         <div className="fixed inset-0 z-[10001] flex flex-col items-center justify-center gap-3 px-4 pointer-events-none">
           {toasts.map(toast => (
             <Toast

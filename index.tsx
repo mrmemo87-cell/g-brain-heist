@@ -20,6 +20,7 @@ import { getOnboardingState, readOnboardingResolution, fetchOnboardingProfile } 
 import { isActiveLearnerFtue } from './src/features/onboarding/ftueTakeover';
 import { ONBOARDING_PROFILE_SELECT } from './src/features/onboarding/profileSelect';
 import { buildSetupProfileFallback } from './src/features/onboarding/setupCompletion';
+import { isOnboardingDebugEnabled, logOnboardingDebug } from './src/features/onboarding/featureFlags';
 import type { Profile } from './types';
 
 // ── Lazy-loaded pages & modals (with automatic retry on stale-chunk errors) ──
@@ -125,7 +126,7 @@ const resolveSetupDecision = async (status: AuthService.UserSetupStatus, email?:
   const profileSnapshot = shouldReadProfileSnapshot ? await readSetupProfileSnapshot(status.user_id as string) : null;
   const decision = decideNeedsSetup({ status, profileNeedsSetup: profileSnapshot?.needs_setup });
 
-  console.debug('[ftue:setup-status]', {
+  logOnboardingDebug('[ftue:setup-status]', {
     user_id: status.user_id ?? null,
     email: email ?? null,
     profile_role: profileSnapshot?.role ?? status.role ?? null,
@@ -322,6 +323,9 @@ const Main: React.FC = () => {
     const { data: { user } } = await supabase.auth.getUser();
     const selectedRole = (() => {
       try {
+        const role = window.sessionStorage.getItem('brains_heist_last_setup_role');
+        if (role) return role;
+        if (!isOnboardingDebugEnabled()) return null;
         const raw = window.sessionStorage.getItem('brains_heist_last_setup_ftue_debug');
         return raw ? (JSON.parse(raw) as { selectedRole?: unknown }).selectedRole ?? null : null;
       } catch {
@@ -363,9 +367,9 @@ const Main: React.FC = () => {
       shouldRenderLearnerShell,
     };
 
-    console.debug('[ftue:setup-complete:main-refresh]', snapshot);
+    logOnboardingDebug('[ftue:setup-complete:main-refresh]', snapshot);
     setPostSetupProfile(savedProfile);
-    setPostSetupDebugSnapshot(snapshot);
+    setPostSetupDebugSnapshot(isOnboardingDebugEnabled() ? snapshot : null);
     setNeedsSetup(false);
   }, []);
 
@@ -458,7 +462,7 @@ const Main: React.FC = () => {
 
   return (
     <>
-      {postSetupDebugSnapshot && (
+      {isOnboardingDebugEnabled() && postSetupDebugSnapshot && (
         <details className="fixed bottom-3 left-3 z-[100000] max-w-[min(28rem,calc(100vw-1.5rem))] rounded-xl border border-cyan-300/40 bg-slate-950/95 p-3 text-xs text-cyan-50 shadow-2xl shadow-cyan-950/40">
           <summary className="cursor-pointer font-semibold">FTUE setup debug snapshot</summary>
           <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-words text-[11px] leading-5 text-slate-200">

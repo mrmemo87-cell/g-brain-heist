@@ -184,7 +184,7 @@ const QuestPlayButton: React.FC<QuestPlayButtonProps> = ({
     .join(' ');
 
   return (
-    <button type="button" onClick={onClick} className={classes}>
+    <button type="button" onClick={onClick} className={classes} data-testid="dashboard-start-quest">
       <div className="quest-play-button__copy">
         <span className="quest-play-button__text">PLAY</span>
         <span className="quest-play-button__status">

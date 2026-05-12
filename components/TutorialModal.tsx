@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
 import type { Profile } from '../types';
-import { getOnboardingFlags } from '../src/features/onboarding/featureFlags';
+import { getOnboardingFlags, logOnboardingDebug } from '../src/features/onboarding/featureFlags';
 import { isActiveLearnerFtue, logLegacyTutorialSuppressionDebug } from '../src/features/onboarding/ftueTakeover';
 import { readOnboardingResolution } from '../src/features/onboarding/onboardingService';
 
@@ -104,7 +104,7 @@ const TutorialModal: React.FC<TutorialModalProps> = ({ onComplete, onSkip, profi
   useEffect(() => {
     if (syncSuppressionSnapshot.suppress) {
       setFtueKillSwitchStatus('kill');
-      console.debug('[ftue:legacy-tutorial]', {
+      logOnboardingDebug('[ftue:legacy-tutorial]', {
         source: 'TutorialModal.hardKill.sync',
         reason: 'sync_suppression_predicate_active',
       });
@@ -122,7 +122,7 @@ const TutorialModal: React.FC<TutorialModalProps> = ({ onComplete, onSkip, profi
       .then((resolution) => {
         if (cancelled) return;
         const shouldKill = isActiveLearnerFtue(resolution);
-        console.debug('[ftue:legacy-tutorial]', {
+        logOnboardingDebug('[ftue:legacy-tutorial]', {
           source: 'TutorialModal.hardKill.asyncResolution',
           hardKill: shouldKill,
           resolution: {
@@ -159,7 +159,7 @@ const TutorialModal: React.FC<TutorialModalProps> = ({ onComplete, onSkip, profi
   }, [currentStep]);
 
   if (syncSuppressionSnapshot.suppress || ftueKillSwitchStatus === 'kill' || (isFtueLearnerCandidate && ftueKillSwitchStatus === 'checking')) {
-    console.debug('[ftue:legacy-tutorial]', {
+    logOnboardingDebug('[ftue:legacy-tutorial]', {
       source: 'TutorialModal.returnNull',
       syncSuppress: syncSuppressionSnapshot.suppress,
       ftueKillSwitchStatus,

@@ -4,6 +4,7 @@ import type { Batch, Grade } from '../../types';
 import SchoolRequestModal from '../SchoolRequestModal';
 import { updateOnboardingState, fetchOnboardingProfile, getOnboardingState, readOnboardingResolution } from '../../src/features/onboarding/onboardingService';
 import { buildSetupCompletionOnboardingSeed, buildSetupProfileFallback } from '../../src/features/onboarding/setupCompletion';
+import { isOnboardingDebugEnabled, logOnboardingDebug } from '../../src/features/onboarding/featureFlags';
 
 interface SetupWizardProps {
   onComplete: () => void;
@@ -277,9 +278,14 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
         shouldRenderLearnerShell,
       };
 
-      console.debug('[ftue:setup-complete]', debugSnapshot);
+      logOnboardingDebug('[ftue:setup-complete]', debugSnapshot);
       if (typeof window !== 'undefined') {
-        window.sessionStorage.setItem('brains_heist_last_setup_ftue_debug', JSON.stringify(debugSnapshot));
+        window.sessionStorage.setItem('brains_heist_last_setup_role', finalRole);
+        if (isOnboardingDebugEnabled()) {
+          window.sessionStorage.setItem('brains_heist_last_setup_ftue_debug', JSON.stringify(debugSnapshot));
+        } else {
+          window.sessionStorage.removeItem('brains_heist_last_setup_ftue_debug');
+        }
       }
 
       onComplete();
