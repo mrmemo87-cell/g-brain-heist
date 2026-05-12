@@ -334,7 +334,7 @@ const Main: React.FC = () => {
 
       const globalLoader = shouldUseGlobalAuthLoader(event, isAuthenticatedRef.current);
 
-      if (!globalLoader && (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED')) {
+      if (!globalLoader && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED')) {
         logAuthFlow('auth refresh skipped; lightweight auth state event', { event });
         setLoading(false, `auth-state:${event}:silent`);
         return;

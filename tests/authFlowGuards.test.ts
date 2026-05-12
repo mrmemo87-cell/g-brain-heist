@@ -17,12 +17,14 @@ test('non-callback app route is preserved after auth resolution', () => {
   assert.equal(resolvePostAuthPath('/dashboard'), '/dashboard');
 });
 
-test('tab resume token refresh avoids global auth loader for authenticated users', () => {
+test('tab resume auth events avoid global auth loader for authenticated users', () => {
+  assert.equal(shouldUseGlobalAuthLoader('SIGNED_IN', true), false);
   assert.equal(shouldUseGlobalAuthLoader('TOKEN_REFRESHED', true), false);
   assert.equal(shouldUseGlobalAuthLoader('USER_UPDATED', true), false);
 });
 
 test('missing or first session checks may use global auth loader', () => {
   assert.equal(shouldUseGlobalAuthLoader('TOKEN_REFRESHED', false), true);
-  assert.equal(shouldUseGlobalAuthLoader('SIGNED_IN', true), true);
+  assert.equal(shouldUseGlobalAuthLoader('SIGNED_IN', false), true);
+  assert.equal(shouldUseGlobalAuthLoader('INITIAL_SESSION', true), true);
 });

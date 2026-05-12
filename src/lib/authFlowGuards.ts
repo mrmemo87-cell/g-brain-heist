@@ -20,7 +20,12 @@ export const resolvePostAuthPath = (pathname: string, fallback = '/'): string =>
 
 export const shouldUseGlobalAuthLoader = (event: AuthEventName, alreadyAuthenticated: boolean): boolean => {
   if (!alreadyAuthenticated) return true;
-  return event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'PASSWORD_RECOVERY';
+
+  // Supabase may emit SIGNED_IN when an existing session is re-confirmed,
+  // including when a browser tab regains focus. Treat that as a silent auth
+  // event for already-authenticated users so tab switching does not remount the
+  // app behind the global loader.
+  return event === 'INITIAL_SESSION' || event === 'PASSWORD_RECOVERY';
 };
 
 export const isResumeEvent = (event: Event): boolean => {
