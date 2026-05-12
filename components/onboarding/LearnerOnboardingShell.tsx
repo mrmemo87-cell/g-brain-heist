@@ -11,7 +11,7 @@ interface LearnerOnboardingShellProps {
   onComplete: () => void;
 }
 
-type LearnerStep = Extract<OnboardingStep, 'intent' | 'school_confirm' | 'goal' | 'identity' | 'mission_brief' | 'reward_reveal'>;
+type LearnerStep = Extract<OnboardingStep, 'intent' | 'school_confirm' | 'goal' | 'mission_brief' | 'reward_reveal'>;
 
 const SOLO_GOALS = [
   { id: 'daily_practice', title: 'Daily practice', detail: 'Build a calm learning streak.' },
@@ -19,12 +19,11 @@ const SOLO_GOALS = [
   { id: 'science_mastery', title: 'Subject mastery', detail: 'Strengthen tricky topics.' },
 ];
 
-const CODENAMES = ['Nova', 'Byte Runner', 'Cipher', 'Orbit', 'Ion'];
 
 const getStepSequence = (segment: OnboardingSegment): LearnerStep[] => (
   segment === 'solo_learner'
-    ? ['intent', 'school_confirm', 'goal', 'identity', 'mission_brief', 'reward_reveal']
-    : ['intent', 'school_confirm', 'identity', 'mission_brief', 'reward_reveal']
+    ? ['intent', 'school_confirm', 'goal', 'mission_brief', 'reward_reveal']
+    : ['intent', 'school_confirm', 'mission_brief', 'reward_reveal']
 );
 
 const getInitialStep = (resolution: OnboardingResolution): LearnerStep => {
@@ -68,7 +67,6 @@ const ByteCard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 const LearnerOnboardingShell: React.FC<LearnerOnboardingShellProps> = ({ resolution, profile, onComplete }) => {
   const [step, setStep] = useState<LearnerStep>(() => getInitialStep(resolution));
   const [goal, setGoal] = useState<string>(() => String(resolution.state?.metadata?.['goal'] ?? ''));
-  const [codename, setCodename] = useState<string>(() => String(resolution.state?.metadata?.['codename'] ?? CODENAMES[0]));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -79,17 +77,15 @@ const LearnerOnboardingShell: React.FC<LearnerOnboardingShellProps> = ({ resolut
   const title = useMemo(() => {
     switch (step) {
       case 'intent':
-        return isSolo ? 'Build your solo learning route.' : 'Welcome to your school mission.';
+        return isSolo ? 'Choose your path.' : 'School mission online.';
       case 'school_confirm':
-        return isSolo ? 'Your context: independent learner.' : `You are joining ${schoolName}.`;
+        return isSolo ? 'Solo route confirmed.' : `${schoolName} confirmed.`;
       case 'goal':
-        return 'Choose your first learning focus.';
-      case 'identity':
-        return 'Choose a codename.';
+        return 'Choose your focus.';
       case 'mission_brief':
-        return 'Your first mission is ready.';
+        return 'Your route is ready.';
       case 'reward_reveal':
-        return 'Orientation complete.';
+        return 'Dashboard unlocked.';
       default:
         return 'Welcome to Brains Heist.';
     }
@@ -139,7 +135,7 @@ const LearnerOnboardingShell: React.FC<LearnerOnboardingShellProps> = ({ resolut
 
     if (step === 'mission_brief') {
       await emitOnboardingEvent({ event: 'first_mission_launched', user_id: resolution.state?.user_id, segment: resolution.segment, context_type: resolution.context, step, metadata: { fallback: true } });
-      await completeStep('reward_reveal', { goal: goal || undefined, codename, first_mission: 'orientation_mission' }, { firstValueStarted: true });
+      await completeStep('reward_reveal', { goal: goal || undefined, first_mission: 'orientation_mission' }, { firstValueStarted: true });
       return;
     }
 
@@ -147,11 +143,11 @@ const LearnerOnboardingShell: React.FC<LearnerOnboardingShellProps> = ({ resolut
       await emitOnboardingEvent({ event: 'first_mission_completed', user_id: resolution.state?.user_id, segment: resolution.segment, context_type: resolution.context, step, metadata: { mission: 'orientation_mission' } });
       await emitOnboardingEvent({ event: 'reward_revealed', user_id: resolution.state?.user_id, segment: resolution.segment, context_type: resolution.context, step, metadata: { reward: 'dashboard_reveal' } });
       await emitOnboardingEvent({ event: 'onboarding_completed', user_id: resolution.state?.user_id, segment: resolution.segment, context_type: resolution.context, step });
-      await completeStep('complete', { goal: goal || undefined, codename }, { firstValueCompleted: true, completeCoreFtue: true });
+      await completeStep('complete', { goal: goal || undefined }, { firstValueCompleted: true, completeCoreFtue: true });
       return;
     }
 
-    await completeStep(nextStep, { goal: goal || undefined, codename });
+    await completeStep(nextStep, { goal: goal || undefined });
   };
 
   const handleSkip = async () => {
@@ -201,13 +197,13 @@ const LearnerOnboardingShell: React.FC<LearnerOnboardingShellProps> = ({ resolut
             <h1 className="text-3xl font-black leading-tight tracking-tight sm:text-4xl">{title}</h1>
             {step === 'intent' && (
               <p className="mt-4 text-base leading-7 text-slate-300">
-                {isSolo ? 'Byte will help you start with one focused mission. You can join a school later if you get a code.' : 'You are entering a focused learning mission system. We will keep setup short and guide you to one clear next step.'}
+                {isSolo ? 'One focused mission. School access can come later.' : 'Your school route is ready. One clear next step.'}
               </p>
             )}
             {step === 'school_confirm' && (
               <div className="mt-5 rounded-2xl border border-cyan-300/25 bg-cyan-300/10 p-4">
-                <div className="text-sm font-semibold text-cyan-100">{isSolo ? 'Solo learning context' : 'School context confirmed'}</div>
-                <p className="mt-2 text-sm leading-6 text-slate-300">{isSolo ? 'Your progress starts as a personal route. School features stay hidden until you join a school.' : `Missions and progress will be connected to ${schoolName}. Advanced game systems stay hidden during setup.`}</p>
+                <div className="text-sm font-semibold text-cyan-100">{isSolo ? 'Solo route' : 'School route'}</div>
+                <p className="mt-2 text-sm leading-6 text-slate-300">{isSolo ? 'Your progress starts here.' : `Missions connect to ${schoolName}.`}</p>
               </div>
             )}
             {step === 'goal' && (
@@ -220,22 +216,13 @@ const LearnerOnboardingShell: React.FC<LearnerOnboardingShellProps> = ({ resolut
                 ))}
               </div>
             )}
-            {step === 'identity' && (
-              <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {CODENAMES.map((name) => (
-                  <button key={name} type="button" onClick={() => setCodename(name)} className={`rounded-2xl border px-4 py-4 text-left font-bold transition ${codename === name ? 'border-violet-300 bg-violet-300/15 shadow-[0_0_28px_rgba(167,139,250,0.18)]' : 'border-white/10 bg-white/[0.04] hover:border-violet-300/40'}`}>
-                    Agent {name}
-                  </button>
-                ))}
-              </div>
-            )}
             {step === 'mission_brief' && (
               <div className="mt-5 space-y-4">
-                <ByteCard>{isSolo ? 'I built your first route as a short orientation mission. Finish it to unlock your learner dashboard.' : 'Your school context is ready. Launch this orientation mission to unlock your first dashboard view.'}</ByteCard>
+                <ByteCard>{isSolo ? 'First route locked. Launch when ready.' : 'School route locked. Launch when ready.'}</ByteCard>
                 <div className="rounded-3xl border border-cyan-300/25 bg-gradient-to-br from-cyan-300/15 to-violet-400/10 p-5 shadow-[0_0_34px_rgba(34,211,238,0.16)]">
                   <div className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-200">Mission brief</div>
                   <h2 className="mt-3 text-2xl font-black">Orientation: First Signal</h2>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">A fast setup mission that confirms your path and opens the right dashboard without exposing advanced systems too early.</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-300">Your route is ready.</p>
                   <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-slate-200">
                     <span className="rounded-full bg-white/10 px-3 py-1.5">Under 2 minutes</span>
                     <span className="rounded-full bg-white/10 px-3 py-1.5">No pressure</span>
@@ -247,8 +234,8 @@ const LearnerOnboardingShell: React.FC<LearnerOnboardingShellProps> = ({ resolut
             {step === 'reward_reveal' && (
               <div className="mt-5 space-y-4 text-center">
                 <div className="mx-auto flex h-24 w-24 animate-pulse items-center justify-center rounded-full border border-emerald-300/40 bg-emerald-300/15 text-4xl shadow-[0_0_36px_rgba(52,211,153,0.25)]">✓</div>
-                <p className="text-base leading-7 text-slate-300">Your learner profile is ready. Advanced systems remain tucked away until they become useful.</p>
-                <div className="rounded-2xl border border-emerald-300/20 bg-emerald-300/10 p-4 text-sm font-semibold text-emerald-100">Reward revealed: focused dashboard access</div>
+                <p className="text-base leading-7 text-slate-300">Your command deck is ready.</p>
+                <div className="rounded-2xl border border-emerald-300/20 bg-emerald-300/10 p-4 text-sm font-semibold text-emerald-100">Reward unlocked: dashboard access</div>
               </div>
             )}
           </div>

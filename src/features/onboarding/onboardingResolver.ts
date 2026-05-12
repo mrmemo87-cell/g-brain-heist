@@ -14,7 +14,6 @@ const SOLO_GATES: OnboardingFeatureKey[] = ['pvp', 'raids', 'clans', 'leaderboar
 const TEACHER_GATES: OnboardingFeatureKey[] = ['pvp', 'raids', 'clans', 'shop', 'inventory', 'leaderboard', 'upgrade_prompts'];
 const ADMIN_GATES: OnboardingFeatureKey[] = ['pvp', 'raids', 'clans', 'shop', 'inventory', 'leaderboard'];
 
-const isMissingIdentity = (profile: OnboardingResolverInput['profile']) => !profile?.username;
 const isMissingSchoolPlacement = (profile: OnboardingResolverInput['profile']) => {
   if (!profile || profile.role !== 'student' || !profile.school_id) return false;
   return profile.grade === null || profile.grade === undefined || !profile.batch;
@@ -97,11 +96,9 @@ const deriveNextStep = (input: OnboardingResolverInput, segment: OnboardingSegme
 
   switch (segment) {
     case 'school_student':
-      if (isMissingIdentity(input.profile)) return 'identity';
       if (isMissingSchoolPlacement(input.profile)) return 'placement';
       return 'mission_brief';
     case 'solo_learner':
-      if (isMissingIdentity(input.profile)) return 'identity';
       if (!goalSelected(input)) return 'goal';
       return 'mission_brief';
     case 'teacher':
@@ -115,8 +112,6 @@ const deriveNextStep = (input: OnboardingResolverInput, segment: OnboardingSegme
 
 const getRequiredData = (step: OnboardingStep): string[] => {
   switch (step) {
-    case 'identity':
-      return ['username'];
     case 'placement':
       return ['grade', 'batch'];
     case 'goal':
@@ -152,8 +147,6 @@ const getGates = (segment: OnboardingSegment, revealLevel: FeatureRevealLevel): 
 
 const getPrimaryCta = (step: OnboardingStep): string => {
   switch (step) {
-    case 'identity':
-      return 'Confirm identity';
     case 'placement':
       return 'Confirm class';
     case 'goal':
