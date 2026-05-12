@@ -1,6 +1,6 @@
 import React from 'react';
 import { useOnboardingResolution } from '../../src/features/onboarding/useOnboardingResolution';
-import { getOnboardingFlags } from '../../src/features/onboarding/featureFlags';
+import { getOnboardingFlags, logOnboardingDebug } from '../../src/features/onboarding/featureFlags';
 import { isActiveLearnerFtue } from '../../src/features/onboarding/ftueTakeover';
 import type { Profile } from '../../types';
 import LearnerOnboardingShell from './LearnerOnboardingShell';
@@ -69,7 +69,7 @@ const OnboardingRouteGate: React.FC<OnboardingRouteGateProps> = ({
   const shouldSuppressLegacyTutorial = activeLearnerFtue;
 
   React.useEffect(() => {
-    console.debug('[ftue:route-gate]', {
+    logOnboardingDebug('[ftue:route-gate]', {
       ftue_enabled: flags.ftue_enabled,
       segment: resolution?.segment ?? 'unresolved',
       eligible: resolution?.eligible ?? false,

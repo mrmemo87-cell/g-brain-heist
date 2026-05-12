@@ -183,7 +183,7 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
     },
   ];
   return (
-    <div className="animate-fade-in-up rounded-2xl border border-pink-500/30 bg-slate-950/90 p-3 sm:p-4 shadow-[0_20px_50px_rgba(0,0,0,0.55)]">
+    <div data-testid="dashboard-profile-card" className="animate-fade-in-up rounded-2xl border border-pink-500/30 bg-slate-950/90 p-3 sm:p-4 shadow-[0_20px_50px_rgba(0,0,0,0.55)]">
       <div className="flex flex-col gap-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-pink-500/25 bg-black/40 p-3 shadow-[0_10px_30px_rgba(255,45,145,0.15)]">
           <div className="flex items-center gap-3">
@@ -208,7 +208,7 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
               </p>
             </div>
           </div>
-          <div className="w-full sm:w-1/2">
+          <div data-testid="profile-xp-progress" className="w-full sm:w-1/2">
             <div className="flex justify-between items-center mb-1">
               <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--ion-blue)' }}>XP</span>
               <span className="text-[10px] font-mono" style={{ color: 'var(--mist-400)' }}>

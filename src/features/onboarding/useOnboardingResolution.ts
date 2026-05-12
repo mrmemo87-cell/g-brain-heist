@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Profile } from '../../../types';
-import { getOnboardingFlags } from './featureFlags';
+import { getOnboardingFlags, logOnboardingDebug } from './featureFlags';
 import { emitOnboardingEvent } from './onboardingAnalytics';
 import { resolveNextOnboardingStep } from './onboardingService';
 import type { OnboardingResolution } from './onboardingTypes';
@@ -48,7 +48,7 @@ export const useOnboardingResolution = ({
     setError(null);
     try {
       const nextResolution = await resolveNextOnboardingStep({ profile, inviteToken, hasActiveAssignment });
-      console.debug('[ftue:route-resolution]', {
+      logOnboardingDebug('[ftue:route-resolution]', {
         source: observeOnly ? 'useOnboardingResolution.observeOnly' : 'useOnboardingResolution.enforced',
         activeLearnerFtue: isActiveLearnerFtue(nextResolution),
         profileSource: profile ? 'prop' : 'service.fetchOnboardingProfile',

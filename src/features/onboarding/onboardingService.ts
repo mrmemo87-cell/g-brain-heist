@@ -1,6 +1,6 @@
 import { supabase } from '../../../services/supabaseClient';
 import type { Profile } from '../../../types';
-import { getOnboardingFlags } from './featureFlags';
+import { getOnboardingFlags, logOnboardingDebug } from './featureFlags';
 import { emitOnboardingEvent } from './onboardingAnalytics';
 import { resolveOnboarding } from './onboardingResolver';
 import { ONBOARDING_PROFILE_SELECT } from './profileSelect';
@@ -270,7 +270,7 @@ export const resolveNextOnboardingStep = async (options: ReadOnboardingResolutio
     hasActiveAssignment: options.hasActiveAssignment,
   });
 
-  console.debug('[ftue:resolver]', {
+  logOnboardingDebug('[ftue:resolver]', {
     user_id: userId ?? profile?.id ?? null,
     email: (resolvedProfile as { email?: string | null } | null)?.email ?? null,
     profile_role: resolvedProfile?.role ?? null,
