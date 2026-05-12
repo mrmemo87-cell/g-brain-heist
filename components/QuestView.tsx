@@ -16,6 +16,7 @@ import {
   Subject,
   UserRole,
   XpStatus,
+  Profile,
 } from '../types';
 import * as GameService from '../services/gameService';
 import { audioService } from '../services/audioService';
@@ -41,6 +42,8 @@ import type { QuestMission, QuestChestResult } from '../types';
 import MissionCard from './quest/MissionCard';
 import MissionPreview from './quest/MissionPreview';
 import MissionBoard from './quest/MissionBoard';
+import MissionCompleteOverlay from './quest/MissionCompleteOverlay';
+import { emitOnboardingEvent } from '../src/features/onboarding/onboardingAnalytics';
 
 // Helper to get option text (handles both string and QuestionOption formats)
 const getOptionText = (option: string | QuestionOption): string => {
@@ -167,9 +170,11 @@ interface QuestViewProps {
   openMissionId?: string | null;
   /** Called after we consume openMissionId so parent can clear it. */
   onOpenMissionHandled?: () => void;
+  /** Current player profile, used only for first-mission completion progress display. */
+  currentProfile?: Profile | null;
 }
 
-const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initialAssignment, refreshAssignment, avatarUrl, viewerRole = 'student', openMissionId, onOpenMissionHandled }) => {
+const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initialAssignment, refreshAssignment, avatarUrl, viewerRole = 'student', openMissionId, onOpenMissionHandled, currentProfile }) => {
   const [stage, setStage] = useState<QuestStage>('loading');
   const [mode, setMode] = useState<QuestMode>('practice');
   const [subjects, setSubjects] = useState<SubjectData[]>([]);
@@ -214,6 +219,9 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [missionsLoading, setMissionsLoading] = useState(false);
   const [missionsError, setMissionsError] = useState<string | null>(null);
   const [selectedMissionZone, setSelectedMissionZone] = useState<string | null>(null);
+  const [showMissionCompleteOverlay, setShowMissionCompleteOverlay] = useState(false);
+  const [completionStartLevel, setCompletionStartLevel] = useState<number | null>(null);
+  const firstMissionCompletionTrackedRef = useRef(false);
   const answerFeedbackRef = useRef<HTMLDivElement>(null);
   const missionZonesRef = useRef<HTMLDivElement>(null);
   const missionStagesRef = useRef<HTMLElement>(null);
@@ -726,6 +734,8 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const clearMissionRunState = () => {
     setLaunchMission(null);
     setMissionChestResult(null);
+    setShowMissionCompleteOverlay(false);
+    setCompletionStartLevel(null);
   };
 
   const handleSubjectSelect = async (subject: SubjectData) => {
@@ -833,6 +843,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     setMissionSummary(null);
     setTopicSummary(null);
     setQuestionStartTime(null);
+    setCompletionStartLevel(currentProfile?.level ?? null);
     
     // Load questions filtered by difficulty
     // TODO: Update API to accept difficulty parameter
@@ -867,6 +878,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     setMissionSummary(null);
     setTopicSummary(null);
     const now = Date.now();
+    setCompletionStartLevel(currentProfile?.level ?? null);
     setAssignmentStartTime(now);
     setQuestionStartTime(now);
   };
@@ -1736,6 +1748,42 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     );
   };
 
+
+  const emitMissionCompletionEvent = useCallback((event: string, metadata: Record<string, unknown> = {}) => {
+    const payload = {
+      user_id: currentProfile?.id,
+      segment: currentProfile?.school_id ? 'school_student' as const : 'solo_learner' as const,
+      context_type: currentProfile?.school_id ? 'school' as const : 'solo' as const,
+      step: 'reward_reveal' as const,
+      metadata: {
+        source: 'mission_completion_overlay',
+        mission_id: selectedMission?.id ?? launchMission?.id ?? null,
+        mission_title: selectedMission?.title ?? launchMission?.title ?? selectedSubject?.name ?? 'Practice mission',
+        mode,
+        ...metadata,
+      },
+    };
+    void emitOnboardingEvent({ event, ...payload });
+  }, [currentProfile?.id, currentProfile?.school_id, launchMission?.id, launchMission?.title, mode, selectedMission?.id, selectedMission?.title, selectedSubject?.name]);
+
+  useEffect(() => {
+    if (stage !== 'completed' || mode === 'assignment') return;
+    const storageKey = currentProfile?.id ? `brains_heist_first_mission_complete_seen:${currentProfile.id}` : 'brains_heist_first_mission_complete_seen:anonymous';
+    const alreadySeen = typeof window !== 'undefined' && window.localStorage.getItem(storageKey) === 'true';
+    if (alreadySeen || firstMissionCompletionTrackedRef.current) return;
+
+    firstMissionCompletionTrackedRef.current = true;
+    setShowMissionCompleteOverlay(true);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(storageKey, 'true');
+    }
+    emitMissionCompletionEvent('first_mission_completed', {
+      xp: missionChestResult ? missionChestResult.total_run_xp : score.xp,
+      coins: missionChestResult ? missionChestResult.total_run_coins : score.coins,
+      successful: true,
+    });
+  }, [currentProfile?.id, emitMissionCompletionEvent, missionChestResult, mode, score.coins, score.xp, stage]);
+
   const renderCompleted = () => {
     const missionOutcome = missionChestResult;
     const missionRunSummary = missionOutcome?.run_summary;
@@ -1800,6 +1848,56 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       : score.coins;
     const displayedGems = missionOutcome ? 0 : score.gemstones;
 
+    const resetCompletedMission = () => {
+      setShowMissionCompleteOverlay(false);
+      if (mode === 'assignment' || assignmentContext) {
+        setMode('practice');
+        setSelectedSubject(null);
+        setSelectedTopic(null);
+        setQuestions([]);
+        setTeacherQuestions([]);
+        setCurrentQuestionIndex(0);
+        setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
+        setQuestionScores([]);
+        setQuestionPerformances([]);
+        setSoloStreak(0);
+        setMissionSummary(null);
+        setTopicSummary(null);
+        setQuestionStartTime(null);
+        setAssignmentStartTime(null);
+        loadSubjects();
+        setLastCompletedAssignment(null);
+        setAssignmentSubmissionState('idle');
+        setAssignmentSubmissionError(null);
+        hydrateAssignment({ showLoading: true });
+      } else {
+        setStage('subject_selection');
+        setSelectedSubject(null);
+        setSelectedTopic(null);
+        setQuestions([]);
+        setTeacherQuestions([]);
+        setCurrentQuestionIndex(0);
+        setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
+        setQuestionScores([]);
+        setQuestionPerformances([]);
+        setSoloStreak(0);
+        setMissionSummary(null);
+        setTopicSummary(null);
+        setQuestionStartTime(null);
+        setMissionChestResult(null);
+        loadSubjects();
+      }
+    };
+
+    const handleCompletionOverlayAction = (action: 'next_mission' | 'dashboard' | 'streak') => {
+      setShowMissionCompleteOverlay(false);
+      if (action === 'dashboard') {
+        onComplete();
+        return;
+      }
+      resetCompletedMission();
+    };
+
     const handleShareResults = async () => {
       const subjectName = selectedSubject?.name || assignmentContext?.subject_name || 'Brains Heist';
       const shareTitle = 'My Brains Heist Quest Results';
@@ -1831,7 +1929,26 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       }
     };
 
+    const missionLabel = selectedMission?.title || launchMission?.title || selectedSubject?.name || assignmentContext?.subject_name || 'Orientation mission';
+    const profileLevel = currentProfile?.xp_status?.level ?? currentProfile?.level ?? completionStartLevel ?? 1;
+
     return (
+      <>
+        <MissionCompleteOverlay
+          open={showMissionCompleteOverlay && !isAssignmentRun}
+          missionLabel={missionLabel}
+          xpGained={displayedXp}
+          coinsGained={displayedCoins}
+          gemsGained={displayedGems}
+          accuracyPercent={accuracyPercent}
+          streakPeak={missionOutcome?.streak_peak ?? soloStreak}
+          currentLevel={profileLevel}
+          previousLevel={completionStartLevel}
+          xpStatus={currentProfile?.xp_status ?? null}
+          onSkip={() => setShowMissionCompleteOverlay(false)}
+          onAction={handleCompletionOverlayAction}
+          onEvent={(event, metadata) => emitMissionCompletionEvent(event, metadata)}
+        />
       <div className="text-center max-w-2xl mx-auto">
         <h2 className="font-heading text-4xl mb-4 animate-fade-in-up flex items-center justify-center gap-3" style={{ color: 'var(--amber-warn)' }}>
           <img src={neonIcon('quest')} alt="" className="h-9 w-9 object-contain" />
@@ -2054,6 +2171,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           </div>
         </div>
       </div>
+      </>
     );
   };
 
@@ -2087,6 +2205,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             mission={selectedMission}
             onStart={() => {
               // Lock run creation to the mission explicitly started from preview.
+              setCompletionStartLevel(currentProfile?.level ?? null);
               setLaunchMission(selectedMission);
               setStage('mission_board');
             }}
