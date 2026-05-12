@@ -1,4 +1,4 @@
-import React, { Suspense, useState, useCallback, useEffect, useMemo } from 'react';
+import React, { Suspense, useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import ReactDOM from 'react-dom/client';
 import BrainsLoader from './components/BrainsLoader';
 import WhoAreYou from './components/WhoAreYou';
@@ -22,6 +22,7 @@ import { ONBOARDING_PROFILE_SELECT } from './src/features/onboarding/profileSele
 import { buildSetupProfileFallback } from './src/features/onboarding/setupCompletion';
 import { isOnboardingDebugEnabled, logOnboardingDebug } from './src/features/onboarding/featureFlags';
 import type { Profile } from './types';
+import { isAuthCallbackPath, isResumeEvent, resolvePostAuthPath, shouldUseGlobalAuthLoader } from './src/lib/authFlowGuards';
 
 // ── Lazy-loaded pages & modals (with automatic retry on stale-chunk errors) ──
 const FinishSetupModal = lazyRetry(() => import('./components/FinishSetupModal'), 'FinishSetupModal');
@@ -163,10 +164,51 @@ const Main: React.FC = () => {
   const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
   const [userEmail, setUserEmail] = useState<string | undefined>();
   const MAX_RETRIES = 3;
+  const authRefreshInFlightRef = useRef<Promise<void> | null>(null);
+  const authSequenceRef = useRef(0);
+  const isAuthenticatedRef = useRef(isAuthenticated);
+
+  useEffect(() => {
+    isAuthenticatedRef.current = isAuthenticated;
+  }, [isAuthenticated]);
+
+  const logAuthFlow = useCallback((message: string, details?: Record<string, unknown>) => {
+    if (!import.meta.env.DEV) return;
+    console.info(`[auth-flow] ${message}`, details ?? '');
+  }, []);
+
+  const setLoading = useCallback((next: boolean, reason: string) => {
+    logAuthFlow('loading state transition', { next, reason });
+    setIsLoading(next);
+  }, [logAuthFlow]);
+
+  const resolveCallbackRoute = useCallback((authenticated: boolean, reason: string) => {
+    if (typeof window === 'undefined' || !isAuthCallbackPath(window.location.pathname)) return;
+
+    logAuthFlow('callback route resolution', {
+      authenticated,
+      reason,
+      pathname: window.location.pathname,
+      hashPresent: Boolean(window.location.hash),
+    });
+
+    if (authenticated) {
+      window.history.replaceState({}, '', resolvePostAuthPath(window.location.pathname));
+    }
+  }, [logAuthFlow]);
 
   // Check authentication and setup status with robust timeout handling
-  const checkAuthAndSetup = useCallback(async () => {
+  const checkAuthAndSetup = useCallback(async (options?: { reason?: string; globalLoader?: boolean }) => {
+    const reason = options?.reason ?? 'manual';
+    const sequence = ++authSequenceRef.current;
+    const shouldSetGlobalLoader = options?.globalLoader ?? true;
+
+    if (shouldSetGlobalLoader) {
+      setLoading(true, `${reason}:start`);
+    }
+
     try {
+      logAuthFlow('auth refresh start', { reason, sequence, pathname: window.location.pathname });
       setInitError(null);
       
       // Longer timeout for getSession - network can be slow
@@ -189,7 +231,13 @@ const Main: React.FC = () => {
         }
       }
       
+      if (sequence !== authSequenceRef.current) {
+        logAuthFlow('auth refresh ignored stale result', { reason, sequence });
+        return;
+      }
+
       setIsAuthenticated(!!session);
+      resolveCallbackRoute(!!session, reason);
       
       if (session) {
         // Check email verification status first
@@ -243,66 +291,70 @@ const Main: React.FC = () => {
       if (errorMsg.includes('timed out') && retryCount < MAX_RETRIES) {
         setRetryCount(prev => prev + 1);
         console.log(`Retrying auth check (${retryCount + 1}/${MAX_RETRIES})...`);
-        setTimeout(() => checkAuthAndSetup(), 1000);
+        setTimeout(() => void checkAuthAndSetup({ reason: `${reason}:retry`, globalLoader: shouldSetGlobalLoader }), 1000);
         return;
       }
       
       setInitError(errorMsg);
     } finally {
-      setIsLoading(false);
+      if (sequence === authSequenceRef.current) {
+        setLoading(false, `${reason}:end`);
+      }
+      logAuthFlow('auth refresh end', { reason, sequence });
     }
-  }, [retryCount]);
+  }, [logAuthFlow, resolveCallbackRoute, retryCount, setLoading]);
 
   useEffect(() => {
-    checkAuthAndSetup();
+    void checkAuthAndSetup({ reason: 'initial', globalLoader: true });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      try {
-        setInitError(null);
-        setIsAuthenticated(!!session);
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      logAuthFlow('auth state change', { event, hasSession: Boolean(session) });
+      setIsAuthenticated(!!session);
+      resolveCallbackRoute(!!session, `auth-state:${event}`);
 
-        if (session) {
-          setIsLoading(true);
-          try {
-            const verificationStatus = await AuthService.checkEmailVerification();
-            setUserEmail(verificationStatus.email);
-
-            if (!verificationStatus.isVerified) {
-              setNeedsEmailVerification(true);
-              setNeedsSetup(false);
-            } else {
-              setNeedsEmailVerification(false);
-              const status = await AuthService.checkUserSetupStatus();
-              // Role can be defaulted before setup is complete; use the
-              // profile needs_setup flag to decide whether SetupWizard owns flow.
-              const actuallyNeedsSetup = await resolveSetupDecision(status, session.user.email);
-              setNeedsSetup(actuallyNeedsSetup);
-              if (actuallyNeedsSetup) setPostSetupProfile(null);
-              if (status.has_username) {
-                setSetupUsername(status.username);
-              }
-            }
-          } catch (authStateErr) {
-            console.warn('Auth state setup check failed, proceeding with session:', authStateErr);
-            setNeedsEmailVerification(false);
-            setNeedsSetup(false);
-          }
-        } else {
-          setNeedsSetup(false);
-          setNeedsEmailVerification(false);
-        }
-      } catch (err) {
-        console.error('Auth state change check failed:', err);
-        setInitError(err instanceof Error ? err.message : String(err));
-      } finally {
-        setIsLoading(false);
+      if (!session) {
+        setNeedsSetup(false);
+        setNeedsEmailVerification(false);
+        setLoading(false, `auth-state:${event}:signed-out`);
+        return;
       }
+
+      const globalLoader = shouldUseGlobalAuthLoader(event, isAuthenticatedRef.current);
+      void checkAuthAndSetup({ reason: `auth-state:${event}`, globalLoader });
     });
 
-    return () => subscription.unsubscribe();
-  }, [checkAuthAndSetup]);
+    const refreshAfterResume = (event: Event) => {
+      logAuthFlow('visibilitychange/focus', {
+        event: event.type,
+        visibilityState: typeof document === 'undefined' ? 'unknown' : document.visibilityState,
+      });
+
+      if (!isResumeEvent(event)) return;
+      if (authRefreshInFlightRef.current) {
+        logAuthFlow('auth refresh skipped; already in flight', { reason: event.type });
+        return;
+      }
+
+      const refreshPromise = checkAuthAndSetup({ reason: `resume:${event.type}`, globalLoader: false });
+      authRefreshInFlightRef.current = refreshPromise;
+      void refreshPromise.finally(() => {
+        if (authRefreshInFlightRef.current === refreshPromise) {
+          authRefreshInFlightRef.current = null;
+        }
+      });
+    };
+
+    document.addEventListener('visibilitychange', refreshAfterResume);
+    window.addEventListener('focus', refreshAfterResume);
+
+    return () => {
+      subscription.unsubscribe();
+      document.removeEventListener('visibilitychange', refreshAfterResume);
+      window.removeEventListener('focus', refreshAfterResume);
+    };
+  }, [checkAuthAndSetup, logAuthFlow, resolveCallbackRoute, setLoading]);
 
   const handleLogin = useCallback(async (email: string, pass: string) => {
     await AuthService.login(email, pass);
