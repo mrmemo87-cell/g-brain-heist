@@ -1481,6 +1481,7 @@ export const whoami = async (): Promise<Profile> => {
           role: 'student', // Default to student for OAuth users
           grade: null,
           batch: 'N/A' as Batch,
+          needs_setup: true,
           avatar_url: user.user_metadata?.['avatar_url'] || `https://picsum.photos/seed/${username}/100/100`,
       };
   
