@@ -96,6 +96,7 @@ const getOptionImageUrl = (option: string | QuestionOption): string | undefined 
 type QuestStage = 'loading' | 'subject_selection' | 'unified_subject_play' | 'mission_preview' | 'mission_board' | 'in_progress' | 'completed' | 'assignment_blocked' | 'ftue_training';
 type QuestMode = 'practice' | 'teacher' | 'assignment' | 'ftue_training';
 
+const MISSION_LOAD_TIMEOUT_MS = 12000;
 
 interface TrainingQuestion {
   id: string;
@@ -285,9 +286,17 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   // ── Fetch quest missions from DB ──
   const loadMissions = useCallback(() => {
     let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
     setMissionsError(null);
     setMissionsLoading(true);
-    GameService.quest_get_missions()
+
+    const missionLoadTimeout = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => {
+        reject(new Error('Mission load timed out. Please retry.'));
+      }, MISSION_LOAD_TIMEOUT_MS);
+    });
+
+    Promise.race([GameService.quest_get_missions(), missionLoadTimeout])
       .then((rows) => {
         if (cancelled) return;
         const missions: QuestMission[] = rows.map(r => ({
@@ -311,16 +320,27 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         console.error('[QuestView] Failed to fetch missions:', err);
         if (cancelled) return;
         setAvailableMissions([]);
-        setMissionsError(err?.message || 'Failed to load missions.');
+        setMissionsError(err instanceof Error ? err.message : 'Failed to load missions.');
       })
       .finally(() => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
         if (!cancelled) setMissionsLoading(false);
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, []);
 
   useEffect(() => {
-    if (ftueTrainingEligible) return undefined;
+    if (ftueTrainingEligible) {
+      setMissionsLoading(false);
+      return undefined;
+    }
     const cleanup = loadMissions();
     return cleanup;
   }, [ftueTrainingEligible, loadMissions]);
