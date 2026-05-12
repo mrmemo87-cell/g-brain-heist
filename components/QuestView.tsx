@@ -44,6 +44,12 @@ import MissionPreview from './quest/MissionPreview';
 import MissionBoard from './quest/MissionBoard';
 import MissionCompleteOverlay from './quest/MissionCompleteOverlay';
 import { emitOnboardingEvent } from '../src/features/onboarding/onboardingAnalytics';
+import {
+  FTUE_TRAINING_MISSION_ID,
+  getTrainingMissionMetadata,
+  shouldLaunchFtueTrainingMission,
+} from '../src/features/onboarding/trainingMission';
+import { getOnboardingState, markOnboardingStepComplete, updateOnboardingState } from '../src/features/onboarding/onboardingService';
 
 // Helper to get option text (handles both string and QuestionOption formats)
 const getOptionText = (option: string | QuestionOption): string => {
@@ -87,8 +93,45 @@ const getOptionImageUrl = (option: string | QuestionOption): string | undefined 
   return resolveQuestionImageUrl(option.image_url);
 };
 
-type QuestStage = 'loading' | 'subject_selection' | 'unified_subject_play' | 'mission_preview' | 'mission_board' | 'in_progress' | 'completed' | 'assignment_blocked';
-type QuestMode = 'practice' | 'teacher' | 'assignment';
+type QuestStage = 'loading' | 'subject_selection' | 'unified_subject_play' | 'mission_preview' | 'mission_board' | 'in_progress' | 'completed' | 'assignment_blocked' | 'ftue_training';
+type QuestMode = 'practice' | 'teacher' | 'assignment' | 'ftue_training';
+
+
+interface TrainingQuestion {
+  id: string;
+  prompt: string;
+  options: string[];
+  correct: string;
+  explanation: string;
+  byteGuidance: string;
+}
+
+const TRAINING_QUESTIONS: TrainingQuestion[] = [
+  {
+    id: 'choose_answer',
+    prompt: 'Byte found a weak signal. Which button selects an answer?',
+    options: ['Tap an answer card', 'Close the mission', 'Wait for the timer'],
+    correct: 'Tap an answer card',
+    explanation: 'Exactly. A mission starts by choosing the answer card you believe is best.',
+    byteGuidance: 'Choose an answer.',
+  },
+  {
+    id: 'continue_flow',
+    prompt: 'After feedback appears, what moves the route forward?',
+    options: ['Use Continue', 'Reload the page', 'Open the shop'],
+    correct: 'Use Continue',
+    explanation: 'Nice — Continue moves you to the next question when you are ready.',
+    byteGuidance: 'Nice — now continue.',
+  },
+  {
+    id: 'reward_reveal',
+    prompt: 'What happens when the final route step is cleared?',
+    options: ['Mission completion reveals progress', 'Progress disappears', 'The library stays locked forever'],
+    correct: 'Mission completion reveals progress',
+    explanation: 'Route complete. Completion reveals progress and unlocks normal missions.',
+    byteGuidance: 'Final question. Finish the route.',
+  },
+];
 
 interface RewardParticleProps {
     id: string;
@@ -221,6 +264,12 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [selectedMissionZone, setSelectedMissionZone] = useState<string | null>(null);
   const [showMissionCompleteOverlay, setShowMissionCompleteOverlay] = useState(false);
   const [completionStartLevel, setCompletionStartLevel] = useState<number | null>(null);
+  const [ftueTrainingEligible, setFtueTrainingEligible] = useState(false);
+  const [trainingQuestionIndex, setTrainingQuestionIndex] = useState(0);
+  const [trainingSelectedOption, setTrainingSelectedOption] = useState<string | null>(null);
+  const [trainingAnswered, setTrainingAnswered] = useState(false);
+  const [trainingCorrectCount, setTrainingCorrectCount] = useState(0);
+  const trainingStartedRef = useRef(false);
   const firstMissionCompletionTrackedRef = useRef(false);
   const answerFeedbackRef = useRef<HTMLDivElement>(null);
   const missionZonesRef = useRef<HTMLDivElement>(null);
@@ -271,9 +320,10 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   }, []);
 
   useEffect(() => {
+    if (ftueTrainingEligible) return undefined;
     const cleanup = loadMissions();
     return cleanup;
-  }, [loadMissions]);
+  }, [ftueTrainingEligible, loadMissions]);
 
   useEffect(() => {
     const zones = Array.from(new Set(availableMissions.map((mission) => mission.subject || 'Training Zone')));
@@ -285,6 +335,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   }, [availableMissions]);
 
   useEffect(() => {
+    if (ftueTrainingEligible) return;
     if (!openMissionId) return;
     if (missionsLoading) return;
     const mission = availableMissions.find((candidate) => candidate.id === openMissionId);
@@ -296,7 +347,57 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       brainsAlert('That mission is no longer available. Please pick another mission card.', 'info');
     }
     onOpenMissionHandled?.();
-  }, [openMissionId, missionsLoading, availableMissions, onOpenMissionHandled]);
+  }, [ftueTrainingEligible, openMissionId, missionsLoading, availableMissions, onOpenMissionHandled]);
+
+
+  const beginFtueTrainingMission = useCallback(async () => {
+    trainingStartedRef.current = true;
+    const now = new Date().toISOString();
+    setFtueTrainingEligible(true);
+    setMode('ftue_training');
+    setStage('ftue_training');
+    setTrainingQuestionIndex(0);
+    setTrainingSelectedOption(null);
+    setTrainingAnswered(false);
+    setTrainingCorrectCount(0);
+    setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
+    setMissionChestResult(null);
+    setCompletionStartLevel(currentProfile?.level ?? null);
+
+    await updateOnboardingState({
+      metadata: {
+        ftue_training_mission: {
+          id: FTUE_TRAINING_MISSION_ID,
+          status: 'started',
+          started_at: now,
+          last_question_index: 0,
+        },
+      },
+    }, currentProfile?.id);
+
+    await emitOnboardingEvent({
+      event: 'training_mission_started',
+      user_id: currentProfile?.id,
+      step: 'mission_started',
+      metadata: { mission_id: FTUE_TRAINING_MISSION_ID, question_count: TRAINING_QUESTIONS.length },
+    });
+  }, [currentProfile?.id, currentProfile?.level]);
+
+  useEffect(() => {
+    if (viewerRole !== 'student' || openMissionId || initialAssignment || trainingStartedRef.current) return;
+    let cancelled = false;
+    void getOnboardingState(currentProfile?.id).then((state) => {
+      if (cancelled || trainingStartedRef.current) return;
+      if (shouldLaunchFtueTrainingMission(state)) {
+        const metadata = getTrainingMissionMetadata(state);
+        if (metadata.last_question_index && metadata.last_question_index > 0) {
+          setTrainingQuestionIndex(Math.min(metadata.last_question_index, TRAINING_QUESTIONS.length - 1));
+        }
+        void beginFtueTrainingMission();
+      }
+    });
+    return () => { cancelled = true; };
+  }, [beginFtueTrainingMission, currentProfile?.id, initialAssignment, openMissionId, viewerRole]);
 
   const resolveDifficulty = (questionLike: Question | TeacherQuestion): SoloDifficulty => {
     const difficultyValue = (questionLike as TeacherQuestion).difficulty ?? (questionLike as Question).difficulty;
@@ -420,6 +521,11 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
   // Load subjects and go directly to selection (unified flow)
   const loadSubjects = async () => {
+    if (ftueTrainingEligible) {
+      setStage('ftue_training');
+      return;
+    }
+
     if (activeAssignment && !hasDeferredAssignments) {
       setMode('assignment');
       setStage('assignment_blocked');
@@ -1204,6 +1310,209 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     }
   };
 
+
+  const handleTrainingAnswer = async (option: string) => {
+    if (trainingAnswered) return;
+
+    const question = TRAINING_QUESTIONS[trainingQuestionIndex];
+    const correct = option === question.correct;
+    setTrainingSelectedOption(option);
+    setTrainingAnswered(true);
+    if (correct) setTrainingCorrectCount((prev) => prev + 1);
+    audioService.play(correct ? 'correct' : 'wrong');
+
+    await updateOnboardingState({
+      metadata: {
+        ftue_training_mission: {
+          id: FTUE_TRAINING_MISSION_ID,
+          status: 'started',
+          started_at: getTrainingMissionMetadata(await getOnboardingState(currentProfile?.id)).started_at ?? new Date().toISOString(),
+          last_question_index: trainingQuestionIndex,
+        },
+      },
+    }, currentProfile?.id);
+
+    await emitOnboardingEvent({
+      event: 'training_question_answered',
+      user_id: currentProfile?.id,
+      step: 'mission_started',
+      metadata: {
+        mission_id: FTUE_TRAINING_MISSION_ID,
+        question_id: question.id,
+        question_index: trainingQuestionIndex,
+        correct,
+      },
+    });
+  };
+
+  const completeFtueTraining = async () => {
+    const now = new Date().toISOString();
+    const finalCorrect = trainingCorrectCount;
+
+    setScore({ correct: finalCorrect, xp: 0, coins: 0, gemstones: 0 });
+    setStage('completed');
+    setMissionSummary(null);
+    setMissionChestResult(null);
+    setShowMissionCompleteOverlay(true);
+    audioService.play('tada');
+
+    await emitOnboardingEvent({
+      event: 'training_mission_completed',
+      user_id: currentProfile?.id,
+      step: 'reward_reveal',
+      metadata: { mission_id: FTUE_TRAINING_MISSION_ID, question_count: TRAINING_QUESTIONS.length },
+    });
+
+    await markOnboardingStepComplete('mission_started', {
+      nextStep: 'reward_reveal',
+      firstValueStarted: true,
+      metadata: {
+        ftue_training_mission: {
+          id: FTUE_TRAINING_MISSION_ID,
+          status: 'completed',
+          completed_at: now,
+          last_question_index: TRAINING_QUESTIONS.length - 1,
+        },
+      },
+    }, currentProfile?.id);
+
+    await markOnboardingStepComplete('reward_reveal', {
+      nextStep: 'complete',
+      firstValueCompleted: true,
+      completeCoreFtue: true,
+      metadata: {
+        ftue_training_mission: {
+          id: FTUE_TRAINING_MISSION_ID,
+          status: 'completed',
+          completed_at: now,
+          last_question_index: TRAINING_QUESTIONS.length - 1,
+        },
+      },
+    }, currentProfile?.id);
+  };
+
+  const handleTrainingContinue = () => {
+    if (!trainingAnswered) return;
+    const isLast = trainingQuestionIndex >= TRAINING_QUESTIONS.length - 1;
+    if (isLast) {
+      void completeFtueTraining();
+      return;
+    }
+    setTrainingQuestionIndex((prev) => prev + 1);
+    setTrainingSelectedOption(null);
+    setTrainingAnswered(false);
+  };
+
+  const handleSkipTraining = async () => {
+    const now = new Date().toISOString();
+    setFtueTrainingEligible(false);
+    await emitOnboardingEvent({
+      event: 'training_mission_skipped',
+      user_id: currentProfile?.id,
+      step: 'mission_started',
+      metadata: { mission_id: FTUE_TRAINING_MISSION_ID, question_index: trainingQuestionIndex },
+    });
+    await markOnboardingStepComplete('mission_started', {
+      nextStep: 'complete',
+      completeCoreFtue: true,
+      metadata: {
+        skipped: true,
+        skipped_at_step: 'ftue_training_mission',
+        ftue_training_mission: {
+          id: FTUE_TRAINING_MISSION_ID,
+          status: 'skipped',
+          skipped_at: now,
+          last_question_index: trainingQuestionIndex,
+        },
+      },
+    }, currentProfile?.id);
+    onComplete();
+  };
+
+  const renderFtueTraining = () => {
+    const question = TRAINING_QUESTIONS[trainingQuestionIndex];
+    const correct = trainingSelectedOption === question.correct;
+
+    return (
+      <div className="mx-auto max-w-3xl space-y-5">
+        <div className="rounded-3xl border border-cyan-300/25 bg-slate-950/70 p-5 shadow-[0_0_36px_rgba(34,211,238,0.14)]">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-200">Training Mission</p>
+              <h1 className="mt-2 font-heading text-3xl text-white">First Signal</h1>
+              <p className="mt-2 text-sm text-slate-300">A short, low-pressure route to learn missions before the full library unlocks.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => { void handleSkipTraining(); }}
+              className="rounded-2xl border border-white/10 px-4 py-2 text-sm font-bold text-slate-300 transition hover:border-cyan-300/40 hover:text-white"
+            >
+              Skip training
+            </button>
+          </div>
+          <div className="mt-5 flex items-center gap-2" aria-label={`Training question ${trainingQuestionIndex + 1} of ${TRAINING_QUESTIONS.length}`}>
+            {TRAINING_QUESTIONS.map((item, index) => (
+              <div key={item.id} className={`h-2 rounded-full transition-all ${index <= trainingQuestionIndex ? 'w-10 bg-cyan-300 shadow-[0_0_12px_rgba(34,211,238,0.5)]' : 'w-4 bg-white/15'}`} />
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-4 text-cyan-50">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-cyan-200/40 bg-cyan-300/15">◈</div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-200">Byte</p>
+              <p className="mt-1 text-sm font-semibold">{question.byteGuidance}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="card-glass p-6">
+          <p className="font-mono text-sm text-slate-400">Question {trainingQuestionIndex + 1} / {TRAINING_QUESTIONS.length}</p>
+          <h2 className="mt-3 text-2xl font-bold text-white">{question.prompt}</h2>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            {question.options.map((option) => {
+              const selected = trainingSelectedOption === option;
+              const isCorrectChoice = option === question.correct;
+              const stateClass = !trainingAnswered
+                ? 'border-cyan-500/40 bg-slate-800/70 hover:bg-slate-700/80'
+                : isCorrectChoice
+                  ? 'border-green-300 bg-green-500/25'
+                  : selected
+                    ? 'border-red-300 bg-red-500/25'
+                    : 'border-slate-600 bg-slate-800/55 text-slate-300';
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  disabled={trainingAnswered}
+                  onClick={() => { void handleTrainingAnswer(option); }}
+                  className={`min-h-24 rounded-2xl border p-4 text-left font-semibold text-white transition disabled:cursor-default ${stateClass}`}
+                >
+                  {option}
+                </button>
+              );
+            })}
+          </div>
+
+          {trainingAnswered && (
+            <div className={`mt-5 rounded-2xl border p-4 ${correct ? 'border-green-300/50 bg-green-500/10' : 'border-amber-300/50 bg-amber-500/10'}`}>
+              <p className={`font-bold ${correct ? 'text-green-200' : 'text-amber-200'}`}>{correct ? 'Nice signal.' : 'Good practice.'}</p>
+              <p className="mt-1 text-sm text-slate-200">{question.explanation}</p>
+              <button
+                type="button"
+                onClick={handleTrainingContinue}
+                className="mt-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:scale-[1.02]"
+              >
+                {trainingQuestionIndex >= TRAINING_QUESTIONS.length - 1 ? 'Finish route' : 'Continue'} →
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const renderSubjectSelection = () => (
     <div className="space-y-6">
       {pendingAssignments.length > 0 && (
@@ -1767,7 +2076,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   }, [currentProfile?.id, currentProfile?.school_id, launchMission?.id, launchMission?.title, mode, selectedMission?.id, selectedMission?.title, selectedSubject?.name]);
 
   useEffect(() => {
-    if (stage !== 'completed' || mode === 'assignment') return;
+    if (stage !== 'completed' || mode === 'assignment' || mode === 'ftue_training') return;
     const storageKey = currentProfile?.id ? `brains_heist_first_mission_complete_seen:${currentProfile.id}` : 'brains_heist_first_mission_complete_seen:anonymous';
     const alreadySeen = typeof window !== 'undefined' && window.localStorage.getItem(storageKey) === 'true';
     if (alreadySeen || firstMissionCompletionTrackedRef.current) return;
@@ -1787,11 +2096,16 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const renderCompleted = () => {
     const missionOutcome = missionChestResult;
     const missionRunSummary = missionOutcome?.run_summary;
-    const totalQuestions = mode === 'practice' ? questions.length : teacherQuestions.length;
-    const missionTotal = missionOutcome
+    const isTrainingRun = mode === 'ftue_training';
+    const totalQuestions = isTrainingRun ? TRAINING_QUESTIONS.length : mode === 'practice' ? questions.length : teacherQuestions.length;
+    const missionTotal = isTrainingRun
+      ? null
+      : missionOutcome
       ? missionRunSummary?.score
       : Math.round(missionSummary?.missionScore ?? calculateMissionScore(questionScores));
-    const accuracyPercent = missionOutcome
+    const accuracyPercent = isTrainingRun
+      ? Math.round((score.correct / Math.max(1, TRAINING_QUESTIONS.length)) * 100)
+      : missionOutcome
       ? (typeof missionRunSummary?.accuracy === 'number' ? Math.round(missionRunSummary.accuracy * 100) : null)
       : missionSummary
         ? Math.round(missionSummary.accuracy * 100)
@@ -1837,7 +2151,9 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     const displayedCorrectAnswers = missionOutcome
       ? (missionRunSummary?.correct_answers ?? missionOutcome.nodes_cleared)
       : score.correct;
-    const displayedTotalQuestions = missionOutcome
+    const displayedTotalQuestions = isTrainingRun
+      ? TRAINING_QUESTIONS.length
+      : missionOutcome
       ? (missionRunSummary?.questions_answered ?? null)
       : totalQuestions;
     const displayedXp = missionOutcome
@@ -1850,7 +2166,17 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
     const resetCompletedMission = () => {
       setShowMissionCompleteOverlay(false);
-      if (mode === 'assignment' || assignmentContext) {
+      if (isTrainingRun) {
+        setFtueTrainingEligible(false);
+        setMode('practice');
+        setTrainingQuestionIndex(0);
+        setTrainingSelectedOption(null);
+        setTrainingAnswered(false);
+        setTrainingCorrectCount(0);
+            setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
+        setStage('subject_selection');
+        loadSubjects();
+      } else if (mode === 'assignment' || assignmentContext) {
         setMode('practice');
         setSelectedSubject(null);
         setSelectedTopic(null);
@@ -1891,7 +2217,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
     const handleCompletionOverlayAction = (action: 'next_mission' | 'dashboard' | 'streak') => {
       setShowMissionCompleteOverlay(false);
-      if (action === 'dashboard') {
+      if (action === 'dashboard' || isTrainingRun) {
         onComplete();
         return;
       }
@@ -1929,7 +2255,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       }
     };
 
-    const missionLabel = selectedMission?.title || launchMission?.title || selectedSubject?.name || assignmentContext?.subject_name || 'Orientation mission';
+    const missionLabel = isTrainingRun ? 'First Signal' : selectedMission?.title || launchMission?.title || selectedSubject?.name || assignmentContext?.subject_name || 'Orientation mission';
     const profileLevel = currentProfile?.xp_status?.level ?? currentProfile?.level ?? completionStartLevel ?? 1;
 
     return (
@@ -1945,9 +2271,15 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           currentLevel={profileLevel}
           previousLevel={completionStartLevel}
           xpStatus={currentProfile?.xp_status ?? null}
-          onSkip={() => setShowMissionCompleteOverlay(false)}
+          onSkip={() => {
+            setShowMissionCompleteOverlay(false);
+            if (isTrainingRun) onComplete();
+          }}
           onAction={handleCompletionOverlayAction}
           onEvent={(event, metadata) => emitMissionCompletionEvent(event, metadata)}
+          description={isTrainingRun ? 'Starter access unlocked. Normal missions are available from the dashboard now.' : undefined}
+          rewardHeading={isTrainingRun ? 'Starter access unlocked' : undefined}
+          recommendationCopy={isTrainingRun ? 'Training complete. Return to the dashboard and start normal missions when ready.' : undefined}
         />
       <div className="text-center max-w-2xl mx-auto">
         <h2 className="font-heading text-4xl mb-4 animate-fade-in-up flex items-center justify-center gap-3" style={{ color: 'var(--amber-warn)' }}>
@@ -2114,7 +2446,17 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             <button
               disabled={isAssignmentSubmissionBlocking || !isAssignmentSubmissionResolved}
               onClick={() => {
-                if (mode === 'assignment' || assignmentContext) {
+                if (isTrainingRun) {
+        setFtueTrainingEligible(false);
+        setMode('practice');
+        setTrainingQuestionIndex(0);
+        setTrainingSelectedOption(null);
+        setTrainingAnswered(false);
+        setTrainingCorrectCount(0);
+            setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
+        setStage('subject_selection');
+        loadSubjects();
+      } else if (mode === 'assignment' || assignmentContext) {
                   setMode('practice');
                   setSelectedSubject(null);
                   setSelectedTopic(null);
@@ -2247,6 +2589,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           />
         );
       }
+      case 'ftue_training': return renderFtueTraining();
       case 'in_progress': return renderInProgress();
       case 'completed': return renderCompleted();
       case 'assignment_blocked': return renderAssignmentBlocker();

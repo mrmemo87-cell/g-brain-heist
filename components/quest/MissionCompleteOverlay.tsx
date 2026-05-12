@@ -19,7 +19,11 @@ export interface MissionCompleteOverlayProps {
   onSkip: () => void;
   onAction: (action: CompletionAction) => void;
   onEvent?: (event: 'reward_revealed' | 'level_progress_seen' | 'continue_after_completion', metadata?: Record<string, unknown>) => void;
+  description?: string;
+  rewardHeading?: string;
+  recommendationCopy?: string;
 }
+
 
 const clamp01 = (value: number): number => Math.max(0, Math.min(1, value));
 
@@ -78,6 +82,9 @@ const MissionCompleteOverlay: React.FC<MissionCompleteOverlayProps> = ({
   onSkip,
   onAction,
   onEvent,
+  description,
+  rewardHeading = 'Reward reveal',
+  recommendationCopy = 'Recommended: bank the win, then clear one more short route.',
 }) => {
   const [visible, setVisible] = useState(open);
   const [barArmed, setBarArmed] = useState(false);
@@ -148,7 +155,7 @@ const MissionCompleteOverlay: React.FC<MissionCompleteOverlayProps> = ({
             <h2 id="mission-complete-title" className="mt-2 font-heading text-3xl text-white sm:text-4xl">
               {title}
             </h2>
-            <p className="mt-2 text-sm text-slate-300">{missionLabel} logged. Rewards verified. Next route is ready.</p>
+            <p className="mt-2 text-sm text-slate-300">{description ?? `${missionLabel} logged. Rewards verified. Next route is ready.`}</p>
           </div>
           <button
             type="button"
@@ -185,7 +192,7 @@ const MissionCompleteOverlay: React.FC<MissionCompleteOverlayProps> = ({
           </div>
 
           <div className="rounded-2xl border border-amber-300/20 bg-amber-300/5 p-4">
-            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-400">Reward reveal</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-400">{rewardHeading}</p>
             <div className="mt-3 grid grid-cols-2 gap-3">
               <div className="rounded-xl border border-cyan-300/20 bg-black/20 p-3">
                 <XPIcon className="mb-2 h-5 w-5 text-cyan-300" />
@@ -218,7 +225,7 @@ const MissionCompleteOverlay: React.FC<MissionCompleteOverlayProps> = ({
         </div>
 
         <div className={`relative mt-6 transition-all duration-500 ${actionsVisible ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'}`}>
-          <p className="mb-3 text-sm font-semibold text-slate-200">Recommended: bank the win, then clear one more short route.</p>
+          <p className="mb-3 text-sm font-semibold text-slate-200">{recommendationCopy}</p>
           <div className="grid gap-3 sm:grid-cols-3">
             <button type="button" onClick={() => action('next_mission')} className="rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-3 text-sm font-bold text-white shadow-[0_0_22px_rgba(34,211,238,0.25)] transition hover:scale-[1.02] active:scale-95">
               Next mission
