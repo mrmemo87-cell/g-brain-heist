@@ -48,6 +48,46 @@ export interface IndividualSetupPayload {
     username?: string;
 }
 
+const getDefaultProfileUsername = (user: { email?: string; user_metadata?: Record<string, unknown> }): string => {
+    const emailUsername = user.email?.split('@')[0] || 'user';
+    const displayName = user.user_metadata?.['full_name'] || user.user_metadata?.['name'];
+    return typeof displayName === 'string' && displayName.trim() ? displayName : emailUsername;
+};
+
+const buildSetupProfileUpsertPayload = async (
+    user: { id: string; email?: string; user_metadata?: Record<string, unknown> },
+    payload: IndividualSetupPayload,
+): Promise<Record<string, unknown>> => {
+    const { data: existingProfile, error: existingError } = await supabase
+        .from('users')
+        .select('username, avatar_url')
+        .eq('id', user.id)
+        .maybeSingle();
+
+    if (existingError && existingError.code !== 'PGRST116') {
+        throw new Error(existingError.message || 'Failed to read existing profile.');
+    }
+
+    const username = payload.username?.trim()
+        || (typeof existingProfile?.username === 'string' && existingProfile.username.trim() ? existingProfile.username : null)
+        || getDefaultProfileUsername(user);
+    const avatarUrl = typeof existingProfile?.avatar_url === 'string' && existingProfile.avatar_url.trim()
+        ? existingProfile.avatar_url
+        : user.user_metadata?.['avatar_url'] || `https://picsum.photos/seed/${username}/100/100`;
+
+    return {
+        id: user.id,
+        email: user.email ?? null,
+        username,
+        role: payload.role,
+        needs_setup: false,
+        updated_at: new Date().toISOString(),
+        avatar_url: avatarUrl,
+        grade: payload.role === 'student' ? payload.grade ?? null : null,
+        batch: payload.role === 'student' ? payload.batch ?? null : null,
+    };
+};
+
 export interface InviteCodeResult {
     valid: boolean;
     error?: string;
@@ -466,34 +506,27 @@ export const completeIndividualSetup = async (
         return { success: false, error: 'Not authenticated' };
     }
 
-    const updates: Record<string, unknown> = {
-        role: payload.role,
-        needs_setup: false,
-        updated_at: new Date().toISOString(),
-    };
-
-    if (payload.username) {
-        updates['username'] = payload.username;
-    }
-
-    if (payload.role === 'student') {
-        updates['grade'] = payload.grade ?? null;
-        updates['batch'] = payload.batch ?? null;
-    } else {
-        updates['grade'] = null;
-        updates['batch'] = null;
+    let upsertPayload: Record<string, unknown>;
+    try {
+        upsertPayload = await buildSetupProfileUpsertPayload(authData.user, payload);
+    } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : 'Failed to prepare setup profile.' };
     }
 
     const { error } = await supabase
         .from('users')
-        .update(updates)
-        .eq('id', authData.user.id);
+        .upsert(upsertPayload, { onConflict: 'id' });
 
     if (error) {
         return { success: false, error: error.message || 'Failed to complete setup.' };
     }
 
-    return { success: true, user_id: authData.user.id, role: payload.role };
+    return {
+        success: true,
+        user_id: authData.user.id,
+        role: payload.role,
+        username: String(upsertPayload['username'] ?? ''),
+    };
 };
 
 /**
@@ -507,34 +540,27 @@ export const completeProfileSetup = async (
         return { success: false, error: 'Not authenticated' };
     }
 
-    const updates: Record<string, unknown> = {
-        role: payload.role,
-        needs_setup: false,
-        updated_at: new Date().toISOString(),
-    };
-
-    if (payload.username) {
-        updates['username'] = payload.username;
-    }
-
-    if (payload.role === 'student') {
-        updates['grade'] = payload.grade ?? null;
-        updates['batch'] = payload.batch ?? null;
-    } else {
-        updates['grade'] = null;
-        updates['batch'] = null;
+    let upsertPayload: Record<string, unknown>;
+    try {
+        upsertPayload = await buildSetupProfileUpsertPayload(authData.user, payload);
+    } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : 'Failed to prepare setup profile.' };
     }
 
     const { error } = await supabase
         .from('users')
-        .update(updates)
-        .eq('id', authData.user.id);
+        .upsert(upsertPayload, { onConflict: 'id' });
 
     if (error) {
         return { success: false, error: error.message || 'Failed to complete setup.' };
     }
 
-    return { success: true, user_id: authData.user.id, role: payload.role };
+    return {
+        success: true,
+        user_id: authData.user.id,
+        role: payload.role,
+        username: String(upsertPayload['username'] ?? ''),
+    };
 };
 
 /**

@@ -35,6 +35,7 @@ export const shouldLaunchFtueTrainingMission = (state?: OnboardingState | null):
 
   const training = getTrainingMissionMetadata(state);
   if (training.status === 'completed' || training.status === 'skipped') return false;
+  if (training.status === 'started') return true;
 
   const dashboardTour = state.metadata?.['dashboard_tour'];
   if (!isRecord(dashboardTour)) return false;

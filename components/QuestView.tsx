@@ -764,6 +764,11 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   };
 
   const hydrateAssignment = async (options: { showLoading?: boolean; preferredId?: string | null } = {}) => {
+    if (trainingStartedRef.current) {
+      console.log('[QuestView] Skipping assignment hydration because FTUE training owns this run');
+      return;
+    }
+
     const { showLoading = false } = options;
     if (showLoading) {
       setStage('loading');
@@ -785,6 +790,11 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
+      if (trainingStartedRef.current) {
+        console.log('[QuestView] Ignoring assignment hydration result because FTUE training started');
+        return;
+      }
+
       const assignments = Array.isArray(assignment) ? assignment : assignment ? [assignment] : [];
       setPendingAssignments(assignments);
       const preferredId = options.preferredId ?? preferredAssignmentId ?? initialAssignment?.assignment_id ?? null;
@@ -819,6 +829,9 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       }
     } catch (error) {
       console.error('[QuestView] Error loading assignment:', error);
+      if (trainingStartedRef.current) {
+        return;
+      }
       // Ensure we exit loading state on error
       await loadSubjects();
     }
