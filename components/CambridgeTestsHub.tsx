@@ -14,7 +14,7 @@ interface CambridgeTest {
   totalQuestions: number;
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
   category: 'Reading' | 'Listening' | 'Grammar' | 'Vocabulary' | 'Writing' | 'Science';
-  subject: 'English stage 9' | 'Chemistry' | 'Biology';
+  subject: 'English stage 9' | 'Chemistry' | 'Biology' | 'Travel & Tourism';
   url: string;
   isCompleted?: boolean;
   score?: number;
@@ -1016,10 +1016,26 @@ const AS_BIOLOGY_TESTS: CambridgeTest[] = [
   },
 ];
 
+const TRAVEL_TOURISM_TESTS: CambridgeTest[] = [
+  {
+    id: 'travel-tourism-sustainable-mission',
+    name: 'Operation Sustainable Tourism',
+    description: 'Guarded Cambridge International AS & A Level Travel & Tourism 9395 Paper 1 style exam. Teacher-marked, with optional AI marking suggestions for teachers.',
+    duration: '90 min',
+    totalQuestions: 80,
+    difficulty: 'Intermediate',
+    category: 'Writing',
+    subject: 'Travel & Tourism',
+    url: '/cambridge-tests/Travel%20Tourism/sustainable_tourism_mission.html',
+    requiresMarking: true,
+  },
+];
+
 const AVAILABLE_TESTS: CambridgeTest[] = [
   ...ENGLISH_TESTS,
   ...AS_CHEMISTRY_TESTS,
   ...AS_BIOLOGY_TESTS,
+  ...TRAVEL_TOURISM_TESTS,
 ];
 
 interface MistakeItem {
@@ -1659,8 +1675,10 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
   const gradeSubjectMap: Record<number, CambridgeTest['subject'][]> = {
     7: ['English stage 9'],
     8: ['English stage 9'],
-    11: ['Chemistry', 'Biology'],
-    12: ['Chemistry', 'Biology'],
+    9: ['Travel & Tourism'],
+    10: ['Travel & Tourism'],
+    11: ['Chemistry', 'Biology', 'Travel & Tourism'],
+    12: ['Chemistry', 'Biology', 'Travel & Tourism'],
   };
 
   const eligibleSubjects = profile.grade === null
@@ -2079,7 +2097,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginBottom: '14px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ fontSize: '22px' }}>{subject === 'Chemistry' ? '🧪' : subject === 'Biology' ? '🧬' : '📖'}</span>
+                      <span style={{ fontSize: '22px' }}>{subject === 'Chemistry' ? '🧪' : subject === 'Biology' ? '🧬' : subject === 'Travel & Tourism' ? '🧭' : '📖'}</span>
                       <div>
                         <h3 style={{ margin: 0, fontSize: '16px', color: '#fff' }}>{subject}</h3>
                         <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>
@@ -2240,7 +2258,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                               )}
                               
                               {/* View Feedback button for marked writing tests */}
-                              {test.requiresMarking && !test.isAwaitingMarking && test.isCompleted && (
+                              {test.requiresMarking && /^Cambridge Writing Test/i.test(test.name) && test.feedbackReleased && !test.isAwaitingMarking && test.isCompleted && (
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();

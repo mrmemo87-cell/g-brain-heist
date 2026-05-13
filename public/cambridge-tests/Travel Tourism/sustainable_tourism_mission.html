@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Operation Sustainable Tourism — Cambridge Travel & Tourism Paper 1</title>
+<style>
+  :root { --bg:#080b20; --panel:#121735; --cyan:#00f5ff; --mint:#00d4aa; --gold:#f8c14a; --text:#eef6ff; --muted:#9fb2d8; --danger:#ff647c; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:Arial, sans-serif; background:linear-gradient(135deg,#060817,#111944 55%,#22123d); color:var(--text); min-height:100vh; }
+  .shell { max-width:1120px; margin:0 auto; padding:22px; }
+  .card { background:rgba(18,23,53,.94); border:1px solid rgba(0,245,255,.2); border-radius:18px; box-shadow:0 20px 70px rgba(0,0,0,.35); overflow:hidden; }
+  .hero { display:grid; grid-template-columns:1.2fr .8fr; gap:18px; margin-bottom:18px; }
+  .hero-main, .student { padding:22px; }
+  .label { display:inline-flex; color:#031018; background:linear-gradient(135deg,var(--cyan),var(--mint)); padding:7px 12px; border-radius:999px; font-size:12px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
+  h1 { margin:16px 0 8px; font-size:32px; line-height:1.1; }
+  .subtitle { color:var(--muted); line-height:1.55; }
+  .meta { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:18px; }
+  .meta div { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:12px; }
+  .meta b { display:block; font-size:20px; color:var(--cyan); }
+  .meta span { color:var(--muted); font-size:12px; }
+  input, textarea { width:100%; border:1px solid rgba(255,255,255,.14); background:rgba(5,8,24,.75); color:var(--text); border-radius:12px; padding:12px 14px; font:inherit; outline:none; }
+  textarea { min-height:92px; resize:vertical; line-height:1.45; }
+  input:focus, textarea:focus { border-color:var(--cyan); box-shadow:0 0 0 3px rgba(0,245,255,.12); }
+  input:disabled, textarea:disabled { opacity:.7; cursor:not-allowed; }
+  .student { display:flex; flex-direction:column; gap:10px; }
+  .timer { background:rgba(255,100,124,.12); border:1px solid rgba(255,100,124,.35); color:#ffd6dc; padding:11px 13px; border-radius:14px; font-weight:800; text-align:center; }
+  .progress-wrap { background:rgba(255,255,255,.08); height:11px; border-radius:999px; overflow:hidden; margin:18px 0; }
+  .progress { width:0; height:100%; background:linear-gradient(90deg,var(--cyan),var(--mint)); transition:.25s; }
+  .nav { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; }
+  .tab { border:1px solid rgba(255,255,255,.16); color:var(--text); background:rgba(255,255,255,.06); border-radius:999px; padding:10px 14px; cursor:pointer; font-weight:800; }
+  .tab.active { color:#05101d; background:linear-gradient(135deg,var(--cyan),var(--mint)); border-color:transparent; }
+  .operation { display:none; padding:20px; margin-bottom:18px; }
+  .operation.active { display:block; }
+  .operation-head { display:flex; justify-content:space-between; gap:14px; align-items:flex-start; margin-bottom:16px; }
+  .operation-head h2 { margin:0 0 5px; font-size:22px; }
+  .operation-head p { margin:0; color:var(--muted); }
+  .pill { padding:6px 10px; border-radius:999px; font-size:12px; font-weight:900; background:rgba(248,193,74,.15); color:#fde68a; border:1px solid rgba(248,193,74,.35); white-space:nowrap; }
+  .grid { display:grid; grid-template-columns:minmax(280px,.92fr) 1.08fr; gap:16px; }
+  .stimulus { background:#f7f7f7; color:#202020; border:2px solid #555; border-radius:6px; padding:14px; box-shadow:inset 0 0 0 1px #ddd; }
+  .stimulus h3 { text-align:center; margin:0 0 12px; font-size:16px; }
+  .stimulus p, .stimulus li { font-size:14px; line-height:1.35; }
+  .photo { min-height:270px; border-radius:12px; position:relative; overflow:hidden; background:linear-gradient(135deg,#b9c2cf,#eef1f5); filter:grayscale(1); border:1px solid rgba(255,255,255,.18); }
+  .photo.home:before { content:""; position:absolute; inset:0; background:linear-gradient(90deg, transparent 0 45%, #f4f4f4 45% 100%); }
+  .photo.home:after { content:"Fig. 2.1: Host welcoming guest at home rental"; position:absolute; left:18px; bottom:18px; color:#222; background:rgba(255,255,255,.82); padding:10px 12px; border-radius:10px; font-weight:900; }
+  .photo.agent:before { content:"TIGAKI TOURS  •  EXCURSIONS  •  RENT A CAR  •  BOAT TRIPS"; position:absolute; left:20px; right:20px; top:70px; background:white; color:#151515; padding:14px; border:3px solid #333; font-weight:900; text-align:center; letter-spacing:.04em; }
+  .photo.agent:after { content:"Fig. 4.1: Travel agent in Greece"; position:absolute; left:18px; bottom:18px; color:#222; background:rgba(255,255,255,.82); padding:10px 12px; border-radius:10px; font-weight:900; }
+  .questions { display:grid; gap:12px; }
+  .question { background:rgba(255,255,255,.055); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:14px; }
+  .question h4 { margin:0 0 8px; color:#dffbff; }
+  .question small { color:var(--muted); display:block; margin-bottom:10px; }
+  .twocol { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .actions { display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:center; margin:24px 0 40px; }
+  button.primary { border:0; border-radius:999px; padding:14px 24px; cursor:pointer; font-weight:900; color:#05101d; background:linear-gradient(135deg,var(--cyan),var(--mint)); box-shadow:0 12px 32px rgba(0,245,255,.22); }
+  button.secondary { border:1px solid rgba(255,255,255,.16); color:var(--text); background:rgba(255,255,255,.06); border-radius:999px; padding:13px 20px; cursor:pointer; font-weight:800; }
+  button:disabled { opacity:.65; cursor:not-allowed; }
+  .status { text-align:center; min-height:22px; color:var(--muted); font-weight:800; }
+  .success { color:#86efac; } .error { color:#ff9aaa; }
+  .modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.78); z-index:10000; padding:20px; }
+  .modal.show { display:flex; }
+  .modal-box { max-width:560px; background:#111735; border:1px solid rgba(0,245,255,.25); border-radius:18px; padding:22px; box-shadow:0 24px 80px rgba(0,0,0,.55); }
+  .modal-box h3 { margin-top:0; color:var(--cyan); }
+  .modal-box li { margin:8px 0; color:#dce8ff; }
+  @media (max-width:900px) { .hero, .grid, .twocol { grid-template-columns:1fr; } .meta { grid-template-columns:repeat(2,1fr); } }
+</style>
+</head>
+<body>
+<div class="shell">
+  <section class="hero">
+    <div class="card hero-main examguard-prompt">
+      <span class="label">Cambridge Ops File</span>
+      <h1>Operation Sustainable Tourism</h1>
+      <p class="subtitle">Cambridge International AS & A Level Travel & Tourism 9395 Paper 1 style exam. Use the stimulus material to support your answers where relevant.</p>
+      <div class="meta">
+        <div><b>4</b><span>Questions</span></div>
+        <div><b>80</b><span>Total marks</span></div>
+        <div><b>90</b><span>Minutes</span></div>
+        <div><b>Teacher</b><span>Marked</span></div>
+      </div>
+      <div class="progress-wrap"><div class="progress" id="progressBar"></div></div>
+      <div class="status" id="progressStatus">0% response fields completed</div>
+    </div>
+    <div class="card student">
+      <div class="timer" id="timer">⏳ Time remaining: 90:00</div>
+      <input id="studentName" placeholder="Student name" />
+      <input id="studentClass" placeholder="Class" />
+      <p style="color:var(--muted); margin:0; line-height:1.45; font-size:13px;">ExamGuard is active. Leaving the test or attempting restricted actions may cause auto-submission.</p>
+    </div>
+  </section>
+
+  <nav class="nav" id="operationNav"></nav>
+  <main id="operations"></main>
+  <div class="actions">
+    <button class="secondary" type="button" onclick="showOperation('op1')">Back to Question 1</button>
+    <button class="primary" id="submitBtn" type="button" onclick="openSubmitModal()">📤 Submit final answers</button>
+  </div>
+  <div class="status" id="submitStatus"></div>
+</div>
+
+<div class="modal show" id="antiCheatModal">
+  <div class="modal-box">
+    <h3>ExamGuard Notice</h3>
+    <p>This is a guarded Cambridge-style exam attempt.</p>
+    <ul>
+      <li>The 90-minute timer starts when you begin.</li>
+      <li>Do not leave the tab, copy, paste, print, or use screenshots.</li>
+      <li>After repeated violations, your current answers may be submitted automatically.</li>
+      <li>No marks or feedback are shown until your teacher marks/releases the test.</li>
+    </ul>
+    <div class="actions" style="margin-bottom:0"><button class="primary" id="antiCheatAcceptBtn" type="button">I understand — start exam</button></div>
+  </div>
+</div>
+
+<div class="modal" id="submitModal">
+  <div class="modal-box">
+    <h3>Submit final answers?</h3>
+    <p>You can only submit once. Your teacher will mark your answers after submission.</p>
+    <div class="actions" style="margin-bottom:0">
+      <button class="secondary" type="button" onclick="closeSubmitModal()">Review answers</button>
+      <button class="primary" type="button" onclick="closeSubmitModal(); submitMission();">Submit</button>
+    </div>
+  </div>
+</div>
+
+<script src="../examguard.js?v=2"></script>
+<script>
+const SUPABASE_URL = window.__SUPABASE_ENV__?.VITE_SUPABASE_URL || 'https://sozodkxwhubespiedgxm.supabase.co';
+const SUPABASE_ANON_KEY = window.__SUPABASE_ENV__?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvem9ka3h3aHViZXNwaWVkZ3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTUxNjYsImV4cCI6MjA3NzQ3MTE2Nn0.DBfFFWvVjpqXTga0uZcH5qR4ej6VOFBUm-CiCTgGLVA';
+const SUPABASE_PROJECT_REF = 'sozodkxwhubespiedgxm';
+const QUIZ_ID = 'travel_tourism_sustainable_mission';
+const QUIZ_NAME = 'Cambridge Travel & Tourism — Operation Sustainable Tourism';
+const TOTAL_MARKS = 80;
+const TEST_DURATION_SECONDS = 90 * 60;
+let startTime = null;
+let remainingSeconds = TEST_DURATION_SECONDS;
+let timerInterval = null;
+let hasSubmitted = Boolean(localStorage.getItem(`quiz_submitted_${QUIZ_ID}`));
+let autoSubmitTriggered = false;
+let submissionInProgress = false;
+
+function getSupabaseAccessToken() {
+  try { return JSON.parse(localStorage.getItem(`sb-${SUPABASE_PROJECT_REF}-auth-token`) || 'null')?.access_token || null; } catch { return null; }
+}
+function createSupabaseClient(url, key) {
+  return {
+    from(table) {
+      let queryParams = [], selectColumns = '*', singleRow = false;
+      const builder = {
+        select(columns = '*') { selectColumns = columns; return builder; },
+        eq(column, value) { queryParams.push(`${column}=eq.${encodeURIComponent(value)}`); return builder; },
+        single() { singleRow = true; return builder; },
+        async then(resolve) {
+          let qs = `select=${encodeURIComponent(selectColumns)}`;
+          if (queryParams.length) qs += '&' + queryParams.join('&');
+          const response = await fetch(`${url}/rest/v1/${table}?${qs}`, { headers:{ apikey:key, Authorization:`Bearer ${getSupabaseAccessToken() ?? key}` }});
+          if (!response.ok) return resolve({ data:null, error:new Error(await response.text()) });
+          let data = await response.json();
+          resolve({ data: singleRow ? data[0] ?? null : data, error:null });
+        },
+        async insert(data) {
+          const response = await fetch(`${url}/rest/v1/${table}`, { method:'POST', headers:{ 'Content-Type':'application/json', apikey:key, Authorization:`Bearer ${getSupabaseAccessToken() ?? key}`, Prefer:'return=minimal' }, body:JSON.stringify(Array.isArray(data) ? data : [data]) });
+          if (!response.ok) return { data:null, error:new Error(await response.text()) };
+          return { data:null, error:null };
+        }
+      };
+      return builder;
+    },
+    auth: { async getUser() {
+      const token = getSupabaseAccessToken();
+      if (!token) return { data:{ user:null }, error:null };
+      const response = await fetch(`${url}/auth/v1/user`, { headers:{ apikey:key, Authorization:`Bearer ${token}` }});
+      if (!response.ok) return { data:{ user:null }, error:new Error(await response.text()) };
+      return { data:{ user: await response.json() }, error:null };
+    }}
+  };
+}
+const supabaseClient = createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const operations = [
+  { id:'op1', title:'Question 1: Sustainable Tourism', subtitle:'Refer to Fig. 1.1, information about the growth of sustainable tourism.', visual:'sustainable', questions:[
+    ['1a', 'State two reasons for the growth of sustainable tourism. [2]', 2, ['1', '2']],
+    ['1b', 'State two ways tourists can reduce their waste when at a destination. [2]', 2, ['1', '2']],
+    ['1c', 'Explain two roles of National Tourism Organisations (NTOs). [4]', 4, ['1', '2']],
+    ['1d', 'Explain three ways tour operators can be more sustainable. [6]', 6, ['1', '2', '3']],
+    ['1e', 'Evaluate the importance of airlines becoming more sustainable. [6]', 6, ['Write your answer here']]
+  ]},
+  { id:'op2', title:'Question 2: Accommodation', subtitle:'Refer to Fig. 2.1, a photograph of a host welcoming a guest at a home rental.', visual:'home', questions:[
+    ['2a', 'Other than home rental, state two types of self-catering accommodation. [2]', 2, ['1', '2']],
+    ['2b', 'State two types of catered accommodation. [2]', 2, ['1', '2']],
+    ['2c', 'Explain one advantage and one disadvantage of home rentals to destinations. [4]', 4, ['Advantage', 'Disadvantage']],
+    ['2d', 'Explain three reasons for the appeal of self-catering accommodation. [6]', 6, ['1', '2', '3']],
+    ['2e', 'Evaluate the impact of seasonality on accommodation providers. [6]', 6, ['Write your answer here']]
+  ]},
+  { id:'op3', title:'Question 3: The World Expo', subtitle:'Refer to Fig. 3.1, information about The World Expo 2020.', visual:'expo', questions:[
+    ['3a', 'State two main reasons why people travel. [2]', 2, ['1', '2']],
+    ['3b', 'State two types of destinations. [2]', 2, ['1', '2']],
+    ['3c', 'Explain two ways events benefit from offering virtual visits. [4]', 4, ['1', '2']],
+    ['3d', 'Explain three positive economic benefits to destinations of hosting large events. [6]', 6, ['1', '2', '3']],
+    ['3e', 'Assess the importance of destinations providing a range of transport options. [6]', 6, ['Write your answer here']]
+  ]},
+  { id:'op4', title:'Question 4: Travel Agents', subtitle:'Refer to Fig. 4.1, a photograph of a travel agent in Greece.', visual:'agent', questions:[
+    ['4a', 'Identify two services offered by the travel agent shown in Fig. 4.1. [2]', 2, ['1', '2']],
+    ['4b', 'State two interpersonal skills required by a travel agent. [2]', 2, ['1', '2']],
+    ['4c', 'Describe two interdependencies in travel and tourism. [4]', 4, ['1', '2']],
+    ['4d', 'Evaluate two reasons why it is important for travel agents to offer sustainable products. [6]', 6, ['1', '2']],
+    ['4e', 'Evaluate the benefit of dynamic packaging to tourists. [6]', 6, ['Write your answer here']]
+  ]}
+];
+function visualMarkup(type) {
+  if (type === 'sustainable') return `<div class="stimulus examguard-prompt"><h3>Growth of Sustainable Tourism</h3><p>Recent research has shown <b>94%</b> of tourists consider sustainable options when planning a trip. These tourists are willing to pay more for sustainable travel and tourism products.</p><p>Reducing waste was rated as the highest priority for tourists, with <b>84%</b> of travellers planning to reduce their waste when visiting a destination.</p><p>However, the research has also shown:</p><ul><li><b>37%</b> of tourists do not know how to make their travel choices more sustainable</li><li><b>32%</b> of tourists said that there are not enough sustainable travel options when visiting destinations.</li></ul><p>The trend for more sustainable tourism is expected to grow even more in the future. Tourists will demand more sustainable products from tourism organisations and National Tourism Organisations (NTOs) will need to support this change.</p></div>`;
+  if (type === 'expo') return `<div class="stimulus examguard-prompt"><h3>The World Expo</h3><p>The World Expo is an international event where countries from all over the world gather to exhibit their achievements and solutions to global issues. World Expos take place every five years and are hosted in a different country each time.</p><p>World Expo 2020 was scheduled to take place in Dubai in 2020, however due to a global pandemic it was postponed until 2021. The event lasted for 6 months and every country in the world was invited to take part. Tourists could visit in person or virtually.</p><p>After only 3 months of opening the World Expo 2020 had recorded <b>10 million</b> in-person visits and <b>37 million</b> virtual visits.</p><p>Dubai reported an increase in visitors as a direct result of the World Expo.</p></div>`;
+  if (type === 'home') return `<div class="photo home examguard-prompt" aria-label="Fig. 2.1 host welcoming a guest at a home rental"></div>`;
+  return `<div class="photo agent examguard-prompt" aria-label="Fig. 4.1 travel agent in Greece"></div>`;
+}
+function render() {
+  document.getElementById('operationNav').innerHTML = operations.map((op, i) => `<button class="tab ${i===0?'active':''}" onclick="showOperation('${op.id}')">${op.title}</button>`).join('');
+  document.getElementById('operations').innerHTML = operations.map((op, i) => `<section class="card operation ${i===0?'active':''}" id="${op.id}"><div class="operation-head"><div><h2>${op.title}</h2><p>${op.subtitle}</p></div><span class="pill">${op.questions.reduce((sum,q)=>sum+q[2],0)} marks</span></div><div class="grid"><div>${visualMarkup(op.visual)}</div><div class="questions">${op.questions.map(questionMarkup).join('')}</div></div></section>`).join('');
+  document.querySelectorAll('textarea').forEach(el => el.addEventListener('input', updateProgress));
+  loadStudentInfoFromGame(); updateProgress();
+}
+function questionMarkup([id, prompt, marks, placeholders]) {
+  return `<div class="question"><h4>${prompt}</h4><small>${marks} mark${marks === 1 ? '' : 's'}</small><div class="${placeholders.length > 1 ? 'twocol' : ''}">${placeholders.map((p, index) => `<textarea id="${id}_${index}" data-question-id="${id}" placeholder="${p}"></textarea>`).join('')}</div></div>`;
+}
+function showOperation(id) {
+  document.querySelectorAll('.operation').forEach(m => m.classList.toggle('active', m.id === id));
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', operations[i].id === id));
+}
+function updateProgress() {
+  const areas = Array.from(document.querySelectorAll('textarea'));
+  const filled = areas.filter(a => a.value.trim().length > 0).length;
+  const pct = areas.length ? Math.round((filled / areas.length) * 100) : 0;
+  document.getElementById('progressBar').style.width = `${pct}%`;
+  document.getElementById('progressStatus').textContent = `${pct}% response fields completed (${filled}/${areas.length})`;
+  saveDraft();
+}
+function formatTime(seconds) {
+  return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
+}
+function startTimer() {
+  if (startTime || hasSubmitted) return;
+  startTime = Date.now();
+  timerInterval = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    remainingSeconds = Math.max(TEST_DURATION_SECONDS - elapsed, 0);
+    document.getElementById('timer').textContent = `⏳ Time remaining: ${formatTime(remainingSeconds)}`;
+    if (remainingSeconds === 0) {
+      submitMission({ force:true, autoSubmitReason:'Time expired' });
+    }
+  }, 1000);
+}
+function stopTimer() { if (timerInterval) clearInterval(timerInterval); }
+function loadStudentInfoFromGame() {
+  try {
+    const user = JSON.parse(localStorage.getItem('cambridge_test_user') || 'null');
+    if (user?.name) document.getElementById('studentName').value = user.name;
+    if (user?.class) document.getElementById('studentClass').value = user.class;
+  } catch {}
+}
+function getResponses() {
+  const responses = {};
+  operations.forEach(op => op.questions.forEach(([id]) => {
+    responses[id] = Array.from(document.querySelectorAll(`textarea[data-question-id="${id}"]`)).map(el => el.value.trim());
+  }));
+  return responses;
+}
+function saveDraft() {
+  if (hasSubmitted) return;
+  try { localStorage.setItem(`${QUIZ_ID}_draft`, JSON.stringify({ responses:getResponses(), savedAt:new Date().toISOString() })); } catch {}
+}
+function loadDraft() {
+  try {
+    const draft = JSON.parse(localStorage.getItem(`${QUIZ_ID}_draft`) || 'null');
+    if (!draft?.responses || hasSubmitted) return;
+    Object.entries(draft.responses).forEach(([id, values]) => (values || []).forEach((value, index) => {
+      const el = document.getElementById(`${id}_${index}`); if (el && !el.value) el.value = value;
+    }));
+  } catch {}
+}
+async function getSchoolId() {
+  try {
+    const gameUser = JSON.parse(localStorage.getItem('cambridge_test_user') || 'null');
+    if (gameUser?.schoolId) return gameUser.schoolId;
+  } catch {}
+  const { data:{ user } } = await supabaseClient.auth.getUser();
+  if (!user) return null;
+  const { data } = await supabaseClient.from('users').select('school_id').eq('id', user.id).single();
+  return data?.school_id ?? null;
+}
+function openSubmitModal() { if (!hasSubmitted) document.getElementById('submitModal').classList.add('show'); }
+function closeSubmitModal() { document.getElementById('submitModal').classList.remove('show'); }
+function disableExam() { document.querySelectorAll('input, textarea, button').forEach(el => { if (el.id !== 'antiCheatAcceptBtn') el.disabled = true; }); }
+async function submitMission(options = {}) {
+  if (hasSubmitted || submissionInProgress) return;
+  submissionInProgress = true;
+  const forced = options.force === true;
+  const status = document.getElementById('submitStatus');
+  const btn = document.getElementById('submitBtn');
+  let studentName = document.getElementById('studentName').value.trim();
+  let studentClass = document.getElementById('studentClass').value.trim();
+  if (!studentName && forced) studentName = 'Unknown Student';
+  if (!studentClass && forced) studentClass = 'Unknown Class';
+  if (!studentName || !studentClass) { submissionInProgress = false; status.className = 'status error'; status.textContent = '⚠️ Enter your name and class before submitting.'; return; }
+  btn.disabled = true; status.className = 'status'; status.textContent = '📤 Submitting final answers...';
+  const schoolId = await getSchoolId();
+  const timeTaken = startTime ? Math.floor((Date.now() - startTime) / 1000) : TEST_DURATION_SECONDS - remainingSeconds;
+  const payload = {
+    student_name: studentName,
+    student_class: studentClass,
+    quiz_name: QUIZ_NAME,
+    score: 0,
+    total_questions: TOTAL_MARKS,
+    percentage: 0,
+    answers: {
+      responses: getResponses(),
+      requires_marking: true,
+      teacher_marked: false,
+      marking_status: 'pending_review',
+      marking_mode: 'teacher_marked',
+      ai_marking_available: true,
+      subject: 'Travel & Tourism',
+      paper_style: 'Cambridge International AS & A Level Travel & Tourism 9395 Paper 1',
+      source: 'Travel & Tourism 9395 style',
+      examguard_auto_submit: forced,
+      auto_submit_reason: options.autoSubmitReason || null,
+      submitted_version: 'exam-mode-v2'
+    },
+    time_taken_seconds: timeTaken,
+    ...(schoolId && { school_id: schoolId })
+  };
+  const { error } = await supabaseClient.from('quiz_scores').insert(payload);
+  if (error) { submissionInProgress = false; btn.disabled = false; status.className = 'status error'; status.textContent = `❌ Failed to submit: ${error.message}`; return; }
+  stopTimer();
+  hasSubmitted = true;
+  localStorage.setItem(`quiz_submitted_${QUIZ_ID}`, JSON.stringify({ studentName, submittedAt:new Date().toISOString() }));
+  localStorage.removeItem(`${QUIZ_ID}_draft`);
+  disableExam(); btn.textContent = '✓ Submitted'; status.className = 'status success'; status.textContent = forced ? `⚠️ Auto-submitted: ${options.autoSubmitReason || 'ExamGuard'}` : '✅ Submitted successfully. Your teacher will mark this test.';
+  try { window.parent.postMessage({ type:'CAMBRIDGE_TEST_COMPLETE', quizId:QUIZ_ID, score:0, total:TOTAL_MARKS, percentage:0 }, '*'); } catch {}
+}
+function startExamGuard() {
+  if (!window.ExamGuard || hasSubmitted) return;
+  const handleAutoSubmit = (violationCount = null) => {
+    if (autoSubmitTriggered || hasSubmitted) return;
+    autoSubmitTriggered = true;
+    submitMission({ force:true, autoSubmitReason: violationCount ? `ExamGuard violation limit (${violationCount})` : 'ExamGuard violation limit' });
+  };
+  window.ExamGuard.start({
+    promptContainer: Array.from(document.querySelectorAll('.examguard-prompt')),
+    editor: Array.from(document.querySelectorAll('textarea')),
+    onSubmit: () => handleAutoSubmit(),
+    onViolation: (event) => {
+      console.warn('ExamGuard violation (Operation Sustainable Tourism):', event);
+      if (event.violationsCount >= 3) handleAutoSubmit(event.violationsCount);
+    },
+    testId: QUIZ_ID,
+    maxViolations: 3,
+    blurGraceMs: 300,
+    suspiciousJump: { minDeltaChars: 80, maxDeltaMs: 1200 },
+    actions: { warn:true, showBanner:true, autosubmit:true, disableEditor:true, blockSelectAll:true, blurOnHide:true }
+  });
+}
+window.addEventListener('message', (e) => {
+  if (e.origin !== window.location.origin) return;
+  if (e.data?.type === 'FORCE_SUBMIT' && !hasSubmitted) submitMission({ force:true, autoSubmitReason:'Exited test — auto-submitted' });
+});
+document.getElementById('antiCheatAcceptBtn').addEventListener('click', () => {
+  document.getElementById('antiCheatModal').classList.remove('show');
+  startTimer();
+});
+render(); loadDraft(); updateProgress();
+if (hasSubmitted) { disableExam(); document.getElementById('submitStatus').textContent = 'Already submitted.'; }
+else { startExamGuard(); }
+</script>
+</body>
+</html>
