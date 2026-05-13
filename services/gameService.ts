@@ -6428,6 +6428,32 @@ export interface TeacherQuestBackfillResult {
     published_missions: number;
 }
 
+
+export interface FtueTrainingRewardResult {
+    deltas: { xp: number; coins: number; gemstones: number };
+    final_profile_values: { xp: number; coins: number; level: number; gemstones: number; xp_status?: XpStatus };
+}
+
+export const claim_ftue_training_reward = async (): Promise<FtueTrainingRewardResult> => {
+    const { data, error } = await supabase.rpc('rpc_claim_ftue_training_reward');
+
+    if (error) {
+        throw new Error(error.message || 'Failed to claim starter assignment reward');
+    }
+
+    const result = data as FtueTrainingRewardResult | null;
+    if (!result?.final_profile_values) {
+        throw new Error('Starter assignment reward was not confirmed by the server.');
+    }
+
+    result.final_profile_values.xp_status = await fetchMyXpStatus(supabase, {
+        xp: result.final_profile_values.xp,
+        level: result.final_profile_values.level,
+    });
+
+    return result;
+};
+
 /** Fetch available missions for a subject (or all if null). Includes best run & active run info. */
 export const quest_get_missions = async (subject?: string): Promise<QuestMissionRow[]> => {
     const { data, error } = await supabase.rpc('rpc_quest_get_missions', {
