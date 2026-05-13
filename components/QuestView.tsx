@@ -105,32 +105,38 @@ interface TrainingQuestion {
   correct: string;
   explanation: string;
   byteGuidance: string;
+  subject: string;
 }
+
+const FTUE_TRAINING_REWARD = { xp: 125, coins: 75, gemstones: 0 };
 
 const TRAINING_QUESTIONS: TrainingQuestion[] = [
   {
-    id: 'choose_answer',
-    prompt: 'Byte found a weak signal. Which button selects an answer?',
-    options: ['Tap an answer card', 'Close the mission', 'Wait for the timer'],
-    correct: 'Tap an answer card',
-    explanation: 'Exactly. A mission starts by choosing the answer card you believe is best.',
-    byteGuidance: 'Choose an answer.',
+    id: 'supply_cache_addition',
+    subject: 'Math • Addition',
+    prompt: 'A supply cache has 2 coins. Byte adds 3 more. How many coins are in the cache now?',
+    options: ['5 coins', '6 coins', '1 coin'],
+    correct: '5 coins',
+    explanation: '2 + 3 = 5. This is the same kind of quick check you will see in normal missions.',
+    byteGuidance: 'Read the question, then tap the answer card you believe is best.',
   },
   {
-    id: 'continue_flow',
-    prompt: 'After feedback appears, what moves the route forward?',
-    options: ['Use Continue', 'Reload the page', 'Open the shop'],
-    correct: 'Use Continue',
-    explanation: 'Nice — Continue moves you to the next question when you are ready.',
-    byteGuidance: 'Nice — now continue.',
+    id: 'pages_remaining',
+    subject: 'Math • Subtraction',
+    prompt: 'Your objective is to read 12 pages. You already finished 7 pages. How many pages remain?',
+    options: ['5 pages', '19 pages', '4 pages'],
+    correct: '5 pages',
+    explanation: '12 − 7 = 5. Feedback appears after every answer so you know what happened.',
+    byteGuidance: 'This one works like a teacher assignment: solve it, answer, then continue.',
   },
   {
-    id: 'reward_reveal',
-    prompt: 'What happens when the final route step is cleared?',
-    options: ['Mission completion reveals progress', 'Progress disappears', 'The library stays locked forever'],
-    correct: 'Mission completion reveals progress',
-    explanation: 'Route complete. Completion reveals progress and unlocks normal missions.',
-    byteGuidance: 'Final question. Finish the route.',
+    id: 'capitalization_check',
+    subject: 'English • Grammar',
+    prompt: 'Choose the sentence with correct capitalization.',
+    options: ['The mission starts on Monday.', 'the mission starts on monday.', 'The Mission Starts On monday.'],
+    correct: 'The mission starts on Monday.',
+    explanation: 'The sentence starts with a capital letter, and Monday is a proper noun.',
+    byteGuidance: 'Final check. Clear it to claim your starter chest and unlock the dashboard.',
   },
 ];
 
@@ -399,7 +405,11 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       event: 'training_mission_started',
       user_id: currentProfile?.id,
       step: 'mission_started',
-      metadata: { mission_id: FTUE_TRAINING_MISSION_ID, question_count: TRAINING_QUESTIONS.length },
+      metadata: {
+        mission_id: FTUE_TRAINING_MISSION_ID,
+        question_count: TRAINING_QUESTIONS.length,
+        reward: FTUE_TRAINING_REWARD,
+      },
     });
   }, [currentProfile?.id, currentProfile?.level]);
 
@@ -1380,9 +1390,25 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
   const completeFtueTraining = async () => {
     const now = new Date().toISOString();
-    const finalCorrect = trainingCorrectCount;
+    const currentQuestion = TRAINING_QUESTIONS[trainingQuestionIndex];
+    const finalCorrect = trainingCorrectCount + (trainingSelectedOption === currentQuestion?.correct ? 1 : 0);
 
-    setScore({ correct: finalCorrect, xp: 0, coins: 0, gemstones: 0 });
+    let rewardResult: GameService.FtueTrainingRewardResult | null = null;
+    try {
+      rewardResult = await GameService.claim_ftue_training_reward();
+      onGrantReward(rewardResult.deltas, rewardResult.final_profile_values);
+    } catch (error) {
+      console.error('[QuestView] Failed to claim FTUE training reward:', error);
+      brainsAlert('Starter reward could not be saved. Please try finishing the mission again.', 'error');
+      return;
+    }
+
+    setScore({
+      correct: finalCorrect,
+      xp: rewardResult.deltas.xp,
+      coins: rewardResult.deltas.coins,
+      gemstones: rewardResult.deltas.gemstones || 0,
+    });
     setStage('completed');
     setMissionSummary(null);
     setMissionChestResult(null);
@@ -1393,7 +1419,11 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       event: 'training_mission_completed',
       user_id: currentProfile?.id,
       step: 'reward_reveal',
-      metadata: { mission_id: FTUE_TRAINING_MISSION_ID, question_count: TRAINING_QUESTIONS.length },
+      metadata: {
+        mission_id: FTUE_TRAINING_MISSION_ID,
+        question_count: TRAINING_QUESTIONS.length,
+        reward: rewardResult.deltas,
+      },
     });
 
     await markOnboardingStepComplete('mission_started', {
@@ -1471,17 +1501,31 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         <div className="rounded-3xl border border-cyan-300/25 bg-slate-950/70 p-5 shadow-[0_0_36px_rgba(34,211,238,0.14)]">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-200">Training Mission</p>
-              <h1 className="mt-2 font-heading text-3xl text-white">First Signal</h1>
-              <p className="mt-2 text-sm text-slate-300">A short, low-pressure route to learn missions before the full library unlocks.</p>
+              <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-200">Starter Assignment</p>
+              <h1 className="mt-2 font-heading text-3xl text-white">First Signal: Mixed Skills</h1>
+              <p className="mt-2 text-sm text-slate-300">Three real warm-up questions in mission style. Finish them to claim enough XP to pass Level 1.</p>
             </div>
             <button
               type="button"
               onClick={() => { void handleSkipTraining(); }}
               className="rounded-2xl border border-white/10 px-4 py-2 text-sm font-bold text-slate-300 transition hover:border-cyan-300/40 hover:text-white"
             >
-              Skip training
+              Skip FTUE
             </button>
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-cyan-300/25 bg-cyan-300/10 p-3">
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-200">Questions</p>
+              <p className="mt-1 text-lg font-black text-white">{TRAINING_QUESTIONS.length} quick checks</p>
+            </div>
+            <div className="rounded-2xl border border-amber-300/25 bg-amber-300/10 p-3">
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-200">Reward</p>
+              <p className="mt-1 text-lg font-black text-white">+{FTUE_TRAINING_REWARD.xp} XP · +{FTUE_TRAINING_REWARD.coins} coins</p>
+            </div>
+            <div className="rounded-2xl border border-fuchsia-300/25 bg-fuchsia-300/10 p-3">
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-fuchsia-200">Unlock</p>
+              <p className="mt-1 text-lg font-black text-white">Level 2 ready</p>
+            </div>
           </div>
           <div className="mt-5 flex items-center gap-2" aria-label={`Training question ${trainingQuestionIndex + 1} of ${TRAINING_QUESTIONS.length}`}>
             {TRAINING_QUESTIONS.map((item, index) => (
@@ -1501,7 +1545,10 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         </div>
 
         <div className="card-glass p-6">
-          <p className="font-mono text-sm text-slate-400">Question {trainingQuestionIndex + 1} / {TRAINING_QUESTIONS.length}</p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="font-mono text-sm text-slate-400">Question {trainingQuestionIndex + 1} / {TRAINING_QUESTIONS.length}</p>
+            <span className="rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-cyan-100">{question.subject}</span>
+          </div>
           <h2 className="mt-3 text-2xl font-bold text-white">{question.prompt}</h2>
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
             {question.options.map((option) => {
@@ -1537,7 +1584,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                 onClick={handleTrainingContinue}
                 className="mt-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:scale-[1.02]"
               >
-                {trainingQuestionIndex >= TRAINING_QUESTIONS.length - 1 ? 'Finish route' : 'Continue'} →
+                {trainingQuestionIndex >= TRAINING_QUESTIONS.length - 1 ? 'Claim starter chest' : 'Continue'} →
               </button>
             </div>
           )}
@@ -2288,7 +2335,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       }
     };
 
-    const missionLabel = isTrainingRun ? 'First Signal' : selectedMission?.title || launchMission?.title || selectedSubject?.name || assignmentContext?.subject_name || 'Orientation mission';
+    const missionLabel = isTrainingRun ? 'First Signal: Mixed Skills' : selectedMission?.title || launchMission?.title || selectedSubject?.name || assignmentContext?.subject_name || 'Orientation mission';
     const profileLevel = currentProfile?.xp_status?.level ?? currentProfile?.level ?? completionStartLevel ?? 1;
 
     return (
@@ -2310,9 +2357,9 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           }}
           onAction={handleCompletionOverlayAction}
           onEvent={(event, metadata) => emitMissionCompletionEvent(event, metadata)}
-          description={isTrainingRun ? 'Starter access unlocked. Normal missions are available from the dashboard now.' : undefined}
-          rewardHeading={isTrainingRun ? 'Starter access unlocked' : undefined}
-          recommendationCopy={isTrainingRun ? 'Training complete. Return to the dashboard and start normal missions when ready.' : undefined}
+          description={isTrainingRun ? 'Starter assignment cleared. You earned real rewards and normal missions are available from the dashboard now.' : undefined}
+          rewardHeading={isTrainingRun ? 'Starter chest claimed' : undefined}
+          recommendationCopy={isTrainingRun ? 'Level 1 cleared. Return to the dashboard and start normal missions when ready.' : undefined}
         />
       <div className="text-center max-w-2xl mx-auto">
         <h2 className="font-heading text-4xl mb-4 animate-fade-in-up flex items-center justify-center gap-3" style={{ color: 'var(--amber-warn)' }}>
