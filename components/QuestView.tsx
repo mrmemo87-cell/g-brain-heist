@@ -276,6 +276,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [trainingSelectedOption, setTrainingSelectedOption] = useState<string | null>(null);
   const [trainingAnswered, setTrainingAnswered] = useState(false);
   const [trainingCorrectCount, setTrainingCorrectCount] = useState(0);
+  const [completionFinalProfile, setCompletionFinalProfile] = useState<{ xp: number; coins: number; level: number; gemstones: number; xp_status?: XpStatus } | null>(null);
   const trainingStartedRef = useRef(false);
   const firstMissionCompletionTrackedRef = useRef(false);
   const answerFeedbackRef = useRef<HTMLDivElement>(null);
@@ -388,6 +389,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     setTrainingCorrectCount(0);
     setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
     setMissionChestResult(null);
+    setCompletionFinalProfile(null);
     setCompletionStartLevel(currentProfile?.level ?? null);
 
     await updateOnboardingState({
@@ -646,6 +648,38 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const handleParticleComplete = (id: string) => {
       setParticles(current => current.filter(p => p.id !== id));
   };
+
+  const spawnRewardParticles = useCallback((
+    startRect: DOMRect,
+    deltas: { xp?: number; coins?: number; gemstones?: number },
+    options: { playCollectSound?: boolean } = {}
+  ) => {
+    const { playCollectSound = true } = options;
+    const newParticles: Omit<RewardParticleProps, 'onComplete'>[] = [];
+    const timestamp = Date.now();
+
+    if ((deltas.xp ?? 0) > 0) {
+      for (let i = 0; i < 5; i += 1) {
+        newParticles.push({ id: `xp_${timestamp}_${i}_${Math.random().toString(36).slice(2)}`, type: 'xp', startRect });
+      }
+    }
+    if ((deltas.coins ?? 0) > 0) {
+      for (let i = 0; i < 5; i += 1) {
+        newParticles.push({ id: `coin_${timestamp}_${i}_${Math.random().toString(36).slice(2)}`, type: 'coin', startRect });
+      }
+    }
+    const gemstoneCount = deltas.gemstones ?? 0;
+    if (gemstoneCount > 0) {
+      const particleCount = Math.min(3, gemstoneCount);
+      for (let i = 0; i < particleCount; i += 1) {
+        newParticles.push({ id: `gem_${timestamp}_${i}_${Math.random().toString(36).slice(2)}`, type: 'gem', startRect });
+      }
+    }
+
+    if (newParticles.length === 0) return;
+    if (playCollectSound) audioService.play('collect');
+    setParticles((current) => [...current, ...newParticles]);
+  }, []);
 
   const normalizeAssignmentQuestion = (question: TeacherQuestion): TeacherQuestion => {
     const rawOptions = (question as any).options;
@@ -1140,27 +1174,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
     const spawnParticles = (response: AnswerResponse) => {
       if (!response.correct || !answerFeedbackRef.current) return;
-      audioService.play('collect');
-      const startRect = answerFeedbackRef.current.getBoundingClientRect();
-      const newParticles: Omit<RewardParticleProps, 'onComplete'>[] = [];
-      if (response.deltas.xp > 0) {
-        for (let i = 0; i < 5; i += 1) {
-          newParticles.push({ id: `xp_${Date.now()}_${i}`, type: 'xp', startRect });
-        }
-      }
-      if (response.deltas.coins > 0) {
-        for (let i = 0; i < 5; i += 1) {
-          newParticles.push({ id: `coin_${Date.now()}_${i}`, type: 'coin', startRect });
-        }
-      }
-      const gemstoneCount = response.deltas.gemstones || 0;
-      if (gemstoneCount > 0) {
-        const particleCount = Math.min(3, gemstoneCount);
-        for (let i = 0; i < particleCount; i += 1) {
-          newParticles.push({ id: `gem_${Date.now()}_${i}`, type: 'gem', startRect });
-        }
-      }
-      setParticles((current) => [...current, ...newParticles]);
+      spawnRewardParticles(answerFeedbackRef.current.getBoundingClientRect(), response.deltas);
     };
 
     const afterAnswerCommon = (
@@ -1354,15 +1368,23 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   };
 
 
-  const handleTrainingAnswer = async (option: string) => {
+  const handleTrainingAnswer = async (option: string, startRect?: DOMRect) => {
     if (trainingAnswered) return;
 
     const question = TRAINING_QUESTIONS[trainingQuestionIndex];
     const correct = option === question.correct;
     setTrainingSelectedOption(option);
     setTrainingAnswered(true);
-    if (correct) setTrainingCorrectCount((prev) => prev + 1);
     audioService.play(correct ? 'correct' : 'wrong');
+    if (correct) {
+      setTrainingCorrectCount((prev) => prev + 1);
+      if (startRect) {
+        spawnRewardParticles(startRect, {
+          xp: Math.ceil(FTUE_TRAINING_REWARD.xp / TRAINING_QUESTIONS.length),
+          coins: Math.ceil(FTUE_TRAINING_REWARD.coins / TRAINING_QUESTIONS.length),
+        });
+      }
+    }
 
     await updateOnboardingState({
       metadata: {
@@ -1390,12 +1412,12 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
   const completeFtueTraining = async () => {
     const now = new Date().toISOString();
-    const currentQuestion = TRAINING_QUESTIONS[trainingQuestionIndex];
-    const finalCorrect = trainingCorrectCount + (trainingSelectedOption === currentQuestion?.correct ? 1 : 0);
+    const finalCorrect = Math.min(trainingCorrectCount, TRAINING_QUESTIONS.length);
 
     let rewardResult: GameService.FtueTrainingRewardResult | null = null;
     try {
       rewardResult = await GameService.claim_ftue_training_reward();
+      setCompletionFinalProfile(rewardResult.final_profile_values);
       onGrantReward(rewardResult.deltas, rewardResult.final_profile_values);
     } catch (error) {
       console.error('[QuestView] Failed to claim FTUE training reward:', error);
@@ -1413,7 +1435,8 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     setMissionSummary(null);
     setMissionChestResult(null);
     setShowMissionCompleteOverlay(true);
-    audioService.play('tada');
+    audioService.play('level_up');
+    window.setTimeout(() => audioService.play('tada'), 350);
 
     await emitOnboardingEvent({
       event: 'training_mission_completed',
@@ -1498,6 +1521,10 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
     return (
       <div className="mx-auto max-w-3xl space-y-5">
+        {createPortal(
+          particles.map(p => <RewardParticle key={p.id} {...p} onComplete={handleParticleComplete} />),
+          document.body
+        )}
         <div className="rounded-3xl border border-cyan-300/25 bg-slate-950/70 p-5 shadow-[0_0_36px_rgba(34,211,238,0.14)]">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
@@ -1533,17 +1560,6 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             ))}
           </div>
         </div>
-
-        <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-4 text-cyan-50">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-cyan-200/40 bg-cyan-300/15">◈</div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-200">Byte</p>
-              <p className="mt-1 text-sm font-semibold">{question.byteGuidance}</p>
-            </div>
-          </div>
-        </div>
-
         <div className="card-glass p-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="font-mono text-sm text-slate-400">Question {trainingQuestionIndex + 1} / {TRAINING_QUESTIONS.length}</p>
@@ -1566,7 +1582,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                   key={option}
                   type="button"
                   disabled={trainingAnswered}
-                  onClick={() => { void handleTrainingAnswer(option); }}
+                  onClick={(event) => { void handleTrainingAnswer(option, event.currentTarget.getBoundingClientRect()); }}
                   className={`min-h-24 rounded-2xl border p-4 text-left font-semibold text-white transition disabled:cursor-default ${stateClass}`}
                 >
                   {option}
@@ -1578,7 +1594,19 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           {trainingAnswered && (
             <div className={`mt-5 rounded-2xl border p-4 ${correct ? 'border-green-300/50 bg-green-500/10' : 'border-amber-300/50 bg-amber-500/10'}`}>
               <p className={`font-bold ${correct ? 'text-green-200' : 'text-amber-200'}`}>{correct ? 'Nice signal.' : 'Good practice.'}</p>
-              <p className="mt-1 text-sm text-slate-200">{question.explanation}</p>
+              {correct && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-cyan-300/40 bg-cyan-400/10 px-3 py-1 text-sm font-bold text-cyan-100">
+                    <XPIcon className="h-4 w-4" />
+                    +{Math.ceil(FTUE_TRAINING_REWARD.xp / TRAINING_QUESTIONS.length)} XP
+                  </span>
+                  <span className="inline-flex items-center gap-2 rounded-full border border-amber-300/40 bg-amber-400/10 px-3 py-1 text-sm font-bold text-amber-100">
+                    <CoinIcon className="h-4 w-4" />
+                    +{Math.ceil(FTUE_TRAINING_REWARD.coins / TRAINING_QUESTIONS.length)} coins
+                  </span>
+                </div>
+              )}
+              <p className="mt-3 text-sm text-slate-200">{question.explanation}</p>
               <button
                 type="button"
                 onClick={handleTrainingContinue}
@@ -1588,6 +1616,16 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               </button>
             </div>
           )}
+        </div>
+
+        <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-4 text-cyan-50">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-cyan-200/40 bg-cyan-300/15">◈</div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-200">Byte</p>
+              <p className="mt-1 text-sm font-semibold">{question.byteGuidance}</p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -2184,7 +2222,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       ? missionRunSummary?.score
       : Math.round(missionSummary?.missionScore ?? calculateMissionScore(questionScores));
     const accuracyPercent = isTrainingRun
-      ? Math.round((score.correct / Math.max(1, TRAINING_QUESTIONS.length)) * 100)
+      ? Math.min(100, Math.round((Math.min(score.correct, TRAINING_QUESTIONS.length) / Math.max(1, TRAINING_QUESTIONS.length)) * 100))
       : missionOutcome
       ? (typeof missionRunSummary?.accuracy === 'number' ? Math.round(missionRunSummary.accuracy * 100) : null)
       : missionSummary
@@ -2253,7 +2291,8 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         setTrainingSelectedOption(null);
         setTrainingAnswered(false);
         setTrainingCorrectCount(0);
-            setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
+        setCompletionFinalProfile(null);
+        setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
         setStage('subject_selection');
         loadSubjects();
       } else if (mode === 'assignment' || assignmentContext) {
@@ -2291,6 +2330,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         setTopicSummary(null);
         setQuestionStartTime(null);
         setMissionChestResult(null);
+        setCompletionFinalProfile(null);
         loadSubjects();
       }
     };
@@ -2336,12 +2376,14 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     };
 
     const missionLabel = isTrainingRun ? 'First Signal: Mixed Skills' : selectedMission?.title || launchMission?.title || selectedSubject?.name || assignmentContext?.subject_name || 'Orientation mission';
-    const profileLevel = currentProfile?.xp_status?.level ?? currentProfile?.level ?? completionStartLevel ?? 1;
+    const profileLevel = completionFinalProfile?.xp_status?.level ?? completionFinalProfile?.level ?? currentProfile?.xp_status?.level ?? currentProfile?.level ?? completionStartLevel ?? 1;
+    const completionXpStatus = completionFinalProfile?.xp_status ?? currentProfile?.xp_status ?? null;
 
     return (
       <>
         <MissionCompleteOverlay
           open={showMissionCompleteOverlay && !isAssignmentRun}
+          title={isTrainingRun ? 'Level complete' : undefined}
           missionLabel={missionLabel}
           xpGained={displayedXp}
           coinsGained={displayedCoins}
@@ -2350,7 +2392,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           streakPeak={missionOutcome?.streak_peak ?? soloStreak}
           currentLevel={profileLevel}
           previousLevel={completionStartLevel}
-          xpStatus={currentProfile?.xp_status ?? null}
+          xpStatus={completionXpStatus}
           onSkip={() => {
             setShowMissionCompleteOverlay(false);
             if (isTrainingRun) onComplete();
@@ -2527,16 +2569,17 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               disabled={isAssignmentSubmissionBlocking || !isAssignmentSubmissionResolved}
               onClick={() => {
                 if (isTrainingRun) {
-        setFtueTrainingEligible(false);
-        setMode('practice');
-        setTrainingQuestionIndex(0);
-        setTrainingSelectedOption(null);
-        setTrainingAnswered(false);
-        setTrainingCorrectCount(0);
-            setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
-        setStage('subject_selection');
-        loadSubjects();
-      } else if (mode === 'assignment' || assignmentContext) {
+                  setFtueTrainingEligible(false);
+                  setMode('practice');
+                  setTrainingQuestionIndex(0);
+                  setTrainingSelectedOption(null);
+                  setTrainingAnswered(false);
+                  setTrainingCorrectCount(0);
+                  setCompletionFinalProfile(null);
+                  setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
+                  setStage('subject_selection');
+                  loadSubjects();
+                } else if (mode === 'assignment' || assignmentContext) {
                   setMode('practice');
                   setSelectedSubject(null);
                   setSelectedTopic(null);
