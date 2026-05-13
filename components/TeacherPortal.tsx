@@ -60,6 +60,10 @@ const MAX_QUESTION_XP = 30;
 const getQuestionTopicLabel = (question: TeacherQuestion) => question.topic_name || question.topic || 'General';
 
 const WRITING_TEST_NAMES = ['Cambridge Writing Test 1', 'Cambridge Writing Test 2'];
+const TRAVEL_TOURISM_TEST_NAMES = ['Cambridge Travel & Tourism — Operation Sustainable Tourism'];
+const TEACHER_MARKED_CAMBRIDGE_TEST_NAMES = [...WRITING_TEST_NAMES, ...TRAVEL_TOURISM_TEST_NAMES];
+const isTravelTourismCambridgeTest = (quizName?: string | null) => TRAVEL_TOURISM_TEST_NAMES.includes(quizName || '');
+const isTeacherMarkedCambridgeTest = (quizName?: string | null) => TEACHER_MARKED_CAMBRIDGE_TEST_NAMES.includes(quizName || '');
 const DEFAULT_WRITING_MARK = 3;
 
 const WRITING_TEST_METADATA: Record<string, {
@@ -363,6 +367,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   const [showWritingMarkingModal, setShowWritingMarkingModal] = useState(false);
   const [autoProofreadLoading, setAutoProofreadLoading] = useState(false);
+  const [travelTourismAiSuggestion, setTravelTourismAiSuggestion] = useState<any | null>(null);
+  const [travelTourismMark, setTravelTourismMark] = useState(0);
+  const [travelTourismFeedback, setTravelTourismFeedback] = useState('');
   const [savingMarks, setSavingMarks] = useState(false);
   const [bulkProofreadLoading, setBulkProofreadLoading] = useState(false);
   const [bulkProofreadProgress, setBulkProofreadProgress] = useState({ current: 0, total: 0, currentStudent: '' });
@@ -1201,7 +1208,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const filteredCambridgeScores = useMemo(() => {
     const search = cambridgeSearchTerm.trim().toLowerCase();
     return cambridgeScores.filter(s => {
-      const isWritingTest = WRITING_TEST_NAMES.includes(s.quiz_name);
+      const isWritingTest = isTeacherMarkedCambridgeTest(s.quiz_name);
       const needsMarking = isWritingTest && s.answers?.requires_marking;
       const isReleased = Boolean(s.scores_released);
       const isMarked = !needsMarking;
@@ -1586,6 +1593,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   // Open writing marking modal
   const openWritingMarking = (student: any) => {
     setSelectedCambridgeStudent(student);
+    if (isTravelTourismCambridgeTest(student.quiz_name)) {
+      setTravelTourismMark(student.answers?.marks?.total ?? student.score ?? 0);
+      setTravelTourismFeedback(student.answers?.feedback?.teacher_comment || '');
+      setTravelTourismAiSuggestion(student.answers?.ai_marking_suggestion || null);
+      setShowWritingMarkingModal(true);
+      return;
+    }
     // Reset marks or load existing marks if already marked
     if (student.percentage > 0 && student.answers?.marks) {
       setWritingMarks(student.answers.marks);
@@ -2245,8 +2259,88 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   };
 
   // Auto-proofread writing using GPT-4o-mini
+
+  const autoMarkTravelTourism = async () => {
+    if (!selectedCambridgeStudent) return;
+    setAutoProofreadLoading(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) throw new Error('Not authenticated');
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(`${supabaseUrl}/functions/v1/travel_tourism_marking`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ quiz_score_id: selectedCambridgeStudent.id }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+      const suggestion = await response.json();
+      setTravelTourismAiSuggestion(suggestion);
+      if (typeof suggestion.total_suggested_mark === 'number') {
+        setTravelTourismMark(Math.max(0, Math.min(80, Math.round(suggestion.total_suggested_mark))));
+      }
+      brainsAlert('AI marking suggestion generated. Please review and adjust before saving.', 'success');
+    } catch (error) {
+      console.error('Travel & Tourism AI marking failed:', error);
+      brainsAlert('AI marking failed. Please mark manually.', 'error');
+    } finally {
+      setAutoProofreadLoading(false);
+    }
+  };
+
+  const submitTravelTourismMarks = async (releaseToStudent: boolean = false) => {
+    if (!selectedCambridgeStudent) return;
+    const totalScore = Math.max(0, Math.min(80, Number(travelTourismMark) || 0));
+    const percentage = Math.round((totalScore / 80) * 100);
+    setSavingMarks(true);
+    try {
+      const updatePayload = {
+        score: totalScore,
+        percentage,
+        answers: {
+          ...selectedCambridgeStudent.answers,
+          marks: { total: totalScore, max: 80 },
+          feedback: {
+            ...(selectedCambridgeStudent.answers?.feedback || {}),
+            teacher_comment: travelTourismFeedback,
+            releasedToStudent: releaseToStudent,
+          },
+          ai_marking_suggestion: travelTourismAiSuggestion || selectedCambridgeStudent.answers?.ai_marking_suggestion,
+          marked_by: profile.username,
+          marked_at: new Date().toISOString(),
+          requires_marking: false,
+          teacher_marked: true,
+          marking_status: releaseToStudent ? 'released' : 'marked_pending_release',
+        },
+        scores_released: releaseToStudent,
+      };
+      let markQuery = supabase.from('quiz_scores').update(updatePayload).eq('id', selectedCambridgeStudent.id);
+      if (profile.school_id) markQuery = markQuery.eq('school_id', profile.school_id);
+      const { error } = await markQuery;
+      if (error) throw error;
+      brainsAlert(releaseToStudent ? 'Travel & Tourism marks saved and released.' : 'Travel & Tourism marks saved as draft.', 'success');
+      setShowWritingMarkingModal(false);
+      await loadCambridgeScores();
+    } catch (error) {
+      console.error('Failed to save Travel & Tourism marks:', error);
+      brainsAlert('Unable to save marks.', 'error');
+    } finally {
+      setSavingMarks(false);
+    }
+  };
+
   const autoProofreadWriting = async () => {
     if (!selectedCambridgeStudent) return;
+    if (isTravelTourismCambridgeTest(selectedCambridgeStudent.quiz_name)) {
+      await autoMarkTravelTourism();
+      return;
+    }
     
     const answers = selectedCambridgeStudent.answers || {};
     const part1Text = answers.part1 || '';
@@ -3669,7 +3763,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       ? Math.round((myQuestions.reduce((sum, q) => sum + (q.times_correct || 0), 0) / Math.max(totalResponses, 1)) * 100)
       : 0;
     const pendingWriting = cambridgeScores.filter(
-      (score) => WRITING_TEST_NAMES.includes(score.quiz_name) && score.answers?.requires_marking
+      (score) => isTeacherMarkedCambridgeTest(score.quiz_name) && score.answers?.requires_marking
     ).length;
     const studentsWithoutClass = availableStudents.filter((student) => !student.batch).length;
 
@@ -5859,9 +5953,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
   // Render Cambridge Reports View - Compact with Tabs
   const renderCambridgeReports = () => {
-    const pendingWriting = cambridgeScores.filter(s => WRITING_TEST_NAMES.includes(s.quiz_name) && s.answers?.requires_marking).length;
+    const pendingWriting = cambridgeScores.filter(s => isTeacherMarkedCambridgeTest(s.quiz_name) && s.answers?.requires_marking).length;
     const drawerAttempt = cambridgeDrawerAttempt;
-    const drawerIsWriting = drawerAttempt ? WRITING_TEST_NAMES.includes(drawerAttempt.quiz_name) : false;
+    const drawerIsWriting = drawerAttempt ? isTeacherMarkedCambridgeTest(drawerAttempt.quiz_name) : false;
     const drawerNeedsMarking = drawerIsWriting && drawerAttempt?.answers?.requires_marking;
     const canReleaseDrawerScores = Boolean(drawerAttempt && !drawerNeedsMarking && !drawerAttempt.scores_released);
     const visibleScores = sortedCambridgeScores;
@@ -5869,17 +5963,17 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     const allVisibleSelected = allVisibleIds.length > 0 && allVisibleIds.every((id) => cambridgeSelectedIds.includes(id));
     const selectedScores = visibleScores.filter((score) => cambridgeSelectedIds.includes(score.id));
     const pendingCountForActiveTest = cambridgeActiveTab === 'all'
-      ? cambridgeScores.filter(s => WRITING_TEST_NAMES.includes(s.quiz_name) && s.answers?.requires_marking).length
+      ? cambridgeScores.filter(s => isTeacherMarkedCambridgeTest(s.quiz_name) && s.answers?.requires_marking).length
       : cambridgeScores.filter(s => s.quiz_name === cambridgeActiveTab && s.answers?.requires_marking).length;
     const selectedReleaseIds = selectedScores
       .filter((score) => {
-        const needsMarking = WRITING_TEST_NAMES.includes(score.quiz_name) && score.answers?.requires_marking;
+        const needsMarking = isTeacherMarkedCambridgeTest(score.quiz_name) && score.answers?.requires_marking;
         return !needsMarking && !score.scores_released;
       })
       .map((score) => score.id);
     const releaseMarkedIds = visibleScores
       .filter((score) => {
-        const needsMarking = WRITING_TEST_NAMES.includes(score.quiz_name) && score.answers?.requires_marking;
+        const needsMarking = isTeacherMarkedCambridgeTest(score.quiz_name) && score.answers?.requires_marking;
         return !needsMarking && !score.scores_released;
       })
       .map((score) => score.id);
@@ -6522,7 +6616,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {visibleScores.map((score) => {
-                        const isWritingTest = WRITING_TEST_NAMES.includes(score.quiz_name);
+                        const isWritingTest = isTeacherMarkedCambridgeTest(score.quiz_name);
                         const needsMarking = isWritingTest && score.answers?.requires_marking;
                         const statusLabel = needsMarking ? 'Needs marking' : score.scores_released ? 'Released' : 'Pending';
                         return (
@@ -7480,6 +7574,63 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       {/* Writing Marking Modal */}
       {showWritingMarkingModal && selectedCambridgeStudent && (() => {
         const answers = selectedCambridgeStudent.answers || {};
+        if (isTravelTourismCambridgeTest(selectedCambridgeStudent.quiz_name)) {
+          const percentage = Math.round((Math.max(0, Math.min(80, Number(travelTourismMark) || 0)) / 80) * 100);
+          return createPortal(
+            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4 overflow-y-auto">
+              <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[95vh] overflow-y-auto" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
+                <div className="p-6 border-b-4 border-cyan-600 bg-gradient-to-r from-cyan-50 to-indigo-50 flex justify-between items-start">
+                  <div>
+                    <h1 className="text-2xl font-bold text-cyan-800">Travel & Tourism Marking</h1>
+                    <p className="text-sm text-gray-600">Cambridge 9395 Paper 1 style • Teacher remains final authority</p>
+                  </div>
+                  <button onClick={() => setShowWritingMarkingModal(false)} className="p-2 hover:bg-gray-200 rounded-full text-xl">✕</button>
+                </div>
+                <div className="bg-gray-100 text-black p-5 flex justify-between items-center gap-4">
+                  <div>
+                    <h2 className="text-xl font-bold">{selectedCambridgeStudent.student_name}</h2>
+                    <p className="text-sm opacity-80">Class: {selectedCambridgeStudent.student_class || 'N/A'} | Submitted: {new Date(selectedCambridgeStudent.submitted_at).toLocaleDateString()}</p>
+                  </div>
+                  <button onClick={autoMarkTravelTourism} disabled={autoProofreadLoading} className="px-5 py-3 rounded-xl font-bold bg-gradient-to-r from-cyan-500 to-blue-500 text-white disabled:opacity-60">
+                    {autoProofreadLoading ? 'AI analyzing…' : '🤖 Generate AI marking suggestion'}
+                  </button>
+                  <div className="text-right text-black"><div className="text-3xl font-bold">{travelTourismMark}/80</div><div className="text-lg font-semibold">{percentage}%</div></div>
+                </div>
+                <div className="p-6 space-y-6 text-slate-900">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {Object.entries(answers.responses || {}).map(([questionId, response]) => (
+                      <div key={questionId} className="border border-slate-200 rounded-xl p-4 bg-slate-50">
+                        <h3 className="font-bold text-slate-800 mb-2">Question {questionId}</h3>
+                        <div className="whitespace-pre-wrap text-sm bg-white rounded-lg border p-3">{Array.isArray(response) ? response.filter(Boolean).join('\n\n') : String(response || 'No response submitted')}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {travelTourismAiSuggestion && (
+                    <div className="border-2 border-cyan-200 rounded-xl p-4 bg-cyan-50">
+                      <h3 className="font-bold text-cyan-900 mb-2">AI suggestion: {travelTourismAiSuggestion.total_suggested_mark}/80</h3>
+                      <p className="text-sm text-cyan-900 mb-3">Confidence: {travelTourismAiSuggestion.confidence ?? 'n/a'} • Teacher review required</p>
+                      <div className="max-h-80 overflow-auto space-y-2">
+                        {(travelTourismAiSuggestion.question_results || []).map((item: any) => (
+                          <div key={item.question_id} className="bg-white border rounded-lg p-3 text-sm">
+                            <strong>{item.question_id}: {item.suggested_mark}/{item.max_mark}</strong> — {item.reason}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <label className="block"><span className="font-bold text-sm">Final mark /80</span><input type="number" min={0} max={80} value={travelTourismMark} onChange={(e) => setTravelTourismMark(Number(e.target.value))} className="w-full mt-1 p-3 border rounded-lg text-slate-900" /></label>
+                    <label className="block md:col-span-2"><span className="font-bold text-sm">Teacher feedback / rationale</span><textarea value={travelTourismFeedback} onChange={(e) => setTravelTourismFeedback(e.target.value)} className="w-full mt-1 p-3 border rounded-lg text-slate-900 min-h-28" /></label>
+                  </div>
+                  <div className="flex justify-end gap-3 border-t pt-4">
+                    <button onClick={() => submitTravelTourismMarks(false)} disabled={savingMarks} className="px-5 py-3 rounded-xl font-bold bg-slate-700 text-white">Save draft marks</button>
+                    <button onClick={() => submitTravelTourismMarks(true)} disabled={savingMarks} className="px-5 py-3 rounded-xl font-bold bg-green-600 text-white">Save & release</button>
+                  </div>
+                </div>
+              </div>
+            </div>, document.body
+          );
+        }
         const part1Total = writingMarks.part1.content + writingMarks.part1.organisation + writingMarks.part1.language;
         const part2Total = writingMarks.part2.content + writingMarks.part2.communicativeAchievement + 
                           writingMarks.part2.organisation + writingMarks.part2.language;
