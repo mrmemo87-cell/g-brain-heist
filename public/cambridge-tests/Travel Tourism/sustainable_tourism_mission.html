@@ -40,11 +40,9 @@
   .stimulus { background:#f7f7f7; color:#202020; border:2px solid #555; border-radius:6px; padding:14px; box-shadow:inset 0 0 0 1px #ddd; }
   .stimulus h3 { text-align:center; margin:0 0 12px; font-size:16px; }
   .stimulus p, .stimulus li { font-size:14px; line-height:1.35; }
-  .photo { min-height:270px; border-radius:12px; position:relative; overflow:hidden; background:linear-gradient(135deg,#b9c2cf,#eef1f5); filter:grayscale(1); border:1px solid rgba(255,255,255,.18); }
-  .photo.home:before { content:""; position:absolute; inset:0; background:linear-gradient(90deg, transparent 0 45%, #f4f4f4 45% 100%); }
-  .photo.home:after { content:"Fig. 2.1: Host welcoming guest at home rental"; position:absolute; left:18px; bottom:18px; color:#222; background:rgba(255,255,255,.82); padding:10px 12px; border-radius:10px; font-weight:900; }
-  .photo.agent:before { content:"TIGAKI TOURS  •  EXCURSIONS  •  RENT A CAR  •  BOAT TRIPS"; position:absolute; left:20px; right:20px; top:70px; background:white; color:#151515; padding:14px; border:3px solid #333; font-weight:900; text-align:center; letter-spacing:.04em; }
-  .photo.agent:after { content:"Fig. 4.1: Travel agent in Greece"; position:absolute; left:18px; bottom:18px; color:#222; background:rgba(255,255,255,.82); padding:10px 12px; border-radius:10px; font-weight:900; }
+  .photo { border-radius:12px; overflow:hidden; background:#f7f7f7; border:1px solid rgba(255,255,255,.18); box-shadow:0 14px 34px rgba(0,0,0,.22); }
+  .photo img { display:block; width:100%; height:auto; object-fit:contain; background:#fff; }
+  .photo-caption { margin:0; padding:10px 12px; color:#222; background:rgba(255,255,255,.92); font-size:13px; font-weight:900; }
   .questions { display:grid; gap:12px; }
   .question { background:rgba(255,255,255,.055); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:14px; }
   .question h4 { margin:0 0 8px; color:#dffbff; }
@@ -129,6 +127,10 @@ const SUPABASE_ANON_KEY = window.__SUPABASE_ENV__?.VITE_SUPABASE_ANON_KEY || 'ey
 const SUPABASE_PROJECT_REF = 'sozodkxwhubespiedgxm';
 const QUIZ_ID = 'travel_tourism_sustainable_mission';
 const QUIZ_NAME = 'Cambridge Travel & Tourism — Operation Sustainable Tourism';
+const FIGURE_IMAGES = {
+  home: 'https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/Travel%20&%20Tourism/Fig.%202.1%20for%20Question%202.png',
+  agent: 'https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/Travel%20&%20Tourism/Fig.%204.1%20for%20Question%204.png'
+};
 const TOTAL_MARKS = 80;
 const TEST_DURATION_SECONDS = 90 * 60;
 let startTime = null;
@@ -209,8 +211,8 @@ const operations = [
 function visualMarkup(type) {
   if (type === 'sustainable') return `<div class="stimulus examguard-prompt"><h3>Growth of Sustainable Tourism</h3><p>Recent research has shown <b>94%</b> of tourists consider sustainable options when planning a trip. These tourists are willing to pay more for sustainable travel and tourism products.</p><p>Reducing waste was rated as the highest priority for tourists, with <b>84%</b> of travellers planning to reduce their waste when visiting a destination.</p><p>However, the research has also shown:</p><ul><li><b>37%</b> of tourists do not know how to make their travel choices more sustainable</li><li><b>32%</b> of tourists said that there are not enough sustainable travel options when visiting destinations.</li></ul><p>The trend for more sustainable tourism is expected to grow even more in the future. Tourists will demand more sustainable products from tourism organisations and National Tourism Organisations (NTOs) will need to support this change.</p></div>`;
   if (type === 'expo') return `<div class="stimulus examguard-prompt"><h3>The World Expo</h3><p>The World Expo is an international event where countries from all over the world gather to exhibit their achievements and solutions to global issues. World Expos take place every five years and are hosted in a different country each time.</p><p>World Expo 2020 was scheduled to take place in Dubai in 2020, however due to a global pandemic it was postponed until 2021. The event lasted for 6 months and every country in the world was invited to take part. Tourists could visit in person or virtually.</p><p>After only 3 months of opening the World Expo 2020 had recorded <b>10 million</b> in-person visits and <b>37 million</b> virtual visits.</p><p>Dubai reported an increase in visitors as a direct result of the World Expo.</p></div>`;
-  if (type === 'home') return `<div class="photo home examguard-prompt" aria-label="Fig. 2.1 host welcoming a guest at a home rental"></div>`;
-  return `<div class="photo agent examguard-prompt" aria-label="Fig. 4.1 travel agent in Greece"></div>`;
+  if (type === 'home') return `<figure class="photo examguard-prompt"><img src="${FIGURE_IMAGES.home}" alt="Fig. 2.1, host welcoming a guest at a home rental" loading="lazy" /><figcaption class="photo-caption">Fig. 2.1: Host welcoming guest at home rental</figcaption></figure>`;
+  return `<figure class="photo examguard-prompt"><img src="${FIGURE_IMAGES.agent}" alt="Fig. 4.1, travel agent in Greece" loading="lazy" /><figcaption class="photo-caption">Fig. 4.1: Travel agent in Greece</figcaption></figure>`;
 }
 function render() {
   document.getElementById('operationNav').innerHTML = operations.map((op, i) => `<button class="tab ${i===0?'active':''}" onclick="showOperation('${op.id}')">${op.title}</button>`).join('');
