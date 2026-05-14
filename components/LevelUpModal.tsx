@@ -14,6 +14,10 @@ interface LevelUpModalProps {
 }
 
 const LevelUpModal: React.FC<LevelUpModalProps> = ({ newLevel, rewards, onClose }) => {
+  const coinsReward = rewards.coins ?? 0;
+  const xpReward = rewards.xp ?? 0;
+  const hasVisibleReward = coinsReward > 0 || xpReward > 0 || rewards.ap_refill === true;
+
   React.useEffect(() => {
     audioService.play('tada');
   }, []);
@@ -45,25 +49,30 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ newLevel, rewards, onClose 
         
         <div className="bg-black/40 rounded-xl p-6 mb-6 space-y-3">
           <h3 className="font-heading text-lg" style={{ color: 'var(--ion-blue)' }}>
-            Rewards Earned:
+            {hasVisibleReward ? 'Level-Up Bonus:' : 'Level Milestone:'}
           </h3>
-          {rewards.coins && rewards.coins > 0 && (
+          {coinsReward > 0 && (
             <div className="flex items-center justify-center gap-2 text-lg">
               <span style={{ color: 'var(--amber-warn)' }}>💰</span>
-              <span className="font-bold text-white">+{rewards.coins} Coins</span>
+              <span className="font-bold text-white">+{coinsReward} Coins</span>
             </div>
           )}
-          {rewards.xp && rewards.xp > 0 && (
+          {xpReward > 0 && (
             <div className="flex items-center justify-center gap-2 text-lg">
               <span style={{ color: 'var(--ion-blue)' }}>⭐</span>
-              <span className="font-bold text-white">+{rewards.xp} XP Bonus</span>
+              <span className="font-bold text-white">+{xpReward} XP Bonus</span>
             </div>
           )}
-          {rewards.ap_refill && (
+          {rewards.ap_refill === true && (
             <div className="flex items-center justify-center gap-2 text-lg">
               <span style={{ color: 'var(--plasma-pink)' }}>⚡</span>
               <span className="font-bold text-white">AP Fully Restored!</span>
             </div>
+          )}
+          {!hasVisibleReward && (
+            <p className="text-sm leading-relaxed text-gray-300">
+              Your question rewards were already saved with the mission results. No separate level-up bonus is available right now.
+            </p>
           )}
         </div>
 
