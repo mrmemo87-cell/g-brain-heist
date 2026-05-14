@@ -1,13 +1,52 @@
 import React from 'react';
 import { useSchoolAdmin } from '../SchoolAdminContext';
 
+const CAMBRIDGE_SUBJECT_TEMPLATES = [
+  { name: 'English stage 9', code: 'ENG9', description: 'Stage 7-9 English Cambridge tests' },
+  { name: 'Chemistry', code: 'CHEM', description: 'AS Chemistry Cambridge tests' },
+  { name: 'Biology', code: 'BIO', description: 'AS Biology Cambridge tests' },
+  { name: 'Travel & Tourism', code: 'TRAVEL', description: 'Cambridge 9395 Travel & Tourism tests' },
+];
+
 const SubjectsTab: React.FC = () => {
   const {
-    dbSubjects, editingSubjectCode, editingSubjectId, editingSubjectName, editingSubjectSaving, handleAddSubject, handleCancelEditSubject, handleDeleteSubject, handleSaveEditSubject, handleStartEditSubject, setEditingSubjectCode, setEditingSubjectName, setSubjectCode, setSubjectName, subjectCode, subjectName, subjectSaving, teachers,
+    dbSubjects, editingSubjectCode, editingSubjectId, editingSubjectName, editingSubjectSaving, handleAddSubject, handleAddSubjectTemplate, handleCancelEditSubject, handleDeleteSubject, handleSaveEditSubject, handleStartEditSubject, setEditingSubjectCode, setEditingSubjectName, setSubjectCode, setSubjectName, subjectCode, subjectName, subjectSaving, subjectTemplateSaving,
   } = useSchoolAdmin();
+
+  const existingSubjectNames = new Set(dbSubjects.map((subject: { name: string }) => subject.name.toLowerCase()));
 
   return (
     <div className="space-y-6">
+      {/* Cambridge Subject Templates */}
+      <div className="bg-cyan-950/30 rounded-xl p-6 border border-cyan-700/50">
+        <div className="flex flex-col gap-2 mb-4">
+          <h3 className="text-lg font-semibold text-cyan-100">Cambridge subject templates</h3>
+          <p className="text-sm text-cyan-200/80">
+            Add official Cambridge subjects to this school so they appear in the teacher assignment subject dropdown. Use the Travel & Tourism template for the new 9395 test.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+          {CAMBRIDGE_SUBJECT_TEMPLATES.map((template) => {
+            const alreadyAdded = existingSubjectNames.has(template.name.toLowerCase());
+            const isSaving = subjectTemplateSaving === template.name;
+            return (
+              <div key={template.name} className="rounded-lg border border-cyan-800/70 bg-gray-900/70 p-4">
+                <div className="text-sm font-bold text-white">{template.name}</div>
+                <div className="mt-1 text-xs text-cyan-200/70">{template.description}</div>
+                <div className="mt-2 text-xs text-gray-400">Code: {template.code}</div>
+                <button
+                  onClick={() => handleAddSubjectTemplate(template.name, template.code)}
+                  disabled={alreadyAdded || isSaving}
+                  className="mt-3 w-full px-3 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed rounded-lg transition-colors text-sm font-medium"
+                >
+                  {alreadyAdded ? 'Already added' : isSaving ? 'Adding...' : 'Add template'}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Add Subject Form */}
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
         <h3 className="text-lg font-semibold mb-4">Add New Subject</h3>
