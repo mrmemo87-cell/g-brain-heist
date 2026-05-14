@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import gsap from 'gsap';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
 import { useGSAP } from '@gsap/react';
-import { RaidTarget, RaidAttackResult, Profile, XpStatus } from '../types';
+import { RaidTarget, RaidAttackResult, Profile, XpStatus, ClanMember } from '../types';
 import * as GameService from '../services/gameService';
 import { supabase } from '../services/supabaseClient';
 import { audioService } from '../services/audioService';
@@ -11,7 +11,6 @@ import { ShieldIcon, HackIcon, CoinIcon, XPIcon, GemIcon, BattleIcon, TrophyIcon
 import { createPortal } from 'react-dom';
 import AvatarWithFrame from './AvatarWithFrame';
 import { isFlickerThemeActive } from '../src/lib/cosmetics';
-import { fetchNeonFrameOwners, fetchFlickerThemeOwners, fetchGlitchEffectOwners } from '../services/cosmeticService';
 import { tryConsumePilotQuota } from '../services/tierService';
 import ClickableUsername from './ClickableUsername';
 import BrainsMasterBadge from './BrainsMasterBadge';
@@ -141,14 +140,15 @@ const TargetCard: React.FC<{ target: RaidTarget, onSelect: (target: RaidTarget) 
 };
 
 
-interface ClanMember {
-  user_id: string;
-  username: string;
-  role: string;
-  avatar_url?: string;
-  active_cosmetic_frame?: 'neon' | null;
-  active_cosmetic_theme?: 'flicker' | 'glitch' | null;
+interface ClanRosterModalState {
+  clanId: string;
+  clanName: string;
+  notice?: string;
+  members: ClanMember[];
+  loading: boolean;
+  error?: string | null;
 }
+
 
 type TargetFilter = 'all' | 'nearby' | 'easy' | 'challenge' | 'rivals';
 
@@ -165,7 +165,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, focusTargetUserId, onComplet
   const [visibleNarrations, setVisibleNarrations] = useState<number>(0);
   const [breachPhase, setBreachPhase] = useState<BreachPhase>('lockon');
   const [breachOutcomeText, setBreachOutcomeText] = useState('EXECUTING...');
-  const [clanModal, setClanModal] = useState<{ clanId: string; clanName: string; members: ClanMember[]; loading: boolean } | null>(null);
+  const [clanModal, setClanModal] = useState<ClanRosterModalState | null>(null);
   const [filterTab, setFilterTab] = useState<TargetFilter>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -308,44 +308,34 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, focusTargetUserId, onComplet
   );
 
   const openClanMembers = async (clanId: string, clanName: string) => {
-    setClanModal({ clanId, clanName, members: [], loading: true });
+    setClanModal({ clanId, clanName, members: [], loading: true, error: null });
     
     try {
-      const { data, error } = await supabase
-        .from('clan_members')
-        .select(`
-          user_id,
-          role,
-          users!inner (
-            username,
-            avatar_url
-          )
-        `)
-        .eq('clan_id', clanId);
+      const [{ data: clanRow, error: clanError }, members] = await Promise.all([
+        supabase
+          .from('clans')
+          .select('notice')
+          .eq('id', clanId)
+          .maybeSingle(),
+        GameService.clan_get_members_by_id(clanId),
+      ]);
 
-      if (error) throw error;
+      if (clanError) {
+        console.warn('Failed to load clan bio:', clanError);
+      }
 
-      const members: ClanMember[] = (data || []).map((m: any) => ({
-        user_id: m.user_id,
-        username: m.users?.username || 'Unknown',
-        role: m.role || 'member',
-        avatar_url: m.users?.avatar_url,
-      }));
-
-      const neonOwners = await fetchNeonFrameOwners(members.map(member => member.user_id));
-      const flickerOwners = await fetchFlickerThemeOwners(members.map(member => member.user_id));
-      const glitchOwners = await fetchGlitchEffectOwners(members.map(member => member.user_id));
-      const membersWithCosmetics = members.map(member => ({
-        ...member,
-        active_cosmetic_frame: neonOwners.has(member.user_id) ? 'neon' : null,
-        active_cosmetic_theme: flickerOwners.has(member.user_id) ? 'flicker' : null,
-        active_cosmetic_effect: glitchOwners.has(member.user_id) ? 'glitch' : null,
-      }));
-
-      setClanModal({ clanId, clanName, members: membersWithCosmetics, loading: false });
-    } catch (err) {
+      setClanModal({
+        clanId,
+        clanName,
+        notice: typeof clanRow?.notice === 'string' ? clanRow.notice : undefined,
+        members,
+        loading: false,
+        error: null,
+      });
+    } catch (err: any) {
+      const message = err?.message || 'Failed to load clan members.';
       console.error('Failed to load clan members:', err);
-      setClanModal(null);
+      setClanModal({ clanId, clanName, members: [], loading: false, error: message });
     }
   };
 
@@ -944,56 +934,58 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, focusTargetUserId, onComplet
       
       {/* Clan Members Modal */}
       {clanModal && (
-        <div 
-          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+        <div
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50"
           onClick={() => setClanModal(null)}
         >
-          <div 
-            className="card-glass max-w-md w-full max-h-[80vh] overflow-y-auto"
+          <div
+            className="card-glass w-full max-w-lg m-4 p-6 border-2 border-amber-400"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-heading text-2xl text-amber-300">⚔️ {clanModal.clanName}</h3>
-                <button 
-                  onClick={() => setClanModal(null)}
-                  className="text-gray-400 hover:text-white text-2xl"
-                >
-                  ×
-                </button>
-              </div>
-              
-              {clanModal.loading ? (
-                <p className="text-center text-gray-300 py-4">Loading members...</p>
-              ) : (
-                <div className="space-y-2">
-                  {clanModal.members.map((member) => (
-                    <div key={member.user_id} className="flex items-center gap-3 p-3 bg-black/20 rounded-lg">
+            <h2 className="font-heading text-2xl text-center mb-2 text-amber-300">{`Members of ${clanModal.clanName}`}</h2>
+            {clanModal.notice && <p className="text-center text-gray-300 mb-3">{clanModal.notice}</p>}
+            {clanModal.loading ? (
+              <p className="text-center text-gray-300 py-6">Loading roster...</p>
+            ) : clanModal.error ? (
+              <p className="text-center text-danger-red py-6">{clanModal.error}</p>
+            ) : clanModal.members.length === 0 ? (
+              <p className="text-center text-gray-300 py-6">No agents enlisted yet.</p>
+            ) : (
+              <ul className="space-y-3 max-h-80 overflow-y-auto mt-4">
+                {clanModal.members.map(member => (
+                  <li key={member.user_id} className="flex items-start justify-between bg-black/20 p-3 rounded-lg">
+                    <div className="flex items-start space-x-3">
                       <AvatarWithFrame
-                        src={member.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${member.username}`}
+                        src={member.avatar_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${member.username}`}
                         alt={member.username}
                         size="md"
                         hasNeonFrame={member.active_cosmetic_frame === 'neon'}
                         hasFlickerTheme={isFlickerThemeActive(member.active_cosmetic_theme)}
                         hasGlitchEffect={member.active_cosmetic_effect === 'glitch'}
-                        fallbackFrameClassName="border-2 border-gray-600"
                       />
-                      <div className="flex-1">
-                        <p className="font-semibold text-white">
+                      <div>
+                        <p className="font-semibold text-white flex items-center gap-2">
                           <ClickableUsername userId={member.user_id} username={member.username}>
                             {member.username}
                           </ClickableUsername>
+                          <BrainsMasterBadge showBadge={member.brains_master_show_badge} until={member.brains_master_until} />
+                          {member.custom_title && <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/10 text-amber-200">{member.custom_title}</span>}
                         </p>
                         <p className="text-xs text-gray-400 capitalize">{member.role}</p>
+                        {member.bio && <p className="text-[11px] text-gray-500 mt-1 line-clamp-2">{member.bio}</p>}
                       </div>
                     </div>
-                  ))}
-                  {clanModal.members.length === 0 && (
-                    <p className="text-center text-gray-400 py-4">No members found</p>
-                  )}
-                </div>
-              )}
-            </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-cyan-300">{(member.total_score ?? member.contribution ?? 0).toLocaleString()} pts</p>
+                      <p className="text-xs text-gray-400">XP {(member.xp ?? 0).toLocaleString()} • PvP {member.pvp_score ?? 0}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <button onClick={() => setClanModal(null)} className="w-full mt-6 font-heading py-3 rounded-xl bg-gray-600/50 hover:bg-gray-500/50 border border-gray-500">
+              Close
+            </button>
           </div>
         </div>
       )}
