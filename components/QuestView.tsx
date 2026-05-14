@@ -57,14 +57,17 @@ const getOptionText = (option: string | QuestionOption): string => {
   return option.text;
 };
 
-const normalizeQuestionBankSubject = (subject?: string): string => {
-  if (!subject) return 'General';
-  const normalized = subject.trim().toLowerCase();
-  if (['math', 'mathematics', 'maths'].includes(normalized)) return 'Math';
-  return subject.trim();
+const MATH_SUBJECT_ALIASES = new Set(['math', 'maths', 'mathematics']);
+
+const canonicalSubjectLabel = (subject?: string | null, fallback = 'General'): string => {
+  const trimmed = subject?.trim();
+  if (!trimmed) return fallback;
+  return MATH_SUBJECT_ALIASES.has(trimmed.toLowerCase()) ? 'Mathematics' : trimmed;
 };
 
-const normalizeMissionSubject = (subject?: string): string => subject?.trim().toLowerCase() ?? '';
+const normalizeQuestionBankSubject = (subject?: string): string => canonicalSubjectLabel(subject);
+
+const normalizeMissionSubject = (subject?: string | null): string => canonicalSubjectLabel(subject, '').toLowerCase();
 
 // Resolve Supabase storage-relative URLs to fully qualified public URLs
 const resolveQuestionImageUrl = (url?: string | null): string | undefined => {
@@ -308,7 +311,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         if (cancelled) return;
         const missions: QuestMission[] = rows.map(r => ({
           id: r.id,
-          subject: r.subject,
+          subject: canonicalSubjectLabel(r.subject, 'Training Zone'),
           code: r.code,
           title: r.title,
           description: r.description,
@@ -353,7 +356,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   }, [ftueTrainingEligible, loadMissions]);
 
   useEffect(() => {
-    const zones = Array.from(new Set(availableMissions.map((mission) => mission.subject || 'Training Zone')));
+    const zones = Array.from(new Set(availableMissions.map((mission) => canonicalSubjectLabel(mission.subject, 'Training Zone'))));
     if (!zones.length) {
       setSelectedMissionZone(null);
       return;
@@ -368,7 +371,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     const mission = availableMissions.find((candidate) => candidate.id === openMissionId);
     if (mission) {
       setSelectedMission(mission);
-      setSelectedMissionZone(mission.subject || 'Training Zone');
+      setSelectedMissionZone(canonicalSubjectLabel(mission.subject, 'Training Zone'));
       setStage('mission_preview');
     } else if (availableMissions.length > 0) {
       brainsAlert('That mission is no longer available. Please pick another mission card.', 'info');
@@ -1750,7 +1753,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         }
         if (availableMissions.length === 0) return null;
         const groupedMissions = availableMissions.reduce<Record<string, typeof availableMissions>>((acc, mission) => {
-          const zone = mission.subject || 'Training Zone';
+          const zone = canonicalSubjectLabel(mission.subject, 'Training Zone');
           if (!acc[zone]) acc[zone] = [];
           acc[zone].push(mission);
           return acc;
