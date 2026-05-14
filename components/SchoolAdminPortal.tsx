@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ToastMessage } from '../types';
 import * as SchoolAdminService from '../services/schoolAdminService';
 import { supabase } from '../services/supabaseClient';
@@ -80,6 +80,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
   const [subjectName, setSubjectName] = useState('');
   const [subjectCode, setSubjectCode] = useState('');
   const [subjectSaving, setSubjectSaving] = useState(false);
+  const [subjectTemplateSaving, setSubjectTemplateSaving] = useState<string | null>(null);
   const [editingSubjectId, setEditingSubjectId] = useState<string | null>(null);
   const [editingSubjectName, setEditingSubjectName] = useState('');
   const [editingSubjectCode, setEditingSubjectCode] = useState('');
@@ -853,29 +854,43 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
   // Subject Management Handlers (DB-Driven)
   // ============================================
 
-  const handleAddSubject = async () => {
-    if (!school || !subjectName.trim()) {
+  const createSubject = async (name: string, code?: string) => {
+    if (!school || !name.trim()) {
       addToast('Subject name is required', 'error');
-      return;
+      return false;
     }
 
-    setSubjectSaving(true);
     const result = await SchoolAdminService.createSchoolSubject(
       school.id,
-      subjectName,
-      subjectCode || undefined
+      name.trim(),
+      code?.trim() || undefined
     );
-    setSubjectSaving(false);
 
     if (!result.success) {
       addToast(result.error || 'Failed to create subject', 'error');
-      return;
+      return false;
     }
 
-    addToast(`Subject "${subjectName}" created successfully`, 'success');
-    setSubjectName('');
-    setSubjectCode('');
+    addToast(`Subject "${name.trim()}" created successfully`, 'success');
     await loadAdminTools(school.id);
+    return true;
+  };
+
+  const handleAddSubject = async () => {
+    setSubjectSaving(true);
+    const created = await createSubject(subjectName, subjectCode);
+    setSubjectSaving(false);
+
+    if (created) {
+      setSubjectName('');
+      setSubjectCode('');
+    }
+  };
+
+  const handleAddSubjectTemplate = async (name: string, code?: string) => {
+    setSubjectTemplateSaving(name);
+    await createSubject(name, code);
+    setSubjectTemplateSaving(null);
   };
 
   const handleDeleteSubject = async (subjectId: string, subjectName: string) => {
@@ -1206,6 +1221,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       formatRelativeTime,
       getRoleBadgeColor,
       handleAddSubject,
+      handleAddSubjectTemplate,
       handleAssignTeacher,
       handleBanMember,
       handleBulkMemberAction,
@@ -1327,6 +1343,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       subjectCode,
       subjectName,
       subjectSaving,
+      subjectTemplateSaving,
       suspendDuration,
       suspendLoading,
       suspendReason,
