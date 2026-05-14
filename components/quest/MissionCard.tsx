@@ -28,6 +28,16 @@ const CHEST_TIER_BADGE: Record<string, { icon: string; label: string; color: str
 
 type SubjectBadge = { type: 'emoji'; value: string } | { type: 'image'; src: string; alt: string };
 
+const formatCompactCount = (value?: number | null): string => {
+  const count = Math.max(0, Math.floor(Number(value) || 0));
+  if (count < 1000) return count.toString();
+  if (count < 10000) {
+    const compact = (count / 1000).toFixed(1).replace(/\.0$/, '');
+    return `${compact}k`;
+  }
+  return `${Math.round(count / 1000)}k`;
+};
+
 const SUBJECT_BADGE: Record<string, SubjectBadge> = {
   Geography: { type: 'emoji', value: '🌍' },
   Science: { type: 'emoji', value: '🔬' },
@@ -64,7 +74,11 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
       : 'from-cyan-500/15 via-blue-900/35 to-slate-950';
   const objectiveText = mission.description?.trim() || 'Clear the route, keep your streak alive, and claim the final chest.';
   const ctaLabel = hasActiveRun ? '▶ Continue Mission' : '🚀 Start Mission';
-  const questionNodes = mission.route_template.filter((node) => node.type === 'question' || node.type === 'elite_question').length;
+  const questionNodes = mission.route_question_count && mission.route_question_count > 0
+    ? mission.route_question_count
+    : mission.route_template.filter((node) => node.type === 'question' || node.type === 'elite_question').length;
+  const viewCount = formatCompactCount(mission.play_count);
+  const answeredCount = formatCompactCount(mission.questions_answered_count);
   const rewardLabel = bestRun ? `${bestRun.rewards_xp} XP Best` : 'Final Chest Reward';
   const displayTitle = formatMissionTitleForDisplay(mission.title);
 
@@ -197,11 +211,15 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
       } focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70`}
     >
       <div className={`relative min-h-[24rem] bg-gradient-to-br ${cardTone}`}>
-        <img
-          src="/visuals/QUESTCARDMAINFRAME.svg"
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover opacity-90 pointer-events-none select-none"
-          loading="lazy"
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 pointer-events-none select-none opacity-90"
+          style={{
+            background:
+              'linear-gradient(135deg, rgba(34,211,238,0.22), transparent 18%, transparent 82%, rgba(251,146,60,0.2)), linear-gradient(45deg, rgba(14,165,233,0.12), transparent 45%, rgba(15,23,42,0.35))',
+            boxShadow:
+              'inset 0 0 0 2px rgba(34,211,238,0.22), inset 0 0 0 8px rgba(15,23,42,0.55), inset 0 0 36px rgba(8,145,178,0.28)',
+          }}
         />
         <div
           className="absolute inset-3 border border-cyan-300/20 rounded-xl pointer-events-none"
@@ -263,9 +281,15 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
               >
                 {displayTitle}
               </h3>
-              <p className="text-[0.7rem] uppercase tracking-[0.2em] text-amber-300/95 font-semibold">
-                Temporal Grammar Mission
-              </p>
+              <div className="flex flex-wrap items-center justify-center gap-1.5 text-[0.64rem] uppercase tracking-[0.16em] font-semibold">
+                <span className="text-amber-300/95">Temporal Grammar Mission</span>
+                <span
+                  className="rounded-full border border-cyan-300/35 bg-slate-950/70 px-2 py-0.5 text-cyan-100 tracking-[0.08em]"
+                  title="Answerable question nodes inside this mission route"
+                >
+                  ❔ {questionNodes} Qs
+                </span>
+              </div>
             </div>
             <div className="relative h-40 w-40 flex items-center justify-center">
               <div ref={coreRingRef} className="absolute inset-0 rounded-full border border-cyan-300/45 border-dashed" />
@@ -315,9 +339,15 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
             >
                 {ctaLabel}
             </div>
-            <p className="hidden sm:block text-center text-[11px] text-slate-300/90">
-              {bestRun?.perfect_run ? 'Perfect run on record. Can you repeat it?' : 'Temporal instability detected in this zone.'}
-            </p>
+            <div
+              className="flex items-center justify-between gap-2 text-[12px] font-semibold text-slate-300/90"
+              title="Global mission views include Quest runs plus assignment/task trials that use this mission's questions. Answers count all logged question attempts for those questions."
+            >
+              <span className="inline-flex items-center gap-1 rounded-md bg-slate-950/55 px-2 py-1 text-slate-200/95">
+                ▶ {viewCount} views
+              </span>
+              <span className="text-slate-400">{answeredCount} answers</span>
+            </div>
           </div>
         </div>
       </div>

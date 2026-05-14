@@ -323,6 +323,9 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           sort_order: r.sort_order,
           best_run: r.best_run,
           active_run_id: r.active_run_id,
+          play_count: typeof r.play_count === 'number' ? r.play_count : Number(r.play_count ?? 0),
+          questions_answered_count: typeof r.questions_answered_count === 'number' ? r.questions_answered_count : Number(r.questions_answered_count ?? 0),
+          route_question_count: typeof r.route_question_count === 'number' ? r.route_question_count : Number(r.route_question_count ?? 0),
         }));
         setAvailableMissions(missions);
       })
