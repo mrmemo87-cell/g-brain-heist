@@ -1217,6 +1217,9 @@ export interface QuestMission {
   created_by?: string | null;
   best_run?: { chest_tier: string; perfect_run: boolean; rewards_xp: number; completed_at: string } | null;
   active_run_id?: string | null;
+  play_count?: number;
+  questions_answered_count?: number;
+  route_question_count?: number;
 }
 
 export interface QuestRunState {
