@@ -441,6 +441,34 @@ const KYRGYZ_PERSONA_LOOKUP = new Map<string, KyrgyzBotPersona>(
     KYRGYZ_BOT_PERSONAS.map(persona => [getPersonaBotId(persona), persona])
 );
 
+const KYRGYZ_BOT_USERNAMES = new Set<string>(
+    KYRGYZ_BOT_PERSONAS.map(persona => `${persona.firstName} ${persona.lastName}`.toLowerCase())
+);
+
+const isKyrgyzBotId = (value?: string | null): boolean => {
+    if (!value) return false;
+    return value.startsWith('bot_') && KYRGYZ_PERSONA_LOOKUP.has(value);
+};
+
+const isKyrgyzBotUsername = (value?: string | null): boolean => {
+    if (!value) return false;
+    return KYRGYZ_BOT_USERNAMES.has(value.trim().toLowerCase());
+};
+
+const isBotActivityEvent = (activity: any): boolean => {
+    const data = activity?.data || {};
+
+    return (
+        activity?.actor_role === 'bot' ||
+        data?.is_bot === true ||
+        data?.bot === true ||
+        isKyrgyzBotId(activity?.actor_id || activity?.actorId) ||
+        isKyrgyzBotId(activity?.target_id || activity?.targetId) ||
+        isKyrgyzBotUsername(activity?.actor_username || activity?.actor) ||
+        isKyrgyzBotUsername(activity?.target_username || activity?.target || data?.target_username || data?.defender_username)
+    );
+};
+
 type KyrgyzBotState = {
     id: string;
     personaId: string;
@@ -2377,9 +2405,6 @@ export const caps_status = async (): Promise<Caps> => {
 export const news_feed = async (): Promise<NewsEvent[]> => {
     const user = await getCurrentUser();
 
-    // Let bots generate background activity before fetching
-    simulateKyrgyzBotBackgroundActivity();
-
     // Use school-scoped RPC to enforce tenant isolation (only see activities from same school)
     const { data: activities, error } = await supabase.rpc('get_school_activity_feed', { p_limit: 30 });
 
@@ -2387,8 +2412,10 @@ export const news_feed = async (): Promise<NewsEvent[]> => {
         console.error('Error fetching activities:', error);
     }
 
-    // RPC already filters out teacher activities
-    const studentActivities = (activities || []).slice(0, 20);
+    // RPC already filters out teacher activities; remove bot-created activity before rendering.
+    const studentActivities = (activities || [])
+        .filter((activity: any) => !isBotActivityEvent(activity))
+        .slice(0, 20);
     const missingUserIds = new Set<string>();
 
     studentActivities.forEach((activity: any) => {
@@ -2467,31 +2494,31 @@ export const news_feed = async (): Promise<NewsEvent[]> => {
     });
 
     const localFeed = getActivityFeed();
-    const localEvents: TimedNewsEvent[] = (localFeed || []).map(event => {
-        const createdAt = event.created_at ? new Date(event.created_at) : new Date();
-        const baseReactions = { '🔥': 0, '😮': 0, '😂': 0, '❤️': 0 };
-        const mergedReactions = { ...baseReactions, ...(event.reactions || {}) };
+    const localEvents: TimedNewsEvent[] = (localFeed || [])
+        .filter(event => !isBotActivityEvent(event))
+        .map(event => {
+            const createdAt = event.created_at ? new Date(event.created_at) : new Date();
+            const baseReactions = { '🔥': 0, '😮': 0, '😂': 0, '❤️': 0 };
+            const mergedReactions = { ...baseReactions, ...(event.reactions || {}) };
 
-        return {
-            id: event.id,
-            kind: event.kind,
-            actor: event.actor,
-            target: event.target,
-            data: event.data || {},
-            created_at: getTimeAgo(createdAt),
-            reactions: mergedReactions,
-            my_reaction: event.my_reaction || null,
-            timestamp: createdAt.getTime(),
-        } as TimedNewsEvent;
-    });
+            return {
+                id: event.id,
+                kind: event.kind,
+                actor: event.actor,
+                target: event.target,
+                data: event.data || {},
+                created_at: getTimeAgo(createdAt),
+                reactions: mergedReactions,
+                my_reaction: event.my_reaction || null,
+                timestamp: createdAt.getTime(),
+            } as TimedNewsEvent;
+        });
 
     const combined = [...localEvents, ...dbEvents]
         .sort((a, b) => b.timestamp - a.timestamp)
         .slice(0, 20);
 
-    const withBotReactions = applyKyrgyzBotReactions(combined);
-
-    return mockApiCall(withBotReactions.map(({ timestamp, ...event }): NewsEvent => event));
+    return mockApiCall(combined.map(({ timestamp, ...event }): NewsEvent => event));
 };
 
 // Helper function to format time ago
