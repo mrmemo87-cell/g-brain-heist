@@ -2586,6 +2586,7 @@ export const activity_reaction_toggle = async (activity_id: string, emoji: strin
 };
 
 const SUBJECT_ID_BY_NAME: Record<string, string> = {
+    Math: 'subj_math',
     Maths: 'subj_math',
     Mathematics: 'subj_math',
     Science: 'subj_science',
@@ -2602,8 +2603,8 @@ const SUBJECT_ID_BY_NAME: Record<string, string> = {
 
 const SUBJECT_NAME_BY_ID: Record<string, string> = {
     subj_science: 'Science',
-    subj_math: 'Maths',
-    subj_mathematics: 'Maths',
+    subj_math: 'Mathematics',
+    subj_mathematics: 'Mathematics',
     subj_english: 'English',
     subj_russian_language: 'Russian Language',
     subj_russian_literature: 'Russian Language',
@@ -2625,7 +2626,7 @@ export const mcq_subjects_list = (): Promise<SubjectData[]> => {
         // Science
         { id: 'subj_science', name: 'Science', difficulty: 3 },
         
-        // Mathematics
+        // Cambridge Mathematics
         { id: 'subj_math', name: 'Mathematics', difficulty: 4 },
         
         // English
