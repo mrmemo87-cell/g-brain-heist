@@ -72,7 +72,6 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
     : bestRun?.perfect_run
       ? 'from-yellow-500/20 via-cyan-900/40 to-slate-950'
       : 'from-cyan-500/15 via-blue-900/35 to-slate-950';
-  const objectiveText = mission.description?.trim() || 'Clear the route, keep your streak alive, and claim the final chest.';
   const ctaLabel = hasActiveRun ? '▶ Continue Mission' : '🚀 Start Mission';
   const questionNodes = mission.route_question_count && mission.route_question_count > 0
     ? mission.route_question_count
@@ -308,12 +307,6 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
               )}
             </div>
             </div>
-            <span className="px-3 py-1 rounded-full border border-cyan-400/25 bg-cyan-950/40 text-[10px] uppercase tracking-[0.2em] text-cyan-100/90">
-              Mission Objective
-            </span>
-            <p className="max-w-[88%] text-center text-sm text-slate-200/90 line-clamp-2 min-h-[2.5rem]">
-              {objectiveText}
-            </p>
           </div>
 
           <div className="space-y-2 sm:space-y-3">
@@ -340,13 +333,12 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
                 {ctaLabel}
             </div>
             <div
-              className="flex items-center justify-between gap-2 text-[12px] font-semibold text-slate-300/90"
+              className="flex items-center gap-2 text-[12px] font-semibold text-slate-300/90"
               title="Global mission views include Quest runs plus assignment/task trials that use this mission's questions. Answers count all logged question attempts for those questions."
             >
               <span className="inline-flex items-center gap-1 rounded-md bg-slate-950/55 px-2 py-1 text-slate-200/95">
-                ▶ {viewCount} views
+                ▶ {viewCount} views · {answeredCount} answers
               </span>
-              <span className="text-slate-400">{answeredCount} answers</span>
             </div>
           </div>
         </div>
