@@ -1,6 +1,6 @@
--- Add per-player mission counters to the Quest Mode mission list.
--- play_count: how many runs the signed-in player has started for a mission.
--- questions_answered_count: how many question/elite nodes the player has answered for that mission.
+-- Add global mission counters to the Quest Mode mission list.
+-- play_count: global mission views, including Quest runs plus assignment/task trials that use this mission's questions.
+-- questions_answered_count: global answers for this mission, including Quest answers plus task/assignment question attempts.
 -- route_question_count: how many answerable nodes exist in the mission template.
 
 CREATE OR REPLACE FUNCTION public.rpc_quest_get_missions(
@@ -61,18 +61,75 @@ BEGIN
   ) INTO v_result
   FROM quest_missions m
   LEFT JOIN LATERAL (
-    SELECT COUNT(*)::INT AS route_question_count
+    SELECT
+      COUNT(*)::INT AS route_question_count,
+      ARRAY_REMOVE(ARRAY_AGG(CASE WHEN NULLIF(node->>'question_id', '') IS NOT NULL THEN (node->>'question_id')::UUID END), NULL) AS question_ids
     FROM jsonb_array_elements(COALESCE(m.route_template, '[]'::jsonb)) AS node
     WHERE node->>'type' IN ('question', 'elite_question')
   ) AS route_stats ON TRUE
   LEFT JOIN LATERAL (
+    WITH quest_run_totals AS (
+      SELECT COUNT(DISTINCT r.id)::INT AS total
+      FROM quest_runs r
+      WHERE r.mission_id = m.id
+    ),
+    assignment_trial_totals AS (
+      SELECT COUNT(*)::INT AS total
+      FROM (
+        SELECT saa.assignment_id, saa.student_id
+        FROM student_assignment_answers saa
+        WHERE route_stats.question_ids IS NOT NULL
+          AND saa.question_id = ANY(route_stats.question_ids)
+
+        UNION
+
+        SELECT sar.assignment_id, sar.student_id
+        FROM student_assignment_results sar
+        JOIN assignment_questions aq ON aq.assignment_id = sar.assignment_id
+        WHERE route_stats.question_ids IS NOT NULL
+          AND aq.question_id = ANY(route_stats.question_ids)
+      ) assignment_trials
+    ),
+    pinned_question_attempt_totals AS (
+      SELECT COUNT(*)::INT AS total
+      FROM question_attempts qa
+      WHERE route_stats.question_ids IS NOT NULL
+        AND qa.question_id = ANY(route_stats.question_ids)
+    ),
+    legacy_assignment_answer_totals AS (
+      SELECT COUNT(*)::INT AS total
+      FROM student_assignment_answers saa
+      WHERE route_stats.question_ids IS NOT NULL
+        AND saa.question_id = ANY(route_stats.question_ids)
+        AND NOT EXISTS (
+          SELECT 1
+          FROM question_attempts qa
+          WHERE qa.student_id = saa.student_id
+            AND qa.question_id = saa.question_id
+        )
+    ),
+    unpinned_quest_answer_totals AS (
+      SELECT COUNT(n.id)::INT AS total
+      FROM quest_runs r
+      JOIN quest_run_nodes n ON n.run_id = r.id
+      WHERE r.mission_id = m.id
+        AND n.node_type IN ('question', 'elite_question')
+        AND (
+          route_stats.question_ids IS NULL
+          OR n.question_id IS NULL
+          OR NOT (n.question_id = ANY(route_stats.question_ids))
+        )
+    )
     SELECT
-      COUNT(DISTINCT r.id)::INT AS play_count,
-      COUNT(n.id) FILTER (WHERE n.node_type IN ('question', 'elite_question'))::INT AS questions_answered_count
-    FROM quest_runs r
-    LEFT JOIN quest_run_nodes n ON n.run_id = r.id
-    WHERE r.user_id = v_user_id
-      AND r.mission_id = m.id
+      (
+        COALESCE((SELECT total FROM quest_run_totals), 0)
+        + COALESCE((SELECT total FROM assignment_trial_totals), 0)
+      )::INT AS play_count,
+      (
+        COALESCE((SELECT total FROM pinned_question_attempt_totals), 0)
+        + COALESCE((SELECT total FROM legacy_assignment_answer_totals), 0)
+        + COALESCE((SELECT total FROM unpinned_quest_answer_totals), 0)
+      )::INT AS questions_answered_count
   ) AS run_stats ON TRUE
   WHERE m.is_active = true
     AND (p_subject IS NULL OR m.subject = p_subject);

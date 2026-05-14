@@ -28,6 +28,16 @@ const CHEST_TIER_BADGE: Record<string, { icon: string; label: string; color: str
 
 type SubjectBadge = { type: 'emoji'; value: string } | { type: 'image'; src: string; alt: string };
 
+const formatCompactCount = (value?: number | null): string => {
+  const count = Math.max(0, Math.floor(Number(value) || 0));
+  if (count < 1000) return count.toString();
+  if (count < 10000) {
+    const compact = (count / 1000).toFixed(1).replace(/\.0$/, '');
+    return `${compact}k`;
+  }
+  return `${Math.round(count / 1000)}k`;
+};
+
 const SUBJECT_BADGE: Record<string, SubjectBadge> = {
   Geography: { type: 'emoji', value: '🌍' },
   Science: { type: 'emoji', value: '🔬' },
@@ -67,8 +77,8 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
   const questionNodes = mission.route_question_count && mission.route_question_count > 0
     ? mission.route_question_count
     : mission.route_template.filter((node) => node.type === 'question' || node.type === 'elite_question').length;
-  const playCount = mission.play_count ?? 0;
-  const answeredCount = mission.questions_answered_count ?? 0;
+  const viewCount = formatCompactCount(mission.play_count);
+  const answeredCount = formatCompactCount(mission.questions_answered_count);
   const rewardLabel = bestRun ? `${bestRun.rewards_xp} XP Best` : 'Final Chest Reward';
   const displayTitle = formatMissionTitleForDisplay(mission.title);
 
@@ -279,12 +289,6 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
                 >
                   ❔ {questionNodes} Qs
                 </span>
-                <span
-                  className="rounded-full border border-fuchsia-300/30 bg-slate-950/70 px-2 py-0.5 text-fuchsia-100 tracking-[0.08em]"
-                  title="Your attempts on this mission; answered counts logged question/elite nodes"
-                >
-                  ▶ {playCount} plays · {answeredCount} answered
-                </span>
               </div>
             </div>
             <div className="relative h-40 w-40 flex items-center justify-center">
@@ -335,9 +339,15 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onSelect }) => {
             >
                 {ctaLabel}
             </div>
-            <p className="hidden sm:block text-center text-[11px] text-slate-300/90">
-              {bestRun?.perfect_run ? 'Perfect run on record. Can you repeat it?' : 'Temporal instability detected in this zone.'}
-            </p>
+            <div
+              className="flex items-center justify-between gap-2 text-[12px] font-semibold text-slate-300/90"
+              title="Global mission views include Quest runs plus assignment/task trials that use this mission's questions. Answers count all logged question attempts for those questions."
+            >
+              <span className="inline-flex items-center gap-1 rounded-md bg-slate-950/55 px-2 py-1 text-slate-200/95">
+                ▶ {viewCount} views
+              </span>
+              <span className="text-slate-400">{answeredCount} answers</span>
+            </div>
           </div>
         </div>
       </div>
