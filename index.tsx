@@ -43,6 +43,9 @@ const TrialListeningTask2 = lazyRetry(() => import('./src/pages/ielts/TrialListe
 const IeltsPrime = lazyRetry(() => import('./src/pages/ielts/IeltsPrime'), 'IeltsPrime');
 const IeltsAdminGuard = lazyRetry(() => import('./components/ielts/IeltsAdminGuard'), 'IeltsAdminGuard');
 const IeltsAdminDashboard = lazyRetry(() => import('./components/IeltsAdminDashboard'), 'IeltsAdminDashboard');
+const IeltsExamMode = lazyRetry(() => import('./src/pages/ielts/IeltsExamMode'), 'IeltsExamMode');
+const IeltsExamMonitor = lazyRetry(() => import('./src/pages/ielts/IeltsExamMonitor'), 'IeltsExamMonitor');
+const IeltsExamManager = lazyRetry(() => import('./src/pages/ielts/IeltsExamManager'), 'IeltsExamManager');
 
 const queryClient = new QueryClient();
 
@@ -723,6 +726,18 @@ const router = createBrowserRouter([
   {
     path: '/ielts/apply-prime',
     element: <ProtectedRoute element={<IeltsPrime />} />,
+  },
+  {
+    path: '/ielts/exams/manage',
+    element: <ProtectedRoute element={<IeltsExamManager />} />,
+  },
+  {
+    path: '/ielts/exam/:examEventId/monitor',
+    element: <ProtectedRoute element={<IeltsExamMonitor />} />,
+  },
+  {
+    path: '/ielts/exam/:examEventId',
+    element: <ProtectedRoute element={<IeltsExamMode />} />,
   },
   {
     path: '/ielts/reading/:setId',
