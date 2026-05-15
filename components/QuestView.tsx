@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   SubjectData,
   Question,
@@ -68,6 +68,76 @@ const canonicalSubjectLabel = (subject?: string | null, fallback = 'General'): s
 const normalizeQuestionBankSubject = (subject?: string): string => canonicalSubjectLabel(subject);
 
 const normalizeMissionSubject = (subject?: string | null): string => canonicalSubjectLabel(subject, '').toLowerCase();
+
+type MissionDifficultyFilter = 'all' | SoloDifficulty;
+type MissionTypeFilter = 'all' | QuestMission['mission_type'];
+type MissionStatusFilter = 'all' | 'in_progress' | 'completed' | 'unplayed';
+type MissionSortMode = 'smart' | 'az' | 'difficulty' | 'popular';
+
+const missionDifficultyOrder: Record<SoloDifficulty, number> = {
+  easy: 1,
+  medium: 2,
+  hard: 3,
+};
+
+const normalizeMissionSearchText = (value?: string | null): string =>
+  (value ?? '').trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
+
+const getMissionSearchCorpus = (mission: QuestMission): string =>
+  normalizeMissionSearchText([
+    mission.title,
+    mission.description,
+    mission.subject,
+    mission.code,
+    mission.difficulty,
+    mission.mission_type,
+  ].filter(Boolean).join(' '));
+
+const missionMatchesSearch = (mission: QuestMission, query: string): boolean => {
+  const tokens = normalizeMissionSearchText(query).split(' ').filter(Boolean);
+  if (tokens.length === 0) return true;
+  const corpus = getMissionSearchCorpus(mission);
+  return tokens.every((token) => corpus.includes(token));
+};
+
+const missionMatchesStatus = (mission: QuestMission, status: MissionStatusFilter): boolean => {
+  if (status === 'all') return true;
+  if (status === 'in_progress') return Boolean(mission.active_run_id);
+  if (status === 'completed') return Boolean(mission.best_run);
+  return !mission.active_run_id && !mission.best_run;
+};
+
+const scoreMissionSmartRank = (mission: QuestMission): number => {
+  let score = 0;
+  if (mission.active_run_id) score += 100;
+  if (!mission.best_run) score += 30;
+  if (mission.mission_type === 'daily') score += 18;
+  if (mission.mission_type === 'risk') score += 8;
+  score += (mission.play_count ?? 0) * 0.5;
+  score += (mission.route_question_count ?? 0) * 0.2;
+  score -= missionDifficultyOrder[mission.difficulty] * 2;
+  return score;
+};
+
+const sortMissions = (missions: QuestMission[], sortMode: MissionSortMode): QuestMission[] => {
+  return [...missions].sort((a, b) => {
+    if (sortMode === 'az') return a.title.localeCompare(b.title);
+    if (sortMode === 'difficulty') {
+      const difficultyDelta = missionDifficultyOrder[a.difficulty] - missionDifficultyOrder[b.difficulty];
+      if (difficultyDelta !== 0) return difficultyDelta;
+      return a.sort_order - b.sort_order;
+    }
+    if (sortMode === 'popular') {
+      const popularityDelta = (b.play_count ?? 0) - (a.play_count ?? 0);
+      if (popularityDelta !== 0) return popularityDelta;
+      return a.title.localeCompare(b.title);
+    }
+    const smartDelta = scoreMissionSmartRank(b) - scoreMissionSmartRank(a);
+    if (smartDelta !== 0) return smartDelta;
+    return a.sort_order - b.sort_order;
+  });
+};
+
 
 // Resolve Supabase storage-relative URLs to fully qualified public URLs
 const resolveQuestionImageUrl = (url?: string | null): string | undefined => {
@@ -272,6 +342,12 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [missionsLoading, setMissionsLoading] = useState(false);
   const [missionsError, setMissionsError] = useState<string | null>(null);
   const [selectedMissionZone, setSelectedMissionZone] = useState<string | null>(null);
+  const [missionSearchQuery, setMissionSearchQuery] = useState('');
+  const [missionDifficultyFilter, setMissionDifficultyFilter] = useState<MissionDifficultyFilter>('all');
+  const [missionTypeFilter, setMissionTypeFilter] = useState<MissionTypeFilter>('all');
+  const [missionStatusFilter, setMissionStatusFilter] = useState<MissionStatusFilter>('all');
+  const [missionSortMode, setMissionSortMode] = useState<MissionSortMode>('smart');
+  const [showMissionFilters, setShowMissionFilters] = useState(false);
   const [showMissionCompleteOverlay, setShowMissionCompleteOverlay] = useState(false);
   const [completionStartLevel, setCompletionStartLevel] = useState<number | null>(null);
   const [ftueTrainingEligible, setFtueTrainingEligible] = useState(false);
@@ -436,6 +512,78 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     });
     return () => { cancelled = true; };
   }, [beginFtueTrainingMission, currentProfile?.id, initialAssignment, openMissionId, viewerRole]);
+
+  const missionExplorer = useMemo(() => {
+    const filtered = availableMissions.filter((mission) => {
+      if (!missionMatchesSearch(mission, missionSearchQuery)) return false;
+      if (missionDifficultyFilter !== 'all' && mission.difficulty !== missionDifficultyFilter) return false;
+      if (missionTypeFilter !== 'all' && mission.mission_type !== missionTypeFilter) return false;
+      if (!missionMatchesStatus(mission, missionStatusFilter)) return false;
+      return true;
+    });
+    const grouped = sortMissions(filtered, missionSortMode).reduce<Record<string, QuestMission[]>>((acc, mission) => {
+      const zone = canonicalSubjectLabel(mission.subject, 'Training Zone');
+      if (!acc[zone]) acc[zone] = [];
+      acc[zone].push(mission);
+      return acc;
+    }, {});
+    return {
+      filtered,
+      grouped,
+      zoneEntries: Object.entries(grouped),
+      hasActiveFilters: Boolean(missionSearchQuery.trim())
+        || missionDifficultyFilter !== 'all'
+        || missionTypeFilter !== 'all'
+        || missionStatusFilter !== 'all'
+        || missionSortMode !== 'smart',
+    };
+  }, [availableMissions, missionDifficultyFilter, missionSearchQuery, missionSortMode, missionStatusFilter, missionTypeFilter]);
+
+  const missionSmartSuggestions = useMemo(() => {
+    const suggestions: Array<{ label: string; action: () => void; active: boolean }> = [];
+    if (availableMissions.some((mission) => mission.active_run_id)) {
+      suggestions.push({
+        label: 'Resume missions',
+        active: missionStatusFilter === 'in_progress',
+        action: () => setMissionStatusFilter('in_progress'),
+      });
+    }
+    if (availableMissions.some((mission) => !mission.best_run && !mission.active_run_id)) {
+      suggestions.push({
+        label: 'New missions',
+        active: missionStatusFilter === 'unplayed',
+        action: () => setMissionStatusFilter('unplayed'),
+      });
+    }
+    if (availableMissions.some((mission) => mission.mission_type === 'daily')) {
+      suggestions.push({
+        label: 'Daily missions',
+        active: missionTypeFilter === 'daily',
+        action: () => setMissionTypeFilter('daily'),
+      });
+    }
+    if (availableMissions.some((mission) => mission.mission_type === 'risk')) {
+      suggestions.push({
+        label: 'Risk runs',
+        active: missionTypeFilter === 'risk',
+        action: () => setMissionTypeFilter('risk'),
+      });
+    }
+    suggestions.push({
+      label: 'Quick wins',
+      active: missionDifficultyFilter === 'easy',
+      action: () => setMissionDifficultyFilter('easy'),
+    });
+    return suggestions;
+  }, [availableMissions, missionDifficultyFilter, missionStatusFilter, missionTypeFilter]);
+
+  const resetMissionFilters = useCallback(() => {
+    setMissionSearchQuery('');
+    setMissionDifficultyFilter('all');
+    setMissionTypeFilter('all');
+    setMissionStatusFilter('all');
+    setMissionSortMode('smart');
+  }, []);
 
   const resolveDifficulty = (questionLike: Question | TeacherQuestion): SoloDifficulty => {
     const difficultyValue = (questionLike as TeacherQuestion).difficulty ?? (questionLike as Question).difficulty;
@@ -1755,79 +1903,183 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           );
         }
         if (availableMissions.length === 0) return null;
-        const groupedMissions = availableMissions.reduce<Record<string, typeof availableMissions>>((acc, mission) => {
-          const zone = canonicalSubjectLabel(mission.subject, 'Training Zone');
-          if (!acc[zone]) acc[zone] = [];
-          acc[zone].push(mission);
-          return acc;
-        }, {});
-        const zoneEntries = Object.entries(groupedMissions);
-        const activeZone = selectedMissionZone && groupedMissions[selectedMissionZone]
+        const activeZone = selectedMissionZone && missionExplorer.grouped[selectedMissionZone]
           ? selectedMissionZone
-          : zoneEntries[0]?.[0];
-        const visibleMissions = activeZone ? groupedMissions[activeZone] : [];
+          : missionExplorer.zoneEntries[0]?.[0];
+        const visibleMissions = activeZone ? missionExplorer.grouped[activeZone] ?? [] : [];
         return (
           <div className="max-w-5xl mx-auto">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="text-2xl">🗺️</span>
-              <div>
-                <h2 className="font-heading text-xl text-white">Quest Missions</h2>
-                <p className="text-xs text-slate-400">Pick a zone, clear its stages, unlock fun stations, then open the final chest.</p>
+            <div className="mb-4 rounded-3xl border border-cyan-300/25 bg-slate-950/45 p-4 shadow-[0_0_28px_rgba(34,211,238,0.12)]">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">🗺️</span>
+                  <div>
+                    <h2 className="font-heading text-xl text-white">Quest Missions</h2>
+                    <p className="text-xs text-slate-400">Search by skill, zone, title, or code. Smart filters keep your best next mission in view.</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                  <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 px-3 py-2">
+                    <p className="font-heading text-lg text-white">{missionExplorer.filtered.length}</p>
+                    <p className="text-[10px] uppercase tracking-wider text-cyan-100/80">Matches</p>
+                  </div>
+                  <div className="rounded-2xl border border-emerald-300/20 bg-emerald-300/10 px-3 py-2">
+                    <p className="font-heading text-lg text-white">{availableMissions.filter((mission) => mission.active_run_id).length}</p>
+                    <p className="text-[10px] uppercase tracking-wider text-emerald-100/80">Active</p>
+                  </div>
+                  <div className="rounded-2xl border border-fuchsia-300/20 bg-fuchsia-300/10 px-3 py-2">
+                    <p className="font-heading text-lg text-white">{availableMissions.filter((mission) => mission.best_run).length}</p>
+                    <p className="text-[10px] uppercase tracking-wider text-fuchsia-100/80">Cleared</p>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div ref={missionZonesRef} className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {zoneEntries.map(([zone, missions]) => {
-                const isActive = zone === activeZone;
-                return (
-                  <button
-                    key={zone}
-                    type="button"
-                    onClick={() => {
-                      setSelectedMissionZone(zone);
-                      scrollToMissionStages();
-                    }}
-                    className={`rounded-2xl border p-4 text-left transition ${
-                      isActive
-                        ? 'border-cyan-300/70 bg-cyan-500/15 shadow-[0_0_24px_rgba(56,189,248,0.18)]'
-                        : 'border-slate-600/40 bg-slate-900/30 hover:border-cyan-300/50 hover:bg-slate-900/55'
-                    }`}
-                  >
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Mission Zone</p>
-                    <h3 className="mt-1 text-base font-heading text-cyan-100">🧭 {zone}</h3>
-                    <div className="mt-3 flex items-center justify-between text-xs">
-                      <span className="rounded-full border border-cyan-400/30 bg-slate-950/60 px-2 py-1 text-cyan-100">
-                        {missions.length} {missions.length === 1 ? 'Mission' : 'Missions'}
-                      </span>
-                      <span className="text-slate-300">{isActive ? 'Selected' : 'Open zone'}</span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-            {activeZone && (
-              <section ref={missionStagesRef} className="rounded-2xl border border-cyan-400/20 bg-slate-900/35 p-3 sm:p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <h3 className="font-heading text-sm sm:text-base text-cyan-100 tracking-wide">
-                    🧭 {activeZone} Zone
-                  </h3>
-                  <span className="text-[10px] uppercase tracking-wider text-slate-400">
-                    {visibleMissions.length} {visibleMissions.length === 1 ? 'Stage' : 'Stages'}
-                  </span>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {visibleMissions.map(m => (
-                      <MissionCard
-                        key={m.id}
-                        mission={m}
-                        onSelect={(mission) => {
-                          clearMissionRunState();
-                          setSelectedMission(mission);
-                          setStage('mission_preview');
-                        }}
-                      />
+
+              <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+                <label className="relative block">
+                  <span className="sr-only">Search missions</span>
+                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-cyan-200">⌕</span>
+                  <input
+                    value={missionSearchQuery}
+                    onChange={(event) => setMissionSearchQuery(event.target.value)}
+                    placeholder="Search missions, subjects, skills, or codes..."
+                    className="w-full rounded-2xl border border-cyan-300/25 bg-slate-950/70 py-3 pl-10 pr-4 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-200 focus:ring-2 focus:ring-cyan-300/20"
+                  />
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {missionSmartSuggestions.map((suggestion) => (
+                    <button
+                      key={suggestion.label}
+                      type="button"
+                      onClick={suggestion.action}
+                      className={`rounded-xl border px-3 py-2 text-xs font-bold transition ${suggestion.active ? 'border-cyan-200 bg-cyan-300/20 text-cyan-50' : 'border-slate-600/60 bg-slate-900/60 text-slate-300 hover:border-cyan-300/60 hover:text-cyan-100'}`}
+                    >
+                      {suggestion.label}
+                    </button>
                   ))}
+                  <button
+                    type="button"
+                    onClick={() => setShowMissionFilters((prev) => !prev)}
+                    className="rounded-xl border border-indigo-300/40 bg-indigo-400/10 px-3 py-2 text-xs font-bold text-indigo-100 transition hover:bg-indigo-400/20"
+                  >
+                    {showMissionFilters ? 'Hide filters' : 'More filters'}
+                  </button>
+                  {missionExplorer.hasActiveFilters && (
+                    <button
+                      type="button"
+                      onClick={resetMissionFilters}
+                      className="rounded-xl border border-amber-300/40 bg-amber-400/10 px-3 py-2 text-xs font-bold text-amber-100 transition hover:bg-amber-400/20"
+                    >
+                      Reset
+                    </button>
+                  )}
                 </div>
-              </section>
+              </div>
+
+              {showMissionFilters && (
+                <div className="mt-3 grid gap-3 rounded-2xl border border-slate-700/60 bg-slate-950/55 p-3 md:grid-cols-4">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                    Difficulty
+                    <select value={missionDifficultyFilter} onChange={(event) => setMissionDifficultyFilter(event.target.value as MissionDifficultyFilter)} className="mt-1 w-full rounded-xl border border-slate-600 bg-slate-900 px-3 py-2 text-sm normal-case tracking-normal text-white">
+                      <option value="all">All levels</option>
+                      <option value="easy">Easy</option>
+                      <option value="medium">Medium</option>
+                      <option value="hard">Hard</option>
+                    </select>
+                  </label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                    Type
+                    <select value={missionTypeFilter} onChange={(event) => setMissionTypeFilter(event.target.value as MissionTypeFilter)} className="mt-1 w-full rounded-xl border border-slate-600 bg-slate-900 px-3 py-2 text-sm normal-case tracking-normal text-white">
+                      <option value="all">Any type</option>
+                      <option value="standard">Standard</option>
+                      <option value="daily">Daily</option>
+                      <option value="risk">Risk</option>
+                    </select>
+                  </label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                    Progress
+                    <select value={missionStatusFilter} onChange={(event) => setMissionStatusFilter(event.target.value as MissionStatusFilter)} className="mt-1 w-full rounded-xl border border-slate-600 bg-slate-900 px-3 py-2 text-sm normal-case tracking-normal text-white">
+                      <option value="all">Any progress</option>
+                      <option value="in_progress">In progress</option>
+                      <option value="unplayed">Unplayed</option>
+                      <option value="completed">Completed</option>
+                    </select>
+                  </label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                    Sort
+                    <select value={missionSortMode} onChange={(event) => setMissionSortMode(event.target.value as MissionSortMode)} className="mt-1 w-full rounded-xl border border-slate-600 bg-slate-900 px-3 py-2 text-sm normal-case tracking-normal text-white">
+                      <option value="smart">Smart recommended</option>
+                      <option value="difficulty">Easiest first</option>
+                      <option value="popular">Most played</option>
+                      <option value="az">A–Z</option>
+                    </select>
+                  </label>
+                </div>
+              )}
+            </div>
+
+            {missionExplorer.filtered.length === 0 ? (
+              <div className="rounded-2xl border border-slate-700/60 bg-slate-900/45 p-6 text-center">
+                <p className="font-heading text-lg text-white">No missions match those filters.</p>
+                <p className="mt-1 text-sm text-slate-400">Try a broader keyword or reset filters to see every zone again.</p>
+                <button type="button" onClick={resetMissionFilters} className="mt-4 rounded-xl border border-cyan-300/50 bg-cyan-400/10 px-4 py-2 text-sm font-bold text-cyan-100">Reset filters</button>
+              </div>
+            ) : (
+              <>
+                <div ref={missionZonesRef} className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {missionExplorer.zoneEntries.map(([zone, missions]) => {
+                    const isActive = zone === activeZone;
+                    return (
+                      <button
+                        key={zone}
+                        type="button"
+                        onClick={() => {
+                          setSelectedMissionZone(zone);
+                          scrollToMissionStages();
+                        }}
+                        className={`rounded-2xl border p-4 text-left transition ${
+                          isActive
+                            ? 'border-cyan-300/70 bg-cyan-500/15 shadow-[0_0_24px_rgba(56,189,248,0.18)]'
+                            : 'border-slate-600/40 bg-slate-900/30 hover:border-cyan-300/50 hover:bg-slate-900/55'
+                        }`}
+                      >
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Mission Zone</p>
+                        <h3 className="mt-1 text-base font-heading text-cyan-100">🧭 {zone}</h3>
+                        <div className="mt-3 flex items-center justify-between text-xs">
+                          <span className="rounded-full border border-cyan-400/30 bg-slate-950/60 px-2 py-1 text-cyan-100">
+                            {missions.length} {missions.length === 1 ? 'Match' : 'Matches'}
+                          </span>
+                          <span className="text-slate-300">{isActive ? 'Selected' : 'Open zone'}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+                {activeZone && (
+                  <section ref={missionStagesRef} className="rounded-2xl border border-cyan-400/20 bg-slate-900/35 p-3 sm:p-4">
+                    <div className="mb-3 flex items-center justify-between">
+                      <h3 className="font-heading text-sm sm:text-base text-cyan-100 tracking-wide">
+                        🧭 {activeZone} Zone
+                      </h3>
+                      <span className="text-[10px] uppercase tracking-wider text-slate-400">
+                        {visibleMissions.length} {visibleMissions.length === 1 ? 'Stage' : 'Stages'}
+                      </span>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {visibleMissions.map(m => (
+                        <MissionCard
+                          key={m.id}
+                          mission={m}
+                          onSelect={(mission) => {
+                            clearMissionRunState();
+                            setSelectedMission(mission);
+                            setStage('mission_preview');
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </>
             )}
           </div>
         );
