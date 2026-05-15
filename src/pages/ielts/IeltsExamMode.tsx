@@ -570,7 +570,15 @@ const IeltsExamMode: React.FC = () => {
             </div>
           </div>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" onBlur={() => void autosaveSection(activeSectionRef.current, 'blur')}>
+          <section
+            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+            onBlur={(event) => {
+              const relatedTarget = event.relatedTarget;
+              if (!relatedTarget || !event.currentTarget.contains(relatedTarget as Node)) {
+                void autosaveSection(activeSectionRef.current, 'blur');
+              }
+            }}
+          >
             <div className="mb-5 border-b border-slate-100 pb-4">
               <h2 className="text-xl font-semibold text-slate-950">{getSectionTitle(activePayload, SECTIONS.find((section) => section.id === activeSection)?.label ?? activeSection)}</h2>
               {getSectionInstructions(activePayload) && <p className="mt-2 text-sm leading-6 text-slate-600">{getSectionInstructions(activePayload)}</p>}

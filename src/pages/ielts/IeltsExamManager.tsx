@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   rpcIeltsAssignExamToClass,
   rpcIeltsAssignExamToStudents,
@@ -65,6 +65,7 @@ const IeltsExamManager: React.FC = () => {
   const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
   const [selectedClassId, setSelectedClassId] = useState<string>('');
   const [selectedStudentIds, setSelectedStudentIds] = useState<Set<string>>(() => new Set());
+  const detailRequestIdRef = useRef(0);
 
   const loadExams = useCallback(async (preferredExamId?: string) => {
     setBusy((current) => current === 'idle' ? 'loading' : current);
@@ -98,15 +99,27 @@ const IeltsExamManager: React.FC = () => {
 
   useEffect(() => {
     if (!selectedExamId) return;
+    const requestId = detailRequestIdRef.current + 1;
+    detailRequestIdRef.current = requestId;
     setSelectedStudentIds(new Set());
     setSelectedClassId('');
     void rpcIeltsGetExamAdminDetail(selectedExamId)
       .then((nextDetail) => {
+        if (detailRequestIdRef.current !== requestId) return;
         setDetail(nextDetail);
         const activeForm = nextDetail.forms.find((form) => form.is_active) ?? nextDetail.forms[0] ?? null;
         setSelectedFormId(activeForm?.id ?? null);
       })
-      .catch((detailError) => setError(detailError instanceof Error ? detailError.message : 'Failed to load exam detail.'));
+      .catch((detailError) => {
+        if (detailRequestIdRef.current !== requestId) return;
+        setError(detailError instanceof Error ? detailError.message : 'Failed to load exam detail.');
+      });
+
+    return () => {
+      if (detailRequestIdRef.current === requestId) {
+        detailRequestIdRef.current += 1;
+      }
+    };
   }, [selectedExamId]);
 
   const activeExam = detail?.exam ?? exams.find((exam) => exam.id === selectedExamId) ?? null;
@@ -126,6 +139,8 @@ const IeltsExamManager: React.FC = () => {
     if (!Number.isFinite(startMs) || !Number.isFinite(endMs)) return 'Start and end time are required.';
     if (endMs <= startMs) return 'End time must be after start time.';
     if (!durationMinutes || durationMinutes <= 0) return 'Duration must be greater than zero.';
+    const availableWindowMs = endMs - startMs;
+    if (durationMinutes * 60_000 > availableWindowMs) return 'Duration must fit within start and end times.';
     return null;
   };
 

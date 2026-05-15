@@ -527,7 +527,6 @@ as $$
 declare
   v_now timestamptz := now();
   v_attempt public.ielts_exam_attempts%rowtype;
-  v_event_status text;
   v_draft public.ielts_exam_drafts%rowtype;
 begin
   if auth.uid() is null then raise exception 'not_authenticated'; end if;
@@ -539,17 +538,11 @@ begin
   where a.id = p_attempt_id
   for update;
 
-  if v_attempt.id is not null then
-    select e.status into v_event_status
-    from public.ielts_exam_events e
-    where e.id = v_attempt.exam_event_id;
-  end if;
-
   if v_attempt.id is null then raise exception 'attempt_not_found'; end if;
   if v_attempt.student_id <> auth.uid() then raise exception 'forbidden'; end if;
   if v_attempt.status <> 'in_progress' then raise exception 'attempt_not_in_progress'; end if;
   if v_attempt.lock_token is null or v_attempt.lock_token <> p_lock_token then raise exception 'invalid_lock_token'; end if;
-  if v_now > v_attempt.ends_at and v_event_status <> 'paused' then raise exception 'attempt_time_expired'; end if;
+  if v_now > v_attempt.ends_at then raise exception 'attempt_time_expired'; end if;
 
   insert into public.ielts_exam_drafts (attempt_id, student_id, section, payload, draft_version, client_saved_at, server_saved_at)
   values (v_attempt.id, v_attempt.student_id, p_section, coalesce(p_payload, '{}'::jsonb), p_draft_version, p_client_saved_at, v_now)

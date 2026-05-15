@@ -729,11 +729,27 @@ const router = createBrowserRouter([
   },
   {
     path: '/ielts/exams/manage',
-    element: <ProtectedRoute element={<IeltsExamManager />} />,
+    element: (
+      <ProtectedRoute
+        element={(
+          <IeltsAdminGuard>
+            <IeltsExamManager />
+          </IeltsAdminGuard>
+        )}
+      />
+    ),
   },
   {
     path: '/ielts/exam/:examEventId/monitor',
-    element: <ProtectedRoute element={<IeltsExamMonitor />} />,
+    element: (
+      <ProtectedRoute
+        element={(
+          <IeltsAdminGuard>
+            <IeltsExamMonitor />
+          </IeltsAdminGuard>
+        )}
+      />
+    ),
   },
   {
     path: '/ielts/exam/:examEventId',

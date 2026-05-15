@@ -305,6 +305,11 @@ export const validateExamJsonText = (text: string, fallback: unknown = {}): Ielt
 
 const withClient = (client?: IeltsExamRpcClient): IeltsExamRpcClient => client ?? supabase;
 
+/**
+ * assertNoRpcError is for RPCs that must return non-null/non-undefined values.
+ * It intentionally throws for null data; use a separate helper or call-site null
+ * handling for RPCs where null is a legitimate successful response.
+ */
 const assertNoRpcError = <T>(name: string, data: T | null, error: RpcError | null): T => {
   if (error) {
     throw new Error(`${name} failed: ${error.message ?? 'unknown error'}`);
@@ -569,6 +574,7 @@ export const createExamIdempotencyKey = (attemptId: string): string => {
 
   const randomPart = typeof crypto !== 'undefined' && 'randomUUID' in crypto
     ? crypto.randomUUID()
+    // Fallback is intentionally non-cryptographic: idempotency keys are not security credentials; crypto.randomUUID is the primary path, and this only reduces accidental double-submits.
     : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const key = `${attemptId}:${randomPart}`;
   if (typeof window !== 'undefined') {

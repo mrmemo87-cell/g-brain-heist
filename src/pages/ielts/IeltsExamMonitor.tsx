@@ -431,8 +431,11 @@ const ActionButtons: React.FC<{
     <div className="flex flex-wrap gap-2">
       <button
         type="button"
-        disabled={busy || !row.attempt_id || row.status === 'void'}
-        onClick={() => void onAction(row, 'extend')}
+        disabled={disabled}
+        onClick={() => {
+          if (disabled) return;
+          void onAction(row, 'extend');
+        }}
         className="rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-800 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
       >
         Extend

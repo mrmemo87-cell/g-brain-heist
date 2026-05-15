@@ -151,6 +151,11 @@ begin
     raise exception 'public_payload_contains_answer_key';
   end if;
 
+  perform 1
+  from public.ielts_exam_events
+  where id = p_exam_event_id
+  for update;
+
   if coalesce(p_is_active, true) then
     update public.ielts_exam_forms
     set is_active = false
@@ -371,13 +376,18 @@ declare
   v_students jsonb := '[]'::jsonb;
   v_forms jsonb := '[]'::jsonb;
   v_assignments jsonb := '[]'::jsonb;
+  v_is_manager boolean := false;
 begin
   if auth.uid() is null then raise exception 'not_authenticated'; end if;
   select * into v_event from public.ielts_exam_events where id = p_exam_event_id;
   if v_event.id is null then raise exception 'exam_not_found'; end if;
-  if not public.can_manage_ielts_exam(p_exam_event_id) and not public.can_monitor_ielts_exam(p_exam_event_id) then raise exception 'forbidden'; end if;
+  v_is_manager := public.can_manage_ielts_exam(p_exam_event_id);
+  if not v_is_manager and not public.can_monitor_ielts_exam(p_exam_event_id) then raise exception 'forbidden'; end if;
 
-  select coalesce(jsonb_agg(to_jsonb(f) order by f.created_at desc), '[]'::jsonb)
+  select coalesce(jsonb_agg(
+    case when v_is_manager then to_jsonb(f) else to_jsonb(f) - 'answer_key' end
+    order by f.created_at desc
+  ), '[]'::jsonb)
   into v_forms
   from public.ielts_exam_forms f
   where f.exam_event_id = p_exam_event_id;
