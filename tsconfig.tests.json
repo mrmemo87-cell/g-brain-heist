@@ -16,7 +16,8 @@
     "src/lib/**/*.ts",
     "services/rpcGateway.ts",
     "services/supabaseClient.ts",
-    "services/env.ts"
+    "services/env.ts",
+    "services/ieltsExamModeService.ts"
   ],
   "exclude": ["node_modules"]
 }
