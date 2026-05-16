@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   getIeltsPracticeItemRoute,
-  rpcIeltsPracticeMarkCompleted,
   rpcIeltsPracticeMarkItemStarted,
   rpcIeltsPracticeMarkStarted,
   rpcIeltsPracticeStudentAssignments,
@@ -104,22 +103,6 @@ const IeltsAssignedPractice: React.FC = () => {
       navigate(assignedRoute);
     } catch (startError) {
       setError(startError instanceof Error ? startError.message : 'Unable to mark assignment item as started.');
-    } finally {
-      setBusyAssignmentId(null);
-    }
-  };
-
-  const handleMarkCompleted = async (assignment: IeltsPracticeStudentAssignment) => {
-    const confirmed = window.confirm(`Mark "${assignment.title}" as completed?`);
-    if (!confirmed) return;
-
-    setBusyAssignmentId(assignment.id);
-    setError(null);
-    try {
-      const updated = await rpcIeltsPracticeMarkCompleted(assignment.id);
-      setAssignments((current) => current.map((row) => (row.id === assignment.id ? { ...row, ...updated } : row)));
-    } catch (completeError) {
-      setError(completeError instanceof Error ? completeError.message : 'Unable to mark assignment completed.');
     } finally {
       setBusyAssignmentId(null);
     }
@@ -239,15 +222,8 @@ const IeltsAssignedPractice: React.FC = () => {
               </div>
 
               {assignment.student_status !== 'completed' && (
-                <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end' }}>
-                  <button
-                    type="button"
-                    onClick={() => void handleMarkCompleted(assignment)}
-                    disabled={isBusy}
-                    style={{ backgroundColor: '#16a34a', color: '#ffffff', border: 'none', borderRadius: '0.625rem', padding: '0.7rem 1rem', fontWeight: 800, cursor: isBusy ? 'not-allowed' : 'pointer', opacity: isBusy ? 0.65 : 1 }}
-                  >
-                    Mark assignment completed
-                  </button>
+                <div style={{ marginTop: '1rem', border: '1px solid #bfdbfe', backgroundColor: '#eff6ff', color: '#1e40af', borderRadius: '0.75rem', padding: '0.875rem', fontSize: '0.875rem', fontWeight: 700 }}>
+                  Assignment completes automatically after all required items are finished.
                 </div>
               )}
             </article>
