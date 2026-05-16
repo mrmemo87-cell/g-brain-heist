@@ -11,11 +11,68 @@ import {
   type IeltsExamAdminStudent,
   type IeltsManageableExam,
 } from '../../../services/ieltsExamModeService';
+import { validateRenderableExamPayload } from '../../../services/ieltsExamPayloadParser';
 
 type BusyAction = 'idle' | 'loading' | 'creating_exam' | 'creating_form' | 'assigning';
 
 const emptyJson = '{\n  \n}';
 const defaultAnswerKey = '{\n  "reading": {},\n  "listening": {},\n  "writing": {}\n}';
+
+const readingTemplate = JSON.stringify({
+  title: 'Reading Passage 1',
+  instructions: 'Read the passage and answer all questions. Do not include answer_key in this public payload.',
+  tasks: [
+    {
+      id: 'reading-passage-1',
+      title: 'Passage 1',
+      passage: 'Paste the reading passage text here.',
+      questions: [
+        { id: 'r1', type: 'short_answer', prompt: 'What is the main idea of the passage?' },
+        { id: 'r2', type: 'multiple_choice', prompt: 'Choose the best heading.', options: ['A', 'B', 'C', 'D'] },
+      ],
+    },
+  ],
+}, null, 2);
+
+const listeningTemplate = JSON.stringify({
+  title: 'Listening Section 1',
+  instructions: 'Play the audio provided by the invigilator and answer all questions.',
+  audio_url: 'https://example.com/listening-audio.mp3',
+  tasks: [
+    {
+      id: 'listening-part-1',
+      title: 'Part 1',
+      questions: [
+        { id: 'l1', type: 'short_answer', prompt: 'Complete the note: The appointment is on ____.' },
+        { id: 'l2', type: 'multiple_choice', prompt: 'Where will the speaker go next?', options: ['Library', 'Station', 'Office'] },
+      ],
+    },
+  ],
+}, null, 2);
+
+const writingTemplate = JSON.stringify({
+  title: 'Writing Tasks',
+  instructions: 'Answer both writing tasks in the boxes provided.',
+  tasks: [
+    { id: 'w1', type: 'essay', prompt: 'Task 1: Summarise the chart or diagram in at least 150 words.' },
+    { id: 'w2', type: 'essay', prompt: 'Task 2: Write an essay response in at least 250 words.' },
+  ],
+}, null, 2);
+
+const speakingTemplate = JSON.stringify({
+  title: 'Speaking Prompts',
+  instructions: 'Answer the speaking prompts when instructed by the examiner.',
+  parts: [
+    {
+      id: 'speaking-part-1',
+      title: 'Part 1',
+      questions: [
+        { id: 's1', type: 'spoken_response', prompt: 'Tell me about where you live.' },
+        { id: 's2', type: 'spoken_response', prompt: 'What do you usually do at weekends?' },
+      ],
+    },
+  ],
+}, null, 2);
 
 const toLocalInputValue = (date: Date) => {
   const offsetMs = date.getTimezoneOffset() * 60_000;
@@ -56,10 +113,10 @@ const IeltsExamManager: React.FC = () => {
   const [status, setStatus] = useState('draft');
 
   const [formCode, setFormCode] = useState('FORM-A');
-  const [readingJson, setReadingJson] = useState(emptyJson);
-  const [listeningJson, setListeningJson] = useState(emptyJson);
-  const [writingJson, setWritingJson] = useState(emptyJson);
-  const [speakingJson, setSpeakingJson] = useState('');
+  const [readingJson, setReadingJson] = useState(readingTemplate);
+  const [listeningJson, setListeningJson] = useState(listeningTemplate);
+  const [writingJson, setWritingJson] = useState(writingTemplate);
+  const [speakingJson, setSpeakingJson] = useState(speakingTemplate);
   const [answerKeyJson, setAnswerKeyJson] = useState(defaultAnswerKey);
 
   const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
@@ -182,6 +239,15 @@ const IeltsExamManager: React.FC = () => {
       if (!result.ok) return { ok: false as const, error: `${label} JSON is invalid: ${result.error}` };
     }
     const publicPayloadHasAnswerKey = reading.containsAnswerKey || listening.containsAnswerKey || writing.containsAnswerKey || speaking.containsAnswerKey;
+    const renderableChecks = {
+      reading: validateRenderableExamPayload(reading.value, 'reading'),
+      listening: validateRenderableExamPayload(listening.value, 'listening'),
+      writing: validateRenderableExamPayload(writing.value, 'writing'),
+      speaking: speaking.value === null ? { ok: true, questionCount: 0 } : validateRenderableExamPayload(speaking.value, 'speaking'),
+    };
+    for (const [label, result] of Object.entries(renderableChecks)) {
+      if (!result.ok) return { ok: false as const, error: `${label} payload cannot render: ${result.message}` };
+    }
     const answerKeyMissing = !answerKeyJson.trim() || answerKeyJson.trim() === '{}' || answerKeyJson.trim() === emptyJson.trim();
     return {
       ok: true as const,
@@ -191,6 +257,7 @@ const IeltsExamManager: React.FC = () => {
       speaking: speaking.value,
       answerKey: answerKey.value,
       publicPayloadHasAnswerKey,
+      renderableChecks,
       answerKeyMissing,
     };
   };
@@ -387,16 +454,18 @@ const IeltsExamManager: React.FC = () => {
                     </select>
                   </label>
                 </div>
-                <div className="grid gap-3 xl:grid-cols-2">
-                  <JsonBox label="Reading JSON" value={readingJson} onChange={setReadingJson} />
-                  <JsonBox label="Listening JSON" value={listeningJson} onChange={setListeningJson} />
-                  <JsonBox label="Writing JSON" value={writingJson} onChange={setWritingJson} />
-                  <JsonBox label="Speaking JSON (optional)" value={speakingJson} onChange={setSpeakingJson} />
-                  <JsonBox label="Answer key JSON (protected)" value={answerKeyJson} onChange={setAnswerKeyJson} full />
+                <SectionPayloadGuide />
+                <div className="mt-4 grid gap-3 xl:grid-cols-2">
+                  <JsonBox label="Reading JSON" value={readingJson} onChange={setReadingJson} template={readingTemplate} help="Expected: title/instructions plus questions[] or tasks[] with nested questions[]." />
+                  <JsonBox label="Listening JSON" value={listeningJson} onChange={setListeningJson} template={listeningTemplate} help="Expected: title/instructions, optional audio_url, and questions[] or tasks[] with nested questions[]." />
+                  <JsonBox label="Writing JSON" value={writingJson} onChange={setWritingJson} template={writingTemplate} help="Expected: title/instructions plus tasks[] or questions[]; writing tasks render as essay boxes." />
+                  <JsonBox label="Speaking JSON (optional)" value={speakingJson} onChange={setSpeakingJson} template={speakingTemplate} help="Expected: title/instructions plus parts[] with nested questions[] or direct questions[]. Leave blank only if speaking is not used." />
+                  <JsonBox label="Answer key JSON (protected)" value={answerKeyJson} onChange={setAnswerKeyJson} full help="Protected grading data only. Never paste answer_key inside public section JSON." />
                 </div>
                 <div className="mt-3 space-y-2">
                   {!formValidation.ok && <Banner tone="error" message={formValidation.error} />}
                   {formValidation.ok && formValidation.publicPayloadHasAnswerKey && <Banner tone="warning" message="One of the public section payloads contains answer_key. Remove it before saving; students must never receive keys in public payloads." />}
+                  {formValidation.ok && <Banner tone="success" message={`Renderable payloads: reading ${formValidation.renderableChecks.reading.questionCount}, listening ${formValidation.renderableChecks.listening.questionCount}, writing ${formValidation.renderableChecks.writing.questionCount}, speaking ${formValidation.renderableChecks.speaking.questionCount}.`} />}
                   {formValidation.ok && formValidation.answerKeyMissing && <Banner tone="warning" message="Answer key appears empty. You can save drafts, but grading will need a protected answer key." />}
                 </div>
                 <button type="button" onClick={() => void handleCreateForm()} disabled={busy !== 'idle' || !formValidation.ok} className="mt-4 rounded-lg bg-blue-700 px-4 py-2 font-semibold text-white hover:bg-blue-800 disabled:bg-slate-400">
@@ -459,8 +528,24 @@ const TextInput: React.FC<{ label: string; value: string; onChange: (value: stri
   </label>
 );
 
-const JsonBox: React.FC<{ label: string; value: string; onChange: (value: string) => void; full?: boolean }> = ({ label, value, onChange, full }) => (
+const SectionPayloadGuide: React.FC = () => (
+  <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-950">
+    <p className="font-semibold">Required public payload schema</p>
+    <ul className="mt-2 list-disc space-y-1 pl-5">
+      <li><code>title</code> and <code>instructions</code> are optional display strings.</li>
+      <li>Use either <code>questions</code>/<code>items</code>/<code>prompts</code> directly, or <code>tasks</code>/<code>parts</code>/<code>passages</code> containing nested <code>questions</code>.</li>
+      <li>Each question should include <code>id</code>, <code>prompt</code>, optional <code>type</code>, and optional <code>options</code> for radio choices.</li>
+      <li>Do not include <code>answer_key</code> anywhere in reading/listening/writing/speaking JSON; keep keys only in the protected answer key box.</li>
+    </ul>
+  </div>
+);
+
+const JsonBox: React.FC<{ label: string; value: string; onChange: (value: string) => void; full?: boolean; help?: string; template?: string }> = ({ label, value, onChange, full, help, template }) => (
   <label className={`block text-sm font-medium text-slate-700 ${full ? 'xl:col-span-2' : ''}`}>{label}
+    <span className="mt-1 flex items-center justify-between gap-2 text-xs font-normal text-slate-500">
+      <span>{help}</span>
+      {template && <button type="button" className="shrink-0 rounded-md border border-slate-300 bg-white px-2 py-1 font-semibold text-slate-700 hover:bg-slate-100" onClick={() => onChange(template)}>Use example</button>}
+    </span>
     <textarea className="mt-1 min-h-40 w-full rounded-lg border border-slate-300 bg-slate-950 p-3 font-mono text-xs text-slate-50" value={value} onChange={(event) => onChange(event.target.value)} spellCheck={false} />
   </label>
 );

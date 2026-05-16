@@ -18,6 +18,7 @@
     "services/supabaseClient.ts",
     "services/env.ts",
     "services/ieltsExamModeService.ts",
+    "services/ieltsExamPayloadParser.ts",
     "services/ieltsExamAccessService.ts",
     "services/ieltsPracticeAssignmentService.ts",
     "services/ieltsJourneyService.ts",

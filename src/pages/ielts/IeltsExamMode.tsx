@@ -14,17 +14,18 @@ import {
   type IeltsSubmitResponse,
 } from '../../../services/ieltsExamModeService';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
+import {
+  extractIeltsQuestions,
+  getIeltsSectionInstructions,
+  getIeltsSectionTitle,
+  type RenderableExamQuestion,
+} from '../../../services/ieltsExamPayloadParser';
 
 type LoadState = 'loading' | 'ready' | 'error';
 type SaveState = 'idle' | 'saving' | 'saved' | 'error';
 type AnswersBySection = Record<string, Record<string, string>>;
 
-type RenderableQuestion = {
-  id: string;
-  prompt: string;
-  type?: string;
-  options?: string[];
-};
+type RenderableQuestion = RenderableExamQuestion;
 
 const SECTIONS: Array<{ id: IeltsExamSection; label: string }> = [
   { id: 'reading', label: 'Reading' },
@@ -45,46 +46,6 @@ const isObject = (value: unknown): value is Record<string, unknown> => Boolean(v
 const getPayloadForSection = (form: IeltsExamPublicFormPayload | null | undefined, section: string): unknown => {
   if (!form) return null;
   return form[`${section}_payload`];
-};
-
-const asText = (value: unknown, fallback = ''): string => {
-  if (typeof value === 'string') return value;
-  if (typeof value === 'number') return String(value);
-  return fallback;
-};
-
-const extractQuestions = (payload: unknown, section: string): RenderableQuestion[] => {
-  if (!payload) return [];
-
-  const source = isObject(payload) ? payload : { body: payload };
-  const possibleArrays = [source.questions, source.items, source.tasks, source.prompts, source.parts];
-  const arraySource = possibleArrays.find(Array.isArray) as unknown[] | undefined;
-
-  if (arraySource && arraySource.length > 0) {
-    return arraySource.map((item, index) => {
-      const row = isObject(item) ? item : { prompt: item };
-      const rawOptions = Array.isArray(row.options) ? row.options : Array.isArray(row.choices) ? row.choices : undefined;
-      return {
-        id: asText(row.id, asText(row.question_id, `${section}-${index + 1}`)),
-        prompt: asText(row.prompt, asText(row.body, asText(row.question, asText(row.text, `Question ${index + 1}`)))),
-        type: asText(row.type, asText(row.question_type, 'text')),
-        options: rawOptions?.map((option) => asText(option)),
-      };
-    });
-  }
-
-  const prompt = asText(source.prompt, asText(source.body, asText(source.title, 'Write your answer for this section.')));
-  return [{ id: `${section}-response`, prompt, type: section === 'writing' ? 'essay' : 'text' }];
-};
-
-const getSectionTitle = (payload: unknown, label: string): string => {
-  if (!isObject(payload)) return label;
-  return asText(payload.title, asText(payload.name, label));
-};
-
-const getSectionInstructions = (payload: unknown): string => {
-  if (!isObject(payload)) return '';
-  return asText(payload.instructions, asText(payload.description, ''));
 };
 
 const toMillis = (iso?: string | null): number | null => {
@@ -432,7 +393,7 @@ const IeltsExamMode: React.FC = () => {
   };
 
   const activePayload = getPayloadForSection(formPayload, activeSection);
-  const activeQuestions = useMemo(() => extractQuestions(activePayload, activeSection), [activePayload, activeSection]);
+  const activeQuestions = useMemo(() => extractIeltsQuestions(activePayload, activeSection), [activePayload, activeSection]);
   const status = submission?.status ?? attempt?.status ?? whoami?.status;
   const isSubmitted = Boolean(submission) || status === 'submitted' || status === 'auto_submitted';
   const serverNowMs = Date.now() + serverOffsetMs;
@@ -580,11 +541,16 @@ const IeltsExamMode: React.FC = () => {
             }}
           >
             <div className="mb-5 border-b border-slate-100 pb-4">
-              <h2 className="text-xl font-semibold text-slate-950">{getSectionTitle(activePayload, SECTIONS.find((section) => section.id === activeSection)?.label ?? activeSection)}</h2>
-              {getSectionInstructions(activePayload) && <p className="mt-2 text-sm leading-6 text-slate-600">{getSectionInstructions(activePayload)}</p>}
+              <h2 className="text-xl font-semibold text-slate-950">{getIeltsSectionTitle(activePayload, activeSection, SECTIONS.find((section) => section.id === activeSection)?.label ?? activeSection)}</h2>
+              {getIeltsSectionInstructions(activePayload, activeSection) && <p className="mt-2 text-sm leading-6 text-slate-600">{getIeltsSectionInstructions(activePayload, activeSection)}</p>}
             </div>
 
             <div className="space-y-5">
+              {activeQuestions.length === 0 && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                  No renderable questions were found for this section. Ask your teacher to use the Exam Manager JSON templates for this form.
+                </div>
+              )}
               {activeQuestions.map((question, index) => (
                 <article key={question.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                   <label htmlFor={`${activeSection}-${question.id}`} className="block text-sm font-semibold text-slate-900">
