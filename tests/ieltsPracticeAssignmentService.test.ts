@@ -10,7 +10,10 @@ import {
   rpcIeltsPracticeCreateAssignment,
   rpcIeltsPracticeListAssignments,
   rpcIeltsPracticeMarkCompleted,
+  rpcIeltsPracticeMarkItemCompleted,
+  rpcIeltsPracticeMarkItemStarted,
   rpcIeltsPracticeMarkStarted,
+  rpcIeltsPracticeAssignmentProgress,
   rpcIeltsPracticeStudentAssignments,
   type IeltsPracticeAssignmentRpcClient,
 } from '../services/ieltsPracticeAssignmentService.js';
@@ -36,6 +39,9 @@ test('IELTS practice assignment service maps RPC names and parameters', async ()
     if (name === 'rpc_ielts_practice_list_assignments') return [];
     if (name === 'rpc_ielts_practice_student_assignments') return [];
     if (name === 'rpc_ielts_practice_assignment_detail') return { assignment: { id: 'assignment-1', title: 'Practice' }, items: [], students: [] };
+    if (name === 'rpc_ielts_practice_assignment_progress' || name === 'rpc_ielts_practice_mark_item_started' || name === 'rpc_ielts_practice_mark_item_completed') {
+      return { assignment_id: 'assignment-1', student_id: 'student-1', required_count: 1, completed_required_count: 1, item_count: 1, completed_item_count: 1, items: [] };
+    }
     return { id: 'assignment-1', title: 'Practice' };
   });
 
@@ -56,6 +62,9 @@ test('IELTS practice assignment service maps RPC names and parameters', async ()
   await rpcIeltsPracticeStudentAssignments(client);
   await rpcIeltsPracticeMarkStarted('assignment-1', client);
   await rpcIeltsPracticeMarkCompleted('assignment-1', client);
+  await rpcIeltsPracticeAssignmentProgress('assignment-1', 'student-1', client);
+  await rpcIeltsPracticeMarkItemStarted({ assignmentId: 'assignment-1', assignmentItemId: 'item-1' }, client);
+  await rpcIeltsPracticeMarkItemCompleted({ assignmentId: 'assignment-1', assignmentItemId: 'item-1', practiceAttemptType: 'reading', practiceAttemptId: 'attempt-1' }, client);
 
   assert.deepEqual(calls, [
     { name: 'rpc_ielts_practice_list_assignments', params: { p_school_id: 'school-1', p_class_id: 'class-1' } },
@@ -78,6 +87,9 @@ test('IELTS practice assignment service maps RPC names and parameters', async ()
     { name: 'rpc_ielts_practice_student_assignments', params: {} },
     { name: 'rpc_ielts_practice_mark_started', params: { p_assignment_id: 'assignment-1' } },
     { name: 'rpc_ielts_practice_mark_completed', params: { p_assignment_id: 'assignment-1' } },
+    { name: 'rpc_ielts_practice_assignment_progress', params: { p_assignment_id: 'assignment-1', p_student_id: 'student-1' } },
+    { name: 'rpc_ielts_practice_mark_item_started', params: { p_assignment_id: 'assignment-1', p_assignment_item_id: 'item-1' } },
+    { name: 'rpc_ielts_practice_mark_item_completed', params: { p_assignment_id: 'assignment-1', p_assignment_item_id: 'item-1', p_practice_attempt_type: 'reading', p_practice_attempt_id: 'attempt-1' } },
   ]);
 });
 
@@ -174,3 +186,46 @@ test('assigned IELTS practice student page uses assignment RPCs without raw IELT
   assert.doesNotMatch(page, /\.from\(['"]ielts_/i, 'student assigned practice page must not query raw IELTS tables');
   assert.doesNotMatch(page, /answer_key/i, 'student assigned practice page must not expose answer keys');
 });
+
+test('IELTS practice item progress migration adds secure item tracking and parent auto-completion', () => {
+  const migration = fs.readFileSync(
+    path.join(process.cwd(), 'supabase/migrations/20260516170000_ielts_practice_item_progress.sql'),
+    'utf8',
+  );
+
+  assert.match(migration, /create table if not exists public\.ielts_practice_assignment_item_students/i, 'item progress table must be created');
+  assert.match(migration, /unique \(assignment_item_id, student_id\)/i, 'item progress must be unique per item/student');
+  assert.match(migration, /status text not null default 'assigned' check \(status in \('assigned', 'in_progress', 'completed', 'skipped'\)\)/i, 'item statuses must be constrained');
+  assert.match(migration, /alter table public\.ielts_practice_assignment_item_students enable row level security/i, 'item progress table must enable RLS');
+  assert.match(migration, /student_id = auth\.uid\(\)[\s\S]*or public\.can_manage_ielts_practice_assignment\(assignment_id\)/i, 'select policy must allow only own rows or scoped managers');
+  assert.match(migration, /Student item progress writes are intentionally handled through the SECURITY DEFINER/i, 'direct student item writes must stay behind RPCs');
+  assert.match(migration, /create or replace function public\.rpc_ielts_practice_mark_item_started/i, 'item started RPC must exist');
+  assert.match(migration, /create or replace function public\.rpc_ielts_practice_mark_item_completed/i, 'item completed RPC must exist');
+  assert.match(migration, /create or replace function public\.rpc_ielts_practice_assignment_progress/i, 'progress RPC must exist');
+  assert.match(migration, /p_student_id <> auth\.uid\(\)[\s\S]*raise exception 'forbidden'/i, 'student update RPCs must reject cross-student writes');
+  assert.match(migration, /not exists \([\s\S]*ielts_practice_assignment_items[\s\S]*i\.required = true[\s\S]*coalesce\(item_s\.status, 'assigned'\) <> 'completed'[\s\S]*set status = 'completed'/i, 'parent assignment must auto-complete only when all required items are complete');
+  assert.match(migration, /practice_attempt_type[\s\S]*practice_attempt_id/i, 'completion RPC must persist practice attempt linkage');
+  assert.match(migration, /can_manage_ielts_practice_assignment\(p_assignment_id\)/i, 'manager progress reads must use school-scoped assignment permissions');
+  assert.doesNotMatch(migration, /answer_key/i, 'item progress migration must not expose answer keys');
+  assert.doesNotMatch(migration, /rpc_is_ielts_admin|ielts_teachers|is_ielts_admin/i, 'item progress migration must not use legacy IELTS admin permissions');
+});
+
+test('assigned IELTS practice preserves assignment context and ReadingPractice completes reading items', () => {
+  const assignedPage = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/IeltsAssignedPractice.tsx'), 'utf8');
+  const readingPage = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/ReadingPractice.tsx'), 'utf8');
+
+  assert.match(assignedPage, /new URLSearchParams\(\{[\s\S]*assignment_id: assignment\.id[\s\S]*assignment_item_id: item\.id/i, 'assigned item routes must include assignment query params');
+  assert.match(assignedPage, /rpcIeltsPracticeMarkItemStarted/i, 'opening an item should mark item progress started');
+  assert.match(assignedPage, /assignment_item_count: String\(assignment\.item_count/i, 'assigned item routes should include refresh-safe item count context');
+  assert.match(assignedPage, /navigate\(assignedRoute\)/i, 'navigation should use the refresh-safe assigned route');
+
+  assert.match(readingPage, /assignmentSearchParams\.get\('assignment_id'\)/i, 'ReadingPractice must read assignment_id from query params');
+  assert.match(readingPage, /assignmentSearchParams\.get\('assignment_item_id'\)/i, 'ReadingPractice must read assignment_item_id from query params');
+  assert.match(readingPage, /assignmentSearchParams\.get\('assignment_item_count'\)/i, 'ReadingPractice must read item count context from query params');
+  assert.match(readingPage, /rpcIeltsPracticeMarkItemCompleted\(\{[\s\S]*assignmentId[\s\S]*assignmentItemId[\s\S]*practiceAttemptType: 'reading'[\s\S]*practiceAttemptId: attempt\?\.id/i, 'ReadingPractice must mark reading item completed with attempt linkage');
+  assert.match(readingPage, /assignment items completed/i, 'result UI must show item-level progress');
+  assert.match(readingPage, /School assignment completed/i, 'result UI must show parent assignment completion');
+  assert.doesNotMatch(readingPage, /rpcIeltsPracticeMarkCompleted\(/i, 'ReadingPractice must not directly complete the parent assignment');
+  assert.doesNotMatch(readingPage, /answer_key/i, 'ReadingPractice must not expose answer keys');
+});
+
