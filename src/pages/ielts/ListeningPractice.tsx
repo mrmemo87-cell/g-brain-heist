@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '../../../services/supabaseClient';
 import { ensureIeltsProfile, getUserTier, isIeltsPrime, saveNotificationPreferences } from '../../../services/ieltsService';
+import { rpcIeltsPracticeMarkItemCompleted, type IeltsPracticeAssignmentProgress } from '../../../services/ieltsPracticeAssignmentService';
+import { AssignmentCompletionStatus, readIeltsPracticeAssignmentContext } from './assignmentPracticeUi';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 
 interface ListeningSet {
@@ -31,6 +33,8 @@ interface ListeningQuestion {
 const ListeningPractice: React.FC = () => {
   const { setId } = useParams<{ setId: string }>();
   const navigate = useNavigate();
+  const assignmentContext = readIeltsPracticeAssignmentContext();
+  const { assignmentId, assignmentItemId } = assignmentContext;
   
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [showResults, setShowResults] = useState(false);
@@ -216,6 +220,8 @@ const ListeningPractice: React.FC = () => {
   });
 
   const [lastAttemptId, setLastAttemptId] = useState<string | null>(null);
+  const [assignmentProgress, setAssignmentProgress] = useState<IeltsPracticeAssignmentProgress | null>(null);
+  const [assignmentCompletionError, setAssignmentCompletionError] = useState<string | null>(null);
 
   // Submit mutation
   const submitMutation = useMutation({
@@ -239,10 +245,29 @@ const ListeningPractice: React.FC = () => {
         .single();
 
       if (error) throw error;
-      return result;
+
+      let progress: IeltsPracticeAssignmentProgress | null = null;
+      let itemCompletionError: string | null = null;
+
+      if (assignmentId && assignmentItemId) {
+        try {
+          progress = await rpcIeltsPracticeMarkItemCompleted({
+            assignmentId,
+            assignmentItemId,
+            practiceAttemptType: 'listening',
+            practiceAttemptId: result?.id ?? null,
+          });
+        } catch (completionError) {
+          itemCompletionError = completionError instanceof Error ? completionError.message : 'Unable to mark assignment item completed.';
+        }
+      }
+
+      return { attempt: result, progress, itemCompletionError };
     },
     onSuccess: (data) => {
-      setLastAttemptId(data?.id);
+      setLastAttemptId(data.attempt?.id);
+      setAssignmentProgress(data.progress);
+      setAssignmentCompletionError(data.itemCompletionError);
       setShowResults(true);
     },
   });
@@ -451,6 +476,12 @@ const ListeningPractice: React.FC = () => {
             </h1>
           </div>
           
+          <AssignmentCompletionStatus
+            context={assignmentContext}
+            progress={assignmentProgress}
+            completionError={assignmentCompletionError}
+          />
+
           {/* Score Display */}
           <div style={{
             background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
