@@ -140,6 +140,12 @@ export interface AssignIeltsPracticeToStudentsParams {
   studentIds: string[];
 }
 
+export interface ForceCompleteIeltsPracticeAssignmentParams {
+  assignmentId: string;
+  studentId: string;
+  reason?: string | null;
+}
+
 export interface IeltsPracticeAssignmentRpcClient {
   rpc: typeof supabase.rpc;
 }
@@ -280,6 +286,20 @@ export const rpcIeltsPracticeMarkCompleted = async (
   }) as unknown as Awaited<RpcResult<IeltsPracticeStudentAssignment>>;
 
   return assertNoRpcError('rpc_ielts_practice_mark_completed', data, error);
+};
+
+
+export const rpcIeltsPracticeForceCompleteAssignment = async (
+  params: ForceCompleteIeltsPracticeAssignmentParams,
+  client?: IeltsPracticeAssignmentRpcClient
+): Promise<IeltsPracticeStudentAssignment> => {
+  const { data, error } = await withClient(client).rpc('rpc_ielts_practice_force_complete_assignment', {
+    p_assignment_id: params.assignmentId,
+    p_student_id: params.studentId,
+    p_reason: params.reason ?? null,
+  }) as unknown as Awaited<RpcResult<IeltsPracticeStudentAssignment>>;
+
+  return assertNoRpcError('rpc_ielts_practice_force_complete_assignment', data, error);
 };
 
 export const rpcIeltsPracticeAssignmentProgress = async (

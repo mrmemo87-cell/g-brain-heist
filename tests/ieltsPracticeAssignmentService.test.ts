@@ -10,6 +10,7 @@ import {
   rpcIeltsPracticeCreateAssignment,
   rpcIeltsPracticeListAssignments,
   rpcIeltsPracticeMarkCompleted,
+  rpcIeltsPracticeForceCompleteAssignment,
   rpcIeltsPracticeMarkItemCompleted,
   rpcIeltsPracticeMarkItemStarted,
   rpcIeltsPracticeMarkStarted,
@@ -62,6 +63,7 @@ test('IELTS practice assignment service maps RPC names and parameters', async ()
   await rpcIeltsPracticeStudentAssignments(client);
   await rpcIeltsPracticeMarkStarted('assignment-1', client);
   await rpcIeltsPracticeMarkCompleted('assignment-1', client);
+  await rpcIeltsPracticeForceCompleteAssignment({ assignmentId: 'assignment-1', studentId: 'student-1', reason: 'excused by admin' }, client);
   await rpcIeltsPracticeAssignmentProgress('assignment-1', 'student-1', client);
   await rpcIeltsPracticeMarkItemStarted({ assignmentId: 'assignment-1', assignmentItemId: 'item-1' }, client);
   await rpcIeltsPracticeMarkItemCompleted({ assignmentId: 'assignment-1', assignmentItemId: 'item-1', practiceAttemptType: 'reading', practiceAttemptId: 'attempt-1' }, client);
@@ -87,6 +89,7 @@ test('IELTS practice assignment service maps RPC names and parameters', async ()
     { name: 'rpc_ielts_practice_student_assignments', params: {} },
     { name: 'rpc_ielts_practice_mark_started', params: { p_assignment_id: 'assignment-1' } },
     { name: 'rpc_ielts_practice_mark_completed', params: { p_assignment_id: 'assignment-1' } },
+    { name: 'rpc_ielts_practice_force_complete_assignment', params: { p_assignment_id: 'assignment-1', p_student_id: 'student-1', p_reason: 'excused by admin' } },
     { name: 'rpc_ielts_practice_assignment_progress', params: { p_assignment_id: 'assignment-1', p_student_id: 'student-1' } },
     { name: 'rpc_ielts_practice_mark_item_started', params: { p_assignment_id: 'assignment-1', p_assignment_item_id: 'item-1' } },
     { name: 'rpc_ielts_practice_mark_item_completed', params: { p_assignment_id: 'assignment-1', p_assignment_item_id: 'item-1', p_practice_attempt_type: 'reading', p_practice_attempt_id: 'attempt-1' } },
@@ -181,7 +184,8 @@ test('assigned IELTS practice student page uses assignment RPCs without raw IELT
   assert.match(home, /navigate\('\/ielts\/practice\/assigned'\)/, 'IELTS home should link to assigned practice');
   assert.match(page, /rpcIeltsPracticeStudentAssignments/, 'student page must load assigned practice through the assignment RPC wrapper');
   assert.match(page, /rpcIeltsPracticeMarkStarted/, 'opening assigned practice should mark assigned rows started');
-  assert.match(page, /rpcIeltsPracticeMarkCompleted/, 'student page should allow marking assignments completed');
+  assert.doesNotMatch(page, /rpcIeltsPracticeMarkCompleted|Mark assignment completed|handleMarkCompleted/i, 'student page must not expose direct parent assignment completion');
+  assert.match(page, /Assignment completes automatically after all required items are finished/i, 'student page must explain automatic required-item completion');
   assert.match(page, /getIeltsPracticeItemRoute/, 'student page must use the route helper for content links');
   assert.doesNotMatch(page, /\.from\(['"]ielts_/i, 'student assigned practice page must not query raw IELTS tables');
   assert.doesNotMatch(page, /answer_key/i, 'student assigned practice page must not expose answer keys');
@@ -208,6 +212,36 @@ test('IELTS practice item progress migration adds secure item tracking and paren
   assert.match(migration, /can_manage_ielts_practice_assignment\(p_assignment_id\)/i, 'manager progress reads must use school-scoped assignment permissions');
   assert.doesNotMatch(migration, /answer_key/i, 'item progress migration must not expose answer keys');
   assert.doesNotMatch(migration, /rpc_is_ielts_admin|ielts_teachers|is_ielts_admin/i, 'item progress migration must not use legacy IELTS admin permissions');
+});
+
+
+test('Pilot integrity repair hardens parent completion and adds scoped manager override', () => {
+  const migration = fs.readFileSync(
+    path.join(process.cwd(), 'supabase/migrations/20260516180000_ielts_practice_completion_integrity.sql'),
+    'utf8',
+  );
+  const studentSql = migration.slice(
+    migration.indexOf('create or replace function public.rpc_ielts_practice_mark_completed'),
+    migration.indexOf('create or replace function public.rpc_ielts_practice_force_complete_assignment'),
+  );
+  const overrideSql = migration.slice(
+    migration.indexOf('create or replace function public.rpc_ielts_practice_force_complete_assignment'),
+    migration.indexOf('grant execute on function public.rpc_ielts_practice_mark_completed'),
+  );
+
+  assert.match(migration, /create table if not exists public\.ielts_practice_assignment_completion_overrides/i, 'manager overrides must be audit-recorded');
+  assert.match(studentSql, /where assignment_id = p_assignment_id[\s\S]*and student_id = auth\.uid\(\)/i, 'student parent completion must only target the authenticated student row');
+  assert.match(studentSql, /count\(\*\) filter \(where i\.required = true and coalesce\(item_s\.status, 'assigned'\) <> 'completed'\)/i, 'student parent completion must inspect incomplete required item rows');
+  assert.match(studentSql, /raise exception 'required_items_incomplete'/i, 'student parent completion must reject premature completion');
+  assert.match(studentSql, /set status = 'completed'[\s\S]*where assignment_id = p_assignment_id[\s\S]*and student_id = auth\.uid\(\)/i, 'student parent completion can only complete after the required-item gate');
+
+  assert.match(overrideSql, /if not public\.can_manage_ielts_practice_school\(v_assignment\.school_id\) then[\s\S]*raise exception 'forbidden'/i, 'override must require scoped school manager permissions');
+  assert.match(overrideSql, /join public\.users u on u\.id = s\.student_id and u\.school_id = v_assignment\.school_id/i, 'override must stay scoped to the assignment school');
+  assert.match(overrideSql, /insert into public\.ielts_practice_assignment_completion_overrides/i, 'override must write an audit row');
+  assert.match(migration, /grant execute on function public\.rpc_ielts_practice_force_complete_assignment\(uuid, uuid, text\) to authenticated/i, 'override RPC must be explicit and callable through normal auth/RLS checks');
+  assert.doesNotMatch(overrideSql, /class_teacher_assignments/i, 'override must not grant assigned-teacher monitor/class scope');
+  assert.doesNotMatch(migration, /answer_key/i, 'completion integrity migration must not expose protected answer data');
+  assert.doesNotMatch(migration, /rpc_is_ielts_admin|ielts_teachers|is_ielts_admin/i, 'completion integrity migration must not depend on legacy IELTS admin permissions');
 });
 
 test('assigned IELTS practice preserves assignment context and ReadingPractice completes reading items', () => {
