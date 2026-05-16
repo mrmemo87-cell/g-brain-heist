@@ -1,0 +1,250 @@
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  getIeltsPracticeItemRoute,
+  rpcIeltsPracticeMarkCompleted,
+  rpcIeltsPracticeMarkStarted,
+  rpcIeltsPracticeStudentAssignments,
+  type IeltsPracticeAssignmentItem,
+  type IeltsPracticeStudentAssignment,
+} from '../../../services/ieltsPracticeAssignmentService';
+
+type AssignmentLoadState = 'loading' | 'ready' | 'error';
+
+const skillLabels: Record<string, string> = {
+  reading: 'Reading',
+  listening: 'Listening',
+  writing: 'Writing',
+  speaking: 'Speaking',
+};
+
+const skillOrder = ['reading', 'listening', 'writing', 'speaking'];
+
+const formatDueDate = (dueAt: string | null): string => {
+  if (!dueAt) return 'No due date';
+  const parsed = new Date(dueAt);
+  if (Number.isNaN(parsed.getTime())) return 'Due date unavailable';
+  return parsed.toLocaleString(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  });
+};
+
+const isAssignmentOverdue = (assignment: IeltsPracticeStudentAssignment): boolean => {
+  if (assignment.student_status === 'completed') return false;
+  if (assignment.student_status === 'overdue') return true;
+  if (!assignment.due_at) return false;
+  const dueTime = new Date(assignment.due_at).getTime();
+  return Number.isFinite(dueTime) && dueTime < Date.now();
+};
+
+const groupItemsBySkill = (items: IeltsPracticeAssignmentItem[] = []) => items.reduce<Record<string, IeltsPracticeAssignmentItem[]>>((groups, item) => {
+  const skill = item.skill || 'other';
+  groups[skill] = [...(groups[skill] ?? []), item];
+  return groups;
+}, {});
+
+const getAssignmentBadge = (assignment: IeltsPracticeStudentAssignment) => {
+  if (assignment.student_status === 'completed') {
+    return { label: 'Completed', backgroundColor: '#dcfce7', color: '#166534' };
+  }
+  if (isAssignmentOverdue(assignment)) {
+    return { label: 'Overdue', backgroundColor: '#fee2e2', color: '#991b1b' };
+  }
+  if (assignment.student_status === 'in_progress') {
+    return { label: 'In progress', backgroundColor: '#dbeafe', color: '#1d4ed8' };
+  }
+  return { label: 'Assigned', backgroundColor: '#fef3c7', color: '#92400e' };
+};
+
+const IeltsAssignedPractice: React.FC = () => {
+  const navigate = useNavigate();
+  const [assignments, setAssignments] = useState<IeltsPracticeStudentAssignment[]>([]);
+  const [loadState, setLoadState] = useState<AssignmentLoadState>('loading');
+  const [error, setError] = useState<string | null>(null);
+  const [busyAssignmentId, setBusyAssignmentId] = useState<string | null>(null);
+
+  const loadAssignments = async () => {
+    setLoadState('loading');
+    setError(null);
+    try {
+      const rows = await rpcIeltsPracticeStudentAssignments();
+      setAssignments(rows);
+      setLoadState('ready');
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Unable to load assigned IELTS practice.');
+      setLoadState('error');
+    }
+  };
+
+  useEffect(() => {
+    void loadAssignments();
+  }, []);
+
+  const handleOpenItem = async (assignment: IeltsPracticeStudentAssignment, item: IeltsPracticeAssignmentItem, route: string) => {
+    if (assignment.student_status !== 'assigned') {
+      navigate(route);
+      return;
+    }
+
+    setBusyAssignmentId(assignment.id);
+    try {
+      const updated = await rpcIeltsPracticeMarkStarted(assignment.id);
+      setAssignments((current) => current.map((row) => (row.id === assignment.id ? { ...row, ...updated } : row)));
+      navigate(route);
+    } catch (startError) {
+      setError(startError instanceof Error ? startError.message : 'Unable to mark assignment as started.');
+    } finally {
+      setBusyAssignmentId(null);
+    }
+  };
+
+  const handleMarkCompleted = async (assignment: IeltsPracticeStudentAssignment) => {
+    const confirmed = window.confirm(`Mark "${assignment.title}" as completed?`);
+    if (!confirmed) return;
+
+    setBusyAssignmentId(assignment.id);
+    setError(null);
+    try {
+      const updated = await rpcIeltsPracticeMarkCompleted(assignment.id);
+      setAssignments((current) => current.map((row) => (row.id === assignment.id ? { ...row, ...updated } : row)));
+    } catch (completeError) {
+      setError(completeError instanceof Error ? completeError.message : 'Unable to mark assignment completed.');
+    } finally {
+      setBusyAssignmentId(null);
+    }
+  };
+
+  const sortedAssignments = useMemo(() => [...assignments].sort((a, b) => {
+    if (a.student_status === 'completed' && b.student_status !== 'completed') return 1;
+    if (a.student_status !== 'completed' && b.student_status === 'completed') return -1;
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  }), [assignments]);
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', color: '#111827', padding: '1rem' }}>
+      <div style={{ maxWidth: '64rem', margin: '0 auto' }}>
+        <button
+          type="button"
+          onClick={() => navigate('/ielts')}
+          style={{ marginBottom: '1rem', color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+        >
+          ← Back to IELTS Home
+        </button>
+
+        <header style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%)', borderRadius: '1rem', padding: '1.5rem', color: '#ffffff', marginBottom: '1rem' }}>
+          <p style={{ margin: '0 0 0.5rem', color: '#bfdbfe', textTransform: 'uppercase', letterSpacing: '0.12em', fontSize: '0.75rem', fontWeight: 700 }}>School IELTS Practice</p>
+          <h1 style={{ margin: 0, fontSize: '1.875rem', fontWeight: 800 }}>Assigned IELTS Practice</h1>
+          <p style={{ margin: '0.75rem 0 0', color: '#dbeafe', lineHeight: 1.6 }}>
+            Review IELTS practice assigned by your school or teacher. Opening an item marks the assignment as started; completion is tracked at the assignment level for now.
+          </p>
+        </header>
+
+        {error && (
+          <div style={{ backgroundColor: '#fee2e2', border: '1px solid #fecaca', color: '#991b1b', padding: '0.875rem', borderRadius: '0.75rem', marginBottom: '1rem' }}>
+            {error}
+          </div>
+        )}
+
+        {loadState === 'loading' && (
+          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1rem', color: '#64748b' }}>
+            Loading assigned IELTS practice…
+          </div>
+        )}
+
+        {loadState === 'error' && (
+          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1rem' }}>
+            <p style={{ margin: '0 0 0.75rem', color: '#64748b' }}>We could not load your assigned practice.</p>
+            <button type="button" onClick={() => void loadAssignments()} style={{ backgroundColor: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1rem', cursor: 'pointer', fontWeight: 700 }}>
+              Try again
+            </button>
+          </div>
+        )}
+
+        {loadState === 'ready' && sortedAssignments.length === 0 && (
+          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.25rem', color: '#64748b' }}>
+            No IELTS practice has been assigned yet.
+          </div>
+        )}
+
+        {loadState === 'ready' && sortedAssignments.map((assignment) => {
+          const groupedItems = groupItemsBySkill(assignment.items);
+          const visibleSkills = [...skillOrder, ...Object.keys(groupedItems).filter((skill) => !skillOrder.includes(skill))]
+            .filter((skill) => (groupedItems[skill] ?? []).length > 0);
+          const badge = getAssignmentBadge(assignment);
+          const isBusy = busyAssignmentId === assignment.id;
+
+          return (
+            <article key={assignment.id} style={{ backgroundColor: '#ffffff', border: isAssignmentOverdue(assignment) ? '1px solid #fca5a5' : '1px solid #e5e7eb', borderRadius: '1rem', padding: '1rem', marginBottom: '1rem', boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
+                <div>
+                  <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#111827' }}>{assignment.title}</h2>
+                  {assignment.description && <p style={{ margin: '0.5rem 0 0', color: '#475569', lineHeight: 1.5 }}>{assignment.description}</p>}
+                </div>
+                <span style={{ backgroundColor: badge.backgroundColor, color: badge.color, borderRadius: '9999px', padding: '0.35rem 0.75rem', fontSize: '0.75rem', fontWeight: 800 }}>
+                  {badge.label}
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.875rem', color: '#64748b', fontSize: '0.875rem' }}>
+                <span>Due: <strong style={{ color: '#334155' }}>{formatDueDate(assignment.due_at)}</strong></span>
+                <span>Items: <strong style={{ color: '#334155' }}>{assignment.item_count ?? assignment.items?.length ?? 0}</strong></span>
+                <span>Status: <strong style={{ color: '#334155' }}>{assignment.student_status.replace(/_/g, ' ')}</strong></span>
+              </div>
+
+              <div style={{ marginTop: '1rem' }}>
+                {visibleSkills.map((skill) => (
+                  <section key={skill} style={{ borderTop: '1px solid #e5e7eb', paddingTop: '0.875rem', marginTop: '0.875rem' }}>
+                    <h3 style={{ margin: '0 0 0.5rem', color: '#1e40af', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{skillLabels[skill] ?? skill}</h3>
+                    <div style={{ display: 'grid', gap: '0.5rem' }}>
+                      {(groupedItems[skill] ?? []).map((item) => {
+                        const route = getIeltsPracticeItemRoute(item);
+                        return (
+                          <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '0.75rem', flexWrap: 'wrap' }}>
+                            <div>
+                              <p style={{ margin: 0, fontWeight: 700, color: '#111827' }}>{item.title || `${skillLabels[skill] ?? skill} practice`}</p>
+                              <p style={{ margin: '0.25rem 0 0', color: '#64748b', fontSize: '0.8125rem' }}>{item.required ? 'Required' : 'Optional'}</p>
+                            </div>
+                            {route ? (
+                              <a
+                                href={route}
+                                onClick={(event) => {
+                                  event.preventDefault();
+                                  void handleOpenItem(assignment, item, route);
+                                }}
+                                style={{ backgroundColor: '#2563eb', color: '#ffffff', borderRadius: '0.5rem', padding: '0.55rem 0.875rem', fontWeight: 800, textDecoration: 'none', opacity: isBusy ? 0.65 : 1, pointerEvents: isBusy ? 'none' : 'auto' }}
+                              >
+                                Open
+                              </a>
+                            ) : (
+                              <span style={{ color: '#94a3b8', fontSize: '0.8125rem' }}>Unavailable</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ))}
+              </div>
+
+              {assignment.student_status !== 'completed' && (
+                <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end' }}>
+                  <button
+                    type="button"
+                    onClick={() => void handleMarkCompleted(assignment)}
+                    disabled={isBusy}
+                    style={{ backgroundColor: '#16a34a', color: '#ffffff', border: 'none', borderRadius: '0.625rem', padding: '0.7rem 1rem', fontWeight: 800, cursor: isBusy ? 'not-allowed' : 'pointer', opacity: isBusy ? 0.65 : 1 }}
+                  >
+                    Mark assignment completed
+                  </button>
+                </div>
+              )}
+            </article>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+export default IeltsAssignedPractice;

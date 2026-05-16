@@ -18,7 +18,10 @@
     "services/supabaseClient.ts",
     "services/env.ts",
     "services/ieltsExamModeService.ts",
-    "services/ieltsExamModeAuthService.ts"
+    "services/ieltsExamAccessService.ts",
+    "services/ieltsPracticeAssignmentService.ts",
+    "services/ieltsJourneyService.ts",
+    "services/ieltsResultsService.ts"
   ],
   "exclude": ["node_modules"]
 }

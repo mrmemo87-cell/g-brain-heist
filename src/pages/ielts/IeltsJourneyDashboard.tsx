@@ -1,0 +1,184 @@
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { rpcIeltsStudentJourney, type IeltsStudentJourney } from '../../../services/ieltsJourneyService';
+
+type LoadState = 'loading' | 'ready' | 'error';
+
+const skillLabels: Record<string, string> = {
+  reading: 'Reading',
+  listening: 'Listening',
+  writing: 'Writing',
+  speaking: 'Speaking',
+  overall: 'Overall',
+};
+
+const formatEstimate = (value: number | null | undefined) => (value === null || value === undefined ? 'Not enough data' : value.toFixed(1));
+
+const formatDate = (value?: string | null) => {
+  if (!value) return '—';
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return '—';
+  return parsed.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+};
+
+const IeltsJourneyDashboard: React.FC = () => {
+  const navigate = useNavigate();
+  const [journey, setJourney] = useState<IeltsStudentJourney | null>(null);
+  const [loadState, setLoadState] = useState<LoadState>('loading');
+  const [error, setError] = useState<string | null>(null);
+
+  const loadJourney = async () => {
+    setLoadState('loading');
+    setError(null);
+    try {
+      const data = await rpcIeltsStudentJourney();
+      setJourney(data);
+      setLoadState('ready');
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Unable to load your IELTS journey.');
+      setLoadState('error');
+    }
+  };
+
+  useEffect(() => {
+    void loadJourney();
+  }, []);
+
+  const skillCards = useMemo(() => {
+    const estimates = journey?.current_estimates;
+    return [
+      { key: 'reading', value: estimates?.reading ?? null },
+      { key: 'listening', value: estimates?.listening ?? null },
+      { key: 'writing', value: estimates?.writing ?? null },
+      { key: 'speaking', value: estimates?.speaking ?? null },
+      { key: 'overall', value: estimates?.overall ?? null },
+    ];
+  }, [journey]);
+
+  const assigned = journey?.assigned_practice_summary;
+  const assignedTotal = assigned?.total ?? 0;
+  const assignedCompleted = assigned?.completed ?? 0;
+  const completionPercent = assignedTotal > 0 ? Math.round((assignedCompleted / assignedTotal) * 100) : 0;
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', color: '#111827', padding: '1rem' }}>
+      <div style={{ maxWidth: '72rem', margin: '0 auto' }}>
+        <button
+          type="button"
+          onClick={() => navigate('/ielts')}
+          style={{ marginBottom: '1rem', color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}
+        >
+          ← Back to IELTS Home
+        </button>
+
+        <header style={{ background: 'linear-gradient(135deg, #312e81 0%, #2563eb 100%)', borderRadius: '1rem', padding: '1.5rem', color: '#ffffff', marginBottom: '1rem' }}>
+          <p style={{ margin: '0 0 0.5rem', color: '#c7d2fe', textTransform: 'uppercase', letterSpacing: '0.12em', fontSize: '0.75rem', fontWeight: 800 }}>My IELTS Journey</p>
+          <h1 style={{ margin: 0, fontSize: '1.875rem', fontWeight: 900 }}>Estimated readiness dashboard</h1>
+          <p style={{ margin: '0.75rem 0 0', color: '#dbeafe', lineHeight: 1.6 }}>
+            This first version uses your existing practice, assigned work, and Exam Mode submission metadata. These are estimated readiness signals, not official IELTS bands.
+          </p>
+        </header>
+
+        {error && (
+          <div style={{ backgroundColor: '#fee2e2', border: '1px solid #fecaca', color: '#991b1b', padding: '0.875rem', borderRadius: '0.75rem', marginBottom: '1rem' }}>
+            {error}
+          </div>
+        )}
+
+        {loadState === 'loading' && (
+          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1rem', color: '#64748b' }}>
+            Loading your IELTS journey…
+          </div>
+        )}
+
+        {loadState === 'error' && (
+          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1rem' }}>
+            <p style={{ margin: '0 0 0.75rem', color: '#64748b' }}>We could not load your journey dashboard.</p>
+            <button type="button" onClick={() => void loadJourney()} style={{ backgroundColor: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1rem', cursor: 'pointer', fontWeight: 800 }}>
+              Try again
+            </button>
+          </div>
+        )}
+
+        {loadState === 'ready' && journey && (
+          <div style={{ display: 'grid', gap: '1rem' }}>
+            <section style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))' }}>
+              {skillCards.map((card) => (
+                <div key={card.key} style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.875rem', padding: '1rem' }}>
+                  <p style={{ margin: '0 0 0.35rem', color: '#64748b', fontSize: '0.8125rem', fontWeight: 700 }}>{skillLabels[card.key]}</p>
+                  <p style={{ margin: 0, color: card.value === null ? '#94a3b8' : '#1d4ed8', fontSize: card.value === null ? '1rem' : '1.75rem', fontWeight: 900 }}>
+                    {formatEstimate(card.value)}
+                  </p>
+                  <p style={{ margin: '0.35rem 0 0', color: '#94a3b8', fontSize: '0.75rem' }}>Estimated readiness</p>
+                </div>
+              ))}
+            </section>
+
+            <section style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.875rem', padding: '1rem' }}>
+                <h2 style={{ margin: '0 0 0.75rem', fontSize: '1rem', fontWeight: 900 }}>Readiness context</h2>
+                <p style={{ margin: '0.35rem 0', color: '#475569' }}>Target band: <strong>{journey.target_band ?? 'Not set yet'}</strong></p>
+                <p style={{ margin: '0.35rem 0', color: '#475569' }}>Confidence level: <strong style={{ textTransform: 'capitalize' }}>{journey.confidence_level}</strong></p>
+                <p style={{ margin: '0.35rem 0', color: '#475569' }}>Weak skill: <strong>{journey.weak_skill ? skillLabels[journey.weak_skill] ?? journey.weak_skill : 'Not enough data yet'}</strong></p>
+              </div>
+
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.875rem', padding: '1rem' }}>
+                <h2 style={{ margin: '0 0 0.75rem', fontSize: '1rem', fontWeight: 900 }}>Assigned practice progress</h2>
+                <div style={{ backgroundColor: '#e0f2fe', borderRadius: '9999px', height: '0.7rem', overflow: 'hidden', marginBottom: '0.75rem' }}>
+                  <div style={{ backgroundColor: '#2563eb', width: `${completionPercent}%`, height: '100%' }} />
+                </div>
+                <p style={{ margin: '0 0 0.5rem', color: '#475569' }}>{assignedCompleted} of {assignedTotal} assigned items completed ({completionPercent}%).</p>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', color: '#475569', fontSize: '0.8125rem' }}>
+                  <span>Assigned: {assigned?.assigned ?? 0}</span>
+                  <span>In progress: {assigned?.in_progress ?? 0}</span>
+                  <span>Overdue: {assigned?.overdue ?? 0}</span>
+                </div>
+              </div>
+
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.875rem', padding: '1rem' }}>
+                <h2 style={{ margin: '0 0 0.75rem', fontSize: '1rem', fontWeight: 900 }}>Next recommendation</h2>
+                <p style={{ margin: 0, color: '#475569', lineHeight: 1.5 }}>{journey.next_recommendation}</p>
+              </div>
+            </section>
+
+            <section style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.875rem', padding: '1rem' }}>
+                <h2 style={{ margin: '0 0 0.75rem', fontSize: '1rem', fontWeight: 900 }}>Recent practice</h2>
+                {journey.recent_practice.length === 0 ? (
+                  <p style={{ margin: 0, color: '#64748b' }}>No practice attempts yet. Complete a reading or listening set to begin building your readiness estimate.</p>
+                ) : (
+                  <div style={{ display: 'grid', gap: '0.6rem' }}>
+                    {journey.recent_practice.map((item) => (
+                      <div key={`${item.skill}-${item.id}`} style={{ border: '1px solid #e2e8f0', borderRadius: '0.625rem', padding: '0.75rem' }}>
+                        <p style={{ margin: 0, color: '#111827', fontWeight: 800 }}>{skillLabels[item.skill] ?? item.skill} practice</p>
+                        <p style={{ margin: '0.25rem 0 0', color: '#64748b', fontSize: '0.8125rem' }}>{formatDate(item.occurred_at)} · Estimate: {formatEstimate(item.estimated_band ?? null)}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.875rem', padding: '1rem' }}>
+                <h2 style={{ margin: '0 0 0.75rem', fontSize: '1rem', fontWeight: 900 }}>Recent Exam Mode submissions</h2>
+                {journey.recent_exam_mode_submissions.length === 0 ? (
+                  <p style={{ margin: 0, color: '#64748b' }}>No secure Exam Mode submissions yet.</p>
+                ) : (
+                  <div style={{ display: 'grid', gap: '0.6rem' }}>
+                    {journey.recent_exam_mode_submissions.map((item) => (
+                      <div key={item.submission_id} style={{ border: '1px solid #e2e8f0', borderRadius: '0.625rem', padding: '0.75rem' }}>
+                        <p style={{ margin: 0, color: '#111827', fontWeight: 800 }}>Exam submission</p>
+                        <p style={{ margin: '0.25rem 0 0', color: '#64748b', fontSize: '0.8125rem' }}>{formatDate(item.submitted_at)} · {item.grading_status ?? 'pending'}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default IeltsJourneyDashboard;
