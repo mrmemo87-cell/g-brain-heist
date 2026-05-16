@@ -17,7 +17,8 @@
     "services/rpcGateway.ts",
     "services/supabaseClient.ts",
     "services/env.ts",
-    "services/ieltsExamModeService.ts"
+    "services/ieltsExamModeService.ts",
+    "services/ieltsExamModeAuthService.ts"
   ],
   "exclude": ["node_modules"]
 }

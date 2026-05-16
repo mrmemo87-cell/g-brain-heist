@@ -42,6 +42,7 @@ const TrialListeningTest = lazyRetry(() => import('./src/pages/ielts/TrialListen
 const TrialListeningTask2 = lazyRetry(() => import('./src/pages/ielts/TrialListeningTask2'), 'TrialListeningTask2');
 const IeltsPrime = lazyRetry(() => import('./src/pages/ielts/IeltsPrime'), 'IeltsPrime');
 const IeltsAdminGuard = lazyRetry(() => import('./components/ielts/IeltsAdminGuard'), 'IeltsAdminGuard');
+const IeltsExamModeAdminGuard = lazyRetry(() => import('./components/ielts/IeltsExamModeAdminGuard'), 'IeltsExamModeAdminGuard');
 const IeltsAdminDashboard = lazyRetry(() => import('./components/IeltsAdminDashboard'), 'IeltsAdminDashboard');
 const IeltsExamMode = lazyRetry(() => import('./src/pages/ielts/IeltsExamMode'), 'IeltsExamMode');
 const IeltsExamMonitor = lazyRetry(() => import('./src/pages/ielts/IeltsExamMonitor'), 'IeltsExamMonitor');
@@ -732,9 +733,9 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute
         element={(
-          <IeltsAdminGuard>
+          <IeltsExamModeAdminGuard>
             <IeltsExamManager />
-          </IeltsAdminGuard>
+          </IeltsExamModeAdminGuard>
         )}
       />
     ),
@@ -744,9 +745,9 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute
         element={(
-          <IeltsAdminGuard>
+          <IeltsExamModeAdminGuard>
             <IeltsExamMonitor />
-          </IeltsAdminGuard>
+          </IeltsExamModeAdminGuard>
         )}
       />
     ),
