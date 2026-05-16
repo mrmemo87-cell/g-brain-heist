@@ -1438,6 +1438,14 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
             {tab === 'ielts-analytics' && '📊 IELTS Analytics'}
           </button>
         ))}
+        <button
+          type="button"
+          onClick={() => { window.location.href = '/ielts/exams/manage'; }}
+          role="link"
+          className="px-4 py-2 sm:px-5 sm:py-3 rounded-xl font-medium transition-all text-sm sm:text-base border bg-amber-900/40 text-amber-100 hover:bg-amber-800/60 border-amber-600/40 hover:text-white hover:border-amber-500"
+        >
+          📝 IELTS Exams
+        </button>
       </div>
 
       {/* Dashboard Tab */}
