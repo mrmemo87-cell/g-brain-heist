@@ -268,6 +268,46 @@ const IeltsHome: React.FC = () => {
             </div>
           )}
 
+          {/* My IELTS Journey */}
+          <div style={{ backgroundColor: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                  <span style={{ fontSize: '1.5rem' }}>🧭</span>
+                  <h2 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>My IELTS Journey</h2>
+                </div>
+                <p style={{ color: '#475569', fontSize: '0.8125rem', margin: 0 }}>See estimated readiness, assigned practice progress, and recent IELTS activity.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/ielts/journey')}
+                style={{ backgroundColor: '#4f46e5', color: '#ffffff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1rem', fontSize: '0.875rem', fontWeight: 'bold', cursor: 'pointer' }}
+              >
+                Open journey
+              </button>
+            </div>
+          </div>
+
+          {/* Assigned Practice */}
+          <div style={{ backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                  <span style={{ fontSize: '1.5rem' }}>📌</span>
+                  <h2 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>Assigned Practice</h2>
+                </div>
+                <p style={{ color: '#475569', fontSize: '0.8125rem', margin: 0 }}>Open IELTS practice assigned by your school or teacher.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/ielts/practice/assigned')}
+                style={{ backgroundColor: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1rem', fontSize: '0.875rem', fontWeight: 'bold', cursor: 'pointer' }}
+              >
+                View assignments
+              </button>
+            </div>
+          </div>
+
           {/* Reading */}
           <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>

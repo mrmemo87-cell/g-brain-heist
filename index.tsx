@@ -33,6 +33,8 @@ const IELTSApp = lazyRetry(() => import('./components/ielts/IELTSApp'), 'IELTSAp
 const IELTSLoginView = lazyRetry(() => import('./components/ielts/IELTSLoginView'), 'IELTSLoginView');
 const PasswordResetPage = lazyRetry(() => import('./components/PasswordResetPage'), 'PasswordResetPage');
 const IeltsHome = lazyRetry(() => import('./src/pages/ielts/IeltsHome'), 'IeltsHome');
+const IeltsAssignedPractice = lazyRetry(() => import('./src/pages/ielts/IeltsAssignedPractice'), 'IeltsAssignedPractice');
+const IeltsJourneyDashboard = lazyRetry(() => import('./src/pages/ielts/IeltsJourneyDashboard'), 'IeltsJourneyDashboard');
 const IeltsSession = lazyRetry(() => import('./src/pages/ielts/IeltsSession'), 'IeltsSession');
 const ReadingPractice = lazyRetry(() => import('./src/pages/ielts/ReadingPractice'), 'ReadingPractice');
 const SpeakingPractice = lazyRetry(() => import('./src/pages/ielts/SpeakingPractice'), 'SpeakingPractice');
@@ -42,6 +44,7 @@ const TrialListeningTest = lazyRetry(() => import('./src/pages/ielts/TrialListen
 const TrialListeningTask2 = lazyRetry(() => import('./src/pages/ielts/TrialListeningTask2'), 'TrialListeningTask2');
 const IeltsPrime = lazyRetry(() => import('./src/pages/ielts/IeltsPrime'), 'IeltsPrime');
 const IeltsAdminGuard = lazyRetry(() => import('./components/ielts/IeltsAdminGuard'), 'IeltsAdminGuard');
+const IeltsExamModeAdminGuard = lazyRetry(() => import('./components/ielts/IeltsExamModeAdminGuard'), 'IeltsExamModeAdminGuard');
 const IeltsAdminDashboard = lazyRetry(() => import('./components/IeltsAdminDashboard'), 'IeltsAdminDashboard');
 const IeltsExamMode = lazyRetry(() => import('./src/pages/ielts/IeltsExamMode'), 'IeltsExamMode');
 const IeltsExamMonitor = lazyRetry(() => import('./src/pages/ielts/IeltsExamMonitor'), 'IeltsExamMonitor');
@@ -704,6 +707,14 @@ const router = createBrowserRouter([
     element: <ProtectedRoute element={<IeltsHome />} />,
   },
   {
+    path: '/ielts/practice/assigned',
+    element: <ProtectedRoute element={<IeltsAssignedPractice />} />,
+  },
+  {
+    path: '/ielts/journey',
+    element: <ProtectedRoute element={<IeltsJourneyDashboard />} />,
+  },
+  {
     path: '/ielts/admin',
     element: (
       <ProtectedRoute
@@ -732,9 +743,9 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute
         element={(
-          <IeltsAdminGuard>
+          <IeltsExamModeAdminGuard>
             <IeltsExamManager />
-          </IeltsAdminGuard>
+          </IeltsExamModeAdminGuard>
         )}
       />
     ),
@@ -744,9 +755,9 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute
         element={(
-          <IeltsAdminGuard>
+          <IeltsExamModeAdminGuard>
             <IeltsExamMonitor />
-          </IeltsAdminGuard>
+          </IeltsExamModeAdminGuard>
         )}
       />
     ),

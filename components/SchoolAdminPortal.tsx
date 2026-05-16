@@ -31,6 +31,10 @@ import InvitesTab from './school-admin/tabs/InvitesTab';
 import BillingTab from './school-admin/tabs/BillingTab';
 import SettingsTab from './school-admin/tabs/SettingsTab';
 import CambridgeTab from './school-admin/tabs/CambridgeTab';
+import IeltsExamsTab from './school-admin/tabs/IeltsExamsTab';
+import IeltsPracticeTab from './school-admin/tabs/IeltsPracticeTab';
+import IeltsResultsTab from './school-admin/tabs/IeltsResultsTab';
+import IeltsAnalyticsTab from './school-admin/tabs/IeltsAnalyticsTab';
 import MemberActionModal from './school-admin/modals/MemberActionModal';
 import ConfirmDialogModal from './school-admin/modals/ConfirmDialogModal';
 
@@ -41,7 +45,7 @@ interface SchoolAdminPortalProps {
   addToast: (message: string, type: ToastMessage['type']) => void;
 }
 
-type AdminTab = 'dashboard' | 'members' | 'classes' | 'roster' | 'subjects' | 'teachers' | 'students' | 'invites' | 'settings' | 'billing' | 'cambridge';
+type AdminTab = 'dashboard' | 'members' | 'classes' | 'roster' | 'subjects' | 'teachers' | 'students' | 'invites' | 'settings' | 'billing' | 'cambridge' | 'ielts-exams' | 'ielts-practice' | 'ielts-results' | 'ielts-analytics';
 
 const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLogout, onNavigate, addToast }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
@@ -1405,7 +1409,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
 
       {/* Premium Tab Navigation */}
       <div className="school-admin-tabs flex flex-wrap gap-2 mb-8 pb-2" role="tablist" aria-label="School admin navigation">
-        {(['dashboard', 'members', 'classes', 'roster', 'subjects', 'teachers', 'students', 'invites', 'billing', 'settings', 'cambridge'] as AdminTab[]).map((tab) => (
+        {(['dashboard', 'members', 'classes', 'roster', 'subjects', 'teachers', 'students', 'invites', 'billing', 'settings', 'cambridge', 'ielts-exams', 'ielts-practice', 'ielts-results', 'ielts-analytics'] as AdminTab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -1428,6 +1432,10 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
             {tab === 'billing' && '💳 Plan & Billing'}
             {tab === 'settings' && '⚙️ Settings'}
             {tab === 'cambridge' && '📚 Cambridge'}
+            {tab === 'ielts-exams' && '🧪 IELTS Exams'}
+            {tab === 'ielts-practice' && '📝 IELTS Practice'}
+            {tab === 'ielts-results' && '📈 IELTS Results'}
+            {tab === 'ielts-analytics' && '📊 IELTS Analytics'}
           </button>
         ))}
       </div>
@@ -1446,6 +1454,10 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       {activeTab === 'billing' && <BillingTab />}
       {activeTab === 'settings' && <SettingsTab />}
       {activeTab === 'cambridge' && <CambridgeTab />}
+      {activeTab === 'ielts-exams' && <IeltsExamsTab />}
+      {activeTab === 'ielts-practice' && <IeltsPracticeTab />}
+      {activeTab === 'ielts-results' && <IeltsResultsTab />}
+      {activeTab === 'ielts-analytics' && <IeltsAnalyticsTab />}
 
 
       {/* Modals */}
