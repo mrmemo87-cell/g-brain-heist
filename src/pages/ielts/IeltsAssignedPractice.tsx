@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   getIeltsPracticeItemRoute,
   rpcIeltsPracticeMarkCompleted,
+  rpcIeltsPracticeMarkItemStarted,
   rpcIeltsPracticeMarkStarted,
   rpcIeltsPracticeStudentAssignments,
   type IeltsPracticeAssignmentItem,
@@ -44,6 +45,15 @@ const groupItemsBySkill = (items: IeltsPracticeAssignmentItem[] = []) => items.r
   return groups;
 }, {});
 
+const buildAssignedPracticeRoute = (route: string, assignment: IeltsPracticeStudentAssignment, item: IeltsPracticeAssignmentItem): string => {
+  const params = new URLSearchParams({
+    assignment_id: assignment.id,
+    assignment_item_id: item.id,
+    assignment_item_count: String(assignment.item_count ?? assignment.items?.length ?? 0),
+  });
+  return `${route}?${params.toString()}`;
+};
+
 const getAssignmentBadge = (assignment: IeltsPracticeStudentAssignment) => {
   if (assignment.student_status === 'completed') {
     return { label: 'Completed', backgroundColor: '#dcfce7', color: '#166534' };
@@ -82,18 +92,18 @@ const IeltsAssignedPractice: React.FC = () => {
   }, []);
 
   const handleOpenItem = async (assignment: IeltsPracticeStudentAssignment, item: IeltsPracticeAssignmentItem, route: string) => {
-    if (assignment.student_status !== 'assigned') {
-      navigate(route);
-      return;
-    }
+    const assignedRoute = buildAssignedPracticeRoute(route, assignment, item);
 
     setBusyAssignmentId(assignment.id);
     try {
-      const updated = await rpcIeltsPracticeMarkStarted(assignment.id);
-      setAssignments((current) => current.map((row) => (row.id === assignment.id ? { ...row, ...updated } : row)));
-      navigate(route);
+      if (assignment.student_status === 'assigned') {
+        const updated = await rpcIeltsPracticeMarkStarted(assignment.id);
+        setAssignments((current) => current.map((row) => (row.id === assignment.id ? { ...row, ...updated } : row)));
+      }
+      await rpcIeltsPracticeMarkItemStarted({ assignmentId: assignment.id, assignmentItemId: item.id });
+      navigate(assignedRoute);
     } catch (startError) {
-      setError(startError instanceof Error ? startError.message : 'Unable to mark assignment as started.');
+      setError(startError instanceof Error ? startError.message : 'Unable to mark assignment item as started.');
     } finally {
       setBusyAssignmentId(null);
     }
@@ -199,15 +209,16 @@ const IeltsAssignedPractice: React.FC = () => {
                     <div style={{ display: 'grid', gap: '0.5rem' }}>
                       {(groupedItems[skill] ?? []).map((item) => {
                         const route = getIeltsPracticeItemRoute(item);
+                        const assignedRoute = route ? buildAssignedPracticeRoute(route, assignment, item) : null;
                         return (
                           <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '0.75rem', flexWrap: 'wrap' }}>
                             <div>
                               <p style={{ margin: 0, fontWeight: 700, color: '#111827' }}>{item.title || `${skillLabels[skill] ?? skill} practice`}</p>
                               <p style={{ margin: '0.25rem 0 0', color: '#64748b', fontSize: '0.8125rem' }}>{item.required ? 'Required' : 'Optional'}</p>
                             </div>
-                            {route ? (
+                            {route && assignedRoute ? (
                               <a
-                                href={route}
+                                href={assignedRoute}
                                 onClick={(event) => {
                                   event.preventDefault();
                                   void handleOpenItem(assignment, item, route);

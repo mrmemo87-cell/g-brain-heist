@@ -23,6 +23,10 @@ export interface IeltsPracticeAssignmentItem {
   required: boolean;
   order_index: number;
   created_at: string;
+  assigned_count?: number;
+  in_progress_count?: number;
+  completed_count?: number;
+  skipped_count?: number;
 }
 
 export interface IeltsPracticeAssignmentSummary {
@@ -58,12 +62,56 @@ export interface IeltsPracticeAssignmentStudentProgress {
   status: IeltsPracticeStudentStatus;
   completed_at: string | null;
   updated_at: string;
+  required_count?: number;
+  completed_required_count?: number;
+  item_count?: number;
+  completed_item_count?: number;
+}
+
+export interface IeltsPracticeAssignmentItemProgress {
+  assignment_item_id: string;
+  skill: IeltsPracticeSkill | string;
+  content_type: string;
+  content_id: string;
+  title: string | null;
+  required: boolean;
+  order_index: number;
+  status: 'assigned' | 'in_progress' | 'completed' | 'skipped' | string;
+  practice_attempt_type: string | null;
+  practice_attempt_id: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  updated_at: string | null;
+}
+
+export interface IeltsPracticeAssignmentProgress {
+  assignment_id: string;
+  student_id?: string | null;
+  student_status?: IeltsPracticeStudentStatus | null;
+  assignment_completed_at?: string | null;
+  required_count: number;
+  completed_required_count?: number;
+  item_count: number;
+  completed_item_count?: number;
+  all_required_completed?: boolean;
+  items?: IeltsPracticeAssignmentItemProgress[];
+  students?: Array<{
+    student_id: string;
+    student_status: IeltsPracticeStudentStatus;
+    completed_at: string | null;
+    required_count: number;
+    completed_required_count: number;
+    item_count: number;
+    completed_item_count: number;
+    all_required_completed: boolean;
+  }>;
 }
 
 export interface IeltsPracticeAssignmentDetail {
   assignment: IeltsPracticeAssignmentSummary;
   items: IeltsPracticeAssignmentItem[];
   students: IeltsPracticeAssignmentStudentProgress[];
+  item_progress?: IeltsPracticeAssignmentProgress;
 }
 
 export interface IeltsPracticeStudentAssignment extends IeltsPracticeAssignmentSummary {
@@ -232,4 +280,43 @@ export const rpcIeltsPracticeMarkCompleted = async (
   }) as unknown as Awaited<RpcResult<IeltsPracticeStudentAssignment>>;
 
   return assertNoRpcError('rpc_ielts_practice_mark_completed', data, error);
+};
+
+export const rpcIeltsPracticeAssignmentProgress = async (
+  assignmentId: string,
+  studentId?: string | null,
+  client?: IeltsPracticeAssignmentRpcClient
+): Promise<IeltsPracticeAssignmentProgress> => {
+  const { data, error } = await withClient(client).rpc('rpc_ielts_practice_assignment_progress', {
+    p_assignment_id: assignmentId,
+    p_student_id: studentId ?? null,
+  }) as unknown as Awaited<RpcResult<IeltsPracticeAssignmentProgress>>;
+
+  return assertNoRpcError('rpc_ielts_practice_assignment_progress', data, error);
+};
+
+export const rpcIeltsPracticeMarkItemStarted = async (
+  params: { assignmentId: string; assignmentItemId: string },
+  client?: IeltsPracticeAssignmentRpcClient
+): Promise<IeltsPracticeAssignmentProgress> => {
+  const { data, error } = await withClient(client).rpc('rpc_ielts_practice_mark_item_started', {
+    p_assignment_id: params.assignmentId,
+    p_assignment_item_id: params.assignmentItemId,
+  }) as unknown as Awaited<RpcResult<IeltsPracticeAssignmentProgress>>;
+
+  return assertNoRpcError('rpc_ielts_practice_mark_item_started', data, error);
+};
+
+export const rpcIeltsPracticeMarkItemCompleted = async (
+  params: { assignmentId: string; assignmentItemId: string; practiceAttemptType?: string | null; practiceAttemptId?: string | null },
+  client?: IeltsPracticeAssignmentRpcClient
+): Promise<IeltsPracticeAssignmentProgress> => {
+  const { data, error } = await withClient(client).rpc('rpc_ielts_practice_mark_item_completed', {
+    p_assignment_id: params.assignmentId,
+    p_assignment_item_id: params.assignmentItemId,
+    p_practice_attempt_type: params.practiceAttemptType ?? null,
+    p_practice_attempt_id: params.practiceAttemptId ?? null,
+  }) as unknown as Awaited<RpcResult<IeltsPracticeAssignmentProgress>>;
+
+  return assertNoRpcError('rpc_ielts_practice_mark_item_completed', data, error);
 };

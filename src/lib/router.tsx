@@ -26,9 +26,12 @@ class SimpleBrowserRouter {
 
 const RouterContext = createContext<RouterContextValue | null>(null);
 
+const stripQueryAndHash = (value: string) => value.split(/[?#]/, 1)[0] || '/';
+
 const normalizePath = (value: string) => {
-  if (value === '/') return '/';
-  return value.replace(/\/+$/, '').replace(/^\//, '') ? `/${value.replace(/\/+$/, '').replace(/^\//, '')}` : '/';
+  const pathOnly = stripQueryAndHash(value);
+  if (pathOnly === '/') return '/';
+  return pathOnly.replace(/\/+$/, '').replace(/^\//, '') ? `/${pathOnly.replace(/\/+$/, '').replace(/^\//, '')}` : '/';
 };
 
 const splitSegments = (path: string) => {
@@ -105,7 +108,8 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ router }) => {
       } else {
         window.history.pushState(null, '', targetPath);
       }
-      setState({ pathname: targetPath, ...resolveRoute(router.routes, targetPath) });
+      const currentPath = window.location.pathname || '/';
+      setState({ pathname: currentPath, ...resolveRoute(router.routes, currentPath) });
     },
     [router.routes]
   );
