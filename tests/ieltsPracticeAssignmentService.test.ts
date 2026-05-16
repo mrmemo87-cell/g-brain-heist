@@ -229,3 +229,34 @@ test('assigned IELTS practice preserves assignment context and ReadingPractice c
   assert.doesNotMatch(readingPage, /answer_key/i, 'ReadingPractice must not expose answer keys');
 });
 
+
+test('Phase 2.9 practice skill pages complete assigned listening, writing, and speaking items', () => {
+  const pages = [
+    { skill: 'listening', path: 'src/pages/ielts/ListeningPractice.tsx', attemptTable: 'ielts_listening_attempts' },
+    { skill: 'writing', path: 'src/pages/ielts/WritingPractice.tsx', attemptTable: 'ielts_writing_attempts' },
+    { skill: 'speaking', path: 'src/pages/ielts/SpeakingPractice.tsx', attemptTable: 'ielts_speaking_attempts' },
+  ];
+  const helper = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/assignmentPracticeUi.tsx'), 'utf8');
+
+  assert.match(helper, /assignmentSearchParams\.get\('assignment_id'\)/i, 'assignment helper must read assignment_id from query params');
+  assert.match(helper, /assignmentSearchParams\.get\('assignment_item_id'\)/i, 'assignment helper must read assignment_item_id from query params');
+  assert.match(helper, /assignmentSearchParams\.get\('assignment_item_count'\)/i, 'assignment helper must read assignment_item_count from query params');
+  assert.match(helper, /Assignment item completed/i, 'assignment helper must render item completion success');
+  assert.match(helper, /assignment items completed/i, 'assignment helper must render N of N item progress');
+  assert.match(helper, /School assignment completed/i, 'assignment helper must render parent assignment completion');
+  assert.match(helper, /could not be confirmed/i, 'assignment helper must render a non-blocking completion warning');
+  assert.doesNotMatch(helper, /answer_key/i, 'assignment helper must not expose answer keys');
+  assert.doesNotMatch(helper, /rpc_is_ielts_admin|ielts_teachers|is_ielts_admin/i, 'assignment helper must not depend on legacy IELTS admin permissions');
+
+  for (const pageInfo of pages) {
+    const page = fs.readFileSync(path.join(process.cwd(), pageInfo.path), 'utf8');
+    assert.match(page, /readIeltsPracticeAssignmentContext\(\)/i, `${pageInfo.skill} must read assignment context through the shared helper`);
+    assert.match(page, new RegExp(pageInfo.attemptTable, 'i'), `${pageInfo.skill} must still save its practice attempt`);
+    assert.match(page, new RegExp(`rpcIeltsPracticeMarkItemCompleted\\(\\{[\\s\\S]*assignmentId[\\s\\S]*assignmentItemId[\\s\\S]*practiceAttemptType: '${pageInfo.skill}'[\\s\\S]*practiceAttemptId: (result|data)\\?\\.id`, 'i'), `${pageInfo.skill} must mark item completion with attempt linkage`);
+    assert.match(page, /itemCompletionError = completionError instanceof Error/i, `${pageInfo.skill} must downgrade item-completion RPC failures to a warning state`);
+    assert.match(page, /AssignmentCompletionStatus/i, `${pageInfo.skill} result UI must render assignment completion status`);
+    assert.doesNotMatch(page, /rpcIeltsPracticeMarkCompleted\(/i, `${pageInfo.skill} must not directly complete parent assignments`);
+    assert.doesNotMatch(page, /answer_key/i, `${pageInfo.skill} must not expose answer keys`);
+    assert.doesNotMatch(page, /rpc_is_ielts_admin|ielts_teachers|is_ielts_admin/i, `${pageInfo.skill} must not depend on legacy IELTS admin permissions`);
+  }
+});

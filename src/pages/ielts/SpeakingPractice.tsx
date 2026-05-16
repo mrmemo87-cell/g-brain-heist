@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '../../../services/supabaseClient';
 import { getUserTier, isIeltsPrime, saveNotificationPreferences } from '../../../services/ieltsService';
+import { rpcIeltsPracticeMarkItemCompleted, type IeltsPracticeAssignmentProgress } from '../../../services/ieltsPracticeAssignmentService';
+import { AssignmentCompletionStatus, readIeltsPracticeAssignmentContext } from './assignmentPracticeUi';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 
 interface SpeakingTask {
@@ -22,6 +24,8 @@ interface SpeakingTask {
 const SpeakingPractice: React.FC = () => {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
+  const assignmentContext = readIeltsPracticeAssignmentContext();
+  const { assignmentId, assignmentItemId } = assignmentContext;
   
   const [preparationTimeLeft, setPreparationTimeLeft] = useState<number>(0);
   const [isRecording, setIsRecording] = useState(false);
@@ -43,6 +47,8 @@ const SpeakingPractice: React.FC = () => {
   const [notifyByEmail, setNotifyByEmail] = useState(true);
   const [notifyBySms, setNotifyBySms] = useState(false);
   const [notifyInApp, setNotifyInApp] = useState(true);
+  const [assignmentProgress, setAssignmentProgress] = useState<IeltsPracticeAssignmentProgress | null>(null);
+  const [assignmentCompletionError, setAssignmentCompletionError] = useState<string | null>(null);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -117,10 +123,29 @@ const SpeakingPractice: React.FC = () => {
         .single();
 
       if (error) throw error;
-      return data;
+
+      let progress: IeltsPracticeAssignmentProgress | null = null;
+      let itemCompletionError: string | null = null;
+
+      if (assignmentId && assignmentItemId) {
+        try {
+          progress = await rpcIeltsPracticeMarkItemCompleted({
+            assignmentId,
+            assignmentItemId,
+            practiceAttemptType: 'speaking',
+            practiceAttemptId: data?.id ?? null,
+          });
+        } catch (completionError) {
+          itemCompletionError = completionError instanceof Error ? completionError.message : 'Unable to mark assignment item completed.';
+        }
+      }
+
+      return { attempt: data, progress, itemCompletionError };
     },
     onSuccess: (data) => {
-      setLastAttemptId(data?.id);
+      setLastAttemptId(data.attempt?.id);
+      setAssignmentProgress(data.progress);
+      setAssignmentCompletionError(data.itemCompletionError);
       setHasSubmitted(true);
     },
   });
@@ -411,6 +436,13 @@ const SpeakingPractice: React.FC = () => {
           <p style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.125rem)', color: '#64748b', marginBottom: '2rem' }}>
             Your speaking response has been successfully submitted.
           </p>
+
+          <AssignmentCompletionStatus
+            context={assignmentContext}
+            progress={assignmentProgress}
+            completionError={assignmentCompletionError}
+            style={{ textAlign: 'left' }}
+          />
 
           {/* Expert Review Box */}
           <div style={{

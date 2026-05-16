@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '../../../services/supabaseClient';
 import { ensureIeltsProfile, getUserTier, isIeltsPrime, saveNotificationPreferences } from '../../../services/ieltsService';
+import { rpcIeltsPracticeMarkItemCompleted, type IeltsPracticeAssignmentProgress } from '../../../services/ieltsPracticeAssignmentService';
+import { AssignmentCompletionStatus, readIeltsPracticeAssignmentContext } from './assignmentPracticeUi';
 import { notifyTeachersOfExamGuard } from '../../../services/notificationService';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 import { ExamGuard } from '../../utils/examGuard';
@@ -23,6 +25,8 @@ const MAX_EXAM_GUARD_VIOLATIONS = 3;
 const WritingPractice: React.FC = () => {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
+  const assignmentContext = readIeltsPracticeAssignmentContext();
+  const { assignmentId, assignmentItemId } = assignmentContext;
   
   const [answer, setAnswer] = useState('');
   const [wordCount, setWordCount] = useState(0);
@@ -136,6 +140,8 @@ const WritingPractice: React.FC = () => {
   });
 
   const [lastAttemptId, setLastAttemptId] = useState<string | null>(null);
+  const [assignmentProgress, setAssignmentProgress] = useState<IeltsPracticeAssignmentProgress | null>(null);
+  const [assignmentCompletionError, setAssignmentCompletionError] = useState<string | null>(null);
 
   // Submit mutation
   const submitMutation = useMutation({
@@ -159,10 +165,29 @@ const WritingPractice: React.FC = () => {
         .single();
 
       if (error) throw error;
-      return result;
+
+      let progress: IeltsPracticeAssignmentProgress | null = null;
+      let itemCompletionError: string | null = null;
+
+      if (assignmentId && assignmentItemId) {
+        try {
+          progress = await rpcIeltsPracticeMarkItemCompleted({
+            assignmentId,
+            assignmentItemId,
+            practiceAttemptType: 'writing',
+            practiceAttemptId: result?.id ?? null,
+          });
+        } catch (completionError) {
+          itemCompletionError = completionError instanceof Error ? completionError.message : 'Unable to mark assignment item completed.';
+        }
+      }
+
+      return { attempt: result, progress, itemCompletionError };
     },
     onSuccess: (data) => {
-      setLastAttemptId(data?.id);
+      setLastAttemptId(data.attempt?.id);
+      setAssignmentProgress(data.progress);
+      setAssignmentCompletionError(data.itemCompletionError);
       setHasSubmitted(true);
     },
   });
@@ -444,6 +469,12 @@ const WritingPractice: React.FC = () => {
               Your writing has been received and is queued for expert review.
             </p>
           </div>
+
+          <AssignmentCompletionStatus
+            context={assignmentContext}
+            progress={assignmentProgress}
+            completionError={assignmentCompletionError}
+          />
 
           {/* Submission Summary */}
           <div style={{
