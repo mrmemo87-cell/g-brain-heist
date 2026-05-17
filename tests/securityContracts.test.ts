@@ -58,6 +58,16 @@ test('assignment submission invariants are enforced server-side', () => {
   expectPattern(assignmentSql, /ASSIGNMENT_STATE_TRANSITION_FAILED/i, 'assignment submission must enforce state transition integrity');
 });
 
+test('teacher assignment batch constraint accepts the current class range', () => {
+  const migration = read('supabase/migrations/20260517120000_fix_teacher_assignment_batch_constraint.sql');
+
+  expectPattern(migration, /drop constraint if exists assignments_batch_check/i, 'repair must replace the legacy assignment batch constraint');
+  expectPattern(migration, /batch = 'All'/i, 'batch mode must continue to support whole-school assignment rows');
+  expectPattern(migration, /batch = 'N\/A'/i, 'batch mode should tolerate existing no-class student buckets');
+  expectPattern(migration, /batch ~ '\^\(\(6\|7\|8\|9\|10\|11\|12\)\[ABC\]\)\$'/i, 'batch mode must allow 6A-12C class codes such as 11A and 11B');
+  expectPattern(migration, /COALESCE\(assignment_mode, 'batch'\) = 'custom'[\s\S]*batch IS NULL/i, 'custom assignments must still require null batch');
+});
+
 test('tournament mutating RPCs require explicit admin authorization', () => {
   const tournamentMigration = read('supabase/migrations/20260324020000_tournament_security_baseline.sql');
 
