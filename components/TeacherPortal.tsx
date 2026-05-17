@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import DOMPurify from 'dompurify';
-import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, TeacherAssignmentSummary, TeacherAssignmentReportRow, StudentForAssignment, QuestionOption, StudentAssignmentAnswer, AssignmentQuestionAnalysis, AssignmentBatch } from '../types';
+import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, QuestionType, TeacherAssignmentSummary, TeacherAssignmentReportRow, StudentForAssignment, QuestionOption, StudentAssignmentAnswer, AssignmentQuestionAnalysis, AssignmentBatch } from '../types';
 import * as GameService from '../services/gameService';
 import * as AuthService from '../services/authService';
 import * as SchoolAdminService from '../services/schoolAdminService';
@@ -305,6 +305,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [availableStudents, setAvailableStudents] = useState<StudentForAssignment[]>([]);
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
   const [studentSearchTerm, setStudentSearchTerm] = useState('');
+  const [assignmentQuestionSearchTerm, setAssignmentQuestionSearchTerm] = useState('');
+  const [assignmentQuestionDifficultyFilter, setAssignmentQuestionDifficultyFilter] = useState<'all' | QuestionDifficulty>('all');
+  const [assignmentQuestionTypeFilter, setAssignmentQuestionTypeFilter] = useState<'all' | QuestionType>('all');
 
   // Assignment Filtering State (Folder Organization)
   const [assignmentSearchTerm, setAssignmentSearchTerm] = useState('');
@@ -489,6 +492,47 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const assignmentQuestionPool = useMemo(() => (
     questions.filter((q) => q.subject === assignmentSubject)
   ), [questions, assignmentSubject]);
+
+  const assignmentFilteredQuestionPool = useMemo(() => {
+    const search = assignmentQuestionSearchTerm.trim().toLowerCase();
+
+    return assignmentQuestionPool.filter((question) => {
+      const topicLabel = getQuestionTopicLabel(question);
+      const matchesSearch = !search
+        || question.question_text.toLowerCase().includes(search)
+        || topicLabel.toLowerCase().includes(search)
+        || question.correct_answer?.toLowerCase().includes(search);
+      const matchesDifficulty = assignmentQuestionDifficultyFilter === 'all' || question.difficulty === assignmentQuestionDifficultyFilter;
+      const matchesType = assignmentQuestionTypeFilter === 'all' || question.question_type === assignmentQuestionTypeFilter;
+
+      return matchesSearch && matchesDifficulty && matchesType;
+    });
+  }, [assignmentQuestionPool, assignmentQuestionSearchTerm, assignmentQuestionDifficultyFilter, assignmentQuestionTypeFilter]);
+
+  const assignmentQuestionGroups = useMemo(() => {
+    const groups = new Map<string, TeacherQuestion[]>();
+
+    assignmentFilteredQuestionPool.forEach((question) => {
+      const topicLabel = getQuestionTopicLabel(question);
+      if (!groups.has(topicLabel)) groups.set(topicLabel, []);
+      groups.get(topicLabel)!.push(question);
+    });
+
+    return Array.from(groups.entries())
+      .map(([topic, topicQuestions]) => ({
+        topic,
+        questions: topicQuestions.sort((a, b) => a.question_text.localeCompare(b.question_text)),
+      }))
+      .sort((a, b) => {
+        if (a.topic === 'General') return 1;
+        if (b.topic === 'General') return -1;
+        return a.topic.localeCompare(b.topic);
+      });
+  }, [assignmentFilteredQuestionPool]);
+
+  const selectedAssignmentQuestions = useMemo(() => (
+    questions.filter((q) => assignmentQuestionIds.includes(q.id))
+  ), [questions, assignmentQuestionIds]);
   
   // Get unique batches from available students (dynamic, not hardcoded)
   const availableBatches = useMemo(() => {
@@ -2999,6 +3043,20 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     ));
   };
 
+  const setAssignmentQuestionsSelected = (questionIds: string[], shouldSelect: boolean) => {
+    setAssignmentQuestionIds((prev) => {
+      const next = new Set(prev);
+      questionIds.forEach((id) => {
+        if (shouldSelect) {
+          next.add(id);
+        } else {
+          next.delete(id);
+        }
+      });
+      return Array.from(next);
+    });
+  };
+
   const toggleStudentSelection = (studentId: string) => {
     setSelectedStudentIds((prev) => 
       prev.includes(studentId) ? prev.filter((id) => id !== studentId) : [...prev, studentId]
@@ -3014,6 +3072,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setSelectedStudentIds([]);
     setAssignmentBatches([]);
     setStudentSearchTerm('');
+    setAssignmentQuestionSearchTerm('');
+    setAssignmentQuestionDifficultyFilter('all');
+    setAssignmentQuestionTypeFilter('all');
     setAssignmentTopicMode('general');
     setAssignmentTopicName('');
     setAssignmentDueAt('');
@@ -3027,6 +3088,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   // Handle "Use Set" from the Blooket-style QuestionBank
   const handleUseQuestionSet = useCallback((questionIds: string[], subject: Subject, topic: string) => {
+    if (teacherAssignedSubjects.length > 0 && !teacherAssignedSubjects.includes(subject)) {
+      brainsAlert('You can only create assignments for subjects assigned to you by the school admin.', 'error');
+      return;
+    }
+
     // Pre-select the questions and set subject/topic from the selected set
     questionBankSubjectRef.current = true; // Prevent the subject-change useEffect from clearing these IDs
     setAssignmentQuestionIds(questionIds);
@@ -3039,7 +3105,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       setAssignmentTopicName('');
     }
     setView('create-assignment');
-  }, []);
+  }, [teacherAssignedSubjects]);
 
   const selectAllStudents = () => {
     setSelectedStudentIds(filteredStudents.map(s => s.id));
@@ -3051,6 +3117,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   const handleCreateAssignment = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (teacherAssignedSubjects.length > 0 && !teacherAssignedSubjects.includes(assignmentSubject)) {
+      brainsAlert('You can only create assignments for subjects assigned to you by the school admin.', 'error');
+      return;
+    }
 
     if (assignmentTopicMode === 'custom' && !assignmentTopicName.trim()) {
       brainsAlert('Please enter a topic for this assignment.', 'info');
@@ -5134,7 +5205,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   <p className="text-sm text-slate-500">
                     {assignment.assignment_mode === 'custom' 
                       ? `Custom (${assignment.student_count} students)` 
-                      : `Batch: ${assignment.batch}`
+                      : `Class: ${assignment.batch}`
                     } · Assigned {new Date(assignment.assigned_at).toLocaleDateString()}
                   </p>
                   <p className="text-sm text-slate-400">
@@ -5188,7 +5259,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     }
     
     return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-5xl mx-auto">
       <button
         onClick={() => setView('assignments')}
         className="teacher-back-link mb-6"
@@ -5215,8 +5286,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               >
                 <div className="teacher-mode-btn-icon">📚</div>
                 <div className="teacher-mode-btn-text">
-                  <h4>Assign to Batch</h4>
-                  <p>Send to one or more classes</p>
+                  <h4>Assign to Class</h4>
+                  <p>Send to one or more classes you teach</p>
                 </div>
               </button>
               <button
@@ -5236,7 +5307,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           {/* Batch Selection (only shown in batch mode) — multi-select */}
           {assignmentMode === 'batch' && (
             <div className="teacher-form-group-premium">
-              <label className="teacher-label-premium">Class / Batch <span style={{ fontSize: '0.8em', fontWeight: 'normal', opacity: 0.7 }}>(select one or more)</span></label>
+              <label className="teacher-label-premium">Classes <span style={{ fontSize: '0.8em', fontWeight: 'normal', opacity: 0.7 }}>(select one or more)</span></label>
               <div className="teacher-student-selector" style={{ maxHeight: 'none' }}>
                 <div className="teacher-student-selector-header">
                   <span className="teacher-student-selector-title">
@@ -5390,11 +5461,10 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   <span>{assignmentTopicMode === 'custom' ? assignmentTopicName : 'General'}</span>
                 </div>
                 <div className="teacher-question-list-body" style={{ maxHeight: '200px' }}>
-                  {questions
-                    .filter(q => assignmentQuestionIds.includes(q.id))
+                  {selectedAssignmentQuestions
                     .map((question) => (
                       <div 
-                        key={question.id} 
+                        key={question.id}
                         className="teacher-question-list-item selected"
                       >
                         <div className="teacher-question-list-item-content">
@@ -5561,34 +5631,154 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
           {/* Question selector */}
           <div className="teacher-form-group-premium">
-            <label className="teacher-label-premium">Select Questions</label>
-            <div className="teacher-question-list-premium">
-              <div className="teacher-question-list-header">
-                <h4>Choose questions for this assignment</h4>
-                <span>Showing {assignmentSubject} questions</span>
-              </div>
-              <div className="teacher-question-list-body">
-              {assignmentQuestionPool.length === 0 ? (
-                <div className="teacher-question-list-empty">No questions for this subject. Create some first.</div>
-              ) : (
-                assignmentQuestionPool.map((question) => (
-                  <label 
-                    key={question.id} 
-                    className={`teacher-question-list-item ${assignmentQuestionIds.includes(question.id) ? 'selected' : ''}`}
+            <div className="teacher-question-picker-title-row">
+              <label className="teacher-label-premium">Select Questions</label>
+              <button
+                type="button"
+                className="teacher-question-bank-shortcut"
+                onClick={() => setView('question-bank')}
+              >
+                📚 Open Question Bank
+              </button>
+            </div>
+            <div className="teacher-question-list-premium teacher-question-picker">
+              <div className="teacher-question-list-header teacher-question-picker-header">
+                <div>
+                  <h4>Choose questions for this assignment</h4>
+                  <span>
+                    {assignmentQuestionIds.length} selected · {assignmentFilteredQuestionPool.length} of {assignmentQuestionPool.length} {assignmentSubject} questions shown
+                  </span>
+                </div>
+                <div className="teacher-question-picker-header-actions">
+                  <button
+                    type="button"
+                    className="teacher-student-select-all"
+                    disabled={assignmentFilteredQuestionPool.length === 0}
+                    onClick={() => setAssignmentQuestionsSelected(assignmentFilteredQuestionPool.map((question) => question.id), true)}
                   >
-                    <input
-                      type="checkbox"
-                      checked={assignmentQuestionIds.includes(question.id)}
-                      onChange={() => toggleAssignmentQuestion(question.id)}
-                    />
-                    <div className="teacher-question-list-item-content">
-                      <p className="teacher-question-list-item-text">{question.question_text}</p>
-                      <div className="teacher-question-list-item-meta">
-                        <span className="teacher-question-list-item-topic">{question.topic_name || question.topic || 'General'}</span>
+                    Select shown
+                  </button>
+                  <button
+                    type="button"
+                    className="teacher-student-clear"
+                    disabled={assignmentQuestionIds.length === 0}
+                    onClick={() => setAssignmentQuestionIds([])}
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+
+              <div className="teacher-question-picker-controls">
+                <div className="teacher-question-search">
+                  <input
+                    type="text"
+                    placeholder="Search by question, answer, or topic..."
+                    value={assignmentQuestionSearchTerm}
+                    onChange={(e) => setAssignmentQuestionSearchTerm(e.target.value)}
+                  />
+                </div>
+                <div className="teacher-question-filter-grid">
+                  <select
+                    value={assignmentQuestionDifficultyFilter}
+                    onChange={(e) => setAssignmentQuestionDifficultyFilter(e.target.value as 'all' | QuestionDifficulty)}
+                    className="teacher-select-premium"
+                  >
+                    <option value="all">All difficulties</option>
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                  </select>
+                  <select
+                    value={assignmentQuestionTypeFilter}
+                    onChange={(e) => setAssignmentQuestionTypeFilter(e.target.value as 'all' | QuestionType)}
+                    className="teacher-select-premium"
+                  >
+                    <option value="all">All question types</option>
+                    <option value="multiple_choice">Multiple choice</option>
+                    <option value="true_false">True / false</option>
+                    <option value="short_answer">Short answer</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="teacher-question-topic-summary">
+                {assignmentQuestionGroups.length === 0 ? (
+                  <span>No matching topics</span>
+                ) : (
+                  assignmentQuestionGroups.map((group) => {
+                    const selectedInTopic = group.questions.filter((question) => assignmentQuestionIds.includes(question.id)).length;
+                    return (
+                      <button
+                        key={group.topic}
+                        type="button"
+                        className={`teacher-question-topic-chip ${selectedInTopic > 0 ? 'active' : ''}`}
+                        onClick={() => setAssignmentQuestionsSelected(group.questions.map((question) => question.id), selectedInTopic < group.questions.length)}
+                      >
+                        <span>{group.topic}</span>
+                        <strong>{selectedInTopic}/{group.questions.length}</strong>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+
+              <div className="teacher-question-list-body teacher-question-grouped-body">
+              {assignmentQuestionPool.length === 0 ? (
+                <div className="teacher-question-list-empty">
+                  No {assignmentSubject} questions yet. Create questions for your assigned subject first.
+                </div>
+              ) : assignmentQuestionGroups.length === 0 ? (
+                <div className="teacher-question-list-empty">
+                  No questions match your search or filters. Try clearing the filters.
+                </div>
+              ) : (
+                assignmentQuestionGroups.map((group) => {
+                  const topicQuestionIds = group.questions.map((question) => question.id);
+                  const selectedInTopic = topicQuestionIds.filter((id) => assignmentQuestionIds.includes(id)).length;
+                  const allTopicSelected = selectedInTopic === topicQuestionIds.length;
+
+                  return (
+                    <section key={group.topic} className="teacher-question-topic-group">
+                      <div className="teacher-question-topic-group-header">
+                        <div>
+                          <h5>{group.topic}</h5>
+                          <p>{group.questions.length} question{group.questions.length !== 1 ? 's' : ''} · {selectedInTopic} selected</p>
+                        </div>
+                        <button
+                          type="button"
+                          className={allTopicSelected ? 'teacher-student-clear' : 'teacher-student-select-all'}
+                          onClick={() => setAssignmentQuestionsSelected(topicQuestionIds, !allTopicSelected)}
+                        >
+                          {allTopicSelected ? 'Remove topic' : 'Select topic'}
+                        </button>
                       </div>
-                    </div>
-                  </label>
-                ))
+
+                      {group.questions.map((question) => (
+                        <label
+                          key={question.id}
+                          className={`teacher-question-list-item ${assignmentQuestionIds.includes(question.id) ? 'selected' : ''}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={assignmentQuestionIds.includes(question.id)}
+                            onChange={() => toggleAssignmentQuestion(question.id)}
+                          />
+                          <div className="teacher-question-list-item-content">
+                            <p className="teacher-question-list-item-text">{question.question_text}</p>
+                            <div className="teacher-question-list-item-meta">
+                              <span className="teacher-question-list-item-topic">{question.difficulty}</span>
+                              <span className="teacher-question-list-item-topic teacher-question-list-item-topic--type">
+                                {question.question_type.replace('_', ' ')}
+                              </span>
+                              <span>{question.points} XP</span>
+                            </div>
+                          </div>
+                        </label>
+                      ))}
+                    </section>
+                  );
+                })
               )}
             </div>
             </div>
