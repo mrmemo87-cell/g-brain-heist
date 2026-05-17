@@ -646,7 +646,7 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
     });
 
     return Array.from(setMap.values());
-  }, [questions, teacher]);
+  }, [filteredQuestionsBySubject, teacher]);
 
   // Filter sets based on active filters
   const filteredSets = useMemo(() => {
