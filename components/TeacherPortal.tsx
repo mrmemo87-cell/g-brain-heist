@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import DOMPurify from 'dompurify';
-import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, TeacherAssignmentSummary, TeacherAssignmentReportRow, StudentForAssignment, QuestionOption, StudentAssignmentAnswer, AssignmentQuestionAnalysis } from '../types';
+import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, TeacherAssignmentSummary, TeacherAssignmentReportRow, StudentForAssignment, QuestionOption, StudentAssignmentAnswer, AssignmentQuestionAnalysis, AssignmentBatch } from '../types';
 import * as GameService from '../services/gameService';
 import * as AuthService from '../services/authService';
 import * as SchoolAdminService from '../services/schoolAdminService';
@@ -3005,6 +3005,26 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     );
   };
 
+  const resetAssignmentDraft = useCallback(() => {
+    questionBankSubjectRef.current = false;
+    setAssignmentQuestionIds([]);
+    setAssignmentTitle('');
+    setAssignmentDescription('');
+    setAssignmentInstructions('');
+    setSelectedStudentIds([]);
+    setAssignmentBatches([]);
+    setStudentSearchTerm('');
+    setAssignmentTopicMode('general');
+    setAssignmentTopicName('');
+    setAssignmentDueAt('');
+    setAssignmentAssignedAt(new Date().toISOString().slice(0, 16));
+  }, []);
+
+  const openBlankAssignmentForm = useCallback(() => {
+    resetAssignmentDraft();
+    setView('create-assignment');
+  }, [resetAssignmentDraft]);
+
   // Handle "Use Set" from the Blooket-style QuestionBank
   const handleUseQuestionSet = useCallback((questionIds: string[], subject: Subject, topic: string) => {
     // Pre-select the questions and set subject/topic from the selected set
@@ -3070,6 +3090,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         return;
       }
 
+      let successMessage: string | null = null;
+      let shouldResetAfterCreate = false;
+
       if (assignmentMode === 'batch') {
         // Create one assignment per selected batch/class
         const batchesToAssign = assignmentBatches.includes('All')
@@ -3083,7 +3106,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             await GameService.create_assignment({
               subject: assignmentSubject,
               topic_name: assignmentTopicLabel,
-              batch: batch,
+              batch: batch as AssignmentBatch,
               question_ids: assignmentQuestionIds,
               assigned_at: toIso(assignmentAssignedAt) ?? new Date().toISOString(),
               due_at: toIso(assignmentDueAt),
@@ -3101,7 +3124,14 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
         if (errors.length > 0) {
           brainsAlert(`Assignment created for ${results.length} class(es), but failed for:\n${errors.join('\n')}`, 'error');
+          if (results.length === 0) {
+            return;
+          }
+        } else {
+          const classCount = results.length;
+          successMessage = `Assignment created and sent to ${classCount} class${classCount !== 1 ? 'es' : ''}.`;
         }
+        shouldResetAfterCreate = results.length > 0;
       } else {
         // Custom mode — single creation for selected students
         await GameService.create_assignment({
@@ -3118,27 +3148,18 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           assignment_mode: 'custom',
           student_ids: selectedStudentIds,
         });
+        successMessage = `Assignment created and sent to ${selectedStudentIds.length} student${selectedStudentIds.length !== 1 ? 's' : ''}.`;
+        shouldResetAfterCreate = true;
       }
 
-      const classCount = assignmentMode === 'batch'
-        ? (assignmentBatches.includes('All')
-            ? availableBatches.length
-            : assignmentBatches.filter((batch) => batch !== 'All').length)
-        : 1;
-      brainsAlert(`Assignment created and sent to ${assignmentMode === 'batch' ? `${classCount} class${classCount !== 1 ? 'es' : ''}` : `${selectedStudentIds.length} student${selectedStudentIds.length !== 1 ? 's' : ''}`}.`, 'success');
-      setAssignmentQuestionIds([]);
-      setAssignmentTitle('');
-      setAssignmentDescription('');
-      setAssignmentInstructions('');
-      setSelectedStudentIds([]);
-      setAssignmentBatches([]);
-      setStudentSearchTerm('');
-      setAssignmentTopicMode('general');
-      setAssignmentTopicName('');
-      setAssignmentDueAt('');
-      setAssignmentAssignedAt(new Date().toISOString().slice(0, 16));
-      await loadAssignments();
-      setView('assignments');
+      if (successMessage) {
+        brainsAlert(successMessage, 'success');
+      }
+      if (shouldResetAfterCreate) {
+        resetAssignmentDraft();
+        await loadAssignments();
+        setView('assignments');
+      }
     } catch (error) {
       console.error('Error creating assignment:', error);
       brainsAlert('Unable to create assignment: ' + (error as Error).message, 'error');
@@ -4009,7 +4030,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           </button>
 
           <button
-            onClick={() => !isDisabled('New Assignment') ? setView('create-assignment') : undefined}
+            onClick={() => !isDisabled('New Assignment') ? openBlankAssignmentForm() : undefined}
             className={`teacher-action-card teacher-action-card--mini ${isDisabled('New Assignment') ? 'opacity-50 cursor-not-allowed' : ''}`}
             data-color="purple"
             disabled={isDisabled('New Assignment')}
@@ -4959,7 +4980,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       <div className="teacher-section-header">
         <h2>🗂️ Assignments</h2>
         <button
-          onClick={() => setView('create-assignment')}
+          onClick={openBlankAssignmentForm}
           className="teacher-btn teacher-btn-primary"
         >
           ➕ New Assignment
