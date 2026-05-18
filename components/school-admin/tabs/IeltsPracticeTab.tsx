@@ -1,10 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSchoolAdmin } from '../SchoolAdminContext';
 import {
+  rpcIeltsPracticeArchiveAssignment,
   rpcIeltsPracticeAssignToClass,
   rpcIeltsPracticeAssignmentDetail,
+  rpcIeltsPracticeCloseAssignment,
   rpcIeltsPracticeCreateAssignment,
   rpcIeltsPracticeListAssignments,
+  rpcIeltsPracticeUpdateAssignment,
   type IeltsPracticeAssignmentDetail,
   type IeltsPracticeAssignmentItemInput,
   type IeltsPracticeAssignmentStudentProgress,
@@ -55,6 +58,22 @@ const formatDateTime = (value?: string | null) => {
   return parsed.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 };
 
+
+const toLocalDateTimeInputValue = (value?: string | null) => {
+  if (!value) return '';
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return '';
+  const offsetMs = parsed.getTimezoneOffset() * 60 * 1000;
+  return new Date(parsed.getTime() - offsetMs).toISOString().slice(0, 16);
+};
+
+const statusBadgeClasses: Record<string, string> = {
+  draft: 'border-gray-500/50 bg-gray-500/10 text-gray-200',
+  assigned: 'border-emerald-400/50 bg-emerald-500/10 text-emerald-200',
+  closed: 'border-amber-400/50 bg-amber-500/10 text-amber-100',
+  archived: 'border-slate-500/50 bg-slate-500/10 text-slate-200',
+};
+
 const isStudentOverdue = (assignment: IeltsPracticeAssignmentSummary, student: IeltsPracticeAssignmentStudentProgress) => {
   if (student.status === 'completed' || student.status === 'excused') return false;
   if (student.status === 'overdue') return true;
@@ -72,6 +91,7 @@ const IeltsPracticeTab: React.FC = () => {
   const [assignments, setAssignments] = useState<IeltsPracticeAssignmentSummary[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [mutatingAssignmentId, setMutatingAssignmentId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -88,6 +108,10 @@ const IeltsPracticeTab: React.FC = () => {
   const [contentError, setContentError] = useState<string | null>(null);
   const [pickerOpenFor, setPickerOpenFor] = useState<string | null>(null);
   const [contentSkillFilter, setContentSkillFilter] = useState('reading');
+  const [editingAssignmentId, setEditingAssignmentId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editDueAt, setEditDueAt] = useState('');
 
   const selectedClass = useMemo(
     () => classes.find((cls: any) => cls.id === classId) ?? null,
@@ -313,6 +337,91 @@ const IeltsPracticeTab: React.FC = () => {
       addToast?.(message, 'error');
     } finally {
       setSaving(false);
+    }
+  };
+
+
+  const beginEditAssignment = (assignment: IeltsPracticeAssignmentSummary) => {
+    if (assignment.status === 'archived') return;
+    setEditingAssignmentId(assignment.id);
+    setEditTitle(assignment.title);
+    setEditDescription(assignment.description ?? '');
+    setEditDueAt(toLocalDateTimeInputValue(assignment.due_at));
+    setError(null);
+  };
+
+  const cancelEditAssignment = () => {
+    setEditingAssignmentId(null);
+    setEditTitle('');
+    setEditDescription('');
+    setEditDueAt('');
+  };
+
+  const handleUpdateAssignment = async (assignmentId: string) => {
+    if (!editTitle.trim()) {
+      setError('Add an assignment title before saving changes.');
+      return;
+    }
+
+    setMutatingAssignmentId(assignmentId);
+    setError(null);
+    try {
+      const updated = await rpcIeltsPracticeUpdateAssignment({
+        assignmentId,
+        title: editTitle.trim(),
+        description: editDescription.trim() || null,
+        dueAt: editDueAt ? new Date(editDueAt).toISOString() : null,
+      });
+      setAssignments((current) => current.map((row) => (row.id === assignmentId ? { ...row, ...updated } : row)));
+      setAssignmentDetail((current) => current?.assignment.id === assignmentId ? { ...current, assignment: { ...current.assignment, ...updated } } : current);
+      cancelEditAssignment();
+      addToast?.('IELTS practice assignment updated.', 'success');
+    } catch (updateError) {
+      const message = updateError instanceof Error ? updateError.message : 'Unable to update IELTS practice assignment.';
+      setError(message);
+      addToast?.(message, 'error');
+    } finally {
+      setMutatingAssignmentId(null);
+    }
+  };
+
+  const handleCloseAssignment = async (assignmentId: string) => {
+    setMutatingAssignmentId(assignmentId);
+    setError(null);
+    try {
+      const updated = await rpcIeltsPracticeCloseAssignment(assignmentId);
+      setAssignments((current) => current.map((row) => (row.id === assignmentId ? { ...row, ...updated } : row)));
+      setAssignmentDetail((current) => current?.assignment.id === assignmentId ? { ...current, assignment: { ...current.assignment, ...updated } } : current);
+      addToast?.('IELTS practice assignment closed. Students can view it read-only.', 'success');
+    } catch (closeError) {
+      const message = closeError instanceof Error ? closeError.message : 'Unable to close IELTS practice assignment.';
+      setError(message);
+      addToast?.(message, 'error');
+    } finally {
+      setMutatingAssignmentId(null);
+    }
+  };
+
+  const handleArchiveAssignment = async (assignmentId: string) => {
+    setMutatingAssignmentId(assignmentId);
+    setError(null);
+    try {
+      await rpcIeltsPracticeArchiveAssignment(assignmentId);
+      setAssignments((current) => current.filter((row) => row.id !== assignmentId));
+      if (selectedAssignmentId === assignmentId) {
+        setSelectedAssignmentId(null);
+        setAssignmentDetail(null);
+      }
+      if (editingAssignmentId === assignmentId) {
+        cancelEditAssignment();
+      }
+      addToast?.('IELTS practice assignment archived. Progress history was preserved.', 'success');
+    } catch (archiveError) {
+      const message = archiveError instanceof Error ? archiveError.message : 'Unable to archive IELTS practice assignment.';
+      setError(message);
+      addToast?.(message, 'error');
+    } finally {
+      setMutatingAssignmentId(null);
     }
   };
 
@@ -572,31 +681,78 @@ const IeltsPracticeTab: React.FC = () => {
           <div className="mt-4 space-y-3">
             {loading && <p className="text-sm text-gray-400">Loading assignments…</p>}
             {!loading && assignments.length === 0 && <p className="text-sm text-gray-400">No IELTS practice assignments yet.</p>}
-            {assignments.map((assignment) => (
-              <div key={assignment.id} data-testid={`ielts-practice-assignment-${assignment.id}`} className={`rounded-xl border p-4 text-sm ${selectedAssignmentId === assignment.id ? 'border-emerald-400 bg-emerald-500/10' : 'border-gray-700 bg-black/20'}`}>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-semibold text-white">{assignment.title}</p>
-                    <p className="text-xs text-gray-500">{assignment.class_name ?? 'No class'} · {assignment.status}</p>
+            {assignments.map((assignment) => {
+              const isEditing = editingAssignmentId === assignment.id;
+              const isMutating = mutatingAssignmentId === assignment.id;
+              const statusClass = statusBadgeClasses[assignment.status] ?? statusBadgeClasses.draft;
+              return (
+                <div key={assignment.id} data-testid={`ielts-practice-assignment-${assignment.id}`} className={`rounded-xl border p-4 text-sm ${selectedAssignmentId === assignment.id ? 'border-emerald-400 bg-emerald-500/10' : 'border-gray-700 bg-black/20'}`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-semibold text-white">{assignment.title}</p>
+                        <span data-testid={`ielts-practice-status-${assignment.id}`} className={`rounded-full border px-2 py-1 text-xs font-semibold capitalize ${statusClass}`}>{assignment.status}</span>
+                      </div>
+                      <p className="text-xs text-gray-500">{assignment.class_name ?? 'No class'}</p>
+                    </div>
+                    <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-xs text-emerald-200">{assignment.completion_percent ?? 0}% done</span>
                   </div>
-                  <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-xs text-emerald-200">{assignment.completion_percent ?? 0}% done</span>
+
+                  {isEditing ? (
+                    <div className="mt-3 rounded-lg border border-gray-700 bg-gray-950/70 p-3" data-testid={`ielts-practice-edit-form-${assignment.id}`}>
+                      <div className="grid gap-3">
+                        <label className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                          Title
+                          <input className="mt-1 w-full rounded-lg border border-gray-700 bg-gray-800 p-2 text-sm text-white" value={editTitle} onChange={(event) => setEditTitle(event.target.value)} />
+                        </label>
+                        <label className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                          Due date
+                          <input className="mt-1 w-full rounded-lg border border-gray-700 bg-gray-800 p-2 text-sm text-white" type="datetime-local" value={editDueAt} onChange={(event) => setEditDueAt(event.target.value)} />
+                        </label>
+                        <label className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                          Description
+                          <textarea className="mt-1 min-h-[72px] w-full rounded-lg border border-gray-700 bg-gray-800 p-2 text-sm text-white" value={editDescription} onChange={(event) => setEditDescription(event.target.value)} />
+                        </label>
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <button type="button" data-testid={`ielts-practice-save-edit-${assignment.id}`} onClick={() => void handleUpdateAssignment(assignment.id)} disabled={isMutating} className="rounded-lg bg-emerald-500 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-400 disabled:opacity-60">
+                          {isMutating ? 'Saving…' : 'Save changes'}
+                        </button>
+                        <button type="button" onClick={cancelEditAssignment} disabled={isMutating} className="rounded-lg border border-gray-600 px-3 py-2 text-xs font-semibold text-gray-200 hover:bg-gray-800 disabled:opacity-60">
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-center text-xs text-gray-300 sm:grid-cols-3">
+                    <div className="rounded-lg bg-gray-800 p-2"><strong className="block text-white">{assignment.total_students ?? 0}</strong>Total</div>
+                    <div className="rounded-lg bg-gray-800 p-2"><strong className="block text-white">{assignment.assigned_count ?? 0}</strong>Assigned</div>
+                    <div className="rounded-lg bg-gray-800 p-2"><strong className="block text-white">{assignment.in_progress_count ?? 0}</strong>Started</div>
+                    <div className="rounded-lg bg-gray-800 p-2"><strong className="block text-white">{assignment.completed_count ?? 0}</strong>Done</div>
+                    <div className="rounded-lg bg-gray-800 p-2"><strong className="block text-white">{assignment.overdue_count ?? 0}</strong>Overdue</div>
+                    <div className="rounded-lg bg-gray-800 p-2"><strong className="block text-white">{assignment.excused_count ?? 0}</strong>Excused</div>
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-400">
+                    <span>{assignment.item_count ?? assignment.items?.length ?? 0} items · Due {formatDateTime(assignment.due_at)}</span>
+                    <div className="flex flex-wrap gap-2">
+                      <button type="button" data-testid={`ielts-practice-view-progress-${assignment.id}`} onClick={() => void loadAssignmentDetail(assignment.id)} disabled={progressLoading && selectedAssignmentId === assignment.id} className="rounded-lg border border-emerald-400/50 px-3 py-2 font-semibold text-emerald-200 hover:bg-emerald-500/10 disabled:opacity-60">
+                        {progressLoading && selectedAssignmentId === assignment.id ? 'Loading…' : 'View progress'}
+                      </button>
+                      <button type="button" data-testid={`ielts-practice-edit-${assignment.id}`} onClick={() => beginEditAssignment(assignment)} disabled={assignment.status === 'archived' || isMutating} className="rounded-lg border border-sky-400/50 px-3 py-2 font-semibold text-sky-200 hover:bg-sky-500/10 disabled:opacity-60">
+                        Edit
+                      </button>
+                      <button type="button" data-testid={`ielts-practice-close-${assignment.id}`} onClick={() => void handleCloseAssignment(assignment.id)} disabled={assignment.status === 'closed' || assignment.status === 'archived' || isMutating} className="rounded-lg border border-amber-400/50 px-3 py-2 font-semibold text-amber-100 hover:bg-amber-500/10 disabled:opacity-60">
+                        {isMutating ? 'Working…' : 'Close'}
+                      </button>
+                      <button type="button" data-testid={`ielts-practice-archive-${assignment.id}`} onClick={() => void handleArchiveAssignment(assignment.id)} disabled={isMutating} className="rounded-lg border border-red-400/50 px-3 py-2 font-semibold text-red-200 hover:bg-red-500/10 disabled:opacity-60">
+                        Archive
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div className="mt-3 grid grid-cols-2 gap-2 text-center text-xs text-gray-300 sm:grid-cols-3">
-                  <div className="rounded-lg bg-gray-800 p-2"><strong className="block text-white">{assignment.total_students ?? 0}</strong>Total</div>
-                  <div className="rounded-lg bg-gray-800 p-2"><strong className="block text-white">{assignment.assigned_count ?? 0}</strong>Assigned</div>
-                  <div className="rounded-lg bg-gray-800 p-2"><strong className="block text-white">{assignment.in_progress_count ?? 0}</strong>Started</div>
-                  <div className="rounded-lg bg-gray-800 p-2"><strong className="block text-white">{assignment.completed_count ?? 0}</strong>Done</div>
-                  <div className="rounded-lg bg-gray-800 p-2"><strong className="block text-white">{assignment.overdue_count ?? 0}</strong>Overdue</div>
-                  <div className="rounded-lg bg-gray-800 p-2"><strong className="block text-white">{assignment.excused_count ?? 0}</strong>Excused</div>
-                </div>
-                <div className="mt-3 flex items-center justify-between gap-2 text-xs text-gray-400">
-                  <span>{assignment.item_count ?? assignment.items?.length ?? 0} items · Due {formatDateTime(assignment.due_at)}</span>
-                  <button type="button" data-testid={`ielts-practice-view-progress-${assignment.id}`} onClick={() => void loadAssignmentDetail(assignment.id)} disabled={progressLoading && selectedAssignmentId === assignment.id} className="rounded-lg border border-emerald-400/50 px-3 py-2 font-semibold text-emerald-200 hover:bg-emerald-500/10 disabled:opacity-60">
-                    {progressLoading && selectedAssignmentId === assignment.id ? 'Loading…' : 'View progress'}
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </aside>
       </div>

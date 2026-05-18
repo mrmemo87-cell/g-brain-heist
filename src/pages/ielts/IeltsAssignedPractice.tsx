@@ -67,6 +67,9 @@ const getAssignmentBadge = (assignment: IeltsPracticeStudentAssignment) => {
   if (assignment.student_status === 'completed') {
     return { label: 'Completed', backgroundColor: '#dcfce7', color: '#166534' };
   }
+  if (assignment.status === 'closed') {
+    return { label: 'Closed', backgroundColor: '#fef3c7', color: '#92400e' };
+  }
   if (isAssignmentOverdue(assignment)) {
     return { label: 'Overdue', backgroundColor: '#fee2e2', color: '#991b1b' };
   }
@@ -110,6 +113,11 @@ const IeltsAssignedPractice: React.FC = () => {
   }, []);
 
   const handleOpenItem = async (assignment: IeltsPracticeStudentAssignment, item: IeltsPracticeAssignmentItem, route: string) => {
+    if (assignment.status === 'closed') {
+      setError('This assignment is closed and can only be reviewed read-only.');
+      return;
+    }
+
     const assignedRoute = buildAssignedPracticeRoute(route, assignment, item);
 
     setBusyAssignmentId(assignment.id);
@@ -189,6 +197,7 @@ const IeltsAssignedPractice: React.FC = () => {
           const assignmentProgress = assignmentProgressById[assignment.id] ?? null;
           const progressSummary = getAssignmentProgressSummaryFromAssignment(assignment, assignmentProgress);
           const progressItemsById = new Map((assignmentProgress?.items ?? []).map((progressItem) => [progressItem.assignment_item_id, progressItem]));
+          const isClosedReadOnly = assignment.status === 'closed' && assignment.student_status !== 'completed';
 
           return (
             <article key={assignment.id} data-testid={`ielts-assigned-assignment-${assignment.id}`} style={{ backgroundColor: '#ffffff', border: isAssignmentOverdue(assignment) ? '1px solid #fca5a5' : '1px solid #e5e7eb', borderRadius: '1rem', padding: '1rem', marginBottom: '1rem', boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06)' }}>
@@ -205,7 +214,7 @@ const IeltsAssignedPractice: React.FC = () => {
               <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.875rem', color: '#64748b', fontSize: '0.875rem' }}>
                 <span>Due: <strong style={{ color: '#334155' }}>{formatDueDate(assignment.due_at)}</strong></span>
                 <span>Items: <strong style={{ color: '#334155' }}>{assignment.item_count ?? assignment.items?.length ?? 0}</strong></span>
-                <span>Status: <strong style={{ color: '#334155' }}>{assignment.student_status.replace(/_/g, ' ')}</strong></span>
+                <span>Status: <strong style={{ color: '#334155' }}>{assignment.status === 'closed' && assignment.student_status !== 'completed' ? 'closed' : assignment.student_status.replace(/_/g, ' ')}</strong></span>
               </div>
 
               <AssignmentProgressBar
@@ -240,7 +249,11 @@ const IeltsAssignedPractice: React.FC = () => {
                               <p style={{ margin: '0.25rem 0 0', color: '#64748b', fontSize: '0.8125rem' }}>{item.required ? 'Required' : 'Optional'}</p>
                             </div>
                             {route && assignedRoute ? (
-                              itemStatus === 'completed' ? (
+                              isClosedReadOnly ? (
+                                <span data-testid={`ielts-assigned-closed-item-${item.id}`} style={{ backgroundColor: '#fef3c7', color: '#92400e', borderRadius: '0.5rem', padding: '0.55rem 0.875rem', fontWeight: 900 }}>
+                                  Closed
+                                </span>
+                              ) : itemStatus === 'completed' ? (
                                 <span style={{ backgroundColor: '#dcfce7', color: '#166534', borderRadius: '0.5rem', padding: '0.55rem 0.875rem', fontWeight: 900 }}>
                                   ✓ Completed
                                 </span>
@@ -268,7 +281,11 @@ const IeltsAssignedPractice: React.FC = () => {
                 ))}
               </div>
 
-              {assignment.student_status !== 'completed' && (
+              {isClosedReadOnly ? (
+                <div data-testid={`ielts-assigned-closed-read-only-${assignment.id}`} style={{ marginTop: '1rem', border: '1px solid #fde68a', backgroundColor: '#fffbeb', color: '#92400e', borderRadius: '0.75rem', padding: '0.875rem', fontSize: '0.875rem', fontWeight: 700 }}>
+                  This assignment is closed. Your progress is preserved, but no new starts or completions are available.
+                </div>
+              ) : assignment.student_status !== 'completed' && (
                 <div style={{ marginTop: '1rem', border: '1px solid #bfdbfe', backgroundColor: '#eff6ff', color: '#1e40af', borderRadius: '0.75rem', padding: '0.875rem', fontSize: '0.875rem', fontWeight: 700 }}>
                   Assignment completes automatically after all required items are finished.
                 </div>

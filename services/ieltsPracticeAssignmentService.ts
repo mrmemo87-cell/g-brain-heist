@@ -140,6 +140,13 @@ export interface AssignIeltsPracticeToStudentsParams {
   studentIds: string[];
 }
 
+export interface UpdateIeltsPracticeAssignmentParams {
+  assignmentId: string;
+  title: string;
+  description?: string | null;
+  dueAt?: string | null;
+}
+
 export interface ForceCompleteIeltsPracticeAssignmentParams {
   assignmentId: string;
   studentId: string;
@@ -234,6 +241,43 @@ export const rpcIeltsPracticeAssignToClass = async (
   return assertNoRpcError('rpc_ielts_practice_assign_to_class', data, error);
 };
 
+
+
+export const rpcIeltsPracticeUpdateAssignment = async (
+  params: UpdateIeltsPracticeAssignmentParams,
+  client?: IeltsPracticeAssignmentRpcClient
+): Promise<IeltsPracticeAssignmentSummary> => {
+  const { data, error } = await withClient(client).rpc('rpc_ielts_practice_update_assignment', {
+    p_assignment_id: params.assignmentId,
+    p_title: params.title,
+    p_description: params.description ?? null,
+    p_due_at: params.dueAt ?? null,
+  }) as unknown as Awaited<RpcResult<IeltsPracticeAssignmentSummary>>;
+
+  return assertNoRpcError('rpc_ielts_practice_update_assignment', data, error);
+};
+
+export const rpcIeltsPracticeCloseAssignment = async (
+  assignmentId: string,
+  client?: IeltsPracticeAssignmentRpcClient
+): Promise<IeltsPracticeAssignmentSummary> => {
+  const { data, error } = await withClient(client).rpc('rpc_ielts_practice_close_assignment', {
+    p_assignment_id: assignmentId,
+  }) as unknown as Awaited<RpcResult<IeltsPracticeAssignmentSummary>>;
+
+  return assertNoRpcError('rpc_ielts_practice_close_assignment', data, error);
+};
+
+export const rpcIeltsPracticeArchiveAssignment = async (
+  assignmentId: string,
+  client?: IeltsPracticeAssignmentRpcClient
+): Promise<IeltsPracticeAssignmentSummary> => {
+  const { data, error } = await withClient(client).rpc('rpc_ielts_practice_archive_assignment', {
+    p_assignment_id: assignmentId,
+  }) as unknown as Awaited<RpcResult<IeltsPracticeAssignmentSummary>>;
+
+  return assertNoRpcError('rpc_ielts_practice_archive_assignment', data, error);
+};
 
 export const rpcIeltsPracticeAssignmentDetail = async (
   assignmentId: string,
