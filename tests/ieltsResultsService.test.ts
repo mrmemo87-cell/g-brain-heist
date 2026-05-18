@@ -115,3 +115,16 @@ test('IELTS results service and SQL avoid protected data and legacy admin paths'
   assert.doesNotMatch(migration, /answer_key/i, 'results RPC must not expose protected answer data');
   assert.doesNotMatch(migration, /rpc_is_ielts_admin|ielts_teachers|is_ielts_admin/i, 'results RPC must not use legacy IELTS admin permissions');
 });
+
+test('IELTS school results RPC uses readiness helper without legacy admin or protected answer data', () => {
+  const migration = fs.readFileSync(
+    path.join(process.cwd(), 'supabase/migrations/20260518130000_ielts_readiness_engine_foundation.sql'),
+    'utf8',
+  );
+
+  assert.match(migration, /left join lateral public\.ielts_latest_skill_readiness\(target\.student_id\) readiness on true/i, 'school results must use the shared readiness helper');
+  assert.match(migration, /latest_reading_estimate = r\.reading[\s\S]*latest_writing_estimate = r\.writing/i, 'school results must hydrate skill estimate fields from readiness rows');
+  assert.match(migration, /cross join lateral \(values \(base\.latest_reading_estimate\), \(base\.latest_listening_estimate\), \(base\.latest_writing_estimate\), \(base\.latest_speaking_estimate\)\) v\(value\)[\s\S]*where value is not null/i, 'school results overall must average available skills only');
+  assert.doesNotMatch(migration, /answer_key/i, 'school results readiness foundation must not expose protected answer data');
+  assert.doesNotMatch(migration, /rpc_is_ielts_admin|ielts_teachers|is_ielts_admin/i, 'school results must not depend on legacy IELTS admin permissions');
+});
