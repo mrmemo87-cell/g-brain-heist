@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { buildReadingAttemptPayload, type RawScoreInput } from '../src/lib/ieltsPracticeScoring';
 import { isPro, tryConsumePilotQuota } from './tierService';
 import type {
   IELTSUserProfile,
@@ -534,7 +535,8 @@ export const fetchReadingQuestions = async (setId: number) => {
 export const submitReadingAttempt = async (
   setId: number,
   answers: Record<number, string>,
-  timeSpent: number
+  timeSpent: number,
+  score?: RawScoreInput
 ) => {
   // Consume pilot quota if applicable
   const quota = await tryConsumePilotQuota('ielts_tests');
@@ -557,15 +559,20 @@ export const submitReadingAttempt = async (
 
   const userId = session.session.user.id;
 
-  const { data, error } = await supabase
-    .from('ielts_reading_attempts')
-    .insert({
+  const attemptPayload = buildReadingAttemptPayload(
+    {
       user_id: userId,
       set_id: setId,
       answers,
       time_spent_seconds: timeSpent,
       completed_at: new Date().toISOString(),
-    })
+    },
+    score ?? {},
+  );
+
+  const { data, error } = await supabase
+    .from('ielts_reading_attempts')
+    .insert(attemptPayload)
     .select()
     .single();
 

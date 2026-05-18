@@ -2,10 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '../../../services/supabaseClient';
-import { getUserTier, isIeltsPrime, saveNotificationPreferences } from '../../../services/ieltsService';
+import { ensureIeltsProfile, getUserTier, isIeltsPrime, saveNotificationPreferences } from '../../../services/ieltsService';
 import { rpcIeltsPracticeMarkItemCompleted, type IeltsPracticeAssignmentProgress } from '../../../services/ieltsPracticeAssignmentService';
 import { AssignmentCompletionStatus, readIeltsPracticeAssignmentContext } from './assignmentPracticeUi';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
+import { buildSpeakingAttemptPayload } from '../../lib/ieltsPracticeScoring';
 
 interface SpeakingTask {
   id: number;
@@ -99,6 +100,8 @@ const SpeakingPractice: React.FC = () => {
 
   const submitMutation = useMutation({
     mutationFn: async (blob: Blob) => {
+      await ensureIeltsProfile();
+
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session?.user) throw new Error('Not authenticated');
 
@@ -111,14 +114,16 @@ const SpeakingPractice: React.FC = () => {
       if (uploadError) throw uploadError;
 
       // Save attempt record - use audio_url (the standard column name in the DB)
+      const attemptPayload = buildSpeakingAttemptPayload({
+        user_id: session.session.user.id,
+        task_id: task?.id,
+        audio_url: fileName,
+        submitted_at: new Date().toISOString(),
+      });
+
       const { data, error } = await supabase
         .from('ielts_speaking_attempts')
-        .insert({
-          user_id: session.session.user.id,
-          task_id: task?.id,
-          audio_url: fileName,
-          submitted_at: new Date().toISOString(),
-        })
+        .insert(attemptPayload)
         .select()
         .single();
 

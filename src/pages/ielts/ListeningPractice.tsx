@@ -6,6 +6,7 @@ import { ensureIeltsProfile, getUserTier, isIeltsPrime, saveNotificationPreferen
 import { rpcIeltsPracticeMarkItemCompleted, type IeltsPracticeAssignmentProgress } from '../../../services/ieltsPracticeAssignmentService';
 import { AssignmentCompletionStatus, readIeltsPracticeAssignmentContext } from './assignmentPracticeUi';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
+import { buildListeningAttemptPayload, toRawScoreResult } from '../../lib/ieltsPracticeScoring';
 
 interface ListeningSet {
   id: number;
@@ -232,15 +233,26 @@ const ListeningPractice: React.FC = () => {
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session?.user) throw new Error('Not authenticated');
 
-      const { data: result, error } = await supabase
-        .from('ielts_listening_attempts')
-        .insert({
+      const attemptScore = calculateResults();
+      const attemptPayload = buildListeningAttemptPayload(
+        {
           user_id: session.session.user.id,
           set_id: data.setId,
           answers: data.answers,
           time_spent_seconds: data.timeSpent,
           completed_at: new Date().toISOString(),
-        })
+        },
+        {
+          rawScore: attemptScore.correct,
+          totalQuestions: attemptScore.total,
+          percent: attemptScore.percentage,
+          estBand: attemptScore.bandScore,
+        },
+      );
+
+      const { data: result, error } = await supabase
+        .from('ielts_listening_attempts')
+        .insert(attemptPayload)
         .select()
         .single();
 
@@ -325,20 +337,7 @@ const ListeningPractice: React.FC = () => {
       }
     });
 
-    return {
-      correct,
-      total: questions.length,
-      percentage: Math.round((correct / questions.length) * 100),
-    };
-  };
-
-  const estimateBandScore = (percentage: number): number => {
-    if (percentage >= 90) return 8.5;
-    if (percentage >= 80) return 7.5;
-    if (percentage >= 70) return 6.5;
-    if (percentage >= 60) return 5.5;
-    if (percentage >= 50) return 5.0;
-    return 4.5;
+    return toRawScoreResult(correct, questions.length);
   };
 
   const formatTime = (seconds: number) => {
@@ -439,7 +438,7 @@ const ListeningPractice: React.FC = () => {
 
   if (showResults) {
     const results = calculateResults();
-    const bandScore = estimateBandScore(results.percentage);
+    const bandScore = results.bandScore;
 
     return (
       <div style={{ 
