@@ -98,3 +98,47 @@ export const getIeltsAttemptOperationalLabel = (status?: string | null, hasConne
   if (normalized === 'paused') return 'Paused';
   return normalized.replace(/_/g, ' ');
 };
+
+export type IeltsStudentExamSyncState = 'active' | 'paused' | 'teacher_submitted' | 'voided' | 'ended' | 'not_in_progress';
+
+const normalizeExamStatus = (status?: string | null): string => (status ?? '').toLowerCase().trim();
+
+export const isIeltsExamEventPaused = (eventStatus?: string | null, reason?: string | null): boolean => (
+  normalizeExamStatus(eventStatus) === 'paused' || normalizeExamStatus(reason) === 'exam_paused'
+);
+
+export const isIeltsTerminalAttemptStatus = (status?: string | null): boolean => (
+  ['submitted', 'auto_submitted', 'force_submitted', 'void', 'voided', 'locked', 'not_in_progress'].includes(normalizeExamStatus(status))
+);
+
+export const isIeltsTeacherSubmittedStatus = (status?: string | null): boolean => (
+  ['submitted', 'auto_submitted', 'force_submitted'].includes(normalizeExamStatus(status))
+);
+
+export const isIeltsVoidedAttemptStatus = (status?: string | null, reason?: string | null): boolean => (
+  ['void', 'voided'].includes(normalizeExamStatus(status)) || normalizeExamStatus(reason) === 'assignment_void'
+);
+
+export const resolveIeltsStudentExamSyncState = (
+  attemptStatus?: string | null,
+  eventStatus?: string | null,
+  reason?: string | null,
+): IeltsStudentExamSyncState => {
+  if (isIeltsVoidedAttemptStatus(attemptStatus, reason)) return 'voided';
+  if (isIeltsTeacherSubmittedStatus(attemptStatus)) return 'teacher_submitted';
+  if (normalizeExamStatus(attemptStatus) === 'not_in_progress' || normalizeExamStatus(attemptStatus) === 'locked') return 'not_in_progress';
+  if (isIeltsExamEventPaused(eventStatus, reason)) return 'paused';
+  if (['ended', 'closed', 'complete', 'completed'].includes(normalizeExamStatus(eventStatus))) return 'ended';
+  return 'active';
+};
+
+export const getIeltsStudentExamSyncMessage = (state: IeltsStudentExamSyncState): string | null => {
+  if (state === 'teacher_submitted') return 'Your exam has been submitted by your teacher.';
+  if (state === 'voided') return 'This attempt was voided by the teacher.';
+  if (state === 'paused') return 'This exam is paused by the teacher.';
+  if (state === 'not_in_progress') return 'Your exam is no longer in progress.';
+  if (state === 'ended') return 'This IELTS exam is closed.';
+  return null;
+};
+
+export const shouldIeltsAutosaveRun = (state: IeltsStudentExamSyncState): boolean => state === 'active';

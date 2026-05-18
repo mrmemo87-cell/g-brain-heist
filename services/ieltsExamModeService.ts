@@ -19,8 +19,11 @@ export type IeltsExamAttemptStatus =
   | 'in_progress'
   | 'submitted'
   | 'auto_submitted'
+  | 'force_submitted'
   | 'locked'
   | 'void'
+  | 'voided'
+  | 'not_in_progress'
   | string;
 
 export interface IeltsExamPublicFormPayload {
@@ -48,6 +51,8 @@ export interface IeltsExamWhoamiResponse {
   assignment_id?: string;
   attempt_id?: string | null;
   status?: IeltsExamAttemptStatus;
+  attempt_status?: IeltsExamAttemptStatus;
+  event_status?: string | null;
   server_now?: string;
   starts_at?: string;
   ends_at?: string;

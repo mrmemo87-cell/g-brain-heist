@@ -4,6 +4,9 @@ import { readFileSync } from 'node:fs';
 import {
   formatIeltsCountdown,
   getIeltsAttemptOperationalLabel,
+  getIeltsStudentExamSyncMessage,
+  resolveIeltsStudentExamSyncState,
+  shouldIeltsAutosaveRun,
   resolveIeltsExamLifecycleMeta,
   resolveIeltsExamLifecycleState,
 } from '../services/ieltsExamModeUx.js';
@@ -39,11 +42,51 @@ test('IELTS monitor labels emphasize not started, active, submitted and connecti
   assert.equal(getIeltsAttemptOperationalLabel('in_progress', true), 'Possible connection issue');
 });
 
+
+test('IELTS student live sync maps teacher pause, force submit and void states', () => {
+  assert.equal(resolveIeltsStudentExamSyncState('in_progress', 'paused', 'ok'), 'paused');
+  assert.equal(getIeltsStudentExamSyncMessage('paused'), 'This exam is paused by the teacher.');
+  assert.equal(resolveIeltsStudentExamSyncState('auto_submitted', 'live', 'ok'), 'teacher_submitted');
+  assert.equal(getIeltsStudentExamSyncMessage('teacher_submitted'), 'Your exam has been submitted by your teacher.');
+  assert.equal(resolveIeltsStudentExamSyncState('void', 'live', 'assignment_void'), 'voided');
+  assert.equal(getIeltsStudentExamSyncMessage('voided'), 'This attempt was voided by the teacher.');
+});
+
+test('IELTS student autosave only runs while the live sync state is active', () => {
+  assert.equal(shouldIeltsAutosaveRun('active'), true);
+  assert.equal(shouldIeltsAutosaveRun('paused'), false);
+  assert.equal(shouldIeltsAutosaveRun('teacher_submitted'), false);
+  assert.equal(shouldIeltsAutosaveRun('voided'), false);
+  assert.equal(shouldIeltsAutosaveRun('not_in_progress'), false);
+});
+
 test('IELTS Exam Mode UI surfaces start-exam backend errors instead of silently resetting', () => {
   const source = readFileSync('src/pages/ielts/IeltsExamMode.tsx', 'utf8');
   assert.match(source, /Start exam failed:/, 'start failure must include backend reason prefix');
   assert.match(source, /alert=\{error\}/, 'start card must render the captured failure message');
   assert.match(source, /if \(isStarting \|\| !whoami\?\.assignment_id\) return;/, 'start action must be retry-safe against double clicks');
+});
+
+
+test('IELTS Exam Mode student page polls live status, ticks countdown, and locks teacher actions', () => {
+  const source = readFileSync('src/pages/ielts/IeltsExamMode.tsx', 'utf8');
+  assert.match(source, /setInterval\(\(\) => \{[\s\S]*refreshLiveState\(\)[\s\S]*\}, 10000\)/, 'student page must poll live state every 10 seconds');
+  assert.match(source, /window\.addEventListener\('focus', onFocusOrVisible\)/, 'student page must refresh status on focus');
+  assert.match(source, /document\.addEventListener\('visibilitychange', onFocusOrVisible\)/, 'student page must refresh status on visibilitychange');
+  assert.match(source, /setInterval\(\(\) => \{[\s\S]*setNowTick\(Date\.now\(\)\)[\s\S]*setRemainingSeconds[\s\S]*\}, 1000\)/, 'countdown must visibly tick every second');
+  assert.match(source, /syncStateRef\.current === 'paused'\) return;/, 'countdown display must pause while teacher has paused the event');
+  assert.match(source, /shouldIeltsAutosaveRun\(syncStateRef\.current\)/, 'autosave must be gated by live sync state');
+  assert.match(source, /attempt_not_in_progress\|assignment_void\|exam_paused/, 'teacher state changes must suppress scary autosave errors');
+  assert.match(source, /Your exam has been submitted by your teacher\./, 'force submit must show teacher-submitted state');
+  assert.match(source, /This attempt was voided by the teacher\./, 'void must show teacher-voided state');
+  assert.match(source, /This exam is paused by the teacher\./, 'pause must show teacher-paused state');
+});
+
+test('IELTS whoami RPC exposes event status for pause without exposing protected answers', () => {
+  const sql = readFileSync('supabase/migrations/20260518170000_ielts_exam_whoami_live_state_sync.sql', 'utf8');
+  assert.match(sql, /'event_status', v_event\.status/, 'whoami must expose event_status separately from attempt status');
+  assert.match(sql, /'attempt_status', coalesce\(v_attempt\.status, v_assignment\.status\)/, 'whoami must expose attempt_status for terminal monitor actions');
+  assert.doesNotMatch(sql, /answer_key/i, 'student whoami migration must not expose answer keys');
 });
 
 test('IELTS Exam Mode pilot UI does not expose answer_key or depend on legacy IELTS admin checks', () => {
