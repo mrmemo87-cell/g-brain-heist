@@ -135,7 +135,7 @@ const IeltsAssignedPractice: React.FC = () => {
   }), [assignments]);
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', color: '#111827', padding: '1rem' }}>
+    <div data-testid="ielts-assigned-practice-page" style={{ minHeight: '100vh', backgroundColor: '#f8fafc', color: '#111827', padding: '1rem' }}>
       <div style={{ maxWidth: '64rem', margin: '0 auto' }}>
         <button
           type="button"
@@ -191,7 +191,7 @@ const IeltsAssignedPractice: React.FC = () => {
           const progressItemsById = new Map((assignmentProgress?.items ?? []).map((progressItem) => [progressItem.assignment_item_id, progressItem]));
 
           return (
-            <article key={assignment.id} style={{ backgroundColor: '#ffffff', border: isAssignmentOverdue(assignment) ? '1px solid #fca5a5' : '1px solid #e5e7eb', borderRadius: '1rem', padding: '1rem', marginBottom: '1rem', boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06)' }}>
+            <article key={assignment.id} data-testid={`ielts-assigned-assignment-${assignment.id}`} style={{ backgroundColor: '#ffffff', border: isAssignmentOverdue(assignment) ? '1px solid #fca5a5' : '1px solid #e5e7eb', borderRadius: '1rem', padding: '1rem', marginBottom: '1rem', boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
                 <div>
                   <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#111827' }}>{assignment.title}</h2>
@@ -209,6 +209,7 @@ const IeltsAssignedPractice: React.FC = () => {
               </div>
 
               <AssignmentProgressBar
+                testId={`ielts-assigned-progress-${assignment.id}`}
                 summary={progressSummary}
                 label={`${progressSummary.completedCount} of ${progressSummary.totalCount} completed`}
                 style={{ marginTop: '1rem', color: '#334155' }}
@@ -230,7 +231,7 @@ const IeltsAssignedPractice: React.FC = () => {
                             ? { border: '#93c5fd', background: '#eff6ff' }
                             : { border: '#e2e8f0', background: '#ffffff' };
                         return (
-                          <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', border: `1px solid ${itemTone.border}`, backgroundColor: itemTone.background, borderRadius: '0.75rem', padding: '0.75rem', flexWrap: 'wrap' }}>
+                          <div key={item.id} data-testid={`ielts-assigned-item-${item.id}`} data-status={itemStatus} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', border: `1px solid ${itemTone.border}`, backgroundColor: itemTone.background, borderRadius: '0.75rem', padding: '0.75rem', flexWrap: 'wrap' }}>
                             <div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                                 <p style={{ margin: 0, fontWeight: 700, color: '#111827' }}>{item.title || `${skillLabels[skill] ?? skill} practice`}</p>
@@ -245,6 +246,7 @@ const IeltsAssignedPractice: React.FC = () => {
                                 </span>
                               ) : (
                                 <a
+                                  data-testid={`ielts-assigned-open-item-${item.id}`}
                                   href={assignedRoute}
                                   onClick={(event) => {
                                     event.preventDefault();

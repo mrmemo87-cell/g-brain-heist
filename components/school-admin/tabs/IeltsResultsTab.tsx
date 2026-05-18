@@ -73,7 +73,7 @@ const IeltsResultsTab: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="ielts-results-tab">
       <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-gray-900 to-amber-950/30 p-6 shadow-xl">
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-amber-300">IELTS Academy</p>
         <h3 className="mt-2 text-2xl font-bold text-white">IELTS Results</h3>
@@ -136,7 +136,7 @@ const IeltsResultsTab: React.FC = () => {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {summaryCards.map((card) => (
-          <div key={card.label} className="rounded-2xl border border-amber-500/20 bg-gray-900/80 p-5 shadow-lg">
+          <div key={card.label} data-testid={`ielts-results-summary-${card.label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`} className="rounded-2xl border border-amber-500/20 bg-gray-900/80 p-5 shadow-lg">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-300">{card.label}</p>
             <p className="mt-3 text-3xl font-bold text-white">{loading && !results ? '…' : card.value}</p>
             <p className="mt-2 text-xs leading-relaxed text-gray-400">{card.detail}</p>
@@ -177,7 +177,7 @@ const IeltsResultsTab: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-gray-800 text-gray-200">
                 {rows.map((row) => (
-                  <tr key={row.student_id} className="align-top hover:bg-amber-500/5">
+                  <tr key={row.student_id} data-testid={`ielts-results-student-${row.student_id}`} className="align-top hover:bg-amber-500/5">
                     <td className="px-3 py-4">
                       <p className="font-semibold text-white">{getStudentName(row)}</p>
                       <p className="text-xs text-gray-400">{row.email || 'No email'}</p>

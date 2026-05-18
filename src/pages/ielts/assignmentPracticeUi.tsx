@@ -42,15 +42,17 @@ export interface AssignmentProgressBarProps {
   summary: AssignmentProgressSummary;
   label?: string;
   style?: CSSProperties;
+  testId?: string;
 }
 
-export const AssignmentProgressBar = ({ summary, label, style }: AssignmentProgressBarProps) => (
-  <div style={style}>
+export const AssignmentProgressBar = ({ summary, label, style, testId }: AssignmentProgressBarProps) => (
+  <div style={style} data-testid={testId}>
     <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginBottom: '0.4rem', fontSize: '0.875rem', fontWeight: 800 }}>
       <span>{label ?? `${summary.completedCount} of ${summary.totalCount} completed`}</span>
       <span>{summary.percentage}%</span>
     </div>
     <div
+      data-testid={testId ? `${testId}-bar` : undefined}
       role="progressbar"
       aria-valuemin={0}
       aria-valuemax={100}
@@ -86,6 +88,7 @@ export interface AssignmentCompletionStatusProps {
   completionError: string | null;
   onNavigate?: (route: string) => void;
   style?: CSSProperties;
+  testId?: string;
 }
 
 export const getAssignmentCompletionStatus = (
@@ -113,7 +116,7 @@ export const AssignmentCompletionStatus = ({
   });
 
   return (
-    <div style={{
+    <div data-testid="assignment-completion-status" style={{
       background: summary.allItemsComplete ? '#dcfce7' : '#eff6ff',
       border: `1px solid ${summary.allItemsComplete ? '#86efac' : '#93c5fd'}`,
       borderRadius: '0.75rem',
@@ -154,6 +157,7 @@ export const AssignmentCompletionStatus = ({
         {nextItemRoute && !completionError && (
           <button
             type="button"
+            data-testid="assignment-completion-next-item"
             onClick={() => onNavigate?.(nextItemRoute)}
             style={{ background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '0.5rem', padding: '0.65rem 1rem', fontWeight: 900, cursor: 'pointer' }}
           >
@@ -162,6 +166,7 @@ export const AssignmentCompletionStatus = ({
         )}
         <button
           type="button"
+          data-testid="assignment-completion-back-to-assigned"
           onClick={() => onNavigate?.('/ielts/practice/assigned')}
           style={{ background: '#ffffff', color: '#1e40af', border: '1px solid #93c5fd', borderRadius: '0.5rem', padding: '0.65rem 1rem', fontWeight: 900, cursor: 'pointer' }}
         >
