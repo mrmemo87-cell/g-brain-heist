@@ -20,7 +20,16 @@ import {
   getIeltsSectionTitle,
   type RenderableExamQuestion,
 } from '../../../services/ieltsExamPayloadParser';
-import { formatIeltsCountdown, resolveIeltsExamLifecycleMeta } from '../../../services/ieltsExamModeUx';
+import {
+  formatIeltsCountdown,
+  getIeltsStudentExamSyncMessage,
+  isIeltsTeacherSubmittedStatus,
+  isIeltsVoidedAttemptStatus,
+  resolveIeltsExamLifecycleMeta,
+  resolveIeltsStudentExamSyncState,
+  shouldIeltsAutosaveRun,
+  type IeltsStudentExamSyncState,
+} from '../../../services/ieltsExamModeUx';
 
 type LoadState = 'loading' | 'ready' | 'error';
 type SaveState = 'idle' | 'saving' | 'saved' | 'error';
@@ -127,6 +136,8 @@ const IeltsExamMode: React.FC = () => {
   const [submission, setSubmission] = useState<IeltsSubmitResponse | null>(null);
   const [serverOffsetMs, setServerOffsetMs] = useState(0);
   const [nowTick, setNowTick] = useState(() => Date.now());
+  const [syncState, setSyncState] = useState<IeltsStudentExamSyncState>('active');
+  const [teacherActionMessage, setTeacherActionMessage] = useState<string | null>(null);
 
   const answersRef = useRef(answers);
   const activeSectionRef = useRef<IeltsExamSection>(activeSection);
@@ -134,6 +145,7 @@ const IeltsExamMode: React.FC = () => {
   const lockTokenRef = useRef<string | null>(lockToken);
   const saveInFlightRef = useRef(false);
   const incidentInFlightRef = useRef(false);
+  const syncStateRef = useRef<IeltsStudentExamSyncState>('active');
 
   useEffect(() => {
     stopBackgroundMusic();
@@ -144,6 +156,7 @@ const IeltsExamMode: React.FC = () => {
   useEffect(() => { activeSectionRef.current = activeSection; }, [activeSection]);
   useEffect(() => { attemptRef.current = attempt; }, [attempt]);
   useEffect(() => { lockTokenRef.current = lockToken; }, [lockToken]);
+  useEffect(() => { syncStateRef.current = syncState; }, [syncState]);
 
   const syncServerClock = useCallback((serverNow?: string) => {
     const serverMs = toMillis(serverNow);
@@ -173,35 +186,102 @@ const IeltsExamMode: React.FC = () => {
     setAnswers(nextAnswers);
   }, []);
 
+  const applyWhoamiState = useCallback((response: IeltsExamWhoamiResponse, options: { hydrateDrafts: boolean } = { hydrateDrafts: false }) => {
+    setWhoami(response);
+    syncServerClock(response.server_now);
+    setRemainingSeconds(response.remaining_seconds ?? 0);
+    if (options.hydrateDrafts) {
+      hydrateAnswers(response);
+    }
+
+    const attemptStatus = response.attempt_status ?? response.status;
+    const eventStatus = response.event_status ?? (!response.attempt_id ? response.status : null);
+    const previousSyncState = syncStateRef.current;
+    const nextSyncState = resolveIeltsStudentExamSyncState(attemptStatus, eventStatus, response.reason);
+    const syncMessage = getIeltsStudentExamSyncMessage(nextSyncState);
+    syncStateRef.current = nextSyncState;
+    setSyncState(nextSyncState);
+    setTeacherActionMessage(syncMessage);
+
+    if (nextSyncState !== 'active') {
+      setSaveState('saved');
+      setSaveMessage(syncMessage ?? 'Exam state updated by teacher.');
+    } else if (previousSyncState === 'paused') {
+      setSaveState('idle');
+      setSaveMessage('Exam resumed by teacher. Autosave is active.');
+    }
+
+    if (isIeltsTeacherSubmittedStatus(attemptStatus)) {
+      setSubmission({
+        submission_id: 'teacher-action',
+        attempt_id: response.attempt_id ?? 'unknown',
+        status: attemptStatus ?? 'submitted',
+        submitted_at: response.server_now ?? response.ends_at ?? '',
+        idempotent_replay: true,
+      });
+      setAttempt((current) => (current ? { ...current, status: attemptStatus ?? current.status } : current));
+      setLockToken(null);
+      if (typeof window !== 'undefined' && response.attempt_id) {
+        window.sessionStorage.removeItem(`ielts_exam_lock_${response.attempt_id}`);
+      }
+    } else if (isIeltsVoidedAttemptStatus(attemptStatus, response.reason)) {
+      setAttempt((current) => (current ? { ...current, status: attemptStatus ?? 'void' } : current));
+      setLockToken(null);
+      if (typeof window !== 'undefined' && response.attempt_id) {
+        window.sessionStorage.removeItem(`ielts_exam_lock_${response.attempt_id}`);
+      }
+    }
+  }, [hydrateAnswers, syncServerClock]);
+
+  const refreshLiveState = useCallback(async () => {
+    if (!examEventId) return;
+    try {
+      const response = await rpcIeltsExamWhoami(examEventId);
+      applyWhoamiState(response);
+    } catch (refreshError) {
+      setWarning(refreshError instanceof Error ? `Could not refresh exam status: ${refreshError.message}` : 'Could not refresh exam status.');
+    }
+  }, [applyWhoamiState, examEventId]);
+
   const loadWhoami = useCallback(async () => {
     if (!examEventId) return;
     setLoadState('loading');
     setError(null);
     try {
       const response = await rpcIeltsExamWhoami(examEventId);
-      setWhoami(response);
-      syncServerClock(response.server_now);
-      setRemainingSeconds(response.remaining_seconds ?? 0);
-      hydrateAnswers(response);
-      if (response.status === 'submitted' || response.status === 'auto_submitted') {
-        setSubmission({
-          submission_id: 'existing',
-          attempt_id: response.attempt_id ?? 'unknown',
-          status: response.status,
-          submitted_at: response.ends_at ?? response.server_now ?? '',
-          idempotent_replay: true,
-        });
-      }
+      applyWhoamiState(response, { hydrateDrafts: true });
       setLoadState('ready');
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Failed to load IELTS exam.');
       setLoadState('error');
     }
-  }, [examEventId, hydrateAnswers, syncServerClock]);
+  }, [applyWhoamiState, examEventId]);
 
   useEffect(() => {
     void loadWhoami();
   }, [loadWhoami]);
+
+  useEffect(() => {
+    if (loadState !== 'ready' || syncState === 'teacher_submitted' || syncState === 'voided') return undefined;
+    const timer = window.setInterval(() => {
+      void refreshLiveState();
+    }, 10000);
+    return () => window.clearInterval(timer);
+  }, [loadState, refreshLiveState, syncState]);
+
+  useEffect(() => {
+    const onFocusOrVisible = () => {
+      if (document.visibilityState !== 'hidden') {
+        void refreshLiveState();
+      }
+    };
+    window.addEventListener('focus', onFocusOrVisible);
+    document.addEventListener('visibilitychange', onFocusOrVisible);
+    return () => {
+      window.removeEventListener('focus', onFocusOrVisible);
+      document.removeEventListener('visibilitychange', onFocusOrVisible);
+    };
+  }, [refreshLiveState]);
 
   const formPayload = whoami?.form_public_payload ?? null;
   const availableSections = useMemo(() => (
@@ -217,6 +297,7 @@ const IeltsExamMode: React.FC = () => {
   useEffect(() => {
     const timer = window.setInterval(() => {
       setNowTick(Date.now());
+      if (syncStateRef.current === 'paused') return;
       const endMs = toMillis(attemptRef.current?.ends_at ?? whoami?.ends_at);
       if (endMs === null) return;
       const serverNowMs = Date.now() + serverOffsetMs;
@@ -263,6 +344,12 @@ const IeltsExamMode: React.FC = () => {
     const currentAttempt = attemptRef.current;
     const currentLockToken = lockTokenRef.current;
     if (!currentAttempt?.attempt_id || !currentLockToken || submission) return false;
+    if (!shouldIeltsAutosaveRun(syncStateRef.current)) {
+      const syncMessage = getIeltsStudentExamSyncMessage(syncStateRef.current);
+      setSaveState('saved');
+      setSaveMessage(syncMessage ?? 'Autosave paused because the exam is not active.');
+      return false;
+    }
     if (saveInFlightRef.current) return false;
 
     const nextVersion = (draftVersions[section] ?? 0) + 1;
@@ -284,13 +371,20 @@ const IeltsExamMode: React.FC = () => {
       setSaveMessage(`Saved ${section} (${reason})`);
       return true;
     } catch (saveError) {
-      setSaveState('error');
-      setSaveMessage(saveError instanceof Error ? saveError.message : 'Autosave failed.');
+      const message = saveError instanceof Error ? saveError.message : 'Autosave failed.';
+      if (/attempt_not_in_progress|assignment_void|exam_paused/i.test(message)) {
+        await refreshLiveState();
+        setSaveState('saved');
+        setSaveMessage(getIeltsStudentExamSyncMessage(syncStateRef.current) ?? 'Autosave stopped because the exam state changed.');
+      } else {
+        setSaveState('error');
+        setSaveMessage(message);
+      }
       return false;
     } finally {
       saveInFlightRef.current = false;
     }
-  }, [draftVersions, serverOffsetMs, submission, syncServerClock]);
+  }, [draftVersions, refreshLiveState, serverOffsetMs, submission, syncServerClock]);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -367,12 +461,13 @@ const IeltsExamMode: React.FC = () => {
   }, [autosaveSection, logIncident]);
 
   const handleSectionChange = async (section: IeltsExamSection) => {
-    if (section === activeSection) return;
+    if (section === activeSection || !shouldIeltsAutosaveRun(syncStateRef.current)) return;
     await autosaveSection(activeSection, 'section change');
     setActiveSection(section);
   };
 
   const handleAnswerChange = (section: string, questionId: string, value: string) => {
+    if (!shouldIeltsAutosaveRun(syncStateRef.current)) return;
     setAnswers((prev) => ({
       ...prev,
       [section]: {
@@ -387,7 +482,7 @@ const IeltsExamMode: React.FC = () => {
   const handleSubmit = async () => {
     const currentAttempt = attemptRef.current;
     const currentLockToken = lockTokenRef.current;
-    if (!currentAttempt?.attempt_id || !currentLockToken || isSubmitting || submission) return;
+    if (!currentAttempt?.attempt_id || !currentLockToken || isSubmitting || submission || !shouldIeltsAutosaveRun(syncStateRef.current)) return;
     setIsSubmitting(true);
     setError(null);
     try {
@@ -413,16 +508,17 @@ const IeltsExamMode: React.FC = () => {
 
   const activePayload = getPayloadForSection(formPayload, activeSection);
   const activeQuestions = useMemo(() => extractIeltsQuestions(activePayload, activeSection), [activePayload, activeSection]);
-  const status = submission?.status ?? attempt?.status ?? whoami?.status;
-  const isSubmitted = Boolean(submission) || status === 'submitted' || status === 'auto_submitted';
+  const status = submission?.status ?? whoami?.attempt_status ?? attempt?.status ?? whoami?.status;
+  const eventStatus = whoami?.event_status ?? (!whoami?.attempt_id ? whoami?.status : null);
+  const isSubmitted = Boolean(submission) || isIeltsTeacherSubmittedStatus(status);
   const serverNowMs = nowTick + serverOffsetMs;
   const startsAtMs = toMillis(whoami?.starts_at);
   const endsAtMs = toMillis(whoami?.ends_at);
   const isBeforeStart = Boolean(startsAtMs !== null && serverNowMs < startsAtMs);
   const isAfterExamWindow = Boolean(endsAtMs !== null && serverNowMs >= endsAtMs && !attempt);
-  const isPaused = whoami?.status === 'paused' || whoami?.reason === 'exam_paused';
+  const isPaused = syncState === 'paused';
   const startCountdownSeconds = startsAtMs === null ? 0 : Math.max(0, Math.floor((startsAtMs - serverNowMs) / 1000));
-  const lifecycleMeta = resolveIeltsExamLifecycleMeta(whoami?.status, whoami?.starts_at, whoami?.ends_at, serverNowMs);
+  const lifecycleMeta = resolveIeltsExamLifecycleMeta(eventStatus ?? whoami?.status, whoami?.starts_at, whoami?.ends_at, serverNowMs);
   const canStart = Boolean(whoami?.allowed && whoami.assignment_id && !attempt && !isSubmitted && !isBeforeStart && !isAfterExamWindow && !isPaused);
   const inProgress = Boolean(attempt && !isSubmitted);
 
@@ -449,16 +545,29 @@ const IeltsExamMode: React.FC = () => {
     );
   }
 
+  if (syncState === 'voided') {
+    return (
+      <ExamFrame>
+        <StateCard
+          eyebrow="Voided"
+          title="Attempt voided"
+          body="This attempt was voided by the teacher."
+          secondaryText="Answer inputs and the submit button are locked. Please wait for your teacher's instructions."
+        />
+      </ExamFrame>
+    );
+  }
+
   if (isPaused && !isSubmitted) {
     return (
       <ExamFrame>
         <StateCard
           eyebrow="Paused"
           title="Paused by teacher"
-          body="Your teacher has paused this exam. Keep this page open and wait for instructions."
-          secondaryText={`Exam window: ${formatLocalDateTime(whoami?.starts_at)} to ${formatLocalDateTime(whoami?.ends_at)}`}
+          body="This exam is paused by the teacher. Keep this page open and wait for instructions."
+          secondaryText={`Exam window: ${formatLocalDateTime(whoami?.starts_at)} to ${formatLocalDateTime(whoami?.ends_at)} · Remaining time is held at ${formatRemaining(remainingSeconds)}.`}
           actionLabel="Check again"
-          onAction={() => void loadWhoami()}
+          onAction={() => void refreshLiveState()}
         />
       </ExamFrame>
     );
@@ -495,7 +604,8 @@ const IeltsExamMode: React.FC = () => {
       <ExamFrame>
         <StateCard
           title="IELTS exam submitted"
-          body={`Submission status: ${submission?.status ?? status}. Your answers have been received and locked for grading.`}
+          body={submission?.submission_id === 'teacher-action' || teacherActionMessage === 'Your exam has been submitted by your teacher.' ? 'Your exam has been submitted by your teacher.' : 'Your answers have been received and locked for grading.'}
+          secondaryText={`Submission status: ${submission?.status ?? status}. Answer inputs and the submit button are locked.`}
         />
       </ExamFrame>
     );
@@ -538,9 +648,9 @@ const IeltsExamMode: React.FC = () => {
         <header className="border-b border-slate-200 bg-white px-4 py-4 shadow-sm">
           <div className="mx-auto flex max-w-6xl flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Controlled IELTS Exam Mode · Exam is live</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Controlled IELTS Exam Mode · {isPaused ? 'Paused by teacher' : 'Exam is live'}</p>
               <h1 className="text-2xl font-semibold text-slate-950">IELTS Exam</h1>
-              <p className="text-sm text-slate-500">Use only this exam window. Your work autosaves every 8 seconds.</p>
+              <p className="text-sm text-slate-500">{isPaused ? 'Editing is disabled while the teacher has paused the exam.' : 'Use only this exam window. Your work autosaves every 8 seconds.'}</p>
             </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-3 text-right">
               <p className="text-xs font-semibold uppercase text-slate-500">Remaining time</p>
@@ -552,7 +662,8 @@ const IeltsExamMode: React.FC = () => {
         <main className="mx-auto max-w-6xl px-4 py-6">
           {error && <Banner tone="error" message={error} />}
           {warning && <Banner tone="warning" message={warning} onDismiss={() => setWarning(null)} />}
-          {saveState === 'error' && <Banner tone="error" message="Autosave failed. Keep this page open; we will retry on the next autosave." />}
+          {saveState === 'error' && shouldIeltsAutosaveRun(syncState) && <Banner tone="error" message="Autosave failed. Keep this page open; we will retry on the next autosave." />}
+          {syncState !== 'active' && teacherActionMessage && <Banner tone="warning" message={teacherActionMessage} />}
 
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3">
             <div className="flex flex-wrap gap-2">
@@ -560,6 +671,7 @@ const IeltsExamMode: React.FC = () => {
                 <button
                   key={section.id}
                   type="button"
+                  disabled={!shouldIeltsAutosaveRun(syncState)}
                   onClick={() => void handleSectionChange(section.id)}
                   className={`rounded-full px-4 py-2 text-sm font-semibold transition ${activeSection === section.id ? 'bg-blue-700 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
                 >
@@ -607,6 +719,7 @@ const IeltsExamMode: React.FC = () => {
                             name={`${activeSection}-${question.id}`}
                             value={option}
                             checked={(answers[activeSection]?.[question.id] ?? '') === option}
+                            disabled={!shouldIeltsAutosaveRun(syncState)}
                             onChange={(event) => handleAnswerChange(activeSection, question.id, event.target.value)}
                           />
                           <span>{option}</span>
@@ -618,6 +731,7 @@ const IeltsExamMode: React.FC = () => {
                       id={`${activeSection}-${question.id}`}
                       className="mt-3 min-h-48 w-full rounded-lg border border-slate-300 bg-white p-3 text-sm leading-6 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                       value={answers[activeSection]?.[question.id] ?? ''}
+                      disabled={!shouldIeltsAutosaveRun(syncState)}
                       onChange={(event) => handleAnswerChange(activeSection, question.id, event.target.value)}
                       placeholder="Type your answer here…"
                     />
@@ -626,6 +740,7 @@ const IeltsExamMode: React.FC = () => {
                       id={`${activeSection}-${question.id}`}
                       className="mt-3 w-full rounded-lg border border-slate-300 bg-white p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                       value={answers[activeSection]?.[question.id] ?? ''}
+                      disabled={!shouldIeltsAutosaveRun(syncState)}
                       onChange={(event) => handleAnswerChange(activeSection, question.id, event.target.value)}
                       placeholder="Your answer"
                     />
@@ -640,7 +755,7 @@ const IeltsExamMode: React.FC = () => {
               <p className="text-sm text-slate-600">Before submitting, your current section is saved and the same idempotency key is reused if you click again.</p>
               <button
                 type="button"
-                disabled={isSubmitting || saveState === 'saving'}
+                disabled={isSubmitting || saveState === 'saving' || !shouldIeltsAutosaveRun(syncState)}
                 onClick={() => void handleSubmit()}
                 className="rounded-xl bg-blue-700 px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-slate-400"
               >
