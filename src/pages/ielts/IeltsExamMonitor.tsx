@@ -9,6 +9,7 @@ import {
   rpcIeltsVoidAttempt,
   type IeltsExamMonitoringRow,
 } from '../../../services/ieltsExamModeService';
+import { getIeltsAttemptOperationalLabel } from '../../../services/ieltsExamModeUx';
 
 type MonitorFilter = 'all' | 'not_started' | 'in_progress' | 'submitted' | 'offline' | 'incidents';
 type ControlState = 'idle' | 'working';
@@ -21,8 +22,8 @@ const ALMOST_OVER_SECONDS = 300;
 const statusLabels: Record<string, string> = {
   assigned: 'Not started',
   not_started: 'Not started',
-  started: 'Started',
-  in_progress: 'In progress',
+  started: 'Active',
+  in_progress: 'Active',
   submitted: 'Submitted',
   auto_submitted: 'Auto-submitted',
   locked: 'Locked',
@@ -34,7 +35,7 @@ const filterLabels: Record<MonitorFilter, string> = {
   not_started: 'Not started',
   in_progress: 'In progress',
   submitted: 'Submitted',
-  offline: 'Offline / stale',
+  offline: 'Possible connection issue',
   incidents: 'Incidents',
 };
 
@@ -219,7 +220,7 @@ const IeltsExamMonitor: React.FC = () => {
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">IELTS Exam Monitoring</p>
             <h1 className="text-2xl font-semibold text-slate-950">Controlled Exam Monitor</h1>
-            <p className="mt-1 text-sm text-slate-600">Live roster, heartbeat, autosave, incident, and emergency controls for this exam.</p>
+            <p className="mt-1 text-sm text-slate-600">Operational view for who has not started, who is active, who submitted, and who may have a connection issue.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <button
@@ -258,11 +259,11 @@ const IeltsExamMonitor: React.FC = () => {
         )}
 
         <section className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
-          <SummaryCard label="Assigned" value={summary.total} />
+          <SummaryCard label="Assigned students" value={summary.total} />
           <SummaryCard label="Not started" value={summary.notStarted} tone="amber" />
-          <SummaryCard label="In progress" value={summary.inProgress} tone="blue" />
+          <SummaryCard label="Active" value={summary.inProgress} tone="blue" />
           <SummaryCard label="Submitted" value={summary.submitted} tone="green" />
-          <SummaryCard label="Stale heartbeat" value={summary.stale} tone={summary.stale > 0 ? 'red' : 'slate'} />
+          <SummaryCard label="Possible connection issue" value={summary.stale} tone={summary.stale > 0 ? 'red' : 'slate'} />
           <SummaryCard label="With incidents" value={summary.incidents} tone={summary.incidents > 0 ? 'red' : 'slate'} />
         </section>
 
@@ -271,7 +272,7 @@ const IeltsExamMonitor: React.FC = () => {
             <div>
               <h2 className="text-lg font-semibold text-slate-950">Roster</h2>
               <p className="text-sm text-slate-500">
-                Polling every 10 seconds. Last updated {lastUpdatedAt ? lastUpdatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—'}.
+                Auto-refreshes every 10 seconds. Last updated {lastUpdatedAt ? lastUpdatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—'}.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -292,7 +293,7 @@ const IeltsExamMonitor: React.FC = () => {
         {isLoading ? (
           <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-slate-600 shadow-sm">Loading monitoring roster…</div>
         ) : filteredRows.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-slate-600 shadow-sm">No students match this filter.</div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-slate-600 shadow-sm">No students match this filter. If the exam is not live yet, students will appear here after they are assigned and refresh their exam page.</div>
         ) : (
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div className="hidden overflow-x-auto lg:block">
@@ -302,9 +303,9 @@ const IeltsExamMonitor: React.FC = () => {
                     <th className="px-4 py-3">Student</th>
                     <th className="px-4 py-3">Class</th>
                     <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Timer</th>
-                    <th className="px-4 py-3">Heartbeat</th>
-                    <th className="px-4 py-3">Save</th>
+                    <th className="px-4 py-3">Time remaining</th>
+                    <th className="px-4 py-3">Connection</th>
+                    <th className="px-4 py-3">Last saved</th>
                     <th className="px-4 py-3">Incidents</th>
                     <th className="px-4 py-3">Submitted</th>
                     <th className="px-4 py-3">Actions</th>
@@ -357,12 +358,12 @@ const RosterRow: React.FC<{
       <div className="text-xs text-slate-500">{row.username ?? row.student_id}</div>
     </td>
     <td className="px-4 py-3 text-slate-700">{row.class_name ?? '—'}</td>
-    <td className="px-4 py-3"><StatusBadge status={row.status} /></td>
+    <td className="px-4 py-3"><StatusBadge status={row.status} hasConnectionIssue={health.heartbeatStale} /></td>
     <td className="px-4 py-3">
-      <WarningText active={health.timeAlmostOver} normal={formatSeconds(row.remaining_seconds)} warning={`${formatSeconds(row.remaining_seconds)} left`} />
+      <WarningText active={health.timeAlmostOver} normal={timeRemainingLabel(row)} warning={`${formatSeconds(row.remaining_seconds)} left`} />
       <div className="text-xs text-slate-500">Ends {formatDateTime(row.ends_at)}</div>
     </td>
-    <td className="px-4 py-3"><WarningText active={health.heartbeatStale} normal={health.heartbeatAge === null ? '—' : `${health.heartbeatAge}s ago`} warning="Stale" /></td>
+    <td className="px-4 py-3"><WarningText active={health.heartbeatStale} normal={health.heartbeatAge === null ? 'Waiting for student' : `Seen ${health.heartbeatAge}s ago`} warning="Possible connection issue" /></td>
     <td className="px-4 py-3"><WarningText active={health.saveStale} normal={row.last_save_age_seconds == null ? '—' : `${row.last_save_age_seconds}s ago`} warning={`${row.last_save_age_seconds}s ago`} /></td>
     <td className="px-4 py-3"><WarningText active={health.hasIncidents} normal={String(row.incident_count ?? 0)} warning={`${row.incident_count} incident${row.incident_count === 1 ? '' : 's'}`} /></td>
     <td className="px-4 py-3 text-slate-700">{formatDateTime(row.submitted_at)}</td>
@@ -382,12 +383,12 @@ const RosterCard: React.FC<{
         <h3 className="font-semibold text-slate-950">{getDisplayName(row)}</h3>
         <p className="text-sm text-slate-500">{row.class_name ?? 'No class'} · {row.username ?? row.student_id}</p>
       </div>
-      <StatusBadge status={row.status} />
+      <StatusBadge status={row.status} hasConnectionIssue={health.heartbeatStale} />
     </div>
     <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-      <Metric label="Time" value={<WarningText active={health.timeAlmostOver} normal={formatSeconds(row.remaining_seconds)} warning={`${formatSeconds(row.remaining_seconds)} left`} />} />
-      <Metric label="Heartbeat" value={<WarningText active={health.heartbeatStale} normal={health.heartbeatAge === null ? '—' : `${health.heartbeatAge}s ago`} warning="Stale" />} />
-      <Metric label="Last save" value={<WarningText active={health.saveStale} normal={row.last_save_age_seconds == null ? '—' : `${row.last_save_age_seconds}s ago`} warning={`${row.last_save_age_seconds}s ago`} />} />
+      <Metric label="Time remaining" value={<WarningText active={health.timeAlmostOver} normal={timeRemainingLabel(row)} warning={`${formatSeconds(row.remaining_seconds)} left`} />} />
+      <Metric label="Connection" value={<WarningText active={health.heartbeatStale} normal={health.heartbeatAge === null ? 'Waiting for student' : `Seen ${health.heartbeatAge}s ago`} warning="Possible connection issue" />} />
+      <Metric label="Last saved" value={<WarningText active={health.saveStale} normal={row.last_save_age_seconds == null ? '—' : `${row.last_save_age_seconds}s ago`} warning={`${row.last_save_age_seconds}s ago`} />} />
       <Metric label="Incidents" value={<WarningText active={health.hasIncidents} normal={String(row.incident_count ?? 0)} warning={`${row.incident_count}`} />} />
       <Metric label="Started" value={formatDateTime(row.started_at)} />
       <Metric label="Submitted" value={formatDateTime(row.submitted_at)} />
@@ -404,9 +405,16 @@ const buildHealthShape = () => ({
   hasIncidents: false,
 });
 
-const StatusBadge: React.FC<{ status: string | null | undefined }> = ({ status }) => (
-  <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${statusBadgeClass(status)}`}>
-    {statusLabels[status ?? 'assigned'] ?? status ?? 'Not started'}
+const timeRemainingLabel = (row: IeltsExamMonitoringRow): string => {
+  if (isNotStartedStatus(row.status)) return 'Not started';
+  if (row.status === 'paused') return 'Paused';
+  if (isSubmittedStatus(row.status)) return 'Submitted';
+  return formatSeconds(row.remaining_seconds);
+};
+
+const StatusBadge: React.FC<{ status: string | null | undefined; hasConnectionIssue?: boolean }> = ({ status, hasConnectionIssue = false }) => (
+  <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${hasConnectionIssue ? 'bg-red-50 text-red-700 ring-red-200' : statusBadgeClass(status)}`}>
+    {hasConnectionIssue ? getIeltsAttemptOperationalLabel(status, true) : (statusLabels[status ?? 'assigned'] ?? getIeltsAttemptOperationalLabel(status))}
   </span>
 );
 

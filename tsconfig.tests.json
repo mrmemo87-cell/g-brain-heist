@@ -3,7 +3,10 @@
   "compilerOptions": {
     "noEmit": false,
     "outDir": "dist-tests",
-    "types": ["node", "vite/client"],
+    "types": [
+      "node",
+      "vite/client"
+    ],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": false,
@@ -18,11 +21,14 @@
     "services/supabaseClient.ts",
     "services/env.ts",
     "services/ieltsExamModeService.ts",
+    "services/ieltsExamModeUx.ts",
     "services/ieltsExamPayloadParser.ts",
     "services/ieltsExamAccessService.ts",
     "services/ieltsPracticeAssignmentService.ts",
     "services/ieltsJourneyService.ts",
     "services/ieltsResultsService.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }

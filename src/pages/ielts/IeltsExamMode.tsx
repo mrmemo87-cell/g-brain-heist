@@ -20,6 +20,7 @@ import {
   getIeltsSectionTitle,
   type RenderableExamQuestion,
 } from '../../../services/ieltsExamPayloadParser';
+import { formatIeltsCountdown, resolveIeltsExamLifecycleMeta } from '../../../services/ieltsExamModeUx';
 
 type LoadState = 'loading' | 'ready' | 'error';
 type SaveState = 'idle' | 'saving' | 'saved' | 'error';
@@ -54,7 +55,7 @@ const toMillis = (iso?: string | null): number | null => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
-const formatRemaining = (seconds: number): string => {
+export const formatRemaining = (seconds: number): string => {
   const safeSeconds = Math.max(0, Math.floor(seconds));
   const hours = Math.floor(safeSeconds / 3600);
   const minutes = Math.floor((safeSeconds % 3600) / 60);
@@ -62,6 +63,20 @@ const formatRemaining = (seconds: number): string => {
   return hours > 0
     ? `${hours}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
     : `${minutes}:${String(secs).padStart(2, '0')}`;
+};
+
+const formatLocalDateTime = (value?: string | null): string => {
+  if (!value) return 'not set';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'not set';
+  return date.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+};
+
+const availabilityMessage = (whoami: IeltsExamWhoamiResponse | null): string => {
+  if (whoami?.reason === 'form_unavailable') return 'No active exam form is available yet. Please wait for your teacher to finish setup.';
+  if (whoami?.reason === 'not_assigned') return 'You are not assigned to this exam. Ask your teacher to check the assignment list.';
+  if (whoami?.reason === 'exam_not_available') return 'Exam not live yet or temporarily unavailable. Please wait for your teacher.';
+  return `Reason: ${whoami?.reason ?? 'unknown'}. Please contact your teacher if this looks wrong.`;
 };
 
 const makeLocalDraftKey = (attemptId: string) => `ielts_exam_local_draft_${attemptId}`;
@@ -111,6 +126,7 @@ const IeltsExamMode: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submission, setSubmission] = useState<IeltsSubmitResponse | null>(null);
   const [serverOffsetMs, setServerOffsetMs] = useState(0);
+  const [nowTick, setNowTick] = useState(() => Date.now());
 
   const answersRef = useRef(answers);
   const activeSectionRef = useRef<IeltsExamSection>(activeSection);
@@ -200,6 +216,7 @@ const IeltsExamMode: React.FC = () => {
 
   useEffect(() => {
     const timer = window.setInterval(() => {
+      setNowTick(Date.now());
       const endMs = toMillis(attemptRef.current?.ends_at ?? whoami?.ends_at);
       if (endMs === null) return;
       const serverNowMs = Date.now() + serverOffsetMs;
@@ -213,7 +230,7 @@ const IeltsExamMode: React.FC = () => {
   }, [answers, attempt?.attempt_id, whoami?.attempt_id]);
 
   const startOrResume = useCallback(async () => {
-    if (!whoami?.assignment_id) return;
+    if (isStarting || !whoami?.assignment_id) return;
     setIsStarting(true);
     setError(null);
     try {
@@ -227,11 +244,12 @@ const IeltsExamMode: React.FC = () => {
       }
       setSaveMessage(whoami.attempt_id ? 'Resumed from server attempt.' : 'Exam started.');
     } catch (startError) {
-      setError(startError instanceof Error ? startError.message : 'Failed to start IELTS exam.');
+      const backendReason = startError instanceof Error ? startError.message : 'Failed to start IELTS exam.';
+      setError(`Start exam failed: ${backendReason}`);
     } finally {
       setIsStarting(false);
     }
-  }, [syncServerClock, whoami]);
+  }, [isStarting, syncServerClock, whoami]);
 
   useEffect(() => {
     if (!whoami?.attempt_id || lockToken) return;
@@ -276,6 +294,7 @@ const IeltsExamMode: React.FC = () => {
 
   useEffect(() => {
     const timer = window.setInterval(() => {
+      setNowTick(Date.now());
       void autosaveSection(activeSectionRef.current, 'auto');
     }, 8000);
     return () => window.clearInterval(timer);
@@ -396,16 +415,19 @@ const IeltsExamMode: React.FC = () => {
   const activeQuestions = useMemo(() => extractIeltsQuestions(activePayload, activeSection), [activePayload, activeSection]);
   const status = submission?.status ?? attempt?.status ?? whoami?.status;
   const isSubmitted = Boolean(submission) || status === 'submitted' || status === 'auto_submitted';
-  const serverNowMs = Date.now() + serverOffsetMs;
+  const serverNowMs = nowTick + serverOffsetMs;
   const startsAtMs = toMillis(whoami?.starts_at);
   const endsAtMs = toMillis(whoami?.ends_at);
   const isBeforeStart = Boolean(startsAtMs !== null && serverNowMs < startsAtMs);
   const isAfterExamWindow = Boolean(endsAtMs !== null && serverNowMs >= endsAtMs && !attempt);
-  const canStart = Boolean(whoami?.allowed && whoami.assignment_id && !attempt && !isSubmitted && !isBeforeStart && !isAfterExamWindow);
+  const isPaused = whoami?.status === 'paused' || whoami?.reason === 'exam_paused';
+  const startCountdownSeconds = startsAtMs === null ? 0 : Math.max(0, Math.floor((startsAtMs - serverNowMs) / 1000));
+  const lifecycleMeta = resolveIeltsExamLifecycleMeta(whoami?.status, whoami?.starts_at, whoami?.ends_at, serverNowMs);
+  const canStart = Boolean(whoami?.allowed && whoami.assignment_id && !attempt && !isSubmitted && !isBeforeStart && !isAfterExamWindow && !isPaused);
   const inProgress = Boolean(attempt && !isSubmitted);
 
   if (loadState === 'loading') {
-    return <ExamFrame><StateCard title="Loading controlled IELTS exam…" body="Checking your assignment and server time." /></ExamFrame>;
+    return <ExamFrame><StateCard title="Loading controlled IELTS exam…" body="Checking your assignment and exam window." /></ExamFrame>;
   }
 
   if (loadState === 'error') {
@@ -416,8 +438,25 @@ const IeltsExamMode: React.FC = () => {
     return (
       <ExamFrame>
         <StateCard
-          title="This IELTS exam has not started yet."
-          body={`Scheduled start: ${whoami?.starts_at ?? 'unknown'}. Server time: ${new Date(serverNowMs).toISOString()}.`}
+          eyebrow={lifecycleMeta.label}
+          title="Starts in"
+          body={`${formatIeltsCountdown(startCountdownSeconds)} until the exam opens in your local time.`}
+          secondaryText={`Local start: ${formatLocalDateTime(whoami?.starts_at)} · Local end: ${formatLocalDateTime(whoami?.ends_at)}`}
+          actionLabel="Check again"
+          onAction={() => void loadWhoami()}
+        />
+      </ExamFrame>
+    );
+  }
+
+  if (isPaused && !isSubmitted) {
+    return (
+      <ExamFrame>
+        <StateCard
+          eyebrow="Paused"
+          title="Paused by teacher"
+          body="Your teacher has paused this exam. Keep this page open and wait for instructions."
+          secondaryText={`Exam window: ${formatLocalDateTime(whoami?.starts_at)} to ${formatLocalDateTime(whoami?.ends_at)}`}
           actionLabel="Check again"
           onAction={() => void loadWhoami()}
         />
@@ -430,7 +469,7 @@ const IeltsExamMode: React.FC = () => {
       <ExamFrame>
         <StateCard
           title="This IELTS exam is closed."
-          body={`Exam ended at ${whoami?.ends_at ?? 'unknown'}. Please contact your teacher if this is unexpected.`}
+          body={`Expired exam. The local end time was ${formatLocalDateTime(whoami?.ends_at)}. Please contact your teacher if this is unexpected.`}
           actionLabel="Check again"
           onAction={() => void loadWhoami()}
         />
@@ -443,7 +482,7 @@ const IeltsExamMode: React.FC = () => {
       <ExamFrame>
         <StateCard
           title={stateTitleFor(whoami)}
-          body={`Reason: ${whoami?.reason ?? 'unknown'}. Server time: ${whoami?.server_now ?? 'unavailable'}.`}
+          body={availabilityMessage(whoami)}
           actionLabel="Check again"
           onAction={() => void loadWhoami()}
         />
@@ -467,7 +506,9 @@ const IeltsExamMode: React.FC = () => {
       <ExamFrame>
         <StateCard
           title={stateTitleFor(whoami)}
-          body={`Server window: ${whoami.starts_at ?? 'unknown'} to ${whoami.ends_at ?? 'unknown'}. Time available: ${formatRemaining(remainingSeconds)}.`}
+          body={`Exam is live. Time available: ${formatRemaining(remainingSeconds)}.`}
+          secondaryText={`Local window: ${formatLocalDateTime(whoami.starts_at)} to ${formatLocalDateTime(whoami.ends_at)}`}
+          alert={error}
           actionLabel={whoami.attempt_id ? 'Resume exam' : 'Start exam'}
           onAction={() => void startOrResume()}
           busy={isStarting}
@@ -481,7 +522,8 @@ const IeltsExamMode: React.FC = () => {
       <ExamFrame>
         <StateCard
           title="Resume token required"
-          body="This attempt exists, but the secure lock token is not active in this browser. Press Resume to re-open the server attempt without restarting the timer."
+          body="This attempt exists, but this browser needs to reopen it securely. Press Resume to continue without restarting the timer."
+          alert={error}
           actionLabel="Resume exam"
           onAction={() => void startOrResume()}
           busy={isStarting}
@@ -496,7 +538,7 @@ const IeltsExamMode: React.FC = () => {
         <header className="border-b border-slate-200 bg-white px-4 py-4 shadow-sm">
           <div className="mx-auto flex max-w-6xl flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Controlled IELTS Exam Mode</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Controlled IELTS Exam Mode · Exam is live</p>
               <h1 className="text-2xl font-semibold text-slate-950">IELTS Exam</h1>
               <p className="text-sm text-slate-500">Use only this exam window. Your work autosaves every 8 seconds.</p>
             </div>
@@ -548,7 +590,7 @@ const IeltsExamMode: React.FC = () => {
             <div className="space-y-5">
               {activeQuestions.length === 0 && (
                 <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-                  No renderable questions were found for this section. Ask your teacher to use the Exam Manager JSON templates for this form.
+                  No active questions are available for this section yet. Please wait while your teacher checks the form setup.
                 </div>
               )}
               {activeQuestions.map((question, index) => (
@@ -621,15 +663,20 @@ const ExamFrame: React.FC<React.PropsWithChildren> = ({ children }) => (
 const StateCard: React.FC<{
   title: string;
   body: string;
+  eyebrow?: string;
+  secondaryText?: string;
+  alert?: string | null;
   actionLabel?: string;
   onAction?: () => void;
   busy?: boolean;
-}> = ({ title, body, actionLabel, onAction, busy }) => (
+}> = ({ title, body, eyebrow = 'IELTS Exam Mode', secondaryText, alert, actionLabel, onAction, busy }) => (
   <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10 text-slate-900">
     <div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-      <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">IELTS Exam Mode</p>
+      <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{eyebrow}</p>
       <h1 className="text-2xl font-semibold text-slate-950">{title}</h1>
-      <p className="mt-3 text-sm leading-6 text-slate-600">{body}</p>
+      <p className="mt-3 text-lg font-semibold leading-7 text-slate-800">{body}</p>
+      {secondaryText && <p className="mt-3 text-xs leading-5 text-slate-500">{secondaryText}</p>}
+      {alert && <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-left text-sm text-red-800">{alert}</div>}
       {actionLabel && onAction && (
         <button
           type="button"
