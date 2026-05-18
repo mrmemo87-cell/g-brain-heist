@@ -4,11 +4,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {
   getIeltsPracticeItemRoute,
+  rpcIeltsPracticeArchiveAssignment,
   rpcIeltsPracticeAssignmentDetail,
   rpcIeltsPracticeAssignToClass,
   rpcIeltsPracticeAssignToStudents,
+  rpcIeltsPracticeCloseAssignment,
   rpcIeltsPracticeCreateAssignment,
   rpcIeltsPracticeListAssignments,
+  rpcIeltsPracticeUpdateAssignment,
   rpcIeltsPracticeMarkCompleted,
   rpcIeltsPracticeForceCompleteAssignment,
   rpcIeltsPracticeMarkItemCompleted,
@@ -96,6 +99,9 @@ test('IELTS practice assignment service maps RPC names and parameters', async ()
   }, client);
   await rpcIeltsPracticeAssignToClass({ assignmentId: 'assignment-1', classId: 'class-1' }, client);
   await rpcIeltsPracticeAssignToStudents({ assignmentId: 'assignment-1', studentIds: ['student-1', 'student-2'] }, client);
+  await rpcIeltsPracticeUpdateAssignment({ assignmentId: 'assignment-1', title: 'Week 1 revised', description: 'Updated instructions', dueAt: '2026-05-21T10:00:00.000Z' }, client);
+  await rpcIeltsPracticeCloseAssignment('assignment-1', client);
+  await rpcIeltsPracticeArchiveAssignment('assignment-1', client);
   await rpcIeltsPracticeAssignmentDetail('assignment-1', client);
   await rpcIeltsPracticeStudentAssignments(client);
   await rpcIeltsPracticeMarkStarted('assignment-1', client);
@@ -122,6 +128,9 @@ test('IELTS practice assignment service maps RPC names and parameters', async ()
     },
     { name: 'rpc_ielts_practice_assign_to_class', params: { p_assignment_id: 'assignment-1', p_class_id: 'class-1' } },
     { name: 'rpc_ielts_practice_assign_to_students', params: { p_assignment_id: 'assignment-1', p_student_ids: ['student-1', 'student-2'] } },
+    { name: 'rpc_ielts_practice_update_assignment', params: { p_assignment_id: 'assignment-1', p_title: 'Week 1 revised', p_description: 'Updated instructions', p_due_at: '2026-05-21T10:00:00.000Z' } },
+    { name: 'rpc_ielts_practice_close_assignment', params: { p_assignment_id: 'assignment-1' } },
+    { name: 'rpc_ielts_practice_archive_assignment', params: { p_assignment_id: 'assignment-1' } },
     { name: 'rpc_ielts_practice_assignment_detail', params: { p_assignment_id: 'assignment-1' } },
     { name: 'rpc_ielts_practice_student_assignments', params: {} },
     { name: 'rpc_ielts_practice_mark_started', params: { p_assignment_id: 'assignment-1' } },
@@ -131,6 +140,29 @@ test('IELTS practice assignment service maps RPC names and parameters', async ()
     { name: 'rpc_ielts_practice_mark_item_started', params: { p_assignment_id: 'assignment-1', p_assignment_item_id: 'item-1' } },
     { name: 'rpc_ielts_practice_mark_item_completed', params: { p_assignment_id: 'assignment-1', p_assignment_item_id: 'item-1', p_practice_attempt_type: 'reading', p_practice_attempt_id: 'attempt-1' } },
   ]);
+});
+
+
+
+test('IELTS practice assignment edit/archive SQL manages active rows without deleting history', () => {
+  const migration = fs.readFileSync(
+    path.join(process.cwd(), 'supabase/migrations/20260518140000_ielts_practice_assignment_edit_archive.sql'),
+    'utf8',
+  );
+
+  assert.match(migration, /create or replace function public\.rpc_ielts_practice_update_assignment/i, 'update RPC must be added');
+  assert.match(migration, /create or replace function public\.rpc_ielts_practice_archive_assignment/i, 'archive RPC must be added');
+  assert.match(migration, /create or replace function public\.rpc_ielts_practice_close_assignment/i, 'close RPC must be added');
+  assert.match(migration, /if not public\.can_manage_ielts_practice_assignment\(p_assignment_id\) then raise exception 'forbidden'/i, 'lifecycle RPCs must require scoped assignment manager access');
+  assert.match(migration, /if v_assignment\.status = 'archived' then raise exception 'assignment_archived'/i, 'archived assignments must not be editable or closable');
+  assert.match(migration, /set status = 'closed'/i, 'close RPC must set closed status');
+  assert.match(migration, /set status = 'archived'/i, 'archive RPC must set archived status');
+  assert.match(migration, /a\.status <> 'archived'[\s\S]*public\.can_manage_ielts_practice_class/i, 'admin list must hide archived rows while keeping manager scoping');
+  assert.match(migration, /where s\.student_id = auth\.uid\(\)[\s\S]*a\.status <> 'archived'[\s\S]*a\.status in \('assigned', 'closed'\)/i, 'student list must hide archived and include closed assignments');
+  assert.match(migration, /v_assignment\.status in \('closed', 'archived'\) then raise exception 'assignment_closed'/i, 'closed or archived assignments must block new starts and completions');
+  assert.doesNotMatch(migration, /delete\s+from\s+public\.ielts_practice_assignment_(students|item_students|items)/i, 'archive/close must not delete progress rows or item history');
+  assert.doesNotMatch(migration, /answer_key/i, 'edit/archive migration must not expose answer keys');
+  assert.doesNotMatch(migration, /rpc_is_ielts_admin|ielts_teachers|is_ielts_admin/i, 'edit/archive migration must not use legacy IELTS admin permissions');
 });
 
 test('IELTS practice assignment SQL has RLS, school scoping, self-progress and no legacy admin dependency', () => {
