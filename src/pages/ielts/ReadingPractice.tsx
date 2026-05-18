@@ -745,6 +745,7 @@ const ReadingPractice: React.FC = () => {
                   {parsedOptions.map((option: string, idx: number) => (
                     <button
                       key={idx}
+                      data-testid={`ielts-reading-option-${idx}`}
                       onClick={() => handleAnswer(option)}
                       style={{
                         width: '100%',
@@ -766,6 +767,7 @@ const ReadingPractice: React.FC = () => {
                 /* Fill-in-the-blank / Short Answer Questions */
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   <input
+                    data-testid="ielts-reading-answer-input"
                     type="text"
                     value={answers[currentQuestion.id] || ''}
                     onChange={(e) => handleAnswer(e.target.value)}
@@ -828,6 +830,7 @@ const ReadingPractice: React.FC = () => {
                 </button>
               ) : (
                 <button
+                  data-testid="ielts-reading-submit"
                   onClick={handleSubmit}
                   disabled={submitMutation.isPending}
                   style={{

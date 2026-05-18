@@ -1362,7 +1362,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
 
   return (
     <SchoolAdminContext.Provider value={contextValue}>
-    <div className="school-admin-portal min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-slate-900 text-white p-4 pb-24">
+    <div className="school-admin-portal min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-slate-900 text-white p-4 pb-24" data-testid="school-admin-portal">
       {/* Premium Header - Fixed and Clean */}
       <div className="school-admin-header mb-6">
         <div className="flex items-center justify-between flex-wrap gap-4">
@@ -1414,6 +1414,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
             key={tab}
             onClick={() => setActiveTab(tab)}
             role="tab"
+            data-testid={`school-admin-tab-${tab}`}
             aria-selected={activeTab === tab}
             className={`px-4 py-2 sm:px-5 sm:py-3 rounded-xl font-medium transition-all text-sm sm:text-base border ${
               activeTab === tab

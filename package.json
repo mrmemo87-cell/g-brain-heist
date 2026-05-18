@@ -16,7 +16,9 @@
     "load:leaderboard": "k6 run load-tests/leaderboard.js",
     "load:shop": "k6 run load-tests/shop.js",
     "load:pvp": "k6 run load-tests/pvp.js",
-    "security:tripwire": "pwsh scripts/run-tripwire.ps1"
+    "security:tripwire": "pwsh scripts/run-tripwire.ps1",
+    "test:e2e:ielts": "playwright test e2e/ielts-pilot-smoke.spec.js",
+    "playwright:install": "playwright install --with-deps chromium"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

@@ -252,7 +252,7 @@ const IeltsPracticeTab: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="ielts-practice-admin-tab">
       <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-gray-900 to-emerald-950/40 p-6 shadow-xl">
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-300">IELTS Academy</p>
         <h3 className="mt-2 text-2xl font-bold text-white">IELTS Practice</h3>
@@ -265,7 +265,7 @@ const IeltsPracticeTab: React.FC = () => {
       <div className="grid gap-4 lg:grid-cols-3">
         <label className="rounded-xl border border-gray-700 bg-gray-900/80 p-4 text-sm text-gray-300">
           <span className="mb-2 block font-semibold text-white">Class filter</span>
-          <select className="w-full rounded-lg border border-gray-700 bg-gray-800 p-2 text-gray-200" value={classId} onChange={(event) => setClassId(event.target.value)}>
+          <select data-testid="ielts-practice-class-select" className="w-full rounded-lg border border-gray-700 bg-gray-800 p-2 text-gray-200" value={classId} onChange={(event) => setClassId(event.target.value)}>
             <option value="">Choose a class ({classes.length})</option>
             {classes.map((cls: any) => (
               <option key={cls.id} value={cls.id}>{cls.class_name}</option>
@@ -304,7 +304,7 @@ const IeltsPracticeTab: React.FC = () => {
           <div className="mt-5 grid gap-4 md:grid-cols-2">
             <label className="text-sm text-gray-300">
               <span className="mb-1 block font-semibold text-white">Title</span>
-              <input className="w-full rounded-lg border border-gray-700 bg-gray-800 p-2 text-white" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Week 1 IELTS Practice" />
+              <input data-testid="ielts-practice-title-input" className="w-full rounded-lg border border-gray-700 bg-gray-800 p-2 text-white" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Week 1 IELTS Practice" />
             </label>
             <label className="text-sm text-gray-300">
               <span className="mb-1 block font-semibold text-white">Due date</span>
@@ -312,7 +312,7 @@ const IeltsPracticeTab: React.FC = () => {
             </label>
             <label className="text-sm text-gray-300 md:col-span-2">
               <span className="mb-1 block font-semibold text-white">Description</span>
-              <textarea className="min-h-[80px] w-full rounded-lg border border-gray-700 bg-gray-800 p-2 text-white" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Instructions for students" />
+              <textarea data-testid="ielts-practice-description-input" className="min-h-[80px] w-full rounded-lg border border-gray-700 bg-gray-800 p-2 text-white" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Instructions for students" />
             </label>
           </div>
 
@@ -343,6 +343,7 @@ const IeltsPracticeTab: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => openContentPicker(item)}
+                        data-testid={`ielts-practice-content-picker-${index}`}
                         className="rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-400"
                       >
                         {pickerOpenFor === item.localId ? 'Close picker' : 'Choose content'}
@@ -379,6 +380,7 @@ const IeltsPracticeTab: React.FC = () => {
                               key={`${content.content_type}-${content.content_id}`}
                               type="button"
                               onClick={() => selectContent(item.localId, content)}
+                              data-testid={`ielts-practice-content-option-${content.content_type}-${content.content_id}`}
                               className="w-full rounded-lg border border-gray-700 bg-gray-900 p-3 text-left hover:border-emerald-400 hover:bg-emerald-500/10"
                             >
                               <div className="flex flex-wrap items-center gap-2">
@@ -409,7 +411,7 @@ const IeltsPracticeTab: React.FC = () => {
 
           {error && <div className="mt-4 rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-200">{error}</div>}
           <div className="mt-5 flex flex-wrap gap-3">
-            <button type="button" onClick={handleCreateAssignment} disabled={saving} className="rounded-xl bg-emerald-500 px-5 py-3 font-semibold text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-400 disabled:opacity-60">
+            <button type="button" data-testid="ielts-practice-create-assignment" onClick={handleCreateAssignment} disabled={saving} className="rounded-xl bg-emerald-500 px-5 py-3 font-semibold text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-400 disabled:opacity-60">
               {saving ? 'Creating…' : 'Create & assign to class'}
             </button>
             <button type="button" onClick={() => void loadAssignments()} disabled={loading} className="rounded-xl border border-gray-600 px-5 py-3 font-semibold text-gray-200 hover:bg-gray-800 disabled:opacity-60">
@@ -425,7 +427,7 @@ const IeltsPracticeTab: React.FC = () => {
             {loading && <p className="text-sm text-gray-400">Loading assignments…</p>}
             {!loading && assignments.length === 0 && <p className="text-sm text-gray-400">No IELTS practice assignments yet.</p>}
             {assignments.map((assignment) => (
-              <div key={assignment.id} className={`rounded-xl border p-4 text-sm ${selectedAssignmentId === assignment.id ? 'border-emerald-400 bg-emerald-500/10' : 'border-gray-700 bg-black/20'}`}>
+              <div key={assignment.id} data-testid={`ielts-practice-assignment-${assignment.id}`} className={`rounded-xl border p-4 text-sm ${selectedAssignmentId === assignment.id ? 'border-emerald-400 bg-emerald-500/10' : 'border-gray-700 bg-black/20'}`}>
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="font-semibold text-white">{assignment.title}</p>
@@ -443,7 +445,7 @@ const IeltsPracticeTab: React.FC = () => {
                 </div>
                 <div className="mt-3 flex items-center justify-between gap-2 text-xs text-gray-400">
                   <span>{assignment.item_count ?? assignment.items?.length ?? 0} items · Due {formatDateTime(assignment.due_at)}</span>
-                  <button type="button" onClick={() => void loadAssignmentDetail(assignment.id)} disabled={progressLoading && selectedAssignmentId === assignment.id} className="rounded-lg border border-emerald-400/50 px-3 py-2 font-semibold text-emerald-200 hover:bg-emerald-500/10 disabled:opacity-60">
+                  <button type="button" data-testid={`ielts-practice-view-progress-${assignment.id}`} onClick={() => void loadAssignmentDetail(assignment.id)} disabled={progressLoading && selectedAssignmentId === assignment.id} className="rounded-lg border border-emerald-400/50 px-3 py-2 font-semibold text-emerald-200 hover:bg-emerald-500/10 disabled:opacity-60">
                     {progressLoading && selectedAssignmentId === assignment.id ? 'Loading…' : 'View progress'}
                   </button>
                 </div>
@@ -495,7 +497,7 @@ const IeltsPracticeTab: React.FC = () => {
                 const status = displayStudentStatus(assignmentDetail.assignment, student);
                 const overdue = status === 'overdue';
                 return (
-                  <div key={student.student_id} className={`grid gap-2 px-4 py-3 text-sm md:grid-cols-[1.4fr_1fr_0.8fr_1fr_1fr] md:gap-3 ${overdue ? 'bg-red-500/10' : 'bg-black/10'}`}>
+                  <div key={student.student_id} data-testid={`ielts-practice-progress-student-${student.student_id}`} className={`grid gap-2 px-4 py-3 text-sm md:grid-cols-[1.4fr_1fr_0.8fr_1fr_1fr] md:gap-3 ${overdue ? 'bg-red-500/10' : 'bg-black/10'}`}>
                     <div>
                       <p className="font-semibold text-white">{student.username || student.email || student.student_id}</p>
                       {student.email && <p className="text-xs text-gray-500">{student.email}</p>}
