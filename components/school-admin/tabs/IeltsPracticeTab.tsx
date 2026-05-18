@@ -11,6 +11,10 @@ import {
   type IeltsPracticeAssignmentSummary,
   type IeltsPracticeStudentStatus,
 } from '../../../services/ieltsPracticeAssignmentService';
+import {
+  rpcIeltsPracticeContentCatalog,
+  type IeltsPracticeContentCatalogItem,
+} from '../../../services/ieltsPracticeContentService';
 
 type DraftItem = IeltsPracticeAssignmentItemInput & { localId: string };
 type ProgressFilter = 'all' | 'assigned' | 'in_progress' | 'completed' | 'overdue';
@@ -73,6 +77,11 @@ const IeltsPracticeTab: React.FC = () => {
   const [assignmentDetail, setAssignmentDetail] = useState<IeltsPracticeAssignmentDetail | null>(null);
   const [progressLoading, setProgressLoading] = useState(false);
   const [progressFilter, setProgressFilter] = useState<ProgressFilter>('all');
+  const [contentCatalog, setContentCatalog] = useState<IeltsPracticeContentCatalogItem[]>([]);
+  const [contentSearch, setContentSearch] = useState('');
+  const [contentLoading, setContentLoading] = useState(false);
+  const [contentError, setContentError] = useState<string | null>(null);
+  const [pickerOpenFor, setPickerOpenFor] = useState<string | null>(null);
 
   const selectedClass = useMemo(
     () => classes.find((cls: any) => cls.id === classId) ?? null,
@@ -115,6 +124,20 @@ const IeltsPracticeTab: React.FC = () => {
     void loadAssignments();
   }, [school?.id]);
 
+  const loadContentCatalog = async (skill?: string, search = contentSearch) => {
+    setContentLoading(true);
+    setContentError(null);
+    try {
+      const rows = await rpcIeltsPracticeContentCatalog({ skill: skill || null, search: search || null, limit: 50 });
+      setContentCatalog(rows);
+    } catch (catalogError) {
+      const message = catalogError instanceof Error ? catalogError.message : 'Unable to load IELTS practice content.';
+      setContentError(message);
+    } finally {
+      setContentLoading(false);
+    }
+  };
+
   const loadAssignmentDetail = async (assignmentId: string) => {
     setSelectedAssignmentId(assignmentId);
     setProgressFilter('all');
@@ -130,6 +153,25 @@ const IeltsPracticeTab: React.FC = () => {
       addToast?.(message, 'error');
     } finally {
       setProgressLoading(false);
+    }
+  };
+
+  const selectContent = (localId: string, content: IeltsPracticeContentCatalogItem) => {
+    updateItem(localId, {
+      skill: content.skill,
+      contentType: content.content_type,
+      contentId: content.content_id,
+      title: content.title,
+    });
+    setPickerOpenFor(null);
+    setContentSearch('');
+  };
+
+  const openContentPicker = (item: DraftItem) => {
+    const isOpening = pickerOpenFor !== item.localId;
+    setPickerOpenFor(isOpening ? item.localId : null);
+    if (isOpening) {
+      void loadContentCatalog(String(item.skill), contentSearch);
     }
   };
 
@@ -170,21 +212,20 @@ const IeltsPracticeTab: React.FC = () => {
       return;
     }
 
-    const validItems = items
-      .filter((item) => item.contentId.trim())
-      .map((item, index) => ({
-        skill: item.skill,
-        contentType: item.contentType,
-        contentId: item.contentId.trim(),
-        title: item.title?.trim() || null,
-        required: item.required ?? true,
-        orderIndex: index,
-      }));
-
-    if (validItems.length === 0) {
-      setError('Add at least one practice item with a content ID.');
+    const firstMissingIndex = items.findIndex((item) => !item.contentId.trim());
+    if (firstMissingIndex >= 0) {
+      setError(`Choose content for item ${firstMissingIndex + 1}, or enter a content ID in the advanced fallback.`);
       return;
     }
+
+    const validItems = items.map((item, index) => ({
+      skill: item.skill,
+      contentType: item.contentType,
+      contentId: item.contentId.trim(),
+      title: item.title?.trim() || null,
+      required: item.required ?? true,
+      orderIndex: index,
+    }));
 
     setSaving(true);
     setError(null);
@@ -216,8 +257,8 @@ const IeltsPracticeTab: React.FC = () => {
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-300">IELTS Academy</p>
         <h3 className="mt-2 text-2xl font-bold text-white">IELTS Practice</h3>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-emerald-50/80">
-          Create school-scoped IELTS practice assignments for {school?.name ?? 'your school'} by manually referencing existing
-          IELTS practice content IDs. This form does not browse legacy content tables or expose protected answers.
+          Create school-scoped IELTS practice assignments for {school?.name ?? 'your school'} with a safe content picker for active
+          IELTS practice content. Manual content IDs remain available as an advanced fallback.
         </p>
       </div>
 
@@ -249,7 +290,7 @@ const IeltsPracticeTab: React.FC = () => {
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
               <h4 className="text-lg font-semibold text-white">Create practice assignment</h4>
-              <p className="text-sm text-gray-400">Manual content references only for now. A content browser will come later.</p>
+              <p className="text-sm text-gray-400">Choose active IELTS practice content from the safe catalog, or use the advanced manual fallback.</p>
             </div>
             <button
               type="button"
@@ -282,16 +323,85 @@ const IeltsPracticeTab: React.FC = () => {
                   <p className="font-semibold text-white">Item {index + 1}</p>
                   <button type="button" className="text-sm text-red-300 hover:text-red-200" onClick={() => removeItem(item.localId)} disabled={items.length === 1}>Remove</button>
                 </div>
-                <div className="grid gap-3 md:grid-cols-4">
-                  <select className="rounded-lg border border-gray-700 bg-gray-800 p-2 text-sm text-white" value={item.skill} onChange={(event) => updateItem(item.localId, { skill: event.target.value })}>
-                    <option value="reading">Reading</option>
-                    <option value="listening">Listening</option>
-                    <option value="writing">Writing</option>
-                    <option value="speaking">Speaking</option>
-                  </select>
-                  <input className="rounded-lg border border-gray-700 bg-gray-800 p-2 text-sm text-white" value={item.contentType} onChange={(event) => updateItem(item.localId, { contentType: event.target.value })} placeholder="content_type" />
-                  <input className="rounded-lg border border-gray-700 bg-gray-800 p-2 text-sm text-white" value={item.contentId} onChange={(event) => updateItem(item.localId, { contentId: event.target.value })} placeholder="content_id" />
-                  <input className="rounded-lg border border-gray-700 bg-gray-800 p-2 text-sm text-white" value={item.title ?? ''} onChange={(event) => updateItem(item.localId, { title: event.target.value })} placeholder="Optional title" />
+                <div className="grid gap-3 md:grid-cols-[160px_minmax(0,1fr)]">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                    Skill
+                    <select className="mt-1 w-full rounded-lg border border-gray-700 bg-gray-800 p-2 text-sm text-white" value={item.skill} onChange={(event) => updateItem(item.localId, { skill: event.target.value })}>
+                      <option value="reading">Reading</option>
+                      <option value="listening">Listening</option>
+                      <option value="writing">Writing</option>
+                      <option value="speaking">Speaking</option>
+                    </select>
+                  </label>
+                  <div className="rounded-lg border border-emerald-500/20 bg-gray-950/60 p-3">
+                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-emerald-300">Chosen content</p>
+                        <p className="mt-1 font-semibold text-white">{item.title?.trim() || 'No content selected'}</p>
+                        <p className="mt-1 text-xs text-gray-400">{item.contentType || contentTypesBySkill[String(item.skill)]} · {item.contentId || 'Choose content to fill ID'}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => openContentPicker(item)}
+                        className="rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-400"
+                      >
+                        {pickerOpenFor === item.localId ? 'Close picker' : 'Choose content'}
+                      </button>
+                    </div>
+                    {item.contentType && item.contentType !== contentTypesBySkill[String(item.skill)] && (
+                      <p className="mt-2 rounded-lg border border-amber-400/40 bg-amber-500/10 p-2 text-xs text-amber-100">
+                        Warning: this content type does not match the selected skill. Students may be sent to the wrong practice route.
+                      </p>
+                    )}
+                    {pickerOpenFor === item.localId && (
+                      <div className="mt-3 rounded-xl border border-gray-700 bg-black/30 p-3">
+                        <div className="flex flex-col gap-2 sm:flex-row">
+                          <input
+                            className="min-w-0 flex-1 rounded-lg border border-gray-700 bg-gray-800 p-2 text-sm text-white"
+                            value={contentSearch}
+                            onChange={(event) => setContentSearch(event.target.value)}
+                            placeholder="Search by title"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => void loadContentCatalog(String(item.skill), contentSearch)}
+                            disabled={contentLoading}
+                            className="rounded-lg border border-emerald-400/50 px-3 py-2 text-sm font-semibold text-emerald-200 hover:bg-emerald-500/10 disabled:opacity-60"
+                          >
+                            {contentLoading ? 'Searching…' : 'Search catalog'}
+                          </button>
+                        </div>
+                        {contentError && <p className="mt-2 text-sm text-red-200">{contentError}</p>}
+                        {!contentLoading && contentCatalog.length === 0 && <p className="mt-3 text-sm text-gray-400">No matching content found. Try a different title or use the advanced fallback below.</p>}
+                        <div className="mt-3 max-h-72 space-y-2 overflow-y-auto">
+                          {contentCatalog.map((content) => (
+                            <button
+                              key={`${content.content_type}-${content.content_id}`}
+                              type="button"
+                              onClick={() => selectContent(item.localId, content)}
+                              className="w-full rounded-lg border border-gray-700 bg-gray-900 p-3 text-left hover:border-emerald-400 hover:bg-emerald-500/10"
+                            >
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-semibold text-white">{content.title}</span>
+                                <span className="rounded-full bg-gray-800 px-2 py-1 text-xs text-gray-300">{content.skill}</span>
+                                {content.difficulty && <span className="rounded-full bg-gray-800 px-2 py-1 text-xs text-gray-300">{content.difficulty}</span>}
+                                {content.band && <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-xs text-emerald-200">Band {content.band}</span>}
+                              </div>
+                              {content.description && <p className="mt-2 line-clamp-2 text-xs text-gray-400">{content.description}</p>}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <details className="mt-3 rounded-lg border border-gray-700 bg-black/20 p-3">
+                      <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wide text-gray-400">Advanced manual fallback</summary>
+                      <div className="mt-3 grid gap-3 md:grid-cols-3">
+                        <input className="rounded-lg border border-gray-700 bg-gray-800 p-2 text-sm text-white" value={item.contentType} onChange={(event) => updateItem(item.localId, { contentType: event.target.value })} placeholder="content_type" />
+                        <input className="rounded-lg border border-gray-700 bg-gray-800 p-2 text-sm text-white" value={item.contentId} onChange={(event) => updateItem(item.localId, { contentId: event.target.value })} placeholder="content_id" />
+                        <input className="rounded-lg border border-gray-700 bg-gray-800 p-2 text-sm text-white" value={item.title ?? ''} onChange={(event) => updateItem(item.localId, { title: event.target.value })} placeholder="Optional title" />
+                      </div>
+                    </details>
+                  </div>
                 </div>
               </div>
             ))}
