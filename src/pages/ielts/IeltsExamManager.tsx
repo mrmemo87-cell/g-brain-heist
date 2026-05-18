@@ -12,6 +12,7 @@ import {
   type IeltsManageableExam,
 } from '../../../services/ieltsExamModeService';
 import { validateRenderableExamPayload } from '../../../services/ieltsExamPayloadParser';
+import { resolveIeltsExamLifecycleMeta } from '../../../services/ieltsExamModeUx';
 
 type BusyAction = 'idle' | 'loading' | 'creating_exam' | 'creating_form' | 'assigning';
 
@@ -378,7 +379,7 @@ const IeltsExamManager: React.FC = () => {
 
       <main className="mx-auto grid max-w-7xl gap-5 px-4 py-6 lg:grid-cols-[360px_1fr]">
         <aside className="space-y-5">
-          <Panel title="Manageable exams" subtitle="Select an exam to configure forms and assignments.">
+          <Panel title="Manageable exams" subtitle="Pick an exam and continue through the pilot setup steps.">
             <button type="button" onClick={() => void loadExams()} disabled={busy !== 'idle'} className="mb-3 rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-50">
               Refresh list
             </button>
@@ -391,15 +392,18 @@ const IeltsExamManager: React.FC = () => {
                   onClick={() => setSelectedExamId(exam.id)}
                   className={`w-full rounded-xl border p-3 text-left transition ${selectedExamId === exam.id ? 'border-blue-300 bg-blue-50' : 'border-slate-200 bg-white hover:bg-slate-50'}`}
                 >
-                  <div className="font-semibold text-slate-950">{exam.title}</div>
-                  <div className="text-xs text-slate-500">{formatDateTime(exam.starts_at)} · {exam.assignment_count} assigned</div>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="font-semibold text-slate-950">{exam.title}</div>
+                    <LifecycleBadge status={exam.status} startsAt={exam.starts_at} endsAt={exam.ends_at} />
+                  </div>
+                  <div className="mt-1 text-xs text-slate-500">{formatDateTime(exam.starts_at)} · {exam.assignment_count} assigned</div>
                   <div className="mt-2 text-xs text-slate-500">Forms: {exam.form_count} · Submitted: {exam.submitted_count}</div>
                 </button>
               ))}
             </div>
           </Panel>
 
-          <Panel title="Create exam event" subtitle="Set the controlled exam window and duration.">
+          <Panel title="Step 1 Create Exam" subtitle="Name the exam, choose a local start/end window, and save it as Draft or Scheduled.">
             <div className="space-y-3">
               <TextInput label="Title" value={title} onChange={setTitle} />
               <label className="block text-sm font-medium text-slate-700">Description
@@ -412,7 +416,10 @@ const IeltsExamManager: React.FC = () => {
                 <select className="mt-1 w-full rounded-lg border border-slate-300 p-2 text-sm" value={status} onChange={(event) => setStatus(event.target.value)}>
                   <option value="draft">Draft</option>
                   <option value="scheduled">Scheduled</option>
-                  <option value="live">Live</option>
+                  <option value="live">Live now</option>
+                  <option value="paused">Paused</option>
+                  <option value="ended">Ended</option>
+                  <option value="archived">Archived</option>
                 </select>
               </label>
               {validateSchedule() && <p className="rounded-lg bg-amber-50 p-2 text-sm text-amber-800">{validateSchedule()}</p>}
@@ -431,20 +438,20 @@ const IeltsExamManager: React.FC = () => {
             <Panel title="Select or create an exam" subtitle="Exam form and assignment controls appear after an exam is selected." />
           ) : (
             <>
-              <Panel title={activeExam.title} subtitle={`${formatDateTime(activeExam.starts_at)} → ${formatDateTime(activeExam.ends_at)} · ${activeExam.duration_minutes} minutes`}>
+              <Panel title="Step 4 Launch & Monitor" subtitle={`${activeExam.title} · ${formatDateTime(activeExam.starts_at)} → ${formatDateTime(activeExam.ends_at)} · ${activeExam.duration_minutes} minutes`}>
                 <div className="grid gap-3 md:grid-cols-2">
                   <LinkBox label="Student link" value={studentLink} />
                   <LinkBox label="Monitor link" value={monitorLink} />
                 </div>
                 <div className="mt-3 grid gap-3 text-sm md:grid-cols-4">
-                  <Stat label="Status" value={activeExam.status} />
+                  <LifecycleStat status={activeExam.status} startsAt={activeExam.starts_at} endsAt={activeExam.ends_at} />
                   <Stat label="Forms" value={String(activeExam.form_count ?? detail?.forms.length ?? 0)} />
                   <Stat label="Assigned" value={String(activeExam.assignment_count ?? detail?.assignments.length ?? 0)} />
                   <Stat label="Submitted" value={String(activeExam.submitted_count ?? 0)} />
                 </div>
               </Panel>
 
-              <Panel title="Exam form" subtitle="Paste public section payloads and keep the answer key separate.">
+              <Panel title="Step 2 Configure Form" subtitle="Choose the active form. Advanced JSON editors stay closed until you need them.">
                 <div className="mb-3 grid gap-3 md:grid-cols-2">
                   <TextInput label="Form code" value={formCode} onChange={setFormCode} />
                   <label className="block text-sm font-medium text-slate-700">Active form
@@ -454,14 +461,18 @@ const IeltsExamManager: React.FC = () => {
                     </select>
                   </label>
                 </div>
+                {!activeForm && <Banner tone="warning" message="No active form yet. Save one form before assigning students or launching the exam." />}
                 <SectionPayloadGuide />
-                <div className="mt-4 grid gap-3 xl:grid-cols-2">
-                  <JsonBox label="Reading JSON" value={readingJson} onChange={setReadingJson} template={readingTemplate} help="Expected: title/instructions plus questions[] or tasks[] with nested questions[]." />
-                  <JsonBox label="Listening JSON" value={listeningJson} onChange={setListeningJson} template={listeningTemplate} help="Expected: title/instructions, optional audio_url, and questions[] or tasks[] with nested questions[]." />
-                  <JsonBox label="Writing JSON" value={writingJson} onChange={setWritingJson} template={writingTemplate} help="Expected: title/instructions plus tasks[] or questions[]; writing tasks render as essay boxes." />
-                  <JsonBox label="Speaking JSON (optional)" value={speakingJson} onChange={setSpeakingJson} template={speakingTemplate} help="Expected: title/instructions plus parts[] with nested questions[] or direct questions[]. Leave blank only if speaking is not used." />
-                  <JsonBox label="Answer key JSON (protected)" value={answerKeyJson} onChange={setAnswerKeyJson} full help="Protected grading data only. Never paste answer_key inside public section JSON." />
-                </div>
+                <details className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <summary className="cursor-pointer text-sm font-semibold text-slate-800">Advanced form JSON editors (closed by default)</summary>
+                  <div className="mt-4 grid gap-3 xl:grid-cols-2">
+                    <JsonBox label="Reading JSON" value={readingJson} onChange={setReadingJson} template={readingTemplate} help="Expected: title/instructions plus questions[] or tasks[] with nested questions[]." />
+                    <JsonBox label="Listening JSON" value={listeningJson} onChange={setListeningJson} template={listeningTemplate} help="Expected: title/instructions, optional audio_url, and questions[] or tasks[] with nested questions[]." />
+                    <JsonBox label="Writing JSON" value={writingJson} onChange={setWritingJson} template={writingTemplate} help="Expected: title/instructions plus tasks[] or questions[]; writing tasks render as essay boxes." />
+                    <JsonBox label="Speaking JSON (optional)" value={speakingJson} onChange={setSpeakingJson} template={speakingTemplate} help="Expected: title/instructions plus parts[] with nested questions[] or direct questions[]. Leave blank only if speaking is not used." />
+                    <JsonBox label="Answer key JSON (protected)" value={answerKeyJson} onChange={setAnswerKeyJson} full help="Protected grading data only. Never paste answer_key inside public section JSON." />
+                  </div>
+                </details>
                 <div className="mt-3 space-y-2">
                   {!formValidation.ok && <Banner tone="error" message={formValidation.error} />}
                   {formValidation.ok && formValidation.publicPayloadHasAnswerKey && <Banner tone="warning" message="One of the public section payloads contains answer_key. Remove it before saving; students must never receive keys in public payloads." />}
@@ -473,7 +484,7 @@ const IeltsExamManager: React.FC = () => {
                 </button>
               </Panel>
 
-              <Panel title="Assignments" subtitle="Assign this exam to an entire class or selected existing Brain Heist students.">
+              <Panel title="Step 3 Assign Students" subtitle="Assign this exam to an entire class or selected existing Brain Heist students.">
                 {!activeForm && <Banner tone="warning" message="Cannot assign students until this exam has an active form." />}
                 <div className="grid gap-3 md:grid-cols-[1fr_auto_auto] md:items-end">
                   <label className="block text-sm font-medium text-slate-700">Class
@@ -491,7 +502,7 @@ const IeltsExamManager: React.FC = () => {
                 </div>
                 <div className="mt-4 max-h-96 overflow-auto rounded-xl border border-slate-200">
                   {filteredStudents.length === 0 ? (
-                    <p className="p-4 text-sm text-slate-500">No students available for this filter.</p>
+                    <p className="p-4 text-sm text-slate-500">No assigned or available students found for this class filter. Choose another class or add students before launch.</p>
                   ) : filteredStudents.map((student) => (
                     <label key={student.student_id} className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 text-sm last:border-b-0">
                       <span>
@@ -503,13 +514,31 @@ const IeltsExamManager: React.FC = () => {
                   ))}
                 </div>
                 <div className="mt-4 rounded-xl bg-slate-50 p-3 text-sm text-slate-600">
-                  Current assignments: {detail?.assignments.length ?? 0}
+                  {(detail?.assignments.length ?? 0) === 0
+                    ? 'No assigned students yet. Assign a class or selected students before pilot launch.'
+                    : `Current assignments: ${detail?.assignments.length ?? 0}`}
                 </div>
               </Panel>
             </>
           )}
         </section>
       </main>
+    </div>
+  );
+};
+
+const LifecycleBadge: React.FC<{ status?: string | null; startsAt?: string | null; endsAt?: string | null }> = ({ status, startsAt, endsAt }) => {
+  const meta = resolveIeltsExamLifecycleMeta(status, startsAt, endsAt);
+  return <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${meta.badgeClass}`}>{meta.label}</span>;
+};
+
+const LifecycleStat: React.FC<{ status?: string | null; startsAt?: string | null; endsAt?: string | null }> = ({ status, startsAt, endsAt }) => {
+  const meta = resolveIeltsExamLifecycleMeta(status, startsAt, endsAt);
+  return (
+    <div className="rounded-xl bg-slate-50 p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Lifecycle</p>
+      <p className="mt-1"><span className={`inline-flex rounded-full px-2.5 py-1 text-sm font-semibold ring-1 ${meta.badgeClass}`}>{meta.label}</span></p>
+      <p className="mt-2 text-xs text-slate-500">{meta.description}</p>
     </div>
   );
 };
