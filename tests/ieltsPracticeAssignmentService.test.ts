@@ -18,11 +18,48 @@ import {
   rpcIeltsPracticeStudentAssignments,
   type IeltsPracticeAssignmentRpcClient,
 } from '../services/ieltsPracticeAssignmentService.js';
+import {
+  rpcIeltsPracticeContentCatalog,
+  type IeltsPracticeContentRpcClient,
+} from '../services/ieltsPracticeContentService.js';
 
 const createClient = (handler: (name: string, params: Record<string, unknown>) => unknown): IeltsPracticeAssignmentRpcClient => ({
   rpc: ((name: string, params: Record<string, unknown>) => Promise.resolve({ data: handler(name, params), error: null })) as unknown as IeltsPracticeAssignmentRpcClient['rpc'],
 });
 
+
+
+
+test('IELTS practice content catalog service maps RPC names and parameters', async () => {
+  const calls: Array<{ name: string; params: Record<string, unknown> }> = [];
+  const client: IeltsPracticeContentRpcClient = {
+    rpc: ((name: string, params: Record<string, unknown>) => {
+      calls.push({ name, params });
+      return Promise.resolve({
+        data: [
+          {
+            content_type: 'ielts_reading_set',
+            content_id: '42',
+            title: 'Reading A',
+            skill: 'reading',
+            description: 'Public description',
+            difficulty: 'intermediate',
+            band: '5-6',
+          },
+        ],
+        error: null,
+      });
+    }) as unknown as IeltsPracticeContentRpcClient['rpc'],
+  };
+
+  const rows = await rpcIeltsPracticeContentCatalog({ skill: 'reading', search: 'Reading', limit: 25 }, client);
+
+  assert.deepEqual(calls, [
+    { name: 'rpc_ielts_practice_content_catalog', params: { p_skill: 'reading', p_search: 'Reading', p_limit: 25 } },
+  ]);
+  assert.equal(rows[0].content_type, 'ielts_reading_set');
+  assert.equal(rows[0].content_id, '42');
+});
 
 test('IELTS practice assignment route helper maps content types to existing student practice routes', () => {
   assert.equal(getIeltsPracticeItemRoute({ content_type: 'ielts_reading_set', content_id: 'read-1' }), '/ielts/reading/read-1');
@@ -162,6 +199,31 @@ test('IELTS practice repair migration hardens payload helper and student-safe RP
   assert.doesNotMatch(repair, /rpc_is_ielts_admin|ielts_teachers|is_ielts_admin/i, 'repair migration must not use legacy IELTS admin permissions');
 });
 
+
+
+test('IELTS practice content catalog RPC returns only safe assignment picker metadata', () => {
+  const migration = fs.readFileSync(
+    path.join(process.cwd(), 'supabase/migrations/20260518120000_ielts_practice_content_catalog.sql'),
+    'utf8',
+  );
+
+  assert.match(migration, /create or replace function public\.rpc_ielts_practice_content_catalog\(/i, 'content catalog RPC must be added');
+  assert.match(migration, /returns table \([\s\S]*content_type text,[\s\S]*content_id text,[\s\S]*title text,[\s\S]*skill text,[\s\S]*description text,[\s\S]*difficulty text,[\s\S]*band text/i, 'catalog RPC must return only picker metadata');
+  assert.match(migration, /'ielts_reading_set'[\s\S]*from public\.ielts_reading_sets/i, 'catalog must include active reading sets');
+  assert.match(migration, /'ielts_listening_set'[\s\S]*from public\.ielts_listening_sets/i, 'catalog must include active listening sets');
+  assert.match(migration, /'ielts_writing_task'[\s\S]*from public\.ielts_writing_tasks/i, 'catalog must include active writing tasks');
+  assert.match(migration, /'ielts_speaking_task'[\s\S]*from public\.ielts_speaking_tasks/i, 'catalog must include active speaking tasks');
+  assert.match(migration, /coalesce\([a-z]\.is_active, true\) = true/i, 'catalog must be limited to active/public practice content');
+  assert.match(migration, /c\.title ilike '%' \|\| n\.requested_search \|\| '%'/i, 'catalog must support title search');
+  assert.match(migration, /least\(coalesce\(p_limit, 50\), 100\)/i, 'catalog must cap caller supplied limits');
+  assert.match(migration, /grant execute on function public\.rpc_ielts_practice_content_catalog\(text, text, int\) to authenticated/i, 'catalog RPC should be callable through authenticated Supabase RPC');
+  assert.doesNotMatch(migration, /correct_answer/i, 'catalog RPC must not expose correct answers');
+  assert.doesNotMatch(migration, /answer_key/i, 'catalog RPC must not expose answer keys');
+  assert.doesNotMatch(migration, /explanation/i, 'catalog RPC must not expose explanations');
+  assert.doesNotMatch(migration, /sample_answer|follow_ups|passage_text|audio_url/i, 'catalog RPC must not expose long content payloads or samples');
+  assert.doesNotMatch(migration, /rpc_is_ielts_admin|ielts_teachers|is_ielts_admin/i, 'catalog RPC must not use legacy IELTS admin permissions');
+});
+
 test('IELTS Practice tab uses school-scoped assignment service and avoids legacy content table queries', () => {
   const tab = fs.readFileSync(path.join(process.cwd(), 'components/school-admin/tabs/IeltsPracticeTab.tsx'), 'utf8');
   assert.match(tab, /rpcIeltsPracticeListAssignments/, 'Practice tab must list assignments through the scoped service');
@@ -170,8 +232,23 @@ test('IELTS Practice tab uses school-scoped assignment service and avoids legacy
   assert.match(tab, /rpcIeltsPracticeAssignmentDetail/, 'Practice tab must load roster completion through the scoped detail service');
   assert.match(tab, /View progress/, 'Practice tab should expose a simple progress view action');
   assert.match(tab, /progressFilters/, 'Practice tab should include simple progress status filters');
+  assert.match(tab, /rpcIeltsPracticeContentCatalog/, 'Practice tab must use the safe catalog service for the content picker');
+  assert.match(tab, /Choose content/, 'Practice tab must make the content picker the main content selection path');
+  assert.match(tab, /Search catalog/, 'Practice tab must allow title search through the picker');
+  assert.match(tab, /Advanced manual fallback/, 'Practice tab must retain manual content ID fallback');
+  assert.match(tab, /Choose content for item/, 'Practice tab must validate missing content before submit');
+  assert.match(tab, /content type does not match the selected skill/, 'Practice tab must warn on skill/content type mismatch');
   assert.doesNotMatch(tab, /\.from\(['"]ielts_/i, 'Practice tab must not query legacy IELTS tables directly');
   assert.doesNotMatch(tab, /answer_key/i, 'Practice tab must not expose answer_key');
+});
+
+
+test('IELTS practice content service uses only the safe catalog RPC', () => {
+  const service = fs.readFileSync(path.join(process.cwd(), 'services/ieltsPracticeContentService.ts'), 'utf8');
+
+  assert.match(service, /rpc_ielts_practice_content_catalog/, 'content service must call the safe catalog RPC');
+  assert.doesNotMatch(service, /\.from\(['"]ielts_/i, 'content service must not query raw IELTS content tables');
+  assert.doesNotMatch(service, /correct_answer|answer_key|explanation/i, 'content service must not model protected solution fields');
 });
 
 
