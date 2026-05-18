@@ -47,8 +47,8 @@ const contentTypesBySkill: Record<string, string> = {
 };
 
 const assignmentStatusFilters: Array<{ value: AssignmentStatusFilter; label: string; description: string }> = [
-  { value: 'active', label: 'Active', description: 'Draft, assigned, and closed assignments' },
-  { value: 'archived', label: 'Archived', description: 'Read-only archived assignments' },
+  { value: 'active', label: 'Active', description: 'Active = students can work; Closed = read-only, no new submissions' },
+  { value: 'archived', label: 'Archived', description: 'Archived = hidden from active view, history preserved' },
 ];
 
 const progressFilters: Array<{ value: ProgressFilter; label: string }> = [
@@ -95,7 +95,7 @@ const displayStudentStatus = (assignment: IeltsPracticeAssignmentSummary, studen
 );
 
 const IeltsPracticeTab: React.FC = () => {
-  const { classes = [], students = [], school, addToast } = useSchoolAdmin();
+  const { classes = [], students = [], studentAssignments = {}, school, addToast } = useSchoolAdmin();
   const [assignmentStatusFilter, setAssignmentStatusFilter] = useState<AssignmentStatusFilter>('active');
   const [assignments, setAssignments] = useState<IeltsPracticeAssignmentSummary[]>([]);
   const [loading, setLoading] = useState(false);
@@ -128,6 +128,16 @@ const IeltsPracticeTab: React.FC = () => {
   );
 
   const selectedProgressAssignment = assignmentDetail?.assignment ?? assignments.find((row) => row.id === selectedAssignmentId) ?? null;
+
+  const selectedClassStudentCount = useMemo(() => {
+    if (!classId) return null;
+    return students.filter((student: any) => {
+      const studentId = student.user_id ?? student.id;
+      return student.class_id === classId || student.classId === classId || studentAssignments[studentId] === classId;
+    }).length;
+  }, [classId, students, studentAssignments]);
+
+  const hasSelectedContent = items.some((item) => item.contentId.trim());
 
   const selectedItemKeys = useMemo(() => new Set(items
     .filter((item) => item.contentType && item.contentId.trim())
@@ -466,7 +476,7 @@ const IeltsPracticeTab: React.FC = () => {
         </p>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_1.2fr]">
         <label className="rounded-xl border border-gray-700 bg-gray-900/80 p-4 text-sm text-gray-300">
           <span className="mb-2 block font-semibold text-white">Class filter</span>
           <select data-testid="ielts-practice-class-select" className="w-full rounded-lg border border-gray-700 bg-gray-800 p-2 text-gray-200" value={classId} onChange={(event) => setClassId(event.target.value)}>
@@ -482,11 +492,29 @@ const IeltsPracticeTab: React.FC = () => {
             Assigning to {selectedClass?.class_name ?? 'a class'} will create student rows for matching school roster members.
           </p>
           <p className="mt-2 text-xs text-gray-500">Portal context currently has {students.length} students loaded.</p>
+          {classId && selectedClassStudentCount === 0 && (
+            <p className="mt-2 rounded-lg border border-amber-400/40 bg-amber-500/10 p-2 text-xs font-semibold text-amber-100">No students in this class. Add students before running the pilot assignment.</p>
+          )}
         </div>
         <div className="rounded-xl border border-gray-700 bg-gray-900/80 p-4 text-sm text-gray-300">
           <span className="mb-2 block font-semibold text-white">Completion tracking</span>
           <p className="text-gray-400">View roster progress by assignment with simple status filters. No charts yet.</p>
         </div>
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 text-sm text-gray-300" data-testid="ielts-practice-pilot-checklist">
+          <span className="mb-2 block font-semibold text-white">Pilot checklist</span>
+          <ul className="space-y-1 text-xs text-gray-300">
+            <li>✓ Assignments created: {assignments.length > 0 ? 'ready' : 'create one assignment'}</li>
+            <li>✓ Content selected: {hasSelectedContent ? 'selected' : 'choose catalog content'}</li>
+            <li>✓ Class assigned: {classId ? 'class selected' : 'select a class'}</li>
+            <li>✓ Progress visible: use View progress after assigning</li>
+            <li>✓ Results visible: check IELTS Results after completed practice</li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-sky-500/30 bg-sky-500/10 p-4 text-sm text-sky-50" data-testid="ielts-practice-status-helper">
+        <p className="font-semibold text-white">Assignment status guide</p>
+        <p className="mt-1">Active = students can work. Closed = read-only, no new submissions. Archived = hidden from active view, history preserved.</p>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_460px]">
@@ -647,7 +675,7 @@ const IeltsPracticeTab: React.FC = () => {
                         </div>
                         <p className="mt-2 text-xs text-gray-500">Difficulty and band are shown for teacher comparison only; use skill and title to filter.</p>
                         {contentError && <p className="mt-2 text-sm text-red-200">{contentError}</p>}
-                        {!contentLoading && contentCatalog.length === 0 && <p className="mt-3 text-sm text-gray-400">No matching content found. Try a different title or use the advanced fallback below.</p>}
+                        {!contentLoading && contentCatalog.length === 0 && <p className="mt-3 rounded-lg border border-dashed border-gray-700 bg-gray-950/60 p-3 text-sm text-gray-300">No content found in picker. Try a different skill or title, then use the advanced fallback only if you know the content ID.</p>}
                         <div className="mt-3 max-h-72 space-y-4 overflow-y-auto">
                           {groupedContentCatalog.map(([skillGroup, groupItems]) => (
                             <div key={skillGroup} data-testid={`ielts-practice-content-group-${skillGroup}`}>
@@ -790,6 +818,9 @@ const IeltsPracticeTab: React.FC = () => {
                     <div className="rounded-lg bg-gray-800 p-2"><strong className="block text-white">{assignment.overdue_count ?? 0}</strong>Overdue</div>
                     <div className="rounded-lg bg-gray-800 p-2"><strong className="block text-white">{assignment.excused_count ?? 0}</strong>Excused</div>
                   </div>
+                  {(assignment.item_count ?? assignment.items?.length ?? 0) === 0 && (
+                    <p className="mt-3 rounded-lg border border-amber-400/40 bg-amber-500/10 p-2 text-xs font-semibold text-amber-100">Assignment has no items. Add content before using it in the pilot.</p>
+                  )}
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-400">
                     <span>{assignment.item_count ?? assignment.items?.length ?? 0} items · Due {formatDateTime(assignment.due_at)}</span>
                     <div className="flex flex-wrap gap-2">
@@ -849,7 +880,12 @@ const IeltsPracticeTab: React.FC = () => {
 
         {progressLoading && <p className="mt-4 text-sm text-gray-400">Loading student progress…</p>}
         {!progressLoading && !assignmentDetail && <p className="mt-4 text-sm text-gray-400">No assignment selected.</p>}
-        {!progressLoading && assignmentDetail && filteredProgressStudents.length === 0 && <p className="mt-4 text-sm text-gray-400">No students match this filter.</p>}
+        {!progressLoading && assignmentDetail && (assignmentDetail.assignment.item_count ?? assignmentDetail.assignment.items?.length ?? 0) === 0 && (
+          <p className="mt-4 rounded-xl border border-amber-400/40 bg-amber-500/10 p-4 text-sm font-semibold text-amber-100">Assignment has no items, so students have nothing to complete yet.</p>
+        )}
+        {!progressLoading && assignmentDetail && filteredProgressStudents.length === 0 && (
+          <p className="mt-4 text-sm text-gray-400">{assignmentDetail.students.length === 0 ? 'No students in class for this assignment yet.' : 'No students match this filter.'}</p>
+        )}
 
         {!progressLoading && assignmentDetail && filteredProgressStudents.length > 0 && (
           <div className="mt-4 overflow-hidden rounded-xl border border-gray-700">

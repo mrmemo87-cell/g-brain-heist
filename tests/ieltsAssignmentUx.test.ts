@@ -85,3 +85,12 @@ test('classroom assignment UX does not expose answer_key', () => {
     assert.doesNotMatch(source, /answer_key/i, `${file} must not expose answer_key`);
   }
 });
+
+
+test('assigned IELTS practice student helper text covers auto-complete, read-only closed state, and no items', () => {
+  const source = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/IeltsAssignedPractice.tsx'), 'utf8');
+
+  assert.match(source, /Assignments complete automatically after all required items are finished/i, 'student view should explain automatic completion');
+  assert.match(source, /Closed assignments are read-only/i, 'student view should explain closed assignment read-only behavior');
+  assert.match(source, /This assignment has no items yet/i, 'student view should explain assignments with no items');
+});

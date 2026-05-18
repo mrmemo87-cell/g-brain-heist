@@ -155,7 +155,7 @@ const IeltsResultsTab: React.FC = () => {
 
         {!loading && !error && rows.length === 0 && (
           <div className="mt-5 rounded-xl border border-dashed border-gray-700 bg-black/20 p-6 text-center text-sm text-gray-300">
-            No IELTS result rows found for the selected filters yet.
+            Results have no completed practice yet for the selected filters. Completed assignments will appear here as students finish required items.
           </div>
         )}
 
