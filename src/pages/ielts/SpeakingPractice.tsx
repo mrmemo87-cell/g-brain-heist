@@ -441,6 +441,7 @@ const SpeakingPractice: React.FC = () => {
             context={assignmentContext}
             progress={assignmentProgress}
             completionError={assignmentCompletionError}
+            onNavigate={navigate}
             style={{ textAlign: 'left' }}
           />
 
