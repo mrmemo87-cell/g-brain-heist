@@ -308,6 +308,28 @@ const IeltsHome: React.FC = () => {
             </div>
           </div>
 
+
+
+          {/* Teacher Review Queue */}
+          <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                  <span style={{ fontSize: '1.5rem' }}>📝</span>
+                  <h2 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>IELTS Review Queue</h2>
+                </div>
+                <p style={{ color: '#475569', fontSize: '0.8125rem', margin: 0 }}>Teachers can review writing and speaking submissions with structured IELTS rubric feedback.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/ielts/reviews')}
+                style={{ backgroundColor: '#16a34a', color: '#ffffff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1rem', fontSize: '0.875rem', fontWeight: 'bold', cursor: 'pointer' }}
+              >
+                Open reviews
+              </button>
+            </div>
+          </div>
+
           {/* Reading */}
           <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
