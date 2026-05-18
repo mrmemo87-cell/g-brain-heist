@@ -325,17 +325,21 @@ test('assigned IELTS practice preserves assignment context and ReadingPractice c
   const assignedPage = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/IeltsAssignedPractice.tsx'), 'utf8');
   const readingPage = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/ReadingPractice.tsx'), 'utf8');
 
-  assert.match(assignedPage, /new URLSearchParams\(\{[\s\S]*assignment_id: assignment\.id[\s\S]*assignment_item_id: item\.id/i, 'assigned item routes must include assignment query params');
+  const assignmentUx = fs.readFileSync(path.join(process.cwd(), 'services/ieltsAssignmentUx.ts'), 'utf8');
+  const assignmentUi = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/assignmentPracticeUi.tsx'), 'utf8');
+
+  assert.match(assignmentUx, /new URLSearchParams\(\{[\s\S]*assignment_id: assignmentId[\s\S]*assignment_item_id: assignmentItemId/i, 'assigned item routes must include assignment query params');
   assert.match(assignedPage, /rpcIeltsPracticeMarkItemStarted/i, 'opening an item should mark item progress started');
-  assert.match(assignedPage, /assignment_item_count: String\(assignment\.item_count/i, 'assigned item routes should include refresh-safe item count context');
+  assert.match(assignmentUx, /assignment_item_count/i, 'assigned item routes should include refresh-safe item count context');
   assert.match(assignedPage, /navigate\(assignedRoute\)/i, 'navigation should use the refresh-safe assigned route');
 
-  assert.match(readingPage, /assignmentSearchParams\.get\('assignment_id'\)/i, 'ReadingPractice must read assignment_id from query params');
-  assert.match(readingPage, /assignmentSearchParams\.get\('assignment_item_id'\)/i, 'ReadingPractice must read assignment_item_id from query params');
-  assert.match(readingPage, /assignmentSearchParams\.get\('assignment_item_count'\)/i, 'ReadingPractice must read item count context from query params');
+  assert.match(readingPage, /readIeltsPracticeAssignmentContext\(\)/i, 'ReadingPractice must read assignment context through the shared helper');
+  assert.match(assignmentUi, /assignmentSearchParams\.get\('assignment_id'\)/i, 'assignment helper must read assignment_id from query params');
+  assert.match(assignmentUi, /assignmentSearchParams\.get\('assignment_item_id'\)/i, 'assignment helper must read assignment_item_id from query params');
+  assert.match(assignmentUi, /assignmentSearchParams\.get\('assignment_item_count'\)/i, 'assignment helper must read item count context from query params');
   assert.match(readingPage, /rpcIeltsPracticeMarkItemCompleted\(\{[\s\S]*assignmentId[\s\S]*assignmentItemId[\s\S]*practiceAttemptType: 'reading'[\s\S]*practiceAttemptId: attempt\?\.id/i, 'ReadingPractice must mark reading item completed with attempt linkage');
-  assert.match(readingPage, /assignment items completed/i, 'result UI must show item-level progress');
-  assert.match(readingPage, /School assignment completed/i, 'result UI must show parent assignment completion');
+  assert.match(assignmentUi, /assignment items completed/i, 'result UI must show item-level progress');
+  assert.match(assignmentUi, /School assignment completed/i, 'result UI must show parent assignment completion');
   assert.doesNotMatch(readingPage, /rpcIeltsPracticeMarkCompleted\(/i, 'ReadingPractice must not directly complete the parent assignment');
   assert.doesNotMatch(readingPage, /answer_key/i, 'ReadingPractice must not expose answer keys');
 });

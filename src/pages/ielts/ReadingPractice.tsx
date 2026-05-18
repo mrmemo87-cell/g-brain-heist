@@ -11,6 +11,7 @@ import {
 } from '../../../services/ieltsService';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 import { rpcIeltsPracticeMarkItemCompleted, type IeltsPracticeAssignmentProgress } from '../../../services/ieltsPracticeAssignmentService';
+import { AssignmentCompletionStatus, readIeltsPracticeAssignmentContext } from './assignmentPracticeUi';
 import type { IELTSReadingQuestion } from '../../../types';
 
 interface Answer {
@@ -21,11 +22,8 @@ interface Answer {
 const ReadingPractice: React.FC = () => {
   const { setId } = useParams<{ setId: string }>();
   const navigate = useNavigate();
-  const assignmentSearchParams = new URLSearchParams(typeof window === 'undefined' ? '' : window.location.search);
-  const assignmentId = assignmentSearchParams.get('assignment_id');
-  const assignmentItemId = assignmentSearchParams.get('assignment_item_id');
-  const assignmentItemCountParam = Number(assignmentSearchParams.get('assignment_item_count') ?? 0);
-  const isAssignedPractice = Boolean(assignmentId && assignmentItemId);
+  const assignmentContext = readIeltsPracticeAssignmentContext();
+  const { assignmentId, assignmentItemId } = assignmentContext;
   
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
@@ -318,49 +316,12 @@ const ReadingPractice: React.FC = () => {
             </h1>
           </div>
 
-          {isAssignedPractice && (() => {
-            const completedCount = assignmentProgress?.completed_required_count ?? assignmentProgress?.completed_item_count ?? 0;
-            const totalCount = assignmentProgress?.required_count || assignmentProgress?.item_count || assignmentItemCountParam || 1;
-            const allItemsComplete = Boolean(
-              assignmentProgress?.student_status === 'completed'
-              || (assignmentProgress?.required_count && assignmentProgress.completed_required_count === assignmentProgress.required_count)
-            );
-
-            return (
-              <div style={{
-                background: allItemsComplete ? '#dcfce7' : '#eff6ff',
-                border: `1px solid ${allItemsComplete ? '#86efac' : '#93c5fd'}`,
-                borderRadius: '0.75rem',
-                padding: 'clamp(1rem, 3vw, 1.25rem)',
-                marginBottom: '1.5rem',
-                color: allItemsComplete ? '#166534' : '#1e40af',
-                textAlign: 'left'
-              }}>
-                <h2 style={{ margin: '0 0 0.5rem', fontSize: '1rem', fontWeight: 800 }}>
-                  {assignmentCompletionError ? 'Assignment item needs attention' : 'Assignment item completed'}
-                </h2>
-                {assignmentCompletionError ? (
-                  <p style={{ margin: '0 0 0.75rem', color: '#991b1b' }}>{assignmentCompletionError}</p>
-                ) : (
-                  <p style={{ margin: '0 0 0.75rem' }}>
-                    {completedCount} of {totalCount} assignment items completed.
-                  </p>
-                )}
-                <p style={{ margin: 0, fontWeight: 700 }}>
-                  {allItemsComplete ? 'School assignment completed.' : 'Return to Assigned IELTS Practice to finish any remaining items.'}
-                </p>
-                {!allItemsComplete && (
-                  <button
-                    type="button"
-                    onClick={() => navigate('/ielts/practice/assigned')}
-                    style={{ marginTop: '0.875rem', background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '0.5rem', padding: '0.65rem 1rem', fontWeight: 800, cursor: 'pointer' }}
-                  >
-                    Back to assigned practice
-                  </button>
-                )}
-              </div>
-            );
-          })()}
+          <AssignmentCompletionStatus
+            context={assignmentContext}
+            progress={assignmentProgress}
+            completionError={assignmentCompletionError}
+            onNavigate={navigate}
+          />
           
           {/* Score Display */}
           <div style={{

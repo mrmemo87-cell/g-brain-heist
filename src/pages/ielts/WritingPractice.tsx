@@ -474,6 +474,7 @@ const WritingPractice: React.FC = () => {
             context={assignmentContext}
             progress={assignmentProgress}
             completionError={assignmentCompletionError}
+            onNavigate={navigate}
           />
 
           {/* Submission Summary */}

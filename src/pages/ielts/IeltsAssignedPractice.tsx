@@ -2,12 +2,20 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   getIeltsPracticeItemRoute,
+  rpcIeltsPracticeAssignmentProgress,
   rpcIeltsPracticeMarkItemStarted,
   rpcIeltsPracticeMarkStarted,
   rpcIeltsPracticeStudentAssignments,
   type IeltsPracticeAssignmentItem,
+  type IeltsPracticeAssignmentProgress,
   type IeltsPracticeStudentAssignment,
 } from '../../../services/ieltsPracticeAssignmentService';
+import {
+  buildAssignedPracticeRoute as buildAssignedPracticeRouteWithMetadata,
+  getAssignmentItemVisualStatus,
+  getAssignmentProgressSummaryFromAssignment,
+} from '../../../services/ieltsAssignmentUx';
+import { AssignmentItemStatusBadge, AssignmentProgressBar } from './assignmentPracticeUi';
 
 type AssignmentLoadState = 'loading' | 'ready' | 'error';
 
@@ -44,14 +52,16 @@ const groupItemsBySkill = (items: IeltsPracticeAssignmentItem[] = []) => items.r
   return groups;
 }, {});
 
-const buildAssignedPracticeRoute = (route: string, assignment: IeltsPracticeStudentAssignment, item: IeltsPracticeAssignmentItem): string => {
-  const params = new URLSearchParams({
-    assignment_id: assignment.id,
-    assignment_item_id: item.id,
-    assignment_item_count: String(assignment.item_count ?? assignment.items?.length ?? 0),
-  });
-  return `${route}?${params.toString()}`;
-};
+const buildAssignedPracticeRoute = (route: string, assignment: IeltsPracticeStudentAssignment, item: IeltsPracticeAssignmentItem): string => buildAssignedPracticeRouteWithMetadata(
+  route,
+  assignment.id,
+  item.id,
+  {
+    assignmentItemCount: assignment.item_count ?? assignment.items?.length ?? 0,
+    assignmentTitle: assignment.title,
+    assignmentDueAt: assignment.due_at,
+  },
+);
 
 const getAssignmentBadge = (assignment: IeltsPracticeStudentAssignment) => {
   if (assignment.student_status === 'completed') {
@@ -72,6 +82,7 @@ const IeltsAssignedPractice: React.FC = () => {
   const [loadState, setLoadState] = useState<AssignmentLoadState>('loading');
   const [error, setError] = useState<string | null>(null);
   const [busyAssignmentId, setBusyAssignmentId] = useState<string | null>(null);
+  const [assignmentProgressById, setAssignmentProgressById] = useState<Record<string, IeltsPracticeAssignmentProgress>>({});
 
   const loadAssignments = async () => {
     setLoadState('loading');
@@ -80,6 +91,14 @@ const IeltsAssignedPractice: React.FC = () => {
       const rows = await rpcIeltsPracticeStudentAssignments();
       setAssignments(rows);
       setLoadState('ready');
+      const progressRows = await Promise.allSettled(rows.map((assignment) => rpcIeltsPracticeAssignmentProgress(assignment.id)));
+      const progressById = progressRows.reduce<Record<string, IeltsPracticeAssignmentProgress>>((acc, result) => {
+        if (result.status === 'fulfilled') {
+          acc[result.value.assignment_id] = result.value;
+        }
+        return acc;
+      }, {});
+      setAssignmentProgressById(progressById);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Unable to load assigned IELTS practice.');
       setLoadState('error');
@@ -99,7 +118,8 @@ const IeltsAssignedPractice: React.FC = () => {
         const updated = await rpcIeltsPracticeMarkStarted(assignment.id);
         setAssignments((current) => current.map((row) => (row.id === assignment.id ? { ...row, ...updated } : row)));
       }
-      await rpcIeltsPracticeMarkItemStarted({ assignmentId: assignment.id, assignmentItemId: item.id });
+      const progress = await rpcIeltsPracticeMarkItemStarted({ assignmentId: assignment.id, assignmentItemId: item.id });
+      setAssignmentProgressById((current) => ({ ...current, [assignment.id]: progress }));
       navigate(assignedRoute);
     } catch (startError) {
       setError(startError instanceof Error ? startError.message : 'Unable to mark assignment item as started.');
@@ -129,7 +149,7 @@ const IeltsAssignedPractice: React.FC = () => {
           <p style={{ margin: '0 0 0.5rem', color: '#bfdbfe', textTransform: 'uppercase', letterSpacing: '0.12em', fontSize: '0.75rem', fontWeight: 700 }}>School IELTS Practice</p>
           <h1 style={{ margin: 0, fontSize: '1.875rem', fontWeight: 800 }}>Assigned IELTS Practice</h1>
           <p style={{ margin: '0.75rem 0 0', color: '#dbeafe', lineHeight: 1.6 }}>
-            Review IELTS practice assigned by your school or teacher. Opening an item marks the assignment as started; completion is tracked at the assignment level for now.
+            Review IELTS practice assigned by your school or teacher. Clear item states and progress help you pick up exactly where you left off.
           </p>
         </header>
 
@@ -166,6 +186,9 @@ const IeltsAssignedPractice: React.FC = () => {
             .filter((skill) => (groupedItems[skill] ?? []).length > 0);
           const badge = getAssignmentBadge(assignment);
           const isBusy = busyAssignmentId === assignment.id;
+          const assignmentProgress = assignmentProgressById[assignment.id] ?? null;
+          const progressSummary = getAssignmentProgressSummaryFromAssignment(assignment, assignmentProgress);
+          const progressItemsById = new Map((assignmentProgress?.items ?? []).map((progressItem) => [progressItem.assignment_item_id, progressItem]));
 
           return (
             <article key={assignment.id} style={{ backgroundColor: '#ffffff', border: isAssignmentOverdue(assignment) ? '1px solid #fca5a5' : '1px solid #e5e7eb', borderRadius: '1rem', padding: '1rem', marginBottom: '1rem', boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06)' }}>
@@ -185,6 +208,12 @@ const IeltsAssignedPractice: React.FC = () => {
                 <span>Status: <strong style={{ color: '#334155' }}>{assignment.student_status.replace(/_/g, ' ')}</strong></span>
               </div>
 
+              <AssignmentProgressBar
+                summary={progressSummary}
+                label={`${progressSummary.completedCount} of ${progressSummary.totalCount} completed`}
+                style={{ marginTop: '1rem', color: '#334155' }}
+              />
+
               <div style={{ marginTop: '1rem' }}>
                 {visibleSkills.map((skill) => (
                   <section key={skill} style={{ borderTop: '1px solid #e5e7eb', paddingTop: '0.875rem', marginTop: '0.875rem' }}>
@@ -193,23 +222,39 @@ const IeltsAssignedPractice: React.FC = () => {
                       {(groupedItems[skill] ?? []).map((item) => {
                         const route = getIeltsPracticeItemRoute(item);
                         const assignedRoute = route ? buildAssignedPracticeRoute(route, assignment, item) : null;
+                        const itemProgress = progressItemsById.get(item.id);
+                        const itemStatus = getAssignmentItemVisualStatus(itemProgress ?? item, assignment);
+                        const itemTone = itemStatus === 'completed'
+                          ? { border: '#86efac', background: '#f0fdf4' }
+                          : itemStatus === 'in_progress'
+                            ? { border: '#93c5fd', background: '#eff6ff' }
+                            : { border: '#e2e8f0', background: '#ffffff' };
                         return (
-                          <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '0.75rem', flexWrap: 'wrap' }}>
+                          <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', border: `1px solid ${itemTone.border}`, backgroundColor: itemTone.background, borderRadius: '0.75rem', padding: '0.75rem', flexWrap: 'wrap' }}>
                             <div>
-                              <p style={{ margin: 0, fontWeight: 700, color: '#111827' }}>{item.title || `${skillLabels[skill] ?? skill} practice`}</p>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                <p style={{ margin: 0, fontWeight: 700, color: '#111827' }}>{item.title || `${skillLabels[skill] ?? skill} practice`}</p>
+                                <AssignmentItemStatusBadge status={itemStatus} />
+                              </div>
                               <p style={{ margin: '0.25rem 0 0', color: '#64748b', fontSize: '0.8125rem' }}>{item.required ? 'Required' : 'Optional'}</p>
                             </div>
                             {route && assignedRoute ? (
-                              <a
-                                href={assignedRoute}
-                                onClick={(event) => {
-                                  event.preventDefault();
-                                  void handleOpenItem(assignment, item, route);
-                                }}
-                                style={{ backgroundColor: '#2563eb', color: '#ffffff', borderRadius: '0.5rem', padding: '0.55rem 0.875rem', fontWeight: 800, textDecoration: 'none', opacity: isBusy ? 0.65 : 1, pointerEvents: isBusy ? 'none' : 'auto' }}
-                              >
-                                Open
-                              </a>
+                              itemStatus === 'completed' ? (
+                                <span style={{ backgroundColor: '#dcfce7', color: '#166534', borderRadius: '0.5rem', padding: '0.55rem 0.875rem', fontWeight: 900 }}>
+                                  ✓ Completed
+                                </span>
+                              ) : (
+                                <a
+                                  href={assignedRoute}
+                                  onClick={(event) => {
+                                    event.preventDefault();
+                                    void handleOpenItem(assignment, item, route);
+                                  }}
+                                  style={{ backgroundColor: itemStatus === 'in_progress' ? '#1d4ed8' : '#2563eb', color: '#ffffff', borderRadius: '0.5rem', padding: '0.55rem 0.875rem', fontWeight: 800, textDecoration: 'none', opacity: isBusy ? 0.65 : 1, pointerEvents: isBusy ? 'none' : 'auto' }}
+                                >
+                                  Open
+                                </a>
+                              )
                             ) : (
                               <span style={{ color: '#94a3b8', fontSize: '0.8125rem' }}>Unavailable</span>
                             )}
