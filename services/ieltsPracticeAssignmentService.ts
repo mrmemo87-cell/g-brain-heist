@@ -3,6 +3,7 @@ import { supabase } from './supabaseClient.js';
 export type IeltsPracticeSkill = 'reading' | 'listening' | 'writing' | 'speaking';
 export type IeltsPracticeAssignmentStatus = 'draft' | 'assigned' | 'closed' | 'archived' | string;
 export type IeltsPracticeStudentStatus = 'assigned' | 'in_progress' | 'completed' | 'overdue' | 'excused' | string;
+export type IeltsPracticeAssignmentListStatusFilter = 'active' | 'archived' | 'all';
 
 export interface IeltsPracticeAssignmentItemInput {
   skill: IeltsPracticeSkill | string;
@@ -202,12 +203,13 @@ export const getIeltsPracticeItemRoute = (item: Pick<IeltsPracticeAssignmentItem
 };
 
 export const rpcIeltsPracticeListAssignments = async (
-  params: { schoolId?: string | null; classId?: string | null } = {},
+  params: { schoolId?: string | null; classId?: string | null; statusFilter?: IeltsPracticeAssignmentListStatusFilter | null } = {},
   client?: IeltsPracticeAssignmentRpcClient
 ): Promise<IeltsPracticeAssignmentSummary[]> => {
   const { data, error } = await withClient(client).rpc('rpc_ielts_practice_list_assignments', {
     p_school_id: params.schoolId ?? null,
     p_class_id: params.classId ?? null,
+    p_status_filter: params.statusFilter ?? 'active',
   }) as unknown as Awaited<RpcResult<IeltsPracticeAssignmentSummary[]>>;
 
   return assertNoRpcError('rpc_ielts_practice_list_assignments', data, error);
@@ -277,6 +279,19 @@ export const rpcIeltsPracticeArchiveAssignment = async (
   }) as unknown as Awaited<RpcResult<IeltsPracticeAssignmentSummary>>;
 
   return assertNoRpcError('rpc_ielts_practice_archive_assignment', data, error);
+};
+
+export const rpcIeltsPracticeRestoreAssignment = async (
+  assignmentId: string,
+  status: 'closed' | 'assigned' = 'closed',
+  client?: IeltsPracticeAssignmentRpcClient
+): Promise<IeltsPracticeAssignmentSummary> => {
+  const { data, error } = await withClient(client).rpc('rpc_ielts_practice_restore_assignment', {
+    p_assignment_id: assignmentId,
+    p_status: status,
+  }) as unknown as Awaited<RpcResult<IeltsPracticeAssignmentSummary>>;
+
+  return assertNoRpcError('rpc_ielts_practice_restore_assignment', data, error);
 };
 
 export const rpcIeltsPracticeAssignmentDetail = async (

@@ -11,6 +11,7 @@ import {
   rpcIeltsPracticeCloseAssignment,
   rpcIeltsPracticeCreateAssignment,
   rpcIeltsPracticeListAssignments,
+  rpcIeltsPracticeRestoreAssignment,
   rpcIeltsPracticeUpdateAssignment,
   rpcIeltsPracticeMarkCompleted,
   rpcIeltsPracticeForceCompleteAssignment,
@@ -87,6 +88,7 @@ test('IELTS practice assignment service maps RPC names and parameters', async ()
   });
 
   await rpcIeltsPracticeListAssignments({ schoolId: 'school-1', classId: 'class-1' }, client);
+  await rpcIeltsPracticeListAssignments({ schoolId: 'school-1', classId: 'class-1', statusFilter: 'archived' }, client);
   await rpcIeltsPracticeCreateAssignment({
     schoolId: 'school-1',
     classId: 'class-1',
@@ -102,6 +104,7 @@ test('IELTS practice assignment service maps RPC names and parameters', async ()
   await rpcIeltsPracticeUpdateAssignment({ assignmentId: 'assignment-1', title: 'Week 1 revised', description: 'Updated instructions', dueAt: '2026-05-21T10:00:00.000Z' }, client);
   await rpcIeltsPracticeCloseAssignment('assignment-1', client);
   await rpcIeltsPracticeArchiveAssignment('assignment-1', client);
+  await rpcIeltsPracticeRestoreAssignment('assignment-1', 'closed', client);
   await rpcIeltsPracticeAssignmentDetail('assignment-1', client);
   await rpcIeltsPracticeStudentAssignments(client);
   await rpcIeltsPracticeMarkStarted('assignment-1', client);
@@ -112,7 +115,8 @@ test('IELTS practice assignment service maps RPC names and parameters', async ()
   await rpcIeltsPracticeMarkItemCompleted({ assignmentId: 'assignment-1', assignmentItemId: 'item-1', practiceAttemptType: 'reading', practiceAttemptId: 'attempt-1' }, client);
 
   assert.deepEqual(calls, [
-    { name: 'rpc_ielts_practice_list_assignments', params: { p_school_id: 'school-1', p_class_id: 'class-1' } },
+    { name: 'rpc_ielts_practice_list_assignments', params: { p_school_id: 'school-1', p_class_id: 'class-1', p_status_filter: 'active' } },
+    { name: 'rpc_ielts_practice_list_assignments', params: { p_school_id: 'school-1', p_class_id: 'class-1', p_status_filter: 'archived' } },
     {
       name: 'rpc_ielts_practice_create_assignment',
       params: {
@@ -131,6 +135,7 @@ test('IELTS practice assignment service maps RPC names and parameters', async ()
     { name: 'rpc_ielts_practice_update_assignment', params: { p_assignment_id: 'assignment-1', p_title: 'Week 1 revised', p_description: 'Updated instructions', p_due_at: '2026-05-21T10:00:00.000Z' } },
     { name: 'rpc_ielts_practice_close_assignment', params: { p_assignment_id: 'assignment-1' } },
     { name: 'rpc_ielts_practice_archive_assignment', params: { p_assignment_id: 'assignment-1' } },
+    { name: 'rpc_ielts_practice_restore_assignment', params: { p_assignment_id: 'assignment-1', p_status: 'closed' } },
     { name: 'rpc_ielts_practice_assignment_detail', params: { p_assignment_id: 'assignment-1' } },
     { name: 'rpc_ielts_practice_student_assignments', params: {} },
     { name: 'rpc_ielts_practice_mark_started', params: { p_assignment_id: 'assignment-1' } },
@@ -143,6 +148,27 @@ test('IELTS practice assignment service maps RPC names and parameters', async ()
 });
 
 
+
+test('IELTS practice archived assignment view SQL supports scoped active, archived, and all filters', () => {
+  const migration = fs.readFileSync(
+    path.join(process.cwd(), 'supabase/migrations/20260518153000_ielts_practice_archived_assignment_view.sql'),
+    'utf8',
+  );
+
+  assert.match(migration, /p_status_filter text default 'active'/i, 'list RPC must default to the active filter');
+  assert.match(migration, /v_status_filter not in \('active', 'archived', 'all'\)/i, 'list RPC must validate supported filters');
+  assert.match(migration, /v_status_filter = 'active' and a\.status in \('draft', 'assigned', 'closed'\)/i, 'active filter must hide archived assignments by default');
+  assert.match(migration, /v_status_filter = 'archived' and a\.status = 'archived'/i, 'archived filter must show only archived assignments');
+  assert.match(migration, /or v_status_filter = 'all'/i, 'all filter must include every status');
+  assert.match(migration, /a\.school_id = v_school_id[\s\S]*p_class_id is null or a\.class_id = p_class_id[\s\S]*public\.can_manage_ielts_practice_class/i, 'filtered list must preserve school and class manager scoping');
+  assert.match(migration, /create or replace function public\.rpc_ielts_practice_restore_assignment/i, 'restore RPC should be available for archived assignments');
+  assert.match(migration, /v_restore_status not in \('closed', 'assigned'\)/i, 'restore RPC must only restore to closed or assigned');
+  assert.match(migration, /if not public\.can_manage_ielts_practice_assignment\(p_assignment_id\) then raise exception 'forbidden'/i, 'restore RPC must be manager-only');
+  assert.match(migration, /if v_assignment\.status <> 'archived' then raise exception 'assignment_not_archived'/i, 'restore RPC must only restore archived rows');
+  assert.doesNotMatch(migration, /delete\s+from\s+public\.ielts_practice_assignment_(students|item_students|items)/i, 'restore must not delete progress rows or item history');
+  assert.doesNotMatch(migration, /answer_key/i, 'archived list migration must not expose answer keys');
+  assert.doesNotMatch(migration, /rpc_is_ielts_admin|ielts_teachers|is_ielts_admin/i, 'archived list migration must not use legacy IELTS admin permissions');
+});
 
 test('IELTS practice assignment edit/archive SQL manages active rows without deleting history', () => {
   const migration = fs.readFileSync(
@@ -320,6 +346,10 @@ test('IELTS Practice tab uses school-scoped assignment service and avoids legacy
   assert.match(tab, /rpcIeltsPracticeAssignmentDetail/, 'Practice tab must load roster completion through the scoped detail service');
   assert.match(tab, /View progress/, 'Practice tab should expose a simple progress view action');
   assert.match(tab, /progressFilters/, 'Practice tab should include simple progress status filters');
+  assert.match(tab, /assignmentStatusFilters/, 'Practice tab should include Active and Archived assignment tabs');
+  assert.match(tab, /statusFilter: assignmentStatusFilter/, 'Practice tab must pass the selected assignment status filter to the service');
+  assert.match(tab, /Read-only archive/, 'Practice tab must mark archived rows as read-only');
+  assert.match(tab, /rpcIeltsPracticeRestoreAssignment/, 'Practice tab should expose restore for archived assignments');
   assert.match(tab, /rpcIeltsPracticeContentCatalog/, 'Practice tab must use the safe catalog service for the content picker');
   assert.match(tab, /Choose content/, 'Practice tab must make the content picker the main content selection path');
   assert.match(tab, /Search catalog/, 'Practice tab must allow title search through the picker');
