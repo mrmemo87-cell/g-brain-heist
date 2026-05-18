@@ -201,6 +201,62 @@ test('IELTS practice repair migration hardens payload helper and student-safe RP
 
 
 
+test('IELTS practice assignment detail repair uses class membership joins and safe progress statuses', () => {
+  const migration = fs.readFileSync(
+    path.join(process.cwd(), 'supabase/migrations/20260516190000_fix_ielts_practice_assignment_detail_class_join.sql'),
+    'utf8',
+  );
+
+  const detailSql = migration.slice(
+    migration.indexOf('create or replace function public.rpc_ielts_practice_assignment_detail'),
+  );
+
+  assert.match(detailSql, /if not public\.can_manage_ielts_practice_assignment\(p_assignment_id\) then raise exception 'forbidden'/i, 'detail RPC must remain manager-only');
+  assert.match(detailSql, /from public\.ielts_practice_assignment_students s[\s\S]*join public\.users u on u\.id = s\.student_id[\s\S]*join public\.ielts_practice_assignments a on a\.id = s\.assignment_id/i, 'detail roster must join assignment students, users, and assignments');
+  assert.match(detailSql, /left join public\.class_students cs[\s\S]*cs\.student_id = s\.student_id[\s\S]*a\.class_id is null or cs\.class_id = a\.class_id/i, 'detail roster must resolve classes through class_students scoped to the assignment class');
+  assert.match(detailSql, /left join public\.classes c[\s\S]*c\.id = coalesce\(cs\.class_id, a\.class_id\)/i, 'detail roster must join classes through the resolved class id');
+  assert.match(detailSql, /'student_id'[\s\S]*'username'[\s\S]*'email'[\s\S]*'class_id'[\s\S]*'class_name'[\s\S]*'status'[\s\S]*'completed_at'[\s\S]*'updated_at'/i, 'detail RPC must return roster fields needed by the progress UI');
+  assert.match(detailSql, /'required_count'[\s\S]*'completed_required_count'[\s\S]*'item_count'[\s\S]*'completed_item_count'/i, 'detail RPC must preserve item progress counts');
+  assert.match(detailSql, /s\.status not in \('completed', 'excused'\)[\s\S]*else s\.status/i, 'completed students must remain completed in the roster status');
+  assert.match(detailSql, /ielts_practice_assignment_progress_payload\(p_assignment_id, null\)/i, 'detail RPC must preserve manager item progress payload support');
+  assert.doesNotMatch(detailSql, /u\.class_id/i, 'detail RPC must not read a missing users.class_id column');
+  assert.doesNotMatch(migration, /answer_key/i, 'detail repair must not expose protected answer data');
+  assert.doesNotMatch(migration, /rpc_is_ielts_admin|ielts_teachers|is_ielts_admin/i, 'detail repair must not use legacy IELTS admin permissions');
+});
+
+test('IELTS practice list counters are backed by synced parent student statuses', () => {
+  const repair = fs.readFileSync(
+    path.join(process.cwd(), 'supabase/migrations/20260516140000_ielts_practice_assignment_repairs.sql'),
+    'utf8',
+  );
+  const foundation = fs.readFileSync(
+    path.join(process.cwd(), 'supabase/migrations/20260516130000_ielts_practice_assignments_foundation.sql'),
+    'utf8',
+  );
+  const itemProgress = fs.readFileSync(
+    path.join(process.cwd(), 'supabase/migrations/20260516170000_ielts_practice_item_progress.sql'),
+    'utf8',
+  );
+
+  const payloadSql = repair.slice(
+    repair.indexOf('create or replace function public.ielts_practice_assignment_payload'),
+    repair.indexOf('create or replace function public.rpc_ielts_practice_assignment_detail'),
+  );
+  const listSql = foundation.slice(
+    foundation.indexOf('create or replace function public.rpc_ielts_practice_list_assignments'),
+    foundation.indexOf('create or replace function public.rpc_ielts_practice_create_assignment'),
+  );
+  const completeSql = itemProgress.slice(
+    itemProgress.indexOf('create or replace function public.rpc_ielts_practice_mark_item_completed'),
+    itemProgress.indexOf('-- Add safe manager item-progress summaries'),
+  );
+
+  assert.match(listSql, /public\.ielts_practice_assignment_payload\(a\.id\)/i, 'list assignment cards must use the shared assignment payload');
+  assert.match(payloadSql, /'completed_count'[\s\S]*count\(s\.id\) filter \(where s\.status = 'completed'\)[\s\S]*'completion_percent'/i, 'assignment payload counters must read parent assignment student statuses');
+  assert.match(completeSql, /perform public\.ielts_practice_sync_parent_completion\(p_assignment_id, auth\.uid\(\)\)/i, 'item completion must sync the parent assignment student status used by list counters');
+});
+
+
 test('IELTS practice content catalog RPC returns only safe assignment picker metadata', () => {
   const migration = fs.readFileSync(
     path.join(process.cwd(), 'supabase/migrations/20260518120000_ielts_practice_content_catalog.sql'),
