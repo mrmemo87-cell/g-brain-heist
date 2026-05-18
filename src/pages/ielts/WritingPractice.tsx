@@ -480,6 +480,19 @@ const WritingPractice: React.FC = () => {
             onNavigate={navigate}
           />
 
+          {lastAttemptId ? (
+            <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <span style={{ color: '#1e3a8a', fontWeight: 600 }}>Teacher review will appear here after finalization.</span>
+              <button
+                type="button"
+                onClick={() => navigate(`/ielts/review-result/writing/${encodeURIComponent(lastAttemptId)}`)}
+                style={{ background: '#2563eb', color: 'white', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1rem', cursor: 'pointer', fontWeight: 700 }}
+              >
+                View teacher review result
+              </button>
+            </div>
+          ) : null}
+
           {/* Submission Summary */}
           <div style={{
             background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
