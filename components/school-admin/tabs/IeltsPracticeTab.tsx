@@ -7,8 +7,10 @@ import {
   rpcIeltsPracticeCloseAssignment,
   rpcIeltsPracticeCreateAssignment,
   rpcIeltsPracticeListAssignments,
+  rpcIeltsPracticeRestoreAssignment,
   rpcIeltsPracticeUpdateAssignment,
   type IeltsPracticeAssignmentDetail,
+  type IeltsPracticeAssignmentListStatusFilter,
   type IeltsPracticeAssignmentItemInput,
   type IeltsPracticeAssignmentStudentProgress,
   type IeltsPracticeAssignmentSummary,
@@ -26,6 +28,7 @@ type DraftItem = IeltsPracticeAssignmentItemInput & {
   band?: string | null;
 };
 type ProgressFilter = 'all' | 'assigned' | 'in_progress' | 'completed' | 'overdue';
+type AssignmentStatusFilter = Extract<IeltsPracticeAssignmentListStatusFilter, 'active' | 'archived'>;
 
 const newDraftItem = (): DraftItem => ({
   localId: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -42,6 +45,11 @@ const contentTypesBySkill: Record<string, string> = {
   writing: 'ielts_writing_task',
   speaking: 'ielts_speaking_task',
 };
+
+const assignmentStatusFilters: Array<{ value: AssignmentStatusFilter; label: string; description: string }> = [
+  { value: 'active', label: 'Active', description: 'Draft, assigned, and closed assignments' },
+  { value: 'archived', label: 'Archived', description: 'Read-only archived assignments' },
+];
 
 const progressFilters: Array<{ value: ProgressFilter; label: string }> = [
   { value: 'all', label: 'All' },
@@ -88,6 +96,7 @@ const displayStudentStatus = (assignment: IeltsPracticeAssignmentSummary, studen
 
 const IeltsPracticeTab: React.FC = () => {
   const { classes = [], students = [], school, addToast } = useSchoolAdmin();
+  const [assignmentStatusFilter, setAssignmentStatusFilter] = useState<AssignmentStatusFilter>('active');
   const [assignments, setAssignments] = useState<IeltsPracticeAssignmentSummary[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -146,7 +155,7 @@ const IeltsPracticeTab: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const rows = await rpcIeltsPracticeListAssignments({ schoolId: school.id });
+      const rows = await rpcIeltsPracticeListAssignments({ schoolId: school.id, statusFilter: assignmentStatusFilter });
       setAssignments(rows);
       if (selectedAssignmentId) {
         const selectedStillVisible = rows.some((row) => row.id === selectedAssignmentId);
@@ -165,7 +174,7 @@ const IeltsPracticeTab: React.FC = () => {
 
   useEffect(() => {
     void loadAssignments();
-  }, [school?.id]);
+  }, [school?.id, assignmentStatusFilter]);
 
   const loadContentCatalog = async (skill?: string, search = contentSearch) => {
     setContentLoading(true);
@@ -328,6 +337,7 @@ const IeltsPracticeTab: React.FC = () => {
         items: validItems,
       });
       const assigned = await rpcIeltsPracticeAssignToClass({ assignmentId: created.id, classId });
+      setAssignmentStatusFilter('active');
       setAssignments((current) => [assigned, ...current.filter((row) => row.id !== assigned.id)]);
       resetForm();
       addToast?.('IELTS practice assignment created and assigned.', 'success');
@@ -418,6 +428,26 @@ const IeltsPracticeTab: React.FC = () => {
       addToast?.('IELTS practice assignment archived. Progress history was preserved.', 'success');
     } catch (archiveError) {
       const message = archiveError instanceof Error ? archiveError.message : 'Unable to archive IELTS practice assignment.';
+      setError(message);
+      addToast?.(message, 'error');
+    } finally {
+      setMutatingAssignmentId(null);
+    }
+  };
+
+  const handleRestoreAssignment = async (assignmentId: string) => {
+    setMutatingAssignmentId(assignmentId);
+    setError(null);
+    try {
+      await rpcIeltsPracticeRestoreAssignment(assignmentId, 'closed');
+      setAssignments((current) => current.filter((row) => row.id !== assignmentId));
+      if (selectedAssignmentId === assignmentId) {
+        setSelectedAssignmentId(null);
+        setAssignmentDetail(null);
+      }
+      addToast?.('IELTS practice assignment restored as closed. Progress history was preserved.', 'success');
+    } catch (restoreError) {
+      const message = restoreError instanceof Error ? restoreError.message : 'Unable to restore IELTS practice assignment.';
       setError(message);
       addToast?.(message, 'error');
     } finally {
@@ -676,22 +706,49 @@ const IeltsPracticeTab: React.FC = () => {
         </section>
 
         <aside className="rounded-2xl border border-emerald-500/30 bg-gray-900/80 p-5">
-          <h4 className="text-lg font-semibold text-white">Assignments</h4>
-          <p className="mt-1 text-sm text-gray-400">Completion counts come from school-scoped IELTS assignment RPCs.</p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h4 className="text-lg font-semibold text-white">Assignments</h4>
+              <p className="mt-1 text-sm text-gray-400">Completion counts come from school-scoped IELTS assignment RPCs.</p>
+            </div>
+            <div className="flex flex-wrap gap-2" role="tablist" aria-label="IELTS practice assignment status">
+              {assignmentStatusFilters.map((filter) => (
+                <button
+                  key={filter.value}
+                  type="button"
+                  role="tab"
+                  aria-selected={assignmentStatusFilter === filter.value}
+                  title={filter.description}
+                  data-testid={`ielts-practice-${filter.value}-tab`}
+                  onClick={() => {
+                    setAssignmentStatusFilter(filter.value);
+                    setSelectedAssignmentId(null);
+                    setAssignmentDetail(null);
+                    cancelEditAssignment();
+                  }}
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${assignmentStatusFilter === filter.value ? 'bg-emerald-500 text-white' : 'border border-gray-600 text-gray-300 hover:bg-gray-800'}`}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="mt-4 space-y-3">
             {loading && <p className="text-sm text-gray-400">Loading assignments…</p>}
-            {!loading && assignments.length === 0 && <p className="text-sm text-gray-400">No IELTS practice assignments yet.</p>}
+            {!loading && assignments.length === 0 && <p className="text-sm text-gray-400">{assignmentStatusFilter === 'archived' ? 'No archived IELTS practice assignments.' : 'No active IELTS practice assignments yet.'}</p>}
             {assignments.map((assignment) => {
               const isEditing = editingAssignmentId === assignment.id;
               const isMutating = mutatingAssignmentId === assignment.id;
               const statusClass = statusBadgeClasses[assignment.status] ?? statusBadgeClasses.draft;
+              const isArchivedView = assignmentStatusFilter === 'archived' || assignment.status === 'archived';
               return (
-                <div key={assignment.id} data-testid={`ielts-practice-assignment-${assignment.id}`} className={`rounded-xl border p-4 text-sm ${selectedAssignmentId === assignment.id ? 'border-emerald-400 bg-emerald-500/10' : 'border-gray-700 bg-black/20'}`}>
+                <div key={assignment.id} data-testid={`ielts-practice-assignment-${assignment.id}`} className={`rounded-xl border p-4 text-sm ${isArchivedView ? 'opacity-85' : ''} ${selectedAssignmentId === assignment.id ? 'border-emerald-400 bg-emerald-500/10' : 'border-gray-700 bg-black/20'}`}>
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="font-semibold text-white">{assignment.title}</p>
                         <span data-testid={`ielts-practice-status-${assignment.id}`} className={`rounded-full border px-2 py-1 text-xs font-semibold capitalize ${statusClass}`}>{assignment.status}</span>
+                        {isArchivedView && <span className="rounded-full border border-slate-600 bg-slate-800/70 px-2 py-1 text-xs font-semibold text-slate-300">Read-only archive</span>}
                       </div>
                       <p className="text-xs text-gray-500">{assignment.class_name ?? 'No class'}</p>
                     </div>
@@ -739,15 +796,24 @@ const IeltsPracticeTab: React.FC = () => {
                       <button type="button" data-testid={`ielts-practice-view-progress-${assignment.id}`} onClick={() => void loadAssignmentDetail(assignment.id)} disabled={progressLoading && selectedAssignmentId === assignment.id} className="rounded-lg border border-emerald-400/50 px-3 py-2 font-semibold text-emerald-200 hover:bg-emerald-500/10 disabled:opacity-60">
                         {progressLoading && selectedAssignmentId === assignment.id ? 'Loading…' : 'View progress'}
                       </button>
-                      <button type="button" data-testid={`ielts-practice-edit-${assignment.id}`} onClick={() => beginEditAssignment(assignment)} disabled={assignment.status === 'archived' || isMutating} className="rounded-lg border border-sky-400/50 px-3 py-2 font-semibold text-sky-200 hover:bg-sky-500/10 disabled:opacity-60">
-                        Edit
-                      </button>
-                      <button type="button" data-testid={`ielts-practice-close-${assignment.id}`} onClick={() => void handleCloseAssignment(assignment.id)} disabled={assignment.status === 'closed' || assignment.status === 'archived' || isMutating} className="rounded-lg border border-amber-400/50 px-3 py-2 font-semibold text-amber-100 hover:bg-amber-500/10 disabled:opacity-60">
-                        {isMutating ? 'Working…' : 'Close'}
-                      </button>
-                      <button type="button" data-testid={`ielts-practice-archive-${assignment.id}`} onClick={() => void handleArchiveAssignment(assignment.id)} disabled={isMutating} className="rounded-lg border border-red-400/50 px-3 py-2 font-semibold text-red-200 hover:bg-red-500/10 disabled:opacity-60">
-                        Archive
-                      </button>
+                      {!isArchivedView && (
+                        <>
+                          <button type="button" data-testid={`ielts-practice-edit-${assignment.id}`} onClick={() => beginEditAssignment(assignment)} disabled={isMutating} className="rounded-lg border border-sky-400/50 px-3 py-2 font-semibold text-sky-200 hover:bg-sky-500/10 disabled:opacity-60">
+                            Edit
+                          </button>
+                          <button type="button" data-testid={`ielts-practice-close-${assignment.id}`} onClick={() => void handleCloseAssignment(assignment.id)} disabled={assignment.status === 'closed' || isMutating} className="rounded-lg border border-amber-400/50 px-3 py-2 font-semibold text-amber-100 hover:bg-amber-500/10 disabled:opacity-60">
+                            {isMutating ? 'Working…' : 'Close'}
+                          </button>
+                          <button type="button" data-testid={`ielts-practice-archive-${assignment.id}`} onClick={() => void handleArchiveAssignment(assignment.id)} disabled={isMutating} className="rounded-lg border border-red-400/50 px-3 py-2 font-semibold text-red-200 hover:bg-red-500/10 disabled:opacity-60">
+                            Archive
+                          </button>
+                        </>
+                      )}
+                      {isArchivedView && (
+                        <button type="button" data-testid={`ielts-practice-restore-${assignment.id}`} onClick={() => void handleRestoreAssignment(assignment.id)} disabled={isMutating} className="rounded-lg border border-slate-400/50 px-3 py-2 font-semibold text-slate-200 hover:bg-slate-500/10 disabled:opacity-60">
+                          {isMutating ? 'Restoring…' : 'Restore'}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
