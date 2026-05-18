@@ -24,7 +24,6 @@ export const visualAssets = {
     fridayBattle: `${V}/Friday-School-Battle-Teaser.png`,
   },
   mission: {
-    todaysMoves:     `${V}/Today's-3-Moves.png`,
     quickQuest:      `${V}/Quick-Quest-card-illustration.png`,
     postCelebration: `${V}/Post-quest-celebration-background.png`,
   },

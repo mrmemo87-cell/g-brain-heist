@@ -324,24 +324,6 @@ const MainActions: React.FC<MainActionsProps> = ({
         }}
       />
       <div className="relative flex flex-col gap-5">
-        <div className="rounded-2xl border border-cyan-500/20 bg-slate-900/60 p-2">
-          <VisualFallbackImage
-            src={visualAssets.mission.todaysMoves}
-            alt="Today's 3 Moves"
-            className="w-full overflow-hidden rounded-xl"
-            imgClassName="block w-full h-auto object-contain"
-            fallback={(
-              <div className="flex h-24 items-center justify-between rounded-xl border border-cyan-400/20 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10 px-4 sm:h-28">
-                <span className="text-xs font-semibold uppercase tracking-wider text-cyan-200">Today&apos;s 3 Moves</span>
-                <div className="flex items-center gap-2 text-lg sm:text-xl" aria-hidden>
-                  <span>🎯</span>
-                  <span>🎁</span>
-                  <span>🤝</span>
-                </div>
-              </div>
-            )}
-          />
-        </div>
         {/* ── Day-of-week engagement banner ── */}
         {(() => {
           const day = new Date().getDay();
