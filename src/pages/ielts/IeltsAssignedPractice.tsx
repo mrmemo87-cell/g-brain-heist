@@ -184,7 +184,7 @@ const IeltsAssignedPractice: React.FC = () => {
 
         {loadState === 'ready' && sortedAssignments.length === 0 && (
           <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.25rem', color: '#64748b' }}>
-            No IELTS practice has been assigned yet.
+            No IELTS practice has been assigned yet. Assignments complete automatically after all required items are finished, and closed assignments are read-only.
           </div>
         )}
 
@@ -225,6 +225,11 @@ const IeltsAssignedPractice: React.FC = () => {
               />
 
               <div style={{ marginTop: '1rem' }}>
+                {visibleSkills.length === 0 && (
+                  <div data-testid={`ielts-assigned-no-items-${assignment.id}`} style={{ border: '1px dashed #cbd5e1', backgroundColor: '#f8fafc', borderRadius: '0.75rem', padding: '0.875rem', color: '#64748b', fontSize: '0.875rem', fontWeight: 700 }}>
+                    This assignment has no items yet. Ask your teacher to add practice content.
+                  </div>
+                )}
                 {visibleSkills.map((skill) => (
                   <section key={skill} style={{ borderTop: '1px solid #e5e7eb', paddingTop: '0.875rem', marginTop: '0.875rem' }}>
                     <h3 style={{ margin: '0 0 0.5rem', color: '#1e40af', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{skillLabels[skill] ?? skill}</h3>
@@ -283,7 +288,7 @@ const IeltsAssignedPractice: React.FC = () => {
 
               {isClosedReadOnly ? (
                 <div data-testid={`ielts-assigned-closed-read-only-${assignment.id}`} style={{ marginTop: '1rem', border: '1px solid #fde68a', backgroundColor: '#fffbeb', color: '#92400e', borderRadius: '0.75rem', padding: '0.875rem', fontSize: '0.875rem', fontWeight: 700 }}>
-                  This assignment is closed. Your progress is preserved, but no new starts or completions are available.
+                  Closed assignments are read-only. Your progress is preserved, but no new submissions are available.
                 </div>
               ) : assignment.student_status !== 'completed' && (
                 <div style={{ marginTop: '1rem', border: '1px solid #bfdbfe', backgroundColor: '#eff6ff', color: '#1e40af', borderRadius: '0.75rem', padding: '0.875rem', fontSize: '0.875rem', fontWeight: 700 }}>

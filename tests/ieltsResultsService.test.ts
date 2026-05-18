@@ -82,7 +82,7 @@ test('IELTS Results tab uses scoped results RPC and Estimated readiness wording'
   assert.match(tab, /rpcIeltsSchoolResults/, 'Results tab must load rows through the scoped results service');
   assert.match(tab, /Loading results/, 'Results tab must include a loading state');
   assert.match(tab, /Unable to load IELTS Results/, 'Results tab must include an error state');
-  assert.match(tab, /No IELTS result rows found/, 'Results tab must include an empty state');
+  assert.match(tab, /Results have no completed practice yet/, 'Results tab must include a completed-practice empty state');
   assert.match(tab, /Total students/, 'Results tab must show total students summary');
   assert.match(tab, /Assigned practice/, 'Results tab must show assigned practice summary');
   assert.match(tab, /Completed practice/, 'Results tab must show completed practice summary');
