@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import {
   rpcIeltsExamWhoami,
   rpcIeltsStartAttempt,
@@ -231,4 +233,43 @@ test('IELTS exam JSON validation reports parse errors and nested answer keys', (
   assert.equal(invalid.ok, false);
   assert.deepEqual(invalid.value, { fallback: true });
   assert.match(invalid.error ?? '', /JSON|property|position|Expected/i);
+});
+
+test('IELTS start attempt pgcrypto repair migration keeps lock tokens secure and scoped', () => {
+  const migration = fs.readFileSync(
+    path.join(process.cwd(), 'supabase/migrations/20260518150000_fix_ielts_start_attempt_pgcrypto.sql'),
+    'utf8',
+  );
+
+  assert.match(
+    migration,
+    /create\s+extension\s+if\s+not\s+exists\s+pgcrypto\s+with\s+schema\s+extensions\s*;/i,
+    'repair migration must ensure pgcrypto exists in the extensions schema',
+  );
+  assert.match(
+    migration,
+    /create\s+or\s+replace\s+function\s+public\.rpc_ielts_start_attempt\(p_assignment_id uuid\)[\s\S]*security\s+definer[\s\S]*set\s+search_path\s*=\s*public/i,
+    'start attempt repair must preserve SECURITY DEFINER and the public search_path',
+  );
+  assert.match(
+    migration,
+    /encode\(extensions\.gen_random_bytes\(32\),\s*'hex'\)/i,
+    'new attempts must generate high-entropy lock tokens through extensions.gen_random_bytes',
+  );
+  assert.match(
+    migration,
+    /coalesce\(v_attempt\.lock_token,\s*encode\(extensions\.gen_random_bytes\(32\),\s*'hex'\)\)/i,
+    'resumed not_started attempts must only generate a replacement token when one does not exist',
+  );
+  assert.doesNotMatch(
+    migration,
+    /(^|[^.])\bgen_random_bytes\s*\(/i,
+    'repair migration must not call gen_random_bytes without the extensions schema',
+  );
+  assert.doesNotMatch(migration, /answer_key/i, 'start attempt repair must not expose answer keys');
+  assert.doesNotMatch(
+    migration,
+    /rpc_is_ielts_admin|ielts_teachers|is_ielts_admin/i,
+    'start attempt repair must not reintroduce legacy IELTS admin dependencies',
+  );
 });
