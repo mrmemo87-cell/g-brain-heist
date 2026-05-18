@@ -431,3 +431,52 @@ test('Phase 2.9 practice skill pages complete assigned listening, writing, and s
     assert.doesNotMatch(page, /rpc_is_ielts_admin|ielts_teachers|is_ielts_admin/i, `${pageInfo.skill} must not depend on legacy IELTS admin permissions`);
   }
 });
+
+test('IELTS Practice content picker polish prevents duplicates and renders selected cards', () => {
+  const tab = fs.readFileSync(path.join(process.cwd(), 'components/school-admin/tabs/IeltsPracticeTab.tsx'), 'utf8');
+
+  assert.match(tab, /duplicateItem/, 'picker should check for duplicate catalog selections before updating an item');
+  assert.match(tab, /duplicates content already selected in this assignment/, 'submit validation should stop duplicate content IDs');
+  assert.match(tab, /ielts-practice-selected-items/, 'selected item cards should render as an obvious summary panel');
+  assert.match(tab, /ielts-practice-selected-item-/, 'each selected item should have a testable selected-card row');
+  assert.match(tab, /Move up/, 'selected items should support reordering upward');
+  assert.match(tab, /Move down/, 'selected items should support reordering downward');
+  assert.match(tab, /Selected/, 'already-selected catalog content should be visually marked');
+});
+
+test('IELTS Practice content picker exposes safe filters, grouped catalog, and manual fallback', () => {
+  const tab = fs.readFileSync(path.join(process.cwd(), 'components/school-admin/tabs/IeltsPracticeTab.tsx'), 'utf8');
+
+  assert.match(tab, /Skill filter/, 'picker should include a simple skill filter');
+  assert.match(tab, /Title search/, 'picker should include title search');
+  assert.match(tab, /groupedContentCatalog/, 'catalog content should be grouped by skill');
+  assert.match(tab, /Difficulty:/, 'picker should show difficulty display only');
+  assert.match(tab, /Band \{content\.band\}/, 'picker should show band display only');
+  assert.match(tab, /Advanced manual fallback/, 'manual content ID fallback must stay available behind Advanced');
+  assert.match(tab, /<details[\s\S]*Advanced manual fallback/, 'manual content ID fallback should remain collapsed in a details disclosure');
+});
+
+test('IELTS Practice assignment form has friendly validation for required items and mismatches', () => {
+  const tab = fs.readFileSync(path.join(process.cwd(), 'components/school-admin/tabs/IeltsPracticeTab.tsx'), 'utf8');
+
+  assert.match(tab, /Mark at least one IELTS practice item as required/, 'form should require at least one required item');
+  assert.match(tab, /content type does not match the selected skill/, 'form should warn and block skill/content type mismatches');
+  assert.match(tab, /Choose content for item/, 'form should show friendly missing content errors');
+  assert.match(tab, /Required/, 'teachers should be able to see and toggle required item status');
+});
+
+test('IELTS Practice picker and safe catalog fields do not expose protected solution fields', () => {
+  const files = [
+    'components/school-admin/tabs/IeltsPracticeTab.tsx',
+    'services/ieltsPracticeContentService.ts',
+  ];
+
+  for (const file of files) {
+    const source = fs.readFileSync(path.join(process.cwd(), file), 'utf8');
+    assert.doesNotMatch(source, /answer_key/i, `${file} must not expose answer keys`);
+    assert.doesNotMatch(source, /correct_answer/i, `${file} must not expose correct answers`);
+  }
+
+  const service = fs.readFileSync(path.join(process.cwd(), 'services/ieltsPracticeContentService.ts'), 'utf8');
+  assert.match(service, /content_type[\s\S]*content_id[\s\S]*title[\s\S]*skill[\s\S]*description[\s\S]*difficulty[\s\S]*band/, 'catalog service type should model only safe picker metadata fields');
+});

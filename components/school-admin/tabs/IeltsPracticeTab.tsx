@@ -16,7 +16,12 @@ import {
   type IeltsPracticeContentCatalogItem,
 } from '../../../services/ieltsPracticeContentService';
 
-type DraftItem = IeltsPracticeAssignmentItemInput & { localId: string };
+type DraftItem = IeltsPracticeAssignmentItemInput & {
+  localId: string;
+  description?: string | null;
+  difficulty?: string | null;
+  band?: string | null;
+};
 type ProgressFilter = 'all' | 'assigned' | 'in_progress' | 'completed' | 'overdue';
 
 const newDraftItem = (): DraftItem => ({
@@ -82,6 +87,7 @@ const IeltsPracticeTab: React.FC = () => {
   const [contentLoading, setContentLoading] = useState(false);
   const [contentError, setContentError] = useState<string | null>(null);
   const [pickerOpenFor, setPickerOpenFor] = useState<string | null>(null);
+  const [contentSkillFilter, setContentSkillFilter] = useState('reading');
 
   const selectedClass = useMemo(
     () => classes.find((cls: any) => cls.id === classId) ?? null,
@@ -89,6 +95,19 @@ const IeltsPracticeTab: React.FC = () => {
   );
 
   const selectedProgressAssignment = assignmentDetail?.assignment ?? assignments.find((row) => row.id === selectedAssignmentId) ?? null;
+
+  const selectedItemKeys = useMemo(() => new Set(items
+    .filter((item) => item.contentType && item.contentId.trim())
+    .map((item) => `${item.contentType}:${item.contentId.trim()}`)), [items]);
+
+  const groupedContentCatalog = useMemo(() => {
+    const groups = new Map<string, IeltsPracticeContentCatalogItem[]>();
+    for (const content of contentCatalog) {
+      const groupKey = String(content.skill || 'other');
+      groups.set(groupKey, [...(groups.get(groupKey) ?? []), content]);
+    }
+    return Array.from(groups.entries()).sort(([left], [right]) => left.localeCompare(right));
+  }, [contentCatalog]);
 
   const filteredProgressStudents = useMemo(() => {
     if (!assignmentDetail) return [];
@@ -157,12 +176,22 @@ const IeltsPracticeTab: React.FC = () => {
   };
 
   const selectContent = (localId: string, content: IeltsPracticeContentCatalogItem) => {
+    const contentKey = `${content.content_type}:${content.content_id}`;
+    const duplicateItem = items.find((item) => item.localId !== localId && `${item.contentType}:${item.contentId.trim()}` === contentKey);
+    if (duplicateItem) {
+      setError('This IELTS practice content is already in the assignment. Choose a different item to avoid duplicate student work.');
+      return;
+    }
     updateItem(localId, {
       skill: content.skill,
       contentType: content.content_type,
       contentId: content.content_id,
       title: content.title,
+      description: content.description,
+      difficulty: content.difficulty,
+      band: content.band,
     });
+    setError(null);
     setPickerOpenFor(null);
     setContentSearch('');
   };
@@ -171,6 +200,7 @@ const IeltsPracticeTab: React.FC = () => {
     const isOpening = pickerOpenFor !== item.localId;
     setPickerOpenFor(isOpening ? item.localId : null);
     if (isOpening) {
+      setContentSkillFilter(String(item.skill));
       void loadContentCatalog(String(item.skill), contentSearch);
     }
   };
@@ -188,6 +218,18 @@ const IeltsPracticeTab: React.FC = () => {
 
   const removeItem = (localId: string) => {
     setItems((current) => (current.length === 1 ? current : current.filter((item) => item.localId !== localId)));
+  };
+
+  const moveItem = (localId: string, direction: -1 | 1) => {
+    setItems((current) => {
+      const index = current.findIndex((item) => item.localId === localId);
+      const nextIndex = index + direction;
+      if (index < 0 || nextIndex < 0 || nextIndex >= current.length) return current;
+      const next = [...current];
+      const [moved] = next.splice(index, 1);
+      next.splice(nextIndex, 0, moved);
+      return next;
+    });
   };
 
   const resetForm = () => {
@@ -215,6 +257,29 @@ const IeltsPracticeTab: React.FC = () => {
     const firstMissingIndex = items.findIndex((item) => !item.contentId.trim());
     if (firstMissingIndex >= 0) {
       setError(`Choose content for item ${firstMissingIndex + 1}, or enter a content ID in the advanced fallback.`);
+      return;
+    }
+
+    const duplicateKeys = new Set<string>();
+    const duplicateIndex = items.findIndex((item) => {
+      const key = `${item.contentType}:${item.contentId.trim()}`;
+      if (duplicateKeys.has(key)) return true;
+      duplicateKeys.add(key);
+      return false;
+    });
+    if (duplicateIndex >= 0) {
+      setError(`Item ${duplicateIndex + 1} duplicates content already selected in this assignment. Remove it or choose a different IELTS practice item.`);
+      return;
+    }
+
+    const mismatchIndex = items.findIndex((item) => item.contentType && item.contentType !== contentTypesBySkill[String(item.skill)]);
+    if (mismatchIndex >= 0) {
+      setError(`Item ${mismatchIndex + 1} content type does not match the selected skill. Fix the skill or content type before assigning.`);
+      return;
+    }
+
+    if (!items.some((item) => item.required ?? true)) {
+      setError('Mark at least one IELTS practice item as required so students have a clear completion target.');
       return;
     }
 
@@ -316,12 +381,55 @@ const IeltsPracticeTab: React.FC = () => {
             </label>
           </div>
 
+          <div className="mt-5 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4" data-testid="ielts-practice-selected-items">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h5 className="font-semibold text-white">Selected assignment items</h5>
+                <p className="text-xs text-emerald-100/70">Drag-free ordering controls keep the student sequence clear before assigning.</p>
+              </div>
+              <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-100">{items.length} item{items.length === 1 ? '' : 's'}</span>
+            </div>
+            <div className="mt-3 grid gap-2 md:grid-cols-2">
+              {items.map((item, index) => (
+                <div key={`selected-${item.localId}`} className={`rounded-lg border p-3 ${item.contentId ? 'border-emerald-400/60 bg-emerald-500/10' : 'border-amber-400/50 bg-amber-500/10'}`} data-testid={`ielts-practice-selected-item-${index}`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-emerald-200">#{index + 1} · {String(item.skill)} · {item.required ?? true ? 'Required' : 'Optional'}</p>
+                      <p className="mt-1 truncate font-semibold text-white">{item.title?.trim() || 'No content selected'}</p>
+                      <p className="mt-1 text-xs text-gray-300">{item.contentType || contentTypesBySkill[String(item.skill)]} · {item.contentId || 'Choose content'}</p>
+                    </div>
+                    <button type="button" className="text-xs text-red-200 hover:text-red-100" onClick={() => removeItem(item.localId)} disabled={items.length === 1}>Remove</button>
+                  </div>
+                  {(item.difficulty || item.band) && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {item.difficulty && <span className="rounded-full bg-gray-800 px-2 py-1 text-xs text-gray-200">Difficulty: {item.difficulty}</span>}
+                      {item.band && <span className="rounded-full bg-emerald-400/10 px-2 py-1 text-xs text-emerald-100">Band {item.band}</span>}
+                    </div>
+                  )}
+                  {item.description && <p className="mt-2 line-clamp-2 text-xs text-gray-300">{item.description}</p>}
+                  <div className="mt-3 flex gap-2">
+                    <button type="button" onClick={() => moveItem(item.localId, -1)} disabled={index === 0} className="rounded border border-gray-600 px-2 py-1 text-xs text-gray-200 disabled:opacity-40">Move up</button>
+                    <button type="button" onClick={() => moveItem(item.localId, 1)} disabled={index === items.length - 1} className="rounded border border-gray-600 px-2 py-1 text-xs text-gray-200 disabled:opacity-40">Move down</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="mt-5 space-y-3">
             {items.map((item, index) => (
-              <div key={item.localId} className="rounded-xl border border-gray-700 bg-black/20 p-4">
-                <div className="mb-3 flex items-center justify-between gap-3">
+              <div key={item.localId} className={`rounded-xl border p-4 ${item.contentId ? 'border-emerald-500/50 bg-emerald-950/20' : 'border-gray-700 bg-black/20'}`}>
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                   <p className="font-semibold text-white">Item {index + 1}</p>
-                  <button type="button" className="text-sm text-red-300 hover:text-red-200" onClick={() => removeItem(item.localId)} disabled={items.length === 1}>Remove</button>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-300">
+                      <input type="checkbox" checked={item.required ?? true} onChange={(event) => updateItem(item.localId, { required: event.target.checked })} />
+                      Required
+                    </label>
+                    <button type="button" className="rounded border border-gray-600 px-2 py-1 text-xs text-gray-200 disabled:opacity-40" onClick={() => moveItem(item.localId, -1)} disabled={index === 0}>Move up</button>
+                    <button type="button" className="rounded border border-gray-600 px-2 py-1 text-xs text-gray-200 disabled:opacity-40" onClick={() => moveItem(item.localId, 1)} disabled={index === items.length - 1}>Move down</button>
+                    <button type="button" className="text-sm text-red-300 hover:text-red-200 disabled:opacity-40" onClick={() => removeItem(item.localId)} disabled={items.length === 1}>Remove</button>
+                  </div>
                 </div>
                 <div className="grid gap-3 md:grid-cols-[160px_minmax(0,1fr)]">
                   <label className="text-xs font-semibold uppercase tracking-wide text-gray-400">
@@ -339,6 +447,13 @@ const IeltsPracticeTab: React.FC = () => {
                         <p className="text-xs font-semibold uppercase tracking-wide text-emerald-300">Chosen content</p>
                         <p className="mt-1 font-semibold text-white">{item.title?.trim() || 'No content selected'}</p>
                         <p className="mt-1 text-xs text-gray-400">{item.contentType || contentTypesBySkill[String(item.skill)]} · {item.contentId || 'Choose content to fill ID'}</p>
+                        {(item.difficulty || item.band) && (
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {item.difficulty && <span className="rounded-full bg-gray-800 px-2 py-1 text-xs text-gray-200">Difficulty: {item.difficulty}</span>}
+                            {item.band && <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-xs text-emerald-200">Band {item.band}</span>}
+                          </div>
+                        )}
+                        {item.description && <p className="mt-2 line-clamp-2 text-xs text-gray-400">{item.description}</p>}
                       </div>
                       <button
                         type="button"
@@ -356,41 +471,72 @@ const IeltsPracticeTab: React.FC = () => {
                     )}
                     {pickerOpenFor === item.localId && (
                       <div className="mt-3 rounded-xl border border-gray-700 bg-black/30 p-3">
-                        <div className="flex flex-col gap-2 sm:flex-row">
-                          <input
-                            className="min-w-0 flex-1 rounded-lg border border-gray-700 bg-gray-800 p-2 text-sm text-white"
-                            value={contentSearch}
-                            onChange={(event) => setContentSearch(event.target.value)}
-                            placeholder="Search by title"
-                          />
+                        <div className="grid gap-2 sm:grid-cols-[160px_minmax(0,1fr)_auto]">
+                          <label className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                            Skill filter
+                            <select
+                              className="mt-1 w-full rounded-lg border border-gray-700 bg-gray-800 p-2 text-sm text-white"
+                              value={contentSkillFilter}
+                              onChange={(event) => {
+                                setContentSkillFilter(event.target.value);
+                                void loadContentCatalog(event.target.value, contentSearch);
+                              }}
+                            >
+                              <option value="reading">Reading</option>
+                              <option value="listening">Listening</option>
+                              <option value="writing">Writing</option>
+                              <option value="speaking">Speaking</option>
+                            </select>
+                          </label>
+                          <label className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                            Title search
+                            <input
+                              className="mt-1 w-full rounded-lg border border-gray-700 bg-gray-800 p-2 text-sm text-white"
+                              value={contentSearch}
+                              onChange={(event) => setContentSearch(event.target.value)}
+                              placeholder="Search by title"
+                            />
+                          </label>
                           <button
                             type="button"
-                            onClick={() => void loadContentCatalog(String(item.skill), contentSearch)}
+                            onClick={() => void loadContentCatalog(contentSkillFilter, contentSearch)}
                             disabled={contentLoading}
-                            className="rounded-lg border border-emerald-400/50 px-3 py-2 text-sm font-semibold text-emerald-200 hover:bg-emerald-500/10 disabled:opacity-60"
+                            className="self-end rounded-lg border border-emerald-400/50 px-3 py-2 text-sm font-semibold text-emerald-200 hover:bg-emerald-500/10 disabled:opacity-60"
                           >
                             {contentLoading ? 'Searching…' : 'Search catalog'}
                           </button>
                         </div>
+                        <p className="mt-2 text-xs text-gray-500">Difficulty and band are shown for teacher comparison only; use skill and title to filter.</p>
                         {contentError && <p className="mt-2 text-sm text-red-200">{contentError}</p>}
                         {!contentLoading && contentCatalog.length === 0 && <p className="mt-3 text-sm text-gray-400">No matching content found. Try a different title or use the advanced fallback below.</p>}
-                        <div className="mt-3 max-h-72 space-y-2 overflow-y-auto">
-                          {contentCatalog.map((content) => (
-                            <button
-                              key={`${content.content_type}-${content.content_id}`}
-                              type="button"
-                              onClick={() => selectContent(item.localId, content)}
-                              data-testid={`ielts-practice-content-option-${content.content_type}-${content.content_id}`}
-                              className="w-full rounded-lg border border-gray-700 bg-gray-900 p-3 text-left hover:border-emerald-400 hover:bg-emerald-500/10"
-                            >
-                              <div className="flex flex-wrap items-center gap-2">
-                                <span className="font-semibold text-white">{content.title}</span>
-                                <span className="rounded-full bg-gray-800 px-2 py-1 text-xs text-gray-300">{content.skill}</span>
-                                {content.difficulty && <span className="rounded-full bg-gray-800 px-2 py-1 text-xs text-gray-300">{content.difficulty}</span>}
-                                {content.band && <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-xs text-emerald-200">Band {content.band}</span>}
+                        <div className="mt-3 max-h-72 space-y-4 overflow-y-auto">
+                          {groupedContentCatalog.map(([skillGroup, groupItems]) => (
+                            <div key={skillGroup} data-testid={`ielts-practice-content-group-${skillGroup}`}>
+                              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">{skillGroup}</p>
+                              <div className="space-y-2">
+                                {groupItems.map((content) => {
+                                  const isSelected = selectedItemKeys.has(`${content.content_type}:${content.content_id}`);
+                                  return (
+                                    <button
+                                      key={`${content.content_type}-${content.content_id}`}
+                                      type="button"
+                                      onClick={() => selectContent(item.localId, content)}
+                                      data-testid={`ielts-practice-content-option-${content.content_type}-${content.content_id}`}
+                                      className={`w-full rounded-lg border p-3 text-left ${isSelected ? 'border-emerald-300 bg-emerald-500/15 ring-1 ring-emerald-300/40' : 'border-gray-700 bg-gray-900 hover:border-emerald-400 hover:bg-emerald-500/10'}`}
+                                    >
+                                      <div className="flex flex-wrap items-center gap-2">
+                                        <span className="font-semibold text-white">{content.title}</span>
+                                        {isSelected && <span className="rounded-full bg-emerald-400 px-2 py-1 text-xs font-semibold text-emerald-950">Selected</span>}
+                                        <span className="rounded-full bg-gray-800 px-2 py-1 text-xs text-gray-300">{content.skill}</span>
+                                        {content.difficulty && <span className="rounded-full bg-gray-800 px-2 py-1 text-xs text-gray-300">Difficulty: {content.difficulty}</span>}
+                                        {content.band && <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-xs text-emerald-200">Band {content.band}</span>}
+                                      </div>
+                                      {content.description && <p className="mt-2 line-clamp-2 text-xs text-gray-400">{content.description}</p>}
+                                    </button>
+                                  );
+                                })}
                               </div>
-                              {content.description && <p className="mt-2 line-clamp-2 text-xs text-gray-400">{content.description}</p>}
-                            </button>
+                            </div>
                           ))}
                         </div>
                       </div>
