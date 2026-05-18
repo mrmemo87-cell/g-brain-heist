@@ -9,6 +9,7 @@ import { notifyTeachersOfExamGuard } from '../../../services/notificationService
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 import { ExamGuard } from '../../utils/examGuard';
 import { logIeltsViolation } from '../../../services/ieltsViolationService';
+import { buildWritingAttemptPayload } from '../../lib/ieltsPracticeScoring';
 
 interface WritingTask {
   id: number;
@@ -152,15 +153,17 @@ const WritingPractice: React.FC = () => {
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session?.user) throw new Error('Not authenticated');
 
+      const attemptPayload = buildWritingAttemptPayload({
+        user_id: session.session.user.id,
+        task_id: data.taskId,
+        answer_text: data.answer,
+        word_count: data.wordCount,
+        submitted_at: new Date().toISOString(),
+      });
+
       const { data: result, error } = await supabase
         .from('ielts_writing_attempts')
-        .insert({
-          user_id: session.session.user.id,
-          task_id: data.taskId,
-          answer_text: data.answer,
-          word_count: data.wordCount,
-          submitted_at: new Date().toISOString(),
-        })
+        .insert(attemptPayload)
         .select()
         .single();
 

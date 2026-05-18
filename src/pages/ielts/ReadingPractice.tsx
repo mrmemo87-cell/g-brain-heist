@@ -13,6 +13,7 @@ import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/au
 import { rpcIeltsPracticeMarkItemCompleted, type IeltsPracticeAssignmentProgress } from '../../../services/ieltsPracticeAssignmentService';
 import { AssignmentCompletionStatus, readIeltsPracticeAssignmentContext } from './assignmentPracticeUi';
 import type { IELTSReadingQuestion } from '../../../types';
+import { estimateIeltsBandFromPercent, toRawScoreResult } from '../../lib/ieltsPracticeScoring';
 
 interface Answer {
   questionId: number;
@@ -82,7 +83,13 @@ const ReadingPractice: React.FC = () => {
 
   const submitMutation = useMutation({
     mutationFn: async (data: { setId: number; answers: Record<number, string>; timeSpent: number }) => {
-      const attempt = await submitReadingAttempt(data.setId, data.answers, data.timeSpent);
+      const attemptScore = calculateResults();
+      const attempt = await submitReadingAttempt(data.setId, data.answers, data.timeSpent, {
+        rawScore: attemptScore.correct,
+        totalQuestions: attemptScore.total,
+        percent: attemptScore.percentage,
+        estBand: estimateIeltsBandFromPercent(attemptScore.percentage),
+      });
       let progress: IeltsPracticeAssignmentProgress | null = null;
       let itemCompletionError: string | null = null;
 
@@ -180,20 +187,7 @@ const ReadingPractice: React.FC = () => {
       }
     });
 
-    return {
-      correct,
-      total: questions.length,
-      percentage: Math.round((correct / questions.length) * 100),
-    };
-  };
-
-  const estimateBandScore = (percentage: number): number => {
-    if (percentage >= 90) return 8.5;
-    if (percentage >= 80) return 7.5;
-    if (percentage >= 70) return 6.5;
-    if (percentage >= 60) return 5.5;
-    if (percentage >= 50) return 5.0;
-    return 4.5;
+    return toRawScoreResult(correct, questions.length);
   };
 
   if (loadingSets || loadingQuestions) {
@@ -279,7 +273,7 @@ const ReadingPractice: React.FC = () => {
 
   if (showResults) {
     const results = calculateResults();
-    const bandScore = estimateBandScore(results.percentage);
+    const bandScore = results.bandScore;
 
     return (
       <div style={{ 
