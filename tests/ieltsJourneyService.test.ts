@@ -65,3 +65,31 @@ test('IELTS journey route, home link, and page use the journey service safely', 
   assert.doesNotMatch(page, /\.from\(['"]ielts_/i, 'journey page must not query raw IELTS tables directly');
   assert.doesNotMatch(page, /answer_key/i, 'journey page must not expose protected answer data');
 });
+
+test('IELTS readiness engine SQL normalizes safe skill readiness defensively', () => {
+  const migration = fs.readFileSync(
+    path.join(process.cwd(), 'supabase/migrations/20260518130000_ielts_readiness_engine_foundation.sql'),
+    'utf8',
+  );
+
+  assert.match(migration, /ielts_latest_skill_readiness\(p_student_id uuid\)/i, 'readiness helper must expose latest skill readiness rows');
+  assert.match(migration, /returns table\s*\([\s\S]*skill text[\s\S]*estimated_band numeric[\s\S]*source_type text[\s\S]*source_id text[\s\S]*confidence text[\s\S]*last_activity_at timestamptz/i, 'helper must return the readiness contract');
+  assert.match(migration, /to_regclass\('public\.ielts_reading_attempts'\)[\s\S]*information_schema\.columns/i, 'helper must defensively check reading schema');
+  assert.match(migration, /public\.ielts_estimated_readiness_band\(%4\$s, %5\$s, %6\$s\)/i, 'reading estimates should be calculated when percent or raw score data exists');
+  assert.match(migration, /when pct >= 65 then 6\.0/i, 'raw score mapping should use a conservative readiness band ladder');
+  assert.match(migration, /band_overall[\s\S]*band_score[\s\S]*estimated_band[\s\S]*rubric_band/i, 'writing and speaking must use existing rubric or band fields only');
+  assert.doesNotMatch(migration, /openai|chatgpt|ask AI|AI to grade/i, 'readiness foundation must not introduce AI grading');
+  assert.doesNotMatch(migration, /answer_key/i, 'readiness foundation must not expose protected answer data');
+});
+
+test('IELTS journey RPC uses readiness helper and averages available skills only', () => {
+  const migration = fs.readFileSync(
+    path.join(process.cwd(), 'supabase/migrations/20260518130000_ielts_readiness_engine_foundation.sql'),
+    'utf8',
+  );
+
+  assert.match(migration, /from public\.ielts_latest_skill_readiness\(v_student_id\)/i, 'journey must use the readiness helper');
+  assert.match(migration, /from \(values \(v_reading\), \(v_listening\), \(v_writing\), \(v_speaking\)\) estimates\(value\)[\s\S]*where value is not null/i, 'overall readiness must average only available skill values');
+  assert.match(migration, /'estimated_band', estimated_band/i, 'recent practice rows should use estimated readiness fields');
+  assert.doesNotMatch(migration, /official\s+IELTS\s+(score|band)/i, 'RPC must not overclaim official IELTS scores');
+});
