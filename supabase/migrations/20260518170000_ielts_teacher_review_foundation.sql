@@ -101,21 +101,8 @@ stable
 security definer
 set search_path = public
 as $$
-  select auth.uid() is not null and (
-    public.can_manage_ielts_practice_school(p_school_id)
-    or exists (
-      select 1
-      from public.classes c
-      join public.class_teacher_assignments cta on cta.class_id = c.id
-      left join public.class_students cs on cs.class_id = c.id and cs.student_id = p_student_id
-      where c.school_id = p_school_id
-        and coalesce(c.is_active, true) = true
-        and cta.teacher_user_id = auth.uid()
-        and coalesce(cta.active, true) = true
-        and (p_class_id is null or c.id = p_class_id)
-        and (p_class_id is not null or cs.student_id = p_student_id)
-    )
-  );
+  select auth.uid() is not null
+    and public.can_manage_ielts_practice_school(p_school_id);
 $$;
 
 create or replace function public.ielts_productive_review_seed(
@@ -217,19 +204,7 @@ begin
   end if;
   if v_school_id is null then raise exception 'school_required'; end if;
 
-  if not (
-    public.can_manage_ielts_practice_school(v_school_id)
-    or exists (
-      select 1
-      from public.classes c
-      join public.class_teacher_assignments cta on cta.class_id = c.id
-      where c.school_id = v_school_id
-        and coalesce(c.is_active, true) = true
-        and cta.teacher_user_id = v_actor_id
-        and coalesce(cta.active, true) = true
-        and (p_class_id is null or c.id = p_class_id)
-    )
-  ) then
+  if not public.can_manage_ielts_practice_school(v_school_id) then
     raise exception 'forbidden';
   end if;
 
