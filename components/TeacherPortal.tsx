@@ -3088,7 +3088,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   // Handle "Use Set" from the Blooket-style QuestionBank
   const handleUseQuestionSet = useCallback((questionIds: string[], subject: Subject, topic: string) => {
-    if (teacherAssignedSubjects.length > 0 && !teacherAssignedSubjects.includes(subject)) {
+    const assignedSubjects = teacherAssignedSubjects ?? [];
+    if (assignedSubjects.length > 0 && !assignedSubjects.includes(subject)) {
       brainsAlert('You can only create assignments for subjects assigned to you by the school admin.', 'error');
       return;
     }
@@ -3118,7 +3119,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const handleCreateAssignment = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (teacherAssignedSubjects.length > 0 && !teacherAssignedSubjects.includes(assignmentSubject)) {
+    const assignedSubjects = teacherAssignedSubjects ?? [];
+    if (assignedSubjects.length > 0 && !assignedSubjects.includes(assignmentSubject)) {
       brainsAlert('You can only create assignments for subjects assigned to you by the school admin.', 'error');
       return;
     }
@@ -3155,8 +3157,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
       // Consume pilot quota if applicable
       const assignQuota = await tryConsumePilotQuota('assignments_created');
-      if (!assignQuota.proceed) {
-        brainsAlert(assignQuota.error || 'You\'ve reached the assignment creation limit on the Pilot plan. Upgrade to continue.', 'error');
+      if (!assignQuota?.proceed) {
+        brainsAlert(assignQuota?.error || 'You\'ve reached the assignment creation limit on the Pilot plan. Upgrade to continue.', 'error');
         setAssignmentSubmitting(false);
         return;
       }
@@ -3303,8 +3305,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
     // Consume pilot quota if applicable
     const quota = await tryConsumePilotQuota('reports_generated');
-    if (!quota.proceed) {
-      brainsAlert(quota.error || 'You\'ve reached the report export limit on the Pilot plan. Upgrade to continue.', 'error');
+    if (!quota?.proceed) {
+      brainsAlert(quota?.error || 'You\'ve reached the report export limit on the Pilot plan. Upgrade to continue.', 'error');
       return;
     }
 
