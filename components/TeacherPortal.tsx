@@ -42,7 +42,7 @@ interface TeacherPortalProps {
 let _cachedPlanDetails: SchoolPlanDetails | null = null;
 let _cachedTeacherTier: AccountTier | null = null;
 
-type PortalView = 'dashboard' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'geometry-diagrams' | 'cambridge-reports' | 'quest-builder' | 'ielts-reviews' | 'join-school';
+type PortalView = 'dashboard' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'geometry-diagrams' | 'cambridge-reports' | 'quest-builder' | 'join-school';
 
 // XP points based on difficulty: Easy=10, Medium=15, Hard=20
 const getDefaultPointsForDifficulty = (diff: QuestionDifficulty): number => {
@@ -597,7 +597,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       s.batch?.toLowerCase().includes(search)
     );
   }, [availableStudents, studentSearchTerm]);
-  const primarySection = useMemo<'dashboard' | 'questions' | 'assignments' | 'reports' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'cambridge' | 'quests' | 'ielts-reviews' | 'lockdown' | 'join-school'>(() => {
+  const primarySection = useMemo<'dashboard' | 'questions' | 'assignments' | 'reports' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'cambridge' | 'quests' | 'lockdown' | 'join-school'>(() => {
     if (view === 'dashboard') return 'dashboard';
     if (view === 'join-school') return 'join-school';
     if (view === 'question-bank' || view === 'create-question' || view === 'csv-upload') return 'questions';
@@ -610,7 +610,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     return 'reports'; // catches 'reports', 'report-detail', 'report-analysis', 'collective-report'
   }, [view]);
 
-  const changeSection = (section: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'cambridge' | 'quests' | 'ielts-reviews' | 'lockdown' | 'join-school') => {
+  const changeSection = (section: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'cambridge' | 'quests' | 'lockdown' | 'join-school') => {
     switch (section) {
       case 'dashboard':
         setView('dashboard');
@@ -643,9 +643,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       case 'quests':
         setView('quest-builder');
         loadMyQuests();
-        break;
-      case 'ielts-reviews':
-        window.location.href = '/ielts/reviews';
         break;
       case 'lockdown':
         if (onLockdown) onLockdown();
@@ -8505,13 +8502,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
   const canAccessWritingInsights = profile.role === 'teacher' || profile.role === 'admin';
 
-  const navTabs: Array<{ id: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'cambridge' | 'quests' | 'ielts-reviews' | 'lockdown' | 'join-school'; label: string; icon: string; description: string; proOnly?: boolean; highlight?: boolean }> = [
+  const navTabs: Array<{ id: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'cambridge' | 'quests' | 'lockdown' | 'join-school'; label: string; icon: string; description: string; proOnly?: boolean; highlight?: boolean }> = [
     { id: 'dashboard', label: 'Dashboard', icon: '🏠', description: 'Overview & Quick Actions' },
     ...(!profile.school_id ? [{ id: 'join-school' as const, label: 'Join Your School', icon: '🏫', description: 'Use your invite code to unlock school features', highlight: true }] : []),
     { id: 'questions', label: 'Question Bank', icon: '📚', description: 'Create & Manage Questions', proOnly: true },
     { id: 'assignments', label: 'Assignments', icon: '📋', description: 'Assign Work to Students', proOnly: true },
     { id: 'reports', label: 'Reports', icon: '📊', description: 'Student Performance', proOnly: true },
-    { id: 'ielts-reviews', label: 'IELTS Reviews', icon: '🧑‍🏫', description: 'Review writing and speaking submissions', proOnly: true },
     ...(canAccessWritingInsights
       ? [
           { id: 'writing-monitoring' as const, label: 'Writing Monitor', icon: '📝', description: 'Student-by-student progress tracker', proOnly: true },
@@ -8817,7 +8813,6 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                     'writing-monitoring': 'Performance Reports',
                     'writing-analytics': 'Performance Reports',
                     'writing-export-center': 'Performance Reports',
-                    'ielts-reviews': 'Performance Reports',
                     lockdown: 'Lockdown Mode',
                     cambridge: 'Cambridge Marking',
                   };
@@ -8829,7 +8824,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   return (
                     <button
                       key={tab.id}
-                      onClick={() => { if (!locked && tab.id === 'ielts-reviews') { window.location.href = '/ielts/reviews'; return; } if (!locked) changeSection(tab.id); }}
+                      onClick={() => { if (!locked) changeSection(tab.id); }}
                       disabled={locked}
                       className={`teacher-nav-btn ${primarySection === tab.id ? 'active' : ''} ${locked ? 'teacher-nav-locked' : ''} ${tab.highlight ? 'teacher-nav-btn--highlight' : ''}`}
                     >
