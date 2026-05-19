@@ -78,7 +78,7 @@ begin
     left join public.ielts_practice_assignments a on a.id = s.assignment_id
     where s.student_id = v_student_id;
 
-    select coalesce(jsonb_agg(jsonb_build_object('assignment_id', s.assignment_id, 'title', coalesce(a.title, 'IELTS Practice'), 'status', s.status, 'assigned_at', s.assigned_at, 'started_at', s.started_at, 'completed_at', s.completed_at, 'due_at', a.due_at) order by coalesce(a.due_at, s.assigned_at) asc nulls last), '[]'::jsonb)
+    select coalesce(jsonb_agg(jsonb_build_object('assignment_id', s.assignment_id, 'title', coalesce(a.title, 'IELTS Practice'), 'status', s.status, 'assigned_at', coalesce((to_jsonb(s)->>'assigned_at')::timestamptz, s.created_at), 'started_at', (to_jsonb(s)->>'started_at')::timestamptz, 'completed_at', s.completed_at, 'due_at', a.due_at) order by coalesce(a.due_at, coalesce((to_jsonb(s)->>'assigned_at')::timestamptz, s.created_at)) asc nulls last), '[]'::jsonb)
     into v_assigned_practice
     from public.ielts_practice_assignment_students s
     left join public.ielts_practice_assignments a on a.id = s.assignment_id
