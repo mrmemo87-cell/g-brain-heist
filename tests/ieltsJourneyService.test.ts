@@ -39,7 +39,7 @@ test('IELTS journey service maps RPC name and optional student parameter', async
 
 test('IELTS journey SQL is scoped, defensive, and avoids protected answer data', () => {
   const migration = fs.readFileSync(
-    path.join(process.cwd(), 'supabase/migrations/20260519100000_ielts_student_journey_dashboard_expansion.sql'),
+    path.join(process.cwd(), 'supabase/migrations/20260519113000_ielts_student_journey_schema_alignment_repair.sql'),
     'utf8',
   );
 
@@ -52,12 +52,14 @@ test('IELTS journey SQL is scoped, defensive, and avoids protected answer data',
   assert.match(migration, /ielts_practice_assignment_students/i, 'journey RPC must use assigned practice summary data');
   assert.match(migration, /assigned_practice/i, 'journey RPC must include active assigned practice');
   assert.match(migration, /completed_practice/i, 'journey RPC must include completed practice');
+  assert.match(migration, /ielts_productive_skill_reviews/i, 'journey RPC must use the productive skill reviews table');
+  assert.match(migration, /review_status = 'finalized'/i, 'journey RPC must include only finalized teacher feedback');
   assert.match(migration, /teacher_feedback/i, 'journey RPC must include finalized teacher feedback');
   assert.match(migration, /review_result_link/i, 'journey RPC must include review result links');
   assert.match(migration, /ielts_exam_submissions/i, 'journey RPC must use Exam Mode submission metadata when available');
-  assert.match(migration, /force_submitted/i, 'journey RPC must include force-submitted exam attempts');
+  assert.match(migration, /auto_submitted/i, 'journey RPC must include auto-submitted exam attempts');
   assert.match(migration, /Submitted — results pending/i, 'journey RPC must provide pending exam result status messaging');
-  assert.doesNotMatch(migration, /private_note/i, 'journey RPC must not expose private review notes');
+  assert.doesNotMatch(migration, /private_notes/i, 'journey RPC must not expose private review notes');
   assert.doesNotMatch(migration, /answer_key/i, 'journey RPC must not expose protected answer data');
   assert.doesNotMatch(migration, /rpc_is_ielts_admin|ielts_teachers|is_ielts_admin/i, 'journey RPC must not use legacy IELTS admin permissions');
 });
