@@ -644,9 +644,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         setView('quest-builder');
         loadMyQuests();
         break;
-      case 'ielts-reviews':
-        window.location.href = '/ielts/reviews';
-        break;
       case 'lockdown':
         if (onLockdown) onLockdown();
         break;
@@ -8511,7 +8508,6 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     { id: 'questions', label: 'Question Bank', icon: '📚', description: 'Create & Manage Questions', proOnly: true },
     { id: 'assignments', label: 'Assignments', icon: '📋', description: 'Assign Work to Students', proOnly: true },
     { id: 'reports', label: 'Reports', icon: '📊', description: 'Student Performance', proOnly: true },
-    { id: 'ielts-reviews', label: 'IELTS Reviews', icon: '🧑‍🏫', description: 'Review writing and speaking submissions', proOnly: true },
     ...(canAccessWritingInsights
       ? [
           { id: 'writing-monitoring' as const, label: 'Writing Monitor', icon: '📝', description: 'Student-by-student progress tracker', proOnly: true },
@@ -8817,7 +8813,6 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                     'writing-monitoring': 'Performance Reports',
                     'writing-analytics': 'Performance Reports',
                     'writing-export-center': 'Performance Reports',
-                    'ielts-reviews': 'Performance Reports',
                     lockdown: 'Lockdown Mode',
                     cambridge: 'Cambridge Marking',
                   };
@@ -8829,7 +8824,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   return (
                     <button
                       key={tab.id}
-                      onClick={() => { if (!locked && tab.id === 'ielts-reviews') { window.location.href = '/ielts/reviews'; return; } if (!locked) changeSection(tab.id); }}
+                      onClick={() => { if (!locked) changeSection(tab.id); }}
                       disabled={locked}
                       className={`teacher-nav-btn ${primarySection === tab.id ? 'active' : ''} ${locked ? 'teacher-nav-locked' : ''} ${tab.highlight ? 'teacher-nav-btn--highlight' : ''}`}
                     >
