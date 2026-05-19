@@ -91,50 +91,52 @@ begin
     where s.student_id = v_student_id and s.status = 'completed';
   end if;
 
-  if to_regclass('public.ielts_productive_skill_reviews') is not null then
+  if to_regclass('public.ielts_productive_skill_reviews') is not null
+    and exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'ielts_productive_skill_reviews' and column_name = 'student_id')
+  then
     select coalesce(jsonb_agg(jsonb_build_object(
       'review_id', r.id,
-      'skill', r.attempt_type,
-      'attempt_id', r.attempt_id,
-      'overall_band', r.overall_band,
+      'skill', to_jsonb(r)->>'attempt_type',
+      'attempt_id', (to_jsonb(r)->>'attempt_id')::uuid,
+      'overall_band', case when to_jsonb(r) ? 'overall_band' then (to_jsonb(r)->>'overall_band')::numeric else null end,
       'rubric_summary',
         trim(both ' ' from concat_ws(' · ',
-          case when r.rubric ? 'task_achievement' then 'TA ' || coalesce(r.rubric->>'task_achievement', '—') end,
-          case when r.rubric ? 'coherence_cohesion' then 'CC ' || coalesce(r.rubric->>'coherence_cohesion', '—') end,
-          case when r.rubric ? 'lexical_resource' then 'LR ' || coalesce(r.rubric->>'lexical_resource', '—') end,
-          case when r.rubric ? 'grammatical_range_accuracy' then 'GRA ' || coalesce(r.rubric->>'grammatical_range_accuracy', '—') end,
-          case when r.rubric ? 'fluency_coherence' then 'FC ' || coalesce(r.rubric->>'fluency_coherence', '—') end,
-          case when r.rubric ? 'pronunciation' then 'PR ' || coalesce(r.rubric->>'pronunciation', '—') end
+          case when coalesce((to_jsonb(r)->'rubric'), '{}'::jsonb) ? 'task_achievement' then 'TA ' || coalesce((to_jsonb(r)->'rubric'->>'task_achievement'), '—') end,
+          case when coalesce((to_jsonb(r)->'rubric'), '{}'::jsonb) ? 'coherence_cohesion' then 'CC ' || coalesce((to_jsonb(r)->'rubric'->>'coherence_cohesion'), '—') end,
+          case when coalesce((to_jsonb(r)->'rubric'), '{}'::jsonb) ? 'lexical_resource' then 'LR ' || coalesce((to_jsonb(r)->'rubric'->>'lexical_resource'), '—') end,
+          case when coalesce((to_jsonb(r)->'rubric'), '{}'::jsonb) ? 'grammatical_range_accuracy' then 'GRA ' || coalesce((to_jsonb(r)->'rubric'->>'grammatical_range_accuracy'), '—') end,
+          case when coalesce((to_jsonb(r)->'rubric'), '{}'::jsonb) ? 'fluency_coherence' then 'FC ' || coalesce((to_jsonb(r)->'rubric'->>'fluency_coherence'), '—') end,
+          case when coalesce((to_jsonb(r)->'rubric'), '{}'::jsonb) ? 'pronunciation' then 'PR ' || coalesce((to_jsonb(r)->'rubric'->>'pronunciation'), '—') end
         )),
-      'feedback_preview', left(coalesce(r.feedback, ''), 160),
-      'reviewed_at', r.reviewed_at,
-      'review_result_link', '/ielts/review-result/' || r.attempt_type || '/' || r.attempt_id
-    ) order by r.reviewed_at desc nulls last), '[]'::jsonb)
+      'feedback_preview', left(coalesce(to_jsonb(r)->>'feedback', ''), 160),
+      'reviewed_at', (to_jsonb(r)->>'reviewed_at')::timestamptz,
+      'review_result_link', '/ielts/review-result/' || coalesce(to_jsonb(r)->>'attempt_type', '') || '/' || coalesce(to_jsonb(r)->>'attempt_id', '')
+    ) order by (to_jsonb(r)->>'reviewed_at')::timestamptz desc nulls last), '[]'::jsonb)
     into v_teacher_feedback
     from public.ielts_productive_skill_reviews r
     where r.student_id = v_student_id
-      and r.review_status = 'finalized'
-      and r.attempt_type in ('writing', 'speaking');
+      and coalesce(to_jsonb(r)->>'review_status', 'finalized') = 'finalized'
+      and coalesce(to_jsonb(r)->>'attempt_type', '') in ('writing', 'speaking');
   end if;
 
   if to_regclass('public.ielts_exam_submissions') is not null and to_regclass('public.ielts_exam_attempts') is not null then
-    if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'ielts_exam_submissions' and column_name = 'student_id') then
+    if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'ielts_exam_submissions' and column_name = 'student_id') and exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'ielts_exam_submissions' and column_name = 'attempt_id') then
       select coalesce(jsonb_agg(jsonb_build_object(
         'source', 'exam_mode',
         'submission_id', s.id,
         'attempt_id', s.attempt_id,
         'title', coalesce(e.title, 'IELTS Exam Mode'),
-        'submitted_at', s.submitted_at,
-        'grading_status', s.grading_status,
-        'attempt_status', a.status,
-        'exam_event_id', a.exam_event_id,
-        'result_status', case when s.grading_status in ('pending', 'queued') then 'Submitted — results pending' else s.grading_status end
-      ) order by s.submitted_at desc), '[]'::jsonb)
+        'submitted_at', (to_jsonb(s)->>'submitted_at')::timestamptz,
+        'grading_status', to_jsonb(s)->>'grading_status',
+        'attempt_status', to_jsonb(a)->>'status',
+        'exam_event_id', (to_jsonb(a)->>'exam_event_id')::uuid,
+        'result_status', case when coalesce(to_jsonb(s)->>'grading_status', '') in ('pending', 'queued') then 'Submitted — results pending' else to_jsonb(s)->>'grading_status' end
+      ) order by (to_jsonb(s)->>'submitted_at')::timestamptz desc), '[]'::jsonb)
       into v_recent_exam_submissions
       from public.ielts_exam_submissions s
       left join public.ielts_exam_attempts a on a.id = s.attempt_id
-      left join public.ielts_exam_events e on e.id = a.exam_event_id
-      where s.student_id = v_student_id and coalesce(a.status, '') in ('submitted', 'auto_submitted');
+      left join public.ielts_exam_events e on e.id = (to_jsonb(a)->>'exam_event_id')::uuid
+      where s.student_id = v_student_id and coalesce(to_jsonb(a)->>'status', '') in ('submitted', 'auto_submitted');
     end if;
   end if;
 
