@@ -102,6 +102,7 @@ export const buildWritingAttemptPayload = (
 ): Record<string, unknown> => {
   const bandOverall = normalizeIeltsBand(score.bandOverall);
   return {
+    review_status: 'pending',
     ...basePayload,
     ...(bandOverall === null ? {} : { band_overall: bandOverall }),
   };

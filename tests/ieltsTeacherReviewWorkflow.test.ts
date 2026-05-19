@@ -30,12 +30,43 @@ test('IELTS review RPCs are school-scoped and assigned-teacher-safe', () => {
   assert.match(sql, /create or replace function public\.rpc_ielts_review_detail\(p_skill text, p_attempt_id text\)/i, 'detail RPC must exist');
   assert.match(sql, /create or replace function public\.rpc_ielts_submit_review\(/i, 'submit/finalize RPC must exist');
   assert.match(sql, /public\.can_review_ielts_productive_submission\(v_school_id, c\.id, u\.id\)/i, 'queue must scope every row through review permission helper');
+  assert.match(sql, /join public\.class_teacher_assignments cta on cta\.class_id = c\.id[\s\S]*cta\.teacher_user_id = v_actor_id/i, 'teacher queue access precheck must allow assigned teachers before row-level filtering');
   assert.match(sql, /join public\.users u on u\.id = a\.user_id and u\.school_id = v_school_id/i, 'queue must prevent cross-school access through user school joins');
   assert.match(sql, /class_teacher_assignments[\s\S]*teacher_user_id = auth\.uid\(\)[\s\S]*coalesce\(cta\.active, true\) = true/i, 'assigned teachers must be authorized through active class assignments');
   assert.match(sql, /if not public\.can_review_ielts_productive_submission\(v_school_id, v_class_id, v_student_id\) then[\s\S]*raise exception 'forbidden'/i, 'submit must reject out-of-scope teachers');
   assert.match(sql, /grant execute on function public\.rpc_ielts_review_queue\(uuid, uuid, uuid, text, text, int\) to authenticated/i, 'queue RPC grant must be explicit');
   assert.match(sql, /grant execute on function public\.rpc_ielts_submit_review\(text, text, jsonb, numeric, text, text, text, text, text, boolean\) to authenticated/i, 'submit RPC grant must be explicit');
   assert.doesNotMatch(sql, /rpc_is_ielts_admin|ielts_teachers|is_ielts_admin/i, 'review workflow must not depend on legacy IELTS admin permissions');
+});
+
+
+test('IELTS review queue is discoverable from school admin and teacher portals', () => {
+  const schoolPracticeTab = read('components/school-admin/tabs/IeltsPracticeTab.tsx');
+  const teacherPortal = read('components/TeacherPortal.tsx');
+
+  assert.match(schoolPracticeTab, /Review Writing &amp; Speaking Submissions/i, 'School Admin IELTS Practice tab must show a clear review CTA');
+  assert.match(schoolPracticeTab, /href="\/ielts\/reviews"/i, 'School Admin IELTS Practice CTA must link to the review queue route');
+  assert.match(schoolPracticeTab, /Open IELTS Reviews at \/ielts\/reviews/i, 'School Admin IELTS Practice must document the route in UI copy');
+  assert.match(teacherPortal, /label: 'IELTS Reviews'/i, 'Teacher Portal must include an IELTS Reviews navigation entry');
+  assert.match(teacherPortal, /description: 'Review writing and speaking submissions'/i, 'Teacher Portal nav must explain what IELTS Reviews is for');
+  assert.match(teacherPortal, /window\.location\.href = '\/ielts\/reviews'/i, 'Teacher Portal IELTS Reviews entry must navigate to the review queue route');
+});
+
+test('IELTS review queue defaults to pending writing submissions with a clear empty state', () => {
+  const queue = read('src/pages/ielts/IeltsReviewQueue.tsx');
+
+  assert.match(queue, /useState<IeltsReviewSkill \| ''>\('writing'\)/, 'queue skill filter must default to writing');
+  assert.match(queue, /useState\('pending'\)/, 'queue status filter must default to pending');
+  assert.match(queue, /Defaults show pending writing submissions/i, 'queue UI must document the default filters');
+  assert.match(queue, /No submissions waiting for review/i, 'queue empty state must be clear');
+});
+
+test('IELTS writing submissions are inserted as pending review attempts', () => {
+  const scoring = read('src/lib/ieltsPracticeScoring.ts');
+  const writingPractice = read('src/pages/ielts/WritingPractice.tsx');
+
+  assert.match(scoring, /review_status: 'pending'/i, 'writing attempt payloads must explicitly mark new submissions pending');
+  assert.match(writingPractice, /buildWritingAttemptPayload\([\s\S]*user_id:[\s\S]*task_id:[\s\S]*answer_text:[\s\S]*word_count:/i, 'WritingPractice must submit attempts through the pending-aware payload builder');
 });
 
 test('IELTS finalized reviews update readiness-compatible productive skill bands', () => {

@@ -476,6 +476,18 @@ const IeltsPracticeTab: React.FC = () => {
         </p>
       </div>
 
+      <a
+        href="/ielts/reviews"
+        className="flex flex-col gap-2 rounded-xl border border-cyan-400/40 bg-cyan-500/10 p-4 text-left text-cyan-50 transition hover:border-cyan-300 hover:bg-cyan-500/20 sm:flex-row sm:items-center sm:justify-between"
+        aria-label="Review Writing & Speaking Submissions in the IELTS review queue"
+      >
+        <span>
+          <span className="block text-base font-bold text-white">Review Writing &amp; Speaking Submissions</span>
+          <span className="mt-1 block text-sm text-cyan-100">Open IELTS Reviews at /ielts/reviews to grade pending writing and speaking submissions.</span>
+        </span>
+        <span className="inline-flex items-center justify-center rounded-lg bg-cyan-400 px-4 py-2 text-sm font-bold text-slate-950">IELTS Reviews →</span>
+      </a>
+
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_1.2fr]">
         <label className="rounded-xl border border-gray-700 bg-gray-900/80 p-4 text-sm text-gray-300">
           <span className="mb-2 block font-semibold text-white">Class filter</span>
