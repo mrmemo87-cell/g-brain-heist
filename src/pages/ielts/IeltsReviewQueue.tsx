@@ -7,8 +7,8 @@ const badgeColor = (status: string) => status === 'finalized' ? '#16a34a' : stat
 
 const IeltsReviewQueue: React.FC = () => {
   const navigate = useNavigate();
-  const [skill, setSkill] = useState<IeltsReviewSkill | ''>('');
-  const [reviewStatus, setReviewStatus] = useState('');
+  const [skill, setSkill] = useState<IeltsReviewSkill | ''>('writing');
+  const [reviewStatus, setReviewStatus] = useState('pending');
   const [classId, setClassId] = useState('');
   const [studentId, setStudentId] = useState('');
 
@@ -27,6 +27,7 @@ const IeltsReviewQueue: React.FC = () => {
           <div>
             <h1 style={{ margin: 0, color: '#0f172a', fontSize: '2rem' }}>IELTS Review Queue</h1>
             <p style={{ margin: '0.35rem 0 0', color: '#64748b' }}>Human teacher review for writing and speaking submissions.</p>
+            <p style={{ margin: '0.35rem 0 0', color: '#475569', fontSize: '0.875rem' }}>Route: <code>/ielts/reviews</code> · Defaults show pending writing submissions.</p>
           </div>
           <button onClick={() => void refetch()} style={{ border: '1px solid #cbd5e1', borderRadius: '0.5rem', background: 'white', padding: '0.65rem 1rem', cursor: 'pointer' }}>Refresh</button>
         </div>
@@ -72,7 +73,7 @@ const IeltsReviewQueue: React.FC = () => {
               <small style={{ color: '#64748b' }}>Submitted {row.submitted_at ? new Date(row.submitted_at).toLocaleString() : 'unknown'}{row.overall_band ? ` • Band ${row.overall_band}` : ''}</small>
             </button>
           ))}
-          {!isLoading && rows.length === 0 ? <div style={{ background: 'white', border: '1px dashed #cbd5e1', borderRadius: '0.75rem', padding: '2rem', color: '#64748b', textAlign: 'center' }}>No reviewable writing or speaking submissions match these filters.</div> : null}
+          {!isLoading && rows.length === 0 ? <div style={{ background: 'white', border: '1px dashed #cbd5e1', borderRadius: '0.75rem', padding: '2rem', color: '#64748b', textAlign: 'center' }}>No submissions waiting for review</div> : null}
         </div>
       </section>
     </main>

@@ -217,7 +217,19 @@ begin
   end if;
   if v_school_id is null then raise exception 'school_required'; end if;
 
-  if not public.can_review_ielts_productive_submission(v_school_id, p_class_id, coalesce(p_student_id, v_actor_id)) then
+  if not (
+    public.can_manage_ielts_practice_school(v_school_id)
+    or exists (
+      select 1
+      from public.classes c
+      join public.class_teacher_assignments cta on cta.class_id = c.id
+      where c.school_id = v_school_id
+        and coalesce(c.is_active, true) = true
+        and cta.teacher_user_id = v_actor_id
+        and coalesce(cta.active, true) = true
+        and (p_class_id is null or c.id = p_class_id)
+    )
+  ) then
     raise exception 'forbidden';
   end if;
 

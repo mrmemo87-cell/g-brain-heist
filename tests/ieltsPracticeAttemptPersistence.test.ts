@@ -57,12 +57,13 @@ test('listening attempt persistence payload derives numeric percent and displaye
 test('writing and speaking payload builders persist available rubric bands without inventing grades', () => {
   assert.deepEqual(
     buildWritingAttemptPayload({ user_id: 'student-1', task_id: 1, answer_text: 'Essay', word_count: 250 }, { bandOverall: 6.74 }),
-    { user_id: 'student-1', task_id: 1, answer_text: 'Essay', word_count: 250, band_overall: 6.5 },
+    { review_status: 'pending', user_id: 'student-1', task_id: 1, answer_text: 'Essay', word_count: 250, band_overall: 6.5 },
   );
   assert.deepEqual(
     buildSpeakingAttemptPayload({ user_id: 'student-1', task_id: 2, audio_url: 'speaking/student-1/2.webm' }, { bandOverall: 7.26 }),
     { user_id: 'student-1', task_id: 2, audio_url: 'speaking/student-1/2.webm', band_overall: 7.5 },
   );
+  assert.equal(buildWritingAttemptPayload({ user_id: 'student-1', task_id: 1 }, { bandOverall: Number.NaN })['review_status'], 'pending');
   assert.equal('band_overall' in buildWritingAttemptPayload({ user_id: 'student-1', task_id: 1 }, { bandOverall: Number.NaN }), false);
   assert.equal('band_overall' in buildSpeakingAttemptPayload({ user_id: 'student-1', task_id: 2 }), false);
 });
