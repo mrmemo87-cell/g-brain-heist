@@ -29,6 +29,27 @@ export interface IeltsJourneyExamSubmissionItem {
   grading_status: string | null;
   attempt_status?: string | null;
   exam_event_id?: string | null;
+  title?: string | null;
+  result_status?: string | null;
+}
+export interface IeltsJourneyAssignmentItem {
+  assignment_id: string;
+  title: string;
+  status: string;
+  assigned_at?: string | null;
+  started_at?: string | null;
+  completed_at?: string | null;
+  due_at?: string | null;
+}
+export interface IeltsJourneyTeacherFeedbackItem {
+  review_id: string;
+  skill: IeltsJourneySkill;
+  attempt_id: string;
+  overall_band: number | null;
+  rubric_summary?: string | null;
+  feedback_preview?: string | null;
+  reviewed_at?: string | null;
+  review_result_link: string;
 }
 
 export interface IeltsJourneyAssignedPracticeSummary {
@@ -47,6 +68,9 @@ export interface IeltsStudentJourney {
   recent_practice: IeltsJourneyRecentPracticeItem[];
   recent_exam_mode_submissions: IeltsJourneyExamSubmissionItem[];
   assigned_practice_summary: IeltsJourneyAssignedPracticeSummary;
+  assigned_practice: IeltsJourneyAssignmentItem[];
+  completed_practice: IeltsJourneyAssignmentItem[];
+  teacher_feedback: IeltsJourneyTeacherFeedbackItem[];
   weak_skill: IeltsJourneySkill | null;
   next_recommendation: string;
 }

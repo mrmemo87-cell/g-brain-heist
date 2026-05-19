@@ -143,15 +143,15 @@ const IeltsJourneyDashboard: React.FC = () => {
 
             <section style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
               <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.875rem', padding: '1rem' }}>
-                <h2 style={{ margin: '0 0 0.75rem', fontSize: '1rem', fontWeight: 900 }}>Recent practice</h2>
-                {journey.recent_practice.length === 0 ? (
-                  <p style={{ margin: 0, color: '#64748b' }}>No practice attempts yet. Complete a reading or listening set to begin building your readiness estimate.</p>
+                <h2 style={{ margin: '0 0 0.75rem', fontSize: '1rem', fontWeight: 900 }}>Assigned Practice</h2>
+                {journey.assigned_practice.length === 0 ? (
+                  <p style={{ margin: 0, color: '#64748b' }}>No active assigned practice.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '0.6rem' }}>
-                    {journey.recent_practice.map((item) => (
-                      <div key={`${item.skill}-${item.id}`} style={{ border: '1px solid #e2e8f0', borderRadius: '0.625rem', padding: '0.75rem' }}>
-                        <p style={{ margin: 0, color: '#111827', fontWeight: 800 }}>{skillLabels[item.skill] ?? item.skill} practice</p>
-                        <p style={{ margin: '0.25rem 0 0', color: '#64748b', fontSize: '0.8125rem' }}>{formatDate(item.occurred_at)} · Estimate: {formatEstimate(item.estimated_band ?? null)}</p>
+                    {journey.assigned_practice.map((item) => (
+                      <div key={item.assignment_id} style={{ border: '1px solid #e2e8f0', borderRadius: '0.625rem', padding: '0.75rem' }}>
+                        <p style={{ margin: 0, color: '#111827', fontWeight: 800 }}>{item.title}</p>
+                        <p style={{ margin: '0.25rem 0 0', color: '#64748b', fontSize: '0.8125rem' }}>Status: {item.status} · Due: {formatDate(item.due_at)}</p>
                       </div>
                     ))}
                   </div>
@@ -159,19 +159,45 @@ const IeltsJourneyDashboard: React.FC = () => {
               </div>
 
               <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.875rem', padding: '1rem' }}>
-                <h2 style={{ margin: '0 0 0.75rem', fontSize: '1rem', fontWeight: 900 }}>Recent Exam Mode submissions</h2>
-                {journey.recent_exam_mode_submissions.length === 0 ? (
-                  <p style={{ margin: 0, color: '#64748b' }}>No secure Exam Mode submissions yet.</p>
+                <h2 style={{ margin: '0 0 0.75rem', fontSize: '1rem', fontWeight: 900 }}>Completed Practice</h2>
+                {journey.completed_practice.length === 0 ? (
+                  <p style={{ margin: 0, color: '#64748b' }}>No completed practice yet.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '0.6rem' }}>
-                    {journey.recent_exam_mode_submissions.map((item) => (
-                      <div key={item.submission_id} style={{ border: '1px solid #e2e8f0', borderRadius: '0.625rem', padding: '0.75rem' }}>
-                        <p style={{ margin: 0, color: '#111827', fontWeight: 800 }}>Exam submission</p>
-                        <p style={{ margin: '0.25rem 0 0', color: '#64748b', fontSize: '0.8125rem' }}>{formatDate(item.submitted_at)} · {item.grading_status ?? 'pending'}</p>
+                    {journey.completed_practice.map((item) => (
+                      <div key={item.assignment_id} style={{ border: '1px solid #e2e8f0', borderRadius: '0.625rem', padding: '0.75rem' }}>
+                        <p style={{ margin: 0, color: '#111827', fontWeight: 800 }}>{item.title}</p>
+                        <p style={{ margin: '0.25rem 0 0', color: '#64748b', fontSize: '0.8125rem' }}>Completed: {formatDate(item.completed_at)}</p>
                       </div>
                     ))}
                   </div>
                 )}
+              </div>
+            </section>
+
+            <section style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.875rem', padding: '1rem' }}>
+                <h2 style={{ margin: '0 0 0.75rem', fontSize: '1rem', fontWeight: 900 }}>Teacher Feedback</h2>
+                {journey.teacher_feedback.length === 0 ? <p style={{ margin: 0, color: '#64748b' }}>No finalized teacher reviews yet.</p> : journey.teacher_feedback.map((item) => (
+                  <div key={item.review_id} style={{ border: '1px solid #e2e8f0', borderRadius: '0.625rem', padding: '0.75rem', marginBottom: '0.6rem' }}>
+                    <p style={{ margin: 0, fontWeight: 800 }}>{skillLabels[item.skill] ?? item.skill} · Band {formatEstimate(item.overall_band)}</p>
+                    <p style={{ margin: '0.25rem 0', fontSize: '0.8125rem', color: '#64748b' }}>{item.rubric_summary ?? 'Rubric summary unavailable.'}</p>
+                    <p style={{ margin: '0.25rem 0', fontSize: '0.8125rem', color: '#64748b' }}>{item.feedback_preview}</p>
+                    <p style={{ margin: '0.25rem 0', fontSize: '0.75rem', color: '#94a3b8' }}>Reviewed: {formatDate(item.reviewed_at)}</p>
+                    <button type="button" onClick={() => navigate(item.review_result_link)} style={{ border: 'none', background: '#dbeafe', color: '#1d4ed8', borderRadius: '0.5rem', padding: '0.4rem 0.6rem', cursor: 'pointer' }}>View review result</button>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.875rem', padding: '1rem' }}>
+                <h2 style={{ margin: '0 0 0.75rem', fontSize: '1rem', fontWeight: 900 }}>Exam Results</h2>
+                {journey.recent_exam_mode_submissions.length === 0 ? <p style={{ margin: 0, color: '#64748b' }}>No secure Exam Mode submissions yet.</p> : journey.recent_exam_mode_submissions.map((item) => (
+                  <div key={item.submission_id} style={{ border: '1px solid #e2e8f0', borderRadius: '0.625rem', padding: '0.75rem', marginBottom: '0.6rem' }}>
+                    <p style={{ margin: 0, fontWeight: 800 }}>{item.title ?? 'IELTS Exam Mode'}</p>
+                    <p style={{ margin: '0.25rem 0', fontSize: '0.8125rem', color: '#64748b' }}>Submitted: {formatDate(item.submitted_at)}</p>
+                    <p style={{ margin: '0.25rem 0', fontSize: '0.8125rem', color: '#64748b' }}>Status: {item.result_status ?? item.grading_status ?? 'Submitted — results pending'}</p>
+                  </div>
+                ))}
               </div>
             </section>
           </div>
