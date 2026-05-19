@@ -52,6 +52,7 @@ const IeltsExamManager = lazyRetry(() => import('./src/pages/ielts/IeltsExamMana
 const IeltsReviewQueue = lazyRetry(() => import('./src/pages/ielts/IeltsReviewQueue'), 'IeltsReviewQueue');
 const IeltsSubmissionReview = lazyRetry(() => import('./src/pages/ielts/IeltsSubmissionReview'), 'IeltsSubmissionReview');
 const IeltsReviewResult = lazyRetry(() => import('./src/pages/ielts/IeltsReviewResult'), 'IeltsReviewResult');
+const IeltsReviewAdminGuard = lazyRetry(() => import('./components/ielts/IeltsReviewAdminGuard'), 'IeltsReviewAdminGuard');
 
 const queryClient = new QueryClient();
 
@@ -755,11 +756,27 @@ const router = createBrowserRouter([
   },
   {
     path: '/ielts/reviews',
-    element: <ProtectedRoute element={<IeltsReviewQueue />} />,
+    element: (
+      <ProtectedRoute
+        element={(
+          <IeltsReviewAdminGuard>
+            <IeltsReviewQueue />
+          </IeltsReviewAdminGuard>
+        )}
+      />
+    ),
   },
   {
     path: '/ielts/reviews/:skill/:attemptId',
-    element: <ProtectedRoute element={<IeltsSubmissionReview />} />,
+    element: (
+      <ProtectedRoute
+        element={(
+          <IeltsReviewAdminGuard>
+            <IeltsSubmissionReview />
+          </IeltsReviewAdminGuard>
+        )}
+      />
+    ),
   },
   {
     path: '/ielts/review-result/:skill/:attemptId',

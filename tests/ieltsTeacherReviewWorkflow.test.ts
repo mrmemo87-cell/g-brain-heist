@@ -23,19 +23,48 @@ test('IELTS teacher review migration adds audit-safe productive skill review fou
   assert.match(sql, /unique \(attempt_type, attempt_id\)/i, 'review records must preserve attempt history without overwriting attempts');
 });
 
-test('IELTS review RPCs are school-scoped and assigned-teacher-safe', () => {
+test('IELTS review RPCs are school-scoped and admin-only', () => {
   const sql = migration();
 
   assert.match(sql, /create or replace function public\.rpc_ielts_review_queue\(/i, 'queue RPC must exist');
   assert.match(sql, /create or replace function public\.rpc_ielts_review_detail\(p_skill text, p_attempt_id text\)/i, 'detail RPC must exist');
   assert.match(sql, /create or replace function public\.rpc_ielts_submit_review\(/i, 'submit/finalize RPC must exist');
   assert.match(sql, /public\.can_review_ielts_productive_submission\(v_school_id, c\.id, u\.id\)/i, 'queue must scope every row through review permission helper');
-  assert.match(sql, /join public\.users u on u\.id = a\.user_id and u\.school_id = v_school_id/i, 'queue must prevent cross-school access through user school joins');
-  assert.match(sql, /class_teacher_assignments[\s\S]*teacher_user_id = auth\.uid\(\)[\s\S]*coalesce\(cta\.active, true\) = true/i, 'assigned teachers must be authorized through active class assignments');
-  assert.match(sql, /if not public\.can_review_ielts_productive_submission\(v_school_id, v_class_id, v_student_id\) then[\s\S]*raise exception 'forbidden'/i, 'submit must reject out-of-scope teachers');
+    assert.match(sql, /join public\.users u on u\.id = a\.user_id and u\.school_id = v_school_id/i, 'queue must prevent cross-school access through user school joins');
+    assert.match(sql, /if not public\.can_manage_ielts_practice_school\(v_school_id\) then[\s\S]*raise exception 'forbidden'/i, 'queue must deny non-admin school actors');
+  assert.match(sql, /if not public\.can_review_ielts_productive_submission\(v_school_id, v_class_id, v_student_id\) then[\s\S]*raise exception 'forbidden'/i, 'submit must reject out-of-scope actors');
+  assert.doesNotMatch(sql, /class_teacher_assignments[\s\S]*teacher_user_id = auth\.uid\(\)/i, 'review workflow must not authorize teacher-only class assignment access');
   assert.match(sql, /grant execute on function public\.rpc_ielts_review_queue\(uuid, uuid, uuid, text, text, int\) to authenticated/i, 'queue RPC grant must be explicit');
   assert.match(sql, /grant execute on function public\.rpc_ielts_submit_review\(text, text, jsonb, numeric, text, text, text, text, text, boolean\) to authenticated/i, 'submit RPC grant must be explicit');
   assert.doesNotMatch(sql, /rpc_is_ielts_admin|ielts_teachers|is_ielts_admin/i, 'review workflow must not depend on legacy IELTS admin permissions');
+});
+
+
+test('IELTS review queue is discoverable only from school admin workflows', () => {
+  const schoolPracticeTab = read('components/school-admin/tabs/IeltsPracticeTab.tsx');
+  const teacherPortal = read('components/TeacherPortal.tsx');
+
+  assert.match(schoolPracticeTab, /Review Writing &amp; Speaking Submissions/i, 'School Admin IELTS Practice tab must show a clear review CTA');
+  assert.match(schoolPracticeTab, /href="\/ielts\/reviews"/i, 'School Admin IELTS Practice CTA must link to the review queue route');
+  assert.match(schoolPracticeTab, /Open IELTS Reviews at \/ielts\/reviews/i, 'School Admin IELTS Practice must document the route in UI copy');
+  assert.doesNotMatch(teacherPortal, /IELTS Reviews|\/ielts\/reviews/i, 'Teacher Portal must not expose IELTS review navigation');
+});
+
+test('IELTS review queue defaults to pending writing submissions with a clear empty state', () => {
+  const queue = read('src/pages/ielts/IeltsReviewQueue.tsx');
+
+  assert.match(queue, /useState<IeltsReviewSkill \| ''>\('writing'\)/, 'queue skill filter must default to writing');
+  assert.match(queue, /useState\('pending'\)/, 'queue status filter must default to pending');
+  assert.match(queue, /Defaults show pending writing submissions/i, 'queue UI must document the default filters');
+  assert.match(queue, /No submissions waiting for review/i, 'queue empty state must be clear');
+});
+
+test('IELTS writing submissions are inserted as pending review attempts', () => {
+  const scoring = read('src/lib/ieltsPracticeScoring.ts');
+  const writingPractice = read('src/pages/ielts/WritingPractice.tsx');
+
+  assert.match(scoring, /review_status: 'pending'/i, 'writing attempt payloads must explicitly mark new submissions pending');
+  assert.match(writingPractice, /buildWritingAttemptPayload\([\s\S]*user_id:[\s\S]*task_id:[\s\S]*answer_text:[\s\S]*word_count:/i, 'WritingPractice must submit attempts through the pending-aware payload builder');
 });
 
 test('IELTS finalized reviews update readiness-compatible productive skill bands', () => {
@@ -75,7 +104,17 @@ test('IELTS review frontend maps queue/detail/submit RPCs and exposes student re
   assert.match(review, /Speaking evidence[\s\S]*Duration[\s\S]*audio/i, 'speaking review must show duration and audio area');
   assert.match(review, /Strengths[\s\S]*Improvements[\s\S]*Next steps[\s\S]*Private notes/i, 'review feedback fields must be present');
   assert.match(result, /Reviewed band[\s\S]*Rubric breakdown[\s\S]*Teacher feedback/i, 'student result must show finalized review fields');
-  assert.match(routes, /path:\s*'\/ielts\/reviews'/i, 'queue route must be registered');
+  assert.match(routes, /path:\s*'\/ielts\/reviews',[\s\S]*?<IeltsReviewAdminGuard>[\s\S]*?<IeltsReviewQueue \/>[\s\S]*?<\/IeltsReviewAdminGuard>/i, 'queue route must be school-admin guarded');
+  assert.match(routes, /path:\s*'\/ielts\/reviews\/:skill\/:attemptId',[\s\S]*?<IeltsReviewAdminGuard>[\s\S]*?<IeltsSubmissionReview \/>[\s\S]*?<\/IeltsReviewAdminGuard>/i, 'review detail route must be school-admin guarded');
   assert.match(routes, /path:\s*'\/ielts\/review-result\/:skill\/:attemptId'/i, 'student result route must be registered');
   assert.doesNotMatch(`${service}\n${queue}\n${review}\n${result}`, /answer_key|correct_answer|sample_answer/i, 'frontend must not model protected answer fields');
+});
+
+
+test('IELTS review guard only allows school_admin/admin/superadmin and blocks teacher/student', () => {
+  const guard = read('components/ielts/IeltsReviewAdminGuard.tsx');
+
+  assert.match(guard, /role === 'school_admin' \|\| role === 'admin' \|\| role === 'superadmin'/i, 'review guard must allow only school admin roles');
+  assert.match(guard, /Boolean\(typedProfile\.is_admin\)/i, 'review guard must allow platform admins');
+  assert.doesNotMatch(guard, /role === 'teacher'/i, 'review guard must not allow teachers');
 });
