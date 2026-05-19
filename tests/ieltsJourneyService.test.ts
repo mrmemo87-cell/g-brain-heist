@@ -20,6 +20,9 @@ test('IELTS journey service maps RPC name and optional student parameter', async
       recent_practice: [],
       recent_exam_mode_submissions: [],
       assigned_practice_summary: { total: 0, assigned: 0, in_progress: 0, completed: 0, overdue: 0 },
+      assigned_practice: [],
+      completed_practice: [],
+      teacher_feedback: [],
       weak_skill: null,
       next_recommendation: 'Complete a practice set.',
     };
@@ -36,7 +39,7 @@ test('IELTS journey service maps RPC name and optional student parameter', async
 
 test('IELTS journey SQL is scoped, defensive, and avoids protected answer data', () => {
   const migration = fs.readFileSync(
-    path.join(process.cwd(), 'supabase/migrations/20260516150000_ielts_student_journey_foundation.sql'),
+    path.join(process.cwd(), 'supabase/migrations/20260519113000_ielts_student_journey_schema_alignment_repair.sql'),
     'utf8',
   );
 
@@ -45,9 +48,18 @@ test('IELTS journey SQL is scoped, defensive, and avoids protected answer data',
   assert.match(migration, /u\.school_id = v_student_school_id/i, 'school admin access must be scoped to the target student school');
   assert.match(migration, /class_teacher_assignments[\s\S]*class_students[\s\S]*cs\.student_id = v_student_id/i, 'teacher access must be scoped through assigned classes');
   assert.match(migration, /if not v_can_view then raise exception 'forbidden'/i, 'journey RPC must deny cross-scope callers');
-  assert.match(migration, /to_regclass\('public\.ielts_reading_attempts'\)[\s\S]*information_schema\.columns/i, 'attempt reads must be defensive about table and column availability');
+  assert.match(migration, /to_regclass\('public\.ielts_practice_assignment_students'\)/i, 'journey RPC should read practice assignments only when available');
   assert.match(migration, /ielts_practice_assignment_students/i, 'journey RPC must use assigned practice summary data');
+  assert.match(migration, /assigned_practice/i, 'journey RPC must include active assigned practice');
+  assert.match(migration, /completed_practice/i, 'journey RPC must include completed practice');
+  assert.match(migration, /ielts_productive_skill_reviews/i, 'journey RPC must use the productive skill reviews table');
+  assert.match(migration, /review_status = 'finalized'/i, 'journey RPC must include only finalized teacher feedback');
+  assert.match(migration, /teacher_feedback/i, 'journey RPC must include finalized teacher feedback');
+  assert.match(migration, /review_result_link/i, 'journey RPC must include review result links');
   assert.match(migration, /ielts_exam_submissions/i, 'journey RPC must use Exam Mode submission metadata when available');
+  assert.match(migration, /auto_submitted/i, 'journey RPC must include auto-submitted exam attempts');
+  assert.match(migration, /Submitted — results pending/i, 'journey RPC must provide pending exam result status messaging');
+  assert.doesNotMatch(migration, /private_notes/i, 'journey RPC must not expose private review notes');
   assert.doesNotMatch(migration, /answer_key/i, 'journey RPC must not expose protected answer data');
   assert.doesNotMatch(migration, /rpc_is_ielts_admin|ielts_teachers|is_ielts_admin/i, 'journey RPC must not use legacy IELTS admin permissions');
 });
@@ -60,8 +72,8 @@ test('IELTS journey route, home link, and page use the journey service safely', 
   assert.match(routes, /path:\s*'\/ielts\/journey'/, 'IELTS journey route must be registered');
   assert.match(home, /navigate\('\/ielts\/journey'\)/, 'IELTS home should link to journey dashboard');
   assert.match(page, /rpcIeltsStudentJourney/, 'journey page must use the journey RPC service');
-  assert.match(page, /Estimated readiness/, 'journey page must use honest readiness wording');
-  assert.match(page, /Not enough data|No practice attempts yet|No secure Exam Mode submissions yet/, 'journey page should include empty states');
+  assert.match(page, /Estimated readiness|Assigned Practice|Completed Practice|Teacher Feedback|Exam Results/, 'journey page must include IELTS dashboard sections');
+  assert.match(page, /No active assigned practice|No completed practice yet|No finalized teacher reviews yet|No secure Exam Mode submissions yet/, 'journey page should include empty states');
   assert.doesNotMatch(page, /\.from\(['"]ielts_/i, 'journey page must not query raw IELTS tables directly');
   assert.doesNotMatch(page, /answer_key/i, 'journey page must not expose protected answer data');
 });
