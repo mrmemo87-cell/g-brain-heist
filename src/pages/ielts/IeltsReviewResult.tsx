@@ -20,13 +20,13 @@ const IeltsReviewResult: React.FC = () => {
     <main style={{ minHeight: '100vh', background: '#f8fafc', padding: '2rem' }}>
       <section style={{ maxWidth: '54rem', margin: '0 auto', background: 'white', border: '1px solid #e2e8f0', borderRadius: '1rem', padding: '1.5rem' }}>
         <button onClick={() => navigate('/ielts')} style={{ border: 'none', background: 'transparent', color: '#2563eb', cursor: 'pointer', marginBottom: '1rem' }}>← Back to IELTS Home</button>
-        <h1 style={{ color: '#0f172a', marginTop: 0 }}>IELTS {skill} teacher review</h1>
+        <h1 style={{ color: '#0f172a', marginTop: 0 }}>IELTS {skill} reviewed feedback</h1>
         {isLoading ? <p style={{ color: '#64748b' }}>Loading review…</p> : null}
         {error ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: '1rem', borderRadius: '0.75rem' }}>{error instanceof Error ? error.message : 'Unable to load review.'}</div> : null}
         {data ? (
           <>
             {data.review_status !== 'finalized' ? (
-              <div style={{ background: '#fef3c7', color: '#92400e', padding: '1rem', borderRadius: '0.75rem', marginBottom: '1rem' }}>Your submission is still awaiting finalized teacher review.</div>
+              <div style={{ background: '#fef3c7', color: '#92400e', padding: '1rem', borderRadius: '0.75rem', marginBottom: '1rem' }}>Your submission is still awaiting finalized IELTS feedback.</div>
             ) : null}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
               <div style={{ background: '#eff6ff', borderRadius: '0.75rem', padding: '1rem' }}>
