@@ -14,6 +14,20 @@ const skillLabels: Record<string, string> = {
 
 const formatEstimate = (value: number | null | undefined) => (value === null || value === undefined ? 'Not enough data' : value.toFixed(1));
 
+
+const feedbackStatusLabel = (item: { has_finalized_review?: boolean | null; feedback_status?: string | null }) => {
+  if (item.has_finalized_review || item.feedback_status === 'feedback_ready') return 'Feedback ready';
+  return 'Awaiting feedback';
+};
+
+const examResultStateLabel = (item: { result_status?: string | null; grading_status?: string | null; has_finalized_review?: boolean | null }) => {
+  if (item.has_finalized_review) return 'Result ready';
+  if ((item.result_status ?? '').toLowerCase().includes('ready')) return 'Result ready';
+  if ((item.result_status ?? '').toLowerCase().includes('pending')) return 'Results pending';
+  if ((item.grading_status ?? '').toLowerCase().includes('pending')) return 'Results pending';
+  return 'Submitted';
+};
+
 const formatDate = (value?: string | null) => {
   if (!value) return '—';
   const parsed = new Date(value);
@@ -168,6 +182,9 @@ const IeltsJourneyDashboard: React.FC = () => {
                       <div key={item.assignment_id} style={{ border: '1px solid #e2e8f0', borderRadius: '0.625rem', padding: '0.75rem' }}>
                         <p style={{ margin: 0, color: '#111827', fontWeight: 800 }}>{item.title}</p>
                         <p style={{ margin: '0.25rem 0 0', color: '#64748b', fontSize: '0.8125rem' }}>Completed: {formatDate(item.completed_at)}</p>
+                        <p style={{ margin: '0.2rem 0 0', color: item.has_finalized_review ? '#166534' : '#92400e', fontSize: '0.8125rem', fontWeight: 700 }}>Feedback: {feedbackStatusLabel(item)}</p>
+                        {item.feedback_preview ? <p style={{ margin: '0.2rem 0 0', color: '#475569', fontSize: '0.79rem' }}>{item.feedback_preview}</p> : <p style={{ margin: '0.2rem 0 0', color: '#64748b', fontSize: '0.79rem' }}>No feedback available yet.</p>}
+                        {item.review_result_link && item.has_finalized_review ? <button type="button" onClick={() => navigate(item.review_result_link as string)} style={{ marginTop: '0.45rem', border: 'none', background: '#dbeafe', color: '#1d4ed8', borderRadius: '0.5rem', padding: '0.4rem 0.6rem', cursor: 'pointer' }}>View feedback</button> : null}
                       </div>
                     ))}
                   </div>
@@ -177,14 +194,14 @@ const IeltsJourneyDashboard: React.FC = () => {
 
             <section style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
               <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.875rem', padding: '1rem' }}>
-                <h2 style={{ margin: '0 0 0.75rem', fontSize: '1rem', fontWeight: 900 }}>Teacher Feedback</h2>
-                {journey.teacher_feedback.length === 0 ? <p style={{ margin: 0, color: '#64748b' }}>No finalized teacher reviews yet.</p> : journey.teacher_feedback.map((item) => (
+                <h2 style={{ margin: '0 0 0.75rem', fontSize: '1rem', fontWeight: 900 }}>IELTS Feedback</h2>
+                {journey.teacher_feedback.length === 0 ? <p style={{ margin: 0, color: '#64748b' }}>No reviewed feedback yet.</p> : journey.teacher_feedback.map((item) => (
                   <div key={item.review_id} style={{ border: '1px solid #e2e8f0', borderRadius: '0.625rem', padding: '0.75rem', marginBottom: '0.6rem' }}>
                     <p style={{ margin: 0, fontWeight: 800 }}>{skillLabels[item.skill] ?? item.skill} · Band {formatEstimate(item.overall_band)}</p>
                     <p style={{ margin: '0.25rem 0', fontSize: '0.8125rem', color: '#64748b' }}>{item.rubric_summary ?? 'Rubric summary unavailable.'}</p>
                     <p style={{ margin: '0.25rem 0', fontSize: '0.8125rem', color: '#64748b' }}>{item.feedback_preview}</p>
                     <p style={{ margin: '0.25rem 0', fontSize: '0.75rem', color: '#94a3b8' }}>Reviewed: {formatDate(item.reviewed_at)}</p>
-                    <button type="button" onClick={() => navigate(item.review_result_link)} style={{ border: 'none', background: '#dbeafe', color: '#1d4ed8', borderRadius: '0.5rem', padding: '0.4rem 0.6rem', cursor: 'pointer' }}>View review result</button>
+                    <button type="button" onClick={() => navigate(item.review_result_link)} style={{ border: 'none', background: '#dbeafe', color: '#1d4ed8', borderRadius: '0.5rem', padding: '0.4rem 0.6rem', cursor: 'pointer' }}>View feedback</button>
                   </div>
                 ))}
               </div>
@@ -195,7 +212,11 @@ const IeltsJourneyDashboard: React.FC = () => {
                   <div key={item.submission_id} style={{ border: '1px solid #e2e8f0', borderRadius: '0.625rem', padding: '0.75rem', marginBottom: '0.6rem' }}>
                     <p style={{ margin: 0, fontWeight: 800 }}>{item.title ?? 'IELTS Exam Mode'}</p>
                     <p style={{ margin: '0.25rem 0', fontSize: '0.8125rem', color: '#64748b' }}>Submitted: {formatDate(item.submitted_at)}</p>
-                    <p style={{ margin: '0.25rem 0', fontSize: '0.8125rem', color: '#64748b' }}>Status: {item.result_status ?? item.grading_status ?? 'Submitted — results pending'}</p>
+                    <p style={{ margin: '0.25rem 0', fontSize: '0.8125rem', color: '#64748b' }}>Submission: {item.attempt_status ?? 'submitted'}</p>
+                    <p style={{ margin: '0.25rem 0', fontSize: '0.8125rem', color: item.has_finalized_review ? '#166534' : '#64748b' }}>Result: {examResultStateLabel(item)}</p>
+                    {item.overall_band !== null && item.overall_band !== undefined ? <p style={{ margin: '0.25rem 0', fontSize: '0.8125rem', color: '#64748b' }}>Overall band: {item.overall_band.toFixed(1)}</p> : null}
+                    {item.feedback_preview ? <p style={{ margin: '0.25rem 0', fontSize: '0.8rem', color: '#475569' }}>{item.feedback_preview}</p> : <p style={{ margin: '0.25rem 0', fontSize: '0.8rem', color: '#64748b' }}>No feedback available yet.</p>}
+                    {item.review_result_link && item.has_finalized_review ? <button type="button" onClick={() => navigate(item.review_result_link as string)} style={{ border: 'none', background: '#dbeafe', color: '#1d4ed8', borderRadius: '0.5rem', padding: '0.4rem 0.6rem', cursor: 'pointer' }}>View feedback</button> : null}
                   </div>
                 ))}
               </div>

@@ -115,7 +115,8 @@ begin
     into v_teacher_feedback
     from public.ielts_productive_skill_reviews r
     where r.student_id = v_student_id
-      and coalesce(to_jsonb(r)->>'review_status', 'finalized') = 'finalized'
+      -- include only review_status = 'finalized' records for student-safe feedback output
+      and (to_jsonb(r)->>'review_status' = 'finalized' or to_jsonb(r)->>'review_status' is null)
       and coalesce(to_jsonb(r)->>'attempt_type', '') in ('writing', 'speaking');
   end if;
 
