@@ -306,7 +306,7 @@ const ReadingPractice: React.FC = () => {
               </svg>
             </div>
             <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>
-              Reading Test Complete!
+              Practice Completed
             </h1>
           </div>
 
@@ -353,139 +353,26 @@ const ReadingPractice: React.FC = () => {
             textAlign: 'left'
           }}>
             <h3 style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.125rem)', fontWeight: '600', color: '#1e293b', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span>🎯</span> Your Results Have Been Recorded
+              <span>🎯</span> Your IELTS Practice Result
             </h3>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#475569' }}>
               <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem' }}>
                 <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>✓</span>
-                <span>Your answers have been automatically graded</span>
+                <span>Your answers have been recorded and graded.</span>
               </li>
               <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem' }}>
                 <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>✓</span>
-                <span>A detailed performance report will be sent to your email within <strong>24 hours</strong></span>
+                <span>Estimated readiness is shown above when available.</span>
               </li>
               <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
                 <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>✓</span>
-                <span>Review your answers below to see explanations</span>
+                <span>Feedback visibility depends on assignment and exam rules.</span>
               </li>
             </ul>
           </div>
 
-          {/* Notification Preferences */}
-          <div style={{
-            background: '#f8fafc',
-            border: '1px solid #e2e8f0',
-            borderRadius: '0.75rem',
-            padding: '1.5rem',
-            marginBottom: '1.5rem',
-            textAlign: 'left'
-          }}>
-            <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#334155', marginBottom: '1rem' }}>
-              📬 Notification Preferences
-            </h3>
-            
-            {/* Alternate Email */}
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', fontSize: '0.875rem', color: '#64748b', marginBottom: '0.25rem' }}>
-                Alternate email (optional)
-              </label>
-              <input
-                type="email"
-                value={alternateEmail}
-                onChange={(e) => setAlternateEmail(e.target.value)}
-                placeholder="Enter alternate email for results"
-                style={{
-                  width: '100%',
-                  padding: '0.625rem 0.875rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.5rem',
-                  fontSize: '0.875rem',
-                  boxSizing: 'border-box'
-                }}
-              />
-            </div>
-
-            {/* Phone Number */}
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', fontSize: '0.875rem', color: '#64748b', marginBottom: '0.25rem' }}>
-                Phone number for SMS updates (optional)
-              </label>
-              <input
-                type="tel"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                placeholder="+1 234 567 8900"
-                style={{
-                  width: '100%',
-                  padding: '0.625rem 0.875rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.5rem',
-                  fontSize: '0.875rem',
-                  boxSizing: 'border-box'
-                }}
-              />
-            </div>
-
-            {/* Checkboxes */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={notifyByEmail}
-                  onChange={(e) => setNotifyByEmail(e.target.checked)}
-                  style={{ width: '1rem', height: '1rem', accentColor: '#3b82f6' }}
-                />
-                <span style={{ fontSize: '0.875rem', color: '#475569' }}>Notify me by email when detailed report is ready</span>
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={notifyBySms}
-                  onChange={(e) => setNotifyBySms(e.target.checked)}
-                  style={{ width: '1rem', height: '1rem', accentColor: '#3b82f6' }}
-                />
-                <span style={{ fontSize: '0.875rem', color: '#475569' }}>Send SMS notification when report is ready</span>
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={notifyInApp}
-                  onChange={(e) => setNotifyInApp(e.target.checked)}
-                  style={{ width: '1rem', height: '1rem', accentColor: '#3b82f6' }}
-                />
-                <span style={{ fontSize: '0.875rem', color: '#475569' }}>Show in-app notification</span>
-              </label>
-            </div>
-
-            {/* Save Preferences Button */}
-            <button
-              onClick={() => savePreferencesMutation.mutate()}
-              disabled={savePreferencesMutation.isPending}
-              style={{
-                width: '100%',
-                marginTop: '1rem',
-                padding: '0.75rem 1rem',
-                background: savePreferencesMutation.isSuccess 
-                  ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
-                  : 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '0.5rem',
-                cursor: savePreferencesMutation.isPending ? 'not-allowed' : 'pointer',
-                fontWeight: 600,
-                fontSize: '0.875rem',
-                opacity: savePreferencesMutation.isPending ? 0.7 : 1,
-                transition: 'all 0.2s',
-              }}
-            >
-              {savePreferencesMutation.isPending ? '⏳ Saving...' : 
-               savePreferencesMutation.isSuccess ? '✓ Preferences Saved!' : 
-               '💾 Save Notification Preferences'}
-            </button>
-          </div>
-
-          {/* Answer Review */}
-          <div style={{ marginBottom: '2rem' }}>
+          {/* Answer Review (Practice-only fallback; assigned/exam controlled by settings) */}
+          {!assignmentContext.isAssignedPractice && <div style={{ marginBottom: '2rem' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '1rem' }}>Answer Review</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {questions.map((q: IELTSReadingQuestion, idx: number) => {
@@ -542,7 +429,7 @@ const ReadingPractice: React.FC = () => {
                 );
               })}
             </div>
-          </div>
+          </div>}
 
           {/* Personalized Improvement Tips */}
           <div style={{
