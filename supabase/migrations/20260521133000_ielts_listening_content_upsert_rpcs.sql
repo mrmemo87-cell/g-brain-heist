@@ -62,8 +62,7 @@ begin
         example_prompt = p_example_prompt,
         example_answer = p_example_answer,
         section_label = p_section_label,
-        question_range_label = p_question_range_label,
-        updated_at = now()
+        question_range_label = p_question_range_label
     where id = p_id
     returning id into v_id;
     if v_id is null then raise exception 'listening_set_not_found'; end if;
@@ -135,7 +134,7 @@ begin
     if exists(select 1 from public.ielts_listening_questions where set_id = p_listening_set_id and (nullif(trim(body),'') is null or correct_answer is null)) then raise exception 'active_question_invalid'; end if;
   end if;
 
-  return jsonb_build_object('listening_set_id', p_listening_set_id, 'question_count', (select count(*) from public.ielts_listening_questions where set_id = p_listening_set_id));
+  return jsonb_build_object('set_id', p_listening_set_id, 'question_count', (select count(*) from public.ielts_listening_questions where set_id = p_listening_set_id));
 end
 $$;
 

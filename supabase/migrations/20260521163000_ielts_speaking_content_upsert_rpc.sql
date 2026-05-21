@@ -42,8 +42,7 @@ begin
         part = p_part,
         prompt = trim(p_prompt),
         follow_ups = p_follow_ups,
-        is_active = coalesce(p_is_active,false),
-        updated_at = now()
+        is_active = coalesce(p_is_active,false)
     where id = p_id
     returning id into v_id;
     if v_id is null then raise exception 'speaking_task_not_found'; end if;
