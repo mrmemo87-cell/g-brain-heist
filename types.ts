@@ -687,6 +687,11 @@ export interface IELTSListeningSet {
   slug: string;
   title: string;
   description: string | null;
+  instructions: string | null;
+  example_prompt: string | null;
+  example_answer: string | null;
+  section_label: string | null;
+  question_range_label: string | null;
   level: string;
   est_band_min: number | null;
   est_band_max: number | null;
