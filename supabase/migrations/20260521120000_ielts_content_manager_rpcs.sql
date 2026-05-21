@@ -23,8 +23,8 @@ begin
       from public.ielts_reading_sets rs
       union all
       select id::text, title, 'listening'::text, is_active, level, estimated_band, estimated_band, created_at,
-        (is_active and coalesce(audio_url,'')<>'' and exists (select 1 from public.ielts_listening_questions q where q.listening_set_id = ls.id)) as ready_to_assign,
-        (array_remove(array[case when not is_active then 'Inactive' end, case when coalesce(audio_url,'')='' then 'Missing audio' end, case when not exists (select 1 from public.ielts_listening_questions q where q.listening_set_id = ls.id) then 'Missing questions' end], null)) as warnings
+        (is_active and coalesce(audio_url,'')<>'' and exists (select 1 from public.ielts_listening_questions q where q.set_id = ls.id)) as ready_to_assign,
+        (array_remove(array[case when not is_active then 'Inactive' end, case when coalesce(audio_url,'')='' then 'Missing audio' end, case when not exists (select 1 from public.ielts_listening_questions q where q.set_id = ls.id) then 'Missing questions' end], null)) as warnings
       from public.ielts_listening_sets ls
       union all
       select id::text, title, 'writing'::text, is_active, task_type, null::numeric, null::numeric, created_at, is_active, (case when not is_active then array['Inactive']::text[] else array[]::text[] end)
