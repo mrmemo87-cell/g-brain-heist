@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '../../../services/supabaseClient';
 import { ensureIeltsProfile, getUserTier, isIeltsPrime, saveNotificationPreferences } from '../../../services/ieltsService';
-import { rpcIeltsPracticeMarkItemCompleted, type IeltsPracticeAssignmentProgress } from '../../../services/ieltsPracticeAssignmentService';
+import { rpcIeltsPracticeMarkItemCompleted, rpcIeltsPracticeMarkItemSubmitted, type IeltsPracticeAssignmentProgress } from '../../../services/ieltsPracticeAssignmentService';
 import { AssignmentCompletionStatus, readIeltsPracticeAssignmentContext } from './assignmentPracticeUi';
 import { notifyTeachersOfExamGuard } from '../../../services/notificationService';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
@@ -22,6 +22,7 @@ interface WritingTask {
 }
 
 const MAX_EXAM_GUARD_VIOLATIONS = 3;
+const MIN_MEANINGFUL_WORDS = 50;
 
 const WritingPractice: React.FC = () => {
   const { taskId } = useParams<{ taskId: string }>();
@@ -172,25 +173,37 @@ const WritingPractice: React.FC = () => {
       let progress: IeltsPracticeAssignmentProgress | null = null;
       let itemCompletionError: string | null = null;
 
+      const canComplete = data.wordCount >= MIN_MEANINGFUL_WORDS;
       if (assignmentId && assignmentItemId) {
         try {
-          progress = await rpcIeltsPracticeMarkItemCompleted({
+          progress = await rpcIeltsPracticeMarkItemSubmitted({
             assignmentId,
             assignmentItemId,
             practiceAttemptType: 'writing',
             practiceAttemptId: result?.id ?? null,
           });
+          if (canComplete) {
+            progress = await rpcIeltsPracticeMarkItemCompleted({
+              assignmentId,
+              assignmentItemId,
+              practiceAttemptType: 'writing',
+              practiceAttemptId: result?.id ?? null,
+            });
+          }
         } catch (completionError) {
           itemCompletionError = completionError instanceof Error ? completionError.message : 'Unable to mark assignment item completed.';
         }
       }
 
-      return { attempt: result, progress, itemCompletionError };
+      return { attempt: result, progress, itemCompletionError, canComplete };
     },
     onSuccess: (data) => {
       setLastAttemptId(data.attempt?.id);
       setAssignmentProgress(data.progress);
       setAssignmentCompletionError(data.itemCompletionError);
+      if (!data.canComplete && !data.itemCompletionError) {
+        setAssignmentCompletionError(`Submitted, but not enough writing to complete assignment (minimum ${MIN_MEANINGFUL_WORDS} words).`);
+      }
       setHasSubmitted(true);
     },
   });

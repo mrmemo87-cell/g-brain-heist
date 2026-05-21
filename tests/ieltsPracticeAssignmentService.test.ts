@@ -17,6 +17,7 @@ import {
   rpcIeltsPracticeForceCompleteAssignment,
   rpcIeltsPracticeMarkItemCompleted,
   rpcIeltsPracticeMarkItemStarted,
+  rpcIeltsPracticeMarkItemSubmitted,
   rpcIeltsPracticeMarkStarted,
   rpcIeltsPracticeAssignmentProgress,
   rpcIeltsPracticeStudentAssignments,
@@ -81,7 +82,7 @@ test('IELTS practice assignment service maps RPC names and parameters', async ()
     if (name === 'rpc_ielts_practice_list_assignments') return [];
     if (name === 'rpc_ielts_practice_student_assignments') return [];
     if (name === 'rpc_ielts_practice_assignment_detail') return { assignment: { id: 'assignment-1', title: 'Practice' }, items: [], students: [] };
-    if (name === 'rpc_ielts_practice_assignment_progress' || name === 'rpc_ielts_practice_mark_item_started' || name === 'rpc_ielts_practice_mark_item_completed') {
+    if (name === 'rpc_ielts_practice_assignment_progress' || name === 'rpc_ielts_practice_mark_item_started' || name === 'rpc_ielts_practice_mark_item_submitted' || name === 'rpc_ielts_practice_mark_item_completed') {
       return { assignment_id: 'assignment-1', student_id: 'student-1', required_count: 1, completed_required_count: 1, item_count: 1, completed_item_count: 1, items: [] };
     }
     return { id: 'assignment-1', title: 'Practice' };
@@ -112,6 +113,7 @@ test('IELTS practice assignment service maps RPC names and parameters', async ()
   await rpcIeltsPracticeForceCompleteAssignment({ assignmentId: 'assignment-1', studentId: 'student-1', reason: 'excused by admin' }, client);
   await rpcIeltsPracticeAssignmentProgress('assignment-1', 'student-1', client);
   await rpcIeltsPracticeMarkItemStarted({ assignmentId: 'assignment-1', assignmentItemId: 'item-1' }, client);
+  await rpcIeltsPracticeMarkItemSubmitted({ assignmentId: 'assignment-1', assignmentItemId: 'item-1', practiceAttemptType: 'reading', practiceAttemptId: 'attempt-1' }, client);
   await rpcIeltsPracticeMarkItemCompleted({ assignmentId: 'assignment-1', assignmentItemId: 'item-1', practiceAttemptType: 'reading', practiceAttemptId: 'attempt-1' }, client);
 
   assert.deepEqual(calls, [
@@ -143,6 +145,7 @@ test('IELTS practice assignment service maps RPC names and parameters', async ()
     { name: 'rpc_ielts_practice_force_complete_assignment', params: { p_assignment_id: 'assignment-1', p_student_id: 'student-1', p_reason: 'excused by admin' } },
     { name: 'rpc_ielts_practice_assignment_progress', params: { p_assignment_id: 'assignment-1', p_student_id: 'student-1' } },
     { name: 'rpc_ielts_practice_mark_item_started', params: { p_assignment_id: 'assignment-1', p_assignment_item_id: 'item-1' } },
+    { name: 'rpc_ielts_practice_mark_item_submitted', params: { p_assignment_id: 'assignment-1', p_assignment_item_id: 'item-1', p_practice_attempt_type: 'reading', p_practice_attempt_id: 'attempt-1' } },
     { name: 'rpc_ielts_practice_mark_item_completed', params: { p_assignment_id: 'assignment-1', p_assignment_item_id: 'item-1', p_practice_attempt_type: 'reading', p_practice_attempt_id: 'attempt-1' } },
   ]);
 });
@@ -562,4 +565,18 @@ test('IELTS Practice pilot polish includes checklist, status helper text, and em
   assert.match(tab, /No content found in picker/, 'content picker should have a clear no-content empty state');
   assert.match(tab, /No students in this class/, 'class selection should warn when no students are enrolled');
   assert.match(tab, /Assignment has no items/, 'assignment list/progress should call out assignments with no items');
+});
+
+test('IELTS practice submission/completion migration adds submitted state metadata and RPC', () => {
+  const migration = fs.readFileSync(
+    path.join(process.cwd(), 'supabase/migrations/20260521120000_ielts_practice_submission_meaningful_completion.sql'),
+    'utf8',
+  );
+
+  assert.match(migration, /add column if not exists submitted_at timestamptz/i);
+  assert.match(migration, /add column if not exists meaningful_completed_at timestamptz/i);
+  assert.match(migration, /create or replace function public\.rpc_ielts_practice_mark_item_submitted/i);
+  assert.match(migration, /status\s*=\s*case when .*status = 'completed' then 'completed' else 'in_progress'/is);
+  assert.match(migration, /create or replace function public\.rpc_ielts_practice_mark_item_completed/i);
+  assert.match(migration, /meaningful_completed_at\s*=\s*coalesce\(public\.ielts_practice_assignment_item_students\.meaningful_completed_at, now\(\)\)/i);
 });
