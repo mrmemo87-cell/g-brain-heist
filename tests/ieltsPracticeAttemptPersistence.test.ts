@@ -79,6 +79,18 @@ test('readiness engine compatibility fields are populated from raw-score normali
   });
 });
 
+
+test('listening practice renders optional set-level instructions and example metadata without answer-key coupling', () => {
+  const source = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/ListeningPractice.tsx'), 'utf8');
+
+  assert.match(source, /listeningSet\.instructions\?\.trim\(\)/, 'listening flow should read set-level instructions when present');
+  assert.match(source, /listeningSet\.example_prompt\?\.trim\(\)/, 'listening flow should read optional example prompt metadata');
+  assert.match(source, /listeningSet\.example_answer\?\.trim\(\)/, 'listening flow should read optional example answer metadata');
+  assert.match(source, /listeningSet\.section_label\?\.trim\(\)/, 'listening flow should read optional section labels');
+  assert.match(source, /listeningSet\.question_range_label\?\.trim\(\)/, 'listening flow should read optional question range labels');
+  assert.doesNotMatch(source, /questionNumber\s*=\s*0|Example\s*\d+/, 'example metadata must not be treated as a numbered question');
+});
+
 test('practice attempt persistence does not expose answer_key or depend on legacy IELTS admin checks', () => {
   const files = [
     'src/lib/ieltsPracticeScoring.ts',

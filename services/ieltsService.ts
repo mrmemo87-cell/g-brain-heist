@@ -290,7 +290,7 @@ export const fetchActiveReadingSets = async (): Promise<IELTSReadingSet[]> => {
 export const fetchActiveListeningSets = async (): Promise<IELTSListeningSet[]> => {
   const { data, error } = await supabase
     .from('ielts_listening_sets')
-    .select('id, slug, title, description, level, est_band_min, est_band_max, duration_minutes, audio_url, created_by, created_at, is_active')
+    .select('id, slug, title, description, instructions, example_prompt, example_answer, section_label, question_range_label, level, est_band_min, est_band_max, duration_minutes, audio_url, created_by, created_at, is_active')
     .eq('is_active', true)
     .order('created_at', { ascending: false });
 

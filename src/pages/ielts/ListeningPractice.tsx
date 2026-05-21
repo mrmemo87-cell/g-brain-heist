@@ -13,6 +13,11 @@ interface ListeningSet {
   slug: string;
   title: string;
   description: string;
+  instructions: string | null;
+  example_prompt: string | null;
+  example_answer: string | null;
+  section_label: string | null;
+  question_range_label: string | null;
   level: string;
   est_band_min: number;
   est_band_max: number;
@@ -908,7 +913,7 @@ const ListeningPractice: React.FC = () => {
                           color: currentSection === idx ? 'white' : '#475569'
                         }}
                       >
-                        Section {idx + 1}
+                        {listeningSet.section_label?.trim() || `Section ${idx + 1}`}
                       </button>
                     ))}
                   </div>
@@ -933,12 +938,41 @@ const ListeningPractice: React.FC = () => {
               padding: '1.5rem',
               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
             }}>
+
+              <div style={{
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '0.75rem',
+                padding: '1rem',
+                marginBottom: '1rem'
+              }}>
+                <p style={{ fontSize: '0.875rem', color: '#334155', margin: 0, fontWeight: 500 }}>
+                  {listeningSet.instructions?.trim() || 'Answer the questions as you listen to the recording.'}
+                </p>
+                {listeningSet.example_prompt?.trim() && listeningSet.example_answer?.trim() && (
+                  <div style={{
+                    marginTop: '0.75rem',
+                    padding: '0.75rem',
+                    borderRadius: '0.5rem',
+                    background: '#eef2ff',
+                    border: '1px solid #c7d2fe'
+                  }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#4338ca', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.35rem' }}>
+                      Example
+                    </div>
+                    <div style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                      <strong>{listeningSet.example_prompt}</strong>: {listeningSet.example_answer}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
                 <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1e293b' }}>
-                  Section {currentSection + 1} Questions
+                  {(listeningSet.section_label?.trim() || `Section ${currentSection + 1}`)} Questions
                 </h2>
                 <span style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                  Questions {currentSection * 10 + 1} - {Math.min((currentSection + 1) * 10, questions.length)}
+                  {listeningSet.question_range_label?.trim() || `Questions ${currentSection * 10 + 1} - ${Math.min((currentSection + 1) * 10, questions.length)}`}
                 </span>
               </div>
 
