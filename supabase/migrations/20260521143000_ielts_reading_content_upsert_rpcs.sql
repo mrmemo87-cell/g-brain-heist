@@ -32,7 +32,7 @@ begin
     returning id into v_id;
   else
     update public.ielts_reading_sets
-    set title=trim(p_title),slug=v_slug,description=p_description,level=trim(p_level),est_band_min=p_est_band_min,est_band_max=p_est_band_max,duration_minutes=p_duration_minutes,passage_text=p_passage_text,is_active=coalesce(p_is_active,false),updated_at=now()
+    set title=trim(p_title),slug=v_slug,description=p_description,level=trim(p_level),est_band_min=p_est_band_min,est_band_max=p_est_band_max,duration_minutes=p_duration_minutes,passage_text=p_passage_text,is_active=coalesce(p_is_active,false)
     where id=p_id returning id into v_id;
     if v_id is null then raise exception 'reading_set_not_found'; end if;
   end if;
@@ -86,7 +86,7 @@ begin
     if exists(select 1 from public.ielts_reading_questions where set_id=p_reading_set_id and (nullif(trim(body),'') is null or correct_answer is null)) then raise exception 'active_question_invalid'; end if;
   end if;
 
-  return jsonb_build_object('reading_set_id',p_reading_set_id,'question_count',(select count(*) from public.ielts_reading_questions where set_id=p_reading_set_id));
+  return jsonb_build_object('set_id',p_reading_set_id,'question_count',(select count(*) from public.ielts_reading_questions where set_id=p_reading_set_id));
 end
 $$;
 

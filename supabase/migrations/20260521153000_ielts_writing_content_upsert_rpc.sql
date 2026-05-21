@@ -46,8 +46,7 @@ begin
         prompt = trim(p_prompt),
         bands_target = nullif(trim(coalesce(p_bands_target,'')), ''),
         sample_answer = p_sample_answer,
-        is_active = coalesce(p_is_active,false),
-        updated_at = now()
+        is_active = coalesce(p_is_active,false)
     where id = p_id
     returning id into v_id;
     if v_id is null then raise exception 'writing_task_not_found'; end if;
