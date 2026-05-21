@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '../../../services/supabaseClient';
 import { ensureIeltsProfile, getUserTier, isIeltsPrime, saveNotificationPreferences } from '../../../services/ieltsService';
-import { rpcIeltsPracticeMarkItemCompleted, type IeltsPracticeAssignmentProgress } from '../../../services/ieltsPracticeAssignmentService';
+import { rpcIeltsPracticeMarkItemCompleted, rpcIeltsPracticeMarkItemSubmitted, type IeltsPracticeAssignmentProgress } from '../../../services/ieltsPracticeAssignmentService';
 import { AssignmentCompletionStatus, readIeltsPracticeAssignmentContext } from './assignmentPracticeUi';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 import { buildSpeakingAttemptPayload } from '../../lib/ieltsPracticeScoring';
@@ -134,6 +134,12 @@ const SpeakingPractice: React.FC = () => {
 
       if (assignmentId && assignmentItemId) {
         try {
+          progress = await rpcIeltsPracticeMarkItemSubmitted({
+            assignmentId,
+            assignmentItemId,
+            practiceAttemptType: 'speaking',
+            practiceAttemptId: data?.id ?? null,
+          });
           progress = await rpcIeltsPracticeMarkItemCompleted({
             assignmentId,
             assignmentItemId,

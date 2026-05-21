@@ -81,6 +81,8 @@ export interface IeltsPracticeAssignmentItemProgress {
   practice_attempt_type: string | null;
   practice_attempt_id: string | null;
   started_at: string | null;
+  submitted_at?: string | null;
+  meaningful_completed_at?: string | null;
   completed_at: string | null;
   updated_at: string | null;
 }
@@ -398,4 +400,18 @@ export const rpcIeltsPracticeMarkItemCompleted = async (
   }) as unknown as Awaited<RpcResult<IeltsPracticeAssignmentProgress>>;
 
   return assertNoRpcError('rpc_ielts_practice_mark_item_completed', data, error);
+};
+
+export const rpcIeltsPracticeMarkItemSubmitted = async (
+  params: { assignmentId: string; assignmentItemId: string; practiceAttemptType?: string | null; practiceAttemptId?: string | null },
+  client?: IeltsPracticeAssignmentRpcClient
+): Promise<IeltsPracticeAssignmentProgress> => {
+  const { data, error } = await withClient(client).rpc('rpc_ielts_practice_mark_item_submitted', {
+    p_assignment_id: params.assignmentId,
+    p_assignment_item_id: params.assignmentItemId,
+    p_practice_attempt_type: params.practiceAttemptType ?? null,
+    p_practice_attempt_id: params.practiceAttemptId ?? null,
+  }) as unknown as Awaited<RpcResult<IeltsPracticeAssignmentProgress>>;
+
+  return assertNoRpcError('rpc_ielts_practice_mark_item_submitted', data, error);
 };

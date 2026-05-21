@@ -10,7 +10,7 @@ import {
   submitReadingAttempt,
 } from '../../../services/ieltsService';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
-import { rpcIeltsPracticeMarkItemCompleted, type IeltsPracticeAssignmentProgress } from '../../../services/ieltsPracticeAssignmentService';
+import { rpcIeltsPracticeMarkItemCompleted, rpcIeltsPracticeMarkItemSubmitted, type IeltsPracticeAssignmentProgress } from '../../../services/ieltsPracticeAssignmentService';
 import { AssignmentCompletionStatus, readIeltsPracticeAssignmentContext } from './assignmentPracticeUi';
 import type { IELTSReadingQuestion } from '../../../types';
 import { estimateIeltsBandFromPercent, toRawScoreResult } from '../../lib/ieltsPracticeScoring';
@@ -80,6 +80,7 @@ const ReadingPractice: React.FC = () => {
   const [lastAttemptId, setLastAttemptId] = useState<string | null>(null);
   const [assignmentProgress, setAssignmentProgress] = useState<IeltsPracticeAssignmentProgress | null>(null);
   const [assignmentCompletionError, setAssignmentCompletionError] = useState<string | null>(null);
+  const [isMeaningfulSubmission, setIsMeaningfulSubmission] = useState(true);
 
   const submitMutation = useMutation({
     mutationFn: async (data: { setId: number; answers: Record<number, string>; timeSpent: number }) => {
@@ -92,26 +93,38 @@ const ReadingPractice: React.FC = () => {
       });
       let progress: IeltsPracticeAssignmentProgress | null = null;
       let itemCompletionError: string | null = null;
+      const totalQuestions = questions?.length ?? 0;
+      const answeredCount = Object.values(data.answers).filter((answer) => String(answer ?? '').trim().length > 0).length;
+      const canComplete = totalQuestions > 0 && answeredCount >= totalQuestions;
 
       if (assignmentId && assignmentItemId) {
         try {
-          progress = await rpcIeltsPracticeMarkItemCompleted({
+          progress = await rpcIeltsPracticeMarkItemSubmitted({
             assignmentId,
             assignmentItemId,
             practiceAttemptType: 'reading',
             practiceAttemptId: attempt?.id ?? null,
           });
+          if (canComplete) {
+            progress = await rpcIeltsPracticeMarkItemCompleted({
+              assignmentId,
+              assignmentItemId,
+              practiceAttemptType: 'reading',
+              practiceAttemptId: attempt?.id ?? null,
+            });
+          }
         } catch (error) {
           itemCompletionError = error instanceof Error ? error.message : 'Unable to mark assignment item completed.';
         }
       }
 
-      return { attempt, progress, itemCompletionError };
+      return { attempt, progress, itemCompletionError, answeredCount };
     },
     onSuccess: (data) => {
       setLastAttemptId(data.attempt?.id);
       setAssignmentProgress(data.progress);
       setAssignmentCompletionError(data.itemCompletionError);
+      setIsMeaningfulSubmission(data.answeredCount > 0);
       setShowResults(true);
     },
   });
@@ -331,7 +344,7 @@ const ReadingPractice: React.FC = () => {
             </div>
             <div style={{ fontSize: 'clamp(1rem, 3vw, 1.25rem)', color: '#3b82f6' }}>{results.percentage}% Correct</div>
             
-            <div style={{
+            {isMeaningfulSubmission ? <div style={{
               marginTop: '1.5rem',
               padding: 'clamp(0.75rem, 2vw, 1rem)',
               background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
@@ -340,7 +353,7 @@ const ReadingPractice: React.FC = () => {
             }}>
               <div style={{ fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: '#92400e', marginBottom: '0.25rem' }}>Estimated Band Score</div>
               <div style={{ fontSize: 'clamp(1.75rem, 6vw, 2.5rem)', fontWeight: 'bold', color: '#b45309' }}>{bandScore}</div>
-            </div>
+            </div> : <div style={{ marginTop: '1rem', color: '#92400e', fontWeight: 700 }}>Submitted with no answers recorded. Not enough data yet for readiness/band estimate.</div>}
           </div>
 
           {/* Expert Review Notice */}
