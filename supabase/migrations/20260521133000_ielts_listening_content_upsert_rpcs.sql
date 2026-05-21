@@ -70,7 +70,7 @@ begin
   end if;
 
   if coalesce(p_is_active,false) then
-    select count(*) into v_q_count from public.ielts_listening_questions where listening_set_id = v_id;
+    select count(*) into v_q_count from public.ielts_listening_questions where set_id = v_id;
     if nullif(trim(coalesce(p_audio_url,'')), '') is null then raise exception 'active_requires_audio'; end if;
     if v_q_count = 0 then raise exception 'active_requires_question'; end if;
   end if;
@@ -105,7 +105,7 @@ begin
   if p_listening_set_id is null then raise exception 'listening_set_required'; end if;
   if jsonb_typeof(p_questions) <> 'array' then raise exception 'questions_must_be_array'; end if;
 
-  delete from public.ielts_listening_questions where listening_set_id = p_listening_set_id;
+  delete from public.ielts_listening_questions where set_id = p_listening_set_id;
 
   for v_question in select value from jsonb_array_elements(p_questions)
   loop
@@ -121,21 +121,21 @@ begin
     if lower(v_body) like '%tbd%' or lower(v_body) like '%placeholder%' then raise exception 'question_body_placeholder_not_allowed'; end if;
     if v_correct is null or jsonb_typeof(v_correct) = 'null' then raise exception 'correct_answer_required'; end if;
 
-    insert into public.ielts_listening_questions (listening_set_id, question_order, question_type, body, options, correct_answer, explanation)
+    insert into public.ielts_listening_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
     values (p_listening_set_id, v_order, coalesce(v_type, 'short_answer'), v_body, v_options, v_correct, v_explanation);
   end loop;
 
   if exists (
-    select 1 from public.ielts_listening_questions where listening_set_id = p_listening_set_id group by question_order having count(*) > 1
+    select 1 from public.ielts_listening_questions where set_id = p_listening_set_id group by question_order having count(*) > 1
   ) then raise exception 'duplicate_question_order'; end if;
 
   select is_active into v_is_active from public.ielts_listening_sets where id = p_listening_set_id;
   if coalesce(v_is_active,false) then
-    if not exists(select 1 from public.ielts_listening_questions where listening_set_id = p_listening_set_id) then raise exception 'active_requires_question'; end if;
-    if exists(select 1 from public.ielts_listening_questions where listening_set_id = p_listening_set_id and (nullif(trim(body),'') is null or correct_answer is null)) then raise exception 'active_question_invalid'; end if;
+    if not exists(select 1 from public.ielts_listening_questions where set_id = p_listening_set_id) then raise exception 'active_requires_question'; end if;
+    if exists(select 1 from public.ielts_listening_questions where set_id = p_listening_set_id and (nullif(trim(body),'') is null or correct_answer is null)) then raise exception 'active_question_invalid'; end if;
   end if;
 
-  return jsonb_build_object('listening_set_id', p_listening_set_id, 'question_count', (select count(*) from public.ielts_listening_questions where listening_set_id = p_listening_set_id));
+  return jsonb_build_object('listening_set_id', p_listening_set_id, 'question_count', (select count(*) from public.ielts_listening_questions where set_id = p_listening_set_id));
 end
 $$;
 

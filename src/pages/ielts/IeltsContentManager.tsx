@@ -22,6 +22,14 @@ const blankReading = ():ReadingDraft => ({ title: '', slug: '', description: '',
 const blankListening = ():ListeningDraft => ({ title: '', slug: '', description: '', level: '', est_band_min: '', est_band_max: '', duration_minutes: '30', audio_url: '', is_active: false, instructions: '', example_prompt: '', example_answer: '', section_label: '', question_range_label: '', questions: [] });
 const blankWriting = ():WritingDraft => ({ slug: '', task_type: '', title: '', prompt: '', bands_target: '', sample_answer: '', is_active: false });
 const blankSpeaking = ():SpeakingDraft => ({ slug: '', part: '1', prompt: '', follow_ups: '', is_active: false });
+const isValidHttpUrl = (value: string): boolean => {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
 
 const IeltsContentManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState<SkillTab>('reading');
@@ -73,53 +81,82 @@ const IeltsContentManager: React.FC = () => {
   const saveListening = async () => {
     if (!editingListening) return;
     setListeningValidationErrors([]);
+    setError(null);
 
+    const issues:string[] = [];
     if (editingListening.is_active) {
-      const issues:string[] = [];
-      if (!editingListening.audio_url.trim()) issues.push('Audio URL is required when Active is checked.');
+      if (!editingListening.audio_url.trim()) {
+        issues.push('Audio URL is required when Active is checked.');
+      } else if (!isValidHttpUrl(editingListening.audio_url.trim())) {
+        issues.push('Audio URL must start with http:// or https:// and be a valid URL.');
+      }
       if (editingListening.questions.length === 0) issues.push('At least one question is required when Active is checked.');
-      editingListening.questions.forEach((q, idx) => {
-        if (!q.body.trim()) issues.push(`Question ${idx + 1}: Question body is required.`);
-        try {
-          const parsed = q.correct_answer ? JSON.parse(q.correct_answer) : null;
-          if (!Array.isArray(parsed) || parsed.length === 0) issues.push(`Question ${idx + 1}: Correct answer must be a non-empty JSON array.`);
-        } catch {
-          issues.push(`Question ${idx + 1}: Correct answer must be valid JSON.`);
-        }
-      });
-      if (issues.length > 0) {
-        setListeningValidationErrors(issues);
+    }
+
+    editingListening.questions.forEach((q, idx) => {
+      if (editingListening.is_active && !q.body.trim()) issues.push(`Question ${idx + 1}: Question body is required.`);
+      let parsed: unknown = null;
+      try {
+        parsed = q.correct_answer ? JSON.parse(q.correct_answer) : null;
+      } catch {
+        issues.push(`Question ${idx + 1}: Correct answer must be valid JSON, example: ["Yes"]`);
         return;
       }
+      if (!Array.isArray(parsed)) {
+        issues.push(`Question ${idx + 1}: Correct answer must be valid JSON, example: ["Yes"]`);
+        return;
+      }
+      if (editingListening.is_active && parsed.length === 0) {
+        issues.push(`Question ${idx + 1}: Correct answer must be a non-empty JSON array.`);
+      }
+    });
+
+    if (issues.length > 0) {
+      setListeningValidationErrors(issues);
+      setError(issues.join(' '));
+      return;
     }
 
     setSaving(true);
-    setError(null);
-    const { data:r, error:e } = await supabase.rpc('rpc_ielts_content_upsert_listening_set', {
-      p_id: editingListening.id ? Number(editingListening.id) : null,
-      p_title: editingListening.title,
-      p_slug: editingListening.slug || null,
-      p_description: editingListening.description || null,
-      p_level: editingListening.level,
-      p_est_band_min: editingListening.est_band_min ? Number(editingListening.est_band_min) : null,
-      p_est_band_max: editingListening.est_band_max ? Number(editingListening.est_band_max) : null,
-      p_duration_minutes: Number(editingListening.duration_minutes),
-      p_audio_url: editingListening.audio_url || null,
-      p_is_active: editingListening.is_active,
-      p_instructions: editingListening.instructions || null,
-      p_example_prompt: editingListening.example_prompt || null,
-      p_example_answer: editingListening.example_answer || null,
-      p_section_label: editingListening.section_label || null,
-      p_question_range_label: editingListening.question_range_label || null,
-    });
-    if (e) { setError(e.message); setSaving(false); return; }
-    const setId = Number(r?.id);
-    const qs = editingListening.questions.map(q => ({ question_order: q.question_order, question_type: q.question_type, body: q.body, options: q.options ? JSON.parse(q.options) : null, correct_answer: q.correct_answer ? JSON.parse(q.correct_answer) : [], explanation: q.explanation || null }));
-    const { error:qe } = await supabase.rpc('rpc_ielts_content_replace_listening_questions', { p_listening_set_id: setId, p_questions: qs });
-    if (qe) { setError(qe.message); setSaving(false); return; }
-    setEditingListening(null);
-    setSaving(false);
-    await load();
+    try {
+      const { data:r, error:e } = await supabase.rpc('rpc_ielts_content_upsert_listening_set', {
+        p_id: editingListening.id ? Number(editingListening.id) : null,
+        p_title: editingListening.title,
+        p_slug: editingListening.slug || null,
+        p_description: editingListening.description || null,
+        p_level: editingListening.level,
+        p_est_band_min: editingListening.est_band_min ? Number(editingListening.est_band_min) : null,
+        p_est_band_max: editingListening.est_band_max ? Number(editingListening.est_band_max) : null,
+        p_duration_minutes: Number(editingListening.duration_minutes),
+        p_audio_url: editingListening.audio_url || null,
+        p_is_active: editingListening.is_active,
+        p_instructions: editingListening.instructions || null,
+        p_example_prompt: editingListening.example_prompt || null,
+        p_example_answer: editingListening.example_answer || null,
+        p_section_label: editingListening.section_label || null,
+        p_question_range_label: editingListening.question_range_label || null,
+      });
+      if (e) throw new Error(e.message);
+      const setId = Number(r?.id);
+      const qs = editingListening.questions.map(q => ({
+        question_order: q.question_order,
+        question_type: q.question_type,
+        body: q.body,
+        options: q.options ? JSON.parse(q.options) : null,
+        correct_answer: q.correct_answer ? JSON.parse(q.correct_answer) : [],
+        explanation: q.explanation || null,
+      }));
+      const { error:qe } = await supabase.rpc('rpc_ielts_content_replace_listening_questions', { p_listening_set_id: setId, p_questions: qs });
+      if (qe) throw new Error(qe.message);
+      setEditingListening(null);
+      await load();
+    } catch (saveError) {
+      const message = saveError instanceof Error ? saveError.message : 'Failed to save listening task.';
+      setError(message);
+      setListeningValidationErrors(prev => prev.length > 0 ? prev : [message]);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const loadReading = async (id:string) => { const { data:s, error } = await supabase.from('ielts_reading_sets').select('*').eq('id', Number(id)).single(); if (error) { setError(error.message); return; } const { data:q } = await supabase.from('ielts_reading_questions').select('question_order,question_type,body,options,correct_answer,explanation').eq('set_id', Number(id)).order('question_order'); setEditingReading({ id, title:s.title ?? '', slug:s.slug ?? '', description:s.description ?? '', level:s.level ?? '', est_band_min:s.est_band_min?.toString() ?? '', est_band_max:s.est_band_max?.toString() ?? '', duration_minutes:String(s.duration_minutes ?? 60), passage_text:s.passage_text ?? '', is_active:Boolean(s.is_active), questions:(q ?? []).map((x:any) => ({ question_order:x.question_order, question_type:x.question_type ?? 'short_answer', body:x.body ?? '', options:x.options ? JSON.stringify(x.options) : '', correct_answer:x.correct_answer ? JSON.stringify(x.correct_answer) : '', explanation:x.explanation ?? '' })) }); };
