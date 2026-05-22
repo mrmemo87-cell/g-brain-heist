@@ -348,6 +348,64 @@ test.describe('IELTS Pilot QA smoke flows', () => {
     await expect(page.getByTestId(`ielts-practice-progress-student-${ids.student}`)).toContainText('completed');
   });
 
+
+
+test('objective result pages avoid estimated_band and do not hit Supabase 400s', async ({ page }) => {
+  await seedSession(page, studentProfile);
+
+  const capturedErrors = [];
+  const objectiveRequests = [];
+
+  page.on('console', (msg) => {
+    if (msg.type() === 'error') capturedErrors.push(msg.text());
+  });
+
+  await page.route('**/auth/v1/user', async (route) => {
+    await route.fulfill({ json: authUser(studentProfile) });
+  });
+
+  await page.route('**/rest/v1/**', async (route) => {
+    const url = new URL(route.request().url());
+    const table = url.pathname.split('/').pop();
+
+    if (table === 'users') return route.fulfill({ json: studentProfile });
+    if (table === 'school_members') return route.fulfill({ json: { school_id: ids.school, role_in_school: 'student' } });
+    if (table === 'schools') return route.fulfill({ json: school });
+
+    if (table === 'ielts_reading_attempts' || table === 'ielts_listening_attempts') {
+      objectiveRequests.push(url.toString());
+      const select = url.searchParams.get('select') || '';
+      if (select.includes('estimated_band')) {
+        return route.fulfill({ status: 400, json: { message: `column ${table}.estimated_band does not exist` } });
+      }
+
+      const attempt = table === 'ielts_reading_attempts'
+        ? { id: 'reading-attempt-smoke', raw_score: 30, total_questions: 40, percent: 75, est_band: 6.5, completed_at: now }
+        : { id: 'listening-attempt-smoke', raw_score: 28, total_questions: 40, percent: 70, est_band: 6.0, completed_at: now };
+      return route.fulfill({ json: attempt });
+    }
+
+    return route.fulfill({ json: [] });
+  });
+
+  await page.goto('/ielts/reading/result/reading-attempt-smoke');
+  await expect(page.getByText('Reading Objective Result')).toBeVisible();
+  await expect(page.getByText('Estimated readiness band:')).toContainText('6.5');
+  await page.getByRole('button', { name: /Back to My IELTS Journey/i }).click();
+  await expect(page).toHaveURL(/\/ielts\/journey/);
+
+  await page.goto('/ielts/listening/result/listening-attempt-smoke');
+  await expect(page.getByText('Listening Objective Result')).toBeVisible();
+  await expect(page.getByText('Estimated readiness band:')).toContainText('6');
+  await page.getByRole('button', { name: /Back to My IELTS Journey/i }).click();
+  await expect(page).toHaveURL(/\/ielts\/journey/);
+
+  expect(objectiveRequests.some((req) => req.includes('ielts_reading_attempts'))).toBeTruthy();
+  expect(objectiveRequests.some((req) => req.includes('ielts_listening_attempts'))).toBeTruthy();
+  expect(objectiveRequests.some((req) => req.includes('estimated_band'))).toBeFalsy();
+  expect(capturedErrors.some((txt) => txt.includes('estimated_band does not exist'))).toBeFalsy();
+});
+
   test('IELTS Results tab loads summary cards and student row', async ({ page }) => {
     await seedSession(page, adminProfile);
     await installSupabaseMocks(page, adminProfile, { assignmentExists: true, studentCompleted: true });

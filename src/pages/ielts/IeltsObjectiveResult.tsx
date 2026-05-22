@@ -12,7 +12,7 @@ const IeltsObjectiveResult: React.FC = () => {
     queryFn: async () => {
       if (!attemptId || (skill !== 'reading' && skill !== 'listening')) throw new Error('Invalid result route.');
       const table = skill === 'reading' ? 'ielts_reading_attempts' : 'ielts_listening_attempts';
-      const { data: row, error: qErr } = await supabase.from(table).select('id, raw_score, total_questions, percent, est_band, estimated_band, completed_at').eq('id', attemptId).single();
+      const { data: row, error: qErr } = await supabase.from(table).select('id, raw_score, total_questions, percent, est_band, completed_at').eq('id', attemptId).single();
       if (qErr) throw qErr;
       return row;
     },
@@ -34,7 +34,7 @@ const IeltsObjectiveResult: React.FC = () => {
           <div style={{ background: '#f8fafc', borderRadius: '0.7rem', padding: '0.8rem' }}><div style={{ color: '#475569', fontSize: '0.82rem' }}>Answered / Total</div><strong style={{ fontSize: '1.2rem' }}>{correct + incorrect}/{total}</strong></div>
           <div style={{ background: '#f8fafc', borderRadius: '0.7rem', padding: '0.8rem' }}><div style={{ color: '#475569', fontSize: '0.82rem' }}>Correct / Incorrect</div><strong style={{ fontSize: '1.2rem' }}>{correct} / {incorrect}</strong></div>
         </div>
-        <p style={{ margin: 0, color: '#334155' }}>Objective result: <strong>{data.percent ?? 0}% correct</strong>. Estimated readiness band: <strong>{data.est_band ?? data.estimated_band ?? 'Not enough data'}</strong>.</p>
+        <p style={{ margin: 0, color: '#334155' }}>Objective result: <strong>{data.percent ?? 0}% correct</strong>. Estimated readiness band: <strong>{data.est_band ?? 'Not enough data'}</strong>.</p>
       </div> : null}
     </section>
   </main>;
