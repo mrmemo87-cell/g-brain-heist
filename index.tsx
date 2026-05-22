@@ -52,6 +52,7 @@ const IeltsExamManager = lazyRetry(() => import('./src/pages/ielts/IeltsExamMana
 const IeltsReviewQueue = lazyRetry(() => import('./src/pages/ielts/IeltsReviewQueue'), 'IeltsReviewQueue');
 const IeltsSubmissionReview = lazyRetry(() => import('./src/pages/ielts/IeltsSubmissionReview'), 'IeltsSubmissionReview');
 const IeltsReviewResult = lazyRetry(() => import('./src/pages/ielts/IeltsReviewResult'), 'IeltsReviewResult');
+const IeltsObjectiveResult = lazyRetry(() => import('./src/pages/ielts/IeltsObjectiveResult'), 'IeltsObjectiveResult');
 const IeltsReviewAdminGuard = lazyRetry(() => import('./components/ielts/IeltsReviewAdminGuard'), 'IeltsReviewAdminGuard');
 
 const queryClient = new QueryClient();
@@ -781,6 +782,10 @@ const router = createBrowserRouter([
   {
     path: '/ielts/review-result/:skill/:attemptId',
     element: <ProtectedRoute element={<IeltsReviewResult />} />,
+  },
+  {
+    path: '/ielts/:skill/result/:attemptId',
+    element: <ProtectedRoute element={<IeltsObjectiveResult />} />,
   },
   {
     path: '/ielts/exam/:examEventId/monitor',

@@ -42,7 +42,14 @@ export interface IeltsJourneyExamSubmissionItem {
   skills?: IeltsJourneySkill[] | null;
   objective_skill_count?: number | null;
   productive_skill_count?: number | null;
+  objective_attempt_id?: string | null;
+  objective_result_link?: string | null;
+  score_correct?: number | null;
+  score_total?: number | null;
+  percent_correct?: number | null;
+  estimated_band?: number | null;
 }
+
 export interface IeltsJourneyAssignmentItem {
   assignment_id: string;
   title: string;
@@ -62,7 +69,14 @@ export interface IeltsJourneyAssignmentItem {
   skills?: IeltsJourneySkill[] | null;
   objective_skill_count?: number | null;
   productive_skill_count?: number | null;
+  objective_attempt_id?: string | null;
+  objective_result_link?: string | null;
+  score_correct?: number | null;
+  score_total?: number | null;
+  percent_correct?: number | null;
+  estimated_band?: number | null;
 }
+
 export interface IeltsJourneyTeacherFeedbackItem {
   review_id: string;
   skill: IeltsJourneySkill;
