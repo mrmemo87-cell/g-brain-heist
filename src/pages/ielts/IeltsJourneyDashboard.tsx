@@ -42,7 +42,6 @@ const IeltsJourneyDashboard: React.FC = () => {
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<DashboardTab>('current');
-  const rootRef = useRef<HTMLDivElement | null>(null);
 
   const renderCompletedSkillRow = (item: IeltsJourneyAssignmentItem, skill: SkillKey) => {
     const label = taskState(item, skill);
