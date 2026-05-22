@@ -105,10 +105,15 @@ const SpeakingPractice: React.FC = () => {
       if (!session?.session?.user) throw new Error('Not authenticated');
 
       // Upload audio file
-      const fileName = `speaking/${session.session.user.id}/${task?.id}_${Date.now()}.webm`;
+      const blobType = blob.type && blob.type.trim() ? blob.type : 'audio/webm';
+      const extension = blobType.includes('ogg') ? 'ogg' : blobType.includes('mp4') ? 'm4a' : 'webm';
+      const fileName = `speaking/${session.session.user.id}/${task?.id}_${Date.now()}.${extension}`;
       const { error: uploadError } = await supabase.storage
         .from('ielts-recordings')
-        .upload(fileName, blob);
+        .upload(fileName, blob, {
+          contentType: blobType,
+          upsert: false,
+        });
 
       if (uploadError) throw uploadError;
 
@@ -117,6 +122,7 @@ const SpeakingPractice: React.FC = () => {
         user_id: session.session.user.id,
         task_id: task?.id,
         audio_url: fileName,
+        duration_seconds: recordingDuration > 0 ? recordingDuration : null,
         submitted_at: new Date().toISOString(),
       });
 

@@ -11,6 +11,7 @@ import {
   type IeltsReviewRubric,
   type IeltsReviewSkill,
 } from '../../../services/ieltsTeacherReviewService';
+import { supabase } from '../../../services/supabaseClient';
 
 const rubricLabels: Record<string, string> = {
   task_achievement: 'Task achievement',
@@ -45,6 +46,8 @@ const IeltsSubmissionReview: React.FC = () => {
   const [nextSteps, setNextSteps] = useState('');
   const [teacherFeedback, setTeacherFeedback] = useState('');
   const [privateNotes, setPrivateNotes] = useState('');
+  const [resolvedAudioUrl, setResolvedAudioUrl] = useState<string | null>(null);
+  const [audioLoadError, setAudioLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!detail) return;
@@ -56,6 +59,39 @@ const IeltsSubmissionReview: React.FC = () => {
     setTeacherFeedback(detail.teacher_feedback ?? '');
     setPrivateNotes(detail.private_notes ?? '');
   }, [detail, skill]);
+
+  useEffect(() => {
+    let active = true;
+    const resolveAudioUrl = async () => {
+      setResolvedAudioUrl(null);
+      setAudioLoadError(null);
+
+      if (skill !== 'speaking') return;
+      const rawAudio = detail?.audio_url?.trim();
+      if (!rawAudio) return;
+
+      if (/^https?:\/\//i.test(rawAudio)) {
+        if (active) setResolvedAudioUrl(rawAudio);
+        return;
+      }
+
+      const { data, error } = await supabase.storage
+        .from('ielts-recordings')
+        .createSignedUrl(rawAudio, 60 * 30);
+
+      if (!active) return;
+      if (error || !data?.signedUrl) {
+        setAudioLoadError('Audio unavailable. Recording URL could not be generated.');
+        return;
+      }
+      setResolvedAudioUrl(data.signedUrl);
+    };
+
+    void resolveAudioUrl();
+    return () => {
+      active = false;
+    };
+  }, [detail?.audio_url, skill]);
 
   const submitMutation = useMutation({
     mutationFn: (finalize: boolean) => rpcIeltsSubmitReview({
@@ -110,7 +146,12 @@ const IeltsSubmissionReview: React.FC = () => {
                 <section>
                   <h3 style={{ color: '#334155' }}>Speaking evidence</h3>
                   <div style={{ color: '#64748b', marginBottom: '0.5rem' }}>Duration: {detail.duration_seconds ? `${detail.duration_seconds}s` : 'unknown'}</div>
-                  {detail.audio_url ? <audio controls src={detail.audio_url} style={{ width: '100%', marginBottom: '1rem' }} /> : <div style={{ color: '#64748b', marginBottom: '1rem' }}>No audio file available.</div>}
+                  {resolvedAudioUrl ? (
+                    <audio controls src={resolvedAudioUrl} style={{ width: '100%', marginBottom: '1rem' }} onError={() => setAudioLoadError('Audio unavailable. The recording could not be loaded.')} />
+                  ) : (
+                    <div style={{ color: '#64748b', marginBottom: '1rem' }}>Audio unavailable.</div>
+                  )}
+                  {audioLoadError ? <div style={{ color: '#b45309', marginBottom: '1rem' }}>{audioLoadError}</div> : null}
                   <div style={{ whiteSpace: 'pre-wrap', color: '#0f172a', border: '1px solid #e2e8f0', borderRadius: '0.5rem', padding: '1rem', minHeight: '10rem' }}>{detail.transcript ?? 'No transcript available.'}</div>
                 </section>
               )}
