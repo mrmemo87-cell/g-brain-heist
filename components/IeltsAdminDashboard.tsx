@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import IeltsAdminBadgeRow from '../src/pages/ielts/components/IeltsAdminBadgeRow';
 import { supabase } from '../services/supabaseClient';
 import { fetchAllIeltsUsers, fetchIeltsAdminStats, fetchIeltsRecentAttempts } from '../services/ieltsService';
 
@@ -1170,6 +1171,15 @@ const IeltsAdminDashboard: React.FC = () => {
               <h2 className="text-2xl font-semibold">Overview</h2>
               <p className="text-sm text-slate-400">IELTS monitoring snapshot and high-level operational stats.</p>
             </header>
+            <IeltsAdminBadgeRow
+              totalUsers={stats?.total_ielts_users ?? 0}
+              premiumUsers={premiumUserCount}
+              pendingPrime={pendingPrime.length}
+              ungradedWriting={ungradedWriting.length}
+              ungradedSpeaking={ungradedSpeaking.length}
+              onGoReviews={() => setActiveSection('writing')}
+              onGoPrime={() => setActiveSection('prime')}
+            />
             {sectionLoading.overview && (
               <div className="text-sm text-slate-400">Loading overview...</div>
             )}

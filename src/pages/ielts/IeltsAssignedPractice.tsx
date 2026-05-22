@@ -143,51 +143,59 @@ const IeltsAssignedPractice: React.FC = () => {
   }), [assignments]);
 
   return (
-    <div data-testid="ielts-assigned-practice-page" style={{ minHeight: '100vh', backgroundColor: '#f8fafc', color: '#111827', padding: '1rem' }}>
+    <div data-testid="ielts-assigned-practice-page" style={{ minHeight: '100vh', background: '#f8fafc', color: '#0f172a', padding: '1rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       <div style={{ maxWidth: '64rem', margin: '0 auto' }}>
+
+        {/* Back */}
         <button
           type="button"
           onClick={() => navigate('/ielts')}
-          style={{ marginBottom: '1rem', color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+          style={{ marginBottom: '1rem', color: '#0891b2', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.875rem', padding: '0.25rem 0' }}
         >
           ← Back to IELTS Home
         </button>
 
-        <header style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%)', borderRadius: '1rem', padding: '1.5rem', color: '#ffffff', marginBottom: '1rem' }}>
-          <p style={{ margin: '0 0 0.5rem', color: '#bfdbfe', textTransform: 'uppercase', letterSpacing: '0.12em', fontSize: '0.75rem', fontWeight: 700 }}>School IELTS Practice</p>
-          <h1 style={{ margin: 0, fontSize: '1.875rem', fontWeight: 800 }}>Assigned IELTS Practice</h1>
-          <p style={{ margin: '0.75rem 0 0', color: '#dbeafe', lineHeight: 1.6 }}>
-            Review IELTS practice assigned by your school or teacher. Clear item states and progress help you pick up exactly where you left off.
+        {/* Header */}
+        <header style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '1rem', padding: '1.25rem', marginBottom: '1rem', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+          <p style={{ margin: '0 0 0.35rem', color: '#0891b2', textTransform: 'uppercase', letterSpacing: '0.16em', fontSize: '0.65rem', fontWeight: 800 }}>SCHOOL IELTS PRACTICE</p>
+          <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color: '#0f172a' }}>Assigned Practice</h1>
+          <p style={{ margin: '0.5rem 0 0', color: '#64748b', lineHeight: 1.6, fontSize: '0.82rem' }}>
+            IELTS practice assigned by your school or teacher. Clear item states help you pick up exactly where you left off.
           </p>
         </header>
 
+        {/* Error */}
         {error && (
-          <div style={{ backgroundColor: '#fee2e2', border: '1px solid #fecaca', color: '#991b1b', padding: '0.875rem', borderRadius: '0.75rem', marginBottom: '1rem' }}>
+          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', padding: '0.875rem', borderRadius: '0.75rem', marginBottom: '1rem', fontSize: '0.875rem' }}>
             {error}
           </div>
         )}
 
+        {/* Loading */}
         {loadState === 'loading' && (
-          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1rem', color: '#64748b' }}>
+          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '1rem', color: '#64748b', fontSize: '0.875rem' }}>
             Loading assigned IELTS practice…
           </div>
         )}
 
+        {/* Load error */}
         {loadState === 'error' && (
-          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1rem' }}>
+          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '1rem' }}>
             <p style={{ margin: '0 0 0.75rem', color: '#64748b' }}>We could not load your assigned practice.</p>
-            <button type="button" onClick={() => void loadAssignments()} style={{ backgroundColor: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1rem', cursor: 'pointer', fontWeight: 700 }}>
+            <button type="button" onClick={() => void loadAssignments()} style={{ background: '#0891b2', color: '#ffffff', border: 'none', borderRadius: '0.5rem', padding: '0.55rem 1rem', cursor: 'pointer', fontWeight: 700, fontSize: '0.875rem' }}>
               Try again
             </button>
           </div>
         )}
 
+        {/* Empty */}
         {loadState === 'ready' && sortedAssignments.length === 0 && (
-          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.25rem', color: '#64748b' }}>
+          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '1.25rem', color: '#64748b', fontSize: '0.875rem', lineHeight: 1.6 }}>
             No IELTS practice has been assigned yet. Assignments complete automatically after all required items are finished, and closed assignments are read-only.
           </div>
         )}
 
+        {/* Assignment cards */}
         {loadState === 'ready' && sortedAssignments.map((assignment) => {
           const groupedItems = groupItemsBySkill(assignment.items);
           const visibleSkills = [...skillOrder, ...Object.keys(groupedItems).filter((skill) => !skillOrder.includes(skill))]
@@ -198,69 +206,87 @@ const IeltsAssignedPractice: React.FC = () => {
           const progressSummary = getAssignmentProgressSummaryFromAssignment(assignment, assignmentProgress);
           const progressItemsById = new Map((assignmentProgress?.items ?? []).map((progressItem) => [progressItem.assignment_item_id, progressItem]));
           const isClosedReadOnly = assignment.status === 'closed' && assignment.student_status !== 'completed';
+          const isOverdue = isAssignmentOverdue(assignment);
+
+          const lightBadge = assignment.student_status === 'completed'
+            ? { bg: '#dcfce7', color: '#166534', border: '#86efac' }
+            : assignment.status === 'closed'
+              ? { bg: '#fef3c7', color: '#92400e', border: '#fcd34d' }
+              : isOverdue
+                ? { bg: '#fee2e2', color: '#991b1b', border: '#fca5a5' }
+                : assignment.student_status === 'in_progress'
+                  ? { bg: '#dbeafe', color: '#1d4ed8', border: '#93c5fd' }
+                  : { bg: '#ede9fe', color: '#5b21b6', border: '#c4b5fd' };
 
           return (
-            <article key={assignment.id} data-testid={`ielts-assigned-assignment-${assignment.id}`} style={{ backgroundColor: '#ffffff', border: isAssignmentOverdue(assignment) ? '1px solid #fca5a5' : '1px solid #e5e7eb', borderRadius: '1rem', padding: '1rem', marginBottom: '1rem', boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
-                <div>
-                  <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#111827' }}>{assignment.title}</h2>
-                  {assignment.description && <p style={{ margin: '0.5rem 0 0', color: '#475569', lineHeight: 1.5 }}>{assignment.description}</p>}
+            <article key={assignment.id} data-testid={`ielts-assigned-assignment-${assignment.id}`} style={{ background: '#ffffff', border: `1px solid ${isOverdue ? '#fca5a5' : '#e2e8f0'}`, borderRadius: '1rem', padding: '1rem', marginBottom: '1rem', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+
+              {/* Assignment header */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <div style={{ flex: 1 }}>
+                  <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>{assignment.title}</h2>
+                  {assignment.description && <p style={{ margin: '0.35rem 0 0', color: '#64748b', lineHeight: 1.5, fontSize: '0.82rem' }}>{assignment.description}</p>}
                 </div>
-                <span style={{ backgroundColor: badge.backgroundColor, color: badge.color, borderRadius: '9999px', padding: '0.35rem 0.75rem', fontSize: '0.75rem', fontWeight: 800 }}>
+                <span style={{ background: lightBadge.bg, color: lightBadge.color, border: `1px solid ${lightBadge.border}`, borderRadius: '9999px', padding: '0.3rem 0.7rem', fontSize: '0.68rem', fontWeight: 800, whiteSpace: 'nowrap' }}>
                   {badge.label}
                 </span>
               </div>
 
-              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.875rem', color: '#64748b', fontSize: '0.875rem' }}>
-                <span>Due: <strong style={{ color: '#334155' }}>{formatDueDate(assignment.due_at)}</strong></span>
-                <span>Items: <strong style={{ color: '#334155' }}>{assignment.item_count ?? assignment.items?.length ?? 0}</strong></span>
-                <span>Status: <strong style={{ color: '#334155' }}>{assignment.status === 'closed' && assignment.student_status !== 'completed' ? 'closed' : assignment.student_status.replace(/_/g, ' ')}</strong></span>
+              {/* Meta */}
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.65rem', color: '#94a3b8', fontSize: '0.8rem' }}>
+                <span>Due: <strong style={{ color: isOverdue ? '#dc2626' : '#475569' }}>{formatDueDate(assignment.due_at)}</strong></span>
+                <span>Items: <strong style={{ color: '#475569' }}>{assignment.item_count ?? assignment.items?.length ?? 0}</strong></span>
+                <span>Status: <strong style={{ color: '#475569' }}>{(assignment.status === 'closed' && assignment.student_status !== 'completed' ? 'closed' : assignment.student_status).replace(/_/g, ' ')}</strong></span>
               </div>
 
+              {/* Progress bar */}
               <AssignmentProgressBar
                 testId={`ielts-assigned-progress-${assignment.id}`}
                 summary={progressSummary}
                 label={`${progressSummary.completedCount} of ${progressSummary.totalCount} completed`}
-                style={{ marginTop: '1rem', color: '#334155' }}
+                style={{ marginTop: '0.85rem', color: '#475569' }}
               />
 
-              <div style={{ marginTop: '1rem' }}>
+              {/* Skill sections */}
+              <div style={{ marginTop: '0.85rem' }}>
                 {visibleSkills.length === 0 && (
-                  <div data-testid={`ielts-assigned-no-items-${assignment.id}`} style={{ border: '1px dashed #cbd5e1', backgroundColor: '#f8fafc', borderRadius: '0.75rem', padding: '0.875rem', color: '#64748b', fontSize: '0.875rem', fontWeight: 700 }}>
+                    <div data-testid={`ielts-assigned-no-items-${assignment.id}`} style={{ border: '1px dashed #cbd5e1', background: '#f8fafc', borderRadius: '0.75rem', padding: '0.875rem', color: '#94a3b8', fontSize: '0.82rem', fontWeight: 700 }}>
                     This assignment has no items yet. Ask your teacher to add practice content.
                   </div>
                 )}
+
                 {visibleSkills.map((skill) => (
-                  <section key={skill} style={{ borderTop: '1px solid #e5e7eb', paddingTop: '0.875rem', marginTop: '0.875rem' }}>
-                    <h3 style={{ margin: '0 0 0.5rem', color: '#1e40af', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{skillLabels[skill] ?? skill}</h3>
-                    <div style={{ display: 'grid', gap: '0.5rem' }}>
+                  <section key={skill} style={{ borderTop: '1px solid #f1f5f9', paddingTop: '0.75rem', marginTop: '0.75rem' }}>
+                    <h3 style={{ margin: '0 0 0.5rem', color: '#0891b2', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 800 }}>{skillLabels[skill] ?? skill}</h3>
+                    <div style={{ display: 'grid', gap: '0.45rem' }}>
                       {(groupedItems[skill] ?? []).map((item) => {
                         const route = getIeltsPracticeItemRoute(item);
                         const assignedRoute = route ? buildAssignedPracticeRoute(route, assignment, item) : null;
                         const itemProgress = progressItemsById.get(item.id);
                         const itemStatus = getAssignmentItemVisualStatus(itemProgress ?? item, assignment);
-                        const itemTone = itemStatus === 'completed'
-                          ? { border: '#86efac', background: '#f0fdf4' }
+                        const itemStyle = itemStatus === 'completed'
+                          ? { border: '#86efac', bg: '#f0fdf4' }
                           : itemStatus === 'in_progress'
-                            ? { border: '#93c5fd', background: '#eff6ff' }
-                            : { border: '#e2e8f0', background: '#ffffff' };
+                            ? { border: '#93c5fd', bg: '#eff6ff' }
+                            : { border: '#e2e8f0', bg: '#f8fafc' };
+
                         return (
-                          <div key={item.id} data-testid={`ielts-assigned-item-${item.id}`} data-status={itemStatus} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', border: `1px solid ${itemTone.border}`, backgroundColor: itemTone.background, borderRadius: '0.75rem', padding: '0.75rem', flexWrap: 'wrap' }}>
-                            <div>
+                          <div key={item.id} data-testid={`ielts-assigned-item-${item.id}`} data-status={itemStatus} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', border: `1px solid ${itemStyle.border}`, background: itemStyle.bg, borderRadius: '0.65rem', padding: '0.65rem', flexWrap: 'wrap' }}>
+                            <div style={{ flex: 1 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                <p style={{ margin: 0, fontWeight: 700, color: '#111827' }}>{item.title || `${skillLabels[skill] ?? skill} practice`}</p>
+                                <p style={{ margin: 0, fontWeight: 700, color: '#0f172a', fontSize: '0.875rem' }}>{item.title || `${skillLabels[skill] ?? skill} practice`}</p>
                                 <AssignmentItemStatusBadge status={itemStatus} />
                               </div>
-                              <p style={{ margin: '0.25rem 0 0', color: '#64748b', fontSize: '0.8125rem' }}>{item.required ? 'Required' : 'Optional'}</p>
+                              <p style={{ margin: '0.2rem 0 0', color: '#94a3b8', fontSize: '0.75rem' }}>{item.required ? 'Required' : 'Optional'}</p>
                             </div>
                             {route && assignedRoute ? (
                               isClosedReadOnly ? (
-                                <span data-testid={`ielts-assigned-closed-item-${item.id}`} style={{ backgroundColor: '#fef3c7', color: '#92400e', borderRadius: '0.5rem', padding: '0.55rem 0.875rem', fontWeight: 900 }}>
+                                <span style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fcd34d', borderRadius: '0.5rem', padding: '0.45rem 0.75rem', fontWeight: 800, fontSize: '0.75rem' }}>
                                   Closed
                                 </span>
                               ) : itemStatus === 'completed' ? (
-                                <span style={{ backgroundColor: '#dcfce7', color: '#166534', borderRadius: '0.5rem', padding: '0.55rem 0.875rem', fontWeight: 900 }}>
-                                  ✓ Completed
+                                <span style={{ background: '#dcfce7', color: '#166534', border: '1px solid #86efac', borderRadius: '0.5rem', padding: '0.45rem 0.75rem', fontWeight: 800, fontSize: '0.75rem' }}>
+                                  ✓ Done
                                 </span>
                               ) : (
                                 <a
@@ -270,13 +296,13 @@ const IeltsAssignedPractice: React.FC = () => {
                                     event.preventDefault();
                                     void handleOpenItem(assignment, item, route);
                                   }}
-                                  style={{ backgroundColor: itemStatus === 'in_progress' ? '#1d4ed8' : '#2563eb', color: '#ffffff', borderRadius: '0.5rem', padding: '0.55rem 0.875rem', fontWeight: 800, textDecoration: 'none', opacity: isBusy ? 0.65 : 1, pointerEvents: isBusy ? 'none' : 'auto' }}
+                                  style={{ background: itemStatus === 'in_progress' ? '#dbeafe' : '#eff6ff', color: itemStatus === 'in_progress' ? '#1d4ed8' : '#0891b2', border: `1px solid ${itemStatus === 'in_progress' ? '#93c5fd' : '#bfdbfe'}`, borderRadius: '0.5rem', padding: '0.45rem 0.85rem', fontWeight: 800, textDecoration: 'none', fontSize: '0.8rem', opacity: isBusy ? 0.65 : 1, pointerEvents: isBusy ? 'none' : 'auto' }}
                                 >
-                                  Open
+                                  {itemStatus === 'in_progress' ? 'Continue →' : 'Open →'}
                                 </a>
                               )
                             ) : (
-                              <span style={{ color: '#94a3b8', fontSize: '0.8125rem' }}>Unavailable</span>
+                              <span style={{ color: '#cbd5e1', fontSize: '0.75rem' }}>Unavailable</span>
                             )}
                           </div>
                         );
@@ -286,12 +312,13 @@ const IeltsAssignedPractice: React.FC = () => {
                 ))}
               </div>
 
+              {/* Footer banners */}
               {isClosedReadOnly ? (
-                <div data-testid={`ielts-assigned-closed-read-only-${assignment.id}`} style={{ marginTop: '1rem', border: '1px solid #fde68a', backgroundColor: '#fffbeb', color: '#92400e', borderRadius: '0.75rem', padding: '0.875rem', fontSize: '0.875rem', fontWeight: 700 }}>
+                <div data-testid={`ielts-assigned-closed-read-only-${assignment.id}`} style={{ marginTop: '0.85rem', border: '1px solid #fcd34d', background: '#fef9c3', color: '#92400e', borderRadius: '0.65rem', padding: '0.75rem', fontSize: '0.8rem', fontWeight: 700 }}>
                   Closed assignments are read-only. Your progress is preserved, but no new submissions are available.
                 </div>
               ) : assignment.student_status !== 'completed' && (
-                <div style={{ marginTop: '1rem', border: '1px solid #bfdbfe', backgroundColor: '#eff6ff', color: '#1e40af', borderRadius: '0.75rem', padding: '0.875rem', fontSize: '0.875rem', fontWeight: 700 }}>
+                <div style={{ marginTop: '0.85rem', border: '1px solid #bfdbfe', background: '#eff6ff', color: '#1d4ed8', borderRadius: '0.65rem', padding: '0.75rem', fontSize: '0.8rem', fontWeight: 700 }}>
                   Assignment completes automatically after all required items are finished.
                 </div>
               )}
@@ -301,6 +328,7 @@ const IeltsAssignedPractice: React.FC = () => {
       </div>
     </div>
   );
+
 };
 
 export default IeltsAssignedPractice;

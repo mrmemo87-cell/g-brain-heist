@@ -1,0 +1,130 @@
+import React, { useEffect, useRef } from 'react';
+import gsap from 'gsap';
+import type { IeltsStudentJourney } from '../../../../services/ieltsJourneyService';
+import IeltsBandGauge from './IeltsBandGauge';
+
+interface IeltsMissionCardProps {
+  journey: IeltsStudentJourney;
+  animate?: boolean;
+}
+
+const confidenceLabel = (level: string | null) => {
+  if (!level) return null;
+  if (level === 'high') return { text: 'High confidence', color: '#0891b2' };
+  if (level === 'medium') return { text: 'Building confidence', color: '#7c3aed' };
+  return { text: 'More practice needed', color: '#ea580c' };
+};
+
+const IeltsMissionCard: React.FC<IeltsMissionCardProps> = ({ journey, animate = true }) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!cardRef.current || !animate) return;
+    const reduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) return;
+    gsap.fromTo(cardRef.current, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out' });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const { current_estimates, target_band, confidence_level, assigned_practice_summary } = journey;
+  const conf = confidenceLabel(confidence_level);
+  const overall = current_estimates?.overall;
+
+  const total = assigned_practice_summary?.total ?? 0;
+  const completed = assigned_practice_summary?.completed ?? 0;
+  const progressPct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  return (
+    <div
+      ref={cardRef}
+      data-anim="mission-card"
+      style={{
+        background: '#ffffff',
+        border: '1px solid #e2e8f0',
+        borderRadius: '1.25rem',
+        padding: '1.5rem',
+        boxShadow: '0 2px 16px rgba(0,0,0,0.07)',
+        opacity: 1,
+      }}
+    >
+      {/* Header row */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
+        <div>
+          <p style={{ margin: 0, fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#0891b2' }}>
+            IELTS MISSION
+          </p>
+          <h2 style={{ margin: '0.3rem 0 0', fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>
+            Readiness Overview
+          </h2>
+          {conf && (
+            <span style={{
+              display: 'inline-block',
+              marginTop: '0.5rem',
+              fontSize: '0.72rem',
+              fontWeight: 700,
+              padding: '0.25rem 0.65rem',
+              borderRadius: '9999px',
+              border: `1px solid ${conf.color}40`,
+              color: conf.color,
+              background: `${conf.color}14`,
+              letterSpacing: '0.04em',
+            }}>
+              {conf.text}
+            </span>
+          )}
+        </div>
+
+        <div style={{ textAlign: 'right' }}>
+          <p style={{ margin: 0, fontSize: '0.68rem', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            Target Band
+          </p>
+          <p style={{ margin: '0.2rem 0 0', fontSize: '2rem', fontWeight: 900, color: target_band ? '#0891b2' : '#cbd5e1', lineHeight: 1 }}>
+            {target_band ? target_band.toFixed(1) : '—'}
+          </p>
+          {!target_band && (
+            <p style={{ margin: '0.15rem 0 0', fontSize: '0.65rem', color: '#94a3b8', fontStyle: 'italic' }}>
+              Not set yet
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Gauges: Overall hero left, 2×2 skills right */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+        <div style={{ flex: '0 0 auto', paddingRight: '1.25rem', borderRight: '2px solid #f1f5f9' }}>
+          <IeltsBandGauge band={overall} size={164} label="Overall" animate={animate} />
+        </div>
+        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.35rem 0.75rem', minWidth: 0 }}>
+          <IeltsBandGauge band={current_estimates?.reading} size={112} label="Reading" animate={animate} />
+          <IeltsBandGauge band={current_estimates?.listening} size={112} label="Listening" animate={animate} />
+          <IeltsBandGauge band={current_estimates?.writing} size={112} label="Writing" animate={animate} />
+          <IeltsBandGauge band={current_estimates?.speaking} size={112} label="Speaking" animate={animate} />
+        </div>
+      </div>
+
+      {/* Assignment progress */}
+      {total > 0 && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', fontWeight: 700, color: '#64748b', marginBottom: '0.45rem' }}>
+            <span>Assignment progress</span>
+            <span style={{ color: progressPct === 100 ? '#0891b2' : '#64748b' }}>
+              {completed}/{total} · {progressPct}%
+            </span>
+          </div>
+          <div style={{ height: '0.45rem', borderRadius: '9999px', background: '#f1f5f9', overflow: 'hidden' }}>
+            <div style={{
+              height: '100%',
+              width: `${progressPct}%`,
+              borderRadius: '9999px',
+              background: progressPct === 100
+                ? 'linear-gradient(90deg, #0891b2, #059669)'
+                : 'linear-gradient(90deg, #0891b2, #7c3aed)',
+              transition: 'width 0.6s ease',
+            }} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default IeltsMissionCard;
