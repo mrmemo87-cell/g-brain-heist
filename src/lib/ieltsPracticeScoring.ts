@@ -25,6 +25,52 @@ const roundToTwoDecimals = (value: number): number => Math.round(value * 100) / 
 
 const roundToHalfBand = (value: number): number => Math.round(value * 2) / 2;
 
+
+const normalizeComparableAnswer = (value: unknown): string => String(value ?? '').trim().toLowerCase();
+
+const parsePossibleJsonArray = (value: string): string[] | null => {
+  const trimmed = value.trim();
+  if (!trimmed.startsWith('[') || !trimmed.endsWith(']')) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (Array.isArray(parsed)) {
+      return parsed.map((item) => String(item ?? ''));
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+};
+
+export const doesAnswerMatchCorrectAnswer = (studentAnswer: unknown, correctAnswer: unknown): boolean => {
+  const normalizedStudentAnswer = normalizeComparableAnswer(studentAnswer);
+  if (normalizedStudentAnswer.length === 0) {
+    return false;
+  }
+
+  let acceptedAnswers: string[] = [];
+
+  if (Array.isArray(correctAnswer)) {
+    acceptedAnswers = correctAnswer.map((item) => String(item ?? ''));
+  } else if (typeof correctAnswer === 'string') {
+    const parsedArray = parsePossibleJsonArray(correctAnswer);
+    acceptedAnswers = parsedArray ?? [correctAnswer];
+  } else if (correctAnswer == null) {
+    acceptedAnswers = [];
+  } else {
+    acceptedAnswers = [String(correctAnswer)];
+  }
+
+  return acceptedAnswers
+    .map((answer) => normalizeComparableAnswer(answer))
+    .filter((answer) => answer.length > 0)
+    .some((answer) => answer === normalizedStudentAnswer);
+};
+
 export const estimateIeltsBandFromPercent = (percentage: number): number => {
   const normalizedPercentage = isFiniteNumber(percentage) ? percentage : 0;
   if (normalizedPercentage >= 90) return 8.5;

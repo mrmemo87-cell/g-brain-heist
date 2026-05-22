@@ -6,7 +6,7 @@ import { ensureIeltsProfile, getUserTier, isIeltsPrime, saveNotificationPreferen
 import { rpcIeltsPracticeMarkItemCompleted, rpcIeltsPracticeMarkItemSubmitted, type IeltsPracticeAssignmentProgress } from '../../../services/ieltsPracticeAssignmentService';
 import { AssignmentCompletionStatus, readIeltsPracticeAssignmentContext } from './assignmentPracticeUi';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
-import { buildListeningAttemptPayload, toRawScoreResult } from '../../lib/ieltsPracticeScoring';
+import { buildListeningAttemptPayload, doesAnswerMatchCorrectAnswer, toRawScoreResult } from '../../lib/ieltsPracticeScoring';
 
 interface ListeningSet {
   id: number;
@@ -348,10 +348,9 @@ const ListeningPractice: React.FC = () => {
     
     let correct = 0;
     questions.forEach((q: ListeningQuestion) => {
-      const userAnswer = answers[q.id]?.toLowerCase().trim();
-      const correctAnswer = String(q.correct_answer).toLowerCase().trim();
-      
-      if (userAnswer === correctAnswer) {
+      const userAnswer = answers[q.id];
+
+      if (doesAnswerMatchCorrectAnswer(userAnswer, q.correct_answer)) {
         correct++;
       }
     });
@@ -565,7 +564,7 @@ const ListeningPractice: React.FC = () => {
               {questions.map((q: ListeningQuestion, idx: number) => {
                 const userAnswer = answers[q.id];
                 const correctAnswer = q.correct_answer;
-                const isCorrect = userAnswer?.toLowerCase().trim() === String(correctAnswer).toLowerCase().trim();
+                const isCorrect = doesAnswerMatchCorrectAnswer(userAnswer, correctAnswer);
 
                 return (
                   <div key={q.id} style={{
