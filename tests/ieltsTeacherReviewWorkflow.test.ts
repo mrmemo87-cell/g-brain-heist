@@ -102,6 +102,9 @@ test('IELTS review frontend maps queue/detail/submit RPCs and exposes student re
   assert.match(review, /Writing Review|Speaking Review/i, 'review screens must support writing and speaking');
   assert.match(review, /Student answer[\s\S]*Word count/i, 'writing review must show answer and word count');
   assert.match(review, /Speaking evidence[\s\S]*Duration[\s\S]*audio/i, 'speaking review must show duration and audio area');
+  assert.match(review, /createSignedUrl\(/i, 'speaking review must generate signed URLs for private recording paths');
+  assert.match(review, /getPublicUrl\(/i, 'speaking review must fallback to public URL generation when signing fails');
+  assert.match(review, /Audio unavailable\./i, 'speaking review must show a clear fallback when audio cannot be loaded');
   assert.match(review, /Strengths[\s\S]*Improvements[\s\S]*Next steps[\s\S]*Private notes/i, 'review feedback fields must be present');
   assert.match(result, /Reviewed band[\s\S]*Rubric breakdown[\s\S]*Teacher feedback/i, 'student result must show finalized review fields');
   assert.match(routes, /path:\s*'\/ielts\/reviews',[\s\S]*?<IeltsReviewAdminGuard>[\s\S]*?<IeltsReviewQueue \/>[\s\S]*?<\/IeltsReviewAdminGuard>/i, 'queue route must be school-admin guarded');
