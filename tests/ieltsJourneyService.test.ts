@@ -94,8 +94,15 @@ test('IELTS journey route, home link, and page use the journey service safely', 
   assert.match(routes, /path:\s*'\/ielts\/journey'/, 'IELTS journey route must be registered');
   assert.match(home, /navigate\('\/ielts\/journey'\)/, 'IELTS home should link to journey dashboard');
   assert.match(page, /rpcIeltsStudentJourney/, 'journey page must use the journey RPC service');
-  assert.match(page, /My IELTS Journey|Current assignments|Completed assignments|Results & Feedback|Continue where you left off/, 'journey page must include IELTS dashboard sections');
-  assert.match(page, /No current IELTS assignments\.|No completed IELTS assignments yet\.|No reviewed feedback yet\.|No results available yet\./, 'journey page should include empty states');
+  assert.match(page, /My IELTS Journey/, 'journey page should include title');
+  assert.match(page, /Current assignments/, 'journey page should include current assignments section');
+  assert.match(page, /Completed assignments/, 'journey page should include completed assignments section');
+  assert.match(page, /Results & Feedback/, 'journey page should include results and feedback section');
+  assert.match(page, /Next action/, 'journey page should include next action section');
+  assert.match(page, /No current IELTS assignments\./, 'journey page should include current empty state');
+  assert.match(page, /No completed IELTS assignments yet\./, 'journey page should include completed empty state');
+  assert.match(page, /No reviewed feedback yet\./, 'journey page should include reviewed feedback empty state');
+  assert.match(page, /No results available yet\./, 'journey page should include results empty state');
   assert.doesNotMatch(page, /\.from\(['"]ielts_/i, 'journey page must not query raw IELTS tables directly');
   assert.doesNotMatch(page, /answer_key/i, 'journey page must not expose protected answer data');
 });
