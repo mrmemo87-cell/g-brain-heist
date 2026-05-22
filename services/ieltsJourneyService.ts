@@ -31,7 +31,7 @@ export interface IeltsJourneyExamSubmissionItem {
   exam_event_id?: string | null;
   title?: string | null;
   result_status?: string | null;
-  feedback_status?: 'awaiting_feedback' | 'feedback_ready' | string | null;
+  feedback_status?: 'awaiting_feedback' | 'feedback_ready' | 'not_required' | string | null;
   has_finalized_review?: boolean | null;
   review_attempt_id?: string | null;
   review_skill?: IeltsJourneySkill | null;
@@ -39,6 +39,9 @@ export interface IeltsJourneyExamSubmissionItem {
   reviewed_at?: string | null;
   overall_band?: number | null;
   feedback_preview?: string | null;
+  skills?: IeltsJourneySkill[] | null;
+  objective_skill_count?: number | null;
+  productive_skill_count?: number | null;
 }
 export interface IeltsJourneyAssignmentItem {
   assignment_id: string;
@@ -48,7 +51,7 @@ export interface IeltsJourneyAssignmentItem {
   started_at?: string | null;
   completed_at?: string | null;
   due_at?: string | null;
-  feedback_status?: 'awaiting_feedback' | 'feedback_ready' | string | null;
+  feedback_status?: 'awaiting_feedback' | 'feedback_ready' | 'not_required' | string | null;
   has_finalized_review?: boolean | null;
   review_attempt_id?: string | null;
   review_skill?: IeltsJourneySkill | null;
@@ -56,6 +59,9 @@ export interface IeltsJourneyAssignmentItem {
   reviewed_at?: string | null;
   overall_band?: number | null;
   feedback_preview?: string | null;
+  skills?: IeltsJourneySkill[] | null;
+  objective_skill_count?: number | null;
+  productive_skill_count?: number | null;
 }
 export interface IeltsJourneyTeacherFeedbackItem {
   review_id: string;
