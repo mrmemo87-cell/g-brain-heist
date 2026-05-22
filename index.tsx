@@ -54,6 +54,7 @@ const IeltsSubmissionReview = lazyRetry(() => import('./src/pages/ielts/IeltsSub
 const IeltsReviewResult = lazyRetry(() => import('./src/pages/ielts/IeltsReviewResult'), 'IeltsReviewResult');
 const IeltsObjectiveResult = lazyRetry(() => import('./src/pages/ielts/IeltsObjectiveResult'), 'IeltsObjectiveResult');
 const IeltsReviewAdminGuard = lazyRetry(() => import('./components/ielts/IeltsReviewAdminGuard'), 'IeltsReviewAdminGuard');
+const IeltsExtraPracticeGuard = lazyRetry(() => import('./src/pages/ielts/IeltsExtraPracticeGuard'), 'IeltsExtraPracticeGuard');
 
 const queryClient = new QueryClient();
 
@@ -733,11 +734,11 @@ const router = createBrowserRouter([
   },
   {
     path: '/ielts/trial-test',
-    element: <ProtectedRoute element={<TrialListeningTest />} />,
+    element: <ProtectedRoute element={<IeltsExtraPracticeGuard><TrialListeningTest /></IeltsExtraPracticeGuard>} />,
   },
   {
     path: '/ielts/trial-test-2',
-    element: <ProtectedRoute element={<TrialListeningTask2 />} />,
+    element: <ProtectedRoute element={<IeltsExtraPracticeGuard><TrialListeningTask2 /></IeltsExtraPracticeGuard>} />,
   },
   {
     path: '/ielts/apply-prime',
@@ -805,19 +806,19 @@ const router = createBrowserRouter([
   },
   {
     path: '/ielts/reading/:setId',
-    element: <ProtectedRoute element={<ReadingPractice />} />,
+    element: <ProtectedRoute element={<IeltsExtraPracticeGuard><ReadingPractice /></IeltsExtraPracticeGuard>} />,
   },
   {
     path: '/ielts/listening/:setId',
-    element: <ProtectedRoute element={<ListeningPractice />} />,
+    element: <ProtectedRoute element={<IeltsExtraPracticeGuard><ListeningPractice /></IeltsExtraPracticeGuard>} />,
   },
   {
     path: '/ielts/writing/:taskId',
-    element: <ProtectedRoute element={<WritingPractice />} />,
+    element: <ProtectedRoute element={<IeltsExtraPracticeGuard><WritingPractice /></IeltsExtraPracticeGuard>} />,
   },
   {
     path: '/ielts/speaking/:taskId',
-    element: <ProtectedRoute element={<SpeakingPractice />} />,
+    element: <ProtectedRoute element={<IeltsExtraPracticeGuard><SpeakingPractice /></IeltsExtraPracticeGuard>} />,
   },
   {
     path: '/ielts/session/:sessionId',

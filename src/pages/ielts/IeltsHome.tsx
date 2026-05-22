@@ -13,6 +13,8 @@ import {
 import type { IELTSListeningSet, IELTSReadingSet, IELTSSpeakingTask, IELTSWritingTask } from '../../../types';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 import { supabase } from '../../../services/supabaseClient';
+import { getCurrentSchool, updateSchoolSettings } from '../../../services/schoolAdminService';
+import { resolveIeltsExtraPracticeAccess } from '../../../services/ieltsExtraPracticeAccessService';
 
 const IeltsHome: React.FC = () => {
   const navigate = useNavigate();
@@ -27,6 +29,8 @@ const IeltsHome: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [userTier, setUserTier] = useState('free');
   const [userRole, setUserRole] = useState<string>('student');
+  const [extraPracticeEnabled, setExtraPracticeEnabled] = useState(false);
+  const [schoolId, setSchoolId] = useState<string | null>(null);
   const isPrimeUser = isIeltsPrime({ tier: userTier });
   const canAccessRequiredTier = (requiredTier?: string | null) => !requiredTier || requiredTier === 'free' || isPrimeUser;
   const normalizedRole = (userRole || '').trim().toLowerCase();
@@ -92,6 +96,20 @@ const IeltsHome: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    const loadExtraPracticeSetting = async () => {
+      const access = await resolveIeltsExtraPracticeAccess();
+      setExtraPracticeEnabled(access.enabled);
+      if (access.isAdmin) {
+        const school = await getCurrentSchool();
+        setSchoolId(school?.school.id ?? null);
+        const raw = school?.school.settings?.ielts_extra_practice_enabled;
+        setExtraPracticeEnabled(typeof raw === 'boolean' ? raw : false);
+      }
+    };
+    void loadExtraPracticeSetting();
+  }, []);
+
+  useEffect(() => {
     const loadTasks = async () => {
       try {
         setIsLoading(true);
@@ -147,6 +165,24 @@ const IeltsHome: React.FC = () => {
           <p style={{ color: '#475569', marginBottom: '1.5rem' }}>
             Admin tools for school IELTS operations. Student prep center remains available for student accounts only.
           </p>
+          <div style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700 }}>
+              <input
+                type="checkbox"
+                checked={extraPracticeEnabled}
+                onChange={async (event) => {
+                  if (!schoolId) return;
+                  const nextValue = event.target.checked;
+                  setExtraPracticeEnabled(nextValue);
+                  await updateSchoolSettings(schoolId, { ielts_extra_practice_enabled: nextValue });
+                }}
+              />
+              Allow students to use Extra Practice
+            </label>
+            <p style={{ color: '#64748b', fontSize: '0.875rem', margin: '0.5rem 0 0' }}>
+              When off, students only see assigned IELTS practice and their journey.
+            </p>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.875rem' }}>
             {adminCards.map((card) => (
               <button
@@ -249,8 +285,10 @@ const IeltsHome: React.FC = () => {
             <span style={{ backgroundColor: '#fef3c7', padding: '0.375rem 0.75rem', borderRadius: '9999px', fontSize: '0.6875rem', color: '#92400e', fontWeight: '600' }}>✓ Proven Results</span>
           </div>
 
+          {extraPracticeEnabled && (
+          <>
           {/* Free Trial Test Banner */}
-          <div 
+          <div
             onClick={() => (isPrimeUser ? navigate('/ielts/trial-test') : redirectToPrime())}
             style={{ 
               background: 'linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%)',
@@ -311,6 +349,9 @@ const IeltsHome: React.FC = () => {
               Start →
             </div>
           </div>
+
+          </>
+          )}
 
           {/* Loading/Error States */}
           {error && (
@@ -389,6 +430,8 @@ const IeltsHome: React.FC = () => {
             </div>
           </div>
 
+          {extraPracticeEnabled && (
+          <>
           {/* Reading */}
           <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
@@ -708,6 +751,8 @@ const IeltsHome: React.FC = () => {
               );})
             )}
           </div>
+          </>
+          )}
 
           {/* Premium CTA */}
           {!isPrimeUser && (

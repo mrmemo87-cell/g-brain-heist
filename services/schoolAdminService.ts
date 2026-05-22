@@ -548,6 +548,7 @@ export async function updateSchoolSettings(
     name?: string;
     allow_student_signup?: boolean;
     allow_teacher_signup?: boolean;
+    ielts_extra_practice_enabled?: boolean;
   }
 ): Promise<{ success: boolean; error?: string }> {
   try {
@@ -569,6 +570,7 @@ export async function updateSchoolSettings(
     const mergedSettings: Record<string, any> = {};
     if (typeof settings['allow_student_signup'] === 'boolean') mergedSettings['allow_student_signup'] = settings['allow_student_signup'];
     if (typeof settings['allow_teacher_signup'] === 'boolean') mergedSettings['allow_teacher_signup'] = settings['allow_teacher_signup'];
+    if (typeof settings['ielts_extra_practice_enabled'] === 'boolean') mergedSettings['ielts_extra_practice_enabled'] = settings['ielts_extra_practice_enabled'];
 
     if (Object.keys(mergedSettings).length > 0) {
       const { data, error } = await supabase.rpc('update_school_settings', {
