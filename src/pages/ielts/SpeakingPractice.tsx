@@ -27,6 +27,8 @@ const SpeakingPractice: React.FC = () => {
   const navigate = useNavigate();
   const assignmentContext = readIeltsPracticeAssignmentContext();
   const { assignmentId, assignmentItemId } = assignmentContext;
+  const practiceMode = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('mode');
+  const isExamStyleMode = practiceMode === 'exam' || practiceMode === 'controlled_exam';
   
   const [preparationTimeLeft, setPreparationTimeLeft] = useState<number>(0);
   const [isRecording, setIsRecording] = useState(false);
@@ -196,7 +198,9 @@ const SpeakingPractice: React.FC = () => {
   
   // Use database values only if they're reasonable (> 10 seconds), otherwise use defaults
   const dbPrepTime = task?.follow_ups?.preparation_time;
-  const prepTime = (dbPrepTime && dbPrepTime >= 10) ? dbPrepTime : defaults.prep;
+  const prepTimeBase = (dbPrepTime && dbPrepTime >= 10) ? dbPrepTime : defaults.prep;
+  const shouldUsePrepTimer = !assignmentContext.isAssignedPractice || isExamStyleMode;
+  const prepTime = shouldUsePrepTimer ? prepTimeBase : 0;
 
   // Start the entire flow (prep -> recording)
   const startPractice = async () => {
@@ -603,7 +607,9 @@ const SpeakingPractice: React.FC = () => {
                 padding: '0.75rem',
                 textAlign: 'center',
               }}>
-                <div style={{ fontSize: '0.75rem', color: '#3b82f6', marginBottom: '0.125rem' }}>Prep Time</div>
+              <div style={{ fontSize: '0.75rem', color: '#3b82f6', marginBottom: '0.125rem' }}>
+                {shouldUsePrepTimer ? 'Prep Time' : 'Optional planning time'}
+              </div>
                 <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1e40af' }}>{formatTime(displayPrepTime)}</div>
               </div>
             )}
@@ -618,6 +624,11 @@ const SpeakingPractice: React.FC = () => {
               <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#5b21b6' }}>{formatTime(displayMaxTime)}</div>
             </div>
           </div>
+          {!shouldUsePrepTimer && task.part === 2 && (
+            <p style={{ margin: '-0.25rem 0 1rem', color: '#64748b', fontSize: '0.8125rem' }}>
+              Optional planning time is available, but recording is not blocked in assigned practice.
+            </p>
+          )}
 
           {/* Start Recording Button - Only shown before practice begins */}
           {!hasStarted && !isPreparing && !isRecording && !audioBlob && (

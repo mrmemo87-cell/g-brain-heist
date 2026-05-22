@@ -229,6 +229,8 @@ const ListeningPractice: React.FC = () => {
   const [assignmentProgress, setAssignmentProgress] = useState<IeltsPracticeAssignmentProgress | null>(null);
   const [assignmentCompletionError, setAssignmentCompletionError] = useState<string | null>(null);
   const [isMeaningfulSubmission, setIsMeaningfulSubmission] = useState(true);
+  const [answeredCountAtSubmit, setAnsweredCountAtSubmit] = useState(0);
+  const [showSubmitWithBlanksPrompt, setShowSubmitWithBlanksPrompt] = useState(false);
 
   // Submit mutation
   const submitMutation = useMutation({
@@ -292,13 +294,14 @@ const ListeningPractice: React.FC = () => {
         }
       }
 
-      return { attempt: result, progress, itemCompletionError, answeredCount, canComplete };
+      return { attempt: result, progress, itemCompletionError, answeredCount, canComplete, totalQuestions };
     },
     onSuccess: (data) => {
       setLastAttemptId(data.attempt?.id);
       setAssignmentProgress(data.progress);
       setAssignmentCompletionError(data.itemCompletionError);
       setIsMeaningfulSubmission(data.answeredCount > 0);
+      setAnsweredCountAtSubmit(data.answeredCount);
       setShowResults(true);
     },
   });
@@ -333,7 +336,7 @@ const ListeningPractice: React.FC = () => {
     setAnswers(prev => ({ ...prev, [questionId]: answer }));
   };
 
-  const handleSubmit = () => {
+  const submitNow = () => {
     if (!setId) return;
     const timeSpent = Math.floor((Date.now() - startTime) / 1000);
     submitMutation.mutate({
@@ -341,6 +344,19 @@ const ListeningPractice: React.FC = () => {
       answers,
       timeSpent,
     });
+  };
+
+  const handleSubmit = () => {
+    if (assignmentContext.isAssignedPractice) {
+      const totalQuestions = questions?.length ?? 0;
+      const answeredCount = Object.values(answers).filter((answer) => String(answer ?? '').trim().length > 0).length;
+      const unansweredCount = Math.max(totalQuestions - answeredCount, 0);
+      if (unansweredCount > 0) {
+        setShowSubmitWithBlanksPrompt(true);
+        return;
+      }
+    }
+    submitNow();
   };
 
   const calculateResults = () => {
@@ -460,6 +476,15 @@ const ListeningPractice: React.FC = () => {
   if (showResults) {
     const results = calculateResults();
     const bandScore = results.bandScore;
+    const totalQuestions = questions?.length ?? 0;
+    const isPartialAssignedSubmission = assignmentContext.isAssignedPractice && answeredCountAtSubmit > 0 && answeredCountAtSubmit < totalQuestions;
+    const assignmentSubmissionNotice = assignmentContext.isAssignedPractice
+      ? (answeredCountAtSubmit === 0
+        ? 'Submitted with no answers recorded.'
+        : (answeredCountAtSubmit < totalQuestions
+          ? `Answered ${answeredCountAtSubmit}/${totalQuestions}. Complete all questions to finish this assignment item.`
+          : null))
+      : null;
 
     return (
       <div style={{ 
@@ -500,6 +525,7 @@ const ListeningPractice: React.FC = () => {
             context={assignmentContext}
             progress={assignmentProgress}
             completionError={assignmentCompletionError}
+            submissionNotice={assignmentSubmissionNotice}
             onNavigate={navigate}
           />
 
@@ -517,7 +543,7 @@ const ListeningPractice: React.FC = () => {
             </div>
             <div style={{ fontSize: 'clamp(1rem, 3vw, 1.25rem)', color: '#3b82f6' }}>{results.percentage}% Correct</div>
             
-            {isMeaningfulSubmission ? <div style={{
+            {isMeaningfulSubmission && !isPartialAssignedSubmission ? <div style={{
               marginTop: '1.5rem',
               padding: 'clamp(0.75rem, 2vw, 1rem)',
               background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
@@ -526,7 +552,11 @@ const ListeningPractice: React.FC = () => {
             }}>
               <div style={{ fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: '#92400e', marginBottom: '0.25rem' }}>Estimated Band Score</div>
               <div style={{ fontSize: 'clamp(1.75rem, 6vw, 2.5rem)', fontWeight: 'bold', color: '#b45309' }}>{bandScore}</div>
-            </div> : <div style={{ marginTop: '1rem', color: '#92400e', fontWeight: 700 }}>Submitted with no answers recorded. Not enough data yet for readiness/band estimate.</div>}
+            </div> : <div style={{ marginTop: '1rem', color: '#92400e', fontWeight: 700 }}>
+              {answeredCountAtSubmit === 0
+                ? 'Submitted with no answers recorded.'
+                : `Answered ${answeredCountAtSubmit} of ${totalQuestions} questions. Complete all questions to finish this assignment item.`}
+            </div>}
           </div>
 
           {/* Expert Review Notice */}
@@ -1105,8 +1135,8 @@ const ListeningPractice: React.FC = () => {
                     Next Section →
                   </button>
                 ) : (
-                  <button
-                    onClick={handleSubmit}
+                <button
+                  onClick={handleSubmit}
                     disabled={submitMutation.isPending}
                     style={{
                       flex: 1,
@@ -1123,6 +1153,21 @@ const ListeningPractice: React.FC = () => {
                   </button>
                 )}
               </div>
+              {showSubmitWithBlanksPrompt && assignmentContext.isAssignedPractice && (
+                <div style={{ marginTop: '1rem', padding: '1rem', border: '1px solid #f59e0b', background: '#fffbeb', borderRadius: '0.5rem' }}>
+                  <p style={{ margin: '0 0 0.75rem', color: '#92400e', fontWeight: 700 }}>
+                    You have {(questions?.length ?? 0) - Object.values(answers).filter((answer) => String(answer ?? '').trim().length > 0).length} unanswered question(s). You can submit now, but this assignment item will not be completed until all questions are answered.
+                  </p>
+                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    <button type="button" onClick={() => setShowSubmitWithBlanksPrompt(false)} style={{ padding: '0.6rem 0.9rem', borderRadius: '0.5rem', border: '1px solid #f59e0b', background: '#ffffff', color: '#92400e', fontWeight: 700, cursor: 'pointer' }}>
+                      Go back and answer
+                    </button>
+                    <button type="button" onClick={() => { setShowSubmitWithBlanksPrompt(false); submitNow(); }} style={{ padding: '0.6rem 0.9rem', borderRadius: '0.5rem', border: 'none', background: '#d97706', color: '#ffffff', fontWeight: 700, cursor: 'pointer' }}>
+                      Submit anyway
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

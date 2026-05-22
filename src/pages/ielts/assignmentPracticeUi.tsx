@@ -86,6 +86,7 @@ export interface AssignmentCompletionStatusProps {
   context: IeltsPracticeAssignmentContext;
   progress: IeltsPracticeAssignmentProgress | null;
   completionError: string | null;
+  submissionNotice?: string | null;
   onNavigate?: (route: string) => void;
   style?: CSSProperties;
   testId?: string;
@@ -100,6 +101,7 @@ export const AssignmentCompletionStatus = ({
   context,
   progress,
   completionError,
+  submissionNotice,
   onNavigate,
   style,
 }: AssignmentCompletionStatusProps) => {
@@ -140,7 +142,7 @@ export const AssignmentCompletionStatus = ({
         </p>
       )}
       <h3 style={{ margin: '0 0 0.5rem', fontSize: '1rem', fontWeight: 800 }}>
-        {completionError ? 'Assignment item needs attention' : summary.allItemsComplete ? 'Assignment item completed' : 'Assignment item submitted'}
+        {(completionError || submissionNotice) ? 'Assignment item needs attention' : summary.allItemsComplete ? 'Assignment item completed' : 'Assignment item submitted'}
       </h3>
       <AssignmentProgressBar summary={summary} label={`${summary.completedCount} of ${summary.totalCount} assignment items completed`} style={{ marginBottom: '0.75rem' }} />
       {summary.allItemsComplete && (
@@ -151,6 +153,11 @@ export const AssignmentCompletionStatus = ({
       {completionError && (
         <p style={{ margin: '0.75rem 0 0', color: '#92400e', fontSize: '0.875rem' }}>
           Your practice result was saved, but assignment item completion could not be confirmed: {completionError}
+        </p>
+      )}
+      {submissionNotice && !completionError && (
+        <p style={{ margin: '0.75rem 0 0', color: '#92400e', fontSize: '0.875rem', fontWeight: 700 }}>
+          {submissionNotice}
         </p>
       )}
       <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '1rem' }}>
