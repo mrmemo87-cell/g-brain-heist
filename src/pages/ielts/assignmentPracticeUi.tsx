@@ -140,7 +140,7 @@ export const AssignmentCompletionStatus = ({
         </p>
       )}
       <h3 style={{ margin: '0 0 0.5rem', fontSize: '1rem', fontWeight: 800 }}>
-        {completionError ? 'Assignment item needs attention' : 'Assignment item completed'}
+        {completionError ? 'Assignment item needs attention' : 'Assignment item submitted'}
       </h3>
       <AssignmentProgressBar summary={summary} label={`${summary.completedCount} of ${summary.totalCount} assignment items completed`} style={{ marginBottom: '0.75rem' }} />
       {summary.allItemsComplete && (
