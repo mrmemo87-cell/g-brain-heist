@@ -1,247 +1,167 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import gsap from 'gsap';
 import { useNavigate } from 'react-router-dom';
-import { rpcIeltsStudentJourney, type IeltsStudentJourney } from '../../../services/ieltsJourneyService';
+import { rpcIeltsStudentJourney, type IeltsJourneyAssignmentItem, type IeltsStudentJourney } from '../../../services/ieltsJourneyService';
 
 type LoadState = 'loading' | 'ready' | 'error';
+type SkillKey = 'reading' | 'listening' | 'writing' | 'speaking';
 
-const skillLabels: Record<string, string> = {
-  reading: 'Reading',
-  listening: 'Listening',
-  writing: 'Writing',
-  speaking: 'Speaking',
-  overall: 'Overall',
-};
+const orderedSkills: SkillKey[] = ['reading', 'listening', 'writing', 'speaking'];
+const skillLabels: Record<SkillKey, string> = { reading: 'Reading', listening: 'Listening', writing: 'Writing', speaking: 'Speaking' };
 
-const formatEstimate = (value: number | null | undefined) => (value === null || value === undefined ? 'Not enough data' : value.toFixed(1));
-
-
-const feedbackStatusLabel = (item: { has_finalized_review?: boolean | null; feedback_status?: string | null; completed_at?: string | null; objective_result_link?: string | null }) => {
-  if (item.has_finalized_review || item.feedback_status === 'feedback_ready') return 'Feedback ready';
-  if (item.feedback_status === 'not_required') return item.objective_result_link ? 'Result available' : 'Completed';
-  if (item.completed_at) return 'Review pending';
-  return 'Started';
-};
-
-const skillSummaryLabel = (item: { skills?: string[] | null; has_finalized_review?: boolean | null; feedback_status?: string | null; objective_result_link?: string | null }) => {
-  const skills = item.skills ?? [];
-  if (skills.length === 0) return [] as string[];
-  return skills.map((skill) => {
-    if (skill === 'reading' || skill === 'listening') return `${skillLabels[skill]}: ${item.objective_result_link ? 'Result available' : 'Submitted'}`;
-    if (skill === 'writing' || skill === 'speaking') return `${skillLabels[skill]}: ${item.has_finalized_review || item.feedback_status === 'feedback_ready' ? 'Feedback ready' : 'Review pending'}`;
-    return `${skill}: completed`;
-  });
-};
-
-const examResultStateLabel = (item: { result_status?: string | null; grading_status?: string | null; has_finalized_review?: boolean | null }) => {
-  if (item.has_finalized_review) return 'Result ready';
-  if ((item.result_status ?? '').toLowerCase().includes('ready')) return 'Result ready';
-  if ((item.result_status ?? '').toLowerCase().includes('pending')) return 'Results pending';
-  if ((item.grading_status ?? '').toLowerCase().includes('pending')) return 'Results pending';
-  return 'Submitted';
-};
-
-const formatDate = (value?: string | null) => {
-  if (!value) return '—';
+const formatBand = (value?: number | null) => (value === null || value === undefined ? 'Not enough data yet' : value.toFixed(1));
+const formatDate = (value?: string | null, empty = 'No due date') => {
+  if (!value) return empty;
   const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return '—';
-  return parsed.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  if (Number.isNaN(parsed.getTime())) return empty;
+  return parsed.toLocaleDateString(undefined, { dateStyle: 'medium' });
+};
+const humanizeStatus = (status?: string | null) => {
+  const value = (status ?? '').trim().toLowerCase();
+  if (!value) return 'Not started';
+  if (value === 'in_progress') return 'In progress';
+  return value.replace(/_/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
+};
+
+const isActionable = (item: IeltsJourneyAssignmentItem) => {
+  const status = (item.status ?? '').toLowerCase();
+  return status !== 'completed' && ((item.skills ?? []).length > 0 || !!item.started_at || !!item.assigned_at);
+};
+
+const taskState = (item: IeltsJourneyAssignmentItem, skill: SkillKey) => {
+  if (skill === 'reading' || skill === 'listening') return item.objective_result_link ? 'Result available' : item.completed_at ? 'Submitted' : item.started_at ? 'Started' : 'Not started';
+  if (item.has_finalized_review) return 'Feedback ready';
+  if (item.completed_at || item.feedback_status === 'awaiting_feedback') return 'Review pending';
+  return item.started_at ? 'Started' : 'Not started';
 };
 
 const IeltsJourneyDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const [journey, setJourney] = useState<IeltsStudentJourney | null>(null);
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [error, setError] = useState<string | null>(null);
 
-  const loadJourney = async () => {
-    setLoadState('loading');
-    setError(null);
-    try {
-      const data = await rpcIeltsStudentJourney();
-      setJourney(data);
-      setLoadState('ready');
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Unable to load your IELTS journey.');
-      setLoadState('error');
-    }
+  const renderCompletedSkillRow = (item: IeltsJourneyAssignmentItem, skill: SkillKey) => {
+    const label = taskState(item, skill);
+    const canViewResult = (skill === 'reading' || skill === 'listening') && !!item.objective_result_link;
+    const canViewFeedback = (skill === 'writing' || skill === 'speaking') && !!item.review_result_link && !!item.has_finalized_review;
+    const showReviewPending = (skill === 'writing' || skill === 'speaking') && !item.has_finalized_review;
+
+    return <div key={skill} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', fontSize: '0.86rem' }}>
+      <span>{skillLabels[skill]}</span>
+      <span>{label}</span>
+      {canViewResult ? <button type="button" onClick={() => navigate(item.objective_result_link as string)}>View result</button> : null}
+      {canViewFeedback ? <button type="button" onClick={() => navigate(item.review_result_link as string)}>View feedback</button> : null}
+      {showReviewPending ? <span>Review pending</span> : null}
+    </div>;
   };
 
   useEffect(() => {
-    void loadJourney();
+    const run = async () => {
+      setLoadState('loading');
+      try {
+        setJourney(await rpcIeltsStudentJourney());
+        setLoadState('ready');
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Unable to load your IELTS journey.');
+        setLoadState('error');
+      }
+    };
+    void run();
   }, []);
 
-  const skillCards = useMemo(() => {
-    const estimates = journey?.current_estimates;
-    return [
-      { key: 'reading', value: estimates?.reading ?? null },
-      { key: 'listening', value: estimates?.listening ?? null },
-      { key: 'writing', value: estimates?.writing ?? null },
-      { key: 'speaking', value: estimates?.speaking ?? null },
-      { key: 'overall', value: estimates?.overall ?? null },
-    ];
+  const summary = useMemo(() => {
+    const current = journey?.assigned_practice.length ?? 0;
+    const completed = journey?.completed_practice.length ?? 0;
+    const results = (journey?.completed_practice ?? []).filter((item) => !!item.objective_result_link).length;
+    const feedback = (journey?.completed_practice ?? []).filter((item) => !!item.review_result_link && !!item.has_finalized_review).length;
+    return { current, completed, results, feedback };
   }, [journey]);
 
-  const assigned = journey?.assigned_practice_summary;
-  const assignedTotal = assigned?.total ?? 0;
-  const assignedCompleted = assigned?.completed ?? 0;
-  const completionPercent = assignedTotal > 0 ? Math.round((assignedCompleted / assignedTotal) * 100) : 0;
+  const actionable = useMemo(() => (journey?.assigned_practice ?? []).find(isActionable) ?? null, [journey]);
 
-  return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', color: '#111827', padding: '1rem' }}>
-      <div style={{ maxWidth: '72rem', margin: '0 auto' }}>
-        <button
-          type="button"
-          onClick={() => navigate('/ielts')}
-          style={{ marginBottom: '1rem', color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}
-        >
-          ← Back to IELTS Home
-        </button>
+  useEffect(() => {
+    if (loadState !== 'ready' || !rootRef.current) return;
+    const reduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const ctx = gsap.context(() => {
+      if (reduced) return;
+      gsap.from('[data-anim="header"]', { opacity: 0, y: 10, duration: 0.35 });
+      gsap.from('[data-anim="card"]', { opacity: 0, y: 10, stagger: 0.06, duration: 0.35, delay: 0.06 });
+      gsap.from('[data-anim="section"]', { opacity: 0, y: 12, stagger: 0.08, duration: 0.4, delay: 0.12 });
+    }, rootRef);
+    return () => ctx.revert();
+  }, [loadState]);
 
-        <header style={{ background: 'linear-gradient(135deg, #312e81 0%, #2563eb 100%)', borderRadius: '1rem', padding: '1.5rem', color: '#ffffff', marginBottom: '1rem' }}>
-          <p style={{ margin: '0 0 0.5rem', color: '#c7d2fe', textTransform: 'uppercase', letterSpacing: '0.12em', fontSize: '0.75rem', fontWeight: 800 }}>My IELTS Journey</p>
-          <h1 style={{ margin: 0, fontSize: '1.875rem', fontWeight: 900 }}>Estimated readiness dashboard</h1>
-          <p style={{ margin: '0.75rem 0 0', color: '#dbeafe', lineHeight: 1.6 }}>
-            This first version uses your existing practice, assigned work, and Exam Mode submission metadata. These are estimated readiness signals, not official IELTS bands.
-          </p>
-        </header>
+  return <div ref={rootRef} style={{ minHeight: '100vh', background: '#f8fafc', color: '#0f172a', padding: '1rem' }}>
+    <div style={{ maxWidth: '74rem', margin: '0 auto', display: 'grid', gap: '1rem' }}>
+      <button type="button" onClick={() => navigate('/ielts')} style={{ color: '#2563eb', background: 'none', border: 'none', textAlign: 'left', fontWeight: 700 }}>← Back to IELTS Home</button>
+      <header data-anim="header" style={{ background: '#ffffff', border: '1px solid #dbeafe', borderRadius: '1rem', padding: '1.2rem' }}>
+        <h1 style={{ margin: 0, color: '#1e3a8a' }}>My IELTS Journey</h1>
+        <p style={{ margin: '0.5rem 0 0', color: '#334155' }}>Track your assignments, results, and reviewed feedback.</p>
+      </header>
 
-        {error && (
-          <div style={{ backgroundColor: '#fee2e2', border: '1px solid #fecaca', color: '#991b1b', padding: '0.875rem', borderRadius: '0.75rem', marginBottom: '1rem' }}>
-            {error}
+      {loadState === 'loading' && <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '0.8rem', padding: '0.8rem' }}>Loading your IELTS journey…</div>}
+      {loadState === 'error' && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '0.8rem', padding: '0.8rem' }}>{error}</div>}
+
+      {loadState === 'ready' && journey && <>
+        <section data-anim="card" style={{ display: 'grid', gap: '0.75rem', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))' }}>
+          {[['Current assignments', summary.current], ['Completed assignments', summary.completed], ['Results available', summary.results], ['Feedback ready', summary.feedback]].map(([label, value]) => <div key={String(label)} style={{ background: '#fff', border: '1px solid #dbeafe', borderRadius: '0.8rem', padding: '0.8rem' }}><div style={{ fontSize: '0.78rem', color: '#475569' }}>{label}</div><div style={{ fontSize: '1.5rem', color: '#1d4ed8', fontWeight: 900 }}>{value}</div></div>)}
+        </section>
+
+        <section data-anim="card" style={{ background: '#fff', border: '1px solid #dbeafe', borderRadius: '0.8rem', padding: '0.9rem' }}>
+          <h2 style={{ margin: 0, fontSize: '1rem' }}>Readiness overview</h2>
+          <div style={{ display: 'grid', gap: '0.5rem', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', marginTop: '0.7rem' }}>
+            <div><strong>Overall</strong><div>{formatBand(journey.current_estimates?.overall)}</div></div>
+            <div><strong>Reading</strong><div>{formatBand(journey.current_estimates?.reading)}</div></div>
+            <div><strong>Listening</strong><div>{formatBand(journey.current_estimates?.listening)}</div></div>
+            <div><strong>Writing</strong><div>{formatBand(journey.current_estimates?.writing)}</div></div>
+            <div><strong>Speaking</strong><div>{formatBand(journey.current_estimates?.speaking)}</div></div>
           </div>
-        )}
+        </section>
 
-        {loadState === 'loading' && (
-          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1rem', color: '#64748b' }}>
-            Loading your IELTS journey…
-          </div>
-        )}
+        <section data-anim="card" style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '0.8rem', padding: '0.9rem' }}>
+          <h2 style={{ margin: 0, fontSize: '1rem' }}>Next action</h2>
+          {actionable ? <><p style={{ margin: '0.5rem 0' }}>{actionable.title}</p><p style={{ margin: '0 0 0.6rem' }}>Status: {humanizeStatus(actionable.status)}</p><button type="button" onClick={() => navigate('/ielts/practice/assigned')} style={{ border: '1px solid #2563eb', background: '#2563eb', color: '#fff', borderRadius: '0.45rem', padding: '0.5rem 0.8rem' }}>Open assigned practice</button></> : (summary.results + summary.feedback > 0 ? <p style={{ margin: '0.5rem 0 0' }}>View your latest results and feedback.</p> : <p style={{ margin: '0.5rem 0 0' }}>No active IELTS assignments right now.</p>)}
+        </section>
 
-        {loadState === 'error' && (
-          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1rem' }}>
-            <p style={{ margin: '0 0 0.75rem', color: '#64748b' }}>We could not load your journey dashboard.</p>
-            <button type="button" onClick={() => void loadJourney()} style={{ backgroundColor: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1rem', cursor: 'pointer', fontWeight: 800 }}>
-              Try again
-            </button>
-          </div>
-        )}
+        <section data-anim="section" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '0.8rem', padding: '0.9rem' }}>
+          <h2 style={{ marginTop: 0 }}>Current assignments</h2>
+          {journey.assigned_practice.length === 0 ? <p>No current IELTS assignments.</p> : journey.assigned_practice.map((item) => {
+            const skills = orderedSkills.filter((skill) => (item.skills ?? []).includes(skill));
+            const done = skills.filter((skill) => ['Result available', 'Feedback ready'].includes(taskState(item, skill))).length;
+            return <article key={item.assignment_id} className="journey-card" style={{ borderTop: '1px solid #e2e8f0', paddingTop: '0.7rem', marginTop: '0.7rem' }}>
+              <h3 style={{ margin: 0 }}>{item.title}</h3>
+              <p style={{ margin: '0.25rem 0' }}>Status: {humanizeStatus(item.status)}</p>
+              <p style={{ margin: '0.25rem 0' }}>Due date: {formatDate(item.due_at)}</p>
+              <p style={{ margin: '0.25rem 0' }}>{done} / {skills.length || 0} tasks completed</p>
+              {skills.map((skill) => <div key={skill} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.86rem' }}><span>{skillLabels[skill]}</span><span>{taskState(item, skill)}</span></div>)}
+            </article>;
+          })}
+        </section>
 
-        {loadState === 'ready' && journey && (
-          <div style={{ display: 'grid', gap: '1rem' }}>
-            <section style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))' }}>
-              {skillCards.map((card) => (
-                <div key={card.key} style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.875rem', padding: '1rem' }}>
-                  <p style={{ margin: '0 0 0.35rem', color: '#64748b', fontSize: '0.8125rem', fontWeight: 700 }}>{skillLabels[card.key]}</p>
-                  <p style={{ margin: 0, color: card.value === null ? '#94a3b8' : '#1d4ed8', fontSize: card.value === null ? '1rem' : '1.75rem', fontWeight: 900 }}>
-                    {formatEstimate(card.value)}
-                  </p>
-                  <p style={{ margin: '0.35rem 0 0', color: '#94a3b8', fontSize: '0.75rem' }}>Estimated readiness</p>
-                </div>
-              ))}
-            </section>
+        <section data-anim="section" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '0.8rem', padding: '0.9rem' }}>
+          <h2 style={{ marginTop: 0 }}>Completed assignments</h2>
+          {journey.completed_practice.length === 0 ? <p>No completed IELTS assignments yet.</p> : journey.completed_practice.map((item) => {
+            const skills = orderedSkills.filter((skill) => (item.skills ?? []).includes(skill));
+            return <article key={item.assignment_id} className="journey-card" style={{ borderTop: '1px solid #e2e8f0', paddingTop: '0.7rem', marginTop: '0.7rem' }}>
+              <h3 style={{ margin: 0 }}>{item.title}</h3><p style={{ margin: '0.25rem 0' }}>Completed: {formatDate(item.completed_at, '—')}</p>
+              {skills.map((skill) => renderCompletedSkillRow(item, skill))}
+            </article>;
+          })}
+        </section>
 
-            <section style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
-              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.875rem', padding: '1rem' }}>
-                <h2 style={{ margin: '0 0 0.75rem', fontSize: '1rem', fontWeight: 900 }}>Readiness context</h2>
-                <p style={{ margin: '0.35rem 0', color: '#475569' }}>Target band: <strong>{journey.target_band ?? 'Not set yet'}</strong></p>
-                <p style={{ margin: '0.35rem 0', color: '#475569' }}>Confidence level: <strong style={{ textTransform: 'capitalize' }}>{journey.confidence_level}</strong></p>
-                <p style={{ margin: '0.35rem 0', color: '#475569' }}>Weak skill: <strong>{journey.weak_skill ? skillLabels[journey.weak_skill] ?? journey.weak_skill : 'Not enough data yet'}</strong></p>
-              </div>
-
-              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.875rem', padding: '1rem' }}>
-                <h2 style={{ margin: '0 0 0.75rem', fontSize: '1rem', fontWeight: 900 }}>Assigned practice progress</h2>
-                <div style={{ backgroundColor: '#e0f2fe', borderRadius: '9999px', height: '0.7rem', overflow: 'hidden', marginBottom: '0.75rem' }}>
-                  <div style={{ backgroundColor: '#2563eb', width: `${completionPercent}%`, height: '100%' }} />
-                </div>
-                <p style={{ margin: '0 0 0.5rem', color: '#475569' }}>{assignedCompleted} of {assignedTotal} assigned items completed ({completionPercent}%).</p>
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', color: '#475569', fontSize: '0.8125rem' }}>
-                  <span>Assigned: {assigned?.assigned ?? 0}</span>
-                  <span>In progress: {assigned?.in_progress ?? 0}</span>
-                  <span>Overdue: {assigned?.overdue ?? 0}</span>
-                </div>
-              </div>
-
-              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.875rem', padding: '1rem' }}>
-                <h2 style={{ margin: '0 0 0.75rem', fontSize: '1rem', fontWeight: 900 }}>Next recommendation</h2>
-                <p style={{ margin: 0, color: '#475569', lineHeight: 1.5 }}>{journey.next_recommendation}</p>
-              </div>
-            </section>
-
-            <section style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
-              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.875rem', padding: '1rem' }}>
-                <h2 style={{ margin: '0 0 0.75rem', fontSize: '1rem', fontWeight: 900 }}>Assigned Practice</h2>
-                {journey.assigned_practice.length === 0 ? (
-                  <p style={{ margin: 0, color: '#64748b' }}>No assignments yet. New IELTS assignments will appear here when your teacher publishes them.</p>
-                ) : (
-                  <div style={{ display: 'grid', gap: '0.6rem' }}>
-                    {journey.assigned_practice.map((item) => (
-                      <div key={item.assignment_id} style={{ border: '1px solid #e2e8f0', borderRadius: '0.625rem', padding: '0.75rem' }}>
-                        <p style={{ margin: 0, color: '#111827', fontWeight: 800 }}>{item.title}</p>
-                        <p style={{ margin: '0.25rem 0 0', color: '#64748b', fontSize: '0.8125rem' }}>Status: Started · Due: {formatDate(item.due_at)}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.875rem', padding: '1rem' }}>
-                <h2 style={{ margin: '0 0 0.75rem', fontSize: '1rem', fontWeight: 900 }}>Completed Practice</h2>
-                {journey.completed_practice.length === 0 ? (
-                  <p style={{ margin: 0, color: '#64748b' }}>No completed attempts yet. Finish one practice task to unlock your result timeline.</p>
-                ) : (
-                  <div style={{ display: 'grid', gap: '0.6rem' }}>
-                    {journey.completed_practice.map((item) => (
-                      <div key={item.assignment_id} style={{ border: '1px solid #e2e8f0', borderRadius: '0.625rem', padding: '0.75rem' }}>
-                        <p style={{ margin: 0, color: '#111827', fontWeight: 800 }}>{item.title}</p>
-                        <p style={{ margin: '0.25rem 0 0', color: '#64748b', fontSize: '0.8125rem' }}>Completed: {formatDate(item.completed_at)}</p>
-                        <p style={{ margin: '0.2rem 0 0', color: item.has_finalized_review || item.feedback_status === 'not_required' ? '#166534' : '#92400e', fontSize: '0.8125rem', fontWeight: 700 }}>Status: {feedbackStatusLabel(item)}</p>
-                        {item.feedback_status === 'not_required' ? (
-                          <p style={{ margin: '0.2rem 0 0', color: '#475569', fontSize: '0.79rem' }}>{item.score_correct !== null && item.score_total !== null ? `Score: ${item.score_correct}/${item.score_total}${item.percent_correct !== null ? ` (${item.percent_correct}%)` : ''}` : 'No review required. Practice completed.'}</p>
-                        ) : item.feedback_preview && item.has_finalized_review ? <p style={{ margin: '0.2rem 0 0', color: '#475569', fontSize: '0.79rem' }}>{item.feedback_preview}</p> : <p style={{ margin: '0.2rem 0 0', color: '#64748b', fontSize: '0.79rem' }}>Review is pending finalization. Feedback will appear once finalized.</p>}
-                        {skillSummaryLabel(item).map((line) => <p key={line} style={{ margin: '0.15rem 0 0', color: '#64748b', fontSize: '0.77rem' }}>{line}</p>)}
-                        {item.feedback_status === 'not_required' && item.objective_result_link ? <button type="button" onClick={() => navigate(item.objective_result_link as string)} style={{ marginTop: '0.45rem', border: 'none', background: '#dbeafe', color: '#1d4ed8', borderRadius: '0.5rem', padding: '0.4rem 0.6rem', cursor: 'pointer' }}>View result</button> : null}
-                        {item.review_result_link && item.has_finalized_review ? <button type="button" onClick={() => navigate(item.review_result_link as string)} style={{ marginTop: '0.45rem', border: 'none', background: '#dbeafe', color: '#1d4ed8', borderRadius: '0.5rem', padding: '0.4rem 0.6rem', cursor: 'pointer' }}>View feedback</button> : null}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </section>
-
-            <section style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
-              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.875rem', padding: '1rem' }}>
-                <h2 style={{ margin: '0 0 0.75rem', fontSize: '1rem', fontWeight: 900 }}>Recent Reviewed IELTS Feedback</h2>
-                {journey.teacher_feedback.length === 0 ? <p style={{ margin: 0, color: '#64748b' }}>No reviewed feedback yet.</p> : journey.teacher_feedback.map((item) => (
-                  <div key={item.review_id} style={{ border: '1px solid #e2e8f0', borderRadius: '0.625rem', padding: '0.75rem', marginBottom: '0.6rem' }}>
-                    <p style={{ margin: 0, fontWeight: 800 }}>{skillLabels[item.skill] ?? item.skill} · Band {formatEstimate(item.overall_band)}</p>
-                    <p style={{ margin: '0.25rem 0', fontSize: '0.8125rem', color: '#64748b' }}>{item.rubric_summary ?? 'Rubric summary unavailable.'}</p>
-                    <p style={{ margin: '0.25rem 0', fontSize: '0.8125rem', color: '#64748b' }}>{item.feedback_preview}</p>
-                    <p style={{ margin: '0.25rem 0', fontSize: '0.75rem', color: '#94a3b8' }}>Reviewed: {formatDate(item.reviewed_at)}</p>
-                    <button type="button" onClick={() => navigate(item.review_result_link)} style={{ border: 'none', background: '#dbeafe', color: '#1d4ed8', borderRadius: '0.5rem', padding: '0.4rem 0.6rem', cursor: 'pointer' }}>View feedback</button>
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.875rem', padding: '1rem' }}>
-                <h2 style={{ margin: '0 0 0.75rem', fontSize: '1rem', fontWeight: 900 }}>Exam Results</h2>
-                {journey.recent_exam_mode_submissions.length === 0 ? <p style={{ margin: 0, color: '#64748b' }}>No secure Exam Mode submissions yet.</p> : journey.recent_exam_mode_submissions.map((item) => (
-                  <div key={item.submission_id} style={{ border: '1px solid #e2e8f0', borderRadius: '0.625rem', padding: '0.75rem', marginBottom: '0.6rem' }}>
-                    <p style={{ margin: 0, fontWeight: 800 }}>{item.title ?? 'IELTS Exam Mode'}</p>
-                    <p style={{ margin: '0.25rem 0', fontSize: '0.8125rem', color: '#64748b' }}>Submitted: {formatDate(item.submitted_at)}</p>
-                    <p style={{ margin: '0.25rem 0', fontSize: '0.8125rem', color: '#64748b' }}>Submission: {item.attempt_status ?? 'submitted'}</p>
-                    <p style={{ margin: '0.25rem 0', fontSize: '0.8125rem', color: item.has_finalized_review ? '#166534' : '#64748b' }}>Result: {examResultStateLabel(item)}</p>
-                    {item.overall_band !== null && item.overall_band !== undefined ? <p style={{ margin: '0.25rem 0', fontSize: '0.8125rem', color: '#64748b' }}>Overall band: {item.overall_band.toFixed(1)}</p> : null}
-                    {item.feedback_preview ? <p style={{ margin: '0.25rem 0', fontSize: '0.8rem', color: '#475569' }}>{item.feedback_preview}</p> : <p style={{ margin: '0.25rem 0', fontSize: '0.8rem', color: '#64748b' }}>No feedback available yet.</p>}
-                    {item.review_result_link && item.has_finalized_review ? <button type="button" onClick={() => navigate(item.review_result_link as string)} style={{ border: 'none', background: '#dbeafe', color: '#1d4ed8', borderRadius: '0.5rem', padding: '0.4rem 0.6rem', cursor: 'pointer' }}>View feedback</button> : null}
-                  </div>
-                ))}
-              </div>
-            </section>
-          </div>
-        )}
-      </div>
+        <section data-anim="section" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '0.8rem', padding: '0.9rem' }}>
+          <h2 style={{ marginTop: 0 }}>Results & Feedback</h2>
+          <h3>Objective Results</h3>
+          {(journey.completed_practice.some((item) => !!item.objective_result_link)) ? journey.completed_practice.map((item) => item.objective_result_link ? <div key={`r-${item.assignment_id}`}>{item.title} <button type="button" onClick={() => navigate(item.objective_result_link as string)}>View result</button></div> : null) : <p>No results available yet.</p>}
+          <h3>Reviewed Feedback</h3>
+          {(journey.completed_practice.some((item) => !!item.review_result_link && !!item.has_finalized_review)) ? journey.completed_practice.map((item) => item.review_result_link && item.has_finalized_review ? <div key={`f-${item.assignment_id}`}>{item.title} <button type="button" onClick={() => navigate(item.review_result_link as string)}>View feedback</button></div> : null) : <p>No reviewed feedback yet.</p>}
+          {(journey.completed_practice.some((item) => !item.has_finalized_review && (item.skills ?? []).some((s) => s === 'writing' || s === 'speaking'))) ? <p>Review pending — your teacher or school admin has not finalized feedback yet.</p> : null}
+        </section>
+      </>}
     </div>
-  );
+  </div>;
 };
 
 export default IeltsJourneyDashboard;
