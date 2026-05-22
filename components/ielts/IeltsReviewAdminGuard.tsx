@@ -1,10 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../../services/supabaseClient';
 import AccessDenied from './AccessDenied';
+import { canAccessIeltsReviewQueue } from '../../services/ieltsReviewAccess';
 
 type GuardState = 'loading' | 'allowed' | 'denied';
-
-const normalizeRole = (role?: string | null) => (role ?? '').trim().toLowerCase();
 
 const IeltsReviewAdminGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<GuardState>('loading');
@@ -30,8 +29,7 @@ const IeltsReviewAdminGuard: React.FC<{ children: React.ReactNode }> = ({ childr
     }
 
     const typedProfile = profile as { role?: string | null; is_admin?: boolean | null };
-    const role = normalizeRole(typedProfile.role);
-    const allowed = Boolean(typedProfile.is_admin) || role === 'school_admin' || role === 'admin' || role === 'superadmin';
+    const allowed = canAccessIeltsReviewQueue(typedProfile);
     setState(allowed ? 'allowed' : 'denied');
   }, []);
 

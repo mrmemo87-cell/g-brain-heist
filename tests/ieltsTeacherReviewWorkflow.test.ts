@@ -114,10 +114,11 @@ test('IELTS review frontend maps queue/detail/submit RPCs and exposes student re
 });
 
 
-test('IELTS review guard only allows school_admin/admin/superadmin and blocks teacher/student', () => {
+test('IELTS review guard reuses shared access helper and blocks teacher/student roles', () => {
   const guard = read('components/ielts/IeltsReviewAdminGuard.tsx');
+  const access = read('services/ieltsReviewAccess.ts');
 
-  assert.match(guard, /role === 'school_admin' \|\| role === 'admin' \|\| role === 'superadmin'/i, 'review guard must allow only school admin roles');
-  assert.match(guard, /Boolean\(typedProfile\.is_admin\)/i, 'review guard must allow platform admins');
-  assert.doesNotMatch(guard, /role === 'teacher'/i, 'review guard must not allow teachers');
+  assert.match(guard, /canAccessIeltsReviewQueue\(typedProfile\)/i, 'review guard must reuse centralized review access helper');
+  assert.match(access, /Boolean\(profile\.is_admin\) \|\| role === 'school_admin' \|\| role === 'admin' \|\| role === 'superadmin'/i, 'review helper must allow platform and school admin roles');
+  assert.doesNotMatch(access, /role === 'teacher'/i, 'review helper must not allow teachers');
 });
