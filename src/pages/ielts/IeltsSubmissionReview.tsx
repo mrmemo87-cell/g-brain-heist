@@ -112,7 +112,7 @@ const IeltsSubmissionReview: React.FC = () => {
           .getPublicUrl(storagePath);
         if (publicData?.publicUrl) {
           setResolvedAudioUrl(publicData.publicUrl);
-          setAudioLoadError('Using public audio URL because signed URL generation failed.');
+          setAudioLoadError(null);
           return;
         }
         setAudioLoadError('Audio unavailable. Recording URL could not be generated.');
