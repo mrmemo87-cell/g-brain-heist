@@ -84,10 +84,38 @@ begin
     left join public.ielts_practice_assignments a on a.id = s.assignment_id
     where s.student_id = v_student_id and s.status in ('assigned', 'in_progress', 'overdue');
 
-    select coalesce(jsonb_agg(jsonb_build_object('assignment_id', s.assignment_id, 'title', coalesce(a.title, 'IELTS Practice'), 'status', s.status, 'completed_at', s.completed_at, 'due_at', a.due_at) order by s.completed_at desc nulls last), '[]'::jsonb)
+    select coalesce(jsonb_agg(jsonb_build_object(
+      'assignment_id', s.assignment_id,
+      'title', coalesce(a.title, 'IELTS Practice'),
+      'status', s.status,
+      'completed_at', s.completed_at,
+      'due_at', a.due_at,
+      'skills', coalesce(meta.skills, '[]'::jsonb),
+      'objective_skill_count', coalesce(meta.objective_skill_count, 0),
+      'productive_skill_count', coalesce(meta.productive_skill_count, 0),
+      'has_finalized_review', coalesce(meta.has_finalized_review, false),
+      'feedback_status', case when coalesce(meta.productive_skill_count, 0) = 0 then 'not_required' when coalesce(meta.has_finalized_review, false) then 'feedback_ready' else 'awaiting_feedback' end,
+      'feedback_preview', case when coalesce(meta.productive_skill_count, 0) = 0 then 'Practice completed.' when coalesce(meta.has_finalized_review, false) then 'Reviewed IELTS feedback is ready.' else 'Teacher feedback will appear after finalization.' end
+    ) order by s.completed_at desc nulls last), '[]'::jsonb)
     into v_completed_practice
     from public.ielts_practice_assignment_students s
     left join public.ielts_practice_assignments a on a.id = s.assignment_id
+    left join lateral (
+      select
+        jsonb_agg(distinct i.skill) filter (where i.skill is not null) as skills,
+        count(*) filter (where i.skill in ('reading', 'listening')) as objective_skill_count,
+        count(*) filter (where i.skill in ('writing', 'speaking')) as productive_skill_count,
+        exists (
+          select 1
+          from public.ielts_productive_skill_reviews r
+          where r.student_id = v_student_id
+            and coalesce(to_jsonb(r)->>'attempt_type', '') in ('writing', 'speaking')
+            and (to_jsonb(r)->>'review_status' = 'finalized' or to_jsonb(r)->>'review_status' is null)
+            and coalesce(to_jsonb(r)->>'attempt_type', '') = any(array_agg(i.skill) filter (where i.skill in ('writing', 'speaking')))
+        ) as has_finalized_review
+      from public.ielts_practice_assignment_items i
+      where i.assignment_id = s.assignment_id
+    ) meta on true
     where s.student_id = v_student_id and s.status = 'completed';
   end if;
 

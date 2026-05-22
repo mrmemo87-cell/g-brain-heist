@@ -16,8 +16,19 @@ const formatEstimate = (value: number | null | undefined) => (value === null || 
 
 
 const feedbackStatusLabel = (item: { has_finalized_review?: boolean | null; feedback_status?: string | null }) => {
+  if (item.feedback_status === 'not_required') return 'Practice completed';
   if (item.has_finalized_review || item.feedback_status === 'feedback_ready') return 'Feedback ready';
   return 'Awaiting feedback';
+};
+
+const skillSummaryLabel = (item: { skills?: string[] | null; has_finalized_review?: boolean | null; feedback_status?: string | null }) => {
+  const skills = item.skills ?? [];
+  if (skills.length === 0) return [] as string[];
+  return skills.map((skill) => {
+    if (skill === 'reading' || skill === 'listening') return `${skillLabels[skill]}: completed/scored`;
+    if (skill === 'writing' || skill === 'speaking') return `${skillLabels[skill]}: ${item.has_finalized_review || item.feedback_status === 'feedback_ready' ? 'feedback ready' : 'awaiting'}`;
+    return `${skill}: completed`;
+  });
 };
 
 const examResultStateLabel = (item: { result_status?: string | null; grading_status?: string | null; has_finalized_review?: boolean | null }) => {
@@ -182,8 +193,11 @@ const IeltsJourneyDashboard: React.FC = () => {
                       <div key={item.assignment_id} style={{ border: '1px solid #e2e8f0', borderRadius: '0.625rem', padding: '0.75rem' }}>
                         <p style={{ margin: 0, color: '#111827', fontWeight: 800 }}>{item.title}</p>
                         <p style={{ margin: '0.25rem 0 0', color: '#64748b', fontSize: '0.8125rem' }}>Completed: {formatDate(item.completed_at)}</p>
-                        <p style={{ margin: '0.2rem 0 0', color: item.has_finalized_review ? '#166534' : '#92400e', fontSize: '0.8125rem', fontWeight: 700 }}>Feedback: {feedbackStatusLabel(item)}</p>
-                        {item.feedback_preview ? <p style={{ margin: '0.2rem 0 0', color: '#475569', fontSize: '0.79rem' }}>{item.feedback_preview}</p> : <p style={{ margin: '0.2rem 0 0', color: '#64748b', fontSize: '0.79rem' }}>No feedback available yet.</p>}
+                        <p style={{ margin: '0.2rem 0 0', color: item.has_finalized_review || item.feedback_status === 'not_required' ? '#166534' : '#92400e', fontSize: '0.8125rem', fontWeight: 700 }}>Status: {feedbackStatusLabel(item)}</p>
+                        {item.feedback_status === 'not_required' ? (
+                          <p style={{ margin: '0.2rem 0 0', color: '#475569', fontSize: '0.79rem' }}>Practice completed. Objective score/readiness is reflected in your readiness cards.</p>
+                        ) : item.feedback_preview ? <p style={{ margin: '0.2rem 0 0', color: '#475569', fontSize: '0.79rem' }}>{item.feedback_preview}</p> : <p style={{ margin: '0.2rem 0 0', color: '#64748b', fontSize: '0.79rem' }}>Teacher feedback will appear after finalization.</p>}
+                        {skillSummaryLabel(item).map((line) => <p key={line} style={{ margin: '0.15rem 0 0', color: '#64748b', fontSize: '0.77rem' }}>{line}</p>)}
                         {item.review_result_link && item.has_finalized_review ? <button type="button" onClick={() => navigate(item.review_result_link as string)} style={{ marginTop: '0.45rem', border: 'none', background: '#dbeafe', color: '#1d4ed8', borderRadius: '0.5rem', padding: '0.4rem 0.6rem', cursor: 'pointer' }}>View feedback</button> : null}
                       </div>
                     ))}
@@ -194,7 +208,7 @@ const IeltsJourneyDashboard: React.FC = () => {
 
             <section style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
               <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.875rem', padding: '1rem' }}>
-                <h2 style={{ margin: '0 0 0.75rem', fontSize: '1rem', fontWeight: 900 }}>IELTS Feedback</h2>
+                <h2 style={{ margin: '0 0 0.75rem', fontSize: '1rem', fontWeight: 900 }}>Recent Reviewed IELTS Feedback</h2>
                 {journey.teacher_feedback.length === 0 ? <p style={{ margin: 0, color: '#64748b' }}>No reviewed feedback yet.</p> : journey.teacher_feedback.map((item) => (
                   <div key={item.review_id} style={{ border: '1px solid #e2e8f0', borderRadius: '0.625rem', padding: '0.75rem', marginBottom: '0.6rem' }}>
                     <p style={{ margin: 0, fontWeight: 800 }}>{skillLabels[item.skill] ?? item.skill} · Band {formatEstimate(item.overall_band)}</p>

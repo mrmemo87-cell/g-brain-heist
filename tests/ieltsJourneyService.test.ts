@@ -72,8 +72,8 @@ test('IELTS journey route, home link, and page use the journey service safely', 
   assert.match(routes, /path:\s*'\/ielts\/journey'/, 'IELTS journey route must be registered');
   assert.match(home, /navigate\('\/ielts\/journey'\)/, 'IELTS home should link to journey dashboard');
   assert.match(page, /rpcIeltsStudentJourney/, 'journey page must use the journey RPC service');
-  assert.match(page, /Estimated readiness|Assigned Practice|Completed Practice|Teacher Feedback|Exam Results/, 'journey page must include IELTS dashboard sections');
-  assert.match(page, /No active assigned practice|No completed practice yet|No finalized teacher reviews yet|No secure Exam Mode submissions yet/, 'journey page should include empty states');
+  assert.match(page, /Estimated readiness|Assigned Practice|Completed Practice|Recent Reviewed IELTS Feedback|Exam Results/, 'journey page must include IELTS dashboard sections');
+  assert.match(page, /No active assigned practice|No completed practice yet|No reviewed feedback yet|No secure Exam Mode submissions yet/, 'journey page should include empty states');
   assert.doesNotMatch(page, /\.from\(['"]ielts_/i, 'journey page must not query raw IELTS tables directly');
   assert.doesNotMatch(page, /answer_key/i, 'journey page must not expose protected answer data');
 });
