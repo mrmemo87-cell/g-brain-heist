@@ -16,7 +16,7 @@ const formatEstimate = (value: number | null | undefined) => (value === null || 
 
 
 const feedbackStatusLabel = (item: { has_finalized_review?: boolean | null; feedback_status?: string | null }) => {
-  if (item.feedback_status === 'not_required') return 'Practice completed';
+  if (item.feedback_status === 'not_required') return item.objective_result_link ? 'Result available' : 'Practice completed';
   if (item.has_finalized_review || item.feedback_status === 'feedback_ready') return 'Feedback ready';
   return 'Awaiting feedback';
 };
@@ -195,9 +195,10 @@ const IeltsJourneyDashboard: React.FC = () => {
                         <p style={{ margin: '0.25rem 0 0', color: '#64748b', fontSize: '0.8125rem' }}>Completed: {formatDate(item.completed_at)}</p>
                         <p style={{ margin: '0.2rem 0 0', color: item.has_finalized_review || item.feedback_status === 'not_required' ? '#166534' : '#92400e', fontSize: '0.8125rem', fontWeight: 700 }}>Status: {feedbackStatusLabel(item)}</p>
                         {item.feedback_status === 'not_required' ? (
-                          <p style={{ margin: '0.2rem 0 0', color: '#475569', fontSize: '0.79rem' }}>Practice completed. Objective score/readiness is reflected in your readiness cards.</p>
+                          <p style={{ margin: '0.2rem 0 0', color: '#475569', fontSize: '0.79rem' }}>{item.score_correct !== null && item.score_total !== null ? `Score: ${item.score_correct}/${item.score_total}${item.percent_correct !== null ? ` (${item.percent_correct}%)` : ''}` : 'No review required. Practice completed.'}</p>
                         ) : item.feedback_preview ? <p style={{ margin: '0.2rem 0 0', color: '#475569', fontSize: '0.79rem' }}>{item.feedback_preview}</p> : <p style={{ margin: '0.2rem 0 0', color: '#64748b', fontSize: '0.79rem' }}>Teacher feedback will appear after finalization.</p>}
                         {skillSummaryLabel(item).map((line) => <p key={line} style={{ margin: '0.15rem 0 0', color: '#64748b', fontSize: '0.77rem' }}>{line}</p>)}
+                        {item.feedback_status === 'not_required' && item.objective_result_link ? <button type="button" onClick={() => navigate(item.objective_result_link as string)} style={{ marginTop: '0.45rem', border: 'none', background: '#dbeafe', color: '#1d4ed8', borderRadius: '0.5rem', padding: '0.4rem 0.6rem', cursor: 'pointer' }}>View result</button> : null}
                         {item.review_result_link && item.has_finalized_review ? <button type="button" onClick={() => navigate(item.review_result_link as string)} style={{ marginTop: '0.45rem', border: 'none', background: '#dbeafe', color: '#1d4ed8', borderRadius: '0.5rem', padding: '0.4rem 0.6rem', cursor: 'pointer' }}>View feedback</button> : null}
                       </div>
                     ))}
