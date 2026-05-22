@@ -90,6 +90,15 @@ const scoreProgressColor = (percentage: number) => (
   percentage >= 80 ? 'bg-green-500' : percentage >= 60 ? 'bg-yellow-500' : 'bg-red-500'
 );
 
+
+const normalizeSubjectKey = (value: string | null | undefined) => (value ?? '').trim().toLowerCase();
+
+const subjectAllowed = (allowed: string[], candidate: string | null | undefined) => {
+  if (!Array.isArray(allowed) || allowed.length === 0) return true;
+  const normalized = new Set(allowed.map((item) => normalizeSubjectKey(item)).filter(Boolean));
+  return normalized.has(normalizeSubjectKey(candidate));
+};
+
 const splitGrammarAndPunctuation = (items: { wrong: string; correct: string; explanation: string }[] = []) => {
   const punctuation = items.filter((item) => /punct|comma|full stop|period|apostrophe|quote|capital/i.test(item.explanation || item.wrong));
   const grammar = items.filter((item) => !punctuation.includes(item));
@@ -680,10 +689,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   useEffect(() => {
     if (teacherAssignedSubjects.length > 0) {
       // Only update if current subject is not in the assigned subjects list
-      if (!teacherAssignedSubjects.includes(subject)) {
+      if (!subjectAllowed(teacherAssignedSubjects, subject)) {
         setSubject(teacherAssignedSubjects[0] as Subject);
       }
-      if (!teacherAssignedSubjects.includes(assignmentSubject)) {
+      if (!subjectAllowed(teacherAssignedSubjects, assignmentSubject)) {
         setAssignmentSubject(teacherAssignedSubjects[0] as Subject);
       }
     }
@@ -3088,7 +3097,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   // Handle "Use Set" from the Blooket-style QuestionBank
   const handleUseQuestionSet = useCallback((questionIds: string[], subject: Subject, topic: string) => {
-    if (teacherAssignedSubjects.length > 0 && !teacherAssignedSubjects.includes(subject)) {
+    const assignedSubjects = teacherAssignedSubjects ?? [];
+    if (!subjectAllowed(assignedSubjects, subject)) {
       brainsAlert('You can only create assignments for subjects assigned to you by the school admin.', 'error');
       return;
     }
@@ -3118,7 +3128,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const handleCreateAssignment = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (teacherAssignedSubjects.length > 0 && !teacherAssignedSubjects.includes(assignmentSubject)) {
+    const assignedSubjects = teacherAssignedSubjects ?? [];
+    if (!subjectAllowed(assignedSubjects, assignmentSubject)) {
       brainsAlert('You can only create assignments for subjects assigned to you by the school admin.', 'error');
       return;
     }
@@ -3155,8 +3166,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
       // Consume pilot quota if applicable
       const assignQuota = await tryConsumePilotQuota('assignments_created');
-      if (!assignQuota.proceed) {
-        brainsAlert(assignQuota.error || 'You\'ve reached the assignment creation limit on the Pilot plan. Upgrade to continue.', 'error');
+      if (!assignQuota?.proceed) {
+        brainsAlert(assignQuota?.error || 'You\'ve reached the assignment creation limit on the Pilot plan. Upgrade to continue.', 'error');
         setAssignmentSubmitting(false);
         return;
       }
@@ -3303,8 +3314,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
     // Consume pilot quota if applicable
     const quota = await tryConsumePilotQuota('reports_generated');
-    if (!quota.proceed) {
-      brainsAlert(quota.error || 'You\'ve reached the report export limit on the Pilot plan. Upgrade to continue.', 'error');
+    if (!quota?.proceed) {
+      brainsAlert(quota?.error || 'You\'ve reached the report export limit on the Pilot plan. Upgrade to continue.', 'error');
       return;
     }
 

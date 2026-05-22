@@ -403,16 +403,19 @@ begin
 end;
 $$;
 
+drop policy if exists "ielts review scoped select" on public.ielts_productive_skill_reviews;
 create policy "ielts review scoped select" on public.ielts_productive_skill_reviews
 for select using (
   student_id = auth.uid()
   or public.can_review_ielts_productive_submission(school_id, null, student_id)
 );
 
+drop policy if exists "ielts review scoped write" on public.ielts_productive_skill_reviews;
 create policy "ielts review scoped write" on public.ielts_productive_skill_reviews
 for all using (public.can_review_ielts_productive_submission(school_id, null, student_id))
 with check (public.can_review_ielts_productive_submission(school_id, null, student_id));
 
+drop policy if exists "ielts review events scoped select" on public.ielts_productive_skill_review_events;
 create policy "ielts review events scoped select" on public.ielts_productive_skill_review_events
 for select using (
   exists (
