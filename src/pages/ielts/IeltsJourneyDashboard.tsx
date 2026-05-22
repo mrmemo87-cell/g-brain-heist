@@ -42,6 +42,22 @@ const IeltsJourneyDashboard: React.FC = () => {
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [error, setError] = useState<string | null>(null);
 
+
+  const renderCompletedSkillRow = (item: IeltsJourneyAssignmentItem, skill: SkillKey) => {
+    const label = taskState(item, skill);
+    const canViewResult = (skill === 'reading' || skill === 'listening') && !!item.objective_result_link;
+    const canViewFeedback = (skill === 'writing' || skill === 'speaking') && !!item.review_result_link && !!item.has_finalized_review;
+    const showReviewPending = (skill === 'writing' || skill === 'speaking') && !item.has_finalized_review;
+
+    return <div key={skill} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', fontSize: '0.86rem' }}>
+      <span>{skillLabels[skill]}</span>
+      <span>{label}</span>
+      {canViewResult ? <button type="button" onClick={() => navigate(item.objective_result_link as string)}>View result</button> : null}
+      {canViewFeedback ? <button type="button" onClick={() => navigate(item.review_result_link as string)}>View feedback</button> : null}
+      {showReviewPending ? <span>Review pending</span> : null}
+    </div>;
+  };
+
   useEffect(() => {
     const run = async () => {
       setLoadState('loading');
@@ -65,6 +81,22 @@ const IeltsJourneyDashboard: React.FC = () => {
   }, [journey]);
 
   const actionable = useMemo(() => (journey?.assigned_practice ?? []).find(isActionable) ?? null, [journey]);
+
+
+  const renderCompletedSkillRow = (item: IeltsJourneyAssignmentItem, skill: SkillKey) => {
+    const label = taskState(item, skill);
+    const canViewResult = (skill === 'reading' || skill === 'listening') && !!item.objective_result_link;
+    const canViewFeedback = (skill === 'writing' || skill === 'speaking') && !!item.review_result_link && !!item.has_finalized_review;
+    const showReviewPending = (skill === 'writing' || skill === 'speaking') && !item.has_finalized_review;
+
+    return <div key={skill} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', fontSize: '0.86rem' }}>
+      <span>{skillLabels[skill]}</span>
+      <span>{label}</span>
+      {canViewResult ? <button type="button" onClick={() => navigate(item.objective_result_link as string)}>View result</button> : null}
+      {canViewFeedback ? <button type="button" onClick={() => navigate(item.review_result_link as string)}>View feedback</button> : null}
+      {showReviewPending ? <span>Review pending</span> : null}
+    </div>;
+  };
 
   useEffect(() => {
     if (loadState !== 'ready' || !rootRef.current) return;
@@ -131,7 +163,7 @@ const IeltsJourneyDashboard: React.FC = () => {
             const skills = orderedSkills.filter((skill) => (item.skills ?? []).includes(skill));
             return <article key={item.assignment_id} className="journey-card" style={{ borderTop: '1px solid #e2e8f0', paddingTop: '0.7rem', marginTop: '0.7rem' }}>
               <h3 style={{ margin: 0 }}>{item.title}</h3><p style={{ margin: '0.25rem 0' }}>Completed: {formatDate(item.completed_at, '—')}</p>
-              {skills.map((skill) => <div key={skill} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', fontSize: '0.86rem' }}><span>{skillLabels[skill]}</span><span>{taskState(item, skill)}</span>{(skill === 'reading' || skill === 'listening') && item.objective_result_link ? <button type="button" onClick={() => navigate(item.objective_result_link as string)}>View result</button> : null}{(skill === 'writing' || skill === 'speaking') && item.review_result_link && item.has_finalized_review ? <button type="button" onClick={() => navigate(item.review_result_link as string)}>View feedback</button> : null}{(skill === 'writing' || skill === 'speaking') && !item.has_finalized_review ? <span>Review pending</span> : null}</div>)}
+              {skills.map((skill) => renderCompletedSkillRow(item, skill))}
             </article>;
           })}
         </section>

@@ -3,7 +3,14 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const page = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/IeltsJourneyDashboard.tsx'), 'utf8');
+const dashboardPath = path.join(process.cwd(), 'src/pages/ielts/IeltsJourneyDashboard.tsx');
+assert.ok(fs.existsSync(dashboardPath), 'Expected IeltsJourneyDashboard.tsx to exist before reading test source');
+let page = '';
+try {
+  page = fs.readFileSync(dashboardPath, 'utf8');
+} catch (error) {
+  assert.fail(`Failed to read ${dashboardPath}: ${error instanceof Error ? error.message : String(error)}`);
+}
 
 test('uses valid assigned practice route and never links to nonexistent /ielts/assigned', () => {
   assert.match(page, /navigate\('\/ielts\/practice\/assigned'\)/);
@@ -12,7 +19,8 @@ test('uses valid assigned practice route and never links to nonexistent /ielts/a
 
 test('next action avoids fake completion phrasing', () => {
   assert.doesNotMatch(page, /Next: All tasks complete/);
-  assert.match(page, /No active IELTS assignments right now\.|View your latest results and feedback\./);
+  assert.match(page, /No active IELTS assignments right now\./);
+  assert.match(page, /View your latest results and feedback\./);
 });
 
 test('light theme and band readiness section are present', () => {
