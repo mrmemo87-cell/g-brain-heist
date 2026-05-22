@@ -30,3 +30,10 @@ test('school_admin/admin can still access IELTS operations tools and can control
   assert.match(home, /Allow students to use Extra Practice/);
   assert.match(home, /When off, students only see assigned IELTS practice and their journey\./);
 });
+
+test('IELTS Home review queue card is role-gated by the same helper as route guard', () => {
+  const home = read('src/pages/ielts/IeltsHome.tsx');
+
+  assert.match(home, /const canOpenReviewQueue = canAccessIeltsReviewQueue\(\{ role: userRole, is_admin: isPlatformAdmin \}\);/);
+  assert.match(home, /\{canOpenReviewQueue && \(/, 'home should only render review queue card for authorized users');
+});

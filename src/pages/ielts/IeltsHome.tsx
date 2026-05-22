@@ -15,6 +15,7 @@ import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/au
 import { supabase } from '../../../services/supabaseClient';
 import { getCurrentSchool, updateSchoolSettings } from '../../../services/schoolAdminService';
 import { resolveIeltsExtraPracticeAccess } from '../../../services/ieltsExtraPracticeAccessService';
+import { canAccessIeltsReviewQueue, normalizeIeltsRole } from '../../../services/ieltsReviewAccess';
 
 const IeltsHome: React.FC = () => {
   const navigate = useNavigate();
@@ -29,12 +30,14 @@ const IeltsHome: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [userTier, setUserTier] = useState('free');
   const [userRole, setUserRole] = useState<string>('student');
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [extraPracticeEnabled, setExtraPracticeEnabled] = useState(false);
   const [schoolId, setSchoolId] = useState<string | null>(null);
   const isPrimeUser = isIeltsPrime({ tier: userTier });
   const canAccessRequiredTier = (requiredTier?: string | null) => !requiredTier || requiredTier === 'free' || isPrimeUser;
-  const normalizedRole = (userRole || '').trim().toLowerCase();
+  const normalizedRole = normalizeIeltsRole(userRole);
   const isIeltsAdminLandingRole = normalizedRole === 'school_admin' || normalizedRole === 'admin' || normalizedRole === 'superadmin';
+  const canOpenReviewQueue = canAccessIeltsReviewQueue({ role: userRole, is_admin: isPlatformAdmin });
 
   // Stop background music when entering IELTS section
   useEffect(() => {
@@ -85,11 +88,12 @@ const IeltsHome: React.FC = () => {
       if (!auth?.user) return;
       const { data: profile } = await supabase
         .from('users')
-        .select('role')
+.select('role, is_admin')
         .eq('id', auth.user.id)
         .maybeSingle();
-      const role = (profile as { role?: string | null } | null)?.role;
-      if (role) setUserRole(role);
+      const typedProfile = profile as { role?: string | null; is_admin?: boolean | null } | null;
+      if (typedProfile?.role) setUserRole(typedProfile.role);
+      setIsPlatformAdmin(Boolean(typedProfile?.is_admin));
     };
 
     void loadUserRole();
@@ -410,7 +414,7 @@ const IeltsHome: React.FC = () => {
 
 
 
-          {/* Teacher Review Queue */}
+          {canOpenReviewQueue && (
           <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
               <div>
@@ -418,7 +422,7 @@ const IeltsHome: React.FC = () => {
                   <span style={{ fontSize: '1.5rem' }}>📝</span>
                   <h2 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>IELTS Review Queue</h2>
                 </div>
-                <p style={{ color: '#475569', fontSize: '0.8125rem', margin: 0 }}>Teachers can review writing and speaking submissions with structured IELTS rubric feedback.</p>
+                <p style={{ color: '#475569', fontSize: '0.8125rem', margin: 0 }}>Authorized reviewers can finalize writing and speaking submissions with structured IELTS rubric feedback.</p>
               </div>
               <button
                 type="button"
@@ -429,6 +433,7 @@ const IeltsHome: React.FC = () => {
               </button>
             </div>
           </div>
+          )}
 
           {extraPracticeEnabled && (
           <>
