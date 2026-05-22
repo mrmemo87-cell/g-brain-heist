@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '../../../services/supabaseClient';
-import { ensureIeltsProfile, getUserTier, isIeltsPrime, saveNotificationPreferences } from '../../../services/ieltsService';
+import { ensureIeltsProfile, getUserTier, isIeltsPrime } from '../../../services/ieltsService';
 import { rpcIeltsPracticeMarkItemCompleted, rpcIeltsPracticeMarkItemSubmitted, type IeltsPracticeAssignmentProgress } from '../../../services/ieltsPracticeAssignmentService';
 import { AssignmentCompletionStatus, readIeltsPracticeAssignmentContext } from './assignmentPracticeUi';
 import { notifyTeachersOfExamGuard } from '../../../services/notificationService';
@@ -40,11 +40,8 @@ const WritingPractice: React.FC = () => {
   const isPrimeUser = isIeltsPrime({ tier: userTier });
   
   // Success screen state
-  const [alternateEmail, setAlternateEmail] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [notifyByEmail, setNotifyByEmail] = useState(true);
-  const [notifyBySms, setNotifyBySms] = useState(false);
-  const [notifyInApp, setNotifyInApp] = useState(true);
+  const [isAssignmentCompletedBySubmission, setIsAssignmentCompletedBySubmission] = useState(false);
+  const [hasFinalizedReview, setHasFinalizedReview] = useState(false);
   const promptContainerRef = useRef<HTMLDivElement | null>(null);
   const editorRef = useRef<HTMLTextAreaElement | null>(null);
   const autoSubmitTriggeredRef = useRef(false);
@@ -201,38 +198,14 @@ const WritingPractice: React.FC = () => {
       setLastAttemptId(data.attempt?.id);
       setAssignmentProgress(data.progress);
       setAssignmentCompletionError(data.itemCompletionError);
+      setIsAssignmentCompletedBySubmission(Boolean(data.canComplete));
+      setHasFinalizedReview(data.attempt?.review_status === 'finalized');
       if (!data.canComplete && !data.itemCompletionError) {
         setAssignmentCompletionError(`Submitted, but not enough writing to complete assignment (minimum ${MIN_MEANINGFUL_WORDS} words).`);
       }
       setHasSubmitted(true);
     },
   });
-
-  // Save notification preferences when user updates them
-  const savePreferencesMutation = useMutation({
-    mutationFn: () => {
-      if (!lastAttemptId) throw new Error('No attempt ID');
-      return saveNotificationPreferences({
-        attemptType: 'writing',
-        attemptId: lastAttemptId,
-        alternateEmail,
-        phoneNumber,
-        notifyByEmail,
-        notifyBySms,
-        showInApp: notifyInApp,
-      });
-    },
-  });
-
-  // Auto-save preferences when they change (after submission)
-  useEffect(() => {
-    if (lastAttemptId && hasSubmitted) {
-      const timer = setTimeout(() => {
-        savePreferencesMutation.mutate();
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [alternateEmail, phoneNumber, notifyByEmail, notifyBySms, notifyInApp, lastAttemptId, hasSubmitted]);
 
   const handleSubmit = (forceSubmit = false) => {
     if (!taskId || (!answer.trim() && !forceSubmit)) return;
@@ -462,7 +435,7 @@ const WritingPractice: React.FC = () => {
           padding: 'clamp(1.5rem, 4vw, 2.5rem)',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
         }}>
-          {/* Success Header */}
+          {/* Submission Header */}
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
             <div style={{
               width: 'clamp(3.5rem, 10vw, 5rem)',
@@ -478,12 +451,28 @@ const WritingPractice: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>
-              Essay Submitted Successfully!
-            </h1>
-            <p style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.125rem)', color: '#64748b' }}>
-              Your writing has been received and is queued for expert review.
-            </p>
+            {isAssignmentCompletedBySubmission ? (
+              <>
+                <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>
+                  Writing practice submitted
+                </h1>
+                <p style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.125rem)', color: '#64748b' }}>
+                  Your response was saved and this assignment item is complete.
+                </p>
+              </>
+            ) : (
+              <>
+                <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>
+                  Writing submitted
+                </h1>
+                <p style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.125rem)', color: '#64748b' }}>
+                  Your response was saved, but it is too short to complete this assignment.
+                </p>
+                <p style={{ fontSize: 'clamp(0.85rem, 2vw, 1rem)', color: '#475569', marginTop: '0.5rem' }}>
+                  Minimum for assignment completion: {MIN_MEANINGFUL_WORDS} words.
+                </p>
+              </>
+            )}
           </div>
 
           <AssignmentCompletionStatus
@@ -493,9 +482,9 @@ const WritingPractice: React.FC = () => {
             onNavigate={navigate}
           />
 
-          {lastAttemptId ? (
+          {lastAttemptId && hasFinalizedReview ? (
             <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-              <span style={{ color: '#1e3a8a', fontWeight: 600 }}>Teacher review will appear here after finalization.</span>
+              <span style={{ color: '#1e3a8a', fontWeight: 600 }}>Finalized teacher feedback is ready.</span>
               <button
                 type="button"
                 onClick={() => navigate(`/ielts/review-result/writing/${encodeURIComponent(lastAttemptId)}`)}
@@ -503,6 +492,10 @@ const WritingPractice: React.FC = () => {
               >
                 View teacher review result
               </button>
+            </div>
+          ) : lastAttemptId ? (
+            <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem' }}>
+              <span style={{ color: '#1e3a8a', fontWeight: 600 }}>Teacher feedback will appear here after finalization.</span>
             </div>
           ) : null}
 
@@ -521,155 +514,19 @@ const WritingPractice: React.FC = () => {
                 <div style={{ fontSize: 'clamp(1.25rem, 4vw, 1.5rem)', fontWeight: 'bold', color: wordCount >= getMinWords() ? '#16a34a' : '#f59e0b' }}>
                   {wordCount}
                 </div>
-                <div style={{ fontSize: 'clamp(0.625rem, 1.5vw, 0.75rem)', color: '#94a3b8' }}>Minimum: {getMinWords()}</div>
+                <div style={{ fontSize: 'clamp(0.625rem, 1.5vw, 0.75rem)', color: '#94a3b8' }}>Assignment completion minimum: {MIN_MEANINGFUL_WORDS}</div>
               </div>
               <div style={{ background: 'white', borderRadius: '0.5rem', padding: 'clamp(0.75rem, 2vw, 1rem)' }}>
                 <div style={{ fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: '#64748b' }}>Time Spent</div>
                 <div style={{ fontSize: 'clamp(1.25rem, 4vw, 1.5rem)', fontWeight: 'bold', color: '#10b981' }}>{formatTime(timeElapsed)}</div>
                 <div style={{ fontSize: 'clamp(0.625rem, 1.5vw, 0.75rem)', color: '#94a3b8' }}>Recommended: 20-40 min</div>
               </div>
+              <div style={{ background: 'white', borderRadius: '0.5rem', padding: 'clamp(0.75rem, 2vw, 1rem)' }}>
+                <div style={{ fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: '#64748b' }}>IELTS Task 2 target</div>
+                <div style={{ fontSize: 'clamp(1.25rem, 4vw, 1.5rem)', fontWeight: 'bold', color: '#0f766e' }}>250</div>
+                <div style={{ fontSize: 'clamp(0.625rem, 1.5vw, 0.75rem)', color: '#94a3b8' }}>Recommended target words</div>
+              </div>
             </div>
-          </div>
-
-          {/* Expert Review Notice */}
-          <div style={{
-            background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
-            border: '1px solid #93c5fd',
-            borderRadius: '0.75rem',
-            padding: 'clamp(1rem, 3vw, 1.5rem)',
-            marginBottom: '1.5rem',
-            textAlign: 'left'
-          }}>
-            <h3 style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.125rem)', fontWeight: '600', color: '#1e40af', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span>🎯</span> What Happens Next
-            </h3>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#1e3a5f', fontSize: 'clamp(0.8rem, 2vw, 1rem)' }}>
-              <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>1.</span>
-                <span>Your essay will be reviewed by a <strong>certified IELTS examiner</strong></span>
-              </li>
-              <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>2.</span>
-                <span>You'll receive detailed feedback on Task Achievement, Coherence, Vocabulary & Grammar</span>
-              </li>
-              <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>3.</span>
-                <span>Your estimated band score will be sent to your email within <strong>24 hours</strong></span>
-              </li>
-            </ul>
-          </div>
-
-          {/* Notification Preferences */}
-          <div style={{
-            background: '#f8fafc',
-            border: '1px solid #e2e8f0',
-            borderRadius: '0.75rem',
-            padding: '1.5rem',
-            marginBottom: '1.5rem',
-            textAlign: 'left'
-          }}>
-            <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#334155', marginBottom: '1rem' }}>
-              📬 Notification Preferences
-            </h3>
-            
-            {/* Alternate Email */}
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', fontSize: '0.875rem', color: '#64748b', marginBottom: '0.25rem' }}>
-                Alternate email (optional)
-              </label>
-              <input
-                type="email"
-                value={alternateEmail}
-                onChange={(e) => setAlternateEmail(e.target.value)}
-                placeholder="Enter alternate email for results"
-                style={{
-                  width: '100%',
-                  padding: '0.625rem 0.875rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.5rem',
-                  fontSize: '0.875rem',
-                  boxSizing: 'border-box'
-                }}
-              />
-            </div>
-
-            {/* Phone Number */}
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', fontSize: '0.875rem', color: '#64748b', marginBottom: '0.25rem' }}>
-                Phone number for SMS updates (optional)
-              </label>
-              <input
-                type="tel"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                placeholder="+1 234 567 8900"
-                style={{
-                  width: '100%',
-                  padding: '0.625rem 0.875rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.5rem',
-                  fontSize: '0.875rem',
-                  boxSizing: 'border-box'
-                }}
-              />
-            </div>
-
-            {/* Checkboxes */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={notifyByEmail}
-                  onChange={(e) => setNotifyByEmail(e.target.checked)}
-                  style={{ width: '1rem', height: '1rem', accentColor: '#10b981' }}
-                />
-                <span style={{ fontSize: '0.875rem', color: '#475569' }}>Notify me by email when feedback is ready</span>
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={notifyBySms}
-                  onChange={(e) => setNotifyBySms(e.target.checked)}
-                  style={{ width: '1rem', height: '1rem', accentColor: '#10b981' }}
-                />
-                <span style={{ fontSize: '0.875rem', color: '#475569' }}>Send SMS notification when feedback is ready</span>
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={notifyInApp}
-                  onChange={(e) => setNotifyInApp(e.target.checked)}
-                  style={{ width: '1rem', height: '1rem', accentColor: '#10b981' }}
-                />
-                <span style={{ fontSize: '0.875rem', color: '#475569' }}>Show in-app notification</span>
-              </label>
-            </div>
-
-            {/* Save Preferences Button */}
-            <button
-              onClick={() => savePreferencesMutation.mutate()}
-              disabled={savePreferencesMutation.isPending}
-              style={{
-                width: '100%',
-                marginTop: '1rem',
-                padding: '0.75rem 1rem',
-                background: savePreferencesMutation.isSuccess 
-                  ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
-                  : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '0.5rem',
-                cursor: savePreferencesMutation.isPending ? 'not-allowed' : 'pointer',
-                fontWeight: 600,
-                fontSize: '0.875rem',
-                opacity: savePreferencesMutation.isPending ? 0.7 : 1,
-                transition: 'all 0.2s',
-              }}
-            >
-              {savePreferencesMutation.isPending ? '⏳ Saving...' : 
-               savePreferencesMutation.isSuccess ? '✓ Preferences Saved!' : 
-               '💾 Save Notification Preferences'}
-            </button>
           </div>
 
           {/* Sample Answer */}
