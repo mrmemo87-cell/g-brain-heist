@@ -122,10 +122,10 @@ export default class ErrorBoundary extends Component<Props, State> {
           <div className="card-glass p-8 max-w-2xl w-full text-center">
             <div className="text-6xl mb-4">⚠️</div>
             <h1 className="font-heading text-3xl mb-4" style={{ color: 'var(--danger-red)' }}>
-              Something Went Wrong
+              Quick Pause — You're Safe
             </h1>
             <p className="text-xl mb-6" style={{ color: 'var(--mist-400)' }}>
-              An unexpected error occurred. Don't worry, your progress is saved!
+              We hit a temporary snag, but your progress is safely saved. Refresh to continue.
             </p>
 
             <div className="space-y-3">
@@ -137,7 +137,7 @@ export default class ErrorBoundary extends Component<Props, State> {
                   color: 'white'
                 }}
               >
-                🔄 Reload Page
+                🔄 Continue & Reload
               </button>
               
               <button
@@ -152,12 +152,12 @@ export default class ErrorBoundary extends Component<Props, State> {
                   border: '1px solid var(--mist-400)'
                 }}
               >
-                🗑️ Reset All Data & Restart
+                🗑️ Start Fresh (Clear Local Data)
               </button>
             </div>
 
             <p className="mt-6 text-sm" style={{ color: 'var(--mist-400)' }}>
-              If this keeps happening, please contact your instructor.
+              Still seeing this? Your instructor can help you get back on track quickly.
             </p>
           </div>
         </div>
