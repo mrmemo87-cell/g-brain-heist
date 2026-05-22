@@ -64,6 +64,28 @@ test('IELTS journey SQL is scoped, defensive, and avoids protected answer data',
   assert.doesNotMatch(migration, /rpc_is_ielts_admin|ielts_teachers|is_ielts_admin/i, 'journey RPC must not use legacy IELTS admin permissions');
 });
 
+
+
+test('IELTS journey objective result links use attempt tables and latest student-owned attempts', () => {
+  const migration = fs.readFileSync(
+    path.join(process.cwd(), 'supabase/migrations/20260522153000_ielts_journey_objective_result_links.sql'),
+    'utf8',
+  );
+
+  assert.doesNotMatch(migration, /i\.practice_attempt_id/i, 'objective result mapping must not use assignment-item practice_attempt_id');
+  assert.match(migration, /from public\.ielts_practice_assignment_items i[\s\S]*left join lateral[\s\S]*from public\.ielts_reading_attempts ra[\s\S]*ra\.user_id = v_student_id[\s\S]*ra\.set_id::text = i\.content_id[\s\S]*order by coalesce\(ra\.completed_at, ra\.started_at\) desc/i, 'reading objective result should use latest student-owned attempt by assignment content mapping');
+  assert.match(migration, /left join lateral[\s\S]*from public\.ielts_listening_attempts la[\s\S]*la\.user_id = v_student_id[\s\S]*la\.set_id::text = i\.content_id[\s\S]*order by coalesce\(la\.completed_at, la\.started_at\) desc/i, 'listening objective result should use latest student-owned attempt by assignment content mapping');
+  assert.match(migration, /objective_attempt_id/i, 'completed assignment cards should include objective attempt id when found');
+  assert.match(migration, /\/ielts\/reading\/result\//i, 'reading result link should render using attempt id');
+  assert.match(migration, /\/ielts\/listening\/result\//i, 'listening result link should render using attempt id');
+  assert.match(migration, /coalesce\(ra_match\.id, la_match\.id\) is not null/i, 'objective result links should render only when a matched attempt exists');
+  assert.match(migration, /score_correct/i, 'objective result payload should expose score_correct from attempts');
+  assert.match(migration, /score_total/i, 'objective result payload should expose score_total from attempts');
+  assert.match(migration, /percent_correct/i, 'objective result payload should expose percent_correct from attempts');
+  assert.match(migration, /coalesce\(meta\.productive_skill_count, 0\) = 0 then 'not_required'/i, 'objective-only cards should remain not_required feedback status');
+  assert.match(migration, /Result available\.|Practice completed/i, 'objective-only cards should preserve result-available/completed preview messaging');
+  assert.match(migration, /\/ielts\/review-result\//i, 'writing/speaking review links should remain unchanged');
+});
 test('IELTS journey route, home link, and page use the journey service safely', () => {
   const routes = fs.readFileSync(path.join(process.cwd(), 'index.tsx'), 'utf8');
   const home = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/IeltsHome.tsx'), 'utf8');

@@ -112,12 +112,12 @@ begin
         jsonb_agg(distinct i.skill) filter (where i.skill is not null) as skills,
         count(*) filter (where i.skill in ('reading', 'listening')) as objective_skill_count,
         count(*) filter (where i.skill in ('writing', 'speaking')) as productive_skill_count,
-        max(case when i.skill = 'reading' then '/ielts/reading/result/' || i.practice_attempt_id when i.skill = 'listening' then '/ielts/listening/result/' || i.practice_attempt_id else null end) filter (where i.practice_attempt_id is not null and i.skill in ('reading', 'listening')) as objective_result_link,
-        max(i.practice_attempt_id) filter (where i.skill in ('reading', 'listening') and i.practice_attempt_id is not null) as objective_attempt_id,
-        max((to_jsonb(coalesce(ra, la))->>'raw_score')::int) as score_correct,
-        max((to_jsonb(coalesce(ra, la))->>'total_questions')::int) as score_total,
-        max((to_jsonb(coalesce(ra, la))->>'percent')::numeric) as percent_correct,
-        max(coalesce((to_jsonb(coalesce(ra, la))->>'est_band')::numeric, (to_jsonb(coalesce(ra, la))->>'estimated_band')::numeric)) as estimated_band,
+        max(case when i.skill = 'reading' then '/ielts/reading/result/' || ra_match.id::text when i.skill = 'listening' then '/ielts/listening/result/' || la_match.id::text else null end) filter (where i.skill in ('reading', 'listening') and coalesce(ra_match.id, la_match.id) is not null) as objective_result_link,
+        max(coalesce(ra_match.id::text, la_match.id::text)) filter (where i.skill in ('reading', 'listening')) as objective_attempt_id,
+        max(coalesce(ra_match.raw_score, la_match.raw_score)) as score_correct,
+        max(coalesce(ra_match.total_questions, la_match.total_questions)) as score_total,
+        max(coalesce(ra_match.percent, la_match.percent)) as percent_correct,
+        max(case when coalesce(ra_match.total_questions, la_match.total_questions, 0) > 0 and coalesce(ra_match.percent, la_match.percent, 0) >= 1 then coalesce(ra_match.est_band, la_match.est_band, ra_match.estimated_band, la_match.estimated_band) else null end) as estimated_band,
         exists (
           select 1 from public.ielts_productive_skill_reviews r
           where r.student_id = v_student_id and (to_jsonb(r)->>'review_status' = 'finalized' or to_jsonb(r)->>'review_status' is null)
@@ -125,8 +125,26 @@ begin
         ) as has_finalized_review,
         max('/ielts/review-result/' || (to_jsonb(r2)->>'attempt_type') || '/' || (to_jsonb(r2)->>'attempt_id')) filter (where r2.id is not null) as review_result_link
       from public.ielts_practice_assignment_items i
-      left join public.ielts_reading_attempts ra on i.skill = 'reading' and ra.id = i.practice_attempt_id::uuid and ra.user_id = v_student_id
-      left join public.ielts_listening_attempts la on i.skill = 'listening' and la.id = i.practice_attempt_id::uuid and la.user_id = v_student_id
+      left join lateral (
+        select ra.id, ra.raw_score, ra.total_questions, ra.percent, ra.est_band, null::numeric as estimated_band
+        from public.ielts_reading_attempts ra
+        where i.skill = 'reading'
+          and ra.user_id = v_student_id
+          and ra.set_id::text = i.content_id
+          and coalesce(ra.completed_at, ra.started_at) is not null
+        order by coalesce(ra.completed_at, ra.started_at) desc, ra.started_at desc, ra.id desc
+        limit 1
+      ) ra_match on true
+      left join lateral (
+        select la.id, la.raw_score, la.total_questions, la.percent, la.est_band, null::numeric as estimated_band
+        from public.ielts_listening_attempts la
+        where i.skill = 'listening'
+          and la.user_id = v_student_id
+          and la.set_id::text = i.content_id
+          and coalesce(la.completed_at, la.started_at) is not null
+        order by coalesce(la.completed_at, la.started_at) desc, la.started_at desc, la.id desc
+        limit 1
+      ) la_match on true
       left join public.ielts_productive_skill_reviews r2 on r2.student_id = v_student_id and (to_jsonb(r2)->>'review_status' = 'finalized' or to_jsonb(r2)->>'review_status' is null) and (to_jsonb(r2)->>'attempt_type') = i.skill
       where i.assignment_id = s.assignment_id
     ) meta on true
