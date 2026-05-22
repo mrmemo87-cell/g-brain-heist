@@ -132,17 +132,18 @@ const IeltsHome: React.FC = () => {
 
   if (isIeltsAdminLandingRole) {
     const adminCards = [
-      { label: 'IELTS Practice', desc: 'View learner-facing practice and assigned work.', route: '/ielts/practice/assigned' },
-      { label: 'IELTS Content', desc: 'Manage reading, listening, writing, and speaking content.', route: '/ielts/admin' },
-      { label: 'IELTS Reviews', desc: 'Review writing and speaking submissions waiting for teacher scoring.', route: '/ielts/reviews' },
-      { label: 'IELTS Results', desc: 'Open IELTS readiness and school results dashboards.', route: '/ielts/journey' },
-      { label: 'IELTS Exams', desc: 'Create and monitor IELTS exam mode events.', route: '/ielts/exams/manage' },
+      { label: 'IELTS Practice', desc: 'Open student-facing practice flows for quality assurance.', route: '/ielts/practice/assigned' },
+      { label: 'Content Manager', desc: 'Manage reading, listening, writing, and speaking content.', route: '/ielts/admin' },
+      { label: 'Review Queue', desc: 'Finalize writing and speaking reviews awaiting scoring decisions.', route: '/ielts/reviews' },
+      { label: 'Results', desc: 'Track readiness and published IELTS performance outcomes.', route: '/ielts/journey' },
+      { label: 'Exams', desc: 'Create and monitor secure IELTS exam mode sessions.', route: '/ielts/exams/manage' },
+      { label: 'Assignment Overview', desc: 'Monitor assignment coverage, progress, and completion health.', route: '/ielts/practice/assigned' },
     ];
 
     return (
       <div style={{ minHeight: '100vh', background: '#f8fafc', color: '#1f2937', padding: '1.5rem' }}>
         <div style={{ maxWidth: '960px', margin: '0 auto' }}>
-          <h1 style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>IELTS Admin Hub</h1>
+          <h1 style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>IELTS Operations Control Center</h1>
           <p style={{ color: '#475569', marginBottom: '1.5rem' }}>
             Admin tools for school IELTS operations. Student prep center remains available for student accounts only.
           </p>
