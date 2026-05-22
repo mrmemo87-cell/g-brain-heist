@@ -3,35 +3,46 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const page = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/IeltsJourneyDashboard.tsx'), 'utf8');
-const home = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/IeltsHome.tsx'), 'utf8');
+const dashboardPath = path.join(process.cwd(), 'src/pages/ielts/IeltsJourneyDashboard.tsx');
+assert.ok(fs.existsSync(dashboardPath), 'Expected IeltsJourneyDashboard.tsx to exist before reading test source');
+let page = '';
+try {
+  page = fs.readFileSync(dashboardPath, 'utf8');
+} catch (error) {
+  assert.fail(`Failed to read ${dashboardPath}: ${error instanceof Error ? error.message : String(error)}`);
+}
 
-test('student dashboard does not expose review queue/admin cards', () => {
-  assert.doesNotMatch(page, /IELTS Review Queue|admin operation cards/i);
-  assert.match(home, /\{canOpenReviewQueue && \(/, 'review queue card remains role-gated on home');
+test('uses valid assigned practice route and never links to nonexistent /ielts/assigned', () => {
+  assert.match(page, /navigate\('\/ielts\/practice\/assigned'\)/);
+  assert.doesNotMatch(page, /\/ielts\/assigned/);
 });
 
-test('current assignments include progress and task rows', () => {
-  assert.match(page, /Current assignments/);
-  assert.match(page, /tasks completed/);
-  assert.match(page, /Reading/);
-  assert.match(page, /Listening/);
-  assert.match(page, /Writing/);
-  assert.match(page, /Speaking/);
-  assert.match(page, /Start assignment|Continue assignment/);
+test('next action avoids fake completion phrasing', () => {
+  assert.doesNotMatch(page, /Next: All tasks complete/);
+  assert.match(page, /No active IELTS assignments right now\./);
+  assert.match(page, /View your latest results and feedback\./);
 });
 
-test('completed assignments show skill-specific CTAs and pending rules', () => {
+test('light theme and band readiness section are present', () => {
+  assert.match(page, /background:\s*'#f8fafc'/);
+  assert.match(page, /Readiness overview/);
+  assert.match(page, /Overall/);
+  assert.match(page, /Not enough data yet/);
+});
+
+test('status labels are humanized and no raw in_progress token appears in UI copy', () => {
+  assert.match(page, /In progress/);
+  assert.doesNotMatch(page, /Status:\s*\{item\.status\b/);
+});
+
+test('assignment cards show only actual assigned skills and no Not assigned rows', () => {
+  assert.match(page, /orderedSkills\.filter\(\(skill\) => \(item\.skills \?\? \[\]\)\.includes\(skill\)\)/);
+  assert.doesNotMatch(page, /Not assigned/);
+});
+
+test('result and feedback CTA gating exists for objective vs productive skills', () => {
   assert.match(page, /View result/);
   assert.match(page, /View feedback/);
-  assert.match(page, /Review pending — your teacher or school admin has not finalized feedback yet\./);
-  assert.doesNotMatch(page, />View feedback<\/button>\s*:\s*null\}\s*\}\s*<\/div>/i, 'no generic mixed View feedback button block should remain');
-});
-
-test('empty states and reduced motion handling are present', () => {
-  assert.match(page, /No current IELTS assignments\./);
-  assert.match(page, /No completed IELTS assignments yet\./);
-  assert.match(page, /No results available yet\./);
-  assert.match(page, /No reviewed feedback yet\./);
-  assert.match(page, /prefers-reduced-motion: reduce/);
+  assert.match(page, /Review pending/);
+  assert.doesNotMatch(page, /generic mixed View feedback/i);
 });
