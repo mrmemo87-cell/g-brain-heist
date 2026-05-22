@@ -45,10 +45,12 @@ interface SchoolAdminPortalProps {
   addToast: (message: string, type: ToastMessage['type']) => void;
 }
 
-type AdminTab = 'dashboard' | 'members' | 'classes' | 'roster' | 'subjects' | 'teachers' | 'students' | 'invites' | 'settings' | 'billing' | 'cambridge' | 'ielts-exams' | 'ielts-practice' | 'ielts-results' | 'ielts-analytics';
+type AdminTab = 'dashboard' | 'members' | 'classes' | 'roster' | 'subjects' | 'teachers' | 'students' | 'invites' | 'settings' | 'billing' | 'cambridge' | 'ielts' | 'ielts-exams' | 'ielts-practice' | 'ielts-results' | 'ielts-analytics';
+type IeltsSubTab = 'ielts-exams' | 'ielts-practice' | 'ielts-results' | 'ielts-analytics';
 
 const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLogout, onNavigate, addToast }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
+  const [activeIeltsSubTab, setActiveIeltsSubTab] = useState<IeltsSubTab>('ielts-exams');
   const [loading, setLoading] = useState(true);
   const [school, setSchool] = useState<SchoolInfo | null>(null);
   const [stats, setStats] = useState<SchoolStats | null>(null);
@@ -1409,7 +1411,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
 
       {/* Premium Tab Navigation */}
       <div className="school-admin-tabs flex flex-wrap gap-2 mb-8 pb-2" role="tablist" aria-label="School admin navigation">
-        {(['dashboard', 'members', 'classes', 'roster', 'subjects', 'teachers', 'students', 'invites', 'billing', 'settings', 'cambridge', 'ielts-exams', 'ielts-practice', 'ielts-results', 'ielts-analytics'] as AdminTab[]).map((tab) => (
+        {(['dashboard', 'members', 'classes', 'roster', 'subjects', 'teachers', 'students', 'invites', 'billing', 'settings', 'cambridge', 'ielts'] as AdminTab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -1418,7 +1420,11 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
             aria-selected={activeTab === tab}
             className={`px-4 py-2 sm:px-5 sm:py-3 rounded-xl font-medium transition-all text-sm sm:text-base border ${
               activeTab === tab
-                ? 'bg-gradient-to-r from-purple-600 to-cyan-600 text-white border-transparent shadow-lg shadow-purple-500/25'
+                ? tab === 'ielts'
+                  ? 'bg-gradient-to-r from-teal-600 to-blue-700 text-white border-transparent shadow-lg shadow-teal-500/30'
+                  : 'bg-gradient-to-r from-purple-600 to-cyan-600 text-white border-transparent shadow-lg shadow-purple-500/25'
+                : tab === 'ielts'
+                ? 'bg-teal-950/50 text-teal-300 border-teal-700/40 hover:bg-teal-900/60 hover:text-teal-100 hover:border-teal-600/60'
                 : 'bg-gray-800/50 text-gray-400 hover:bg-gray-700/50 border-gray-700/50 hover:text-white hover:border-gray-600'
             }`}
           >
@@ -1433,20 +1439,9 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
             {tab === 'billing' && '💳 Plan & Billing'}
             {tab === 'settings' && '⚙️ Settings'}
             {tab === 'cambridge' && '📚 Cambridge'}
-            {tab === 'ielts-exams' && '🧪 IELTS Exams'}
-            {tab === 'ielts-practice' && '📝 IELTS Practice'}
-            {tab === 'ielts-results' && '📈 IELTS Results'}
-            {tab === 'ielts-analytics' && '📊 IELTS Analytics'}
+            {tab === 'ielts' && '🎓 IELTS'}
           </button>
         ))}
-        <button
-          type="button"
-          onClick={() => { window.location.href = '/ielts/exams/manage'; }}
-          role="link"
-          className="px-4 py-2 sm:px-5 sm:py-3 rounded-xl font-medium transition-all text-sm sm:text-base border bg-amber-900/40 text-amber-100 hover:bg-amber-800/60 border-amber-600/40 hover:text-white hover:border-amber-500"
-        >
-          📝 IELTS Exams
-        </button>
       </div>
 
       {/* Dashboard Tab */}
@@ -1463,10 +1458,83 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       {activeTab === 'billing' && <BillingTab />}
       {activeTab === 'settings' && <SettingsTab />}
       {activeTab === 'cambridge' && <CambridgeTab />}
-      {activeTab === 'ielts-exams' && <IeltsExamsTab />}
-      {activeTab === 'ielts-practice' && <IeltsPracticeTab />}
-      {activeTab === 'ielts-results' && <IeltsResultsTab />}
-      {activeTab === 'ielts-analytics' && <IeltsAnalyticsTab />}
+
+      {/* ─── IELTS Academy Hub ────────────────────────────────────── */}
+      {activeTab === 'ielts' && (
+        <div className="space-y-5">
+
+          {/* Banner */}
+          <div className="relative overflow-hidden rounded-2xl border border-teal-500/20 bg-gradient-to-br from-slate-900 via-blue-950 to-teal-950 p-6 shadow-2xl">
+            <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-teal-500/8 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-12 -left-12 h-44 w-44 rounded-full bg-blue-500/8 blur-3xl" />
+            <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-blue-600 text-2xl shadow-lg shadow-teal-500/30">
+                  🎓
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-teal-400">School IELTS Suite</p>
+                  <h2 className="mt-0.5 text-xl font-bold text-white">IELTS Academy</h2>
+                  <p className="mt-0.5 text-xs text-slate-400">{school?.name ?? 'Your school'} — exams, practice, results &amp; analytics</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2 sm:flex-col sm:items-end sm:gap-1.5">
+                <span className="inline-flex items-center gap-1 rounded-full bg-teal-500/15 px-3 py-1 text-[11px] font-semibold text-teal-300 ring-1 ring-teal-500/25">
+                  ✅ IELTS Enabled
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/15 px-3 py-1 text-[11px] font-semibold text-blue-300 ring-1 ring-blue-500/25">
+                  🔒 Secure Exam Mode
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Sub-tab Segmented Control */}
+          <div
+            className="flex gap-1 rounded-2xl border border-gray-700/50 bg-gray-900/70 p-1.5 backdrop-blur-sm"
+            role="tablist"
+            aria-label="IELTS sections"
+          >
+            {(
+              [
+                { id: 'ielts-exams',     icon: '🧪', label: 'Exams',     hint: 'Secure mock exams'    },
+                { id: 'ielts-practice',  icon: '📝', label: 'Practice',  hint: 'Assign & monitor'     },
+                { id: 'ielts-results',   icon: '📈', label: 'Results',   hint: 'Student scores'       },
+                { id: 'ielts-analytics', icon: '📊', label: 'Analytics', hint: 'School insights'      },
+              ] as { id: IeltsSubTab; icon: string; label: string; hint: string }[]
+            ).map(({ id, icon, label, hint }) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                data-testid={`school-admin-tab-${id}`}
+                aria-selected={activeIeltsSubTab === id}
+                onClick={() => setActiveIeltsSubTab(id)}
+                className={`flex flex-1 flex-col items-center gap-0.5 rounded-xl px-3 py-2.5 transition-all ${
+                  activeIeltsSubTab === id
+                    ? 'bg-gradient-to-br from-teal-600 to-blue-700 text-white shadow-lg shadow-teal-500/20'
+                    : 'text-gray-400 hover:bg-gray-800/60 hover:text-white'
+                }`}
+              >
+                <span className="text-base leading-none">{icon}</span>
+                <span className="text-[13px] font-semibold">{label}</span>
+                <span className={`hidden text-[10px] leading-none sm:block ${
+                  activeIeltsSubTab === id ? 'text-teal-100/60' : 'text-gray-600'
+                }`}>{hint}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Content */}
+          <div className="rounded-2xl ring-1 ring-teal-500/10">
+            {activeIeltsSubTab === 'ielts-exams'     && <IeltsExamsTab />}
+            {activeIeltsSubTab === 'ielts-practice'  && <IeltsPracticeTab />}
+            {activeIeltsSubTab === 'ielts-results'   && <IeltsResultsTab />}
+            {activeIeltsSubTab === 'ielts-analytics' && <IeltsAnalyticsTab />}
+          </div>
+
+        </div>
+      )}
 
 
       {/* Modals */}
