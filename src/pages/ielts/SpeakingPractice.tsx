@@ -324,6 +324,7 @@ const SpeakingPractice: React.FC = () => {
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
+  const minimumRecordingLabel = formatTime(MIN_RECORDING_SECONDS);
 
   if (isLoading) {
     return (
@@ -441,8 +442,11 @@ const SpeakingPractice: React.FC = () => {
           <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>
             Speaking submitted
           </h1>
-          <p style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.125rem)', color: '#64748b', marginBottom: '2rem' }}>
+          <p style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.125rem)', color: '#64748b', marginBottom: '1rem' }}>
             Your recording was saved.
+          </p>
+          <p style={{ fontSize: '0.875rem', color: '#475569', marginBottom: '2rem' }}>
+            Minimum recording required: {minimumRecordingLabel}
           </p>
 
           <AssignmentCompletionStatus
@@ -624,6 +628,9 @@ const SpeakingPractice: React.FC = () => {
               <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#5b21b6' }}>{formatTime(displayMaxTime)}</div>
             </div>
           </div>
+          <p style={{ margin: '-0.25rem 0 1rem', color: '#475569', fontSize: '0.875rem', fontWeight: 600 }}>
+            Minimum recording required: {minimumRecordingLabel}
+          </p>
           {!shouldUsePrepTimer && task.part === 2 && (
             <p style={{ margin: '-0.25rem 0 1rem', color: '#64748b', fontSize: '0.8125rem' }}>
               Optional planning time is available, but recording is not blocked in assigned practice.
@@ -713,6 +720,9 @@ const SpeakingPractice: React.FC = () => {
               <p style={{ color: '#64748b', marginBottom: '1rem' }}>
                 Speak now! Recording will stop automatically at {formatTime(MAX_RECORDING_SECONDS)}.
               </p>
+              <p style={{ color: '#475569', margin: '-0.5rem 0 1rem', fontSize: '0.8125rem', fontWeight: 600 }}>
+                Minimum recording required: {minimumRecordingLabel}
+              </p>
               <button
                 onClick={stopRecording}
                 style={{
@@ -762,8 +772,13 @@ const SpeakingPractice: React.FC = () => {
                   Duration: {formatTime(recordingDuration)}
                 </div>
                 <div style={{ fontSize: 'clamp(0.7rem, 1.8vw, 0.8rem)', color: '#94a3b8', marginTop: '0.25rem' }}>
-                  Minimum {formatTime(MIN_RECORDING_SECONDS)} required • Max {formatTime(MAX_RECORDING_SECONDS)}
+                  Minimum {minimumRecordingLabel} required • Max {formatTime(MAX_RECORDING_SECONDS)}
                 </div>
+                {recordingDuration < MIN_RECORDING_SECONDS && (
+                  <p style={{ fontSize: '0.8125rem', color: '#b91c1c', marginTop: '0.5rem', marginBottom: 0, fontWeight: 600 }}>
+                    Record at least 2:00 to complete this assignment.
+                  </p>
+                )}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 <button
@@ -801,7 +816,7 @@ const SpeakingPractice: React.FC = () => {
                   {submitMutation.isPending
                     ? 'Submitting...'
                     : !isSubmissionEligible
-                      ? `Record at least ${formatTime(MIN_RECORDING_SECONDS)}`
+                      ? 'Record at least 2:00 to complete this assignment.'
                       : 'Submit for Review'}
                 </button>
               </div>
