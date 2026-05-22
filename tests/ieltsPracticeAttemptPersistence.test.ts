@@ -60,8 +60,8 @@ test('writing and speaking payload builders persist available rubric bands witho
     { review_status: 'pending', user_id: 'student-1', task_id: 1, answer_text: 'Essay', word_count: 250, band_overall: 6.5 },
   );
   assert.deepEqual(
-    buildSpeakingAttemptPayload({ user_id: 'student-1', task_id: 2, audio_url: 'speaking/student-1/2.webm' }, { bandOverall: 7.26 }),
-    { user_id: 'student-1', task_id: 2, audio_url: 'speaking/student-1/2.webm', band_overall: 7.5 },
+    buildSpeakingAttemptPayload({ user_id: 'student-1', task_id: 2, audio_url: 'speaking/student-1/2.webm', duration_seconds: 85 }, { bandOverall: 7.26 }),
+    { user_id: 'student-1', task_id: 2, audio_url: 'speaking/student-1/2.webm', duration_seconds: 85, band_overall: 7.5 },
   );
   assert.equal(buildWritingAttemptPayload({ user_id: 'student-1', task_id: 1 }, { bandOverall: Number.NaN })['review_status'], 'pending');
   assert.equal('band_overall' in buildWritingAttemptPayload({ user_id: 'student-1', task_id: 1 }, { bandOverall: Number.NaN }), false);
@@ -122,4 +122,11 @@ test('assignment-mode completion remains after attempt insert succeeds', () => {
     assert.match(source, new RegExp(`practiceAttemptType:\\s*'${flow.skill}'`), `${flow.skill} completion must use the correct attempt type`);
     assert.match(source, /practiceAttemptId:\s*[^\n]+\?\.id \?\? null/, `${flow.skill} completion must still pass the persisted attempt id`);
   }
+});
+
+test('speaking submit upload preserves mime/content type and persists duration_seconds', () => {
+  const source = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/SpeakingPractice.tsx'), 'utf8');
+
+  assert.match(source, /contentType:\s*blobType/, 'speaking upload must preserve blob MIME type');
+  assert.match(source, /duration_seconds:\s*recordingDuration > 0 \? recordingDuration : null/, 'speaking submit must persist measured duration_seconds when available');
 });
