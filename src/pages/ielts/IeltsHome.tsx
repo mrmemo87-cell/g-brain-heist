@@ -12,6 +12,7 @@ import {
 } from '../../../services/ieltsService';
 import type { IELTSListeningSet, IELTSReadingSet, IELTSSpeakingTask, IELTSWritingTask } from '../../../types';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
+import { supabase } from '../../../services/supabaseClient';
 
 const IeltsHome: React.FC = () => {
   const navigate = useNavigate();
@@ -25,8 +26,11 @@ const IeltsHome: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userTier, setUserTier] = useState('free');
+  const [userRole, setUserRole] = useState<string>('student');
   const isPrimeUser = isIeltsPrime({ tier: userTier });
   const canAccessRequiredTier = (requiredTier?: string | null) => !requiredTier || requiredTier === 'free' || isPrimeUser;
+  const normalizedRole = (userRole || '').trim().toLowerCase();
+  const isIeltsAdminLandingRole = normalizedRole === 'school_admin' || normalizedRole === 'admin' || normalizedRole === 'superadmin';
 
   // Stop background music when entering IELTS section
   useEffect(() => {
@@ -72,6 +76,22 @@ const IeltsHome: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    const loadUserRole = async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth?.user) return;
+      const { data: profile } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', auth.user.id)
+        .maybeSingle();
+      const role = (profile as { role?: string | null } | null)?.role;
+      if (role) setUserRole(role);
+    };
+
+    void loadUserRole();
+  }, []);
+
+  useEffect(() => {
     const loadTasks = async () => {
       try {
         setIsLoading(true);
@@ -103,8 +123,46 @@ const IeltsHome: React.FC = () => {
       }
     };
 
-    loadTasks();
-  }, []);
+    if (!isIeltsAdminLandingRole) {
+      void loadTasks();
+      return;
+    }
+    setIsLoading(false);
+  }, [isIeltsAdminLandingRole]);
+
+  if (isIeltsAdminLandingRole) {
+    const adminCards = [
+      { label: 'IELTS Practice', desc: 'View learner-facing practice and assigned work.', route: '/ielts/practice/assigned' },
+      { label: 'IELTS Content', desc: 'Manage reading, listening, writing, and speaking content.', route: '/ielts/admin' },
+      { label: 'IELTS Reviews', desc: 'Review writing and speaking submissions waiting for teacher scoring.', route: '/ielts/reviews' },
+      { label: 'IELTS Results', desc: 'Open IELTS readiness and school results dashboards.', route: '/ielts/journey' },
+      { label: 'IELTS Exams', desc: 'Create and monitor IELTS exam mode events.', route: '/ielts/exams/manage' },
+    ];
+
+    return (
+      <div style={{ minHeight: '100vh', background: '#f8fafc', color: '#1f2937', padding: '1.5rem' }}>
+        <div style={{ maxWidth: '960px', margin: '0 auto' }}>
+          <h1 style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>IELTS Admin Hub</h1>
+          <p style={{ color: '#475569', marginBottom: '1.5rem' }}>
+            Admin tools for school IELTS operations. Student prep center remains available for student accounts only.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.875rem' }}>
+            {adminCards.map((card) => (
+              <button
+                key={card.label}
+                type="button"
+                onClick={() => navigate(card.route)}
+                style={{ textAlign: 'left', border: '1px solid #cbd5e1', borderRadius: '0.75rem', background: 'white', padding: '1rem', cursor: 'pointer' }}
+              >
+                <div style={{ fontWeight: 700, marginBottom: '0.35rem' }}>{card.label}</div>
+                <div style={{ fontSize: '0.85rem', color: '#64748b' }}>{card.desc}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ 
