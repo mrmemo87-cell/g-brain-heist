@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '../../../services/supabaseClient';
-import { ensureIeltsProfile, getUserTier, isIeltsPrime, saveNotificationPreferences } from '../../../services/ieltsService';
+import { ensureIeltsProfile, getUserTier, isIeltsPrime } from '../../../services/ieltsService';
 import { rpcIeltsPracticeMarkItemCompleted, rpcIeltsPracticeMarkItemSubmitted, type IeltsPracticeAssignmentProgress } from '../../../services/ieltsPracticeAssignmentService';
 import { AssignmentCompletionStatus, readIeltsPracticeAssignmentContext } from './assignmentPracticeUi';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
@@ -35,6 +35,8 @@ const SpeakingPractice: React.FC = () => {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [canPreviewAudio, setCanPreviewAudio] = useState<boolean>(true);
   const [recordingDuration, setRecordingDuration] = useState<number>(0);
   const [userTier, setUserTier] = useState('free');
   const isPrimeUser = isIeltsPrime({ tier: userTier });
@@ -42,12 +44,7 @@ const SpeakingPractice: React.FC = () => {
   const MIN_RECORDING_SECONDS = 120;
   const MAX_RECORDING_SECONDS = 600;
   
-  // Success screen state
-  const [alternateEmail, setAlternateEmail] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [notifyByEmail, setNotifyByEmail] = useState(true);
-  const [notifyBySms, setNotifyBySms] = useState(false);
-  const [notifyInApp, setNotifyInApp] = useState(true);
+
   const [assignmentProgress, setAssignmentProgress] = useState<IeltsPracticeAssignmentProgress | null>(null);
   const [assignmentCompletionError, setAssignmentCompletionError] = useState<string | null>(null);
   
@@ -140,54 +137,37 @@ const SpeakingPractice: React.FC = () => {
             practiceAttemptType: 'speaking',
             practiceAttemptId: data?.id ?? null,
           });
-          progress = await rpcIeltsPracticeMarkItemCompleted({
-            assignmentId,
-            assignmentItemId,
-            practiceAttemptType: 'speaking',
-            practiceAttemptId: data?.id ?? null,
-          });
+          if (recordingDuration >= MIN_RECORDING_SECONDS) {
+            progress = await rpcIeltsPracticeMarkItemCompleted({
+              assignmentId,
+              assignmentItemId,
+              practiceAttemptType: 'speaking',
+              practiceAttemptId: data?.id ?? null,
+            });
+          }
         } catch (completionError) {
           itemCompletionError = completionError instanceof Error ? completionError.message : 'Unable to mark assignment item completed.';
         }
       }
 
-      return { attempt: data, progress, itemCompletionError };
+      return { attempt: data, progress, itemCompletionError, canComplete: recordingDuration >= MIN_RECORDING_SECONDS };
     },
     onSuccess: (data) => {
       setLastAttemptId(data.attempt?.id);
       setAssignmentProgress(data.progress);
       setAssignmentCompletionError(data.itemCompletionError);
+      setHasFinalizedReview(data.attempt?.review_status === 'finalized');
+      if (!data.canComplete && !data.itemCompletionError) {
+        setAssignmentCompletionError(`Submitted, but recording is too short to complete assignment (minimum ${MIN_RECORDING_SECONDS} seconds).`);
+      }
       setHasSubmitted(true);
     },
   });
 
   const [lastAttemptId, setLastAttemptId] = useState<string | null>(null);
+  const [hasFinalizedReview, setHasFinalizedReview] = useState(false);
+  const isSubmissionEligible = Boolean(audioBlob) && recordingDuration >= MIN_RECORDING_SECONDS;
 
-  // Save notification preferences when user updates them
-  const savePreferencesMutation = useMutation({
-    mutationFn: () => {
-      if (!lastAttemptId) throw new Error('No attempt ID');
-      return saveNotificationPreferences({
-        attemptType: 'speaking',
-        attemptId: lastAttemptId,
-        alternateEmail,
-        phoneNumber,
-        notifyByEmail,
-        notifyBySms,
-        showInApp: notifyInApp,
-      });
-    },
-  });
-
-  // Auto-save preferences when they change (after submission)
-  useEffect(() => {
-    if (lastAttemptId && hasSubmitted) {
-      const timer = setTimeout(() => {
-        savePreferencesMutation.mutate();
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [alternateEmail, phoneNumber, notifyByEmail, notifyBySms, notifyInApp, lastAttemptId, hasSubmitted]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -270,9 +250,20 @@ const SpeakingPractice: React.FC = () => {
     };
 
     mediaRecorder.onstop = () => {
-      const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+      const mimeType = chunksRef.current[0]?.type || mediaRecorder.mimeType || 'audio/webm';
+      const blob = new Blob(chunksRef.current, { type: mimeType });
+      setPreviewError(null);
+      const objectUrl = URL.createObjectURL(blob);
       setAudioBlob(blob);
-      setAudioUrl(URL.createObjectURL(blob));
+      setAudioUrl(objectUrl);
+      const testAudio = document.createElement('audio');
+      testAudio.preload = 'metadata';
+      testAudio.src = objectUrl;
+      testAudio.onloadedmetadata = () => setCanPreviewAudio(true);
+      testAudio.onerror = () => {
+        setCanPreviewAudio(false);
+        setPreviewError('Your recording was saved, but this browser could not preview it here. You can still submit.');
+      };
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
         streamRef.current = null;
@@ -318,6 +309,8 @@ const SpeakingPractice: React.FC = () => {
     setIsRecording(false);
     setAudioBlob(null);
     setAudioUrl(null);
+    setPreviewError(null);
+    setCanPreviewAudio(true);
     setPreparationTimeLeft(0);
     setRecordingDuration(0);
   };
@@ -442,10 +435,10 @@ const SpeakingPractice: React.FC = () => {
           </div>
           
           <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>
-            Submission Received!
+            Speaking submitted
           </h1>
           <p style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.125rem)', color: '#64748b', marginBottom: '2rem' }}>
-            Your speaking response has been successfully submitted.
+            Your recording was saved.
           </p>
 
           <AssignmentCompletionStatus
@@ -456,9 +449,9 @@ const SpeakingPractice: React.FC = () => {
             style={{ textAlign: 'left' }}
           />
 
-          {lastAttemptId ? (
+          {lastAttemptId && hasFinalizedReview ? (
             <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-              <span style={{ color: '#1e3a8a', fontWeight: 600 }}>Teacher review will appear here after finalization.</span>
+              <span style={{ color: '#1e3a8a', fontWeight: 600 }}>Finalized teacher feedback is ready.</span>
               <button
                 type="button"
                 onClick={() => navigate(`/ielts/review-result/speaking/${encodeURIComponent(lastAttemptId)}`)}
@@ -467,209 +460,11 @@ const SpeakingPractice: React.FC = () => {
                 View teacher review result
               </button>
             </div>
+          ) : lastAttemptId ? (
+            <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem' }}>
+              <span style={{ color: '#1e3a8a', fontWeight: 600 }}>Teacher feedback will appear here after finalization.</span>
+            </div>
           ) : null}
-
-          {/* Expert Review Box */}
-          <div style={{
-            background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
-            border: '1px solid #93c5fd',
-            borderRadius: '0.75rem',
-            padding: 'clamp(1rem, 3vw, 1.5rem)',
-            marginBottom: '1.5rem',
-            textAlign: 'left'
-          }}>
-            <h3 style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.125rem)', fontWeight: '600', color: '#1e40af', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span>🎯</span> What Happens Next
-            </h3>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#1e3a5f', fontSize: 'clamp(0.8rem, 2vw, 1rem)' }}>
-              <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>1.</span>
-                <span>Your recording will be reviewed by a <strong>certified IELTS examiner</strong></span>
-              </li>
-              <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>2.</span>
-                <span>You'll receive detailed feedback on fluency, pronunciation, grammar & vocabulary</span>
-              </li>
-              <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>3.</span>
-                <span>Your estimated band score will be sent within <strong>24 hours</strong></span>
-              </li>
-            </ul>
-          </div>
-
-          {/* Notification Preferences */}
-          <div style={{
-            background: '#f8fafc',
-            border: '1px solid #e2e8f0',
-            borderRadius: '0.75rem',
-            padding: 'clamp(1rem, 3vw, 1.5rem)',
-            marginBottom: '1.5rem',
-            textAlign: 'left'
-          }}>
-            <h3 style={{ fontSize: 'clamp(0.875rem, 2.5vw, 1rem)', fontWeight: '600', color: '#334155', marginBottom: '1rem' }}>
-              📬 Notification Preferences
-            </h3>
-            
-            {/* Alternate Email */}
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: '#64748b', marginBottom: '0.25rem' }}>
-                Alternate email (optional)
-              </label>
-              <input
-                type="email"
-                value={alternateEmail}
-                onChange={(e) => setAlternateEmail(e.target.value)}
-                placeholder="Enter alternate email for results"
-                style={{
-                  width: '100%',
-                  padding: '0.625rem 0.875rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.5rem',
-                  fontSize: 'clamp(0.75rem, 2vw, 0.875rem)',
-                  boxSizing: 'border-box'
-                }}
-              />
-            </div>
-
-            {/* Phone Number */}
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: '#64748b', marginBottom: '0.25rem' }}>
-                Phone number for SMS updates (optional)
-              </label>
-              <input
-                type="tel"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                placeholder="+1 234 567 8900"
-                style={{
-                  width: '100%',
-                  padding: '0.625rem 0.875rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.5rem',
-                  fontSize: 'clamp(0.75rem, 2vw, 0.875rem)',
-                  boxSizing: 'border-box'
-                }}
-              />
-            </div>
-
-            {/* Checkboxes */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={notifyByEmail}
-                  onChange={(e) => setNotifyByEmail(e.target.checked)}
-                  style={{ width: '1rem', height: '1rem', accentColor: '#6366f1' }}
-                />
-                <span style={{ fontSize: '0.875rem', color: '#475569' }}>Notify me by email when results are ready</span>
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={notifyBySms}
-                  onChange={(e) => setNotifyBySms(e.target.checked)}
-                  style={{ width: '1rem', height: '1rem', accentColor: '#6366f1' }}
-                />
-                <span style={{ fontSize: '0.875rem', color: '#475569' }}>Send SMS notification when results are ready</span>
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={notifyInApp}
-                  onChange={(e) => setNotifyInApp(e.target.checked)}
-                  style={{ width: '1rem', height: '1rem', accentColor: '#6366f1' }}
-                />
-                <span style={{ fontSize: '0.875rem', color: '#475569' }}>Show in-app notification</span>
-              </label>
-            </div>
-
-            {/* Save Preferences Button */}
-            <button
-              onClick={() => savePreferencesMutation.mutate()}
-              disabled={savePreferencesMutation.isPending}
-              style={{
-                width: '100%',
-                marginTop: '1rem',
-                padding: '0.75rem 1rem',
-                background: savePreferencesMutation.isSuccess 
-                  ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
-                  : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '0.5rem',
-                cursor: savePreferencesMutation.isPending ? 'not-allowed' : 'pointer',
-                fontWeight: 600,
-                fontSize: '0.875rem',
-                opacity: savePreferencesMutation.isPending ? 0.7 : 1,
-                transition: 'all 0.2s',
-              }}
-            >
-              {savePreferencesMutation.isPending ? '⏳ Saving...' : 
-               savePreferencesMutation.isSuccess ? '✓ Preferences Saved!' : 
-               '💾 Save Notification Preferences'}
-            </button>
-          </div>
-
-          {/* Personalized Speaking Tips */}
-          <div style={{
-            background: 'linear-gradient(135deg, #fdf4ff 0%, #fae8ff 100%)',
-            border: '1px solid #e879f9',
-            borderRadius: '0.75rem',
-            padding: '1.5rem',
-            marginBottom: '1.5rem'
-          }}>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#86198f', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              📊 Personalized Speaking Tips
-            </h3>
-            
-            <div style={{ marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                <span style={{ fontSize: '1.5rem' }}>🎤</span>
-                <span style={{ fontWeight: 600, color: '#7c3aed' }}>How to Improve Your Speaking</span>
-              </div>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#475569' }}>
-                <li style={{ marginBottom: '0.5rem' }}>🗣️ <strong>Fluency:</strong> Speak naturally without long pauses - use fillers like "well", "let me think"</li>
-                <li style={{ marginBottom: '0.5rem' }}>📚 <strong>Vocabulary:</strong> Use varied vocabulary and idiomatic expressions</li>
-                <li style={{ marginBottom: '0.5rem' }}>✅ <strong>Grammar:</strong> Mix simple and complex sentence structures</li>
-                <li style={{ marginBottom: '0.5rem' }}>🎵 <strong>Pronunciation:</strong> Focus on word stress and intonation patterns</li>
-                <li>💡 <strong>Content:</strong> Extend your answers with examples and explanations</li>
-              </ul>
-            </div>
-          </div>
-
-          {!isPrimeUser && (
-            <div style={{
-              background: 'linear-gradient(135deg, #1e40af 0%, #7c3aed 100%)',
-              borderRadius: '0.75rem',
-              padding: '1.5rem',
-              marginBottom: '1.5rem',
-              textAlign: 'center',
-              color: 'white'
-            }}>
-              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⭐</div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
-                Upgrade to Prime
-              </h3>
-              <p style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '1rem' }}>
-                Get AI-powered pronunciation feedback, fluency analysis, and expert evaluations
-              </p>
-              <button
-                onClick={() => navigate('/ielts/apply-prime')}
-                style={{
-                  padding: '0.75rem 2rem',
-                  background: 'white',
-                  color: '#1e40af',
-                  border: 'none',
-                  borderRadius: '0.5rem',
-                  cursor: 'pointer',
-                  fontWeight: 700,
-                  fontSize: '0.875rem'
-                }}
-              >
-                🚀 Get Expert Feedback
-              </button>
-            </div>
-          )}
 
           <button
             onClick={() => navigate('/ielts')}
@@ -937,7 +732,21 @@ const SpeakingPractice: React.FC = () => {
                 <h3 style={{ fontSize: 'clamp(0.875rem, 2.5vw, 1rem)', fontWeight: '600', color: '#1e293b', marginBottom: '1rem' }}>
                   Your Recording
                 </h3>
-                <audio controls src={audioUrl} style={{ width: '100%', marginBottom: '0.5rem' }} />
+                {canPreviewAudio ? (
+                  <audio
+                    controls
+                    src={audioUrl}
+                    onError={() => {
+                      setCanPreviewAudio(false);
+                      setPreviewError('Your recording was saved, but this browser could not preview it here. You can still submit.');
+                    }}
+                    style={{ width: '100%', marginBottom: '0.5rem' }}
+                  />
+                ) : (
+                  <p style={{ color: '#92400e', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: '0.5rem', padding: '0.625rem' }}>
+                    {previewError || 'Audio preview unavailable in this browser.'}
+                  </p>
+                )}
                 <div style={{ fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: '#64748b' }}>
                   Duration: {formatTime(recordingDuration)}
                 </div>
@@ -963,24 +772,24 @@ const SpeakingPractice: React.FC = () => {
                 </button>
                 <button
                   onClick={handleSubmit}
-                  disabled={submitMutation.isPending || recordingDuration < MIN_RECORDING_SECONDS}
+                  disabled={submitMutation.isPending || !isSubmissionEligible}
                   style={{
                     width: '100%',
                     padding: 'clamp(0.625rem, 2vw, 0.75rem) 1rem',
-                    background: submitMutation.isPending || recordingDuration < MIN_RECORDING_SECONDS
+                    background: submitMutation.isPending || !isSubmissionEligible
                       ? '#9ca3af'
                       : 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
                     color: 'white',
                     border: 'none',
                     borderRadius: '0.5rem',
-                    cursor: submitMutation.isPending || recordingDuration < MIN_RECORDING_SECONDS ? 'not-allowed' : 'pointer',
+                    cursor: submitMutation.isPending || !isSubmissionEligible ? 'not-allowed' : 'pointer',
                     fontWeight: 'bold',
                     fontSize: 'clamp(0.875rem, 2.5vw, 1rem)'
                   }}
                 >
                   {submitMutation.isPending
                     ? 'Submitting...'
-                    : recordingDuration < MIN_RECORDING_SECONDS
+                    : !isSubmissionEligible
                       ? `Record at least ${formatTime(MIN_RECORDING_SECONDS)}`
                       : 'Submit for Review'}
                 </button>
