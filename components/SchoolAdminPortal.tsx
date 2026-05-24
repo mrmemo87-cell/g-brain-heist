@@ -35,6 +35,7 @@ import IeltsExamsTab from './school-admin/tabs/IeltsExamsTab';
 import IeltsPracticeTab from './school-admin/tabs/IeltsPracticeTab';
 import IeltsResultsTab from './school-admin/tabs/IeltsResultsTab';
 import IeltsAnalyticsTab from './school-admin/tabs/IeltsAnalyticsTab';
+import IeltsSettingsTab from './school-admin/tabs/IeltsSettingsTab';
 import MemberActionModal from './school-admin/modals/MemberActionModal';
 import ConfirmDialogModal from './school-admin/modals/ConfirmDialogModal';
 
@@ -45,8 +46,8 @@ interface SchoolAdminPortalProps {
   addToast: (message: string, type: ToastMessage['type']) => void;
 }
 
-type AdminTab = 'dashboard' | 'members' | 'classes' | 'roster' | 'subjects' | 'teachers' | 'students' | 'invites' | 'settings' | 'billing' | 'cambridge' | 'ielts' | 'ielts-exams' | 'ielts-practice' | 'ielts-results' | 'ielts-analytics';
-type IeltsSubTab = 'ielts-exams' | 'ielts-practice' | 'ielts-results' | 'ielts-analytics';
+type AdminTab = 'dashboard' | 'members' | 'classes' | 'roster' | 'subjects' | 'teachers' | 'students' | 'invites' | 'settings' | 'billing' | 'cambridge' | 'ielts' | 'ielts-exams' | 'ielts-practice' | 'ielts-results' | 'ielts-analytics' | 'ielts-settings';
+type IeltsSubTab = 'ielts-exams' | 'ielts-practice' | 'ielts-results' | 'ielts-analytics' | 'ielts-settings';
 
 const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLogout, onNavigate, addToast }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
@@ -1501,6 +1502,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
                 { id: 'ielts-practice',  icon: '📝', label: 'Practice',  hint: 'Assign & monitor'     },
                 { id: 'ielts-results',   icon: '📈', label: 'Results',   hint: 'Student scores'       },
                 { id: 'ielts-analytics', icon: '📊', label: 'Analytics', hint: 'School insights'      },
+                { id: 'ielts-settings',  icon: '⚙️', label: 'Settings',  hint: 'Config & features'    },
               ] as { id: IeltsSubTab; icon: string; label: string; hint: string }[]
             ).map(({ id, icon, label, hint }) => (
               <button
@@ -1531,6 +1533,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
             {activeIeltsSubTab === 'ielts-practice'  && <IeltsPracticeTab />}
             {activeIeltsSubTab === 'ielts-results'   && <IeltsResultsTab />}
             {activeIeltsSubTab === 'ielts-analytics' && <IeltsAnalyticsTab />}
+            {activeIeltsSubTab === 'ielts-settings'  && <IeltsSettingsTab />}
           </div>
 
         </div>

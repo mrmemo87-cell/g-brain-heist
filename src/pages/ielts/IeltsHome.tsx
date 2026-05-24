@@ -14,7 +14,6 @@ import {
 import type { IELTSListeningSet, IELTSReadingSet, IELTSSpeakingTask, IELTSWritingTask } from '../../../types';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 import { supabase } from '../../../services/supabaseClient';
-import { getCurrentSchool, updateSchoolSettings } from '../../../services/schoolAdminService';
 import { resolveIeltsExtraPracticeAccess } from '../../../services/ieltsExtraPracticeAccessService';
 import { canAccessIeltsReviewQueue, normalizeIeltsRole } from '../../../services/ieltsReviewAccess';
 
@@ -34,7 +33,6 @@ const IeltsHome: React.FC = () => {
   const [userRole, setUserRole] = useState<string>('student');
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [extraPracticeEnabled, setExtraPracticeEnabled] = useState(false);
-  const [schoolId, setSchoolId] = useState<string | null>(null);
   const isPrimeUser = isIeltsPrime({ tier: userTier });
   const canAccessRequiredTier = (requiredTier?: string | null) => !requiredTier || requiredTier === 'free' || isPrimeUser;
   const normalizedRole = normalizeIeltsRole(userRole);
@@ -105,12 +103,6 @@ const IeltsHome: React.FC = () => {
     const loadExtraPracticeSetting = async () => {
       const access = await resolveIeltsExtraPracticeAccess();
       setExtraPracticeEnabled(access.enabled);
-      if (access.isAdmin) {
-        const school = await getCurrentSchool();
-        setSchoolId(school?.school.id ?? null);
-        const raw = school?.school.settings?.ielts_extra_practice_enabled;
-        setExtraPracticeEnabled(typeof raw === 'boolean' ? raw : false);
-      }
     };
     void loadExtraPracticeSetting();
   }, []);
@@ -177,27 +169,6 @@ const IeltsHome: React.FC = () => {
             </h1>
             <p style={{ margin: '0.5rem 0 0', color: '#64748b', fontSize: '0.875rem' }}>
               Admin tools for school IELTS operations. Student prep center is available on student accounts.
-            </p>
-          </div>
-
-          {/* Extra practice toggle */}
-          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.85rem', padding: '1rem', marginBottom: '1.25rem' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', cursor: 'pointer', fontWeight: 700, color: '#0f172a' }}>
-              <input
-                type="checkbox"
-                checked={extraPracticeEnabled}
-                onChange={async (event) => {
-                  if (!schoolId) return;
-                  const nextValue = event.target.checked;
-                  setExtraPracticeEnabled(nextValue);
-                  await updateSchoolSettings(schoolId, { ielts_extra_practice_enabled: nextValue });
-                }}
-                style={{ width: '1rem', height: '1rem', accentColor: '#0891b2' }}
-              />
-              Allow students to use Extra Practice
-            </label>
-            <p style={{ color: '#64748b', fontSize: '0.8rem', margin: '0.4rem 0 0 1.65rem' }}>
-              When off, students only see assigned IELTS practice and their journey.
             </p>
           </div>
 
