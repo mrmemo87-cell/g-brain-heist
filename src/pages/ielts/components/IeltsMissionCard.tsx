@@ -8,6 +8,13 @@ interface IeltsMissionCardProps {
   animate?: boolean;
 }
 
+const SCORE_SOURCE_LABELS: Record<'reading' | 'listening' | 'writing' | 'speaking', string> = {
+  reading: 'Latest result',
+  listening: 'Latest result',
+  writing: 'Latest reviewed feedback',
+  speaking: 'Latest reviewed feedback',
+};
+
 const confidenceLabel = (level: string | null) => {
   if (!level) return null;
   if (level === 'high') return { text: 'High confidence', color: '#0891b2' };
@@ -25,12 +32,14 @@ const IeltsMissionCard: React.FC<IeltsMissionCardProps> = ({ journey, animate = 
     gsap.fromTo(cardRef.current, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out' });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const { current_estimates, target_band, confidence_level, assigned_practice_summary } = journey;
+  const { current_estimates, target_band, confidence_level } = journey;
   const conf = confidenceLabel(confidence_level);
   const overall = current_estimates?.overall;
 
-  const total = assigned_practice_summary?.total ?? 0;
-  const completed = assigned_practice_summary?.completed ?? 0;
+  const activeAssignments = journey.assigned_practice ?? [];
+  const completedPractice = journey.completed_practice ?? [];
+  const total = activeAssignments.length;
+  const completed = activeAssignments.filter((item) => (item.status ?? '').toLowerCase() === 'completed').length;
   const progressPct = total > 0 ? Math.round((completed / total) * 100) : 0;
 
   return (
@@ -81,9 +90,14 @@ const IeltsMissionCard: React.FC<IeltsMissionCardProps> = ({ journey, animate = 
             {target_band ? target_band.toFixed(1) : '—'}
           </p>
           {!target_band && (
-            <p style={{ margin: '0.15rem 0 0', fontSize: '0.65rem', color: '#94a3b8', fontStyle: 'italic' }}>
-              Not set yet
-            </p>
+            <>
+              <p style={{ margin: '0.15rem 0 0', fontSize: '0.65rem', color: '#94a3b8', fontStyle: 'italic' }}>
+                No target set
+              </p>
+              <a href="/ielts/prime" style={{ marginTop: '0.3rem', display: 'inline-block', fontSize: '0.72rem', fontWeight: 800, color: '#0369a1', textDecoration: 'none' }}>
+                Set target band
+              </a>
+            </>
           )}
         </div>
       </div>
@@ -101,11 +115,22 @@ const IeltsMissionCard: React.FC<IeltsMissionCardProps> = ({ journey, animate = 
         </div>
       </div>
 
+      <p style={{ margin: '0 0 0.65rem', fontSize: '0.72rem', color: '#64748b' }}>
+        Based on your latest completed results and finalized feedback.
+      </p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.35rem', marginBottom: '1.1rem' }}>
+        {(Object.keys(SCORE_SOURCE_LABELS) as Array<keyof typeof SCORE_SOURCE_LABELS>).map((skill) => (
+          <div key={skill} style={{ fontSize: '0.7rem', color: '#64748b' }}>
+            <strong style={{ color: '#334155' }}>{skill.charAt(0).toUpperCase() + skill.slice(1)}:</strong> {SCORE_SOURCE_LABELS[skill]}
+          </div>
+        ))}
+      </div>
+
       {/* Assignment progress */}
-      {total > 0 && (
-        <div>
+      {total > 0 ? (
+        <div style={{ marginBottom: '0.9rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', fontWeight: 700, color: '#64748b', marginBottom: '0.45rem' }}>
-            <span>Assignment progress</span>
+            <span>Current assignment progress</span>
             <span style={{ color: progressPct === 100 ? '#0891b2' : '#64748b' }}>
               {completed}/{total} · {progressPct}%
             </span>
@@ -122,7 +147,16 @@ const IeltsMissionCard: React.FC<IeltsMissionCardProps> = ({ journey, animate = 
             }} />
           </div>
         </div>
+      ) : (
+        <p style={{ margin: '0 0 0.8rem', fontSize: '0.78rem', color: '#94a3b8', fontStyle: 'italic' }}>
+          No active assignments right now.
+        </p>
       )}
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', fontWeight: 700, color: '#64748b' }}>
+        <span>Completed practice</span>
+        <span>{completedPractice.length}</span>
+      </div>
     </div>
   );
 };
