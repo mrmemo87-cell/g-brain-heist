@@ -23,6 +23,7 @@ import { buildSetupProfileFallback } from './src/features/onboarding/setupComple
 import { isOnboardingDebugEnabled, logOnboardingDebug } from './src/features/onboarding/featureFlags';
 import type { Profile } from './types';
 import { isAuthCallbackPath, isResumeEvent, resolvePostAuthPath, shouldUseGlobalAuthLoader } from './src/lib/authFlowGuards';
+import { readIeltsPracticeAssignmentContext } from './src/pages/ielts/assignmentPracticeUi';
 
 // ── Lazy-loaded pages & modals (with automatic retry on stale-chunk errors) ──
 const FinishSetupModal = lazyRetry(() => import('./components/FinishSetupModal'), 'FinishSetupModal');
@@ -57,6 +58,16 @@ const IeltsReviewAdminGuard = lazyRetry(() => import('./components/ielts/IeltsRe
 const IeltsExtraPracticeGuard = lazyRetry(() => import('./src/pages/ielts/IeltsExtraPracticeGuard'), 'IeltsExtraPracticeGuard');
 
 const queryClient = new QueryClient();
+
+const IeltsPracticeRouteGuard: React.FC<{ children: React.ReactElement }> = ({ children }) => {
+  const assignmentContext = readIeltsPracticeAssignmentContext();
+
+  if (assignmentContext.isAssignedPractice) {
+    return children;
+  }
+
+  return <IeltsExtraPracticeGuard>{children}</IeltsExtraPracticeGuard>;
+};
 
 // Some legacy code paths (and certain mobile browsers) attempt to read a global
 // `profile` variable when the heavy “full mode” UI is enabled. Define a harmless
@@ -806,19 +817,19 @@ const router = createBrowserRouter([
   },
   {
     path: '/ielts/reading/:setId',
-    element: <ProtectedRoute element={<IeltsExtraPracticeGuard><ReadingPractice /></IeltsExtraPracticeGuard>} />,
+    element: <ProtectedRoute element={<IeltsPracticeRouteGuard><ReadingPractice /></IeltsPracticeRouteGuard>} />,
   },
   {
     path: '/ielts/listening/:setId',
-    element: <ProtectedRoute element={<IeltsExtraPracticeGuard><ListeningPractice /></IeltsExtraPracticeGuard>} />,
+    element: <ProtectedRoute element={<IeltsPracticeRouteGuard><ListeningPractice /></IeltsPracticeRouteGuard>} />,
   },
   {
     path: '/ielts/writing/:taskId',
-    element: <ProtectedRoute element={<IeltsExtraPracticeGuard><WritingPractice /></IeltsExtraPracticeGuard>} />,
+    element: <ProtectedRoute element={<IeltsPracticeRouteGuard><WritingPractice /></IeltsPracticeRouteGuard>} />,
   },
   {
     path: '/ielts/speaking/:taskId',
-    element: <ProtectedRoute element={<IeltsExtraPracticeGuard><SpeakingPractice /></IeltsExtraPracticeGuard>} />,
+    element: <ProtectedRoute element={<IeltsPracticeRouteGuard><SpeakingPractice /></IeltsPracticeRouteGuard>} />,
   },
   {
     path: '/ielts/session/:sessionId',
