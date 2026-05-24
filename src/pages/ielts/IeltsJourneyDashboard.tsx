@@ -227,42 +227,46 @@ const IeltsJourneyDashboard: React.FC = () => {
               <p id="readiness-heading" style={{ margin: '0 0 0.5rem', fontSize: '0.72rem', fontWeight: 800, color: '#0891b2', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
                 Readiness overview
               </p>
-              <IeltsMissionCard journey={journey} animate={true} />
-              {isPrimeUser && (
-                <div style={{ marginTop: '0.55rem', display: 'flex', justifyContent: 'flex-end' }}>
-                  {!isEditingTargetBand ? (
-                    <button
-                      type="button"
-                      onClick={openTargetBandEditor}
-                      style={{ border: '1px solid #bae6fd', background: '#f0f9ff', color: '#0369a1', fontWeight: 800, borderRadius: '0.55rem', padding: '0.35rem 0.7rem', fontSize: '0.76rem', cursor: 'pointer' }}
-                    >
-                      {journey.target_band ? 'Edit target band' : 'Set target band'}
-                    </button>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', alignItems: 'flex-end' }}>
-                      <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
-                        <input
-                          type="number"
-                          min={0}
-                          max={9}
-                          step={0.5}
-                          value={targetBandDraft}
-                          onChange={(e) => setTargetBandDraft(e.target.value)}
-                          placeholder="e.g. 7.5"
-                          style={{ width: '6.5rem', border: '1px solid #cbd5e1', borderRadius: '0.5rem', padding: '0.35rem 0.5rem', fontSize: '0.78rem' }}
-                        />
-                        <button type="button" disabled={isSavingTargetBand} onClick={saveTargetBand} style={{ border: 'none', background: '#0ea5e9', color: '#fff', fontWeight: 800, borderRadius: '0.5rem', padding: '0.35rem 0.7rem', fontSize: '0.75rem', cursor: 'pointer' }}>
-                          {isSavingTargetBand ? 'Saving…' : 'Save'}
-                        </button>
-                        <button type="button" disabled={isSavingTargetBand} onClick={() => setIsEditingTargetBand(false)} style={{ border: '1px solid #cbd5e1', background: '#fff', color: '#475569', fontWeight: 700, borderRadius: '0.5rem', padding: '0.35rem 0.7rem', fontSize: '0.75rem', cursor: 'pointer' }}>
-                          Cancel
-                        </button>
-                      </div>
-                      <p style={{ margin: 0, fontSize: '0.68rem', color: targetBandError ? '#dc2626' : '#64748b' }}>
-                        {targetBandError ?? 'Band accepts 0.0 to 9.0 (0.5 steps).'}
-                      </p>
+              <IeltsMissionCard journey={journey} animate={true} onSetTargetBand={isPrimeUser ? openTargetBandEditor : undefined} />
+              {isEditingTargetBand && isPrimeUser && (
+                <div
+                  role="presentation"
+                  onClick={() => !isSavingTargetBand && setIsEditingTargetBand(false)}
+                  style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.48)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', zIndex: 60 }}
+                >
+                  <div
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Set target IELTS band"
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ width: '100%', maxWidth: '360px', borderRadius: '0.9rem', border: '1px solid #e2e8f0', background: '#fff', boxShadow: '0 18px 44px rgba(15, 23, 42, 0.22)', padding: '1rem' }}
+                  >
+                    <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 900, color: '#0f172a' }}>Set target band</h3>
+                    <p style={{ margin: '0.35rem 0 0.75rem', fontSize: '0.75rem', color: '#64748b' }}>Choose your IELTS goal between 0.0 and 9.0 in 0.5 steps.</p>
+                    <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                      <input
+                        type="number"
+                        min={0}
+                        max={9}
+                        step={0.5}
+                        value={targetBandDraft}
+                        onChange={(e) => setTargetBandDraft(e.target.value)}
+                        placeholder="e.g. 7.5"
+                        style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '0.5rem', padding: '0.45rem 0.55rem', fontSize: '0.82rem' }}
+                      />
                     </div>
-                  )}
+                    <p style={{ margin: '0.55rem 0 0', fontSize: '0.68rem', color: targetBandError ? '#dc2626' : '#64748b' }}>
+                      {targetBandError ?? 'Band accepts 0.0 to 9.0 (0.5 steps).'}
+                    </p>
+                    <div style={{ marginTop: '0.75rem', display: 'flex', justifyContent: 'flex-end', gap: '0.45rem' }}>
+                      <button type="button" disabled={isSavingTargetBand} onClick={() => setIsEditingTargetBand(false)} style={{ border: '1px solid #cbd5e1', background: '#fff', color: '#475569', fontWeight: 700, borderRadius: '0.5rem', padding: '0.4rem 0.8rem', fontSize: '0.75rem', cursor: 'pointer' }}>
+                        Cancel
+                      </button>
+                      <button type="button" disabled={isSavingTargetBand} onClick={saveTargetBand} style={{ border: 'none', background: '#0ea5e9', color: '#fff', fontWeight: 800, borderRadius: '0.5rem', padding: '0.4rem 0.8rem', fontSize: '0.75rem', cursor: 'pointer' }}>
+                        {isSavingTargetBand ? 'Saving…' : 'Save'}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
               {!journey.current_estimates?.overall && (
