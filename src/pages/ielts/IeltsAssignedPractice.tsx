@@ -63,6 +63,21 @@ const buildAssignedPracticeRoute = (route: string, assignment: IeltsPracticeStud
   },
 );
 
+
+const getSubmissionDetailRoute = (itemStatus: string, progressItem?: IeltsPracticeAssignmentProgress['items'][number] | undefined): string | null => {
+  if (itemStatus !== 'completed' || !progressItem?.practice_attempt_id) return null;
+  const skill = String(progressItem.practice_attempt_type ?? progressItem.skill ?? '').toLowerCase();
+  const attemptId = encodeURIComponent(progressItem.practice_attempt_id);
+
+  if (skill === 'reading' || skill === 'listening') {
+    return `/ielts/${skill}/result/${attemptId}`;
+  }
+  if (skill === 'writing' || skill === 'speaking') {
+    return `/ielts/review-result/${skill}/${attemptId}`;
+  }
+  return null;
+};
+
 const getAssignmentBadge = (assignment: IeltsPracticeStudentAssignment) => {
   if (assignment.student_status === 'completed') {
     return { label: 'Completed', backgroundColor: '#dcfce7', color: '#166534' };
@@ -308,9 +323,29 @@ const IeltsAssignedPractice: React.FC = () => {
                                   Closed
                                 </span>
                               ) : itemStatus === 'completed' ? (
-                                <span style={{ background: '#dcfce7', color: '#166534', border: '1px solid #86efac', borderRadius: '0.5rem', padding: '0.45rem 0.75rem', fontWeight: 800, fontSize: '0.75rem' }}>
-                                  ✓ Completed
-                                </span>
+                                (() => {
+                                  const submissionDetailRoute = getSubmissionDetailRoute(itemStatus, itemProgress);
+                                  if (submissionDetailRoute) {
+                                    return (
+                                      <a
+                                        data-testid={`ielts-assigned-view-submission-${item.id}`}
+                                        href={submissionDetailRoute}
+                                        onClick={(event) => {
+                                          event.preventDefault();
+                                          navigate(submissionDetailRoute);
+                                        }}
+                                        style={{ background: '#dcfce7', color: '#166534', border: '1px solid #86efac', borderRadius: '0.5rem', padding: '0.45rem 0.75rem', fontWeight: 800, textDecoration: 'none', fontSize: '0.75rem' }}
+                                      >
+                                        View submission →
+                                      </a>
+                                    );
+                                  }
+                                  return (
+                                    <span style={{ background: '#dcfce7', color: '#166534', border: '1px solid #86efac', borderRadius: '0.5rem', padding: '0.45rem 0.75rem', fontWeight: 800, fontSize: '0.75rem' }}>
+                                      ✓ Completed
+                                    </span>
+                                  );
+                                })()
                               ) : (
                                 <a
                                   data-testid={`ielts-assigned-open-item-${item.id}`}
