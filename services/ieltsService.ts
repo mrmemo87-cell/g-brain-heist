@@ -619,6 +619,26 @@ export const getUserTier = async () => {
 export const isIeltsPrime = (user?: { tier?: string | null } | null) =>
   user?.tier === 'prime_prep_user' || user?.tier === 'admin' || user?.tier === 'pro';
 
+export const updateIeltsTargetBand = async (targetBand: number | null) => {
+  const { data: session } = await supabase.auth.getSession();
+  if (!session?.session?.user) {
+    throw new Error('Not authenticated');
+  }
+
+  if (targetBand !== null && (targetBand < 0 || targetBand > 9)) {
+    throw new Error('Target band must be between 0 and 9.');
+  }
+
+  const { error } = await supabase
+    .from('ielts_users')
+    .update({ target_band: targetBand })
+    .eq('id', session.session.user.id);
+
+  if (error) {
+    throw new Error(`Failed to save target band: ${error.message}`);
+  }
+};
+
 // ============================================================
 // NOTIFICATION PREFERENCES
 // ============================================================

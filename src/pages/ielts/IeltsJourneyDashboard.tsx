@@ -1,7 +1,8 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useNavigate } from 'react-router-dom';
 import { rpcIeltsStudentJourney, type IeltsJourneyAssignmentItem, type IeltsStudentJourney } from '../../../services/ieltsJourneyService';
+import { getUserTier, isIeltsPrime, updateIeltsTargetBand } from '../../../services/ieltsService';
 import IeltsMissionCard from './components/IeltsMissionCard';
 import IeltsNextActionCard from './components/IeltsNextActionCard';
 
@@ -101,14 +102,21 @@ const IeltsJourneyDashboard: React.FC = () => {
   const navigate = useNavigate();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [journey, setJourney] = useState<IeltsStudentJourney | null>(null);
+  const [userTier, setUserTier] = useState('free');
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [error, setError] = useState<string | null>(null);
+  const [isEditingTargetBand, setIsEditingTargetBand] = useState(false);
+  const [targetBandDraft, setTargetBandDraft] = useState('');
+  const [targetBandError, setTargetBandError] = useState<string | null>(null);
+  const [isSavingTargetBand, setIsSavingTargetBand] = useState(false);
 
   useEffect(() => {
     const run = async () => {
       setLoadState('loading');
       try {
-        setJourney(await rpcIeltsStudentJourney());
+        const [journeyData, tier] = await Promise.all([rpcIeltsStudentJourney(), getUserTier()]);
+        setJourney(journeyData);
+        setUserTier(tier || 'free');
         setLoadState('ready');
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Unable to load your IELTS journey.');
@@ -132,6 +140,40 @@ const IeltsJourneyDashboard: React.FC = () => {
       return status !== 'completed' && ((item.skills ?? []).length > 0 || !!item.started_at || !!item.assigned_at);
     }
   ) ?? null, [journey]);
+  const isPrimeUser = isIeltsPrime({ tier: userTier });
+
+  const openTargetBandEditor = () => {
+    setTargetBandDraft(journey?.target_band?.toFixed(1) ?? '');
+    setTargetBandError(null);
+    setIsEditingTargetBand(true);
+  };
+
+  const saveTargetBand = async () => {
+    if (!journey || !isPrimeUser) return;
+    const value = targetBandDraft.trim();
+    const parsed = Number(value);
+    if (!value || Number.isNaN(parsed)) {
+      setTargetBandError('Enter a valid band between 0.0 and 9.0.');
+      return;
+    }
+    if (parsed < 0 || parsed > 9) {
+      setTargetBandError('Target band must be between 0.0 and 9.0.');
+      return;
+    }
+
+    const normalized = Math.round(parsed * 2) / 2;
+    setIsSavingTargetBand(true);
+    setTargetBandError(null);
+    try {
+      await updateIeltsTargetBand(normalized);
+      setJourney({ ...journey, target_band: normalized });
+      setIsEditingTargetBand(false);
+    } catch (e) {
+      setTargetBandError(e instanceof Error ? e.message : 'Unable to save target band.');
+    } finally {
+      setIsSavingTargetBand(false);
+    }
+  };
 
   useEffect(() => {
     if (loadState !== 'ready' || !rootRef.current) return;
@@ -185,7 +227,44 @@ const IeltsJourneyDashboard: React.FC = () => {
               <p id="readiness-heading" style={{ margin: '0 0 0.5rem', fontSize: '0.72rem', fontWeight: 800, color: '#0891b2', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
                 Readiness overview
               </p>
-              <IeltsMissionCard journey={journey} animate={true} />
+              <IeltsMissionCard journey={journey} animate={true} targetBandCtaHref={isPrimeUser ? '/ielts/apply' : '/ielts/apply-prime'} />
+              {isPrimeUser && (
+                <div style={{ marginTop: '0.55rem', display: 'flex', justifyContent: 'flex-end' }}>
+                  {!isEditingTargetBand ? (
+                    <button
+                      type="button"
+                      onClick={openTargetBandEditor}
+                      style={{ border: '1px solid #bae6fd', background: '#f0f9ff', color: '#0369a1', fontWeight: 800, borderRadius: '0.55rem', padding: '0.35rem 0.7rem', fontSize: '0.76rem', cursor: 'pointer' }}
+                    >
+                      {journey.target_band ? 'Edit target band' : 'Set target band'}
+                    </button>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', alignItems: 'flex-end' }}>
+                      <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                        <input
+                          type="number"
+                          min={0}
+                          max={9}
+                          step={0.5}
+                          value={targetBandDraft}
+                          onChange={(e) => setTargetBandDraft(e.target.value)}
+                          placeholder="e.g. 7.5"
+                          style={{ width: '6.5rem', border: '1px solid #cbd5e1', borderRadius: '0.5rem', padding: '0.35rem 0.5rem', fontSize: '0.78rem' }}
+                        />
+                        <button type="button" disabled={isSavingTargetBand} onClick={saveTargetBand} style={{ border: 'none', background: '#0ea5e9', color: '#fff', fontWeight: 800, borderRadius: '0.5rem', padding: '0.35rem 0.7rem', fontSize: '0.75rem', cursor: 'pointer' }}>
+                          {isSavingTargetBand ? 'Saving…' : 'Save'}
+                        </button>
+                        <button type="button" disabled={isSavingTargetBand} onClick={() => setIsEditingTargetBand(false)} style={{ border: '1px solid #cbd5e1', background: '#fff', color: '#475569', fontWeight: 700, borderRadius: '0.5rem', padding: '0.35rem 0.7rem', fontSize: '0.75rem', cursor: 'pointer' }}>
+                          Cancel
+                        </button>
+                      </div>
+                      <p style={{ margin: 0, fontSize: '0.68rem', color: targetBandError ? '#dc2626' : '#64748b' }}>
+                        {targetBandError ?? 'Band accepts 0.0 to 9.0 (0.5 steps).'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
               {!journey.current_estimates?.overall && (
                 <p style={{ margin: '0.5rem 0 0', fontSize: '0.78rem', color: '#94a3b8', fontStyle: 'italic' }}>
                   Not enough data yet — complete more practice to unlock your Overall band estimate.
