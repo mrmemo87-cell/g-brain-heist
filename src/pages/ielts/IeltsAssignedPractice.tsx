@@ -86,6 +86,7 @@ const IeltsAssignedPractice: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [busyAssignmentId, setBusyAssignmentId] = useState<string | null>(null);
   const [assignmentProgressById, setAssignmentProgressById] = useState<Record<string, IeltsPracticeAssignmentProgress>>({});
+  const [expandedAssignments, setExpandedAssignments] = useState<Record<string, boolean>>({});
 
   const loadAssignments = async () => {
     setLoadState('loading');
@@ -207,6 +208,7 @@ const IeltsAssignedPractice: React.FC = () => {
           const progressItemsById = new Map((assignmentProgress?.items ?? []).map((progressItem) => [progressItem.assignment_item_id, progressItem]));
           const isClosedReadOnly = assignment.status === 'closed' && assignment.student_status !== 'completed';
           const isOverdue = isAssignmentOverdue(assignment);
+          const isExpanded = Boolean(expandedAssignments[assignment.id]);
 
           const lightBadge = assignment.student_status === 'completed'
             ? { bg: '#dcfce7', color: '#166534', border: '#86efac' }
@@ -247,8 +249,16 @@ const IeltsAssignedPractice: React.FC = () => {
                 style={{ marginTop: '0.85rem', color: '#475569' }}
               />
 
+              <button
+                type="button"
+                onClick={() => setExpandedAssignments((current) => ({ ...current, [assignment.id]: !isExpanded }))}
+                style={{ marginTop: '0.75rem', background: '#ffffff', color: '#0f172a', border: '1px solid #cbd5e1', borderRadius: '0.5rem', padding: '0.45rem 0.75rem', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer' }}
+              >
+                {isExpanded ? 'Hide submission details' : 'View submission details'}
+              </button>
+
               {/* Skill sections */}
-              <div style={{ marginTop: '0.85rem' }}>
+              {isExpanded && <div style={{ marginTop: '0.85rem' }}>
                 {visibleSkills.length === 0 && (
                     <div data-testid={`ielts-assigned-no-items-${assignment.id}`} style={{ border: '1px dashed #cbd5e1', background: '#f8fafc', borderRadius: '0.75rem', padding: '0.875rem', color: '#94a3b8', fontSize: '0.82rem', fontWeight: 700 }}>
                     This assignment has no items yet. Ask your teacher to add practice content.
@@ -310,7 +320,7 @@ const IeltsAssignedPractice: React.FC = () => {
                     </div>
                   </section>
                 ))}
-              </div>
+              </div>}
 
               {/* Footer banners */}
               {isClosedReadOnly ? (
