@@ -286,7 +286,7 @@ const IeltsAssignedPractice: React.FC = () => {
                                 </span>
                               ) : itemStatus === 'completed' ? (
                                 <span style={{ background: '#dcfce7', color: '#166534', border: '1px solid #86efac', borderRadius: '0.5rem', padding: '0.45rem 0.75rem', fontWeight: 800, fontSize: '0.75rem' }}>
-                                  ✓ Done
+                                  ✓ Completed
                                 </span>
                               ) : (
                                 <a

@@ -207,6 +207,21 @@ const IeltsHome: React.FC = () => {
               </button>
             ))}
           </div>
+
+          {/* Admin Settings */}
+          <div style={{ marginTop: '2rem', padding: '1.5rem', background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '0.9rem' }}>
+            <h2 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>School Settings</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', fontWeight: 800, fontSize: '0.95rem', color: '#0f172a', marginBottom: '0.3rem' }}>Allow students to use Extra Practice</label>
+                <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b', lineHeight: 1.5 }}>When off, students only see assigned IELTS practice and their journey.</p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
+                <button type="button" style={{ width: '3.5rem', height: '1.5rem', background: extraPracticeEnabled ? '#059669' : '#cbd5e1', border: 'none', borderRadius: '9999px', cursor: 'pointer', transition: 'background 0.2s' }} title={extraPracticeEnabled ? 'Disable extra practice' : 'Enable extra practice'} />
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: extraPracticeEnabled ? '#059669' : '#94a3b8', minWidth: '3rem' }}>{extraPracticeEnabled ? 'Enabled' : 'Disabled'}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -320,7 +335,7 @@ const IeltsHome: React.FC = () => {
         {/* ── Extra Practice (conditional) ── */}
         {extraPracticeEnabled && (
           <>
-            {/* Free Trial Banner */}
+            {/* Free Trial Test Banner */}
             <div
               data-home-card
               onClick={() => (isPrimeUser ? navigate('/ielts/trial-test') : redirectToPrime())}
