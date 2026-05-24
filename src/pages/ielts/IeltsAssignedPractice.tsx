@@ -198,13 +198,26 @@ const IeltsAssignedPractice: React.FC = () => {
 
         {/* Assignment cards */}
         {loadState === 'ready' && sortedAssignments.map((assignment) => {
-          const groupedItems = groupItemsBySkill(assignment.items);
+          const assignmentProgress = assignmentProgressById[assignment.id] ?? null;
+          const normalizedItems = (assignment.items && assignment.items.length > 0)
+            ? assignment.items
+            : (assignmentProgress?.items ?? []).map((progressItem) => ({
+              id: progressItem.assignment_item_id,
+              assignment_id: assignment.id,
+              skill: progressItem.skill,
+              content_type: progressItem.content_type,
+              content_id: progressItem.content_id,
+              title: progressItem.title,
+              required: Boolean(progressItem.required),
+              order_index: progressItem.order_index ?? 0,
+              created_at: progressItem.started_at ?? progressItem.completed_at ?? progressItem.updated_at ?? assignment.created_at,
+            }));
+          const groupedItems = groupItemsBySkill(normalizedItems);
           const visibleSkills = [...skillOrder, ...Object.keys(groupedItems).filter((skill) => !skillOrder.includes(skill))]
             .filter((skill) => (groupedItems[skill] ?? []).length > 0);
           const badge = getAssignmentBadge(assignment);
           const isBusy = busyAssignmentId === assignment.id;
-          const assignmentProgress = assignmentProgressById[assignment.id] ?? null;
-          const progressSummary = getAssignmentProgressSummaryFromAssignment(assignment, assignmentProgress);
+          const progressSummary = getAssignmentProgressSummaryFromAssignment({ ...assignment, items: normalizedItems }, assignmentProgress);
           const progressItemsById = new Map((assignmentProgress?.items ?? []).map((progressItem) => [progressItem.assignment_item_id, progressItem]));
           const isClosedReadOnly = assignment.status === 'closed' && assignment.student_status !== 'completed';
           const isOverdue = isAssignmentOverdue(assignment);
