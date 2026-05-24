@@ -61,14 +61,14 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     const [demoSubmitted, setDemoSubmitted] = useState(false);
     const [demoSubmitting, setDemoSubmitting] = useState(false);
     const [demoSubmitError, setDemoSubmitError] = useState<string | null>(null);
-    const [assistantOpen, setAssistantOpen] = useState(true);
+    const [assistantOpen, setAssistantOpen] = useState(false);
     const [assistantQuestion, setAssistantQuestion] = useState('');
     const [assistantLoading, setAssistantLoading] = useState(false);
     const [assistantError, setAssistantError] = useState<string | null>(null);
     const [assistantMessages, setAssistantMessages] = useState<AssistantMessage[]>([
         {
             role: 'agent',
-            text: "Hi! I'm Byte, the Brains Heist AI assistant. Ask me anything about demos, pricing, onboarding, reports, class battles, or support.",
+            text: "Hi! I'm Brains Assistant, the Brains Heist AI assistant. Ask me anything about demos, pricing, onboarding, reports, class battles, or support.",
         },
     ]);
 
@@ -443,7 +443,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
             );
             setAssistantMessages((messages) => [...messages, { role: 'agent', text: reply }]);
         } catch (err: any) {
-            setAssistantError(err?.message || 'Byte is having trouble connecting. Please try again or contact support@brainsheist.com.');
+            setAssistantError(err?.message || 'Brains Assistant is having trouble connecting. Please try again or contact support@brainsheist.com.');
         } finally {
             setAssistantLoading(false);
         }
@@ -942,7 +942,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                             <div className="flex items-center gap-3">
                                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-300 via-teal-300 to-emerald-300 text-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_10px_28px_rgba(20,184,166,0.28)] ring-1 ring-white/70">🤖</div>
                                 <div>
-                                    <p className="text-sm font-extrabold tracking-tight text-gray-950">Byte</p>
+                                    <p className="text-sm font-extrabold tracking-tight text-gray-950">Brains Assistant</p>
                                     <p className="text-[11px] font-medium text-gray-500">AI admissions assistant</p>
                                 </div>
                             </div>
@@ -959,7 +959,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                             {assistantLoading && (
                                 <div className="inline-flex max-w-[88%] items-center gap-2 rounded-[1.35rem] rounded-tl-md border border-gray-200/80 bg-white/90 px-4 py-3 text-[14px] leading-[1.58] text-gray-600 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
                                     <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.7)]" />
-                                    Byte is thinking...
+                                    Brains Assistant is thinking...
                                 </div>
                             )}
                             {assistantError && (
@@ -995,7 +995,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                         onClick={() => setAssistantOpen(true)}
                         className="ml-auto flex items-center gap-2 rounded-full border border-cyan-300/40 bg-ink-900/95 px-4 py-3 text-sm font-bold text-white shadow-[0_0_28px_rgba(34,211,238,0.28)] backdrop-blur hover:bg-cyan-950"
                     >
-                        <span className="text-lg">🤖</span> Ask Byte
+                        <span className="text-lg">🤖</span> Brains Assistant
                     </button>
                 )}
             </div>
