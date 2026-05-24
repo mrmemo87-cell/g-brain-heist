@@ -77,7 +77,6 @@ export const getAssignmentItemVisualStatus = (
   item: Partial<IeltsPracticeAssignmentItem | IeltsPracticeAssignmentItemProgress>,
   assignment?: Pick<IeltsPracticeStudentAssignment, 'student_status'> | null,
 ): AssignmentItemVisualStatus => {
-  if (assignment?.student_status === 'completed') return 'completed';
   const rawStatus = 'status' in item ? String(item.status ?? '') : '';
   if (rawStatus === 'completed') return 'completed';
   if (rawStatus === 'in_progress') return 'in_progress';
