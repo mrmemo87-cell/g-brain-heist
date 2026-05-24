@@ -96,6 +96,7 @@ test('IELTS review frontend maps queue/detail/submit RPCs and exposes student re
   assert.match(service, /rpc_ielts_review_queue/i, 'service must call queue RPC');
   assert.match(service, /rpc_ielts_review_detail/i, 'service must call detail RPC');
   assert.match(service, /rpc_ielts_submit_review/i, 'service must call submit RPC');
+  assert.match(service, /functions\/v1\/ielts_ai_review_draft/i, 'service must call secure AI review edge function');
   assert.match(service, /task_achievement[\s\S]*coherence_cohesion[\s\S]*lexical_resource[\s\S]*grammar/i, 'writing rubric keys must be modeled');
   assert.match(service, /fluency[\s\S]*lexical_resource[\s\S]*grammar[\s\S]*pronunciation/i, 'speaking rubric keys must be modeled');
   assert.match(queue, /IELTS Review Queue/i, 'queue UI must exist');
@@ -106,11 +107,30 @@ test('IELTS review frontend maps queue/detail/submit RPCs and exposes student re
   assert.match(review, /getPublicUrl\(/i, 'speaking review must fallback to public URL generation when signing fails');
   assert.match(review, /Audio unavailable\./i, 'speaking review must show a clear fallback when audio cannot be loaded');
   assert.match(review, /Strengths[\s\S]*Improvements[\s\S]*Next steps[\s\S]*Private notes/i, 'review feedback fields must be present');
+  assert.match(review, /AI check/i, 'review page must expose AI check button');
+  assert.match(review, /AI suggestion — review before finalizing\./i, 'AI draft warning copy must be shown');
+  assert.match(review, /AI feedback can make mistakes\. Review before finalizing\./i, 'reviewer safety copy must be present');
+  assert.match(review, /Transcript may contain errors\. Check audio if unsure\./i, 'speaking transcript caveat must be present');
+  assert.match(review, /Finalize review/i, 'finalization flow must still expose explicit finalize action');
   assert.match(result, /Reviewed band[\s\S]*Rubric breakdown[\s\S]*Teacher feedback/i, 'student result must show finalized review fields');
   assert.match(routes, /path:\s*'\/ielts\/reviews',[\s\S]*?<IeltsReviewAdminGuard>[\s\S]*?<IeltsReviewQueue \/>[\s\S]*?<\/IeltsReviewAdminGuard>/i, 'queue route must be school-admin guarded');
   assert.match(routes, /path:\s*'\/ielts\/reviews\/:skill\/:attemptId',[\s\S]*?<IeltsReviewAdminGuard>[\s\S]*?<IeltsSubmissionReview \/>[\s\S]*?<\/IeltsReviewAdminGuard>/i, 'review detail route must be school-admin guarded');
   assert.match(routes, /path:\s*'\/ielts\/review-result\/:skill\/:attemptId'/i, 'student result route must be registered');
   assert.doesNotMatch(`${service}\n${queue}\n${review}\n${result}`, /answer_key|correct_answer|sample_answer/i, 'frontend must not model protected answer fields');
+});
+
+test('IELTS AI review edge function enforces reviewer roles and draft-only semantics', () => {
+  const edge = read('supabase-functions/ielts_ai_review_draft/index.ts');
+  assert.match(edge, /allowedRoles = new Set\(\["school_admin", "admin", "superadmin"\]\)/i, 'AI edge function must restrict to reviewer roles');
+  assert.match(edge, /if \(!caller\.is_admin && !allowedRoles\.has\(role\)\)/i, 'non-authorized roles including students must be blocked');
+  assert.match(edge, /select\("id, role, is_admin, school_id"\)/i, 'caller school must be loaded for school-scope checks');
+  assert.match(edge, /assertSameSchool/i, 'edge function must enforce cross-school denial for non-platform admins');
+  assert.match(edge, /finalized: false/i, 'AI response must be explicitly draft-only');
+  assert.match(edge, /storage_status: "not_persisted"/i, 'AI draft must not be mixed into finalized feedback storage');
+  assert.match(edge, /AI review is not configured/i, 'missing OPENAI_API_KEY should return safe service-config message');
+  assert.match(edge, /if \(!transcript\) \{[\s\S]*Transcript unavailable for this draft/i, 'speaking AI flow must handle missing transcript with a confidence caveat');
+  assert.match(edge, /band_estimate[\s\S]*task_response[\s\S]*coherence[\s\S]*lexical_resource[\s\S]*grammar/i, 'writing AI schema keys must be requested');
+  assert.match(edge, /band_estimate[\s\S]*fluency[\s\S]*lexical_resource[\s\S]*grammar[\s\S]*pronunciation_note/i, 'speaking AI schema keys must be requested');
 });
 
 

@@ -4,6 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   rpcIeltsReviewDetail,
   rpcIeltsSubmitReview,
+  requestIeltsAiDraft,
   rubricForSkill,
   speakingRubricKeys,
   writingRubricKeys,
@@ -71,6 +72,8 @@ const IeltsSubmissionReview: React.FC = () => {
   const [privateNotes, setPrivateNotes] = useState('');
   const [resolvedAudioUrl, setResolvedAudioUrl] = useState<string | null>(null);
   const [audioLoadError, setAudioLoadError] = useState<string | null>(null);
+  const [aiDraft, setAiDraft] = useState<Record<string, unknown> | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!detail) return;
@@ -143,6 +146,17 @@ const IeltsSubmissionReview: React.FC = () => {
     onSuccess: () => void refetch(),
   });
 
+  const aiCheckMutation = useMutation({
+    mutationFn: () => requestIeltsAiDraft({ skill, attemptId }),
+    onSuccess: (payload) => {
+      setAiDraft(payload.draft);
+      setAiError(null);
+    },
+    onError: (err) => {
+      setAiError(err instanceof Error ? err.message : 'AI check failed.');
+    },
+  });
+
   const locked = detail?.review_status === 'finalized';
   const title = skill === 'writing' ? 'Writing Review' : 'Speaking Review';
 
@@ -211,6 +225,30 @@ const IeltsSubmissionReview: React.FC = () => {
               </div>
 
               <h2 style={{ color: '#0f172a' }}>Feedback</h2>
+              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '0.75rem' }}>
+                <div style={{ fontWeight: 700, color: '#1e3a8a' }}>AI suggestion — review before finalizing.</div>
+                <div style={{ color: '#1e40af', fontSize: '0.85rem', marginTop: '0.3rem' }}>AI feedback can make mistakes. Review before finalizing.</div>
+                {skill === 'speaking' ? <div style={{ color: '#1e40af', fontSize: '0.85rem', marginTop: '0.2rem' }}>Transcript may contain errors. Check audio if unsure.</div> : null}
+                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.6rem', flexWrap: 'wrap' }}>
+                  <button disabled={locked || aiCheckMutation.isPending} onClick={() => aiCheckMutation.mutate()} style={{ border: '1px solid #93c5fd', background: '#dbeafe', color: '#1d4ed8', borderRadius: '0.45rem', padding: '0.45rem 0.7rem', cursor: 'pointer' }}>
+                    {aiCheckMutation.isPending ? 'Running AI check…' : 'AI check'}
+                  </button>
+                  {aiDraft ? <button disabled={locked} onClick={() => {
+                    const suggested = typeof aiDraft.suggested_feedback === 'string' ? aiDraft.suggested_feedback : '';
+                    const strengthsList = Array.isArray(aiDraft.strengths) ? aiDraft.strengths.join('\n• ') : '';
+                    const fixesList = Array.isArray(aiDraft.priority_fixes) ? aiDraft.priority_fixes.join('\n• ') : '';
+                    if (suggested) setTeacherFeedback(suggested);
+                    if (strengthsList) setStrengths(`• ${strengthsList}`);
+                    if (fixesList) setImprovements(`• ${fixesList}`);
+                  }} style={{ border: '1px solid #cbd5e1', background: 'white', borderRadius: '0.45rem', padding: '0.45rem 0.7rem', cursor: 'pointer' }}>Apply to form</button> : null}
+                </div>
+                {aiError ? <div style={{ color: '#991b1b', marginTop: '0.6rem', fontSize: '0.85rem' }}>{aiError}</div> : null}
+              </div>
+
+              {aiDraft ? <div style={{ border: '1px solid #dbeafe', background: '#f8fbff', borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '0.75rem' }}>
+                <h3 style={{ margin: '0 0 0.4rem', color: '#1e3a8a' }}>AI Draft</h3>
+                <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontSize: '0.8rem', color: '#1e293b' }}>{JSON.stringify(aiDraft, null, 2)}</pre>
+              </div> : null}
               {[
                 ['Strengths', strengths, setStrengths],
                 ['Improvements', improvements, setImprovements],

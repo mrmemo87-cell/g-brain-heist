@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient.js';
+import { getEnvVar } from './env.js';
 
 export type IeltsReviewSkill = 'writing' | 'speaking';
 export type IeltsReviewStatus = 'pending' | 'in_review' | 'finalized' | string;
@@ -78,6 +79,14 @@ export interface SubmitIeltsReviewParams {
 
 export interface IeltsTeacherReviewRpcClient {
   rpc: typeof supabase.rpc;
+}
+
+export interface IeltsAiDraftResponse {
+  skill: IeltsReviewSkill;
+  attemptId: string;
+  draft: Record<string, unknown>;
+  finalized: boolean;
+  storage_status?: 'persisted' | 'not_persisted';
 }
 
 type RpcError = { message?: string; details?: string; hint?: string; code?: string };
@@ -163,4 +172,29 @@ export const rpcIeltsSubmitReview = async (
   }) as unknown as Awaited<RpcResult<IeltsReviewDetail>>;
 
   return assertNoRpcError('rpc_ielts_submit_review', data, error);
+};
+
+export const requestIeltsAiDraft = async (params: { skill: IeltsReviewSkill; attemptId: string }): Promise<IeltsAiDraftResponse> => {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const accessToken = sessionData?.session?.access_token;
+  if (!accessToken) throw new Error('Not authenticated');
+
+  const supabaseUrl = getEnvVar('VITE_SUPABASE_URL');
+  if (!supabaseUrl) throw new Error('Missing VITE_SUPABASE_URL');
+
+  const response = await fetch(`${supabaseUrl}/functions/v1/ielts_ai_review_draft`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(params),
+  });
+
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message = payload && typeof payload.error === 'string' ? payload.error : 'AI check failed';
+    throw new Error(message);
+  }
+  return payload as IeltsAiDraftResponse;
 };
