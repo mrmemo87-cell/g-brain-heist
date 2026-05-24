@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import type { IeltsStudentJourney } from '../../../../services/ieltsJourneyService';
 import IeltsBandGauge from './IeltsBandGauge';
@@ -24,6 +24,8 @@ const confidenceLabel = (level: string | null) => {
 
 const IeltsMissionCard: React.FC<IeltsMissionCardProps> = ({ journey, animate = true }) => {
   const cardRef = useRef<HTMLDivElement>(null);
+  const [isNarrowPhone, setIsNarrowPhone] = useState(false);
+  const [isPhone, setIsPhone] = useState(false);
 
   useEffect(() => {
     if (!cardRef.current || !animate) return;
@@ -31,6 +33,27 @@ const IeltsMissionCard: React.FC<IeltsMissionCardProps> = ({ journey, animate = 
     if (reduced) return;
     gsap.fromTo(cardRef.current, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out' });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const phoneQuery = window.matchMedia('(max-width: 768px)');
+    const narrowQuery = window.matchMedia('(max-width: 480px)');
+
+    const sync = () => {
+      setIsPhone(phoneQuery.matches);
+      setIsNarrowPhone(narrowQuery.matches);
+    };
+
+    sync();
+    phoneQuery.addEventListener('change', sync);
+    narrowQuery.addEventListener('change', sync);
+
+    return () => {
+      phoneQuery.removeEventListener('change', sync);
+      narrowQuery.removeEventListener('change', sync);
+    };
+  }, []);
 
   const { current_estimates, target_band, confidence_level } = journey;
   const conf = confidenceLabel(confidence_level);
@@ -41,6 +64,8 @@ const IeltsMissionCard: React.FC<IeltsMissionCardProps> = ({ journey, animate = 
   const total = activeAssignments.length;
   const completed = activeAssignments.filter((item) => (item.status ?? '').toLowerCase() === 'completed').length;
   const progressPct = total > 0 ? Math.round((completed / total) * 100) : 0;
+  const overallGaugeSize = isNarrowPhone ? 136 : isPhone ? 150 : 164;
+  const skillGaugeSize = isNarrowPhone ? 94 : isPhone ? 102 : 112;
 
   return (
     <div
@@ -103,15 +128,15 @@ const IeltsMissionCard: React.FC<IeltsMissionCardProps> = ({ journey, animate = 
       </div>
 
       {/* Gauges: Overall hero left, 2×2 skills right */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
-        <div style={{ flex: '0 0 auto', paddingRight: '1.25rem', borderRight: '2px solid #f1f5f9' }}>
-          <IeltsBandGauge band={overall} size={164} label="Overall" animate={animate} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: isPhone ? '1rem' : '1.25rem', flexDirection: isPhone ? 'column' : 'row', marginBottom: '1.25rem' }}>
+        <div style={{ flex: '0 0 auto', paddingRight: isPhone ? 0 : '1.25rem', borderRight: isPhone ? 'none' : '2px solid #f1f5f9', borderBottom: isPhone ? '2px solid #f1f5f9' : 'none', paddingBottom: isPhone ? '0.9rem' : 0, width: isPhone ? '100%' : 'auto', display: 'flex', justifyContent: 'center' }}>
+          <IeltsBandGauge band={overall} size={overallGaugeSize} label="Overall" animate={animate} />
         </div>
-        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.35rem 0.75rem', minWidth: 0 }}>
-          <IeltsBandGauge band={current_estimates?.reading} size={112} label="Reading" animate={animate} />
-          <IeltsBandGauge band={current_estimates?.listening} size={112} label="Listening" animate={animate} />
-          <IeltsBandGauge band={current_estimates?.writing} size={112} label="Writing" animate={animate} />
-          <IeltsBandGauge band={current_estimates?.speaking} size={112} label="Speaking" animate={animate} />
+        <div style={{ width: '100%', display: 'grid', gridTemplateColumns: isNarrowPhone ? '1fr' : '1fr 1fr', gap: isNarrowPhone ? '0.9rem' : '0.35rem 0.75rem', minWidth: 0, justifyItems: 'center' }}>
+          <IeltsBandGauge band={current_estimates?.reading} size={skillGaugeSize} label="Reading" animate={animate} />
+          <IeltsBandGauge band={current_estimates?.listening} size={skillGaugeSize} label="Listening" animate={animate} />
+          <IeltsBandGauge band={current_estimates?.writing} size={skillGaugeSize} label="Writing" animate={animate} />
+          <IeltsBandGauge band={current_estimates?.speaking} size={skillGaugeSize} label="Speaking" animate={animate} />
         </div>
       </div>
 
