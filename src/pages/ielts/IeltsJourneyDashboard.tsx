@@ -227,7 +227,7 @@ const IeltsJourneyDashboard: React.FC = () => {
               <p id="readiness-heading" style={{ margin: '0 0 0.5rem', fontSize: '0.72rem', fontWeight: 800, color: '#0891b2', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
                 Readiness overview
               </p>
-              <IeltsMissionCard journey={journey} animate={true} targetBandCtaHref={isPrimeUser ? '/ielts/apply' : '/ielts/apply-prime'} />
+              <IeltsMissionCard journey={journey} animate={true} />
               {isPrimeUser && (
                 <div style={{ marginTop: '0.55rem', display: 'flex', justifyContent: 'flex-end' }}>
                   {!isEditingTargetBand ? (
