@@ -10,6 +10,7 @@ import {
   type IeltsPracticeAssignmentProgress,
   type IeltsPracticeStudentAssignment,
 } from '../../../services/ieltsPracticeAssignmentService';
+import { supabase } from '../../../services/supabaseClient';
 import {
   buildAssignedPracticeRoute as buildAssignedPracticeRouteWithMetadata,
   getAssignmentItemVisualStatus,
@@ -27,6 +28,15 @@ const skillLabels: Record<string, string> = {
 };
 
 const skillOrder = ['reading', 'listening', 'writing', 'speaking'];
+
+type WritingSubmissionDetail = {
+  attemptId: string;
+  wordCount: number | null;
+  submittedAt: string | null;
+  reviewStatus: string | null;
+  sampleAnswer: string | null;
+  taskType: string | null;
+};
 
 const formatDueDate = (dueAt: string | null): string => {
   if (!dueAt) return 'No due date';
@@ -86,6 +96,45 @@ const IeltsAssignedPractice: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [busyAssignmentId, setBusyAssignmentId] = useState<string | null>(null);
   const [assignmentProgressById, setAssignmentProgressById] = useState<Record<string, IeltsPracticeAssignmentProgress>>({});
+  const [expandedAssignments, setExpandedAssignments] = useState<Record<string, boolean>>({});
+  const [writingDetailsByItemId, setWritingDetailsByItemId] = useState<Record<string, WritingSubmissionDetail | null>>({});
+  const [loadingWritingDetailItemId, setLoadingWritingDetailItemId] = useState<string | null>(null);
+
+  const loadWritingSubmissionDetail = async (itemId: string, attemptId: string) => {
+    if (writingDetailsByItemId[itemId]) return;
+    setLoadingWritingDetailItemId(itemId);
+    try {
+      const { data: attempt, error: attemptError } = await supabase
+        .from('ielts_writing_attempts')
+        .select('id, task_id, word_count, submitted_at, review_status')
+        .eq('id', attemptId)
+        .single();
+      if (attemptError || !attempt) throw attemptError ?? new Error('Attempt not found');
+
+      const { data: task, error: taskError } = await supabase
+        .from('ielts_writing_tasks')
+        .select('sample_answer, task_type')
+        .eq('id', attempt.task_id)
+        .single();
+      if (taskError) throw taskError;
+
+      setWritingDetailsByItemId((current) => ({
+        ...current,
+        [itemId]: {
+          attemptId,
+          wordCount: attempt.word_count ?? null,
+          submittedAt: attempt.submitted_at ?? null,
+          reviewStatus: attempt.review_status ?? null,
+          sampleAnswer: task?.sample_answer ?? null,
+          taskType: task?.task_type ?? null,
+        },
+      }));
+    } catch {
+      setWritingDetailsByItemId((current) => ({ ...current, [itemId]: null }));
+    } finally {
+      setLoadingWritingDetailItemId(null);
+    }
+  };
 
   const loadAssignments = async () => {
     setLoadState('loading');
@@ -207,6 +256,7 @@ const IeltsAssignedPractice: React.FC = () => {
           const progressItemsById = new Map((assignmentProgress?.items ?? []).map((progressItem) => [progressItem.assignment_item_id, progressItem]));
           const isClosedReadOnly = assignment.status === 'closed' && assignment.student_status !== 'completed';
           const isOverdue = isAssignmentOverdue(assignment);
+          const isExpanded = Boolean(expandedAssignments[assignment.id]);
 
           const lightBadge = assignment.student_status === 'completed'
             ? { bg: '#dcfce7', color: '#166534', border: '#86efac' }
@@ -247,8 +297,16 @@ const IeltsAssignedPractice: React.FC = () => {
                 style={{ marginTop: '0.85rem', color: '#475569' }}
               />
 
+              <button
+                type="button"
+                onClick={() => setExpandedAssignments((current) => ({ ...current, [assignment.id]: !isExpanded }))}
+                style={{ marginTop: '0.75rem', background: '#ffffff', color: '#0f172a', border: '1px solid #cbd5e1', borderRadius: '0.5rem', padding: '0.45rem 0.75rem', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer' }}
+              >
+                {isExpanded ? 'Hide submission details' : 'View submission details'}
+              </button>
+
               {/* Skill sections */}
-              <div style={{ marginTop: '0.85rem' }}>
+              {isExpanded && <div style={{ marginTop: '0.85rem' }}>
                 {visibleSkills.length === 0 && (
                     <div data-testid={`ielts-assigned-no-items-${assignment.id}`} style={{ border: '1px dashed #cbd5e1', background: '#f8fafc', borderRadius: '0.75rem', padding: '0.875rem', color: '#94a3b8', fontSize: '0.82rem', fontWeight: 700 }}>
                     This assignment has no items yet. Ask your teacher to add practice content.
@@ -304,13 +362,45 @@ const IeltsAssignedPractice: React.FC = () => {
                             ) : (
                               <span style={{ color: '#cbd5e1', fontSize: '0.75rem' }}>Unavailable</span>
                             )}
+
+                            {item.skill === 'writing' && itemStatus === 'completed' && itemProgress?.practice_attempt_id && (
+                              <div style={{ width: '100%', marginTop: '0.35rem' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => void loadWritingSubmissionDetail(item.id, itemProgress.practice_attempt_id as string)}
+                                  style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #f59e0b', borderRadius: '0.5rem', padding: '0.4rem 0.7rem', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer' }}
+                                >
+                                  View submission details
+                                </button>
+                                {loadingWritingDetailItemId === item.id && (
+                                  <p style={{ margin: '0.5rem 0 0', color: '#64748b', fontSize: '0.75rem' }}>Loading submission details…</p>
+                                )}
+                                {writingDetailsByItemId[item.id] && (
+                                  <div style={{ marginTop: '0.6rem', border: '1px solid #bfdbfe', background: '#eff6ff', borderRadius: '0.6rem', padding: '0.75rem' }}>
+                                    <p style={{ margin: 0, color: '#1e3a8a', fontWeight: 700, fontSize: '0.8rem' }}>Teacher feedback will appear here after finalization.</p>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.6rem', marginTop: '0.65rem' }}>
+                                      <div style={{ background: '#fff', borderRadius: '0.5rem', padding: '0.6rem' }}><div style={{ fontSize: '0.7rem', color: '#64748b' }}>Word Count</div><div style={{ fontWeight: 800, color: '#b45309' }}>{writingDetailsByItemId[item.id]?.wordCount ?? '--'}</div></div>
+                                      <div style={{ background: '#fff', borderRadius: '0.5rem', padding: '0.6rem' }}><div style={{ fontSize: '0.7rem', color: '#64748b' }}>Review Status</div><div style={{ fontWeight: 800, color: '#0f766e' }}>{writingDetailsByItemId[item.id]?.reviewStatus ?? 'pending'}</div></div>
+                                    </div>
+                                    {writingDetailsByItemId[item.id]?.sampleAnswer ? (
+                                      <details style={{ marginTop: '0.7rem' }}>
+                                        <summary style={{ cursor: 'pointer', color: '#92400e', fontWeight: 800 }}>📝 View Sample Answer (Band 8+)</summary>
+                                        <div style={{ marginTop: '0.5rem', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: '0.5rem', padding: '0.65rem', color: '#78350f', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                                          {writingDetailsByItemId[item.id]?.sampleAnswer}
+                                        </div>
+                                      </details>
+                                    ) : null}
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         );
                       })}
                     </div>
                   </section>
                 ))}
-              </div>
+              </div>}
 
               {/* Footer banners */}
               {isClosedReadOnly ? (
