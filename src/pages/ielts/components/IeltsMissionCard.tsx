@@ -6,6 +6,7 @@ import IeltsBandGauge from './IeltsBandGauge';
 interface IeltsMissionCardProps {
   journey: IeltsStudentJourney;
   animate?: boolean;
+  onSetTargetBand?: () => void;
 }
 
 const SCORE_SOURCE_LABELS: Record<'reading' | 'listening' | 'writing' | 'speaking', string> = {
@@ -22,7 +23,7 @@ const confidenceLabel = (level: string | null) => {
   return { text: 'More practice needed', color: '#ea580c' };
 };
 
-const IeltsMissionCard: React.FC<IeltsMissionCardProps> = ({ journey, animate = true }) => {
+const IeltsMissionCard: React.FC<IeltsMissionCardProps> = ({ journey, animate = true, onSetTargetBand }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isNarrowPhone, setIsNarrowPhone] = useState(false);
   const [isPhone, setIsPhone] = useState(false);
@@ -119,9 +120,13 @@ const IeltsMissionCard: React.FC<IeltsMissionCardProps> = ({ journey, animate = 
               <p style={{ margin: '0.15rem 0 0', fontSize: '0.65rem', color: '#94a3b8', fontStyle: 'italic' }}>
                 No target set
               </p>
-              <a href="/ielts/prime" style={{ marginTop: '0.3rem', display: 'inline-block', fontSize: '0.72rem', fontWeight: 800, color: '#0369a1', textDecoration: 'none' }}>
+              <button
+                type="button"
+                onClick={onSetTargetBand}
+                style={{ marginTop: '0.3rem', display: 'inline-block', fontSize: '0.72rem', fontWeight: 800, color: '#0369a1', textDecoration: 'none', border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}
+              >
                 Set target band
-              </a>
+              </button>
             </>
           )}
         </div>
