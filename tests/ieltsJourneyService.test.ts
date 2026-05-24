@@ -134,3 +134,26 @@ test('IELTS journey RPC uses readiness helper and averages available skills only
   assert.match(migration, /'estimated_band', estimated_band/i, 'recent practice rows should use estimated readiness fields');
   assert.doesNotMatch(migration, /official\s+IELTS\s+(score|band)/i, 'RPC must not overclaim official IELTS scores');
 });
+
+test('IELTS mission card clarifies target band and score source labels', () => {
+  const missionCard = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/components/IeltsMissionCard.tsx'), 'utf8');
+
+  assert.match(missionCard, /No target set/i, 'target band empty state should read No target set');
+  assert.match(missionCard, /Set target band/i, 'target band empty state should include CTA to set target');
+  assert.match(missionCard, /href="\/ielts\/prime"/i, 'target band CTA should navigate to IELTS Prime setup flow');
+  assert.match(missionCard, /Based on your latest completed results and finalized feedback\./i, 'mission card should explain score derivation basis');
+  assert.match(missionCard, /reading:\s*'Latest result'/i, 'reading source label should be shown');
+  assert.match(missionCard, /listening:\s*'Latest result'/i, 'listening source label should be shown');
+  assert.match(missionCard, /writing:\s*'Latest reviewed feedback'/i, 'writing source label should be shown');
+  assert.match(missionCard, /speaking:\s*'Latest reviewed feedback'/i, 'speaking source label should be shown');
+});
+
+test('IELTS mission card separates current assignment progress from completed practice history', () => {
+  const missionCard = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/components/IeltsMissionCard.tsx'), 'utf8');
+
+  assert.match(missionCard, /const total = activeAssignments\.length;/i, 'current progress denominator should come only from active assignments');
+  assert.match(missionCard, /Current assignment progress/i, 'current assignment progress heading should be explicit');
+  assert.match(missionCard, /No active assignments right now\./i, 'no-active-assignment state should be explicit');
+  assert.match(missionCard, /Completed practice/i, 'historical completed practice should be shown separately');
+  assert.doesNotMatch(missionCard, />\s*Assignment progress\s*</i, 'legacy ambiguous assignment progress label should be removed');
+});
