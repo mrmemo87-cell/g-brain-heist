@@ -17,16 +17,20 @@ export interface IeltsPracticeAssignmentContext {
 
 export const readIeltsPracticeAssignmentContext = (search = typeof window === 'undefined' ? '' : window.location.search): IeltsPracticeAssignmentContext => {
   const assignmentSearchParams = new URLSearchParams(search);
-  const assignmentId = assignmentSearchParams.get('assignment_id');
-  const assignmentItemId = assignmentSearchParams.get('assignment_item_id');
-  const assignmentItemCountParam = Number(assignmentSearchParams.get('assignment_item_count') ?? 0);
+  const assignmentId = assignmentSearchParams.get('assignment_id') ?? assignmentSearchParams.get('assignmentId');
+  const assignmentItemId = assignmentSearchParams.get('assignment_item_id') ?? assignmentSearchParams.get('assignmentItemId');
+  const assignmentItemCountParam = Number(
+    assignmentSearchParams.get('assignment_item_count')
+    ?? assignmentSearchParams.get('assignmentItemCount')
+    ?? 0,
+  );
 
   return {
     assignmentId,
     assignmentItemId,
     assignmentItemCount: Number.isFinite(assignmentItemCountParam) ? assignmentItemCountParam : 0,
-    assignmentTitle: assignmentSearchParams.get('assignment_title'),
-    assignmentDueAt: assignmentSearchParams.get('assignment_due_at'),
+    assignmentTitle: assignmentSearchParams.get('assignment_title') ?? assignmentSearchParams.get('assignmentTitle'),
+    assignmentDueAt: assignmentSearchParams.get('assignment_due_at') ?? assignmentSearchParams.get('assignmentDueAt'),
     isAssignedPractice: Boolean(assignmentId && assignmentItemId),
   };
 };

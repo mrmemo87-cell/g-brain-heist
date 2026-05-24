@@ -19,8 +19,13 @@ test('direct student extra practice route access blocked when disabled', () => {
   const guard = read('src/pages/ielts/IeltsExtraPracticeGuard.tsx');
   const routes = read('index.tsx');
   assert.match(guard, /Extra Practice is currently disabled by your school\./, 'guard should show lock message');
-  for (const route of ['/ielts/reading/:setId', '/ielts/listening/:setId', '/ielts/writing/:taskId', '/ielts/speaking/:taskId', '/ielts/trial-test', '/ielts/trial-test-2']) {
+
+  for (const route of ['/ielts/trial-test', '/ielts/trial-test-2']) {
     assert.match(routes, new RegExp(`path: '${route.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}'[\\s\\S]*?<IeltsExtraPracticeGuard>`, 'i'), `${route} should be wrapped by IeltsExtraPracticeGuard`);
+  }
+
+  for (const route of ['/ielts/reading/:setId', '/ielts/listening/:setId', '/ielts/writing/:taskId', '/ielts/speaking/:taskId']) {
+    assert.match(routes, new RegExp(`path: '${route.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}'[\\s\\S]*?<IeltsPracticeRouteGuard>`, 'i'), `${route} should use assignment-aware route guard`);
   }
 });
 
@@ -36,4 +41,11 @@ test('IELTS Home review queue card is role-gated by the same helper as route gua
 
   assert.match(home, /const canOpenReviewQueue = canAccessIeltsReviewQueue\(\{ role: userRole, is_admin: isPlatformAdmin \}\);/);
   assert.match(home, /\{canOpenReviewQueue && \(/, 'home should only render review queue card for authorized users');
+});
+
+test('assigned IELTS practice bypasses extra-practice lock while free routes stay guarded', () => {
+  const routes = read('index.tsx');
+
+  assert.match(routes, /const IeltsPracticeRouteGuard:[\s\S]*assignmentContext\.isAssignedPractice[\s\S]*return children;/, 'assigned practice should bypass extra-practice lock');
+  assert.match(routes, /const IeltsPracticeRouteGuard:[\s\S]*return <IeltsExtraPracticeGuard>\{children\}<\/IeltsExtraPracticeGuard>;/, 'free practice should still be gated by extra-practice lock');
 });
