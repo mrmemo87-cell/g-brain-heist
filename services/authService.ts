@@ -107,6 +107,16 @@ export interface JoinSchoolByCodeResult {
     };
 }
 
+export interface SetupSchoolClassEnrollmentResult {
+    success: boolean;
+    status?: string;
+    class_id?: string | null;
+    class_code?: string | null;
+    created_class?: boolean;
+    enrolled?: boolean;
+    error?: string;
+}
+
 export const login = async (email: string, password: string): Promise<{ success: boolean }> => {
     console.log(`Attempting login for ${email}`);
 
@@ -603,6 +613,23 @@ export const joinSchoolByCode = async (
     }
 
     return data as JoinSchoolByCodeResult;
+};
+
+export const setupSchoolClassEnrollment = async (
+    gradeLevel: string,
+    batch: string
+): Promise<SetupSchoolClassEnrollmentResult> => {
+    const { data, error } = await supabase.rpc('rpc_setup_school_class_enrollment', {
+        p_grade_level: gradeLevel,
+        p_batch: batch,
+    });
+
+    if (error) {
+        console.error('Error in rpc_setup_school_class_enrollment:', error.message);
+        return { success: false, error: error.message };
+    }
+
+    return (data as SetupSchoolClassEnrollmentResult) ?? { success: false, error: 'No response from enrollment RPC' };
 };
 
 /**
