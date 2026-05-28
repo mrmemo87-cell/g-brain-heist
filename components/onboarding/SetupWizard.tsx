@@ -156,6 +156,13 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
             setStep('invite_code');
             return;
           }
+
+          if (finalRole === 'student' && grade && batch && batch !== 'N/A') {
+            const classEnrollmentResult = await AuthService.setupSchoolClassEnrollment(String(grade), String(batch));
+            if (!classEnrollmentResult.success) {
+              console.error('Setup school class enrollment failed:', classEnrollmentResult.error);
+            }
+          }
         } else {
           // Fallback: direct code join (legacy path)
           const joinResult = await AuthService.joinSchoolByCode(inviteCodeNormalized, finalRole);
@@ -188,6 +195,13 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
               // Membership already created — log the failure but proceed to setup complete
               // rather than blocking the user in a partial-success state.
               console.error('Failed to update student details after joining school:', updateError);
+            }
+
+            if (batch !== 'N/A') {
+              const classEnrollmentResult = await AuthService.setupSchoolClassEnrollment(String(grade), String(batch));
+              if (!classEnrollmentResult.success) {
+                console.error('Setup school class enrollment failed (legacy join):', classEnrollmentResult.error);
+              }
             }
           } else if (finalRole !== 'student') {
             // Teachers (and other non-student roles) also need needs_setup cleared
