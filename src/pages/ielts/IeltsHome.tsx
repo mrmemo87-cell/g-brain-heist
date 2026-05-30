@@ -36,7 +36,7 @@ const IeltsHome: React.FC = () => {
   const isPrimeUser = isIeltsPrime({ tier: userTier });
   const canAccessRequiredTier = (requiredTier?: string | null) => !requiredTier || requiredTier === 'free' || isPrimeUser;
   const normalizedRole = normalizeIeltsRole(userRole);
-  const isIeltsAdminLandingRole = normalizedRole === 'school_admin' || normalizedRole === 'admin' || normalizedRole === 'superadmin';
+  const isIeltsAdminLandingRole = isPlatformAdmin || normalizedRole === 'school_admin' || normalizedRole === 'admin' || normalizedRole === 'superadmin';
   const canOpenReviewQueue = canAccessIeltsReviewQueue({ role: userRole, is_admin: isPlatformAdmin });
 
   // Stop background music when entering IELTS section
@@ -150,10 +150,9 @@ const IeltsHome: React.FC = () => {
     const adminCards = [
       { label: 'Practice Content', desc: 'Manage reading, listening, writing, and speaking tasks.', route: '/ielts/admin', icon: '📋', color: '#0891b2' },
       { label: 'Review Queue', desc: 'Finalize writing & speaking reviews awaiting scoring.', route: '/ielts/reviews', icon: '✍️', color: '#7c3aed' },
-      { label: 'Results', desc: 'Track readiness and IELTS performance outcomes.', route: '/ielts/journey', icon: '📊', color: '#059669' },
+      { label: 'Student Progress', desc: 'View each student’s IELTS readiness, assignments, results, and pending reviews.', route: '/ielts/journey', icon: '📊', color: '#059669' },
       { label: 'Exam Manager', desc: 'Create and monitor secure IELTS exam sessions.', route: '/ielts/exams/manage', icon: '🔒', color: '#ea580c' },
       { label: 'Assigned Practice', desc: 'Monitor assignment coverage and completion health.', route: '/ielts/practice/assigned', icon: '📌', color: '#b45309' },
-      { label: 'Student Journey', desc: 'View student IELTS progress and band estimates.', route: '/ielts/journey', icon: '🧭', color: '#0891b2' },
     ];
 
     return (

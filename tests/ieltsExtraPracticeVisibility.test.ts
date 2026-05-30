@@ -31,9 +31,24 @@ test('direct student extra practice route access blocked when disabled', () => {
 
 test('school_admin/admin can still access IELTS operations tools and can control toggle', () => {
   const home = read('src/pages/ielts/IeltsHome.tsx');
-  assert.match(home, /isIeltsAdminLandingRole = normalizedRole === 'school_admin' \|\| normalizedRole === 'admin' \|\| normalizedRole === 'superadmin'/);
+  assert.match(home, /isIeltsAdminLandingRole = isPlatformAdmin \|\| normalizedRole === 'school_admin' \|\| normalizedRole === 'admin' \|\| normalizedRole === 'superadmin'/);
   assert.match(home, /Allow students to use Extra Practice/);
   assert.match(home, /When off, students only see assigned IELTS practice and their journey\./);
+});
+
+
+test('IELTS admin control center exposes Student Progress only through admin landing cards', () => {
+  const home = read('src/pages/ielts/IeltsHome.tsx');
+  const adminBranch = home.slice(home.indexOf('if (isIeltsAdminLandingRole) {'), home.indexOf('// GSAP entrance animation for student view'));
+  const studentBranch = home.slice(home.indexOf('// GSAP entrance animation for student view'));
+
+  assert.match(adminBranch, /label: 'Student Progress'/, 'admin control center should include Student Progress card');
+  assert.match(adminBranch, /desc: 'View each student’s IELTS readiness, assignments, results, and pending reviews\.'/,
+    'Student Progress card should describe readiness, assignments, results, and pending reviews');
+  assert.match(adminBranch, /route: '\/ielts\/journey'/, 'Student Progress card should route to IELTS journey dashboard');
+  assert.doesNotMatch(adminBranch, /label: 'Results'[^\n]*route: '\/ielts\/journey'/, 'ambiguous Results journey card should be replaced');
+  assert.doesNotMatch(adminBranch, /label: 'Student Journey'[^\n]*route: '\/ielts\/journey'/, 'duplicate Student Journey admin card should be replaced');
+  assert.doesNotMatch(studentBranch, /Student Progress/, 'student IELTS home should not show the admin Student Progress link');
 });
 
 test('IELTS Home review queue card is role-gated by the same helper as route guard', () => {
