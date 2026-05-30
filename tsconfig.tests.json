@@ -26,7 +26,8 @@
     "services/ieltsExamAccessService.ts",
     "services/ieltsPracticeAssignmentService.ts",
     "services/ieltsJourneyService.ts",
-    "services/ieltsResultsService.ts"
+    "services/ieltsResultsService.ts",
+    "services/ieltsSchoolStudentSnapshotService.ts"
   ],
   "exclude": [
     "node_modules"

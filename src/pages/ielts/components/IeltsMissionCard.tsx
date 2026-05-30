@@ -120,13 +120,22 @@ const IeltsMissionCard: React.FC<IeltsMissionCardProps> = ({ journey, animate = 
               <p style={{ margin: '0.15rem 0 0', fontSize: '0.65rem', color: '#94a3b8', fontStyle: 'italic' }}>
                 No target set
               </p>
-              <button
-                type="button"
-                onClick={onSetTargetBand}
-                style={{ marginTop: '0.3rem', display: 'inline-block', fontSize: '0.72rem', fontWeight: 800, color: '#0369a1', textDecoration: 'none', border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}
-              >
-                Set target band
-              </button>
+              {onSetTargetBand ? (
+                <button
+                  type="button"
+                  onClick={onSetTargetBand}
+                  style={{ marginTop: '0.3rem', display: 'inline-block', fontSize: '0.72rem', fontWeight: 800, color: '#0369a1', textDecoration: 'none', border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}
+                >
+                  Set target band
+                </button>
+              ) : (
+                <a
+                  href="/ielts/prime"
+                  style={{ marginTop: '0.3rem', display: 'inline-block', fontSize: '0.72rem', fontWeight: 800, color: '#0369a1', textDecoration: 'none' }}
+                >
+                  Set target band
+                </a>
+              )}
             </>
           )}
         </div>

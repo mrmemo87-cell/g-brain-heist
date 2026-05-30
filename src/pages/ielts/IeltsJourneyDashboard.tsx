@@ -2,9 +2,13 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useNavigate } from 'react-router-dom';
 import { rpcIeltsStudentJourney, type IeltsJourneyAssignmentItem, type IeltsStudentJourney } from '../../../services/ieltsJourneyService';
+import { supabase } from '../../../services/supabaseClient';
+import { rpcIeltsSchoolResults, type IeltsSchoolResultsResponse, type IeltsSchoolResultsStudentRow } from '../../../services/ieltsResultsService';
+import { rpcIeltsSchoolStudentSnapshot, type IeltsSchoolStudentSnapshot } from '../../../services/ieltsSchoolStudentSnapshotService';
 import { getUserTier, isIeltsPrime, updateIeltsTargetBand } from '../../../services/ieltsService';
 import IeltsMissionCard from './components/IeltsMissionCard';
 import IeltsNextActionCard from './components/IeltsNextActionCard';
+import IeltsSchoolStudentProgressModal from './components/IeltsSchoolStudentProgressModal';
 
 type SkillKey = 'reading' | 'listening' | 'writing' | 'speaking';
 const orderedSkills: SkillKey[] = ['reading', 'listening', 'writing', 'speaking'];
@@ -97,6 +101,8 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({ item, onNavigate }) => 
 };
 
 type LoadState = 'loading' | 'ready' | 'error';
+type DashboardMode = 'student' | 'admin';
+type SnapshotModalState = 'idle' | 'loading' | 'ready' | 'error';
 
 const IeltsJourneyDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -109,14 +115,44 @@ const IeltsJourneyDashboard: React.FC = () => {
   const [targetBandDraft, setTargetBandDraft] = useState('');
   const [targetBandError, setTargetBandError] = useState<string | null>(null);
   const [isSavingTargetBand, setIsSavingTargetBand] = useState(false);
+  const [mode, setMode] = useState<DashboardMode>('student');
+  const [schoolResults, setSchoolResults] = useState<IeltsSchoolResultsResponse | null>(null);
+  const [snapshotStudentId, setSnapshotStudentId] = useState<string | null>(null);
+  const [snapshot, setSnapshot] = useState<IeltsSchoolStudentSnapshot | null>(null);
+  const [snapshotState, setSnapshotState] = useState<SnapshotModalState>('idle');
+  const [snapshotError, setSnapshotError] = useState<string | null>(null);
 
   useEffect(() => {
     const run = async () => {
       setLoadState('loading');
+      setError(null);
       try {
-        const [journeyData, tier] = await Promise.all([rpcIeltsStudentJourney(), getUserTier()]);
-        setJourney(journeyData);
+        const [{ data: auth }, tier] = await Promise.all([supabase.auth.getUser(), getUserTier()]);
         setUserTier(tier || 'free');
+        const userId = auth?.user?.id;
+        let isIeltsAdmin = false;
+        if (userId) {
+          const { data: profile } = await supabase
+            .from('users')
+            .select('role, is_admin')
+            .eq('id', userId)
+            .maybeSingle();
+          const typedProfile = profile as { role?: string | null; is_admin?: boolean | null } | null;
+          const role = String(typedProfile?.role ?? '').toLowerCase();
+          isIeltsAdmin = Boolean(typedProfile?.is_admin) || role === 'school_admin' || role === 'admin' || role === 'superadmin';
+        }
+
+        if (isIeltsAdmin) {
+          const results = await rpcIeltsSchoolResults({ limit: 100 });
+          setSchoolResults(results);
+          setMode('admin');
+          setJourney(null);
+        } else {
+          const journeyData = await rpcIeltsStudentJourney();
+          setJourney(journeyData);
+          setMode('student');
+          setSchoolResults(null);
+        }
         setLoadState('ready');
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Unable to load your IELTS journey.');
@@ -125,6 +161,28 @@ const IeltsJourneyDashboard: React.FC = () => {
     };
     void run();
   }, []);
+
+  const openStudentSnapshot = async (student: IeltsSchoolResultsStudentRow) => {
+    setSnapshotStudentId(student.student_id);
+    setSnapshot(null);
+    setSnapshotError(null);
+    setSnapshotState('loading');
+    try {
+      const data = await rpcIeltsSchoolStudentSnapshot(student.student_id);
+      setSnapshot(data);
+      setSnapshotState('ready');
+    } catch (e) {
+      setSnapshotError(e instanceof Error ? e.message : 'Unable to load this student snapshot.');
+      setSnapshotState('error');
+    }
+  };
+
+  const closeStudentSnapshot = () => {
+    setSnapshotStudentId(null);
+    setSnapshot(null);
+    setSnapshotError(null);
+    setSnapshotState('idle');
+  };
 
   const summary = useMemo(() => {
     const current = journey?.assigned_practice.length ?? 0;
@@ -220,7 +278,60 @@ const IeltsJourneyDashboard: React.FC = () => {
           </div>
         )}
 
-        {loadState === 'ready' && journey && (
+        {loadState === 'ready' && mode === 'admin' && schoolResults && (
+          <>
+            <section data-anim="card" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '0.9rem', padding: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                <div>
+                  <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 900, color: '#0f172a' }}>School IELTS Results</h2>
+                  <p style={{ margin: '0.35rem 0 0', color: '#64748b', fontSize: '0.82rem' }}>Click a student name to open a secure school-scoped IELTS progress snapshot.</p>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <span style={{ background: '#ecfeff', color: '#0e7490', border: '1px solid #a5f3fc', borderRadius: '9999px', padding: '0.35rem 0.7rem', fontSize: '0.72rem', fontWeight: 900 }}>{schoolResults.summary.total_students} students</span>
+                  <span style={{ background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', borderRadius: '9999px', padding: '0.35rem 0.7rem', fontSize: '0.72rem', fontWeight: 900 }}>{schoolResults.summary.completed_practice_count} completed practices</span>
+                </div>
+              </div>
+            </section>
+
+            <section data-anim="section" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '0.9rem', overflow: 'hidden' }}>
+              {schoolResults.students.length === 0 ? (
+                <p style={{ margin: 0, padding: '1rem', color: '#94a3b8', fontSize: '0.875rem' }}>No IELTS students found for your school yet.</p>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '720px' }}>
+                    <thead style={{ background: '#f8fafc' }}>
+                      <tr>
+                        {['Student', 'Class', 'Assignments', 'Overall', 'Last activity'].map((heading) => <th key={heading} style={{ textAlign: 'left', padding: '0.75rem', color: '#475569', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{heading}</th>)}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {schoolResults.students.map((student) => (
+                        <tr key={student.student_id} data-testid="ielts-school-student-row" style={{ borderTop: '1px solid #e2e8f0' }}>
+                          <td style={{ padding: '0.75rem' }}>
+                            <button
+                              type="button"
+                              data-testid="ielts-open-student-progress"
+                              onClick={() => void openStudentSnapshot(student)}
+                              style={{ background: 'transparent', border: 'none', color: '#0e7490', fontWeight: 900, cursor: 'pointer', padding: 0, textAlign: 'left', fontSize: '0.86rem' }}
+                            >
+                              {student.username ?? student.email ?? 'Student'}
+                            </button>
+                          </td>
+                          <td style={{ padding: '0.75rem', color: '#64748b', fontSize: '0.82rem' }}>{student.class_name ?? 'No class'}</td>
+                          <td style={{ padding: '0.75rem', color: '#334155', fontSize: '0.82rem', fontWeight: 800 }}>{student.completed_practice_total} / {student.assigned_practice_total} completed</td>
+                          <td style={{ padding: '0.75rem', color: '#334155', fontSize: '0.82rem', fontWeight: 800 }}>{student.latest_overall_estimate == null ? 'Not enough data' : `${student.latest_overall_estimate.toFixed(1)} / 9.0`}</td>
+                          <td style={{ padding: '0.75rem', color: '#64748b', fontSize: '0.82rem' }}>{formatDate(student.last_activity_at, 'No activity yet')}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+          </>
+        )}
+
+        {loadState === 'ready' && journey && mode === 'student' && (
           <>
             {/* Readiness overview — Overall band estimate and skill breakdown. Not enough data yet shown when estimates are null. */}
             <section data-anim="card" aria-labelledby="readiness-heading">
@@ -361,6 +472,13 @@ const IeltsJourneyDashboard: React.FC = () => {
           </>
         )}
       </div>
+      <IeltsSchoolStudentProgressModal
+        isOpen={!!snapshotStudentId}
+        state={snapshotState}
+        snapshot={snapshot}
+        error={snapshotError}
+        onClose={closeStudentSnapshot}
+      />
     </div>
   );
 };
