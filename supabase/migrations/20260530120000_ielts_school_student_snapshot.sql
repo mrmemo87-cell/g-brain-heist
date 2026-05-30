@@ -102,7 +102,7 @@ begin
       coalesce(a.title, 'IELTS Practice') as title,
       a.due_at,
       s.status,
-      s.assigned_at,
+      s.created_at as assigned_at,
       count(i.id)::int as total_count,
       count(i.id) filter (where item_s.status = 'completed')::int as completed_count,
       coalesce(jsonb_agg(jsonb_build_object(
@@ -134,7 +134,7 @@ begin
       and a.school_id = v_student.school_id
       and s.status in ('assigned', 'in_progress', 'overdue')
       and a.status <> 'archived'
-    group by a.id, a.title, a.due_at, s.status, s.assigned_at
+    group by a.id, a.title, a.due_at, s.status, s.created_at
   ) rows;
 
   select coalesce(jsonb_agg(jsonb_build_object(

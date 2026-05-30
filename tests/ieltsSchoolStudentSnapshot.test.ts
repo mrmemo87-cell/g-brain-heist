@@ -53,7 +53,22 @@ test('school admin results table opens the progress modal from student names onl
   assert.match(dashboard, /rpcIeltsSchoolStudentSnapshot\(student\.student_id\)/);
   assert.match(dashboard, /data-testid="ielts-open-student-progress"/);
   assert.match(dashboard, /IeltsSchoolStudentProgressModal/);
-  assert.match(dashboard, /role === 'school_admin' \|\| role === 'admin' \|\| role === 'superadmin'/);
+  assert.match(dashboard, /Boolean\(typedProfile\?\.is_admin\) \|\| role === 'school_admin' \|\| role === 'admin' \|\| role === 'superadmin'/);
+});
+
+
+test('snapshot RPC uses existing assignment student timestamps instead of non-existent assigned_at column', () => {
+  const assignmentStudentSchema = fs.readFileSync(path.join(process.cwd(), 'supabase/migrations/20260516130000_ielts_practice_assignments_foundation.sql'), 'utf8');
+  const assignmentStudentTable = assignmentStudentSchema.slice(
+    assignmentStudentSchema.indexOf('create table if not exists public.ielts_practice_assignment_students'),
+    assignmentStudentSchema.indexOf('create index if not exists idx_ielts_practice_assignments_school'),
+  );
+
+  assert.match(assignmentStudentTable, /created_at timestamptz not null default now\(\)/, 'assignment student rows have created_at');
+  assert.doesNotMatch(assignmentStudentTable, /assigned_at timestamptz/, 'assignment student rows do not define assigned_at');
+  assert.doesNotMatch(migration, /s\.assigned_at/, 'snapshot RPC must not reference missing s.assigned_at');
+  assert.match(migration, /s\.created_at as assigned_at/, 'snapshot RPC should use the existing created_at timestamp for assignment ordering');
+  assert.match(migration, /group by a\.id, a\.title, a\.due_at, s\.status, s\.created_at/, 'active assignment grouping should use the existing timestamp column');
 });
 
 test('modal supports outside click, Escape, close button, loading, and error states', () => {
