@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAdmin } from '../AdminContext';
+import { buildBiologyAnswerKeyFromSavedMetadata, isBiologyCambridgeQuiz, parseSavedAnswersPayload } from '../../biologyReviewAnswerKey';
 
 const AnswerReflectionModal: React.FC = () => {
   const {
@@ -11,9 +12,11 @@ const AnswerReflectionModal: React.FC = () => {
     <>
       {/* Answer Reflection Modal */}
       {showAnswerReflection && reportStudent && (() => {
-        const rawAnswers = reportStudent.answers || {};
+        const rawAnswers = parseSavedAnswersPayload(reportStudent.answers);
         const quizName = reportStudent.quiz_name || '';
-        const isChemistryTest = quizName.toLowerCase().includes('chemistry') || quizName.toLowerCase().includes('biology');
+        const isBiologyTest = isBiologyCambridgeQuiz(quizName);
+        const isChemistryTest = quizName.toLowerCase().includes('chemistry') || isBiologyTest;
+        const biologyAnswerMetadata = buildBiologyAnswerKeyFromSavedMetadata(reportStudent.answers);
 
         // For Science tests, extract responses from answers.responses
         const studentResponses = isChemistryTest 
@@ -21,7 +24,8 @@ const AnswerReflectionModal: React.FC = () => {
           : rawAnswers;
 
         // Get correct answers for tests that ship an answer key in the frontend
-        const correctAnswersForQuiz = isChemistryTest ? getScienceAnswerKey(quizName) : (correctAnswers[quizName] || {});
+        const correctAnswersForQuiz = isChemistryTest ? getScienceAnswerKey(quizName, reportStudent) : (correctAnswers[quizName] || {});
+        const biologyMetadataUnavailable = isBiologyTest && !biologyAnswerMetadata.hasMetadata;
         const sections = testSections[quizName] || [];
 
         let correctCount = reportStudent.score || 0;
@@ -106,6 +110,12 @@ const AnswerReflectionModal: React.FC = () => {
                   </div>
                 </div>
 
+                {biologyMetadataUnavailable && (
+                  <div className="bg-amber-50 border border-amber-300 text-amber-800 rounded-xl p-4 text-sm">
+                    Biology answer metadata is unavailable for this older submission, so admin review cannot safely reconstruct correct answers. The stored score is shown, but per-question correctness is not inferred.
+                  </div>
+                )}
+
                 {/* Sections with Answers */}
                 {sections.length > 0 ? sections.map(section => {
                   let sectionCorrect = 0;
@@ -147,7 +157,7 @@ const AnswerReflectionModal: React.FC = () => {
                 }) : (
                   /* For Chemistry tests without predefined sections, show a simple summary */
                   <div className="bg-blue-50 border-2 border-blue-400 rounded-xl p-5">
-                    <h3 className="text-lg font-semibold text-blue-700 mb-4">🧪 Chemistry Test Results</h3>
+                    <h3 className="text-lg font-semibold text-blue-700 mb-4">🧪 Cambridge Science Test Results</h3>
                     <p className="text-gray-700 mb-3">
                       Score: <strong>{reportStudent.score}</strong> out of <strong>{reportStudent.total_questions}</strong> ({reportStudent.percentage}%)
                     </p>

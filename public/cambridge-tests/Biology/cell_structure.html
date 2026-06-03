@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
   <title>AS Biology Ch1 — Cell structure</title>
   <script src="../examguard.js?v=2"></script>
+  <script src="biology_master_answer_key.js?v=1"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
@@ -609,7 +610,8 @@
     const supabaseClient = createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const TOTAL_PARTS = 5;
-    const PART_SIZE = 43;
+    // 151 validated 2017–2024 questions split as 31/31/31/31/27.
+    const PART_SIZE = 31;
 
     function getQuizPart() {
       const params = new URLSearchParams(window.location.search);
@@ -623,18 +625,11 @@
       return params.get('mode') === 'review';
     }
 
-    function splitQuiz(questions, answerKey, part) {
+    function splitQuiz(questions, part) {
       const start = (part - 1) * PART_SIZE;
       const end = Math.min(start + PART_SIZE, questions.length);
       const slice = questions.slice(start, end);
-      const numbers = new Set(slice.map(q => q.number));
-      const filteredKey = {};
-      Object.entries(answerKey).forEach(([num, ans]) => {
-        if (numbers.has(Number(num))) {
-          filteredKey[num] = ans;
-        }
-      });
-      return { questions: slice, answerKey: filteredKey, totalParts: TOTAL_PARTS };
+      return { questions: slice, totalParts: TOTAL_PARTS };
     }
 
     function formatDuration(seconds) {
@@ -1237,237 +1232,28 @@
       },
       {
         number: 51,
-        code: '9700_m16_qp_12 Q: 1',
-        prompt: 'A student has drawn a cell structure as seen using a light microscope. The magnification of the drawing is x600. The length of the structure on the drawing is 6mm. What is the actual length of the cell structure?',
+        code: '9700_m20_qp_12 Q: 2',
+        prompt: '<img src="assets/questions/page_033.png" alt="Question 51" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
-          A: '1x10"\'um',
-          B: '1x10°um',
-          C: '1x10\'ym',
-          D: '1x10°um'
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
         }
       },
       {
         number: 52,
-        code: '9700_s16_qp_11 Q: 2',
-        prompt: 'The drawing from an electron micrograph shows a ciliated epithelial cell, magnified x1500, which is found in the trachea. Line X-Y shows the widest dimension of the cell. x vo What is the number of these cells that could be found along a 1 cm length of the trachea?',
+        code: '9700_m20_qp_12 Q: 3',
+        prompt: '<img src="assets/questions/page_033.png" alt="Question 52" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
-          A: '5',
-          B: '50',
-          C: '500',
-          D: '5000'
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
         }
       },
       {
         number: 53,
-        code: '9700_s16_qp_12 Q: 1',
-        prompt: 'A student was presented with a photomicrograph of a cell organelle. The magnification of the photomicrograph is known. Which calculation of the actual length of the organelle in pm is correct?',
-        options: {
-          A: 'actual size in cm x 100 divided by the magnification',
-          B: 'actual size in mm x 100 divided by the magnification',
-          C: 'image size in cm x 1000 divided by the magnification',
-          D: 'image size in mm x 1000 divided by the magnification'
-        }
-      },
-      {
-        number: 54,
-        code: '9700_s16_qp_13 Q: 1',
-        prompt: 'An eyepiece graticule can be calibrated using a stage micrometer. What is the correct reason why an eyepiece graticule is calibrated?',
-        options: {
-          A: 'An eyepiece graticule can be used to make measurements.',
-          B: 'An eyepiece graticule is magnified by the objective lens.',
-          C: 'An eyepiece graticule magnifies the specimen.',
-          D: 'An eyepiece graticule makes comparisons.'
-        }
-      },
-      {
-        number: 55,
-        code: '9700_w16_qp_11 Q: 1',
-        prompt: 'The diagram shows a transverse section through a blood capillary. wall of endothelium lumen ——] 7um What is the magnification of the drawing?',
-        options: {
-          A: 'x200',
-          B: 'x245',
-          C: 'x500',
-          D: 'x5000'
-        }
-      },
-      {
-        number: 56,
-        code: '9700_w16_qp_12 Q: 1',
-        prompt: '<img src="assets/questions/page_026.png" alt="Question 56" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
-        options: {
-          A: 'TODO',
-          B: 'TODO',
-          C: 'TODO',
-          D: 'TODO'
-        }
-      },
-      {
-        number: 57,
-        code: '9700_w16_qp_12 Q: 2',
-        prompt: 'This electron micrograph of a section of a leaf has a magnification of x210. s X re >. € ~ ul [0 SEER) 2 Pe ATE ) wat ee RE EE A LAA b \\ V7 0 al EO & 1 Lodi] / Jil yf 1 i en AL 7 dL J F A DEANE {= VCO Maal 5 QAM a =. & =< fey © Je What is the actual length along the line X-Y?',
-        options: {
-          A: '2.43pm',
-          B: '24.3pm',
-          C: '243.0um',
-          D: '2430pm'
-        }
-      },
-      {
-        number: 58,
-        code: '9700_w16_qp_12 Q: 4',
-        prompt: 'The diagram shows a stage micrometer scale, with divisions 0.1 mm apart, viewed through an eyepiece containing a graticule. D 10 20 30 40 50 60 70 80 90 1 What is the area of the field of view of the microscope at this magnification? (rn = 3.14)',
-        options: {
-          A: '1x125x125=49x 10°um?',
-          B: '7x 50x50=7.9x 10°um?',
-          C: '7x 125x 125=4.9 x 10* ym?',
-          D: 'nx 250x250 =2.0 x 10° um?'
-        }
-      },
-      {
-        number: 59,
-        code: '9700_w16_qp_13 Q: 2',
-        prompt: '<img src="assets/questions/page_028.png" alt="Question 59" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
-        options: {
-          A: 'TODO',
-          B: 'TODO',
-          C: 'TODO',
-          D: 'TODO'
-        }
-      },
-      {
-        number: 60,
-        code: '9700_w16_qp_13 Q: 3',
-        prompt: 'Which calculation is used to find the actual length of an organelle from an image?',
-        options: {
-          A: 'image size + magnification',
-          B: 'image size x magnification',
-          C: 'image size x resolution',
-          D: 'magnification + image size'
-        }
-      },
-      {
-        number: 61,
-        code: '9700_s15_qp_11 Q: 1',
-        prompt: '<img src="assets/questions/page_028.png" alt="Question 61" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
-        options: {
-          A: 'TODO',
-          B: 'TODO',
-          C: 'TODO',
-          D: 'TODO'
-        }
-      },
-      {
-        number: 62,
-        code: '9700_s15_qp_11 Q: 3',
-        prompt: 'The diagram shows a stage micrometer scale on which the small divisions are 0.1 mm. It is viewed through an eyepiece containing a graticule. 0 10 20 30 40 50 60 70 80 90 10Q The stage micrometer scale is replaced by a slide of a plant cell. Fmcowmw a ama 0 10 20 30 40 50 60 70 80 90 100 What is the width of a chloroplast?',
-        options: {
-          A: '05mm',
-          B: '10um',
-          C: '50um',
-          D: '100um'
-        }
-      },
-      {
-        number: 63,
-        code: '9700_s15_qp_11 Q: 6',
-        prompt: '<img src="assets/questions/page_030.png" alt="Question 63" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
-        options: {
-          A: 'TODO',
-          B: 'TODO',
-          C: 'TODO',
-          D: 'TODO'
-        }
-      },
-      {
-        number: 64,
-        code: '9700_s15_qp_12 Q: 1',
-        prompt: 'What is the diameter of a typical plant cell?',
-        options: {
-          A: '40x10\'um',
-          B: '1.0x10°um',
-          C: '4.0x10°nm',
-          D: '1.0x10°nm'
-        }
-      },
-      {
-        number: 65,
-        code: '9700_s15_qp_12 Q: 2',
-        prompt: '<img src="assets/questions/page_031.png" alt="Question 65" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
-        options: {
-          A: 'decreased remains the same',
-          B: 'increased increased',
-          C: 'TODO',
-          D: 'remains the same increased'
-        }
-      },
-      {
-        number: 66,
-        code: '9700_s15_qp_13 Q: 2',
-        prompt: 'Which statements about light microscopes are correct? 1 To calculate the magnification of a light microscope the eyepiece lens and objective lens magnifications are added together. 2 As the magnification increases the resolution decreases. 3 The resolution of a light microscope is limited by the wavelength of light. 4 The scale on a stage micrometer is resolved more clearly than an eyepiece graticule.',
-        options: {
-          A: '1,2,3and4',
-          B: '1,3and4only',
-          C: '2and3only',
-          D: '2and4only'
-        }
-      },
-      {
-        number: 67,
-        code: '9700_w15_qp_11 Q: 2',
-        prompt: 'Pancreatic cells have a diameter of 35pm. Red blood cells have a diameter of 7000 nm. Which statement is correct?',
-        options: {
-          A: 'Pancreatic cells are 5 times larger than red blood cells.',
-          B: 'Pancreatic cells are 50 times larger than red blood cells.',
-          C: 'Pancreatic cells are 5 times smaller than red blood cells.',
-          D: 'Pancreatic cells are 50 times smaller than red blood cells.'
-        }
-      },
-      {
-        number: 68,
-        code: '9700_w15_qp_12 Q: 2',
-        prompt: 'Different units are used when measuring biological specimens. Which measurement in mm has not been correctly converted into both pm and nm? ET ET',
-        options: {
-          A: '1,2,3and4',
-          B: '1,2and4only',
-          C: '1and2only',
-          D: '3and4only'
-        }
-      },
-      {
-        number: 69,
-        code: '9700_w15_qp_13 Q: 2',
-        prompt: '<img src="assets/questions/page_032.png" alt="Question 69" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
-        options: {
-          A: 'TODO',
-          B: 'TODO',
-          C: 'TODO',
-          D: 'TODO'
-        }
-      },
-      {
-        number: 70,
-        code: '9700_m20_qp_12 Q: 2',
-        prompt: '<img src="assets/questions/page_033.png" alt="Question 70" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
-        options: {
-          A: 'TODO',
-          B: 'TODO',
-          C: 'TODO',
-          D: 'TODO'
-        }
-      },
-      {
-        number: 71,
-        code: '9700_m20_qp_12 Q: 3',
-        prompt: '<img src="assets/questions/page_033.png" alt="Question 71" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
-        options: {
-          A: 'TODO',
-          B: 'TODO',
-          C: 'TODO',
-          D: 'TODO'
-        }
-      },
-      {
-        number: 72,
         code: '9700_m20_qp_12 Q: 4',
         prompt: 'Which cell structures contain RNA? 1 centrioles 2 mitochondria 3 nucleus 4 ribosomes',
         options: {
@@ -1478,7 +1264,7 @@
         }
       },
       {
-        number: 73,
+        number: 54,
         code: '9700_m20_qp_12 Q: 5',
         prompt: 'It is possible for a bacterium to synthesise a eukaryotic protein. This involves introducing a eukaryotic gene into the bacterial DNA. The eukaryotic gene is then translated by the bacterium. What explains why a bacterial cell can produce a eukaryotic protein but cannot produce a eukaryotic glycoprotein?',
         options: {
@@ -1489,7 +1275,7 @@
         }
       },
       {
-        number: 74,
+        number: 55,
         code: '9700_m20_qp_12 Q: 6',
         prompt: 'Which structures are found in typical prokaryotic cells and also in typical plant cells?',
         options: {
@@ -1500,7 +1286,7 @@
         }
       },
       {
-        number: 75,
+        number: 56,
         code: '9700_s20_qp_11 Q: 2',
         prompt: 'Which structures are found in typical eukaryotic cells? 1 70S ribosomes 2 80S ribosomes 3 linear DNA (chromosomes) 4 circular DNA',
         options: {
@@ -1511,9 +1297,9 @@
         }
       },
       {
-        number: 76,
+        number: 57,
         code: '9700_s20_qp_11 Q: 5',
-        prompt: '<img src="assets/questions/page_035.png" alt="Question 76" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" /><br><br>The table shows a comparison between two features of a typical eukaryotic cell and a typical prokaryotic cell. Which row shows the correct comparison between these cells? eukaryotic | prokaryotic | eukaryotic | prokaryotic cell cell cell cell A v v X X key B v xX v Xx v= pre',
+        prompt: '<img src="assets/questions/page_035.png" alt="Question 57" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" /><br><br>The table shows a comparison between two features of a typical eukaryotic cell and a typical prokaryotic cell. Which row shows the correct comparison between these cells? eukaryotic | prokaryotic | eukaryotic | prokaryotic cell cell cell cell A v v X X key B v xX v Xx v= pre',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -1522,7 +1308,7 @@
         }
       },
       {
-        number: 77,
+        number: 58,
         code: '9700_s20_qp_12 Q: 3',
         prompt: 'Which row correctly shows a feature of a cell structure? site of protein makes lysosomes synthesis',
         options: {
@@ -1533,9 +1319,9 @@
         }
       },
       {
-        number: 78,
+        number: 59,
         code: '9700_s20_qp_12 Q: 4',
-        prompt: '<img src="assets/questions/page_036.png" alt="Question 78" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_036.png" alt="Question 59" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -1544,9 +1330,9 @@
         }
       },
       {
-        number: 79,
+        number: 60,
         code: '9700_s20_qp_12 Q: 5',
-        prompt: '<img src="assets/questions/page_036.png" alt="Question 79" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_036.png" alt="Question 60" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -1555,7 +1341,7 @@
         }
       },
       {
-        number: 80,
+        number: 61,
         code: '9700_s20_qp_12 Q: 6',
         prompt: 'Mitochondria are thought to have evolved from prokaryotic cells that were ingested by an ancestral cell. Which feature have these prokaryotes lost during their evolution into mitochondria?',
         options: {
@@ -1566,9 +1352,9 @@
         }
       },
       {
-        number: 81,
+        number: 62,
         code: '9700_s20_qp_13 Q: 2',
-        prompt: '<img src="assets/questions/page_037.png" alt="Question 81" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_037.png" alt="Question 62" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -1577,7 +1363,7 @@
         }
       },
       {
-        number: 82,
+        number: 63,
         code: '9700_s20_qp_13 Q: 3',
         prompt: 'Some stains can be used to identify cell structures in living cells.',
         options: {
@@ -1588,9 +1374,9 @@
         }
       },
       {
-        number: 83,
+        number: 64,
         code: '9700_s20_qp_13 Q: 4',
-        prompt: '<img src="assets/questions/page_038.png" alt="Question 83" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_038.png" alt="Question 64" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -1599,9 +1385,9 @@
         }
       },
       {
-        number: 84,
+        number: 65,
         code: '9700_s20_qp_13 Q: 5',
-        prompt: '<img src="assets/questions/page_038.png" alt="Question 84" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_038.png" alt="Question 65" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -1610,9 +1396,9 @@
         }
       },
       {
-        number: 85,
+        number: 66,
         code: '9700_w20_qp_11 Q: 3',
-        prompt: '<img src="assets/questions/page_039.png" alt="Question 85" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_039.png" alt="Question 66" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -1621,7 +1407,7 @@
         }
       },
       {
-        number: 86,
+        number: 67,
         code: '9700_w20_qp_11 Q: 4',
         prompt: 'The electron micrograph shows a cell structure in a eukaryotic cell. rT or ee pe EE ea i” 27 Ree CRT 4 og ML ] RT RNR = ay, io vs SEMEL A i> 4 4 Rie ty fins Baar Levi RE Oy WEL Past UT oa ho a Ay HBX Wa SE Rx NEY 2 9 I, ne het of 2 x ; boli We Pk ay, 2d Fir ar Bo Bins RC oF 48 as Eat Li re Which statements about this cell structure are correct? 1 ATP is synthesised in this cell structure. 2 The cell structure is made of protein molecules. 3 The cell structure replicates during interphase of the cell cycle.',
         options: {
@@ -1632,9 +1418,9 @@
         }
       },
       {
-        number: 87,
+        number: 68,
         code: '9700_w20_qp_11 Q: 5',
-        prompt: '<img src="assets/questions/page_040.png" alt="Question 87" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_040.png" alt="Question 68" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -1643,7 +1429,7 @@
         }
       },
       {
-        number: 88,
+        number: 69,
         code: '9700_w20_qp_11 Q: 6',
         prompt: 'The DNA of typical prokaryotes is naked and circular. Which statement describes how the DNA of eukaryotes differs from the DNA of typical prokaryotes?',
         options: {
@@ -1654,7 +1440,7 @@
         }
       },
       {
-        number: 89,
+        number: 70,
         code: '9700_w20_qp_12 Q: 3',
         prompt: 'The electron micrograph shows a structure found in the cytoplasm of an animal cell. Eo Which biological molecules are found in this structure? 1 nucleic acid 2 protein 3 phospholipid',
         options: {
@@ -1665,7 +1451,7 @@
         }
       },
       {
-        number: 90,
+        number: 71,
         code: '9700_w20_qp_12 Q: 4',
         prompt: 'Four students were asked to match the function with the appearance of some cell structures in an animal cell. The functions were listed by number. 1 mRNA passes through to the ribosome 2 synthesis of lipids 3 packaging of hydrolytic enzymes that will remain in the cell The appearances were listed by letter. V membranes which surround an enclosed inner cavity W non-membrane-bound, spherical structures X a double membrane interspersed with pores Y non-membrane-bound, cylindrical structures Z membrane-bound sacs, arranged as a flattened stack Which student correctly matched the numbered function with the appearance of the cell structure? [+r [2 [3]',
         options: {
@@ -1676,9 +1462,9 @@
         }
       },
       {
-        number: 91,
+        number: 72,
         code: '9700_w20_qp_12 Q: 5',
-        prompt: '<img src="assets/questions/page_042.png" alt="Question 91" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_042.png" alt="Question 72" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -1687,7 +1473,7 @@
         }
       },
       {
-        number: 92,
+        number: 73,
         code: '9700_w20_qp_12 Q: 6',
         prompt: 'The diagram shows some features that occur in organisms. 4 1 RNA DNA 3 2 708 protein ribosomes Which features can be present in viruses?',
         options: {
@@ -1698,7 +1484,7 @@
         }
       },
       {
-        number: 93,
+        number: 74,
         code: '9700_w20_qp_13 Q: 3',
         prompt: 'The electron micrograph shows some cell structures. ae Re eR TA 25. en BE mT Sa BE ee a Ne Tene =] [6S abasic Sesame od Canaan a GT Pelee ad Eh Gite GE NEC Tg Wen proene pL Mma Shia Resale Sars CRE pl ara es SRT) En BRE INA NR Be ARE BR ease Sel NEGRI i - TO WEASEL Ble rg Pot es ea ie or TUG len Fae Bo Vveralt Sonanind an BERSRERRSF Te phe “ifn SEAT NGIERSTION La = re OE, SIRE fe Some cell structures are listed. 1 nucleolus 2 chloroplast 3 microtubules 4 ribosomes 5 mitochondria 6 plasmodesmata Which cell structures can be seen in the electron micrograph?',
         options: {
@@ -1709,7 +1495,7 @@
         }
       },
       {
-        number: 94,
+        number: 75,
         code: '9700_w20_qp_13 Q: 4',
         prompt: 'Which part of the cell is often continuous with the rough endoplasmic reticulum?',
         options: {
@@ -1720,9 +1506,9 @@
         }
       },
       {
-        number: 95,
+        number: 76,
         code: '9700_w20_qp_13 Q: 5',
-        prompt: '<img src="assets/questions/page_045.png" alt="Question 95" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" /><br><br>Which statements about ATP are correct? 1 ltis produced in chloroplasts. 2 ltis used during protein synthesis. 3 It contains deoxyribose. 4 Itis used in facilitated diffusion. 5 ltis used to load sucrose into companion cells. A 1,2and5 B 1,3and5 C 2,3,4and5 D 2and4only',
+        prompt: '<img src="assets/questions/page_045.png" alt="Question 76" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" /><br><br>Which statements about ATP are correct? 1 ltis produced in chloroplasts. 2 ltis used during protein synthesis. 3 It contains deoxyribose. 4 Itis used in facilitated diffusion. 5 ltis used to load sucrose into companion cells. A 1,2and5 B 1,3and5 C 2,3,4and5 D 2and4only',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -1731,9 +1517,9 @@
         }
       },
       {
-        number: 96,
+        number: 77,
         code: '9700_w20_qp_13 Q: 6',
-        prompt: '<img src="assets/questions/page_045.png" alt="Question 96" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_045.png" alt="Question 77" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -1742,7 +1528,7 @@
         }
       },
       {
-        number: 97,
+        number: 78,
         code: '9700_m19_qp_12 Q: 4',
         prompt: 'Which structures are found in both chloroplasts and mitochondria? 1 70S ribosomes 2 80S ribosomes 3 circular DNA',
         options: {
@@ -1753,9 +1539,9 @@
         }
       },
       {
-        number: 98,
+        number: 79,
         code: '9700_m19_qp_12 Q: 5',
-        prompt: '<img src="assets/questions/page_046.png" alt="Question 98" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_046.png" alt="Question 79" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -1764,7 +1550,7 @@
         }
       },
       {
-        number: 99,
+        number: 80,
         code: '9700_m19_qp_12 Q: 6',
         prompt: 'Ribosomes exist as separate subunits that are bound together during protein synthesis. What do these subunits consist of?',
         options: {
@@ -1775,9 +1561,9 @@
         }
       },
       {
-        number: 100,
+        number: 81,
         code: '9700_s19_qp_11 Q: 2',
-        prompt: '<img src="assets/questions/page_047.png" alt="Question 100" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_047.png" alt="Question 81" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -1786,9 +1572,9 @@
         }
       },
       {
-        number: 101,
+        number: 82,
         code: '9700_s19_qp_11 Q: 3',
-        prompt: '<img src="assets/questions/page_047.png" alt="Question 101" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_047.png" alt="Question 82" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -1797,9 +1583,9 @@
         }
       },
       {
-        number: 102,
+        number: 83,
         code: '9700_s19_qp_11 Q: 4',
-        prompt: '<img src="assets/questions/page_047.png" alt="Question 102" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_047.png" alt="Question 83" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -1808,7 +1594,7 @@
         }
       },
       {
-        number: 103,
+        number: 84,
         code: '9700_s19_qp_11 Q: 5',
         prompt: 'Which cell structures have ribosomal RNA (rRNA)? 1 chloroplast 2 mitochondrion 3 nucleus 4 rough endoplasmic reticulum',
         options: {
@@ -1819,7 +1605,7 @@
         }
       },
       {
-        number: 104,
+        number: 85,
         code: '9700_s19_qp_11 Q: 6',
         prompt: 'A cell structure in the macrophage destroys bacteria. Some bacteria stop this cell structure from functioning. Which cell structure in the macrophage is stopped from functioning by the bacteria?',
         options: {
@@ -1830,9 +1616,9 @@
         }
       },
       {
-        number: 105,
+        number: 86,
         code: '9700_s19_qp_12 Q: 3',
-        prompt: '<img src="assets/questions/page_048.png" alt="Question 105" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_048.png" alt="Question 86" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -1841,7 +1627,7 @@
         }
       },
       {
-        number: 106,
+        number: 87,
         code: '9700_s19_qp_12 Q: 4',
         prompt: 'Which features shown in the diagram can be present in viruses? 4 1 RNA DNA 3 2 70S protein coat ribosomes',
         options: {
@@ -1852,7 +1638,7 @@
         }
       },
       {
-        number: 107,
+        number: 88,
         code: '9700_s19_qp_13 Q: 3',
         prompt: 'The diagram shows a typical animal cell as seen using an electron microscope. Do & ° x 1 TY J 0 APEEN ° o 5 «? ys © 2 € = 4 Qe 3 Which of the numbered structures are needed for proteins to be secreted at the cell surface membrane?',
         options: {
@@ -1863,7 +1649,7 @@
         }
       },
       {
-        number: 108,
+        number: 89,
         code: '9700_s19_qp_13 Q: 4',
         prompt: 'Lysosomes vary in shape and size, making them difficult to identify. What describes a lysosome?',
         options: {
@@ -1874,7 +1660,7 @@
         }
       },
       {
-        number: 109,
+        number: 90,
         code: '9700_s19_qp_13 Q: 5',
         prompt: 'Which statements about ATP are correct? 1 Itis produced in mitochondria only. 2 lt can be hydrolysed to form ADP. 3 It contains deoxyribose.',
         options: {
@@ -1885,7 +1671,7 @@
         }
       },
       {
-        number: 110,
+        number: 91,
         code: '9700_s19_qp_13 Q: 6',
         prompt: 'A single-celled organism lives inside the body of a fish. This single-celled organism is rod-shaped, 700 um long, enclosed in a cell wall and has cytoplasm containing thousands of copies of small, circular DNA. Which statement about this single-celled organism is correct?',
         options: {
@@ -1896,7 +1682,7 @@
         }
       },
       {
-        number: 111,
+        number: 92,
         code: '9700_w19_qp_11 Q: 1',
         prompt: 'Which cell structure contains cytoplasm?',
         options: {
@@ -1907,7 +1693,7 @@
         }
       },
       {
-        number: 112,
+        number: 93,
         code: '9700_w19_qp_11 Q: 2',
         prompt: 'Some cell structures are listed in a particular order. 1 nucleus 2 ribosome 3 Golgi body 4 vesicle What determines the order in which these cell structures are listed?',
         options: {
@@ -1918,9 +1704,9 @@
         }
       },
       {
-        number: 113,
+        number: 94,
         code: '9700_w19_qp_11 Q: 4',
-        prompt: '<img src="assets/questions/page_051.png" alt="Question 113" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_051.png" alt="Question 94" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -1929,9 +1715,9 @@
         }
       },
       {
-        number: 114,
+        number: 95,
         code: '9700_w19_qp_11 Q: 5',
-        prompt: '<img src="assets/questions/page_052.png" alt="Question 114" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_052.png" alt="Question 95" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -1940,7 +1726,7 @@
         }
       },
       {
-        number: 115,
+        number: 96,
         code: '9700_w19_qp_12 Q: 3',
         prompt: 'Which structures are found in animal cells and in plant cells? 1 centriole 2 lysosome 3 nucleolus 4 vacuole',
         options: {
@@ -1951,7 +1737,7 @@
         }
       },
       {
-        number: 116,
+        number: 97,
         code: '9700_w19_qp_12 Q: 4',
         prompt: 'Which features shown in the diagram can be present in eukaryotes? 4 peptidoglycan 1 cell wall DNA 3 2 708 RNA ribosomes .',
         options: {
@@ -1962,9 +1748,9 @@
         }
       },
       {
-        number: 117,
+        number: 98,
         code: '9700_w19_qp_12 Q: 5',
-        prompt: '<img src="assets/questions/page_053.png" alt="Question 117" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_053.png" alt="Question 98" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -1973,9 +1759,9 @@
         }
       },
       {
-        number: 118,
+        number: 99,
         code: '9700_w19_qp_12 Q: 6',
-        prompt: '<img src="assets/questions/page_053.png" alt="Question 118" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_053.png" alt="Question 99" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -1984,7 +1770,7 @@
         }
       },
       {
-        number: 119,
+        number: 100,
         code: '9700_w19_qp_13 Q: 1',
         prompt: 'Plant cells are stained and then seen with a simple light microscope using daylight as the only light source. Which cell structures are clearly visible at a magnification of x400?',
         options: {
@@ -1995,7 +1781,7 @@
         }
       },
       {
-        number: 120,
+        number: 101,
         code: '9700_w19_qp_13 Q: 3',
         prompt: 'Which cell structures contain 70S ribosomes? 1 chloroplasts 2 mitochondria 3 nucleus 4 cytoplasm',
         options: {
@@ -2006,9 +1792,9 @@
         }
       },
       {
-        number: 121,
+        number: 102,
         code: '9700_w19_qp_13 Q: 4',
-        prompt: '<img src="assets/questions/page_055.png" alt="Question 121" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_055.png" alt="Question 102" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -2017,9 +1803,9 @@
         }
       },
       {
-        number: 122,
+        number: 103,
         code: '9700_w19_qp_13 Q: 5',
-        prompt: '<img src="assets/questions/page_056.png" alt="Question 122" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_056.png" alt="Question 103" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -2028,9 +1814,9 @@
         }
       },
       {
-        number: 123,
+        number: 104,
         code: '9700_m18_qp_12 Q: 4',
-        prompt: '<img src="assets/questions/page_056.png" alt="Question 123" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_056.png" alt="Question 104" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -2039,7 +1825,7 @@
         }
       },
       {
-        number: 124,
+        number: 105,
         code: '9700_m18_qp_12 Q: 5',
         prompt: 'Which animal cells would have the most extensive Golgi bodies?',
         options: {
@@ -2050,9 +1836,9 @@
         }
       },
       {
-        number: 125,
+        number: 106,
         code: '9700_m18_qp_12 Q: 6',
-        prompt: '<img src="assets/questions/page_057.png" alt="Question 125" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_057.png" alt="Question 106" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -2061,9 +1847,9 @@
         }
       },
       {
-        number: 126,
+        number: 107,
         code: '9700_s18_qp_11 Q: 4',
-        prompt: '<img src="assets/questions/page_058.png" alt="Question 126" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_058.png" alt="Question 107" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'nucleus lysosomes mitochondria ribosomes',
           B: 'nucleus mitochondria lysosomes ribosomes',
@@ -2072,7 +1858,7 @@
         }
       },
       {
-        number: 127,
+        number: 108,
         code: '9700_s18_qp_11 Q: 5',
         prompt: 'Radioactively-labelled nucleotides are introduced into a cell. 1 sy ve 2 & Soh y ). E57 ( Jo Wet Za 77, o [2] [¢} 090 In which cell structures will the radioactivity first become concentrated?',
         options: {
@@ -2083,9 +1869,9 @@
         }
       },
       {
-        number: 128,
+        number: 109,
         code: '9700_s18_qp_12 Q: 1',
-        prompt: '<img src="assets/questions/page_059.png" alt="Question 128" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_059.png" alt="Question 109" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -2094,7 +1880,7 @@
         }
       },
       {
-        number: 129,
+        number: 110,
         code: '9700_s18_qp_12 Q: 3',
         prompt: 'Which type of cell contains the highest proportion of cell structures bound by a single membrane?',
         options: {
@@ -2105,9 +1891,9 @@
         }
       },
       {
-        number: 130,
+        number: 111,
         code: '9700_s18_qp_12 Q: 4',
-        prompt: '<img src="assets/questions/page_060.png" alt="Question 130" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_060.png" alt="Question 111" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -2116,9 +1902,9 @@
         }
       },
       {
-        number: 131,
+        number: 112,
         code: '9700_s18_qp_12 Q: 5',
-        prompt: '<img src="assets/questions/page_060.png" alt="Question 131" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_060.png" alt="Question 112" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -2127,9 +1913,9 @@
         }
       },
       {
-        number: 132,
+        number: 113,
         code: '9700_s18_qp_13 Q: 2',
-        prompt: '<img src="assets/questions/page_061.png" alt="Question 132" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_061.png" alt="Question 113" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -2138,7 +1924,7 @@
         }
       },
       {
-        number: 133,
+        number: 114,
         code: '9700_s18_qp_13 Q: 3',
         prompt: 'Which cell structures produce ATP? 1 chloroplasts 2 mitochondria 3 nucleus',
         options: {
@@ -2149,9 +1935,9 @@
         }
       },
       {
-        number: 134,
+        number: 115,
         code: '9700_s18_qp_13 Q: 5',
-        prompt: '<img src="assets/questions/page_062.png" alt="Question 134" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" /><br><br>Which row could be correct for a virus? A Vv v v Vv Vv v B Vv xX v Xx X v Cc Xx v xX Xx X v D Xx v X Xx Vv Xx key Vv = present X =not present',
+        prompt: '<img src="assets/questions/page_062.png" alt="Question 115" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" /><br><br>Which row could be correct for a virus? A Vv v v Vv Vv v B Vv xX v Xx X v Cc Xx v xX Xx X v D Xx v X Xx Vv Xx key Vv = present X =not present',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -2160,9 +1946,9 @@
         }
       },
       {
-        number: 135,
+        number: 116,
         code: '9700_s18_qp_13 Q: 6',
-        prompt: '<img src="assets/questions/page_062.png" alt="Question 135" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_062.png" alt="Question 116" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -2171,9 +1957,9 @@
         }
       },
       {
-        number: 136,
+        number: 117,
         code: '9700_w18_qp_11 Q: 3',
-        prompt: '<img src="assets/questions/page_062.png" alt="Question 136" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_062.png" alt="Question 117" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -2182,9 +1968,9 @@
         }
       },
       {
-        number: 137,
+        number: 118,
         code: '9700_w18_qp_11 Q: 4',
-        prompt: '<img src="assets/questions/page_063.png" alt="Question 137" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_063.png" alt="Question 118" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -2193,9 +1979,9 @@
         }
       },
       {
-        number: 138,
+        number: 119,
         code: '9700_w18_qp_11 Q: 5',
-        prompt: '<img src="assets/questions/page_063.png" alt="Question 138" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_063.png" alt="Question 119" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -2204,7 +1990,7 @@
         }
       },
       {
-        number: 139,
+        number: 120,
         code: '9700_w18_qp_12 Q: 1',
         prompt: 'What is the diameter of a typical prokaryote, such as Streptococcus?',
         options: {
@@ -2215,9 +2001,9 @@
         }
       },
       {
-        number: 140,
+        number: 121,
         code: '9700_w18_qp_12 Q: 3',
-        prompt: '<img src="assets/questions/page_064.png" alt="Question 140" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_064.png" alt="Question 121" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -2226,7 +2012,7 @@
         }
       },
       {
-        number: 141,
+        number: 122,
         code: '9700_w18_qp_12 Q: 4',
         prompt: 'The removal of a plant cell wall by enzyme digestion leaves an intact membrane-bound structure called a protoplast. Which statement explains why protoplasts are easily damaged?',
         options: {
@@ -2237,9 +2023,9 @@
         }
       },
       {
-        number: 142,
+        number: 123,
         code: '9700_w18_qp_12 Q: 5',
-        prompt: '<img src="assets/questions/page_065.png" alt="Question 142" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_065.png" alt="Question 123" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -2248,7 +2034,7 @@
         }
       },
       {
-        number: 143,
+        number: 124,
         code: '9700_w18_qp_12 Q: 6',
         prompt: 'Which processes occur in eukaryotes and prokaryotes? 1 hydrolysis 2 mitosis 3 transcription 4 translation',
         options: {
@@ -2259,7 +2045,7 @@
         }
       },
       {
-        number: 144,
+        number: 125,
         code: '9700_w18_qp_13 Q: 4',
         prompt: 'The diagram is a drawing from an electron micrograph of a typical animal cell. ECE . & Be to o° Lo O-5 : ie a A . Co OTN W y . ORE BiH A . | ® i i ho A) ’ Sy to . Co Oa) C= What is the function of the membrane system labelled X?',
         options: {
@@ -2270,9 +2056,9 @@
         }
       },
       {
-        number: 145,
+        number: 126,
         code: '9700_w18_qp_13 Q: 5',
-        prompt: '<img src="assets/questions/page_066.png" alt="Question 145" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_066.png" alt="Question 126" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -2281,7 +2067,7 @@
         }
       },
       {
-        number: 146,
+        number: 127,
         code: '9700_w18_qp_13 Q: 6',
         prompt: 'The diagram shows some similarities between chloroplasts, mitochondria and typical prokaryotes. Which row is correct? ET ANT ET TE',
         options: {
@@ -2292,9 +2078,9 @@
         }
       },
       {
-        number: 147,
+        number: 128,
         code: '9700_m17_qp_12 Q: 1',
-        prompt: '<img src="assets/questions/page_067.png" alt="Question 147" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_067.png" alt="Question 128" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -2303,7 +2089,7 @@
         }
       },
       {
-        number: 148,
+        number: 129,
         code: '9700_m17_qp_12 Q: 4',
         prompt: 'Some features of cells are listed. 1 cytoplasm 2 cell surface membrane 3 ribosomes Which features are found in both animal and prokaryotic cells?',
         options: {
@@ -2314,7 +2100,7 @@
         }
       },
       {
-        number: 149,
+        number: 130,
         code: '9700_m17_qp_12 Q: 5',
         prompt: 'Which size of ribosomes is found in chloroplasts?',
         options: {
@@ -2325,9 +2111,9 @@
         }
       },
       {
-        number: 150,
+        number: 131,
         code: '9700_m17_qp_12 Q: 6',
-        prompt: '<img src="assets/questions/page_068.png" alt="Question 150" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_068.png" alt="Question 131" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -2336,7 +2122,7 @@
         }
       },
       {
-        number: 151,
+        number: 132,
         code: '9700_s17_qp_11 Q: 2',
         prompt: 'The electron micrograph shows part of two cells. 0 Pl w oy A ? » e 2 FRR oY X TF A Ww i 4 (se i wk: ¢ ® a aie ma Y & ol 2 - Vo URE an er 9A is - EE he Which labelled features identify these cells as eukaryotic?',
         options: {
@@ -2347,7 +2133,7 @@
         }
       },
       {
-        number: 152,
+        number: 133,
         code: '9700_s17_qp_11 Q: 3',
         prompt: 'Plant cells are fixed, stained and viewed using a student microscope. The light source was natural light. What would be clearly visible at x400 magnification?',
         options: {
@@ -2358,7 +2144,7 @@
         }
       },
       {
-        number: 153,
+        number: 134,
         code: '9700_s17_qp_11 Q: 5',
         prompt: 'Some secretory cells synthesise and release glycoproteins.<br><br>What is the correct order of the sequence of events as they occur in the secretory cell?<br><br>1 exocytosis<br>2 product accumulates in secretory vesicle<br>3 mRNA binds to ribosomes<br>4 synthesis of glycoprotein',
         options: {
@@ -2369,7 +2155,7 @@
         }
       },
       {
-        number: 154,
+        number: 135,
         code: '9700_s17_qp_11 Q: 6',
         prompt: 'A scientist carried out an experiment to separate the organelles in an animal cell by mass. The scientist mixed the cells with a buffer solution which had the same water potential as the cells. He then broke the cells open with a blender to release the organelles. The extracted mixture was filtered and then spun in a centrifuge at a speed to separate the heaviest organelle. This sank to the bottom, forming a solid pellet, 1. liquid above pellet solid pellet The liquid above pellet 1 was poured into a clean centrifuge tube and spun in the centrifuge at a higher speed to separate the next heaviest organelle. This organelle sank to the bottom, to form a solid pellet, 2. He repeated this procedure twice more to obtain pellet 3 and pellet 4, each containing a single organelle. What is the function of the organelle extracted in pellet 3?',
         options: {
@@ -2380,7 +2166,7 @@
         }
       },
       {
-        number: 155,
+        number: 136,
         code: '9700_s17_qp_12 Q: 1',
         prompt: 'Which organelles are enclosed in a single phospholipid bilayer and contain hydrolytic enzymes?',
         options: {
@@ -2391,7 +2177,7 @@
         }
       },
       {
-        number: 156,
+        number: 137,
         code: '9700_s17_qp_12 Q: 2',
         prompt: 'The DNA of prokaryotes is naked and circular. Which statement describes how the DNA of eukaryotes differs from that of prokaryotes?',
         options: {
@@ -2402,7 +2188,7 @@
         }
       },
       {
-        number: 157,
+        number: 138,
         code: '9700_s17_qp_12 Q: 4',
         prompt: 'What are found in chloroplasts and mitochondria?<br><br>1 DNA<br>2 70S ribosomes<br>3 mRNA',
         options: {
@@ -2413,7 +2199,7 @@
         }
       },
       {
-        number: 158,
+        number: 139,
         code: '9700_s17_qp_13 Q: 1',
         prompt: 'Where are cisternae found in a cell? 1 endoplasmic reticulum 2 Golgi body 3 mitochondrion',
         options: {
@@ -2424,7 +2210,7 @@
         }
       },
       {
-        number: 159,
+        number: 140,
         code: '9700_s17_qp_13 Q: 3',
         prompt: 'It is possible for a bacterium to synthesise a eukaryotic protein.<br><br>This involves introducing a eukaryotic gene into the bacterial DNA, which can be translated.<br><br>What explains why a bacterial cell can produce a eukaryotic protein but cannot produce a eukaryotic glycoprotein?',
         options: {
@@ -2435,7 +2221,7 @@
         }
       },
       {
-        number: 160,
+        number: 141,
         code: '9700_s17_qp_13 Q: 4',
         prompt: 'Which structures are found in both typical eukaryotic cells and typical prokaryotic cells? 1 70S ribosomes 2 80S ribosomes 3 circular DNA',
         options: {
@@ -2446,7 +2232,7 @@
         }
       },
       {
-        number: 161,
+        number: 142,
         code: '9700_w17_qp_11 Q: 2',
         prompt: 'An electron micrograph of a cell shows large quantities of rough endoplasmic reticulum and many Golgi bodies. What type of cell is being viewed?',
         options: {
@@ -2457,9 +2243,9 @@
         }
       },
       {
-        number: 162,
+        number: 143,
         code: '9700_w17_qp_11 Q: 3',
-        prompt: '<img src="assets/questions/page_072.png" alt="Question 162" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_072.png" alt="Question 143" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -2468,9 +2254,9 @@
         }
       },
       {
-        number: 163,
+        number: 144,
         code: '9700_w17_qp_12 Q: 2',
-        prompt: '<img src="assets/questions/page_073.png" alt="Question 163" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_073.png" alt="Question 144" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -2479,9 +2265,9 @@
         }
       },
       {
-        number: 164,
+        number: 145,
         code: '9700_w17_qp_12 Q: 3',
-        prompt: '<img src="assets/questions/page_073.png" alt="Question 164" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        prompt: '<img src="assets/questions/page_073.png" alt="Question 145" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
         options: {
           A: 'TODO',
           B: 'TODO',
@@ -2490,7 +2276,7 @@
         }
       },
       {
-        number: 165,
+        number: 146,
         code: '9700_w17_qp_12 Q: 4',
         prompt: 'The electron micrograph shows part of an animal cell. T fot, WIE oa ge RE oe 7 7 EG a VY dws 0 ashe 0 Chait” Tora dR Ev ATE) i ce SS gc. He Ip REE ESA Hos ASE Lg Wola What will be synthesised in large quantities in this cell? 1 ATP 2 glucose 3 RNA',
         options: {
@@ -2501,7 +2287,7 @@
         }
       },
       {
-        number: 166,
+        number: 147,
         code: '9700_w17_qp_12 Q: 5',
         prompt: 'Mitochondria are thought to have evolved from prokaryotic cells that were ingested by an ancestral cell. Which feature have the prokaryotes lost during their evolution into mitochondria?',
         options: {
@@ -2512,7 +2298,7 @@
         }
       },
       {
-        number: 167,
+        number: 148,
         code: '9700_w17_qp_12 Q: 6',
         prompt: 'Which statement is correct?',
         options: {
@@ -2523,7 +2309,7 @@
         }
       },
       {
-        number: 168,
+        number: 149,
         code: '9700_w17_qp_13 Q: 3',
         prompt: 'A cell was supplied with cytosine labelled with radioactive carbon. In which cell structure would radioactivity be detected first?',
         options: {
@@ -2534,7 +2320,7 @@
         }
       },
       {
-        number: 169,
+        number: 150,
         code: '9700_w17_qp_13 Q: 4',
         prompt: 'The diagram shows some similarities between chloroplasts, mitochondria and typical prokaryotes. Which row is correct? I EN I ET ER CN',
         options: {
@@ -2545,7 +2331,7 @@
         }
       },
       {
-        number: 170,
+        number: 151,
         code: '9700_w17_qp_13 Q: 5',
         prompt: 'Which statement supports the fact that mature plant cells can carry out the same role as lysosomes?',
         options: {
@@ -2554,514 +2340,53 @@
           C: 'Single membrane-bound vesicles are formed from plant Golgi bodies.',
           D: 'Vesicles, formed from smooth endoplasmic reticulum, contain enzymes.'
         }
-      },
-      {
-        number: 171,
-        code: '9700_m16_qp_12 Q: 2',
-        prompt: '<img src="assets/questions/page_076.png" alt="Question 171" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
-        options: {
-          A: 'TODO',
-          B: 'TODO',
-          C: 'TODO',
-          D: 'TODO'
-        }
-      },
-      {
-        number: 172,
-        code: '9700_m16_qp_12 Q: 3',
-        prompt: 'Inside a cell, a damaged mitochondrion can be surrounded and enclosed by a membrane to form a vesicle. What happens after the fusion of a lysosome with the vesicle?',
-        options: {
-          A: 'ATP production by the mitochondrion increases.',
-          B: 'Enzymes from the lysosome repair the mitochondrion.',
-          C: 'Hydrolytic enzymes catalyse the breakdown of the mitochondrion.',
-          D: 'The mitochondrion is released from the cell by exocytosis.'
-        }
-      },
-      {
-        number: 173,
-        code: '9700_m16_qp_12 Q: 4',
-        prompt: '<img src="assets/questions/page_076.png" alt="Question 173" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
-        options: {
-          A: 'TODO',
-          B: 'TODO',
-          C: 'TODO',
-          D: 'TODO'
-        }
-      },
-      {
-        number: 174,
-        code: '9700_m16_qp_12 Q: 5',
-        prompt: 'Which structures will be present in a cell that causes cholera? 1 circular DNA 2 naked DNA 3 70S ribosomes',
-        options: {
-          A: '1,2and3',
-          B: '1and2only',
-          C: '1and3only',
-          D: '2and3only'
-        }
-      },
-      {
-        number: 175,
-        code: '9700_s16_qp_11 Q: 1',
-        prompt: '<img src="assets/questions/page_077.png" alt="Question 175" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
-        options: {
-          A: 'TODO',
-          B: 'TODO',
-          C: 'TODO',
-          D: 'TODO'
-        }
-      },
-      {
-        number: 176,
-        code: '9700_s16_qp_11 Q: 3',
-        prompt: 'What are correct locations of ribosomes in the typical eukaryotic cell? 1 free in the cytoplasm 2 attached to the outside of the endoplasmic reticulum 3 attached to the inside of the endoplasmic reticulum',
-        options: {
-          A: '1,2and3',
-          B: '1and2only',
-          C: '1and3only',
-          D: '2and3only'
-        }
-      },
-      {
-        number: 177,
-        code: '9700_s16_qp_11 Q: 4',
-        prompt: 'Visking tubing is an artificial partially permeable membrane used to demonstrate diffusion. Glucose molecules can pass through the pores in the membrane which are approximately 2.4 nm in diameter. Which of the following could pass through the pores? 1 bacteria 2 haemoglobin 3 ribosomes 4 glycogen',
-        options: {
-          A: '1and3',
-          B: '2and4',
-          C: '2only',
-          D: 'none of the above'
-        }
-      },
-      {
-        number: 178,
-        code: '9700_s16_qp_11 Q: 5',
-        prompt: 'What are found in both chloroplasts and typical prokaryotic cells?',
-        options: {
-          A: '70S ribosomes and circular DNA',
-          B: '70S ribosomes only',
-          C: '80S ribosomes and circular DNA',
-          D: 'circular DNA only'
-        }
-      },
-      {
-        number: 179,
-        code: '9700_s16_qp_12 Q: 2',
-        prompt: 'Which statements about both mitochondria and chloroplasts are correct? 1 They contain 80S ribosomes. 2 They contain circular DNA molecules. 3 They produce ATP.',
-        options: {
-          A: '1,2and3',
-          B: '1and2only',
-          C: '1and3only',
-          D: '2and3only'
-        }
-      },
-      {
-        number: 180,
-        code: '9700_s16_qp_12 Q: 3',
-        prompt: 'Which range of sizes would include most eukaryotic cells?',
-        options: {
-          A: '1x10°nmto 1um',
-          B: '1umto1x10\'um',
-          C: '1x10\'umto 1x 102um',
-          D: '1x10°umto 1x 10°um'
-        }
-      },
-      {
-        number: 181,
-        code: '9700_s16_qp_12 Q: 4',
-        prompt: 'A scientist carried out an experiment to separate the organelles in an animal cell by mass. The scientist mixed the cells with a buffer solution which had the same water potential as the cells. He then broke the cells open with a blender to release the organelles. The extracted mixture was filtered and then spun in a centrifuge at a speed that separates the heaviest organelle. This organelle sank to the bottom, forming a solid pellet, 1. liquid above pellet solid pellet The liquid above pellet 1 was poured into a clean centrifuge tube and spun in the centrifuge at a higher speed to separate the next heaviest organelle. This organelle sank to the bottom, forming a solid pellet, 2. He repeated this procedure twice more to obtain pellet 3 and pellet 4, each containing a single organelle. What is the function of the organelle extracted in pellet 4?',
-        options: {
-          A: 'digestion of old organelles',
-          B: 'production of ATP',
-          C: 'production of MRNA',
-          D: 'synthesis of protein'
-        }
-      },
-      {
-        number: 182,
-        code: '9700_s16_qp_13 Q: 2',
-        prompt: 'For which cell component would nanometres be the most appropriate unit of measurement?',
-        options: {
-          A: 'a cell surface membrane',
-          B: 'a chloroplast',
-          C: 'a mitochondrion',
-          D: 'a nucleolus'
-        }
-      },
-      {
-        number: 183,
-        code: '9700_s16_qp_13 Q: 3',
-        prompt: '<img src="assets/questions/page_080.png" alt="Question 183" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
-        options: {
-          A: 'TODO',
-          B: 'TODO',
-          C: 'TODO',
-          D: 'TODO'
-        }
-      },
-      {
-        number: 184,
-        code: '9700_s16_qp_13 Q: 4',
-        prompt: 'What are found in both chloroplasts and mitochondria?',
-        options: {
-          A: '70S ribosomes only',
-          B: '70S ribosomes and circular DNA',
-          C: '80S ribosomes and circular DNA',
-          D: 'circular DNA only'
-        }
-      },
-      {
-        number: 185,
-        code: '9700_s16_qp_13 Q: 5',
-        prompt: '<img src="assets/questions/page_080.png" alt="Question 185" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
-        options: {
-          A: 'TODO',
-          B: 'TODO',
-          C: 'TODO',
-          D: 'TODO'
-        }
-      },
-      {
-        number: 186,
-        code: '9700_w16_qp_11 Q: 2',
-        prompt: 'A culture of human cells had its cell surface membranes removed, releasing the cell contents. This material became contaminated by bacteria. The material was then centrifuged, separating out the various cell structures according to size and mass. Which cell structure would be separated out along with the bacteria?',
-        options: {
-          A: 'endoplasmic reticulum',
-          B: 'mitochondria',
-          C: 'nuclei',
-          D: 'ribosomes'
-        }
-      },
-      {
-        number: 187,
-        code: '9700_w16_qp_11 Q: 3',
-        prompt: 'Which parts of a cell contain ribosomes? 1 chloroplast 2 mitochondrion 3 nucleus 4 cytoplasm',
-        options: {
-          A: '1,2,3and4',
-          B: '1,2and3only',
-          C: '1,2and4only',
-          D: '3and4 only'
-        }
-      },
-      {
-        number: 188,
-        code: '9700_w16_qp_11 Q: 4',
-        prompt: 'The electron micrograph shows part of two eukaryotic cells. y v ¥ 1 fd J € w 4 & # AS Pia Su 5 a Wp x Radia rine I Vihear 4 hap $ E Aorta i Ae ha 2 NORE LAA ’ Ree CI SR BG [ 4 RRS aE Ng Qa. Vid ee Co Which features are also found in prokaryotes?',
-        options: {
-          A: 'Wonly',
-          B: 'Xonly',
-          C: 'XandYonly',
-          D: 'W,XandY'
-        }
-      },
-      {
-        number: 189,
-        code: '9700_w16_qp_11 Q: 5',
-        prompt: 'Which of the structures are found in photosynthetic prokaryotes? 1 cell surface membrane 2 cellulose wall 3 ribosomes 4 chloroplasts',
-        options: {
-          A: '1,2,3and4',
-          B: '1,2and3only',
-          C: '1and3only',
-          D: '2and4 only'
-        }
-      },
-      {
-        number: 190,
-        code: '9700_w16_qp_12 Q: 3',
-        prompt: 'What is the correct order in which organelles function to make and secrete an enzyme?',
-        options: {
-          A: 'digestion of old organelles',
-          B: 'production of ATP',
-          C: 'production of mRNA',
-          D: 'synthesis of protein'
-        }
-      },
-      {
-        number: 191,
-        code: '9700_w16_qp_12 Q: 5',
-        prompt: '<img src="assets/questions/page_083.png" alt="Question 191" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" /><br><br>A scientist carried out an experiment to separate the organelles in an animal cell by mass. The scientist mixed the cells with a buffer solution which had the same water potential as the cells. He then broke the cells open with a blender to release the organelles. The extra',
-        options: {
-          A: 'TODO',
-          B: 'TODO',
-          C: 'TODO',
-          D: 'TODO'
-        }
-      },
-      {
-        number: 192,
-        code: '9700_w16_qp_12 Q: 6',
-        prompt: '<img src="assets/questions/page_083.png" alt="Question 192" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
-        options: {
-          A: 'TODO',
-          B: 'TODO',
-          C: 'TODO',
-          D: 'TODO'
-        }
-      },
-      {
-        number: 193,
-        code: '9700_w16_qp_13 Q: 1',
-        prompt: 'Which structure is only found in typical eukaryotic animal cells?',
-        options: {
-          A: 'cell surface membrane',
-          B: 'centriole',
-          C: 'Golgi body',
-          D: 'ribosome'
-        }
-      },
-      {
-        number: 194,
-        code: '9700_w16_qp_13 Q: 4',
-        prompt: 'Which statement is correct?',
-        options: {
-          A: 'Prokaryotes and chloroplasts have circular DNA where genes carrying the code for cell walls',
-          B: 'Prokaryotes and chloroplasts have 70S ribosomes that are the sites for translation and',
-          C: 'Prokaryotes and mitochondria have an outer membrane and a separate inner, folded',
-          D: 'Prokaryotes and mitochondria have double-stranded linear DNA where genes carrying coded'
-        }
-      },
-      {
-        number: 195,
-        code: '9700_w16_qp_13 Q: 5',
-        prompt: '<img src="assets/questions/page_085.png" alt="Question 195" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
-        options: {
-          A: 'TODO',
-          B: 'TODO',
-          C: 'TODO',
-          D: 'TODO'
-        }
-      },
-      {
-        number: 196,
-        code: '9700_s15_qp_11 Q: 2',
-        prompt: 'The diagram shows a high-power drawing of a bacterium. capsule cell wall cell membrane WE JN YSN, ribosome DNA Which three components are found in both this bacterium and an animal cell?',
-        options: {
-          A: 'capsule, cell membrane and cell wall',
-          B: 'capsule, DNA and ribosome',
-          C: 'cell membrane, cell wall and DNA',
-          D: 'cell membrane, DNA and ribosome'
-        }
-      },
-      {
-        number: 197,
-        code: '9700_s15_qp_11 Q: 4',
-        prompt: 'Which structures are found in typical eukaryotic cells? 1 70S ribosomes 2 80S ribosomes 3 linear DNA (chromosomes) 4 circular DNA',
-        options: {
-          A: '1,2,3and4',
-          B: '1,2and 3only',
-          C: '1and4only',
-          D: '2and 3 only'
-        }
-      },
-      {
-        number: 198,
-        code: '9700_s15_qp_11 Q: 5',
-        prompt: 'What is the function of the nucleolus?',
-        options: {
-          A: 'The formation and breakdown of the nuclear envelope.',
-          B: 'The formation of rough endoplasmic reticulum.',
-          C: 'The synthesis of ribosomal proteins.',
-          D: 'The synthesis of rRNA.'
-        }
-      },
-      {
-        number: 199,
-        code: '9700_s15_qp_12 Q: 3',
-        prompt: 'What is the function of plasmodesmata in plant cells?',
-        options: {
-          A: 'to actas a barrier to water soluble substances',
-          B: 'to allow active transport of ions and sucrose between cells',
-          C: 'to allow the symplastic movement of substances between cells',
-          D: 'to enable cells to recognise each other'
-        }
-      },
-      {
-        number: 200,
-        code: '9700_s15_qp_12 Q: 4',
-        prompt: 'Which size of ribosome is found in both chloroplasts and mitochondria?',
-        options: {
-          A: '60',
-          B: '70',
-          C: '80s',
-          D: '90'
-        }
-      },
-      {
-        number: 201,
-        code: '9700_s15_qp_12 Q: 5',
-        prompt: '<img src="assets/questions/page_087.png" alt="Question 201" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
-        options: {
-          A: 'TODO',
-          B: 'TODO',
-          C: 'TODO',
-          D: 'TODO'
-        }
-      },
-      {
-        number: 202,
-        code: '9700_s15_qp_12 Q: 6',
-        prompt: 'Ribosomes consist of two subunits, each containing rRNA. An analysis of all the 70S ribosomes from a single cell of the bacterium, Escherichia coli, showed that there were: + 38000 rRNA molecules * 2 main types of rRNA molecule * 19000 copies of each type of rRNA molecule How many 70S ribosomes were there in the E. coli cell?',
-        options: {
-          A: '9500',
-          B: '19000',
-          C: '38000',
-          D: '76000'
-        }
-      },
-      {
-        number: 203,
-        code: '9700_s15_qp_13 Q: 1',
-        prompt: 'What are found in both mitochondria and typical prokaryotic cells?',
-        options: {
-          A: '70S ribosomes and circular DNA',
-          B: '70S ribosomes only',
-          C: '80S ribosomes and circular DNA',
-          D: 'circular DNA only'
-        }
-      },
-      {
-        number: 204,
-        code: '9700_s15_qp_13 Q: 6',
-        prompt: 'What is the diameter of a typical prokaryote, such as Streptococcus?',
-        options: {
-          A: '60S B 70S C 80s D 90',
-          B: '7.5x10%nm',
-          C: '7.5x10°um',
-          D: '75x10\'um'
-        }
-      },
-      {
-        number: 205,
-        code: '9700_w15_qp_11 Q: 1',
-        prompt: '<img src="assets/questions/page_088.png" alt="Question 205" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" /><br><br>Which size of ribosome is found in chloroplasts and typical prokaryotic cells? A 60S B 70S C 80s D 90S',
-        options: {
-          A: 'TODO',
-          B: 'TODO',
-          C: 'TODO',
-          D: 'TODO'
-        }
-      },
-      {
-        number: 206,
-        code: '9700_w15_qp_11 Q: 6',
-        prompt: 'Which order of organelles is correct when a protein is synthesised and secreted?',
-        options: {
-          A: '60S B 70S C 80S D 90',
-          B: 'nucleus — ribosome — Golgi body — vesicle',
-          C: 'ribosome —» nucleus — lysosome —> Golgi body',
-          D: 'vesicle — Golgi body — nucleus — ribosome'
-        }
-      },
-      {
-        number: 207,
-        code: '9700_w15_qp_12 Q: 1',
-        prompt: '<img src="assets/questions/page_088.png" alt="Question 207" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
-        options: {
-          A: 'TODO',
-          B: 'TODO',
-          C: 'TODO',
-          D: 'TODO'
-        }
-      },
-      {
-        number: 208,
-        code: '9700_w15_qp_12 Q: 3',
-        prompt: '<img src="assets/questions/page_089.png" alt="Question 208" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
-        options: {
-          A: 'TODO',
-          B: 'TODO',
-          C: 'TODO',
-          D: 'TODO'
-        }
-      },
-      {
-        number: 209,
-        code: '9700_w15_qp_12 Q: 4',
-        prompt: 'Lysosomes have a variety of different shapes and sizes, making them difficult to identify. What describes a lysosome?',
-        options: {
-          A: '1 2 3 4',
-          B: '1 4 3 2',
-          C: 'a vesicle enclosed by a single membrane, containing several different hydrolytic enzymes',
-          D: '4 3 2 1'
-        }
-      },
-      {
-        number: 210,
-        code: '9700_w15_qp_12 Q: 5',
-        prompt: '<img src="assets/questions/page_090.png" alt="Question 210" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" /><br><br>Radioactively-labelled amino acids were introduced into a tracheal cell that uses them to make mucus (a glycoprotein). Oo fe) 1 O 0 Og 2 o o Q y) 3 =—> 0 BS — Tarn ~~ What route will the amino acids take? |] st ———— ast A 1 2 3 4 B 1 4 3 2 [+ 4 1 2 3 D 4 3 2 1',
-        options: {
-          A: 'TODO',
-          B: 'TODO',
-          C: 'TODO',
-          D: 'TODO'
-        }
-      },
-      {
-        number: 211,
-        code: '9700_w15_qp_13 Q: 1',
-        prompt: 'Which size of ribosome is found in chloroplasts?',
-        options: {
-          A: '60',
-          B: '70',
-          C: '80s',
-          D: '90'
-        }
-      },
-      {
-        number: 212,
-        code: '9700_w15_qp_13 Q: 3',
-        prompt: '<img src="assets/questions/page_090.png" alt="Question 212" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
-        options: {
-          A: 'TODO',
-          B: 'TODO',
-          C: 'TODO',
-          D: 'TODO'
-        }
-      },
-      {
-        number: 213,
-        code: '9700_w15_qp_13 Q: 4',
-        prompt: '<img src="assets/questions/page_091.png" alt="Question 213" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
-        options: {
-          A: 'TODO',
-          B: 'TODO',
-          C: 'TODO',
-          D: 'TODO'
-        }
-      },
-      {
-        number: 214,
-        code: '9700_w15_qp_13 Q: 5',
-        prompt: '<img src="assets/questions/page_091.png" alt="Question 214" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
-        options: {
-          A: 'TODO',
-          B: 'TODO',
-          C: 'TODO',
-          D: 'TODO'
-        }
-      },
-      {
-        number: 215,
-        code: '9700_w15_qp_13 Q: 6',
-        prompt: '<img src="assets/questions/page_092.png" alt="Question 215" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
-        options: {
-          A: 'TODO',
-          B: 'TODO',
-          C: 'TODO',
-          D: 'TODO'
-        }
       }
     ];
 
-    // =====================================================
-    // ANSWER KEY — Paste answers here: { 1: 'A', 2: 'C', ... }
-    // =====================================================
-    let ANSWER_KEY = {
-      // PASTE ANSWER KEY HERE
-    };
+    const ANSWER_SOURCE = 'BIOLOGY_MASTER_ANSWER_KEY';
 
-    const quizSplit = splitQuiz(QUESTIONS, ANSWER_KEY, QUIZ_PART.part);
+    const quizSplit = splitQuiz(QUESTIONS, QUIZ_PART.part);
     QUESTIONS = quizSplit.questions;
-    ANSWER_KEY = quizSplit.answerKey;
+
+    function getQuestionMasterKey(question) {
+      if (!window.getBiologyMasterKeyFromQuestionCode) return null;
+      return window.getBiologyMasterKeyFromQuestionCode(question.code);
+    }
+
+    function getQuestionMasterAnswer(question) {
+      if (!window.getBiologyAnswerFromQuestionCode) return '';
+      return window.getBiologyAnswerFromQuestionCode(question.code);
+    }
+
+    function buildQuestionAnswerMetadata() {
+      const question_codes = {};
+      const question_keys = {};
+      const missing = [];
+
+      QUESTIONS.forEach((question) => {
+        const key = getQuestionMasterKey(question);
+        const answer = getQuestionMasterAnswer(question);
+        question_codes[question.number] = question.code;
+        if (key) question_keys[question.number] = key;
+        if (!key || !answer) {
+          missing.push({
+            number: question.number,
+            code: question.code,
+            key: key || ''
+          });
+        }
+      });
+
+      return { question_codes, question_keys, missing };
+    }
+
+    function formatMissingAnswerMessage(missing) {
+      const count = missing.length;
+      const label = count === 1 ? 'question' : 'questions';
+      const sample = missing.slice(0, 3).map(item => `Q${item.number} (${item.code})`).join(', ');
+      const suffix = count > 3 ? `, and ${count - 3} more` : '';
+      return `⚠️ This test cannot be scored because ${count} active ${label} missing master answers: ${sample}${suffix}. Please contact your teacher.`;
+    }
 
     const totalQuestions = QUESTIONS.length;
     let hasSubmitted = false;
@@ -3373,20 +2698,32 @@
     }
 
     function calculateScore(responses) {
-      const answerKeyReady = Object.values(ANSWER_KEY).every(v => !!v);
-      if (!answerKeyReady) {
-        return { score: 0, percentage: 0, pending: true };
+      const metadata = buildQuestionAnswerMetadata();
+      if (metadata.missing.length > 0) {
+        return {
+          score: 0,
+          percentage: 0,
+          pending: true,
+          missing: metadata.missing,
+          question_codes: metadata.question_codes,
+          question_keys: metadata.question_keys
+        };
       }
+
       let correct = 0;
-      Object.entries(ANSWER_KEY).forEach(([q, ans]) => {
-        const studentAns = (responses[q] || '').toString().trim().toUpperCase();
-        const correctAns = (ans || '').toString().trim().toUpperCase();
+      QUESTIONS.forEach((question) => {
+        const studentAns = (responses[question.number] || '').toString().trim().toUpperCase();
+        const correctAns = getQuestionMasterAnswer(question).toString().trim().toUpperCase();
         if (studentAns && studentAns === correctAns) correct++;
       });
+
       return {
         score: correct,
         percentage: Math.round((correct / totalQuestions) * 100),
-        pending: false
+        pending: false,
+        missing: [],
+        question_codes: metadata.question_codes,
+        question_keys: metadata.question_keys
       };
     }
 
@@ -3413,11 +2750,15 @@
       });
 
       const timeTaken = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
-      stopTimer();
       const result = calculateScore(responses);
+      if (result.pending && !isForced) {
+        status.textContent = formatMissingAnswerMessage(result.missing);
+        return;
+      }
 
+      stopTimer();
       btn.disabled = true;
-      status.textContent = '📤 Submitting...';
+      status.textContent = result.pending ? '⚠️ Submitting with pending answer-key review...' : '📤 Submitting...';
 
       const payload = {
         student_name: name,
@@ -3428,8 +2769,12 @@
         percentage: result.percentage,
         answers: {
           responses,
+          question_codes: result.question_codes,
+          question_keys: result.question_keys,
+          answer_source: ANSWER_SOURCE,
           answer_key_ready: !result.pending,
           pending_answer_key: result.pending,
+          missing_answer_keys: result.missing,
           quiz_version: `v1-${totalQuestions}q-part${QUIZ_PART.part}`
         },
         time_taken_seconds: timeTaken
@@ -3553,7 +2898,7 @@
         const card = document.querySelector(`[data-question-number="${q.number}"]`);
         if (!card) return;
         const studentAnswer = responses?.[q.number] || '';
-        const correctAnswer = ANSWER_KEY[q.number] || '';
+        const correctAnswer = getQuestionMasterAnswer(q) || '';
         if (correctAnswer) {
           const correctInput = card.querySelector(`input[value="${correctAnswer}"]`);
           if (correctInput) {
@@ -3561,7 +2906,7 @@
             if (wrap) wrap.classList.add('correct');
           }
         }
-        if (studentAnswer && studentAnswer !== correctAnswer) {
+        if (studentAnswer && correctAnswer && studentAnswer !== correctAnswer) {
           const studentInput = card.querySelector(`input[value="${studentAnswer}"]`);
           if (studentInput) {
             const wrap = studentInput.closest('label') || studentInput.closest('td') || studentInput.parentElement;
@@ -3570,7 +2915,10 @@
         }
         const review = document.createElement('div');
         review.className = 'review-answer';
-        if (studentAnswer && studentAnswer === correctAnswer) {
+        if (!correctAnswer) {
+          review.classList.add('incorrect');
+          review.textContent = `⚠️ Correct answer unavailable for ${q.code}`;
+        } else if (studentAnswer && studentAnswer === correctAnswer) {
           review.textContent = `✅ Correct: ${correctAnswer}`;
         } else {
           review.classList.add('incorrect');

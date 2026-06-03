@@ -1,103 +1,83 @@
-"""
-Build Ch1 Biology answer key for biologyAnswerKeys.ts
-by matching HTML question codes to the Biology_Answer_Key file.
-"""
+#!/usr/bin/env python3
+"""Generate the browser Biology master-answer-key adapter from TypeScript source."""
+from __future__ import annotations
+
+import argparse
+import json
 import re
 from pathlib import Path
 
-# ── 1. Load the answer key file ──────────────────────────────────────────────
-#    Format: row_num  paper  question_num  answer
-ANSWER_KEY_PATH = r'public/cambridge-tests/Biology/svg/ch1/Biology_Answer_Key'
+ROOT = Path(__file__).resolve().parents[1]
+SOURCE_PATH = ROOT / "components" / "biologyMasterAnswerKey.ts"
+OUTPUT_PATH = ROOT / "public" / "cambridge-tests" / "Biology" / "biology_master_answer_key.js"
 
-lookup = {}   # { (paper, qnum_int): answer }
+ENTRY_RE = re.compile(r'"([^"]+)"\s*:\s*"([ABCD])"')
 
-with open(ANSWER_KEY_PATH, encoding='utf-8') as f:
-    for line in f:
-        parts = line.strip().split()
-        if not parts or parts[0].startswith('#'):
-            continue  # skip blank lines and comments
-        if len(parts) != 4:
-            raise ValueError(
-                f'Malformed answer-key row (expected 4 fields, got {len(parts)}): {line.strip()!r}'
-            )
-        _, paper, qnum, answer = parts
-        try:
-            qnum_int = int(qnum)
-        except ValueError as err:
-            raise ValueError(
-                f'Non-integer question number in answer-key row: {line.strip()!r}'
-            ) from err
-        key = (paper, qnum_int)
-        if key in lookup:
-            raise ValueError(
-                f'Duplicate answer-key entry for {key}: '
-                f'existing={lookup[key]!r}, new={answer!r}'
-            )
-        lookup[key] = answer
 
-print(f'Loaded {len(lookup)} answer entries from key file.')
+def load_master_answers() -> dict[str, str]:
+    source = SOURCE_PATH.read_text(encoding="utf-8")
+    entries = ENTRY_RE.findall(source)
+    if not entries:
+        raise RuntimeError(f"No Biology answer-key entries found in {SOURCE_PATH}")
 
-# ── 2. Load the HTML questions ────────────────────────────────────────────────
-HTML_PATH = r'public/cambridge-tests/Biology/svg/ch1/cell_structure.html'
+    answers = dict(entries)
+    if len(answers) != len(entries):
+        raise RuntimeError("Duplicate Biology master answer-key entries found in TypeScript source")
 
-with open(HTML_PATH, encoding='utf-8') as f:
-    html = f.read()
+    return answers
 
-# Extract all (number, code) pairs  — code looks like '9700_m20_qp_12 Q: 1'
-q_pattern = re.compile(
-    r"number:\s*(\d+),\s*\n\s*code:\s*'([^']+)'",
-    re.MULTILINE
-)
-questions = q_pattern.findall(html)
-print(f'Found {len(questions)} questions in cell_structure.html')
 
-# ── 3. Build sequential answer map ───────────────────────────────────────────
-code_pattern = re.compile(r'(\S+)\s+Q:\s+(\d+)')
+def render_adapter(answers: dict[str, str]) -> str:
+    lines = [
+        "// GENERATED FILE - DO NOT EDIT.",
+        "// Source: components/biologyMasterAnswerKey.ts",
+        "// Regenerate with: python3 scripts/build_biology_answer_key.py",
+        "(function () {",
+        "  const BIOLOGY_MASTER_ANSWER_KEY = Object.freeze({",
+    ]
 
-seq_answers: dict[int, str] = {}
-missing: list[tuple] = []
+    for key in sorted(answers):
+        lines.append(f"    {json.dumps(key)}: {json.dumps(answers[key])},")
 
-for num_str, code in questions:
-    seq_num = int(num_str)
-    m = code_pattern.match(code.strip())
-    if not m:
-        print(f'  Q{seq_num}: could not parse code "{code}"')
-        continue
-    paper, orig_qnum = m.group(1), int(m.group(2))
-    ans = lookup.get((paper, orig_qnum))
-    if ans:
-        seq_answers[seq_num] = ans
-    else:
-        missing.append((seq_num, paper, orig_qnum))
+    lines.extend([
+        "  });",
+        "",
+        "  function getBiologyMasterKeyFromQuestionCode(code) {",
+        "    const match = String(code || '').trim().match(/^(9700_[msw]\\d{2}_qp_\\d{2})\\s+Q:\\s*(\\d{1,2})$/i);",
+        "    if (!match) return null;",
+        "    const questionNumber = Number.parseInt(match[2], 10);",
+        "    if (!Number.isInteger(questionNumber) || questionNumber < 1 || questionNumber > 40) return null;",
+        "    return `${match[1].toLowerCase()}_${String(questionNumber).padStart(2, '0')}`;",
+        "  }",
+        "",
+        "  function getBiologyAnswerFromQuestionCode(code) {",
+        "    const key = getBiologyMasterKeyFromQuestionCode(code);",
+        "    return key ? (BIOLOGY_MASTER_ANSWER_KEY[key] || '') : '';",
+        "  }",
+        "",
+        "  window.BIOLOGY_MASTER_ANSWER_KEY = BIOLOGY_MASTER_ANSWER_KEY;",
+        "  window.getBiologyMasterKeyFromQuestionCode = getBiologyMasterKeyFromQuestionCode;",
+        "  window.getBiologyAnswerFromQuestionCode = getBiologyAnswerFromQuestionCode;",
+        "})();",
+    ])
+    return "\n".join(lines) + "\n"
 
-STRICT = True  # set to False to emit partial answers despite missing entries
 
-print(f'\nAnswers found:  {len(seq_answers)} / {len(questions)}')
-print(f'Missing:        {len(missing)}')
-if missing:
-    print('  Missing questions (likely pre-2017 papers not yet in key):')
-    for seq_num, paper, qnum in missing[:20]:
-        print(f'    Q{seq_num}: {paper} Q{qnum}')
-    if len(missing) > 20:
-        print(f'    ... and {len(missing)-20} more')
-    if STRICT:
-        raise SystemExit(
-            f'Aborting: {len(missing)} answer(s) missing from key file. '
-            'Set STRICT = False to emit a partial answer key.'
-        )
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--print", action="store_true", dest="print_only", help="print generated JS instead of writing it")
+    args = parser.parse_args()
 
-# ── 4. Emit TypeScript snippet ────────────────────────────────────────────────
-lines = []
-for seq_num in sorted(seq_answers):
-    lines.append(f'    {seq_num}: \'{seq_answers[seq_num]}\',')
+    generated = render_adapter(load_master_answers())
+    if args.print_only:
+        print(generated, end="")
+        return 0
 
-ts_block = '\n'.join(lines)
-print('\n── TypeScript answer key block ──────────────────────────────────────────')
-print(ts_block)
+    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    OUTPUT_PATH.write_text(generated, encoding="utf-8")
+    print(f"Generated {OUTPUT_PATH.relative_to(ROOT)}")
+    return 0
 
-# Also save to a file for easy copy-paste (always written next to this script)
-script_dir = Path(__file__).resolve().parent
-out_path = script_dir / 'ch1_answer_key_block.txt'
-out_path.parent.mkdir(parents=True, exist_ok=True)
-out_path.write_text(ts_block + '\n', encoding='utf-8')
-print(f'\nSaved to {out_path}')
+
+if __name__ == "__main__":
+    raise SystemExit(main())

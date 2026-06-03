@@ -16,7 +16,7 @@ import JoinSchoolCard from './JoinSchoolCard';
 import '../src/styles/teacher-theme.css';
 import { brainsAlert } from '../src/utils/brainsAlert';
 import { chemistryAnswerKeys, chemistryQuestionRanges } from './chemistryAnswerKeys';
-import { biologyAnswerKeys, biologyQuestionRanges } from './biologyAnswerKeys';
+import { buildBiologyAnswerKeyFromSavedMetadata, isBiologyCambridgeQuiz } from './biologyReviewAnswerKey';
 import { getQuestionsForQuiz, type QuestionData } from './cambridgeQuestionData';
 import { fetchSchoolPlanDetails, fetchEffectiveTier, isPro, fetchPilotQuotas, getQuotaForFeature, QUOTA_LABELS, FEATURE_TO_QUOTA, tryConsumePilotQuota, type SchoolPlanDetails, type AccountTier, type PilotQuotaStatus, type PilotQuota } from '../services/tierService';
 import ProfessionalCambridgeReport, { generateSerialNumber, StudentOverviewReport, getGradeFromPercentage } from './ProfessionalCambridgeReport';
@@ -1405,7 +1405,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         try {
           return JSON.parse(responses);
         } catch (error) {
-          console.warn('Failed to parse chemistry responses:', error);
+          console.warn('Failed to parse science responses:', error);
           return {};
         }
       }
@@ -1419,18 +1419,19 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const normalizeDashes = (s: string) =>
     s.replace(/[\u2012\u2013\u2014\u2015\uFFFD]/g, '\u2014');
 
-  const getScienceAnswerKey = (quizName: string | undefined) => {
+  const getScienceAnswerKey = (quizName: string | undefined, student?: any) => {
     if (!quizName) return {};
+    if (isBiologyCambridgeQuiz(quizName)) {
+      return buildBiologyAnswerKeyFromSavedMetadata(student?.answers).answerKey;
+    }
+
     const baseName = quizName.replace(/\s*\(Part\s+\d+\)\s*/i, '').trim();
     const normalizedName = normalizeDashes(quizName);
     const normalizedBase = normalizeDashes(baseName);
     const partMatch = quizName.match(/\(Part\s+(\d+)\)/i);
-    const isBiology = quizName.toLowerCase().includes('biology');
-    const answerKeys = isBiology ? biologyAnswerKeys : chemistryAnswerKeys;
-    const questionRanges = isBiology ? biologyQuestionRanges : chemistryQuestionRanges;
-    const baseKey = answerKeys[quizName] || answerKeys[baseName]
-      || answerKeys[normalizedName] || answerKeys[normalizedBase] || {};
-    const range = questionRanges[baseName] || questionRanges[normalizedBase];
+    const baseKey = chemistryAnswerKeys[quizName] || chemistryAnswerKeys[baseName]
+      || chemistryAnswerKeys[normalizedName] || chemistryAnswerKeys[normalizedBase] || {};
+    const range = chemistryQuestionRanges[baseName] || chemistryQuestionRanges[normalizedBase];
 
     if (!partMatch || !range) {
       return baseKey;
@@ -7141,7 +7142,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       {showCambridgeReport && selectedCambridgeStudent && (() => {
         const skillPerf = analyzeSkillPerformance(selectedCambridgeStudent);
         const reportAnswerKey = (selectedCambridgeStudent.quiz_name?.toLowerCase().includes('chemistry') || selectedCambridgeStudent.quiz_name?.toLowerCase().includes('biology'))
-          ? getScienceAnswerKey(selectedCambridgeStudent.quiz_name)
+          ? getScienceAnswerKey(selectedCambridgeStudent.quiz_name, selectedCambridgeStudent)
           : (correctAnswers[selectedCambridgeStudent.quiz_name] || {});
         const responseSummary = buildResponseSummary(selectedCambridgeStudent, reportAnswerKey);
         const fallbackPlan = getGeneralActionPlan(selectedCambridgeStudent, responseSummary);
@@ -7468,7 +7469,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         }
         
         // Regular test handling
-        const answerKey = isChemistryTest ? getScienceAnswerKey(quizName) : (correctAnswers[quizName] || {});
+        const answerKey = isChemistryTest ? getScienceAnswerKey(quizName, selectedCambridgeStudent) : (correctAnswers[quizName] || {});
         const sections = testSections[quizName] || [];
         const summary = buildResponseSummary(selectedCambridgeStudent, answerKey);
         const questionBank = getQuestionsForQuiz(quizName);
@@ -7483,6 +7484,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             unanswered: detail.status === 'unanswered'
           }));
         const hasAnswerKey = Object.keys(answerKey).length > 0;
+        const biologyMetadataUnavailable = isBiologyCambridgeQuiz(quizName) && !buildBiologyAnswerKeyFromSavedMetadata(selectedCambridgeStudent.answers).hasMetadata;
 
         /** Escape HTML special characters to prevent XSS when interpolating
          *  captured regex groups back into HTML strings. */
@@ -7628,6 +7630,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                       <h4 className="font-semibold text-slate-800">🧾 Full Answer Review {questionMap.size > 0 && <span className="text-xs font-normal text-indigo-500 ml-2">with question details</span>}</h4>
                       {hasAnswerKey ? (
                         <span className="text-xs text-green-600 font-semibold">Answer key verified</span>
+                      ) : biologyMetadataUnavailable ? (
+                        <span className="text-xs text-amber-600 font-semibold">Answer metadata unavailable</span>
                       ) : (
                         <span className="text-xs text-amber-600 font-semibold">Answer key unavailable</span>
                       )}
@@ -7750,6 +7754,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                         );
                       })}
                     </div>
+                  </div>
+                )}
+
+                {biologyMetadataUnavailable && (
+                  <div className="bg-amber-50 border border-amber-300 text-amber-800 rounded-xl p-4 text-sm">
+                    Biology answer metadata is unavailable for this older submission, so teacher review cannot safely reconstruct correct answers. The stored score is shown, but per-question correctness is not inferred.
                   </div>
                 )}
 
