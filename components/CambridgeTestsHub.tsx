@@ -293,8 +293,8 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     id: 'as-chemistry-ch9-chemical-periodicity-part-1',
     name: 'AS Chemistry Ch9 (Chemical Periodicity) (Part 1)',
     description: 'Period 3 oxides, chlorides, structure trends, acid-base behaviour, and combustion stoichiometry.',
-    duration: '86 min',
-    totalQuestions: 43,
+    duration: '62 min',
+    totalQuestions: 31,
     difficulty: 'Advanced',
     category: 'Science',
     subject: 'Chemistry',
@@ -590,13 +590,13 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
 ];
 
 const AS_BIOLOGY_TESTS: CambridgeTest[] = [
-  // Ch1 — Cell structure (5 parts × 43 questions = 215 total)
+  // Ch1 — Cell structure (151 validated 2017–2024 questions split 31/31/31/31/27)
   {
     id: 'as-biology-ch1-cell-structure-part-1',
     name: 'AS Biology Ch1 ( Cell structure ) (Part 1)',
-    description: 'Chapter 1 Part 1 — Microscope in cell studies (Q1–Q43). 9700 AS Biology MCQ question pool.',
-    duration: '86 min',
-    totalQuestions: 43,
+    description: 'Chapter 1 Part 1 — Microscope in cell studies (Q1–Q31). 9700 AS Biology MCQ question pool.',
+    duration: '62 min',
+    totalQuestions: 31,
     difficulty: 'Advanced',
     category: 'Science',
     subject: 'Biology',
@@ -605,9 +605,9 @@ const AS_BIOLOGY_TESTS: CambridgeTest[] = [
   {
     id: 'as-biology-ch1-cell-structure-part-2',
     name: 'AS Biology Ch1 ( Cell structure ) (Part 2)',
-    description: 'Chapter 1 Part 2 — Microscopy & cells as basic units (Q44–Q86). 9700 AS Biology MCQ question pool.',
-    duration: '86 min',
-    totalQuestions: 43,
+    description: 'Chapter 1 Part 2 — Microscopy & cells as basic units (Q32–Q62). 9700 AS Biology MCQ question pool.',
+    duration: '62 min',
+    totalQuestions: 31,
     difficulty: 'Advanced',
     category: 'Science',
     subject: 'Biology',
@@ -616,9 +616,9 @@ const AS_BIOLOGY_TESTS: CambridgeTest[] = [
   {
     id: 'as-biology-ch1-cell-structure-part-3',
     name: 'AS Biology Ch1 ( Cell structure ) (Part 3)',
-    description: 'Chapter 1 Part 3 — Cells as basic units of living organisms (Q87–Q129). 9700 AS Biology MCQ question pool.',
-    duration: '86 min',
-    totalQuestions: 43,
+    description: 'Chapter 1 Part 3 — Cells as basic units of living organisms (Q63–Q93). 9700 AS Biology MCQ question pool.',
+    duration: '62 min',
+    totalQuestions: 31,
     difficulty: 'Advanced',
     category: 'Science',
     subject: 'Biology',
@@ -627,9 +627,9 @@ const AS_BIOLOGY_TESTS: CambridgeTest[] = [
   {
     id: 'as-biology-ch1-cell-structure-part-4',
     name: 'AS Biology Ch1 ( Cell structure ) (Part 4)',
-    description: 'Chapter 1 Part 4 — Cells as basic units of living organisms (Q130–Q172). 9700 AS Biology MCQ question pool.',
-    duration: '86 min',
-    totalQuestions: 43,
+    description: 'Chapter 1 Part 4 — Cells as basic units of living organisms (Q94–Q124). 9700 AS Biology MCQ question pool.',
+    duration: '62 min',
+    totalQuestions: 31,
     difficulty: 'Advanced',
     category: 'Science',
     subject: 'Biology',
@@ -638,9 +638,9 @@ const AS_BIOLOGY_TESTS: CambridgeTest[] = [
   {
     id: 'as-biology-ch1-cell-structure-part-5',
     name: 'AS Biology Ch1 ( Cell structure ) (Part 5)',
-    description: 'Chapter 1 Part 5 — Cells as basic units of living organisms (Q173–Q215). 9700 AS Biology MCQ question pool.',
-    duration: '86 min',
-    totalQuestions: 43,
+    description: 'Chapter 1 Part 5 — Cells as basic units of living organisms (Q125–Q151). 9700 AS Biology MCQ question pool.',
+    duration: '54 min',
+    totalQuestions: 27,
     difficulty: 'Advanced',
     category: 'Science',
     subject: 'Biology',

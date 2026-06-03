@@ -8,7 +8,7 @@ import * as SchoolRequestService from '../services/schoolRequestService';
 import * as SchoolAdminService from '../services/schoolAdminService';
 import { SchoolMember } from '../services/schoolAdminService';
 import { chemistryAnswerKeys, chemistryQuestionRanges } from './chemistryAnswerKeys';
-import { biologyAnswerKeys, biologyQuestionRanges } from './biologyAnswerKeys';
+import { buildBiologyAnswerKeyFromSavedMetadata, isBiologyCambridgeQuiz } from './biologyReviewAnswerKey';
 
 import AdminContext from './admin/AdminContext';
 import DashboardTab from './admin/tabs/DashboardTab';
@@ -803,19 +803,19 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       16:"B", 17:"C", 18:"C", 19:"A", 20:"A",
       21:"H", 22:"E", 23:"D", 24:"C", 25:"B"
     },
-    ...chemistryAnswerKeys,
-    ...biologyAnswerKeys
+    ...chemistryAnswerKeys
   };
 
-  const getScienceAnswerKey = (quizName: string | undefined) => {
+  const getScienceAnswerKey = (quizName: string | undefined, result?: any) => {
     if (!quizName) return {};
+    if (isBiologyCambridgeQuiz(quizName)) {
+      return buildBiologyAnswerKeyFromSavedMetadata(result?.answers).answerKey;
+    }
+
     const baseName = quizName.replace(/\s*\(Part\s+\d+\)\s*/i, '').trim();
     const partMatch = quizName.match(/\(Part\s+(\d+)\)/i);
-    const isBiology = quizName.toLowerCase().includes('biology');
-    const answerKeys = isBiology ? biologyAnswerKeys : chemistryAnswerKeys;
-    const questionRanges = isBiology ? biologyQuestionRanges : chemistryQuestionRanges;
-    const baseKey = answerKeys[quizName] || answerKeys[baseName] || {};
-    const range = questionRanges[baseName];
+    const baseKey = chemistryAnswerKeys[quizName] || chemistryAnswerKeys[baseName] || {};
+    const range = chemistryQuestionRanges[baseName];
 
     if (!partMatch || !range) {
       return baseKey;
