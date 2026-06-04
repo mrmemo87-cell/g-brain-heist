@@ -4,7 +4,7 @@
   const ANSWER_SOURCE = 'BIOLOGY_MASTER_ANSWER_KEY';
   const QUESTION_TIME_SECONDS = 2 * 60;
   const SUPABASE_URL = window.__SUPABASE_ENV__?.VITE_SUPABASE_URL || 'https://sozodkxwhubespiedgxm.supabase.co';
-  const SUPABASE_ANON_KEY = window.__SUPABASE_ENV__?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzvem9ka3h3aHViZXNwaWVkZ3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTUxNjYsImV4cCI6MjA3NzQ3MTE2Nn0.DBfFFWvVjpqXTga0uZcH5qR4ej6VOFBUm-CiCTgGLVA';
+  const SUPABASE_ANON_KEY = window.__SUPABASE_ENV__?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvem9ka3h3aHViZXNwaWVkZ3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTUxNjYsImV4cCI6MjA3NzQ3MTE2Nn0.DBfFFWvVjpqXTga0uZcH5qR4ej6VOFBUm-CiCTgGLVA';
   const SUPABASE_AUTH_STORAGE_KEY = 'sb-sozodkxwhubespiedgxm-auth-token';
 
   const config = window.BIOLOGY_IMAGE_QUIZ;
@@ -17,12 +17,30 @@
   let timerInterval = null;
   let startTime = null;
   let hasSubmitted = false;
+  let antiCheatAcknowledged = false;
+  let timerStarted = false;
 
   function getAccessToken() {
     try {
       const raw = localStorage.getItem(SUPABASE_AUTH_STORAGE_KEY);
       return raw ? JSON.parse(raw)?.access_token || null : null;
     } catch (_e) { return null; }
+  }
+
+  function getQuizName() {
+    return `${config.quizBaseName} (Part ${quizPart.part})`;
+  }
+
+  function getQuizId() {
+    return `${config.quizBaseId}_part_${quizPart.part}`;
+  }
+
+  function parseAnswers(value) {
+    if (!value) return {};
+    if (typeof value === 'string') {
+      try { return JSON.parse(value); } catch (_e) { return {}; }
+    }
+    return value;
   }
 
   function supabaseHeaders() {
@@ -137,7 +155,7 @@
 
   function startTimer() {
     const timer = document.getElementById('timer');
-    if (!timer || isReviewMode()) return;
+    if (!timer || isReviewMode() || hasSubmitted) return;
     const duration = totalQuestions * QUESTION_TIME_SECONDS;
     startTime = Date.now();
     const update = () => {
@@ -152,11 +170,24 @@
 
   function loadStudentInfoFromGame() {
     try {
-      const profile = JSON.parse(localStorage.getItem('gbrain_profile') || '{}');
-      const name = profile.full_name || profile.username || '';
-      const cls = profile.class_name || profile.class || '';
-      if (name) document.getElementById('studentName').value = name;
-      if (cls) document.getElementById('studentClass').value = cls;
+      const stored = localStorage.getItem('cambridge_test_user');
+      const profile = stored ? JSON.parse(stored) : JSON.parse(localStorage.getItem('gbrain_profile') || '{}');
+      const name = profile.name || profile.full_name || profile.username || '';
+      const cls = profile.class || profile.class_name || '';
+      if (name) {
+        const nameInput = document.getElementById('studentName');
+        nameInput.value = name;
+        nameInput.readOnly = true;
+        nameInput.style.backgroundColor = '#0f172a';
+        nameInput.style.borderColor = '#22c55e';
+      }
+      if (cls) {
+        const classInput = document.getElementById('studentClass');
+        classInput.value = cls;
+        classInput.readOnly = true;
+        classInput.style.backgroundColor = '#0f172a';
+        classInput.style.borderColor = '#22c55e';
+      }
     } catch (_e) { /* ignore */ }
   }
 
@@ -167,16 +198,36 @@
         <div class="header"><div class="header-badge">🧬</div><div><h1 id="quizTitle"></h1><p id="quizSubtitle" class="subtitle"></p></div></div>
         <div class="badge-row"><span class="badge">AS Biology 9700</span><span class="badge" id="partBadge"></span><span class="badge" id="countBadge"></span></div>
         <div class="student-info"><input id="studentName" placeholder="Student name" autocomplete="name" /><input id="studentClass" placeholder="Class" autocomplete="off" /></div>
-        <div id="status" class="status">Select one answer for each question, then submit.</div>
+        <div id="status" class="status">✅ Auto-marked: your score stays hidden until your teacher releases it.</div>
+        <div id="timer" class="timer-box floating">⏳ Time remaining: 00:00</div>
         <div id="questions" class="loading">Loading Biology questions…</div>
-        <div class="submit-area"><button id="submitBtn" class="primary">Submit test</button><button id="backBtn" class="secondary" type="button">Back to dashboard</button><div id="timer"></div></div>
+        <div class="submit-area"><button id="submitBtn" class="primary">Submit test</button><button id="backBtn" class="secondary" type="button">Back to dashboard</button></div>
+        <div id="score" class="score-box" style="display:none;"></div>
+      </div>
+      <div id="submitModal" class="modal-overlay">
+        <div class="modal-card">
+          <h3 class="modal-title">Submit AS Biology Test</h3>
+          <p class="modal-body">You're about to submit your answers. Once submitted, you cannot retake this test. Your score will stay hidden until your teacher releases it.</p>
+          <div class="modal-actions"><button class="modal-btn secondary" id="cancelSubmitBtn">Continue editing</button><button class="modal-btn primary" id="confirmSubmitBtn">Submit now</button></div>
+        </div>
+      </div>
+      <div id="antiCheatModal" class="modal-overlay">
+        <div class="modal-card anti-cheat-card">
+          <h3 class="modal-title">Anti-cheat rules</h3>
+          <p class="modal-body">This test uses anti-cheat protection. Please read before starting:</p>
+          <ul class="anti-cheat-rules"><li>Stay on this tab. Switching tabs or windows counts as a violation.</li><li>Three violations will auto-submit your test immediately.</li><li>Copy, cut, paste, right-click, and drag-and-drop are all disabled.</li><li>Screenshots, screen recording, and printing are blocked.</li><li>Your timer starts only after you click “I understand”.</li></ul>
+          <div class="modal-actions"><button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button></div>
+        </div>
       </div>`;
     document.getElementById('quizTitle').textContent = `AS Biology Ch${config.chapter} ( ${config.title} ) (Part ${quizPart.part})`;
     document.getElementById('quizSubtitle').textContent = `Chapter ${config.chapter} • Part ${quizPart.part} of ${quizPart.totalParts}`;
     document.getElementById('partBadge').textContent = `Part ${quizPart.part}/${quizPart.totalParts}`;
     document.getElementById('countBadge').textContent = `${totalQuestions} questions`;
-    document.getElementById('submitBtn').addEventListener('click', () => handleSubmit());
-    document.getElementById('backBtn').addEventListener('click', () => { window.location.href = '/'; });
+    document.getElementById('submitBtn').addEventListener('click', openSubmitModal);
+    document.getElementById('confirmSubmitBtn').addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
+    document.getElementById('cancelSubmitBtn').addEventListener('click', closeSubmitModal);
+    document.getElementById('antiCheatAcceptBtn').addEventListener('click', acknowledgeAntiCheat);
+    document.getElementById('backBtn').addEventListener('click', () => { handleSubmit({ force: true, reason: 'Exited test — auto-submitted' }); window.setTimeout(() => { window.location.href = '/'; }, 1200); });
   }
 
   function renderQuestions() {
@@ -185,8 +236,8 @@
     container.innerHTML = questions.map((question) => {
       const code = getQuestionCode(question);
       return `<section class="question-card" data-question-number="${question.number}">
-        <div class="question-meta"><strong>Question ${question.number}</strong><span>${code || question.masterKey || ''}</span></div>
-        <img class="question-image" src="${getImageSrc(question)}" alt="Biology question ${question.number}" loading="lazy" />
+        <div class="question-meta"><strong class="question-number">Question ${question.number}</strong><span class="question-code">${code}</span></div>
+        <img class="question-image" src="${getImageSrc(question)}" alt="Biology question image" loading="lazy" />
         <div class="option-list">${['A', 'B', 'C', 'D'].map((letter) => `<label class="option"><input type="radio" name="q${question.number}" value="${letter}" /> <strong>${letter}</strong></label>`).join('')}</div>
       </section>`;
     }).join('');
@@ -205,15 +256,17 @@
     if (hasSubmitted) return;
     const status = document.getElementById('status');
     const button = document.getElementById('submitBtn');
+    const isForced = options.force === true;
+    const autoSubmitReason = options.autoSubmitReason || options.reason || '';
     let name = document.getElementById('studentName').value.trim();
     let cls = document.getElementById('studentClass').value.trim();
-    if (!name && !options.force) { status.textContent = '⚠️ Please enter your name.'; status.classList.add('warning'); return; }
-    if (!cls && !options.force) { status.textContent = '⚠️ Please enter your class.'; status.classList.add('warning'); return; }
+    if (!name && !isForced) { status.textContent = '⚠️ Please enter your name.'; status.classList.add('warning'); return; }
+    if (!cls && !isForced) { status.textContent = '⚠️ Please enter your class.'; status.classList.add('warning'); return; }
     name = name || 'Unknown Student';
     cls = cls || 'Unknown Class';
     const responses = getResponses();
     const result = calculateScore(responses);
-    if (result.pending && !options.force) {
+    if (result.pending && !isForced) {
       status.textContent = `⚠️ Answer metadata unavailable for: ${result.missing.join(', ')}`;
       status.classList.add('warning');
       return;
@@ -224,7 +277,7 @@
     const payload = {
       student_name: name,
       student_class: cls,
-      quiz_name: `${config.quizBaseName} (Part ${quizPart.part})`,
+      quiz_name: getQuizName(),
       score: result.score,
       total_questions: totalQuestions,
       percentage: result.percentage,
@@ -243,16 +296,35 @@
     try {
       await supabaseInsert('quiz_scores', payload);
       hasSubmitted = true;
+      localStorage.setItem(`quiz_student_${getQuizId()}`, name);
+      localStorage.setItem(`quiz_class_${getQuizId()}`, cls);
+      localStorage.setItem(`quiz_submitted_${getQuizId()}`, JSON.stringify({ score: result.score, total: totalQuestions, submittedAt: new Date().toISOString() }));
       status.classList.remove('warning');
-      status.textContent = `✅ Submitted. Score: ${result.score}/${totalQuestions} (${result.percentage}%).`;
+      status.textContent = isForced ? `⚠️ Auto-submitted: ${autoSubmitReason}` : '✅ Submitted successfully! Your teacher will release your score soon.';
       button.textContent = '✅ Submitted';
       document.querySelectorAll('input').forEach((input) => { input.disabled = true; });
+      lockQuestions();
+      const scoreDiv = document.getElementById('score');
+      scoreDiv.style.display = 'block';
+      scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
+      scoreDiv.className = 'score-box pending';
+      try {
+        window.parent.postMessage({ type: 'CAMBRIDGE_TEST_COMPLETE', quizId: getQuizId(), score: result.score, total: totalQuestions, percentage: result.percentage }, '*');
+      } catch (_e) { /* ignore */ }
     } catch (error) {
       console.error(error);
+      if (error.message && (error.message.includes('duplicate') || error.message.includes('unique') || error.message.includes('already exists'))) {
+        hasSubmitted = true;
+        button.textContent = '✅ Already Submitted';
+        status.textContent = '🚨 You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
+        document.querySelectorAll('input').forEach((input) => { input.disabled = true; });
+        lockQuestions();
+        return;
+      }
       button.disabled = false;
       status.classList.add('warning');
       status.textContent = '⚠️ Submission failed. Please check your connection and try again.';
-      startTimer();
+      if (timerStarted) startTimer();
     }
   }
 
@@ -275,7 +347,7 @@
       }
       const review = document.createElement('div');
       review.className = `review-answer${student && correct && student !== correct ? ' incorrect' : ''}`;
-      review.textContent = correct ? (student === correct ? `✅ Correct: ${correct}` : `Your answer: ${student || '—'} | Correct: ${correct}`) : `⚠️ Correct answer unavailable for ${question.masterKey}`;
+      review.textContent = correct ? (student === correct ? `✅ Correct: ${correct}` : `Your answer: ${student || '—'} | Correct: ${correct}`) : '⚠️ Correct answer unavailable.';
       card.appendChild(review);
     });
   }
@@ -286,19 +358,146 @@
     document.getElementById('submitBtn').style.display = 'none';
     const params = new URLSearchParams(window.location.search);
     const studentName = params.get('student_name') || params.get('student') || document.getElementById('studentName').value.trim();
-    const quizName = `${config.quizBaseName} (Part ${quizPart.part})`;
+    const quizName = getQuizName();
     try {
-      const filters = [`select=answers`, `quiz_name=eq.${encodeURIComponent(quizName)}`, 'order=created_at.desc', 'limit=1'];
+      const filters = [`select=scores_released,score,total_questions,percentage,answers,time_taken_seconds`, `quiz_name=eq.${encodeURIComponent(quizName)}`, 'order=submitted_at.desc', 'limit=1'];
       if (studentName) filters.push(`student_name=eq.${encodeURIComponent(studentName)}`);
       const rows = await supabaseSelect('quiz_scores', filters.join('&'));
-      const answers = typeof rows?.[0]?.answers === 'string' ? JSON.parse(rows[0].answers) : rows?.[0]?.answers;
+      const row = rows?.[0];
+      const scoreDiv = document.getElementById('score');
+      if (!row || !row.scores_released) {
+        hasSubmitted = !!row;
+        document.querySelectorAll('input').forEach((input) => { input.disabled = true; });
+        lockQuestions();
+        scoreDiv.style.display = 'block';
+        scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
+        scoreDiv.className = 'score-box pending';
+        document.getElementById('status').textContent = 'Review mode is locked until your teacher releases results.';
+        try { window.parent.postMessage({ type: 'CAMBRIDGE_TEST_REVIEW_MODE' }, '*'); } catch (_e) { /* ignore */ }
+        return;
+      }
+      const timeTaken = typeof row.time_taken_seconds === 'number' ? ` • ⏱️ Time: ${formatTimer(row.time_taken_seconds)}` : '';
+      scoreDiv.style.display = 'block';
+      scoreDiv.textContent = `✅ Score: ${row.score}/${row.total_questions} (${row.percentage}%)${timeTaken}`;
+      scoreDiv.className = 'score-box';
+      const answers = parseAnswers(row.answers);
       applyReviewMode(answers?.responses || {});
       document.getElementById('status').textContent = 'Review mode: saved answers are shown with master-key correctness.';
+      try { window.parent.postMessage({ type: 'CAMBRIDGE_TEST_REVIEW_MODE' }, '*'); } catch (_e) { /* ignore */ }
     } catch (error) {
       console.error(error);
       document.getElementById('status').textContent = 'Review mode: unable to load saved responses.';
       document.getElementById('status').classList.add('warning');
     }
+  }
+
+
+  async function checkServerSubmission() {
+    if (hasSubmitted || isReviewMode()) return;
+    const name = document.getElementById('studentName')?.value.trim();
+    if (!name) return;
+    try {
+      const filters = [`select=submitted_at,scores_released,score,total_questions,percentage,answers,time_taken_seconds`, `quiz_name=eq.${encodeURIComponent(getQuizName())}`, `student_name=eq.${encodeURIComponent(name)}`, 'order=submitted_at.desc', 'limit=1'];
+      const rows = await supabaseSelect('quiz_scores', filters.join('&'));
+      const row = rows?.[0];
+      if (!row) return;
+      hasSubmitted = true;
+      antiCheatAcknowledged = true;
+      document.querySelectorAll('input').forEach((input) => { input.disabled = true; });
+      const button = document.getElementById('submitBtn');
+      button.disabled = true;
+      button.textContent = '✓ Submitted';
+      const scoreDiv = document.getElementById('score');
+      scoreDiv.style.display = 'block';
+      lockQuestions();
+      stopTimer();
+      try { window.parent.postMessage({ type: 'CAMBRIDGE_TEST_REVIEW_MODE' }, '*'); } catch (_e) { /* ignore */ }
+      if (row.scores_released) {
+        const timeTaken = typeof row.time_taken_seconds === 'number' ? ` • ⏱️ Time: ${formatTimer(row.time_taken_seconds)}` : '';
+        scoreDiv.textContent = `✅ Score: ${row.score}/${row.total_questions} (${row.percentage}%)${timeTaken}`;
+        scoreDiv.className = 'score-box';
+        applyReviewMode(parseAnswers(row.answers)?.responses || {});
+      } else {
+        scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
+        scoreDiv.className = 'score-box pending';
+      }
+    } catch (error) {
+      console.error('Failed to check previous Biology submission from server:', error);
+    }
+  }
+
+  function openSubmitModal() {
+    document.getElementById('submitModal')?.classList.add('show');
+  }
+
+  function closeSubmitModal() {
+    document.getElementById('submitModal')?.classList.remove('show');
+  }
+
+  function lockQuestions() {
+    document.getElementById('questions')?.classList.add('hidden');
+  }
+
+  function unlockQuestions() {
+    document.getElementById('questions')?.classList.remove('hidden');
+  }
+
+  function openAntiCheatModal() {
+    document.getElementById('antiCheatModal')?.classList.add('show');
+  }
+
+  function closeAntiCheatModal() {
+    document.getElementById('antiCheatModal')?.classList.remove('show');
+  }
+
+  function acknowledgeAntiCheat() {
+    antiCheatAcknowledged = true;
+    closeAntiCheatModal();
+    startTimerIfReady();
+  }
+
+  function startTimerIfReady() {
+    if (timerStarted || hasSubmitted || isReviewMode()) return;
+    if (!antiCheatAcknowledged) {
+      openAntiCheatModal();
+      return;
+    }
+    timerStarted = true;
+    startTimer();
+  }
+
+  function startExamGuard() {
+    window.setTimeout(() => {
+      if (!hasSubmitted && !isReviewMode() && typeof window.ExamGuard !== 'undefined') {
+        let autoSubmitTriggered = false;
+        window.ExamGuard.start({
+          promptContainer: document.querySelector('.container'),
+          editor: [],
+          onSubmit: () => {
+            if (autoSubmitTriggered || hasSubmitted) return;
+            autoSubmitTriggered = true;
+            handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'ExamGuard violation limit reached' });
+          },
+          onViolation: (event) => {
+            console.warn(`ExamGuard violation (${getQuizName()}):`, event);
+            if (event.violationsCount >= 3 && !autoSubmitTriggered && !hasSubmitted) {
+              autoSubmitTriggered = true;
+              handleSubmit({ force: true, skipModal: true, autoSubmitReason: `ExamGuard: ${event.violationsCount} violations` });
+            }
+          },
+          testId: getQuizId(),
+          maxViolations: 3,
+          blurGraceMs: 300,
+          actions: {
+            warn: true,
+            showBanner: true,
+            autosubmit: true,
+            disableEditor: false,
+            blockSelectAll: false,
+          },
+        });
+      }
+    }, 500);
   }
 
   async function boot() {
@@ -311,8 +510,17 @@
     loadStudentInfoFromGame();
     renderQuestions();
     await loadReviewIfNeeded();
-    if (!isReviewMode()) startTimer();
+    await checkServerSubmission();
+    startTimerIfReady();
+    startExamGuard();
   }
+
+  window.addEventListener('message', (event) => {
+    if (event.origin !== window.location.origin) return;
+    if (event.data && event.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
+      handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test — auto-submitted' });
+    }
+  });
 
   document.addEventListener('DOMContentLoaded', () => {
     boot().catch((error) => {
