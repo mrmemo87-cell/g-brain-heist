@@ -1,0 +1,24 @@
+{
+  "chapter": 4,
+  "chapterTitle": "Cell membranes and transport",
+  "sourcePdf": "EB-CA-9700-P1-1724-FL(1).pdf",
+  "sourcePageRange": [
+    397,
+    488
+  ],
+  "questionsExtracted": 186,
+  "masterKeysTotal": 2237,
+  "answerMatches": 186,
+  "missingAnswerKeys": 0,
+  "duplicateGeneratedKeys": 0,
+  "invalidGeneratedKeys": 0,
+  "snRange": [
+    787,
+    972
+  ],
+  "compiledDelimiterCrops": 186,
+  "fallbackCrops": 0,
+  "missing": [],
+  "duplicates": [],
+  "invalid": []
+}

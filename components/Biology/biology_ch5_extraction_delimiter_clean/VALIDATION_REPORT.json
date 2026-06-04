@@ -1,0 +1,24 @@
+{
+  "chapter": 5,
+  "chapterTitle": "The mitotic cell cycle",
+  "sourcePdf": "EB-CA-9700-P1-1724-FL(1).pdf",
+  "sourcePageRange": [
+    489,
+    570
+  ],
+  "questionsExtracted": 172,
+  "masterKeysTotal": 2237,
+  "answerMatches": 172,
+  "missingAnswerKeys": 0,
+  "duplicateGeneratedKeys": 0,
+  "invalidGeneratedKeys": 0,
+  "snRange": [
+    973,
+    1144
+  ],
+  "compiledDelimiterCrops": 172,
+  "fallbackCrops": 0,
+  "missing": [],
+  "duplicates": [],
+  "invalid": []
+}

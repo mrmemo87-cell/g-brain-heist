@@ -1,0 +1,24 @@
+{
+  "chapter": 3,
+  "chapterTitle": "Enzymes",
+  "sourcePdf": "EB-CA-9700-P1-1724-FL(1).pdf",
+  "sourcePageRange": [
+    319,
+    396
+  ],
+  "questionsExtracted": 140,
+  "masterKeysTotal": 2237,
+  "answerMatches": 140,
+  "missingAnswerKeys": 0,
+  "duplicateGeneratedKeys": 0,
+  "invalidGeneratedKeys": 0,
+  "snRange": [
+    647,
+    786
+  ],
+  "compiledDelimiterCrops": 140,
+  "fallbackCrops": 0,
+  "missing": [],
+  "duplicates": [],
+  "invalid": []
+}

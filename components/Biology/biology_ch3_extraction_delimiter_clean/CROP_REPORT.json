@@ -1,0 +1,2522 @@
+[
+  {
+    "file": "images/ch3_q001_9700_m24_qp_12_13.png",
+    "sourcePage": 319,
+    "sourceSN": 647,
+    "masterKey": "9700_m24_qp_12_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      279.33,
+      595.28,
+      702.78
+    ],
+    "imageSize": [
+      1191,
+      809
+    ]
+  },
+  {
+    "file": "images/ch3_q002_9700_s24_qp_11_10.png",
+    "sourcePage": 320,
+    "sourceSN": 648,
+    "masterKey": "9700_s24_qp_11_10",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      204.0
+    ],
+    "imageSize": [
+      1191,
+      209
+    ]
+  },
+  {
+    "file": "images/ch3_q003_9700_s24_qp_11_14.png",
+    "sourcePage": 320,
+    "sourceSN": 649,
+    "masterKey": "9700_s24_qp_11_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      252.34,
+      595.28,
+      479.33
+    ],
+    "imageSize": [
+      1191,
+      399
+    ]
+  },
+  {
+    "file": "images/ch3_q004_9700_s24_qp_13_10.png",
+    "sourcePage": 321,
+    "sourceSN": 650,
+    "masterKey": "9700_s24_qp_13_10",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      334.6
+    ],
+    "imageSize": [
+      1191,
+      469
+    ]
+  },
+  {
+    "file": "images/ch3_q005_9700_w24_qp_11_14.png",
+    "sourcePage": 322,
+    "sourceSN": 651,
+    "masterKey": "9700_w24_qp_11_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      606.21
+    ],
+    "imageSize": [
+      1191,
+      1008
+    ]
+  },
+  {
+    "file": "images/ch3_q006_9700_w24_qp_12_13.png",
+    "sourcePage": 323,
+    "sourceSN": 652,
+    "masterKey": "9700_w24_qp_12_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      526.07
+    ],
+    "imageSize": [
+      1191,
+      855
+    ]
+  },
+  {
+    "file": "images/ch3_q007_9700_m23_qp_12_14.png",
+    "sourcePage": 323,
+    "sourceSN": 653,
+    "masterKey": "9700_m23_qp_12_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      574.41,
+      595.28,
+      682.44
+    ],
+    "imageSize": [
+      1191,
+      196
+    ]
+  },
+  {
+    "file": "images/ch3_q008_9700_m23_qp_12_15.png",
+    "sourcePage": 324,
+    "sourceSN": 654,
+    "masterKey": "9700_m23_qp_12_15",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      330.94
+    ],
+    "imageSize": [
+      1191,
+      487
+    ]
+  },
+  {
+    "file": "images/ch3_q009_9700_s23_qp_11_12.png",
+    "sourcePage": 324,
+    "sourceSN": 655,
+    "masterKey": "9700_s23_qp_11_12",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      379.29,
+      595.28,
+      625.3
+    ],
+    "imageSize": [
+      1191,
+      480
+    ]
+  },
+  {
+    "file": "images/ch3_q010_9700_s23_qp_12_13.png",
+    "sourcePage": 325,
+    "sourceSN": 656,
+    "masterKey": "9700_s23_qp_12_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      257.17
+    ],
+    "imageSize": [
+      1191,
+      327
+    ]
+  },
+  {
+    "file": "images/ch3_q011_9700_s23_qp_13_14.png",
+    "sourcePage": 325,
+    "sourceSN": 657,
+    "masterKey": "9700_s23_qp_13_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      305.51,
+      595.28,
+      514.02
+    ],
+    "imageSize": [
+      1191,
+      382
+    ]
+  },
+  {
+    "file": "images/ch3_q012_9700_w23_qp_11_13.png",
+    "sourcePage": 326,
+    "sourceSN": 658,
+    "masterKey": "9700_w23_qp_11_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      337.64
+    ],
+    "imageSize": [
+      1191,
+      484
+    ]
+  },
+  {
+    "file": "images/ch3_q013_9700_w23_qp_12_12.png",
+    "sourcePage": 327,
+    "sourceSN": 659,
+    "masterKey": "9700_w23_qp_12_12",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      414.95
+    ],
+    "imageSize": [
+      1191,
+      639
+    ]
+  },
+  {
+    "file": "images/ch3_q014_9700_w23_qp_13_14.png",
+    "sourcePage": 327,
+    "sourceSN": 660,
+    "masterKey": "9700_w23_qp_13_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      463.29,
+      595.28,
+      607.38
+    ],
+    "imageSize": [
+      1191,
+      250
+    ]
+  },
+  {
+    "file": "images/ch3_q015_9700_w23_qp_13_15.png",
+    "sourcePage": 328,
+    "sourceSN": 661,
+    "masterKey": "9700_w23_qp_13_15",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      272.87
+    ],
+    "imageSize": [
+      1191,
+      359
+    ]
+  },
+  {
+    "file": "images/ch3_q016_9700_s22_qp_12_11.png",
+    "sourcePage": 328,
+    "sourceSN": 662,
+    "masterKey": "9700_s22_qp_12_11",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      321.21,
+      595.28,
+      469.07
+    ],
+    "imageSize": [
+      1191,
+      258
+    ]
+  },
+  {
+    "file": "images/ch3_q017_9700_s22_qp_13_12.png",
+    "sourcePage": 328,
+    "sourceSN": 663,
+    "masterKey": "9700_s22_qp_13_12",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      517.42,
+      595.28,
+      665.61
+    ],
+    "imageSize": [
+      1191,
+      261
+    ]
+  },
+  {
+    "file": "images/ch3_q018_9700_w22_qp_11_12.png",
+    "sourcePage": 329,
+    "sourceSN": 664,
+    "masterKey": "9700_w22_qp_11_12",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      268.07
+    ],
+    "imageSize": [
+      1191,
+      349
+    ]
+  },
+  {
+    "file": "images/ch3_q019_9700_w22_qp_11_13.png",
+    "sourcePage": 329,
+    "sourceSN": 665,
+    "masterKey": "9700_w22_qp_11_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      316.41,
+      595.28,
+      462.59
+    ],
+    "imageSize": [
+      1191,
+      259
+    ]
+  },
+  {
+    "file": "images/ch3_q020_9700_w22_qp_12_12.png",
+    "sourcePage": 329,
+    "sourceSN": 666,
+    "masterKey": "9700_w22_qp_12_12",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      510.93,
+      595.28,
+      640.34
+    ],
+    "imageSize": [
+      1191,
+      226
+    ]
+  },
+  {
+    "file": "images/ch3_q021_9700_w22_qp_13_12.png",
+    "sourcePage": 330,
+    "sourceSN": 667,
+    "masterKey": "9700_w22_qp_13_12",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      328.66
+    ],
+    "imageSize": [
+      1191,
+      467
+    ]
+  },
+  {
+    "file": "images/ch3_q022_9700_s21_qp_11_14.png",
+    "sourcePage": 331,
+    "sourceSN": 668,
+    "masterKey": "9700_s21_qp_11_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      473.31
+    ],
+    "imageSize": [
+      1191,
+      756
+    ]
+  },
+  {
+    "file": "images/ch3_q023_9700_s21_qp_11_15.png",
+    "sourcePage": 332,
+    "sourceSN": 669,
+    "masterKey": "9700_s21_qp_11_15",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      347.38
+    ],
+    "imageSize": [
+      1191,
+      505
+    ]
+  },
+  {
+    "file": "images/ch3_q024_9700_s21_qp_12_12.png",
+    "sourcePage": 333,
+    "sourceSN": 670,
+    "masterKey": "9700_s21_qp_12_12",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      425.34
+    ],
+    "imageSize": [
+      1191,
+      659
+    ]
+  },
+  {
+    "file": "images/ch3_q025_9700_w21_qp_11_12.png",
+    "sourcePage": 333,
+    "sourceSN": 671,
+    "masterKey": "9700_w21_qp_11_12",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      473.68,
+      595.28,
+      690.14
+    ],
+    "imageSize": [
+      1191,
+      396
+    ]
+  },
+  {
+    "file": "images/ch3_q026_9700_w21_qp_12_14.png",
+    "sourcePage": 334,
+    "sourceSN": 672,
+    "masterKey": "9700_w21_qp_12_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      430.21
+    ],
+    "imageSize": [
+      1191,
+      668
+    ]
+  },
+  {
+    "file": "images/ch3_q027_9700_w21_qp_13_14.png",
+    "sourcePage": 334,
+    "sourceSN": 673,
+    "masterKey": "9700_w21_qp_13_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      478.55,
+      595.28,
+      622.13
+    ],
+    "imageSize": [
+      1191,
+      243
+    ]
+  },
+  {
+    "file": "images/ch3_q028_9700_s20_qp_11_12.png",
+    "sourcePage": 335,
+    "sourceSN": 674,
+    "masterKey": "9700_s20_qp_11_12",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      305.79
+    ],
+    "imageSize": [
+      1191,
+      419
+    ]
+  },
+  {
+    "file": "images/ch3_q029_9700_w20_qp_11_13.png",
+    "sourcePage": 335,
+    "sourceSN": 675,
+    "masterKey": "9700_w20_qp_11_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      354.14,
+      595.28,
+      466.85
+    ],
+    "imageSize": [
+      1191,
+      191
+    ]
+  },
+  {
+    "file": "images/ch3_q030_9700_w20_qp_12_12.png",
+    "sourcePage": 335,
+    "sourceSN": 676,
+    "masterKey": "9700_w20_qp_12_12",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      515.19,
+      595.28,
+      665.23
+    ],
+    "imageSize": [
+      1191,
+      258
+    ]
+  },
+  {
+    "file": "images/ch3_q031_9700_w20_qp_13_13.png",
+    "sourcePage": 336,
+    "sourceSN": 677,
+    "masterKey": "9700_w20_qp_13_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      231.72
+    ],
+    "imageSize": [
+      1191,
+      272
+    ]
+  },
+  {
+    "file": "images/ch3_q032_9700_m19_qp_12_14.png",
+    "sourcePage": 336,
+    "sourceSN": 678,
+    "masterKey": "9700_m19_qp_12_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      280.07,
+      595.28,
+      465.31
+    ],
+    "imageSize": [
+      1191,
+      354
+    ]
+  },
+  {
+    "file": "images/ch3_q033_9700_s19_qp_12_10.png",
+    "sourcePage": 337,
+    "sourceSN": 679,
+    "masterKey": "9700_s19_qp_12_10",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      370.32
+    ],
+    "imageSize": [
+      1191,
+      545
+    ]
+  },
+  {
+    "file": "images/ch3_q034_9700_s19_qp_12_11.png",
+    "sourcePage": 338,
+    "sourceSN": 680,
+    "masterKey": "9700_s19_qp_12_11",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      448.4
+    ],
+    "imageSize": [
+      1191,
+      682
+    ]
+  },
+  {
+    "file": "images/ch3_q035_9700_s19_qp_13_14.png",
+    "sourcePage": 338,
+    "sourceSN": 681,
+    "masterKey": "9700_s19_qp_13_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      496.74,
+      595.28,
+      646.88
+    ],
+    "imageSize": [
+      1191,
+      269
+    ]
+  },
+  {
+    "file": "images/ch3_q036_9700_w19_qp_11_12.png",
+    "sourcePage": 339,
+    "sourceSN": 682,
+    "masterKey": "9700_w19_qp_11_12",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      231.53
+    ],
+    "imageSize": [
+      1191,
+      272
+    ]
+  },
+  {
+    "file": "images/ch3_q037_9700_w19_qp_12_14.png",
+    "sourcePage": 339,
+    "sourceSN": 683,
+    "masterKey": "9700_w19_qp_12_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      279.87,
+      595.28,
+      395.23
+    ],
+    "imageSize": [
+      1191,
+      196
+    ]
+  },
+  {
+    "file": "images/ch3_q038_9700_w19_qp_13_11.png",
+    "sourcePage": 339,
+    "sourceSN": 684,
+    "masterKey": "9700_w19_qp_13_11",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      443.57,
+      595.28,
+      601.18
+    ],
+    "imageSize": [
+      1191,
+      285
+    ]
+  },
+  {
+    "file": "images/ch3_q039_9700_m18_qp_12_11.png",
+    "sourcePage": 340,
+    "sourceSN": 685,
+    "masterKey": "9700_m18_qp_12_11",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      197.72
+    ],
+    "imageSize": [
+      1191,
+      205
+    ]
+  },
+  {
+    "file": "images/ch3_q040_9700_m18_qp_12_14.png",
+    "sourcePage": 340,
+    "sourceSN": 686,
+    "masterKey": "9700_m18_qp_12_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      246.07,
+      595.28,
+      480.71
+    ],
+    "imageSize": [
+      1191,
+      432
+    ]
+  },
+  {
+    "file": "images/ch3_q041_9700_s18_qp_13_15.png",
+    "sourcePage": 340,
+    "sourceSN": 687,
+    "masterKey": "9700_s18_qp_13_15",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      529.06,
+      595.28,
+      645.07
+    ],
+    "imageSize": [
+      1191,
+      196
+    ]
+  },
+  {
+    "file": "images/ch3_q042_9700_w18_qp_11_13.png",
+    "sourcePage": 341,
+    "sourceSN": 688,
+    "masterKey": "9700_w18_qp_11_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      268.26
+    ],
+    "imageSize": [
+      1191,
+      338
+    ]
+  },
+  {
+    "file": "images/ch3_q043_9700_w18_qp_13_14.png",
+    "sourcePage": 341,
+    "sourceSN": 689,
+    "masterKey": "9700_w18_qp_13_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      316.6,
+      595.28,
+      524.08
+    ],
+    "imageSize": [
+      1191,
+      383
+    ]
+  },
+  {
+    "file": "images/ch3_q044_9700_s17_qp_11_15.png",
+    "sourcePage": 341,
+    "sourceSN": 690,
+    "masterKey": "9700_s17_qp_11_15",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      572.43,
+      595.28,
+      714.44
+    ],
+    "imageSize": [
+      1191,
+      244
+    ]
+  },
+  {
+    "file": "images/ch3_q045_9700_s17_qp_12_11.png",
+    "sourcePage": 342,
+    "sourceSN": 691,
+    "masterKey": "9700_s17_qp_12_11",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      238.35
+    ],
+    "imageSize": [
+      1191,
+      283
+    ]
+  },
+  {
+    "file": "images/ch3_q046_9700_s17_qp_13_10.png",
+    "sourcePage": 342,
+    "sourceSN": 692,
+    "masterKey": "9700_s17_qp_13_10",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      286.7,
+      595.28,
+      513.22
+    ],
+    "imageSize": [
+      1191,
+      416
+    ]
+  },
+  {
+    "file": "images/ch3_q047_9700_w17_qp_11_12.png",
+    "sourcePage": 343,
+    "sourceSN": 693,
+    "masterKey": "9700_w17_qp_11_12",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      380.72
+    ],
+    "imageSize": [
+      1191,
+      569
+    ]
+  },
+  {
+    "file": "images/ch3_q048_9700_w17_qp_12_14.png",
+    "sourcePage": 343,
+    "sourceSN": 694,
+    "masterKey": "9700_w17_qp_12_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      429.07,
+      595.28,
+      559.7
+    ],
+    "imageSize": [
+      1191,
+      212
+    ]
+  },
+  {
+    "file": "images/ch3_q049_9700_m24_qp_12_14.png",
+    "sourcePage": 344,
+    "sourceSN": 695,
+    "masterKey": "9700_m24_qp_12_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      97.01,
+      595.28,
+      376.91
+    ],
+    "imageSize": [
+      1191,
+      525
+    ]
+  },
+  {
+    "file": "images/ch3_q050_9700_s24_qp_11_11.png",
+    "sourcePage": 345,
+    "sourceSN": 696,
+    "masterKey": "9700_s24_qp_11_11",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      389.64
+    ],
+    "imageSize": [
+      1191,
+      583
+    ]
+  },
+  {
+    "file": "images/ch3_q051_9700_s24_qp_11_12.png",
+    "sourcePage": 345,
+    "sourceSN": 697,
+    "masterKey": "9700_s24_qp_11_12",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      437.98,
+      595.28,
+      582.48
+    ],
+    "imageSize": [
+      1191,
+      236
+    ]
+  },
+  {
+    "file": "images/ch3_q052_9700_s24_qp_12_10.png",
+    "sourcePage": 346,
+    "sourceSN": 698,
+    "masterKey": "9700_s24_qp_12_10",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      250.89
+    ],
+    "imageSize": [
+      1191,
+      307
+    ]
+  },
+  {
+    "file": "images/ch3_q053_9700_s24_qp_12_11.png",
+    "sourcePage": 346,
+    "sourceSN": 699,
+    "masterKey": "9700_s24_qp_12_11",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      299.23,
+      595.28,
+      631.18
+    ],
+    "imageSize": [
+      1191,
+      616
+    ]
+  },
+  {
+    "file": "images/ch3_q054_9700_s24_qp_13_11.png",
+    "sourcePage": 347,
+    "sourceSN": 700,
+    "masterKey": "9700_s24_qp_13_11",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      536.91
+    ],
+    "imageSize": [
+      1191,
+      880
+    ]
+  },
+  {
+    "file": "images/ch3_q055_9700_s24_qp_13_12.png",
+    "sourcePage": 347,
+    "sourceSN": 701,
+    "masterKey": "9700_s24_qp_13_12",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      585.26,
+      595.28,
+      711.23
+    ],
+    "imageSize": [
+      1191,
+      203
+    ]
+  },
+  {
+    "file": "images/ch3_q056_9700_s24_qp_13_13.png",
+    "sourcePage": 348,
+    "sourceSN": 702,
+    "masterKey": "9700_s24_qp_13_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      305.92
+    ],
+    "imageSize": [
+      1191,
+      415
+    ]
+  },
+  {
+    "file": "images/ch3_q057_9700_w24_qp_11_12.png",
+    "sourcePage": 349,
+    "sourceSN": 703,
+    "masterKey": "9700_w24_qp_11_12",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      501.94
+    ],
+    "imageSize": [
+      1191,
+      810
+    ]
+  },
+  {
+    "file": "images/ch3_q058_9700_w24_qp_11_13.png",
+    "sourcePage": 349,
+    "sourceSN": 704,
+    "masterKey": "9700_w24_qp_11_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      550.29,
+      595.28,
+      677.41
+    ],
+    "imageSize": [
+      1191,
+      203
+    ]
+  },
+  {
+    "file": "images/ch3_q059_9700_w24_qp_11_15.png",
+    "sourcePage": 350,
+    "sourceSN": 705,
+    "masterKey": "9700_w24_qp_11_15",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      261.32
+    ],
+    "imageSize": [
+      1191,
+      327
+    ]
+  },
+  {
+    "file": "images/ch3_q060_9700_w24_qp_12_12.png",
+    "sourcePage": 350,
+    "sourceSN": 706,
+    "masterKey": "9700_w24_qp_12_12",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      309.66,
+      595.28,
+      667.56
+    ],
+    "imageSize": [
+      1191,
+      659
+    ]
+  },
+  {
+    "file": "images/ch3_q061_9700_w24_qp_13_10.png",
+    "sourcePage": 351,
+    "sourceSN": 707,
+    "masterKey": "9700_w24_qp_13_10",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      520.76
+    ],
+    "imageSize": [
+      1191,
+      841
+    ]
+  },
+  {
+    "file": "images/ch3_q062_9700_w24_qp_13_11.png",
+    "sourcePage": 352,
+    "sourceSN": 708,
+    "masterKey": "9700_w24_qp_13_11",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      519.83
+    ],
+    "imageSize": [
+      1191,
+      840
+    ]
+  },
+  {
+    "file": "images/ch3_q063_9700_w24_qp_13_13.png",
+    "sourcePage": 352,
+    "sourceSN": 709,
+    "masterKey": "9700_w24_qp_13_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      568.17,
+      595.28,
+      691.4
+    ],
+    "imageSize": [
+      1191,
+      200
+    ]
+  },
+  {
+    "file": "images/ch3_q064_9700_m23_qp_12_16.png",
+    "sourcePage": 353,
+    "sourceSN": 710,
+    "masterKey": "9700_m23_qp_12_16",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      520.01
+    ],
+    "imageSize": [
+      1191,
+      864
+    ]
+  },
+  {
+    "file": "images/ch3_q065_9700_s23_qp_11_13.png",
+    "sourcePage": 354,
+    "sourceSN": 711,
+    "masterKey": "9700_s23_qp_11_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      441.33
+    ],
+    "imageSize": [
+      1191,
+      693
+    ]
+  },
+  {
+    "file": "images/ch3_q066_9700_s23_qp_12_14.png",
+    "sourcePage": 355,
+    "sourceSN": 712,
+    "masterKey": "9700_s23_qp_12_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      434.92
+    ],
+    "imageSize": [
+      1191,
+      681
+    ]
+  },
+  {
+    "file": "images/ch3_q067_9700_s23_qp_13_15.png",
+    "sourcePage": 356,
+    "sourceSN": 713,
+    "masterKey": "9700_s23_qp_13_15",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      541.95
+    ],
+    "imageSize": [
+      1191,
+      894
+    ]
+  },
+  {
+    "file": "images/ch3_q068_9700_s23_qp_13_16.png",
+    "sourcePage": 357,
+    "sourceSN": 714,
+    "masterKey": "9700_s23_qp_13_16",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      542.27
+    ],
+    "imageSize": [
+      1191,
+      896
+    ]
+  },
+  {
+    "file": "images/ch3_q069_9700_w23_qp_11_14.png",
+    "sourcePage": 358,
+    "sourceSN": 715,
+    "masterKey": "9700_w23_qp_11_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      383.76
+    ],
+    "imageSize": [
+      1191,
+      582
+    ]
+  },
+  {
+    "file": "images/ch3_q070_9700_w23_qp_11_15.png",
+    "sourcePage": 358,
+    "sourceSN": 716,
+    "masterKey": "9700_w23_qp_11_15",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      432.11,
+      595.28,
+      559.08
+    ],
+    "imageSize": [
+      1191,
+      219
+    ]
+  },
+  {
+    "file": "images/ch3_q071_9700_w23_qp_12_13.png",
+    "sourcePage": 359,
+    "sourceSN": 717,
+    "masterKey": "9700_w23_qp_12_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      402.28
+    ],
+    "imageSize": [
+      1191,
+      614
+    ]
+  },
+  {
+    "file": "images/ch3_q072_9700_w23_qp_12_14.png",
+    "sourcePage": 359,
+    "sourceSN": 718,
+    "masterKey": "9700_w23_qp_12_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      450.62,
+      595.28,
+      623.07
+    ],
+    "imageSize": [
+      1191,
+      310
+    ]
+  },
+  {
+    "file": "images/ch3_q073_9700_w23_qp_13_16.png",
+    "sourcePage": 360,
+    "sourceSN": 719,
+    "masterKey": "9700_w23_qp_13_16",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      407.9
+    ],
+    "imageSize": [
+      1191,
+      630
+    ]
+  },
+  {
+    "file": "images/ch3_q074_9700_m22_qp_12_16.png",
+    "sourcePage": 360,
+    "sourceSN": 720,
+    "masterKey": "9700_m22_qp_12_16",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      456.24,
+      595.28,
+      647.21
+    ],
+    "imageSize": [
+      1191,
+      343
+    ]
+  },
+  {
+    "file": "images/ch3_q075_9700_s22_qp_11_13.png",
+    "sourcePage": 361,
+    "sourceSN": 721,
+    "masterKey": "9700_s22_qp_11_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      306.64
+    ],
+    "imageSize": [
+      1191,
+      421
+    ]
+  },
+  {
+    "file": "images/ch3_q076_9700_s22_qp_12_12.png",
+    "sourcePage": 361,
+    "sourceSN": 722,
+    "masterKey": "9700_s22_qp_12_12",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      354.98,
+      595.28,
+      485.36
+    ],
+    "imageSize": [
+      1191,
+      226
+    ]
+  },
+  {
+    "file": "images/ch3_q077_9700_s22_qp_13_13.png",
+    "sourcePage": 361,
+    "sourceSN": 723,
+    "masterKey": "9700_s22_qp_13_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      533.71,
+      595.28,
+      653.09
+    ],
+    "imageSize": [
+      1191,
+      200
+    ]
+  },
+  {
+    "file": "images/ch3_q078_9700_w22_qp_11_14.png",
+    "sourcePage": 362,
+    "sourceSN": 724,
+    "masterKey": "9700_w22_qp_11_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      442.76
+    ],
+    "imageSize": [
+      1191,
+      697
+    ]
+  },
+  {
+    "file": "images/ch3_q079_9700_w22_qp_12_13.png",
+    "sourcePage": 363,
+    "sourceSN": 725,
+    "masterKey": "9700_w22_qp_12_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      402.33
+    ],
+    "imageSize": [
+      1191,
+      616
+    ]
+  },
+  {
+    "file": "images/ch3_q080_9700_w22_qp_12_14.png",
+    "sourcePage": 363,
+    "sourceSN": 726,
+    "masterKey": "9700_w22_qp_12_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      450.68,
+      595.28,
+      649.47
+    ],
+    "imageSize": [
+      1191,
+      359
+    ]
+  },
+  {
+    "file": "images/ch3_q081_9700_w22_qp_13_13.png",
+    "sourcePage": 364,
+    "sourceSN": 727,
+    "masterKey": "9700_w22_qp_13_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      442.3
+    ],
+    "imageSize": [
+      1191,
+      696
+    ]
+  },
+  {
+    "file": "images/ch3_q082_9700_w22_qp_13_14.png",
+    "sourcePage": 364,
+    "sourceSN": 728,
+    "masterKey": "9700_w22_qp_13_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      490.65,
+      595.28,
+      634.42
+    ],
+    "imageSize": [
+      1191,
+      256
+    ]
+  },
+  {
+    "file": "images/ch3_q083_9700_m21_qp_12_13.png",
+    "sourcePage": 365,
+    "sourceSN": 729,
+    "masterKey": "9700_m21_qp_12_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      281.58
+    ],
+    "imageSize": [
+      1191,
+      374
+    ]
+  },
+  {
+    "file": "images/ch3_q084_9700_s21_qp_12_13.png",
+    "sourcePage": 365,
+    "sourceSN": 730,
+    "masterKey": "9700_s21_qp_12_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      329.93,
+      595.28,
+      544.28
+    ],
+    "imageSize": [
+      1191,
+      394
+    ]
+  },
+  {
+    "file": "images/ch3_q085_9700_s21_qp_13_14.png",
+    "sourcePage": 366,
+    "sourceSN": 731,
+    "masterKey": "9700_s21_qp_13_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      282.79
+    ],
+    "imageSize": [
+      1191,
+      374
+    ]
+  },
+  {
+    "file": "images/ch3_q086_9700_s21_qp_13_15.png",
+    "sourcePage": 366,
+    "sourceSN": 732,
+    "masterKey": "9700_s21_qp_13_15",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      331.14,
+      595.28,
+      657.43
+    ],
+    "imageSize": [
+      1191,
+      613
+    ]
+  },
+  {
+    "file": "images/ch3_q087_9700_w21_qp_11_13.png",
+    "sourcePage": 367,
+    "sourceSN": 733,
+    "masterKey": "9700_w21_qp_11_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      311.77
+    ],
+    "imageSize": [
+      1191,
+      431
+    ]
+  },
+  {
+    "file": "images/ch3_q088_9700_w21_qp_12_15.png",
+    "sourcePage": 367,
+    "sourceSN": 734,
+    "masterKey": "9700_w21_qp_12_15",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      360.11,
+      595.28,
+      691.59
+    ],
+    "imageSize": [
+      1191,
+      624
+    ]
+  },
+  {
+    "file": "images/ch3_q089_9700_w21_qp_13_15.png",
+    "sourcePage": 368,
+    "sourceSN": 735,
+    "masterKey": "9700_w21_qp_13_15",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      349.42
+    ],
+    "imageSize": [
+      1191,
+      513
+    ]
+  },
+  {
+    "file": "images/ch3_q090_9700_m20_qp_12_13.png",
+    "sourcePage": 368,
+    "sourceSN": 736,
+    "masterKey": "9700_m20_qp_12_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      397.77,
+      595.28,
+      525.8
+    ],
+    "imageSize": [
+      1191,
+      219
+    ]
+  },
+  {
+    "file": "images/ch3_q091_9700_m20_qp_12_14.png",
+    "sourcePage": 369,
+    "sourceSN": 737,
+    "masterKey": "9700_m20_qp_12_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      292.31
+    ],
+    "imageSize": [
+      1191,
+      405
+    ]
+  },
+  {
+    "file": "images/ch3_q092_9700_s20_qp_11_13.png",
+    "sourcePage": 369,
+    "sourceSN": 738,
+    "masterKey": "9700_s20_qp_11_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      340.65,
+      595.28,
+      486.99
+    ],
+    "imageSize": [
+      1191,
+      258
+    ]
+  },
+  {
+    "file": "images/ch3_q093_9700_s20_qp_12_13.png",
+    "sourcePage": 369,
+    "sourceSN": 739,
+    "masterKey": "9700_s20_qp_12_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      535.33,
+      595.28,
+      711.79
+    ],
+    "imageSize": [
+      1191,
+      313
+    ]
+  },
+  {
+    "file": "images/ch3_q094_9700_s20_qp_12_14.png",
+    "sourcePage": 370,
+    "sourceSN": 740,
+    "masterKey": "9700_s20_qp_12_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      228.93
+    ],
+    "imageSize": [
+      1191,
+      262
+    ]
+  },
+  {
+    "file": "images/ch3_q095_9700_s20_qp_13_12.png",
+    "sourcePage": 370,
+    "sourceSN": 741,
+    "masterKey": "9700_s20_qp_13_12",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      277.27,
+      595.28,
+      674.44
+    ],
+    "imageSize": [
+      1191,
+      765
+    ]
+  },
+  {
+    "file": "images/ch3_q096_9700_s20_qp_13_13.png",
+    "sourcePage": 371,
+    "sourceSN": 742,
+    "masterKey": "9700_s20_qp_13_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      210.73
+    ],
+    "imageSize": [
+      1191,
+      227
+    ]
+  },
+  {
+    "file": "images/ch3_q097_9700_w20_qp_11_14.png",
+    "sourcePage": 371,
+    "sourceSN": 743,
+    "masterKey": "9700_w20_qp_11_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      259.07,
+      595.28,
+      449.26
+    ],
+    "imageSize": [
+      1191,
+      343
+    ]
+  },
+  {
+    "file": "images/ch3_q098_9700_w20_qp_11_15.png",
+    "sourcePage": 371,
+    "sourceSN": 744,
+    "masterKey": "9700_w20_qp_11_15",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      497.6,
+      595.28,
+      614.67
+    ],
+    "imageSize": [
+      1191,
+      200
+    ]
+  },
+  {
+    "file": "images/ch3_q099_9700_w20_qp_12_13.png",
+    "sourcePage": 372,
+    "sourceSN": 745,
+    "masterKey": "9700_w20_qp_12_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      478.84
+    ],
+    "imageSize": [
+      1191,
+      764
+    ]
+  },
+  {
+    "file": "images/ch3_q100_9700_w20_qp_12_14.png",
+    "sourcePage": 372,
+    "sourceSN": 746,
+    "masterKey": "9700_w20_qp_12_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      527.19,
+      595.28,
+      702.95
+    ],
+    "imageSize": [
+      1191,
+      318
+    ]
+  },
+  {
+    "file": "images/ch3_q101_9700_w20_qp_13_14.png",
+    "sourcePage": 373,
+    "sourceSN": 747,
+    "masterKey": "9700_w20_qp_13_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      272.23
+    ],
+    "imageSize": [
+      1191,
+      355
+    ]
+  },
+  {
+    "file": "images/ch3_q102_9700_m19_qp_12_15.png",
+    "sourcePage": 373,
+    "sourceSN": 748,
+    "masterKey": "9700_m19_qp_12_15",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      320.57,
+      595.28,
+      632.25
+    ],
+    "imageSize": [
+      1191,
+      596
+    ]
+  },
+  {
+    "file": "images/ch3_q103_9700_m19_qp_12_16.png",
+    "sourcePage": 374,
+    "sourceSN": 749,
+    "masterKey": "9700_m19_qp_12_16",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      393.83
+    ],
+    "imageSize": [
+      1191,
+      606
+    ]
+  },
+  {
+    "file": "images/ch3_q104_9700_s19_qp_11_13.png",
+    "sourcePage": 375,
+    "sourceSN": 750,
+    "masterKey": "9700_s19_qp_11_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      461.66
+    ],
+    "imageSize": [
+      1191,
+      734
+    ]
+  },
+  {
+    "file": "images/ch3_q105_9700_s19_qp_11_14.png",
+    "sourcePage": 375,
+    "sourceSN": 751,
+    "masterKey": "9700_s19_qp_11_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      510.0,
+      595.28,
+      638.36
+    ],
+    "imageSize": [
+      1191,
+      196
+    ]
+  },
+  {
+    "file": "images/ch3_q106_9700_s19_qp_13_15.png",
+    "sourcePage": 376,
+    "sourceSN": 752,
+    "masterKey": "9700_s19_qp_13_15",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      248.11
+    ],
+    "imageSize": [
+      1191,
+      315
+    ]
+  },
+  {
+    "file": "images/ch3_q107_9700_s19_qp_13_16.png",
+    "sourcePage": 376,
+    "sourceSN": 753,
+    "masterKey": "9700_s19_qp_13_16",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      296.45,
+      595.28,
+      436.83
+    ],
+    "imageSize": [
+      1191,
+      243
+    ]
+  },
+  {
+    "file": "images/ch3_q108_9700_w19_qp_11_13.png",
+    "sourcePage": 376,
+    "sourceSN": 754,
+    "masterKey": "9700_w19_qp_11_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      485.18,
+      595.28,
+      651.57
+    ],
+    "imageSize": [
+      1191,
+      291
+    ]
+  },
+  {
+    "file": "images/ch3_q109_9700_w19_qp_11_14.png",
+    "sourcePage": 377,
+    "sourceSN": 755,
+    "masterKey": "9700_w19_qp_11_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      412.25
+    ],
+    "imageSize": [
+      1191,
+      642
+    ]
+  },
+  {
+    "file": "images/ch3_q110_9700_w19_qp_12_15.png",
+    "sourcePage": 377,
+    "sourceSN": 756,
+    "masterKey": "9700_w19_qp_12_15",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      460.6,
+      595.28,
+      612.36
+    ],
+    "imageSize": [
+      1191,
+      263
+    ]
+  },
+  {
+    "file": "images/ch3_q111_9700_w19_qp_12_16.png",
+    "sourcePage": 378,
+    "sourceSN": 757,
+    "masterKey": "9700_w19_qp_12_16",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      417.78
+    ],
+    "imageSize": [
+      1191,
+      642
+    ]
+  },
+  {
+    "file": "images/ch3_q112_9700_w19_qp_13_12.png",
+    "sourcePage": 378,
+    "sourceSN": 758,
+    "masterKey": "9700_w19_qp_13_12",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      466.12,
+      595.28,
+      614.96
+    ],
+    "imageSize": [
+      1191,
+      263
+    ]
+  },
+  {
+    "file": "images/ch3_q113_9700_m18_qp_12_15.png",
+    "sourcePage": 379,
+    "sourceSN": 759,
+    "masterKey": "9700_m18_qp_12_15",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      199.02
+    ],
+    "imageSize": [
+      1191,
+      205
+    ]
+  },
+  {
+    "file": "images/ch3_q114_9700_s18_qp_11_12.png",
+    "sourcePage": 379,
+    "sourceSN": 760,
+    "masterKey": "9700_s18_qp_11_12",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      247.37,
+      595.28,
+      422.21
+    ],
+    "imageSize": [
+      1191,
+      314
+    ]
+  },
+  {
+    "file": "images/ch3_q115_9700_s18_qp_11_13.png",
+    "sourcePage": 380,
+    "sourceSN": 761,
+    "masterKey": "9700_s18_qp_11_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      470.11
+    ],
+    "imageSize": [
+      1191,
+      750
+    ]
+  },
+  {
+    "file": "images/ch3_q116_9700_s18_qp_12_12.png",
+    "sourcePage": 381,
+    "sourceSN": 762,
+    "masterKey": "9700_s18_qp_12_12",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      299.14
+    ],
+    "imageSize": [
+      1191,
+      411
+    ]
+  },
+  {
+    "file": "images/ch3_q117_9700_s18_qp_12_13.png",
+    "sourcePage": 382,
+    "sourceSN": 763,
+    "masterKey": "9700_s18_qp_12_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      487.7
+    ],
+    "imageSize": [
+      1191,
+      758
+    ]
+  },
+  {
+    "file": "images/ch3_q118_9700_s18_qp_12_14.png",
+    "sourcePage": 383,
+    "sourceSN": 764,
+    "masterKey": "9700_s18_qp_12_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      371.95
+    ],
+    "imageSize": [
+      1191,
+      566
+    ]
+  },
+  {
+    "file": "images/ch3_q119_9700_s18_qp_13_13.png",
+    "sourcePage": 383,
+    "sourceSN": 765,
+    "masterKey": "9700_s18_qp_13_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      420.29,
+      595.28,
+      642.91
+    ],
+    "imageSize": [
+      1191,
+      397
+    ]
+  },
+  {
+    "file": "images/ch3_q120_9700_s18_qp_13_14.png",
+    "sourcePage": 384,
+    "sourceSN": 766,
+    "masterKey": "9700_s18_qp_13_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      330.34
+    ],
+    "imageSize": [
+      1191,
+      469
+    ]
+  },
+  {
+    "file": "images/ch3_q121_9700_w18_qp_11_14.png",
+    "sourcePage": 384,
+    "sourceSN": 767,
+    "masterKey": "9700_w18_qp_11_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      378.68,
+      595.28,
+      528.82
+    ],
+    "imageSize": [
+      1191,
+      271
+    ]
+  },
+  {
+    "file": "images/ch3_q122_9700_w18_qp_12_14.png",
+    "sourcePage": 385,
+    "sourceSN": 768,
+    "masterKey": "9700_w18_qp_12_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      222.33
+    ],
+    "imageSize": [
+      1191,
+      264
+    ]
+  },
+  {
+    "file": "images/ch3_q123_9700_w18_qp_12_15.png",
+    "sourcePage": 385,
+    "sourceSN": 769,
+    "masterKey": "9700_w18_qp_12_15",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      270.67,
+      595.28,
+      494.27
+    ],
+    "imageSize": [
+      1191,
+      409
+    ]
+  },
+  {
+    "file": "images/ch3_q124_9700_w18_qp_13_13.png",
+    "sourcePage": 385,
+    "sourceSN": 770,
+    "masterKey": "9700_w18_qp_13_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      542.61,
+      595.28,
+      708.35
+    ],
+    "imageSize": [
+      1191,
+      284
+    ]
+  },
+  {
+    "file": "images/ch3_q125_9700_w18_qp_13_15.png",
+    "sourcePage": 386,
+    "sourceSN": 771,
+    "masterKey": "9700_w18_qp_13_15",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      319.94
+    ],
+    "imageSize": [
+      1191,
+      449
+    ]
+  },
+  {
+    "file": "images/ch3_q126_9700_m17_qp_12_14.png",
+    "sourcePage": 387,
+    "sourceSN": 772,
+    "masterKey": "9700_m17_qp_12_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      457.43
+    ],
+    "imageSize": [
+      1191,
+      720
+    ]
+  },
+  {
+    "file": "images/ch3_q127_9700_m17_qp_12_15.png",
+    "sourcePage": 388,
+    "sourceSN": 773,
+    "masterKey": "9700_m17_qp_12_15",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      379.42
+    ],
+    "imageSize": [
+      1191,
+      572
+    ]
+  },
+  {
+    "file": "images/ch3_q128_9700_s17_qp_11_14.png",
+    "sourcePage": 388,
+    "sourceSN": 774,
+    "masterKey": "9700_s17_qp_11_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      427.77,
+      595.28,
+      641.29
+    ],
+    "imageSize": [
+      1191,
+      396
+    ]
+  },
+  {
+    "file": "images/ch3_q129_9700_s17_qp_11_16.png",
+    "sourcePage": 389,
+    "sourceSN": 775,
+    "masterKey": "9700_s17_qp_11_16",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      434.35
+    ],
+    "imageSize": [
+      1191,
+      674
+    ]
+  },
+  {
+    "file": "images/ch3_q130_9700_s17_qp_12_10.png",
+    "sourcePage": 390,
+    "sourceSN": 776,
+    "masterKey": "9700_s17_qp_12_10",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      471.08
+    ],
+    "imageSize": [
+      1191,
+      762
+    ]
+  },
+  {
+    "file": "images/ch3_q131_9700_s17_qp_12_12.png",
+    "sourcePage": 390,
+    "sourceSN": 777,
+    "masterKey": "9700_s17_qp_12_12",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      519.43,
+      595.28,
+      634.46
+    ],
+    "imageSize": [
+      1191,
+      196
+    ]
+  },
+  {
+    "file": "images/ch3_q132_9700_s17_qp_13_11.png",
+    "sourcePage": 391,
+    "sourceSN": 778,
+    "masterKey": "9700_s17_qp_13_11",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      418.75
+    ],
+    "imageSize": [
+      1191,
+      631
+    ]
+  },
+  {
+    "file": "images/ch3_q133_9700_s17_qp_13_12.png",
+    "sourcePage": 392,
+    "sourceSN": 779,
+    "masterKey": "9700_s17_qp_13_12",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      410.95
+    ],
+    "imageSize": [
+      1191,
+      631
+    ]
+  },
+  {
+    "file": "images/ch3_q134_9700_w17_qp_11_13.png",
+    "sourcePage": 392,
+    "sourceSN": 780,
+    "masterKey": "9700_w17_qp_11_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      459.3,
+      595.28,
+      604.23
+    ],
+    "imageSize": [
+      1191,
+      250
+    ]
+  },
+  {
+    "file": "images/ch3_q135_9700_w17_qp_12_15.png",
+    "sourcePage": 393,
+    "sourceSN": 781,
+    "masterKey": "9700_w17_qp_12_15",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      453.86
+    ],
+    "imageSize": [
+      1191,
+      725
+    ]
+  },
+  {
+    "file": "images/ch3_q136_9700_w17_qp_12_16.png",
+    "sourcePage": 393,
+    "sourceSN": 782,
+    "masterKey": "9700_w17_qp_12_16",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      502.2,
+      595.28,
+      647.46
+    ],
+    "imageSize": [
+      1191,
+      262
+    ]
+  },
+  {
+    "file": "images/ch3_q137_9700_w17_qp_13_13.png",
+    "sourcePage": 394,
+    "sourceSN": 783,
+    "masterKey": "9700_w17_qp_13_13",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      483.11
+    ],
+    "imageSize": [
+      1191,
+      773
+    ]
+  },
+  {
+    "file": "images/ch3_q138_9700_w17_qp_13_14.png",
+    "sourcePage": 394,
+    "sourceSN": 784,
+    "masterKey": "9700_w17_qp_13_14",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      531.45,
+      595.28,
+      675.41
+    ],
+    "imageSize": [
+      1191,
+      262
+    ]
+  },
+  {
+    "file": "images/ch3_q139_9700_w17_qp_13_15.png",
+    "sourcePage": 395,
+    "sourceSN": 785,
+    "masterKey": "9700_w17_qp_13_15",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      76.19,
+      595.28,
+      247.13
+    ],
+    "imageSize": [
+      1191,
+      322
+    ]
+  },
+  {
+    "file": "images/ch3_q140_9700_w17_qp_13_16.png",
+    "sourcePage": 395,
+    "sourceSN": 786,
+    "masterKey": "9700_w17_qp_13_16",
+    "cropMethod": "compiled_delimiter",
+    "compiledDelimiterFound": true,
+    "pdfCrop": [
+      0,
+      295.47,
+      595.28,
+      558.4
+    ],
+    "imageSize": [
+      1191,
+      497
+    ]
+  }
+]
