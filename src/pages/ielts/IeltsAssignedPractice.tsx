@@ -64,16 +64,28 @@ const buildAssignedPracticeRoute = (route: string, assignment: IeltsPracticeStud
 );
 
 
-const getSubmissionDetailRoute = (itemStatus: string, progressItem?: IeltsPracticeAssignmentProgress['items'][number] | undefined): string | null => {
-  if (itemStatus !== 'completed' || !progressItem?.practice_attempt_id) return null;
+const hasValidAttemptId = (value: string | null | undefined): value is string => typeof value === 'string' && value.trim().length > 0;
+
+type AssignmentProgressReviewMetadata = {
+  has_finalized_review?: boolean | null;
+  review_status?: string | null;
+  feedback_status?: string | null;
+};
+
+const hasFinalizedReview = (progressItem?: (IeltsPracticeAssignmentProgress['items'][number] & AssignmentProgressReviewMetadata) | undefined): boolean => (
+  progressItem?.has_finalized_review === true || String(progressItem?.review_status ?? progressItem?.feedback_status ?? '').toLowerCase() === 'finalized'
+);
+
+const getSubmissionDetailRoute = (itemStatus: string, progressItem?: (IeltsPracticeAssignmentProgress['items'][number] & AssignmentProgressReviewMetadata) | undefined): string | null => {
+  if (itemStatus !== 'completed' || !hasValidAttemptId(progressItem?.practice_attempt_id)) return null;
   const skill = String(progressItem.practice_attempt_type ?? progressItem.skill ?? '').toLowerCase();
-  const attemptId = encodeURIComponent(progressItem.practice_attempt_id);
+  const attemptId = encodeURIComponent(progressItem.practice_attempt_id.trim());
 
   if (skill === 'reading' || skill === 'listening') {
     return `/ielts/${skill}/result/${attemptId}`;
   }
   if (skill === 'writing' || skill === 'speaking') {
-    return `/ielts/review-result/${skill}/${attemptId}`;
+    return hasFinalizedReview(progressItem) ? `/ielts/review-result/${skill}/${attemptId}` : null;
   }
   return null;
 };
@@ -302,6 +314,7 @@ const IeltsAssignedPractice: React.FC = () => {
                         const assignedRoute = route ? buildAssignedPracticeRoute(route, assignment, item) : null;
                         const itemProgress = progressItemsById.get(item.id);
                         const itemStatus = getAssignmentItemVisualStatus(itemProgress ?? item, assignment);
+                        const skill = String(itemProgress?.practice_attempt_type ?? itemProgress?.skill ?? item.skill ?? '').toLowerCase();
                         const itemStyle = itemStatus === 'completed'
                           ? { border: '#86efac', bg: '#f0fdf4' }
                           : itemStatus === 'in_progress'
@@ -336,13 +349,18 @@ const IeltsAssignedPractice: React.FC = () => {
                                         }}
                                         style={{ background: '#dcfce7', color: '#166534', border: '1px solid #86efac', borderRadius: '0.5rem', padding: '0.45rem 0.75rem', fontWeight: 800, textDecoration: 'none', fontSize: '0.75rem' }}
                                       >
-                                        View submission →
+                                        {skill === 'reading' || skill === 'listening' ? 'View result →' : 'View feedback →'}
                                       </a>
                                     );
                                   }
+                                  const unavailableCopy = skill === 'reading' || skill === 'listening'
+                                    ? '✓ Completed · Result not available yet'
+                                    : skill === 'writing' || skill === 'speaking'
+                                      ? '✓ Completed · Feedback not finalized yet'
+                                      : 'Complete task first';
                                   return (
-                                    <span style={{ background: '#dcfce7', color: '#166534', border: '1px solid #86efac', borderRadius: '0.5rem', padding: '0.45rem 0.75rem', fontWeight: 800, fontSize: '0.75rem' }}>
-                                      ✓ Completed
+                                    <span style={{ background: '#f8fafc', color: '#64748b', border: '1px solid #cbd5e1', borderRadius: '0.5rem', padding: '0.45rem 0.75rem', fontWeight: 800, fontSize: '0.75rem' }}>
+                                      {unavailableCopy}
                                     </span>
                                   );
                                 })()

@@ -364,6 +364,19 @@ test('IELTS Practice tab uses school-scoped assignment service and avoids legacy
 });
 
 
+
+test('assigned IELTS practice result CTAs require attempt IDs and finalized reviews', () => {
+  const page = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/IeltsAssignedPractice.tsx'), 'utf8');
+
+  assert.match(page, /hasValidAttemptId/, 'assigned page must validate that a result CTA has an actual attempt id');
+  assert.match(page, /practice_attempt_id\.trim\(\)/, 'result routes must be built from stored practice attempt ids, not assignment/content ids');
+  assert.match(page, /Result not available yet/, 'objective completed rows without attempt ids should show unavailable copy instead of linking');
+  assert.match(page, /Feedback not finalized yet/, 'writing/speaking completed rows without finalized reviews should not link to feedback');
+  assert.match(page, /hasFinalizedReview/, 'writing/speaking feedback CTAs must require finalized review metadata');
+  assert.doesNotMatch(page, /result\/\$\{encodeURIComponent\(item\.content_id\)/, 'objective result links must not use content ids');
+  assert.doesNotMatch(page, /result\/\$\{encodeURIComponent\(item\.id\)/, 'objective result links must not use assignment item ids');
+});
+
 test('IELTS practice content service uses only the safe catalog RPC', () => {
   const service = fs.readFileSync(path.join(process.cwd(), 'services/ieltsPracticeContentService.ts'), 'utf8');
 
