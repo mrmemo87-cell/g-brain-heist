@@ -1,9 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../services/supabaseClient';
-import { createIeltsPrimeCheckout, getIeltsPrimeSubscriptionStatus, type IeltsPrimePlan } from '../../../services/ieltsPrimeBillingService';
+import {
+  createIeltsPrimeCheckout,
+  getIeltsPrimeSubscriptionStatus,
+  type IeltsPrimePlan,
+} from '../../../services/ieltsPrimeBillingService';
 import { getUserTier, isIeltsPrime } from '../../../services/ieltsService';
 import * as IELTSAuthService from '../../../services/ieltsAuthService';
+import { openPaddleCheckoutForTransaction } from '../../../services/paddleCheckoutClient';
 
 type PlanCard = {
   id: IeltsPrimePlan;
@@ -44,7 +49,20 @@ const plans: PlanCard[] = [
   },
 ];
 
-const formatPrice = (value: number) => `$${value % 1 === 0 ? value.toFixed(0) : value.toFixed(2)}`;
+const formatPrice = (value: number) =>
+  `$${value % 1 === 0 ? value.toFixed(0) : value.toFixed(2)}`;
+
+const getCheckoutState = () => {
+  const search = new URLSearchParams(window.location.search);
+  const transactionId = search.get('_ptxn');
+
+  const checkoutSuccess =
+    !transactionId &&
+    (['success', 'completed'].includes(search.get('checkout') || '') ||
+      ['success', 'completed'].includes(search.get('upgrade') || ''));
+
+  return { transactionId, checkoutSuccess };
+};
 
 const IeltsPrime: React.FC = () => {
   const navigate = useNavigate();
@@ -56,10 +74,7 @@ const IeltsPrime: React.FC = () => {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [manageUrl, setManageUrl] = useState<string | null>(null);
 
-  const isCheckoutReturn = useMemo(() => {
-    const search = new URLSearchParams(window.location.search);
-    return ['success', 'completed'].includes(search.get('checkout') || '') || ['success', 'completed'].includes(search.get('upgrade') || '');
-  }, []);
+  const { transactionId, checkoutSuccess } = useMemo(() => getCheckoutState(), []);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -67,42 +82,82 @@ const IeltsPrime: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (!transactionId) return;
+
+    let cancelled = false;
+
+    async function openCheckoutFromUrl() {
+      try {
+        setError(null);
+        setStatusMessage('Opening secure Paddle checkout…');
+
+        await openPaddleCheckoutForTransaction(transactionId);
+
+        if (!cancelled) {
+          const cleanUrl = `${window.location.origin}/ielts/apply-prime`;
+          window.history.replaceState({}, '', cleanUrl);
+          setStatusMessage('Complete your secure Paddle checkout to activate Prime.');
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setStatusMessage(null);
+          setError(err instanceof Error ? err.message : 'Could not open Paddle checkout.');
+        }
+      }
+    }
+
+    void openCheckoutFromUrl();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [transactionId]);
+
+  useEffect(() => {
     let active = true;
+
     const refreshState = async () => {
       const { data } = await supabase.auth.getSession();
       if (!active) return;
+
       setIsAuthenticated(Boolean(data.session));
       if (!data.session) return;
 
       const tier = await getUserTier();
       if (!active) return;
+
       const prime = isIeltsPrime({ tier });
       setIsPrimeUser(prime);
 
       const subscription = await getIeltsPrimeSubscriptionStatus();
       if (!active) return;
+
       setManageUrl(subscription.management_url || subscription.update_payment_url);
-      if (isCheckoutReturn && !prime) {
-        setStatusMessage('Payment received. Activating your Prime access…');
-      } else if (prime) {
+
+      if (prime) {
         setStatusMessage('Your IELTS Prime access is active.');
+      } else if (checkoutSuccess) {
+        setStatusMessage('Payment received. Activating your Prime access…');
       }
     };
 
     void refreshState();
+
     let interval: number | undefined;
-    if (isCheckoutReturn) {
+    if (checkoutSuccess) {
       interval = window.setInterval(refreshState, 3000);
     }
+
     return () => {
       active = false;
       if (interval) window.clearInterval(interval);
     };
-  }, [isCheckoutReturn]);
+  }, [checkoutSuccess]);
 
   const handleGoogleSignIn = async () => {
     setError(null);
     setGoogleLoading(true);
+
     try {
       window.sessionStorage.setItem('ielts_auth_intent', '/ielts/apply-prime');
       await IELTSAuthService.loginWithGoogle();
@@ -114,85 +169,299 @@ const IeltsPrime: React.FC = () => {
 
   const handleCheckout = async (plan: IeltsPrimePlan) => {
     setError(null);
+
     if (!isAuthenticated) {
       await handleGoogleSignIn();
       return;
     }
 
     setCheckoutPlan(plan);
-    setStatusMessage('Redirecting to secure Paddle checkout…');
-    const result = await createIeltsPrimeCheckout(plan);
-    if (result.checkout_url) {
-      window.location.href = result.checkout_url;
-      return;
+    setStatusMessage('Creating secure Paddle checkout…');
+
+    try {
+      const result = await createIeltsPrimeCheckout(plan);
+
+      if (result.error) {
+        setError(result.error);
+        setStatusMessage(null);
+        return;
+      }
+
+      if (result.transaction_id) {
+        setStatusMessage('Opening secure Paddle checkout…');
+        await openPaddleCheckoutForTransaction(result.transaction_id);
+        setStatusMessage('Complete your secure Paddle checkout to activate Prime.');
+        return;
+      }
+
+      if (result.checkout_url) {
+        window.location.href = result.checkout_url;
+        return;
+      }
+
+      setError('Checkout failed — please try again.');
+      setStatusMessage(null);
+    } catch (checkoutError) {
+      setError(
+        checkoutError instanceof Error
+          ? checkoutError.message
+          : 'Checkout failed — please try again.',
+      );
+      setStatusMessage(null);
+    } finally {
+      setCheckoutPlan(null);
     }
-    setCheckoutPlan(null);
-    setStatusMessage(null);
-    setError(result.error || 'Checkout failed — please try again.');
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #07111f 0%, #0f172a 52%, #172554 100%)', color: '#fff', padding: '1.25rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #07111f 0%, #0f172a 52%, #172554 100%)',
+        color: '#fff',
+        padding: '1.25rem',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+      }}
+    >
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-        <button type="button" onClick={() => navigate('/ielts')} style={{ background: 'rgba(255,255,255,0.08)', color: '#dbeafe', border: '1px solid rgba(255,255,255,0.16)', borderRadius: 999, padding: '0.55rem 0.9rem', cursor: 'pointer', fontWeight: 800 }}>
+        <button
+          type="button"
+          onClick={() => navigate('/ielts')}
+          style={{
+            background: 'rgba(255,255,255,0.08)',
+            color: '#dbeafe',
+            border: '1px solid rgba(255,255,255,0.16)',
+            borderRadius: 999,
+            padding: '0.55rem 0.9rem',
+            cursor: 'pointer',
+            fontWeight: 800,
+          }}
+        >
           ← Back to IELTS tasks
         </button>
 
         <header style={{ textAlign: 'center', padding: '3rem 0 2rem' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'linear-gradient(135deg, #fde68a, #f59e0b)', color: '#111827', borderRadius: 999, padding: '0.45rem 0.9rem', fontWeight: 900, fontSize: '0.78rem', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '1rem' }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              background: 'linear-gradient(135deg, #fde68a, #f59e0b)',
+              color: '#111827',
+              borderRadius: 999,
+              padding: '0.45rem 0.9rem',
+              fontWeight: 900,
+              fontSize: '0.78rem',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              marginBottom: '1rem',
+            }}
+          >
             Temporary 50% launch discount
           </div>
-          <h1 style={{ margin: 0, fontSize: 'clamp(2.3rem, 7vw, 4.8rem)', lineHeight: 0.95, fontWeight: 950 }}>
+
+          <h1
+            style={{
+              margin: 0,
+              fontSize: 'clamp(2.3rem, 7vw, 4.8rem)',
+              lineHeight: 0.95,
+              fontWeight: 950,
+            }}
+          >
             Start IELTS Prime instantly.
           </h1>
-          <p style={{ maxWidth: 720, margin: '1rem auto 0', color: '#cbd5e1', fontSize: '1.08rem', lineHeight: 1.7 }}>
-            No application form. No waiting. Secure checkout powered by Paddle, and your access activates after checkout.
+
+          <p
+            style={{
+              maxWidth: 720,
+              margin: '1rem auto 0',
+              color: '#cbd5e1',
+              fontSize: '1.08rem',
+              lineHeight: 1.7,
+            }}
+          >
+            No application form. No waiting. Secure checkout powered by Paddle, and your access
+            activates after checkout.
           </p>
+
           {!isAuthenticated && (
             <p style={{ margin: '1rem auto 0', color: '#93c5fd', fontWeight: 800 }}>
               Sign in with Google to buy Prime — no school required.
             </p>
           )}
+
           {statusMessage && (
-            <div style={{ margin: '1.25rem auto 0', maxWidth: 620, background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(74,222,128,0.35)', borderRadius: '1rem', padding: '0.9rem 1rem', color: '#bbf7d0', fontWeight: 800 }}>
+            <div
+              style={{
+                margin: '1.25rem auto 0',
+                maxWidth: 620,
+                background: 'rgba(34,197,94,0.12)',
+                border: '1px solid rgba(74,222,128,0.35)',
+                borderRadius: '1rem',
+                padding: '0.9rem 1rem',
+                color: '#bbf7d0',
+                fontWeight: 800,
+              }}
+            >
               {statusMessage}
             </div>
           )}
+
           {error && (
-            <div style={{ margin: '1.25rem auto 0', maxWidth: 620, background: 'rgba(239,68,68,0.13)', border: '1px solid rgba(248,113,113,0.45)', borderRadius: '1rem', padding: '0.9rem 1rem', color: '#fecaca', fontWeight: 800 }}>
+            <div
+              style={{
+                margin: '1.25rem auto 0',
+                maxWidth: 620,
+                background: 'rgba(239,68,68,0.13)',
+                border: '1px solid rgba(248,113,113,0.45)',
+                borderRadius: '1rem',
+                padding: '0.9rem 1rem',
+                color: '#fecaca',
+                fontWeight: 800,
+              }}
+            >
               {error}
             </div>
           )}
         </header>
 
-        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+        <section
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+            gap: '1rem',
+            marginBottom: '2rem',
+          }}
+        >
           {plans.map((plan) => (
-            <article key={plan.id} style={{ position: 'relative', background: plan.badge === 'Most popular' ? 'linear-gradient(180deg, rgba(30,64,175,0.96), rgba(15,23,42,0.96))' : 'rgba(255,255,255,0.08)', border: plan.badge === 'Most popular' ? '1px solid rgba(96,165,250,0.75)' : '1px solid rgba(255,255,255,0.15)', borderRadius: '1.25rem', padding: '1.35rem', boxShadow: '0 24px 70px rgba(2,6,23,0.35)' }}>
+            <article
+              key={plan.id}
+              style={{
+                position: 'relative',
+                background:
+                  plan.badge === 'Most popular'
+                    ? 'linear-gradient(180deg, rgba(30,64,175,0.96), rgba(15,23,42,0.96))'
+                    : 'rgba(255,255,255,0.08)',
+                border:
+                  plan.badge === 'Most popular'
+                    ? '1px solid rgba(96,165,250,0.75)'
+                    : '1px solid rgba(255,255,255,0.15)',
+                borderRadius: '1.25rem',
+                padding: '1.35rem',
+                boxShadow: '0 24px 70px rgba(2,6,23,0.35)',
+              }}
+            >
               {plan.badge && (
-                <div style={{ position: 'absolute', top: 14, right: 14, background: '#22c55e', color: '#052e16', borderRadius: 999, padding: '0.28rem 0.62rem', fontWeight: 900, fontSize: '0.7rem' }}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 14,
+                    right: 14,
+                    background: '#22c55e',
+                    color: '#052e16',
+                    borderRadius: 999,
+                    padding: '0.28rem 0.62rem',
+                    fontWeight: 900,
+                    fontSize: '0.7rem',
+                  }}
+                >
                   {plan.badge}
                 </div>
               )}
-              <h2 style={{ margin: '0 0 0.7rem', fontSize: '1.35rem', fontWeight: 950 }}>{plan.name}</h2>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.65rem', marginBottom: '0.35rem' }}>
-                <span style={{ color: '#94a3b8', textDecoration: 'line-through', fontSize: '1.15rem', fontWeight: 800 }}>{formatPrice(plan.originalPrice)}</span>
-                <span style={{ fontSize: '2.35rem', fontWeight: 950, color: '#fef3c7' }}>{formatPrice(plan.discountedPrice)}</span>
+
+              <h2 style={{ margin: '0 0 0.7rem', fontSize: '1.35rem', fontWeight: 950 }}>
+                {plan.name}
+              </h2>
+
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  gap: '0.65rem',
+                  marginBottom: '0.35rem',
+                }}
+              >
+                <span
+                  style={{
+                    color: '#94a3b8',
+                    textDecoration: 'line-through',
+                    fontSize: '1.15rem',
+                    fontWeight: 800,
+                  }}
+                >
+                  {formatPrice(plan.originalPrice)}
+                </span>
+                <span style={{ fontSize: '2.35rem', fontWeight: 950, color: '#fef3c7' }}>
+                  {formatPrice(plan.discountedPrice)}
+                </span>
                 <span style={{ color: '#cbd5e1', fontWeight: 700 }}>{plan.period}</span>
               </div>
-              <p style={{ margin: '0 0 1rem', color: '#fde68a', fontWeight: 900 }}>50% off at checkout</p>
-              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 1.25rem', display: 'grid', gap: '0.55rem', color: '#dbeafe' }}>
-                {plan.features.map((feature) => <li key={feature}>✓ {feature}</li>)}
+
+              <p style={{ margin: '0 0 1rem', color: '#fde68a', fontWeight: 900 }}>
+                50% off at checkout
+              </p>
+
+              <ul
+                style={{
+                  listStyle: 'none',
+                  padding: 0,
+                  margin: '0 0 1.25rem',
+                  display: 'grid',
+                  gap: '0.55rem',
+                  color: '#dbeafe',
+                }}
+              >
+                {plan.features.map((feature) => (
+                  <li key={feature}>✓ {feature}</li>
+                ))}
               </ul>
-              <button type="button" onClick={() => handleCheckout(plan.id)} disabled={Boolean(checkoutPlan) || googleLoading} style={{ width: '100%', border: 'none', borderRadius: '0.85rem', padding: '0.9rem 1rem', background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#052e16', fontWeight: 950, cursor: checkoutPlan || googleLoading ? 'wait' : 'pointer', opacity: checkoutPlan || googleLoading ? 0.75 : 1 }}>
-                {checkoutPlan === plan.id ? 'Redirecting to Paddle…' : googleLoading ? 'Connecting to Google…' : isAuthenticated ? 'Checkout with Paddle' : 'Sign in with Google to continue'}
+
+              <button
+                type="button"
+                onClick={() => handleCheckout(plan.id)}
+                disabled={Boolean(checkoutPlan) || googleLoading}
+                style={{
+                  width: '100%',
+                  border: 'none',
+                  borderRadius: '0.85rem',
+                  padding: '0.9rem 1rem',
+                  background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+                  color: '#052e16',
+                  fontWeight: 950,
+                  cursor: checkoutPlan || googleLoading ? 'wait' : 'pointer',
+                  opacity: checkoutPlan || googleLoading ? 0.75 : 1,
+                }}
+              >
+                {checkoutPlan === plan.id
+                  ? 'Opening Paddle…'
+                  : googleLoading
+                    ? 'Connecting to Google…'
+                    : isAuthenticated
+                      ? 'Checkout with Paddle'
+                      : 'Sign in with Google to continue'}
               </button>
             </article>
           ))}
         </section>
 
-        <section style={{ background: 'rgba(15,23,42,0.72)', border: '1px solid rgba(255,255,255,0.13)', borderRadius: '1.25rem', padding: '1.25rem', marginBottom: '2rem' }}>
+        <section
+          style={{
+            background: 'rgba(15,23,42,0.72)',
+            border: '1px solid rgba(255,255,255,0.13)',
+            borderRadius: '1.25rem',
+            padding: '1.25rem',
+            marginBottom: '2rem',
+          }}
+        >
           <h2 style={{ margin: '0 0 0.8rem', fontWeight: 950 }}>What Prime unlocks</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem', color: '#cbd5e1' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: '0.75rem',
+              color: '#cbd5e1',
+            }}
+          >
             <div>📚 Full Reading practice access</div>
             <div>🎧 Listening practice and test mode</div>
             <div>✍️ Writing prompts and feedback flow</div>
@@ -202,7 +471,12 @@ const IeltsPrime: React.FC = () => {
 
         {isPrimeUser && manageUrl && (
           <section style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            <a href={manageUrl} target="_blank" rel="noreferrer" style={{ color: '#bfdbfe', fontWeight: 900 }}>
+            <a
+              href={manageUrl}
+              target="_blank"
+              rel="noreferrer"
+              style={{ color: '#bfdbfe', fontWeight: 900 }}
+            >
               Manage your Paddle subscription
             </a>
           </section>
