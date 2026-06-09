@@ -52,7 +52,7 @@ const plans: PlanCard[] = [
 const formatPrice = (value: number) =>
   `$${value % 1 === 0 ? value.toFixed(0) : value.toFixed(2)}`;
 
-const getCheckoutState = () => {
+function getCheckoutState() {
   const search = new URLSearchParams(window.location.search);
   const transactionId = search.get('_ptxn');
 
@@ -61,11 +61,15 @@ const getCheckoutState = () => {
     (['success', 'completed'].includes(search.get('checkout') || '') ||
       ['success', 'completed'].includes(search.get('upgrade') || ''));
 
-  return { transactionId, checkoutSuccess };
-};
+  return {
+    transactionId,
+    checkoutSuccess,
+  };
+}
 
 const IeltsPrime: React.FC = () => {
   const navigate = useNavigate();
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isPrimeUser, setIsPrimeUser] = useState(false);
   const [checkoutPlan, setCheckoutPlan] = useState<IeltsPrimePlan | null>(null);
@@ -91,11 +95,10 @@ const IeltsPrime: React.FC = () => {
         setError(null);
         setStatusMessage('Opening secure Paddle checkout…');
 
-        await openPaddleCheckoutForTransaction(transactionId);
+        await openPaddleCheckoutForTransaction(transactionId as string);
 
         if (!cancelled) {
-          const cleanUrl = `${window.location.origin}/ielts/apply-prime`;
-          window.history.replaceState({}, '', cleanUrl);
+          window.history.replaceState({}, '', `${window.location.origin}/ielts/apply-prime`);
           setStatusMessage('Complete your secure Paddle checkout to activate Prime.');
         }
       } catch (err) {
@@ -454,6 +457,7 @@ const IeltsPrime: React.FC = () => {
           }}
         >
           <h2 style={{ margin: '0 0 0.8rem', fontWeight: 950 }}>What Prime unlocks</h2>
+
           <div
             style={{
               display: 'grid',
