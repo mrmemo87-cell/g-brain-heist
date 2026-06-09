@@ -1,17 +1,41 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../../../services/supabaseClient';
+import { ensureIeltsProfile } from '../../../services/ieltsService';
 
 const AuthCallback: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Supabase handles the OAuth callback automatically.
-    // Just redirect to home after a short delay to ensure session is established.
-    const timer = setTimeout(() => {
-      navigate('/');
-    }, 1000);
+    let cancelled = false;
 
-    return () => clearTimeout(timer);
+    const completeSignIn = async () => {
+      // Supabase handles the OAuth callback automatically. Once the session is
+      // available, return IELTS funnel users to the exact task/Prime page they
+      // intended to open before Google sign-in.
+      await new Promise((resolve) => window.setTimeout(resolve, 700));
+      const intendedPath = window.sessionStorage.getItem('ielts_auth_intent') || '/';
+      if (intendedPath.startsWith('/ielts')) {
+        try {
+          const { data } = await supabase.auth.getSession();
+          if (data.session?.user) {
+            await ensureIeltsProfile();
+          }
+        } catch (error) {
+          console.warn('Unable to prepare IELTS profile after Google sign-in:', error);
+        }
+      }
+      window.sessionStorage.removeItem('ielts_auth_intent');
+      if (!cancelled) {
+        navigate(intendedPath.startsWith('/') ? intendedPath : '/', { replace: true });
+      }
+    };
+
+    void completeSignIn();
+
+    return () => {
+      cancelled = true;
+    };
   }, [navigate]);
 
   return (

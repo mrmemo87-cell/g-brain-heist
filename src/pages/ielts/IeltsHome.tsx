@@ -6,6 +6,7 @@ import {
   fetchActiveReadingSets,
   fetchActiveSpeakingTasks,
   fetchActiveWritingTasks,
+  fetchPublicIeltsTaskPreviews,
   fetchUserCompletedTasks,
   getUserTier,
   isIeltsPrime,
@@ -20,7 +21,7 @@ import { canAccessIeltsReviewQueue, normalizeIeltsRole } from '../../../services
 const IeltsHome: React.FC = () => {
   const navigate = useNavigate();
   const rootRef = useRef<HTMLDivElement>(null);
-  const primeRedirectUrl = 'https://www.brainsheist.com/ielts/apply-prime';
+  const primeRedirectUrl = '/ielts/apply-prime';
   const [musicEnabled, setMusicEnabled] = useState(false);
   const [readingSets, setReadingSets] = useState<IELTSReadingSet[]>([]);
   const [listeningSets, setListeningSets] = useState<IELTSListeningSet[]>([]);
@@ -30,9 +31,10 @@ const IeltsHome: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userTier, setUserTier] = useState('free');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<string>('student');
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
-  const [extraPracticeEnabled, setExtraPracticeEnabled] = useState(false);
+  const [extraPracticeEnabled, setExtraPracticeEnabled] = useState(true);
   const isPrimeUser = isIeltsPrime({ tier: userTier });
   const canAccessRequiredTier = (requiredTier?: string | null) => !requiredTier || requiredTier === 'free' || isPrimeUser;
   const normalizedRole = normalizeIeltsRole(userRole);
@@ -60,8 +62,43 @@ const IeltsHome: React.FC = () => {
   };
 
   const redirectToPrime = () => {
-    window.location.href = primeRedirectUrl;
+    if (!isAuthenticated) {
+      requireGoogleSignIn(primeRedirectUrl);
+      return;
+    }
+    navigate(primeRedirectUrl);
   };
+
+  const requireGoogleSignIn = (destination: string) => {
+    window.sessionStorage.setItem('ielts_auth_intent', destination);
+    navigate(destination === primeRedirectUrl ? '/ielts/apply-prime' : destination);
+  };
+
+  const openTask = (destination: string, isLocked: boolean) => {
+    if (!isAuthenticated) {
+      requireGoogleSignIn(destination);
+      return;
+    }
+    if (isLocked) {
+      redirectToPrime();
+      return;
+    }
+    navigate(destination);
+  };
+
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (active) setIsAuthenticated(Boolean(data.session));
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(Boolean(session));
+    });
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -101,17 +138,87 @@ const IeltsHome: React.FC = () => {
 
   useEffect(() => {
     const loadExtraPracticeSetting = async () => {
+      if (!isAuthenticated) {
+        setExtraPracticeEnabled(true);
+        return;
+      }
       const access = await resolveIeltsExtraPracticeAccess();
       setExtraPracticeEnabled(access.enabled);
     };
     void loadExtraPracticeSetting();
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     const loadTasks = async () => {
       try {
         setIsLoading(true);
         setError(null);
+
+        if (!isAuthenticated) {
+          const previews = await fetchPublicIeltsTaskPreviews();
+          const excludedListeningTitles = new Set([
+            'IELTS Listening Sample Task 1 (Form Completion)',
+            'IELTS Listening Sample Task 2 (Form Completion)',
+          ]);
+          setReadingSets(previews.filter((item) => item.skill === 'reading').map((item) => ({
+            id: item.id,
+            slug: item.slug || `reading-${item.id}`,
+            title: item.title,
+            description: item.description,
+            level: item.level || 'IELTS',
+            est_band_min: item.est_band_min,
+            est_band_max: item.est_band_max,
+            duration_minutes: item.duration_minutes || 60,
+            passage_text: null,
+            required_tier: item.required_tier,
+            created_by: null,
+            created_at: item.sort_order || '',
+            is_active: true,
+          } as IELTSReadingSet)));
+          setListeningSets(previews.filter((item) => item.skill === 'listening' && !excludedListeningTitles.has(item.title)).map((item) => ({
+            id: item.id,
+            slug: item.slug || `listening-${item.id}`,
+            title: item.title,
+            description: item.description,
+            instructions: null,
+            example_prompt: null,
+            example_answer: null,
+            section_label: null,
+            question_range_label: null,
+            level: item.level || 'IELTS',
+            est_band_min: item.est_band_min,
+            est_band_max: item.est_band_max,
+            duration_minutes: item.duration_minutes || 30,
+            audio_url: '',
+            created_by: null,
+            created_at: item.sort_order || '',
+            is_active: true,
+          } as IELTSListeningSet)));
+          setWritingTasks(previews.filter((item) => item.skill === 'writing').map((item) => ({
+            id: item.id,
+            slug: item.slug || `writing-${item.id}`,
+            task_type: item.level || 'task2',
+            title: item.title,
+            prompt: item.description || 'Sign in with Google to view the full writing prompt.',
+            bands_target: item.est_band_max ? String(item.est_band_max) : '6.5+',
+            sample_answer: null,
+            created_by: null,
+            created_at: item.sort_order || '',
+            is_active: true,
+          } as IELTSWritingTask)));
+          setSpeakingTasks(previews.filter((item) => item.skill === 'speaking').map((item) => ({
+            id: item.id,
+            slug: item.slug || `speaking-${item.id}`,
+            part: Number(item.level?.replace(/[^0-9]/g, '')) || 1,
+            prompt: item.description || item.title,
+            follow_ups: null,
+            created_by: null,
+            created_at: item.sort_order || '',
+            is_active: true,
+          } as IELTSSpeakingTask)));
+          setCompletedTasks({ reading: [], listening: [], writing: [], speaking: [] });
+          return;
+        }
 
         const [reading, listening, writing, speaking, completed] = await Promise.all([
           fetchActiveReadingSets(),
@@ -121,7 +228,7 @@ const IeltsHome: React.FC = () => {
           fetchUserCompletedTasks(),
         ]);
 
-        setReadingSets(reading);
+        setReadingSets(reading.map((set, index) => ({ ...set, required_tier: set.required_tier || (index > 0 ? 'prime_prep_user' : 'free') })));
         const excludedListeningTitles = new Set([
           'IELTS Listening Sample Task 1 (Form Completion)',
           'IELTS Listening Sample Task 2 (Form Completion)',
@@ -144,7 +251,7 @@ const IeltsHome: React.FC = () => {
       return;
     }
     setIsLoading(false);
-  }, [isIeltsAdminLandingRole]);
+  }, [isAuthenticated, isIeltsAdminLandingRole]);
 
   if (isIeltsAdminLandingRole) {
     const adminCards = [
@@ -265,15 +372,16 @@ const IeltsHome: React.FC = () => {
             IELTS Prep Center
           </h1>
           <p style={{ margin: '0.4rem 0 0', color: '#64748b', fontSize: '0.82rem' }}>
-            Master all four skills. Track your journey. Achieve your target band.
+            Browse IELTS practice tasks for free. Sign in with Google to start practicing. No school required.
           </p>
         </div>
 
         {/* Status badges */}
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
-          <span style={{ background: 'rgba(8,145,178,0.1)', border: '1px solid rgba(8,145,178,0.25)', color: '#0891b2', padding: '0.25rem 0.65rem', borderRadius: '9999px', fontSize: '0.68rem', fontWeight: 700 }}>✓ Free to Start</span>
-          <span style={{ background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.25)', color: '#7c3aed', padding: '0.25rem 0.65rem', borderRadius: '9999px', fontSize: '0.68rem', fontWeight: 700 }}>✓ Expert Content</span>
-          <span style={{ background: 'rgba(180,83,9,0.1)', border: '1px solid rgba(180,83,9,0.25)', color: '#b45309', padding: '0.25rem 0.65rem', borderRadius: '9999px', fontSize: '0.68rem', fontWeight: 700 }}>✓ Proven Results</span>
+          <span style={{ background: 'rgba(8,145,178,0.1)', border: '1px solid rgba(8,145,178,0.25)', color: '#0891b2', padding: '0.25rem 0.65rem', borderRadius: '9999px', fontSize: '0.68rem', fontWeight: 700 }}>✓ Browse Free</span>
+          <span style={{ background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.25)', color: '#7c3aed', padding: '0.25rem 0.65rem', borderRadius: '9999px', fontSize: '0.68rem', fontWeight: 700 }}>✓ Google Sign-in to Start</span>
+          <span style={{ background: 'rgba(180,83,9,0.1)', border: '1px solid rgba(180,83,9,0.25)', color: '#b45309', padding: '0.25rem 0.65rem', borderRadius: '9999px', fontSize: '0.68rem', fontWeight: 700 }}>✓ No School Required</span>
+          <span style={{ background: 'rgba(245,158,11,0.13)', border: '1px solid rgba(245,158,11,0.3)', color: '#b45309', padding: '0.25rem 0.65rem', borderRadius: '9999px', fontSize: '0.68rem', fontWeight: 700 }}>Temporary 50% launch discount</span>
         </div>
 
         {/* Error */}
@@ -337,7 +445,7 @@ const IeltsHome: React.FC = () => {
             {/* Free Trial Test Banner */}
             <div
               data-home-card
-              onClick={() => (isPrimeUser ? navigate('/ielts/trial-test') : redirectToPrime())}
+              onClick={() => openTask('/ielts/trial-test', !isPrimeUser)}
               style={{ background: 'linear-gradient(135deg, #0c1a3a 0%, #0f172a 100%)', border: '1px solid rgba(34,211,238,0.2)', borderRadius: '1rem', padding: '1.1rem 1.25rem', marginBottom: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: '0 0 32px rgba(34,211,238,0.06)', opacity: 1, transition: 'border-color 0.2s, box-shadow 0.2s' }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(34,211,238,0.4)'; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(34,211,238,0.2)'; }}
@@ -365,7 +473,7 @@ const IeltsHome: React.FC = () => {
                     const isCompleted = completedTasks.reading.includes(set.id);
                     const isLocked = !canAccessRequiredTier(set.required_tier) || (!isPrimeUser && index > 0 && !set.required_tier);
                     return (
-                      <button key={set.id} onClick={() => (isLocked ? redirectToPrime() : navigate(`/ielts/reading/${set.id}`))}
+                      <button key={set.id} onClick={() => openTask(`/ielts/reading/${set.id}`, isLocked)}
                         style={{ width: '100%', background: isCompleted ? 'rgba(5,150,105,0.07)' : isLocked ? '#f8fafc' : 'rgba(8,145,178,0.04)', border: isCompleted ? '1px solid rgba(5,150,105,0.3)' : isLocked ? '1px dashed #cbd5e1' : '1px solid rgba(8,145,178,0.15)', borderRadius: '0.65rem', padding: '0.75rem', marginBottom: '0.5rem', textAlign: 'left', cursor: 'pointer' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
                           <span style={{ fontWeight: 700, color: isLocked ? '#94a3b8' : '#0f172a', fontSize: '0.875rem', flex: 1 }}>{set.title}</span>
@@ -405,7 +513,7 @@ const IeltsHome: React.FC = () => {
                     const isCompleted = completedTasks.listening.includes(set.id);
                     const isLocked = !isPrimeUser;
                     return (
-                      <button key={set.id} onClick={() => (isLocked ? redirectToPrime() : navigate(`/ielts/listening/${set.id}`))}
+                      <button key={set.id} onClick={() => openTask(`/ielts/listening/${set.id}`, isLocked)}
                         style={{ width: '100%', background: isCompleted ? 'rgba(5,150,105,0.07)' : isLocked ? '#f8fafc' : 'rgba(124,58,237,0.04)', border: isCompleted ? '1px solid rgba(5,150,105,0.3)' : isLocked ? '1px dashed #cbd5e1' : '1px solid rgba(124,58,237,0.15)', borderRadius: '0.65rem', padding: '0.75rem', marginBottom: '0.5rem', textAlign: 'left', cursor: 'pointer' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
                           <span style={{ fontWeight: 700, color: isLocked ? '#94a3b8' : '#0f172a', fontSize: '0.875rem', flex: 1 }}>{set.title}</span>
@@ -434,9 +542,9 @@ const IeltsHome: React.FC = () => {
                   ? <p style={{ color: '#94a3b8', fontSize: '0.82rem', margin: 0 }}>No writing tasks published yet.</p>
                   : writingTasks.map((task, index) => {
                     const isCompleted = completedTasks.writing.includes(task.id);
-                    const isLocked = !isPrimeUser && index > 0;
+                    const isLocked = !canAccessRequiredTier(task.required_tier) || (!isPrimeUser && index > 0 && !task.required_tier);
                     return (
-                      <button key={task.id} onClick={() => (isLocked ? redirectToPrime() : navigate(`/ielts/writing/${task.id}`))}
+                      <button key={task.id} onClick={() => openTask(`/ielts/writing/${task.id}`, isLocked)}
                         style={{ width: '100%', background: isCompleted ? 'rgba(5,150,105,0.07)' : isLocked ? '#f8fafc' : 'rgba(5,150,105,0.04)', border: isCompleted ? '1px solid rgba(5,150,105,0.3)' : isLocked ? '1px dashed #cbd5e1' : '1px solid rgba(5,150,105,0.15)', borderRadius: '0.65rem', padding: '0.75rem', marginBottom: '0.5rem', textAlign: 'left', cursor: 'pointer' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
                           <span style={{ fontWeight: 700, color: isLocked ? '#94a3b8' : '#0f172a', fontSize: '0.875rem', flex: 1 }}>{task.title}</span>
@@ -465,9 +573,9 @@ const IeltsHome: React.FC = () => {
                   ? <p style={{ color: '#94a3b8', fontSize: '0.82rem', margin: 0 }}>No speaking tasks published yet.</p>
                   : speakingTasks.map((task, index) => {
                     const isCompleted = completedTasks.speaking.includes(task.id);
-                    const isLocked = !isPrimeUser && index > 0;
+                    const isLocked = !canAccessRequiredTier(task.required_tier) || (!isPrimeUser && index > 0 && !task.required_tier);
                     return (
-                      <button key={task.id} onClick={() => (isLocked ? redirectToPrime() : navigate(`/ielts/speaking/${task.id}`))}
+                      <button key={task.id} onClick={() => openTask(`/ielts/speaking/${task.id}`, isLocked)}
                         style={{ width: '100%', background: isCompleted ? 'rgba(52,211,153,0.07)' : isLocked ? 'rgba(255,255,255,0.02)' : 'rgba(251,146,60,0.04)', border: isCompleted ? '1px solid rgba(52,211,153,0.3)' : isLocked ? '1px dashed rgba(255,255,255,0.1)' : '1px solid rgba(251,146,60,0.15)', borderRadius: '0.65rem', padding: '0.75rem', marginBottom: '0.5rem', textAlign: 'left', cursor: 'pointer' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                           <div style={{ display: 'flex', gap: '0.3rem', flexShrink: 0 }}>
@@ -489,8 +597,8 @@ const IeltsHome: React.FC = () => {
         {/* Prime CTA */}
         {!isPrimeUser && (
           <div data-home-card style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '1rem', padding: '1.25rem', textAlign: 'center', marginBottom: '1rem', opacity: 1 }}>
-            <h3 style={{ color: '#1d4ed8', fontSize: '1.1rem', fontWeight: 900, margin: '0 0 0.4rem' }}>⭐ Upgrade to Prime</h3>
-            <p style={{ color: '#3b82f6', fontSize: '0.8rem', margin: '0 0 0.85rem' }}>Unlimited tests · Expert feedback · Certificates</p>
+            <h3 style={{ color: '#1d4ed8', fontSize: '1.1rem', fontWeight: 900, margin: '0 0 0.4rem' }}>⭐ Upgrade to IELTS Prime</h3>
+            <p style={{ color: '#3b82f6', fontSize: '0.8rem', margin: '0 0 0.85rem' }}>Full access · Secure checkout powered by Paddle · Temporary 50% launch discount</p>
             <button onClick={() => navigate('/ielts/apply-prime')} style={{ background: '#22c55e', color: '#fff', fontWeight: 800, padding: '0.6rem 1.5rem', borderRadius: '0.55rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem' }}>
               Explore Prime
             </button>

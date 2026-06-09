@@ -11,7 +11,7 @@ import { supabase, isMissingSupabaseConfig } from './services/supabaseClient';
 import { LightModeProvider } from './src/contexts/LightModeContext';
 import './src/index.css';
 import './src/styles/light-mode.css';
-import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, Navigate, RouterProvider, useNavigate, useParams } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { lazyRetry } from './src/utils/lazyRetry';
 import OnboardingRouteGate from './components/onboarding/OnboardingRouteGate';
@@ -24,6 +24,7 @@ import { isOnboardingDebugEnabled, logOnboardingDebug } from './src/features/onb
 import type { Profile } from './types';
 import { isAuthCallbackPath, isResumeEvent, resolvePostAuthPath, shouldUseGlobalAuthLoader } from './src/lib/authFlowGuards';
 import { readIeltsPracticeAssignmentContext } from './src/pages/ielts/assignmentPracticeUi';
+import { checkIeltsPracticeAccess, type IeltsPracticeSkill } from './services/ieltsService';
 
 // ── Lazy-loaded pages & modals (with automatic retry on stale-chunk errors) ──
 const FinishSetupModal = lazyRetry(() => import('./components/FinishSetupModal'), 'FinishSetupModal');
@@ -61,6 +62,55 @@ const queryClient = new QueryClient();
 
 const IeltsPracticeRouteGuard: React.FC<{ children: React.ReactElement }> = ({ children }) => {
   const assignmentContext = readIeltsPracticeAssignmentContext();
+  const navigate = useNavigate();
+  const params = useParams();
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const skill: IeltsPracticeSkill = pathname.includes('/ielts/listening/')
+    ? 'listening'
+    : pathname.includes('/ielts/writing/')
+      ? 'writing'
+      : pathname.includes('/ielts/speaking/')
+        ? 'speaking'
+        : 'reading';
+  const rawTaskId = params.setId ?? params.taskId;
+  const taskId = rawTaskId ? Number(rawTaskId) : NaN;
+  const [state, setState] = useState<{ loading: boolean; allowed: boolean; reason?: string }>({ loading: true, allowed: false });
+
+  useEffect(() => {
+    let active = true;
+    if (!Number.isFinite(taskId)) {
+      setState({ loading: false, allowed: false, reason: 'not_found' });
+      return () => { active = false; };
+    }
+
+    void checkIeltsPracticeAccess(skill, taskId)
+      .then((access) => {
+        if (!active) return;
+        if (access.allowed) {
+          setState({ loading: false, allowed: true });
+          return;
+        }
+        setState({ loading: false, allowed: false, reason: access.reason });
+        if (access.reason === 'prime_required') {
+          navigate('/ielts/apply-prime', { replace: true });
+        }
+      })
+      .catch(() => {
+        if (!active) return;
+        setState({ loading: false, allowed: false, reason: 'error' });
+      });
+
+    return () => { active = false; };
+  }, [navigate, skill, taskId]);
+
+  if (state.loading) {
+    return <div style={{ padding: '1rem' }}>Checking IELTS access…</div>;
+  }
+
+  if (!state.allowed) {
+    if (state.reason === 'prime_required') return null;
+    return <div style={{ padding: '1.5rem', maxWidth: 640, margin: '2rem auto', background: '#fff7ed', border: '1px solid #fdba74', borderRadius: 12, color: '#9a3412' }}>This IELTS task is not available.</div>;
+  }
 
   if (assignmentContext.isAssignedPractice) {
     return children;
@@ -721,7 +771,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/ielts',
-    element: <ProtectedRoute element={<IeltsHome />} />,
+    element: <IeltsHome />,
   },
   {
     path: '/ielts/practice/assigned',
@@ -753,7 +803,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/ielts/apply-prime',
-    element: <ProtectedRoute element={<IeltsPrime />} />,
+    element: <IeltsPrime />,
   },
   {
     path: '/ielts/exams/manage',
