@@ -24,7 +24,9 @@ export async function resolveIeltsExtraPracticeAccess(): Promise<IeltsExtraPract
   if (isAdmin) return { role, isAdmin: true, enabled: true };
 
   const schoolId = (profile as { school_id?: string | null } | null)?.school_id;
-  if (!schoolId) return { role, isAdmin: false, enabled: false };
+  // Independent IELTS learners are not attached to a school; allow the
+  // public funnel/free-task flow to work without weakening school settings.
+  if (!schoolId) return { role, isAdmin: false, enabled: true };
 
   const { data: school } = await supabase
     .from('schools')

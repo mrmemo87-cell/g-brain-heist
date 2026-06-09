@@ -697,6 +697,7 @@ export interface IELTSListeningSet {
   est_band_max: number | null;
   duration_minutes: number;
   audio_url: string;
+  required_tier?: string | null;
   created_by: string | null;
   created_at: string;
   is_active: boolean;
@@ -710,6 +711,7 @@ export interface IELTSWritingTask {
   prompt: string;
   bands_target: string | null;
   sample_answer: string | null;
+  required_tier?: string | null;
   created_by: string | null;
   created_at: string;
   is_active: boolean;
@@ -721,6 +723,7 @@ export interface IELTSSpeakingTask {
   part: number;
   prompt: string;
   follow_ups: Record<string, any> | null;
+  required_tier?: string | null;
   created_by: string | null;
   created_at: string;
   is_active: boolean;

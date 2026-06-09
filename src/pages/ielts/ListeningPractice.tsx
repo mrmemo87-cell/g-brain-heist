@@ -23,6 +23,7 @@ interface ListeningSet {
   est_band_max: number;
   duration_minutes: number;
   audio_url: string;
+  required_tier?: string | null;
 }
 
 interface ListeningQuestion {
@@ -440,7 +441,7 @@ const ListeningPractice: React.FC = () => {
     );
   }
 
-  if (!isPrimeUser) {
+  if ((listeningSet?.required_tier ?? 'prime_prep_user') !== 'free' && !isPrimeUser) {
     return (
       <div style={{ 
         minHeight: '100vh', 

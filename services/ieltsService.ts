@@ -225,6 +225,59 @@ export const ensureIeltsProfile = async (
   return inserted as IELTSUserProfile;
 };
 
+
+export type IeltsPracticeSkill = 'reading' | 'listening' | 'writing' | 'speaking';
+
+export interface IeltsPublicTaskPreview {
+  id: number;
+  skill: IeltsPracticeSkill;
+  slug: string | null;
+  title: string;
+  description: string | null;
+  level: string | null;
+  est_band_min: number | null;
+  est_band_max: number | null;
+  duration_minutes: number | null;
+  required_tier: string | null;
+  is_prime: boolean;
+  sort_order: string | null;
+}
+
+export interface IeltsPracticeAccessResult {
+  allowed: boolean;
+  reason: 'not_authenticated' | 'not_found' | 'prime_required' | 'allowed' | 'error';
+  required_tier: string | null;
+}
+
+export const fetchPublicIeltsTaskPreviews = async (): Promise<IeltsPublicTaskPreview[]> => {
+  const { data, error } = await supabase.rpc('rpc_public_ielts_task_previews');
+  if (error) {
+    throw new Error(`Failed to load IELTS previews: ${error.message || 'unknown error'}`);
+  }
+  return (data ?? []) as IeltsPublicTaskPreview[];
+};
+
+export const checkIeltsPracticeAccess = async (
+  skill: IeltsPracticeSkill,
+  taskId: number
+): Promise<IeltsPracticeAccessResult> => {
+  const { data, error } = await supabase.rpc('rpc_ielts_check_practice_access', {
+    p_skill: skill,
+    p_task_id: taskId,
+  });
+
+  if (error) {
+    return { allowed: false, reason: 'error', required_tier: null };
+  }
+
+  const result = Array.isArray(data) ? data[0] : data;
+  return {
+    allowed: Boolean(result?.allowed),
+    reason: (result?.reason ?? 'error') as IeltsPracticeAccessResult['reason'],
+    required_tier: result?.required_tier ?? null,
+  };
+};
+
 const handleSelectError = (error: any, context: string) => {
   if (!error) {
     return;
@@ -290,7 +343,7 @@ export const fetchActiveReadingSets = async (): Promise<IELTSReadingSet[]> => {
 export const fetchActiveListeningSets = async (): Promise<IELTSListeningSet[]> => {
   const { data, error } = await supabase
     .from('ielts_listening_sets')
-    .select('id, slug, title, description, instructions, example_prompt, example_answer, section_label, question_range_label, level, est_band_min, est_band_max, duration_minutes, audio_url, created_by, created_at, is_active')
+    .select('id, slug, title, description, instructions, example_prompt, example_answer, section_label, question_range_label, level, est_band_min, est_band_max, duration_minutes, audio_url, required_tier, created_by, created_at, is_active')
     .eq('is_active', true)
     .order('created_at', { ascending: false });
 
@@ -301,7 +354,7 @@ export const fetchActiveListeningSets = async (): Promise<IELTSListeningSet[]> =
 export const fetchActiveWritingTasks = async (): Promise<IELTSWritingTaskType[]> => {
   const { data, error } = await supabase
     .from('ielts_writing_tasks')
-    .select('id, slug, task_type, title, prompt, bands_target, sample_answer, created_by, created_at, is_active')
+    .select('id, slug, task_type, title, prompt, bands_target, sample_answer, required_tier, created_by, created_at, is_active')
     .eq('is_active', true)
     .order('created_at', { ascending: false });
 
@@ -312,7 +365,7 @@ export const fetchActiveWritingTasks = async (): Promise<IELTSWritingTaskType[]>
 export const fetchActiveSpeakingTasks = async (): Promise<IELTSSpeakingTask[]> => {
   const { data, error } = await supabase
     .from('ielts_speaking_tasks')
-    .select('id, slug, part, prompt, follow_ups, created_by, created_at, is_active')
+    .select('id, slug, part, prompt, follow_ups, required_tier, created_by, created_at, is_active')
     .eq('is_active', true)
     .order('created_at', { ascending: false });
 
@@ -596,6 +649,16 @@ export const getUserTier = async () => {
     const { data: effectiveTier, error: rpcError } = await supabase.rpc('get_effective_tier');
     if (!rpcError && isPro(effectiveTier)) {
       return 'prime_prep_user'; // School subscription grants full IELTS access
+    }
+  } catch {
+    // RPC not available (migration not yet applied) — fall through to legacy check
+  }
+
+  // Check personal IELTS Prime subscription (independent learners, no school required)
+  try {
+    const { data: hasPersonalPrime, error: personalPrimeError } = await supabase.rpc('has_active_ielts_prime_subscription');
+    if (!personalPrimeError && hasPersonalPrime === true) {
+      return 'prime_prep_user';
     }
   } catch {
     // RPC not available (migration not yet applied) — fall through to legacy check

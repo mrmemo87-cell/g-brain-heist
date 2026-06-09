@@ -18,6 +18,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.78.0";
 //   PADDLE_PRICE_STANDARD_YEARLY
 //   PADDLE_PRICE_PRO_MONTHLY
 //   PADDLE_PRICE_PRO_YEARLY
+//   PADDLE_PRICE_IELTS_PRIME_MONTHLY
+//   PADDLE_PRICE_IELTS_PRIME_QUARTERLY
+//   PADDLE_PRICE_IELTS_PRIME_YEARLY
+//   PADDLE_DISCOUNT_IELTS_LAUNCH_50  — optional Paddle discount ID
 //   PADDLE_ENVIRONMENT           — 'sandbox' or 'production' (default: production)
 //   APP_URL
 //   SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
@@ -131,6 +135,24 @@ function resolvePlanFromPriceId(priceId: string): { plan: string; interval: stri
   }
   return null;
 }
+
+function resolveIeltsPrimePlanFromPriceId(priceId: string): { plan: string; interval: string } | null {
+  const envMappings: [string, string, string][] = [
+    ["PADDLE_PRICE_IELTS_PRIME_MONTHLY", "monthly", "monthly"],
+    ["PADDLE_PRICE_IELTS_PRIME_QUARTERLY", "quarterly", "quarterly"],
+    ["PADDLE_PRICE_IELTS_PRIME_YEARLY", "yearly", "yearly"],
+  ];
+
+  for (const [envKey, plan, interval] of envMappings) {
+    if (Deno.env.get(envKey) === priceId) return { plan, interval };
+  }
+  return null;
+}
+
+const isIeltsPrimeEvent = (data: any): boolean => {
+  const customData = data?.custom_data || {};
+  return customData.product === "ielts_prime";
+};
 
 // ── Supabase clients ──
 
@@ -263,6 +285,71 @@ async function handleCreateCheckout(req: Request): Promise<Response> {
 }
 
 // ─────────────────────────────────────────────────
+// ROUTE: POST /paddle/ielts-checkout
+// Body: { plan: 'monthly'|'quarterly'|'yearly' }
+// ─────────────────────────────────────────────────
+async function handleCreateIeltsPrimeCheckout(req: Request, bodyOverride?: any): Promise<Response> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) {
+    return jsonResponse(401, { error: "Not authenticated" });
+  }
+
+  const supabase = getSupabaseFromAuth(authHeader);
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return jsonResponse(401, { error: "Invalid session" });
+  }
+
+  const body = bodyOverride || await req.json().catch(() => ({}));
+  const plan: string = body.plan || body.billing_interval || "monthly";
+
+  if (!["monthly", "quarterly", "yearly"].includes(plan)) {
+    return jsonResponse(400, { error: `Invalid IELTS Prime plan: ${plan}` });
+  }
+
+  const priceKey = `PADDLE_PRICE_IELTS_PRIME_${plan.toUpperCase()}`;
+  const priceId = Deno.env.get(priceKey);
+  if (!priceId) {
+    return jsonResponse(500, { error: `Price not configured: ${priceKey}` });
+  }
+
+  const appUrl = Deno.env.get("APP_URL") || "https://www.brainsheist.com";
+  const discountId = Deno.env.get("PADDLE_DISCOUNT_IELTS_LAUNCH_50");
+  const customData = {
+    product: "ielts_prime",
+    user_id: user.id,
+    plan,
+    billing_interval: plan,
+    discount: "launch_50",
+  };
+
+  const transactionBody: Record<string, unknown> = {
+    items: [{ price_id: priceId, quantity: 1 }],
+    customer_email: user.email || undefined,
+    custom_data: customData,
+    checkout: {
+      url: `${appUrl}/ielts/apply-prime?checkout=success`,
+    },
+  };
+
+  if (discountId) {
+    transactionBody.discount_id = discountId;
+  }
+
+  const transaction = (await paddleRequest("/transactions", transactionBody)) as { data: { id: string; checkout?: { url: string } } };
+  const checkoutUrl = transaction?.data?.checkout?.url;
+
+  return jsonResponse(200, {
+    success: true,
+    checkout_url: checkoutUrl || `${getPaddleBaseUrl().replace("api", "checkout")}/transactions/${transaction.data.id}`,
+    transaction_id: transaction.data.id,
+  });
+}
+
+// ─────────────────────────────────────────────────
 // ROUTE: POST /paddle/get-portal-url
 // Returns Paddle subscription management URL
 // ─────────────────────────────────────────────────
@@ -355,6 +442,147 @@ async function handleGetPortalUrl(req: Request): Promise<Response> {
   });
 }
 
+async function upsertIeltsPrimeSubscription(admin: ReturnType<typeof getSupabaseAdmin>, params: {
+  userId: string;
+  customerId?: string | null;
+  subscriptionId?: string | null;
+  transactionId?: string | null;
+  plan: string;
+  status: string;
+  priceId?: string | null;
+  currentPeriodStart?: string | null;
+  currentPeriodEnd?: string | null;
+  cancelAtPeriodEnd?: boolean;
+  managementUrl?: string | null;
+  updatePaymentUrl?: string | null;
+  eventOccurredAt: string;
+}) {
+  const row: Record<string, unknown> = {
+    user_id: params.userId,
+    paddle_customer_id: params.customerId || null,
+    paddle_subscription_id: params.subscriptionId || null,
+    paddle_transaction_id: params.transactionId || null,
+    plan: params.plan,
+    status: params.status,
+    price_id: params.priceId || null,
+    cancel_at_period_end: params.cancelAtPeriodEnd || false,
+    management_url: params.managementUrl || null,
+    update_payment_url: params.updatePaymentUrl || null,
+    last_event_at: params.eventOccurredAt,
+  };
+
+  if (params.currentPeriodStart) row.current_period_start = params.currentPeriodStart;
+  if (params.currentPeriodEnd) row.current_period_end = params.currentPeriodEnd;
+
+  await admin.from("ielts_prime_subscriptions").upsert(row, {
+    onConflict: params.subscriptionId ? "paddle_subscription_id" : "paddle_transaction_id",
+  });
+}
+
+async function handleIeltsPrimeWebhookEvent(admin: ReturnType<typeof getSupabaseAdmin>, eventType: string, event: any, eventOccurredAt: string): Promise<string | null> {
+  const data = event.data || {};
+  const meta = data.custom_data || {};
+  const userId = meta.user_id;
+  if (!userId) return "No user_id in IELTS Prime custom_data";
+
+  const statusMap: Record<string, string> = {
+    active: "active",
+    trialing: "trialing",
+    past_due: "past_due",
+    paused: "paused",
+    canceled: "cancelled",
+    cancelled: "cancelled",
+  };
+
+  if (["subscription.created", "subscription.activated", "subscription.updated"].includes(eventType)) {
+    const currentPriceId = data.items?.[0]?.price?.id || null;
+    const resolved = currentPriceId ? resolveIeltsPrimePlanFromPriceId(currentPriceId) : null;
+    const plan = meta.plan || resolved?.plan || "monthly";
+    const urls = data.management_urls || {};
+    await upsertIeltsPrimeSubscription(admin, {
+      userId,
+      customerId: data.customer_id || null,
+      subscriptionId: data.id || null,
+      transactionId: data.transaction_id || null,
+      plan,
+      status: statusMap[data.status] || "active",
+      priceId: currentPriceId,
+      currentPeriodStart: data.current_billing_period?.starts_at || null,
+      currentPeriodEnd: data.current_billing_period?.ends_at || null,
+      cancelAtPeriodEnd: data.scheduled_change?.action === "cancel" || false,
+      managementUrl: urls.update_payment_method || urls.cancel || null,
+      updatePaymentUrl: urls.update_payment_method || null,
+      eventOccurredAt,
+    });
+    await admin.from("ielts_users").update({ tier: "prime_prep_user" }).eq("id", userId);
+    return null;
+  }
+
+  if (eventType === "subscription.canceled") {
+    const periodEnd = data.current_billing_period?.ends_at || null;
+    const stillInPeriod = periodEnd && new Date(periodEnd) > new Date();
+    await upsertIeltsPrimeSubscription(admin, {
+      userId,
+      customerId: data.customer_id || null,
+      subscriptionId: data.id || null,
+      plan: meta.plan || "monthly",
+      status: "cancelled",
+      currentPeriodStart: data.current_billing_period?.starts_at || null,
+      currentPeriodEnd: periodEnd,
+      cancelAtPeriodEnd: true,
+      eventOccurredAt,
+    });
+    if (!stillInPeriod) {
+      await admin.from("ielts_users").update({ tier: "free" }).eq("id", userId).eq("tier", "prime_prep_user");
+    }
+    return null;
+  }
+
+  if (eventType === "transaction.completed") {
+    const subscriptionId = data.subscription_id || null;
+    const currentPriceId = data.items?.[0]?.price?.id || null;
+    const resolved = currentPriceId ? resolveIeltsPrimePlanFromPriceId(currentPriceId) : null;
+    const plan = meta.plan || resolved?.plan || "monthly";
+    await upsertIeltsPrimeSubscription(admin, {
+      userId,
+      customerId: data.customer_id || null,
+      subscriptionId,
+      transactionId: data.id || null,
+      plan,
+      status: "active",
+      priceId: currentPriceId,
+      eventOccurredAt,
+    });
+    await admin.from("ielts_users").update({ tier: "prime_prep_user" }).eq("id", userId);
+    return null;
+  }
+
+  if (eventType === "transaction.payment_failed" || eventType === "subscription.past_due") {
+    const subscriptionId = data.subscription_id || data.id || null;
+    if (subscriptionId) {
+      await admin.from("ielts_prime_subscriptions").update({ status: "past_due", last_event_at: eventOccurredAt }).eq("paddle_subscription_id", subscriptionId);
+    }
+    return null;
+  }
+
+  if (eventType === "subscription.paused") {
+    if (data.id) {
+      await admin.from("ielts_prime_subscriptions").update({ status: "paused", last_event_at: eventOccurredAt }).eq("paddle_subscription_id", data.id);
+    }
+    return null;
+  }
+
+  if (eventType === "subscription.resumed") {
+    if (data.id) {
+      await admin.from("ielts_prime_subscriptions").update({ status: "active", last_event_at: eventOccurredAt }).eq("paddle_subscription_id", data.id);
+      await admin.from("ielts_users").update({ tier: "prime_prep_user" }).eq("id", userId);
+    }
+    return null;
+  }
+
+  return null;
+}
+
 // ─────────────────────────────────────────────────
 // ROUTE: POST /paddle/webhook
 // Paddle sends webhooks for subscription lifecycle events
@@ -403,7 +631,7 @@ async function handleWebhook(req: Request): Promise<Response> {
     null;
 
   const customData = event.data?.custom_data || {};
-  const schoolId = customData.school_id || null;
+  const schoolId = customData.product === "ielts_prime" ? null : customData.school_id || null;
 
   if (existingEvent) {
     await admin
@@ -427,6 +655,9 @@ async function handleWebhook(req: Request): Promise<Response> {
   const eventOccurredAt: string = event.occurred_at || new Date().toISOString();
 
   try {
+    if (isIeltsPrimeEvent(event.data)) {
+      processingError = await handleIeltsPrimeWebhookEvent(admin, eventType, event, eventOccurredAt);
+    } else {
     switch (eventType) {
       // ── Subscription activated / created ──
       case "subscription.created":
@@ -675,6 +906,7 @@ async function handleWebhook(req: Request): Promise<Response> {
         console.log(`Paddle webhook: unhandled event type: ${eventType}`);
         break;
     }
+    }
   } catch (err) {
     processingError = err instanceof Error ? err.message : String(err);
     console.error(`Paddle webhook processing error for ${eventType}:`, err);
@@ -711,7 +943,19 @@ serve(async (req: Request) => {
   const path = url.pathname.replace(/^\/paddle\/?/, "/");
 
   try {
+    if (req.method === "POST" && path === "/ielts-checkout") {
+      return await handleCreateIeltsPrimeCheckout(req);
+    }
+
     if (req.method === "POST" && path === "/create-checkout") {
+      return await handleCreateCheckout(req);
+    }
+
+    if (req.method === "POST" && path === "/") {
+      const body = await req.clone().json().catch(() => ({}));
+      if (body?.action === "ielts_prime_checkout" || body?.product === "ielts_prime") {
+        return await handleCreateIeltsPrimeCheckout(req, body);
+      }
       return await handleCreateCheckout(req);
     }
 

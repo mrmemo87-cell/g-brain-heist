@@ -94,6 +94,10 @@ const IELTSLoginView: React.FC<IELTSLoginViewProps> = ({ onAuthenticated }) => {
     setIsGoogleLoading(true);
 
     try {
+      const intent = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+      if (intent.startsWith('/ielts')) {
+        window.sessionStorage.setItem('ielts_auth_intent', intent);
+      }
       await IELTSAuthService.loginWithGoogle();
     } catch (authError) {
       const message = authError instanceof Error ? authError.message : 'Google sign-in failed.';
@@ -119,96 +123,18 @@ const IELTSLoginView: React.FC<IELTSLoginViewProps> = ({ onAuthenticated }) => {
           </p>
         </header>
 
-        <div className="ielts-auth-toggle">
-          <button
-            type="button"
-            className={`ielts-auth-toggle__btn ${mode === 'login' ? 'ielts-auth-toggle__btn--active' : ''}`}
-            onClick={() => setMode('login')}
-            disabled={isSubmitting}
-          >
-            Sign in
-          </button>
-          <button
-            type="button"
-            className={`ielts-auth-toggle__btn ${mode === 'signup' ? 'ielts-auth-toggle__btn--active' : ''}`}
-            onClick={() => setMode('signup')}
-            disabled={isSubmitting}
-          >
-            Create account
-          </button>
+        <div className="ielts-auth-alert ielts-auth-alert--info">
+          Browse IELTS practice tasks for free. Sign in with Google to start practicing — no school required.
         </div>
 
-        <form className="ielts-auth-form" onSubmit={handleSubmit}>
-          <label className="ielts-auth-field">
-            <span>Email</span>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="you@example.com"
-              autoComplete="email"
-            />
-          </label>
-
-          <label className="ielts-auth-field">
-            <span>Password</span>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="Enter a secure password"
-              autoComplete={isSignup ? 'new-password' : 'current-password'}
-            />
-          </label>
-
-          {isSignup && (
-            <>
-              <label className="ielts-auth-field">
-                <span>Preferred display name</span>
-                <input
-                  type="text"
-                  required
-                  minLength={3}
-                  value={username}
-                  onChange={(event) => setUsername(event.target.value)}
-                  placeholder="studyfocus"
-                />
-              </label>
-
-              <label className="ielts-auth-field">
-                <span>Full name (optional)</span>
-                <input
-                  type="text"
-                  value={fullName}
-                  onChange={(event) => setFullName(event.target.value)}
-                  placeholder="Your full name"
-                  autoComplete="name"
-                />
-              </label>
-            </>
-          )}
-
-          {error && <div className="ielts-auth-alert ielts-auth-alert--error">{error}</div>}
-          {info && <div className="ielts-auth-alert ielts-auth-alert--info">{info}</div>}
-
-          <button type="submit" className="ielts-primary-btn" disabled={!canSubmit || isSubmitting || isGoogleLoading}>
-            {isSubmitting ? 'Please wait…' : mode === 'login' ? 'Enter study hub' : 'Create account'}
-          </button>
-        </form>
-
-        <div className="ielts-auth-divider">
-          <span />
-          <span>or</span>
-          <span />
-        </div>
+        {error && <div className="ielts-auth-alert ielts-auth-alert--error">{error}</div>}
+        {info && <div className="ielts-auth-alert ielts-auth-alert--info">{info}</div>}
 
         <button
           type="button"
           className="ielts-auth-google"
           onClick={handleGoogleSignIn}
-          disabled={isSubmitting || isGoogleLoading}
+          disabled={isGoogleLoading}
         >
           <span className="ielts-auth-google__icon">
             <GoogleIcon className="h-5 w-5" />

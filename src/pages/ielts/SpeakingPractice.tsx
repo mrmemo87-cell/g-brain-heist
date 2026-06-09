@@ -13,6 +13,7 @@ interface SpeakingTask {
   slug: string;
   part: number;
   prompt: string;
+  required_tier?: string | null;
   follow_ups: {
     questions?: string[];
     preparation_time?: number;
@@ -380,7 +381,7 @@ const SpeakingPractice: React.FC = () => {
     );
   }
 
-  if (!isPrimeUser) {
+  if ((task?.required_tier ?? 'prime_prep_user') !== 'free' && !isPrimeUser) {
     return (
       <div style={{ 
         minHeight: '100vh', 
