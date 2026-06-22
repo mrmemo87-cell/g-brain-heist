@@ -278,10 +278,12 @@ const IeltsHome: React.FC = () => {
 
   // Student landing animation setup. GSAP is already installed in this project.
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (!rootRef.current || isIeltsAdminLandingRole) return;
-    const reduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduced) return;
 
+    let observer: IntersectionObserver | null = null;
     const ctx = gsap.context(() => {
       gsap.fromTo('[data-hero-reveal]', { opacity: 0, y: 18 }, { opacity: 1, y: 0, stagger: 0.08, duration: 0.55, ease: 'power2.out' });
       gsap.fromTo('[data-trust-chip]', { opacity: 0, y: 10, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, stagger: 0.06, duration: 0.35, ease: 'power2.out', delay: 0.25 });
@@ -291,18 +293,24 @@ const IeltsHome: React.FC = () => {
       }
       const scrollCards = gsap.utils.toArray<HTMLElement>('[data-scroll-card]');
       gsap.set(scrollCards, { opacity: 0, y: 22 });
-      const observer = new IntersectionObserver((entries) => {
+      if (!('IntersectionObserver' in window)) {
+        gsap.set(scrollCards, { opacity: 1, y: 0 });
+        return;
+      }
+      observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
           gsap.to(entry.target, { opacity: 1, y: 0, duration: 0.48, ease: 'power2.out' });
-          observer.unobserve(entry.target);
+          observer?.unobserve(entry.target);
         });
       }, { threshold: 0.14 });
       scrollCards.forEach((card) => observer.observe(card));
-      ctx.add(() => observer.disconnect());
     }, rootRef);
 
-    return () => ctx.revert();
+    return () => {
+      observer?.disconnect();
+      ctx.revert();
+    };
   }, [isIeltsAdminLandingRole]);
 
   if (isIeltsAdminLandingRole) {
