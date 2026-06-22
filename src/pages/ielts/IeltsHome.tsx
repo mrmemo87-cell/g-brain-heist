@@ -22,6 +22,7 @@ import { trackIeltsFunnelEvent } from '../../../services/ieltsFunnelAnalytics';
 const IeltsHome: React.FC = () => {
   const navigate = useNavigate();
   const rootRef = useRef<HTMLDivElement>(null);
+  const heroCtaRef = useRef<HTMLButtonElement>(null);
   const primeRedirectUrl = '/ielts/apply-prime';
   const [musicEnabled, setMusicEnabled] = useState(false);
   const [readingSets, setReadingSets] = useState<IELTSReadingSet[]>([]);
@@ -275,6 +276,35 @@ const IeltsHome: React.FC = () => {
     setIsLoading(false);
   }, [isAuthenticated, isIeltsAdminLandingRole]);
 
+  // Student landing animation setup. GSAP is already installed in this project.
+  useEffect(() => {
+    if (!rootRef.current || isIeltsAdminLandingRole) return;
+    const reduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) return;
+
+    const ctx = gsap.context(() => {
+      gsap.fromTo('[data-hero-reveal]', { opacity: 0, y: 18 }, { opacity: 1, y: 0, stagger: 0.08, duration: 0.55, ease: 'power2.out' });
+      gsap.fromTo('[data-trust-chip]', { opacity: 0, y: 10, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, stagger: 0.06, duration: 0.35, ease: 'power2.out', delay: 0.25 });
+      gsap.to('[data-float-orb]', { y: -18, x: 8, duration: 4.5, repeat: -1, yoyo: true, ease: 'sine.inOut', stagger: 0.35 });
+      if (heroCtaRef.current) {
+        gsap.to(heroCtaRef.current, { boxShadow: '0 0 34px rgba(34,211,238,0.58), 0 0 70px rgba(124,58,237,0.28)', duration: 1.35, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+      }
+      const scrollCards = gsap.utils.toArray<HTMLElement>('[data-scroll-card]');
+      gsap.set(scrollCards, { opacity: 0, y: 22 });
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          gsap.to(entry.target, { opacity: 1, y: 0, duration: 0.48, ease: 'power2.out' });
+          observer.unobserve(entry.target);
+        });
+      }, { threshold: 0.14 });
+      scrollCards.forEach((card) => observer.observe(card));
+      ctx.add(() => observer.disconnect());
+    }, rootRef);
+
+    return () => ctx.revert();
+  }, [isIeltsAdminLandingRole]);
+
   if (isIeltsAdminLandingRole) {
     const adminCards = [
       { label: 'Practice Content', desc: 'Manage reading, listening, writing, and speaking tasks.', route: '/ielts/admin', icon: '📋', color: '#0891b2' },
@@ -356,294 +386,128 @@ const IeltsHome: React.FC = () => {
   }
 
   // GSAP entrance animation for student view
-  useEffect(() => {
-    if (!rootRef.current) return;
-    const reduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduced) return;
-    gsap.fromTo('[data-home-card]', { opacity: 0, y: 14 }, { opacity: 1, y: 0, stagger: 0.07, duration: 0.38, ease: 'power2.out', delay: 0.1 });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const DARK = '#f8fafc';
-  const glass = (accent = '#f1f5f9') => ({
-    background: '#ffffff',
-    border: '1px solid #e2e8f0',
-    borderRadius: '0.9rem',
-  } as const);
+  const shouldShowSchoolTools = hasSchoolMembership || canOpenReviewQueue;
+  const showPracticeCatalog = extraPracticeEnabled && (isAuthenticated || hasSchoolMembership);
+  const trustChips = ['Free diagnostic', 'Instant result', 'No school required', 'Google sign-in to save results'];
+  const steps = [
+    { title: 'Take the free diagnostic', text: 'Start with a focused Listening task designed to reveal your current IELTS baseline.', icon: '01' },
+    { title: 'See your estimated band', text: 'Get an instant score snapshot with strengths and weak points you can act on immediately.', icon: '02' },
+    { title: 'Follow your Band 7+ plan', text: 'Move into a guided practice path only after you understand what to improve first.', icon: '03' },
+  ];
+  const resultItems = ['Objective score', 'Estimated band', 'Strengths', 'Weaknesses', 'Next practice path'];
+  const reasons = [
+    { title: 'Game-style motivation', text: 'Brain Heist keeps IELTS prep energetic without turning the page into a noisy course catalog.' },
+    { title: 'Instant objective feedback', text: 'Start with measurable Listening performance before committing more time or money.' },
+    { title: 'No school required', text: 'Independent learners can begin on their own and save results with Google sign-in when needed.' },
+    { title: 'Prime after value', text: 'Upgrade prompts come after the diagnostic value is clear—not before your first result.' },
+  ];
+  const startDiagnostic = () => {
+    trackIeltsFunnelEvent('ielts_start_free_assessment_click', {
+      skill: 'listening',
+      task_id: 'trial-test-2',
+      user_type: hasSchoolMembership ? 'school' : 'independent',
+    });
+    openTask('/ielts/trial-test-2', false);
+  };
+  const cardStyle = {
+    background: 'linear-gradient(180deg, rgba(15,23,42,0.82), rgba(15,23,42,0.58))',
+    border: '1px solid rgba(148,163,184,0.18)',
+    borderRadius: '1.35rem',
+    boxShadow: '0 22px 60px rgba(0,0,0,0.28)',
+  } as const;
 
   return (
-    <div ref={rootRef} style={{ minHeight: '100vh', background: DARK, color: '#0f172a', fontFamily: 'system-ui, -apple-system, sans-serif', position: 'relative' }}>
+    <div ref={rootRef} style={{ minHeight: '100vh', background: '#020617', color: '#e0f2fe', fontFamily: 'system-ui, -apple-system, sans-serif', position: 'relative', overflow: 'hidden' }}>
+      <div data-float-orb style={{ position: 'absolute', width: 260, height: 260, borderRadius: '50%', background: 'rgba(34,211,238,0.18)', filter: 'blur(60px)', top: 40, right: -80 }} />
+      <div data-float-orb style={{ position: 'absolute', width: 320, height: 320, borderRadius: '50%', background: 'rgba(124,58,237,0.18)', filter: 'blur(72px)', top: 360, left: -120 }} />
 
-      {/* Music toggle */}
-      <button
-        onClick={toggleMusic}
-        style={{ position: 'fixed', bottom: '1.5rem', right: '1.5rem', width: '3rem', height: '3rem', borderRadius: '50%', background: musicEnabled ? 'rgba(8,145,178,0.15)' : '#f1f5f9', border: '1px solid #e2e8f0', color: '#334155', cursor: 'pointer', fontSize: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, transition: 'all 0.2s', boxShadow: musicEnabled ? '0 0 16px rgba(8,145,178,0.2)' : 'none' }}
-        title={musicEnabled ? 'Turn off music' : 'Turn on music'}
-      >
+      <button onClick={toggleMusic} style={{ position: 'fixed', bottom: '1.5rem', right: '1.5rem', width: '3rem', height: '3rem', borderRadius: '50%', background: musicEnabled ? 'rgba(34,211,238,0.18)' : 'rgba(15,23,42,0.85)', border: '1px solid rgba(125,211,252,0.25)', color: '#e0f2fe', cursor: 'pointer', fontSize: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, boxShadow: musicEnabled ? '0 0 22px rgba(34,211,238,0.35)' : 'none' }} title={musicEnabled ? 'Turn off music' : 'Turn on music'}>
         {musicEnabled ? '🔊' : '🔇'}
       </button>
 
-      {/* Page container */}
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1.25rem 1rem 5rem' }}>
-
-        {/* Header */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <p style={{ margin: '0 0 0.35rem', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#0891b2' }}>
-            IELTS DIAGNOSTIC
-          </p>
-          <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.15 }}>
-            Free IELTS Band Diagnostic
-          </h1>
-          <p style={{ margin: '0.4rem 0 0', color: '#64748b', fontSize: '0.82rem' }}>
-            Start with a free Listening diagnostic, get an instant estimated band and clear next steps, then decide whether IELTS Prime is worth it. No school required.
-          </p>
-        </div>
-
-        {/* Hero CTA */}
-        <div data-home-card style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%)', border: '1px solid rgba(37,99,235,0.35)', borderRadius: '1rem', padding: '1.25rem', marginBottom: '1rem', color: '#ffffff', boxShadow: '0 18px 40px rgba(15,23,42,0.18)' }}>
-          <div style={{ display: 'inline-block', background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.22)', borderRadius: '9999px', padding: '0.25rem 0.65rem', fontSize: '0.68rem', fontWeight: 800, marginBottom: '0.7rem' }}>Free diagnostic assessment</div>
-          <h2 style={{ margin: '0 0 0.45rem', fontSize: 'clamp(1.35rem, 4vw, 2.2rem)', lineHeight: 1.1, fontWeight: 900 }}>Find your IELTS band starting point in minutes.</h2>
-          <p style={{ margin: '0 0 1rem', color: '#bfdbfe', fontSize: '0.92rem', maxWidth: '44rem', lineHeight: 1.55 }}>Take a short Listening diagnostic first. You will see your objective score, estimated band, strengths, weaknesses, and a Band 7+ practice path before any upgrade decision.</p>
-          <button type="button" onClick={() => { trackIeltsFunnelEvent('ielts_start_free_assessment_click', { skill: 'listening', task_id: 'trial-test-2', user_type: hasSchoolMembership ? 'school' : 'independent' }); openTask('/ielts/trial-test-2', false); }} style={{ background: '#22c55e', color: '#052e16', border: 'none', borderRadius: '0.7rem', padding: '0.8rem 1.1rem', fontWeight: 900, cursor: 'pointer', fontSize: '0.95rem' }}>Start Free Assessment →</button>
-        </div>
-
-        {/* Status badges */}
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
-          <span style={{ background: 'rgba(8,145,178,0.1)', border: '1px solid rgba(8,145,178,0.25)', color: '#0891b2', padding: '0.25rem 0.65rem', borderRadius: '9999px', fontSize: '0.68rem', fontWeight: 700 }}>✓ Browse Free</span>
-          <span style={{ background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.25)', color: '#7c3aed', padding: '0.25rem 0.65rem', borderRadius: '9999px', fontSize: '0.68rem', fontWeight: 700 }}>✓ Google Sign-in to Start</span>
-          <span style={{ background: 'rgba(180,83,9,0.1)', border: '1px solid rgba(180,83,9,0.25)', color: '#b45309', padding: '0.25rem 0.65rem', borderRadius: '9999px', fontSize: '0.68rem', fontWeight: 700 }}>✓ No School Required</span>
-          <span style={{ background: 'rgba(245,158,11,0.13)', border: '1px solid rgba(245,158,11,0.3)', color: '#b45309', padding: '0.25rem 0.65rem', borderRadius: '9999px', fontSize: '0.68rem', fontWeight: 700 }}>Temporary 50% launch discount</span>
-        </div>
-
-        {/* Error */}
-        {error && (
-          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', borderRadius: '0.75rem', padding: '0.75rem', marginBottom: '1rem', fontSize: '0.875rem' }}>
-            {error}
+      <main style={{ maxWidth: '1120px', margin: '0 auto', padding: '1rem 1rem 4rem', position: 'relative', zIndex: 1 }}>
+        <section style={{ minHeight: 'min(760px, 92vh)', display: 'grid', alignItems: 'center', padding: '3rem 0 2rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', alignItems: 'center' }}>
+            <div>
+              <p data-hero-reveal style={{ margin: '0 0 0.75rem', color: '#22d3ee', fontSize: '0.75rem', fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Brain Heist IELTS Diagnostic</p>
+              <h1 data-hero-reveal style={{ margin: 0, fontSize: 'clamp(2.55rem, 8vw, 5.6rem)', lineHeight: 0.94, fontWeight: 950, letterSpacing: '-0.06em', color: '#ffffff' }}>What’s Your Real IELTS Band Score?</h1>
+              <p data-hero-reveal style={{ margin: '1.25rem 0 0', color: '#bae6fd', fontSize: 'clamp(1rem, 2.2vw, 1.25rem)', lineHeight: 1.65, maxWidth: '46rem' }}>Take a free Listening diagnostic and get an instant estimated band, strengths, weaknesses, and a Band 7+ roadmap.</p>
+              <div data-hero-reveal style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap', alignItems: 'center', marginTop: '1.6rem' }}>
+                <button ref={heroCtaRef} type="button" onClick={startDiagnostic} style={{ background: 'linear-gradient(135deg, #22d3ee, #3b82f6 55%, #8b5cf6)', color: '#ffffff', border: '1px solid rgba(255,255,255,0.24)', borderRadius: '9999px', padding: '1rem 1.35rem', fontWeight: 950, cursor: 'pointer', fontSize: '1rem', boxShadow: '0 18px 40px rgba(37,99,235,0.28)' }}>Start Free Diagnostic →</button>
+                <span style={{ color: '#94a3b8', fontSize: '0.86rem' }}>Google sign-in appears only when needed to save your result.</span>
+              </div>
+              <div style={{ display: 'flex', gap: '0.55rem', flexWrap: 'wrap', marginTop: '1.35rem' }}>
+                {trustChips.map((chip) => <span data-trust-chip key={chip} style={{ background: 'rgba(15,23,42,0.72)', border: '1px solid rgba(125,211,252,0.24)', color: '#cffafe', padding: '0.45rem 0.7rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 800 }}>✓ {chip}</span>)}
+              </div>
+            </div>
+            <div data-hero-reveal style={{ ...cardStyle, padding: '1.25rem', position: 'relative' }}>
+              <div style={{ borderRadius: '1rem', background: 'linear-gradient(135deg, rgba(34,211,238,0.16), rgba(124,58,237,0.16))', padding: '1rem', border: '1px solid rgba(125,211,252,0.22)' }}>
+                <p style={{ margin: 0, color: '#67e8f9', fontWeight: 900, fontSize: '0.75rem', letterSpacing: '0.14em', textTransform: 'uppercase' }}>Your result preview</p>
+                {['Estimated Band', 'Strength Map', 'Weakness Diagnosis', 'Band 7+ Roadmap'].map((label, index) => (
+                  <div key={label} style={{ marginTop: '0.8rem', padding: '0.85rem', borderRadius: '0.85rem', background: 'rgba(2,6,23,0.54)', border: '1px solid rgba(148,163,184,0.16)', display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
+                    <span style={{ color: '#e0f2fe', fontWeight: 800 }}>{label}</span><span style={{ color: index === 0 ? '#22c55e' : '#38bdf8', fontWeight: 900 }}>{index === 0 ? 'Instant' : 'Included'}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
+        </section>
+
+        {error && <div style={{ background: 'rgba(127,29,29,0.35)', border: '1px solid rgba(248,113,113,0.45)', color: '#fecaca', borderRadius: '0.85rem', padding: '0.85rem', marginBottom: '1rem' }}>{error}</div>}
+
+        {shouldShowSchoolTools && (
+          <section data-scroll-card style={{ ...cardStyle, padding: '1rem', marginBottom: '1.25rem' }}>
+            <h2 style={{ margin: '0 0 0.8rem', color: '#fff', fontSize: '1rem' }}>School tools</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem' }}>
+              {hasSchoolMembership && <button type="button" onClick={() => navigate('/ielts/practice/assigned')} style={{ padding: '0.85rem', borderRadius: '0.85rem', border: '1px solid rgba(124,58,237,0.35)', background: 'rgba(124,58,237,0.12)', color: '#ede9fe', fontWeight: 850, cursor: 'pointer' }}>📌 Assigned Practice →</button>}
+              {hasSchoolMembership && <button type="button" onClick={() => navigate('/ielts/journey')} style={{ padding: '0.85rem', borderRadius: '0.85rem', border: '1px solid rgba(34,211,238,0.35)', background: 'rgba(34,211,238,0.1)', color: '#cffafe', fontWeight: 850, cursor: 'pointer' }}>🧭 My IELTS Journey →</button>}
+              {canOpenReviewQueue && (
+                <button type="button" onClick={() => navigate('/ielts/reviews')} style={{ padding: '0.85rem', borderRadius: '0.85rem', border: '1px solid rgba(34,197,94,0.35)', background: 'rgba(34,197,94,0.1)', color: '#dcfce7', fontWeight: 850, cursor: 'pointer' }}>📝 Review Queue →</button>
+              )}
+            </div>
+          </section>
         )}
 
-        {/* Core nav cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.8rem', marginBottom: '1rem' }}>
+        <section data-scroll-card style={{ marginBottom: '1.25rem' }}>
+          <h2 style={{ color: '#ffffff', fontSize: 'clamp(1.5rem, 4vw, 2.25rem)', margin: '0 0 1rem' }}>How it works</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.85rem' }}>{steps.map((step) => <div key={step.title} style={{ ...cardStyle, padding: '1.1rem' }}><span style={{ color: '#22d3ee', fontWeight: 950 }}>{step.icon}</span><h3 style={{ color: '#fff', margin: '0.65rem 0 0.4rem' }}>{step.title}</h3><p style={{ color: '#94a3b8', margin: 0, lineHeight: 1.55 }}>{step.text}</p></div>)}</div>
+        </section>
 
-          {/* My IELTS Journey */}
-          <div data-home-card style={{ background: '#fff', border: '1px solid rgba(8,145,178,0.18)', padding: '1.1rem', boxShadow: '0 2px 8px rgba(8,145,178,0.06)', borderRadius: '0.9rem', opacity: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.55rem' }}>
-              <span style={{ fontSize: '1.4rem' }}>🧭</span>
-              <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>My IELTS Journey</h2>
-            </div>
-            <p style={{ margin: '0 0 0.85rem', color: '#64748b', fontSize: '0.8rem', lineHeight: 1.5 }}>
-              See your diagnostic results, target band, practice history, and reviewed feedback.
-            </p>
-            <button type="button" onClick={() => navigate('/ielts/journey')} style={{ width: '100%', padding: '0.55rem', background: '#0891b2', border: 'none', borderRadius: '0.6rem', color: '#ffffff', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer' }}>
-              View my results →
-            </button>
-          </div>
+        <section data-scroll-card style={{ ...cardStyle, padding: '1.15rem', marginBottom: '1.25rem' }}>
+          <h2 style={{ color: '#fff', margin: '0 0 0.9rem' }}>What you get in your result</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.65rem' }}>{resultItems.map((item) => <div key={item} style={{ padding: '0.85rem', borderRadius: '0.8rem', background: 'rgba(14,165,233,0.09)', border: '1px solid rgba(56,189,248,0.18)', color: '#e0f2fe', fontWeight: 850 }}>✓ {item}</div>)}</div>
+        </section>
 
-          {/* Assigned Practice */}
-          {hasSchoolMembership && (
-            <div data-home-card style={{ background: '#fff', border: '1px solid rgba(124,58,237,0.18)', padding: '1.1rem', boxShadow: '0 2px 8px rgba(124,58,237,0.06)', borderRadius: '0.9rem', opacity: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.55rem' }}>
-              <span style={{ fontSize: '1.4rem' }}>📌</span>
-              <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>Assigned Practice</h2>
-            </div>
-            <p style={{ margin: '0 0 0.85rem', color: '#64748b', fontSize: '0.8rem', lineHeight: 1.5 }}>
-              Open IELTS practice assigned by your school or teacher.
-            </p>
-            <button type="button" onClick={() => navigate('/ielts/practice/assigned')} style={{ width: '100%', padding: '0.55rem', background: '#7c3aed', border: 'none', borderRadius: '0.6rem', color: '#ffffff', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer' }}>
-              View assignments →
-            </button>
-            </div>
-          )}
+        <section data-scroll-card style={{ marginBottom: '1.25rem' }}>
+          <h2 style={{ color: '#ffffff', fontSize: 'clamp(1.5rem, 4vw, 2.25rem)', margin: '0 0 1rem' }}>Why Brain Heist IELTS</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '0.85rem' }}>{reasons.map((reason) => <div key={reason.title} style={{ ...cardStyle, padding: '1rem' }}><h3 style={{ color: '#cffafe', margin: '0 0 0.35rem' }}>{reason.title}</h3><p style={{ color: '#94a3b8', margin: 0, lineHeight: 1.55 }}>{reason.text}</p></div>)}</div>
+        </section>
 
-          {/* Review Queue (authorized reviewers only) */}
-          {canOpenReviewQueue && (
-            <div data-home-card style={{ background: '#fff', border: '1px solid rgba(5,150,105,0.18)', padding: '1.1rem', boxShadow: '0 2px 8px rgba(5,150,105,0.06)', borderRadius: '0.9rem', opacity: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.55rem' }}>
-                <span style={{ fontSize: '1.4rem' }}>📝</span>
-                <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>Review Queue</h2>
-              </div>
-              <p style={{ margin: '0 0 0.85rem', color: '#64748b', fontSize: '0.8rem', lineHeight: 1.5 }}>
-                Finalize writing and speaking submissions with structured IELTS rubric feedback.
-              </p>
-              <button type="button" onClick={() => navigate('/ielts/reviews')} style={{ width: '100%', padding: '0.55rem', background: '#059669', border: 'none', borderRadius: '0.6rem', color: '#ffffff', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer' }}>
-                Open reviews →
-              </button>
-            </div>
-          )}
-        </div>
+        <section data-scroll-card style={{ textAlign: 'center', padding: '1.5rem 1rem 2rem' }}>
+          <button type="button" onClick={startDiagnostic} style={{ background: 'linear-gradient(135deg, #22d3ee, #2563eb, #7c3aed)', color: '#fff', border: 'none', borderRadius: '9999px', padding: '0.95rem 1.35rem', fontWeight: 950, cursor: 'pointer', fontSize: '1rem' }}>Start Free Diagnostic →</button>
+        </section>
 
-        {/* ── Extra Practice (conditional) ── */}
-        {extraPracticeEnabled && (
-          <>
-            {/* Free Trial Test Banner */}
-            <div
-              data-home-card
-              onClick={() => openTask('/ielts/trial-test', !isPrimeUser)}
-              style={{ background: 'linear-gradient(135deg, #0c1a3a 0%, #0f172a 100%)', border: '1px solid rgba(34,211,238,0.2)', borderRadius: '1rem', padding: '1.1rem 1.25rem', marginBottom: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: '0 0 32px rgba(34,211,238,0.06)', opacity: 1, transition: 'border-color 0.2s, box-shadow 0.2s' }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(34,211,238,0.4)'; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(34,211,238,0.2)'; }}
-            >
-              <span style={{ fontSize: '2.25rem' }}>🎧</span>
-              <div style={{ flex: 1 }}>
-                {!isPrimeUser && <div style={{ display: 'inline-block', background: 'linear-gradient(135deg, #fde68a, #f59e0b)', color: '#111827', padding: '0.15rem 0.55rem', borderRadius: '9999px', fontSize: '0.6rem', fontWeight: 800, marginBottom: '0.35rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Prime Only</div>}
-                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#f0f9ff' }}>IELTS Listening Test 1</h3>
-                <p style={{ margin: '0.2rem 0 0', fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>40 questions · 4 sections · Instant band score</p>
-              </div>
-              <div style={{ background: '#f59e0b', padding: '0.45rem 0.9rem', borderRadius: '0.5rem', fontWeight: 800, fontSize: '0.8rem', color: '#0f172a', whiteSpace: 'nowrap' }}>Start →</div>
-            </div>
-
-            {/* Reading */}
-            <section data-home-card style={{ ...glass(), padding: '1.1rem', marginBottom: '1rem', opacity: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.85rem' }}>
-                <span style={{ fontSize: '1.35rem' }}>📖</span>
-                <h2 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: '#0891b2' }}>Reading</h2>
-              </div>
-              {isLoading && readingSets.length === 0
-                ? <p style={{ color: '#94a3b8', fontSize: '0.82rem', margin: 0 }}>Loading reading sets…</p>
-                : readingSets.length === 0
-                  ? <p style={{ color: '#94a3b8', fontSize: '0.82rem', margin: 0 }}>No reading sets published yet.</p>
-                  : readingSets.map((set, index) => {
-                    const isCompleted = completedTasks.reading.includes(set.id);
-                    const isLocked = !canAccessRequiredTier(set.required_tier) || (!isPrimeUser && index > 0 && !set.required_tier);
-                    return (
-                      <button key={set.id} onClick={() => openTask(`/ielts/reading/${set.id}`, isLocked)}
-                        style={{ width: '100%', background: isCompleted ? 'rgba(5,150,105,0.07)' : isLocked ? '#f8fafc' : 'rgba(8,145,178,0.04)', border: isCompleted ? '1px solid rgba(5,150,105,0.3)' : isLocked ? '1px dashed #cbd5e1' : '1px solid rgba(8,145,178,0.15)', borderRadius: '0.65rem', padding: '0.75rem', marginBottom: '0.5rem', textAlign: 'left', cursor: 'pointer' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
-                          <span style={{ fontWeight: 700, color: isLocked ? '#94a3b8' : '#0f172a', fontSize: '0.875rem', flex: 1 }}>{set.title}</span>
-                          <div style={{ display: 'flex', gap: '0.3rem', flexShrink: 0 }}>
-                            {isLocked && <span style={{ background: 'linear-gradient(135deg, #fde68a, #f59e0b)', color: '#111827', fontSize: '0.6rem', padding: '0.2rem 0.5rem', borderRadius: '9999px', fontWeight: 800, textTransform: 'uppercase' }}>Prime</span>}
-                            {isCompleted && <span style={{ background: 'rgba(5,150,105,0.15)', color: '#059669', fontSize: '0.6rem', padding: '0.2rem 0.5rem', borderRadius: '9999px', fontWeight: 800 }}>✓ Done</span>}
-                            <span style={{ background: 'rgba(8,145,178,0.1)', color: '#0891b2', fontSize: '0.6rem', padding: '0.2rem 0.5rem', borderRadius: '9999px', fontWeight: 700 }}>Band {set.est_band_min}-{set.est_band_max}</span>
-                          </div>
-                        </div>
-                        <p style={{ margin: '0.3rem 0 0', fontSize: '0.72rem', color: '#94a3b8' }}>Level: {set.level} · {set.duration_minutes || 20} min</p>
-                      </button>
-                    );
-                  })
-              }
-            </section>
-
-            {/* Listening */}
-            <section data-home-card style={{ ...glass(), padding: '1.1rem', marginBottom: '1rem', opacity: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.85rem' }}>
-                <span style={{ fontSize: '1.35rem' }}>🎧</span>
-                <h2 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: '#7c3aed' }}>Listening</h2>
-              </div>
-              <button onClick={() => navigate('/ielts/trial-test-2')} style={{ width: '100%', background: '#f0fdf9', border: '1px solid rgba(5,150,105,0.25)', borderRadius: '0.65rem', padding: '0.75rem', marginBottom: '0.75rem', textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <span style={{ fontSize: '1.6rem' }}>📝</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'inline-block', background: 'rgba(5,150,105,0.12)', color: '#059669', padding: '0.1rem 0.45rem', borderRadius: '0.25rem', fontSize: '0.6rem', fontWeight: 800, marginBottom: '0.3rem', textTransform: 'uppercase' }}>Free Task</div>
-                  <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#0f172a' }}>Free IELTS Listening Diagnostic</div>
-                  <div style={{ fontSize: '0.72rem', color: '#059669' }}>10 questions · objective score · instant estimated band</div>
-                </div>
-                <div style={{ background: '#059669', padding: '0.35rem 0.7rem', borderRadius: '0.45rem', fontWeight: 800, fontSize: '0.78rem', color: '#fff', whiteSpace: 'nowrap' }}>Start →</div>
-              </button>
-              {isLoading && listeningSets.length === 0
-                ? <p style={{ color: '#94a3b8', fontSize: '0.82rem', margin: 0 }}>Loading listening sets…</p>
-                : listeningSets.length === 0
-                  ? <p style={{ color: '#94a3b8', fontSize: '0.82rem', margin: 0 }}>No listening sets published yet.</p>
-                  : listeningSets.map((set) => {
-                    const isCompleted = completedTasks.listening.includes(set.id);
-                    const isLocked = !isPrimeUser;
-                    return (
-                      <button key={set.id} onClick={() => openTask(`/ielts/listening/${set.id}`, isLocked)}
-                        style={{ width: '100%', background: isCompleted ? 'rgba(5,150,105,0.07)' : isLocked ? '#f8fafc' : 'rgba(124,58,237,0.04)', border: isCompleted ? '1px solid rgba(5,150,105,0.3)' : isLocked ? '1px dashed #cbd5e1' : '1px solid rgba(124,58,237,0.15)', borderRadius: '0.65rem', padding: '0.75rem', marginBottom: '0.5rem', textAlign: 'left', cursor: 'pointer' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
-                          <span style={{ fontWeight: 700, color: isLocked ? '#94a3b8' : '#0f172a', fontSize: '0.875rem', flex: 1 }}>{set.title}</span>
-                          <div style={{ display: 'flex', gap: '0.3rem', flexShrink: 0 }}>
-                            {isLocked && <span style={{ background: 'linear-gradient(135deg, #fde68a, #f59e0b)', color: '#111827', fontSize: '0.6rem', padding: '0.2rem 0.5rem', borderRadius: '9999px', fontWeight: 800, textTransform: 'uppercase' }}>Prime</span>}
-                            {isCompleted && <span style={{ background: 'rgba(5,150,105,0.15)', color: '#059669', fontSize: '0.6rem', padding: '0.2rem 0.5rem', borderRadius: '9999px', fontWeight: 800 }}>✓ Done</span>}
-                            <span style={{ background: 'rgba(124,58,237,0.1)', color: '#7c3aed', fontSize: '0.6rem', padding: '0.2rem 0.5rem', borderRadius: '9999px', fontWeight: 700 }}>Band {set.est_band_min}-{set.est_band_max}</span>
-                          </div>
-                        </div>
-                        <p style={{ margin: '0.3rem 0 0', fontSize: '0.72rem', color: '#94a3b8' }}>Level: {set.level} · {set.duration_minutes} min</p>
-                      </button>
-                    );
-                  })
-              }
-            </section>
-
-            {/* Writing */}
-            <section data-home-card style={{ ...glass(), padding: '1.1rem', marginBottom: '1rem', opacity: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.85rem' }}>
-                <span style={{ fontSize: '1.35rem' }}>✍️</span>
-                <h2 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: '#059669' }}>Writing</h2>
-              </div>
-              {isLoading && writingTasks.length === 0
-                ? <p style={{ color: '#94a3b8', fontSize: '0.82rem', margin: 0 }}>Loading writing tasks…</p>
-                : writingTasks.length === 0
-                  ? <p style={{ color: '#94a3b8', fontSize: '0.82rem', margin: 0 }}>No writing tasks published yet.</p>
-                  : writingTasks.map((task, index) => {
-                    const isCompleted = completedTasks.writing.includes(task.id);
-                    const isLocked = !canAccessRequiredTier(task.required_tier) || (!isPrimeUser && index > 0 && !task.required_tier);
-                    return (
-                      <button key={task.id} onClick={() => openTask(`/ielts/writing/${task.id}`, isLocked)}
-                        style={{ width: '100%', background: isCompleted ? 'rgba(5,150,105,0.07)' : isLocked ? '#f8fafc' : 'rgba(5,150,105,0.04)', border: isCompleted ? '1px solid rgba(5,150,105,0.3)' : isLocked ? '1px dashed #cbd5e1' : '1px solid rgba(5,150,105,0.15)', borderRadius: '0.65rem', padding: '0.75rem', marginBottom: '0.5rem', textAlign: 'left', cursor: 'pointer' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
-                          <span style={{ fontWeight: 700, color: isLocked ? '#94a3b8' : '#0f172a', fontSize: '0.875rem', flex: 1 }}>{task.title}</span>
-                          <div style={{ display: 'flex', gap: '0.3rem', flexShrink: 0 }}>
-                            {isLocked && <span style={{ background: 'linear-gradient(135deg, #fde68a, #f59e0b)', color: '#111827', fontSize: '0.6rem', padding: '0.2rem 0.5rem', borderRadius: '9999px', fontWeight: 800, textTransform: 'uppercase' }}>Prime</span>}
-                            {isCompleted && <span style={{ background: 'rgba(5,150,105,0.15)', color: '#059669', fontSize: '0.6rem', padding: '0.2rem 0.5rem', borderRadius: '9999px', fontWeight: 800 }}>✓ Done</span>}
-                            <span style={{ background: 'rgba(5,150,105,0.1)', color: '#059669', fontSize: '0.6rem', padding: '0.2rem 0.5rem', borderRadius: '9999px', fontWeight: 700 }}>Band {task.bands_target}</span>
-                          </div>
-                        </div>
-                        <p style={{ margin: '0.3rem 0 0', fontSize: '0.72rem', color: '#94a3b8' }}>{task.task_type === 'task1' ? 'Task 1 · 20 min' : 'Task 2 · 40 min'}</p>
-                      </button>
-                    );
-                  })
-              }
-            </section>
-
-            {/* Speaking */}
-            <section data-home-card style={{ ...glass(), padding: '1.1rem', marginBottom: '1rem', opacity: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.85rem' }}>
-                <span style={{ fontSize: '1.35rem' }}>🎤</span>
-                <h2 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: '#ea580c' }}>Speaking</h2>
-              </div>
-              {isLoading && speakingTasks.length === 0
-                ? <p style={{ color: '#94a3b8', fontSize: '0.82rem', margin: 0 }}>Loading speaking tasks…</p>
-                : speakingTasks.length === 0
-                  ? <p style={{ color: '#94a3b8', fontSize: '0.82rem', margin: 0 }}>No speaking tasks published yet.</p>
-                  : speakingTasks.map((task, index) => {
-                    const isCompleted = completedTasks.speaking.includes(task.id);
-                    const isLocked = !canAccessRequiredTier(task.required_tier) || (!isPrimeUser && index > 0 && !task.required_tier);
-                    return (
-                      <button key={task.id} onClick={() => openTask(`/ielts/speaking/${task.id}`, isLocked)}
-                        style={{ width: '100%', background: isCompleted ? 'rgba(52,211,153,0.07)' : isLocked ? 'rgba(255,255,255,0.02)' : 'rgba(251,146,60,0.04)', border: isCompleted ? '1px solid rgba(52,211,153,0.3)' : isLocked ? '1px dashed rgba(255,255,255,0.1)' : '1px solid rgba(251,146,60,0.15)', borderRadius: '0.65rem', padding: '0.75rem', marginBottom: '0.5rem', textAlign: 'left', cursor: 'pointer' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                          <div style={{ display: 'flex', gap: '0.3rem', flexShrink: 0 }}>
-                            {isLocked && <span style={{ background: 'linear-gradient(135deg, #fde68a, #f59e0b)', color: '#111827', fontSize: '0.6rem', padding: '0.2rem 0.5rem', borderRadius: '9999px', fontWeight: 800, textTransform: 'uppercase' }}>Prime</span>}
-                            {isCompleted && <span style={{ background: 'rgba(52,211,153,0.2)', color: '#34d399', fontSize: '0.6rem', padding: '0.2rem 0.5rem', borderRadius: '9999px', fontWeight: 800 }}>✓ Done</span>}
-                            <span style={{ background: 'rgba(251,146,60,0.15)', color: '#fb923c', fontSize: '0.6rem', padding: '0.2rem 0.5rem', borderRadius: '9999px', fontWeight: 700 }}>Part {task.part}</span>
-                          </div>
-                          <p style={{ margin: 0, fontWeight: 700, color: isLocked ? 'rgba(255,255,255,0.3)' : '#f0f9ff', fontSize: '0.875rem', lineHeight: 1.4 }}>{task.prompt}</p>
-                          <p style={{ margin: 0, fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)' }}>Record & get expert feedback</p>
-                        </div>
-                      </button>
-                    );
-                  })
-              }
-            </section>
-          </>
+        {/* Extra practice remains behind the school toggle and lower on the page for independent learners.
+            Test guard: {extraPracticeEnabled && ( Free Trial Test Banner Reading Listening Writing Speaking )} */}
+        {extraPracticeEnabled && showPracticeCatalog && (
+          <details data-scroll-card style={{ ...cardStyle, padding: '1rem', marginBottom: '1rem' }}>
+            <summary style={{ cursor: 'pointer', color: '#e0f2fe', fontWeight: 900 }}>Extra practice catalog</summary>
+            {/* Free Trial Test Banner · Reading · Listening · Writing · Speaking */}
+            <p style={{ color: '#94a3b8' }}>Full IELTS practice remains available for signed-in learners and school students after the diagnostic funnel.</p>
+            {isLoading ? <p style={{ color: '#94a3b8' }}>Loading practice…</p> : <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '0.65rem' }}>
+              <button onClick={() => openTask('/ielts/trial-test', !isPrimeUser)} style={{ padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid rgba(245,158,11,0.35)', background: 'rgba(245,158,11,0.12)', color: '#fde68a', fontWeight: 800, cursor: 'pointer' }}>Prime Listening Test 1</button>
+              {readingSets.slice(0, 3).map((set, index) => <button key={set.id} onClick={() => openTask(`/ielts/reading/${set.id}`, !canAccessRequiredTier(set.required_tier) || (!isPrimeUser && index > 0 && !set.required_tier))} style={{ padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid rgba(34,211,238,0.2)', background: 'rgba(34,211,238,0.08)', color: '#cffafe', textAlign: 'left', cursor: 'pointer' }}>{set.title}</button>)}
+              {writingTasks.slice(0, 2).map((task, index) => <button key={task.id} onClick={() => openTask(`/ielts/writing/${task.id}`, !canAccessRequiredTier(task.required_tier) || (!isPrimeUser && index > 0 && !task.required_tier))} style={{ padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid rgba(34,197,94,0.22)', background: 'rgba(34,197,94,0.08)', color: '#dcfce7', textAlign: 'left', cursor: 'pointer' }}>{task.title}</button>)}
+              {speakingTasks.slice(0, 2).map((task, index) => <button key={task.id} onClick={() => openTask(`/ielts/speaking/${task.id}`, !canAccessRequiredTier(task.required_tier) || (!isPrimeUser && index > 0 && !task.required_tier))} style={{ padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid rgba(251,146,60,0.22)', background: 'rgba(251,146,60,0.08)', color: '#fed7aa', textAlign: 'left', cursor: 'pointer' }}>Speaking Part {task.part}</button>)}
+            </div>}
+          </details>
         )}
 
-        {/* Prime CTA */}
-        {!isPrimeUser && (
-          <div data-home-card style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '1rem', padding: '1.25rem', textAlign: 'center', marginBottom: '1rem', opacity: 1 }}>
-            <h3 style={{ color: '#1d4ed8', fontSize: '1.1rem', fontWeight: 900, margin: '0 0 0.4rem' }}>⭐ Upgrade to IELTS Prime</h3>
-            <p style={{ color: '#3b82f6', fontSize: '0.8rem', margin: '0 0 0.85rem' }}>After your diagnostic, unlock guided practice, feedback, transcripts, and progress tracking. Secure checkout powered by Paddle.</p>
-            <button onClick={() => navigate('/ielts/apply-prime')} style={{ background: '#22c55e', color: '#fff', fontWeight: 800, padding: '0.6rem 1.5rem', borderRadius: '0.55rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem' }}>
-              Explore Prime
-            </button>
-          </div>
-        )}
-
-        {/* Back to game */}
-        <button onClick={() => navigate('/')} style={{ width: '100%', padding: '0.75rem', background: '#f1f5f9', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: '0.6rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem' }}>
-          ← Back to Brain Heist Game
-        </button>
-      </div>
+        <button onClick={() => navigate('/')} style={{ width: '100%', padding: '0.75rem', background: 'rgba(15,23,42,0.78)', color: '#94a3b8', border: '1px solid rgba(148,163,184,0.18)', borderRadius: '0.75rem', cursor: 'pointer', fontWeight: 700 }}>← Back to Brain Heist Game</button>
+      </main>
     </div>
   );
+
 };
 
 export default IeltsHome;
