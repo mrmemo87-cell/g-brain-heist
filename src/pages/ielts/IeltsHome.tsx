@@ -17,6 +17,7 @@ import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/au
 import { supabase } from '../../../services/supabaseClient';
 import { resolveIeltsExtraPracticeAccess } from '../../../services/ieltsExtraPracticeAccessService';
 import { canAccessIeltsReviewQueue, normalizeIeltsRole } from '../../../services/ieltsReviewAccess';
+import { trackIeltsFunnelEvent } from '../../../services/ieltsFunnelAnalytics';
 
 const IeltsHome: React.FC = () => {
   const navigate = useNavigate();
@@ -34,6 +35,8 @@ const IeltsHome: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<string>('student');
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
+  const [hasSchoolMembership, setHasSchoolMembership] = useState(false);
+  const [profileContextLoaded, setProfileContextLoaded] = useState(false);
   const [extraPracticeEnabled, setExtraPracticeEnabled] = useState(true);
   const isPrimeUser = isIeltsPrime({ tier: userTier });
   const canAccessRequiredTier = (requiredTier?: string | null) => !requiredTier || requiredTier === 'free' || isPrimeUser;
@@ -76,6 +79,13 @@ const IeltsHome: React.FC = () => {
 
   const openTask = (destination: string, isLocked: boolean) => {
     if (!isAuthenticated) {
+      if (destination === '/ielts/trial-test-2') {
+        trackIeltsFunnelEvent('ielts_auth_required_for_diagnostic', {
+          skill: 'listening',
+          task_id: 'trial-test-2',
+          user_type: 'independent',
+        });
+      }
       requireGoogleSignIn(destination);
       return;
     }
@@ -122,19 +132,31 @@ const IeltsHome: React.FC = () => {
   useEffect(() => {
     const loadUserRole = async () => {
       const { data: auth } = await supabase.auth.getUser();
-      if (!auth?.user) return;
+      if (!auth?.user) {
+        setProfileContextLoaded(true);
+        return;
+      }
       const { data: profile } = await supabase
         .from('users')
-.select('role, is_admin')
+        .select('role, is_admin, school_id')
         .eq('id', auth.user.id)
         .maybeSingle();
-      const typedProfile = profile as { role?: string | null; is_admin?: boolean | null } | null;
+      const typedProfile = profile as { role?: string | null; is_admin?: boolean | null; school_id?: string | null } | null;
       if (typedProfile?.role) setUserRole(typedProfile.role);
       setIsPlatformAdmin(Boolean(typedProfile?.is_admin));
+      setHasSchoolMembership(Boolean(typedProfile?.school_id));
+      setProfileContextLoaded(true);
     };
 
     void loadUserRole();
   }, []);
+
+  useEffect(() => {
+    if (!profileContextLoaded || isIeltsAdminLandingRole) return;
+    trackIeltsFunnelEvent('ielts_landing_view', {
+      user_type: hasSchoolMembership ? 'school' : 'independent',
+    });
+  }, [profileContextLoaded, isIeltsAdminLandingRole, hasSchoolMembership]);
 
   useEffect(() => {
     const loadExtraPracticeSetting = async () => {
@@ -366,14 +388,22 @@ const IeltsHome: React.FC = () => {
         {/* Header */}
         <div style={{ marginBottom: '1.5rem' }}>
           <p style={{ margin: '0 0 0.35rem', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#0891b2' }}>
-            BRAIN HEIST
+            IELTS DIAGNOSTIC
           </p>
           <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.15 }}>
-            IELTS Prep Center
+            Free IELTS Band Diagnostic
           </h1>
           <p style={{ margin: '0.4rem 0 0', color: '#64748b', fontSize: '0.82rem' }}>
-            Browse IELTS practice tasks for free. Sign in with Google to start practicing. No school required.
+            Start with a free Listening diagnostic, get an instant estimated band and clear next steps, then decide whether IELTS Prime is worth it. No school required.
           </p>
+        </div>
+
+        {/* Hero CTA */}
+        <div data-home-card style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%)', border: '1px solid rgba(37,99,235,0.35)', borderRadius: '1rem', padding: '1.25rem', marginBottom: '1rem', color: '#ffffff', boxShadow: '0 18px 40px rgba(15,23,42,0.18)' }}>
+          <div style={{ display: 'inline-block', background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.22)', borderRadius: '9999px', padding: '0.25rem 0.65rem', fontSize: '0.68rem', fontWeight: 800, marginBottom: '0.7rem' }}>Free diagnostic assessment</div>
+          <h2 style={{ margin: '0 0 0.45rem', fontSize: 'clamp(1.35rem, 4vw, 2.2rem)', lineHeight: 1.1, fontWeight: 900 }}>Find your IELTS band starting point in minutes.</h2>
+          <p style={{ margin: '0 0 1rem', color: '#bfdbfe', fontSize: '0.92rem', maxWidth: '44rem', lineHeight: 1.55 }}>Take a short Listening diagnostic first. You will see your objective score, estimated band, strengths, weaknesses, and a Band 7+ practice path before any upgrade decision.</p>
+          <button type="button" onClick={() => { trackIeltsFunnelEvent('ielts_start_free_assessment_click', { skill: 'listening', task_id: 'trial-test-2', user_type: hasSchoolMembership ? 'school' : 'independent' }); openTask('/ielts/trial-test-2', false); }} style={{ background: '#22c55e', color: '#052e16', border: 'none', borderRadius: '0.7rem', padding: '0.8rem 1.1rem', fontWeight: 900, cursor: 'pointer', fontSize: '0.95rem' }}>Start Free Assessment →</button>
         </div>
 
         {/* Status badges */}
@@ -401,15 +431,16 @@ const IeltsHome: React.FC = () => {
               <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>My IELTS Journey</h2>
             </div>
             <p style={{ margin: '0 0 0.85rem', color: '#64748b', fontSize: '0.8rem', lineHeight: 1.5 }}>
-              See your band estimates, assignment progress, and reviewed feedback.
+              See your diagnostic results, target band, practice history, and reviewed feedback.
             </p>
             <button type="button" onClick={() => navigate('/ielts/journey')} style={{ width: '100%', padding: '0.55rem', background: '#0891b2', border: 'none', borderRadius: '0.6rem', color: '#ffffff', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer' }}>
-              Open journey →
+              View my results →
             </button>
           </div>
 
           {/* Assigned Practice */}
-          <div data-home-card style={{ background: '#fff', border: '1px solid rgba(124,58,237,0.18)', padding: '1.1rem', boxShadow: '0 2px 8px rgba(124,58,237,0.06)', borderRadius: '0.9rem', opacity: 1 }}>
+          {hasSchoolMembership && (
+            <div data-home-card style={{ background: '#fff', border: '1px solid rgba(124,58,237,0.18)', padding: '1.1rem', boxShadow: '0 2px 8px rgba(124,58,237,0.06)', borderRadius: '0.9rem', opacity: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.55rem' }}>
               <span style={{ fontSize: '1.4rem' }}>📌</span>
               <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>Assigned Practice</h2>
@@ -420,7 +451,8 @@ const IeltsHome: React.FC = () => {
             <button type="button" onClick={() => navigate('/ielts/practice/assigned')} style={{ width: '100%', padding: '0.55rem', background: '#7c3aed', border: 'none', borderRadius: '0.6rem', color: '#ffffff', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer' }}>
               View assignments →
             </button>
-          </div>
+            </div>
+          )}
 
           {/* Review Queue (authorized reviewers only) */}
           {canOpenReviewQueue && (
@@ -500,8 +532,8 @@ const IeltsHome: React.FC = () => {
                 <span style={{ fontSize: '1.6rem' }}>📝</span>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'inline-block', background: 'rgba(5,150,105,0.12)', color: '#059669', padding: '0.1rem 0.45rem', borderRadius: '0.25rem', fontSize: '0.6rem', fontWeight: 800, marginBottom: '0.3rem', textTransform: 'uppercase' }}>Free Task</div>
-                  <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#0f172a' }}>IELTS Listening Task 2</div>
-                  <div style={{ fontSize: '0.72rem', color: '#059669' }}>Form completion · 10 questions · Instant score</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#0f172a' }}>Free IELTS Listening Diagnostic</div>
+                  <div style={{ fontSize: '0.72rem', color: '#059669' }}>10 questions · objective score · instant estimated band</div>
                 </div>
                 <div style={{ background: '#059669', padding: '0.35rem 0.7rem', borderRadius: '0.45rem', fontWeight: 800, fontSize: '0.78rem', color: '#fff', whiteSpace: 'nowrap' }}>Start →</div>
               </button>
@@ -598,7 +630,7 @@ const IeltsHome: React.FC = () => {
         {!isPrimeUser && (
           <div data-home-card style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '1rem', padding: '1.25rem', textAlign: 'center', marginBottom: '1rem', opacity: 1 }}>
             <h3 style={{ color: '#1d4ed8', fontSize: '1.1rem', fontWeight: 900, margin: '0 0 0.4rem' }}>⭐ Upgrade to IELTS Prime</h3>
-            <p style={{ color: '#3b82f6', fontSize: '0.8rem', margin: '0 0 0.85rem' }}>Full access · Secure checkout powered by Paddle · Temporary 50% launch discount</p>
+            <p style={{ color: '#3b82f6', fontSize: '0.8rem', margin: '0 0 0.85rem' }}>After your diagnostic, unlock guided practice, feedback, transcripts, and progress tracking. Secure checkout powered by Paddle.</p>
             <button onClick={() => navigate('/ielts/apply-prime')} style={{ background: '#22c55e', color: '#fff', fontWeight: 800, padding: '0.6rem 1.5rem', borderRadius: '0.55rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem' }}>
               Explore Prime
             </button>

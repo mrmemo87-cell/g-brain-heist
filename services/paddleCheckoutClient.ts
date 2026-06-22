@@ -47,8 +47,8 @@ export async function openPaddleCheckoutForTransaction(transactionId: string): P
     throw new Error('Missing Paddle transaction ID.');
   }
 
-  const clientToken = import.meta.env.VITE_PADDLE_CLIENT_TOKEN as string | undefined;
-  const environment = (import.meta.env.VITE_PADDLE_ENVIRONMENT || 'production') as
+  const clientToken = import.meta.env['VITE_PADDLE_CLIENT_TOKEN'] as string | undefined;
+  const environment = (import.meta.env['VITE_PADDLE_ENVIRONMENT'] || 'production') as
     | 'sandbox'
     | 'production';
 

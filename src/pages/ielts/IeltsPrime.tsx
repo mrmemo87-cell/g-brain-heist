@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../services/supabaseClient';
 import {
@@ -9,6 +9,7 @@ import {
 import { getUserTier, isIeltsPrime } from '../../../services/ieltsService';
 import * as IELTSAuthService from '../../../services/ieltsAuthService';
 import { openPaddleCheckoutForTransaction } from '../../../services/paddleCheckoutClient';
+import { trackIeltsFunnelEvent, type IeltsFunnelUserType } from '../../../services/ieltsFunnelAnalytics';
 
 type PlanCard = {
   id: IeltsPrimePlan;
@@ -60,10 +61,16 @@ function getCheckoutState() {
     !transactionId &&
     (['success', 'completed'].includes(search.get('checkout') || '') ||
       ['success', 'completed'].includes(search.get('upgrade') || ''));
+  const requestedPlan = search.get('plan');
+  const autostartCheckout = search.get('autostart') === '1';
 
   return {
     transactionId,
     checkoutSuccess,
+    requestedPlan: ['monthly', 'quarterly', 'yearly'].includes(requestedPlan || '')
+      ? (requestedPlan as IeltsPrimePlan)
+      : null,
+    autostartCheckout,
   };
 }
 
@@ -77,8 +84,10 @@ const IeltsPrime: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [manageUrl, setManageUrl] = useState<string | null>(null);
+  const [userType, setUserType] = useState<IeltsFunnelUserType>('independent');
 
-  const { transactionId, checkoutSuccess } = useMemo(() => getCheckoutState(), []);
+  const autoCheckoutStartedRef = useRef(false);
+  const { transactionId, checkoutSuccess, requestedPlan, autostartCheckout } = useMemo(() => getCheckoutState(), []);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -157,6 +166,30 @@ const IeltsPrime: React.FC = () => {
     };
   }, [checkoutSuccess]);
 
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setUserType('independent');
+      return;
+    }
+
+    let active = true;
+    supabase.auth.getUser().then(async ({ data: auth }) => {
+      if (!auth.user) return;
+      const { data: profile } = await supabase
+        .from('users')
+        .select('school_id')
+        .eq('id', auth.user.id)
+        .maybeSingle();
+      if (active) setUserType((profile as { school_id?: string | null } | null)?.school_id ? 'school' : 'independent');
+    }).catch(() => {
+      if (active) setUserType('independent');
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [isAuthenticated]);
+
   const handleGoogleSignIn = async () => {
     setError(null);
     setGoogleLoading(true);
@@ -180,11 +213,13 @@ const IeltsPrime: React.FC = () => {
 
     setCheckoutPlan(plan);
     setStatusMessage('Creating secure Paddle checkout…');
+    trackIeltsFunnelEvent('ielts_prime_checkout_started', { plan, user_type: userType });
 
     try {
       const result = await createIeltsPrimeCheckout(plan);
 
       if (result.error) {
+        trackIeltsFunnelEvent('ielts_prime_checkout_error', { plan, user_type: userType });
         setError(result.error);
         setStatusMessage(null);
         return;
@@ -202,9 +237,11 @@ const IeltsPrime: React.FC = () => {
         return;
       }
 
+      trackIeltsFunnelEvent('ielts_prime_checkout_error', { plan, user_type: userType });
       setError('Checkout failed — please try again.');
       setStatusMessage(null);
     } catch (checkoutError) {
+      trackIeltsFunnelEvent('ielts_prime_checkout_error', { plan, user_type: userType });
       setError(
         checkoutError instanceof Error
           ? checkoutError.message
@@ -215,6 +252,16 @@ const IeltsPrime: React.FC = () => {
       setCheckoutPlan(null);
     }
   };
+
+  useEffect(() => {
+    if (!autostartCheckout || !requestedPlan || !isAuthenticated || autoCheckoutStartedRef.current || checkoutPlan) {
+      return;
+    }
+
+    autoCheckoutStartedRef.current = true;
+    trackIeltsFunnelEvent('ielts_prime_checkout_autostart', { plan: requestedPlan, user_type: userType });
+    void handleCheckout(requestedPlan);
+  }, [autostartCheckout, requestedPlan, isAuthenticated, checkoutPlan, userType]);
 
   return (
     <div

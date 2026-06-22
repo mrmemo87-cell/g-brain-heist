@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 import { getUserTier, isIeltsPrime } from '../../../services/ieltsService';
+import { trackIeltsFunnelEvent } from '../../../services/ieltsFunnelAnalytics';
 
 // Audio URLs for each section
 const SECTION_AUDIO = {
@@ -48,6 +49,7 @@ const TrialListeningTask2: React.FC = () => {
   const [hasStarted, setHasStarted] = useState(false);
   const [timeElapsed, setTimeElapsed] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const resultViewedTrackedRef = useRef(false);
   
   // Audio state
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -62,6 +64,7 @@ const TrialListeningTask2: React.FC = () => {
   const preloadRefs = useRef<HTMLAudioElement[]>([]);
   const [userTier, setUserTier] = useState('free');
   const isPrimeUser = isIeltsPrime({ tier: userTier });
+  const userType = 'independent' as const;
 
   // Stop background music
   useEffect(() => {
@@ -301,8 +304,30 @@ const TrialListeningTask2: React.FC = () => {
 
   const handleSubmit = () => {
     if (timerRef.current) clearInterval(timerRef.current);
+    const { percentage } = calculateScore();
+    const bandScore = getBandScore(percentage);
+    trackIeltsFunnelEvent('ielts_diagnostic_completed', {
+      skill: 'listening',
+      task_id: 'trial-test-2',
+      estimated_band: bandScore,
+      user_type: userType,
+    });
     setShowResults(true);
   };
+
+
+  useEffect(() => {
+    if (!showResults || resultViewedTrackedRef.current) return;
+    const { percentage } = calculateScore();
+    const bandScore = getBandScore(percentage);
+    resultViewedTrackedRef.current = true;
+    trackIeltsFunnelEvent('ielts_result_viewed', {
+      skill: 'listening',
+      task_id: 'trial-test-2',
+      estimated_band: bandScore,
+      user_type: userType,
+    });
+  }, [showResults]);
 
   const section = TRIAL_TEST_DATA.sections[currentSection];
   const answeredCount = Object.keys(answers).length;
@@ -414,7 +439,7 @@ const TrialListeningTask2: React.FC = () => {
 
           {/* Start Button */}
           <button
-            onClick={() => setHasStarted(true)}
+            onClick={() => { trackIeltsFunnelEvent('ielts_diagnostic_started', { skill: 'listening', task_id: 'trial-test-2', user_type: userType }); setHasStarted(true); }}
             style={{
               width: '100%',
               padding: '1rem 2rem',
@@ -453,6 +478,8 @@ const TrialListeningTask2: React.FC = () => {
     const { correct, total, percentage, results } = calculateScore();
     const bandScore = getBandScore(percentage);
     const feedback = getFeedback(bandScore);
+    const incorrectCount = total - correct;
+    const targetBand = Math.max(7, bandScore + 1);
 
     return (
       <div style={{ 
@@ -472,10 +499,10 @@ const TrialListeningTask2: React.FC = () => {
           }}>
             <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉</div>
             <h1 style={{ fontSize: 'clamp(1.25rem, 4vw, 1.5rem)', color: '#1e293b', marginBottom: '0.5rem' }}>
-              Test Complete!
+              Free Diagnostic Complete!
             </h1>
             <p style={{ color: '#64748b', fontSize: '0.875rem' }}>
-              Time: {formatTime(timeElapsed)}
+              Objective Listening diagnostic · Time: {formatTime(timeElapsed)}
             </p>
 
             {/* Band Score */}
@@ -494,7 +521,7 @@ const TrialListeningTask2: React.FC = () => {
             {/* Score Breakdown */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
               gap: '0.75rem',
               marginBottom: '1rem'
             }}>
@@ -515,6 +542,22 @@ const TrialListeningTask2: React.FC = () => {
             <p style={{ color: '#475569', fontSize: '0.875rem', lineHeight: 1.6 }}>
               {feedback.message}
             </p>
+          </div>
+
+          {/* Diagnostic Summary */}
+          <div style={{
+            background: 'white',
+            borderRadius: '1rem',
+            padding: 'clamp(1rem, 3vw, 1.5rem)',
+            marginBottom: '1rem',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+          }}>
+            <h2 style={{ fontSize: '1rem', fontWeight: '700', color: '#1e293b', marginBottom: '0.75rem' }}>🎯 Your diagnostic readout</h2>
+            <div style={{ display: 'grid', gap: '0.75rem', fontSize: '0.85rem', color: '#334155', lineHeight: 1.55 }}>
+              <div><strong style={{ color: '#15803d' }}>Strength:</strong> {correct >= 7 ? 'You handled most key travel details accurately under audio timing.' : correct >= 4 ? 'You captured some concrete details, especially when wording was direct.' : 'You completed the task and created a useful baseline for focused listening practice.'}</div>
+              <div><strong style={{ color: '#b91c1c' }}>Weakness:</strong> {incorrectCount > 0 ? `You missed ${incorrectCount} item${incorrectCount === 1 ? '' : 's'}, so your next gains should come from numbers, spellings, dates, and distractor phrases.` : 'Your next challenge is sustaining this accuracy across longer multi-section IELTS listening tests.'}</div>
+              <div><strong style={{ color: '#1d4ed8' }}>Next step:</strong> To move from around Band {bandScore}.0 toward Band {targetBand}.0, practise short form-completion drills first, then build to full 40-question listening tests.</div>
+            </div>
           </div>
 
           {/* Answers Review */}
@@ -593,12 +636,12 @@ const TrialListeningTask2: React.FC = () => {
               textAlign: 'center'
             }}>
               <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>⭐</div>
-              <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>Want Detailed Feedback?</h3>
+              <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>Improve from Band {bandScore}.0 toward Band {targetBand}.0</h3>
               <p style={{ fontSize: '0.8rem', color: '#c4b5fd', marginBottom: '1rem' }}>
-                Get personalized tips, audio transcripts, vocabulary lists, and a study plan tailored to your weaknesses.
+                Unlock guided Listening practice, transcripts, targeted feedback, and progress tracking focused on the question types you missed.
               </p>
               <button
-                onClick={() => navigate('/ielts/apply-prime')}
+                onClick={() => { trackIeltsFunnelEvent('ielts_prime_upsell_click', { skill: 'listening', task_id: 'trial-test-2', estimated_band: bandScore, plan: 'quarterly', user_type: userType }); navigate('/ielts/apply-prime?plan=quarterly&autostart=1'); }}
                 style={{
                   padding: '0.75rem 2rem',
                   background: 'white',
@@ -610,7 +653,7 @@ const TrialListeningTask2: React.FC = () => {
                   fontSize: '0.875rem'
                 }}
               >
-                Upgrade to Prime
+                Checkout with Prime
               </button>
             </div>
           )}
