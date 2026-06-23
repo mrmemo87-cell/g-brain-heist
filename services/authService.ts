@@ -491,7 +491,7 @@ export const bootstrapProfile = async (
     
     if (error) {
         console.error('Profile bootstrap RPC error:', error.message);
-        return { success: false, error: error.message };
+        return { success: false, error: toAuthSafeErrorMessage(error) };
     }
     
     const result = data as ProfileBootstrapResult;
@@ -516,27 +516,24 @@ export const completeIndividualSetup = async (
         return { success: false, error: 'Not authenticated' };
     }
 
-    let upsertPayload: Record<string, unknown>;
-    try {
-        upsertPayload = await buildSetupProfileUpsertPayload(authData.user, payload);
-    } catch (error) {
-        return { success: false, error: error instanceof Error ? error.message : 'Failed to prepare setup profile.' };
-    }
-
-    const { error } = await supabase
-        .from('users')
-        .upsert(upsertPayload, { onConflict: 'id' });
+    const { data, error } = await supabase.rpc('profile_bootstrap', {
+        p_school_id: null,
+        p_role: payload.role,
+        p_grade: payload.role === 'student' ? payload.grade ?? null : null,
+        p_batch: payload.role === 'student' ? payload.batch ?? null : null,
+        p_username: payload.username?.trim() || null,
+    });
 
     if (error) {
-        return { success: false, error: error.message || 'Failed to complete setup.' };
+        return { success: false, error: toAuthSafeErrorMessage(error) };
     }
 
-    return {
-        success: true,
-        user_id: authData.user.id,
-        role: payload.role,
-        username: String(upsertPayload['username'] ?? ''),
-    };
+    const result = data as ProfileBootstrapResult;
+    if (!result?.success) {
+        return { success: false, error: result?.error || 'Failed to complete setup.' };
+    }
+
+    return result;
 };
 
 /**
@@ -550,27 +547,24 @@ export const completeProfileSetup = async (
         return { success: false, error: 'Not authenticated' };
     }
 
-    let upsertPayload: Record<string, unknown>;
-    try {
-        upsertPayload = await buildSetupProfileUpsertPayload(authData.user, payload);
-    } catch (error) {
-        return { success: false, error: error instanceof Error ? error.message : 'Failed to prepare setup profile.' };
-    }
-
-    const { error } = await supabase
-        .from('users')
-        .upsert(upsertPayload, { onConflict: 'id' });
+    const { data, error } = await supabase.rpc('profile_bootstrap', {
+        p_school_id: null,
+        p_role: payload.role,
+        p_grade: payload.role === 'student' ? payload.grade ?? null : null,
+        p_batch: payload.role === 'student' ? payload.batch ?? null : null,
+        p_username: payload.username?.trim() || null,
+    });
 
     if (error) {
-        return { success: false, error: error.message || 'Failed to complete setup.' };
+        return { success: false, error: toAuthSafeErrorMessage(error) };
     }
 
-    return {
-        success: true,
-        user_id: authData.user.id,
-        role: payload.role,
-        username: String(upsertPayload['username'] ?? ''),
-    };
+    const result = data as ProfileBootstrapResult;
+    if (!result?.success) {
+        return { success: false, error: result?.error || 'Failed to complete setup.' };
+    }
+
+    return result;
 };
 
 /**
