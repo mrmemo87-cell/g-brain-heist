@@ -1,4 +1,5 @@
 export const AUTH_CALLBACK_PATH = '/auth/callback';
+export const IELTS_AUTH_INTENT_KEY = 'ielts_auth_intent';
 
 export type AuthEventName =
   | 'INITIAL_SESSION'
@@ -33,4 +34,25 @@ export const isResumeEvent = (event: Event): boolean => {
   if (event.type !== 'visibilitychange') return false;
   if (typeof document === 'undefined') return true;
   return document.visibilityState === 'visible';
+};
+
+
+export const isSafeIeltsReturnPath = (path: string | null | undefined): path is string => {
+  if (!path) return false;
+  if (!path.startsWith('/ielts')) return false;
+  if (path.startsWith('//')) return false;
+  return true;
+};
+
+export const readIeltsAuthIntent = (storage: Pick<Storage, 'getItem'>): string | null => {
+  const intent = storage.getItem(IELTS_AUTH_INTENT_KEY);
+  return isSafeIeltsReturnPath(intent) ? intent : null;
+};
+
+export const consumeIeltsAuthIntent = (storage: Pick<Storage, 'getItem' | 'removeItem'>): string | null => {
+  const intent = readIeltsAuthIntent(storage);
+  if (intent) {
+    storage.removeItem(IELTS_AUTH_INTENT_KEY);
+  }
+  return intent;
 };
