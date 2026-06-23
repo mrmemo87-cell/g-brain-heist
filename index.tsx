@@ -34,6 +34,7 @@ const EmailVerificationScreen = lazyRetry(() => import('./components/EmailVerifi
 const IELTSApp = lazyRetry(() => import('./components/ielts/IELTSApp'), 'IELTSApp');
 const IELTSLoginView = lazyRetry(() => import('./components/ielts/IELTSLoginView'), 'IELTSLoginView');
 const PasswordResetPage = lazyRetry(() => import('./components/PasswordResetPage'), 'PasswordResetPage');
+const AuthCallback = lazyRetry(() => import('./src/pages/auth/callback'), 'AuthCallback');
 const IeltsHome = lazyRetry(() => import('./src/pages/ielts/IeltsHome'), 'IeltsHome');
 const IeltsAssignedPractice = lazyRetry(() => import('./src/pages/ielts/IeltsAssignedPractice'), 'IeltsAssignedPractice');
 const IeltsJourneyDashboard = lazyRetry(() => import('./src/pages/ielts/IeltsJourneyDashboard'), 'IeltsJourneyDashboard');
@@ -765,6 +766,10 @@ const root = ReactDOM.createRoot(rootElement);
 
 // Create router with IELTS routes
 const router = createBrowserRouter([
+  {
+    path: '/auth/callback',
+    element: <Suspense fallback={<MinimalFallback />}><AuthCallback /></Suspense>,
+  },
   {
     path: '/auth/reset',
     element: <Suspense fallback={<MinimalFallback />}><PasswordResetPage /></Suspense>,
