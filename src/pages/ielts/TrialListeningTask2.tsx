@@ -302,6 +302,36 @@ const TrialListeningTask2: React.FC = () => {
     return { level: 'Developing', message: 'Keep practicing! Work on basic listening skills and common vocabulary.' };
   };
 
+
+  const getListeningInsights = (correct: number, total: number, incorrectCount: number, bandScore: number) => {
+    const missedNumbersAndTimes = [4, 5, 6, 7, 10].filter((id) => {
+      const q = TRIAL_TEST_DATA.sections.flatMap(section => section.questions).find(item => item.id === id);
+      if (!q) return false;
+      const userAnswer = (answers[q.id] || '').trim();
+      return !q.acceptableAnswers.some(acceptable => acceptable.toLowerCase() === userAnswer.toLowerCase());
+    }).length;
+    const accuracy = total > 0 ? correct / total : 0;
+
+    return {
+      strength: accuracy >= 0.7
+        ? 'You captured most form-completion details under one-play audio conditions — a strong base for higher-band Listening practice.'
+        : accuracy >= 0.4
+          ? 'You are picking up direct travel details, which gives you a practical baseline to build from.'
+          : 'You completed the diagnostic and now have a clear baseline instead of guessing what to practise.',
+      weakness: incorrectCount === 0
+        ? 'No missed items here. The next challenge is maintaining accuracy across longer sections with faster speakers and more distractors.'
+        : missedNumbersAndTimes >= 2
+          ? `You missed ${missedNumbersAndTimes} number/time detail${missedNumbersAndTimes === 1 ? '' : 's'}, so precision with times, prices, percentages, and dates is the highest-value focus.`
+          : `You missed ${incorrectCount} item${incorrectCount === 1 ? '' : 's'} overall, likely from distractor wording, spelling, or losing the exact form-completion phrase.`,
+      fastestGains: bandScore >= 7
+        ? 'Move into full-section listening practice with transcripts: mark every distractor phrase and check spelling after each replay.'
+        : 'Prioritise short form-completion drills: numbers/dates, distractor phrases, spelling, and exact word-limit answers.',
+      nextPractice: bandScore >= 7
+        ? 'Next recommended practice: a timed 40-question Listening test, then transcript review for every missed or guessed answer.'
+        : 'Next recommended practice: 10-minute targeted Listening sets before full tests, starting with form completion and number-heavy audio.'
+    };
+  };
+
   const handleSubmit = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     const { percentage } = calculateScore();
@@ -477,9 +507,9 @@ const TrialListeningTask2: React.FC = () => {
   if (showResults) {
     const { correct, total, percentage, results } = calculateScore();
     const bandScore = getBandScore(percentage);
-    const feedback = getFeedback(bandScore);
     const incorrectCount = total - correct;
-    const targetBand = Math.max(7, bandScore + 1);
+    const targetBand = Math.min(9, Math.max(7, bandScore + 1));
+    const bandGap = Math.max(0, targetBand - bandScore);
 
     return (
       <div style={{ 
@@ -490,58 +520,61 @@ const TrialListeningTask2: React.FC = () => {
         <div style={{ maxWidth: '600px', margin: '0 auto' }}>
           {/* Score Header */}
           <div style={{
-            background: 'white',
-            borderRadius: '1rem',
-            padding: 'clamp(1.5rem, 4vw, 2rem)',
+            background: 'linear-gradient(145deg, #0f172a 0%, #1e1b4b 52%, #312e81 100%)',
+            border: '1px solid rgba(125, 211, 252, 0.22)',
+            borderRadius: '1.25rem',
+            padding: 'clamp(1.35rem, 4vw, 2rem)',
             marginBottom: '1rem',
             textAlign: 'center',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+            boxShadow: '0 24px 60px rgba(15, 23, 42, 0.28)',
+            color: 'white',
+            overflow: 'hidden',
+            position: 'relative'
           }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉</div>
-            <h1 style={{ fontSize: 'clamp(1.25rem, 4vw, 1.5rem)', color: '#1e293b', marginBottom: '0.5rem' }}>
-              Free Diagnostic Complete!
-            </h1>
-            <p style={{ color: '#64748b', fontSize: '0.875rem' }}>
-              Objective Listening diagnostic · Time: {formatTime(timeElapsed)}
-            </p>
+            <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at top right, rgba(34, 211, 238, 0.22), transparent 35%), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.22), transparent 38%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'relative' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.35rem 0.7rem', borderRadius: '999px', background: 'rgba(15, 23, 42, 0.55)', border: '1px solid rgba(148, 163, 184, 0.28)', color: '#bae6fd', fontSize: '0.72rem', fontWeight: 800, marginBottom: '0.85rem' }}>
+                IELTS Listening free diagnostic complete
+              </div>
+              <h1 style={{ fontSize: 'clamp(1.65rem, 8vw, 2.75rem)', lineHeight: 1.05, margin: '0 0 0.65rem', letterSpacing: '-0.04em' }}>
+                Band {bandScore}.0 Today → Target Band {targetBand}.0
+              </h1>
+              <p style={{ color: '#cbd5e1', fontSize: '0.92rem', margin: 0 }}>
+                {bandGap > 0 ? `You’re ${bandGap.toFixed(1).replace('.0', '')} band away from IELTS ${targetBand}.` : `You’re already in the Band ${targetBand}.0 target range for this short practice task.`} This is an estimated band from a practice diagnostic, not official IELTS scoring.
+              </p>
 
-            {/* Band Score */}
-            <div style={{
-              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-              borderRadius: '1rem',
-              padding: '1.5rem',
-              margin: '1.5rem 0',
-              color: 'white'
-            }}>
-              <div style={{ fontSize: '0.875rem', marginBottom: '0.25rem' }}>Estimated Band Score</div>
-              <div style={{ fontSize: '4rem', fontWeight: 'bold' }}>{bandScore}.0</div>
-              <div style={{ fontSize: '1rem', color: '#93c5fd' }}>{feedback.level}</div>
+              <div style={{
+                background: 'rgba(15, 23, 42, 0.72)',
+                border: '1px solid rgba(148, 163, 184, 0.24)',
+                borderRadius: '1rem',
+                padding: '1rem',
+                margin: '1.25rem 0',
+                textAlign: 'left'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', alignItems: 'center', marginBottom: '0.75rem' }}>
+                  <div>
+                    <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 800 }}>Current estimated band</div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 900, color: '#67e8f9' }}>{bandScore}.0</div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 800 }}>Next target</div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 900, color: '#c4b5fd' }}>Band {targetBand}.0</div>
+                  </div>
+                </div>
+                <div style={{ height: '0.7rem', borderRadius: '999px', background: 'rgba(51, 65, 85, 0.95)', overflow: 'hidden', boxShadow: 'inset 0 1px 4px rgba(0,0,0,0.35)' }}>
+                  <div style={{ width: `${Math.min(100, Math.max(8, (bandScore / targetBand) * 100))}%`, height: '100%', background: 'linear-gradient(90deg, #22d3ee 0%, #818cf8 55%, #c084fc 100%)', borderRadius: '999px' }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', color: '#94a3b8', fontSize: '0.72rem', fontWeight: 700 }}>
+                  <span>Band 4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '0.75rem' }}>
+                <div style={{ background: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(74, 222, 128, 0.24)', borderRadius: '0.75rem', padding: '0.75rem' }}><div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#86efac' }}>{correct}</div><div style={{ fontSize: '0.7rem', color: '#bbf7d0' }}>Correct</div></div>
+                <div style={{ background: 'rgba(248, 113, 113, 0.1)', border: '1px solid rgba(248, 113, 113, 0.24)', borderRadius: '0.75rem', padding: '0.75rem' }}><div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fca5a5' }}>{total - correct}</div><div style={{ fontSize: '0.7rem', color: '#fecaca' }}>Missed</div></div>
+                <div style={{ background: 'rgba(59, 130, 246, 0.12)', border: '1px solid rgba(96, 165, 250, 0.24)', borderRadius: '0.75rem', padding: '0.75rem' }}><div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#93c5fd' }}>{percentage}%</div><div style={{ fontSize: '0.7rem', color: '#bfdbfe' }}>Practice score</div></div>
+              </div>
             </div>
-
-            {/* Score Breakdown */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
-              gap: '0.75rem',
-              marginBottom: '1rem'
-            }}>
-              <div style={{ background: '#f0fdf4', borderRadius: '0.5rem', padding: '0.75rem' }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#16a34a' }}>{correct}</div>
-                <div style={{ fontSize: '0.7rem', color: '#15803d' }}>Correct</div>
-              </div>
-              <div style={{ background: '#fef2f2', borderRadius: '0.5rem', padding: '0.75rem' }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#dc2626' }}>{total - correct}</div>
-                <div style={{ fontSize: '0.7rem', color: '#b91c1c' }}>Incorrect</div>
-              </div>
-              <div style={{ background: '#eff6ff', borderRadius: '0.5rem', padding: '0.75rem' }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#2563eb' }}>{percentage}%</div>
-                <div style={{ fontSize: '0.7rem', color: '#1d4ed8' }}>Score</div>
-              </div>
-            </div>
-
-            <p style={{ color: '#475569', fontSize: '0.875rem', lineHeight: 1.6 }}>
-              {feedback.message}
-            </p>
           </div>
 
           {/* Diagnostic Summary */}
@@ -550,14 +583,19 @@ const TrialListeningTask2: React.FC = () => {
             borderRadius: '1rem',
             padding: 'clamp(1rem, 3vw, 1.5rem)',
             marginBottom: '1rem',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+            boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)',
+            border: '1px solid #e2e8f0'
           }}>
-            <h2 style={{ fontSize: '1rem', fontWeight: '700', color: '#1e293b', marginBottom: '0.75rem' }}>🎯 Your diagnostic readout</h2>
-            <div style={{ display: 'grid', gap: '0.75rem', fontSize: '0.85rem', color: '#334155', lineHeight: 1.55 }}>
-              <div><strong style={{ color: '#15803d' }}>Strength:</strong> {correct >= 7 ? 'You handled most key travel details accurately under audio timing.' : correct >= 4 ? 'You captured some concrete details, especially when wording was direct.' : 'You completed the task and created a useful baseline for focused listening practice.'}</div>
-              <div><strong style={{ color: '#b91c1c' }}>Weakness:</strong> {incorrectCount > 0 ? `You missed ${incorrectCount} item${incorrectCount === 1 ? '' : 's'}, so your next gains should come from numbers, spellings, dates, and distractor phrases.` : 'Your next challenge is sustaining this accuracy across longer multi-section IELTS listening tests.'}</div>
-              <div><strong style={{ color: '#1d4ed8' }}>Next step:</strong> To move from around Band {bandScore}.0 toward Band {targetBand}.0, practise short form-completion drills first, then build to full 40-question listening tests.</div>
-            </div>
+            <h2 style={{ fontSize: '1.05rem', fontWeight: '800', color: '#1e293b', marginBottom: '0.85rem' }}>🎯 Your fastest path from Band {bandScore}.0</h2>
+            {(() => {
+              const insights = getListeningInsights(correct, total, incorrectCount, bandScore);
+              return <div style={{ display: 'grid', gap: '0.75rem', fontSize: '0.86rem', color: '#334155', lineHeight: 1.55 }}>
+                <div><strong style={{ color: '#15803d' }}>Strengths:</strong> {insights.strength}</div>
+                <div><strong style={{ color: '#b91c1c' }}>Weaknesses:</strong> {insights.weakness}</div>
+                <div><strong style={{ color: '#7c3aed' }}>Fastest score gains:</strong> {insights.fastestGains}</div>
+                <div><strong style={{ color: '#1d4ed8' }}>Next recommended practice:</strong> {insights.nextPractice}</div>
+              </div>;
+            })()}
           </div>
 
           {/* Answers Review */}
@@ -636,10 +674,17 @@ const TrialListeningTask2: React.FC = () => {
               textAlign: 'center'
             }}>
               <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>⭐</div>
-              <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>Improve from Band {bandScore}.0 toward Band {targetBand}.0</h3>
-              <p style={{ fontSize: '0.8rem', color: '#c4b5fd', marginBottom: '1rem' }}>
-                Unlock guided Listening practice, transcripts, targeted feedback, and progress tracking focused on the question types you missed.
+              <h3 style={{ fontSize: '1.15rem', marginBottom: '0.5rem' }}>Unlock Your Band 7 Plan</h3>
+              <p style={{ fontSize: '0.85rem', color: '#ddd6fe', marginBottom: '1rem', lineHeight: 1.55 }}>
+                Based on your result, your fastest gains are targeted listening drills, transcripts, full practice tests, and progress tracking. IELTS Prime can help turn this estimated band into a focused practice path.
               </p>
+              <div style={{ display: 'grid', gap: '0.45rem', textAlign: 'left', fontSize: '0.82rem', color: '#ede9fe', marginBottom: '1rem' }}>
+                <span>✓ Weakness-focused drills</span>
+                <span>✓ Listening transcripts</span>
+                <span>✓ Full IELTS practice tests</span>
+                <span>✓ Progress tracking</span>
+                <span>✓ Writing/Speaking feedback where available</span>
+              </div>
               <button
                 onClick={() => { trackIeltsFunnelEvent('ielts_prime_upsell_click', { skill: 'listening', task_id: 'trial-test-2', estimated_band: bandScore, plan: 'quarterly', user_type: userType }); navigate('/ielts/apply-prime?plan=quarterly&autostart=1'); }}
                 style={{
@@ -653,7 +698,7 @@ const TrialListeningTask2: React.FC = () => {
                   fontSize: '0.875rem'
                 }}
               >
-                Checkout with Prime
+                Unlock My Band 7 Plan
               </button>
             </div>
           )}
