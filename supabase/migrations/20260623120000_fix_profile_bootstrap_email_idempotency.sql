@@ -23,6 +23,8 @@ DECLARE
   v_profile public.users%ROWTYPE;
   v_email_profile public.users%ROWTYPE;
   v_can_attach boolean := false;
+  v_has_fk_dependencies boolean := false;
+  v_fk record;
 BEGIN
   IF v_uid IS NULL THEN
     RETURN jsonb_build_object('success', false, 'error', 'Not authenticated', 'code', 'not_authenticated');
@@ -76,6 +78,40 @@ BEGIN
     INTO v_can_attach;
 
     IF v_can_attach THEN
+      -- Never update public.users.id while dependent rows exist. Many FKs that
+      -- point at users(id), including question_attempts.student_id, are not
+      -- guaranteed to be ON UPDATE CASCADE, so changing the parent PK can raise
+      -- foreign_key_violation and can also orphan IELTS/game history.
+      FOR v_fk IN
+        SELECT
+          conrelid::regclass AS child_table,
+          (SELECT string_agg(format('%I', a.attname), ', ' ORDER BY ord.n)
+           FROM unnest(conkey) WITH ORDINALITY AS ord(attnum, n)
+           JOIN pg_attribute a ON a.attrelid = conrelid AND a.attnum = ord.attnum) AS child_columns
+        FROM pg_constraint
+        WHERE confrelid = 'public.users'::regclass
+          AND contype = 'f'
+          AND confkey = ARRAY[(SELECT attnum FROM pg_attribute WHERE attrelid = 'public.users'::regclass AND attname = 'id')]
+      LOOP
+        EXECUTE format(
+          'SELECT EXISTS (SELECT 1 FROM %s WHERE (%s) = ($1) LIMIT 1)',
+          v_fk.child_table,
+          v_fk.child_columns
+        ) INTO v_has_fk_dependencies USING v_email_profile.id;
+
+        IF v_has_fk_dependencies THEN
+          EXIT;
+        END IF;
+      END LOOP;
+
+      IF v_has_fk_dependencies THEN
+        RETURN jsonb_build_object(
+          'success', false,
+          'error', 'This email already has learning activity attached to an older profile. Your attempts and results are safe, but support needs to link the account before you can join this school.',
+          'code', 'account_profile_conflict'
+        );
+      END IF;
+
       UPDATE public.users
       SET id = v_uid,
           email = v_email,
