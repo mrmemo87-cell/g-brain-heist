@@ -48,6 +48,21 @@ export interface IndividualSetupPayload {
     username?: string;
 }
 
+
+const getReadableRpcError = (value: unknown, fallback = 'An unexpected error occurred. Please try again.'): string => {
+    if (!value) return fallback;
+    if (typeof value === 'string') return value;
+    if (value instanceof Error) return value.message || fallback;
+    if (typeof value === 'object') {
+        const record = value as Record<string, unknown>;
+        for (const key of ['error', 'message', 'details', 'hint']) {
+            const candidate = record[key];
+            if (typeof candidate === 'string' && candidate.trim()) return candidate;
+        }
+    }
+    return fallback;
+};
+
 const getDefaultProfileUsername = (user: { email?: string; user_metadata?: Record<string, unknown> }): string => {
     const emailUsername = user.email?.split('@')[0] || 'user';
     const displayName = user.user_metadata?.['full_name'] || user.user_metadata?.['name'];
@@ -491,7 +506,7 @@ export const bootstrapProfile = async (
     
     if (error) {
         console.error('Profile bootstrap RPC error:', error.message);
-        return { success: false, error: toAuthSafeErrorMessage(error) };
+        return { success: false, error: getReadableRpcError(error, toAuthSafeErrorMessage(error)) };
     }
     
     const result = data as ProfileBootstrapResult;
@@ -502,7 +517,7 @@ export const bootstrapProfile = async (
         console.error('Profile bootstrap failed:', result.error);
     }
     
-    return result;
+    return { ...result, error: result.error ? getReadableRpcError(result, result.error) : undefined };
 };
 
 /**
@@ -525,15 +540,15 @@ export const completeIndividualSetup = async (
     });
 
     if (error) {
-        return { success: false, error: toAuthSafeErrorMessage(error) };
+        return { success: false, error: getReadableRpcError(error, toAuthSafeErrorMessage(error)) };
     }
 
     const result = data as ProfileBootstrapResult;
     if (!result?.success) {
-        return { success: false, error: result?.error || 'Failed to complete setup.' };
+        return { success: false, error: getReadableRpcError(result, 'Failed to complete setup.') };
     }
 
-    return result;
+    return { ...result, error: result.error ? getReadableRpcError(result, result.error) : undefined };
 };
 
 /**
@@ -556,15 +571,15 @@ export const completeProfileSetup = async (
     });
 
     if (error) {
-        return { success: false, error: toAuthSafeErrorMessage(error) };
+        return { success: false, error: getReadableRpcError(error, toAuthSafeErrorMessage(error)) };
     }
 
     const result = data as ProfileBootstrapResult;
     if (!result?.success) {
-        return { success: false, error: result?.error || 'Failed to complete setup.' };
+        return { success: false, error: getReadableRpcError(result, 'Failed to complete setup.') };
     }
 
-    return result;
+    return { ...result, error: result.error ? getReadableRpcError(result, result.error) : undefined };
 };
 
 /**
@@ -606,7 +621,8 @@ export const joinSchoolByCode = async (
         return { success: false, error: 'Failed to join school by code' };
     }
 
-    return data as JoinSchoolByCodeResult;
+    const result = data as JoinSchoolByCodeResult;
+    return { ...result, error: result?.error ? getReadableRpcError(result, result.error) : undefined };
 };
 
 export const setupSchoolClassEnrollment = async (
