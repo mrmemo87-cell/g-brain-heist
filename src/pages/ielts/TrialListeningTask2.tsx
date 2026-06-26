@@ -336,12 +336,14 @@ const TrialListeningTask2: React.FC = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     const { percentage } = calculateScore();
     const bandScore = getBandScore(percentage);
-    trackIeltsFunnelEvent('ielts_diagnostic_completed', {
-      skill: 'listening',
-      task_id: 'trial-test-2',
-      estimated_band: bandScore,
-      user_type: userType,
-    });
+    if (Object.keys(answers).length > 0) {
+      trackIeltsFunnelEvent('diagnostic_completed', {
+        skill: 'listening',
+        task_id: 'trial-test-2',
+        estimated_band: bandScore,
+        user_type: userType,
+      });
+    }
     setShowResults(true);
   };
 
@@ -351,7 +353,7 @@ const TrialListeningTask2: React.FC = () => {
     const { percentage } = calculateScore();
     const bandScore = getBandScore(percentage);
     resultViewedTrackedRef.current = true;
-    trackIeltsFunnelEvent('ielts_result_viewed', {
+    trackIeltsFunnelEvent('result_viewed', {
       skill: 'listening',
       task_id: 'trial-test-2',
       estimated_band: bandScore,
@@ -469,7 +471,7 @@ const TrialListeningTask2: React.FC = () => {
 
           {/* Start Button */}
           <button
-            onClick={() => { trackIeltsFunnelEvent('ielts_diagnostic_started', { skill: 'listening', task_id: 'trial-test-2', user_type: userType }); setHasStarted(true); }}
+            onClick={() => { trackIeltsFunnelEvent('diagnostic_started', { skill: 'listening', task_id: 'trial-test-2', user_type: userType }); setHasStarted(true); }}
             style={{
               width: '100%',
               padding: '1rem 2rem',
@@ -686,7 +688,7 @@ const TrialListeningTask2: React.FC = () => {
                 <span>✓ Writing/Speaking feedback where available</span>
               </div>
               <button
-                onClick={() => { trackIeltsFunnelEvent('ielts_prime_upsell_click', { skill: 'listening', task_id: 'trial-test-2', estimated_band: bandScore, plan: 'quarterly', user_type: userType }); navigate('/ielts/apply-prime?plan=quarterly&autostart=1'); }}
+                onClick={() => { trackIeltsFunnelEvent('prime_upsell_click', { skill: 'listening', task_id: 'trial-test-2', estimated_band: bandScore, plan: 'quarterly', user_type: userType }); navigate('/ielts/apply-prime?plan=quarterly&autostart=1'); }}
                 style={{
                   padding: '0.75rem 2rem',
                   background: 'white',

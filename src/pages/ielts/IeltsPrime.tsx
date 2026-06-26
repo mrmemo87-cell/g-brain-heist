@@ -105,6 +105,7 @@ const IeltsPrime: React.FC = () => {
         setStatusMessage('Opening secure Paddle checkout…');
 
         await openPaddleCheckoutForTransaction(transactionId as string);
+        trackIeltsFunnelEvent('checkout_opened', { checkout_surface: 'url_transaction' });
 
         if (!cancelled) {
           window.history.replaceState({}, '', `${window.location.origin}/ielts/apply-prime`);
@@ -213,13 +214,13 @@ const IeltsPrime: React.FC = () => {
 
     setCheckoutPlan(plan);
     setStatusMessage('Creating secure Paddle checkout…');
-    trackIeltsFunnelEvent('ielts_prime_checkout_started', { plan, user_type: userType });
+    trackIeltsFunnelEvent('checkout_started', { plan, user_type: userType });
 
     try {
       const result = await createIeltsPrimeCheckout(plan);
 
       if (result.error) {
-        trackIeltsFunnelEvent('ielts_prime_checkout_error', { plan, user_type: userType });
+        trackIeltsFunnelEvent('funnel_error', { plan, user_type: userType });
         setError(result.error);
         setStatusMessage(null);
         return;
@@ -228,6 +229,7 @@ const IeltsPrime: React.FC = () => {
       if (result.transaction_id) {
         setStatusMessage('Opening secure Paddle checkout…');
         await openPaddleCheckoutForTransaction(result.transaction_id);
+        trackIeltsFunnelEvent('checkout_opened', { plan, user_type: userType });
         setStatusMessage('Complete your secure Paddle checkout to activate Prime.');
         return;
       }
@@ -237,11 +239,11 @@ const IeltsPrime: React.FC = () => {
         return;
       }
 
-      trackIeltsFunnelEvent('ielts_prime_checkout_error', { plan, user_type: userType });
+      trackIeltsFunnelEvent('funnel_error', { plan, user_type: userType });
       setError('Checkout failed — please try again.');
       setStatusMessage(null);
     } catch (checkoutError) {
-      trackIeltsFunnelEvent('ielts_prime_checkout_error', { plan, user_type: userType });
+      trackIeltsFunnelEvent('funnel_error', { plan, user_type: userType });
       setError(
         checkoutError instanceof Error
           ? checkoutError.message
@@ -259,7 +261,7 @@ const IeltsPrime: React.FC = () => {
     }
 
     autoCheckoutStartedRef.current = true;
-    trackIeltsFunnelEvent('ielts_prime_checkout_autostart', { plan: requestedPlan, user_type: userType });
+    trackIeltsFunnelEvent('checkout_started', { plan: requestedPlan, user_type: userType });
     void handleCheckout(requestedPlan);
   }, [autostartCheckout, requestedPlan, isAuthenticated, checkoutPlan, userType]);
 

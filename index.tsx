@@ -49,6 +49,7 @@ const IeltsPrime = lazyRetry(() => import('./src/pages/ielts/IeltsPrime'), 'Ielt
 const IeltsAdminGuard = lazyRetry(() => import('./components/ielts/IeltsAdminGuard'), 'IeltsAdminGuard');
 const IeltsExamModeAdminGuard = lazyRetry(() => import('./components/ielts/IeltsExamModeAdminGuard'), 'IeltsExamModeAdminGuard');
 const IeltsAdminDashboard = lazyRetry(() => import('./components/IeltsAdminDashboard'), 'IeltsAdminDashboard');
+const IeltsFunnelAnalytics = lazyRetry(() => import('./src/pages/ielts/IeltsFunnelAnalytics'), 'IeltsFunnelAnalytics');
 const IeltsExamMode = lazyRetry(() => import('./src/pages/ielts/IeltsExamMode'), 'IeltsExamMode');
 const IeltsExamMonitor = lazyRetry(() => import('./src/pages/ielts/IeltsExamMonitor'), 'IeltsExamMonitor');
 const IeltsExamManager = lazyRetry(() => import('./src/pages/ielts/IeltsExamManager'), 'IeltsExamManager');
@@ -793,6 +794,17 @@ const router = createBrowserRouter([
         element={(
           <IeltsAdminGuard>
             <IeltsAdminDashboard />
+          </IeltsAdminGuard>
+        )}
+      />
+    ),
+  },
+  {
+    path: '/ielts/funnel',
+    element: (
+      <ProtectedRoute
+        element={(<IeltsAdminGuard>
+            <IeltsFunnelAnalytics />
           </IeltsAdminGuard>
         )}
       />

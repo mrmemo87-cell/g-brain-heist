@@ -442,6 +442,23 @@ async function handleGetPortalUrl(req: Request): Promise<Response> {
   });
 }
 
+async function insertIeltsFunnelEvent(admin: ReturnType<typeof getSupabaseAdmin>, params: {
+  userId?: string | null;
+  eventName: "checkout_completed" | "subscription_activated" | "funnel_error";
+  metadata?: Record<string, unknown>;
+}) {
+  try {
+    await admin.from("ielts_funnel_events").insert({
+      user_id: params.userId || null,
+      event_name: params.eventName,
+      route: "/ielts/apply-prime",
+      metadata: params.metadata || {},
+    });
+  } catch (err) {
+    console.warn("IELTS funnel analytics insert failed", err);
+  }
+}
+
 async function upsertIeltsPrimeSubscription(admin: ReturnType<typeof getSupabaseAdmin>, params: {
   userId: string;
   customerId?: string | null;
@@ -515,6 +532,13 @@ async function handleIeltsPrimeWebhookEvent(admin: ReturnType<typeof getSupabase
       eventOccurredAt,
     });
     await admin.from("ielts_users").update({ tier: "prime_prep_user" }).eq("id", userId);
+    if (["subscription.created", "subscription.activated"].includes(eventType)) {
+      await insertIeltsFunnelEvent(admin, {
+        userId,
+        eventName: "subscription_activated",
+        metadata: { plan, interval: resolved?.interval || plan, price_id: currentPriceId, subscription_id: data.id || null },
+      });
+    }
     return null;
   }
 
@@ -554,6 +578,11 @@ async function handleIeltsPrimeWebhookEvent(admin: ReturnType<typeof getSupabase
       eventOccurredAt,
     });
     await admin.from("ielts_users").update({ tier: "prime_prep_user" }).eq("id", userId);
+    await insertIeltsFunnelEvent(admin, {
+      userId,
+      eventName: "checkout_completed",
+      metadata: { plan, interval: resolved?.interval || plan, price_id: currentPriceId, subscription_id: subscriptionId },
+    });
     return null;
   }
 
