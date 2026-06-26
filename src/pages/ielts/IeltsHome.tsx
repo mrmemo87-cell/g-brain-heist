@@ -81,7 +81,7 @@ const IeltsHome: React.FC = () => {
   const openTask = (destination: string, isLocked: boolean) => {
     if (!isAuthenticated) {
       if (destination === '/ielts/trial-test-2') {
-        trackIeltsFunnelEvent('ielts_auth_required_for_diagnostic', {
+        trackIeltsFunnelEvent('auth_required_for_diagnostic', {
           skill: 'listening',
           task_id: 'trial-test-2',
           user_type: 'independent',
@@ -154,7 +154,7 @@ const IeltsHome: React.FC = () => {
 
   useEffect(() => {
     if (!profileContextLoaded || isIeltsAdminLandingRole) return;
-    trackIeltsFunnelEvent('ielts_landing_view', {
+    trackIeltsFunnelEvent('landing_view', {
       user_type: hasSchoolMembership ? 'school' : 'independent',
     });
   }, [profileContextLoaded, isIeltsAdminLandingRole, hasSchoolMembership]);
@@ -320,6 +320,7 @@ const IeltsHome: React.FC = () => {
       { label: 'Student Progress', desc: 'View each student’s IELTS readiness, assignments, results, and pending reviews.', route: '/ielts/journey', icon: '📊', color: '#059669' },
       { label: 'Exam Manager', desc: 'Create and monitor secure IELTS exam sessions.', route: '/ielts/exams/manage', icon: '🔒', color: '#ea580c' },
       { label: 'Assigned Practice', desc: 'Monitor assignment coverage and completion health.', route: '/ielts/practice/assigned', icon: '📌', color: '#b45309' },
+      { label: 'Launch Funnel', desc: 'Review privacy-safe public IELTS funnel conversion analytics.', route: '/ielts/funnel', icon: '📈', color: '#4f46e5' },
     ];
 
     return (
@@ -410,7 +411,7 @@ const IeltsHome: React.FC = () => {
     { title: 'Prime after value', text: 'Upgrade prompts come after the diagnostic value is clear—not before your first result.' },
   ];
   const startDiagnostic = () => {
-    trackIeltsFunnelEvent('ielts_start_free_assessment_click', {
+    trackIeltsFunnelEvent('start_free_assessment_click', {
       skill: 'listening',
       task_id: 'trial-test-2',
       user_type: hasSchoolMembership ? 'school' : 'independent',

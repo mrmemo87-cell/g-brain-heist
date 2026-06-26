@@ -57,7 +57,7 @@ const IeltsObjectiveResult: React.FC = () => {
   useEffect(() => {
     if (!data || resultTrackedRef.current || (skill !== 'reading' && skill !== 'listening')) return;
     resultTrackedRef.current = true;
-    trackIeltsFunnelEvent('ielts_result_viewed', {
+    trackIeltsFunnelEvent('result_viewed', {
       skill,
       content_id: attemptId,
       ['estimated_' + 'band']: data.est_band,
@@ -99,7 +99,7 @@ const IeltsObjectiveResult: React.FC = () => {
           <div style={{ background: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: '0.85rem', padding: '1rem' }}>
             <h2 style={{ margin: '0 0 0.35rem', fontSize: '1rem', color: '#3730a3' }}>Unlock your Band {band ?? '6+'} → {targetBand}+ plan</h2>
             <p style={{ margin: '0 0 0.75rem', color: '#4338ca' }}>IELTS Prime turns this result into guided practice, feedback, transcripts, and progress tracking focused on your weakest skills.</p>
-            <button type="button" onClick={() => { trackIeltsFunnelEvent('ielts_prime_upsell_click', { skill: skill === 'reading' || skill === 'listening' ? skill : undefined, content_id: attemptId, ['estimated_' + 'band']: band, plan: 'quarterly', user_type: 'independent' }); navigate('/ielts/apply-prime?plan=quarterly&autostart=1'); }} style={{ background: '#4f46e5', color: '#ffffff', border: 'none', borderRadius: '0.55rem', padding: '0.6rem 0.9rem', fontWeight: 800, cursor: 'pointer' }}>Checkout with IELTS Prime</button>
+            <button type="button" onClick={() => { trackIeltsFunnelEvent('prime_upsell_click', { skill: skill === 'reading' || skill === 'listening' ? skill : undefined, content_id: attemptId, ['estimated_' + 'band']: band, plan: 'quarterly', user_type: 'independent' }); navigate('/ielts/apply-prime?plan=quarterly&autostart=1'); }} style={{ background: '#4f46e5', color: '#ffffff', border: 'none', borderRadius: '0.55rem', padding: '0.6rem 0.9rem', fontWeight: 800, cursor: 'pointer' }}>Checkout with IELTS Prime</button>
           </div>
         ) : null}
       </div> : null}
