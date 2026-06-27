@@ -36,12 +36,15 @@ const IeltsHome: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [userTier, setUserTier] = useState('free');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authResolved, setAuthResolved] = useState(false);
   const [userRole, setUserRole] = useState<string>('student');
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [hasSchoolMembership, setHasSchoolMembership] = useState(false);
   const [profileContextLoaded, setProfileContextLoaded] = useState(false);
   const [extraPracticeEnabled, setExtraPracticeEnabled] = useState(true);
   const [dashboardSummary, setDashboardSummary] = useState<IeltsDashboardSummary | null>(null);
+  const [dashboardLoading, setDashboardLoading] = useState(false);
+  const [dashboardLoaded, setDashboardLoaded] = useState(false);
   const isPrimeUser = isIeltsPrime({ tier: userTier });
   const canAccessRequiredTier = (requiredTier?: string | null) => !requiredTier || requiredTier === 'free' || isPrimeUser;
   const normalizedRole = normalizeIeltsRole(userRole);
@@ -103,10 +106,14 @@ const IeltsHome: React.FC = () => {
   useEffect(() => {
     let active = true;
     supabase.auth.getSession().then(({ data }) => {
-      if (active) setIsAuthenticated(Boolean(data.session));
+      if (active) {
+        setIsAuthenticated(Boolean(data.session));
+        setAuthResolved(true);
+      }
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsAuthenticated(Boolean(session));
+      setAuthResolved(true);
     });
     return () => {
       active = false;
@@ -165,29 +172,54 @@ const IeltsHome: React.FC = () => {
 
   useEffect(() => {
     let active = true;
+    const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
     if (!profileContextLoaded || !isAuthenticated || isIeltsAdminLandingRole) {
       setDashboardSummary(null);
+      setDashboardLoading(false);
+      setDashboardLoaded(false);
       dashboardEventTrackedRef.current = false;
       return () => { active = false; };
     }
-    fetchIeltsDashboardSummary()
-      .then((summary) => {
-        if (!active) return;
-        setDashboardSummary(summary);
-        if (!dashboardEventTrackedRef.current) {
-          dashboardEventTrackedRef.current = true;
-          trackIeltsFunnelEvent(summary.isPrimeActive ? 'prime_dashboard_viewed' : 'dashboard_viewed', {
-            skill: summary.diagnostic.skill,
-            task_id: summary.diagnostic.taskId,
-            estimated_band: summary.diagnostic.estimatedBand,
-            plan: summary.subscription.plan,
-            user_type: hasSchoolMembership ? 'school' : 'independent',
-          });
+
+    const loadDashboard = async () => {
+      setDashboardLoading(true);
+      setDashboardLoaded(false);
+      const recentSubmittedAt = Number(window.localStorage.getItem('ielts_diagnostic_submitted_recently') || 0);
+      const shouldRetryDiagnostic = recentSubmittedAt > 0 && Date.now() - recentSubmittedAt < 2 * 60 * 1000;
+      const maxAttempts = shouldRetryDiagnostic ? 3 : 1;
+      let latestSummary: IeltsDashboardSummary | null = null;
+
+      for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        try {
+          latestSummary = await fetchIeltsDashboardSummary();
+        } catch {
+          latestSummary = null;
         }
-      })
-      .catch(() => {
-        if (active) setDashboardSummary(null);
-      });
+        if (!active) return;
+        if (!shouldRetryDiagnostic || latestSummary?.diagnostic.completed || attempt === maxAttempts) break;
+        await wait(450);
+      }
+
+      if (!active) return;
+      setDashboardSummary(latestSummary);
+      setDashboardLoaded(true);
+      setDashboardLoading(false);
+      if (shouldRetryDiagnostic) window.localStorage.removeItem('ielts_diagnostic_submitted_recently');
+
+      if (latestSummary && !dashboardEventTrackedRef.current) {
+        dashboardEventTrackedRef.current = true;
+        trackIeltsFunnelEvent(latestSummary.isPrimeActive ? 'prime_dashboard_viewed' : 'dashboard_viewed', {
+          skill: latestSummary.diagnostic.skill,
+          task_id: latestSummary.diagnostic.taskId,
+          estimated_band: latestSummary.diagnostic.estimatedBand,
+          plan: latestSummary.subscription.plan,
+          user_type: hasSchoolMembership ? 'school' : 'independent',
+        });
+      }
+    };
+
+    void loadDashboard();
     return () => { active = false; };
   }, [profileContextLoaded, isAuthenticated, isIeltsAdminLandingRole, hasSchoolMembership]);
 
@@ -353,6 +385,21 @@ const IeltsHome: React.FC = () => {
     });
     openTask('/ielts/trial-test-2', false);
   };
+
+  const shouldShowDashboardLoading = !authResolved || (isAuthenticated && !isIeltsAdminLandingRole && (!profileContextLoaded || dashboardLoading || (!dashboardLoaded && !dashboardSummary)));
+
+  if (shouldShowDashboardLoading) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg,#0f172a,#172554 48%,#4c1d95)', color: '#e0f2fe', display: 'grid', placeItems: 'center', padding: '1.5rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+        <div style={{ width: 'min(100%, 520px)', background: 'rgba(15,23,42,0.72)', border: '1px solid rgba(125,211,252,0.24)', borderRadius: '1.25rem', padding: 'clamp(1.5rem,4vw,2.25rem)', textAlign: 'center', boxShadow: '0 24px 70px rgba(2,6,23,0.35)' }}>
+          <div style={{ fontSize: '2.25rem', marginBottom: '0.75rem' }}>🎧</div>
+          <p style={{ margin: '0 0 0.45rem', color: '#67e8f9', fontSize: '0.72rem', fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase' }}>Brain Heist IELTS</p>
+          <h1 style={{ margin: 0, color: '#fff', fontSize: 'clamp(1.45rem,5vw,2.25rem)', letterSpacing: '-0.04em' }}>Loading your IELTS dashboard…</h1>
+          <p style={{ margin: '0.75rem auto 0', color: '#cbd5e1', lineHeight: 1.6, maxWidth: 420 }}>We’re checking your diagnostic result and practice access.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isIeltsAdminLandingRole) {
     const adminCards = [
