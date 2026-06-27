@@ -39,6 +39,7 @@ const SpeakingPractice: React.FC = () => {
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [canPreviewAudio, setCanPreviewAudio] = useState<boolean>(true);
   const [recordingDuration, setRecordingDuration] = useState<number>(0);
   const [userTier, setUserTier] = useState('free');
@@ -100,6 +101,7 @@ const SpeakingPractice: React.FC = () => {
 
   const submitMutation = useMutation({
     mutationFn: async (blob: Blob) => {
+      setSubmitError(null);
       await ensureIeltsProfile();
 
       const { data: session } = await supabase.auth.getSession();
@@ -162,6 +164,7 @@ const SpeakingPractice: React.FC = () => {
       return { attempt: data, progress, itemCompletionError, canComplete: recordingDuration >= MIN_RECORDING_SECONDS };
     },
     onSuccess: (data) => {
+      setSubmitError(null);
       setLastAttemptId(data.attempt?.id);
       setAssignmentProgress(data.progress);
       setAssignmentCompletionError(data.itemCompletionError);
@@ -170,6 +173,10 @@ const SpeakingPractice: React.FC = () => {
         setAssignmentCompletionError(`Submitted, but recording is too short to complete assignment (minimum ${MIN_RECORDING_SECONDS} seconds).`);
       }
       setHasSubmitted(true);
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : 'Unknown submission error';
+      setSubmitError(`We could not submit your recording for review. Please try again. Your recording is still available on this page. (${message})`);
     },
   });
 
@@ -309,6 +316,7 @@ const SpeakingPractice: React.FC = () => {
   };
 
   const handleSubmit = () => {
+    setSubmitError(null);
     if (audioBlob && recordingDuration >= MIN_RECORDING_SECONDS) {
       submitMutation.mutate(audioBlob);
     }
@@ -322,6 +330,7 @@ const SpeakingPractice: React.FC = () => {
     setAudioUrl(null);
     setPreviewError(null);
     setCanPreviewAudio(true);
+    setSubmitError(null);
     setPreparationTimeLeft(0);
     setRecordingDuration(0);
   };
@@ -803,6 +812,11 @@ const SpeakingPractice: React.FC = () => {
                 >
                   Re-record
                 </button>
+                {submitError && (
+                  <p role="alert" style={{ fontSize: '0.875rem', color: '#991b1b', background: '#fee2e2', border: '1px solid #fecaca', borderRadius: '0.5rem', padding: '0.75rem', margin: 0 }}>
+                    {submitError}
+                  </p>
+                )}
                 <button
                   onClick={handleSubmit}
                   disabled={submitMutation.isPending || !isSubmissionEligible}
