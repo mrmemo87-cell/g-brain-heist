@@ -171,9 +171,13 @@ export const recordDiagnosticCompleted = async (metadata: IeltsFunnelEventMetada
   if (typeof window === 'undefined') return false;
 
   const { safeMetadata } = buildFunnelPayload(metadata);
-  dispatchFunnelEvent('diagnostic_completed', safeMetadata);
-  return insertFunnelEvent('diagnostic_completed', metadata, { requireAuthenticatedUser: true }).catch((error) => {
+  try {
+    const recorded = await insertFunnelEvent('diagnostic_completed', metadata, { requireAuthenticatedUser: true });
+    if (!recorded) return false;
+    dispatchFunnelEvent('diagnostic_completed', safeMetadata);
+    return true;
+  } catch (error) {
     if (import.meta.env.DEV) console.warn('[ielts-funnel] diagnostic completion failed', error);
     return false;
-  });
+  }
 };

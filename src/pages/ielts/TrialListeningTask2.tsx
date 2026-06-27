@@ -381,21 +381,19 @@ const TrialListeningTask2: React.FC = () => {
     const bandScore = getBandScore(percentage);
     setSubmittedResult({ percentage, bandScore });
     setDiagnosticPersistError(null);
-    if (Object.keys(answers).length > 0) {
-      setDiagnosticPersisting(true);
-      const recorded = await recordDiagnosticCompleted({
-        skill: 'listening',
-        task_id: 'trial-test-2',
-        estimated_band: bandScore,
-        user_type: userType,
-      });
-      setDiagnosticPersisting(false);
-      if (!recorded) {
-        setDiagnosticPersistError('We could not save your diagnostic yet. Please check your connection and submit again so your dashboard can show this result.');
-        return;
-      }
-      window.localStorage.setItem('ielts_diagnostic_submitted_recently', String(Date.now()));
+    setDiagnosticPersisting(true);
+    const recorded = await recordDiagnosticCompleted({
+      skill: 'listening',
+      task_id: 'trial-test-2',
+      estimated_band: bandScore,
+      user_type: userType,
+    });
+    setDiagnosticPersisting(false);
+    if (!recorded) {
+      setDiagnosticPersistError('We could not save your diagnostic yet. Please check your connection and submit again so your dashboard can show this result.');
+      return;
     }
+    window.localStorage.setItem('ielts_diagnostic_submitted_recently', String(Date.now()));
     setShowResults(true);
   };
 
