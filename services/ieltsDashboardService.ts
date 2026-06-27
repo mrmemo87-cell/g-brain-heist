@@ -13,6 +13,15 @@ export interface IeltsDiagnosticSummary {
   completedAt: string | null;
 }
 
+export interface IeltsSkillProgress {
+  totalAvailableTasks: number;
+  completedTaskCount: number;
+  nextUnfinishedTaskRoute: string | null;
+  allTasksCompleted: boolean;
+  buttonLabel: 'Start' | 'Continue' | 'Completed' | 'Coming soon';
+  status: 'not_started' | 'in_progress' | 'completed' | 'coming_soon';
+}
+
 export interface IeltsDashboardSummary {
   isAuthenticated: boolean;
   displayName: string | null;
@@ -31,7 +40,81 @@ export interface IeltsDashboardSummary {
   };
   recentActivity: string | null;
   weakestSkill: IeltsSkill | null;
+  skillProgress: Record<IeltsSkill, IeltsSkillProgress>;
+  continueLearningRoute: string;
 }
+
+
+const routeForSkillTask = (skill: IeltsSkill, taskId: number): string => `/ielts/${skill}/${taskId}`;
+
+const normalizeCompletedIds = (ids: Array<number | string | null | undefined>): Set<number> => {
+  const normalized = ids
+    .map((id) => (typeof id === 'number' ? id : Number(id)))
+    .filter((id): id is number => Number.isFinite(id));
+  return new Set(normalized);
+};
+
+const buildSkillProgress = <Task extends { id: number }>(skill: IeltsSkill, tasks: Task[], completedIds: Array<number | string | null | undefined>): IeltsSkillProgress => {
+  const completed = normalizeCompletedIds(completedIds);
+  const completedTaskCount = tasks.reduce((count, task) => count + (completed.has(task.id) ? 1 : 0), 0);
+  const nextTask = tasks.find((task) => !completed.has(task.id));
+  const totalAvailableTasks = tasks.length;
+
+  if (totalAvailableTasks === 0) {
+    return {
+      totalAvailableTasks,
+      completedTaskCount: 0,
+      nextUnfinishedTaskRoute: null,
+      allTasksCompleted: false,
+      buttonLabel: 'Coming soon',
+      status: 'coming_soon',
+    };
+  }
+
+  if (!nextTask) {
+    return {
+      totalAvailableTasks,
+      completedTaskCount,
+      nextUnfinishedTaskRoute: null,
+      allTasksCompleted: true,
+      buttonLabel: 'Completed',
+      status: 'completed',
+    };
+  }
+
+  return {
+    totalAvailableTasks,
+    completedTaskCount,
+    nextUnfinishedTaskRoute: routeForSkillTask(skill, nextTask.id),
+    allTasksCompleted: false,
+    buttonLabel: completedTaskCount > 0 ? 'Continue' : 'Start',
+    status: completedTaskCount > 0 ? 'in_progress' : 'not_started',
+  };
+};
+
+const buildDashboardSkillProgress = (
+  tasks: IeltsDashboardSummary['tasks'],
+  completedTasks: UserCompletedTasks,
+): Record<IeltsSkill, IeltsSkillProgress> => ({
+  reading: buildSkillProgress('reading', tasks.reading, completedTasks.reading),
+  listening: buildSkillProgress('listening', tasks.listening, completedTasks.listening),
+  writing: buildSkillProgress('writing', tasks.writing, completedTasks.writing),
+  speaking: buildSkillProgress('speaking', tasks.speaking, completedTasks.speaking),
+});
+
+const chooseContinueLearningRoute = (skillProgress: Record<IeltsSkill, IeltsSkillProgress>, focusSkill: IeltsSkill | null): string => {
+  const recommendedSkill = focusSkill || 'reading';
+  const priority: IeltsSkill[] = [recommendedSkill];
+  if (recommendedSkill !== 'reading') priority.push('reading');
+  priority.push('listening', 'writing', 'speaking');
+
+  for (const skill of priority) {
+    const route = skillProgress[skill]?.nextUnfinishedTaskRoute;
+    if (route) return route;
+  }
+
+  return '/ielts';
+};
 
 const toNumber = (value: unknown): number | null => {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
@@ -70,6 +153,13 @@ export async function fetchIeltsDashboardSummary(): Promise<IeltsDashboardSummar
       tasks: { reading: [], listening: [], writing: [], speaking: [] },
       recentActivity: null,
       weakestSkill: null,
+      skillProgress: {
+        reading: buildSkillProgress('reading', [], []),
+        listening: buildSkillProgress('listening', [], []),
+        writing: buildSkillProgress('writing', [], []),
+        speaking: buildSkillProgress('speaking', [], []),
+      },
+      continueLearningRoute: '/ielts',
     };
   }
 
@@ -99,7 +189,11 @@ export async function fetchIeltsDashboardSummary(): Promise<IeltsDashboardSummar
   const typedIeltsUser = ieltsUser.data as { username?: string | null; target_band?: number | null; updated_at?: string | null } | null;
   const displayName = user.user_metadata?.['full_name'] || user.user_metadata?.['name'] || typedIeltsUser?.username || user.email?.split('@')[0] || null;
   const isPrimeActive = isIeltsPrime({ tier }) || subscription.status === 'active';
-  const completedCounts = Object.values(completedTasks).flat().length;
+  const taskLists = { reading, listening, writing, speaking };
+  const skillProgress = buildDashboardSkillProgress(taskLists, completedTasks);
+  const completedCounts = Object.values(skillProgress).reduce((sum, progress) => sum + progress.completedTaskCount, 0);
+  const weakestSkill = diagnosticCompleted ? 'listening' : null;
+  const continueLearningRoute = chooseContinueLearningRoute(skillProgress, weakestSkill);
 
   return {
     isAuthenticated: true,
@@ -117,8 +211,10 @@ export async function fetchIeltsDashboardSummary(): Promise<IeltsDashboardSummar
       completedAt: diagnosticEvent.data?.created_at || null,
     },
     completedTasks,
-    tasks: { reading, listening, writing, speaking },
+    tasks: taskLists,
     recentActivity: diagnosticEvent.data?.created_at || (completedCounts > 0 ? 'Practice activity available' : null),
-    weakestSkill: diagnosticCompleted ? 'listening' : null,
+    weakestSkill,
+    skillProgress,
+    continueLearningRoute,
   };
 }
