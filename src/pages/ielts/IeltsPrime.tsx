@@ -150,6 +150,10 @@ const IeltsPrime: React.FC = () => {
 
       if (prime) {
         setStatusMessage('Your IELTS Prime access is active.');
+        if (!activeAccessTrackedRef.current) {
+          activeAccessTrackedRef.current = true;
+          trackIeltsFunnelEvent('subscription_activated', { checkout_surface: checkoutSuccess ? 'success_redirect_active_access' : 'active_access_page', user_type: userType });
+        }
       } else if (checkoutSuccess) {
         setStatusMessage('Payment received. Activating your Prime access…');
       }
