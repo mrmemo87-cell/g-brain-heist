@@ -88,7 +88,6 @@ const IeltsPrime: React.FC = () => {
 
   const autoCheckoutStartedRef = useRef(false);
   const checkoutSuccessTrackedRef = useRef(false);
-  const activeAccessTrackedRef = useRef(false);
   const { transactionId, checkoutSuccess, requestedPlan, autostartCheckout } = useMemo(() => getCheckoutState(), []);
 
   useEffect(() => {
