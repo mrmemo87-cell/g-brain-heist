@@ -781,6 +781,8 @@ export interface IELTSSpeakingAttempt {
   id: string;
   task_id: number;
   submitted_at: string;
+  audio_url?: string | null;
+  duration_seconds: number | null;
   band_overall: number | null;
   band_fluency: number | null;
   band_pronunciation: number | null;
