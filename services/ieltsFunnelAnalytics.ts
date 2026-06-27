@@ -98,9 +98,7 @@ const sanitizeMetadata = (metadata: IeltsFunnelEventMetadata = {}): IeltsFunnelE
   return safe;
 };
 
-export const trackIeltsFunnelEvent = (eventName: IeltsFunnelEventName, metadata: IeltsFunnelEventMetadata = {}): void => {
-  if (typeof window === 'undefined') return;
-
+const buildFunnelPayload = (metadata: IeltsFunnelEventMetadata = {}) => {
   const attribution = getStoredAttribution();
   const safeMetadata = sanitizeMetadata({
     ...metadata,
@@ -110,37 +108,72 @@ export const trackIeltsFunnelEvent = (eventName: IeltsFunnelEventName, metadata:
     utm_content: attribution.content,
     utm_term: attribution.term,
   });
-  const payload = { event: eventName, ...safeMetadata };
+  return { attribution, safeMetadata };
+};
 
+const dispatchFunnelEvent = (eventName: IeltsFunnelEventName, safeMetadata: IeltsFunnelEventMetadata) => {
+  const payload = { event: eventName, ...safeMetadata };
   window.dispatchEvent(new CustomEvent('ielts-funnel-event', { detail: payload }));
   window.dataLayer?.push(payload);
   window.gtag?.('event', eventName, safeMetadata);
   window.fbq?.('trackCustom', eventName, safeMetadata);
+};
 
-  void (async () => {
-    try {
-      const { data: auth } = await supabase.auth.getUser();
-      const { error } = await supabase.from('ielts_funnel_events').insert({
-        user_id: auth.user?.id ?? null,
-        session_id: getSessionId(),
-        event_name: eventName,
-        route: window.location.pathname,
-        source: attribution.source,
-        medium: attribution.medium,
-        campaign: attribution.campaign,
-        utm_source: attribution.source,
-        utm_medium: attribution.medium,
-        utm_campaign: attribution.campaign,
-        utm_content: attribution.content,
-        utm_term: attribution.term,
-        referrer: document.referrer || null,
-        landing_page: `${window.location.pathname}${window.location.search}`,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
-        metadata: safeMetadata,
-      });
-      if (error && import.meta.env.DEV) console.warn('[ielts-funnel] insert failed', error.message);
-    } catch (error) {
-      if (import.meta.env.DEV) console.warn('[ielts-funnel] tracking failed', error);
-    }
-  })();
+const insertFunnelEvent = async (
+  eventName: IeltsFunnelEventName,
+  metadata: IeltsFunnelEventMetadata = {},
+  options: { requireAuthenticatedUser?: boolean } = {}
+): Promise<boolean> => {
+  if (typeof window === 'undefined') return false;
+
+  const { attribution, safeMetadata } = buildFunnelPayload(metadata);
+  const { data: auth } = await supabase.auth.getUser();
+  const userId = auth.user?.id ?? null;
+  if (options.requireAuthenticatedUser && !userId) return false;
+
+  const { error } = await supabase.from('ielts_funnel_events').insert({
+    user_id: userId,
+    session_id: getSessionId(),
+    event_name: eventName,
+    route: window.location.pathname,
+    source: attribution.source,
+    medium: attribution.medium,
+    campaign: attribution.campaign,
+    utm_source: attribution.source,
+    utm_medium: attribution.medium,
+    utm_campaign: attribution.campaign,
+    utm_content: attribution.content,
+    utm_term: attribution.term,
+    referrer: document.referrer || null,
+    landing_page: `${window.location.pathname}${window.location.search}`,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
+    metadata: safeMetadata,
+  });
+  if (error) {
+    if (import.meta.env.DEV) console.warn('[ielts-funnel] insert failed', error.message);
+    return false;
+  }
+  return true;
+};
+
+export const trackIeltsFunnelEvent = (eventName: IeltsFunnelEventName, metadata: IeltsFunnelEventMetadata = {}): void => {
+  if (typeof window === 'undefined') return;
+
+  const { safeMetadata } = buildFunnelPayload(metadata);
+  dispatchFunnelEvent(eventName, safeMetadata);
+
+  void insertFunnelEvent(eventName, metadata).catch((error) => {
+    if (import.meta.env.DEV) console.warn('[ielts-funnel] tracking failed', error);
+  });
+};
+
+export const recordDiagnosticCompleted = async (metadata: IeltsFunnelEventMetadata): Promise<boolean> => {
+  if (typeof window === 'undefined') return false;
+
+  const { safeMetadata } = buildFunnelPayload(metadata);
+  dispatchFunnelEvent('diagnostic_completed', safeMetadata);
+  return insertFunnelEvent('diagnostic_completed', metadata, { requireAuthenticatedUser: true }).catch((error) => {
+    if (import.meta.env.DEV) console.warn('[ielts-funnel] diagnostic completion failed', error);
+    return false;
+  });
 };

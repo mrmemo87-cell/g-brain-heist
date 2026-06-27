@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 import { getUserTier, isIeltsPrime } from '../../../services/ieltsService';
 import { supabase } from '../../../services/supabaseClient';
-import { trackIeltsFunnelEvent } from '../../../services/ieltsFunnelAnalytics';
+import { recordDiagnosticCompleted, trackIeltsFunnelEvent } from '../../../services/ieltsFunnelAnalytics';
 
 // Audio URLs for each section
 const SECTION_AUDIO = {
@@ -68,6 +68,8 @@ const TrialListeningTask2: React.FC = () => {
   const [retakeBlocked, setRetakeBlocked] = useState(false);
   const [retakeCheckLoading, setRetakeCheckLoading] = useState(true);
   const [submittedResult, setSubmittedResult] = useState<{ percentage: number; bandScore: number } | null>(null);
+  const [diagnosticPersisting, setDiagnosticPersisting] = useState(false);
+  const [diagnosticPersistError, setDiagnosticPersistError] = useState<string | null>(null);
   const isPrimeUser = isIeltsPrime({ tier: userTier });
   const userType = 'independent' as const;
 
@@ -368,7 +370,8 @@ const TrialListeningTask2: React.FC = () => {
     };
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (diagnosticPersisting) return;
     if (retakeBlocked) {
       navigate('/ielts');
       return;
@@ -377,13 +380,21 @@ const TrialListeningTask2: React.FC = () => {
     const { percentage } = calculateScore();
     const bandScore = getBandScore(percentage);
     setSubmittedResult({ percentage, bandScore });
+    setDiagnosticPersistError(null);
     if (Object.keys(answers).length > 0) {
-      trackIeltsFunnelEvent('diagnostic_completed', {
+      setDiagnosticPersisting(true);
+      const recorded = await recordDiagnosticCompleted({
         skill: 'listening',
         task_id: 'trial-test-2',
         estimated_band: bandScore,
         user_type: userType,
       });
+      setDiagnosticPersisting(false);
+      if (!recorded) {
+        setDiagnosticPersistError('We could not save your diagnostic yet. Please check your connection and submit again so your dashboard can show this result.');
+        return;
+      }
+      window.localStorage.setItem('ielts_diagnostic_submitted_recently', String(Date.now()));
     }
     setShowResults(true);
   };
@@ -1641,23 +1652,30 @@ const TrialListeningTask2: React.FC = () => {
             ) : (
               <button
                 onClick={handleSubmit}
+                disabled={diagnosticPersisting}
                 style={{
                   flex: 1,
                   padding: '0.75rem',
-                  background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                  background: diagnosticPersisting ? '#94a3b8' : 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
                   color: 'white',
                   border: 'none',
                   borderRadius: '0.5rem',
-                  cursor: 'pointer',
+                  cursor: diagnosticPersisting ? 'wait' : 'pointer',
                   fontWeight: 'bold',
                   fontSize: '0.9rem'
                 }}
               >
-                Submit Test ✓
+                {diagnosticPersisting ? 'Saving result…' : 'Submit Test ✓'}
               </button>
             )}
           </div>
           
+          {diagnosticPersistError && (
+            <div style={{ marginTop: '0.75rem', padding: '0.75rem', borderRadius: '0.75rem', background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', fontSize: '0.82rem', lineHeight: 1.5 }}>
+              {diagnosticPersistError}
+            </div>
+          )}
+
           <div style={{ 
             textAlign: 'center', 
             marginTop: '0.5rem', 
