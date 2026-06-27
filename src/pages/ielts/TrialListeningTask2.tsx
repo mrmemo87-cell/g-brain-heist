@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 import { getUserTier, isIeltsPrime } from '../../../services/ieltsService';
+import { supabase } from '../../../services/supabaseClient';
 import { trackIeltsFunnelEvent } from '../../../services/ieltsFunnelAnalytics';
 
 // Audio URLs for each section
@@ -63,8 +64,38 @@ const TrialListeningTask2: React.FC = () => {
   const allowAutoResumeRef = useRef(true);
   const preloadRefs = useRef<HTMLAudioElement[]>([]);
   const [userTier, setUserTier] = useState('free');
+  const [retakeBlocked, setRetakeBlocked] = useState(false);
+  const [retakeCheckLoading, setRetakeCheckLoading] = useState(true);
   const isPrimeUser = isIeltsPrime({ tier: userTier });
   const userType = 'independent' as const;
+
+
+  useEffect(() => {
+    let active = true;
+    const checkCompletedDiagnostic = async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user) {
+        if (active) setRetakeCheckLoading(false);
+        return;
+      }
+      const { data } = await supabase
+        .from('ielts_funnel_events')
+        .select('id')
+        .eq('user_id', auth.user.id)
+        .eq('event_name', 'diagnostic_completed')
+        .contains('metadata', { task_id: 'trial-test-2' })
+        .limit(1)
+        .maybeSingle();
+      if (!active) return;
+      if (data) {
+        setRetakeBlocked(true);
+        trackIeltsFunnelEvent('diagnostic_retake_blocked', { skill: 'listening', task_id: 'trial-test-2', user_type: userType });
+      }
+      setRetakeCheckLoading(false);
+    };
+    void checkCompletedDiagnostic();
+    return () => { active = false; };
+  }, []);
 
   // Stop background music
   useEffect(() => {
@@ -333,6 +364,10 @@ const TrialListeningTask2: React.FC = () => {
   };
 
   const handleSubmit = () => {
+    if (retakeBlocked) {
+      navigate('/ielts');
+      return;
+    }
     if (timerRef.current) clearInterval(timerRef.current);
     const { percentage } = calculateScore();
     const bandScore = getBandScore(percentage);
@@ -367,6 +402,24 @@ const TrialListeningTask2: React.FC = () => {
   const fillBlankQuestions = section.questions.filter(q => q.type === 'fill-blank');
   const firstFillBlankId = fillBlankQuestions[0]?.id;
   const lastFillBlankId = fillBlankQuestions[fillBlankQuestions.length - 1]?.id;
+
+
+  if (retakeCheckLoading) {
+    return <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#0f172a', color: '#e0f2fe' }}>Checking your diagnostic status…</div>;
+  }
+
+  if (retakeBlocked) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg,#0f172a,#1e1b4b)', color: '#fff', padding: '2rem', display: 'grid', placeItems: 'center' }}>
+        <div style={{ maxWidth: 620, background: 'rgba(255,255,255,.08)', border: '1px solid rgba(148,163,184,.25)', borderRadius: '1.25rem', padding: 'clamp(1.25rem,4vw,2rem)', textAlign: 'center' }}>
+          <div style={{ fontSize: '2.5rem' }}>✅</div>
+          <h1 style={{ margin: '.5rem 0', fontSize: 'clamp(1.6rem,5vw,2.6rem)' }}>Diagnostic already completed</h1>
+          <p style={{ color: '#cbd5e1', lineHeight: 1.6 }}>To protect your baseline, this exact free diagnostic can only be submitted once. Your result and recommended next step are waiting on your IELTS dashboard.</p>
+          <button type="button" onClick={() => navigate('/ielts')} style={{ background: 'linear-gradient(135deg,#22d3ee,#2563eb,#7c3aed)', color: '#fff', border: 0, borderRadius: 999, padding: '.9rem 1.2rem', fontWeight: 950, cursor: 'pointer' }}>Back to IELTS dashboard →</button>
+        </div>
+      </div>
+    );
+  }
 
   // Start Screen
   if (!hasStarted) {
@@ -708,12 +761,7 @@ const TrialListeningTask2: React.FC = () => {
           {/* Action Buttons */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <button
-              onClick={() => {
-                setAnswers({});
-                setCurrentSection(0);
-                setTimeElapsed(0);
-                setShowResults(false);
-              }}
+              onClick={() => navigate('/ielts')}
               style={{
                 padding: '0.875rem',
                 background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
@@ -725,7 +773,7 @@ const TrialListeningTask2: React.FC = () => {
                 fontSize: '0.9rem'
               }}
             >
-              🔄 Try Again
+              View IELTS Dashboard
             </button>
             <button
               onClick={() => navigate('/ielts')}
