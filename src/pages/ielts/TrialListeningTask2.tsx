@@ -51,6 +51,7 @@ const TrialListeningTask2: React.FC = () => {
   const [timeElapsed, setTimeElapsed] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const resultViewedTrackedRef = useRef(false);
+  const retakeBlockedTrackedRef = useRef(false);
   
   // Audio state
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -66,6 +67,7 @@ const TrialListeningTask2: React.FC = () => {
   const [userTier, setUserTier] = useState('free');
   const [retakeBlocked, setRetakeBlocked] = useState(false);
   const [retakeCheckLoading, setRetakeCheckLoading] = useState(true);
+  const [submittedResult, setSubmittedResult] = useState<{ percentage: number; bandScore: number } | null>(null);
   const isPrimeUser = isIeltsPrime({ tier: userTier });
   const userType = 'independent' as const;
 
@@ -89,7 +91,10 @@ const TrialListeningTask2: React.FC = () => {
       if (!active) return;
       if (data) {
         setRetakeBlocked(true);
-        trackIeltsFunnelEvent('diagnostic_retake_blocked', { skill: 'listening', task_id: 'trial-test-2', user_type: userType });
+        if (!retakeBlockedTrackedRef.current) {
+          retakeBlockedTrackedRef.current = true;
+          trackIeltsFunnelEvent('diagnostic_retake_blocked', { skill: 'listening', task_id: 'trial-test-2', user_type: userType });
+        }
       }
       setRetakeCheckLoading(false);
     };
@@ -371,6 +376,7 @@ const TrialListeningTask2: React.FC = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     const { percentage } = calculateScore();
     const bandScore = getBandScore(percentage);
+    setSubmittedResult({ percentage, bandScore });
     if (Object.keys(answers).length > 0) {
       trackIeltsFunnelEvent('diagnostic_completed', {
         skill: 'listening',
@@ -385,8 +391,8 @@ const TrialListeningTask2: React.FC = () => {
 
   useEffect(() => {
     if (!showResults || resultViewedTrackedRef.current) return;
-    const { percentage } = calculateScore();
-    const bandScore = getBandScore(percentage);
+    const bandScore = submittedResult?.bandScore;
+    if (bandScore === undefined) return;
     resultViewedTrackedRef.current = true;
     trackIeltsFunnelEvent('result_viewed', {
       skill: 'listening',
@@ -394,7 +400,7 @@ const TrialListeningTask2: React.FC = () => {
       estimated_band: bandScore,
       user_type: userType,
     });
-  }, [showResults]);
+  }, [showResults, submittedResult]);
 
   const section = TRIAL_TEST_DATA.sections[currentSection];
   const answeredCount = Object.keys(answers).length;
