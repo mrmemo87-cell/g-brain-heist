@@ -305,6 +305,7 @@ async function handleCreateIeltsPrimeCheckout(req: Request, bodyOverride?: any):
 
   const body = bodyOverride || await req.json().catch(() => ({}));
   const plan: string = body.plan || body.billing_interval || "monthly";
+  const attribution = body.attribution && typeof body.attribution === "object" ? body.attribution : {};
 
   if (!["monthly", "quarterly", "yearly"].includes(plan)) {
     return jsonResponse(400, { error: `Invalid IELTS Prime plan: ${plan}` });
@@ -341,6 +342,15 @@ async function handleCreateIeltsPrimeCheckout(req: Request, bodyOverride?: any):
 
   const transaction = (await paddleRequest("/transactions", transactionBody)) as { data: { id: string; checkout?: { url: string } } };
   const checkoutUrl = transaction?.data?.checkout?.url;
+
+  await insertIeltsFunnelEvent(getSupabaseAdmin(), {
+    userId: user.id,
+    eventName: "checkout_started",
+    metadata: { plan, interval: plan, price_id: priceId, source: "paddle_checkout_request" },
+    idempotencyKey: `paddle:${transaction.data.id}:checkout_started`,
+    attribution,
+    geo: getGeoFromHeaders(req),
+  });
 
   return jsonResponse(200, {
     success: true,
@@ -442,18 +452,58 @@ async function handleGetPortalUrl(req: Request): Promise<Response> {
   });
 }
 
+function getGeoFromHeaders(req: Request) {
+  const countryCode = req.headers.get("x-vercel-ip-country") || req.headers.get("cf-ipcountry");
+  const region = req.headers.get("x-vercel-ip-country-region") || req.headers.get("cf-region");
+  const city = req.headers.get("x-vercel-ip-city") || req.headers.get("cf-ipcity");
+  return {
+    country_code: countryCode || null,
+    country_name: null,
+    region: region ? decodeURIComponent(region) : null,
+    city: city ? decodeURIComponent(city) : null,
+  };
+}
+
 async function insertIeltsFunnelEvent(admin: ReturnType<typeof getSupabaseAdmin>, params: {
   userId?: string | null;
-  eventName: "checkout_completed" | "subscription_activated" | "funnel_error";
+  eventName: "checkout_started" | "checkout_completed" | "subscription_activated" | "funnel_error";
   metadata?: Record<string, unknown>;
+  idempotencyKey?: string | null;
+  attribution?: Record<string, string | null>;
+  geo?: Record<string, string | null>;
 }) {
   try {
-    await admin.from("ielts_funnel_events").insert({
+    const row = {
       user_id: params.userId || null,
       event_name: params.eventName,
       route: "/ielts/apply-prime",
-      metadata: params.metadata || {},
-    });
+      source: params.attribution?.source || "paddle_webhook",
+      medium: params.attribution?.medium || null,
+      campaign: params.attribution?.campaign || null,
+      utm_source: params.attribution?.source || null,
+      utm_medium: params.attribution?.medium || null,
+      utm_campaign: params.attribution?.campaign || null,
+      utm_content: params.attribution?.content || null,
+      utm_term: params.attribution?.term || null,
+      referrer: params.attribution?.referrer || null,
+      landing_page: params.attribution?.landing_page || null,
+      timezone: params.attribution?.timezone || null,
+      country_code: params.geo?.country_code || null,
+      country_name: params.geo?.country_name || null,
+      region: params.geo?.region || null,
+      city: params.geo?.city || null,
+      event_idempotency_key: params.idempotencyKey || null,
+      metadata: { source: "paddle_webhook", ...(params.metadata || {}) },
+    };
+    if (params.idempotencyKey) {
+      const { data: existing } = await admin
+        .from("ielts_funnel_events")
+        .select("id")
+        .eq("event_idempotency_key", params.idempotencyKey)
+        .maybeSingle();
+      if (existing) return;
+    }
+    await admin.from("ielts_funnel_events").insert(row);
   } catch (err) {
     console.warn("IELTS funnel analytics insert failed", err);
   }
@@ -537,6 +587,7 @@ async function handleIeltsPrimeWebhookEvent(admin: ReturnType<typeof getSupabase
         userId,
         eventName: "subscription_activated",
         metadata: { plan, interval: resolved?.interval || plan, price_id: currentPriceId, subscription_id: data.id || null },
+        idempotencyKey: `paddle:${data.id || event.event_id || event.notification_id}:subscription_activated`,
       });
     }
     return null;
@@ -581,7 +632,14 @@ async function handleIeltsPrimeWebhookEvent(admin: ReturnType<typeof getSupabase
     await insertIeltsFunnelEvent(admin, {
       userId,
       eventName: "checkout_completed",
-      metadata: { plan, interval: resolved?.interval || plan, price_id: currentPriceId, subscription_id: subscriptionId },
+      metadata: { plan, interval: resolved?.interval || plan, price_id: currentPriceId, subscription_id: subscriptionId, transaction_id: data.id || null },
+      idempotencyKey: `paddle:${data.id || event.event_id || event.notification_id}:checkout_completed`,
+    });
+    await insertIeltsFunnelEvent(admin, {
+      userId,
+      eventName: "subscription_activated",
+      metadata: { plan, interval: resolved?.interval || plan, price_id: currentPriceId, subscription_id: subscriptionId, transaction_id: data.id || null },
+      idempotencyKey: `paddle:${subscriptionId || data.id || event.event_id || event.notification_id}:subscription_activated`,
     });
     return null;
   }

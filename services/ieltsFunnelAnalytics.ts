@@ -31,6 +31,11 @@ export interface IeltsFunnelEventMetadata {
   product_id?: string | null;
   subscription_id?: string | null;
   interval?: string | null;
+  utm_source?: string | null;
+  utm_medium?: string | null;
+  utm_campaign?: string | null;
+  utm_content?: string | null;
+  utm_term?: string | null;
 }
 
 declare global {
@@ -44,6 +49,7 @@ declare global {
 const allowedMetadataKeys = new Set<keyof IeltsFunnelEventMetadata>([
   'skill', 'content_id', 'task_id', 'estimated_band', 'plan', 'user_type',
   'checkout_surface', 'error_code', 'price_id', 'product_id', 'subscription_id', 'interval',
+  'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term',
 ]);
 
 const getSessionId = () => {
@@ -54,6 +60,28 @@ const getSessionId = () => {
   const next = crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   window.localStorage.setItem(key, next);
   return next;
+};
+
+const getStoredAttribution = () => {
+  if (typeof window === 'undefined') return { source: null, medium: null, campaign: null, content: null, term: null };
+  const search = new URLSearchParams(window.location.search);
+  const key = 'ielts_funnel_attribution';
+  const current = {
+    source: search.get('utm_source'),
+    medium: search.get('utm_medium'),
+    campaign: search.get('utm_campaign'),
+    content: search.get('utm_content'),
+    term: search.get('utm_term'),
+  };
+  if (Object.values(current).some(Boolean)) {
+    window.localStorage.setItem(key, JSON.stringify(current));
+    return current;
+  }
+  try {
+    return { ...{ source: null, medium: null, campaign: null, content: null, term: null }, ...JSON.parse(window.localStorage.getItem(key) || '{}') };
+  } catch {
+    return { source: null, medium: null, campaign: null, content: null, term: null };
+  }
 };
 
 const sanitizeMetadata = (metadata: IeltsFunnelEventMetadata = {}): IeltsFunnelEventMetadata => {
@@ -70,8 +98,15 @@ const sanitizeMetadata = (metadata: IeltsFunnelEventMetadata = {}): IeltsFunnelE
 export const trackIeltsFunnelEvent = (eventName: IeltsFunnelEventName, metadata: IeltsFunnelEventMetadata = {}): void => {
   if (typeof window === 'undefined') return;
 
-  const safeMetadata = sanitizeMetadata(metadata);
-  const search = new URLSearchParams(window.location.search);
+  const attribution = getStoredAttribution();
+  const safeMetadata = sanitizeMetadata({
+    ...metadata,
+    utm_source: attribution.source,
+    utm_medium: attribution.medium,
+    utm_campaign: attribution.campaign,
+    utm_content: attribution.content,
+    utm_term: attribution.term,
+  });
   const payload = { event: eventName, ...safeMetadata };
 
   window.dispatchEvent(new CustomEvent('ielts-funnel-event', { detail: payload }));
@@ -87,9 +122,17 @@ export const trackIeltsFunnelEvent = (eventName: IeltsFunnelEventName, metadata:
         session_id: getSessionId(),
         event_name: eventName,
         route: window.location.pathname,
-        source: search.get('utm_source'),
-        medium: search.get('utm_medium'),
-        campaign: search.get('utm_campaign'),
+        source: attribution.source,
+        medium: attribution.medium,
+        campaign: attribution.campaign,
+        utm_source: attribution.source,
+        utm_medium: attribution.medium,
+        utm_campaign: attribution.campaign,
+        utm_content: attribution.content,
+        utm_term: attribution.term,
+        referrer: document.referrer || null,
+        landing_page: `${window.location.pathname}${window.location.search}`,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
         metadata: safeMetadata,
       });
       if (error && import.meta.env.DEV) console.warn('[ielts-funnel] insert failed', error.message);
