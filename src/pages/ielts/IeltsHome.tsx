@@ -24,6 +24,7 @@ const IeltsHome: React.FC = () => {
   const navigate = useNavigate();
   const rootRef = useRef<HTMLDivElement>(null);
   const heroCtaRef = useRef<HTMLButtonElement>(null);
+  const dashboardEventTrackedRef = useRef(false);
   const primeRedirectUrl = '/ielts/apply-prime';
   const [musicEnabled, setMusicEnabled] = useState(false);
   const [readingSets, setReadingSets] = useState<IELTSReadingSet[]>([]);
@@ -164,27 +165,31 @@ const IeltsHome: React.FC = () => {
 
   useEffect(() => {
     let active = true;
-    if (!isAuthenticated || isIeltsAdminLandingRole) {
+    if (!profileContextLoaded || !isAuthenticated || isIeltsAdminLandingRole) {
       setDashboardSummary(null);
+      dashboardEventTrackedRef.current = false;
       return () => { active = false; };
     }
     fetchIeltsDashboardSummary()
       .then((summary) => {
         if (!active) return;
         setDashboardSummary(summary);
-        trackIeltsFunnelEvent(summary.isPrimeActive ? 'prime_dashboard_viewed' : 'dashboard_viewed', {
-          skill: summary.diagnostic.skill,
-          task_id: summary.diagnostic.taskId,
-          estimated_band: summary.diagnostic.estimatedBand,
-          plan: summary.subscription.plan,
-          user_type: hasSchoolMembership ? 'school' : 'independent',
-        });
+        if (!dashboardEventTrackedRef.current) {
+          dashboardEventTrackedRef.current = true;
+          trackIeltsFunnelEvent(summary.isPrimeActive ? 'prime_dashboard_viewed' : 'dashboard_viewed', {
+            skill: summary.diagnostic.skill,
+            task_id: summary.diagnostic.taskId,
+            estimated_band: summary.diagnostic.estimatedBand,
+            plan: summary.subscription.plan,
+            user_type: hasSchoolMembership ? 'school' : 'independent',
+          });
+        }
       })
       .catch(() => {
         if (active) setDashboardSummary(null);
       });
     return () => { active = false; };
-  }, [isAuthenticated, isIeltsAdminLandingRole, hasSchoolMembership]);
+  }, [profileContextLoaded, isAuthenticated, isIeltsAdminLandingRole, hasSchoolMembership]);
 
   useEffect(() => {
     const loadExtraPracticeSetting = async () => {
