@@ -345,6 +345,15 @@ const IeltsHome: React.FC = () => {
     };
   }, [isIeltsAdminLandingRole]);
 
+  const startDiagnostic = () => {
+    trackIeltsFunnelEvent('start_free_assessment_click', {
+      skill: 'listening',
+      task_id: 'trial-test-2',
+      user_type: hasSchoolMembership ? 'school' : 'independent',
+    });
+    openTask('/ielts/trial-test-2', false);
+  };
+
   if (isIeltsAdminLandingRole) {
     const adminCards = [
       { label: 'Practice Content', desc: 'Manage reading, listening, writing, and speaking tasks.', route: '/ielts/admin', icon: '📋', color: '#0891b2' },
@@ -481,14 +490,6 @@ const IeltsHome: React.FC = () => {
     { title: 'No school required', text: 'Independent learners can begin on their own and save results with Google sign-in when needed.' },
     { title: 'Prime after value', text: 'Upgrade prompts come after the diagnostic value is clear—not before your first result.' },
   ];
-  const startDiagnostic = () => {
-    trackIeltsFunnelEvent('start_free_assessment_click', {
-      skill: 'listening',
-      task_id: 'trial-test-2',
-      user_type: hasSchoolMembership ? 'school' : 'independent',
-    });
-    openTask('/ielts/trial-test-2', false);
-  };
   const cardStyle = {
     background: 'linear-gradient(180deg, rgba(15,23,42,0.82), rgba(15,23,42,0.58))',
     border: '1px solid rgba(148,163,184,0.18)',
