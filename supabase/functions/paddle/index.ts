@@ -171,6 +171,55 @@ function getSupabaseFromAuth(authHeader: string) {
   );
 }
 
+function throwIfSupabaseError(error: any, message: string) {
+  if (error) {
+    throw new Error(`${message}: ${error.message || JSON.stringify(error)}`);
+  }
+}
+
+async function activateIeltsPrimeUser(
+  admin: ReturnType<typeof getSupabaseAdmin>,
+  userId: string,
+) {
+  if (!userId) throw new Error("Missing IELTS Prime user_id");
+
+  const { data: authUserResult, error: authUserError } = await admin.auth.admin.getUserById(userId);
+  throwIfSupabaseError(authUserError, `Failed to load auth user for IELTS Prime activation ${userId}`);
+
+  const authUser = authUserResult?.user;
+  const email = authUser?.email || "";
+  const username =
+    authUser?.user_metadata?.full_name ||
+    authUser?.user_metadata?.name ||
+    authUser?.user_metadata?.username ||
+    email.split("@")[0] ||
+    `ielts_user_${userId.slice(0, 8)}`;
+
+  const { error: upsertError } = await admin.from("ielts_users").upsert(
+    {
+      id: userId,
+      username,
+      tier: "prime_prep_user",
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "id" },
+  );
+  throwIfSupabaseError(upsertError, `Failed to activate IELTS Prime user ${userId}`);
+}
+
+async function downgradeIeltsPrimeUserIfNeeded(
+  admin: ReturnType<typeof getSupabaseAdmin>,
+  userId: string,
+) {
+  if (!userId) return;
+  const { error } = await admin
+    .from("ielts_users")
+    .update({ tier: "free", updated_at: new Date().toISOString() })
+    .eq("id", userId)
+    .eq("tier", "prime_prep_user");
+  throwIfSupabaseError(error, `Failed to downgrade IELTS Prime user ${userId}`);
+}
+
 // ─────────────────────────────────────────────────
 // ROUTE: POST /paddle/create-checkout
 // Body: { plan: 'core'|'standard'|'pro', interval: 'monthly'|'yearly' }
@@ -305,6 +354,7 @@ async function handleCreateIeltsPrimeCheckout(req: Request, bodyOverride?: any):
 
   const body = bodyOverride || await req.json().catch(() => ({}));
   const plan: string = body.plan || body.billing_interval || "monthly";
+  const attribution = body.attribution && typeof body.attribution === "object" ? body.attribution : {};
 
   if (!["monthly", "quarterly", "yearly"].includes(plan)) {
     return jsonResponse(400, { error: `Invalid IELTS Prime plan: ${plan}` });
@@ -341,6 +391,15 @@ async function handleCreateIeltsPrimeCheckout(req: Request, bodyOverride?: any):
 
   const transaction = (await paddleRequest("/transactions", transactionBody)) as { data: { id: string; checkout?: { url: string } } };
   const checkoutUrl = transaction?.data?.checkout?.url;
+
+  await insertIeltsFunnelEvent(getSupabaseAdmin(), {
+    userId: user.id,
+    eventName: "checkout_started",
+    metadata: { plan, interval: plan, price_id: priceId, source: "paddle_checkout_request" },
+    idempotencyKey: `paddle:${transaction.data.id}:checkout_started`,
+    attribution,
+    geo: getGeoFromHeaders(req),
+  });
 
   return jsonResponse(200, {
     success: true,
@@ -442,18 +501,58 @@ async function handleGetPortalUrl(req: Request): Promise<Response> {
   });
 }
 
+function getGeoFromHeaders(req: Request) {
+  const countryCode = req.headers.get("x-vercel-ip-country") || req.headers.get("cf-ipcountry");
+  const region = req.headers.get("x-vercel-ip-country-region") || req.headers.get("cf-region");
+  const city = req.headers.get("x-vercel-ip-city") || req.headers.get("cf-ipcity");
+  return {
+    country_code: countryCode || null,
+    country_name: null,
+    region: region ? decodeURIComponent(region) : null,
+    city: city ? decodeURIComponent(city) : null,
+  };
+}
+
 async function insertIeltsFunnelEvent(admin: ReturnType<typeof getSupabaseAdmin>, params: {
   userId?: string | null;
-  eventName: "checkout_completed" | "subscription_activated" | "funnel_error";
+  eventName: "checkout_started" | "checkout_completed" | "subscription_activated" | "funnel_error";
   metadata?: Record<string, unknown>;
+  idempotencyKey?: string | null;
+  attribution?: Record<string, string | null>;
+  geo?: Record<string, string | null>;
 }) {
   try {
-    await admin.from("ielts_funnel_events").insert({
+    const row = {
       user_id: params.userId || null,
       event_name: params.eventName,
       route: "/ielts/apply-prime",
-      metadata: params.metadata || {},
-    });
+      source: params.attribution?.source || "paddle_webhook",
+      medium: params.attribution?.medium || null,
+      campaign: params.attribution?.campaign || null,
+      utm_source: params.attribution?.source || null,
+      utm_medium: params.attribution?.medium || null,
+      utm_campaign: params.attribution?.campaign || null,
+      utm_content: params.attribution?.content || null,
+      utm_term: params.attribution?.term || null,
+      referrer: params.attribution?.referrer || null,
+      landing_page: params.attribution?.landing_page || null,
+      timezone: params.attribution?.timezone || null,
+      country_code: params.geo?.country_code || null,
+      country_name: params.geo?.country_name || null,
+      region: params.geo?.region || null,
+      city: params.geo?.city || null,
+      event_idempotency_key: params.idempotencyKey || null,
+      metadata: { source: "paddle_webhook", ...(params.metadata || {}) },
+    };
+    if (params.idempotencyKey) {
+      const { data: existing } = await admin
+        .from("ielts_funnel_events")
+        .select("id")
+        .eq("event_idempotency_key", params.idempotencyKey)
+        .maybeSingle();
+      if (existing) return;
+    }
+    await admin.from("ielts_funnel_events").insert(row);
   } catch (err) {
     console.warn("IELTS funnel analytics insert failed", err);
   }
@@ -516,6 +615,8 @@ async function handleIeltsPrimeWebhookEvent(admin: ReturnType<typeof getSupabase
     const resolved = currentPriceId ? resolveIeltsPrimePlanFromPriceId(currentPriceId) : null;
     const plan = meta.plan || resolved?.plan || "monthly";
     const urls = data.management_urls || {};
+    await activateIeltsPrimeUser(admin, userId);
+
     await upsertIeltsPrimeSubscription(admin, {
       userId,
       customerId: data.customer_id || null,
@@ -531,12 +632,12 @@ async function handleIeltsPrimeWebhookEvent(admin: ReturnType<typeof getSupabase
       updatePaymentUrl: urls.update_payment_method || null,
       eventOccurredAt,
     });
-    await admin.from("ielts_users").update({ tier: "prime_prep_user" }).eq("id", userId);
     if (["subscription.created", "subscription.activated"].includes(eventType)) {
       await insertIeltsFunnelEvent(admin, {
         userId,
         eventName: "subscription_activated",
         metadata: { plan, interval: resolved?.interval || plan, price_id: currentPriceId, subscription_id: data.id || null },
+        idempotencyKey: `paddle:${data.id || event.event_id || event.notification_id}:subscription_activated`,
       });
     }
     return null;
@@ -557,16 +658,18 @@ async function handleIeltsPrimeWebhookEvent(admin: ReturnType<typeof getSupabase
       eventOccurredAt,
     });
     if (!stillInPeriod) {
-      await admin.from("ielts_users").update({ tier: "free" }).eq("id", userId).eq("tier", "prime_prep_user");
+      await downgradeIeltsPrimeUserIfNeeded(admin, userId);
     }
     return null;
   }
 
-  if (eventType === "transaction.completed") {
+  if (eventType === "transaction.completed" || eventType === "transaction.paid") {
     const subscriptionId = data.subscription_id || null;
     const currentPriceId = data.items?.[0]?.price?.id || null;
     const resolved = currentPriceId ? resolveIeltsPrimePlanFromPriceId(currentPriceId) : null;
     const plan = meta.plan || resolved?.plan || "monthly";
+    await activateIeltsPrimeUser(admin, userId);
+
     await upsertIeltsPrimeSubscription(admin, {
       userId,
       customerId: data.customer_id || null,
@@ -577,11 +680,17 @@ async function handleIeltsPrimeWebhookEvent(admin: ReturnType<typeof getSupabase
       priceId: currentPriceId,
       eventOccurredAt,
     });
-    await admin.from("ielts_users").update({ tier: "prime_prep_user" }).eq("id", userId);
     await insertIeltsFunnelEvent(admin, {
       userId,
       eventName: "checkout_completed",
-      metadata: { plan, interval: resolved?.interval || plan, price_id: currentPriceId, subscription_id: subscriptionId },
+      metadata: { plan, interval: resolved?.interval || plan, price_id: currentPriceId, subscription_id: subscriptionId, transaction_id: data.id || null },
+      idempotencyKey: `paddle:${data.id || event.event_id || event.notification_id}:checkout_completed`,
+    });
+    await insertIeltsFunnelEvent(admin, {
+      userId,
+      eventName: "subscription_activated",
+      metadata: { plan, interval: resolved?.interval || plan, price_id: currentPriceId, subscription_id: subscriptionId, transaction_id: data.id || null },
+      idempotencyKey: `paddle:${subscriptionId || data.id || event.event_id || event.notification_id}:subscription_activated`,
     });
     return null;
   }
@@ -604,7 +713,7 @@ async function handleIeltsPrimeWebhookEvent(admin: ReturnType<typeof getSupabase
   if (eventType === "subscription.resumed") {
     if (data.id) {
       await admin.from("ielts_prime_subscriptions").update({ status: "active", last_event_at: eventOccurredAt }).eq("paddle_subscription_id", data.id);
-      await admin.from("ielts_users").update({ tier: "prime_prep_user" }).eq("id", userId);
+      await activateIeltsPrimeUser(admin, userId);
     }
     return null;
   }
@@ -959,6 +1068,31 @@ async function handleWebhook(req: Request): Promise<Response> {
   });
 }
 
+
+function normalizePaddlePath(pathname: string): string {
+  return pathname
+    .replace(/^\/functions\/v1\/paddle\/?/, "/")
+    .replace(/^\/paddle\/?/, "/") || "/";
+}
+
+function unwrapBody(body: any): any {
+  if (body?.body && typeof body.body === "object") return body.body;
+  if (body?.payload && typeof body.payload === "object") return body.payload;
+  return body || {};
+}
+
+function isIeltsCheckoutBody(body: any): boolean {
+  const normalized = unwrapBody(body);
+  const plan = normalized?.plan || normalized?.billing_interval;
+  return normalized?.action === "ielts_prime_checkout" || normalized?.product === "ielts_prime" || ["monthly", "quarterly", "yearly"].includes(plan);
+}
+
+function isSchoolCheckoutBody(body: any): boolean {
+  const normalized = unwrapBody(body);
+  const plan = normalized?.plan;
+  return ["core", "standard", "pro"].includes(plan);
+}
+
 // ─────────────────────────────────────────────────
 // MAIN ROUTER
 // ─────────────────────────────────────────────────
@@ -969,11 +1103,12 @@ serve(async (req: Request) => {
   }
 
   const url = new URL(req.url);
-  const path = url.pathname.replace(/^\/paddle\/?/, "/");
+  const path = normalizePaddlePath(url.pathname);
 
   try {
     if (req.method === "POST" && path === "/ielts-checkout") {
-      return await handleCreateIeltsPrimeCheckout(req);
+      const body = unwrapBody(await req.clone().json().catch(() => ({})));
+      return await handleCreateIeltsPrimeCheckout(req, body);
     }
 
     if (req.method === "POST" && path === "/create-checkout") {
@@ -981,11 +1116,14 @@ serve(async (req: Request) => {
     }
 
     if (req.method === "POST" && path === "/") {
-      const body = await req.clone().json().catch(() => ({}));
-      if (body?.action === "ielts_prime_checkout" || body?.product === "ielts_prime") {
+      const body = unwrapBody(await req.clone().json().catch(() => ({})));
+      if (isIeltsCheckoutBody(body)) {
         return await handleCreateIeltsPrimeCheckout(req, body);
       }
-      return await handleCreateCheckout(req);
+      if (isSchoolCheckoutBody(body)) {
+        return await handleCreateCheckout(req);
+      }
+      return jsonResponse(400, { error: "Unknown Paddle checkout request. Expected IELTS Prime checkout or school subscription checkout." });
     }
 
     if (req.method === "POST" && path === "/webhook") {

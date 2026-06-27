@@ -87,6 +87,7 @@ const IeltsPrime: React.FC = () => {
   const [userType, setUserType] = useState<IeltsFunnelUserType>('independent');
 
   const autoCheckoutStartedRef = useRef(false);
+  const checkoutSuccessTrackedRef = useRef(false);
   const { transactionId, checkoutSuccess, requestedPlan, autostartCheckout } = useMemo(() => getCheckoutState(), []);
 
   useEffect(() => {
@@ -165,7 +166,7 @@ const IeltsPrime: React.FC = () => {
       active = false;
       if (interval) window.clearInterval(interval);
     };
-  }, [checkoutSuccess]);
+  }, [checkoutSuccess, userType]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -190,6 +191,16 @@ const IeltsPrime: React.FC = () => {
       active = false;
     };
   }, [isAuthenticated]);
+
+
+  useEffect(() => {
+    if (!checkoutSuccess || checkoutSuccessTrackedRef.current) return;
+    checkoutSuccessTrackedRef.current = true;
+    trackIeltsFunnelEvent('checkout_completed', { checkout_surface: 'success_redirect', user_type: userType });
+  }, [checkoutSuccess, userType]);
+
+  const showActiveAccessState = checkoutSuccess || isPrimeUser;
+  const activeAccessIsConfirmed = isPrimeUser;
 
   const handleGoogleSignIn = async () => {
     setError(null);
@@ -377,6 +388,55 @@ const IeltsPrime: React.FC = () => {
           )}
         </header>
 
+        {showActiveAccessState ? (
+          <section
+            style={{
+              maxWidth: 820,
+              margin: '0 auto 2rem',
+              background: 'linear-gradient(180deg, rgba(30,64,175,0.94), rgba(15,23,42,0.96))',
+              border: '1px solid rgba(96,165,250,0.6)',
+              borderRadius: '1.35rem',
+              padding: '2rem',
+              textAlign: 'center',
+              boxShadow: '0 28px 80px rgba(2,6,23,0.35)',
+            }}
+          >
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                background: 'rgba(34,197,94,0.18)',
+                color: '#bbf7d0',
+                border: '1px solid rgba(74,222,128,0.45)',
+                borderRadius: 999,
+                padding: '0.45rem 0.85rem',
+                fontWeight: 950,
+                fontSize: '0.78rem',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                marginBottom: '1rem',
+              }}
+            >
+              IELTS Prime Active
+            </div>
+            <h2 style={{ margin: 0, fontSize: 'clamp(2rem, 5vw, 3.4rem)', lineHeight: 1, fontWeight: 950 }}>
+              You’re in. IELTS Prime is active.
+            </h2>
+            <p style={{ maxWidth: 620, margin: '1rem auto 1.5rem', color: '#dbeafe', fontSize: '1.05rem', lineHeight: 1.7 }}>
+              {activeAccessIsConfirmed
+                ? 'Your checkout was successful and your IELTS Prime access is ready.'
+                : 'Checkout received. We’re activating your access now, and you can refresh once if Prime does not appear immediately.'}
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <button type="button" onClick={() => navigate('/ielts')} style={{ border: 'none', borderRadius: '0.85rem', padding: '0.9rem 1.15rem', background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#052e16', fontWeight: 950, cursor: 'pointer' }}>Start Prime Tasks</button>
+              <button type="button" onClick={() => navigate('/ielts')} style={{ border: '1px solid rgba(191,219,254,0.45)', borderRadius: '0.85rem', padding: '0.9rem 1.15rem', background: 'rgba(255,255,255,0.08)', color: '#dbeafe', fontWeight: 950, cursor: 'pointer' }}>Back to IELTS Dashboard</button>
+            </div>
+            <p style={{ margin: '1.25rem 0 0', color: '#bfdbfe', fontSize: '0.9rem' }}>
+              If access does not appear immediately, refresh once or contact support.
+            </p>
+          </section>
+        ) : (
         <section
           style={{
             display: 'grid',
@@ -495,6 +555,7 @@ const IeltsPrime: React.FC = () => {
             </article>
           ))}
         </section>
+        )}
 
         <section
           style={{

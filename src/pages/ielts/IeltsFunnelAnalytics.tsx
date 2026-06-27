@@ -12,17 +12,26 @@ const FUNNEL_STEPS: Array<{ key: string; label: string; events: IeltsFunnelEvent
   { key: 'result_viewed', label: 'Result viewed', events: ['result_viewed'], intent: 'A learner opened their result page.' },
   { key: 'upsell', label: 'Prime upsell clicks', events: ['prime_upsell_click'], intent: 'A learner clicked a Prime offer.' },
   { key: 'checkout', label: 'Checkout started/opened', events: ['checkout_started', 'checkout_opened'], intent: 'Checkout flow was opened or started.' },
-  { key: 'activated', label: 'Subscription activated/completed', events: ['subscription_activated', 'checkout_completed'], intent: 'Payment or subscription activation completed.' },
+  { key: 'checkout_completed', label: 'Checkout success redirects', events: ['checkout_completed'], intent: 'Buyer returned from Paddle after checkout; not counted as entitlement activation.' },
+  { key: 'activated', label: 'Subscription activated', events: ['subscription_activated'], intent: 'Backend/webhook confirmed Prime access.' },
 ];
 
 type EventRow = {
   event_name: IeltsFunnelEventName;
   created_at: string;
   session_id: string | null;
+  user_id: string | null;
   route: string | null;
   source: string | null;
   medium: string | null;
   campaign: string | null;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  country_code: string | null;
+  country_name: string | null;
+  region: string | null;
+  city: string | null;
   metadata: Record<string, unknown> | null;
 };
 
@@ -32,6 +41,7 @@ const since = (days: number) => new Date(Date.now() - days * 24 * 60 * 60 * 1000
 const dayKey = (date: Date) => date.toISOString().slice(0, 10);
 const percentage = (value: number, total: number) => (total === 0 ? 0 : Math.round((value / total) * 1000) / 10);
 const displayValue = (value: string | null | undefined) => value?.trim() || 'Direct / unset';
+const displayCountry = (row: EventRow) => row.country_name?.trim() || row.country_code?.trim() || 'Unknown';
 
 const cardStyle: React.CSSProperties = { background: '#fff', border: '1px solid #e2e8f0', borderRadius: '1rem', padding: '1rem', boxShadow: '0 1px 3px rgba(15,23,42,0.06)' };
 const muted: React.CSSProperties = { color: '#64748b', fontSize: '0.82rem' };
@@ -48,7 +58,7 @@ const IeltsFunnelAnalytics: React.FC = () => {
     setError(null);
     const { data, error: loadError } = await supabase
       .from('ielts_funnel_events')
-      .select('event_name, created_at, session_id, route, source, medium, campaign, metadata')
+      .select('event_name, created_at, session_id, user_id, route, source, medium, campaign, utm_source, utm_medium, utm_campaign, country_code, country_name, region, city, metadata')
       .order('created_at', { ascending: false });
     if (loadError) setError(loadError.message);
     else setRows((data || []) as EventRow[]);
@@ -80,6 +90,9 @@ const IeltsFunnelAnalytics: React.FC = () => {
     const dailyKeys = Array.from({ length: 7 }, (_, index) => dayKey(since(6 - index)));
     const total = rows.length;
     const uniqueSessions = new Set(rows.map((row) => row.session_id).filter(Boolean)).size;
+    const uniqueUsers = new Set(rows.map((row) => row.user_id).filter(Boolean)).size;
+    const checkoutCompleted = count(['checkout_completed']);
+    const activated = count(['subscription_activated']);
     const first = rows.length ? rows[rows.length - 1].created_at : null;
     const latest = rows[0]?.created_at ?? null;
     const group = (getKey: (row: EventRow) => string) => Object.entries(rows.reduce<Record<string, number>>((acc, row) => {
@@ -87,9 +100,34 @@ const IeltsFunnelAnalytics: React.FC = () => {
       acc[key] = (acc[key] || 0) + 1;
       return acc;
     }, {})).sort((a, b) => b[1] - a[1]).slice(0, 8);
+    const groupedRows = (getKey: (row: EventRow) => string) => Object.values(rows.reduce<Record<string, { key: string; rows: EventRow[] }>>((acc, row) => {
+      const key = getKey(row);
+      if (!acc[key]) acc[key] = { key, rows: [] };
+      acc[key].rows.push(row);
+      return acc;
+    }, {}));
+    const countryRows = groupedRows(displayCountry).map(({ key, rows: grouped }) => ({
+      key,
+      sessions: new Set(grouped.map((row) => row.session_id).filter(Boolean)).size,
+      started: grouped.filter((row) => row.event_name === 'diagnostic_started').length,
+      completed: grouped.filter((row) => row.event_name === 'diagnostic_completed').length,
+      upsell: grouped.filter((row) => row.event_name === 'prime_upsell_click').length,
+      checkout: grouped.filter((row) => row.event_name === 'checkout_opened' || row.event_name === 'checkout_started').length,
+      activated: grouped.filter((row) => row.event_name === 'subscription_activated').length,
+    })).sort((a, b) => b.sessions - a.sessions).slice(0, 12);
+    const sourceRows = groupedRows((row) => [displayValue(row.utm_source || row.source), displayValue(row.utm_medium || row.medium), displayValue(row.utm_campaign || row.campaign)].join(' / ')).map(({ key, rows: grouped }) => ({
+      key,
+      sessions: new Set(grouped.map((row) => row.session_id).filter(Boolean)).size,
+      started: grouped.filter((row) => row.event_name === 'diagnostic_started').length,
+      completed: grouped.filter((row) => row.event_name === 'diagnostic_completed').length,
+      activations: grouped.filter((row) => row.event_name === 'subscription_activated').length,
+    })).sort((a, b) => b.sessions - a.sessions).slice(0, 12);
     return {
       total,
       uniqueSessions,
+      uniqueUsers,
+      checkoutCompleted,
+      activated,
       first,
       latest,
       stepRows: FUNNEL_STEPS.map((step, index) => {
@@ -99,7 +137,9 @@ const IeltsFunnelAnalytics: React.FC = () => {
       }),
       daily: dailyKeys.map((date) => ({ date, count: rows.filter((row) => dayKey(new Date(row.created_at)) === date).length })),
       byEvent: group((row) => row.event_name),
-      bySource: group((row) => displayValue(row.source)),
+      bySource: group((row) => displayValue(row.utm_source || row.source)),
+      countryRows,
+      sourceRows,
       byRoute: group((row) => displayValue(row.route)),
       byPlan: group((row) => displayValue(typeof row.metadata?.plan === 'string' ? row.metadata.plan : null)),
     };
@@ -129,6 +169,9 @@ const IeltsFunnelAnalytics: React.FC = () => {
             <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
               <div style={cardStyle}><div style={muted}>Total events</div><strong style={{ fontSize: '2rem' }}>{metrics.total}</strong></div>
               <div style={cardStyle}><div style={muted}>Unique sessions</div><strong style={{ fontSize: '2rem' }}>{metrics.uniqueSessions}</strong></div>
+              <div style={cardStyle}><div style={muted}>Unique users</div><strong style={{ fontSize: '2rem' }}>{metrics.uniqueUsers}</strong></div>
+              <div style={cardStyle}><div style={muted}>Checkout redirects</div><strong style={{ fontSize: '2rem' }}>{metrics.checkoutCompleted}</strong></div>
+              <div style={cardStyle}><div style={muted}>Backend activations</div><strong style={{ fontSize: '2rem' }}>{metrics.activated}</strong></div>
               <div style={cardStyle}><div style={muted}>First event</div><strong>{metrics.first ? new Date(metrics.first).toLocaleString() : '—'}</strong></div>
               <div style={cardStyle}><div style={muted}>Latest event</div><strong>{metrics.latest ? new Date(metrics.latest).toLocaleString() : '—'}</strong></div>
             </section>
@@ -144,6 +187,26 @@ const IeltsFunnelAnalytics: React.FC = () => {
               {metrics.daily.map((day) => <div key={day.date} style={cardStyle}><div style={muted}>{day.date}</div><strong style={{ fontSize: '1.4rem' }}>{day.count}</strong><div style={{ height: 6, background: '#e0f2fe', borderRadius: 999, marginTop: '0.6rem' }}><div style={{ height: '100%', width: `${percentage(day.count, Math.max(...metrics.daily.map((d) => d.count), 1))}%`, background: '#0891b2', borderRadius: 999 }} /></div></div>)}
             </section>
 
+
+
+            <QualityTable
+              title="Country breakdown"
+              columns={['Country', 'Sessions', 'Started', 'Completed', 'Upsell', 'Checkout opened', 'Activated', 'Complete %', 'Activate %']}
+              rows={metrics.countryRows.map((row) => [row.key, row.sessions, row.started, row.completed, row.upsell, row.checkout, row.activated, `${percentage(row.completed, row.sessions)}%`, `${percentage(row.activated, row.sessions)}%`])}
+            />
+
+            <QualityTable
+              title="Source / campaign breakdown"
+              columns={['Source / Medium / Campaign', 'Sessions', 'Started', 'Completed', 'Activations']}
+              rows={metrics.sourceRows.map((row) => [row.key, row.sessions, row.started, row.completed, row.activations])}
+            />
+
+            <QualityTable
+              title="Recent activity"
+              columns={['Created', 'Event', 'Country', 'Source', 'Route']}
+              rows={rows.slice(0, 20).map((row) => [new Date(row.created_at).toLocaleString(), row.event_name, displayCountry(row), displayValue(row.utm_source || row.source), displayValue(row.route)])}
+            />
+
             <section style={{ marginTop: '1rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.75rem' }}>
               {[
                 ['Event breakdown', metrics.byEvent], ['Traffic sources', metrics.bySource], ['Routes', metrics.byRoute], ['Plans clicked', metrics.byPlan],
@@ -155,6 +218,18 @@ const IeltsFunnelAnalytics: React.FC = () => {
     </main>
   );
 };
+
+const QualityTable: React.FC<{ title: string; columns: string[]; rows: Array<Array<string | number>> }> = ({ title, columns, rows }) => (
+  <div style={{ ...cardStyle, marginTop: '1rem', overflowX: 'auto' }}>
+    <h2 style={{ margin: '0 0 0.75rem', fontSize: '1rem' }}>{title}</h2>
+    {rows.length === 0 ? <p style={muted}>No data yet.</p> : (
+      <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 760 }}>
+        <thead><tr style={{ background: '#f8fafc', color: '#475569', textAlign: 'left' }}>{columns.map((column) => <th key={column} style={{ padding: '0.65rem', borderBottom: '1px solid #e2e8f0' }}>{column}</th>)}</tr></thead>
+        <tbody>{rows.map((row, index) => <tr key={`${title}-${index}`} style={{ borderTop: '1px solid #f1f5f9' }}>{row.map((cell, cellIndex) => <td key={`${title}-${index}-${cellIndex}`} style={{ padding: '0.65rem', fontWeight: cellIndex === 0 ? 800 : 500 }}>{cell}</td>)}</tr>)}</tbody>
+      </table>
+    )}
+  </div>
+);
 
 const Breakdown: React.FC<{ title: string; items: [string, number][]; total: number }> = ({ title, items, total }) => (
   <div style={cardStyle}>

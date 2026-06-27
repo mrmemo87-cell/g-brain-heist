@@ -8,6 +8,25 @@ export interface IeltsPrimeCheckoutResult {
   error?: string;
 }
 
+
+function getCheckoutAttribution() {
+  if (typeof window === 'undefined') return {};
+  const params = new URLSearchParams(window.location.search);
+  const stored = (() => {
+    try { return JSON.parse(window.localStorage.getItem('ielts_funnel_attribution') || '{}'); } catch { return {}; }
+  })();
+  return {
+    source: params.get('utm_source') || stored.source || null,
+    medium: params.get('utm_medium') || stored.medium || null,
+    campaign: params.get('utm_campaign') || stored.campaign || null,
+    content: params.get('utm_content') || stored.content || null,
+    term: params.get('utm_term') || stored.term || null,
+    referrer: document.referrer || null,
+    landing_page: `${window.location.pathname}${window.location.search}`,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
+  };
+}
+
 export interface IeltsPrimeSubscriptionStatus {
   has_subscription: boolean;
   status: string | null;
@@ -49,6 +68,7 @@ export async function createIeltsPrimeCheckout(plan: IeltsPrimePlan): Promise<Ie
         plan,
         billing_interval: plan,
         discount: 'launch_50',
+        attribution: getCheckoutAttribution(),
       }),
     });
 
