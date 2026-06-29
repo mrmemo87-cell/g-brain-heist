@@ -5,6 +5,7 @@ import * as AdmService from '../services/admissionService';
 import { tryConsumePilotQuota } from '../services/tierService';
 import type {
   AdmQuestionPool,
+  AdmQuestion,
   AdmBlueprint,
   AdmTestForm,
   AdmCandidate,
@@ -17,7 +18,7 @@ import { supabase } from '../services/supabaseClient';
 
 // ── Types ──
 
-type AdmTab = 'overview' | 'pools' | 'blueprints' | 'forms' | 'candidates' | 'results' | 'audit';
+type AdmTab = 'create' | 'overview' | 'pools' | 'blueprints' | 'forms' | 'candidates' | 'results' | 'audit';
 
 interface AdmissionHubProps {
   onComplete: () => void;
@@ -75,6 +76,90 @@ const BLUEPRINT_PRESETS: Record<string, { label: string; icon: string; marks: nu
   },
 };
 
+
+
+type WizardDifficulty = 'easy' | 'balanced' | 'advanced' | 'custom';
+type WizardSource = 'auto' | 'pool';
+
+const WIZARD_DIFFICULTY_META: Record<WizardDifficulty, { label: string; description: string; duration: number; pass: number; mix: Record<string, number> }> = {
+  easy: { label: 'Easy', description: 'Mostly easy questions for a lighter first screen.', duration: 35, pass: 50, mix: { easy: 0.7, medium: 0.3, hard: 0 } },
+  balanced: { label: 'Balanced', description: 'Recommended mix for most admission tests.', duration: 45, pass: 60, mix: { easy: 0.4, medium: 0.5, hard: 0.1 } },
+  advanced: { label: 'Advanced', description: 'More medium and hard questions for selective entry.', duration: 60, pass: 70, mix: { easy: 0.2, medium: 0.5, hard: 0.3 } },
+  custom: { label: 'Custom', description: 'Use Advanced setup to fine-tune question types and distribution.', duration: 45, pass: 60, mix: { easy: 0.4, medium: 0.5, hard: 0.1 } },
+};
+
+const buildWizardDistribution = (questionCount: number, difficulty: WizardDifficulty, questions: AdmQuestion[] = []): Record<string, Record<string, number>> => {
+  const meta = WIZARD_DIFFICULTY_META[difficulty === 'custom' ? 'balanced' : difficulty];
+  const requestedByDifficulty: Record<string, number> = {
+    easy: Math.floor(questionCount * meta.mix.easy),
+    hard: Math.floor(questionCount * meta.mix.hard),
+    medium: 0,
+  };
+  requestedByDifficulty.medium = Math.max(0, questionCount - requestedByDifficulty.easy - requestedByDifficulty.hard);
+
+  const published = questions.filter(q => q.status === 'published');
+  const distribution: Record<string, Record<string, number>> = {};
+  const allocate = (difficultyKey: string, requested: number) => {
+    let remaining = requested;
+    const byType = published
+      .filter(q => q.difficulty === difficultyKey)
+      .reduce<Record<string, number>>((acc, q) => ({ ...acc, [q.question_type]: (acc[q.question_type] || 0) + 1 }), {});
+    Object.entries(byType)
+      .sort(([a], [b]) => (a === 'mcq' ? -1 : b === 'mcq' ? 1 : a.localeCompare(b)))
+      .forEach(([type, available]) => {
+        if (remaining <= 0) return;
+        const take = Math.min(available, remaining);
+        distribution[type] = distribution[type] || {};
+        distribution[type][difficultyKey] = take;
+        remaining -= take;
+      });
+  };
+
+  allocate('easy', requestedByDifficulty.easy);
+  allocate('medium', requestedByDifficulty.medium);
+  allocate('hard', requestedByDifficulty.hard);
+
+  // Before availability has loaded, return a simple MCQ-shaped plan so the review step remains stable.
+  if (Object.keys(distribution).length === 0) {
+    const fallback: Record<string, Record<string, number>> = { mcq: {} };
+    Object.entries(requestedByDifficulty).forEach(([diff, count]) => { if (count > 0) fallback.mcq[diff] = count; });
+    return fallback;
+  }
+  return distribution;
+};
+
+const countDistributionQuestions = (questions: AdmQuestion[], distribution: Record<string, Record<string, number>>) => {
+  let required = 0;
+  let availableForRequired = 0;
+  const missing: string[] = [];
+  Object.entries(distribution).forEach(([type, diffs]) => {
+    Object.entries(diffs).forEach(([difficulty, needed]) => {
+      required += needed;
+      const available = questions.filter(q => q.status === 'published' && q.question_type === type && q.difficulty === difficulty).length;
+      availableForRequired += Math.min(available, needed);
+      if (available < needed) missing.push(`${needed - available} more ${difficulty} ${type.replace(/_/g, ' ')} question${needed - available === 1 ? '' : 's'}`);
+    });
+  });
+  return { required, availableForRequired, canGenerate: missing.length === 0 && required > 0, missing };
+};
+
+const friendlyAdmissionError = (message?: string) => {
+  const text = (message || '').toLowerCase();
+  if (text.includes('duplicate') || text.includes('unique') || text.includes('question_order')) {
+    return 'We could not generate this test safely. Please try again or check that enough questions are available.';
+  }
+  if (text.includes('no question') || text.includes('not enough') || text.includes('matched')) {
+    return 'We could not find enough published questions for this setup. Please adjust the grade, subject, difficulty, or question count.';
+  }
+  if (text.includes('access denied') || text.includes('permission')) {
+    return 'You do not have permission to create admission tests for this school.';
+  }
+  if (text.includes('already exists') || text.includes('idempotent')) {
+    return 'This admission test may already have been generated. Refresh the Admission Hub and check Advanced Test Forms before trying again.';
+  }
+  return 'We could not generate this admission test. Please try again or check the question availability.';
+};
+
 // ── Pipeline Steps ──
 
 const PIPELINE_STEPS = [
@@ -120,7 +205,7 @@ const QUESTION_TYPES: Record<string, { value: string; label: string }[]> = {
 // ── Main Component ──
 
 const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => {
-  const [activeTab, setActiveTab] = useState<AdmTab>('overview');
+  const [activeTab, setActiveTab] = useState<AdmTab>('create');
   const [loading, setLoading] = useState(true);
   const [schoolId, setSchoolId] = useState<string | null>(null);
   const [schoolName, setSchoolName] = useState<string>('');
@@ -168,6 +253,25 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   // Form generation
   const [genBlueprintId, setGenBlueprintId] = useState('');
   const [genFormCode, setGenFormCode] = useState('');
+
+  // Guided wizard
+  const [wizardStep, setWizardStep] = useState(1);
+  const [wizardName, setWizardName] = useState('Grade 7 English Admission Test');
+  const [wizardGrade, setWizardGrade] = useState(7);
+  const [wizardSubject, setWizardSubject] = useState('english');
+  const [wizardDescription, setWizardDescription] = useState('');
+  const [wizardDifficulty, setWizardDifficulty] = useState<WizardDifficulty>('balanced');
+  const [wizardQuestionCount, setWizardQuestionCount] = useState(25);
+  const [wizardDuration, setWizardDuration] = useState(WIZARD_DIFFICULTY_META.balanced.duration);
+  const [wizardPassPercentage, setWizardPassPercentage] = useState(WIZARD_DIFFICULTY_META.balanced.pass);
+  const [wizardSource, setWizardSource] = useState<WizardSource>('auto');
+  const [wizardPoolId, setWizardPoolId] = useState<string>('');
+  const [wizardQuestions, setWizardQuestions] = useState<AdmQuestion[]>([]);
+  const [wizardCheckingAvailability, setWizardCheckingAvailability] = useState(false);
+  const [wizardGenerating, setWizardGenerating] = useState(false);
+  const [wizardError, setWizardError] = useState<string | null>(null);
+  const [wizardResult, setWizardResult] = useState<{ blueprint: AdmBlueprint; form: AdmTestForm | null; formCode: string } | null>(null);
+  const [wizardBlueprintId, setWizardBlueprintId] = useState<string | null>(null);
 
   // Candidate search
   const [candSearch, setCandSearch] = useState('');
@@ -246,6 +350,101 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
   // Pools filtered by selected subject
   const subjectPools = useMemo(() => pools.filter(p => p.subject === bpSubject && p.is_active), [pools, bpSubject]);
+
+  const wizardMatchingPools = useMemo(() => {
+    return pools.filter(p => p.is_active && p.subject === wizardSubject && (wizardSource === 'pool' ? p.id === wizardPoolId : p.stage === wizardGrade));
+  }, [pools, wizardSubject, wizardGrade, wizardSource, wizardPoolId]);
+
+  const wizardDistribution = useMemo(() => buildWizardDistribution(wizardQuestionCount, wizardDifficulty, wizardQuestions), [wizardQuestionCount, wizardDifficulty, wizardQuestions]);
+  const wizardAvailability = useMemo(() => countDistributionQuestions(wizardQuestions, wizardDistribution), [wizardQuestions, wizardDistribution]);
+  const wizardCanGenerate = wizardAvailability.canGenerate && wizardAvailability.required === wizardQuestionCount;
+  const wizardSubjectLabel = BLUEPRINT_PRESETS[wizardSubject]?.label || wizardSubject;
+  const wizardFormCode = useMemo(() => {
+    const subjectCode = wizardSubject.slice(0, 3).toUpperCase();
+    const suffix = Math.abs([...`${schoolId || ''}-${wizardName}-${wizardGrade}-${wizardSubject}`].reduce((sum, ch) => sum + ch.charCodeAt(0), 0)).toString(36).toUpperCase().slice(-3).padStart(3, '0');
+    return `${subjectCode}${wizardGrade}-${new Date().getFullYear()}-${suffix}`;
+  }, [schoolId, wizardName, wizardGrade, wizardSubject]);
+
+  useEffect(() => {
+    const meta = WIZARD_DIFFICULTY_META[wizardDifficulty];
+    if (wizardDifficulty !== 'custom') {
+      setWizardDuration(meta.duration);
+      setWizardPassPercentage(meta.pass);
+    }
+  }, [wizardDifficulty]);
+
+  useEffect(() => {
+    setWizardName(`Grade ${wizardGrade} ${BLUEPRINT_PRESETS[wizardSubject]?.label || wizardSubject} Admission Test`);
+    setWizardPoolId('');
+  }, [wizardGrade, wizardSubject]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadWizardQuestions = async () => {
+      setWizardCheckingAvailability(true);
+      try {
+        const matching = pools.filter(p => p.is_active && p.subject === wizardSubject && (wizardSource === 'pool' ? p.id === wizardPoolId : p.stage === wizardGrade));
+        const lists = await Promise.all(matching.map(p => AdmService.fetchQuestions(p.id)));
+        if (!cancelled) setWizardQuestions(lists.flat());
+      } catch {
+        if (!cancelled) setWizardQuestions([]);
+      } finally {
+        if (!cancelled) setWizardCheckingAvailability(false);
+      }
+    };
+    if (schoolId) loadWizardQuestions();
+    return () => { cancelled = true; };
+  }, [schoolId, pools, wizardSubject, wizardGrade, wizardSource, wizardPoolId]);
+
+  const handleWizardGenerate = async () => {
+    if (!schoolId || wizardGenerating) return;
+    setWizardError(null);
+    if (!wizardName.trim()) { setWizardError('Please add a test name.'); setWizardStep(1); return; }
+    if (wizardQuestionCount < 1) { setWizardError('Please choose at least 1 question.'); setWizardStep(2); return; }
+    if (wizardMatchingPools.length === 0) { setWizardError(`No active ${wizardSubjectLabel} question pool is available for Grade / Stage ${wizardGrade}.`); setWizardStep(3); return; }
+    if (!wizardCanGenerate) { setWizardError(`Not enough published questions yet: ${wizardAvailability.missing.join(', ') || `${wizardQuestionCount - wizardAvailability.required} more matching published questions`}.`); setWizardStep(3); return; }
+
+    const quota = await tryConsumePilotQuota('admission_tests');
+    if (!quota.proceed) { setWizardError(quota.error || 'You have reached the admission test limit on the Pilot plan.'); return; }
+
+    setWizardGenerating(true);
+    try {
+      let blueprint = wizardBlueprintId ? blueprints.find(bp => bp.id === wizardBlueprintId) || null : null;
+      if (!blueprint) {
+        blueprint = await AdmService.createBlueprint({
+          school_id: schoolId,
+          pool_id: wizardSource === 'pool' ? wizardPoolId : null,
+          name: wizardName.trim().startsWith('Admission Test Wizard —') ? wizardName.trim() : `Admission Test Wizard — ${wizardName.trim()}`,
+          subject: wizardSubject,
+          target_grade: wizardGrade,
+          target_stage: wizardGrade,
+          total_marks: wizardQuestionCount,
+          duration_minutes: wizardDuration,
+          question_distribution: wizardDistribution,
+          delivery_mode: 'exam',
+          pass_percentage: wizardPassPercentage,
+          is_active: true,
+          created_by: null,
+        });
+        setWizardBlueprintId(blueprint.id);
+      }
+
+      const res = await AdmService.generateTestForm(blueprint.id, wizardFormCode);
+      if (!res.success || !res.form_id) throw new Error(res.error || 'Generation failed');
+      const publishRes = await AdmService.publishForm(res.form_id);
+      if (!publishRes.success) throw new Error(publishRes.error || 'Publish failed');
+      await loadAll();
+      const createdForm = (await AdmService.fetchTestForms(schoolId)).find(f => f.id === res.form_id) || null;
+      setWizardResult({ blueprint, form: createdForm, formCode: wizardFormCode });
+      setWizardStep(5);
+      addToast('Admission test generated and ready to share', 'success');
+    } catch (err: any) {
+      console.warn('Admission wizard generation failed', err);
+      setWizardError(friendlyAdmissionError(err.message));
+    } finally {
+      setWizardGenerating(false);
+    }
+  };
 
   // Auto-apply preset when subject changes
   const applySubjectPreset = (subject: string) => {
@@ -537,10 +736,11 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   // ── Tab config ──
 
   const tabs: { key: AdmTab; label: string; icon: string }[] = [
+    { key: 'create', label: 'Create Admission Test', icon: '✨' },
     { key: 'overview', label: 'Overview', icon: '📊' },
-    { key: 'pools', label: 'Question Pools', icon: '📝' },
-    { key: 'blueprints', label: 'Blueprints', icon: '📐' },
-    { key: 'forms', label: 'Test Forms', icon: '📋' },
+    { key: 'pools', label: 'Advanced: Question Pools', icon: '📝' },
+    { key: 'blueprints', label: 'Advanced: Blueprints', icon: '📐' },
+    { key: 'forms', label: 'Advanced: Test Forms', icon: '📋' },
     { key: 'candidates', label: 'Candidates', icon: '👤' },
     { key: 'results', label: 'Results', icon: '🏆' },
     { key: 'audit', label: 'Audit Log', icon: '📜' },
@@ -694,6 +894,106 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
         <div className="flex items-center gap-2 text-cyan-300 text-sm py-4">
           <div className="h-4 w-4 rounded-full border-2 border-cyan-400/70 border-t-transparent animate-spin" />
           Loading data…
+        </div>
+      )}
+
+      {/*  ━━━ CREATE ADMISSION TEST WIZARD ━━━  */}
+      {activeTab === 'create' && !loading && (
+        <div className="space-y-5">
+          <div className="rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-cyan-950/40 via-slate-900/80 to-indigo-950/40 p-6">
+            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">School-friendly setup</p>
+                <h2 className="mt-1 text-2xl font-heading text-white">Create an admission test</h2>
+                <p className="mt-2 max-w-2xl text-sm text-gray-300">Choose the grade, subject, length, and difficulty. The Hub will create the technical setup and test form behind the scenes.</p>
+              </div>
+              <button onClick={() => setActiveTab('blueprints')} className={btnSecondary}>Advanced setup</button>
+            </div>
+            <div className="mt-5 grid grid-cols-5 gap-2">
+              {['Basics', 'Style', 'Questions', 'Review', 'Share'].map((label, i) => {
+                const step = i + 1;
+                return (
+                  <button key={label} onClick={() => setWizardStep(step)} className={`rounded-xl border px-2 py-3 text-center text-xs transition ${wizardStep === step ? 'border-cyan-400 bg-cyan-500/20 text-cyan-100' : wizardStep > step ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-200' : 'border-gray-700 bg-slate-800/50 text-gray-400'}`}>
+                    <div className="text-lg">{wizardStep > step ? '✓' : step}</div>
+                    <div className="font-semibold">{label}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {wizardError && <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-100">⚠️ {wizardError}</div>}
+
+          {wizardStep === 1 && (
+            <div className="rounded-xl border border-gray-700 bg-slate-800/70 p-5 space-y-4">
+              <h3 className="font-semibold text-white">Step 1: Test basics</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2"><label className="block text-xs font-semibold text-gray-300 mb-1">Test name</label><input className={inputClass} value={wizardName} onChange={e => setWizardName(e.target.value)} /></div>
+                <div><label className="block text-xs font-semibold text-gray-300 mb-1">Grade / Stage</label><input type="number" min={1} className={inputClass} value={wizardGrade} onChange={e => setWizardGrade(+e.target.value)} /></div>
+                <div><label className="block text-xs font-semibold text-gray-300 mb-1">Subject</label><select className={inputClass} value={wizardSubject} onChange={e => setWizardSubject(e.target.value)}><option value="english">English</option><option value="math">Mathematics</option><option value="science">Science</option><option value="chemistry">Chemistry</option></select></div>
+                <div className="md:col-span-2"><label className="block text-xs font-semibold text-gray-300 mb-1">Internal setup note <span className="text-gray-500">(optional, not shown to candidates yet)</span></label><textarea className={inputClass} rows={3} value={wizardDescription} onChange={e => setWizardDescription(e.target.value)} placeholder="Example: Remind office staff that calculators are not allowed. This note is not saved to the test." /><p className="mt-1 text-[11px] text-amber-200/80">Candidate-facing instructions are not supported by the current admission test backend, so this note is only for this setup session.</p></div>
+              </div>
+              <button onClick={() => setWizardStep(2)} disabled={!wizardName.trim()} className={btnPrimary}>Next: Test style</button>
+            </div>
+          )}
+
+          {wizardStep === 2 && (
+            <div className="rounded-xl border border-gray-700 bg-slate-800/70 p-5 space-y-4">
+              <h3 className="font-semibold text-white">Step 2: Test style</h3>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                {(Object.keys(WIZARD_DIFFICULTY_META) as WizardDifficulty[]).map(key => <button key={key} onClick={() => setWizardDifficulty(key)} className={`rounded-xl border p-3 text-left ${wizardDifficulty === key ? 'border-cyan-400 bg-cyan-500/20' : 'border-gray-700 bg-slate-900/50 hover:border-gray-500'}`}><div className="font-semibold text-white">{WIZARD_DIFFICULTY_META[key].label}</div><div className="mt-1 text-xs text-gray-400">{WIZARD_DIFFICULTY_META[key].description}</div></button>)}
+              </div>
+              {wizardDifficulty === 'custom' && <div className="rounded-lg border border-indigo-500/30 bg-indigo-500/10 p-3 text-sm text-indigo-100">Custom distributions are available in Advanced setup. This wizard will use the balanced mix unless you switch to Advanced setup.</div>}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div><label className="block text-xs font-semibold text-gray-300 mb-1">Number of questions</label><input type="number" min={1} className={inputClass} value={wizardQuestionCount} onChange={e => setWizardQuestionCount(+e.target.value)} /></div>
+                <div><label className="block text-xs font-semibold text-gray-300 mb-1">Duration (minutes)</label><input type="number" min={5} className={inputClass} value={wizardDuration} onChange={e => setWizardDuration(+e.target.value)} /></div>
+                <div><label className="block text-xs font-semibold text-gray-300 mb-1">Pass mark (%)</label><input type="number" min={1} max={100} className={inputClass} value={wizardPassPercentage} onChange={e => setWizardPassPercentage(+e.target.value)} /></div>
+              </div>
+              <div className="flex gap-2"><button onClick={() => setWizardStep(1)} className={btnSecondary}>Back</button><button onClick={() => setWizardStep(3)} className={btnPrimary}>Next: Question source</button></div>
+            </div>
+          )}
+
+          {wizardStep === 3 && (
+            <div className="rounded-xl border border-gray-700 bg-slate-800/70 p-5 space-y-4">
+              <h3 className="font-semibold text-white">Step 3: Question source</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <button onClick={() => setWizardSource('auto')} className={`rounded-xl border p-4 text-left ${wizardSource === 'auto' ? 'border-emerald-400 bg-emerald-500/15' : 'border-gray-700 bg-slate-900/50'}`}><div className="font-semibold text-white">Recommended: auto-select questions</div><div className="text-xs text-gray-400 mt-1">Use published questions matching this subject and Grade / Stage.</div></button>
+                <button onClick={() => setWizardSource('pool')} className={`rounded-xl border p-4 text-left ${wizardSource === 'pool' ? 'border-cyan-400 bg-cyan-500/15' : 'border-gray-700 bg-slate-900/50'}`}><div className="font-semibold text-white">Advanced: choose a question pool</div><div className="text-xs text-gray-400 mt-1">Limit this test to one specific pool.</div></button>
+              </div>
+              {wizardSource === 'pool' && <div><label className="block text-xs font-semibold text-gray-300 mb-1">Question pool</label><select className={inputClass} value={wizardPoolId} onChange={e => setWizardPoolId(e.target.value)}><option value="">Choose a pool…</option>{pools.filter(p => p.is_active && p.subject === wizardSubject).map(p => <option key={p.id} value={p.id}>{p.name}{p.stage ? ` (Stage ${p.stage})` : ''}</option>)}</select></div>}
+              <div className={`rounded-xl border p-4 ${wizardCanGenerate ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-amber-500/40 bg-amber-500/10'}`}>
+                <div className="flex items-center justify-between gap-3"><div className="font-semibold text-white">Availability check</div>{wizardCheckingAvailability && <span className="text-xs text-cyan-300">Checking…</span>}</div>
+                <p className="mt-1 text-sm text-gray-300">Found {wizardAvailability.availableForRequired} of {wizardQuestionCount} required matching published questions across {wizardMatchingPools.length} pool{wizardMatchingPools.length === 1 ? '' : 's'}.</p>
+                {wizardCanGenerate ? <p className="mt-1 text-sm text-emerald-200">This setup can generate a valid admission test.</p> : <p className="mt-1 text-sm text-amber-100">{wizardMatchingPools.length === 0 ? `No active ${wizardSubjectLabel} pool matches Grade / Stage ${wizardGrade}.` : `Missing: ${wizardAvailability.missing.join(', ') || `${wizardQuestionCount - wizardAvailability.required} more matching published questions`}.`}</p>}
+              </div>
+              <div className="flex gap-2"><button onClick={() => setWizardStep(2)} className={btnSecondary}>Back</button><button onClick={() => setWizardStep(4)} disabled={!wizardCanGenerate} className={btnPrimary}>Next: Review</button></div>
+            </div>
+          )}
+
+          {wizardStep === 4 && (
+            <div className="rounded-xl border border-gray-700 bg-slate-800/70 p-5 space-y-4">
+              <h3 className="font-semibold text-white">Step 4: Review & Generate</h3>
+              <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 p-4 text-cyan-50">This will create a Grade {wizardGrade} {wizardSubjectLabel} admission test with {wizardQuestionCount} questions, {wizardDuration} minutes, {WIZARD_DIFFICULTY_META[wizardDifficulty].label.toLowerCase()} difficulty, pass mark {wizardPassPercentage}%.</div>
+              {wizardDescription.trim() && <div className="rounded-lg border border-gray-700 bg-slate-900/60 p-3 text-sm text-gray-300"><span className="font-semibold text-white">Internal setup note only:</span> {wizardDescription}<div className="mt-1 text-[11px] text-amber-200/80">This note is not saved or shown to candidates.</div></div>}
+              <div className="text-xs text-gray-500">Behind the scenes, this creates an admission blueprint, generates a test form, and publishes it so candidates can take it.</div>
+              <div className="flex gap-2"><button onClick={() => setWizardStep(3)} disabled={wizardGenerating} className={btnSecondary}>Back</button><button onClick={handleWizardGenerate} disabled={wizardGenerating || !wizardCanGenerate} className={btnPrimary}>{wizardGenerating ? 'Generating admission test…' : 'Generate Admission Test'}</button></div>
+            </div>
+          )}
+
+          {wizardStep === 5 && (
+            <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-5 space-y-4">
+              <h3 className="text-lg font-semibold text-white">Step 5: Publish / Share</h3>
+              {wizardResult ? <>
+                <p className="text-sm text-emerald-100">Your admission test is ready. This app uses candidate-specific test links, so register candidates to create personal test links. You can also copy the form code for your office records.</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="rounded-lg bg-slate-900/60 p-3"><div className="text-xs text-gray-400">Test</div><div className="font-semibold text-white">{wizardResult.blueprint.name}</div></div>
+                  <div className="rounded-lg bg-slate-900/60 p-3"><div className="text-xs text-gray-400">Form code</div><div className="font-mono text-lg text-cyan-200">{wizardResult.formCode}</div></div>
+                  <div className="rounded-lg bg-slate-900/60 p-3"><div className="text-xs text-gray-400">Status</div><div>{statusPill(wizardResult.form?.status || 'published')}</div></div>
+                </div>
+                <div className="flex flex-wrap gap-2"><button onClick={() => { navigator.clipboard.writeText(wizardResult.formCode); addToast('Form code copied', 'success'); }} className={btnPrimary}>Copy form code</button><button onClick={() => setActiveTab('candidates')} className={btnSecondary}>Go to Candidates</button><button onClick={() => setActiveTab('results')} className={btnSecondary}>Go to Results</button><button onClick={() => setActiveTab('forms')} className={btnSecondary}>Manage in Advanced Test Forms</button></div>
+              </> : <p className="text-sm text-gray-300">Generate an admission test first, then sharing options will appear here.</p>}
+            </div>
+          )}
         </div>
       )}
 
