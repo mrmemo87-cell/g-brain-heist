@@ -246,6 +246,12 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   const [candEmail, setCandEmail] = useState('');
   const [candPhone, setCandPhone] = useState('');
   const [candAppliedGrade, setCandAppliedGrade] = useState('');
+  const [candCurrentGrade, setCandCurrentGrade] = useState('');
+  const [candDob, setCandDob] = useState('');
+  const [candPreviousCurriculum, setCandPreviousCurriculum] = useState('');
+  const [candPreviousSchoolLanguage, setCandPreviousSchoolLanguage] = useState('');
+  const [candHomeLanguage, setCandHomeLanguage] = useState('');
+  const [candYearsEnglishMedium, setCandYearsEnglishMedium] = useState('');
   const [candNotes, setCandNotes] = useState('');
   const [bulkMode, setBulkMode] = useState(false);
   const [bulkText, setBulkText] = useState('');
@@ -608,10 +614,17 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
         email: candEmail || null,
         parent_phone: candPhone || null,
         applied_grade: candAppliedGrade ? parseInt(candAppliedGrade, 10) : null,
+        current_grade: candCurrentGrade ? parseInt(candCurrentGrade, 10) : null,
+        date_of_birth: candDob || null,
+        previous_curriculum: candPreviousCurriculum || null,
+        previous_school_language: candPreviousSchoolLanguage || null,
+        home_language: candHomeLanguage || null,
+        years_english_medium: candYearsEnglishMedium ? Number(candYearsEnglishMedium) : null,
         notes: candNotes || null,
+        admin_notes: candNotes || null,
       });
       addToast('Candidate registered', 'success');
-      setCandName(''); setCandEmail(''); setCandPhone(''); setCandAppliedGrade(''); setCandNotes('');
+      setCandName(''); setCandEmail(''); setCandPhone(''); setCandAppliedGrade(''); setCandCurrentGrade(''); setCandDob(''); setCandPreviousCurriculum(''); setCandPreviousSchoolLanguage(''); setCandHomeLanguage(''); setCandYearsEnglishMedium(''); setCandNotes('');
       await loadAll();
     } catch (err: any) {
       addToast(err.message || 'Failed to create candidate', 'error');
@@ -1502,8 +1515,32 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   <label className="block text-xs font-semibold text-gray-300 mb-1">Applied Grade *</label>
                   <input type="number" className={inputClass} value={candAppliedGrade} onChange={e => setCandAppliedGrade(e.target.value)} placeholder="9" />
                 </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Current Grade <span className="text-gray-500 font-normal">(optional)</span></label>
+                  <input type="number" className={inputClass} value={candCurrentGrade} onChange={e => setCandCurrentGrade(e.target.value)} placeholder="7" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Date of Birth <span className="text-gray-500 font-normal">(optional)</span></label>
+                  <input type="date" className={inputClass} value={candDob} onChange={e => setCandDob(e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Previous Curriculum <span className="text-gray-500 font-normal">(optional)</span></label>
+                  <input className={inputClass} value={candPreviousCurriculum} onChange={e => setCandPreviousCurriculum(e.target.value)} placeholder="Cambridge, CBSE, IB…" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Previous School Language <span className="text-gray-500 font-normal">(optional)</span></label>
+                  <input className={inputClass} value={candPreviousSchoolLanguage} onChange={e => setCandPreviousSchoolLanguage(e.target.value)} placeholder="English, Arabic…" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Home Language <span className="text-gray-500 font-normal">(optional)</span></label>
+                  <input className={inputClass} value={candHomeLanguage} onChange={e => setCandHomeLanguage(e.target.value)} placeholder="Arabic, English…" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Years in English-medium Education <span className="text-gray-500 font-normal">(optional)</span></label>
+                  <input type="number" step="0.5" className={inputClass} value={candYearsEnglishMedium} onChange={e => setCandYearsEnglishMedium(e.target.value)} placeholder="3" />
+                </div>
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Notes <span className="text-gray-500 font-normal">(optional)</span></label>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Admin Notes <span className="text-gray-500 font-normal">(optional)</span></label>
                   <input className={inputClass} value={candNotes} onChange={e => setCandNotes(e.target.value)} placeholder="Any additional notes…" />
                 </div>
               </div>
@@ -1851,6 +1888,60 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   {statCard('Submitted', new Date(reportData.submitted_at).toLocaleTimeString(), '✅', 'border-emerald-500/30')}
                 </div>
 
+                {reportData.placement_recommendation && (
+                  <div className="rounded-xl border border-cyan-500/30 bg-cyan-900/10 p-4 space-y-3">
+                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                      <div>
+                        <h4 className="text-sm font-semibold text-cyan-200">Placement Recommendation</h4>
+                        <p className="text-lg font-bold text-white">{reportData.placement_recommendation.label}</p>
+                      </div>
+                      {reportData.placement_recommendation.interviewFlag && <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-200">Interview recommended</span>}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div className="rounded-lg bg-slate-900/50 p-3"><span className="text-xs text-gray-400">English readiness</span><p className="text-white font-semibold">{reportData.placement_recommendation.englishPercentage ?? 'Not enough data'}{reportData.placement_recommendation.englishPercentage != null ? '%' : ''}</p></div>
+                      <div className="rounded-lg bg-slate-900/50 p-3"><span className="text-xs text-gray-400">Maths readiness</span><p className="text-white font-semibold">{reportData.placement_recommendation.mathsPercentage ?? 'Not enough data'}{reportData.placement_recommendation.mathsPercentage != null ? '%' : ''}</p></div>
+                    </div>
+                    <div>
+                      <h5 className="text-xs font-semibold text-gray-300 mb-1">Why this recommendation?</h5>
+                      <ul className="text-xs text-gray-300 list-disc pl-5 space-y-0.5">{reportData.placement_recommendation.reasons.map((r, i) => <li key={i}>{r}</li>)}</ul>
+                    </div>
+                    <p className="text-xs text-cyan-100"><strong>Next action:</strong> {reportData.placement_recommendation.nextAction}</p>
+                  </div>
+                )}
+
+                {reportData.candidate_profile && (
+                  <div className="rounded-xl border border-gray-700 bg-slate-800/50 p-4">
+                    <h4 className="text-sm font-semibold text-gray-300 mb-2">Candidate Academic Profile</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+                      <div><span className="text-gray-500">Applying for</span><p className="text-white">Grade {reportData.candidate_profile.applied_grade ?? '—'}</p></div>
+                      <div><span className="text-gray-500">Current grade</span><p className="text-white">{reportData.candidate_profile.current_grade ?? '—'}</p></div>
+                      <div><span className="text-gray-500">Date of birth</span><p className="text-white">{reportData.candidate_profile.date_of_birth ?? '—'}</p></div>
+                      <div><span className="text-gray-500">Previous curriculum</span><p className="text-white">{reportData.candidate_profile.previous_curriculum ?? '—'}</p></div>
+                      <div><span className="text-gray-500">School language</span><p className="text-white">{reportData.candidate_profile.previous_school_language ?? '—'}</p></div>
+                      <div><span className="text-gray-500">Home language</span><p className="text-white">{reportData.candidate_profile.home_language ?? '—'}</p></div>
+                      <div><span className="text-gray-500">English-medium years</span><p className="text-white">{reportData.candidate_profile.years_english_medium ?? '—'}</p></div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Diagnostic Breakdown */}
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-300 mb-2">Diagnostic Breakdown</h4>
+                  {(reportData.diagnostic_breakdown ?? []).length === 0 ? (
+                    <p className="text-xs text-gray-500">Detailed subject and skill tags are not available for this older test yet.</p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {(reportData.diagnostic_breakdown ?? []).map((t) => (
+                        <div key={t.key} className="flex items-center gap-2">
+                          <span className="text-xs text-gray-400 w-48 truncate capitalize">{t.subject} · {t.skill}{t.difficulty ? ` · ${t.difficulty}` : ''}</span>
+                          <div className="flex-1 h-3 rounded bg-slate-700 overflow-hidden"><div className={`h-full rounded transition-all ${t.percentage >= 70 ? 'bg-emerald-500' : t.percentage >= 50 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${t.percentage}%` }} /></div>
+                          <span className="text-xs text-gray-300 w-16 text-right">{t.score}/{t.maxScore}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 {/* By Topic */}
                 <div>
                   <h4 className="text-sm font-semibold text-gray-300 mb-2">Performance by Topic</h4>
@@ -2107,7 +2198,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                       const form = forms.find(f => f.id === a.form_id);
                       const bp = form ? blueprints.find(b => b.id === form.blueprint_id) : null;
                       const subjectLabel = bp?.subject ? bp.subject.charAt(0).toUpperCase() + bp.subject.slice(1) : 'Unknown';
-                      const pct = a.max_score ? Math.round((a.score / a.max_score) * 100) : 0;
+                      const pct = a.max_score ? Math.round((a.total_score / a.max_score) * 100) : 0;
                       return (
                         <div key={a.id} className="rounded-lg border border-gray-600/30 bg-slate-700/30 p-3">
                           <div className="flex items-center justify-between mb-1">
@@ -2121,7 +2212,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                           {a.status === 'scored' && (
                             <div className="mt-2">
                               <div className="flex items-center justify-between text-xs mb-1">
-                                <span className="text-gray-400">Score: {a.score}/{a.max_score}</span>
+                                <span className="text-gray-400">Score: {a.total_score}/{a.max_score}</span>
                                 <span className={`font-bold ${pct >= 80 ? 'text-emerald-400' : pct >= 60 ? 'text-blue-400' : pct >= 40 ? 'text-amber-400' : 'text-red-400'}`}>{pct}%</span>
                               </div>
                               <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
