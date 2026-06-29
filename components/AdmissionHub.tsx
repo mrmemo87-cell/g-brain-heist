@@ -138,6 +138,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   const [creatingBlueprint, setCreatingBlueprint] = useState(false);
   const [creatingCandidate, setCreatingCandidate] = useState(false);
   const [generatingForm, setGeneratingForm] = useState(false);
+  const [isGeneratingForm, setIsGeneratingForm] = useState(false);
 
   // Blueprint form
   const [bpName, setBpName] = useState('');
@@ -334,7 +335,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   };
 
   const handleGenerateForm = async () => {
-    if (!genBlueprintId || !genFormCode) return;
+    if (!genBlueprintId || !genFormCode || isGeneratingForm) return;
 
     // Consume pilot quota if applicable
     const quota = await tryConsumePilotQuota('admission_tests');
@@ -343,7 +344,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       return;
     }
 
-    setGeneratingForm(true);
+    setIsGeneratingForm(true);
     try {
       const res = await AdmService.generateTestForm(genBlueprintId, genFormCode);
       if (res.success) {
@@ -354,7 +355,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
         addToast(res.error || 'Failed to generate form', 'error');
       }
     } finally {
-      setGeneratingForm(false);
+      setIsGeneratingForm(false);
     }
   };
 
@@ -1069,7 +1070,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-white">Test Forms</h2>
-            <button onClick={() => setGeneratingForm(!generatingForm)} className={btnSecondary}>
+            <button onClick={() => !isGeneratingForm && setGeneratingForm(!generatingForm)} disabled={isGeneratingForm} className={btnSecondary}>
               {generatingForm ? 'Cancel' : '+ Generate Form'}
             </button>
           </div>
@@ -1089,8 +1090,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   <input className={inputClass} value={genFormCode} onChange={e => setGenFormCode(e.target.value)} placeholder="e.g. ENG9-2026-A" />
                 </div>
               </div>
-              <button onClick={handleGenerateForm} disabled={!genBlueprintId || !genFormCode} className={btnPrimary}>
-                Generate Form
+              <button onClick={handleGenerateForm} disabled={!genBlueprintId || !genFormCode || isGeneratingForm} className={btnPrimary}>
+                {isGeneratingForm ? 'Generating…' : 'Generate Form'}
               </button>
             </div>
           )}
