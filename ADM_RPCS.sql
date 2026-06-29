@@ -757,6 +757,7 @@ AS $$
 DECLARE
     v_bp adm_blueprints%ROWTYPE;
     v_form_id UUID;
+    v_existing_form_id UUID;
     v_form_code TEXT;
     v_pool_ids UUID[];
     v_dist_key TEXT;
@@ -806,6 +807,23 @@ BEGIN
         UPPER(LEFT(v_bp.subject, 3)) || COALESCE(v_bp.target_stage::text, '') ||
         '-' || TO_CHAR(NOW(), 'YYYY') || '-' || SUBSTR(gen_random_uuid()::text, 1, 4));
 
+    -- Serialize generation by school/form code and make retries idempotent.
+    PERFORM pg_advisory_xact_lock(hashtext(COALESCE(v_bp.school_id::text, 'platform') || ':' || v_form_code));
+
+    SELECT id INTO v_existing_form_id
+    FROM adm_test_forms
+    WHERE school_id = v_bp.school_id
+      AND form_code = v_form_code;
+
+    IF v_existing_form_id IS NOT NULL THEN
+        RETURN jsonb_build_object(
+            'success', true,
+            'form_id', v_existing_form_id,
+            'form_code', v_form_code,
+            'idempotent', true
+        );
+    END IF;
+
     v_form_id := gen_random_uuid();
 
     INSERT INTO adm_test_forms (id, blueprint_id, school_id, form_code, status, created_by)
@@ -841,7 +859,14 @@ BEGIN
         RETURN jsonb_build_object('success', false, 'error', 'No questions matched the blueprint distribution');
     END IF;
 
-    -- Shuffle the question order so candidates don't see questions in the same sequence
+    -- Shuffle the question order so candidates don't see questions in the same sequence.
+    -- Move existing orders out of the target 1..N range first; otherwise PostgreSQL's
+    -- immediate UNIQUE(form_id, question_order) check can see transient duplicates
+    -- while swapping order values in a single UPDATE.
+    UPDATE adm_test_form_questions
+    SET question_order = question_order + v_total_selected
+    WHERE form_id = v_form_id;
+
     WITH shuffled AS (
         SELECT id, ROW_NUMBER() OVER (ORDER BY RANDOM()) AS new_order
         FROM adm_test_form_questions
