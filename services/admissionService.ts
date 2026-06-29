@@ -5,6 +5,7 @@
  */
 
 import { supabase } from './supabaseClient';
+import { calculateDiagnosticBreakdown, calculatePlacementRecommendation, type AcademicProfile, type DiagnosticBreakdownRow, type PlacementRecommendation } from '../src/lib/admissionPlacementIntelligence';
 
 // ── Types ──
 
@@ -67,6 +68,9 @@ export interface AdmQuestion {
   cognitive_level: string | null;
   topic: string | null;
   skill_tag: string | null;
+  diagnostic_skill?: string | null;
+  stage_level?: number | null;
+  grade_level?: number | null;
   explanation: string | null;
   status: QuestionStatus;
   created_at: string;
@@ -112,6 +116,13 @@ export interface AdmCandidate {
   email: string | null;
   parent_phone: string | null;
   applied_grade: number | null;
+  current_grade?: number | null;
+  date_of_birth?: string | null;
+  previous_curriculum?: string | null;
+  previous_school_language?: string | null;
+  home_language?: string | null;
+  years_english_medium?: number | null;
+  admin_notes?: string | null;
   token: string;
   status: CandidateStatus;
   notes: string | null;
@@ -158,6 +169,12 @@ export interface CandidateReportAnswer {
   question_type: string;
   stem: string;
   topic: string | null;
+  subject?: string | null;
+  diagnostic_skill?: string | null;
+  skill_tag?: string | null;
+  difficulty?: string | null;
+  grade_level?: number | null;
+  stage_level?: number | null;
   response: any;
   correct_answer: any;
   is_correct: boolean;
@@ -182,6 +199,11 @@ export interface CandidateReport {
   weaknesses: string[];
   answers: CandidateReportAnswer[];
   ai_summary?: string | null;
+  candidate_profile?: AcademicProfile;
+  diagnostic_breakdown?: DiagnosticBreakdownRow[];
+  placement_recommendation?: PlacementRecommendation;
+  skill_breakdown?: any[];
+  difficulty_breakdown?: any[];
 }
 
 export interface GradeStageMap {
@@ -377,7 +399,7 @@ export async function fetchCandidates(schoolId: string): Promise<AdmCandidate[]>
 }
 
 export async function createCandidate(
-  candidate: Pick<AdmCandidate, 'school_id' | 'full_name' | 'email' | 'parent_phone' | 'applied_grade' | 'notes'>
+  candidate: Pick<AdmCandidate, 'school_id' | 'full_name' | 'email' | 'parent_phone' | 'applied_grade' | 'notes'> & Partial<Pick<AdmCandidate, 'current_grade' | 'date_of_birth' | 'previous_curriculum' | 'previous_school_language' | 'home_language' | 'years_english_medium' | 'admin_notes'>>
 ): Promise<AdmCandidate> {
   const { data, error } = await supabase
     .from('adm_candidates')
@@ -401,7 +423,7 @@ export async function bulkCreateCandidates(
 
 export async function updateCandidate(
   candidateId: string,
-  updates: Partial<Pick<AdmCandidate, 'full_name' | 'email' | 'parent_phone' | 'applied_grade' | 'status' | 'notes'>>
+  updates: Partial<Pick<AdmCandidate, 'full_name' | 'email' | 'parent_phone' | 'applied_grade' | 'status' | 'notes' | 'current_grade' | 'date_of_birth' | 'previous_curriculum' | 'previous_school_language' | 'home_language' | 'years_english_medium' | 'admin_notes'>>
 ): Promise<void> {
   const { error } = await supabase
     .from('adm_candidates')
@@ -431,6 +453,37 @@ export async function getCandidateReport(attemptId: string): Promise<CandidateRe
 
   // Transform RPC shape → CandidateReport shape
   const raw = data as any;
+  const answers = (raw.answers ?? []).map((a: any) => ({
+      question_id: a.question_id,
+      question_type: a.question_type,
+      stem: a.stem,
+      subject: a.subject ?? null,
+      topic: a.topic,
+      diagnostic_skill: a.diagnostic_skill ?? null,
+      skill_tag: a.skill_tag ?? null,
+      difficulty: a.difficulty ?? null,
+      grade_level: a.grade_level ?? null,
+      stage_level: a.stage_level ?? null,
+      response: a.response,
+      correct_answer: a.correct_answer,
+      is_correct: a.is_correct,
+      marks_awarded: a.marks_awarded ?? 0,
+      marks_possible: a.marks_possible ?? 0,
+      explanation: a.explanation,
+      ai_feedback: a.ai_feedback ?? null,
+    }));
+  const candidateProfile = raw.candidate ? {
+    applied_grade: raw.candidate.applied_grade ?? null,
+    current_grade: raw.candidate.current_grade ?? null,
+    date_of_birth: raw.candidate.date_of_birth ?? null,
+    previous_curriculum: raw.candidate.previous_curriculum ?? null,
+    previous_school_language: raw.candidate.previous_school_language ?? null,
+    home_language: raw.candidate.home_language ?? null,
+    years_english_medium: raw.candidate.years_english_medium ?? null,
+    admin_notes: raw.candidate.admin_notes ?? null,
+  } : undefined;
+  const diagnosticBreakdown = calculateDiagnosticBreakdown(answers);
+  const placementRecommendation = calculatePlacementRecommendation(candidateProfile, answers, raw.attempt?.percentage ?? 0);
   return {
     candidate_name: raw.candidate?.name ?? 'Unknown',
     form_code: raw.form_code ?? '',
@@ -454,20 +507,13 @@ export async function getCandidateReport(attemptId: string): Promise<CandidateRe
     })),
     strengths: raw.strengths ?? [],
     weaknesses: raw.weaknesses ?? [],
-    answers: (raw.answers ?? []).map((a: any) => ({
-      question_id: a.question_id,
-      question_type: a.question_type,
-      stem: a.stem,
-      topic: a.topic,
-      response: a.response,
-      correct_answer: a.correct_answer,
-      is_correct: a.is_correct,
-      marks_awarded: a.marks_awarded ?? 0,
-      marks_possible: a.marks_possible ?? 0,
-      explanation: a.explanation,
-      ai_feedback: a.ai_feedback ?? null,
-    })),
+    answers,
     ai_summary: raw.ai_summary ?? null,
+    candidate_profile: candidateProfile,
+    diagnostic_breakdown: diagnosticBreakdown,
+    placement_recommendation: placementRecommendation,
+    skill_breakdown: raw.skill_breakdown ?? [],
+    difficulty_breakdown: raw.difficulty_breakdown ?? [],
   };
 }
 
