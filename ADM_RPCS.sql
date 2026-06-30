@@ -79,6 +79,7 @@ BEGIN
                 'stem', q.stem,
                 'stem_image_url', q.stem_image_url,
                 'passage', q.passage,
+                'reading_passage_id', q.reading_passage_id,
                 'options', q.options,
                 'keyword', q.keyword,
                 'base_word', q.base_word,
@@ -98,6 +99,8 @@ BEGIN
             'duration_minutes', v_blueprint.duration_minutes,
             'delivery_mode', v_blueprint.delivery_mode,
             'subject', v_blueprint.subject,
+            'grade', COALESCE(v_blueprint.target_grade, v_blueprint.target_stage),
+            'form_title', CONCAT('Grade ', COALESCE(v_blueprint.target_grade, v_blueprint.target_stage), ' ', CASE WHEN lower(v_blueprint.subject) IN ('math','maths','mathematics') THEN 'Maths' WHEN lower(v_blueprint.subject) = 'science' THEN 'Science' ELSE 'English' END, ' Admission Test'),
             'candidate_name', v_candidate.full_name,
             'questions', v_questions
         );
@@ -130,6 +133,7 @@ BEGIN
             'stem', q.stem,
             'stem_image_url', q.stem_image_url,
             'passage', q.passage,
+            'reading_passage_id', q.reading_passage_id,
             'options', q.options,
             'keyword', q.keyword,
             'base_word', q.base_word,
@@ -154,6 +158,8 @@ BEGIN
         'duration_minutes', v_blueprint.duration_minutes,
         'delivery_mode', v_blueprint.delivery_mode,
         'subject', v_blueprint.subject,
+        'grade', COALESCE(v_blueprint.target_grade, v_blueprint.target_stage),
+        'form_title', CONCAT('Grade ', COALESCE(v_blueprint.target_grade, v_blueprint.target_stage), ' ', CASE WHEN lower(v_blueprint.subject) IN ('math','maths','mathematics') THEN 'Maths' WHEN lower(v_blueprint.subject) = 'science' THEN 'Science' ELSE 'English' END, ' Admission Test'),
         'candidate_name', v_candidate.full_name,
         'questions', v_questions
     );

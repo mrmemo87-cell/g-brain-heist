@@ -203,6 +203,51 @@ const QUESTION_TYPES: Record<string, { value: string; label: string }[]> = {
   ],
 };
 
+
+const normalizeAdmissionSubject = (subject?: string | null) => {
+  const key = String(subject || '').toLowerCase();
+  if (key === 'math' || key === 'maths' || key === 'mathematics') return 'maths';
+  if (key === 'science') return 'science';
+  return 'english';
+};
+
+const admissionSubjectLabel = (subject?: string | null) => {
+  const normalized = normalizeAdmissionSubject(subject);
+  return normalized === 'maths' ? 'Maths' : normalized.charAt(0).toUpperCase() + normalized.slice(1);
+};
+
+const getFormBlueprint = (form: Pick<AdmTestForm, 'blueprint_id'>, blueprints: AdmBlueprint[]) =>
+  blueprints.find(b => b.id === form.blueprint_id) || null;
+
+const getFormGrade = (form: Pick<AdmTestForm, 'blueprint_id' | 'form_code'>, blueprints: AdmBlueprint[]) => {
+  const bp = getFormBlueprint(form, blueprints);
+  const codeGrade = String(form.form_code || '').match(/(?:G|GRADE|ENG|MAT|MATH|SCI)(\d{1,2})/i)?.[1];
+  return bp?.target_grade ?? bp?.target_stage ?? (codeGrade ? Number(codeGrade) : null);
+};
+
+const getFormSubject = (form: Pick<AdmTestForm, 'blueprint_id' | 'form_code'>, blueprints: AdmBlueprint[]) => {
+  const bp = getFormBlueprint(form, blueprints);
+  if (bp?.subject) return normalizeAdmissionSubject(bp.subject);
+  const code = String(form.form_code || '').toLowerCase();
+  if (code.startsWith('sci')) return 'science';
+  if (code.startsWith('mat') || code.startsWith('math')) return 'maths';
+  return 'english';
+};
+
+const getAdmissionFormTitle = (form: Pick<AdmTestForm, 'blueprint_id' | 'form_code'>, blueprints: AdmBlueprint[]) => {
+  const grade = getFormGrade(form, blueprints);
+  const subject = admissionSubjectLabel(getFormSubject(form, blueprints));
+  return `${grade ? `Grade ${grade} ` : ''}${subject} Admission Test`;
+};
+
+const getAttemptLabel = (attempt?: AdmAttempt) => {
+  if (!attempt) return 'Not sent';
+  if (attempt.status === 'in_progress') return 'Sent';
+  if (attempt.status === 'submitted') return 'Submitted';
+  if (attempt.status === 'scored') return 'Scored';
+  return attempt.status.replace('_', ' ');
+};
+
 // ── Main Component ──
 
 const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => {
@@ -299,6 +344,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
   // Candidate file modal
   const [candidateFileId, setCandidateFileId] = useState<string | null>(null);
+  const [showOtherGradeFormsForCandidate, setShowOtherGradeFormsForCandidate] = useState<Record<string, boolean>>({});
 
   // ── Bootstrap ──
 
@@ -1636,6 +1682,10 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 <tbody className="divide-y divide-gray-800">
                   {filteredCandidates.map((c) => {
                     const publishedForms = forms.filter(f => f.status === 'published');
+                    const matchingForms = publishedForms.filter(f => getFormGrade(f, blueprints) === c.applied_grade);
+                    const otherGradeForms = publishedForms.filter(f => getFormGrade(f, blueprints) !== c.applied_grade);
+                    const showOtherGrades = !!showOtherGradeFormsForCandidate[c.id];
+                    const assignableForms = showOtherGrades ? [...matchingForms, ...otherGradeForms] : matchingForms;
                     return (
                       <tr key={c.id} className="text-gray-300 hover:bg-slate-700/30 transition">
                         <td className="py-3 pr-4">
@@ -1649,65 +1699,47 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                         </td>
                         <td className="py-3 pr-4 text-xs">{c.applied_grade || '—'}</td>
                         <td className="py-3 pr-4">
-                          {(() => {
-                            const publishedFormsForStatus = forms.filter(f => f.status === 'published');
-                            if (publishedFormsForStatus.length === 0) return statusPill(c.status);
-                            return (
-                              <div className="flex flex-col gap-1">
-                                {publishedFormsForStatus.map(f => {
-                                  const attempt = attempts.find(a => a.candidate_id === c.id && a.form_id === f.id);
-                                  const formLabel = f.form_code.split('-')[0]; // e.g. "ENG9" or "MAT9"
-                                  let status = 'not sent';
-                                  if (attempt) status = attempt.status;
-                                  else if (c.status === 'registered') status = 'pending';
-                                  return (
-                                    <div key={f.id} className="flex items-center gap-1">
-                                      <span className="text-[10px] text-gray-500 w-10">{formLabel}</span>
-                                      {statusPill(status)}
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            );
-                          })()}
-                        </td>
-                        <td className="py-3">
-                          <div className="flex items-center gap-1 flex-wrap">
-                            {publishedForms.map(f => {
-                              const link = AdmService.buildTestLink(window.location.origin, c.token, f.form_code);
+                          <div className="flex flex-col gap-1.5">
+                            {matchingForms.slice(0, 3).map(f => {
+                              const attempt = attempts.find(a => a.candidate_id === c.id && a.form_id === f.id);
                               return (
-                                <div key={f.id} className="flex items-center gap-1">
-                                  <button
-                                    onClick={() => { navigator.clipboard.writeText(link); addToast('Link copied!', 'success'); }}
-                                    className="text-xs px-2 py-1 rounded bg-cyan-600/30 text-cyan-300 hover:bg-cyan-600/50 transition"
-                                    title="Copy link"
-                                  >
-                                    📋
-                                  </button>
-                                  {c.parent_phone && (
-                                    <button
-                                      onClick={() => shareViaWhatsApp(c.parent_phone, link, c.full_name)}
-                                      className="text-xs px-2 py-1 rounded bg-green-600/30 text-green-300 hover:bg-green-600/50 transition"
-                                      title="Send via WhatsApp"
-                                    >
-                                      💬
-                                    </button>
-                                  )}
-                                  {c.email && (
-                                    <button
-                                      onClick={() => shareViaEmail(c.email, link, c.full_name)}
-                                      className="text-xs px-2 py-1 rounded bg-blue-600/30 text-blue-300 hover:bg-blue-600/50 transition"
-                                      title="Send via Email"
-                                    >
-                                      ✉️
-                                    </button>
-                                  )}
-                                  <span className="text-[10px] text-gray-500">{f.form_code}</span>
+                                <div key={f.id} className="flex items-center gap-2">
+                                  <span className="text-[10px] text-gray-400 min-w-[9rem]">{admissionSubjectLabel(getFormSubject(f, blueprints))} · {f.form_code}</span>
+                                  {statusPill(getAttemptLabel(attempt).toLowerCase())}
                                 </div>
                               );
                             })}
-                            {publishedForms.length === 0 && (
-                              <span className="text-xs text-gray-600 italic">No published tests</span>
+                            {matchingForms.length === 0 && <span className="text-xs text-amber-300">No published forms for Grade {c.applied_grade || '—'}</span>}
+                            {matchingForms.length > 3 && <span className="text-[10px] text-gray-500">+{matchingForms.length - 3} more matching forms</span>}
+                          </div>
+                        </td>
+                        <td className="py-3 pr-4 min-w-[280px]">
+                          <div className="space-y-2">
+                            {assignableForms.length > 0 ? assignableForms.map(f => {
+                              const link = AdmService.buildTestLink(window.location.origin, c.token, f.form_code);
+                              const attempt = attempts.find(a => a.candidate_id === c.id && a.form_id === f.id);
+                              const isOtherGrade = getFormGrade(f, blueprints) !== c.applied_grade;
+                              return (
+                                <div key={f.id} className={`rounded-lg border p-2 ${isOtherGrade ? 'border-amber-600/40 bg-amber-950/20' : 'border-gray-700 bg-slate-900/40'}`}>
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div>
+                                      <div className="text-xs font-semibold text-white">{getAdmissionFormTitle(f, blueprints)}</div>
+                                      <div className="text-[10px] text-gray-400">Code <span className="font-mono">{f.form_code}</span> · {getAttemptLabel(attempt)}</div>
+                                      {isOtherGrade && <div className="text-[10px] text-amber-300">Other grade — send only by exception</div>}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <button onClick={() => { navigator.clipboard.writeText(link); addToast(`${getAdmissionFormTitle(f, blueprints)} link copied`, 'success'); }} className="text-xs px-2 py-1 rounded bg-cyan-600/30 text-cyan-300 hover:bg-cyan-600/50 transition" title={`Copy ${getAdmissionFormTitle(f, blueprints)} link`}>Copy</button>
+                                      {c.parent_phone && <button onClick={() => shareViaWhatsApp(c.parent_phone, link, c.full_name)} className="text-xs px-2 py-1 rounded bg-green-600/30 text-green-300 hover:bg-green-600/50 transition" title={`WhatsApp ${getAdmissionFormTitle(f, blueprints)} link`}>WhatsApp</button>}
+                                      {c.email && <button onClick={() => shareViaEmail(c.email, link, c.full_name)} className="text-xs px-2 py-1 rounded bg-blue-600/30 text-blue-300 hover:bg-blue-600/50 transition" title={`Email ${getAdmissionFormTitle(f, blueprints)} link`}>Email</button>}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            }) : <span className="text-xs text-gray-600 italic">No matching published tests</span>}
+                            {otherGradeForms.length > 0 && (
+                              <button type="button" onClick={() => setShowOtherGradeFormsForCandidate(prev => ({ ...prev, [c.id]: !prev[c.id] }))} className="text-[11px] text-amber-300 hover:text-amber-200">
+                                {showOtherGrades ? 'Hide other grades' : `Show ${otherGradeForms.length} other-grade form(s)`}
+                              </button>
                             )}
                           </div>
                         </td>

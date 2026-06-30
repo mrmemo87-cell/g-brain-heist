@@ -128,6 +128,8 @@
       border-radius: 12px; padding: 20px; margin-bottom: 18px;
       font-size: 14px; line-height: 1.8; color: var(--text-muted);
     }
+    .passage-box.passage-missing { border-color: rgba(245,158,11,0.45); color: #fcd34d; }
+    .passage-title { color: var(--text-main); font-weight: 700; margin-bottom: 8px; }
     .passage-box::before {
       content: '📖 Reading Passage'; display: block;
       font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
@@ -389,6 +391,8 @@ let STATE = {
   attemptId: null,
   candidateName: '',
   subject: 'english',
+  grade: null,
+  formTitle: '',
   deliveryMode: 'exam',
   questions: [],
   answers: {},       // { questionId: response }
@@ -446,6 +450,23 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+
+function admissionSubjectLabel(subject) {
+  const key = String(subject || '').toLowerCase();
+  if (key === 'math' || key === 'maths' || key === 'mathematics') return 'Maths';
+  if (key === 'science') return 'Science';
+  return 'English';
+}
+
+function inferGradeFromCode(formCode) {
+  const match = String(formCode || '').match(/(?:G|GRADE|ENG|MAT|MATH|SCI)(\d{1,2})/i);
+  return match ? Number(match[1]) : null;
+}
+
+function buildAdmissionTestTitle(grade, subject) {
+  return `${grade ? `Grade ${grade} ` : ''}${admissionSubjectLabel(subject)} Admission Test`;
+}
+
 // ── START TEST ──
 async function handleStart() {
   // Read from STATE if smart mode (URL params), otherwise from input fields
@@ -495,6 +516,8 @@ async function handleStart() {
     STATE.attemptId = data.attempt_id;
     STATE.candidateName = data.candidate_name || 'Candidate';
     STATE.subject = data.subject || 'english';
+    STATE.grade = data.grade || data.target_grade || data.target_stage || inferGradeFromCode(formCode);
+    STATE.formTitle = data.form_title || buildAdmissionTestTitle(STATE.grade, STATE.subject);
     STATE.deliveryMode = data.delivery_mode || 'exam';
     STATE.questions = data.questions || [];
     STATE.timerSeconds = (data.duration_minutes || 60) * 60;
@@ -503,7 +526,7 @@ async function handleStart() {
     // Show test
     $('loginScreen').classList.add('hidden');
     $('testScreen').classList.remove('hidden');
-    $('subjectBadge').textContent = STATE.subject.charAt(0).toUpperCase() + STATE.subject.slice(1);
+    $('subjectBadge').textContent = STATE.formTitle;
 
     renderQuestions();
     navigateTo(0);
@@ -544,6 +567,8 @@ async function loadOfflineTest(formCode) {
       attempt_id: 'offline-' + Date.now(),
       candidate_name: 'Demo Candidate',
       subject: pool.pool_metadata?.subject?.toLowerCase() || 'english',
+      grade: inferGradeFromCode(formCode),
+      form_title: buildAdmissionTestTitle(inferGradeFromCode(formCode), pool.pool_metadata?.subject?.toLowerCase() || 'english'),
       delivery_mode: 'exam',
       duration_minutes: 45,
       questions: selected,
@@ -600,8 +625,11 @@ function buildQuestionHTML(q, idx) {
   `;
 
   // Passage for reading comprehension
-  if (q.passage) {
-    html += `<div class="passage-box">${escapeHtml(q.passage)}</div>`;
+  if (q.passage || q.passage_text) {
+    const passageTitle = q.passage_title ? `<div class="passage-title">${escapeHtml(q.passage_title)}</div>` : '';
+    html += `<div class="passage-box">${passageTitle}${escapeHtml(q.passage || q.passage_text)}</div>`;
+  } else if (q.question_type === 'reading_comprehension' || q.reading_passage_id) {
+    html += `<div class="passage-box passage-missing">Reading passage unavailable — please contact admissions.</div>`;
   }
 
   // Stem
@@ -969,7 +997,7 @@ function showResults(r) {
       <h2 style="margin-bottom:8px;font-size:24px">Test Submitted Successfully!</h2>
       <p style="color:var(--text-muted);margin-bottom:24px;max-width:400px;margin-left:auto;margin-right:auto">
         Thank you, <strong>${escapeHtml(r.candidate_name || STATE.candidateName || 'Candidate')}</strong>. 
-        Your <strong>${STATE.subject.charAt(0).toUpperCase() + STATE.subject.slice(1)}</strong> test has been submitted.
+        Your <strong>${escapeHtml(STATE.formTitle || buildAdmissionTestTitle(STATE.grade, STATE.subject))}</strong> has been submitted.
       </p>
       ${r.writing_pending ? `
         <div style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);border-radius:12px;padding:16px;margin-bottom:20px;max-width:400px;margin-left:auto;margin-right:auto">
