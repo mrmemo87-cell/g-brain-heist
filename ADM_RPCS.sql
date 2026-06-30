@@ -766,6 +766,8 @@ DECLARE
     v_bp adm_blueprints%ROWTYPE;
     v_form_id UUID;
     v_existing_form_id UUID;
+    v_existing_status TEXT;
+    v_base_form_code TEXT;
     v_form_code TEXT;
     v_pool_ids UUID[];
     v_dist_key TEXT;
@@ -811,19 +813,21 @@ BEGIN
     END IF;
 
     -- Generate form code
-    v_form_code := COALESCE(p_form_code,
+    v_base_form_code := COALESCE(p_form_code,
         UPPER(LEFT(v_bp.subject, 3)) || COALESCE(v_bp.target_stage::text, '') ||
-        '-' || TO_CHAR(NOW(), 'YYYY') || '-' || SUBSTR(gen_random_uuid()::text, 1, 4));
+        '-' || TO_CHAR(NOW(), 'YYYY') || '-' || UPPER(SUBSTR(gen_random_uuid()::text, 1, 4)));
+    v_form_code := v_base_form_code;
 
-    -- Serialize generation by school/form code and make retries idempotent.
-    PERFORM pg_advisory_xact_lock(hashtext(COALESCE(v_bp.school_id::text, 'platform') || ':' || v_form_code));
+    -- Idempotency is only for immediate duplicate submits while the generated form is still draft.
+    -- Published/closed/stale forms must not permanently force new wizard runs to reuse old content.
+    PERFORM pg_advisory_xact_lock(hashtext(COALESCE(v_bp.school_id::text, 'platform') || ':' || v_base_form_code));
 
-    SELECT id INTO v_existing_form_id
+    SELECT id, status INTO v_existing_form_id, v_existing_status
     FROM adm_test_forms
     WHERE school_id = v_bp.school_id
       AND form_code = v_form_code;
 
-    IF v_existing_form_id IS NOT NULL THEN
+    IF v_existing_form_id IS NOT NULL AND v_existing_status = 'draft' THEN
         RETURN jsonb_build_object(
             'success', true,
             'form_id', v_existing_form_id,
@@ -831,6 +835,10 @@ BEGIN
             'idempotent', true
         );
     END IF;
+
+    WHILE EXISTS (SELECT 1 FROM adm_test_forms WHERE school_id = v_bp.school_id AND form_code = v_form_code) LOOP
+        v_form_code := v_base_form_code || '-' || UPPER(SUBSTR(gen_random_uuid()::text, 1, 4));
+    END LOOP;
 
     v_form_id := gen_random_uuid();
 

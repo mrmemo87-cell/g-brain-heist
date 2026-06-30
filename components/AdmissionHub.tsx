@@ -276,13 +276,28 @@ const getFormGrade = (form: Pick<AdmTestForm, 'blueprint_id' | 'form_code'>, blu
   return bp?.target_grade ?? bp?.target_stage ?? (codeGrade ? Number(codeGrade) : null);
 };
 
-const getFormSubject = (form: Pick<AdmTestForm, 'blueprint_id' | 'form_code'>, blueprints: AdmBlueprint[]) => {
-  const bp = getFormBlueprint(form, blueprints);
-  if (bp?.subject) return normalizeAdmissionSubject(bp.subject);
-  const code = String(form.form_code || '').toLowerCase();
+const getFormSubjectFromCode = (formCode?: string | null) => {
+  const code = String(formCode || '').toLowerCase();
   if (code.startsWith('sci')) return 'science';
   if (code.startsWith('mat') || code.startsWith('math')) return 'maths';
-  return 'english';
+  if (code.startsWith('eng')) return 'english';
+  return null;
+};
+
+const getFormSubject = (form: Pick<AdmTestForm, 'blueprint_id' | 'form_code'>, blueprints: AdmBlueprint[]) => {
+  const bp = getFormBlueprint(form, blueprints);
+  const codeSubject = getFormSubjectFromCode(form.form_code);
+  const blueprintSubject = bp?.subject ? normalizeAdmissionSubject(bp.subject) : null;
+  // Form-code prefixes are immutable public share codes. If legacy data points a SCI/MAT
+  // code at an English blueprint, keep the candidate UI safe by refusing to label it English.
+  return codeSubject ?? blueprintSubject ?? 'english';
+};
+
+const isFormCodeSubjectConflict = (form: Pick<AdmTestForm, 'blueprint_id' | 'form_code'>, blueprints: AdmBlueprint[]) => {
+  const bp = getFormBlueprint(form, blueprints);
+  const codeSubject = getFormSubjectFromCode(form.form_code);
+  const blueprintSubject = bp?.subject ? normalizeAdmissionSubject(bp.subject) : null;
+  return !!codeSubject && !!blueprintSubject && codeSubject !== blueprintSubject;
 };
 
 const getAdmissionFormTitle = (form: Pick<AdmTestForm, 'blueprint_id' | 'form_code'>, blueprints: AdmBlueprint[]) => {
@@ -464,11 +479,10 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   const wizardAvailability = useMemo(() => countDistributionQuestions(wizardQuestions, wizardDistribution), [wizardQuestions, wizardDistribution]);
   const wizardCanGenerate = wizardAvailability.canGenerate && wizardAvailability.required === wizardQuestionCount;
   const wizardSubjectLabel = getAdmissionWizardSubjectLabel(wizardSubject);
-  const wizardFormCode = useMemo(() => {
+  const wizardFormCodePreview = useMemo(() => {
     const subjectCode = wizardSubject.slice(0, 3).toUpperCase();
-    const suffix = Math.abs([...`${schoolId || ''}-${wizardName}-${wizardGrade}-${wizardSubject}`].reduce((sum, ch) => sum + ch.charCodeAt(0), 0)).toString(36).toUpperCase().slice(-3).padStart(3, '0');
-    return `${subjectCode}${wizardGrade}-${new Date().getFullYear()}-${suffix}`;
-  }, [schoolId, wizardName, wizardGrade, wizardSubject]);
+    return `${subjectCode}${wizardGrade}-${new Date().getFullYear()}-new`;
+  }, [wizardGrade, wizardSubject]);
 
 
   const resetWizardForNewTest = useCallback(() => {
@@ -561,13 +575,13 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
         setWizardBlueprintId(blueprint.id);
       }
 
-      const res = await AdmService.generateTestForm(blueprint.id, wizardFormCode);
+      const res = await AdmService.generateTestForm(blueprint.id);
       if (!res.success || !res.form_id) throw new Error(res.error || 'Generation failed');
       const publishRes = await AdmService.publishForm(res.form_id);
       if (!publishRes.success) throw new Error(publishRes.error || 'Publish failed');
       await loadAll();
       const createdForm = (await AdmService.fetchTestForms(schoolId)).find(f => f.id === res.form_id) || null;
-      setWizardResult({ blueprint, form: createdForm, formCode: createdForm?.form_code || wizardFormCode });
+      setWizardResult({ blueprint, form: createdForm, formCode: createdForm?.form_code || res.form_code || wizardFormCodePreview });
       setWizardStep(5);
       addToast('Admission test generated and ready to share', 'success');
     } catch (err: any) {
@@ -1732,11 +1746,13 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 </thead>
                 <tbody className="divide-y divide-gray-800">
                   {filteredCandidates.map((c) => {
-                    const publishedForms = forms.filter(f => f.status === 'published');
+                    const publishedForms = forms.filter(f => f.status === 'published' && !isFormCodeSubjectConflict(f, blueprints));
                     const matchingForms = publishedForms.filter(f => getFormGrade(f, blueprints) === c.applied_grade);
                     const otherGradeForms = publishedForms.filter(f => getFormGrade(f, blueprints) !== c.applied_grade);
                     const showOtherGrades = !!showOtherGradeFormsForCandidate[c.id];
                     const assignableForms = showOtherGrades ? [...matchingForms, ...otherGradeForms] : matchingForms;
+                    const attemptedFormIds = new Set(attempts.filter(a => a.candidate_id === c.id).map(a => a.form_id));
+                    const historyForms = forms.filter(f => attemptedFormIds.has(f.id) && !publishedForms.some(pf => pf.id === f.id));
                     return (
                       <tr key={c.id} className="text-gray-300 hover:bg-slate-700/30 transition">
                         <td className="py-3 pr-4">
@@ -1751,11 +1767,11 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                         <td className="py-3 pr-4 text-xs">{c.applied_grade || '—'}</td>
                         <td className="py-3 pr-4">
                           <div className="flex flex-col gap-1.5">
-                            {matchingForms.slice(0, 3).map(f => {
+                            {[...matchingForms, ...historyForms].slice(0, 3).map(f => {
                               const attempt = attempts.find(a => a.candidate_id === c.id && a.form_id === f.id);
                               return (
                                 <div key={f.id} className="flex items-center gap-2">
-                                  <span className="text-[10px] text-gray-400 min-w-[9rem]">{admissionSubjectLabel(getFormSubject(f, blueprints))} · {f.form_code}</span>
+                                  <span className="text-[10px] text-gray-400 min-w-[9rem]">{admissionSubjectLabel(getFormSubject(f, blueprints))} · {f.form_code}{f.status !== 'published' ? ' · history' : ''}{isFormCodeSubjectConflict(f, blueprints) ? ' · legacy/stale' : ''}</span>
                                   {statusPill(getAttemptLabel(attempt).toLowerCase())}
                                 </div>
                               );

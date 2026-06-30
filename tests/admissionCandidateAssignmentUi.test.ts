@@ -40,15 +40,29 @@ test('Admission runner renders q.passage and does not silently omit reading cont
 });
 
 test('Admission Candidates tab hides closed forms from send-test options', () => {
-  assert.match(hub, /const publishedForms = forms\.filter\(f => f\.status === 'published'\)/);
+  assert.match(hub, /const publishedForms = forms\.filter\(f => f\.status === 'published' && !isFormCodeSubjectConflict\(f, blueprints\)\)/);
   assert.doesNotMatch(hub, /const publishedForms = forms\.filter\(f => f\.status !== 'archived'\)/);
   assert.match(hub, /assignableForms\.length > 0 \? assignableForms\.map/);
 });
 
 
 test('closed SCI5 forms cannot render as not-sent sendable candidate cards', () => {
-  assert.match(hub, /const publishedForms = forms\.filter\(f => f\.status === 'published'\)/);
+  assert.match(hub, /const publishedForms = forms\.filter\(f => f\.status === 'published' && !isFormCodeSubjectConflict\(f, blueprints\)\)/);
   assert.match(hub, /const assignableForms = showOtherGrades \? \[\.\.\.matchingForms, \.\.\.otherGradeForms\] : matchingForms/);
   assert.match(hub, /\{getAttemptLabel\(attempt\)\}/);
   assert.doesNotMatch(hub, /forms\.filter\(f => f\.status !== 'closed'\)/);
+});
+
+test('closed form attempts are rendered as history, not sendable cards', () => {
+  assert.match(hub, /const attemptedFormIds = new Set\(attempts\.filter\(a => a\.candidate_id === c\.id\)\.map\(a => a\.form_id\)\)/);
+  assert.match(hub, /const historyForms = forms\.filter\(f => attemptedFormIds\.has\(f\.id\) && !publishedForms\.some\(pf => pf\.id === f\.id\)\)/);
+  assert.match(hub, /assignableForms\.length > 0 \? assignableForms\.map/);
+});
+
+test('stale SCI or MAT form codes cannot be displayed as English sendables', () => {
+  assert.match(hub, /const getFormSubjectFromCode/);
+  assert.match(hub, /code\.startsWith\('sci'\)\) return 'science'/);
+  assert.match(hub, /code\.startsWith\('mat'\) \|\| code\.startsWith\('math'\)\) return 'maths'/);
+  assert.match(hub, /const publishedForms = forms\.filter\(f => f\.status === 'published' && !isFormCodeSubjectConflict\(f, blueprints\)\)/);
+  assert.match(hub, /legacy\/stale/);
 });

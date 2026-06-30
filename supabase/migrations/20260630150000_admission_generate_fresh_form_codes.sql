@@ -1,3 +1,4 @@
+-- Repair admission form generation idempotency so published/closed/stale forms are not reused by new wizard runs.
 -- Prefer official locked Brain Heist admission content when generating tests.
 -- Falls back to compatible legacy/custom pools so existing schools are not broken.
 
