@@ -44,3 +44,11 @@ test('Admission Candidates tab hides closed forms from send-test options', () =>
   assert.doesNotMatch(hub, /const publishedForms = forms\.filter\(f => f\.status !== 'archived'\)/);
   assert.match(hub, /assignableForms\.length > 0 \? assignableForms\.map/);
 });
+
+
+test('closed SCI5 forms cannot render as not-sent sendable candidate cards', () => {
+  assert.match(hub, /const publishedForms = forms\.filter\(f => f\.status === 'published'\)/);
+  assert.match(hub, /const assignableForms = showOtherGrades \? \[\.\.\.matchingForms, \.\.\.otherGradeForms\] : matchingForms/);
+  assert.match(hub, /\{getAttemptLabel\(attempt\)\}/);
+  assert.doesNotMatch(hub, /forms\.filter\(f => f\.status !== 'closed'\)/);
+});

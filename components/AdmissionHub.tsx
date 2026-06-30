@@ -50,9 +50,9 @@ const BLUEPRINT_PRESETS: Record<string, { label: string; icon: string; marks: nu
   english: {
     label: 'English',
     icon: '📖',
-    marks: 27,
+    marks: 25,
     duration: 45,
-    distribution: JSON.stringify({ mcq: { easy: 5, medium: 8, hard: 1 }, gap_fill: { easy: 1, medium: 2, hard: 1 }, sentence_transformation: { medium: 2, hard: 1 } }),
+    distribution: JSON.stringify({ reading_comprehension: { easy: 3, medium: 5 }, mcq: { easy: 7, medium: 8, hard: 2 } }),
   },
   math: {
     label: 'Mathematics',
@@ -89,7 +89,27 @@ const WIZARD_DIFFICULTY_META: Record<WizardDifficulty, { label: string; descript
   custom: { label: 'Custom', description: 'Use Advanced setup to fine-tune question types and distribution.', duration: 45, pass: 60, mix: { easy: 0.4, medium: 0.5, hard: 0.1 } },
 };
 
-const buildWizardDistribution = (questionCount: number, difficulty: WizardDifficulty, questions: AdmQuestion[] = []): Record<string, Record<string, number>> => {
+const ENGLISH_WIZARD_TYPE_MIX: Record<string, number> = {
+  reading_comprehension: 0.32,
+  mcq: 0.68,
+};
+
+const ENGLISH_WIZARD_MIN_READING_QUESTIONS = 1;
+
+const distributeCount = (total: number, weights: Record<string, number>) => {
+  const entries = Object.entries(weights);
+  const base = entries.map(([key, weight]) => ({ key, count: Math.floor(total * weight), remainder: (total * weight) % 1 }));
+  let allocated = base.reduce((sum, item) => sum + item.count, 0);
+  base.sort((a, b) => b.remainder - a.remainder);
+  for (const item of base) {
+    if (allocated >= total) break;
+    item.count += 1;
+    allocated += 1;
+  }
+  return Object.fromEntries(base.map(({ key, count }) => [key, count]));
+};
+
+const buildWizardDistribution = (questionCount: number, difficulty: WizardDifficulty, questions: AdmQuestion[] = [], subject = 'english'): Record<string, Record<string, number>> => {
   const meta = WIZARD_DIFFICULTY_META[difficulty === 'custom' ? 'balanced' : difficulty];
   const requestedByDifficulty: Record<string, number> = {
     easy: Math.floor(questionCount * meta.mix.easy),
@@ -100,7 +120,32 @@ const buildWizardDistribution = (questionCount: number, difficulty: WizardDiffic
 
   const published = questions.filter(q => q.status === 'published');
   const distribution: Record<string, Record<string, number>> = {};
+  const isEnglish = normalizeAdmissionSubject(subject) === 'english';
+  const requestedByType = isEnglish ? distributeCount(questionCount, ENGLISH_WIZARD_TYPE_MIX) : null;
+  if (isEnglish && questionCount > 1) {
+    requestedByType!.reading_comprehension = Math.max(ENGLISH_WIZARD_MIN_READING_QUESTIONS, requestedByType!.reading_comprehension || 0);
+    requestedByType!.mcq = Math.max(0, questionCount - requestedByType!.reading_comprehension);
+  }
+
   const allocate = (difficultyKey: string, requested: number) => {
+    if (isEnglish && requestedByType) {
+      let remainingForDifficulty = requested;
+      for (const type of ['reading_comprehension', 'mcq']) {
+        if (remainingForDifficulty <= 0) return;
+        const alreadyForType = Object.values(distribution[type] || {}).reduce((sum, count) => sum + count, 0);
+        const remainingForType = Math.max(0, (requestedByType[type] || 0) - alreadyForType);
+        if (remainingForType <= 0) continue;
+        const available = published.filter(q => q.difficulty === difficultyKey && q.question_type === type).length;
+        const take = Math.min(available, remainingForDifficulty, remainingForType);
+        if (take > 0) {
+          distribution[type] = distribution[type] || {};
+          distribution[type][difficultyKey] = take;
+          remainingForDifficulty -= take;
+        }
+      }
+      return;
+    }
+
     let remaining = requested;
     const byType = published
       .filter(q => q.difficulty === difficultyKey)
@@ -120,10 +165,16 @@ const buildWizardDistribution = (questionCount: number, difficulty: WizardDiffic
   allocate('medium', requestedByDifficulty.medium);
   allocate('hard', requestedByDifficulty.hard);
 
-  // Before availability has loaded, return a simple MCQ-shaped plan so the review step remains stable.
+  // Before availability has loaded, return a simple subject-shaped plan so the review step remains stable.
   if (Object.keys(distribution).length === 0) {
-    const fallback: Record<string, Record<string, number>> = { mcq: {} };
-    Object.entries(requestedByDifficulty).forEach(([diff, count]) => { if (count > 0) fallback.mcq[diff] = count; });
+    const fallback: Record<string, Record<string, number>> = isEnglish ? { reading_comprehension: {}, mcq: {} } : { mcq: {} };
+    Object.entries(requestedByDifficulty).forEach(([diff, count]) => {
+      if (count <= 0) return;
+      if (!isEnglish) { fallback.mcq[diff] = count; return; }
+      const readingCount = Math.min(count, Math.max(0, Math.round(count * ENGLISH_WIZARD_TYPE_MIX.reading_comprehension)));
+      if (readingCount > 0) fallback.reading_comprehension[diff] = readingCount;
+      if (count - readingCount > 0) fallback.mcq[diff] = count - readingCount;
+    });
     return fallback;
   }
   return distribution;
@@ -409,7 +460,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
     return pools.filter(p => p.is_active && p.subject === wizardSubject && (wizardSource === 'pool' ? p.id === wizardPoolId : p.stage === wizardGrade));
   }, [pools, wizardSubject, wizardGrade, wizardSource, wizardPoolId]);
 
-  const wizardDistribution = useMemo(() => buildWizardDistribution(wizardQuestionCount, wizardDifficulty, wizardQuestions), [wizardQuestionCount, wizardDifficulty, wizardQuestions]);
+  const wizardDistribution = useMemo(() => buildWizardDistribution(wizardQuestionCount, wizardDifficulty, wizardQuestions, wizardSubject), [wizardQuestionCount, wizardDifficulty, wizardQuestions, wizardSubject]);
   const wizardAvailability = useMemo(() => countDistributionQuestions(wizardQuestions, wizardDistribution), [wizardQuestions, wizardDistribution]);
   const wizardCanGenerate = wizardAvailability.canGenerate && wizardAvailability.required === wizardQuestionCount;
   const wizardSubjectLabel = getAdmissionWizardSubjectLabel(wizardSubject);
