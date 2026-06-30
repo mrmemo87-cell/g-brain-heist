@@ -389,10 +389,10 @@ export async function fetchTestForms(schoolId: string): Promise<AdmTestForm[]> {
   return data ?? [];
 }
 
-export async function generateTestForm(blueprintId: string, formCode: string): Promise<{ success: boolean; form_id?: string; error?: string }> {
+export async function generateTestForm(blueprintId: string, formCode?: string | null): Promise<{ success: boolean; form_id?: string; form_code?: string; idempotent?: boolean; error?: string }> {
   const { data, error } = await supabase.rpc('rpc_adm_generate_test_form', {
     p_blueprint_id: blueprintId,
-    p_form_code: formCode,
+    p_form_code: formCode ?? null,
   });
   if (error) return { success: false, error: error.message };
   return data;

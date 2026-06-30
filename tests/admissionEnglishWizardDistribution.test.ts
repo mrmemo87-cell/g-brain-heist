@@ -41,3 +41,17 @@ test('Grade 5 English official bank has passage-backed reading comprehension que
     return typeof passage?.text === 'string' && passage.text.trim().length > 0;
   }));
 });
+
+test('wizard English generation does not pass a deterministic reusable form code', () => {
+  assert.match(hub, /const res = await AdmService\.generateTestForm\(blueprint\.id\)/);
+  assert.doesNotMatch(hub, /generateTestForm\(blueprint\.id, wizardFormCode\)/);
+});
+
+test('generated form RPC only reuses draft duplicates and creates unique codes for published or closed old forms', () => {
+  for (const sql of [rpc, migration]) {
+    assert.match(sql, /v_existing_status TEXT/);
+    assert.match(sql, /v_existing_status = 'draft'/);
+    assert.match(sql, /Published\/closed\/stale forms must not permanently force new wizard runs to reuse old content/);
+    assert.match(sql, /WHILE EXISTS \(SELECT 1 FROM adm_test_forms WHERE school_id = v_bp\.school_id AND form_code = v_form_code\) LOOP/);
+  }
+});
