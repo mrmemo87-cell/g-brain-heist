@@ -69,6 +69,76 @@
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
+    },
+    {
+      "external_id": "adm-g6-eng-v1-passage-lantern",
+      "title": "The Lantern Club",
+      "genre": "fiction",
+      "subject": "english",
+      "grade_level": 6,
+      "stage_level": "primary",
+      "text": "Maya expected the after-school Lantern Club to be quiet, but the art room hummed with careful planning. Each student was building a paper lantern for the welcome evening. Jonah measured strips of card while Priya tested how much glue was needed. Maya chose blue paper and cut tiny window shapes along the sides. When her first lantern leaned to one side, she almost pushed it into the recycling box. Instead, she studied the frame and noticed one support was shorter than the others. She replaced it, and the lantern stood straight. At sunset the class hung the lanterns along the path to the hall. Maya\u2019s was not the largest or brightest, but its small windows scattered neat squares of light across the ground. She smiled because the mistake had taught her how to make it stronger.",
+      "content_version": "adm-bank-v1-g6-english",
+      "source_label": "Brain Heist Official Admission Bank",
+      "is_official": true,
+      "is_locked": true,
+      "content_owner": "brain_heist"
+    },
+    {
+      "external_id": "adm-g6-eng-v1-passage-wetlands",
+      "title": "Why Wetlands Matter",
+      "genre": "non-fiction",
+      "subject": "english",
+      "grade_level": 6,
+      "stage_level": "primary",
+      "text": "Wetlands are areas where water covers the soil for all or part of the year. They may look like quiet ponds, marshes, or grassy flats, but they do important work. Wetland plants slow moving water, so mud and tiny pieces of waste settle before the water reaches rivers. The roots also provide shelter for insects, fish, frogs, and young birds. During heavy rain, wetlands can hold extra water like a sponge and reduce flooding nearby. In dry months, stored water is released slowly. Many communities protect wetlands because they support wildlife and improve water quality. Visitors should stay on marked paths, avoid picking plants, and carry litter away. A wetland is not empty land waiting to be used; it is a busy natural system.",
+      "content_version": "adm-bank-v1-g6-english",
+      "source_label": "Brain Heist Official Admission Bank",
+      "is_official": true,
+      "is_locked": true,
+      "content_owner": "brain_heist"
+    },
+    {
+      "external_id": "adm-g6-eng-v1-passage-sundial",
+      "title": "How a Sundial Tells Time",
+      "genre": "explanation",
+      "subject": "english",
+      "grade_level": 6,
+      "stage_level": "primary",
+      "text": "A sundial uses the Sun\u2019s changing position to show time. It has a flat surface marked with hours and a raised pointer called a gnomon. As Earth rotates, the Sun appears to move across the sky. The gnomon blocks sunlight and makes a shadow on the marked surface. In the morning the shadow points one way; by midday it is shorter; in the afternoon it points the other way. A sundial must be placed carefully, because its markings depend on direction and location. It also works only when sunlight is strong enough to make a clear shadow. Although clocks are more convenient, a sundial helps people understand the link between shadows, Earth\u2019s rotation, and the passage of time.",
+      "content_version": "adm-bank-v1-g6-english",
+      "source_label": "Brain Heist Official Admission Bank",
+      "is_official": true,
+      "is_locked": true,
+      "content_owner": "brain_heist"
+    },
+    {
+      "external_id": "adm-g6-eng-v1-passage-market",
+      "title": "The Morning Market",
+      "genre": "description",
+      "subject": "english",
+      "grade_level": 6,
+      "stage_level": "primary",
+      "text": "By seven o\u2019clock the community market was awake. Canvas roofs formed a patchwork of green, white, and yellow above the stalls. Baskets of tomatoes shone like polished beads, and bundles of herbs gave the air a sharp, fresh scent. A baker arranged round loaves in careful rows while steam drifted from a pot of soup at the next table. Customers moved slowly, comparing fruit, greeting neighbours, and tucking purchases into cloth bags. The loudest sounds were not shouts but small signs of activity: coins clicking, paper folding, wheels turning over stone. Beyond the entrance, a quiet corner held a table where children swapped books. The market felt busy without feeling rushed, as if the whole street had agreed to begin the day together.",
+      "content_version": "adm-bank-v1-g6-english",
+      "source_label": "Brain Heist Official Admission Bank",
+      "is_official": true,
+      "is_locked": true,
+      "content_owner": "brain_heist"
+    },
+    {
+      "external_id": "adm-g6-eng-v1-passage-green-team",
+      "title": "Green Team Notice",
+      "genre": "school notice",
+      "subject": "english",
+      "grade_level": 6,
+      "stage_level": "primary",
+      "text": "Green Team Notice: On Friday afternoon, Grade 6 volunteers will help improve the school garden. Meet beside the science room at 2:45 p.m. Please bring a hat, a water bottle, and shoes that can get dusty. The session will begin with a ten-minute safety briefing. After that, teams will rotate through three tasks: clearing dry leaves from paths, labelling plant beds, and recording insects seen in the garden. No one should touch unfamiliar insects or use tools without an adult nearby. The aim is to make the garden safer for classes and to collect information for next month\u2019s habitat display. Students who cannot stay for the full hour may still join the first task. Return permission slips to the office by Wednesday morning.",
+      "content_version": "adm-bank-v1-g6-english",
+      "source_label": "Brain Heist Official Admission Bank",
+      "is_official": true,
+      "is_locked": true,
+      "content_owner": "brain_heist"
     }
   ]
 }
