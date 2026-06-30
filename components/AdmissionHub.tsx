@@ -163,7 +163,7 @@ const friendlyAdmissionError = (message?: string) => {
 // ── Pipeline Steps ──
 
 const PIPELINE_STEPS = [
-  { key: 'pools', icon: '📝', label: 'Question Pool', desc: 'Import questions' },
+  { key: 'pools', icon: '🔒', label: 'Official Bank', desc: 'Locked content' },
   { key: 'blueprints', icon: '📐', label: 'Blueprint', desc: 'Define test structure' },
   { key: 'forms', icon: '📋', label: 'Test Form', desc: 'Generate & publish' },
   { key: 'candidates', icon: '👤', label: 'Candidates', desc: 'Register & send links' },
@@ -751,7 +751,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   const tabs: { key: AdmTab; label: string; icon: string }[] = [
     { key: 'create', label: 'Create Admission Test', icon: '✨' },
     { key: 'overview', label: 'Overview', icon: '📊' },
-    { key: 'pools', label: 'Advanced: Question Pools', icon: '📝' },
+    { key: 'pools', label: 'Official Question Bank', icon: '🔒' },
     { key: 'blueprints', label: 'Advanced: Blueprints', icon: '📐' },
     { key: 'forms', label: 'Advanced: Test Forms', icon: '📋' },
     { key: 'candidates', label: 'Candidates', icon: '👤' },
@@ -970,8 +970,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
             <div className="rounded-xl border border-gray-700 bg-slate-800/70 p-5 space-y-4">
               <h3 className="font-semibold text-white">Step 3: Question source</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <button onClick={() => setWizardSource('auto')} className={`rounded-xl border p-4 text-left ${wizardSource === 'auto' ? 'border-emerald-400 bg-emerald-500/15' : 'border-gray-700 bg-slate-900/50'}`}><div className="font-semibold text-white">Recommended: auto-select questions</div><div className="text-xs text-gray-400 mt-1">Use published questions matching this subject and Grade / Stage.</div></button>
-                <button onClick={() => setWizardSource('pool')} className={`rounded-xl border p-4 text-left ${wizardSource === 'pool' ? 'border-cyan-400 bg-cyan-500/15' : 'border-gray-700 bg-slate-900/50'}`}><div className="font-semibold text-white">Advanced: choose a question pool</div><div className="text-xs text-gray-400 mt-1">Limit this test to one specific pool.</div></button>
+                <button onClick={() => setWizardSource('auto')} className={`rounded-xl border p-4 text-left ${wizardSource === 'auto' ? 'border-emerald-400 bg-emerald-500/15' : 'border-gray-700 bg-slate-900/50'}`}><div className="font-semibold text-white">Recommended: auto-select official questions</div><div className="text-xs text-gray-400 mt-1">Use official locked Brain Heist content matching this subject and Grade / Stage.</div></button>
+                <button onClick={() => setWizardSource('pool')} className={`rounded-xl border p-4 text-left ${wizardSource === 'pool' ? 'border-cyan-400 bg-cyan-500/15' : 'border-gray-700 bg-slate-900/50'}`}><div className="font-semibold text-white">Advanced: choose an official bank pool</div><div className="text-xs text-gray-400 mt-1">Limit this test to one readable official or legacy pool.</div></button>
               </div>
               {wizardSource === 'pool' && <div><label className="block text-xs font-semibold text-gray-300 mb-1">Question pool</label><select className={inputClass} value={wizardPoolId} onChange={e => setWizardPoolId(e.target.value)}><option value="">Choose a pool…</option>{pools.filter(p => p.is_active && p.subject === wizardSubject).map(p => <option key={p.id} value={p.id}>{p.name}{p.stage ? ` (Stage ${p.stage})` : ''}</option>)}</select></div>}
               <div className={`rounded-xl border p-4 ${wizardCanGenerate ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-amber-500/40 bg-amber-500/10'}`}>
@@ -1134,15 +1134,16 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       {activeTab === 'pools' && !loading && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white">Question Pools</h2>
+            <h2 className="text-lg font-semibold text-white">Official Question Bank</h2>
             <div className="text-xs text-gray-400">
-              {pools.length} pool{pools.length !== 1 ? 's' : ''} loaded
+              {pools.length} readable pool{pools.length !== 1 ? 's' : ''} loaded
             </div>
           </div>
 
           {/* Available subjects */}
           <div className="rounded-xl border border-gray-700 bg-slate-800/60 p-4">
-            <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Available Subjects</h4>
+            <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Official Brain Heist admission content</h4>
+            <p className="text-sm text-gray-300 mb-3">Locked for assessment fairness. Schools can generate tests, but cannot edit official questions.</p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {Object.entries(BLUEPRINT_PRESETS).map(([key, preset]) => {
                 const poolExists = pools.some(p => p.subject.toLowerCase() === key);
@@ -1162,8 +1163,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
           {pools.length === 0 ? (
             <div className="card-glass p-8 text-center">
               <span className="text-4xl block mb-3">📝</span>
-              <p className="text-gray-400 text-sm">No question pools yet.</p>
-              <p className="text-gray-500 text-xs mt-1">Run the import script or upload pool JSON to get started.</p>
+              <p className="text-gray-400 text-sm">No official question bank pools are visible yet.</p>
+              <p className="text-gray-500 text-xs mt-1">Platform admins can seed locked Brain Heist official admission content.</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -1176,12 +1177,14 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                       <span className="text-2xl">{preset?.icon || '📄'}</span>
                       <div>
                         <div className="font-semibold text-white">{p.name}</div>
-                        <div className="text-xs text-gray-400">{p.subject} · Stage {p.stage} {p.school_id ? '' : '· 🌐 Global'}</div>
+                        <div className="text-xs text-gray-400">{p.subject} · Stage {p.stage || p.stage_level || 'Any'} {p.is_official ? '· Official Brain Heist admission content' : p.school_id ? '· Legacy school content' : '· Legacy global content'}</div>
+                        <div className="text-[10px] text-cyan-300 mt-0.5">{p.is_locked ? '🔒 Locked for assessment fairness' : 'Read-only here for school admins'} · {p.source_label || 'Admission content'}</div>
                       </div>
                     </div>
                     <div className="text-right">
                       <div className="text-xs text-gray-500">{new Date(p.created_at).toLocaleDateString()}</div>
                       {p.is_active && <div className="text-[10px] text-emerald-400 mt-0.5">Active</div>}
+                      {p.is_official && <div className="text-[10px] text-cyan-300 mt-0.5">Official · {p.content_version || 'versioned'}</div>}
                     </div>
                   </div>
                 );

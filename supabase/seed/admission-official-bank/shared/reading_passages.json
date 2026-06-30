@@ -1,0 +1,74 @@
+{
+  "passages": [
+    {
+      "external_id": "adm-g5-eng-v1-passage-maple-gate",
+      "title": "The Map at Maple Gate",
+      "genre": "fiction",
+      "subject": "english",
+      "grade_level": 5,
+      "stage_level": "primary",
+      "text": "Lina paused at the school gate and unfolded the paper map her older brother had drawn. It showed the library, the art room, the lunch hall, and a tiny star beside a courtyard fountain. \"Start there if you feel lost,\" he had written. Lina did feel lost. The corridors were bright and busy, and every door seemed to lead somewhere important. At break time she followed the map to the fountain. A boy was kneeling beside it, collecting fallen leaves before they blocked the drain. Lina helped him gather the last few. \"I am Sam,\" he said. \"New?\" Lina nodded. Sam smiled and pointed to the star on her map. \"Good meeting place. Everyone finds it eventually.\" By the end of the day, Lina had added two new marks to the map: a circle around her classroom and a small leaf beside the fountain. The school still felt large, but it no longer felt unknown.",
+      "content_version": "adm-bank-v1-g5-english",
+      "source_label": "Brain Heist Official Admission Bank",
+      "is_official": true,
+      "is_locked": true,
+      "content_owner": "brain_heist"
+    },
+    {
+      "external_id": "adm-g5-eng-v1-passage-window-garden",
+      "title": "The Window Garden",
+      "genre": "non-fiction",
+      "subject": "english",
+      "grade_level": 5,
+      "stage_level": "primary",
+      "text": "A window garden is a simple way to observe plant growth when there is no outdoor space. A shallow tray, a sunny windowsill, and a few seeds are enough to begin. First, place small stones at the bottom of the tray so extra water can drain away. Next, add soil and press the seeds gently below the surface. The soil should be damp, not soaked. Students can keep a record of what happens each day. They may measure the shoots, sketch the leaves, and note how the plants bend toward the light. If one tray is watered too much and another is watered carefully, the difference can be seen within a week. A window garden does not produce a large harvest, but it teaches patience and careful observation. It also shows that even a small place can support living things when their basic needs are met.",
+      "content_version": "adm-bank-v1-g5-english",
+      "source_label": "Brain Heist Official Admission Bank",
+      "is_official": true,
+      "is_locked": true,
+      "content_owner": "brain_heist"
+    },
+    {
+      "external_id": "adm-g5-eng-v1-passage-bridge",
+      "title": "How the Paper Bridge Worked",
+      "genre": "explanation",
+      "subject": "english",
+      "grade_level": 5,
+      "stage_level": "primary",
+      "text": "A flat sheet of paper bends easily because its weight is spread across a thin surface. When the same sheet is folded into ridges, it becomes much stronger. The folds act like tiny walls that share the weight placed on top. This is why a folded paper bridge can hold more coins than a flat paper bridge. In one class test, each group placed two books the same distance apart. They laid a paper bridge across the gap and added coins one at a time. The flat bridge sagged almost immediately. The folded bridge held several coins before it began to bend. The test did not prove that paper is as strong as wood or metal. It showed something more useful: the shape of a material can change how well it carries weight. Engineers use this idea when designing roofs, bridges, boxes, and even bicycle frames.",
+      "content_version": "adm-bank-v1-g5-english",
+      "source_label": "Brain Heist Official Admission Bank",
+      "is_official": true,
+      "is_locked": true,
+      "content_owner": "brain_heist"
+    },
+    {
+      "external_id": "adm-g5-eng-v1-passage-rainy-courtyard",
+      "title": "The Rainy Courtyard",
+      "genre": "description",
+      "subject": "english",
+      "grade_level": 5,
+      "stage_level": "primary",
+      "text": "After the rain, the courtyard looked freshly painted. Water shone on the stone path, and each puddle held a small piece of the grey sky. The benches were empty, but drops still slid from their wooden edges. Near the wall, a line of ants moved around a fallen flower petal as if it were a huge boat. The air smelled of wet leaves and clean dust. From the music room came the soft sound of a piano scale, rising and falling like careful footsteps. A football rested under the shelter, waiting for the ground to dry. When the sun appeared, the courtyard changed again. The puddles flashed silver, the ants disappeared into a crack, and the first students stepped outside. Their voices filled the quiet space, but for a few minutes the courtyard had been its own calm world.",
+      "content_version": "adm-bank-v1-g5-english",
+      "source_label": "Brain Heist Official Admission Bank",
+      "is_official": true,
+      "is_locked": true,
+      "content_owner": "brain_heist"
+    },
+    {
+      "external_id": "adm-g5-eng-v1-passage-library-team",
+      "title": "The Library Team Notice",
+      "genre": "school-life",
+      "subject": "english",
+      "grade_level": 5,
+      "stage_level": "primary",
+      "text": "The school library team meets every Wednesday at lunchtime. Members help return books to shelves, design recommendation cards, and prepare displays for new topics. This month, the team is creating a \"Books Around the World\" table. Each member will choose one book set in a different place and write three sentences explaining why another student might enjoy it. Students who want to join should speak to Ms Arun by Friday. The team needs pupils who are reliable, careful with books, and willing to listen to other people's ideas. New members will receive a short training session on how the library is organised. Joining the team is not only for strong readers. It is for anyone who wants to help the library feel welcoming. If you enjoy arranging things, sharing suggestions, or working quietly with others, the library team may be a good place for you.",
+      "content_version": "adm-bank-v1-g5-english",
+      "source_label": "Brain Heist Official Admission Bank",
+      "is_official": true,
+      "is_locked": true,
+      "content_owner": "brain_heist"
+    }
+  ]
+}
