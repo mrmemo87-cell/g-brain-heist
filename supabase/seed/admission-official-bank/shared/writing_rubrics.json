@@ -1,0 +1,43 @@
+{
+  "rubrics": [
+    {
+      "external_id": "adm-g5-eng-v1-writing-rubric-15pt",
+      "name": "Grade 5 English Admission Writing Rubric \u2014 15 marks",
+      "subject": "english",
+      "grade_level": 5,
+      "stage_level": "primary",
+      "max_marks": 15,
+      "criteria": [
+        {
+          "name": "Ideas and task response",
+          "marks": 5,
+          "descriptors": [
+            "Responds clearly to the prompt with relevant ideas.",
+            "Adds enough detail to develop the response for a Grade 5 reader."
+          ]
+        },
+        {
+          "name": "Organisation and cohesion",
+          "marks": 5,
+          "descriptors": [
+            "Uses a clear beginning, middle, and ending or a clear paragraph sequence.",
+            "Links ideas with suitable connectives and paragraphing."
+          ]
+        },
+        {
+          "name": "Language accuracy and vocabulary",
+          "marks": 5,
+          "descriptors": [
+            "Uses varied vocabulary suitable for the task.",
+            "Controls sentence structure, punctuation, and spelling well enough for meaning to be clear."
+          ]
+        }
+      ],
+      "content_version": "adm-bank-v1-g5-english",
+      "source_label": "Brain Heist Official Admission Bank",
+      "is_official": true,
+      "is_locked": true,
+      "content_owner": "brain_heist"
+    }
+  ]
+}

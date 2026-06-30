@@ -21,11 +21,12 @@ export type QuestionType =
   | 'matching'
   | 'structured';
 
-export type SubjectKey = 'english' | 'math' | 'science' | 'chemistry';
+export type SubjectKey = 'english' | 'math' | 'maths' | 'science' | 'chemistry';
 
 export const SUBJECT_META: Record<SubjectKey, { label: string; icon: string; color: string; poolFile: string; pools?: Record<number, string> }> = {
   english:   { label: 'English',   icon: '📖', color: 'cyan',    poolFile: 'english_stage9_pool.json', pools: { 7: 'english_stage7_pool.json', 8: 'english_stage8_pool.json', 9: 'english_stage9_pool.json' } },
   math:      { label: 'Mathematics', icon: '🔢', color: 'violet',  poolFile: 'math_stage9_pool.json' },
+  maths:     { label: 'Mathematics', icon: '🔢', color: 'violet',  poolFile: 'math_stage9_pool.json' },
   science:   { label: 'Science',   icon: '🔬', color: 'emerald', poolFile: '' },
   chemistry: { label: 'Chemistry', icon: '⚗️', color: 'amber',   poolFile: '' },
 };
@@ -46,6 +47,13 @@ export interface AdmQuestionPool {
   name: string;
   description: string | null;
   is_active: boolean;
+  is_official?: boolean;
+  is_locked?: boolean;
+  content_owner?: string | null;
+  content_version?: string | null;
+  source_label?: string | null;
+  placement_band?: 'foundation' | 'target' | 'stretch' | null;
+  stage_level?: number | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -71,6 +79,17 @@ export interface AdmQuestion {
   diagnostic_skill?: string | null;
   stage_level?: number | null;
   grade_level?: number | null;
+  placement_band?: 'foundation' | 'target' | 'stretch' | null;
+  strand?: string | null;
+  subskill?: string | null;
+  estimated_seconds?: number | null;
+  writing_rubric?: any | null;
+  reading_passage_id?: string | null;
+  is_official?: boolean;
+  is_locked?: boolean;
+  content_owner?: string | null;
+  content_version?: string | null;
+  source_label?: string | null;
   explanation: string | null;
   status: QuestionStatus;
   created_at: string;
@@ -91,6 +110,13 @@ export interface AdmBlueprint {
   pass_percentage: number;
   delivery_mode: DeliveryMode;
   is_active: boolean;
+  is_official?: boolean;
+  is_locked?: boolean;
+  content_owner?: string | null;
+  content_version?: string | null;
+  source_label?: string | null;
+  placement_band?: 'foundation' | 'target' | 'stretch' | null;
+  stage_level?: number | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -220,7 +246,9 @@ export async function fetchQuestionPools(schoolId: string): Promise<AdmQuestionP
   const { data, error } = await supabase
     .from('adm_question_pools')
     .select('*')
-    .or(`school_id.eq.${schoolId},school_id.is.null`)
+    .or(`school_id.eq.${schoolId},school_id.is.null,is_official.eq.true`)
+    .order('is_official', { ascending: false })
+    .order('stage', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false });
   if (error) throw error;
   return data ?? [];
