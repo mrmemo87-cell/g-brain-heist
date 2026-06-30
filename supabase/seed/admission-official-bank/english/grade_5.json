@@ -69,9 +69,9 @@
       "content_owner": "brain_heist",
       "options": [
         "Lina uses a map and a friendly meeting place to feel more comfortable at a new school.",
-        "Lina loses her brother\u2019s map and cannot find her classroom.",
+        "Lina loses her brother’s map and cannot find her classroom.",
         "Sam teaches Lina how to draw a perfect map of the school.",
-        "The school fountain breaks during Lina\u2019s first day."
+        "The school fountain breaks during Lina’s first day."
       ],
       "correct_answer": "Lina uses a map and a friendly meeting place to feel more comfortable at a new school.",
       "correct_index": 0,
@@ -99,13 +99,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A circle around her classroom and a small leaf beside the fountain",
         "A list of homework tasks and the lunch menu",
+        "A circle around her classroom and a small leaf beside the fountain",
         "A drawing of every student in her class",
         "A warning about the busy corridors"
       ],
       "correct_answer": "A circle around her classroom and a small leaf beside the fountain",
-      "correct_index": 0,
+      "correct_index": 1,
       "passage_external_id": "adm-g5-eng-v1-passage-maple-gate"
     },
     {
@@ -130,13 +130,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
+        "Her brother comes to guide her through the school.",
         "She has found familiar places and made a friendly connection.",
         "She has memorised every corridor in the building.",
-        "Her brother comes to guide her through the school.",
         "The school becomes smaller during the day."
       ],
       "correct_answer": "She has found familiar places and made a friendly connection.",
-      "correct_index": 0,
+      "correct_index": 1,
       "passage_external_id": "adm-g5-eng-v1-passage-maple-gate"
     },
     {
@@ -161,13 +161,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
+        "They are much heavier than ordinary doors.",
         "They seem to lead to places Lina needs to understand.",
         "They are painted in bright colours.",
-        "They are locked and cannot be opened.",
-        "They are much heavier than ordinary doors."
+        "They are locked and cannot be opened."
       ],
       "correct_answer": "They seem to lead to places Lina needs to understand.",
-      "correct_index": 0,
+      "correct_index": 1,
       "passage_external_id": "adm-g5-eng-v1-passage-maple-gate"
     },
     {
@@ -192,13 +192,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "To show a place that helps Lina feel less lost",
         "To explain where the lunch hall is located",
         "To show that Lina dislikes using maps",
+        "To show a place that helps Lina feel less lost",
         "To mark a place that students must avoid"
       ],
       "correct_answer": "To show a place that helps Lina feel less lost",
-      "correct_index": 0,
+      "correct_index": 2,
       "passage_external_id": "adm-g5-eng-v1-passage-maple-gate"
     },
     {
@@ -223,13 +223,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It moves from uncertainty to growing confidence.",
-        "It moves from excitement to serious danger.",
         "It moves from a group project to a private argument.",
-        "It moves from a finished day to an earlier morning."
+        "It moves from a finished day to an earlier morning.",
+        "It moves from uncertainty to growing confidence.",
+        "It moves from excitement to serious danger."
       ],
       "correct_answer": "It moves from uncertainty to growing confidence.",
-      "correct_index": 0,
+      "correct_index": 2,
       "passage_external_id": "adm-g5-eng-v1-passage-maple-gate"
     },
     {
@@ -254,13 +254,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A window garden helps students observe plant growth in a small space.",
+        "Students need an outdoor field to learn about plants.",
         "A window garden is the fastest way to grow a large harvest.",
         "Plants should always be kept away from sunlight.",
-        "Students need an outdoor field to learn about plants."
+        "A window garden helps students observe plant growth in a small space."
       ],
       "correct_answer": "A window garden helps students observe plant growth in a small space.",
-      "correct_index": 0,
+      "correct_index": 3,
       "passage_external_id": "adm-g5-eng-v1-passage-window-garden"
     },
     {
@@ -286,9 +286,9 @@
       "content_owner": "brain_heist",
       "options": [
         "To help extra water drain away",
-        "To stop sunlight reaching the seeds",
         "To make the tray too heavy to move",
-        "To keep the leaves below the soil"
+        "To keep the leaves below the soil",
+        "To stop sunlight reaching the seeds"
       ],
       "correct_answer": "To help extra water drain away",
       "correct_index": 0,
@@ -347,13 +347,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Watch carefully and record what happens",
         "Guess without looking",
+        "Watch carefully and record what happens",
         "Move something to a new place",
         "Cover something completely"
       ],
       "correct_answer": "Watch carefully and record what happens",
-      "correct_index": 0,
+      "correct_index": 1,
       "passage_external_id": "adm-g5-eng-v1-passage-window-garden"
     },
     {
@@ -378,13 +378,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
+        "To persuade readers to stop eating vegetables",
         "To explain how a small garden can be used for learning",
         "To tell a funny story about a gardener",
-        "To persuade readers to stop eating vegetables",
         "To describe the history of school windows"
       ],
       "correct_answer": "To explain how a small garden can be used for learning",
-      "correct_index": 0,
+      "correct_index": 1,
       "passage_external_id": "adm-g5-eng-v1-passage-window-garden"
     },
     {
@@ -409,13 +409,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
+        "It tells events in a mystery story.",
         "It explains steps and then describes what students can learn.",
         "It compares five different schools in order.",
-        "It lists problems without giving solutions.",
-        "It tells events in a mystery story."
+        "It lists problems without giving solutions."
       ],
       "correct_answer": "It explains steps and then describes what students can learn.",
-      "correct_index": 0,
+      "correct_index": 1,
       "passage_external_id": "adm-g5-eng-v1-passage-window-garden"
     },
     {
@@ -440,13 +440,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Folding paper changes its shape and can make it stronger.",
         "Coins are always lighter than paper.",
         "Books should not be used in science tests.",
+        "Folding paper changes its shape and can make it stronger.",
         "Wood and metal are weaker than paper."
       ],
       "correct_answer": "Folding paper changes its shape and can make it stronger.",
-      "correct_index": 0,
+      "correct_index": 2,
       "passage_external_id": "adm-g5-eng-v1-passage-bridge"
     },
     {
@@ -471,13 +471,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It sagged almost immediately.",
-        "It held all the coins easily.",
         "It turned into a folded bridge by itself.",
-        "It broke the two books."
+        "It broke the two books.",
+        "It sagged almost immediately.",
+        "It held all the coins easily."
       ],
       "correct_answer": "It sagged almost immediately.",
-      "correct_index": 0,
+      "correct_index": 2,
       "passage_external_id": "adm-g5-eng-v1-passage-bridge"
     },
     {
@@ -502,13 +502,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "To make the test fair for each bridge",
+        "To decorate the classroom tables",
         "To make the books easier to read",
         "To stop the coins from being counted",
-        "To decorate the classroom tables"
+        "To make the test fair for each bridge"
       ],
       "correct_answer": "To make the test fair for each bridge",
-      "correct_index": 0,
+      "correct_index": 3,
       "passage_external_id": "adm-g5-eng-v1-passage-bridge"
     },
     {
@@ -534,9 +534,9 @@
       "content_owner": "brain_heist",
       "options": [
         "Bent downward",
-        "Became colourful",
         "Moved upward quickly",
-        "Made a loud sound"
+        "Made a loud sound",
+        "Became colourful"
       ],
       "correct_answer": "Bent downward",
       "correct_index": 0,
@@ -595,13 +595,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It explains what the test proved and gives real-world examples.",
         "It introduces the characters and setting.",
+        "It explains what the test proved and gives real-world examples.",
         "It lists all the materials needed in order.",
         "It argues that paper is always the best building material."
       ],
       "correct_answer": "It explains what the test proved and gives real-world examples.",
-      "correct_index": 0,
+      "correct_index": 1,
       "passage_external_id": "adm-g5-eng-v1-passage-bridge"
     },
     {
@@ -626,13 +626,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
+        "A music lesson inside a classroom",
         "A school courtyard changing after rain",
         "A football match during a storm",
-        "A music lesson inside a classroom",
         "A group of students planting flowers"
       ],
       "correct_answer": "A school courtyard changing after rain",
-      "correct_index": 0,
+      "correct_index": 1,
       "passage_external_id": "adm-g5-eng-v1-passage-rainy-courtyard"
     },
     {
@@ -657,13 +657,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
+        "Two teachers",
         "A line of ants",
         "A group of students",
-        "Several birds",
-        "Two teachers"
+        "Several birds"
       ],
       "correct_answer": "A line of ants",
-      "correct_index": 0,
+      "correct_index": 1,
       "passage_external_id": "adm-g5-eng-v1-passage-rainy-courtyard"
     },
     {
@@ -688,13 +688,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The ground is still too wet for play.",
         "No one at the school likes football.",
         "The football has been lost for many weeks.",
+        "The ground is still too wet for play.",
         "The music room is using it for a lesson."
       ],
       "correct_answer": "The ground is still too wet for play.",
-      "correct_index": 0,
+      "correct_index": 2,
       "passage_external_id": "adm-g5-eng-v1-passage-rainy-courtyard"
     },
     {
@@ -719,13 +719,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "They reflected bright light from the sun.",
-        "They were filled with metal coins.",
         "They became cold and frozen.",
-        "They disappeared completely."
+        "They disappeared completely.",
+        "They reflected bright light from the sun.",
+        "They were filled with metal coins."
       ],
       "correct_answer": "They reflected bright light from the sun.",
-      "correct_index": 0,
+      "correct_index": 2,
       "passage_external_id": "adm-g5-eng-v1-passage-rainy-courtyard"
     },
     {
@@ -750,13 +750,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "To help the reader imagine the quiet courtyard clearly",
+        "To explain how rain clouds form",
         "To give instructions for cleaning the courtyard",
         "To compare two different schools",
-        "To explain how rain clouds form"
+        "To help the reader imagine the quiet courtyard clearly"
       ],
       "correct_answer": "To help the reader imagine the quiet courtyard clearly",
-      "correct_index": 0,
+      "correct_index": 3,
       "passage_external_id": "adm-g5-eng-v1-passage-rainy-courtyard"
     },
     {
@@ -782,9 +782,9 @@
       "content_owner": "brain_heist",
       "options": [
         "It moves from immediately after the rain to when the sun and students return.",
-        "It gives instructions in numbered steps.",
         "It presents a problem and then a letter of complaint.",
-        "It compares indoor and outdoor sports equally."
+        "It compares indoor and outdoor sports equally.",
+        "It gives instructions in numbered steps."
       ],
       "correct_answer": "It moves from immediately after the rain to when the sun and students return.",
       "correct_index": 0,
@@ -843,13 +843,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Every Wednesday at lunchtime",
         "Every Monday before school",
+        "Every Wednesday at lunchtime",
         "Only during the holidays",
         "After dinner on Friday"
       ],
       "correct_answer": "Every Wednesday at lunchtime",
-      "correct_index": 0,
+      "correct_index": 1,
       "passage_external_id": "adm-g5-eng-v1-passage-library-team"
     },
     {
@@ -874,13 +874,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
+        "A student who refuses to work with anyone",
         "A student who listens, is careful, and likes helping quietly",
         "A student who wants to hide books from others",
-        "A student who refuses to work with anyone",
         "A student who only wants to play loud games"
       ],
       "correct_answer": "A student who listens, is careful, and likes helping quietly",
-      "correct_index": 0,
+      "correct_index": 1,
       "passage_external_id": "adm-g5-eng-v1-passage-library-team"
     },
     {
@@ -905,13 +905,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
+        "Able to draw colourful pictures",
         "Able to be trusted to do what is needed",
         "Very quick at running races",
-        "Only interested in difficult books",
-        "Able to draw colourful pictures"
+        "Only interested in difficult books"
       ],
       "correct_answer": "Able to be trusted to do what is needed",
-      "correct_index": 0,
+      "correct_index": 1,
       "passage_external_id": "adm-g5-eng-v1-passage-library-team"
     },
     {
@@ -936,13 +936,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "To encourage different kinds of helpful students to join",
         "To stop strong readers from joining the team",
         "To explain that books are not important in the library",
+        "To encourage different kinds of helpful students to join",
         "To warn students that the work is too difficult"
       ],
       "correct_answer": "To encourage different kinds of helpful students to join",
-      "correct_index": 0,
+      "correct_index": 2,
       "passage_external_id": "adm-g5-eng-v1-passage-library-team"
     },
     {
@@ -967,13 +967,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It explains the team\u2019s tasks, gives joining instructions, then describes who may enjoy it.",
-        "It tells a story with a surprise ending.",
         "It compares two libraries in different countries.",
-        "It begins with a conclusion and then gives a poem."
+        "It begins with a conclusion and then gives a poem.",
+        "It explains the team’s tasks, gives joining instructions, then describes who may enjoy it.",
+        "It tells a story with a surprise ending."
       ],
-      "correct_answer": "It explains the team\u2019s tasks, gives joining instructions, then describes who may enjoy it.",
-      "correct_index": 0,
+      "correct_answer": "It explains the team’s tasks, gives joining instructions, then describes who may enjoy it.",
+      "correct_index": 2,
       "passage_external_id": "adm-g5-eng-v1-passage-library-team"
     },
     {
@@ -998,13 +998,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "finished",
+        "finishing",
         "finishes",
         "finish",
-        "finishing"
+        "finished"
       ],
       "correct_answer": "finished",
-      "correct_index": 0
+      "correct_index": 3
     },
     {
       "external_id": "adm-g5-eng-v1-grammar-002",
@@ -1029,9 +1029,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The birds sing in the tree.",
-        "The birds sings in the tree.",
         "The birds is sing in the tree.",
-        "The birds singing in the tree."
+        "The birds singing in the tree.",
+        "The birds sings in the tree."
       ],
       "correct_answer": "The birds sing in the tree.",
       "correct_index": 0
@@ -1088,13 +1088,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "our",
         "us",
+        "our",
         "we",
         "ourselves"
       ],
       "correct_answer": "our",
-      "correct_index": 0
+      "correct_index": 1
     },
     {
       "external_id": "adm-g5-eng-v1-grammar-005",
@@ -1118,13 +1118,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
+        "After the window.",
         "The teacher opened the window.",
         "Because the teacher opened.",
-        "After the window.",
         "The teacher and the window."
       ],
       "correct_answer": "The teacher opened the window.",
-      "correct_index": 0
+      "correct_index": 1
     },
     {
       "external_id": "adm-g5-eng-v1-grammar-006",
@@ -1148,13 +1148,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
+        "or",
         "but",
         "because",
-        "so",
-        "or"
+        "so"
       ],
       "correct_answer": "but",
-      "correct_index": 0
+      "correct_index": 1
     },
     {
       "external_id": "adm-g5-eng-v1-grammar-007",
@@ -1178,13 +1178,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "an",
         "a",
         "the many",
+        "an",
         "some an"
       ],
       "correct_answer": "an",
-      "correct_index": 0
+      "correct_index": 2
     },
     {
       "external_id": "adm-g5-eng-v1-grammar-008",
@@ -1208,13 +1208,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "under",
-        "quickly",
         "green",
-        "write"
+        "write",
+        "under",
+        "quickly"
       ],
       "correct_answer": "under",
-      "correct_index": 0
+      "correct_index": 2
     },
     {
       "external_id": "adm-g5-eng-v1-grammar-009",
@@ -1238,13 +1238,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "He does not like cold soup.",
+        "He does not likes cold soup.",
         "He do not like cold soup.",
         "He not does like cold soup.",
-        "He does not likes cold soup."
+        "He does not like cold soup."
       ],
       "correct_answer": "He does not like cold soup.",
-      "correct_index": 0
+      "correct_index": 3
     },
     {
       "external_id": "adm-g5-eng-v1-grammar-010",
@@ -1269,9 +1269,9 @@
       "content_owner": "brain_heist",
       "options": [
         "will visit",
-        "visited",
         "visits yesterday",
-        "visit yesterday"
+        "visit yesterday",
+        "visited"
       ],
       "correct_answer": "will visit",
       "correct_index": 0
@@ -1328,13 +1328,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "his",
         "her",
+        "his",
         "their",
         "our"
       ],
       "correct_answer": "his",
-      "correct_index": 0
+      "correct_index": 1
     },
     {
       "external_id": "adm-g5-eng-v1-grammar-013",
@@ -1358,13 +1358,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
+        "Each of the boxes were label clearly.",
         "Each of the boxes is labelled clearly.",
         "Each of the boxes are labelled clearly.",
-        "Each of the boxes were label clearly.",
         "Each of the boxes have labelled clearly."
       ],
       "correct_answer": "Each of the boxes is labelled clearly.",
-      "correct_index": 0
+      "correct_index": 1
     },
     {
       "external_id": "adm-g5-eng-v1-grammar-014",
@@ -1388,13 +1388,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
+        "begun already has",
         "had already begun",
         "has already begin",
-        "already begins",
-        "begun already has"
+        "already begins"
       ],
       "correct_answer": "had already begun",
-      "correct_index": 0
+      "correct_index": 1
     },
     {
       "external_id": "adm-g5-eng-v1-grammar-015",
@@ -1418,13 +1418,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "After the bell rang, the pupils entered quietly.",
         "After the bell rang the pupils, entered quietly.",
         "After, the bell rang the pupils entered quietly.",
+        "After the bell rang, the pupils entered quietly.",
         "After the bell, rang the pupils entered quietly."
       ],
       "correct_answer": "After the bell rang, the pupils entered quietly.",
-      "correct_index": 0
+      "correct_index": 2
     },
     {
       "external_id": "adm-g5-eng-v1-grammar-016",
@@ -1448,13 +1448,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The coach spoke to Amina and me after practice.",
-        "The coach spoke to Amina and I after practice.",
         "The coach spoke to I and Amina after practice.",
-        "The coach spoke to me and she after practice."
+        "The coach spoke to me and she after practice.",
+        "The coach spoke to Amina and me after practice.",
+        "The coach spoke to Amina and I after practice."
       ],
       "correct_answer": "The coach spoke to Amina and me after practice.",
-      "correct_index": 0
+      "correct_index": 2
     },
     {
       "external_id": "adm-g5-eng-v1-grammar-017",
@@ -1478,13 +1478,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Although the room was quiet, I could not concentrate.",
+        "Although the room quiet and silent.",
         "Although the room was quiet. I could not.",
         "Although quiet room was.",
-        "Although the room quiet and silent."
+        "Although the room was quiet, I could not concentrate."
       ],
       "correct_answer": "Although the room was quiet, I could not concentrate.",
-      "correct_index": 0
+      "correct_index": 3
     },
     {
       "external_id": "adm-g5-eng-v1-grammar-018",
@@ -1509,9 +1509,9 @@
       "content_owner": "brain_heist",
       "options": [
         "so that",
-        "unless",
         "although",
-        "nor"
+        "nor",
+        "unless"
       ],
       "correct_answer": "so that",
       "correct_index": 0
@@ -1568,13 +1568,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "at",
         "between",
+        "at",
         "during",
         "across from"
       ],
       "correct_answer": "at",
-      "correct_index": 0
+      "correct_index": 1
     },
     {
       "external_id": "adm-g5-eng-v1-grammar-021",
@@ -1598,13 +1598,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
+        "Neither answers is correct.",
         "Neither answer is correct.",
         "Neither answer are correct.",
-        "Neither answers is correct.",
         "Neither answer were correct."
       ],
       "correct_answer": "Neither answer is correct.",
-      "correct_index": 0
+      "correct_index": 1
     },
     {
       "external_id": "adm-g5-eng-v1-grammar-022",
@@ -1628,13 +1628,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
+        "have studied",
         "has studied",
         "studied yesterday",
-        "is study",
-        "have studied"
+        "is study"
       ],
       "correct_answer": "has studied",
-      "correct_index": 0
+      "correct_index": 1
     },
     {
       "external_id": "adm-g5-eng-v1-grammar-023",
@@ -1658,13 +1658,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The path was muddy, so we walked carefully.",
         "The path was muddy we walked carefully.",
         "Carefully muddy the path walked.",
+        "The path was muddy, so we walked carefully.",
         "The path was carefully, and muddy walked."
       ],
       "correct_answer": "The path was muddy, so we walked carefully.",
-      "correct_index": 0
+      "correct_index": 2
     },
     {
       "external_id": "adm-g5-eng-v1-grammar-024",
@@ -1688,13 +1688,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "or",
-        "but",
         "because",
-        "although"
+        "although",
+        "or",
+        "but"
       ],
       "correct_answer": "or",
-      "correct_index": 0
+      "correct_index": 2
     },
     {
       "external_id": "adm-g5-eng-v1-grammar-025",
@@ -1718,13 +1718,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "\"Please line up quietly,\" said Mr Chen.",
+        "Please \"line up quietly,\" said Mr Chen.",
         "Please line up quietly, said Mr Chen.",
         "\"Please line up quietly, said Mr Chen.\"",
-        "Please \"line up quietly,\" said Mr Chen."
+        "\"Please line up quietly,\" said Mr Chen."
       ],
       "correct_answer": "\"Please line up quietly,\" said Mr Chen.",
-      "correct_index": 0
+      "correct_index": 3
     },
     {
       "external_id": "adm-g5-eng-v1-grammar-026",
@@ -1749,9 +1749,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The children were excited because they had won the quiz.",
-        "The children was excited because they had won the quiz.",
         "The children were excited because they has won the quiz.",
-        "The children excited because they had won the quiz."
+        "The children excited because they had won the quiz.",
+        "The children was excited because they had won the quiz."
       ],
       "correct_answer": "The children were excited because they had won the quiz.",
       "correct_index": 0
@@ -1808,13 +1808,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The experiment was simple; however, the results were surprising.",
         "The experiment was simple, however the results were surprising.",
+        "The experiment was simple; however, the results were surprising.",
         "The experiment was simple however, the results were surprising.",
         "The experiment was simple; the results surprising were however."
       ],
       "correct_answer": "The experiment was simple; however, the results were surprising.",
-      "correct_index": 0
+      "correct_index": 1
     },
     {
       "external_id": "adm-g5-eng-v1-grammar-029",
@@ -1838,13 +1838,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
+        "Noor gave Priya the folder when she checked it.",
         "When Noor gave Priya the folder, Priya checked the pages.",
         "When Noor gave Priya the folder, she checked the pages.",
-        "Noor gave Priya the folder when she checked it.",
         "She checked the pages when Noor gave Priya it."
       ],
       "correct_answer": "When Noor gave Priya the folder, Priya checked the pages.",
-      "correct_index": 0
+      "correct_index": 1
     },
     {
       "external_id": "adm-g5-eng-v1-grammar-030",
@@ -1868,13 +1868,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
+        "The room carried a tray of plants as the student walked carefully.",
         "Carrying a tray of plants, the student walked carefully across the room.",
         "The student walked carefully across the room carrying a tray of plants was heavy.",
-        "Carrying a tray of plants, the room was crossed carefully by the student.",
-        "The room carried a tray of plants as the student walked carefully."
+        "Carrying a tray of plants, the room was crossed carefully by the student."
       ],
       "correct_answer": "Carrying a tray of plants, the student walked carefully across the room.",
-      "correct_index": 0
+      "correct_index": 1
     },
     {
       "external_id": "adm-g5-eng-v1-vocab-001",
@@ -1898,13 +1898,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "fast",
         "quiet",
         "late",
+        "fast",
         "heavy"
       ],
       "correct_answer": "fast",
-      "correct_index": 0
+      "correct_index": 2
     },
     {
       "external_id": "adm-g5-eng-v1-vocab-002",
@@ -1928,13 +1928,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "modern",
-        "old",
         "broken",
-        "silent"
+        "silent",
+        "modern",
+        "old"
       ],
       "correct_answer": "modern",
-      "correct_index": 0
+      "correct_index": 2
     },
     {
       "external_id": "adm-g5-eng-v1-vocab-003",
@@ -1958,13 +1958,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "working with attention",
+        "feeling hungry",
         "moving very loudly",
         "finishing late",
-        "feeling hungry"
+        "working with attention"
       ],
       "correct_answer": "working with attention",
-      "correct_index": 0
+      "correct_index": 3
     },
     {
       "external_id": "adm-g5-eng-v1-vocab-004",
@@ -1989,9 +1989,9 @@
       "content_owner": "brain_heist",
       "options": [
         "again",
-        "not",
         "before",
-        "between"
+        "between",
+        "not"
       ],
       "correct_answer": "again",
       "correct_index": 0
@@ -2048,13 +2048,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "together",
         "yesterday",
+        "together",
         "blue",
         "above"
       ],
       "correct_answer": "together",
-      "correct_index": 0
+      "correct_index": 1
     },
     {
       "external_id": "adm-g5-eng-v1-vocab-007",
@@ -2078,13 +2078,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
+        "scatter",
         "observe",
         "forget",
-        "scatter",
         "borrow"
       ],
       "correct_answer": "observe",
-      "correct_index": 0
+      "correct_index": 1
     },
     {
       "external_id": "adm-g5-eng-v1-vocab-008",
@@ -2108,13 +2108,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
+        "busy",
         "quiet",
         "bright",
-        "rough",
-        "busy"
+        "rough"
       ],
       "correct_answer": "quiet",
-      "correct_index": 0
+      "correct_index": 1
     },
     {
       "external_id": "adm-g5-eng-v1-vocab-009",
@@ -2138,13 +2138,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "exclude",
         "invite",
         "collect",
+        "exclude",
         "explain"
       ],
       "correct_answer": "exclude",
-      "correct_index": 0
+      "correct_index": 2
     },
     {
       "external_id": "adm-g5-eng-v1-vocab-010",
@@ -2168,13 +2168,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "not wide",
-        "very noisy",
         "full of light",
-        "easy to lift"
+        "easy to lift",
+        "not wide",
+        "very noisy"
       ],
       "correct_answer": "not wide",
-      "correct_index": 0
+      "correct_index": 2
     },
     {
       "external_id": "adm-g5-eng-v1-vocab-011",
@@ -2198,13 +2198,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "without",
+        "again",
         "full of",
         "before",
-        "again"
+        "without"
       ],
       "correct_answer": "without",
-      "correct_index": 0
+      "correct_index": 3
     },
     {
       "external_id": "adm-g5-eng-v1-vocab-012",
@@ -2229,9 +2229,9 @@
       "content_owner": "brain_heist",
       "options": [
         "effect",
-        "title",
         "corner",
-        "season"
+        "season",
+        "title"
       ],
       "correct_answer": "effect",
       "correct_index": 0
@@ -2288,13 +2288,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "shrink",
         "increase",
+        "shrink",
         "spread",
         "extend"
       ],
       "correct_answer": "shrink",
-      "correct_index": 0
+      "correct_index": 1
     },
     {
       "external_id": "adm-g5-eng-v1-vocab-015",
@@ -2318,13 +2318,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
+        "colourful",
         "short",
         "angry",
-        "colourful",
         "unfinished"
       ],
       "correct_answer": "short",
-      "correct_index": 0
+      "correct_index": 1
     },
     {
       "external_id": "adm-g5-eng-v1-vocab-016",
@@ -2348,13 +2348,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
+        "written after an event",
         "able to be guessed before it happens",
         "not able to be read",
-        "full of pictures",
-        "written after an event"
+        "full of pictures"
       ],
       "correct_answer": "able to be guessed before it happens",
-      "correct_index": 0
+      "correct_index": 1
     },
     {
       "external_id": "adm-g5-eng-v1-vocab-017",
@@ -2378,13 +2378,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "recorded",
         "made",
         "did",
+        "recorded",
         "got"
       ],
       "correct_answer": "recorded",
-      "correct_index": 0
+      "correct_index": 2
     },
     {
       "external_id": "adm-g5-eng-v1-vocab-018",
@@ -2408,13 +2408,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "conclusion",
-        "decoration",
         "whisper",
-        "ladder"
+        "ladder",
+        "conclusion",
+        "decoration"
       ],
       "correct_answer": "conclusion",
-      "correct_index": 0
+      "correct_index": 2
     },
     {
       "external_id": "adm-g5-eng-v1-vocab-019",
@@ -2438,13 +2438,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "analyse",
+        "decorate",
         "polish",
         "deliver",
-        "decorate"
+        "analyse"
       ],
       "correct_answer": "analyse",
-      "correct_index": 0
+      "correct_index": 3
     },
     {
       "external_id": "adm-g5-eng-v1-vocab-020",
@@ -2469,9 +2469,9 @@
       "content_owner": "brain_heist",
       "options": [
         "careful about possible danger",
-        "eager to speak loudly",
         "quick to forget",
-        "unable to decide"
+        "unable to decide",
+        "eager to speak loudly"
       ],
       "correct_answer": "careful about possible danger",
       "correct_index": 0
@@ -2528,13 +2528,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "an agreement where each side gives up something",
         "a drawing of a building",
+        "an agreement where each side gives up something",
         "a list of new words",
         "a sudden loud noise"
       ],
       "correct_answer": "an agreement where each side gives up something",
-      "correct_index": 0
+      "correct_index": 1
     },
     {
       "external_id": "adm-g5-eng-v1-vocab-023",
@@ -2558,13 +2558,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
+        "before",
         "wrongly",
         "again",
-        "before",
         "many"
       ],
       "correct_answer": "wrongly",
-      "correct_index": 0
+      "correct_index": 1
     },
     {
       "external_id": "adm-g5-eng-v1-vocab-024",
@@ -2588,13 +2588,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
+        "sleepy",
         "detailed",
         "muddy",
-        "round",
-        "sleepy"
+        "round"
       ],
       "correct_answer": "detailed",
-      "correct_index": 0
+      "correct_index": 1
     },
     {
       "external_id": "adm-g5-eng-v1-vocab-025",
@@ -2618,13 +2618,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "viewpoint",
         "cupboard",
         "shadow",
+        "viewpoint",
         "temperature"
       ],
       "correct_answer": "viewpoint",
-      "correct_index": 0
+      "correct_index": 2
     },
     {
       "external_id": "adm-g5-eng-v1-vocab-026",
@@ -2648,13 +2648,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "data",
-        "fabric",
         "weather",
-        "equipment"
+        "equipment",
+        "data",
+        "fabric"
       ],
       "correct_answer": "data",
-      "correct_index": 0
+      "correct_index": 2
     },
     {
       "external_id": "adm-g5-eng-v1-vocab-027",
@@ -2678,13 +2678,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "working well without wasting time or effort",
+        "popular with every person",
         "interesting but impossible to test",
         "beautiful in colour and shape",
-        "popular with every person"
+        "working well without wasting time or effort"
       ],
       "correct_answer": "working well without wasting time or effort",
-      "correct_index": 0
+      "correct_index": 3
     },
     {
       "external_id": "adm-g5-eng-v1-vocab-028",
@@ -2709,9 +2709,9 @@
       "content_owner": "brain_heist",
       "options": [
         "not able to be prevented",
-        "easy to carry",
         "already explained",
-        "able to be forgotten"
+        "able to be forgotten",
+        "easy to carry"
       ],
       "correct_answer": "not able to be prevented",
       "correct_index": 0
@@ -2768,13 +2768,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "impartial",
         "impatient",
+        "impartial",
         "invisible",
         "impossible"
       ],
       "correct_answer": "impartial",
-      "correct_index": 0
+      "correct_index": 1
     },
     {
       "external_id": "adm-g5-eng-v1-writing-001",

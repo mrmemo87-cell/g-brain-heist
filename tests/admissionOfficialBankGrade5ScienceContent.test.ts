@@ -9,8 +9,7 @@ test('Grade 5 Science official bank v1 has required question count and MCQ shape
   for (const question of grade5.questions) {
     assert.equal(question.question_type, 'mcq');
     assert.equal(question.options.length, 4);
-    assert.equal(question.correct_index, 0);
-    assert.equal(question.correct_answer, question.options[0]);
+    assert.equal(question.correct_answer, question.options[question.correct_index]);
   }
 });
 
