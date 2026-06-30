@@ -195,31 +195,40 @@ const countDistributionQuestions = (questions: AdmQuestion[], distribution: Reco
   return { required, availableForRequired, canGenerate: missing.length === 0 && required > 0, missing };
 };
 
-const friendlyAdmissionError = (message?: string) => {
+export const friendlyAdmissionError = (message?: string, fallback = 'We could not complete that admission action. Please try again or contact support.') => {
   const text = (message || '').toLowerCase();
-  if (text.includes('duplicate') || text.includes('unique') || text.includes('question_order')) {
-    return 'We could not generate this test safely. Please try again or check that enough questions are available.';
+  if (text.includes('no question') || text.includes('not enough') || text.includes('matched') || text.includes('pool')) {
+    return 'Not enough official questions are available for this grade and subject yet.';
   }
-  if (text.includes('no question') || text.includes('not enough') || text.includes('matched')) {
-    return 'We could not find enough published questions for this setup. Please adjust the grade, subject, difficulty, or question count.';
+  if (text.includes('duplicate') || text.includes('unique') || text.includes('question_order') || text.includes('generate') || text.includes('publish')) {
+    return 'Test could not be generated. Please refresh, check question availability, and try again.';
   }
-  if (text.includes('access denied') || text.includes('permission')) {
-    return 'You do not have permission to create admission tests for this school.';
+  if (text.includes('token') || text.includes('link') || text.includes('not found')) {
+    return 'Candidate link unavailable. Please refresh the candidate list and copy a new link.';
   }
-  if (text.includes('already exists') || text.includes('idempotent')) {
-    return 'This admission test may already have been generated. Refresh the Admission Hub and check Advanced Test Forms before trying again.';
+  if (text.includes('report') || text.includes('result') || text.includes('attempt')) {
+    return 'Result not ready yet. Please wait until the candidate submits and scoring is complete.';
   }
-  return 'We could not generate this admission test. Please try again or check the question availability.';
+  if (text.includes('access denied') || text.includes('permission') || text.includes('rls') || text.includes('policy') || text.includes('jwt')) {
+    return 'Permission denied. Please check that you are signed in as a school admin for this school.';
+  }
+  if (text.includes('closed') || text.includes('not currently available') || text.includes('expired')) {
+    return 'This test is closed or no longer available.';
+  }
+  if (text.includes('rpc') || text.includes('database') || text.includes('sql') || text.includes('postgres') || text.includes('supabase')) {
+    return fallback;
+  }
+  return fallback;
 };
 
 // ── Pipeline Steps ──
 
 const PIPELINE_STEPS = [
-  { key: 'pools', icon: '🔒', label: 'Official Bank', desc: 'Locked content' },
-  { key: 'blueprints', icon: '📐', label: 'Blueprint', desc: 'Define test structure' },
-  { key: 'forms', icon: '📋', label: 'Test Form', desc: 'Generate & publish' },
-  { key: 'candidates', icon: '👤', label: 'Candidates', desc: 'Register & send links' },
-  { key: 'results', icon: '🏆', label: 'Results', desc: 'Score & place' },
+  { key: 'create', icon: '📝', label: 'Create admission test', desc: 'Choose grade and subject' },
+  { key: 'candidates', icon: '👤', label: 'Register candidates', desc: 'Add applicant details' },
+  { key: 'candidates', icon: '🔗', label: 'Send links', desc: 'Candidate-specific tests' },
+  { key: 'candidates', icon: '📍', label: 'Track status', desc: 'Sent, submitted, scored' },
+  { key: 'results', icon: '🏆', label: 'View results', desc: 'Recommendations' },
 ] as const;
 
 // ── Question types available per subject ──
@@ -450,7 +459,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       setAttempts(a);
       setPlacements(pl);
     } catch (err: any) {
-      addToast(err.message || 'Failed to load admission data', 'error');
+      console.warn('Admission data load failed', err);
+      addToast(friendlyAdmissionError(err.message, 'Admission Hub could not load right now. Please refresh and try again.'), 'error');
     } finally {
       setLoading(false);
     }
@@ -673,7 +683,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       setBpName(''); setBpPoolId(null); setBpDistribution(BLUEPRINT_PRESETS[bpSubject]?.distribution || '{}');
       await loadAll();
     } catch (err: any) {
-      addToast(err.message || 'Failed to create blueprint', 'error');
+      console.warn('Admission setup save failed', err);
+      addToast(friendlyAdmissionError(err.message, 'Test setup could not be saved. Please try again.'), 'error');
     } finally {
       setCreatingBlueprint(false);
     }
@@ -697,7 +708,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
         setGenFormCode('');
         await loadAll();
       } else {
-        addToast(res.error || 'Failed to generate form', 'error');
+        addToast(friendlyAdmissionError(res.error, 'Test could not be generated. Please check availability and try again.'), 'error');
       }
     } finally {
       setIsGeneratingForm(false);
@@ -707,38 +718,38 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   const handlePublishForm = async (formId: string) => {
     const res = await AdmService.publishForm(formId);
     if (res.success) { addToast('Form published', 'success'); await loadAll(); }
-    else addToast(res.error || 'Failed to publish', 'error');
+    else addToast(friendlyAdmissionError(res.error, 'Test could not be made available. Please try again.'), 'error');
   };
 
   const handleCloseForm = async (formId: string) => {
     const res = await AdmService.closeForm(formId);
     if (res.success) { addToast('Form closed', 'success'); await loadAll(); }
-    else addToast(res.error || 'Failed to close', 'error');
+    else addToast(friendlyAdmissionError(res.error, 'Test could not be closed. Please try again.'), 'error');
   };
 
   // Delete handlers
   const handleDeleteBlueprint = async (id: string) => {
     if (!confirm('Delete this blueprint? Any generated forms from it will remain.')) return;
     try { await AdmService.deleteBlueprint(id); addToast('Blueprint deleted', 'success'); await loadAll(); }
-    catch (err: any) { addToast(err.message || 'Failed to delete blueprint', 'error'); }
+    catch (err: any) { console.warn('Admission setup delete failed', err); addToast(friendlyAdmissionError(err.message, 'Test setup could not be deleted.'), 'error'); }
   };
 
   const handleDeleteForm = async (id: string) => {
     if (!confirm('Delete this test form and all its questions? Existing attempts will also be affected.')) return;
     try { await AdmService.deleteTestForm(id); addToast('Form deleted', 'success'); await loadAll(); }
-    catch (err: any) { addToast(err.message || 'Failed to delete form', 'error'); }
+    catch (err: any) { console.warn('Admission test delete failed', err); addToast(friendlyAdmissionError(err.message, 'Test could not be deleted.'), 'error'); }
   };
 
   const handleDeleteCandidate = async (id: string) => {
     if (!confirm('Delete this candidate and ALL their test data (attempts, answers, placements)? This cannot be undone.')) return;
     try { await AdmService.deleteCandidate(id); addToast('Candidate deleted', 'success'); await loadAll(); }
-    catch (err: any) { addToast(err.message || 'Failed to delete candidate', 'error'); }
+    catch (err: any) { console.warn('Admission candidate delete failed', err); addToast(friendlyAdmissionError(err.message, 'Candidate could not be deleted.'), 'error'); }
   };
 
   const handleDeleteAttempt = async (id: string) => {
     if (!confirm('Delete this test attempt and its answers? This cannot be undone.')) return;
     try { await AdmService.deleteAttempt(id); addToast('Attempt deleted', 'success'); await loadAll(); }
-    catch (err: any) { addToast(err.message || 'Failed to delete attempt', 'error'); }
+    catch (err: any) { console.warn('Admission attempt delete failed', err); addToast(friendlyAdmissionError(err.message, 'Attempt history could not be deleted.'), 'error'); }
   };
 
   const handleCreateCandidate = async () => {
@@ -767,7 +778,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       setCandName(''); setCandEmail(''); setCandPhone(''); setCandAppliedGrade(''); setCandCurrentGrade(''); setCandDob(''); setCandPreviousCurriculum(''); setCandPreviousSchoolLanguage(''); setCandHomeLanguage(''); setCandYearsEnglishMedium(''); setCandNotes('');
       await loadAll();
     } catch (err: any) {
-      addToast(err.message || 'Failed to create candidate', 'error');
+      console.warn('Admission candidate create failed', err);
+      addToast(friendlyAdmissionError(err.message, 'Candidate could not be registered. Please check the details and try again.'), 'error');
     } finally {
       setCreatingCandidate(false);
     }
@@ -798,7 +810,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       setBulkMode(false);
       await loadAll();
     } catch (err: any) {
-      addToast(err.message || 'Bulk import failed', 'error');
+      console.warn('Admission candidate bulk import failed', err);
+      addToast(friendlyAdmissionError(err.message, 'Candidate import could not be completed. Please check the pasted list.'), 'error');
     } finally {
       setCreatingCandidate(false);
     }
@@ -827,7 +840,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       const report = await AdmService.getCandidateReport(attemptId);
       setReportData(report);
     } catch {
-      addToast('Failed to load report', 'error');
+      addToast(friendlyAdmissionError('report not ready', 'Result not ready yet. Please wait until scoring is complete.'), 'error');
       setShowReport(false);
     } finally {
       setReportLoading(false);
@@ -874,7 +887,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       // Reload attempt list so the Results table also shows updated scores
       await loadAll();
     } catch (err: any) {
-      addToast(`AI report failed: ${err.message}`, 'error');
+      console.warn('Admission AI report failed', err);
+      addToast(friendlyAdmissionError(err.message, 'Recommendation report could not be generated yet.'), 'error');
     } finally {
       setGeneratingAiReport(false);
     }
@@ -883,7 +897,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   const handleRecordPlacement = async (attemptId: string, band: PlacementBand) => {
     const res = await AdmService.recordPlacement(attemptId, band, null, null, null);
     if (res.success) { addToast('Placement recorded', 'success'); await loadAll(); }
-    else addToast(res.error || 'Failed', 'error');
+    else addToast(friendlyAdmissionError(res.error), 'error');
   };
 
   // ── Tab config ──
@@ -1128,7 +1142,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
               <h3 className="font-semibold text-white">Step 4: Review & Generate</h3>
               <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 p-4 text-cyan-50">This will create a Grade {wizardGrade} {wizardSubjectLabel} admission test with {wizardQuestionCount} questions, {wizardDuration} minutes, {WIZARD_DIFFICULTY_META[wizardDifficulty].label.toLowerCase()} difficulty, pass mark {wizardPassPercentage}%.</div>
               {wizardDescription.trim() && <div className="rounded-lg border border-gray-700 bg-slate-900/60 p-3 text-sm text-gray-300"><span className="font-semibold text-white">Internal setup note only:</span> {wizardDescription}<div className="mt-1 text-[11px] text-amber-200/80">This note is not saved or shown to candidates.</div></div>}
-              <div className="text-xs text-gray-500">Behind the scenes, this creates an admission blueprint, generates a test form, and publishes it so candidates can take it.</div>
+              <div className="text-xs text-gray-500">We’ll prepare and activate the test for candidate-specific links.</div>
               <div className="flex gap-2"><button onClick={() => setWizardStep(3)} disabled={wizardGenerating} className={btnSecondary}>Back</button><button onClick={handleWizardGenerate} disabled={wizardGenerating || !wizardCanGenerate} className={btnPrimary}>{wizardGenerating ? 'Generating admission test…' : 'Generate Admission Test'}</button></div>
             </div>
           )}
@@ -1697,6 +1711,21 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
             </div>
           )}
 
+          {/* Grade 5 package guidance */}
+          <div className="rounded-xl border border-cyan-500/25 bg-cyan-950/20 p-4">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <h3 className="text-sm font-semibold text-white">Grade 5 Admission Package</h3>
+                <p className="text-xs text-cyan-100/80 mt-1">Recommended bundle: English required, Maths required, Science optional. Register one candidate once, then send each matching subject link below.</p>
+              </div>
+              <div className="flex flex-wrap gap-2 text-[11px]">
+                <span className="px-2 py-1 rounded-full bg-emerald-500/15 text-emerald-200 border border-emerald-500/30">English required</span>
+                <span className="px-2 py-1 rounded-full bg-emerald-500/15 text-emerald-200 border border-emerald-500/30">Maths required</span>
+                <span className="px-2 py-1 rounded-full bg-slate-700/60 text-gray-200 border border-gray-600">Science optional</span>
+              </div>
+            </div>
+          </div>
+
           {/* Search & Filter Bar */}
           {candidates.length > 0 && (
             <div className="flex items-center gap-3 flex-wrap">
@@ -1706,7 +1735,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   className={`${inputClass} pl-9`}
                   value={candSearch}
                   onChange={e => setCandSearch(e.target.value)}
-                  placeholder="Search by name, email, or token…"
+                  placeholder="Search by name or contact…"
                 />
               </div>
               <select
@@ -1757,7 +1786,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                       <tr key={c.id} className="text-gray-300 hover:bg-slate-700/30 transition">
                         <td className="py-3 pr-4">
                           <div className="font-medium text-white">{c.full_name}</div>
-                          <div className="text-[10px] text-gray-500 font-mono mt-0.5">{c.token.slice(0, 12)}…</div>
+                          <div className="text-[10px] text-gray-500 mt-0.5">Candidate-specific links are private</div>
                         </td>
                         <td className="py-3 pr-4 text-xs">
                           {c.email && <div>{c.email}</div>}
