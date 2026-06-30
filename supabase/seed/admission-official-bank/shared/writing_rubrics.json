@@ -38,6 +38,45 @@
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
+    },
+    {
+      "external_id": "adm-g6-eng-v1-writing-rubric-15pt",
+      "name": "Grade 6 English Admission Writing Rubric \u2014 15 marks",
+      "subject": "english",
+      "grade_level": 6,
+      "stage_level": "primary",
+      "max_marks": 15,
+      "criteria": [
+        {
+          "name": "Ideas and task response",
+          "marks": 5,
+          "descriptors": [
+            "Responds fully to the prompt with relevant, developed ideas.",
+            "Uses specific details suitable for a Grade 6 admission response."
+          ]
+        },
+        {
+          "name": "Organisation and cohesion",
+          "marks": 5,
+          "descriptors": [
+            "Organises ideas into clear paragraphs or a purposeful sequence.",
+            "Uses linking words and transitions to guide the reader."
+          ]
+        },
+        {
+          "name": "Language accuracy and vocabulary",
+          "marks": 5,
+          "descriptors": [
+            "Uses precise vocabulary and varied sentence structures.",
+            "Controls punctuation, spelling, grammar, and tone so meaning is clear."
+          ]
+        }
+      ],
+      "content_version": "adm-bank-v1-g6-english",
+      "source_label": "Brain Heist Official Admission Bank",
+      "is_official": true,
+      "is_locked": true,
+      "content_owner": "brain_heist"
     }
   ]
 }

@@ -7,8 +7,8 @@ const passages = JSON.parse(readFileSync('supabase/seed/admission-official-bank/
 const rubrics = JSON.parse(readFileSync('supabase/seed/admission-official-bank/shared/writing_rubrics.json', 'utf8'));
 
 test('Grade 5 English official bank v1 has required content counts', () => {
-  assert.equal(passages.passages.length, 5);
-  assert.equal(rubrics.rubrics.length, 1);
+  assert.equal(passages.passages.filter((passage: any) => passage.grade_level === 5).length, 5);
+  assert.equal(rubrics.rubrics.filter((rubric: any) => rubric.grade_level === 5).length, 1);
   assert.equal(grade5.questions.length, 96);
 
   const byType = new Map<string, number>();
@@ -29,7 +29,7 @@ test('Grade 5 English official bank v1 has intended placement band distribution'
 test('Grade 5 English official bank v1 uses production metadata and no sample labels', () => {
   assert.equal(grade5.content_version, 'adm-bank-v1-g5-english');
   assert.equal(grade5.source_label, 'Brain Heist Official Admission Bank');
-  for (const record of [...grade5.pools, ...grade5.questions, ...passages.passages, ...rubrics.rubrics]) {
+  for (const record of [...grade5.pools, ...grade5.questions, ...passages.passages.filter((passage: any) => passage.grade_level === 5), ...rubrics.rubrics.filter((rubric: any) => rubric.grade_level === 5)]) {
     assert.equal(record.content_version, 'adm-bank-v1-g5-english');
     assert.equal(record.source_label, 'Brain Heist Official Admission Bank');
     assert.equal(record.is_official, true);

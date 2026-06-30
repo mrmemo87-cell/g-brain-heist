@@ -113,8 +113,8 @@ test('official admission bank import dry-run summarizes without Supabase mutatio
   const output = `${result.stdout}\n${result.stderr}`;
   assert.equal(result.status, 0, output);
   assert.match(output, /import dry-run for staging/);
-  assert.match(output, /Pools: 9/);
-  assert.match(output, /Questions: 256/);
+  assert.match(output, /Pools: 18/);
+  assert.match(output, /Questions: 512/);
   assert.doesNotMatch(output, /upserted/);
 });
 
