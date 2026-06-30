@@ -15,6 +15,7 @@ import type {
   PlacementBand,
 } from '../services/admissionService';
 import { supabase } from '../services/supabaseClient';
+import { buildAdmissionWizardBlueprintName, buildAdmissionWizardDefaultName, getAdmissionWizardSubjectLabel } from '../src/lib/admissionWizardNaming';
 
 // ── Types ──
 
@@ -262,7 +263,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
   // Guided wizard
   const [wizardStep, setWizardStep] = useState(1);
-  const [wizardName, setWizardName] = useState('Grade 7 English Admission Test');
+  const [wizardName, setWizardName] = useState(() => buildAdmissionWizardDefaultName(7, 'english'));
+  const [wizardNameEdited, setWizardNameEdited] = useState(false);
   const [wizardGrade, setWizardGrade] = useState(7);
   const [wizardSubject, setWizardSubject] = useState('english');
   const [wizardDescription, setWizardDescription] = useState('');
@@ -364,12 +366,34 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   const wizardDistribution = useMemo(() => buildWizardDistribution(wizardQuestionCount, wizardDifficulty, wizardQuestions), [wizardQuestionCount, wizardDifficulty, wizardQuestions]);
   const wizardAvailability = useMemo(() => countDistributionQuestions(wizardQuestions, wizardDistribution), [wizardQuestions, wizardDistribution]);
   const wizardCanGenerate = wizardAvailability.canGenerate && wizardAvailability.required === wizardQuestionCount;
-  const wizardSubjectLabel = BLUEPRINT_PRESETS[wizardSubject]?.label || wizardSubject;
+  const wizardSubjectLabel = getAdmissionWizardSubjectLabel(wizardSubject);
   const wizardFormCode = useMemo(() => {
     const subjectCode = wizardSubject.slice(0, 3).toUpperCase();
     const suffix = Math.abs([...`${schoolId || ''}-${wizardName}-${wizardGrade}-${wizardSubject}`].reduce((sum, ch) => sum + ch.charCodeAt(0), 0)).toString(36).toUpperCase().slice(-3).padStart(3, '0');
     return `${subjectCode}${wizardGrade}-${new Date().getFullYear()}-${suffix}`;
   }, [schoolId, wizardName, wizardGrade, wizardSubject]);
+
+
+  const resetWizardForNewTest = useCallback(() => {
+    const defaultGrade = 7;
+    const defaultSubject = 'english';
+    setWizardStep(1);
+    setWizardGrade(defaultGrade);
+    setWizardSubject(defaultSubject);
+    setWizardName(buildAdmissionWizardDefaultName(defaultGrade, defaultSubject));
+    setWizardNameEdited(false);
+    setWizardDescription('');
+    setWizardDifficulty('balanced');
+    setWizardQuestionCount(25);
+    setWizardDuration(WIZARD_DIFFICULTY_META.balanced.duration);
+    setWizardPassPercentage(WIZARD_DIFFICULTY_META.balanced.pass);
+    setWizardSource('auto');
+    setWizardPoolId('');
+    setWizardQuestions([]);
+    setWizardError(null);
+    setWizardResult(null);
+    setWizardBlueprintId(null);
+  }, []);
 
   useEffect(() => {
     const meta = WIZARD_DIFFICULTY_META[wizardDifficulty];
@@ -380,9 +404,14 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   }, [wizardDifficulty]);
 
   useEffect(() => {
-    setWizardName(`Grade ${wizardGrade} ${BLUEPRINT_PRESETS[wizardSubject]?.label || wizardSubject} Admission Test`);
+    if (!wizardNameEdited) {
+      setWizardName(buildAdmissionWizardDefaultName(wizardGrade, wizardSubject));
+    }
     setWizardPoolId('');
-  }, [wizardGrade, wizardSubject]);
+    setWizardBlueprintId(null);
+    setWizardResult(null);
+    setWizardError(null);
+  }, [wizardGrade, wizardSubject, wizardNameEdited]);
 
   useEffect(() => {
     let cancelled = false;
@@ -420,7 +449,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
         blueprint = await AdmService.createBlueprint({
           school_id: schoolId,
           pool_id: wizardSource === 'pool' ? wizardPoolId : null,
-          name: wizardName.trim().startsWith('Admission Test Wizard —') ? wizardName.trim() : `Admission Test Wizard — ${wizardName.trim()}`,
+          name: buildAdmissionWizardBlueprintName(wizardName),
           subject: wizardSubject,
           target_grade: wizardGrade,
           target_stage: wizardGrade,
@@ -441,7 +470,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       if (!publishRes.success) throw new Error(publishRes.error || 'Publish failed');
       await loadAll();
       const createdForm = (await AdmService.fetchTestForms(schoolId)).find(f => f.id === res.form_id) || null;
-      setWizardResult({ blueprint, form: createdForm, formCode: wizardFormCode });
+      setWizardResult({ blueprint, form: createdForm, formCode: createdForm?.form_code || wizardFormCode });
       setWizardStep(5);
       addToast('Admission test generated and ready to share', 'success');
     } catch (err: any) {
@@ -941,9 +970,9 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
             <div className="rounded-xl border border-gray-700 bg-slate-800/70 p-5 space-y-4">
               <h3 className="font-semibold text-white">Step 1: Test basics</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2"><label className="block text-xs font-semibold text-gray-300 mb-1">Test name</label><input className={inputClass} value={wizardName} onChange={e => setWizardName(e.target.value)} /></div>
+                <div className="md:col-span-2"><label className="block text-xs font-semibold text-gray-300 mb-1">Test name</label><input className={inputClass} value={wizardName} onChange={e => { setWizardNameEdited(true); setWizardName(e.target.value); }} /></div>
                 <div><label className="block text-xs font-semibold text-gray-300 mb-1">Grade / Stage</label><input type="number" min={1} className={inputClass} value={wizardGrade} onChange={e => setWizardGrade(+e.target.value)} /></div>
-                <div><label className="block text-xs font-semibold text-gray-300 mb-1">Subject</label><select className={inputClass} value={wizardSubject} onChange={e => setWizardSubject(e.target.value)}><option value="english">English</option><option value="math">Mathematics</option><option value="science">Science</option><option value="chemistry">Chemistry</option></select></div>
+                <div><label className="block text-xs font-semibold text-gray-300 mb-1">Subject</label><select className={inputClass} value={wizardSubject} onChange={e => setWizardSubject(e.target.value)}><option value="english">English</option><option value="math">Maths</option><option value="science">Science</option><option value="chemistry">Chemistry</option></select></div>
                 <div className="md:col-span-2"><label className="block text-xs font-semibold text-gray-300 mb-1">Internal setup note <span className="text-gray-500">(optional, not shown to candidates yet)</span></label><textarea className={inputClass} rows={3} value={wizardDescription} onChange={e => setWizardDescription(e.target.value)} placeholder="Example: Remind office staff that calculators are not allowed. This note is not saved to the test." /><p className="mt-1 text-[11px] text-amber-200/80">Candidate-facing instructions are not supported by the current admission test backend, so this note is only for this setup session.</p></div>
               </div>
               <button onClick={() => setWizardStep(2)} disabled={!wizardName.trim()} className={btnPrimary}>Next: Test style</button>
@@ -1003,7 +1032,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   <div className="rounded-lg bg-slate-900/60 p-3"><div className="text-xs text-gray-400">Form code</div><div className="font-mono text-lg text-cyan-200">{wizardResult.formCode}</div></div>
                   <div className="rounded-lg bg-slate-900/60 p-3"><div className="text-xs text-gray-400">Status</div><div>{statusPill(wizardResult.form?.status || 'published')}</div></div>
                 </div>
-                <div className="flex flex-wrap gap-2"><button onClick={() => { navigator.clipboard.writeText(wizardResult.formCode); addToast('Form code copied', 'success'); }} className={btnPrimary}>Copy form code</button><button onClick={() => setActiveTab('candidates')} className={btnSecondary}>Go to Candidates</button><button onClick={() => setActiveTab('results')} className={btnSecondary}>Go to Results</button><button onClick={() => setActiveTab('forms')} className={btnSecondary}>Manage in Advanced Test Forms</button></div>
+                <div className="flex flex-wrap gap-2"><button onClick={() => { navigator.clipboard.writeText(wizardResult.formCode); addToast('Form code copied', 'success'); }} className={btnPrimary}>Copy form code</button><button onClick={() => setActiveTab('candidates')} className={btnSecondary}>Go to Candidates</button><button onClick={() => setActiveTab('results')} className={btnSecondary}>Go to Results</button><button onClick={() => setActiveTab('forms')} className={btnSecondary}>Manage in Advanced Test Forms</button><button onClick={resetWizardForNewTest} className={btnSecondary}>Start another admission test</button></div>
               </> : <p className="text-sm text-gray-300">Generate an admission test first, then sharing options will appear here.</p>}
             </div>
           )}
@@ -1418,7 +1447,9 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
             </div>
           ) : (
             <div className="space-y-3">
-              {forms.map((f) => (
+              {forms.map((f) => {
+                const bp = blueprints.find(b => b.id === f.blueprint_id);
+                return (
                 <div key={f.id} className="rounded-xl border border-gray-700 bg-slate-800/60 p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -1439,12 +1470,14 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                       <button onClick={() => handleDeleteForm(f.id)} className="text-xs px-2 py-1 rounded bg-red-600/20 text-red-400 hover:bg-red-600/40 transition" title="Delete form">🗑</button>
                     </div>
                   </div>
+                  {bp && <div className="mt-2 text-sm font-medium text-gray-200">{bp.name}</div>}
                   <div className="text-xs text-gray-500 mt-1">
                     Created {new Date(f.created_at).toLocaleString()}
                     {f.published_at && ` · Published ${new Date(f.published_at).toLocaleString()}`}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
