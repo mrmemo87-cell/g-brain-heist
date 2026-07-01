@@ -59,7 +59,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'The Lantern Club', which answer best shows main idea?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -90,7 +90,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'The Lantern Club', which answer best shows detail retrieval?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -121,7 +121,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'The Lantern Club', which answer best shows inference?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -152,7 +152,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'The Lantern Club', which answer best shows vocabulary in context?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -183,7 +183,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'The Lantern Club', which answer best shows author purpose?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -214,7 +214,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'The Lantern Club', which answer best shows text structure?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -245,7 +245,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'Why Wetlands Matter', which answer best shows main idea?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -276,7 +276,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'Why Wetlands Matter', which answer best shows detail retrieval?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -307,7 +307,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'Why Wetlands Matter', which answer best shows inference?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -338,7 +338,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'Why Wetlands Matter', which answer best shows vocabulary in context?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -369,7 +369,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'Why Wetlands Matter', which answer best shows author purpose?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -400,7 +400,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'Why Wetlands Matter', which answer best shows text structure?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -431,7 +431,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'How a Sundial Tells Time', which answer best shows main idea?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -462,7 +462,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'How a Sundial Tells Time', which answer best shows detail retrieval?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -493,7 +493,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'How a Sundial Tells Time', which answer best shows inference?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -524,7 +524,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'How a Sundial Tells Time', which answer best shows vocabulary in context?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -555,7 +555,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'How a Sundial Tells Time', which answer best shows author purpose?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -586,7 +586,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'How a Sundial Tells Time', which answer best shows text structure?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -617,7 +617,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'The Morning Market', which answer best shows main idea?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -648,7 +648,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'The Morning Market', which answer best shows detail retrieval?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -679,7 +679,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'The Morning Market', which answer best shows inference?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -710,7 +710,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'The Morning Market', which answer best shows vocabulary in context?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -741,7 +741,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'The Morning Market', which answer best shows author purpose?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -772,7 +772,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'The Morning Market', which answer best shows text structure?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -803,7 +803,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'Green Team Notice', which answer best shows main idea?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -834,7 +834,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'Green Team Notice', which answer best shows detail retrieval?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -865,7 +865,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'Green Team Notice', which answer best shows inference?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -896,7 +896,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'Green Team Notice', which answer best shows vocabulary in context?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -927,7 +927,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'Green Team Notice', which answer best shows author purpose?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -958,7 +958,7 @@
       "difficulty": "easy",
       "question_type": "reading_comprehension",
       "prompt": "In 'Green Team Notice', which answer best shows text structure?",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "explanation": "The correct answer is supported by details and clues in the linked passage.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -988,8 +988,8 @@
       "subskill": "verb tenses",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct verb tenses: item 1.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence uses verb tenses correctly?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -999,8 +999,8 @@
       "content_owner": "brain_heist",
       "options": [
         "The students was ready before the bell rang.",
-        "The students ready before the bell rang.",
         "The students were ready before the bell rung.",
+        "The students ready before the bell rang.",
         "The students were ready before the bell rang."
       ],
       "correct_answer": "The students were ready before the bell rang.",
@@ -1018,8 +1018,8 @@
       "subskill": "subject-verb agreement",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct subject-verb agreement: item 2.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence has correct subject-verb agreement?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1028,12 +1028,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students was ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rang.",
-        "The students were ready before the bell rung."
+        "Each of the players have a clean uniform.",
+        "Each players has a clean uniform.",
+        "Each of the players has a clean uniform.",
+        "Each of the players are a clean uniform."
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "Each of the players has a clean uniform.",
       "correct_index": 2
     },
     {
@@ -1048,8 +1048,8 @@
       "subskill": "punctuation",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct punctuation: item 3.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence is punctuated correctly?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1058,12 +1058,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students were ready before the bell rang.",
-        "The students was ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rung."
+        "After lunch, Maya asked, \u201cMay I borrow your ruler?\u201d",
+        "After lunch Maya asked may I borrow your ruler",
+        "After lunch, Maya asked May I borrow your ruler?",
+        "After lunch Maya asked, \u201cMay I borrow your ruler\u201d."
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "After lunch, Maya asked, \u201cMay I borrow your ruler?\u201d",
       "correct_index": 0
     },
     {
@@ -1078,8 +1078,8 @@
       "subskill": "pronouns",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct pronouns: item 4.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence uses pronouns correctly?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1088,12 +1088,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students was ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rang.",
-        "The students were ready before the bell rung."
+        "Me and Sofia finished our project before dinner.",
+        "Sofia and me finished our project before dinner.",
+        "Sofia and I finished our project before dinner.",
+        "Sofia and myself finished our project before dinner."
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "Sofia and I finished our project before dinner.",
       "correct_index": 2
     },
     {
@@ -1108,8 +1108,8 @@
       "subskill": "sentence structure",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct sentence structure: item 5.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence is complete and clearly written?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1118,12 +1118,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students was ready before the bell rang.",
-        "The students were ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rung."
+        "Although the path was muddy. The team reached the field on time.",
+        "Although the path was muddy, the team reached the field on time.",
+        "The path muddy, the team reached the field on time.",
+        "Although muddy the field on time."
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "Although the path was muddy, the team reached the field on time.",
       "correct_index": 1
     },
     {
@@ -1138,8 +1138,8 @@
       "subskill": "conjunctions",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct conjunctions: item 6.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence joins the ideas most clearly?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1148,12 +1148,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students was ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rung.",
-        "The students were ready before the bell rang."
+        "The rain stopped, because the match began on schedule.",
+        "The rain stopped the match began on schedule.",
+        "The rain stopped, but so the match began on schedule.",
+        "The rain stopped, so the match began on schedule."
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "The rain stopped, so the match began on schedule.",
       "correct_index": 3
     },
     {
@@ -1168,8 +1168,8 @@
       "subskill": "articles/determiners",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct articles/determiners: item 7.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence uses the correct article or determiner?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1178,12 +1178,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students was ready before the bell rang.",
-        "The students were ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rung."
+        "A honest answer is better than a quick guess.",
+        "An honest answer is better than a quick guess.",
+        "The honest answer is better than an quick guess.",
+        "Honest answer is better than quick guess."
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "An honest answer is better than a quick guess.",
       "correct_index": 1
     },
     {
@@ -1198,8 +1198,8 @@
       "subskill": "prepositions",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct prepositions: item 8.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence uses the preposition correctly?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1208,12 +1208,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students were ready before the bell rang.",
-        "The students was ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rung."
+        "The keys are inside the drawer beside the window.",
+        "The keys are into the drawer beside the window.",
+        "The keys are on the drawer beside from the window.",
+        "The keys are between the drawer beside the window."
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "The keys are inside the drawer beside the window.",
       "correct_index": 0
     },
     {
@@ -1228,8 +1228,8 @@
       "subskill": "common error correction",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct common error correction: item 9.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence corrects the error in the underlined idea?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1238,12 +1238,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students was ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rung.",
-        "The students were ready before the bell rang."
+        "The children was excited because their trip started early.",
+        "The children were exciting because there trip started early.",
+        "The childrens were excited because their trip start early.",
+        "The children were excited because their trip started early."
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "The children were excited because their trip started early.",
       "correct_index": 3
     },
     {
@@ -1258,8 +1258,8 @@
       "subskill": "verb tenses",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct verb tenses: item 10.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence uses verb tenses correctly?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1269,9 +1269,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The students was ready before the bell rang.",
-        "The students ready before the bell rang.",
+        "The students were ready before the bell rung.",
         "The students were ready before the bell rang.",
-        "The students were ready before the bell rung."
+        "The students ready before the bell rang."
       ],
       "correct_answer": "The students were ready before the bell rang.",
       "correct_index": 2
@@ -1288,8 +1288,8 @@
       "subskill": "subject-verb agreement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct subject-verb agreement: item 11.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence has correct subject-verb agreement?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1298,12 +1298,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students were ready before the bell rang.",
-        "The students was ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rung."
+        "Each of the players has a clean uniform.",
+        "Each of the players have a clean uniform.",
+        "Each players has a clean uniform.",
+        "Each of the players are a clean uniform."
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "Each of the players has a clean uniform.",
       "correct_index": 0
     },
     {
@@ -1318,8 +1318,8 @@
       "subskill": "punctuation",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct punctuation: item 12.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence is punctuated correctly?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1328,12 +1328,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students was ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rang.",
-        "The students were ready before the bell rung."
+        "After lunch Maya asked may I borrow your ruler",
+        "After lunch, Maya asked May I borrow your ruler?",
+        "After lunch, Maya asked, \u201cMay I borrow your ruler?\u201d",
+        "After lunch Maya asked, \u201cMay I borrow your ruler\u201d."
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "After lunch, Maya asked, \u201cMay I borrow your ruler?\u201d",
       "correct_index": 2
     },
     {
@@ -1348,8 +1348,8 @@
       "subskill": "pronouns",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct pronouns: item 13.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence uses pronouns correctly?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1358,12 +1358,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students was ready before the bell rang.",
-        "The students were ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rung."
+        "Me and Sofia finished our project before dinner.",
+        "Sofia and I finished our project before dinner.",
+        "Sofia and me finished our project before dinner.",
+        "Sofia and myself finished our project before dinner."
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "Sofia and I finished our project before dinner.",
       "correct_index": 1
     },
     {
@@ -1378,8 +1378,8 @@
       "subskill": "sentence structure",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct sentence structure: item 14.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence is complete and clearly written?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1388,12 +1388,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students was ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rung.",
-        "The students were ready before the bell rang."
+        "Although the path was muddy. The team reached the field on time.",
+        "The path muddy, the team reached the field on time.",
+        "Although muddy the field on time.",
+        "Although the path was muddy, the team reached the field on time."
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "Although the path was muddy, the team reached the field on time.",
       "correct_index": 3
     },
     {
@@ -1408,8 +1408,8 @@
       "subskill": "conjunctions",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct conjunctions: item 15.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence joins the ideas most clearly?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1418,12 +1418,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students was ready before the bell rang.",
-        "The students were ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rung."
+        "The rain stopped, because the match began on schedule.",
+        "The rain stopped, so the match began on schedule.",
+        "The rain stopped the match began on schedule.",
+        "The rain stopped, but so the match began on schedule."
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "The rain stopped, so the match began on schedule.",
       "correct_index": 1
     },
     {
@@ -1438,8 +1438,8 @@
       "subskill": "articles/determiners",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct articles/determiners: item 16.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence uses the correct article or determiner?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1448,12 +1448,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students were ready before the bell rang.",
-        "The students was ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rung."
+        "An honest answer is better than a quick guess.",
+        "A honest answer is better than a quick guess.",
+        "The honest answer is better than an quick guess.",
+        "Honest answer is better than quick guess."
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "An honest answer is better than a quick guess.",
       "correct_index": 0
     },
     {
@@ -1468,8 +1468,8 @@
       "subskill": "prepositions",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct prepositions: item 17.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence uses the preposition correctly?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1478,12 +1478,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students was ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rung.",
-        "The students were ready before the bell rang."
+        "The keys are into the drawer beside the window.",
+        "The keys are on the drawer beside from the window.",
+        "The keys are between the drawer beside the window.",
+        "The keys are inside the drawer beside the window."
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "The keys are inside the drawer beside the window.",
       "correct_index": 3
     },
     {
@@ -1498,8 +1498,8 @@
       "subskill": "common error correction",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct common error correction: item 18.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence corrects the error in the underlined idea?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1508,12 +1508,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students was ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rang.",
-        "The students were ready before the bell rung."
+        "The children was excited because their trip started early.",
+        "The children were exciting because there trip started early.",
+        "The children were excited because their trip started early.",
+        "The childrens were excited because their trip start early."
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "The children were excited because their trip started early.",
       "correct_index": 2
     },
     {
@@ -1528,8 +1528,8 @@
       "subskill": "verb tenses",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct verb tenses: item 19.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence uses verb tenses correctly?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1540,8 +1540,8 @@
       "options": [
         "The students were ready before the bell rang.",
         "The students was ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rung."
+        "The students were ready before the bell rung.",
+        "The students ready before the bell rang."
       ],
       "correct_answer": "The students were ready before the bell rang.",
       "correct_index": 0
@@ -1558,8 +1558,8 @@
       "subskill": "subject-verb agreement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct subject-verb agreement: item 20.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence has correct subject-verb agreement?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1568,12 +1568,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students was ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rang.",
-        "The students were ready before the bell rung."
+        "Each of the players have a clean uniform.",
+        "Each players has a clean uniform.",
+        "Each of the players has a clean uniform.",
+        "Each of the players are a clean uniform."
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "Each of the players has a clean uniform.",
       "correct_index": 2
     },
     {
@@ -1588,8 +1588,8 @@
       "subskill": "punctuation",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct punctuation: item 21.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence is punctuated correctly?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1598,12 +1598,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students was ready before the bell rang.",
-        "The students were ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rung."
+        "After lunch Maya asked may I borrow your ruler",
+        "After lunch, Maya asked, \u201cMay I borrow your ruler?\u201d",
+        "After lunch, Maya asked May I borrow your ruler?",
+        "After lunch Maya asked, \u201cMay I borrow your ruler\u201d."
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "After lunch, Maya asked, \u201cMay I borrow your ruler?\u201d",
       "correct_index": 1
     },
     {
@@ -1618,8 +1618,8 @@
       "subskill": "pronouns",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct pronouns: item 22.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence uses pronouns correctly?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1628,12 +1628,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students was ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rung.",
-        "The students were ready before the bell rang."
+        "Me and Sofia finished our project before dinner.",
+        "Sofia and me finished our project before dinner.",
+        "Sofia and myself finished our project before dinner.",
+        "Sofia and I finished our project before dinner."
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "Sofia and I finished our project before dinner.",
       "correct_index": 3
     },
     {
@@ -1648,8 +1648,8 @@
       "subskill": "sentence structure",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct sentence structure: item 23.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence is complete and clearly written?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1658,12 +1658,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students was ready before the bell rang.",
-        "The students were ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rung."
+        "Although the path was muddy. The team reached the field on time.",
+        "Although the path was muddy, the team reached the field on time.",
+        "The path muddy, the team reached the field on time.",
+        "Although muddy the field on time."
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "Although the path was muddy, the team reached the field on time.",
       "correct_index": 1
     },
     {
@@ -1678,8 +1678,8 @@
       "subskill": "conjunctions",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct conjunctions: item 24.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence joins the ideas most clearly?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1688,12 +1688,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students were ready before the bell rang.",
-        "The students was ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rung."
+        "The rain stopped, so the match began on schedule.",
+        "The rain stopped, because the match began on schedule.",
+        "The rain stopped the match began on schedule.",
+        "The rain stopped, but so the match began on schedule."
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "The rain stopped, so the match began on schedule.",
       "correct_index": 0
     },
     {
@@ -1708,8 +1708,8 @@
       "subskill": "articles/determiners",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct articles/determiners: item 25.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence uses the correct article or determiner?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1718,12 +1718,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students was ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rung.",
-        "The students were ready before the bell rang."
+        "A honest answer is better than a quick guess.",
+        "The honest answer is better than an quick guess.",
+        "Honest answer is better than quick guess.",
+        "An honest answer is better than a quick guess."
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "An honest answer is better than a quick guess.",
       "correct_index": 3
     },
     {
@@ -1738,8 +1738,8 @@
       "subskill": "prepositions",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct prepositions: item 26.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence uses the preposition correctly?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1748,12 +1748,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students was ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rang.",
-        "The students were ready before the bell rung."
+        "The keys are into the drawer beside the window.",
+        "The keys are on the drawer beside from the window.",
+        "The keys are inside the drawer beside the window.",
+        "The keys are between the drawer beside the window."
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "The keys are inside the drawer beside the window.",
       "correct_index": 2
     },
     {
@@ -1768,8 +1768,8 @@
       "subskill": "common error correction",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct common error correction: item 27.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence corrects the error in the underlined idea?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1778,12 +1778,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students were ready before the bell rang.",
-        "The students was ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rung."
+        "The children were excited because their trip started early.",
+        "The children was excited because their trip started early.",
+        "The children were exciting because there trip started early.",
+        "The childrens were excited because their trip start early."
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "The children were excited because their trip started early.",
       "correct_index": 0
     },
     {
@@ -1798,8 +1798,8 @@
       "subskill": "verb tenses",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct verb tenses: item 28.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence uses verb tenses correctly?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1809,9 +1809,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The students was ready before the bell rang.",
-        "The students ready before the bell rang.",
+        "The students were ready before the bell rung.",
         "The students were ready before the bell rang.",
-        "The students were ready before the bell rung."
+        "The students ready before the bell rang."
       ],
       "correct_answer": "The students were ready before the bell rang.",
       "correct_index": 2
@@ -1828,8 +1828,8 @@
       "subskill": "subject-verb agreement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct subject-verb agreement: item 29.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence has correct subject-verb agreement?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1838,12 +1838,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students was ready before the bell rang.",
-        "The students were ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rung."
+        "Each of the players have a clean uniform.",
+        "Each of the players has a clean uniform.",
+        "Each players has a clean uniform.",
+        "Each of the players are a clean uniform."
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "Each of the players has a clean uniform.",
       "correct_index": 1
     },
     {
@@ -1858,8 +1858,8 @@
       "subskill": "punctuation",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the sentence with correct punctuation: item 30.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which sentence is punctuated correctly?",
+      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1868,12 +1868,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The students was ready before the bell rang.",
-        "The students ready before the bell rang.",
-        "The students were ready before the bell rung.",
-        "The students were ready before the bell rang."
+        "After lunch Maya asked may I borrow your ruler",
+        "After lunch, Maya asked May I borrow your ruler?",
+        "After lunch Maya asked, \u201cMay I borrow your ruler\u201d.",
+        "After lunch, Maya asked, \u201cMay I borrow your ruler?\u201d"
       ],
-      "correct_answer": "The students were ready before the bell rang.",
+      "correct_answer": "After lunch, Maya asked, \u201cMay I borrow your ruler?\u201d",
       "correct_index": 3
     },
     {
@@ -1888,8 +1888,8 @@
       "subskill": "synonyms",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for synonyms: item 1.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which word is closest in meaning to \u201crapid\u201d?",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1898,12 +1898,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The word makes the sentence unclear.",
-        "The precise word keeps the sentence clear and natural.",
-        "The word changes the meaning incorrectly.",
-        "The word is too informal for the context."
+        "careful",
+        "fast",
+        "silent",
+        "heavy"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "fast",
       "correct_index": 1
     },
     {
@@ -1918,8 +1918,8 @@
       "subskill": "antonyms",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for antonyms: item 2.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which word is the opposite of \u201cancient\u201d?",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1928,12 +1928,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The precise word keeps the sentence clear and natural.",
-        "The word makes the sentence unclear.",
-        "The word changes the meaning incorrectly.",
-        "The word is too informal for the context."
+        "modern",
+        "old",
+        "fragile",
+        "distant"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "modern",
       "correct_index": 0
     },
     {
@@ -1948,8 +1948,8 @@
       "subskill": "word meaning in context",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for word meaning in context: item 3.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "In the sentence \u201cThe judge gave a fair decision,\u201d what does \u201cfair\u201d mean?",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1958,12 +1958,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The word makes the sentence unclear.",
-        "The word changes the meaning incorrectly.",
-        "The word is too informal for the context.",
-        "The precise word keeps the sentence clear and natural."
+        "pale in colour",
+        "sunny",
+        "crowded",
+        "just and reasonable"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "just and reasonable",
       "correct_index": 3
     },
     {
@@ -1978,8 +1978,8 @@
       "subskill": "prefixes/suffixes",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for prefixes/suffixes: item 4.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "What does the prefix \u201cre-\u201d mean in \u201crewrite\u201d?",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1988,12 +1988,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The word makes the sentence unclear.",
-        "The word changes the meaning incorrectly.",
-        "The precise word keeps the sentence clear and natural.",
-        "The word is too informal for the context."
+        "not",
+        "before",
+        "again",
+        "many"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "again",
       "correct_index": 2
     },
     {
@@ -2008,8 +2008,8 @@
       "subskill": "precise word choice",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for precise word choice: item 5.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which word best completes the sentence: The instructions were clear and ______.",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2018,12 +2018,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The precise word keeps the sentence clear and natural.",
-        "The word makes the sentence unclear.",
-        "The word changes the meaning incorrectly.",
-        "The word is too informal for the context."
+        "precise",
+        "muddy",
+        "careless",
+        "noisy"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "precise",
       "correct_index": 0
     },
     {
@@ -2038,8 +2038,8 @@
       "subskill": "cloze sentence completion",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for cloze sentence completion: item 6.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Lina checked her timetable carefully because she wanted to arrive ______ the science club started.",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2048,12 +2048,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The word makes the sentence unclear.",
-        "The word changes the meaning incorrectly.",
-        "The precise word keeps the sentence clear and natural.",
-        "The word is too informal for the context."
+        "although",
+        "unless",
+        "before",
+        "between"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "before",
       "correct_index": 2
     },
     {
@@ -2068,8 +2068,8 @@
       "subskill": "academic vocabulary",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for academic vocabulary: item 7.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which word is most suitable in a formal report?",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2078,12 +2078,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The word makes the sentence unclear.",
-        "The precise word keeps the sentence clear and natural.",
-        "The word changes the meaning incorrectly.",
-        "The word is too informal for the context."
+        "check out",
+        "investigate",
+        "mess with",
+        "looky"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "investigate",
       "correct_index": 1
     },
     {
@@ -2098,8 +2098,8 @@
       "subskill": "synonyms",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for synonyms: item 8.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which word is closest in meaning to \u201crapid\u201d?",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2108,12 +2108,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The word makes the sentence unclear.",
-        "The word changes the meaning incorrectly.",
-        "The word is too informal for the context.",
-        "The precise word keeps the sentence clear and natural."
+        "careful",
+        "silent",
+        "heavy",
+        "fast"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "fast",
       "correct_index": 3
     },
     {
@@ -2128,8 +2128,8 @@
       "subskill": "antonyms",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for antonyms: item 9.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which word is the opposite of \u201cancient\u201d?",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2138,12 +2138,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The word makes the sentence unclear.",
-        "The precise word keeps the sentence clear and natural.",
-        "The word changes the meaning incorrectly.",
-        "The word is too informal for the context."
+        "old",
+        "modern",
+        "fragile",
+        "distant"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "modern",
       "correct_index": 1
     },
     {
@@ -2158,8 +2158,8 @@
       "subskill": "word meaning in context",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for word meaning in context: item 10.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "In the sentence \u201cThe judge gave a fair decision,\u201d what does \u201cfair\u201d mean?",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2168,12 +2168,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The precise word keeps the sentence clear and natural.",
-        "The word makes the sentence unclear.",
-        "The word changes the meaning incorrectly.",
-        "The word is too informal for the context."
+        "just and reasonable",
+        "pale in colour",
+        "sunny",
+        "crowded"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "just and reasonable",
       "correct_index": 0
     },
     {
@@ -2188,8 +2188,8 @@
       "subskill": "prefixes/suffixes",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for prefixes/suffixes: item 11.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "What does the prefix \u201cre-\u201d mean in \u201crewrite\u201d?",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2198,12 +2198,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The word makes the sentence unclear.",
-        "The word changes the meaning incorrectly.",
-        "The word is too informal for the context.",
-        "The precise word keeps the sentence clear and natural."
+        "not",
+        "before",
+        "many",
+        "again"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "again",
       "correct_index": 3
     },
     {
@@ -2218,8 +2218,8 @@
       "subskill": "precise word choice",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for precise word choice: item 12.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which word best completes the sentence: The instructions were clear and ______.",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2228,12 +2228,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The word makes the sentence unclear.",
-        "The word changes the meaning incorrectly.",
-        "The precise word keeps the sentence clear and natural.",
-        "The word is too informal for the context."
+        "muddy",
+        "careless",
+        "precise",
+        "noisy"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "precise",
       "correct_index": 2
     },
     {
@@ -2248,8 +2248,8 @@
       "subskill": "cloze sentence completion",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for cloze sentence completion: item 13.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Lina checked her timetable carefully because she wanted to arrive ______ the science club started.",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2258,12 +2258,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The precise word keeps the sentence clear and natural.",
-        "The word makes the sentence unclear.",
-        "The word changes the meaning incorrectly.",
-        "The word is too informal for the context."
+        "before",
+        "although",
+        "unless",
+        "between"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "before",
       "correct_index": 0
     },
     {
@@ -2278,8 +2278,8 @@
       "subskill": "academic vocabulary",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for academic vocabulary: item 14.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which word is most suitable in a formal report?",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2288,12 +2288,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The word makes the sentence unclear.",
-        "The word changes the meaning incorrectly.",
-        "The precise word keeps the sentence clear and natural.",
-        "The word is too informal for the context."
+        "check out",
+        "mess with",
+        "investigate",
+        "looky"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "investigate",
       "correct_index": 2
     },
     {
@@ -2308,8 +2308,8 @@
       "subskill": "synonyms",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for synonyms: item 15.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which word is closest in meaning to \u201crapid\u201d?",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2318,12 +2318,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The word makes the sentence unclear.",
-        "The precise word keeps the sentence clear and natural.",
-        "The word changes the meaning incorrectly.",
-        "The word is too informal for the context."
+        "careful",
+        "fast",
+        "silent",
+        "heavy"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "fast",
       "correct_index": 1
     },
     {
@@ -2338,8 +2338,8 @@
       "subskill": "antonyms",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for antonyms: item 16.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which word is the opposite of \u201cancient\u201d?",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2348,12 +2348,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The word makes the sentence unclear.",
-        "The word changes the meaning incorrectly.",
-        "The word is too informal for the context.",
-        "The precise word keeps the sentence clear and natural."
+        "old",
+        "fragile",
+        "distant",
+        "modern"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "modern",
       "correct_index": 3
     },
     {
@@ -2368,8 +2368,8 @@
       "subskill": "word meaning in context",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for word meaning in context: item 17.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "In the sentence \u201cThe judge gave a fair decision,\u201d what does \u201cfair\u201d mean?",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2378,12 +2378,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The word makes the sentence unclear.",
-        "The precise word keeps the sentence clear and natural.",
-        "The word changes the meaning incorrectly.",
-        "The word is too informal for the context."
+        "pale in colour",
+        "just and reasonable",
+        "sunny",
+        "crowded"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "just and reasonable",
       "correct_index": 1
     },
     {
@@ -2398,8 +2398,8 @@
       "subskill": "prefixes/suffixes",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for prefixes/suffixes: item 18.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "What does the prefix \u201cre-\u201d mean in \u201crewrite\u201d?",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2408,12 +2408,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The precise word keeps the sentence clear and natural.",
-        "The word makes the sentence unclear.",
-        "The word changes the meaning incorrectly.",
-        "The word is too informal for the context."
+        "again",
+        "not",
+        "before",
+        "many"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "again",
       "correct_index": 0
     },
     {
@@ -2428,8 +2428,8 @@
       "subskill": "precise word choice",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for precise word choice: item 19.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which word best completes the sentence: The instructions were clear and ______.",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2438,12 +2438,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The word makes the sentence unclear.",
-        "The word changes the meaning incorrectly.",
-        "The word is too informal for the context.",
-        "The precise word keeps the sentence clear and natural."
+        "muddy",
+        "careless",
+        "noisy",
+        "precise"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "precise",
       "correct_index": 3
     },
     {
@@ -2458,8 +2458,8 @@
       "subskill": "cloze sentence completion",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for cloze sentence completion: item 20.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Lina checked her timetable carefully because she wanted to arrive ______ the science club started.",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2468,12 +2468,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The word makes the sentence unclear.",
-        "The word changes the meaning incorrectly.",
-        "The precise word keeps the sentence clear and natural.",
-        "The word is too informal for the context."
+        "although",
+        "unless",
+        "before",
+        "between"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "before",
       "correct_index": 2
     },
     {
@@ -2488,8 +2488,8 @@
       "subskill": "academic vocabulary",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for academic vocabulary: item 21.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which word is most suitable in a formal report?",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2498,12 +2498,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The precise word keeps the sentence clear and natural.",
-        "The word makes the sentence unclear.",
-        "The word changes the meaning incorrectly.",
-        "The word is too informal for the context."
+        "investigate",
+        "check out",
+        "mess with",
+        "looky"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "investigate",
       "correct_index": 0
     },
     {
@@ -2518,8 +2518,8 @@
       "subskill": "synonyms",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for synonyms: item 22.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which word is closest in meaning to \u201crapid\u201d?",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2528,12 +2528,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The word makes the sentence unclear.",
-        "The word changes the meaning incorrectly.",
-        "The precise word keeps the sentence clear and natural.",
-        "The word is too informal for the context."
+        "careful",
+        "silent",
+        "fast",
+        "heavy"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "fast",
       "correct_index": 2
     },
     {
@@ -2548,8 +2548,8 @@
       "subskill": "antonyms",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for antonyms: item 23.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which word is the opposite of \u201cancient\u201d?",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2558,12 +2558,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The word makes the sentence unclear.",
-        "The precise word keeps the sentence clear and natural.",
-        "The word changes the meaning incorrectly.",
-        "The word is too informal for the context."
+        "old",
+        "modern",
+        "fragile",
+        "distant"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "modern",
       "correct_index": 1
     },
     {
@@ -2578,8 +2578,8 @@
       "subskill": "word meaning in context",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for word meaning in context: item 24.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "In the sentence \u201cThe judge gave a fair decision,\u201d what does \u201cfair\u201d mean?",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2588,12 +2588,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The word makes the sentence unclear.",
-        "The word changes the meaning incorrectly.",
-        "The word is too informal for the context.",
-        "The precise word keeps the sentence clear and natural."
+        "pale in colour",
+        "sunny",
+        "crowded",
+        "just and reasonable"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "just and reasonable",
       "correct_index": 3
     },
     {
@@ -2608,8 +2608,8 @@
       "subskill": "prefixes/suffixes",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for prefixes/suffixes: item 25.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "What does the prefix \u201cre-\u201d mean in \u201crewrite\u201d?",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2618,12 +2618,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The word makes the sentence unclear.",
-        "The precise word keeps the sentence clear and natural.",
-        "The word changes the meaning incorrectly.",
-        "The word is too informal for the context."
+        "not",
+        "again",
+        "before",
+        "many"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "again",
       "correct_index": 1
     },
     {
@@ -2638,8 +2638,8 @@
       "subskill": "precise word choice",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for precise word choice: item 26.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which word best completes the sentence: The instructions were clear and ______.",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2648,12 +2648,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The precise word keeps the sentence clear and natural.",
-        "The word makes the sentence unclear.",
-        "The word changes the meaning incorrectly.",
-        "The word is too informal for the context."
+        "precise",
+        "muddy",
+        "careless",
+        "noisy"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "precise",
       "correct_index": 0
     },
     {
@@ -2668,8 +2668,8 @@
       "subskill": "cloze sentence completion",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for cloze sentence completion: item 27.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Lina checked her timetable carefully because she wanted to arrive ______ the science club started.",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2678,12 +2678,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The word makes the sentence unclear.",
-        "The word changes the meaning incorrectly.",
-        "The word is too informal for the context.",
-        "The precise word keeps the sentence clear and natural."
+        "although",
+        "unless",
+        "between",
+        "before"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "before",
       "correct_index": 3
     },
     {
@@ -2698,8 +2698,8 @@
       "subskill": "academic vocabulary",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for academic vocabulary: item 28.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which word is most suitable in a formal report?",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2708,12 +2708,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The word makes the sentence unclear.",
-        "The word changes the meaning incorrectly.",
-        "The precise word keeps the sentence clear and natural.",
-        "The word is too informal for the context."
+        "check out",
+        "mess with",
+        "investigate",
+        "looky"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "investigate",
       "correct_index": 2
     },
     {
@@ -2728,8 +2728,8 @@
       "subskill": "synonyms",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for synonyms: item 29.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which word is closest in meaning to \u201crapid\u201d?",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2738,12 +2738,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The precise word keeps the sentence clear and natural.",
-        "The word makes the sentence unclear.",
-        "The word changes the meaning incorrectly.",
-        "The word is too informal for the context."
+        "fast",
+        "careful",
+        "silent",
+        "heavy"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "fast",
       "correct_index": 0
     },
     {
@@ -2758,8 +2758,8 @@
       "subskill": "antonyms",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Choose the best answer for antonyms: item 30.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which word is the opposite of \u201cancient\u201d?",
+      "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2768,12 +2768,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The word makes the sentence unclear.",
-        "The word changes the meaning incorrectly.",
-        "The precise word keeps the sentence clear and natural.",
-        "The word is too informal for the context."
+        "old",
+        "fragile",
+        "modern",
+        "distant"
       ],
-      "correct_answer": "The precise word keeps the sentence clear and natural.",
+      "correct_answer": "modern",
       "correct_index": 2
     },
     {
@@ -2789,7 +2789,7 @@
       "difficulty": "hard",
       "question_type": "writing_prompt",
       "prompt": "Write a story about a student who solves a problem during a school project.",
-      "explanation": "Use the Grade 6 writing rubric to assess ideas, organisation, and language accuracy.",
+      "explanation": "A strong response should develop clear ideas, organise them logically, and use accurate, varied language.",
       "marks": 15,
       "estimated_seconds": 1200,
       "content_version": "adm-bank-v1-g6-english",
@@ -2812,7 +2812,7 @@
       "difficulty": "hard",
       "question_type": "writing_prompt",
       "prompt": "Describe a place where students can learn outdoors, using clear sensory details.",
-      "explanation": "Use the Grade 6 writing rubric to assess ideas, organisation, and language accuracy.",
+      "explanation": "A strong response should develop clear ideas, organise them logically, and use accurate, varied language.",
       "marks": 15,
       "estimated_seconds": 1200,
       "content_version": "adm-bank-v1-g6-english",
@@ -2835,7 +2835,7 @@
       "difficulty": "hard",
       "question_type": "writing_prompt",
       "prompt": "Write an opinion piece explaining whether every class should have a weekly teamwork challenge.",
-      "explanation": "Use the Grade 6 writing rubric to assess ideas, organisation, and language accuracy.",
+      "explanation": "A strong response should develop clear ideas, organise them logically, and use accurate, varied language.",
       "marks": 15,
       "estimated_seconds": 1200,
       "content_version": "adm-bank-v1-g6-english",
@@ -2858,7 +2858,7 @@
       "difficulty": "hard",
       "question_type": "writing_prompt",
       "prompt": "Explain how to prepare carefully for a science investigation.",
-      "explanation": "Use the Grade 6 writing rubric to assess ideas, organisation, and language accuracy.",
+      "explanation": "A strong response should develop clear ideas, organise them logically, and use accurate, varied language.",
       "marks": 15,
       "estimated_seconds": 1200,
       "content_version": "adm-bank-v1-g6-english",
@@ -2881,7 +2881,7 @@
       "difficulty": "hard",
       "question_type": "writing_prompt",
       "prompt": "Write an email to a classmate giving helpful advice about joining a new activity.",
-      "explanation": "Use the Grade 6 writing rubric to assess ideas, organisation, and language accuracy.",
+      "explanation": "A strong response should develop clear ideas, organise them logically, and use accurate, varied language.",
       "marks": 15,
       "estimated_seconds": 1200,
       "content_version": "adm-bank-v1-g6-english",
@@ -2904,7 +2904,7 @@
       "difficulty": "hard",
       "question_type": "writing_prompt",
       "prompt": "Continue this story opening: \"The timetable on the noticeboard had one lesson that nobody in Grade 6 had seen before.\"",
-      "explanation": "Use the Grade 6 writing rubric to assess ideas, organisation, and language accuracy.",
+      "explanation": "A strong response should develop clear ideas, organise them logically, and use accurate, varied language.",
       "marks": 15,
       "estimated_seconds": 1200,
       "content_version": "adm-bank-v1-g6-english",
