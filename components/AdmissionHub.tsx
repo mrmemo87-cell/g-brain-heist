@@ -838,7 +838,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
     setShowAnswers(false);
     try {
       const report = await AdmService.getCandidateReport(attemptId);
-      setReportData(report);
+      const activity = await AdmService.getAttemptActivity(attemptId).catch(() => ({ notes: [], events: [] }));
+      setReportData(report ? { ...report, activity_notes: activity.notes, activity_events: activity.events } : report);
     } catch {
       addToast(friendlyAdmissionError('report not ready', 'Result not ready yet. Please wait until scoring is complete.'), 'error');
       setShowReport(false);
@@ -891,6 +892,21 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       addToast(friendlyAdmissionError(err.message, 'Recommendation report could not be generated yet.'), 'error');
     } finally {
       setGeneratingAiReport(false);
+    }
+  };
+
+
+  const handleResetAttemptForRetake = async (attemptId: string) => {
+    const reason = window.prompt('Allow this candidate to retake? This keeps the old attempt history and creates an audit log. Enter a short reason:', 'Accidental interruption — allow retake');
+    if (!reason) return;
+    if (!window.confirm('Reset this attempt for retake? The existing attempt will be kept as expired history.')) return;
+    try {
+      const res = await AdmService.resetAttemptForRetake(attemptId, reason);
+      if (res.success) { addToast('Attempt reset for retake. Share the same candidate link again.', 'success'); await loadAll(); }
+      else addToast(friendlyAdmissionError(res.error, 'Attempt could not be reset.'), 'error');
+    } catch (err: any) {
+      console.warn('Admission attempt reset failed', err);
+      addToast(friendlyAdmissionError(err.message, 'Attempt could not be reset.'), 'error');
     }
   };
 
@@ -1958,6 +1974,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                                       ))}
                                     </div>
                                   )}
+                                  <button onClick={() => handleResetAttemptForRetake(a.id)} className="text-xs px-2 py-1 rounded bg-amber-600/20 text-amber-300 hover:bg-amber-600/40 transition" title="Reset attempt for retake">↻ Retake</button>
                                   <button onClick={() => handleDeleteAttempt(a.id)} className="text-xs px-1.5 py-1 rounded bg-red-600/20 text-red-400 hover:bg-red-600/40 transition" title="Delete attempt">🗑</button>
                                 </div>
                               </div>
@@ -2051,6 +2068,17 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   {statCard('Started', new Date(reportData.started_at).toLocaleTimeString(), '🕐', 'border-gray-500/30')}
                   {statCard('Submitted', new Date(reportData.submitted_at).toLocaleTimeString(), '✅', 'border-emerald-500/30')}
                 </div>
+
+
+                {(reportData.activity_notes ?? []).length > 0 && (
+                  <div className="rounded-xl border border-amber-500/30 bg-amber-900/10 p-4">
+                    <h4 className="text-sm font-semibold text-amber-200 mb-2">Activity / Integrity Notes</h4>
+                    <ul className="text-xs text-amber-50/90 list-disc pl-5 space-y-1">
+                      {(reportData.activity_notes ?? []).map((note, i) => <li key={i}>{note}</li>)}
+                    </ul>
+                    <p className="mt-2 text-[11px] text-amber-100/70">These notes are informational only. They do not automatically invalidate a candidate test.</p>
+                  </div>
+                )}
 
                 {reportData.placement_recommendation && (
                   <div className="rounded-xl border border-cyan-500/30 bg-cyan-900/10 p-4 space-y-3">

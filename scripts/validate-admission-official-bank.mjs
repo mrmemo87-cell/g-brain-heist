@@ -29,6 +29,15 @@ const REQUIRED_OFFICIAL_FLAGS = {
   content_owner: 'brain_heist',
 };
 
+const FORBIDDEN_TEMPLATE_PATTERNS = [
+  /\bin investigation\s+\d+\b/i,
+  /\bgrade\s+6\s+science\s+question\b/i,
+  /\bquestion\s+on\b/i,
+  /\bproblem\s+\d+\b/i,
+  /\bitem\s+\d+\b/i,
+  /\bchoose the correct result\b/i,
+];
+
 function readJson(filePath) {
   try {
     return JSON.parse(readFileSync(filePath, 'utf8'));
@@ -187,6 +196,19 @@ function validatePool(errors, duplicateMap, filePath, location, pool, poolIds) {
   if (pool.external_id) poolIds.add(pool.external_id);
 }
 
+
+function validateAntiTemplateLanguage(errors, filePath, location, question) {
+  const fields = [question.prompt, question.stem, question.explanation, ...(Array.isArray(question.options) ? question.options : [])]
+    .filter((value) => typeof value === 'string');
+  for (const text of fields) {
+    const matched = FORBIDDEN_TEMPLATE_PATTERNS.find((pattern) => pattern.test(text));
+    if (matched) {
+      errors.push(`${filePath}: ${location} contains template/generator residue matching ${matched}: ${text.slice(0, 120)}`);
+      return;
+    }
+  }
+}
+
 function validateQuestion(errors, duplicateMap, filePath, location, question, poolIds, passageIds, rubricIds) {
   pushMissing(errors, filePath, location, question, [
     'external_id',
@@ -211,6 +233,7 @@ function validateQuestion(errors, duplicateMap, filePath, location, question, po
   validateOfficialFlags(errors, filePath, location, question);
   validateSubject(errors, filePath, location, question.subject);
   validatePlacementBand(errors, filePath, location, question.placement_band);
+  validateAntiTemplateLanguage(errors, filePath, location, question);
 
   if (!VALID_DIFFICULTIES.has(question.difficulty)) {
     errors.push(`${filePath}: ${location} has invalid difficulty '${question.difficulty}'`);
