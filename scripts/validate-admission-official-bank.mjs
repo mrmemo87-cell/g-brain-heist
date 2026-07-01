@@ -93,6 +93,7 @@ function validatePlacementBand(errors, filePath, location, placementBand) {
 function validateSharedPassages(seedDir, errors, duplicateMap) {
   const filePath = path.join(seedDir, 'shared', 'reading_passages.json');
   const data = readJson(filePath);
+  validateAntiTemplateText(errors, filePath, 'file', data);
   const passageIds = new Set();
 
   if (data.__parseError) {
@@ -128,6 +129,7 @@ function validateSharedPassages(seedDir, errors, duplicateMap) {
 function validateSharedRubrics(seedDir, errors, duplicateMap) {
   const filePath = path.join(seedDir, 'shared', 'writing_rubrics.json');
   const data = readJson(filePath);
+  validateAntiTemplateText(errors, filePath, 'file', data);
   const rubricIds = new Set();
 
   if (data.__parseError) {
@@ -197,14 +199,21 @@ function validatePool(errors, duplicateMap, filePath, location, pool, poolIds) {
 }
 
 
-function validateAntiTemplateLanguage(errors, filePath, location, question) {
-  const fields = [question.prompt, question.stem, question.explanation, ...(Array.isArray(question.options) ? question.options : [])]
-    .filter((value) => typeof value === 'string');
-  for (const text of fields) {
-    const matched = FORBIDDEN_TEMPLATE_PATTERNS.find((pattern) => pattern.test(text));
+function validateAntiTemplateText(errors, filePath, location, value) {
+  if (typeof value === 'string') {
+    const matched = FORBIDDEN_TEMPLATE_PATTERNS.find((pattern) => pattern.test(value));
     if (matched) {
-      errors.push(`${filePath}: ${location} contains template/generator residue matching ${matched}: ${text.slice(0, 120)}`);
-      return;
+      errors.push(`${filePath}: ${location} contains template/generator residue matching ${matched}: ${value.slice(0, 120)}`);
+    }
+    return;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((entry, index) => validateAntiTemplateText(errors, filePath, `${location}[${index}]`, entry));
+    return;
+  }
+  if (value && typeof value === 'object') {
+    for (const [key, entry] of Object.entries(value)) {
+      validateAntiTemplateText(errors, filePath, `${location}.${key}`, entry);
     }
   }
 }
@@ -233,7 +242,6 @@ function validateQuestion(errors, duplicateMap, filePath, location, question, po
   validateOfficialFlags(errors, filePath, location, question);
   validateSubject(errors, filePath, location, question.subject);
   validatePlacementBand(errors, filePath, location, question.placement_band);
-  validateAntiTemplateLanguage(errors, filePath, location, question);
 
   if (!VALID_DIFFICULTIES.has(question.difficulty)) {
     errors.push(`${filePath}: ${location} has invalid difficulty '${question.difficulty}'`);
@@ -293,6 +301,7 @@ export function validateAdmissionOfficialBank(seedDir = DEFAULT_SEED_DIR) {
       errors.push(`${filePath}: expected top-level 'questions' array`);
       continue;
     }
+    validateAntiTemplateText(errors, filePath, 'file', data);
     parsedGradeFiles.push({ filePath, subject, data });
     data.pools.forEach((pool, index) => validatePool(errors, duplicateMap, filePath, `pools[${index}]`, pool, poolIds));
   }
