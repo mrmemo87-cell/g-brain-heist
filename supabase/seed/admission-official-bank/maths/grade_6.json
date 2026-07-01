@@ -58,8 +58,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Number and operations problem 1: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A shop has 48 pencils and packs them equally into 6 boxes. How many pencils are in each box?",
+      "explanation": "8 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -68,12 +68,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Correct result 1",
-        "Common error 1A",
-        "Common error 1B",
-        "Common error 1C"
+        "8",
+        "6",
+        "7",
+        "9"
       ],
-      "correct_answer": "Correct result 1",
+      "correct_answer": "8",
       "correct_index": 0
     },
     {
@@ -88,8 +88,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Number and operations problem 2: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "What is 3,405 rounded to the nearest hundred?",
+      "explanation": "3,400 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -98,12 +98,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 2A",
-        "Common error 2B",
-        "Correct result 2",
-        "Common error 2C"
+        "3,000",
+        "3,500",
+        "3,400",
+        "3,405"
       ],
-      "correct_answer": "Correct result 2",
+      "correct_answer": "3,400",
       "correct_index": 2
     },
     {
@@ -118,8 +118,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Number and operations problem 3: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Amira buys 4 notebooks for $2.75 each. What is the total cost?",
+      "explanation": "$11.00 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -128,12 +128,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 3A",
-        "Correct result 3",
-        "Common error 3B",
-        "Common error 3C"
+        "$6.75",
+        "$11.00",
+        "$10.75",
+        "$12.00"
       ],
-      "correct_answer": "Correct result 3",
+      "correct_answer": "$11.00",
       "correct_index": 1
     },
     {
@@ -148,8 +148,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Number and operations problem 4: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A library had 1,250 books. It donated 175 books and bought 240 new ones. How many books does it have now?",
+      "explanation": "1,315 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -158,12 +158,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 4A",
-        "Common error 4B",
-        "Common error 4C",
-        "Correct result 4"
+        "1,185",
+        "1,305",
+        "1,665",
+        "1,315"
       ],
-      "correct_answer": "Correct result 4",
+      "correct_answer": "1,315",
       "correct_index": 3
     },
     {
@@ -178,8 +178,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Number and operations problem 5: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which number is a multiple of both 6 and 8?",
+      "explanation": "24 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -188,12 +188,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 5A",
-        "Correct result 5",
-        "Common error 5B",
-        "Common error 5C"
+        "14",
+        "24",
+        "18",
+        "32"
       ],
-      "correct_answer": "Correct result 5",
+      "correct_answer": "24",
       "correct_index": 1
     },
     {
@@ -208,8 +208,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Number and operations problem 6: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Calculate 36 \u00f7 4 + 7.",
+      "explanation": "16 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -218,12 +218,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Correct result 6",
-        "Common error 6A",
-        "Common error 6B",
-        "Common error 6C"
+        "16",
+        "11",
+        "14",
+        "18"
       ],
-      "correct_answer": "Correct result 6",
+      "correct_answer": "16",
       "correct_index": 0
     },
     {
@@ -238,8 +238,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Number and operations problem 7: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A bus travels 65 km each hour. How far does it travel in 3 hours?",
+      "explanation": "195 km is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -248,12 +248,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 7A",
-        "Common error 7B",
-        "Common error 7C",
-        "Correct result 7"
+        "68 km",
+        "185 km",
+        "205 km",
+        "195 km"
       ],
-      "correct_answer": "Correct result 7",
+      "correct_answer": "195 km",
       "correct_index": 3
     },
     {
@@ -268,8 +268,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Number and operations problem 8: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "What is the value of 7,000 + 300 + 20 + 5?",
+      "explanation": "7,325 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -278,12 +278,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 8A",
-        "Common error 8B",
-        "Correct result 8",
-        "Common error 8C"
+        "7,235",
+        "7,352",
+        "7,325",
+        "73,25"
       ],
-      "correct_answer": "Correct result 8",
+      "correct_answer": "7,325",
       "correct_index": 2
     },
     {
@@ -298,8 +298,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Number and operations problem 9: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "There are 96 apples shared equally among 12 baskets. How many apples are in each basket?",
+      "explanation": "8 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -308,12 +308,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Correct result 9",
-        "Common error 9A",
-        "Common error 9B",
-        "Common error 9C"
+        "8",
+        "7",
+        "9",
+        "12"
       ],
-      "correct_answer": "Correct result 9",
+      "correct_answer": "8",
       "correct_index": 0
     },
     {
@@ -328,8 +328,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Number and operations problem 10: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which is the greatest number?",
+      "explanation": "6,089 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -338,12 +338,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 10A",
-        "Common error 10B",
-        "Correct result 10",
-        "Common error 10C"
+        "6,098",
+        "6,809",
+        "6,089",
+        "6,908"
       ],
-      "correct_answer": "Correct result 10",
+      "correct_answer": "6,089",
       "correct_index": 2
     },
     {
@@ -358,8 +358,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Number and operations problem 11: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A ticket costs $18. How much do 5 tickets cost?",
+      "explanation": "$90 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -368,12 +368,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 11A",
-        "Correct result 11",
-        "Common error 11B",
-        "Common error 11C"
+        "$80",
+        "$90",
+        "$85",
+        "$95"
       ],
-      "correct_answer": "Correct result 11",
+      "correct_answer": "$90",
       "correct_index": 1
     },
     {
@@ -388,8 +388,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Number and operations problem 12: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Subtract 468 from 1,000.",
+      "explanation": "532 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -398,12 +398,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 12A",
-        "Common error 12B",
-        "Common error 12C",
-        "Correct result 12"
+        "432",
+        "542",
+        "632",
+        "532"
       ],
-      "correct_answer": "Correct result 12",
+      "correct_answer": "532",
       "correct_index": 3
     },
     {
@@ -418,8 +418,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Number and operations problem 13: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "What is 15 squared?",
+      "explanation": "225 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -428,12 +428,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 13A",
-        "Correct result 13",
-        "Common error 13B",
-        "Common error 13C"
+        "30",
+        "225",
+        "125",
+        "250"
       ],
-      "correct_answer": "Correct result 13",
+      "correct_answer": "225",
       "correct_index": 1
     },
     {
@@ -448,8 +448,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Number and operations problem 14: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A class collects 245 cans in week one and 318 cans in week two. How many cans were collected altogether?",
+      "explanation": "563 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -458,12 +458,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Correct result 14",
-        "Common error 14A",
-        "Common error 14B",
-        "Common error 14C"
+        "563",
+        "553",
+        "573",
+        "663"
       ],
-      "correct_answer": "Correct result 14",
+      "correct_answer": "563",
       "correct_index": 0
     },
     {
@@ -478,8 +478,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Number and operations problem 15: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which expression has the same value as 9 \u00d7 14?",
+      "explanation": "9 \u00d7 10 + 9 \u00d7 4 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -488,12 +488,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 15A",
-        "Common error 15B",
-        "Common error 15C",
-        "Correct result 15"
+        "9 \u00d7 10 + 4",
+        "10 \u00d7 14",
+        "9 + 14",
+        "9 \u00d7 10 + 9 \u00d7 4"
       ],
-      "correct_answer": "Correct result 15",
+      "correct_answer": "9 \u00d7 10 + 9 \u00d7 4",
       "correct_index": 3
     },
     {
@@ -508,8 +508,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Number and operations problem 16: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Divide 2,400 by 30.",
+      "explanation": "80 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -518,12 +518,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 16A",
-        "Common error 16B",
-        "Correct result 16",
-        "Common error 16C"
+        "8",
+        "70",
+        "80",
+        "800"
       ],
-      "correct_answer": "Correct result 16",
+      "correct_answer": "80",
       "correct_index": 2
     },
     {
@@ -538,8 +538,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Number and operations problem 17: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A farmer plants 18 rows with 24 seeds in each row. How many seeds are planted?",
+      "explanation": "432 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -548,12 +548,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Correct result 17",
-        "Common error 17A",
-        "Common error 17B",
-        "Common error 17C"
+        "432",
+        "42",
+        "342",
+        "442"
       ],
-      "correct_answer": "Correct result 17",
+      "correct_answer": "432",
       "correct_index": 0
     },
     {
@@ -568,8 +568,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Number and operations problem 18: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "What is the missing number? 640 \u00f7 \u25a1 = 8",
+      "explanation": "80 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -578,12 +578,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 18A",
-        "Common error 18B",
-        "Correct result 18",
-        "Common error 18C"
+        "8",
+        "72",
+        "80",
+        "90"
       ],
-      "correct_answer": "Correct result 18",
+      "correct_answer": "80",
       "correct_index": 2
     },
     {
@@ -598,8 +598,8 @@
       "subskill": "fractions, decimals, and percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Fractions, decimals, and percentages problem 1: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "What is 3/4 of 28?",
+      "explanation": "21 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -608,12 +608,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 19A",
-        "Correct result 19",
-        "Common error 19B",
-        "Common error 19C"
+        "7",
+        "21",
+        "18",
+        "24"
       ],
-      "correct_answer": "Correct result 19",
+      "correct_answer": "21",
       "correct_index": 1
     },
     {
@@ -628,8 +628,8 @@
       "subskill": "fractions, decimals, and percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Fractions, decimals, and percentages problem 2: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which decimal is equal to 7/10?",
+      "explanation": "0.7 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -638,12 +638,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 20A",
-        "Common error 20B",
-        "Common error 20C",
-        "Correct result 20"
+        "0.07",
+        "7.0",
+        "0.17",
+        "0.7"
       ],
-      "correct_answer": "Correct result 20",
+      "correct_answer": "0.7",
       "correct_index": 3
     },
     {
@@ -658,8 +658,8 @@
       "subskill": "fractions, decimals, and percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Fractions, decimals, and percentages problem 3: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A jacket is reduced by 25% from $40. What is the sale price?",
+      "explanation": "$30 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -668,12 +668,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 21A",
-        "Correct result 21",
-        "Common error 21B",
-        "Common error 21C"
+        "$10",
+        "$30",
+        "$25",
+        "$35"
       ],
-      "correct_answer": "Correct result 21",
+      "correct_answer": "$30",
       "correct_index": 1
     },
     {
@@ -688,8 +688,8 @@
       "subskill": "fractions, decimals, and percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Fractions, decimals, and percentages problem 4: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which fraction is equivalent to 2/3?",
+      "explanation": "8/12 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -698,12 +698,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Correct result 22",
-        "Common error 22A",
-        "Common error 22B",
-        "Common error 22C"
+        "8/12",
+        "4/9",
+        "6/12",
+        "10/12"
       ],
-      "correct_answer": "Correct result 22",
+      "correct_answer": "8/12",
       "correct_index": 0
     },
     {
@@ -718,8 +718,8 @@
       "subskill": "fractions, decimals, and percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Fractions, decimals, and percentages problem 5: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Add 0.46 and 0.35.",
+      "explanation": "0.81 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -728,12 +728,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 23A",
-        "Common error 23B",
-        "Common error 23C",
-        "Correct result 23"
+        "0.71",
+        "0.711",
+        "0.91",
+        "0.81"
       ],
-      "correct_answer": "Correct result 23",
+      "correct_answer": "0.81",
       "correct_index": 3
     },
     {
@@ -748,8 +748,8 @@
       "subskill": "fractions, decimals, and percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Fractions, decimals, and percentages problem 6: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A recipe uses 2/5 cup of oats and 1/5 cup of seeds. How much is used altogether?",
+      "explanation": "3/5 cup is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -758,12 +758,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 24A",
-        "Common error 24B",
-        "Correct result 24",
-        "Common error 24C"
+        "2/10 cup",
+        "1/5 cup",
+        "3/5 cup",
+        "3/10 cup"
       ],
-      "correct_answer": "Correct result 24",
+      "correct_answer": "3/5 cup",
       "correct_index": 2
     },
     {
@@ -778,8 +778,8 @@
       "subskill": "fractions, decimals, and percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Fractions, decimals, and percentages problem 7: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which percentage is equal to 0.45?",
+      "explanation": "45% is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -788,12 +788,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Correct result 25",
-        "Common error 25A",
-        "Common error 25B",
-        "Common error 25C"
+        "45%",
+        "4.5%",
+        "40.5%",
+        "450%"
       ],
-      "correct_answer": "Correct result 25",
+      "correct_answer": "45%",
       "correct_index": 0
     },
     {
@@ -808,8 +808,8 @@
       "subskill": "fractions, decimals, and percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Fractions, decimals, and percentages problem 8: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Order these from smallest to largest: 0.4, 1/2, 0.45.",
+      "explanation": "0.4, 0.45, 1/2 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -818,12 +818,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 26A",
-        "Common error 26B",
-        "Correct result 26",
-        "Common error 26C"
+        "0.45, 0.4, 1/2",
+        "1/2, 0.45, 0.4",
+        "0.4, 0.45, 1/2",
+        "0.4, 1/2, 0.45"
       ],
-      "correct_answer": "Correct result 26",
+      "correct_answer": "0.4, 0.45, 1/2",
       "correct_index": 2
     },
     {
@@ -838,8 +838,8 @@
       "subskill": "fractions, decimals, and percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Fractions, decimals, and percentages problem 9: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "What is 6.2 - 1.75?",
+      "explanation": "4.45 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -848,12 +848,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 27A",
-        "Correct result 27",
-        "Common error 27B",
-        "Common error 27C"
+        "4.55",
+        "4.45",
+        "5.45",
+        "7.95"
       ],
-      "correct_answer": "Correct result 27",
+      "correct_answer": "4.45",
       "correct_index": 1
     },
     {
@@ -868,8 +868,8 @@
       "subskill": "fractions, decimals, and percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Fractions, decimals, and percentages problem 10: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A tank is 3/8 full. What fraction is still empty?",
+      "explanation": "5/8 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -878,12 +878,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 28A",
-        "Common error 28B",
-        "Common error 28C",
-        "Correct result 28"
+        "3/8",
+        "2/8",
+        "1/2",
+        "5/8"
       ],
-      "correct_answer": "Correct result 28",
+      "correct_answer": "5/8",
       "correct_index": 3
     },
     {
@@ -898,8 +898,8 @@
       "subskill": "fractions, decimals, and percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Fractions, decimals, and percentages problem 11: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Find 10% of 360.",
+      "explanation": "36 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -908,12 +908,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 29A",
-        "Correct result 29",
-        "Common error 29B",
-        "Common error 29C"
+        "3.6",
+        "36",
+        "30",
+        "46"
       ],
-      "correct_answer": "Correct result 29",
+      "correct_answer": "36",
       "correct_index": 1
     },
     {
@@ -928,8 +928,8 @@
       "subskill": "fractions, decimals, and percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Fractions, decimals, and percentages problem 12: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which is greater than 2/3?",
+      "explanation": "3/4 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -938,12 +938,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Correct result 30",
-        "Common error 30A",
-        "Common error 30B",
-        "Common error 30C"
+        "3/4",
+        "1/2",
+        "5/8",
+        "0.6"
       ],
-      "correct_answer": "Correct result 30",
+      "correct_answer": "3/4",
       "correct_index": 0
     },
     {
@@ -958,8 +958,8 @@
       "subskill": "fractions, decimals, and percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Fractions, decimals, and percentages problem 13: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A runner completes 1.25 km, then 0.8 km. How far has the runner gone?",
+      "explanation": "2.05 km is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -968,12 +968,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 31A",
-        "Common error 31B",
-        "Common error 31C",
-        "Correct result 31"
+        "1.33 km",
+        "1.95 km",
+        "2.5 km",
+        "2.05 km"
       ],
-      "correct_answer": "Correct result 31",
+      "correct_answer": "2.05 km",
       "correct_index": 3
     },
     {
@@ -988,8 +988,8 @@
       "subskill": "fractions, decimals, and percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Fractions, decimals, and percentages problem 14: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "What is 2/5 written as a decimal?",
+      "explanation": "0.4 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -998,12 +998,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 32A",
-        "Common error 32B",
-        "Correct result 32",
-        "Common error 32C"
+        "0.2",
+        "0.25",
+        "0.4",
+        "2.5"
       ],
-      "correct_answer": "Correct result 32",
+      "correct_answer": "0.4",
       "correct_index": 2
     },
     {
@@ -1018,8 +1018,8 @@
       "subskill": "fractions, decimals, and percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Fractions, decimals, and percentages problem 15: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Increase 80 by 15%.",
+      "explanation": "92 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1028,12 +1028,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Correct result 33",
-        "Common error 33A",
-        "Common error 33B",
-        "Common error 33C"
+        "92",
+        "88",
+        "95",
+        "120"
       ],
-      "correct_answer": "Correct result 33",
+      "correct_answer": "92",
       "correct_index": 0
     },
     {
@@ -1048,8 +1048,8 @@
       "subskill": "fractions, decimals, and percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Grade 6 Fractions, decimals, and percentages problem 16: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Simplify 12/18.",
+      "explanation": "2/3 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1058,12 +1058,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 34A",
-        "Common error 34B",
-        "Correct result 34",
-        "Common error 34C"
+        "3/4",
+        "6/9",
+        "2/3",
+        "1/2"
       ],
-      "correct_answer": "Correct result 34",
+      "correct_answer": "2/3",
       "correct_index": 2
     },
     {
@@ -1078,8 +1078,8 @@
       "subskill": "fractions, decimals, and percentages",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Fractions, decimals, and percentages problem 17: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A ribbon is 4.5 m long. Mia uses 1.8 m. How much remains?",
+      "explanation": "2.7 m is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1088,12 +1088,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 35A",
-        "Correct result 35",
-        "Common error 35B",
-        "Common error 35C"
+        "2.3 m",
+        "2.7 m",
+        "3.7 m",
+        "6.3 m"
       ],
-      "correct_answer": "Correct result 35",
+      "correct_answer": "2.7 m",
       "correct_index": 1
     },
     {
@@ -1108,8 +1108,8 @@
       "subskill": "fractions, decimals, and percentages",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Fractions, decimals, and percentages problem 18: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "What is 35% of 200?",
+      "explanation": "70 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1118,12 +1118,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 36A",
-        "Common error 36B",
-        "Common error 36C",
-        "Correct result 36"
+        "35",
+        "60",
+        "75",
+        "70"
       ],
-      "correct_answer": "Correct result 36",
+      "correct_answer": "70",
       "correct_index": 3
     },
     {
@@ -1138,8 +1138,8 @@
       "subskill": "algebraic thinking",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Algebraic thinking problem 1: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A pattern starts 4, 9, 14, 19. If the same rule continues, what is the next number?",
+      "explanation": "24 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1148,12 +1148,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 37A",
-        "Correct result 37",
-        "Common error 37B",
-        "Common error 37C"
+        "20",
+        "24",
+        "23",
+        "25"
       ],
-      "correct_answer": "Correct result 37",
+      "correct_answer": "24",
       "correct_index": 1
     },
     {
@@ -1168,8 +1168,8 @@
       "subskill": "algebraic thinking",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Algebraic thinking problem 2: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Solve x + 7 = 19.",
+      "explanation": "12 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1178,12 +1178,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Correct result 38",
-        "Common error 38A",
-        "Common error 38B",
-        "Common error 38C"
+        "12",
+        "11",
+        "13",
+        "26"
       ],
-      "correct_answer": "Correct result 38",
+      "correct_answer": "12",
       "correct_index": 0
     },
     {
@@ -1198,8 +1198,8 @@
       "subskill": "algebraic thinking",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Algebraic thinking problem 3: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which expression means \u201cfive more than twice n\u201d?",
+      "explanation": "2n + 5 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1208,12 +1208,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 39A",
-        "Common error 39B",
-        "Common error 39C",
-        "Correct result 39"
+        "5n + 2",
+        "2(n + 5)",
+        "n + 10",
+        "2n + 5"
       ],
-      "correct_answer": "Correct result 39",
+      "correct_answer": "2n + 5",
       "correct_index": 3
     },
     {
@@ -1228,8 +1228,8 @@
       "subskill": "algebraic thinking",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Algebraic thinking problem 4: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A sequence starts 3, 6, 12, 24. What is the next term?",
+      "explanation": "48 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1238,12 +1238,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 40A",
-        "Common error 40B",
-        "Correct result 40",
-        "Common error 40C"
+        "30",
+        "36",
+        "48",
+        "42"
       ],
-      "correct_answer": "Correct result 40",
+      "correct_answer": "48",
       "correct_index": 2
     },
     {
@@ -1258,8 +1258,8 @@
       "subskill": "algebraic thinking",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Algebraic thinking problem 5: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "If y = 4, what is 3y + 2?",
+      "explanation": "14 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1268,12 +1268,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Correct result 41",
-        "Common error 41A",
-        "Common error 41B",
-        "Common error 41C"
+        "14",
+        "9",
+        "12",
+        "16"
       ],
-      "correct_answer": "Correct result 41",
+      "correct_answer": "14",
       "correct_index": 0
     },
     {
@@ -1288,8 +1288,8 @@
       "subskill": "algebraic thinking",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Algebraic thinking problem 6: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Solve 5a = 45.",
+      "explanation": "9 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1298,12 +1298,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 42A",
-        "Common error 42B",
-        "Correct result 42",
-        "Common error 42C"
+        "8",
+        "40",
+        "9",
+        "50"
       ],
-      "correct_answer": "Correct result 42",
+      "correct_answer": "9",
       "correct_index": 2
     },
     {
@@ -1318,8 +1318,8 @@
       "subskill": "algebraic thinking",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Algebraic thinking problem 7: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which rule changes 2, 4, 6 into 7, 9, 11?",
+      "explanation": "Add 5 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1328,12 +1328,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 43A",
-        "Correct result 43",
-        "Common error 43B",
-        "Common error 43C"
+        "Multiply by 3",
+        "Add 5",
+        "Add 4",
+        "Subtract 5"
       ],
-      "correct_answer": "Correct result 43",
+      "correct_answer": "Add 5",
       "correct_index": 1
     },
     {
@@ -1348,8 +1348,8 @@
       "subskill": "algebraic thinking",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Algebraic thinking problem 8: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A table has n chairs at each of 6 rows. Which expression shows the total chairs?",
+      "explanation": "6n is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1358,12 +1358,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 44A",
-        "Common error 44B",
-        "Common error 44C",
-        "Correct result 44"
+        "n + 6",
+        "6 - n",
+        "n \u00f7 6",
+        "6n"
       ],
-      "correct_answer": "Correct result 44",
+      "correct_answer": "6n",
       "correct_index": 3
     },
     {
@@ -1378,8 +1378,8 @@
       "subskill": "algebraic thinking",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Algebraic thinking problem 9: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Solve b - 8 = 17.",
+      "explanation": "25 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1388,12 +1388,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 45A",
-        "Correct result 45",
-        "Common error 45B",
-        "Common error 45C"
+        "9",
+        "25",
+        "24",
+        "26"
       ],
-      "correct_answer": "Correct result 45",
+      "correct_answer": "25",
       "correct_index": 1
     },
     {
@@ -1408,8 +1408,8 @@
       "subskill": "algebraic thinking",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Algebraic thinking problem 10: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which number makes 2 \u00d7 \u25a1 + 3 = 15 true?",
+      "explanation": "6 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1418,12 +1418,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Correct result 46",
-        "Common error 46A",
-        "Common error 46B",
-        "Common error 46C"
+        "6",
+        "5",
+        "7",
+        "9"
       ],
-      "correct_answer": "Correct result 46",
+      "correct_answer": "6",
       "correct_index": 0
     },
     {
@@ -1438,8 +1438,8 @@
       "subskill": "algebraic thinking",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Algebraic thinking problem 11: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A pattern follows the rule \u201cmultiply by 2, then add 1.\u201d What is the result when the input is 5?",
+      "explanation": "11 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1448,12 +1448,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 47A",
-        "Common error 47B",
-        "Common error 47C",
-        "Correct result 47"
+        "10",
+        "12",
+        "15",
+        "11"
       ],
-      "correct_answer": "Correct result 47",
+      "correct_answer": "11",
       "correct_index": 3
     },
     {
@@ -1468,8 +1468,8 @@
       "subskill": "algebraic thinking",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Algebraic thinking problem 12: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which equation matches: a number divided by 4 is 7?",
+      "explanation": "n \u00f7 4 = 7 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1478,12 +1478,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 48A",
-        "Common error 48B",
-        "Correct result 48",
-        "Common error 48C"
+        "4 \u00f7 n = 7",
+        "n - 4 = 7",
+        "n \u00f7 4 = 7",
+        "4n = 7"
       ],
-      "correct_answer": "Correct result 48",
+      "correct_answer": "n \u00f7 4 = 7",
       "correct_index": 2
     },
     {
@@ -1498,8 +1498,8 @@
       "subskill": "geometry and measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Geometry and measurement problem 1: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A rectangle is 8 cm long and 5 cm wide. What is its area?",
+      "explanation": "40 cm\u00b2 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1508,12 +1508,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Correct result 49",
-        "Common error 49A",
-        "Common error 49B",
-        "Common error 49C"
+        "40 cm\u00b2",
+        "13 cm\u00b2",
+        "26 cm\u00b2",
+        "80 cm\u00b2"
       ],
-      "correct_answer": "Correct result 49",
+      "correct_answer": "40 cm\u00b2",
       "correct_index": 0
     },
     {
@@ -1528,8 +1528,8 @@
       "subskill": "geometry and measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Geometry and measurement problem 2: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "What is the perimeter of a square with sides of 9 cm?",
+      "explanation": "36 cm is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1538,12 +1538,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 50A",
-        "Common error 50B",
-        "Correct result 50",
-        "Common error 50C"
+        "18 cm",
+        "27 cm",
+        "36 cm",
+        "81 cm"
       ],
-      "correct_answer": "Correct result 50",
+      "correct_answer": "36 cm",
       "correct_index": 2
     },
     {
@@ -1558,8 +1558,8 @@
       "subskill": "geometry and measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Geometry and measurement problem 3: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "How many millimetres are in 7 centimetres?",
+      "explanation": "70 mm is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1568,12 +1568,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 51A",
-        "Correct result 51",
-        "Common error 51B",
-        "Common error 51C"
+        "7 mm",
+        "70 mm",
+        "700 mm",
+        "0.7 mm"
       ],
-      "correct_answer": "Correct result 51",
+      "correct_answer": "70 mm",
       "correct_index": 1
     },
     {
@@ -1588,8 +1588,8 @@
       "subskill": "geometry and measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Geometry and measurement problem 4: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which angle is greater than a right angle but less than a straight angle?",
+      "explanation": "Obtuse angle is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1598,12 +1598,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 52A",
-        "Common error 52B",
-        "Common error 52C",
-        "Correct result 52"
+        "Acute angle",
+        "Right angle",
+        "Reflex angle",
+        "Obtuse angle"
       ],
-      "correct_answer": "Correct result 52",
+      "correct_answer": "Obtuse angle",
       "correct_index": 3
     },
     {
@@ -1618,8 +1618,8 @@
       "subskill": "geometry and measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Geometry and measurement problem 5: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A triangle has angles 50\u00b0 and 60\u00b0. What is the third angle?",
+      "explanation": "70\u00b0 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1628,12 +1628,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 53A",
-        "Correct result 53",
-        "Common error 53B",
-        "Common error 53C"
+        "60\u00b0",
+        "70\u00b0",
+        "80\u00b0",
+        "90\u00b0"
       ],
-      "correct_answer": "Correct result 53",
+      "correct_answer": "70\u00b0",
       "correct_index": 1
     },
     {
@@ -1648,8 +1648,8 @@
       "subskill": "geometry and measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Geometry and measurement problem 6: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A box is 10 cm long, 4 cm wide, and 3 cm high. What is its volume?",
+      "explanation": "120 cm\u00b3 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1658,12 +1658,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Correct result 54",
-        "Common error 54A",
-        "Common error 54B",
-        "Common error 54C"
+        "120 cm\u00b3",
+        "17 cm\u00b3",
+        "70 cm\u00b3",
+        "240 cm\u00b3"
       ],
-      "correct_answer": "Correct result 54",
+      "correct_answer": "120 cm\u00b3",
       "correct_index": 0
     },
     {
@@ -1678,8 +1678,8 @@
       "subskill": "geometry and measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Geometry and measurement problem 7: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which shape has exactly one pair of parallel sides?",
+      "explanation": "Trapezium is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1688,12 +1688,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 55A",
-        "Common error 55B",
-        "Common error 55C",
-        "Correct result 55"
+        "Rectangle",
+        "Pentagon",
+        "Kite",
+        "Trapezium"
       ],
-      "correct_answer": "Correct result 55",
+      "correct_answer": "Trapezium",
       "correct_index": 3
     },
     {
@@ -1708,8 +1708,8 @@
       "subskill": "geometry and measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Geometry and measurement problem 8: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Convert 2.5 metres to centimetres.",
+      "explanation": "250 cm is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1718,12 +1718,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 56A",
-        "Common error 56B",
-        "Correct result 56",
-        "Common error 56C"
+        "25 cm",
+        "2,500 cm",
+        "250 cm",
+        "205 cm"
       ],
-      "correct_answer": "Correct result 56",
+      "correct_answer": "250 cm",
       "correct_index": 2
     },
     {
@@ -1738,8 +1738,8 @@
       "subskill": "geometry and measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Geometry and measurement problem 9: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A clock shows 3:15. What angle is formed by the minute hand from 12 to 3?",
+      "explanation": "90\u00b0 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1748,12 +1748,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Correct result 57",
-        "Common error 57A",
-        "Common error 57B",
-        "Common error 57C"
+        "90\u00b0",
+        "45\u00b0",
+        "75\u00b0",
+        "180\u00b0"
       ],
-      "correct_answer": "Correct result 57",
+      "correct_answer": "90\u00b0",
       "correct_index": 0
     },
     {
@@ -1768,8 +1768,8 @@
       "subskill": "geometry and measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Geometry and measurement problem 10: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Find the perimeter of a rectangle 12 m by 7 m.",
+      "explanation": "38 m is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1778,12 +1778,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 58A",
-        "Common error 58B",
-        "Correct result 58",
-        "Common error 58C"
+        "19 m",
+        "84 m",
+        "38 m",
+        "42 m"
       ],
-      "correct_answer": "Correct result 58",
+      "correct_answer": "38 m",
       "correct_index": 2
     },
     {
@@ -1798,8 +1798,8 @@
       "subskill": "geometry and measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Geometry and measurement problem 11: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which unit is most suitable for measuring the mass of a school bag?",
+      "explanation": "kilograms is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1808,12 +1808,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 59A",
-        "Correct result 59",
-        "Common error 59B",
-        "Common error 59C"
+        "millilitres",
+        "kilograms",
+        "centimetres",
+        "degrees Celsius"
       ],
-      "correct_answer": "Correct result 59",
+      "correct_answer": "kilograms",
       "correct_index": 1
     },
     {
@@ -1828,8 +1828,8 @@
       "subskill": "geometry and measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Geometry and measurement problem 12: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A line of symmetry divides a shape into what?",
+      "explanation": "Two matching halves is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1838,12 +1838,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 60A",
-        "Common error 60B",
-        "Common error 60C",
-        "Correct result 60"
+        "Two different shapes",
+        "Four equal angles",
+        "A larger shape",
+        "Two matching halves"
       ],
-      "correct_answer": "Correct result 60",
+      "correct_answer": "Two matching halves",
       "correct_index": 3
     },
     {
@@ -1858,8 +1858,8 @@
       "subskill": "geometry and measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Geometry and measurement problem 13: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "What is the area of a triangle with base 10 cm and height 6 cm?",
+      "explanation": "30 cm\u00b2 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1868,12 +1868,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 61A",
-        "Correct result 61",
-        "Common error 61B",
-        "Common error 61C"
+        "16 cm\u00b2",
+        "30 cm\u00b2",
+        "60 cm\u00b2",
+        "36 cm\u00b2"
       ],
-      "correct_answer": "Correct result 61",
+      "correct_answer": "30 cm\u00b2",
       "correct_index": 1
     },
     {
@@ -1888,8 +1888,8 @@
       "subskill": "geometry and measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Geometry and measurement problem 14: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "How many faces does a cube have?",
+      "explanation": "6 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1898,12 +1898,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Correct result 62",
-        "Common error 62A",
-        "Common error 62B",
-        "Common error 62C"
+        "6",
+        "4",
+        "8",
+        "12"
       ],
-      "correct_answer": "Correct result 62",
+      "correct_answer": "6",
       "correct_index": 0
     },
     {
@@ -1918,8 +1918,8 @@
       "subskill": "geometry and measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Geometry and measurement problem 15: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A journey starts at 09:35 and ends at 10:20. How long does it take?",
+      "explanation": "45 minutes is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1928,12 +1928,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 63A",
-        "Common error 63B",
-        "Common error 63C",
-        "Correct result 63"
+        "35 minutes",
+        "55 minutes",
+        "85 minutes",
+        "45 minutes"
       ],
-      "correct_answer": "Correct result 63",
+      "correct_answer": "45 minutes",
       "correct_index": 3
     },
     {
@@ -1948,8 +1948,8 @@
       "subskill": "geometry and measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Geometry and measurement problem 16: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which pair of lines never meets and stays the same distance apart?",
+      "explanation": "Parallel lines is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1958,12 +1958,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 64A",
-        "Common error 64B",
-        "Correct result 64",
-        "Common error 64C"
+        "Perpendicular lines",
+        "Curved lines",
+        "Parallel lines",
+        "Intersecting lines"
       ],
-      "correct_answer": "Correct result 64",
+      "correct_answer": "Parallel lines",
       "correct_index": 2
     },
     {
@@ -1978,8 +1978,8 @@
       "subskill": "geometry and measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Geometry and measurement problem 17: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A jug holds 1.5 litres. How many millilitres is this?",
+      "explanation": "1,500 ml is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -1988,12 +1988,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Correct result 65",
-        "Common error 65A",
-        "Common error 65B",
-        "Common error 65C"
+        "1,500 ml",
+        "150 ml",
+        "15 ml",
+        "1,050 ml"
       ],
-      "correct_answer": "Correct result 65",
+      "correct_answer": "1,500 ml",
       "correct_index": 0
     },
     {
@@ -2008,8 +2008,8 @@
       "subskill": "geometry and measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Geometry and measurement problem 18: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "The scores are 4, 6, 6, 8, 11. What is the mean score?",
+      "explanation": "7 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -2018,12 +2018,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 66A",
-        "Common error 66B",
-        "Correct result 66",
-        "Common error 66C"
+        "6",
+        "8",
+        "7",
+        "35"
       ],
-      "correct_answer": "Correct result 66",
+      "correct_answer": "7",
       "correct_index": 2
     },
     {
@@ -2038,8 +2038,8 @@
       "subskill": "data and statistics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Data and statistics problem 1: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which chart is best for showing parts of a whole?",
+      "explanation": "Pie chart is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -2048,12 +2048,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 67A",
-        "Correct result 67",
-        "Common error 67B",
-        "Common error 67C"
+        "Line graph",
+        "Pie chart",
+        "Pictogram",
+        "Scatter graph"
       ],
-      "correct_answer": "Correct result 67",
+      "correct_answer": "Pie chart",
       "correct_index": 1
     },
     {
@@ -2068,8 +2068,8 @@
       "subskill": "data and statistics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Data and statistics problem 2: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A survey found 12 students chose football, 8 chose basketball, and 10 chose tennis. How many students answered?",
+      "explanation": "30 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -2078,12 +2078,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 68A",
-        "Common error 68B",
-        "Common error 68C",
-        "Correct result 68"
+        "20",
+        "22",
+        "32",
+        "30"
       ],
-      "correct_answer": "Correct result 68",
+      "correct_answer": "30",
       "correct_index": 3
     },
     {
@@ -2098,8 +2098,8 @@
       "subskill": "data and statistics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Data and statistics problem 3: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "What is the mode of 3, 5, 5, 6, 8?",
+      "explanation": "5 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -2108,12 +2108,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 69A",
-        "Correct result 69",
-        "Common error 69B",
-        "Common error 69C"
+        "3",
+        "5",
+        "6",
+        "8"
       ],
-      "correct_answer": "Correct result 69",
+      "correct_answer": "5",
       "correct_index": 1
     },
     {
@@ -2128,8 +2128,8 @@
       "subskill": "data and statistics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Data and statistics problem 4: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A line graph is usually best for showing what?",
+      "explanation": "Change over time is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -2138,12 +2138,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Correct result 70",
-        "Common error 70A",
-        "Common error 70B",
-        "Common error 70C"
+        "Change over time",
+        "Parts of a whole",
+        "A single measurement",
+        "A list of names"
       ],
-      "correct_answer": "Correct result 70",
+      "correct_answer": "Change over time",
       "correct_index": 0
     },
     {
@@ -2158,8 +2158,8 @@
       "subskill": "data and statistics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Data and statistics problem 5: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "The range of 9, 14, 18, 22 is what?",
+      "explanation": "13 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -2168,12 +2168,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 71A",
-        "Common error 71B",
-        "Common error 71C",
-        "Correct result 71"
+        "9",
+        "18",
+        "31",
+        "13"
       ],
-      "correct_answer": "Correct result 71",
+      "correct_answer": "13",
       "correct_index": 3
     },
     {
@@ -2188,8 +2188,8 @@
       "subskill": "data and statistics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Data and statistics problem 6: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "If a spinner has 4 equal sections and one is blue, what is the chance of blue?",
+      "explanation": "1/4 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -2198,12 +2198,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 72A",
-        "Common error 72B",
-        "Correct result 72",
-        "Common error 72C"
+        "1/2",
+        "3/4",
+        "1/4",
+        "4/1"
       ],
-      "correct_answer": "Correct result 72",
+      "correct_answer": "1/4",
       "correct_index": 2
     },
     {
@@ -2218,8 +2218,8 @@
       "subskill": "data and statistics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Data and statistics problem 7: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Which statement is supported if 18 out of 30 students walk to school?",
+      "explanation": "More than half walk to school is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -2228,12 +2228,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Correct result 73",
-        "Common error 73A",
-        "Common error 73B",
-        "Common error 73C"
+        "More than half walk to school",
+        "Exactly half walk to school",
+        "All students walk to school",
+        "Fewer than one third walk to school"
       ],
-      "correct_answer": "Correct result 73",
+      "correct_answer": "More than half walk to school",
       "correct_index": 0
     },
     {
@@ -2248,8 +2248,8 @@
       "subskill": "data and statistics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Data and statistics problem 8: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A bar chart shows 7 books on Monday and 11 books on Tuesday. How many more books were read on Tuesday?",
+      "explanation": "4 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -2258,12 +2258,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 74A",
-        "Common error 74B",
-        "Correct result 74",
-        "Common error 74C"
+        "3",
+        "7",
+        "4",
+        "18"
       ],
-      "correct_answer": "Correct result 74",
+      "correct_answer": "4",
       "correct_index": 2
     },
     {
@@ -2278,8 +2278,8 @@
       "subskill": "data and statistics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Data and statistics problem 9: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "What is the median of 2, 7, 9, 12, 20?",
+      "explanation": "9 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -2288,12 +2288,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 75A",
-        "Correct result 75",
-        "Common error 75B",
-        "Common error 75C"
+        "7",
+        "9",
+        "10",
+        "12"
       ],
-      "correct_answer": "Correct result 75",
+      "correct_answer": "9",
       "correct_index": 1
     },
     {
@@ -2308,8 +2308,8 @@
       "subskill": "data and statistics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Data and statistics problem 10: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Sam has $18. He buys 3 pens costing $2 each. How much money is left?",
+      "explanation": "$12 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -2318,12 +2318,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 76A",
-        "Common error 76B",
-        "Common error 76C",
-        "Correct result 76"
+        "$6",
+        "$10",
+        "$15",
+        "$12"
       ],
-      "correct_answer": "Correct result 76",
+      "correct_answer": "$12",
       "correct_index": 3
     },
     {
@@ -2338,8 +2338,8 @@
       "subskill": "problem solving",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Grade 6 Problem solving problem 1: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A recipe for 4 people uses 300 g of rice. How much rice is needed for 8 people?",
+      "explanation": "600 g is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -2348,12 +2348,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 77A",
-        "Correct result 77",
-        "Common error 77B",
-        "Common error 77C"
+        "150 g",
+        "600 g",
+        "304 g",
+        "1,200 g"
       ],
-      "correct_answer": "Correct result 77",
+      "correct_answer": "600 g",
       "correct_index": 1
     },
     {
@@ -2368,8 +2368,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Grade 6 Problem solving problem 2: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Three buses carry 45, 38, and 42 students. How many students are there in total?",
+      "explanation": "125 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -2378,12 +2378,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Correct result 78",
-        "Common error 78A",
-        "Common error 78B",
-        "Common error 78C"
+        "125",
+        "115",
+        "120",
+        "135"
       ],
-      "correct_answer": "Correct result 78",
+      "correct_answer": "125",
       "correct_index": 0
     },
     {
@@ -2398,8 +2398,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Grade 6 Problem solving problem 3: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A map scale says 1 cm represents 5 km. What distance does 6 cm represent?",
+      "explanation": "30 km is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -2408,12 +2408,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 79A",
-        "Common error 79B",
-        "Common error 79C",
-        "Correct result 79"
+        "11 km",
+        "25 km",
+        "35 km",
+        "30 km"
       ],
-      "correct_answer": "Correct result 79",
+      "correct_answer": "30 km",
       "correct_index": 3
     },
     {
@@ -2428,8 +2428,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Grade 6 Problem solving problem 4: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A theatre has 12 rows of 15 seats. If 40 seats are empty, how many seats are filled?",
+      "explanation": "140 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -2438,12 +2438,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 80A",
-        "Common error 80B",
-        "Correct result 80",
-        "Common error 80C"
+        "100",
+        "180",
+        "140",
+        "220"
       ],
-      "correct_answer": "Correct result 80",
+      "correct_answer": "140",
       "correct_index": 2
     },
     {
@@ -2458,8 +2458,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Grade 6 Problem solving problem 5: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A swimmer does 8 lengths each day for 5 days. Each length is 25 m. How far does the swimmer go?",
+      "explanation": "1,000 m is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -2468,12 +2468,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Correct result 81",
-        "Common error 81A",
-        "Common error 81B",
-        "Common error 81C"
+        "1,000 m",
+        "200 m",
+        "800 m",
+        "1,250 m"
       ],
-      "correct_answer": "Correct result 81",
+      "correct_answer": "1,000 m",
       "correct_index": 0
     },
     {
@@ -2488,8 +2488,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Grade 6 Problem solving problem 6: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A bag has 24 red counters and 18 blue counters. How many counters must be added to make 50?",
+      "explanation": "8 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -2498,12 +2498,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 82A",
-        "Common error 82B",
-        "Correct result 82",
-        "Common error 82C"
+        "6",
+        "10",
+        "8",
+        "16"
       ],
-      "correct_answer": "Correct result 82",
+      "correct_answer": "8",
       "correct_index": 2
     },
     {
@@ -2518,8 +2518,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Grade 6 Problem solving problem 7: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A train leaves at 14:10 and arrives 55 minutes later. What time does it arrive?",
+      "explanation": "15:05 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -2528,12 +2528,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 83A",
-        "Correct result 83",
-        "Common error 83B",
-        "Common error 83C"
+        "14:55",
+        "15:05",
+        "15:00",
+        "15:15"
       ],
-      "correct_answer": "Correct result 83",
+      "correct_answer": "15:05",
       "correct_index": 1
     },
     {
@@ -2548,8 +2548,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Grade 6 Problem solving problem 8: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Nina saves $7 each week. How many weeks will it take to save at least $50?",
+      "explanation": "8 weeks is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -2558,12 +2558,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 84A",
-        "Common error 84B",
-        "Common error 84C",
-        "Correct result 84"
+        "7 weeks",
+        "9 weeks",
+        "10 weeks",
+        "8 weeks"
       ],
-      "correct_answer": "Correct result 84",
+      "correct_answer": "8 weeks",
       "correct_index": 3
     },
     {
@@ -2578,8 +2578,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Grade 6 Problem solving problem 9: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A garden is 6 m by 4 m. Tiles cover half of it. What area is tiled?",
+      "explanation": "12 m\u00b2 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -2588,12 +2588,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 85A",
-        "Correct result 85",
-        "Common error 85B",
-        "Common error 85C"
+        "10 m\u00b2",
+        "12 m\u00b2",
+        "20 m\u00b2",
+        "24 m\u00b2"
       ],
-      "correct_answer": "Correct result 85",
+      "correct_answer": "12 m\u00b2",
       "correct_index": 1
     },
     {
@@ -2608,8 +2608,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Grade 6 Problem solving problem 10: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A box contains 5 packs with 12 cards in each and 8 extra cards. How many cards are there?",
+      "explanation": "68 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -2618,12 +2618,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Correct result 86",
-        "Common error 86A",
-        "Common error 86B",
-        "Common error 86C"
+        "68",
+        "25",
+        "60",
+        "72"
       ],
-      "correct_answer": "Correct result 86",
+      "correct_answer": "68",
       "correct_index": 0
     },
     {
@@ -2638,8 +2638,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Grade 6 Problem solving problem 11: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "Four friends share 3 pizzas equally. What fraction of a pizza does each friend get?",
+      "explanation": "3/4 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -2648,12 +2648,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 87A",
-        "Common error 87B",
-        "Common error 87C",
-        "Correct result 87"
+        "1/4",
+        "4/3",
+        "1 1/4",
+        "3/4"
       ],
-      "correct_answer": "Correct result 87",
+      "correct_answer": "3/4",
       "correct_index": 3
     },
     {
@@ -2668,8 +2668,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Grade 6 Problem solving problem 12: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A cyclist travels 18 km in 2 hours. At the same speed, how far in 5 hours?",
+      "explanation": "45 km is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -2678,12 +2678,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 88A",
-        "Common error 88B",
-        "Correct result 88",
-        "Common error 88C"
+        "36 km",
+        "50 km",
+        "45 km",
+        "90 km"
       ],
-      "correct_answer": "Correct result 88",
+      "correct_answer": "45 km",
       "correct_index": 2
     },
     {
@@ -2698,8 +2698,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Grade 6 Problem solving problem 13: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A school orders 96 chairs in boxes of 8. How many boxes are needed?",
+      "explanation": "12 is correct because it follows the calculation or reasoning described in the question.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -2708,12 +2708,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Correct result 89",
-        "Common error 89A",
-        "Common error 89B",
-        "Common error 89C"
+        "12",
+        "8",
+        "10",
+        "14"
       ],
-      "correct_answer": "Correct result 89",
+      "correct_answer": "12",
       "correct_index": 0
     },
     {
@@ -2728,8 +2728,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Grade 6 Problem solving problem 14: choose the correct result.",
-      "explanation": "The correct option follows from the key idea tested in the question.",
+      "prompt": "A sports day has 6 teams. Each team brings 4 water bottles. How many bottles are there altogether?",
+      "explanation": "24 bottles is correct because 6 groups of 4 bottles make 6 \u00d7 4 = 24.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -2738,12 +2738,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Common error 90A",
-        "Common error 90B",
-        "Correct result 90",
-        "Common error 90C"
+        "18 bottles",
+        "21 bottles",
+        "24 bottles",
+        "27 bottles"
       ],
-      "correct_answer": "Correct result 90",
+      "correct_answer": "24 bottles",
       "correct_index": 2
     }
   ]
