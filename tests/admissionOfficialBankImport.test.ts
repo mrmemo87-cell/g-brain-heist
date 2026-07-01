@@ -3,6 +3,7 @@ import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 import { test } from 'node:test';
 
 const importer = 'scripts/import-admission-official-bank.mjs';
@@ -126,4 +127,48 @@ test('official admission bank import maps seed subject and primary stage to data
   ], { cwd: process.cwd(), encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
   assert.deepEqual(result.stdout.trim().split('\n'), ['math', 'science', '5']);
+});
+
+test('official admission bank question row maps editable fields for upsert refreshes', async () => {
+  const moduleUrl = pathToFileURL(path.resolve('scripts/import-admission-official-bank.mjs')).href;
+  const { buildQuestionRow } = await import(moduleUrl) as {
+    buildQuestionRow: (question: Record<string, unknown>, poolId: string, passages: Map<string, unknown>, rubrics: Map<string, unknown>) => Record<string, unknown>;
+  };
+  const row = buildQuestionRow({
+    external_id: 'question-update-check',
+    subject: 'science',
+    grade_level: 6,
+    stage_level: 'primary',
+    question_type: 'mcq',
+    prompt: 'Updated stem text',
+    passage: 'Updated passage text',
+    options: ['A', 'B', 'C', 'D'],
+    correct_answer: 'B',
+    correct_index: 1,
+    marks: 1,
+    difficulty: 'medium',
+    diagnostic_skill: 'Updated diagnostic skill',
+    strand: 'working scientifically',
+    subskill: 'Updated subskill',
+    placement_band: 'target',
+    estimated_seconds: 70,
+    explanation: 'Updated explanation',
+    content_version: 'updated-version',
+    source_label: 'Brain Heist Official Admission Bank',
+    is_official: true,
+    is_locked: true,
+    content_owner: 'brain_heist',
+  }, 'pool-id', new Map(), new Map());
+
+  assert.equal(row['stem'], 'Updated stem text');
+  assert.deepEqual(row['options'], ['A', 'B', 'C', 'D']);
+  assert.equal(row['correct_answer'], 'B');
+  assert.equal(row['correct_index'], 1);
+  assert.equal(row['explanation'], 'Updated explanation');
+  assert.equal(row['diagnostic_skill'], 'Updated diagnostic skill');
+  assert.equal(row['strand'], 'working scientifically');
+  assert.equal(row['subskill'], 'Updated subskill');
+  assert.equal(row['passage'], 'Updated passage text');
+  assert.equal(row['placement_band'], 'target');
+  assert.equal(row['content_version'], 'updated-version');
 });

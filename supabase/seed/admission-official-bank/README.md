@@ -268,7 +268,7 @@ order by external_id;
 1. Run validation locally.
 2. Run dry-run against staging with service-role credentials.
 3. Run real import against staging.
-4. Execute the verification SQL above.
+4. Execute the verification SQL above. For the Grade 6 Science template-residue check, run `supabase/inspection/admission_g6_science_template_residue_check.sql`; it should return 0 rows after re-import.
 5. Generate a draft Admission Test Wizard form from the official pool.
 6. Register a test candidate, complete/submit a short attempt, and verify the candidate report shows diagnostic metadata.
 7. Only then repeat with production credentials and `--confirm-production` for reviewed non-sample content.
