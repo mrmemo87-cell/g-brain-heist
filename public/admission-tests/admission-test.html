@@ -256,17 +256,36 @@
 
     /* ── Anti-cheat overlay ── */
     .cheat-warning {
-      position: fixed; inset: 0; z-index: 9999;
-      display: flex; align-items: center; justify-content: center;
-      background: rgba(0,0,0,0.92); color: var(--danger);
-      font-size: 20px; font-weight: 700; text-align: center;
+      position: fixed; left: 16px; right: 16px; bottom: 84px; z-index: 9999;
+      padding: 14px 16px; border-radius: 14px;
+      background: rgba(15,23,42,0.96); color: #fde68a;
+      border: 1px solid rgba(245,158,11,0.45); box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+      font-size: 14px; font-weight: 650; text-align: center;
     }
+    .mobile-nav-progress { display: none; }
 
     @media (max-width: 640px) {
-      .container { padding: 0 12px 80px; }
-      .topbar { padding: 10px 14px; }
-      .question-card { padding: 18px; }
-      .nav-dots { max-width: 50%; }
+      .container { margin: 12px auto; padding: 0 12px 104px; }
+      .topbar { padding: 8px 10px; gap: 8px; align-items: stretch; }
+      .topbar-left { gap: 8px; min-width: 0; flex: 1; }
+      .topbar-left .logo { font-size: 0; gap: 0; }
+      .topbar-left .logo img { height: 22px; }
+      .topbar-left .subject-badge { padding: 4px 7px; font-size: 10px; line-height: 1.15; max-width: 42vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .topbar-center { flex-direction: column-reverse; align-items: flex-end; gap: 0; }
+      .timer { font-size: 18px; line-height: 1; }
+      .progress-text { font-size: 11px; }
+      #submitTestBtn { padding: 7px 10px !important; font-size: 11px !important; background: rgba(239,68,68,0.18); border: 1px solid rgba(239,68,68,0.45); }
+      .question-card { padding: 18px 16px; border-radius: 14px; }
+      .question-card .q-header { align-items: flex-start; gap: 10px; }
+      .question-card .q-meta { flex-wrap: wrap; justify-content: flex-end; }
+      .question-card .q-stem { font-size: 16px; line-height: 1.65; margin-bottom: 18px; }
+      .passage-box { padding: 16px; font-size: 14px; line-height: 1.7; }
+      .options { gap: 12px; }
+      .option-btn { padding: 16px 14px; align-items: flex-start; line-height: 1.45; }
+      .nav-bar { padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); gap: 10px; }
+      .nav-bar .btn { padding: 12px 16px; min-width: 84px; }
+      .nav-dots { display: none; }
+      .mobile-nav-progress { display: block; color: var(--text-muted); font-size: 12px; font-weight: 700; min-width: 74px; text-align: center; }
     }
   </style>
 </head>
@@ -287,7 +306,7 @@
         <strong style="color:white">⚠️ Before you start:</strong>
         <ul style="margin:8px 0 0 16px;padding:0;list-style:disc">
           <li>This test is <strong>timed</strong> — the timer begins once you click Start.</li>
-          <li><strong>Do not switch tabs</strong> or leave this window. Tab switches are monitored and recorded.</li>
+          <li>Please stay on this page while working. If you leave or refresh often, the school may see a calm activity note.</li>
           <li>Your answers are saved automatically as you go.</li>
           <li>Once submitted, you cannot retake this test.</li>
         </ul>
@@ -334,7 +353,7 @@
 
   <div class="nav-bar">
     <button class="btn btn-secondary" id="prevBtn">← Prev</button>
-    <div class="nav-dots" id="navDots"></div>
+    <div class="nav-dots" id="navDots"></div><div class="mobile-nav-progress" id="mobileNavProgress">1 / 1</div>
     <button class="btn btn-primary" id="nextBtn">Next →</button>
   </div>
 </div>
@@ -358,7 +377,7 @@
 <!-- ANTI-CHEAT WARNING                         -->
 <!-- ═══════════════════════════════════════════ -->
 <div id="cheatWarning" class="cheat-warning hidden">
-  ⚠️ Tab switch detected!<br>Please return to the test.<br>This has been recorded.
+  Please stay on this test page until you finish. If you leave or refresh often, the school may see an activity note.
 </div>
 
 <script>
@@ -402,6 +421,8 @@ let STATE = {
   expiresAt: null,
   submitted: false,
   tabSwitches: 0,
+  warnedIntegrity: false,
+  pageSessionId: (crypto?.randomUUID ? crypto.randomUUID() : `sess-${Date.now()}-${Math.random().toString(16).slice(2)}`),
   results: null,
 };
 
@@ -444,12 +465,68 @@ document.addEventListener('DOMContentLoaded', () => {
     if (STATE.submitted || STATE.deliveryMode !== 'exam') return;
     if (document.hidden && STATE.questions.length > 0) {
       STATE.tabSwitches++;
-      $('cheatWarning').classList.remove('hidden');
-      setTimeout(() => $('cheatWarning').classList.add('hidden'), 3000);
+      showIntegrityWarning();
+      logAttemptEvent('tab_hidden', { count: STATE.tabSwitches, session_id: STATE.pageSessionId });
+    } else if (!document.hidden && STATE.questions.length > 0) {
+      logAttemptEvent('tab_visible', { session_id: STATE.pageSessionId });
     }
   });
 });
 
+
+
+function secondsRemaining(expiresAt, durationMinutes) {
+  if (expiresAt) {
+    const diff = Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000);
+    return Math.max(0, diff);
+  }
+  return (durationMinutes || 60) * 60;
+}
+
+function restoreSavedAnswers(saved) {
+  STATE.answers = {};
+  if (!saved || typeof saved !== 'object') return;
+  for (const [questionId, response] of Object.entries(saved)) STATE.answers[questionId] = response;
+}
+
+function applyRestoredAnswers() {
+  STATE.questions.forEach((q, idx) => {
+    const answer = STATE.answers[q.id];
+    if (answer === undefined || answer === null || answer === '') return;
+    if ((q.question_type === 'mcq' || q.question_type === 'reading_comprehension') && typeof answer === 'object' && 'index' in answer) {
+      document.querySelectorAll(`.option-btn[data-qidx="${idx}"]`).forEach(btn => {
+        btn.classList.toggle('selected', parseInt(btn.dataset.oidx) === Number(answer.index));
+      });
+    } else if (q.question_type === 'email_writing' || q.question_type === 'essay_writing') {
+      const textarea = document.querySelector(`textarea[data-qidx="${idx}"]`);
+      if (textarea) textarea.value = typeof answer === 'object' ? (answer.text || '') : String(answer || '');
+      handleWritingInput(idx, textarea?.value || '');
+    } else {
+      const input = document.querySelector(`input[data-qidx="${idx}"]`);
+      if (input) input.value = String(answer || '');
+    }
+    markAnswered(idx);
+  });
+  updateProgress();
+}
+
+function showIntegrityWarning() {
+  if (STATE.warnedIntegrity) return;
+  STATE.warnedIntegrity = true;
+  $('cheatWarning').classList.remove('hidden');
+  setTimeout(() => $('cheatWarning').classList.add('hidden'), 5500);
+}
+
+async function logAttemptEvent(eventType, payload = {}) {
+  if (STATE.mode !== 'online' || !STATE.attemptId) return;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/rpc/rpc_adm_log_attempt_event`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${getSupabaseAccessToken() ?? SUPABASE_ANON_KEY}` },
+      body: JSON.stringify({ p_token: STATE.token, p_form_code: STATE.formCode, p_attempt_id: STATE.attemptId, p_event_type: eventType, p_event_payload: payload }),
+    });
+  } catch (e) { console.warn('Activity note could not be saved:', e); }
+}
 
 function admissionSubjectLabel(subject) {
   const key = String(subject || '').toLowerCase();
@@ -520,8 +597,12 @@ async function handleStart() {
     STATE.formTitle = data.form_title || buildAdmissionTestTitle(STATE.grade, STATE.subject);
     STATE.deliveryMode = data.delivery_mode || 'exam';
     STATE.questions = data.questions || [];
-    STATE.timerSeconds = (data.duration_minutes || 60) * 60;
     STATE.expiresAt = data.expires_at;
+    STATE.timerSeconds = secondsRemaining(data.expires_at, data.duration_minutes || 60);
+    restoreSavedAnswers(data.saved_answers || {});
+    const navEntry = performance.getEntriesByType?.('navigation')?.[0];
+    await logAttemptEvent(data.resumed ? 'page_reopened' : 'page_opened', { resumed: !!data.resumed, session_id: STATE.pageSessionId });
+    if (navEntry?.type === 'reload') await logAttemptEvent('page_reload', { session_id: STATE.pageSessionId });
 
     // Show test
     $('loginScreen').classList.add('hidden');
@@ -529,11 +610,12 @@ async function handleStart() {
     $('subjectBadge').textContent = STATE.formTitle;
 
     renderQuestions();
+    applyRestoredAnswers();
     navigateTo(0);
     startTimer();
 
   } catch (err) {
-    $('loginError').textContent = 'Connection error: ' + err.message;
+    $('loginError').textContent = 'We could not load your saved test right now. Please check your connection and try again. Your school can help if this continues.';
   }
   $('startBtn').disabled = false;
   $('startBtn').textContent = 'Start Test';
@@ -778,6 +860,7 @@ function updateProgress() {
     return v !== null && v !== undefined && v !== '';
   }).length;
   $('progressText').textContent = `${answered} / ${STATE.questions.length} answered`;
+  if ($('mobileNavProgress')) $('mobileNavProgress').textContent = `Q${STATE.currentIndex + 1} / ${STATE.questions.length}`;
 }
 
 // ── TIMER ──
@@ -832,9 +915,9 @@ async function handleSubmit(expired = false) {
     const answered = Object.keys(STATE.answers).filter(k => STATE.answers[k] !== '' && STATE.answers[k] !== null).length;
     const unanswered = STATE.questions.length - answered;
     if (unanswered > 0) {
-      if (!confirm(`You have ${unanswered} unanswered question${unanswered > 1 ? 's' : ''}. Submit anyway?`)) return;
+      if (!confirm(`You have ${unanswered} unanswered question${unanswered > 1 ? 's' : ''}. Are you sure you want to submit? You cannot change answers after submitting.`)) return;
     } else {
-      if (!confirm('Are you sure you want to submit your test?')) return;
+      if (!confirm('Are you sure you want to submit? You cannot change answers after submitting.')) return;
     }
   }
 
@@ -853,7 +936,9 @@ async function handleSubmit(expired = false) {
         },
         body: JSON.stringify({ p_token: STATE.token, p_attempt_id: STATE.attemptId }),
       });
+      await logAttemptEvent(expired ? 'submit_time_expired' : 'submit_clicked', { session_id: STATE.pageSessionId });
       results = await res.json();
+      if (results?.success) await logAttemptEvent('submitted', { session_id: STATE.pageSessionId });
     } else {
       // OFFLINE scoring
       results = scoreOffline();

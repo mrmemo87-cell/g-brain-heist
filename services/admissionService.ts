@@ -230,6 +230,14 @@ export interface CandidateReport {
   placement_recommendation?: PlacementRecommendation;
   skill_breakdown?: any[];
   difficulty_breakdown?: any[];
+  activity_notes?: string[];
+  activity_events?: AdmCandidateTestEvent[];
+}
+
+export interface AdmCandidateTestEvent {
+  event_type: string;
+  event_payload: Record<string, unknown>;
+  created_at: string;
 }
 
 export interface GradeStageMap {
@@ -542,7 +550,23 @@ export async function getCandidateReport(attemptId: string): Promise<CandidateRe
     placement_recommendation: placementRecommendation,
     skill_breakdown: raw.skill_breakdown ?? [],
     difficulty_breakdown: raw.difficulty_breakdown ?? [],
+    activity_notes: raw.activity_notes ?? [],
+    activity_events: raw.activity_events ?? [],
   };
+}
+
+
+export async function getAttemptActivity(attemptId: string): Promise<{ notes: string[]; events: AdmCandidateTestEvent[] }> {
+  const { data, error } = await supabase.rpc('rpc_adm_get_attempt_activity', { p_attempt_id: attemptId });
+  if (error) throw error;
+  if (!data || !data.success) return { notes: [], events: [] };
+  return { notes: data.notes ?? [], events: data.events ?? [] };
+}
+
+export async function resetAttemptForRetake(attemptId: string, reason: string): Promise<{ success: boolean; error?: string }> {
+  const { data, error } = await supabase.rpc('rpc_adm_reset_attempt_for_retake', { p_attempt_id: attemptId, p_reason: reason });
+  if (error) throw error;
+  return data as { success: boolean; error?: string };
 }
 
 // ── Placement ──
