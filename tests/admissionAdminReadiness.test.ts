@@ -32,8 +32,8 @@ test('friendly admission error mapping avoids raw RPC and database copy', () => 
   assert.match(hub, /console\.warn\('Admission data load failed'/);
 });
 
-test('Grade 5 package guidance remains a small UX grouping, not a new backend system', () => {
-  assert.match(hub, /Grade 5 Admission Package/);
+test('Grade 6 package guidance remains a small UX grouping, not a new backend system', () => {
+  assert.match(hub, /Grade 6 Admission Package/);
   assert.match(hub, /English required/);
   assert.match(hub, /Maths required/);
   assert.match(hub, /Science optional/);

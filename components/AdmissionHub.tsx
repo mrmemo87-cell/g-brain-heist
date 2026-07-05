@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { gsap } from 'gsap';
 import BackButton from './BackButton';
 import type { ToastMessage } from '../types';
 import * as AdmService from '../services/admissionService';
@@ -206,6 +207,12 @@ export const friendlyAdmissionError = (message?: string, fallback = 'We could no
   if (text.includes('token') || text.includes('link') || text.includes('not found')) {
     return 'Candidate link unavailable. Please refresh the candidate list and copy a new link.';
   }
+  if (text.includes('activity')) {
+    return 'Activity notes unavailable. Please refresh candidate details and try again.';
+  }
+  if (text.includes('retake') || text.includes('reset')) {
+    return 'Retake failed. Please confirm you are signed in as a school admin for this school.';
+  }
   if (text.includes('report') || text.includes('result') || text.includes('attempt')) {
     return 'Result not ready yet. Please wait until the candidate submits and scoring is complete.';
   }
@@ -222,6 +229,13 @@ export const friendlyAdmissionError = (message?: string, fallback = 'We could no
 };
 
 // ── Pipeline Steps ──
+
+const MAIN_TABS: AdmTab[] = ['create', 'overview', 'candidates', 'results'];
+const ADMISSION_PACKAGE_SUBJECTS = [
+  { key: 'english', label: 'English', required: true },
+  { key: 'math', label: 'Maths', required: true },
+  { key: 'science', label: 'Science', required: false },
+];
 
 const PIPELINE_STEPS = [
   { key: 'create', icon: '📝', label: 'Create admission test', desc: 'Choose grade and subject' },
@@ -420,6 +434,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   // Candidate file modal
   const [candidateFileId, setCandidateFileId] = useState<string | null>(null);
   const [showOtherGradeFormsForCandidate, setShowOtherGradeFormsForCandidate] = useState<Record<string, boolean>>({});
+  const overviewCardsRef = useRef<HTMLDivElement | null>(null);
+  const [showAdvancedTools, setShowAdvancedTools] = useState(false);
 
   // ── Bootstrap ──
 
@@ -938,7 +954,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       list = list.filter(c =>
         c.full_name.toLowerCase().includes(q) ||
         (c.email || '').toLowerCase().includes(q) ||
-        c.token.toLowerCase().includes(q)
+        (c.parent_phone || '').toLowerCase().includes(q)
       );
     }
     if (candStatusFilter !== 'all') {
@@ -953,6 +969,11 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
     return counts;
   }, [placements]);
 
+  useEffect(() => {
+    if (activeTab !== 'overview' || !overviewCardsRef.current || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    gsap.fromTo(overviewCardsRef.current.querySelectorAll('[data-admission-card]'), { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.45, stagger: 0.06, ease: 'power2.out' });
+  }, [activeTab, candidates.length, attempts.length, forms.length]);
+
   const pipelineProgress = useMemo(() => {
     return {
       pools: pools.length > 0,
@@ -966,11 +987,11 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   // ── Render helpers ──
 
   const statCard = (label: string, value: number | string, icon: string, accent: string) => (
-    <div className={`rounded-xl border ${accent} bg-slate-800/60 p-4 flex items-center gap-3`}>
+    <div data-admission-card className={`rounded-xl border ${accent} bg-white p-4 flex items-center gap-3 shadow-sm`}>
       <span className="text-2xl">{icon}</span>
       <div>
-        <div className="text-2xl font-bold text-white">{value}</div>
-        <div className="text-xs text-gray-400 uppercase tracking-wider">{label}</div>
+        <div className="text-2xl font-bold text-slate-950">{value}</div>
+        <div className="text-xs text-slate-500 uppercase tracking-wider">{label}</div>
       </div>
     </div>
   );
@@ -1033,15 +1054,15 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   }
 
   return (
-    <div className="space-y-4 pb-12">
+    <div className="space-y-4 pb-12 rounded-3xl bg-gradient-to-br from-sky-50 via-white to-cyan-50 p-4 text-slate-900">
       {/* Header */}
       <div className="flex items-center gap-4">
         <BackButton onClick={onComplete} label="Back" />
         <div className="flex-1">
-          <h1 className="text-2xl font-heading text-white flex items-center gap-2">
+          <h1 className="text-2xl font-heading text-slate-950 flex items-center gap-2">
             <span className="text-3xl">🎓</span> Admission Hub
           </h1>
-          <p className="text-xs text-gray-400 mt-0.5">Manage entrance tests, candidates, and placements</p>
+          <p className="text-xs text-slate-600 mt-0.5">Create admission tests, send links, track progress, view results, and check activity notes.</p>
         </div>
         <button
           onClick={() => loadAll()}
@@ -1055,7 +1076,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
       {/* Tabs */}
       <div className="flex flex-wrap gap-2 pb-2" role="tablist">
-        {tabs.map((t) => (
+        {tabs.filter(t => showAdvancedTools || MAIN_TABS.includes(t.key)).map((t) => (
           <button
             key={t.key}
             onClick={() => setActiveTab(t.key)}
@@ -1070,6 +1091,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
             <span>{t.icon}</span> {t.label}
           </button>
         ))}
+        <button type="button" onClick={() => setShowAdvancedTools(v => !v)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-white text-slate-600 border border-slate-200 hover:text-slate-900 hover:border-cyan-300">Advanced / Support Tools</button>
       </div>
 
       {/* Loading overlay */}
@@ -1182,11 +1204,11 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
       {/*  ━━━ OVERVIEW TAB ━━━  */}
       {activeTab === 'overview' && !loading && (
-        <div className="space-y-6">
-          {/* Admission Pipeline - Visual Step Tracker */}
+        <div className="space-y-6" ref={overviewCardsRef}>
+          {/* Admission overview - Visual Step Tracker */}
           <div className="rounded-2xl border border-cyan-500/20 bg-gradient-to-r from-slate-800/80 via-slate-800/60 to-slate-800/80 p-5">
             <h3 className="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-              <span className="text-lg">🚀</span> Admission Pipeline
+              <span className="text-lg">🚀</span> Admission overview
             </h3>
             <div className="flex items-center justify-between gap-1">
               {PIPELINE_STEPS.map((step, i) => {
@@ -1217,10 +1239,10 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {statCard('Question Pools', pools.length, '📝', 'border-cyan-500/30')}
-            {statCard('Blueprints', blueprints.length, '📐', 'border-blue-500/30')}
-            {statCard('Test Forms', forms.length, '📋', 'border-indigo-500/30')}
-            {statCard('Candidates', candidates.length, '👤', 'border-purple-500/30')}
+            {statCard('Candidates waiting', candidates.filter(c => c.status === 'registered').length, '⏳', 'border-cyan-500/30')}
+            {statCard('Tests in progress', attempts.filter(a => a.status === 'in_progress').length, '📝', 'border-blue-500/30')}
+            {statCard('Results ready', attempts.filter(a => a.status === 'submitted' || a.status === 'scored').length, '✅', 'border-indigo-500/30')}
+            {statCard('Needs attention', attempts.filter(a => a.status === 'submitted').length, '🔎', 'border-purple-500/30')}
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {statCard('Active Tests', forms.filter(f => f.status === 'published').length, '✅', 'border-emerald-500/30')}
@@ -1727,12 +1749,12 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
             </div>
           )}
 
-          {/* Grade 5 package guidance */}
+          {/* Grade 6 package guidance */}
           <div className="rounded-xl border border-cyan-500/25 bg-cyan-950/20 p-4">
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div>
-                <h3 className="text-sm font-semibold text-white">Grade 5 Admission Package</h3>
-                <p className="text-xs text-cyan-100/80 mt-1">Recommended bundle: English required, Maths required, Science optional. Register one candidate once, then send each matching subject link below.</p>
+                <h3 className="text-sm font-semibold text-white">Grade 6 Admission Package</h3>
+                <p className="text-xs text-cyan-100/80 mt-1">Recommended Grade 6 bundle: English required, Maths required, Science optional. Register one candidate once, then send each matching subject link below.</p>
               </div>
               <div className="flex flex-wrap gap-2 text-[11px]">
                 <span className="px-2 py-1 rounded-full bg-emerald-500/15 text-emerald-200 border border-emerald-500/30">English required</span>
@@ -1785,7 +1807,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                     <th className="pb-2 pr-4">Grade</th>
                     <th className="pb-2 pr-4">Status</th>
                     <th className="pb-2 pr-4">Send Test</th>
-                    <th className="pb-2 pr-4">File</th>
+                    <th className="pb-2 pr-4">View details</th>
                     <th className="pb-2 w-8"></th>
                   </tr>
                 </thead>
@@ -1856,7 +1878,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                           </div>
                         </td>
                         <td className="py-3">
-                          <button onClick={() => setCandidateFileId(c.id)} className="text-xs px-2 py-1 rounded bg-amber-600/20 text-amber-300 hover:bg-amber-600/40 transition" title="View candidate file">📁</button>
+                          <button onClick={() => setCandidateFileId(c.id)} className="text-xs px-2 py-1 rounded bg-amber-600/20 text-amber-300 hover:bg-amber-600/40 transition" title="View candidate details">View candidate</button>
                         </td>
                         <td className="py-3">
                           <button onClick={() => handleDeleteCandidate(c.id)} className="text-xs px-1.5 py-1 rounded bg-red-600/20 text-red-400 hover:bg-red-600/40 transition" title="Delete candidate">🗑</button>
@@ -1974,7 +1996,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                                       ))}
                                     </div>
                                   )}
-                                  <button onClick={() => handleResetAttemptForRetake(a.id)} className="text-xs px-2 py-1 rounded bg-amber-600/20 text-amber-300 hover:bg-amber-600/40 transition" title="Reset attempt for retake">↻ Retake</button>
+                                  <button onClick={() => handleResetAttemptForRetake(a.id)} className="text-xs px-2 py-1 rounded bg-amber-600/20 text-amber-300 hover:bg-amber-600/40 transition" title="Reset attempt for retake">Allow retake</button>
                                   <button onClick={() => handleDeleteAttempt(a.id)} className="text-xs px-1.5 py-1 rounded bg-red-600/20 text-red-400 hover:bg-red-600/40 transition" title="Delete attempt">🗑</button>
                                 </div>
                               </div>
@@ -2070,15 +2092,15 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 </div>
 
 
-                {(reportData.activity_notes ?? []).length > 0 && (
-                  <div className="rounded-xl border border-amber-500/30 bg-amber-900/10 p-4">
-                    <h4 className="text-sm font-semibold text-amber-200 mb-2">Activity / Integrity Notes</h4>
+                <div className="rounded-xl border border-amber-500/30 bg-amber-900/10 p-4">
+                  <h4 className="text-sm font-semibold text-amber-200 mb-2">Activity notes</h4>
+                  {(reportData.activity_notes ?? []).length > 0 ? (
                     <ul className="text-xs text-amber-50/90 list-disc pl-5 space-y-1">
                       {(reportData.activity_notes ?? []).map((note, i) => <li key={i}>{note}</li>)}
                     </ul>
-                    <p className="mt-2 text-[11px] text-amber-100/70">These notes are informational only. They do not automatically invalidate a candidate test.</p>
-                  </div>
-                )}
+                  ) : <p className="text-xs text-amber-50/90">No activity notes recorded for this attempt.</p>}
+                  <p className="mt-2 text-[11px] text-amber-100/70">Activity notes help the school review unusual test behaviour. They do not automatically prove misconduct.</p>
+                </div>
 
                 {reportData.placement_recommendation && (
                   <div className="rounded-xl border border-cyan-500/30 bg-cyan-900/10 p-4 space-y-3">
@@ -2338,7 +2360,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 <div>
                   <h2 className="text-xl font-bold text-white">{cand.full_name}</h2>
                   <p className="text-xs text-gray-400">
-                    Candidate File · Registered {new Date(cand.created_at).toLocaleDateString()}
+                    Candidate details · Registered {new Date(cand.created_at).toLocaleDateString()}
                   </p>
                 </div>
                 <button onClick={() => setCandidateFileId(null)} className="ml-auto text-gray-400 hover:text-white text-xl">✕</button>
@@ -2346,7 +2368,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
               {/* Personal Info */}
               <div className="rounded-lg border border-gray-700/50 bg-slate-800/50 p-4 mb-4">
-                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Personal Information</h3>
+                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Candidate profile</h3>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
                     <span className="text-gray-500 text-xs">Email</span>
@@ -2370,17 +2392,35 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                       <p className="text-white text-xs">{cand.notes}</p>
                     </div>
                   )}
-                  <div>
-                    <span className="text-gray-500 text-xs">Token</span>
-                    <p className="text-white font-mono text-xs">{cand.token}</p>
+                  <div className="col-span-2 rounded-lg border border-sky-200 bg-sky-50 p-3 text-xs text-sky-900">
+                    Candidate-specific links are private. Use Sent links below to copy or send links without exposing tokens.
                   </div>
                 </div>
               </div>
 
-              {/* Test Results */}
+              {/* Admission package */}
+              <div className="rounded-lg border border-sky-200 bg-white p-4 mb-4">
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Admission package / matching tests</h3>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  {ADMISSION_PACKAGE_SUBJECTS.map(subject => {
+                    const matching = forms.find(f => getFormGrade(f, blueprints) === cand.applied_grade && normalizeAdmissionSubject(getFormSubject(f, blueprints)) === subject.key);
+                    const attempt = matching ? candAttempts.find(a => a.form_id === matching.id) : undefined;
+                    return <div key={subject.key} className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm"><div className="font-semibold text-slate-900">{subject.label}</div><div className="text-xs text-slate-500">{subject.required ? 'Required' : 'Optional'} · {getAttemptLabel(attempt)}</div></div>;
+                  })}
+                </div>
+              </div>
+
+              {/* Sent links */}
+              <div className="rounded-lg border border-sky-200 bg-white p-4 mb-4">
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Sent links</h3>
+                <p className="text-xs text-slate-500 mb-2">Copy links for matching Grade {cand.applied_grade || '—'} tests. Tokens are never shown in the normal admin UI.</p>
+                <div className="flex flex-wrap gap-2">{forms.filter(f => f.status === 'published' && getFormGrade(f, blueprints) === cand.applied_grade).map(f => <button key={f.id} onClick={() => { navigator.clipboard.writeText(AdmService.buildTestLink(window.location.origin, cand.token, f.form_code)); addToast('Candidate link copied', 'success'); }} className="rounded-lg border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-xs font-semibold text-cyan-800">Copy {admissionSubjectLabel(getFormSubject(f, blueprints))} link</button>)}</div>
+              </div>
+
+              {/* Attempts / Results / Retake */}
               <div className="rounded-lg border border-gray-700/50 bg-slate-800/50 p-4 mb-4">
                 <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                  Test Results ({candAttempts.length})
+                  Attempts, Results, Activity notes, and Retake ({candAttempts.length})
                 </h3>
                 {candAttempts.length === 0 ? (
                   <p className="text-gray-500 text-sm">No tests taken yet.</p>
@@ -2418,6 +2458,11 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                           {a.status === 'in_progress' && (
                             <p className="text-xs text-blue-400 mt-1">🔄 Test in progress…</p>
                           )}
+                          <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                            {(a.status === 'submitted' || a.status === 'scored') && <button onClick={() => handleViewReport(a.id)} className="rounded-lg bg-blue-600/30 px-3 py-1 text-blue-200 hover:bg-blue-600/50">View result</button>}
+                            <button onClick={() => handleViewReport(a.id)} className="rounded-lg bg-amber-600/20 px-3 py-1 text-amber-200 hover:bg-amber-600/40">Activity notes</button>
+                            <button onClick={() => handleResetAttemptForRetake(a.id)} className="rounded-lg bg-white/10 px-3 py-1 text-white hover:bg-white/20">Allow retake</button>
+                          </div>
                         </div>
                       );
                     })}
@@ -2425,13 +2470,14 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 )}
               </div>
 
-              {/* Activity Timeline */}
-              <div className="rounded-lg border border-gray-700/50 bg-slate-800/50 p-4">
-                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                  Activity Timeline ({candAuditEntries.length})
+              {/* Activity notes */}
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+                <h3 className="text-xs font-semibold text-amber-900 uppercase tracking-wider mb-2">
+                  Activity notes ({candAuditEntries.length})
                 </h3>
+                <p className="mb-3 text-xs text-amber-900">Activity notes help the school review unusual test behaviour. They do not automatically prove misconduct.</p>
                 {candAuditEntries.length === 0 ? (
-                  <p className="text-gray-500 text-sm">No activity recorded.</p>
+                  <p className="text-gray-500 text-sm">No activity notes recorded for this attempt.</p>
                 ) : (
                   <div className="space-y-2 max-h-48 overflow-y-auto">
                     {candAuditEntries.map((entry, i) => {
