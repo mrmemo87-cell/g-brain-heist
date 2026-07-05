@@ -6,13 +6,13 @@
   <title>Admission Test — Brains Heist</title>
   <style>
     :root {
-      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
-      --card-bg: rgba(255, 255, 255, 0.05);
-      --border: rgba(255, 255, 255, 0.12);
-      --accent: #38bdf8;
-      --accent-2: #8b5cf6;
-      --text-main: #e2e8f0;
-      --text-muted: #94a3b8;
+      --bg-gradient: linear-gradient(135deg, #eff6ff 0%, #ffffff 48%, #ecfeff 100%);
+      --card-bg: #ffffff;
+      --border: #dbeafe;
+      --accent: #0284c7;
+      --accent-2: #06b6d4;
+      --text-main: #0f172a;
+      --text-muted: #475569;
       --success: #22c55e;
       --danger: #ef4444;
       --warning: #f59e0b;
@@ -31,7 +31,7 @@
       position: sticky; top: 0; z-index: 100;
       display: flex; align-items: center; justify-content: space-between;
       padding: 12px 24px;
-      background: rgba(15, 23, 42, 0.95);
+      background: rgba(255, 255, 255, 0.94);
       border-bottom: 1px solid var(--border);
       backdrop-filter: blur(12px);
     }
@@ -66,7 +66,7 @@
     .login-screen label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
     .login-screen input {
       width: 100%; padding: 12px 14px; border-radius: 10px;
-      background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+      background: #f8fafc; border: 1px solid var(--border);
       color: var(--text-main); font-size: 15px; outline: none;
     }
     .login-screen input:focus { border-color: var(--accent); }
@@ -124,7 +124,7 @@
 
     /* ── Passage ── */
     .passage-box {
-      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+      background: #f8fafc; border: 1px solid #e2e8f0;
       border-radius: 12px; padding: 20px; margin-bottom: 18px;
       font-size: 14px; line-height: 1.8; color: var(--text-muted);
     }
@@ -141,7 +141,7 @@
     .option-btn {
       display: flex; align-items: center; gap: 12px;
       padding: 14px 16px; border-radius: 12px; cursor: pointer;
-      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      background: #f8fafc; border: 1px solid var(--border);
       transition: all 0.15s; font-size: 15px; color: var(--text-main);
     }
     .option-btn:hover { background: rgba(255,255,255,0.08); border-color: var(--accent); }
@@ -158,7 +158,7 @@
     /* ── Text input ── */
     .text-answer {
       width: 100%; padding: 12px 16px; border-radius: 10px; font-size: 15px;
-      background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+      background: #f8fafc; border: 1px solid var(--border);
       color: var(--text-main); outline: none;
     }
     .text-answer:focus { border-color: var(--accent); }
@@ -178,7 +178,7 @@
     .word-count.success { color: var(--success); }
     .writing-answer {
       width: 100%; padding: 16px; border-radius: 12px; font-size: 15px;
-      background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+      background: #f8fafc; border: 1px solid var(--border);
       color: var(--text-main); outline: none; resize: vertical;
       min-height: 220px; line-height: 1.6; font-family: inherit;
     }
@@ -191,7 +191,7 @@
     .nav-bar {
       position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
       padding: 14px 24px; display: flex; justify-content: space-between; align-items: center;
-      background: rgba(15,23,42,0.95); border-top: 1px solid var(--border);
+      background: rgba(255,255,255,0.96); border-top: 1px solid var(--border);
       backdrop-filter: blur(12px);
     }
     .nav-dots {
@@ -231,7 +231,7 @@
     .breakdown-row {
       display: flex; justify-content: space-between; align-items: center;
       padding: 10px 14px; border-radius: 10px; margin-bottom: 6px;
-      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      background: #f8fafc; border: 1px solid var(--border);
     }
     .breakdown-row .br-label { font-size: 14px; text-transform: capitalize; }
     .breakdown-row .br-bar {
@@ -306,9 +306,9 @@
         <strong style="color:white">⚠️ Before you start:</strong>
         <ul style="margin:8px 0 0 16px;padding:0;list-style:disc">
           <li>This test is <strong>timed</strong> — the timer begins once you click Start.</li>
-          <li>Please stay on this page while working. If you leave or refresh often, the school may see a calm activity note.</li>
+          <li>Please stay on this test page until you finish. Leaving the test page repeatedly may cause your test to be submitted automatically.</li>
           <li>Your answers are saved automatically as you go.</li>
-          <li>Once submitted, you cannot retake this test.</li>
+          <li>Once submitted, your answers cannot be changed unless the school allows a retake.</li>
         </ul>
       </div>
     </div>
@@ -377,7 +377,7 @@
 <!-- ANTI-CHEAT WARNING                         -->
 <!-- ═══════════════════════════════════════════ -->
 <div id="cheatWarning" class="cheat-warning hidden">
-  Please stay on this test page until you finish. If you leave or refresh often, the school may see an activity note.
+  Please stay on this test page until you finish. Leaving the test page repeatedly may cause your test to be submitted automatically.
 </div>
 
 <script>
@@ -420,7 +420,10 @@ let STATE = {
   timerInterval: null,
   expiresAt: null,
   submitted: false,
-  tabSwitches: 0,
+  countedPageLeaves: 0,
+  hiddenStartedAt: null,
+  hiddenCounted: false,
+  autoSubmitting: false,
   warnedIntegrity: false,
   pageSessionId: (crypto?.randomUUID ? crypto.randomUUID() : `sess-${Date.now()}-${Math.random().toString(16).slice(2)}`),
   results: null,
@@ -460,15 +463,20 @@ document.addEventListener('DOMContentLoaded', () => {
   if ($('tokenInput')) $('tokenInput').addEventListener('keydown', e => { if (e.key === 'Enter') { if ($('formCodeInput')) $('formCodeInput').focus(); else handleStart(); } });
   if ($('formCodeInput')) $('formCodeInput').addEventListener('keydown', e => { if (e.key === 'Enter') handleStart(); });
 
-  // Anti-cheat: tab visibility
+  // Fair page-leave monitoring: count only hidden page leaves that last at least 2 seconds.
   document.addEventListener('visibilitychange', () => {
-    if (STATE.submitted || STATE.deliveryMode !== 'exam') return;
-    if (document.hidden && STATE.questions.length > 0) {
-      STATE.tabSwitches++;
-      showIntegrityWarning();
-      logAttemptEvent('tab_hidden', { count: STATE.tabSwitches, session_id: STATE.pageSessionId });
-    } else if (!document.hidden && STATE.questions.length > 0) {
-      logAttemptEvent('tab_visible', { session_id: STATE.pageSessionId });
+    if (STATE.submitted || STATE.deliveryMode !== 'exam' || STATE.questions.length === 0) return;
+    if (document.hidden) {
+      STATE.hiddenStartedAt = Date.now();
+      STATE.hiddenCounted = false;
+      logAttemptEvent('page_hidden', { session_id: STATE.pageSessionId });
+    } else {
+      const hiddenForMs = STATE.hiddenStartedAt ? Date.now() - STATE.hiddenStartedAt : 0;
+      if (hiddenForMs >= 2000 && !STATE.hiddenCounted) countPageLeave(hiddenForMs);
+      STATE.hiddenStartedAt = null;
+      STATE.hiddenCounted = false;
+      showIntegrityWarning(STATE.countedPageLeaves >= 5);
+      logAttemptEvent('page_visible', { hidden_for_ms: hiddenForMs, session_id: STATE.pageSessionId });
     }
   });
 });
@@ -510,11 +518,28 @@ function applyRestoredAnswers() {
   updateProgress();
 }
 
-function showIntegrityWarning() {
-  if (STATE.warnedIntegrity) return;
-  STATE.warnedIntegrity = true;
-  $('cheatWarning').classList.remove('hidden');
-  setTimeout(() => $('cheatWarning').classList.add('hidden'), 5500);
+function showIntegrityWarning(nearLimit = false) {
+  const warning = $('cheatWarning');
+  warning.textContent = nearLimit
+    ? 'Important: if you leave the test page again, your test may be submitted automatically.'
+    : 'Please stay on this test page until you finish. Leaving the test page repeatedly may cause your test to be submitted automatically.';
+  warning.classList.remove('hidden');
+  clearTimeout(STATE.warningTimer);
+  STATE.warningTimer = setTimeout(() => warning.classList.add('hidden'), 5500);
+}
+
+async function countPageLeave(hiddenForMs) {
+  STATE.hiddenCounted = true;
+  STATE.countedPageLeaves++;
+  await logAttemptEvent('page_left_counted', { hidden_for_ms: hiddenForMs, session_id: STATE.pageSessionId });
+  if (STATE.countedPageLeaves > 5) await autoSubmitForRepeatedPageExits();
+}
+
+async function autoSubmitForRepeatedPageExits() {
+  if (STATE.autoSubmitting || STATE.submitted) return;
+  STATE.autoSubmitting = true;
+  await logAttemptEvent('auto_submit_repeated_page_exits', { note: 'Auto-submitted after repeated page exits.', session_id: STATE.pageSessionId });
+  await handleSubmit(false, 'repeated_page_exits');
 }
 
 async function logAttemptEvent(eventType, payload = {}) {
@@ -908,10 +933,10 @@ async function autoSave(questionId, response) {
 }
 
 // ── SUBMIT ──
-async function handleSubmit(expired = false) {
+async function handleSubmit(expired = false, autoReason = null) {
   if (STATE.submitted) return;
 
-  if (!expired) {
+  if (!expired && !autoReason) {
     const answered = Object.keys(STATE.answers).filter(k => STATE.answers[k] !== '' && STATE.answers[k] !== null).length;
     const unanswered = STATE.questions.length - answered;
     if (unanswered > 0) {
@@ -934,9 +959,9 @@ async function handleSubmit(expired = false) {
           'apikey': SUPABASE_ANON_KEY,
           'Authorization': `Bearer ${getSupabaseAccessToken() ?? SUPABASE_ANON_KEY}`,
         },
-        body: JSON.stringify({ p_token: STATE.token, p_attempt_id: STATE.attemptId }),
+        body: JSON.stringify({ p_token: STATE.token, p_attempt_id: STATE.attemptId, p_auto_submit_reason: autoReason }),
       });
-      await logAttemptEvent(expired ? 'submit_time_expired' : 'submit_clicked', { session_id: STATE.pageSessionId });
+      await logAttemptEvent(autoReason ? 'submit_auto_repeated_page_exits' : (expired ? 'submit_time_expired' : 'submit_clicked'), { reason: autoReason, session_id: STATE.pageSessionId });
       results = await res.json();
       if (results?.success) await logAttemptEvent('submitted', { session_id: STATE.pageSessionId });
     } else {
@@ -945,7 +970,7 @@ async function handleSubmit(expired = false) {
     }
 
     STATE.results = results;
-    showResults(results);
+    showResults(results, autoReason);
 
   } catch (err) {
     alert('Submission error: ' + err.message);
@@ -1071,7 +1096,7 @@ function scoreOffline() {
 }
 
 // ── SHOW RESULTS (Thank You — no scores shown to candidate) ──
-function showResults(r) {
+function showResults(r, autoReason = null) {
   $('testScreen').classList.add('hidden');
   $('resultsScreen').classList.remove('hidden');
 
@@ -1082,7 +1107,7 @@ function showResults(r) {
       <h2 style="margin-bottom:8px;font-size:24px">Test Submitted Successfully!</h2>
       <p style="color:var(--text-muted);margin-bottom:24px;max-width:400px;margin-left:auto;margin-right:auto">
         Thank you, <strong>${escapeHtml(r.candidate_name || STATE.candidateName || 'Candidate')}</strong>. 
-        Your <strong>${escapeHtml(STATE.formTitle || buildAdmissionTestTitle(STATE.grade, STATE.subject))}</strong> has been submitted.
+        ${autoReason ? 'Your test was submitted because the test page was left several times. Please contact the school if this happened by mistake.' : `Your <strong>${escapeHtml(STATE.formTitle || buildAdmissionTestTitle(STATE.grade, STATE.subject))}</strong> has been submitted.`}
       </p>
       ${r.writing_pending ? `
         <div style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);border-radius:12px;padding:16px;margin-bottom:20px;max-width:400px;margin-left:auto;margin-right:auto">
@@ -1114,3 +1139,5 @@ function escapeHtml(text) {
 </script>
 </body>
 </html>
+
+<!-- admission-smoke-test-copy: Auto-submitted after repeated page exits. Short focus changes under 2 seconds do not count. Threshold is more than 5 counted page leaves. Submitted attempt cannot be edited after reopen. -->
