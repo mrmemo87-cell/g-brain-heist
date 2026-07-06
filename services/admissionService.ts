@@ -202,6 +202,8 @@ export interface CandidateReportAnswer {
   difficulty?: string | null;
   grade_level?: number | null;
   stage_level?: number | null;
+  content_version?: string | null;
+  form_code?: string | null;
   response: any;
   correct_answer: any;
   is_correct: boolean;
@@ -264,7 +266,9 @@ export const admissionSubjectLabel = (subject?: string | null, formCode?: string
 
 export const buildAdmissionReportFormLabel = (formCode?: string | null, grade?: number | null, subject?: string | null) => {
   const label = admissionSubjectLabel(subject, formCode);
-  const gradeText = grade ? `Grade ${grade}` : 'Admission';
+  const codeGrade = Number(String(formCode || '').match(/(?:ENG|MAT|SCI|G|GRADE)(\d{1,2})/i)?.[1] || '');
+  const inferredGrade = grade ?? (codeGrade || null);
+  const gradeText = inferredGrade ? `Grade ${inferredGrade}` : 'Admission';
   return `${gradeText} ${label} Admission Test`;
 };
 
@@ -556,7 +560,7 @@ export async function getCandidateReport(attemptId: string): Promise<CandidateRe
       question_id: a.question_id,
       question_type: a.question_type,
       stem: a.stem,
-      subject: admissionSubjectLabel(a.subject ?? raw.subject ?? null, raw.form_code ?? null, a.content_version ?? raw.content_version ?? null),
+      subject: admissionSubjectLabel(a.subject ?? raw.subject ?? raw.form_subject ?? null, raw.form_code ?? null, a.content_version ?? raw.content_version ?? null),
       topic: a.topic,
       diagnostic_skill: a.diagnostic_skill ?? null,
       skill_tag: a.skill_tag ?? null,
@@ -564,6 +568,7 @@ export async function getCandidateReport(attemptId: string): Promise<CandidateRe
       grade_level: a.grade_level ?? null,
       stage_level: a.stage_level ?? null,
       form_code: raw.form_code ?? null,
+      content_version: a.content_version ?? raw.content_version ?? null,
       response: a.response,
       correct_answer: a.correct_answer,
       is_correct: a.is_correct,
@@ -582,13 +587,14 @@ export async function getCandidateReport(attemptId: string): Promise<CandidateRe
     years_english_medium: raw.candidate.years_english_medium ?? null,
     admin_notes: raw.candidate.admin_notes ?? null,
   } : undefined;
-  const diagnosticAnswers = answers.map((answer: any) => ({ ...answer, form_code: raw.form_code ?? null, content_version: raw.content_version ?? null }));
+  const reportSubject = raw.subject ?? raw.form_subject ?? answers[0]?.subject ?? null;
+  const diagnosticAnswers = answers.map((answer: any) => ({ ...answer, subject: answer.subject ?? reportSubject, form_code: raw.form_code ?? null, content_version: answer.content_version ?? raw.content_version ?? null }));
   const diagnosticBreakdown = calculateDiagnosticBreakdown(diagnosticAnswers);
-  const placementRecommendation = calculatePlacementRecommendation(candidateProfile, answers, raw.attempt?.percentage ?? 0);
+  const placementRecommendation = calculatePlacementRecommendation(candidateProfile, diagnosticAnswers, raw.attempt?.percentage ?? 0);
   return {
     candidate_name: raw.candidate?.name ?? 'Unknown',
     form_code: raw.form_code ?? '',
-    form_label: raw.form_title ?? buildAdmissionReportFormLabel(raw.form_code ?? '', raw.candidate?.applied_grade ?? null, raw.subject ?? answers[0]?.subject ?? null),
+    form_label: raw.form_title ?? buildAdmissionReportFormLabel(raw.form_code ?? '', raw.candidate?.applied_grade ?? raw.grade ?? null, reportSubject),
     total_score: raw.attempt?.total_score ?? 0,
     max_score: raw.attempt?.max_score ?? 0,
     percentage: raw.attempt?.percentage ?? 0,

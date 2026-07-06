@@ -466,7 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Fair page-leave monitoring: count only hidden page leaves that last at least 2 seconds.
   document.addEventListener('visibilitychange', () => {
-    if (STATE.submitted || STATE.deliveryMode !== 'exam' || STATE.questions.length === 0) return;
+    if (STATE.submitted || STATE.submitInProgress || STATE.autoSubmitting || STATE.deliveryMode !== 'exam' || STATE.questions.length === 0) return;
     if (document.hidden) {
       STATE.hiddenStartedAt = Date.now();
       STATE.hiddenCounted = false;
@@ -520,6 +520,7 @@ function applyRestoredAnswers() {
 }
 
 function showIntegrityWarning(nearLimit = false) {
+  if (STATE.submitted || STATE.submitInProgress || STATE.autoSubmitting) return;
   const warning = $('cheatWarning');
   warning.textContent = nearLimit
     ? 'Important: if you leave the test page again, your test may be submitted automatically.'
@@ -538,12 +539,16 @@ async function countPageLeave(hiddenForMs) {
 async function autoSubmitForRepeatedPageExits() {
   if (STATE.autoSubmitting || STATE.submitted) return;
   STATE.autoSubmitting = true;
+  STATE.submitInProgress = true;
+  const warning = $('cheatWarning');
+  if (warning) warning.classList.add('hidden');
   await logAttemptEvent('auto_submit_repeated_page_exits', { note: 'Auto-submitted after repeated page exits.', session_id: STATE.pageSessionId });
   await handleSubmit(false, 'repeated_page_exits');
 }
 
 async function logAttemptEvent(eventType, payload = {}) {
   if (STATE.mode !== 'online' || !STATE.attemptId) return;
+  if ((STATE.submitted || STATE.submitInProgress || STATE.autoSubmitting) && ['tab_hidden','tab_visible'].includes(eventType)) return;
   try {
     await fetch(`${SUPABASE_URL}/rest/v1/rpc/rpc_adm_log_attempt_event`, {
       method: 'POST',
@@ -942,7 +947,7 @@ async function autoSave(questionId, response) {
 
 // ── SUBMIT ──
 async function handleSubmit(expired = false, autoReason = null) {
-  if (STATE.submitted || STATE.submitInProgress) return;
+  if (STATE.submitted || (STATE.submitInProgress && !autoReason)) return;
 
   if (!expired && !autoReason) {
     const answered = Object.keys(STATE.answers).filter(k => STATE.answers[k] !== '' && STATE.answers[k] !== null).length;
@@ -955,6 +960,7 @@ async function handleSubmit(expired = false, autoReason = null) {
   }
 
   STATE.submitInProgress = true;
+  if (autoReason) STATE.autoSubmitting = true;
   $('submitTestBtn').disabled = true;
   $('nextBtn').disabled = true;
   const previousSubmitText = $('submitTestBtn').textContent;

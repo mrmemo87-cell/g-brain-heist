@@ -2146,9 +2146,19 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                       </div>
                       {reportData.placement_recommendation.interviewFlag && <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-200">Interview recommended</span>}
                     </div>
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div className="rounded-lg bg-slate-900/50 p-3"><span className="text-xs text-gray-400">English readiness</span><p className="text-white font-semibold">{reportData.placement_recommendation.englishPercentage ?? 'Not enough data'}{reportData.placement_recommendation.englishPercentage != null ? '%' : ''}</p></div>
-                      <div className="rounded-lg bg-slate-900/50 p-3"><span className="text-xs text-gray-400">Maths readiness</span><p className="text-white font-semibold">{reportData.placement_recommendation.mathsPercentage ?? 'Not enough data'}{reportData.placement_recommendation.mathsPercentage != null ? '%' : ''}</p></div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                      {(() => {
+                        const rec = reportData.placement_recommendation;
+                        const cards = [
+                          { key: 'english', label: 'English readiness', value: rec.englishPercentage },
+                          { key: 'math', label: 'Maths readiness', value: rec.mathsPercentage },
+                          { key: 'science', label: 'Science readiness', value: rec.sciencePercentage },
+                        ];
+                        const visible = rec.isPackageReport ? cards : cards.filter(card => card.key === rec.currentSubject);
+                        return visible.map(card => (
+                          <div key={card.key} className="rounded-lg bg-slate-900/50 p-3"><span className="text-xs text-gray-400">{card.label}</span><p className="text-white font-semibold">{card.value ?? 'Not enough data'}{card.value != null ? '%' : ''}</p></div>
+                        ));
+                      })()}
                     </div>
                     <div>
                       <h5 className="text-xs font-semibold text-gray-300 mb-1">Why this recommendation?</h5>

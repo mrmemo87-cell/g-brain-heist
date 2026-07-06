@@ -97,3 +97,23 @@ test('activity and submit SQL keep school isolation and dedupe repeated auto-sub
   assert.match(migration, /Test auto-submitted after repeated page exits\./);
   assert.doesNotMatch(migration, /submitted normally/i);
 });
+
+test('subject-aware report polish covers form codes readiness cards and client auto-submit guard', () => {
+  const service = readFileSync('services/admissionService.ts', 'utf8');
+  const placement = readFileSync('src/lib/admissionPlacementIntelligence.ts', 'utf8');
+  const candidateHtml = readFileSync('public/admission-tests/admission-test.html', 'utf8');
+  const migration = readFileSync('supabase/migrations/20260706153000_admission_subject_aware_reports.sql', 'utf8');
+
+  assert.match(service, /raw\.form_code/);
+  assert.match(service, /form_subject/);
+  assert.match(service, /buildAdmissionReportFormLabel/);
+  assert.match(placement, /Science readiness is/);
+  assert.match(placement, /title\(r\.subject\)} ·/);
+  assert.match(hub, /Science readiness/);
+  assert.match(hub, /rec\.isPackageReport \? cards : cards\.filter/);
+  assert.match(candidateHtml, /STATE\.submitInProgress = true;\s*if \(autoReason\) STATE\.autoSubmitting = true;/);
+  assert.match(candidateHtml, /\['tab_hidden','tab_visible'\]\.includes\(eventType\)/);
+  assert.match(migration, /'form_code', v_form\.form_code/);
+  assert.match(migration, /WHEN v_form\.form_code ILIKE 'SCI%'/);
+  assert.match(migration, /ignored_after_final/);
+});
