@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 import { getUserTier, isIeltsPrime } from '../../../services/ieltsService';
 import { supabase } from '../../../services/supabaseClient';
-import { recordDiagnosticCompleted, trackIeltsFunnelEvent } from '../../../services/ieltsFunnelAnalytics';
+import { loginWithGoogle } from '../../../services/ieltsAuthService';
+import { recordDiagnosticCompleted, savePendingDiagnosticResult, trackIeltsFunnelEvent } from '../../../services/ieltsFunnelAnalytics';
 
 // Audio URLs for each section
 const SECTION_AUDIO = {
@@ -70,12 +71,16 @@ const TrialListeningTask2: React.FC = () => {
   const [submittedResult, setSubmittedResult] = useState<{ percentage: number; bandScore: number } | null>(null);
   const [diagnosticPersisting, setDiagnosticPersisting] = useState(false);
   const [diagnosticPersistError, setDiagnosticPersistError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
   const isPrimeUser = isIeltsPrime({ tier: userTier });
   const userType = 'independent' as const;
 
 
   useEffect(() => {
     let active = true;
+    supabase.auth.getSession().then(({ data }) => { if (active) setIsAuthenticated(Boolean(data.session)); });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => setIsAuthenticated(Boolean(session)));
     const checkCompletedDiagnostic = async () => {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) {
@@ -101,7 +106,7 @@ const TrialListeningTask2: React.FC = () => {
       setRetakeCheckLoading(false);
     };
     void checkCompletedDiagnostic();
-    return () => { active = false; };
+    return () => { active = false; subscription.unsubscribe(); };
   }, []);
 
   // Stop background music
@@ -381,6 +386,15 @@ const TrialListeningTask2: React.FC = () => {
     const bandScore = getBandScore(percentage);
     setSubmittedResult({ percentage, bandScore });
     setDiagnosticPersistError(null);
+    if (!isAuthenticated) {
+      const eventId = `pending-diagnostic:trial-test-2:${Date.now()}`;
+      savePendingDiagnosticResult({ task_id: 'trial-test-2', skill: 'listening', percentage, bandScore, completedAt: new Date().toISOString(), event_id: eventId });
+      trackIeltsFunnelEvent('diagnostic_completed_pending_auth', { skill: 'listening', task_id: 'trial-test-2', estimated_band: bandScore, user_type: userType, event_id: eventId });
+      trackIeltsFunnelEvent('auth_required_for_result', { skill: 'listening', task_id: 'trial-test-2', estimated_band: bandScore, user_type: userType });
+      setShowResults(true);
+      setDiagnosticPersisting(false);
+      return;
+    }
     setDiagnosticPersisting(true);
     const recorded = await recordDiagnosticCompleted({
       skill: 'listening',
@@ -410,6 +424,19 @@ const TrialListeningTask2: React.FC = () => {
       user_type: userType,
     });
   }, [showResults, submittedResult]);
+
+  const signInToSaveResult = async () => {
+    if (loginLoading) return;
+    setLoginLoading(true);
+    setDiagnosticPersistError(null);
+    try {
+      window.sessionStorage.setItem('ielts_auth_intent', '/ielts/trial-test-2');
+      await loginWithGoogle();
+    } catch {
+      setDiagnosticPersistError('Google sign-in could not start. Please try again. Your diagnostic result is still saved on this device.');
+      setLoginLoading(false);
+    }
+  };
 
   const section = TRIAL_TEST_DATA.sections[currentSection];
   const answeredCount = Object.keys(answers).length;
@@ -518,8 +545,8 @@ const TrialListeningTask2: React.FC = () => {
           }}>
             <h3 style={{ fontSize: '1rem', marginBottom: '0.75rem' }}>✨ What You'll Receive</h3>
             <div style={{ fontSize: '0.875rem', textAlign: 'left' }}>
-              <p style={{ marginBottom: '0.5rem' }}>✓ Your estimated band score</p>
-              <p style={{ marginBottom: '0.5rem' }}>✓ Correct answers revealed</p>
+              <p style={{ marginBottom: '0.5rem' }}>✓ Your estimated band snapshot after sign-in</p>
+              <p style={{ marginBottom: '0.5rem' }}>✓ Correct answers revealed after saving</p>
               <p>✓ Brief performance feedback</p>
             </div>
           </div>
@@ -553,7 +580,7 @@ const TrialListeningTask2: React.FC = () => {
               marginBottom: '1rem'
             }}
           >
-            Start Listening Task 2 🚀
+            Start Free Diagnostic 🚀
           </button>
 
           <button
@@ -574,6 +601,23 @@ const TrialListeningTask2: React.FC = () => {
   }
 
   // Results Screen
+  if (showResults && !isAuthenticated) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg,#eff6ff,#f8fafc)', padding: 'clamp(1rem, 4vw, 2rem)', display: 'grid', placeItems: 'center' }}>
+        <div style={{ width: 'min(100%, 560px)', background: 'white', border: '1px solid #bfdbfe', borderRadius: '1.25rem', padding: 'clamp(1.25rem, 4vw, 2rem)', boxShadow: '0 22px 60px rgba(37, 99, 235, 0.14)', textAlign: 'center' }}>
+          <div style={{ fontSize: '2.5rem', marginBottom: '0.65rem' }}>🔐</div>
+          <h1 style={{ margin: '0 0 0.65rem', color: '#0f172a', fontSize: 'clamp(1.55rem, 7vw, 2.35rem)', lineHeight: 1.05 }}>Your diagnostic is complete</h1>
+          <p style={{ color: '#475569', lineHeight: 1.65, margin: '0 0 1rem' }}>Sign in to save your result and see your band snapshot. Your progress is safely held on this device until you finish sign-in.</p>
+          {diagnosticPersistError && <p style={{ color: '#b91c1c', background: '#fef2f2', borderRadius: '.65rem', padding: '.65rem', fontSize: '.85rem' }}>{diagnosticPersistError}</p>}
+          <button type="button" onClick={signInToSaveResult} disabled={loginLoading} style={{ width: '100%', padding: '.95rem 1.2rem', border: 0, borderRadius: '999px', background: 'linear-gradient(135deg,#22d3ee,#2563eb,#7c3aed)', color: 'white', fontWeight: 900, cursor: loginLoading ? 'wait' : 'pointer' }}>
+            {loginLoading ? 'Opening Google sign-in…' : 'Sign in to save and reveal result'}
+          </button>
+          <button type="button" onClick={() => navigate('/ielts')} style={{ marginTop: '.75rem', background: 'transparent', border: 0, color: '#64748b', cursor: 'pointer' }}>Back to IELTS Home</button>
+        </div>
+      </div>
+    );
+  }
+
   if (showResults) {
     const { correct, total, percentage, results } = calculateScore();
     const bandScore = getBandScore(percentage);
