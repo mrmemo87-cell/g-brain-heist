@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.78.0';
-import { buildMetaUserData, sendMetaCapiEvent } from './metaCapiClient.ts';
+import { buildMetaUserData, sendMetaCapiEvent } from '../_shared/metaCapiClient.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
