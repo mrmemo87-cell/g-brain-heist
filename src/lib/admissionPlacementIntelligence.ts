@@ -20,6 +20,8 @@ export interface AcademicProfile {
 
 export interface DiagnosticAnswer {
   subject?: string | null;
+  form_code?: string | null;
+  content_version?: string | null;
   diagnostic_skill?: string | null;
   skill_tag?: string | null;
   topic?: string | null;
@@ -52,12 +54,17 @@ export interface PlacementRecommendation {
   weakAreas: string[];
 }
 
-const normalizeSubject = (subject?: string | null) => {
-  const s = (subject || '').toLowerCase();
-  if (s.includes('math')) return 'math';
-  if (s.includes('english')) return 'english';
-  return s || 'unknown';
+export const deriveAdmissionSubject = (subject?: string | null, formCode?: string | null, contentVersion?: string | null) => {
+  const raw = `${subject || ''} ${contentVersion || ''}`.toLowerCase();
+  const code = (formCode || '').toUpperCase();
+  if (raw.includes('math') || code.startsWith('MAT')) return 'math';
+  if (raw.includes('english') || code.startsWith('ENG')) return 'english';
+  if (raw.includes('science') || code.startsWith('SCI')) return 'science';
+  if (raw.includes('chem')) return 'science';
+  return 'unknown';
 };
+
+const normalizeSubject = (subject?: string | null, formCode?: string | null, contentVersion?: string | null) => deriveAdmissionSubject(subject, formCode, contentVersion);
 
 const cleanSkill = (answer: DiagnosticAnswer) => {
   const raw = answer.diagnostic_skill || answer.skill_tag || answer.topic || 'general';
@@ -69,7 +76,7 @@ const pct = (score: number, max: number) => (max > 0 ? Math.round((score / max) 
 export function calculateDiagnosticBreakdown(answers: DiagnosticAnswer[] = []): DiagnosticBreakdownRow[] {
   const grouped = new Map<string, DiagnosticBreakdownRow>();
   answers.forEach((answer) => {
-    const subject = normalizeSubject(answer.subject);
+    const subject = normalizeSubject(answer.subject, answer.form_code, answer.content_version);
     const skill = cleanSkill(answer);
     const difficulty = answer.difficulty || null;
     const key = `${subject}::${skill}::${difficulty || 'all'}`;
@@ -138,6 +145,6 @@ function nextAction(label: PlacementLabel, interviewFlag: boolean) {
   if (label === 'Not ready yet') return 'Discuss alternatives or retesting after preparation.';
   return 'Review lower-grade fit with the academic lead.';
 }
-function title(s: string) { return s ? s[0].toUpperCase() + s.slice(1) : 'General'; }
+function title(s: string) { if (s === 'math') return 'Maths'; return s ? s[0].toUpperCase() + s.slice(1) : 'General'; }
 function ageFromDob(dob?: string | null) { if (!dob) return null; const t = new Date(dob).getTime(); if (Number.isNaN(t)) return null; return Math.floor((Date.now() - t) / 31557600000); }
 function expectedAgeGap(age: number | null, grade?: number | null) { if (!age || !grade) return 0; return age - (grade + 5); }

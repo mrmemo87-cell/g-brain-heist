@@ -5,7 +5,7 @@
  */
 
 import { supabase } from './supabaseClient';
-import { calculateDiagnosticBreakdown, calculatePlacementRecommendation, type AcademicProfile, type DiagnosticBreakdownRow, type PlacementRecommendation } from '../src/lib/admissionPlacementIntelligence';
+import { calculateDiagnosticBreakdown, calculatePlacementRecommendation, deriveAdmissionSubject, type AcademicProfile, type DiagnosticBreakdownRow, type PlacementRecommendation } from '../src/lib/admissionPlacementIntelligence';
 
 // ── Types ──
 
@@ -127,6 +127,7 @@ export interface AdmTestForm {
   blueprint_id: string;
   school_id: string;
   form_code: string;
+  form_label?: string;
   status: FormStatus;
   published_at: string | null;
   closed_at: string | null;
@@ -213,6 +214,7 @@ export interface CandidateReportAnswer {
 export interface CandidateReport {
   candidate_name: string;
   form_code: string;
+  form_label?: string;
   total_score: number;
   max_score: number;
   percentage: number;
@@ -232,6 +234,9 @@ export interface CandidateReport {
   difficulty_breakdown?: any[];
   activity_notes?: string[];
   activity_events?: AdmCandidateTestEvent[];
+  answered_count?: number;
+  total_questions?: number;
+  partial_attempt?: boolean;
 }
 
 export interface AdmCandidateTestEvent {
@@ -246,6 +251,64 @@ export interface GradeStageMap {
   grade_level: string;
   cambridge_stage: string;
   subject: string;
+}
+
+
+export const admissionSubjectLabel = (subject?: string | null, formCode?: string | null, contentVersion?: string | null) => {
+  const normalized = deriveAdmissionSubject(subject, formCode, contentVersion);
+  if (normalized === 'math') return 'Maths';
+  if (normalized === 'english') return 'English';
+  if (normalized === 'science') return 'Science';
+  return 'General';
+};
+
+export const buildAdmissionReportFormLabel = (formCode?: string | null, grade?: number | null, subject?: string | null) => {
+  const label = admissionSubjectLabel(subject, formCode);
+  const gradeText = grade ? `Grade ${grade}` : 'Admission';
+  return `${gradeText} ${label} Admission Test`;
+};
+
+const ACTIVITY_LABELS: Record<string, string> = {
+  page_opened: 'Page opened',
+  page_reopened: 'Page reopened',
+  page_reload: 'Page refreshed/reloaded',
+  tab_hidden: 'Candidate left the test page',
+  tab_visible: 'Candidate returned to the test page',
+  submit_clicked: 'Submit button clicked',
+  submitted: 'Test submitted',
+  submit_time_expired: 'Timer expired',
+  auto_submit_repeated_page_exits: 'Test auto-submitted after repeated page exits',
+};
+
+const pluralTimes = (count: number) => `${count} time${count === 1 ? '' : 's'}`;
+
+export function buildAdmissionActivityNotes(events: AdmCandidateTestEvent[] = [], submittedAt?: string | null): string[] {
+  const counts = new Map<string, number>();
+  for (const event of events) counts.set(event.event_type, (counts.get(event.event_type) || 0) + 1);
+  const notes: string[] = [];
+  const hasAutoSubmit = counts.has('auto_submit_repeated_page_exits');
+  for (const type of ['page_opened','page_reopened','page_reload','tab_hidden','tab_visible','submit_clicked','submit_time_expired']) {
+    const count = counts.get(type) || 0;
+    if (count > 0) notes.push(`${ACTIVITY_LABELS[type]} ${pluralTimes(count)}`);
+  }
+  if (hasAutoSubmit) notes.push(ACTIVITY_LABELS['auto_submit_repeated_page_exits'] + '.');
+  else if ((counts.get('submitted') || 0) > 0) notes.push(ACTIVITY_LABELS['submitted'] + '.');
+  if (submittedAt) notes.push(`Submitted at ${new Date(submittedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`);
+  return [...new Set(notes)];
+}
+
+export function dedupeAdmissionFocusAreas(items: string[] = [], breakdown: DiagnosticBreakdownRow[] = [], weakestFirst = false): string[] {
+  const scoreBy = new Map(breakdown.map(r => [`${r.subject} ${r.skill}`.toLowerCase(), r.percentage]));
+  const seen = new Set<string>();
+  const unique = items.filter(item => { const key = item.trim().toLowerCase(); if (!key || seen.has(key)) return false; seen.add(key); return true; });
+  if (!weakestFirst) return unique;
+  return unique.sort((a,b) => (scoreBy.get(a.toLowerCase()) ?? 999) - (scoreBy.get(b.toLowerCase()) ?? 999));
+}
+
+export function isObjectiveAutoScoredAdmissionReport(report: Pick<CandidateReport, 'answers' | 'diagnostic_breakdown'>): boolean {
+  const manualTypes = new Set(['email_writing','essay_writing']);
+  const openReviewTypes = new Set(['short_answer','structured']);
+  return (report.answers ?? []).every(a => !manualTypes.has(a.question_type) && !openReviewTypes.has(a.question_type));
 }
 
 // ── Question Pool CRUD ──
@@ -493,13 +556,14 @@ export async function getCandidateReport(attemptId: string): Promise<CandidateRe
       question_id: a.question_id,
       question_type: a.question_type,
       stem: a.stem,
-      subject: a.subject ?? null,
+      subject: admissionSubjectLabel(a.subject ?? raw.subject ?? null, raw.form_code ?? null, a.content_version ?? raw.content_version ?? null),
       topic: a.topic,
       diagnostic_skill: a.diagnostic_skill ?? null,
       skill_tag: a.skill_tag ?? null,
       difficulty: a.difficulty ?? null,
       grade_level: a.grade_level ?? null,
       stage_level: a.stage_level ?? null,
+      form_code: raw.form_code ?? null,
       response: a.response,
       correct_answer: a.correct_answer,
       is_correct: a.is_correct,
@@ -518,11 +582,13 @@ export async function getCandidateReport(attemptId: string): Promise<CandidateRe
     years_english_medium: raw.candidate.years_english_medium ?? null,
     admin_notes: raw.candidate.admin_notes ?? null,
   } : undefined;
-  const diagnosticBreakdown = calculateDiagnosticBreakdown(answers);
+  const diagnosticAnswers = answers.map((answer: any) => ({ ...answer, form_code: raw.form_code ?? null, content_version: raw.content_version ?? null }));
+  const diagnosticBreakdown = calculateDiagnosticBreakdown(diagnosticAnswers);
   const placementRecommendation = calculatePlacementRecommendation(candidateProfile, answers, raw.attempt?.percentage ?? 0);
   return {
     candidate_name: raw.candidate?.name ?? 'Unknown',
     form_code: raw.form_code ?? '',
+    form_label: raw.form_title ?? buildAdmissionReportFormLabel(raw.form_code ?? '', raw.candidate?.applied_grade ?? null, raw.subject ?? answers[0]?.subject ?? null),
     total_score: raw.attempt?.total_score ?? 0,
     max_score: raw.attempt?.max_score ?? 0,
     percentage: raw.attempt?.percentage ?? 0,
@@ -541,8 +607,8 @@ export async function getCandidateReport(attemptId: string): Promise<CandidateRe
       total: t.total,
       pct: t.max_marks ? Math.round((t.marks / t.max_marks) * 100) : 0,
     })),
-    strengths: raw.strengths ?? [],
-    weaknesses: raw.weaknesses ?? [],
+    strengths: dedupeAdmissionFocusAreas(raw.strengths ?? placementRecommendation.strengths ?? [], diagnosticBreakdown),
+    weaknesses: dedupeAdmissionFocusAreas(raw.weaknesses ?? placementRecommendation.weakAreas ?? [], diagnosticBreakdown, true),
     answers,
     ai_summary: raw.ai_summary ?? null,
     candidate_profile: candidateProfile,
@@ -552,6 +618,9 @@ export async function getCandidateReport(attemptId: string): Promise<CandidateRe
     difficulty_breakdown: raw.difficulty_breakdown ?? [],
     activity_notes: raw.activity_notes ?? [],
     activity_events: raw.activity_events ?? [],
+    answered_count: answers.length,
+    total_questions: raw.total_questions ?? raw.attempt?.max_score ?? answers.length,
+    partial_attempt: (answers.length < (raw.total_questions ?? raw.attempt?.max_score ?? answers.length)),
   };
 }
 
@@ -560,7 +629,8 @@ export async function getAttemptActivity(attemptId: string): Promise<{ notes: st
   const { data, error } = await supabase.rpc('rpc_adm_get_attempt_activity', { p_attempt_id: attemptId });
   if (error) throw error;
   if (!data || !data.success) return { notes: [], events: [] };
-  return { notes: data.notes ?? [], events: data.events ?? [] };
+  const events = data.events ?? [];
+  return { notes: buildAdmissionActivityNotes(events, data.submitted_at), events };
 }
 
 export async function resetAttemptForRetake(attemptId: string, reason: string): Promise<{ success: boolean; error?: string }> {
