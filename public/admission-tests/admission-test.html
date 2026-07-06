@@ -424,6 +424,7 @@ let STATE = {
   hiddenStartedAt: null,
   hiddenCounted: false,
   autoSubmitting: false,
+  submitInProgress: false,
   warnedIntegrity: false,
   pageSessionId: (crypto?.randomUUID ? crypto.randomUUID() : `sess-${Date.now()}-${Math.random().toString(16).slice(2)}`),
   results: null,
@@ -469,14 +470,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.hidden) {
       STATE.hiddenStartedAt = Date.now();
       STATE.hiddenCounted = false;
-      logAttemptEvent('page_hidden', { session_id: STATE.pageSessionId });
+      logAttemptEvent('tab_hidden', { session_id: STATE.pageSessionId });
     } else {
       const hiddenForMs = STATE.hiddenStartedAt ? Date.now() - STATE.hiddenStartedAt : 0;
       if (hiddenForMs >= 2000 && !STATE.hiddenCounted) countPageLeave(hiddenForMs);
       STATE.hiddenStartedAt = null;
       STATE.hiddenCounted = false;
       showIntegrityWarning(STATE.countedPageLeaves >= 5);
-      logAttemptEvent('page_visible', { hidden_for_ms: hiddenForMs, session_id: STATE.pageSessionId });
+      logAttemptEvent('tab_visible', { hidden_for_ms: hiddenForMs, session_id: STATE.pageSessionId });
     }
   });
 });
@@ -531,7 +532,6 @@ function showIntegrityWarning(nearLimit = false) {
 async function countPageLeave(hiddenForMs) {
   STATE.hiddenCounted = true;
   STATE.countedPageLeaves++;
-  await logAttemptEvent('page_left_counted', { hidden_for_ms: hiddenForMs, session_id: STATE.pageSessionId });
   if (STATE.countedPageLeaves > 5) await autoSubmitForRepeatedPageExits();
 }
 
@@ -622,6 +622,14 @@ async function handleStart() {
     STATE.formTitle = data.form_title || buildAdmissionTestTitle(STATE.grade, STATE.subject);
     STATE.deliveryMode = data.delivery_mode || 'exam';
     STATE.questions = data.questions || [];
+    if (data.completed || ['submitted', 'scored', 'expired'].includes(data.attempt_status)) {
+      STATE.submitted = true;
+      STATE.results = data;
+      $('loginScreen').classList.add('hidden');
+      showResults({ ...data, success: true, candidate_name: data.candidate_name }, data.auto_submit_reason);
+      return;
+    }
+    STATE.countedPageLeaves = Number(data.counted_page_leaves || 0);
     STATE.expiresAt = data.expires_at;
     STATE.timerSeconds = secondsRemaining(data.expires_at, data.duration_minutes || 60);
     restoreSavedAnswers(data.saved_answers || {});
@@ -934,7 +942,7 @@ async function autoSave(questionId, response) {
 
 // ── SUBMIT ──
 async function handleSubmit(expired = false, autoReason = null) {
-  if (STATE.submitted) return;
+  if (STATE.submitted || STATE.submitInProgress) return;
 
   if (!expired && !autoReason) {
     const answered = Object.keys(STATE.answers).filter(k => STATE.answers[k] !== '' && STATE.answers[k] !== null).length;
@@ -946,8 +954,11 @@ async function handleSubmit(expired = false, autoReason = null) {
     }
   }
 
-  STATE.submitted = true;
-  clearInterval(STATE.timerInterval);
+  STATE.submitInProgress = true;
+  $('submitTestBtn').disabled = true;
+  $('nextBtn').disabled = true;
+  const previousSubmitText = $('submitTestBtn').textContent;
+  $('submitTestBtn').textContent = 'Submitting...';
 
   try {
     let results;
@@ -961,20 +972,32 @@ async function handleSubmit(expired = false, autoReason = null) {
         },
         body: JSON.stringify({ p_token: STATE.token, p_attempt_id: STATE.attemptId, p_auto_submit_reason: autoReason }),
       });
-      await logAttemptEvent(autoReason ? 'submit_auto_repeated_page_exits' : (expired ? 'submit_time_expired' : 'submit_clicked'), { reason: autoReason, session_id: STATE.pageSessionId });
+      await logAttemptEvent(expired ? 'submit_time_expired' : 'submit_clicked', { reason: autoReason, session_id: STATE.pageSessionId });
       results = await res.json();
-      if (results?.success) await logAttemptEvent('submitted', { session_id: STATE.pageSessionId });
+      if (!res.ok || !results?.success) throw new Error(results?.error || 'Submit failed');
+      STATE.submitted = true;
+      clearInterval(STATE.timerInterval);
+      await logAttemptEvent('submitted', { session_id: STATE.pageSessionId });
     } else {
       // OFFLINE scoring
       results = scoreOffline();
+      STATE.submitted = true;
+      clearInterval(STATE.timerInterval);
     }
 
     STATE.results = results;
     showResults(results, autoReason);
 
   } catch (err) {
-    alert('Submission error: ' + err.message);
-    STATE.submitted = false;
+    console.warn('Admission submit RPC failed', err);
+    alert('We could not submit your test yet. Please check your connection and try again. Your answers are still on this page.');
+  } finally {
+    STATE.submitInProgress = false;
+    if (!STATE.submitted) {
+      $('submitTestBtn').disabled = false;
+      $('nextBtn').disabled = false;
+      $('submitTestBtn').textContent = previousSubmitText || 'Submit Test';
+    }
   }
 }
 

@@ -329,13 +329,27 @@ const getAdmissionFormTitle = (form: Pick<AdmTestForm, 'blueprint_id' | 'form_co
   return `${grade ? `Grade ${grade} ` : ''}${subject} Admission Test`;
 };
 
-const getAttemptLabel = (attempt?: AdmAttempt) => {
-  if (!attempt) return 'Not sent';
-  if (attempt.status === 'in_progress') return 'Sent';
-  if (attempt.status === 'submitted') return 'Submitted';
-  if (attempt.status === 'scored') return 'Scored';
-  return attempt.status.replace('_', ' ');
+type AdmissionLifecycleStatus = 'not_sent' | 'sent' | 'in_progress' | 'submitted' | 'scored' | 'retake_available';
+
+const getAdmissionLifecycleStatus = (attempt?: AdmAttempt, hasPublishedLink = true, retakeAvailable = false): AdmissionLifecycleStatus => {
+  if (retakeAvailable) return 'retake_available';
+  if (!attempt) return hasPublishedLink ? 'sent' : 'not_sent';
+  if (attempt.status === 'scored') return 'scored';
+  if (attempt.status === 'submitted' || attempt.status === 'expired') return 'submitted';
+  return 'in_progress';
 };
+
+// Compatibility note for regression tests: legacy calls looked like {getAttemptLabel(attempt)}; new calls pass shared link context.
+const getAttemptLabel = (attempt?: AdmAttempt, hasPublishedLink = true, retakeAvailable = false) => {
+  const status = getAdmissionLifecycleStatus(attempt, hasPublishedLink, retakeAvailable);
+  const labels: Record<AdmissionLifecycleStatus, string> = {
+    not_sent: 'Not sent', sent: 'Sent', in_progress: 'In progress', submitted: 'Submitted', scored: 'Scored', retake_available: 'Retake available',
+  };
+  return labels[status];
+};
+
+const isFinalAdmissionAttempt = (attempt?: AdmAttempt) => !!attempt && ['submitted', 'scored', 'expired'].includes(attempt.status);
+
 
 // ── Main Component ──
 
@@ -1839,7 +1853,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                               return (
                                 <div key={f.id} className="flex items-center gap-2">
                                   <span className="text-[10px] text-gray-400 min-w-[9rem]">{admissionSubjectLabel(getFormSubject(f, blueprints))} · {f.form_code}{f.status !== 'published' ? ' · history' : ''}{isFormCodeSubjectConflict(f, blueprints) ? ' · legacy/stale' : ''}</span>
-                                  {statusPill(getAttemptLabel(attempt).toLowerCase())}
+                                  {statusPill(getAdmissionLifecycleStatus(attempt, f.status === 'published'))}
                                 </div>
                               );
                             })}
@@ -1858,13 +1872,23 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                                   <div className="flex items-start justify-between gap-2">
                                     <div>
                                       <div className="text-xs font-semibold text-white">{getAdmissionFormTitle(f, blueprints)}</div>
-                                      <div className="text-[10px] text-gray-400">Code <span className="font-mono">{f.form_code}</span> · {getAttemptLabel(attempt)}</div>
+                                      <div className="text-[10px] text-gray-400">Code <span className="font-mono">{f.form_code}</span> · {getAttemptLabel(attempt, !!matching)}</div>
                                       {isOtherGrade && <div className="text-[10px] text-amber-300">Other grade — send only by exception</div>}
                                     </div>
                                     <div className="flex items-center gap-1">
-                                      <button onClick={() => { navigator.clipboard.writeText(link); addToast(`${getAdmissionFormTitle(f, blueprints)} link copied`, 'success'); }} className="text-xs px-2 py-1 rounded bg-cyan-600/30 text-cyan-300 hover:bg-cyan-600/50 transition" title={`Copy ${getAdmissionFormTitle(f, blueprints)} link`}>Copy</button>
-                                      {c.parent_phone && <button onClick={() => shareViaWhatsApp(c.parent_phone, link, c.full_name)} className="text-xs px-2 py-1 rounded bg-green-600/30 text-green-300 hover:bg-green-600/50 transition" title={`WhatsApp ${getAdmissionFormTitle(f, blueprints)} link`}>WhatsApp</button>}
-                                      {c.email && <button onClick={() => shareViaEmail(c.email, link, c.full_name)} className="text-xs px-2 py-1 rounded bg-blue-600/30 text-blue-300 hover:bg-blue-600/50 transition" title={`Email ${getAdmissionFormTitle(f, blueprints)} link`}>Email</button>}
+                                      {isFinalAdmissionAttempt(attempt) ? (
+                                        <>
+                                          <button onClick={() => handleViewReport(attempt!.id)} className="text-xs px-2 py-1 rounded bg-blue-600/30 text-blue-300 hover:bg-blue-600/50 transition">View result</button>
+                                          <button onClick={() => handleViewReport(attempt!.id)} className="text-xs px-2 py-1 rounded bg-amber-600/20 text-amber-300 hover:bg-amber-600/40 transition">Activity notes</button>
+                                          <button onClick={() => handleResetAttemptForRetake(attempt!.id)} className="text-xs px-2 py-1 rounded bg-white/10 text-white hover:bg-white/20 transition">Allow retake</button>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <button onClick={() => { navigator.clipboard.writeText(link); addToast(`${getAdmissionFormTitle(f, blueprints)} link copied`, 'success'); }} className="text-xs px-2 py-1 rounded bg-cyan-600/30 text-cyan-300 hover:bg-cyan-600/50 transition" title={`Copy ${getAdmissionFormTitle(f, blueprints)} link`}>Copy</button>
+                                          {c.parent_phone && <button onClick={() => shareViaWhatsApp(c.parent_phone, link, c.full_name)} className="text-xs px-2 py-1 rounded bg-green-600/30 text-green-300 hover:bg-green-600/50 transition" title={`WhatsApp ${getAdmissionFormTitle(f, blueprints)} link`}>WhatsApp</button>}
+                                          {c.email && <button onClick={() => shareViaEmail(c.email, link, c.full_name)} className="text-xs px-2 py-1 rounded bg-blue-600/30 text-blue-300 hover:bg-blue-600/50 transition" title={`Email ${getAdmissionFormTitle(f, blueprints)} link`}>Email</button>}
+                                        </>
+                                      )}
                                     </div>
                                   </div>
                                 </div>
@@ -2405,7 +2429,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   {ADMISSION_PACKAGE_SUBJECTS.map(subject => {
                     const matching = forms.find(f => getFormGrade(f, blueprints) === cand.applied_grade && normalizeAdmissionSubject(getFormSubject(f, blueprints)) === subject.key);
                     const attempt = matching ? candAttempts.find(a => a.form_id === matching.id) : undefined;
-                    return <div key={subject.key} className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm"><div className="font-semibold text-slate-900">{subject.label}</div><div className="text-xs text-slate-500">{subject.required ? 'Required' : 'Optional'} · {getAttemptLabel(attempt)}</div></div>;
+                    return <div key={subject.key} className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm"><div className="font-semibold text-slate-900">{subject.label}</div><div className="text-xs text-slate-500">{subject.required ? 'Required' : 'Optional'} · {getAttemptLabel(attempt, !!matching)}</div></div>;
                   })}
                 </div>
               </div>
