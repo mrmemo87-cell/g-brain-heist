@@ -65,3 +65,35 @@ test('candidate page preserves refresh/reopen and submitted-lock copy', () => {
   assert.match(candidateTest, /secondsRemaining\(data\.expires_at/);
   assert.match(candidateTest, /Submitted attempt cannot be edited after reopen/);
 });
+
+test('admin report uses friendly activity labels and auto-submit summary copy', () => {
+  const service = readFileSync('services/admissionService.ts', 'utf8');
+  assert.match(service, /buildAdmissionActivityNotes/);
+  assert.match(service, /Page reopened/);
+  assert.match(service, /Page refreshed\/reloaded/);
+  assert.match(service, /Candidate left the test page/);
+  assert.match(service, /Test auto-submitted after repeated page exits/);
+  assert.doesNotMatch(hub, /submitted normally/);
+  assert.doesNotMatch(hub, /Auto Submit Repeated Page Exits/);
+});
+
+test('report polish covers subject labels partial attempts objective grading and form labels', () => {
+  assert.match(hub, /admissionSubjectLabel\(t\.subject\)/);
+  assert.match(hub, /Answered \{reportData\.answered_count\} of \{reportData\.total_questions\} questions/);
+  assert.match(hub, /This result is based on a partial attempt\./);
+  assert.match(hub, /isObjectiveAutoScoredAdmissionReport\(reportData\)/);
+  assert.match(hub, /buildAdmissionReportFormLabel/);
+  assert.match(hub, /Code \{reportData\.form_code/);
+  assert.match(hub, /No clear strengths yet — more completed answers are needed\./);
+});
+
+test('activity and submit SQL keep school isolation and dedupe repeated auto-submit event', () => {
+  const migration = readFileSync('supabase/migrations/20260706124500_admission_report_activity_polish.sql', 'utf8');
+  assert.match(migration, /one_repeated_exit_auto_submit_per_attempt/);
+  assert.match(migration, /WHERE event_type = 'auto_submit_repeated_page_exits'/);
+  assert.match(migration, /ON CONFLICT DO NOTHING/);
+  assert.match(migration, /sm\.school_id = v_attempt\.school_id/);
+  assert.match(migration, /auth\.uid\(\)/);
+  assert.match(migration, /Test auto-submitted after repeated page exits\./);
+  assert.doesNotMatch(migration, /submitted normally/i);
+});

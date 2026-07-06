@@ -2101,7 +2101,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-xl font-heading text-white">{reportData.candidate_name}</h3>
-                    <p className="text-xs text-gray-400">Form: {reportData.form_code}</p>
+                    <p className="text-xs text-gray-400">Form: {reportData.form_label || AdmService.buildAdmissionReportFormLabel(reportData.form_code, reportData.candidate_profile?.applied_grade, reportData.answers?.[0]?.subject)}</p>
+                    <p className="text-xs text-gray-500 font-mono">Code {reportData.form_code || '—'}</p>
                   </div>
                   <div className="text-center">
                     <div className="text-3xl font-bold text-white">{reportData.percentage}%</div>
@@ -2115,6 +2116,16 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   {statCard('Submitted', new Date(reportData.submitted_at).toLocaleTimeString(), '✅', 'border-emerald-500/30')}
                 </div>
 
+                {reportData.partial_attempt && (
+                  <div className="rounded-xl border border-sky-500/30 bg-sky-900/10 p-3 text-xs text-sky-100">
+                    Answered {reportData.answered_count} of {reportData.total_questions} questions. Unanswered questions were marked incorrect.
+                    <span className="block mt-1 text-sky-100/80">This result is based on a partial attempt.</span>
+                  </div>
+                )}
+
+                {(reportData.activity_events ?? []).some(e => e.event_type === 'auto_submit_repeated_page_exits') && (
+                  <div className="inline-flex w-fit rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-200">Unusual activity: repeated page exits</div>
+                )}
 
                 <div className="rounded-xl border border-amber-500/30 bg-amber-900/10 p-4">
                   <h4 className="text-sm font-semibold text-amber-200 mb-2">Activity notes</h4>
@@ -2171,7 +2182,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                     <div className="space-y-1.5">
                       {(reportData.diagnostic_breakdown ?? []).map((t) => (
                         <div key={t.key} className="flex items-center gap-2">
-                          <span className="text-xs text-gray-400 w-48 truncate capitalize">{t.subject} · {t.skill}{t.difficulty ? ` · ${t.difficulty}` : ''}</span>
+                          <span className="text-xs text-gray-400 w-48 truncate">{AdmService.admissionSubjectLabel(t.subject)} · {t.skill}{t.difficulty ? ` · ${t.difficulty}` : ''}</span>
                           <div className="flex-1 h-3 rounded bg-slate-700 overflow-hidden"><div className={`h-full rounded transition-all ${t.percentage >= 70 ? 'bg-emerald-500' : t.percentage >= 50 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${t.percentage}%` }} /></div>
                           <span className="text-xs text-gray-300 w-16 text-right">{t.score}/{t.maxScore}</span>
                         </div>
@@ -2223,7 +2234,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   <div>
                     <h4 className="text-sm font-semibold text-emerald-300 mb-1">Strengths</h4>
                     <ul className="text-xs text-gray-300 space-y-0.5">
-                      {(reportData.strengths ?? []).map((s, i) => <li key={i}>✓ {s}</li>)}
+                      {(reportData.strengths ?? []).length > 0 ? (reportData.strengths ?? []).map((s, i) => <li key={i}>✓ {s}</li>) : <li>No clear strengths yet — more completed answers are needed.</li>}
                     </ul>
                   </div>
                   <div>
@@ -2245,7 +2256,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 )}
 
                 {/* Generate AI Report Button — grades writing, re-checks text answers */}
-                {!reportData.ai_summary && (
+                {!reportData.ai_summary && !AdmService.isObjectiveAutoScoredAdmissionReport(reportData) && (
                   <div className="space-y-2">
                     {(reportData.answers ?? []).some(a => ['email_writing','essay_writing','gap_fill','sentence_transformation','error_correction','word_formation','open_cloze','short_answer','structured'].includes(a.question_type)) && (
                       <div className="rounded-lg border border-amber-500/30 bg-amber-900/10 px-3 py-2 text-xs text-amber-200">
