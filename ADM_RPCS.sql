@@ -482,18 +482,37 @@ BEGIN
         RETURN jsonb_build_object('success', false, 'error', 'Attempt not found');
     END IF;
 
-    -- School isolation: caller must belong to the same school
-    IF NOT EXISTS (
-        SELECT 1 FROM school_members sm
-        WHERE sm.school_id = v_attempt.school_id
-          AND sm.user_id = auth.uid()
-          AND sm.role_in_school IN ('school_admin', 'teacher')
-          AND sm.status = 'active'
+    -- School isolation: caller must be an active same-school admission report viewer.
+    IF NOT (
+        EXISTS (
+            SELECT 1 FROM school_members sm
+            WHERE sm.school_id = v_attempt.school_id
+              AND sm.user_id = auth.uid()
+              AND sm.role_in_school IN ('school_admin', 'teacher')
+              AND sm.status = 'active'
+        )
+        OR EXISTS (
+            SELECT 1 FROM users u
+            WHERE u.id = auth.uid()
+              AND u.school_id = v_attempt.school_id
+              AND coalesce(u.role, '') IN ('school_admin', 'teacher')
+        )
     ) THEN
-        RETURN jsonb_build_object('success', false, 'error', 'Access denied — not a member of this school');
+        RETURN jsonb_build_object('success', false, 'error', 'Access denied');
+    END IF;
+
+    IF v_attempt.status <> 'scored' OR v_attempt.submitted_at IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Result not ready');
+    END IF;
+
+    IF v_attempt.total_score IS NULL OR v_attempt.max_score IS NULL OR v_attempt.percentage IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Report data unavailable');
     END IF;
 
     SELECT * INTO v_candidate FROM adm_candidates WHERE id = v_attempt.candidate_id;
+    IF v_candidate.id IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Report data unavailable');
+    END IF;
 
     -- Per-question answers (including AI feedback)
     SELECT jsonb_agg(
@@ -577,7 +596,8 @@ BEGIN
             'max_score', v_attempt.max_score,
             'percentage', v_attempt.percentage,
             'started_at', v_attempt.started_at,
-            'submitted_at', v_attempt.submitted_at
+            'submitted_at', v_attempt.submitted_at,
+            'status', v_attempt.status
         ),
         'band', CASE
             WHEN v_attempt.percentage >= 80 THEN 'A'

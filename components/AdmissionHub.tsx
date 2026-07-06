@@ -204,20 +204,26 @@ export const friendlyAdmissionError = (message?: string, fallback = 'We could no
   if (text.includes('duplicate') || text.includes('unique') || text.includes('question_order') || text.includes('generate') || text.includes('publish')) {
     return 'Test could not be generated. Please refresh, check question availability, and try again.';
   }
+  if (text.includes('attempt not found')) {
+    return 'We could not find this attempt.';
+  }
+  if (text.includes('access denied') || text.includes('permission') || text.includes('rls') || text.includes('policy') || text.includes('jwt')) {
+    return 'You do not have permission to view this candidate report.';
+  }
+  if (text.includes('result not ready') || text.includes('not ready') || text.includes('not yet scored') || text.includes('unsubmitted') || text.includes('in_progress')) {
+    return 'Result not ready yet. Please wait until the candidate submits and scoring is complete.';
+  }
+  if (text.includes('report data unavailable') || text.includes('report unavailable') || text.includes('activity') || text.includes('report')) {
+    return 'Report is unavailable right now. Please try again.';
+  }
   if (text.includes('token') || text.includes('link') || text.includes('not found')) {
     return 'Candidate link unavailable. Please refresh the candidate list and copy a new link.';
-  }
-  if (text.includes('activity')) {
-    return 'Activity notes unavailable. Please refresh candidate details and try again.';
   }
   if (text.includes('retake') || text.includes('reset')) {
     return 'Retake failed. Please confirm you are signed in as a school admin for this school.';
   }
-  if (text.includes('report') || text.includes('result') || text.includes('attempt')) {
-    return 'Result not ready yet. Please wait until the candidate submits and scoring is complete.';
-  }
-  if (text.includes('access denied') || text.includes('permission') || text.includes('rls') || text.includes('policy') || text.includes('jwt')) {
-    return 'Permission denied. Please check that you are signed in as a school admin for this school.';
+  if (text.includes('result') || text.includes('attempt')) {
+    return fallback;
   }
   if (text.includes('closed') || text.includes('not currently available') || text.includes('expired')) {
     return 'This test is closed or no longer available.';
@@ -870,8 +876,9 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       const report = await AdmService.getCandidateReport(attemptId);
       const activity = await AdmService.getAttemptActivity(attemptId).catch(() => ({ notes: [], events: [] }));
       setReportData(report ? { ...report, activity_notes: activity.notes, activity_events: activity.events } : report);
-    } catch {
-      addToast(friendlyAdmissionError('report not ready', 'Result not ready yet. Please wait until scoring is complete.'), 'error');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error ?? 'Report data unavailable');
+      addToast(friendlyAdmissionError(message, 'Report is unavailable right now. Please try again.'), 'error');
       setShowReport(false);
     } finally {
       setReportLoading(false);

@@ -27,7 +27,7 @@ test('friendly admission error mapping avoids raw RPC and database copy', () => 
   assert.match(hub, /Not enough official questions are available/);
   assert.match(hub, /Candidate link unavailable/);
   assert.match(hub, /Result not ready yet/);
-  assert.match(hub, /Permission denied/);
+  assert.match(hub, /You do not have permission to view this candidate report/);
   assert.match(hub, /closed or no longer available/);
   assert.match(hub, /console\.warn\('Admission data load failed'/);
 });

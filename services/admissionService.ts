@@ -552,7 +552,8 @@ export async function getCandidateReport(attemptId: string): Promise<CandidateRe
     p_attempt_id: attemptId,
   });
   if (error) throw error;
-  if (!data || !data.success) return null;
+  if (!data) throw new Error('Report data unavailable');
+  if (!data.success) throw new Error(data.error || 'Report data unavailable');
 
   // Transform RPC shape → CandidateReport shape
   const raw = data as any;
