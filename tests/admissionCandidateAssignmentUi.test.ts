@@ -49,7 +49,7 @@ test('Admission Candidates tab hides closed forms from send-test options', () =>
 test('closed SCI5 forms cannot render as not-sent sendable candidate cards', () => {
   assert.match(hub, /const publishedForms = forms\.filter\(f => f\.status === 'published' && !isFormCodeSubjectConflict\(f, blueprints\)\)/);
   assert.match(hub, /const assignableForms = showOtherGrades \? \[\.\.\.matchingForms, \.\.\.otherGradeForms\] : matchingForms/);
-  assert.match(hub, /\{getAttemptLabel\(attempt\)\}/);
+  assert.match(hub, /\{getAttemptLabel\(attempt, true\)\}/);
   assert.doesNotMatch(hub, /forms\.filter\(f => f\.status !== 'closed'\)/);
 });
 
@@ -65,4 +65,19 @@ test('stale SCI or MAT form codes cannot be displayed as English sendables', () 
   assert.match(hub, /code\.startsWith\('mat'\) \|\| code\.startsWith\('math'\)\) return 'maths'/);
   assert.match(hub, /const publishedForms = forms\.filter\(f => f\.status === 'published' && !isFormCodeSubjectConflict\(f, blueprints\)\)/);
   assert.match(hub, /legacy\/stale/);
+});
+
+
+test('Admission Candidates tab send cards use in-scope matching form data and keep completed/incomplete actions distinct', () => {
+  const candidatesSection = hub.slice(hub.indexOf("{filteredCandidates.map((c) =>"), hub.indexOf("{activeTab === 'results'"));
+
+  assert.match(candidatesSection, /const matchingForms = publishedForms\.filter/);
+  assert.match(candidatesSection, /const assignableForms = showOtherGrades \? \[\.\.\.matchingForms, \.\.\.otherGradeForms\] : matchingForms/);
+  assert.match(candidatesSection, /assignableForms\.length > 0 \? assignableForms\.map\(f => \{/);
+  assert.match(candidatesSection, /getAttemptLabel\(attempt, true\)/);
+  assert.doesNotMatch(candidatesSection, /!!matching\b/, 'send cards must not reference the out-of-scope matching variable');
+  assert.doesNotMatch(candidatesSection, /\bmatching\./, 'send cards must not reference an out-of-scope matching object');
+
+  assert.match(candidatesSection, /isFinalAdmissionAttempt\(attempt\) \? \([\s\S]*View result[\s\S]*Activity notes[\s\S]*Allow retake/);
+  assert.match(candidatesSection, /\) : \([\s\S]*>Copy<\/button>[\s\S]*>WhatsApp<\/button>[\s\S]*>Email<\/button>/);
 });

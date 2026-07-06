@@ -1872,7 +1872,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                                   <div className="flex items-start justify-between gap-2">
                                     <div>
                                       <div className="text-xs font-semibold text-white">{getAdmissionFormTitle(f, blueprints)}</div>
-                                      <div className="text-[10px] text-gray-400">Code <span className="font-mono">{f.form_code}</span> · {getAttemptLabel(attempt, !!matching)}</div>
+                                      <div className="text-[10px] text-gray-400">Code <span className="font-mono">{f.form_code}</span> · {getAttemptLabel(attempt, true)}</div>
                                       {isOtherGrade && <div className="text-[10px] text-amber-300">Other grade — send only by exception</div>}
                                     </div>
                                     <div className="flex items-center gap-1">
