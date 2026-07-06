@@ -29,7 +29,8 @@ test('falls back gracefully when diagnostic tags or one subject are missing', ()
     { subject: 'english', topic: null, marks_awarded: 7, marks_possible: 10 },
   ]);
   assert.equal(rec.mathsPercentage, null);
-  assert.ok(rec.reasons.some(r => r.includes('Maths readiness is not available')));
+  assert.ok(rec.reasons.some(r => r.includes('English readiness')));
+  assert.ok(!rec.reasons.some(r => r.includes('Maths readiness is 70')));
 });
 
 test('flags large grade mismatch for interview', () => {
@@ -47,8 +48,37 @@ test('fallback subject derives from MAT ENG SCI form codes', () => {
     { form_code: 'ENG6-2026-AAAA', diagnostic_skill: 'Reading', marks_awarded: 1, marks_possible: 1 },
     { form_code: 'SCI6-2026-BBBB', diagnostic_skill: 'Forces', marks_awarded: 0, marks_possible: 1 },
   ]);
-  assert.ok(rows.some(r => r.subject === 'math' && r.label.includes('math')));
+  assert.ok(rows.some(r => r.subject === 'math' && r.label.includes('Maths')));
   assert.ok(rows.some(r => r.subject === 'english'));
   assert.ok(rows.some(r => r.subject === 'science'));
   assert.ok(!rows.some(r => r.subject === 'unknown'));
+});
+
+test('single-subject Science reports keep Science labels and readiness only', () => {
+  const answers = [
+    { form_code: 'SCI6-2026-LIVE', content_version: 'admission_science_grade6_v1', diagnostic_skill: 'Forces / physics', marks_awarded: 1, marks_possible: 4 },
+    { form_code: 'SCI6-2026-LIVE', content_version: 'admission_science_grade6_v1', diagnostic_skill: 'Scientific enquiry / working scientifically', marks_awarded: 0, marks_possible: 3 },
+  ];
+  const rows = calculateDiagnosticBreakdown(answers);
+  assert.ok(rows.every(r => r.label.startsWith('Science · ')));
+  assert.ok(!rows.some(r => /Unknown|General/.test(r.label)));
+  const rec = calculatePlacementRecommendation({ applied_grade: 6 }, answers, 28);
+  assert.equal(rec.sciencePercentage, 14);
+  assert.equal(rec.englishPercentage, null);
+  assert.equal(rec.mathsPercentage, null);
+  assert.equal(rec.currentSubject, 'science');
+  assert.ok(rec.reasons.some(r => r.includes('Science readiness')));
+  assert.ok(!rec.reasons.some(r => r.includes('English readiness is 28') || r.includes('Maths readiness is 28')));
+});
+
+test('diagnostic rows use friendly subject labels from ENG MAT SCI form codes', () => {
+  const rows = calculateDiagnosticBreakdown([
+    { form_code: 'MAT6-2026-0F31', diagnostic_skill: 'Algebraic thinking', marks_awarded: 1, marks_possible: 2 },
+    { form_code: 'ENG6-2026-AAAA', diagnostic_skill: 'Reading', marks_awarded: 1, marks_possible: 1 },
+    { form_code: 'SCI6-2026-BBBB', diagnostic_skill: 'Forces', marks_awarded: 0, marks_possible: 1 },
+  ]);
+  assert.ok(rows.some(r => r.label === 'Maths · Algebraic thinking'));
+  assert.ok(rows.some(r => r.label === 'English · Reading'));
+  assert.ok(rows.some(r => r.label === 'Science · Forces'));
+  assert.ok(!rows.some(r => /Unknown|General/.test(r.label)));
 });
