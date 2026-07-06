@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { buildMetaUserData, sendMetaCapiEvent } from '../_shared/metaCapiClient.ts';
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.78.0";
 
 // ============================================================================
@@ -553,6 +554,19 @@ async function insertIeltsFunnelEvent(admin: ReturnType<typeof getSupabaseAdmin>
       if (existing) return;
     }
     await admin.from("ielts_funnel_events").insert(row);
+    if (params.eventName === "subscription_activated") {
+      await sendMetaCapiEvent({
+        eventName: "Subscribe",
+        eventId: params.idempotencyKey || `subscription_activated:${params.userId || 'unknown'}:${Date.now()}`,
+        userData: await buildMetaUserData(new Request("https://brainsheist.com/ielts/apply-prime"), params.userId ? { id: params.userId } : null),
+        customData: {
+          plan: typeof params.metadata?.plan === 'string' ? params.metadata.plan : undefined,
+          currency: typeof params.metadata?.currency === 'string' ? params.metadata.currency : undefined,
+          value: typeof params.metadata?.value === 'number' ? params.metadata.value : undefined,
+          subscription_id: typeof params.metadata?.subscription_id === 'string' ? params.metadata.subscription_id : undefined,
+        },
+      });
+    }
   } catch (err) {
     console.warn("IELTS funnel analytics insert failed", err);
   }

@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../services/supabaseClient';
 import { ensureIeltsProfile } from '../../../services/ieltsService';
+import { persistPendingDiagnosticAfterAuth } from '../../../services/ieltsFunnelAnalytics';
 import { consumeIeltsAuthIntent, readIeltsAuthIntent } from '../../lib/authFlowGuards';
 
 const AuthCallback: React.FC = () => {
@@ -29,6 +30,9 @@ const AuthCallback: React.FC = () => {
       if (intendedPath && session?.user) {
         try {
           await ensureIeltsProfile();
+          if (intendedPath === '/ielts/trial-test-2') {
+            await persistPendingDiagnosticAfterAuth();
+          }
           consumeIeltsAuthIntent(window.sessionStorage);
         } catch (error) {
           console.warn('Unable to prepare IELTS profile after Google sign-in:', error);
@@ -36,7 +40,7 @@ const AuthCallback: React.FC = () => {
       }
 
       if (!cancelled) {
-        navigate(intendedPath && session?.user ? intendedPath : '/', { replace: true });
+        navigate(intendedPath && session?.user ? (intendedPath === '/ielts/trial-test-2' ? '/ielts' : intendedPath) : '/', { replace: true });
       }
     };
 

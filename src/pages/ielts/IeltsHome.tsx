@@ -84,14 +84,7 @@ const IeltsHome: React.FC = () => {
   };
 
   const openTask = (destination: string, isLocked: boolean) => {
-    if (!isAuthenticated) {
-      if (destination === '/ielts/trial-test-2') {
-        trackIeltsFunnelEvent('auth_required_for_diagnostic', {
-          skill: 'listening',
-          task_id: 'trial-test-2',
-          user_type: 'independent',
-        });
-      }
+    if (!isAuthenticated && destination !== '/ielts/trial-test-2') {
       requireGoogleSignIn(destination);
       return;
     }
