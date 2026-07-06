@@ -1,45 +1,4 @@
--- Make Admission Hub reports subject/form-code aware and ignore noisy tab events after finalization.
-
-CREATE OR REPLACE FUNCTION public.rpc_adm_log_attempt_event(
-  p_token text,
-  p_form_code text,
-  p_attempt_id uuid,
-  p_event_type text,
-  p_event_payload jsonb DEFAULT '{}'::jsonb
-)
-RETURNS jsonb
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  v_candidate adm_candidates%ROWTYPE;
-  v_attempt adm_attempts%ROWTYPE;
-  v_form adm_test_forms%ROWTYPE;
-BEGIN
-  SELECT * INTO v_candidate FROM adm_candidates WHERE token = p_token;
-  IF v_candidate.id IS NULL THEN RETURN jsonb_build_object('success', false, 'error', 'Invalid test link'); END IF;
-
-  SELECT * INTO v_form FROM adm_test_forms WHERE form_code = p_form_code AND school_id = v_candidate.school_id;
-  IF v_form.id IS NULL THEN RETURN jsonb_build_object('success', false, 'error', 'Test form not found'); END IF;
-
-  SELECT * INTO v_attempt FROM adm_attempts
-  WHERE id = p_attempt_id AND candidate_id = v_candidate.id AND form_id = v_form.id AND school_id = v_candidate.school_id;
-  IF v_attempt.id IS NULL THEN RETURN jsonb_build_object('success', false, 'error', 'Attempt not found'); END IF;
-
-  IF v_attempt.status IN ('submitted', 'scored', 'expired') AND p_event_type IN ('tab_hidden', 'tab_visible') THEN
-    RETURN jsonb_build_object('success', true, 'ignored_after_final', true);
-  END IF;
-
-  INSERT INTO adm_candidate_test_events (school_id, candidate_id, attempt_id, form_id, event_type, event_payload)
-  VALUES (v_candidate.school_id, v_candidate.id, v_attempt.id, v_form.id, p_event_type, COALESCE(p_event_payload, '{}'::jsonb))
-  ON CONFLICT DO NOTHING;
-
-  RETURN jsonb_build_object('success', true);
-END;
-$$;
-
-GRANT EXECUTE ON FUNCTION public.rpc_adm_log_attempt_event(text, text, uuid, text, jsonb) TO anon, authenticated;
+-- Fix Admission Hub report access for same-school scored attempts and precise report errors.
 
 CREATE OR REPLACE FUNCTION public.rpc_adm_get_candidate_report(p_attempt_id uuid)
 RETURNS jsonb
