@@ -34,8 +34,6 @@ export const getAssignmentProgressSummaryFromAssignment = (assignment, progress)
     });
 };
 export const getAssignmentItemVisualStatus = (item, assignment) => {
-    if (assignment?.student_status === 'completed')
-        return 'completed';
     const rawStatus = 'status' in item ? String(item.status ?? '') : '';
     if (rawStatus === 'completed')
         return 'completed';

@@ -23,7 +23,7 @@ test('IELTS Exam Mode access denies students and isolated legacy IELTS admins', 
 });
 test('School Admin Portal exposes Phase 1 IELTS tabs without removing Cambridge', () => {
     const portal = fs.readFileSync(path.join(process.cwd(), 'components/SchoolAdminPortal.tsx'), 'utf8');
-    for (const tab of ['ielts-exams', 'ielts-practice', 'ielts-results', 'ielts-analytics']) {
+    for (const tab of ['ielts-exams', 'ielts-practice', 'ielts-results', 'ielts-student-progress', 'ielts-analytics']) {
         assert.match(portal, new RegExp(`'${tab}'`), `School Admin Portal should include ${tab}`);
     }
     assert.match(portal, /tab === 'cambridge' && '📚 Cambridge'/, 'existing Cambridge tab label must remain present');
@@ -32,6 +32,8 @@ test('School Admin Portal exposes Phase 1 IELTS tabs without removing Cambridge'
     assert.match(portal, /<IeltsPracticeTab \/>/, 'IELTS Practice placeholder tab must be wired');
     assert.match(portal, /<IeltsResultsTab \/>/, 'IELTS Results placeholder tab must be wired');
     assert.match(portal, /<IeltsAnalyticsTab \/>/, 'IELTS Analytics placeholder tab must be wired');
+    assert.match(portal, /label: 'Student Progress'[\s\S]*route: '\/ielts\/journey'/, 'IELTS school admin nav must include a direct Student Progress link to /ielts/journey');
+    assert.match(portal, /label: 'Assignment Overview'/, 'IELTS school admin nav should label assignment monitoring as Assignment Overview');
 });
 test('IELTS Exams school admin tab links to the secure Exam Manager route', () => {
     const tab = fs.readFileSync(path.join(process.cwd(), 'components/school-admin/tabs/IeltsExamsTab.tsx'), 'utf8');

@@ -253,6 +253,16 @@ test('IELTS Practice tab uses school-scoped assignment service and avoids legacy
     assert.doesNotMatch(tab, /\.from\(['"]ielts_/i, 'Practice tab must not query legacy IELTS tables directly');
     assert.doesNotMatch(tab, /answer_key/i, 'Practice tab must not expose answer_key');
 });
+test('assigned IELTS practice result CTAs require attempt IDs and finalized reviews', () => {
+    const page = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/IeltsAssignedPractice.tsx'), 'utf8');
+    assert.match(page, /hasValidAttemptId/, 'assigned page must validate that a result CTA has an actual attempt id');
+    assert.match(page, /practice_attempt_id\.trim\(\)/, 'result routes must be built from stored practice attempt ids, not assignment/content ids');
+    assert.match(page, /Result not available yet/, 'objective completed rows without attempt ids should show unavailable copy instead of linking');
+    assert.match(page, /Feedback not finalized yet/, 'writing/speaking completed rows without finalized reviews should not link to feedback');
+    assert.match(page, /hasFinalizedReview/, 'writing/speaking feedback CTAs must require finalized review metadata');
+    assert.doesNotMatch(page, /result\/\$\{encodeURIComponent\(item\.content_id\)/, 'objective result links must not use content ids');
+    assert.doesNotMatch(page, /result\/\$\{encodeURIComponent\(item\.id\)/, 'objective result links must not use assignment item ids');
+});
 test('IELTS practice content service uses only the safe catalog RPC', () => {
     const service = fs.readFileSync(path.join(process.cwd(), 'services/ieltsPracticeContentService.ts'), 'utf8');
     assert.match(service, /rpc_ielts_practice_content_catalog/, 'content service must call the safe catalog RPC');
@@ -318,9 +328,9 @@ test('assigned IELTS practice preserves assignment context and ReadingPractice c
     assert.match(assignmentUx, /assignment_item_count/i, 'assigned item routes should include refresh-safe item count context');
     assert.match(assignedPage, /navigate\(assignedRoute\)/i, 'navigation should use the refresh-safe assigned route');
     assert.match(readingPage, /readIeltsPracticeAssignmentContext\(\)/i, 'ReadingPractice must read assignment context through the shared helper');
-    assert.match(assignmentUi, /assignmentSearchParams\.get\('assignment_id'\)/i, 'assignment helper must read assignment_id from query params');
-    assert.match(assignmentUi, /assignmentSearchParams\.get\('assignment_item_id'\)/i, 'assignment helper must read assignment_item_id from query params');
-    assert.match(assignmentUi, /assignmentSearchParams\.get\('assignment_item_count'\)/i, 'assignment helper must read item count context from query params');
+    assert.match(assignmentUi, /assignmentSearchParams\.get\('assignment_id'\)[\s\S]*assignmentSearchParams\.get\('assignmentId'\)/i, 'assignment helper must support assignment_id and assignmentId query params');
+    assert.match(assignmentUi, /assignmentSearchParams\.get\('assignment_item_id'\)[\s\S]*assignmentSearchParams\.get\('assignmentItemId'\)/i, 'assignment helper must support assignment_item_id and assignmentItemId query params');
+    assert.match(assignmentUi, /assignmentSearchParams\.get\('assignment_item_count'\)[\s\S]*assignmentSearchParams\.get\('assignmentItemCount'\)/i, 'assignment helper must support assignment_item_count and assignmentItemCount query params');
     assert.match(readingPage, /rpcIeltsPracticeMarkItemCompleted\(\{[\s\S]*assignmentId[\s\S]*assignmentItemId[\s\S]*practiceAttemptType: 'reading'[\s\S]*practiceAttemptId: attempt\?\.id/i, 'ReadingPractice must mark reading item completed with attempt linkage');
     assert.match(assignmentUi, /assignment items completed/i, 'result UI must show item-level progress');
     assert.match(assignmentUi, /School assignment completed/i, 'result UI must show parent assignment completion');
@@ -334,9 +344,9 @@ test('Phase 2.9 practice skill pages complete assigned listening, writing, and s
         { skill: 'speaking', path: 'src/pages/ielts/SpeakingPractice.tsx', attemptTable: 'ielts_speaking_attempts' },
     ];
     const helper = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/assignmentPracticeUi.tsx'), 'utf8');
-    assert.match(helper, /assignmentSearchParams\.get\('assignment_id'\)/i, 'assignment helper must read assignment_id from query params');
-    assert.match(helper, /assignmentSearchParams\.get\('assignment_item_id'\)/i, 'assignment helper must read assignment_item_id from query params');
-    assert.match(helper, /assignmentSearchParams\.get\('assignment_item_count'\)/i, 'assignment helper must read assignment_item_count from query params');
+    assert.match(helper, /assignmentSearchParams\.get\('assignment_id'\)[\s\S]*assignmentSearchParams\.get\('assignmentId'\)/i, 'assignment helper must support assignment_id and assignmentId query params');
+    assert.match(helper, /assignmentSearchParams\.get\('assignment_item_id'\)[\s\S]*assignmentSearchParams\.get\('assignmentItemId'\)/i, 'assignment helper must support assignment_item_id and assignmentItemId query params');
+    assert.match(helper, /assignmentSearchParams\.get\('assignment_item_count'\)[\s\S]*assignmentSearchParams\.get\('assignmentItemCount'\)/i, 'assignment helper must support assignment_item_count and assignmentItemCount query params');
     assert.match(helper, /Assignment item completed/i, 'assignment helper must render item completion success');
     assert.match(helper, /assignment items completed/i, 'assignment helper must render N of N item progress');
     assert.match(helper, /School assignment completed/i, 'assignment helper must render parent assignment completion');

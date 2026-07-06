@@ -6,7 +6,7 @@ import { buildNextAssignmentItemRoute, getAssignmentItemVisualStatus, getAssignm
 test('assigned practice completed items resolve completed state', () => {
     assert.equal(getAssignmentItemVisualStatus({ status: 'completed' }), 'completed');
     assert.equal(getAssignmentItemVisualStatus({ status: 'in_progress' }), 'in_progress');
-    assert.equal(getAssignmentItemVisualStatus({}, { student_status: 'completed' }), 'completed');
+    assert.equal(getAssignmentItemVisualStatus({}, { student_status: 'completed' }), 'assigned');
     const assignedPracticeSource = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/IeltsAssignedPractice.tsx'), 'utf8');
     assert.match(assignedPracticeSource, /✓ Completed/, 'completed assigned practice items should render completed copy instead of Open');
 });

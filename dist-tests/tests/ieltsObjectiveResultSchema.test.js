@@ -15,3 +15,13 @@ test('My IELTS Journey service objective attempt selects avoid estimated_band on
     assert.doesNotMatch(service, /from\('ielts_reading_attempts'\)[\s\S]*estimated_band/i, 'reading attempts selects should not request estimated_band');
     assert.doesNotMatch(service, /from\('ielts_listening_attempts'\)[\s\S]*estimated_band/i, 'listening attempts selects should not request estimated_band');
 });
+test('objective result page handles missing reading/listening attempts without PGRST116 crash', () => {
+    const source = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/IeltsObjectiveResult.tsx'), 'utf8');
+    assert.match(source, /\.maybeSingle\(\)/, 'objective result fetch must use maybeSingle for missing/inaccessible attempt rows');
+    assert.doesNotMatch(source, /\.single\(\)/, 'objective result fetch must not use single, which throws PGRST116 on zero rows');
+    assert.match(source, /Result not available yet\./, 'missing objective results should render a friendly not-available state');
+    assert.match(source, /This result may not have been completed, or you may not have permission to view it\./, 'friendly state should explain completion/permission causes');
+    assert.match(source, /Back to My IELTS Journey/, 'friendly state must retain the journey CTA');
+    assert.match(source, /ielts_reading_attempts/, 'reading result table must still be supported');
+    assert.match(source, /ielts_listening_attempts/, 'listening result table must still be supported');
+});
