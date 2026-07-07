@@ -4,6 +4,7 @@ import { test } from 'node:test';
 
 const hub = readFileSync('components/AdmissionHub.tsx', 'utf8');
 const candidateTest = readFileSync('public/admission-tests/admission-test.html', 'utf8');
+const partialAttemptUi = readFileSync('components/admissionReportPartialAttempt.ts', 'utf8');
 
 test('Admission Hub V2 exposes activity notes from candidate details without token fragments', () => {
   assert.match(hub, /View candidate/);
@@ -79,8 +80,8 @@ test('admin report uses friendly activity labels and auto-submit summary copy', 
 
 test('report polish covers subject labels partial attempts objective grading and form labels', () => {
   assert.match(hub, /admissionSubjectLabel\(t\.subject\)/);
-  assert.match(hub, /Answered \{reportData\.answered_count\} of \{reportData\.total_questions\} questions/);
-  assert.match(hub, /This result is based on a partial attempt\./);
+  assert.match(partialAttemptUi, /Answered \$\{metrics\.answeredCount\} of \$\{metrics\.totalQuestions\} questions/);
+  assert.match(partialAttemptUi, /This result is based on a partial attempt\./);
   assert.match(hub, /isObjectiveAutoScoredAdmissionReport\(reportData\)/);
   assert.match(hub, /buildAdmissionReportFormLabel/);
   assert.match(hub, /Code \{reportData\.form_code/);

@@ -17,6 +17,7 @@
     "src/features/lockdown/**/*.ts",
     "src/features/onboarding/**/*.ts",
     "src/lib/**/*.ts",
+    "components/admissionReportPartialAttempt.ts",
     "services/rpcGateway.ts",
     "services/supabaseClient.ts",
     "services/env.ts",
