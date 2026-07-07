@@ -816,7 +816,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/ielts/trial-test-2',
-    element: <ProtectedRoute element={<IeltsExtraPracticeGuard><TrialListeningTask2 /></IeltsExtraPracticeGuard>} />,
+    element: <Suspense fallback={<BrainsLoader message="Loading free diagnostic..." />}><TrialListeningTask2 /></Suspense>,
   },
   {
     path: '/ielts/apply-prime',
