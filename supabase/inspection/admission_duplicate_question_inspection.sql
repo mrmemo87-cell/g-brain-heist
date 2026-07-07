@@ -38,14 +38,14 @@ WITH form_questions AS (
 ), form_question_id_duplicates AS (
   SELECT form_code, grade, subject, form_id, question_id::text AS duplicate_key, COUNT(*) AS duplicate_count,
          array_agg(external_id ORDER BY question_order) AS external_ids,
-         array_agg(left(stem, 160) ORDER BY question_order) AS stems
+         array_agg(left(stem, 160) ORDER BY question_order) AS stem_previews
   FROM form_questions
   GROUP BY form_code, grade, subject, form_id, question_id
   HAVING COUNT(*) > 1
 ), form_stem_duplicates AS (
   SELECT form_code, grade, subject, form_id, normalized_stem AS duplicate_key,
          COUNT(*) AS duplicate_count, array_agg(external_id ORDER BY question_order) AS external_ids,
-         array_agg(left(stem, 160) ORDER BY question_order) AS stems
+         array_agg(left(stem, 160) ORDER BY question_order) AS stem_previews
   FROM form_questions
   GROUP BY form_code, grade, subject, form_id, normalized_stem
   HAVING COUNT(*) > 1
@@ -76,14 +76,14 @@ WITH form_questions AS (
 ), official_bank_stem_duplicates AS (
   SELECT form_code, grade, subject, form_id, normalized_stem AS duplicate_key, COUNT(*) AS duplicate_count,
          array_agg(external_id ORDER BY external_id) AS external_ids,
-         array_agg(left(stem, 160) ORDER BY external_id) AS stems
+         array_agg(left(stem, 160) ORDER BY external_id) AS stem_previews
   FROM official_bank_questions
-  GROUP BY form_code, grade, subject, question_type, strand, subskill, normalized_stem
+  GROUP BY form_code, grade, subject, form_id, question_type, strand, subskill, normalized_stem
   HAVING COUNT(*) > 1
 )
-SELECT 'duplicate_question_id_per_form' AS finding_type, * FROM form_question_id_duplicates
+SELECT 'duplicate_question_id_per_form' AS check_type, * FROM form_question_id_duplicates
 UNION ALL
-SELECT 'duplicate_normalized_stem_per_form' AS finding_type, * FROM form_stem_duplicates
+SELECT 'duplicate_normalized_stem_per_form' AS check_type, * FROM form_stem_duplicates
 UNION ALL
-SELECT 'duplicate_official_bank_normalized_stem' AS finding_type, * FROM official_bank_stem_duplicates
-ORDER BY finding_type, grade, subject, form_code NULLS LAST, duplicate_count DESC;
+SELECT 'duplicate_official_bank_normalized_stem' AS check_type, * FROM official_bank_stem_duplicates
+ORDER BY check_type, grade, subject, form_code NULLS LAST, duplicate_count DESC;

@@ -51,6 +51,16 @@ test('duplicate inspection SQL reports current form and official bank duplicate 
   assert.match(inspection, /duplicate_official_bank_normalized_stem/);
   assert.match(inspection, /form_code/);
   assert.match(inspection, /external_ids/);
+  assert.match(inspection, /stem_previews/);
+});
+
+test('official bank duplicate branch groups selected non-aggregate form id', () => {
+  const branch = inspection.slice(
+    inspection.indexOf('official_bank_stem_duplicates AS'),
+    inspection.indexOf(")\nSELECT 'duplicate_question_id_per_form'"),
+  );
+  assert.match(branch, /SELECT form_code, grade, subject, form_id, normalized_stem AS duplicate_key, COUNT\(\*\) AS duplicate_count/);
+  assert.match(branch, /GROUP BY form_code, grade, subject, form_id, question_type, strand, subskill, normalized_stem/);
 });
 
 test('duplicate blocker SQL uses the deployed admission schema columns', () => {
