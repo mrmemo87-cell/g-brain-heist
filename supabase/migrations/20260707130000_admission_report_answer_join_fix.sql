@@ -1,7 +1,4 @@
--- Stabilize Admission candidate report metadata shape for subject-aware UI reports.
--- The report contract includes top-level form_code, form_title, form_subject, subject, grade, and scored attempt fields.
--- Metadata is sourced from adm_attempts -> adm_test_forms -> adm_blueprints plus adm_candidates.
-
+-- Fix Admission candidate report answer join and make answer metadata non-blocking.
 
 CREATE OR REPLACE FUNCTION public.rpc_adm_get_candidate_report(p_attempt_id uuid)
 RETURNS jsonb
