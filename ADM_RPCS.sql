@@ -485,6 +485,7 @@ DECLARE
     v_weaknesses jsonb := '[]'::jsonb;
     v_answer_details_available boolean := true;
     v_total_questions int := 0;
+    v_content_version text := NULL;
 BEGIN
     SELECT a.* INTO v_attempt
     FROM adm_attempts a
@@ -522,6 +523,12 @@ BEGIN
 
     SELECT count(*) INTO v_total_questions FROM adm_answers ans WHERE ans.attempt_id = p_attempt_id;
 
+    SELECT COALESCE(max(q.content_version), max(qp.content_version)) INTO v_content_version
+    FROM adm_answers ans
+    LEFT JOIN adm_questions q ON q.id = ans.question_id
+    LEFT JOIN adm_question_pools qp ON qp.id = q.pool_id
+    WHERE ans.attempt_id = p_attempt_id;
+
     BEGIN
       SELECT coalesce(jsonb_agg(jsonb_build_object(
           'id', ans.id,
@@ -531,7 +538,7 @@ BEGIN
           'stem', q.stem,
           'prompt', q.stem,
           'subject', COALESCE(qp.subject, v_form_subject),
-          'content_version', COALESCE(q.content_version, qp.content_version, v_blueprint.content_version),
+          'content_version', COALESCE(q.content_version, qp.content_version, v_content_version),
           'topic', q.topic,
           'strand', q.strand,
           'subskill', q.subskill,
@@ -581,7 +588,7 @@ BEGIN
       v_answer_details_available := false;
     END;
 
-    RETURN jsonb_build_object('success', true, 'attempt_id', v_attempt.id, 'form_code', v_form.form_code, 'form_subject', v_form_subject, 'subject', v_form_subject, 'grade', v_form_grade, 'form_title', v_form_title, 'formCode', v_form.form_code, 'formSubject', v_form_subject, 'formTitle', v_form_title, 'content_version', v_blueprint.content_version, 'status', v_attempt.status, 'total_score', v_attempt.total_score, 'max_score', v_attempt.max_score, 'percentage', v_attempt.percentage, 'started_at', v_attempt.started_at, 'submitted_at', v_attempt.submitted_at, 'answer_details_available', v_answer_details_available, 'answer_detail_message', CASE WHEN v_answer_details_available THEN NULL ELSE 'Detailed answers unavailable' END, 'total_questions', v_total_questions, 'candidate', jsonb_build_object('id', v_candidate.id, 'name', v_candidate.full_name, 'email', v_candidate.email, 'applied_grade', v_candidate.applied_grade, 'current_grade', v_candidate.current_grade, 'date_of_birth', v_candidate.date_of_birth, 'previous_curriculum', v_candidate.previous_curriculum, 'previous_school_language', v_candidate.previous_school_language, 'home_language', v_candidate.home_language, 'years_english_medium', v_candidate.years_english_medium, 'admin_notes', coalesce(v_candidate.admin_notes, v_candidate.notes)), 'attempt', jsonb_build_object('id', v_attempt.id, 'total_score', v_attempt.total_score, 'max_score', v_attempt.max_score, 'percentage', v_attempt.percentage, 'started_at', v_attempt.started_at, 'submitted_at', v_attempt.submitted_at, 'status', v_attempt.status), 'band', case when v_attempt.percentage >= 80 then 'A' when v_attempt.percentage >= 65 then 'B' when v_attempt.percentage >= 50 then 'C' when v_attempt.percentage >= 35 then 'D' else 'E' end, 'answers', coalesce(v_answers, '[]'::jsonb), 'topic_breakdown', v_topic_breakdown, 'skill_breakdown', v_skill_breakdown, 'difficulty_breakdown', v_difficulty_breakdown, 'type_breakdown', v_type_breakdown, 'strengths', v_strengths, 'weaknesses', v_weaknesses);
+    RETURN jsonb_build_object('success', true, 'attempt_id', v_attempt.id, 'form_code', v_form.form_code, 'form_subject', v_form_subject, 'subject', v_form_subject, 'grade', v_form_grade, 'form_title', v_form_title, 'formCode', v_form.form_code, 'formSubject', v_form_subject, 'formTitle', v_form_title, 'content_version', v_content_version, 'status', v_attempt.status, 'total_score', v_attempt.total_score, 'max_score', v_attempt.max_score, 'percentage', v_attempt.percentage, 'started_at', v_attempt.started_at, 'submitted_at', v_attempt.submitted_at, 'answer_details_available', v_answer_details_available, 'answer_detail_message', CASE WHEN v_answer_details_available THEN NULL ELSE 'Detailed answers unavailable' END, 'total_questions', v_total_questions, 'candidate', jsonb_build_object('id', v_candidate.id, 'name', v_candidate.full_name, 'email', v_candidate.email, 'applied_grade', v_candidate.applied_grade, 'current_grade', v_candidate.current_grade, 'date_of_birth', v_candidate.date_of_birth, 'previous_curriculum', v_candidate.previous_curriculum, 'previous_school_language', v_candidate.previous_school_language, 'home_language', v_candidate.home_language, 'years_english_medium', v_candidate.years_english_medium, 'admin_notes', coalesce(v_candidate.admin_notes, v_candidate.notes)), 'attempt', jsonb_build_object('id', v_attempt.id, 'total_score', v_attempt.total_score, 'max_score', v_attempt.max_score, 'percentage', v_attempt.percentage, 'started_at', v_attempt.started_at, 'submitted_at', v_attempt.submitted_at, 'status', v_attempt.status), 'band', case when v_attempt.percentage >= 80 then 'A' when v_attempt.percentage >= 65 then 'B' when v_attempt.percentage >= 50 then 'C' when v_attempt.percentage >= 35 then 'D' else 'E' end, 'answers', coalesce(v_answers, '[]'::jsonb), 'topic_breakdown', v_topic_breakdown, 'skill_breakdown', v_skill_breakdown, 'difficulty_breakdown', v_difficulty_breakdown, 'type_breakdown', v_type_breakdown, 'strengths', v_strengths, 'weaknesses', v_weaknesses);
 END;
 $$;
 
