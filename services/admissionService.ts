@@ -192,12 +192,16 @@ export interface AdmPlacementResult {
 }
 
 export interface CandidateReportAnswer {
+  id?: string | null;
+  answer_id?: string | null;
   question_id: string;
   question_type: string;
   stem: string;
   topic: string | null;
   subject?: string | null;
   diagnostic_skill?: string | null;
+  strand?: string | null;
+  subskill?: string | null;
   skill_tag?: string | null;
   difficulty?: string | null;
   grade_level?: number | null;
@@ -206,7 +210,8 @@ export interface CandidateReportAnswer {
   form_code?: string | null;
   response: any;
   correct_answer: any;
-  is_correct: boolean;
+  options?: any | null;
+  is_correct: boolean | null;
   marks_awarded: number;
   marks_possible: number;
   explanation: string | null;
@@ -244,6 +249,8 @@ export interface CandidateReport {
   answered_count?: number;
   total_questions?: number;
   partial_attempt?: boolean;
+  answer_details_available?: boolean;
+  answer_detail_message?: string | null;
 }
 
 export interface AdmCandidateTestEvent {
@@ -603,13 +610,18 @@ export async function getCandidateReport(attemptId: string, context: CandidateRe
       derived: { formCode: raw.form_code, formSubject: raw.form_subject, subject: raw.subject, title: raw.form_title },
     });
   }
-  const answers = (raw.answers ?? []).map((a: any) => ({
+  const answerRows = Array.isArray(raw.answers) ? raw.answers : [];
+  const answers = answerRows.map((a: any) => ({
+      id: a.id ?? a.answer_id ?? null,
+      answer_id: a.answer_id ?? a.id ?? null,
       question_id: a.question_id,
-      question_type: a.question_type,
-      stem: a.stem,
+      question_type: a.question_type ?? 'structured',
+      stem: a.stem ?? a.prompt ?? 'Detailed question text unavailable',
       subject: admissionSubjectLabel(a.subject ?? raw.subject ?? raw.form_subject ?? null, raw.form_code ?? null, a.content_version ?? raw.content_version ?? null),
-      topic: a.topic,
-      diagnostic_skill: a.diagnostic_skill ?? null,
+      topic: a.topic ?? a.strand ?? null,
+      strand: a.strand ?? null,
+      subskill: a.subskill ?? null,
+      diagnostic_skill: a.diagnostic_skill ?? a.subskill ?? a.strand ?? null,
       skill_tag: a.skill_tag ?? null,
       difficulty: a.difficulty ?? null,
       grade_level: a.grade_level ?? null,
@@ -621,7 +633,8 @@ export async function getCandidateReport(attemptId: string, context: CandidateRe
       is_correct: a.is_correct,
       marks_awarded: a.marks_awarded ?? 0,
       marks_possible: a.marks_possible ?? 0,
-      explanation: a.explanation,
+      explanation: a.explanation ?? null,
+      options: a.options ?? null,
       ai_feedback: a.ai_feedback ?? null,
     }));
   const candidateProfile = raw.candidate ? {
@@ -675,7 +688,9 @@ export async function getCandidateReport(attemptId: string, context: CandidateRe
     skill_breakdown: raw.skill_breakdown ?? [],
     difficulty_breakdown: raw.difficulty_breakdown ?? [],
     activity_notes: raw.activity_notes ?? [],
-    activity_events: raw.activity_events ?? [],
+    activity_events: Array.isArray(raw.activity_events) ? raw.activity_events : [],
+    answer_details_available: raw.answer_details_available ?? raw.answerDetailsAvailable ?? true,
+    answer_detail_message: raw.answer_detail_message ?? raw.answerDetailMessage ?? null,
     answered_count: answers.length,
     total_questions: raw.total_questions ?? raw.attempt?.max_score ?? answers.length,
     partial_attempt: (answers.length < (raw.total_questions ?? raw.attempt?.max_score ?? answers.length)),

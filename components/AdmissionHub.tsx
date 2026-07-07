@@ -2324,6 +2324,11 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   
                   {showAnswers && (
                     <div className="space-y-3 mt-2 max-h-[50vh] overflow-y-auto pr-1">
+                      {reportData.answer_details_available === false && (
+                        <div className="rounded-lg border border-amber-500/30 bg-amber-900/10 p-3 text-sm text-amber-200">
+                          {reportData.answer_detail_message || 'Detailed answers unavailable'}
+                        </div>
+                      )}
                       {(reportData.answers ?? []).map((ans, i) => (
                         <div
                           key={ans.question_id || i}
