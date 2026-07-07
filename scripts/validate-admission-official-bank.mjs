@@ -29,6 +29,52 @@ const REQUIRED_OFFICIAL_FLAGS = {
   content_owner: 'brain_heist',
 };
 
+
+export function normalizeAdmissionQuestionStem(value) {
+  return String(value ?? '')
+    .toLowerCase()
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/\b(?:question|item|investigation)\s+\d+\b/g, ' ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function similarityRatio(a, b) {
+  if (!a || !b) return 0;
+  const aWords = new Set(a.split(' ').filter(Boolean));
+  const bWords = new Set(b.split(' ').filter(Boolean));
+  const intersection = [...aWords].filter((word) => bWords.has(word)).length;
+  const union = new Set([...aWords, ...bWords]).size;
+  return union ? intersection / union : 0;
+}
+
+function validateDuplicateQuestionStems(errors, questionsByScope) {
+  for (const [scope, entries] of questionsByScope) {
+    const exact = new Map();
+    for (const entry of entries) {
+      const normalized = normalizeAdmissionQuestionStem(entry.question.prompt);
+      if (!normalized) continue;
+      const previous = exact.get(normalized);
+      if (previous) {
+        errors.push(`${entry.filePath}: ${entry.location} duplicates normalized prompt in ${scope}; ${entry.question.external_id} matches ${previous.question.external_id}: "${entry.question.prompt}"`);
+      } else {
+        exact.set(normalized, entry);
+      }
+    }
+    const unique = [...exact.entries()].map(([normalized, entry]) => ({ normalized, entry }));
+    for (let i = 0; i < unique.length; i += 1) {
+      for (let j = i + 1; j < unique.length; j += 1) {
+        const score = similarityRatio(unique[i].normalized, unique[j].normalized);
+        if (score >= 0.92 && Math.min(unique[i].normalized.length, unique[j].normalized.length) >= 24) {
+          errors.push(`${unique[j].entry.filePath}: ${unique[j].entry.location} is a near-duplicate prompt in ${scope}; ${unique[j].entry.question.external_id} is ${(score * 100).toFixed(0)}% similar to ${unique[i].entry.question.external_id}`);
+        }
+      }
+    }
+  }
+}
+
 const FORBIDDEN_TEMPLATE_PATTERNS = [
   /\bin investigation\s+\d+\b/i,
   /\bgrade\s+6\s+science\s+question\b/i,
@@ -286,6 +332,7 @@ export function validateAdmissionOfficialBank(seedDir = DEFAULT_SEED_DIR) {
   const rubricIds = validateSharedRubrics(seedDir, errors, duplicateMap);
   const poolIds = new Set();
   const parsedGradeFiles = [];
+  const questionsByStemScope = new Map();
 
   for (const { filePath, subject } of gradeFiles(seedDir)) {
     const data = readJson(filePath);
@@ -307,17 +354,24 @@ export function validateAdmissionOfficialBank(seedDir = DEFAULT_SEED_DIR) {
   }
 
   for (const { filePath, data } of parsedGradeFiles) {
-    data.questions.forEach((question, index) => validateQuestion(
-      errors,
-      duplicateMap,
-      filePath,
-      `questions[${index}]`,
-      question,
-      poolIds,
-      passageIds,
-      rubricIds,
-    ));
+    data.questions.forEach((question, index) => {
+      validateQuestion(
+        errors,
+        duplicateMap,
+        filePath,
+        `questions[${index}]`,
+        question,
+        poolIds,
+        passageIds,
+        rubricIds,
+      );
+      const scope = [question.grade_level, question.subject, question.question_type, question.strand || '', question.subskill || ''].join('|');
+      if (!questionsByStemScope.has(scope)) questionsByStemScope.set(scope, []);
+      questionsByStemScope.get(scope).push({ filePath, location: `questions[${index}]`, question });
+    });
   }
+
+  validateDuplicateQuestionStems(errors, questionsByStemScope);
 
   return { ok: errors.length === 0, errors };
 }
