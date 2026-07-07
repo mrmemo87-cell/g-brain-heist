@@ -34,7 +34,33 @@ export const resolveAdmissionReportPartialAttempt = (report: (Partial<CandidateR
   return { answeredCount, totalQuestions, totalScore, answeredQuestionAccuracy, partialAttempt };
 };
 
-export const AdmissionReportPartialAttemptNotice: React.FC<{ metrics: ReturnType<typeof resolveAdmissionReportPartialAttempt> }> = ({ metrics }) => {
+export type AdmissionReportPartialAttemptMetrics = ReturnType<typeof resolveAdmissionReportPartialAttempt>;
+
+export const resolveAdmissionReportVisiblePartialAttempt = ({
+  totalScore,
+  totalQuestions,
+  answeredCount,
+}: {
+  totalScore: unknown;
+  totalQuestions: unknown;
+  answeredCount: unknown;
+}): AdmissionReportPartialAttemptMetrics => {
+  const resolvedTotalScore = firstNumeric(totalScore);
+  const resolvedTotalQuestions = firstNumeric(totalQuestions) ?? 0;
+  const resolvedAnsweredCount = firstNumeric(answeredCount) ?? 0;
+  const answeredQuestionAccuracy = resolvedAnsweredCount > 0 && resolvedTotalScore != null
+    ? Math.round((resolvedTotalScore / resolvedAnsweredCount) * 100)
+    : null;
+  return {
+    answeredCount: resolvedAnsweredCount,
+    totalQuestions: resolvedTotalQuestions,
+    totalScore: resolvedTotalScore,
+    answeredQuestionAccuracy,
+    partialAttempt: resolvedAnsweredCount > 0 && resolvedTotalQuestions > resolvedAnsweredCount,
+  };
+};
+
+export const AdmissionReportPartialAttemptNotice: React.FC<{ metrics: AdmissionReportPartialAttemptMetrics }> = ({ metrics }) => {
   if (!metrics.partialAttempt) return null;
   return React.createElement(
     'div',

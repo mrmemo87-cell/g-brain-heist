@@ -17,7 +17,7 @@ import type {
 } from '../services/admissionService';
 import { supabase } from '../services/supabaseClient';
 import { buildAdmissionWizardBlueprintName, buildAdmissionWizardDefaultName, getAdmissionWizardSubjectLabel } from '../src/lib/admissionWizardNaming';
-import { AdmissionReportPartialAttemptNotice, resolveAdmissionReportPartialAttempt } from './admissionReportPartialAttempt';
+import { AdmissionReportPartialAttemptNotice, resolveAdmissionReportPartialAttempt, resolveAdmissionReportVisiblePartialAttempt } from './admissionReportPartialAttempt';
 
 // ── Types ──
 
@@ -452,6 +452,14 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   const [generatingAiReport, setGeneratingAiReport] = useState(false);
   const [reportAttemptId, setReportAttemptId] = useState<string | null>(null);
   const reportPartialAttemptMetrics = useMemo(() => resolveAdmissionReportPartialAttempt(reportData as any), [reportData]);
+  const visibleReportScoreTotal = reportData?.total_score ?? 0;
+  const visibleReportQuestionTotal = reportData?.max_score ?? 0;
+  const visibleReportAnsweredCount = (reportData?.answers ?? []).length;
+  const visibleReportPartialAttemptMetrics = useMemo(() => resolveAdmissionReportVisiblePartialAttempt({
+    totalScore: visibleReportScoreTotal,
+    totalQuestions: visibleReportQuestionTotal,
+    answeredCount: visibleReportAnsweredCount,
+  }), [visibleReportScoreTotal, visibleReportQuestionTotal, visibleReportAnsweredCount]);
 
   useEffect(() => {
     if (!reportData) return;
@@ -2156,12 +2164,12 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
-                  {statCard('Score', `${reportData.total_score}/${reportData.max_score}`, '🎯', 'border-cyan-500/30')}
+                  {statCard('Score', `${visibleReportScoreTotal}/${visibleReportQuestionTotal}`, '🎯', 'border-cyan-500/30')}
                   {statCard('Started', new Date(reportData.started_at).toLocaleTimeString(), '🕐', 'border-gray-500/30')}
                   {statCard('Submitted', new Date(reportData.submitted_at).toLocaleTimeString(), '✅', 'border-emerald-500/30')}
                 </div>
 
-                <AdmissionReportPartialAttemptNotice metrics={reportPartialAttemptMetrics} />
+                <AdmissionReportPartialAttemptNotice metrics={visibleReportPartialAttemptMetrics.partialAttempt ? visibleReportPartialAttemptMetrics : reportPartialAttemptMetrics} />
 
                 {(reportData.activity_events ?? []).some(e => e.event_type === 'auto_submit_repeated_page_exits') && (
                   <div className="inline-flex w-fit rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-200">Unusual activity: repeated page exits</div>
@@ -2334,7 +2342,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                     onClick={() => setShowAnswers(!showAnswers)}
                     className="w-full flex items-center justify-between text-sm font-semibold text-gray-300 hover:text-white py-2 transition"
                   >
-                    <span>📝 Detailed Answers ({(reportData.answers ?? []).length} questions)</span>
+                    <span>📝 Detailed Answers ({visibleReportAnsweredCount} questions)</span>
                     <span className="text-lg">{showAnswers ? '▲' : '▼'}</span>
                   </button>
                   
