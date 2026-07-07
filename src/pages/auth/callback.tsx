@@ -40,7 +40,7 @@ const AuthCallback: React.FC = () => {
       }
 
       if (!cancelled) {
-        navigate(intendedPath && session?.user ? (intendedPath === '/ielts/trial-test-2' ? '/ielts' : intendedPath) : '/', { replace: true });
+        navigate(intendedPath && session?.user ? (intendedPath === '/ielts/trial-test-2' ? '/ielts/trial-test-2?saved=1' : intendedPath) : '/', { replace: true });
       }
     };
 

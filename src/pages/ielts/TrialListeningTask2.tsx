@@ -4,7 +4,7 @@ import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/au
 import { getUserTier, isIeltsPrime } from '../../../services/ieltsService';
 import { supabase } from '../../../services/supabaseClient';
 import { loginWithGoogle } from '../../../services/ieltsAuthService';
-import { recordDiagnosticCompleted, savePendingDiagnosticResult, trackIeltsFunnelEvent } from '../../../services/ieltsFunnelAnalytics';
+import { consumeRestoredDiagnosticResult, recordDiagnosticCompleted, savePendingDiagnosticResult, trackIeltsFunnelEvent } from '../../../services/ieltsFunnelAnalytics';
 
 // Audio URLs for each section
 const SECTION_AUDIO = {
@@ -75,6 +75,7 @@ const TrialListeningTask2: React.FC = () => {
   const [loginLoading, setLoginLoading] = useState(false);
   const isPrimeUser = isIeltsPrime({ tier: userTier });
   const userType = 'independent' as const;
+  const restoredAfterAuthRef = useRef(false);
 
 
   useEffect(() => {
@@ -82,6 +83,18 @@ const TrialListeningTask2: React.FC = () => {
     supabase.auth.getSession().then(({ data }) => { if (active) setIsAuthenticated(Boolean(data.session)); });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => setIsAuthenticated(Boolean(session)));
     const checkCompletedDiagnostic = async () => {
+      const restored = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('saved') === '1' ? consumeRestoredDiagnosticResult() : null;
+      if (restored && !restoredAfterAuthRef.current) {
+        restoredAfterAuthRef.current = true;
+        if (!active) return;
+        setSubmittedResult({ percentage: restored.percentage, bandScore: restored.bandScore });
+        setShowResults(true);
+        setHasStarted(true);
+        setRetakeCheckLoading(false);
+        navigate('/ielts/trial-test-2', { replace: true });
+        return;
+      }
+
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) {
         if (active) setRetakeCheckLoading(false);
@@ -107,7 +120,7 @@ const TrialListeningTask2: React.FC = () => {
     };
     void checkCompletedDiagnostic();
     return () => { active = false; subscription.unsubscribe(); };
-  }, []);
+  }, [navigate]);
 
   // Stop background music
   useEffect(() => {

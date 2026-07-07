@@ -264,6 +264,7 @@ export interface PendingDiagnosticResult {
 }
 
 const PENDING_DIAGNOSTIC_KEY = 'ielts_pending_diagnostic_result';
+const SAVED_DIAGNOSTIC_RESULT_KEY = 'ielts_saved_diagnostic_result';
 
 export const savePendingDiagnosticResult = (result: PendingDiagnosticResult): void => {
   if (typeof window === 'undefined') return;
@@ -283,6 +284,23 @@ export const clearPendingDiagnosticResult = (): void => {
   window.localStorage.removeItem(PENDING_DIAGNOSTIC_KEY);
 };
 
+export const saveRestoredDiagnosticResult = (result: PendingDiagnosticResult): void => {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(SAVED_DIAGNOSTIC_RESULT_KEY, JSON.stringify(result));
+};
+
+export const consumeRestoredDiagnosticResult = (): PendingDiagnosticResult | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(SAVED_DIAGNOSTIC_RESULT_KEY) || 'null') as PendingDiagnosticResult | null;
+    window.localStorage.removeItem(SAVED_DIAGNOSTIC_RESULT_KEY);
+    return parsed?.task_id === 'trial-test-2' ? parsed : null;
+  } catch {
+    window.localStorage.removeItem(SAVED_DIAGNOSTIC_RESULT_KEY);
+    return null;
+  }
+};
+
 export const persistPendingDiagnosticAfterAuth = async (): Promise<boolean> => {
   const pending = readPendingDiagnosticResult();
   if (!pending) return false;
@@ -295,6 +313,7 @@ export const persistPendingDiagnosticAfterAuth = async (): Promise<boolean> => {
   });
   if (!recorded) return false;
   trackIeltsFunnelEvent('diagnostic_saved_after_auth', { skill: pending.skill, task_id: pending.task_id, estimated_band: pending.bandScore, user_type: 'independent' });
+  saveRestoredDiagnosticResult(pending);
   clearPendingDiagnosticResult();
   window.localStorage.setItem('ielts_diagnostic_submitted_recently', String(Date.now()));
   return true;
