@@ -99,10 +99,10 @@ BEGIN
         FOR v_diff_key, v_diff_count IN SELECT key, value::int FROM jsonb_each_text(v_dist_val) LOOP
             v_total_required := v_total_required + v_diff_count;
             INSERT INTO adm_selected_questions_tmp(question_id, normalized_stem)
-            SELECT q.id, adm_normalize_question_stem(q.prompt)
+            SELECT q.id, adm_normalize_question_stem(q.stem)
             FROM adm_questions q
             WHERE q.pool_id = ANY(v_pool_ids) AND q.question_type = v_dist_key AND q.difficulty = v_diff_key AND q.status = 'published'
-              AND NOT EXISTS (SELECT 1 FROM adm_selected_questions_tmp s WHERE s.question_id = q.id OR s.normalized_stem = adm_normalize_question_stem(q.prompt))
+              AND NOT EXISTS (SELECT 1 FROM adm_selected_questions_tmp s WHERE s.question_id = q.id OR s.normalized_stem = adm_normalize_question_stem(q.stem))
             ORDER BY RANDOM()
             LIMIT v_diff_count;
             GET DIAGNOSTICS v_selected_count = ROW_COUNT;

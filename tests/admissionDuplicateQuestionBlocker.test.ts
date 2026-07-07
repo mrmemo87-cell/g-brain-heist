@@ -42,7 +42,7 @@ test('admission generation migration enforces question id and normalized stem un
   assert.match(migration, /adm_normalize_question_stem/);
   assert.match(migration, /normalized_stem text UNIQUE/);
   assert.match(migration, /Not enough unique official questions available for this grade\/subject\/test blueprint\./);
-  assert.match(migration, /NOT EXISTS[\s\S]*s\.question_id = q\.id OR s\.normalized_stem = adm_normalize_question_stem\(q\.prompt\)/);
+  assert.match(migration, /NOT EXISTS[\s\S]*s\.question_id = q\.id OR s\.normalized_stem = adm_normalize_question_stem\(q\.stem\)/);
 });
 
 test('duplicate inspection SQL reports current form and official bank duplicate stems', () => {
