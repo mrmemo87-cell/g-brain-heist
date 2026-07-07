@@ -5,6 +5,7 @@ import fs from 'node:fs';
 const finalMigration = fs.readFileSync('supabase/migrations/20260707130000_admission_report_answer_join_fix.sql', 'utf8');
 const service = fs.readFileSync('services/admissionService.ts', 'utf8');
 const hub = fs.readFileSync('components/AdmissionHub.tsx', 'utf8');
+const partialAttemptUi = fs.readFileSync('components/admissionReportPartialAttempt.ts', 'utf8');
 
 const liveScienceFixture = {
   attempt_id: 'd4e16a44-7de4-4545-94a7-f70b7828ba71',
@@ -69,9 +70,9 @@ test('SCI6 partial-attempt fallback keeps readiness denominator separate from an
   assert.match(service, /raw\?\.max_score[\s\S]*raw\?\.total_questions[\s\S]*raw\?\.totalQuestions/);
   assert.match(service, /raw\?\.answered_count[\s\S]*raw\?\.answeredCount[\s\S]*answerCount/);
   assert.match(service, /const answeredQuestionAccuracy = answeredCount > 0 \? Math\.round\(\(totalScore \/ answeredCount\) \* 100\) : null/);
-  assert.match(hub, /Answered \{reportData\.answered_count\} of \{reportData\.total_questions\} questions/);
-  assert.match(hub, /This result is based on a partial attempt\./);
-  assert.match(hub, /Answered-question accuracy: \{reportData\.answered_question_accuracy\}%/);
+  assert.match(partialAttemptUi, /Answered \$\{metrics\.answeredCount\} of \$\{metrics\.totalQuestions\} questions/);
+  assert.match(partialAttemptUi, /This result is based on a partial attempt\./);
+  assert.match(partialAttemptUi, /Answered-question accuracy: \$\{metrics\.answeredQuestionAccuracy\}%/);
   assert.match(hub, /statCard\('Score', `\$\{reportData\.total_score\}\/\$\{reportData\.max_score\}`/);
   assert.match(hub, /Detailed Answers \(\{\(reportData\.answers \?\? \[\]\)\.length\} questions\)/);
 });
@@ -81,8 +82,8 @@ test('Admission Hub report consistency polish covers readiness denominator parti
   assert.match(service, /answeredQuestionAccuracy/);
   assert.match(service, /answered_count: answeredCount/);
   assert.match(service, /partial_attempt: answeredCount < totalQuestions/);
-  assert.match(hub, /Answered-question accuracy:/);
-  assert.match(hub, /Answered \{reportData\.answered_count\} of \{reportData\.total_questions\} questions/);
+  assert.match(partialAttemptUi, /Answered-question accuracy:/);
+  assert.match(partialAttemptUi, /Answered \$\{metrics\.answeredCount\} of \$\{metrics\.totalQuestions\} questions/);
   assert.match(hub, /reportData\.placement_recommendation\.label !== 'Interview recommended'/);
   assert.match(hub, /Difficulty: \{t\.difficulty\}/);
   assert.doesNotMatch(hub, /\{AdmService\.admissionSubjectLabel\(t\.subject\)\} · \{t\.skill\}\{t\.difficulty \? ` · \$\{t\.difficulty\}` : ''\}/);

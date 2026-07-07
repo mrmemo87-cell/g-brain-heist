@@ -17,6 +17,7 @@ import type {
 } from '../services/admissionService';
 import { supabase } from '../services/supabaseClient';
 import { buildAdmissionWizardBlueprintName, buildAdmissionWizardDefaultName, getAdmissionWizardSubjectLabel } from '../src/lib/admissionWizardNaming';
+import { AdmissionReportPartialAttemptNotice, resolveAdmissionReportPartialAttempt } from './admissionReportPartialAttempt';
 
 // ── Types ──
 
@@ -450,6 +451,25 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   const [showAnswers, setShowAnswers] = useState(false);
   const [generatingAiReport, setGeneratingAiReport] = useState(false);
   const [reportAttemptId, setReportAttemptId] = useState<string | null>(null);
+  const reportPartialAttemptMetrics = useMemo(() => resolveAdmissionReportPartialAttempt(reportData as any), [reportData]);
+
+  useEffect(() => {
+    if (!reportData) return;
+    const raw = reportData as any;
+    const answersLength = Array.isArray(raw.answers) ? raw.answers.length : 0;
+    const impliedPartialAttempt = answersLength > 0 && (Number(raw.max_score ?? raw.maxScore ?? raw.attempt?.max_score) > answersLength);
+    if (import.meta.env.DEV && impliedPartialAttempt && !reportPartialAttemptMetrics.partialAttempt) {
+      console.warn('Admission report partial attempt fields were not resolved', {
+        attemptId: raw.attempt_id ?? raw.attemptId ?? raw.attempt?.id ?? reportAttemptId,
+        totalScore: raw.total_score ?? raw.totalScore ?? raw.attempt?.total_score,
+        maxScore: raw.max_score ?? raw.maxScore ?? raw.attempt?.max_score,
+        answeredCount: reportPartialAttemptMetrics.answeredCount,
+        totalQuestions: reportPartialAttemptMetrics.totalQuestions,
+        answersLength,
+        reportKeys: Object.keys(raw),
+      });
+    }
+  }, [reportData, reportPartialAttemptMetrics, reportAttemptId]);
 
   // Candidate file modal
   const [candidateFileId, setCandidateFileId] = useState<string | null>(null);
@@ -2141,15 +2161,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   {statCard('Submitted', new Date(reportData.submitted_at).toLocaleTimeString(), '✅', 'border-emerald-500/30')}
                 </div>
 
-                {reportData.partial_attempt && (
-                  <div className="rounded-xl border border-sky-500/30 bg-sky-900/10 p-3 text-xs text-sky-100">
-                    Answered {reportData.answered_count} of {reportData.total_questions} questions. Unanswered questions were marked incorrect.
-                    <span className="block mt-1 text-sky-100/80">This result is based on a partial attempt.</span>
-                    {reportData.answered_question_accuracy != null && (
-                      <span className="block mt-1 text-sky-100/70">Answered-question accuracy: {reportData.answered_question_accuracy}%</span>
-                    )}
-                  </div>
-                )}
+                <AdmissionReportPartialAttemptNotice metrics={reportPartialAttemptMetrics} />
 
                 {(reportData.activity_events ?? []).some(e => e.event_type === 'auto_submit_repeated_page_exits') && (
                   <div className="inline-flex w-fit rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-200">Unusual activity: repeated page exits</div>
