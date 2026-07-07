@@ -73,8 +73,9 @@ test('SCI6 partial-attempt fallback keeps readiness denominator separate from an
   assert.match(partialAttemptUi, /Answered \$\{metrics\.answeredCount\} of \$\{metrics\.totalQuestions\} questions/);
   assert.match(partialAttemptUi, /This result is based on a partial attempt\./);
   assert.match(partialAttemptUi, /Answered-question accuracy: \$\{metrics\.answeredQuestionAccuracy\}%/);
-  assert.match(hub, /statCard\('Score', `\$\{reportData\.total_score\}\/\$\{reportData\.max_score\}`/);
-  assert.match(hub, /Detailed Answers \(\{\(reportData\.answers \?\? \[\]\)\.length\} questions\)/);
+  assert.match(hub, /statCard\('Score', `\$\{visibleReportScoreTotal\}\/\$\{visibleReportQuestionTotal\}`/);
+  assert.match(hub, /Detailed Answers \(\{visibleReportAnsweredCount\} questions\)/);
+  assert.match(hub, /resolveAdmissionReportVisiblePartialAttempt/);
 });
 
 test('Admission Hub report consistency polish covers readiness denominator partial copy recommendation and difficulty display', () => {
