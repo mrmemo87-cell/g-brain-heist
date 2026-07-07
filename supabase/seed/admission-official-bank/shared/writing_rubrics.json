@@ -77,6 +77,45 @@
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
+    },
+    {
+      "external_id": "adm-g7-eng-v1-writing-rubric-15pt",
+      "name": "Grade 7 English Admission Writing Rubric \u2014 15 marks",
+      "subject": "english",
+      "grade_level": 7,
+      "stage_level": "secondary",
+      "max_marks": 15,
+      "criteria": [
+        {
+          "name": "Ideas, purpose, and audience",
+          "marks": 5,
+          "descriptors": [
+            "Responds fully to the task with relevant, developed ideas.",
+            "Shows awareness of purpose, audience, and tone."
+          ]
+        },
+        {
+          "name": "Organisation and cohesion",
+          "marks": 5,
+          "descriptors": [
+            "Uses paragraphs or clear sequencing to guide the reader.",
+            "Connects ideas with suitable transitions and varied sentence openings."
+          ]
+        },
+        {
+          "name": "Language accuracy and style",
+          "marks": 5,
+          "descriptors": [
+            "Uses precise vocabulary and some varied sentence structures.",
+            "Controls grammar, punctuation, and spelling so meaning is clear."
+          ]
+        }
+      ],
+      "content_version": "adm-bank-v1-g7-english",
+      "source_label": "Brain Heist Official Admission Bank v1",
+      "is_official": true,
+      "is_locked": true,
+      "content_owner": "brain_heist"
     }
   ]
 }

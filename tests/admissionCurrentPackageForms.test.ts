@@ -10,9 +10,12 @@ const blueprints: AdmBlueprint[] = [
   { id: 'bp-g6-eng', school_id: null, pool_id: null, name: 'G6 English', subject: 'english', target_grade: 6, target_stage: null, total_marks: 25, duration_minutes: 45, question_distribution: {}, pass_percentage: 60, delivery_mode: 'exam', is_active: true, created_by: null, created_at: '', updated_at: '' },
   { id: 'bp-g6-mat', school_id: null, pool_id: null, name: 'G6 Maths', subject: 'maths', target_grade: 6, target_stage: null, total_marks: 25, duration_minutes: 45, question_distribution: {}, pass_percentage: 60, delivery_mode: 'exam', is_active: true, created_by: null, created_at: '', updated_at: '' },
   { id: 'bp-g6-sci', school_id: null, pool_id: null, name: 'G6 Science', subject: 'science', target_grade: 6, target_stage: null, total_marks: 25, duration_minutes: 45, question_distribution: {}, pass_percentage: 60, delivery_mode: 'exam', is_active: true, created_by: null, created_at: '', updated_at: '' },
+  { id: 'bp-g7-eng', school_id: null, pool_id: null, name: 'G7 English', subject: 'english', target_grade: 7, target_stage: null, total_marks: 25, duration_minutes: 45, question_distribution: {}, pass_percentage: 60, delivery_mode: 'exam', is_active: true, created_by: null, created_at: '', updated_at: '' },
+  { id: 'bp-g7-mat', school_id: null, pool_id: null, name: 'G7 Maths', subject: 'maths', target_grade: 7, target_stage: null, total_marks: 25, duration_minutes: 45, question_distribution: {}, pass_percentage: 60, delivery_mode: 'exam', is_active: true, created_by: null, created_at: '', updated_at: '' },
+  { id: 'bp-g7-sci', school_id: null, pool_id: null, name: 'G7 Science', subject: 'science', target_grade: 7, target_stage: null, total_marks: 25, duration_minutes: 45, question_distribution: {}, pass_percentage: 60, delivery_mode: 'exam', is_active: true, created_by: null, created_at: '', updated_at: '' },
 ];
 
-const cleanQuestion = (grade: 5 | 6, n = 1) => ({
+const cleanQuestion = (grade: 5 | 6 | 7, n = 1) => ({
   id: `q-${grade}-${n}`,
   external_id: `adm-g${grade}-${n}`,
   content_owner: 'brain_heist',
@@ -78,4 +81,17 @@ test('Grade 6 candidate sees only latest clean English, Maths, and Science packa
     form('eng5', 'bp-g5-eng', 'ENG5-2026-0C44', '2026-07-07T00:03:00Z'),
   ];
   assert.deepEqual(getCurrentAdmissionPackageForms(forms, blueprints, 6).map(f => f.form_code), ['ENG6-2026-477B', 'MAT6-2026-E770', 'SCI6-2026-17FD']);
+});
+
+
+test('Grade 7 candidate sees latest clean English, Maths, and Science package forms while legacy Grade 7 stays excluded', () => {
+  const forms = [
+    form('old-eng7', 'bp-g7-eng', 'ENG7-2026-OLD', '2026-07-06T00:00:00Z', [cleanQuestion(7)]),
+    form('eng7', 'bp-g7-eng', 'ENG7-2026-A111', '2026-07-07T00:00:00Z', [cleanQuestion(7)]),
+    form('mat7', 'bp-g7-mat', 'MAT7-2026-B222', '2026-07-07T00:01:00Z', [cleanQuestion(7)]),
+    form('sci7', 'bp-g7-sci', 'SCI7-2026-C333', '2026-07-07T00:02:00Z', [cleanQuestion(7)]),
+    form('legacy7', 'bp-g7-eng', 'ENG7-2026-LEG', '2026-07-08T00:00:00Z', [{ ...cleanQuestion(7), content_version: 'legacy-import' }]),
+    form('archived7', 'bp-g7-mat', 'MAT7-2026-ARCH', '2026-07-08T00:00:00Z', [{ ...cleanQuestion(7), external_id: null as any }]),
+  ];
+  assert.deepEqual(getCurrentAdmissionPackageForms(forms, blueprints, 7).map(f => f.form_code), ['ENG7-2026-A111', 'MAT7-2026-B222', 'SCI7-2026-C333']);
 });

@@ -139,6 +139,76 @@
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
+    },
+    {
+      "external_id": "adm-g7-eng-v1-passage-river-project",
+      "title": "The River Path Decision",
+      "genre": "non-fiction",
+      "subject": "english",
+      "grade_level": 7,
+      "stage_level": "secondary",
+      "text": "When the town council proposed a new walking path beside Greyford River, many students expected work to begin at once. The plan looked simple on the noticeboard: clear the brambles, lay a safe surface, and add signs about birds that nested nearby. However, the council delayed the project after a science club survey found frogspawn in shallow pools along the bank. Instead of cancelling the path, the council invited the club to map the wettest areas and suggest a route that would protect them. Some residents complained about the delay, but others joined a weekend clean-up to remove litter without disturbing the pools. By autumn, the revised path curved farther from the water in two places. It cost a little more and took longer, yet the finished route gave walkers a better view of the river and left the frogs room to grow.",
+      "content_version": "adm-bank-v1-g7-english",
+      "source_label": "Brain Heist Official Admission Bank v1",
+      "is_official": true,
+      "is_locked": true,
+      "content_owner": "brain_heist"
+    },
+    {
+      "external_id": "adm-g7-eng-v1-passage-clockmaker-apprentice",
+      "title": "Mira and the Clockmaker",
+      "genre": "fiction",
+      "subject": "english",
+      "grade_level": 7,
+      "stage_level": "secondary",
+      "text": "Mira swept the clockmaker\u2019s shop every afternoon, listening to the soft tick of repaired watches. She wanted to fix one herself, but Mr. Arun only asked her to label drawers and polish glass. One rainy day a customer brought in a school trophy clock that had stopped before the final debate. Mr. Arun was away collecting parts, so Mira examined it carefully. She noticed a tiny strip of paper caught beneath the minute hand, probably from the winner\u2019s ribbon. Rather than forcing the hand, she lifted the glass, removed the paper with tweezers, and wound the key twice. The clock began ticking. When Mr. Arun returned, Mira expected a scolding. Instead, he placed a cracked alarm clock on her bench and said, \u201cStart with this one. Skill begins with noticing.\u201d",
+      "content_version": "adm-bank-v1-g7-english",
+      "source_label": "Brain Heist Official Admission Bank v1",
+      "is_official": true,
+      "is_locked": true,
+      "content_owner": "brain_heist"
+    },
+    {
+      "external_id": "adm-g7-eng-v1-passage-library-roof",
+      "title": "The Library Roof Garden",
+      "genre": "explanation",
+      "subject": "english",
+      "grade_level": 7,
+      "stage_level": "secondary",
+      "text": "A roof garden can cool a building, but it must be planned carefully. First, engineers check whether the roof can carry extra weight from soil, water, and plants. Next, a waterproof layer is added so rain does not leak into rooms below. Lightweight soil is often used because ordinary garden soil becomes heavy when wet. Plants with shallow roots, such as herbs and grasses, are chosen before larger shrubs. At West Lane Library, students helped compare temperatures on the bare roof and under planted trays. On sunny afternoons, the planted area was several degrees cooler. The garden also slowed rainwater, reducing the rush into street drains. A roof garden is not simply decoration; it is a small system that can save energy, manage water, and create a habitat for insects.",
+      "content_version": "adm-bank-v1-g7-english",
+      "source_label": "Brain Heist Official Admission Bank v1",
+      "is_official": true,
+      "is_locked": true,
+      "content_owner": "brain_heist"
+    },
+    {
+      "external_id": "adm-g7-eng-v1-passage-debate-team",
+      "title": "The Debate Team Switch",
+      "genre": "fiction",
+      "subject": "english",
+      "grade_level": 7,
+      "stage_level": "secondary",
+      "text": "Jonah joined the debate team because he liked winning arguments, but the first practice surprised him. His coach asked him to defend a view he did not share: that school uniforms should be redesigned by students. Jonah complained that he could not sound convincing. His partner, Asha, suggested listing reasons before judging them. Together they interviewed classmates, checked the cost of fabric, and read the school rules. By Friday Jonah still preferred the old uniform, yet he understood why some students wanted change. During the practice debate, he explained the redesign idea fairly and answered questions with evidence. The coach praised him, not for changing his opinion, but for showing he could examine an issue from more than one side.",
+      "content_version": "adm-bank-v1-g7-english",
+      "source_label": "Brain Heist Official Admission Bank v1",
+      "is_official": true,
+      "is_locked": true,
+      "content_owner": "brain_heist"
+    },
+    {
+      "external_id": "adm-g7-eng-v1-passage-storm-station",
+      "title": "Signals from the Storm Station",
+      "genre": "information",
+      "subject": "english",
+      "grade_level": 7,
+      "stage_level": "secondary",
+      "text": "The weather station on North Hill sends updates every ten minutes. Its instruments measure wind speed, rainfall, air pressure, and temperature. During calm weather, the numbers change slowly, so the station\u2019s work can seem dull. Before a storm, however, patterns become important. A sudden drop in air pressure may warn that unsettled weather is approaching. Strong gusts from the west can show which way clouds are moving. Last March, volunteers noticed pressure falling faster than expected while the river level was already high. They shared the data with the emergency team, which moved sandbags to the lowest streets before nightfall. The storm still caused disruption, but fewer homes flooded because people acted on measurements rather than guesses.",
+      "content_version": "adm-bank-v1-g7-english",
+      "source_label": "Brain Heist Official Admission Bank v1",
+      "is_official": true,
+      "is_locked": true,
+      "content_owner": "brain_heist"
     }
   ]
 }
