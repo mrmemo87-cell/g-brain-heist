@@ -249,6 +249,7 @@ export interface CandidateReport {
   answered_count?: number;
   total_questions?: number;
   partial_attempt?: boolean;
+  answered_question_accuracy?: number | null;
   answer_details_available?: boolean;
   answer_detail_message?: string | null;
 }
@@ -650,7 +651,13 @@ export async function getCandidateReport(attemptId: string, context: CandidateRe
   const reportSubject = raw.subject ?? raw.form_subject ?? answers[0]?.subject ?? null;
   const diagnosticAnswers = answers.map((answer: any) => ({ ...answer, subject: answer.subject ?? reportSubject, form_code: raw.form_code ?? null, content_version: answer.content_version ?? raw.content_version ?? null }));
   const diagnosticBreakdown = calculateDiagnosticBreakdown(diagnosticAnswers);
-  const placementRecommendation = calculatePlacementRecommendation(candidateProfile, diagnosticAnswers, raw.attempt?.percentage ?? 0);
+  const attemptPercentage = raw.attempt?.percentage ?? 0;
+  const placementRecommendation = calculatePlacementRecommendation(candidateProfile, diagnosticAnswers, attemptPercentage);
+  const totalQuestions = Number(raw.total_questions ?? raw.form?.total_questions ?? raw.form?.question_count ?? raw.attempt?.max_score ?? answers.length);
+  const answeredCount = Number(raw.answered_count ?? answers.length);
+  const answeredMarks = answers.reduce((sum: number, answer: CandidateReportAnswer) => sum + Number(answer.marks_awarded ?? (answer.is_correct ? 1 : 0)), 0);
+  const answeredMaxMarks = answers.reduce((sum: number, answer: CandidateReportAnswer) => sum + Number(answer.marks_possible ?? 1), 0);
+  const answeredQuestionAccuracy = answeredMaxMarks > 0 ? Math.round((answeredMarks / answeredMaxMarks) * 100) : null;
   return {
     candidate_name: raw.candidate?.name ?? 'Unknown',
     form_code: raw.form_code ?? '',
@@ -662,7 +669,7 @@ export async function getCandidateReport(attemptId: string, context: CandidateRe
     form_label: raw.form_title ?? buildAdmissionReportFormLabel(raw.form_code ?? '', raw.grade ?? raw.candidate?.applied_grade ?? null, reportSubject),
     total_score: raw.attempt?.total_score ?? 0,
     max_score: raw.attempt?.max_score ?? 0,
-    percentage: raw.attempt?.percentage ?? 0,
+    percentage: attemptPercentage,
     band: raw.band ?? 'E',
     started_at: raw.attempt?.started_at ?? '',
     submitted_at: raw.attempt?.submitted_at ?? '',
@@ -691,9 +698,10 @@ export async function getCandidateReport(attemptId: string, context: CandidateRe
     activity_events: Array.isArray(raw.activity_events) ? raw.activity_events : [],
     answer_details_available: raw.answer_details_available ?? raw.answerDetailsAvailable ?? true,
     answer_detail_message: raw.answer_detail_message ?? raw.answerDetailMessage ?? null,
-    answered_count: answers.length,
-    total_questions: raw.total_questions ?? raw.attempt?.max_score ?? answers.length,
-    partial_attempt: (answers.length < (raw.total_questions ?? raw.attempt?.max_score ?? answers.length)),
+    answered_count: answeredCount,
+    total_questions: totalQuestions,
+    partial_attempt: answeredCount < totalQuestions,
+    answered_question_accuracy: answeredQuestionAccuracy,
   };
 }
 

@@ -83,7 +83,7 @@ export function calculateDiagnosticBreakdown(answers: DiagnosticAnswer[] = []): 
     const skill = cleanSkill(answer);
     const difficulty = answer.difficulty || null;
     const key = `${subject}::${skill}::${difficulty || 'all'}`;
-    const existing = grouped.get(key) || { key, label: `${title(subject)} · ${skill}${difficulty ? ` · ${difficulty}` : ''}`, subject, skill, difficulty, score: 0, maxScore: 0, percentage: 0, total: 0 };
+    const existing = grouped.get(key) || { key, label: `${title(subject)} · ${skill}`, subject, skill, difficulty, score: 0, maxScore: 0, percentage: 0, total: 0 };
     existing.score += Number(answer.marks_awarded ?? (answer.is_correct ? 1 : 0));
     existing.maxScore += Number(answer.marks_possible ?? 1);
     existing.total += 1;
@@ -102,12 +102,17 @@ export function calculateSubjectReadiness(answers: DiagnosticAnswer[], subject: 
 }
 
 export function calculatePlacementRecommendation(profile: AcademicProfile = {}, answers: DiagnosticAnswer[] = [], fallbackPercentage: number | null = null): PlacementRecommendation {
-  const english = calculateSubjectReadiness(answers, 'english');
-  const math = calculateSubjectReadiness(answers, 'math');
-  const science = calculateSubjectReadiness(answers, 'science');
+  let english = calculateSubjectReadiness(answers, 'english');
+  let math = calculateSubjectReadiness(answers, 'math');
+  let science = calculateSubjectReadiness(answers, 'science');
   const subjects = [...new Set(answers.map(a => normalizeSubject(a.subject, a.form_code, a.content_version)).filter(s => s !== 'unknown'))] as Array<'english' | 'math' | 'science'>;
   const currentSubject = subjects.length === 1 ? subjects[0] : (subjects.length > 1 ? 'unknown' : 'unknown');
   const isPackageReport = subjects.length > 1;
+  if (!isPackageReport && currentSubject !== 'unknown' && fallbackPercentage != null) {
+    if (currentSubject === 'english') english = fallbackPercentage;
+    if (currentSubject === 'math') math = fallbackPercentage;
+    if (currentSubject === 'science') science = fallbackPercentage;
+  }
   const e = english;
   const m = math;
   const breakdown = calculateDiagnosticBreakdown(answers);

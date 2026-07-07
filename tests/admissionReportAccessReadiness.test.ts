@@ -39,7 +39,7 @@ test('service propagates RPC report errors and maps report scores from total_sco
   assert.match(service, /if \(!data\.success\) throw new Error\(data\.error \|\| 'Report data unavailable'\)/);
   assert.match(service, /total_score: raw\.attempt\?\.total_score \?\? 0/);
   assert.match(service, /max_score: raw\.attempt\?\.max_score \?\? 0/);
-  assert.match(service, /percentage: raw\.attempt\?\.percentage \?\? 0/);
+  assert.match(service, /const attemptPercentage = raw\.attempt\?\.percentage \?\? 0/);
   assert.doesNotMatch(service, /raw\.attempt\?\.score\b|scored_at/);
 });
 
