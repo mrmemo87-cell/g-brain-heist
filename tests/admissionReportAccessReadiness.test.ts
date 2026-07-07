@@ -47,3 +47,31 @@ test('candidate tokens remain hidden in normal Admission Hub rows', () => {
   assert.doesNotMatch(hub, /c\.token\.slice/);
   assert.match(hub, /Candidate-specific links are private/);
 });
+
+test('final report RPC documents stable metadata contract from attempt form blueprint and candidate joins', () => {
+  const finalMigration = fs.readFileSync('supabase/migrations/20260707120000_admission_report_metadata_contract.sql', 'utf8');
+  assert.match(finalMigration, /FROM adm_attempts a\s+JOIN adm_test_forms f ON f\.id = a\.form_id\s+JOIN adm_blueprints b ON b\.id = f\.blueprint_id\s+JOIN adm_candidates c ON c\.id = a\.candidate_id/i);
+  for (const field of ["'form_code', v_form.form_code", "'form_title', v_form_title", "'form_subject', v_form_subject", "'subject', v_form_subject", "'grade', v_form_grade", "'status', v_attempt.status", "'total_score', v_attempt.total_score", "'max_score', v_attempt.max_score", "'percentage', v_attempt.percentage", "'submitted_at', v_attempt.submitted_at"]) {
+    assert.match(finalMigration, new RegExp(field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  }
+});
+
+test('frontend normalizes top-level nested and context report metadata without treating access denied as metadata loss', () => {
+  assert.match(service, /normalizeReportPayload/);
+  assert.match(service, /raw\.form_code, raw\.formCode, form\.form_code/);
+  assert.match(service, /raw\.form_subject, raw\.formSubject, raw\.subject, form\.subject, blueprint\.subject, context\.form_subject/);
+  assert.match(service, /context\.form_code/);
+  assert.match(service, /formCode: raw\.form_code/);
+  assert.match(service, /formSubject: raw\.form_subject/);
+  assert.match(service, /formTitle: raw\.form_title/);
+  assert.match(service, /if \(!data\.success\) throw new Error\(data\.error \|\| 'Report data unavailable'\)/);
+});
+
+test('Admission Hub supplies candidate-details form context and keeps report header subject aware', () => {
+  assert.match(hub, /buildReportContext/);
+  assert.match(hub, /form_code: form\?\.form_code/);
+  assert.match(hub, /form_subject: subject/);
+  assert.match(hub, /AdmService\.getCandidateReport\(attemptId, buildReportContext\(attemptId\)\)/);
+  assert.match(hub, /reportData\.form_label \|\| AdmService\.buildAdmissionReportFormLabel/);
+  assert.match(hub, /Code \{reportData\.form_code \|\| '—'\}/);
+});

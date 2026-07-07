@@ -867,13 +867,31 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
     window.open(`mailto:${email || ''}?subject=${subject}&body=${body}`, '_blank');
   };
 
+  const buildReportContext = (attemptId: string): AdmService.CandidateReportContext => {
+    const attempt = attempts.find(a => a.id === attemptId) ?? null;
+    const form = attempt ? forms.find(f => f.id === attempt.form_id) : null;
+    const blueprint = form ? blueprints.find(b => b.id === form.blueprint_id) : null;
+    const candidate = attempt ? candidates.find(c => c.id === attempt.candidate_id) : null;
+    const subject = blueprint?.subject ?? (form ? getFormSubject(form, blueprints) : null);
+    const grade = candidate?.applied_grade ?? blueprint?.target_grade ?? blueprint?.target_stage ?? (form ? getFormGrade(form, blueprints) : null);
+    return {
+      form_code: form?.form_code ?? null,
+      form_subject: subject ?? null,
+      form_title: form ? getAdmissionFormTitle(form, blueprints) : null,
+      grade,
+      content_version: blueprint?.content_version ?? null,
+      candidate: candidate ? { applied_grade: candidate.applied_grade, name: candidate.full_name } : null,
+      attempt,
+    };
+  };
+
   const handleViewReport = async (attemptId: string) => {
     setReportLoading(true);
     setShowReport(true);
     setReportAttemptId(attemptId);
     setShowAnswers(false);
     try {
-      const report = await AdmService.getCandidateReport(attemptId);
+      const report = await AdmService.getCandidateReport(attemptId, buildReportContext(attemptId));
       const activity = await AdmService.getAttemptActivity(attemptId).catch(() => ({ notes: [], events: [] }));
       setReportData(report ? { ...report, activity_notes: activity.notes, activity_events: activity.events } : report);
     } catch (error) {
