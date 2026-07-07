@@ -285,12 +285,7 @@ const QUESTION_TYPES: Record<string, { value: string; label: string }[]> = {
 };
 
 
-const normalizeAdmissionSubject = (subject?: string | null) => {
-  const key = String(subject || '').toLowerCase();
-  if (key === 'math' || key === 'maths' || key === 'mathematics') return 'maths';
-  if (key === 'science') return 'science';
-  return 'english';
-};
+const normalizeAdmissionSubject = AdmService.normalizeAdmissionSubjectKey;
 
 const admissionSubjectLabel = (subject?: string | null) => {
   const normalized = normalizeAdmissionSubject(subject);
@@ -306,13 +301,7 @@ const getFormGrade = (form: Pick<AdmTestForm, 'blueprint_id' | 'form_code'>, blu
   return bp?.target_grade ?? bp?.target_stage ?? (codeGrade ? Number(codeGrade) : null);
 };
 
-const getFormSubjectFromCode = (formCode?: string | null) => {
-  const code = String(formCode || '').toLowerCase();
-  if (code.startsWith('sci')) return 'science';
-  if (code.startsWith('mat') || code.startsWith('math')) return 'maths';
-  if (code.startsWith('eng')) return 'english';
-  return null;
-};
+const getFormSubjectFromCode = AdmService.getAdmissionFormSubjectFromCode;
 
 const getFormSubject = (form: Pick<AdmTestForm, 'blueprint_id' | 'form_code'>, blueprints: AdmBlueprint[]) => {
   const bp = getFormBlueprint(form, blueprints);
@@ -1881,12 +1870,13 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 <tbody className="divide-y divide-gray-800">
                   {filteredCandidates.map((c) => {
                     const publishedForms = forms.filter(f => f.status === 'published' && !isFormCodeSubjectConflict(f, blueprints));
-                    const matchingForms = publishedForms.filter(f => getFormGrade(f, blueprints) === c.applied_grade);
-                    const otherGradeForms = publishedForms.filter(f => getFormGrade(f, blueprints) !== c.applied_grade);
+                    const gradeMatchingPublishedForms = publishedForms.filter(f => getFormGrade(f, blueprints) === c.applied_grade);
+                    const matchingForms = AdmService.getCurrentAdmissionPackageForms(gradeMatchingPublishedForms, blueprints, c.applied_grade);
+                    const otherGradeForms = publishedForms.filter(f => getFormGrade(f, blueprints) !== c.applied_grade && AdmService.isCurrentManagedAdmissionForm(f));
                     const showOtherGrades = !!showOtherGradeFormsForCandidate[c.id];
                     const assignableForms = showOtherGrades ? [...matchingForms, ...otherGradeForms] : matchingForms;
                     const attemptedFormIds = new Set(attempts.filter(a => a.candidate_id === c.id).map(a => a.form_id));
-                    const historyForms = forms.filter(f => attemptedFormIds.has(f.id) && !publishedForms.some(pf => pf.id === f.id));
+                    const historyForms = forms.filter(f => attemptedFormIds.has(f.id) && !matchingForms.some(pf => pf.id === f.id));
                     return (
                       <tr key={c.id} className="text-gray-300 hover:bg-slate-700/30 transition">
                         <td className="py-3 pr-4">
@@ -1910,8 +1900,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                                 </div>
                               );
                             })}
-                            {matchingForms.length === 0 && <span className="text-xs text-amber-300">No published forms for Grade {c.applied_grade || '—'}</span>}
-                            {matchingForms.length > 3 && <span className="text-[10px] text-gray-500">+{matchingForms.length - 3} more matching forms</span>}
+                            {matchingForms.length === 0 && <span className="text-xs text-amber-300">No current clean forms for Grade {c.applied_grade || '—'}</span>}
+                            {matchingForms.length > 0 && <span className="text-[10px] text-emerald-300">Showing current Grade {c.applied_grade || '—'} admission package</span>}
                           </div>
                         </td>
                         <td className="py-3 pr-4 min-w-[280px]">
@@ -1946,7 +1936,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                                   </div>
                                 </div>
                               );
-                            }) : <span className="text-xs text-gray-600 italic">No matching published tests</span>}
+                            }) : <span className="text-xs text-gray-600 italic">No current clean matching tests</span>}
                             {otherGradeForms.length > 0 && (
                               <button type="button" onClick={() => setShowOtherGradeFormsForCandidate(prev => ({ ...prev, [c.id]: !prev[c.id] }))} className="text-[11px] text-amber-300 hover:text-amber-200">
                                 {showOtherGrades ? 'Hide other grades' : `Show ${otherGradeForms.length} other-grade form(s)`}
@@ -2501,19 +2491,22 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
               <div className="rounded-lg border border-sky-200 bg-white p-4 mb-4">
                 <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Admission package / matching tests</h3>
                 <div className="grid gap-2 sm:grid-cols-3">
-                  {ADMISSION_PACKAGE_SUBJECTS.map(subject => {
-                    const matching = forms.find(f => getFormGrade(f, blueprints) === cand.applied_grade && normalizeAdmissionSubject(getFormSubject(f, blueprints)) === subject.key);
-                    const attempt = matching ? candAttempts.find(a => a.form_id === matching.id) : undefined;
-                    return <div key={subject.key} className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm"><div className="font-semibold text-slate-900">{subject.label}</div><div className="text-xs text-slate-500">{subject.required ? 'Required' : 'Optional'} · {getAttemptLabel(attempt, !!matching)}</div></div>;
-                  })}
+                  {(() => {
+                    const currentPackageForms = AdmService.getCurrentAdmissionPackageForms(forms, blueprints, cand.applied_grade);
+                    return ADMISSION_PACKAGE_SUBJECTS.map(subject => {
+                      const matching = currentPackageForms.find(f => normalizeAdmissionSubject(getFormSubject(f, blueprints)) === subject.key);
+                      const attempt = matching ? candAttempts.find(a => a.form_id === matching.id) : undefined;
+                      return <div key={subject.key} className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm"><div className="font-semibold text-slate-900">{subject.label}</div><div className="text-xs text-slate-500">{subject.required ? 'Required' : 'Optional'} · {getAttemptLabel(attempt, !!matching)}</div></div>;
+                    });
+                  })()}
                 </div>
               </div>
 
               {/* Sent links */}
               <div className="rounded-lg border border-sky-200 bg-white p-4 mb-4">
                 <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Sent links</h3>
-                <p className="text-xs text-slate-500 mb-2">Copy links for matching Grade {cand.applied_grade || '—'} tests. Tokens are never shown in the normal admin UI.</p>
-                <div className="flex flex-wrap gap-2">{forms.filter(f => f.status === 'published' && getFormGrade(f, blueprints) === cand.applied_grade).map(f => <button key={f.id} onClick={() => { navigator.clipboard.writeText(AdmService.buildTestLink(window.location.origin, cand.token, f.form_code)); addToast('Candidate link copied', 'success'); }} className="rounded-lg border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-xs font-semibold text-cyan-800">Copy {admissionSubjectLabel(getFormSubject(f, blueprints))} link</button>)}</div>
+                <p className="text-xs text-slate-500 mb-2">Showing current Grade {cand.applied_grade || '—'} admission package. Tokens are never shown in the normal admin UI.</p>
+                <div className="flex flex-wrap gap-2">{AdmService.getCurrentAdmissionPackageForms(forms, blueprints, cand.applied_grade).map(f => <button key={f.id} onClick={() => { navigator.clipboard.writeText(AdmService.buildTestLink(window.location.origin, cand.token, f.form_code)); addToast('Candidate link copied', 'success'); }} className="rounded-lg border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-xs font-semibold text-cyan-800">Copy {admissionSubjectLabel(getFormSubject(f, blueprints))} link</button>)}</div>
               </div>
 
               {/* Attempts / Results / Retake */}

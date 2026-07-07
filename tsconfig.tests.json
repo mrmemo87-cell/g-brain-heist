@@ -19,6 +19,7 @@
     "src/lib/**/*.ts",
     "components/admissionReportPartialAttempt.ts",
     "services/rpcGateway.ts",
+    "services/admissionService.ts",
     "services/supabaseClient.ts",
     "services/env.ts",
     "services/ieltsExamModeService.ts",
