@@ -62,6 +62,7 @@ export interface AdmQuestionPool {
 export interface AdmQuestion {
   id: string;
   pool_id: string;
+  external_id?: string | null;
   question_type: QuestionType;
   stem: string;
   stem_image_url: string | null;
@@ -122,6 +123,14 @@ export interface AdmBlueprint {
   updated_at: string;
 }
 
+export interface AdmTestFormQuestion {
+  id?: string;
+  form_id?: string;
+  question_id?: string;
+  question?: (Pick<AdmQuestion, 'id' | 'external_id' | 'content_owner' | 'content_version'> & { pool?: Pick<AdmQuestionPool, 'content_owner' | 'content_version'> | null; adm_question_pools?: Pick<AdmQuestionPool, 'content_owner' | 'content_version'> | null }) | null;
+  adm_questions?: (Pick<AdmQuestion, 'id' | 'external_id' | 'content_owner' | 'content_version'> & { pool?: Pick<AdmQuestionPool, 'content_owner' | 'content_version'> | null; adm_question_pools?: Pick<AdmQuestionPool, 'content_owner' | 'content_version'> | null }) | null;
+}
+
 export interface AdmTestForm {
   id: string;
   blueprint_id: string;
@@ -134,6 +143,7 @@ export interface AdmTestForm {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  adm_test_form_questions?: AdmTestFormQuestion[] | null;
 }
 
 export interface AdmCandidate {
@@ -467,10 +477,27 @@ export async function deleteAttempt(attemptId: string): Promise<void> {
 
 // ── Test Form CRUD + RPCs ──
 
+export { CURRENT_ADMISSION_SUBJECTS, normalizeAdmissionSubjectKey, getAdmissionFormSubjectFromCode, getAdmissionFormGrade, getAdmissionFormSubject, isCurrentManagedAdmissionForm, getCurrentAdmissionPackageForms } from '../src/lib/admissionCurrentPackageForms';
+export type { CurrentAdmissionSubject } from '../src/lib/admissionCurrentPackageForms';
+
 export async function fetchTestForms(schoolId: string): Promise<AdmTestForm[]> {
   const { data, error } = await supabase
     .from('adm_test_forms')
-    .select('*')
+    .select(`
+      *,
+      adm_test_form_questions(
+        id,
+        form_id,
+        question_id,
+        question:adm_questions(
+          id,
+          external_id,
+          content_owner,
+          content_version,
+          pool:adm_question_pools(content_owner, content_version)
+        )
+      )
+    `)
     .eq('school_id', schoolId)
     .order('created_at', { ascending: false });
   if (error) throw error;

@@ -8,7 +8,7 @@ const rpcs = readFileSync('ADM_RPCS.sql', 'utf8');
 const passageMigration = readFileSync('supabase/migrations/20260630113000_admission_start_attempt_passages.sql', 'utf8');
 
 test('Admission Candidates tab filters matching published forms by applied grade before showing other grades', () => {
-  assert.match(hub, /matchingForms = publishedForms\.filter\(f => getFormGrade\(f, blueprints\) === c\.applied_grade\)/);
+  assert.match(hub, /gradeMatchingPublishedForms = publishedForms\.filter\(f => getFormGrade\(f, blueprints\) === c\.applied_grade\)[\s\S]*matchingForms = AdmService\.getCurrentAdmissionPackageForms\(gradeMatchingPublishedForms, blueprints, c\.applied_grade\)/);
   assert.match(hub, /Show \$\{otherGradeForms\.length\} other-grade form\(s\)/);
   assert.match(hub, /Other grade — send only by exception/);
 });
@@ -55,14 +55,12 @@ test('closed SCI5 forms cannot render as not-sent sendable candidate cards', () 
 
 test('closed form attempts are rendered as history, not sendable cards', () => {
   assert.match(hub, /const attemptedFormIds = new Set\(attempts\.filter\(a => a\.candidate_id === c\.id\)\.map\(a => a\.form_id\)\)/);
-  assert.match(hub, /const historyForms = forms\.filter\(f => attemptedFormIds\.has\(f\.id\) && !publishedForms\.some\(pf => pf\.id === f\.id\)\)/);
+  assert.match(hub, /const historyForms = forms\.filter\(f => attemptedFormIds\.has\(f\.id\) && !matchingForms\.some\(pf => pf\.id === f\.id\)\)/);
   assert.match(hub, /assignableForms\.length > 0 \? assignableForms\.map/);
 });
 
 test('stale SCI or MAT form codes cannot be displayed as English sendables', () => {
-  assert.match(hub, /const getFormSubjectFromCode/);
-  assert.match(hub, /code\.startsWith\('sci'\)\) return 'science'/);
-  assert.match(hub, /code\.startsWith\('mat'\) \|\| code\.startsWith\('math'\)\) return 'maths'/);
+  assert.match(hub, /const getFormSubjectFromCode = AdmService\.getAdmissionFormSubjectFromCode/);
   assert.match(hub, /const publishedForms = forms\.filter\(f => f\.status === 'published' && !isFormCodeSubjectConflict\(f, blueprints\)\)/);
   assert.match(hub, /legacy\/stale/);
 });
@@ -71,7 +69,7 @@ test('stale SCI or MAT form codes cannot be displayed as English sendables', () 
 test('Admission Candidates tab send cards use in-scope matching form data and keep completed/incomplete actions distinct', () => {
   const candidatesSection = hub.slice(hub.indexOf("{filteredCandidates.map((c) =>"), hub.indexOf("{activeTab === 'results'"));
 
-  assert.match(candidatesSection, /const matchingForms = publishedForms\.filter/);
+  assert.match(candidatesSection, /const matchingForms = AdmService\.getCurrentAdmissionPackageForms/);
   assert.match(candidatesSection, /const assignableForms = showOtherGrades \? \[\.\.\.matchingForms, \.\.\.otherGradeForms\] : matchingForms/);
   assert.match(candidatesSection, /assignableForms\.length > 0 \? assignableForms\.map\(f => \{/);
   assert.match(candidatesSection, /getAttemptLabel\(attempt, true\)/);
