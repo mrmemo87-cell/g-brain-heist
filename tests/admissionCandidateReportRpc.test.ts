@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
-const migrationPath = 'supabase/migrations/20260707140000_admission_report_content_version_fix.sql';
+const migrationPath = 'supabase/migrations/20260707150000_admission_report_content_version_variable_fix.sql';
 const rpcSqlPath = 'ADM_RPCS.sql';
 const migrationSql = readFileSync(migrationPath, 'utf8');
 const rpcSql = readFileSync(rpcSqlPath, 'utf8');
@@ -17,10 +17,9 @@ test('candidate report RPC does not read content_version from adm_blueprints', (
 });
 
 test('candidate report RPC derives optional content_version from question metadata only', () => {
-  assert.match(migrationSql, /v_content_version text := NULL/);
-  assert.match(migrationSql, /COALESCE\(max\(q\.content_version\), max\(qp\.content_version\)\) INTO v_content_version/);
-  assert.match(migrationSql, /'content_version', COALESCE\(q\.content_version, qp\.content_version, v_content_version\)/);
-  assert.match(migrationSql, /'content_version', v_content_version/);
+  assert.doesNotMatch(migrationSql, /v_content_version/);
+  assert.match(migrationSql, /'content_version', COALESCE\(q\.content_version, qp\.content_version\)/);
+  assert.match(migrationSql, /'content_version', \(SELECT COALESCE\(max\(q\.content_version\), max\(qp\.content_version\)\)[\s\S]*FROM adm_answers ans[\s\S]*JOIN adm_questions q ON q\.id = ans\.question_id[\s\S]*LEFT JOIN adm_question_pools qp ON qp\.id = q\.pool_id[\s\S]*WHERE ans\.attempt_id = p_attempt_id\)/);
 });
 
 test('candidate report RPC preserves scored report readiness and access checks', () => {
