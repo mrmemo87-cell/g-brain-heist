@@ -572,6 +572,27 @@ export interface CandidateReportContext {
 
 const firstDefined = (...values: any[]) => values.find(v => v !== undefined && v !== null && v !== '');
 
+export const resolveAdmissionReportCounts = (raw: any, answers: CandidateReportAnswer[] | any[]) => {
+  const answerCount = Array.isArray(answers) ? answers.length : 0;
+  const maxScore = Number(firstDefined(raw?.max_score, raw?.maxScore, raw?.attempt?.max_score, raw?.attempt?.maxScore));
+  const totalQuestions = Number(firstDefined(
+    raw?.total_questions,
+    raw?.totalQuestions,
+    raw?.form?.total_questions,
+    raw?.form?.totalQuestions,
+    raw?.form?.question_count,
+    raw?.form?.questionCount,
+    Number.isFinite(maxScore) && maxScore > 0 ? maxScore : undefined,
+    answerCount,
+  ));
+  const answeredCount = Number(firstDefined(raw?.answered_count, raw?.answeredCount, answerCount));
+
+  return {
+    answeredCount: Number.isFinite(answeredCount) && answeredCount >= 0 ? answeredCount : answerCount,
+    totalQuestions: Number.isFinite(totalQuestions) && totalQuestions >= 0 ? totalQuestions : answerCount,
+  };
+};
+
 const normalizeReportPayload = (raw: any, context: CandidateReportContext = {}) => {
   const form = raw.form ?? raw.test_form ?? raw.adm_test_forms ?? {};
   const blueprint = raw.blueprint ?? raw.adm_blueprints ?? form.blueprint ?? {};
@@ -653,11 +674,9 @@ export async function getCandidateReport(attemptId: string, context: CandidateRe
   const diagnosticBreakdown = calculateDiagnosticBreakdown(diagnosticAnswers);
   const attemptPercentage = raw.attempt?.percentage ?? 0;
   const placementRecommendation = calculatePlacementRecommendation(candidateProfile, diagnosticAnswers, attemptPercentage);
-  const totalQuestions = Number(raw.total_questions ?? raw.form?.total_questions ?? raw.form?.question_count ?? raw.attempt?.max_score ?? answers.length);
-  const answeredCount = Number(raw.answered_count ?? answers.length);
-  const answeredMarks = answers.reduce((sum: number, answer: CandidateReportAnswer) => sum + Number(answer.marks_awarded ?? (answer.is_correct ? 1 : 0)), 0);
-  const answeredMaxMarks = answers.reduce((sum: number, answer: CandidateReportAnswer) => sum + Number(answer.marks_possible ?? 1), 0);
-  const answeredQuestionAccuracy = answeredMaxMarks > 0 ? Math.round((answeredMarks / answeredMaxMarks) * 100) : null;
+  const { answeredCount, totalQuestions } = resolveAdmissionReportCounts(raw, answers);
+  const totalScore = Number(raw.attempt?.total_score ?? 0);
+  const answeredQuestionAccuracy = answeredCount > 0 ? Math.round((totalScore / answeredCount) * 100) : null;
   return {
     candidate_name: raw.candidate?.name ?? 'Unknown',
     form_code: raw.form_code ?? '',

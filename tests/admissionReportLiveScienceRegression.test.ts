@@ -54,6 +54,28 @@ test('live Grade 6 Science scored report fixture opens with 13 adm_answers rows'
   assert.match(service, /admissionSubjectLabel\(a\.subject \?\? raw\.subject \?\? raw\.form_subject/);
 });
 
+test('SCI6 partial-attempt fallback keeps readiness denominator separate from answered-question accuracy', () => {
+  const answeredCount = liveScienceFixture.answers.length;
+  const totalQuestions = liveScienceFixture.max_score;
+  const answeredQuestionAccuracy = Math.round((liveScienceFixture.total_score / answeredCount) * 100);
+
+  assert.equal(answeredCount, 13);
+  assert.equal(totalQuestions, 25);
+  assert.equal(answeredQuestionAccuracy, 54);
+  assert.equal(liveScienceFixture.percentage, 28);
+  assert.equal(`${liveScienceFixture.total_score}/${liveScienceFixture.max_score}`, '7/25');
+  assert.equal(liveScienceFixture.answers.length, 13);
+
+  assert.match(service, /raw\?\.max_score[\s\S]*raw\?\.total_questions[\s\S]*raw\?\.totalQuestions/);
+  assert.match(service, /raw\?\.answered_count[\s\S]*raw\?\.answeredCount[\s\S]*answerCount/);
+  assert.match(service, /const answeredQuestionAccuracy = answeredCount > 0 \? Math\.round\(\(totalScore \/ answeredCount\) \* 100\) : null/);
+  assert.match(hub, /Answered \{reportData\.answered_count\} of \{reportData\.total_questions\} questions/);
+  assert.match(hub, /This result is based on a partial attempt\./);
+  assert.match(hub, /Answered-question accuracy: \{reportData\.answered_question_accuracy\}%/);
+  assert.match(hub, /statCard\('Score', `\$\{reportData\.total_score\}\/\$\{reportData\.max_score\}`/);
+  assert.match(hub, /Detailed Answers \(\{\(reportData\.answers \?\? \[\]\)\.length\} questions\)/);
+});
+
 test('Admission Hub report consistency polish covers readiness denominator partial copy recommendation and difficulty display', () => {
   assert.match(service, /const placementRecommendation = calculatePlacementRecommendation\(candidateProfile, diagnosticAnswers, attemptPercentage\)/);
   assert.match(service, /answeredQuestionAccuracy/);
