@@ -63,7 +63,7 @@ test('single-subject Science reports keep Science labels and readiness only', ()
   assert.ok(rows.every(r => r.label.startsWith('Science · ')));
   assert.ok(!rows.some(r => /Unknown|General/.test(r.label)));
   const rec = calculatePlacementRecommendation({ applied_grade: 6 }, answers, 28);
-  assert.equal(rec.sciencePercentage, 14);
+  assert.equal(rec.sciencePercentage, 28);
   assert.equal(rec.englishPercentage, null);
   assert.equal(rec.mathsPercentage, null);
   assert.equal(rec.currentSubject, 'science');
@@ -81,4 +81,28 @@ test('diagnostic rows use friendly subject labels from ENG MAT SCI form codes', 
   assert.ok(rows.some(r => r.label === 'English · Reading'));
   assert.ok(rows.some(r => r.label === 'Science · Forces'));
   assert.ok(!rows.some(r => /Unknown|General/.test(r.label)));
+});
+
+test('single-subject Science readiness uses scored attempt percentage instead of answered-only accuracy', () => {
+  const answers = Array.from({ length: 13 }, (_, index) => ({
+    form_code: 'SCI6-2026-DC00',
+    subject: 'science',
+    diagnostic_skill: 'Earth and space',
+    difficulty: 'medium',
+    marks_awarded: index < 7 ? 1 : 0,
+    marks_possible: 1,
+  }));
+  const rec = calculatePlacementRecommendation({ applied_grade: 6 }, answers, 28);
+  assert.equal(rec.sciencePercentage, 28);
+  assert.ok(rec.reasons.includes('Science readiness is 28%.'));
+  assert.ok(!rec.reasons.some(r => r.includes('Science readiness is 54%')));
+});
+
+test('diagnostic labels keep difficulty separate from the main subject and topic label', () => {
+  const rows = calculateDiagnosticBreakdown([
+    { form_code: 'SCI6-2026-DC00', diagnostic_skill: 'Earth and space', difficulty: 'medium', marks_awarded: 1, marks_possible: 1 },
+  ]);
+  assert.equal(rows[0]?.label, 'Science · Earth and space');
+  assert.equal(rows[0]?.difficulty, 'medium');
+  assert.notEqual(rows[0]?.label, 'Science · Earth and space · medium');
 });

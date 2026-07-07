@@ -2145,6 +2145,9 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   <div className="rounded-xl border border-sky-500/30 bg-sky-900/10 p-3 text-xs text-sky-100">
                     Answered {reportData.answered_count} of {reportData.total_questions} questions. Unanswered questions were marked incorrect.
                     <span className="block mt-1 text-sky-100/80">This result is based on a partial attempt.</span>
+                    {reportData.answered_question_accuracy != null && (
+                      <span className="block mt-1 text-sky-100/70">Answered-question accuracy: {reportData.answered_question_accuracy}%</span>
+                    )}
                   </div>
                 )}
 
@@ -2169,7 +2172,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                         <h4 className="text-sm font-semibold text-cyan-200">Placement Recommendation</h4>
                         <p className="text-lg font-bold text-white">{reportData.placement_recommendation.label}</p>
                       </div>
-                      {reportData.placement_recommendation.interviewFlag && <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-200">Interview recommended</span>}
+                      {reportData.placement_recommendation.interviewFlag && reportData.placement_recommendation.label !== 'Interview recommended' && <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-200">Interview recommended</span>}
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                       {(() => {
@@ -2217,7 +2220,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                     <div className="space-y-1.5">
                       {(reportData.diagnostic_breakdown ?? []).map((t) => (
                         <div key={t.key} className="flex items-center gap-2">
-                          <span className="text-xs text-gray-400 w-48 truncate">{AdmService.admissionSubjectLabel(t.subject)} · {t.skill}{t.difficulty ? ` · ${t.difficulty}` : ''}</span>
+                          <span className="text-xs text-gray-400 w-48 truncate">{AdmService.admissionSubjectLabel(t.subject)} · {t.skill}</span>
+                          {t.difficulty && <span className="rounded-full border border-slate-600 bg-slate-800 px-2 py-0.5 text-[10px] text-gray-400 capitalize">Difficulty: {t.difficulty}</span>}
                           <div className="flex-1 h-3 rounded bg-slate-700 overflow-hidden"><div className={`h-full rounded transition-all ${t.percentage >= 70 ? 'bg-emerald-500' : t.percentage >= 50 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${t.percentage}%` }} /></div>
                           <span className="text-xs text-gray-300 w-16 text-right">{t.score}/{t.maxScore}</span>
                         </div>

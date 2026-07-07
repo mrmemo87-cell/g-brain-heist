@@ -53,3 +53,15 @@ test('live Grade 6 Science scored report fixture opens with 13 adm_answers rows'
   assert.match(service, /buildAdmissionReportFormLabel\(raw\.form_code[\s\S]*reportSubject\)/);
   assert.match(service, /admissionSubjectLabel\(a\.subject \?\? raw\.subject \?\? raw\.form_subject/);
 });
+
+test('Admission Hub report consistency polish covers readiness denominator partial copy recommendation and difficulty display', () => {
+  assert.match(service, /const placementRecommendation = calculatePlacementRecommendation\(candidateProfile, diagnosticAnswers, attemptPercentage\)/);
+  assert.match(service, /answeredQuestionAccuracy/);
+  assert.match(service, /answered_count: answeredCount/);
+  assert.match(service, /partial_attempt: answeredCount < totalQuestions/);
+  assert.match(hub, /Answered-question accuracy:/);
+  assert.match(hub, /Answered \{reportData\.answered_count\} of \{reportData\.total_questions\} questions/);
+  assert.match(hub, /reportData\.placement_recommendation\.label !== 'Interview recommended'/);
+  assert.match(hub, /Difficulty: \{t\.difficulty\}/);
+  assert.doesNotMatch(hub, /\{AdmService\.admissionSubjectLabel\(t\.subject\)\} · \{t\.skill\}\{t\.difficulty \? ` · \$\{t\.difficulty\}` : ''\}/);
+});
