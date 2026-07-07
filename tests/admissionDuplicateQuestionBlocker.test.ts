@@ -52,3 +52,26 @@ test('duplicate inspection SQL reports current form and official bank duplicate 
   assert.match(inspection, /form_code/);
   assert.match(inspection, /external_ids/);
 });
+
+test('duplicate blocker SQL uses the deployed admission schema columns', () => {
+  const blockerSql = `${migration}\n${inspection}`;
+  for (const badReference of [
+    ['q', 'prompt'].join('.'),
+    ['q', 'subject'].join('.'),
+    ['adm_questions', 'prompt'].join('.'),
+    ['adm_questions', 'subject'].join('.'),
+  ]) {
+    assert.equal(blockerSql.includes(badReference), false, `${badReference} should not appear in duplicate blocker SQL`);
+  }
+
+  for (const requiredReference of [
+    ['q', 'stem'].join('.'),
+    ['qp', 'subject'].join('.'),
+    ['b', 'subject'].join('.'),
+    ['q', 'grade_level'].join('.'),
+    ['qp', 'grade_level'].join('.'),
+    ['b', 'target_grade'].join('.'),
+  ]) {
+    assert.equal(blockerSql.includes(requiredReference), true, `${requiredReference} should appear in duplicate blocker SQL`);
+  }
+});
