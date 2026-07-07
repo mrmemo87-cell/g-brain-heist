@@ -1,4 +1,4 @@
--- Fix Admission candidate report answer join and make answer metadata non-blocking.
+-- Fix Admission candidate report content_version source and keep answer metadata non-blocking.
 
 CREATE OR REPLACE FUNCTION public.rpc_adm_get_candidate_report(p_attempt_id uuid)
 RETURNS jsonb
