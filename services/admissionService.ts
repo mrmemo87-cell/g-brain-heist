@@ -216,6 +216,11 @@ export interface CandidateReportAnswer {
 export interface CandidateReport {
   candidate_name: string;
   form_code: string;
+  formCode?: string;
+  formSubject?: string | null;
+  subject?: string | null;
+  formTitle?: string;
+  grade?: number | null;
   form_label?: string;
   total_score: number;
   max_score: number;
@@ -547,7 +552,41 @@ export async function fetchAttempts(schoolId: string): Promise<AdmAttempt[]> {
   return data ?? [];
 }
 
-export async function getCandidateReport(attemptId: string): Promise<CandidateReport | null> {
+export interface CandidateReportContext {
+  form_code?: string | null;
+  form_subject?: string | null;
+  form_title?: string | null;
+  grade?: number | null;
+  content_version?: string | null;
+  candidate?: { applied_grade?: number | null; name?: string | null } | null;
+  attempt?: Partial<AdmAttempt> | null;
+}
+
+const firstDefined = (...values: any[]) => values.find(v => v !== undefined && v !== null && v !== '');
+
+const normalizeReportPayload = (raw: any, context: CandidateReportContext = {}) => {
+  const form = raw.form ?? raw.test_form ?? raw.adm_test_forms ?? {};
+  const blueprint = raw.blueprint ?? raw.adm_blueprints ?? form.blueprint ?? {};
+  const candidate = raw.candidate ?? raw.candidate_profile ?? context.candidate ?? {};
+  const attempt = raw.attempt ?? context.attempt ?? {};
+  const formCode = firstDefined(raw.form_code, raw.formCode, form.form_code, form.formCode, context.form_code);
+  const contentVersion = firstDefined(raw.content_version, raw.contentVersion, blueprint.content_version, form.content_version, context.content_version);
+  const formSubject = deriveAdmissionSubject(firstDefined(raw.form_subject, raw.formSubject, raw.subject, form.subject, blueprint.subject, context.form_subject), formCode, contentVersion);
+  const grade = Number(firstDefined(raw.grade, raw.form_grade, raw.formGrade, candidate.applied_grade, context.grade, String(formCode || '').match(/(?:ENG|MAT|SCI|G|GRADE)(\d{1,2})/i)?.[1]) || '') || null;
+  const formTitle = firstDefined(raw.form_title, raw.formTitle, form.form_title, form.form_label, blueprint.name, context.form_title) || buildAdmissionReportFormLabel(formCode, grade, formSubject);
+  const normalizedAttempt = {
+    ...attempt,
+    status: firstDefined(attempt.status, raw.status),
+    total_score: firstDefined(attempt.total_score, attempt.totalScore, raw.total_score, raw.totalScore),
+    max_score: firstDefined(attempt.max_score, attempt.maxScore, raw.max_score, raw.maxScore),
+    percentage: firstDefined(attempt.percentage, raw.percentage),
+    started_at: firstDefined(attempt.started_at, attempt.startedAt, raw.started_at, raw.startedAt),
+    submitted_at: firstDefined(attempt.submitted_at, attempt.submittedAt, raw.submitted_at, raw.submittedAt),
+  };
+  return { ...raw, candidate, attempt: normalizedAttempt, form_code: formCode ?? null, formCode: formCode ?? null, form_subject: formSubject, formSubject, subject: formSubject, grade, form_title: formTitle, formTitle, content_version: contentVersion ?? null };
+};
+
+export async function getCandidateReport(attemptId: string, context: CandidateReportContext = {}): Promise<CandidateReport | null> {
   const { data, error } = await supabase.rpc('rpc_adm_get_candidate_report', {
     p_attempt_id: attemptId,
   });
@@ -556,7 +595,14 @@ export async function getCandidateReport(attemptId: string): Promise<CandidateRe
   if (!data.success) throw new Error(data.error || 'Report data unavailable');
 
   // Transform RPC shape → CandidateReport shape
-  const raw = data as any;
+  const raw = normalizeReportPayload(data as any, context);
+  if (import.meta.env?.DEV && (!raw.form_code || raw.subject === 'unknown')) {
+    console.warn('Admission report metadata missing or ambiguous', {
+      attempt_id: attemptId,
+      keys: Object.keys(data as any),
+      derived: { formCode: raw.form_code, formSubject: raw.form_subject, subject: raw.subject, title: raw.form_title },
+    });
+  }
   const answers = (raw.answers ?? []).map((a: any) => ({
       question_id: a.question_id,
       question_type: a.question_type,
@@ -595,7 +641,12 @@ export async function getCandidateReport(attemptId: string): Promise<CandidateRe
   return {
     candidate_name: raw.candidate?.name ?? 'Unknown',
     form_code: raw.form_code ?? '',
-    form_label: raw.form_title ?? buildAdmissionReportFormLabel(raw.form_code ?? '', raw.candidate?.applied_grade ?? raw.grade ?? null, reportSubject),
+    formCode: raw.form_code ?? '',
+    formSubject: raw.form_subject ?? null,
+    subject: reportSubject,
+    formTitle: raw.form_title ?? buildAdmissionReportFormLabel(raw.form_code ?? '', raw.grade ?? raw.candidate?.applied_grade ?? null, reportSubject),
+    grade: raw.grade ?? raw.candidate?.applied_grade ?? null,
+    form_label: raw.form_title ?? buildAdmissionReportFormLabel(raw.form_code ?? '', raw.grade ?? raw.candidate?.applied_grade ?? null, reportSubject),
     total_score: raw.attempt?.total_score ?? 0,
     max_score: raw.attempt?.max_score ?? 0,
     percentage: raw.attempt?.percentage ?? 0,
