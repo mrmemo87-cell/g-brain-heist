@@ -182,3 +182,35 @@ test('official admission bank validator catches unsafe and incomplete seed recor
     assert.match(output, new RegExp(expected.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
 });
+
+
+test('official admission bank validator rejects string smallint seed fields', () => {
+  const root = makeInvalidSeedDir();
+  writeJson(path.join(root, 'maths', 'grade_5.json'), {
+    content_version: 'test',
+    source_label: 'Brain Heist Official Admission Bank — Test',
+    pools: [
+      {
+        external_id: 'string-stage-pool',
+        subject: 'maths',
+        grade_level: 5,
+        stage_level: 'secondary',
+        placement_band: 'foundation',
+        name: 'String stage pool',
+        content_version: 'test',
+        source_label: 'Brain Heist Official Admission Bank — Test',
+        is_official: true,
+        is_locked: true,
+        content_owner: 'brain_heist',
+      },
+    ],
+    questions: [],
+  });
+
+  const result = runValidator(root);
+  const output = `${result.stdout}
+${result.stderr}`;
+  assert.notEqual(result.status, 0);
+  assert.match(output, /stage_level > 0 for DB smallint compatibility/);
+  assert.match(output, /received \"secondary\"/);
+});

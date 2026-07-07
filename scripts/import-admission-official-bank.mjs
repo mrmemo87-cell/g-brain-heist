@@ -91,7 +91,17 @@ export function mapSeedSubjectToDb(seedSubject) {
 
 export function mapSeedStageLevelToDb(stageLevel, gradeLevel) {
   if (stageLevel === 'primary') return gradeLevel;
+  if (!Number.isInteger(stageLevel) || stageLevel <= 0) {
+    throw new Error(`stage_level must be a positive integer before DB import; received ${JSON.stringify(stageLevel)} for grade ${JSON.stringify(gradeLevel)}`);
+  }
   return stageLevel;
+}
+
+function requirePositiveInteger(value, field, externalId) {
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error(`${externalId} has invalid ${field}; expected a positive integer for DB smallint compatibility, received ${JSON.stringify(value)}`);
+  }
+  return value;
 }
 
 function mapSkillTag(subject, strand) {
@@ -149,9 +159,9 @@ export function buildPoolRow(pool) {
     external_id: pool.external_id,
     school_id: null,
     subject: mapSeedSubjectToDb(pool.subject),
-    stage: mapSeedStageLevelToDb(pool.stage_level, pool.grade_level),
-    stage_level: mapSeedStageLevelToDb(pool.stage_level, pool.grade_level),
-    grade_level: pool.grade_level,
+    stage: requirePositiveInteger(mapSeedStageLevelToDb(pool.stage_level, pool.grade_level), 'stage', pool.external_id),
+    stage_level: requirePositiveInteger(mapSeedStageLevelToDb(pool.stage_level, pool.grade_level), 'stage_level', pool.external_id),
+    grade_level: requirePositiveInteger(pool.grade_level, 'grade_level', pool.external_id),
     name: pool.name,
     description: pool.description ?? null,
     is_active: true,
@@ -188,8 +198,8 @@ export function buildQuestionRow(question, poolId, passages, rubrics) {
     diagnostic_skill: question.diagnostic_skill,
     strand: question.strand,
     subskill: question.subskill,
-    grade_level: question.grade_level,
-    stage_level: mapSeedStageLevelToDb(question.stage_level, question.grade_level),
+    grade_level: requirePositiveInteger(question.grade_level, 'grade_level', question.external_id),
+    stage_level: requirePositiveInteger(mapSeedStageLevelToDb(question.stage_level, question.grade_level), 'stage_level', question.external_id),
     placement_band: question.placement_band,
     estimated_seconds: question.estimated_seconds,
     explanation: question.explanation,
