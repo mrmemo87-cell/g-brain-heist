@@ -114,6 +114,16 @@ function validatePositiveNumber(errors, filePath, location, record, field) {
   }
 }
 
+function validatePositiveInteger(errors, filePath, location, record, field) {
+  if (!Number.isInteger(record[field]) || record[field] <= 0) {
+    errors.push(`${filePath}: ${location} must have numeric integer ${field} > 0 for DB smallint compatibility; received ${JSON.stringify(record[field])}`);
+  }
+}
+
+function validateSmallintFields(errors, filePath, location, record, fields) {
+  for (const field of fields) validatePositiveInteger(errors, filePath, location, record, field);
+}
+
 function addExternalId(errors, duplicateMap, filePath, location, record) {
   if (!record.external_id) return;
   const existing = duplicateMap.get(record.external_id);
@@ -166,6 +176,7 @@ function validateSharedPassages(seedDir, errors, duplicateMap) {
     addExternalId(errors, duplicateMap, filePath, location, passage);
     validateOfficialFlags(errors, filePath, location, passage);
     validateSubject(errors, filePath, location, passage.subject);
+    validateSmallintFields(errors, filePath, location, passage, ['grade_level', 'stage_level']);
     if (passage.external_id) passageIds.add(passage.external_id);
   });
 
@@ -201,6 +212,7 @@ function validateSharedRubrics(seedDir, errors, duplicateMap) {
     ]);
     addExternalId(errors, duplicateMap, filePath, location, rubric);
     validateOfficialFlags(errors, filePath, location, rubric);
+    validateSmallintFields(errors, filePath, location, rubric, ['grade_level', 'stage_level']);
     validatePositiveNumber(errors, filePath, location, rubric, 'max_marks');
     if (!Array.isArray(rubric.criteria) || rubric.criteria.length === 0) {
       errors.push(`${filePath}: ${location} must include at least one rubric criterion`);
@@ -241,6 +253,8 @@ function validatePool(errors, duplicateMap, filePath, location, pool, poolIds) {
   validateOfficialFlags(errors, filePath, location, pool);
   validateSubject(errors, filePath, location, pool.subject);
   validatePlacementBand(errors, filePath, location, pool.placement_band);
+  validateSmallintFields(errors, filePath, location, pool, ['grade_level', 'stage_level']);
+  if (pool.stage !== undefined) validateSmallintFields(errors, filePath, location, pool, ['stage']);
   if (pool.external_id) poolIds.add(pool.external_id);
 }
 
@@ -288,6 +302,7 @@ function validateQuestion(errors, duplicateMap, filePath, location, question, po
   validateOfficialFlags(errors, filePath, location, question);
   validateSubject(errors, filePath, location, question.subject);
   validatePlacementBand(errors, filePath, location, question.placement_band);
+  validateSmallintFields(errors, filePath, location, question, ['grade_level', 'stage_level']);
 
   if (!VALID_DIFFICULTIES.has(question.difficulty)) {
     errors.push(`${filePath}: ${location} has invalid difficulty '${question.difficulty}'`);

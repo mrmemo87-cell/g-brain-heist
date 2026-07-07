@@ -107,3 +107,16 @@ test('Grade 7 official bank v1 uses managed metadata and unique non-template ide
     scopes.set(scope, question.external_id);
   }
 });
+
+
+test('Grade 7 official bank v1 uses numeric smallint stage fields', () => {
+  const allRecords = [...english.pools, ...english.questions, ...maths.pools, ...maths.questions, ...science.pools, ...science.questions, ...g7Passages, ...g7Rubrics];
+  for (const record of allRecords) {
+    assert.equal(record.grade_level, 7);
+    assert.equal(record.stage_level, 7);
+    assert.equal(typeof record.grade_level, 'number');
+    assert.equal(typeof record.stage_level, 'number');
+    assert.notEqual(record.stage_level, 'secondary');
+    if ('stage' in record) assert.equal(typeof record.stage, 'number');
+  }
+});

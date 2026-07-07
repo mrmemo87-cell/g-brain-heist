@@ -2,10 +2,10 @@
   "rubrics": [
     {
       "external_id": "adm-g5-eng-v1-writing-rubric-15pt",
-      "name": "Grade 5 English Admission Writing Rubric \u2014 15 marks",
+      "name": "Grade 5 English Admission Writing Rubric — 15 marks",
       "subject": "english",
       "grade_level": 5,
-      "stage_level": "primary",
+      "stage_level": 5,
       "max_marks": 15,
       "criteria": [
         {
@@ -41,10 +41,10 @@
     },
     {
       "external_id": "adm-g6-eng-v1-writing-rubric-15pt",
-      "name": "Grade 6 English Admission Writing Rubric \u2014 15 marks",
+      "name": "Grade 6 English Admission Writing Rubric — 15 marks",
       "subject": "english",
       "grade_level": 6,
-      "stage_level": "primary",
+      "stage_level": 6,
       "max_marks": 15,
       "criteria": [
         {
@@ -80,10 +80,10 @@
     },
     {
       "external_id": "adm-g7-eng-v1-writing-rubric-15pt",
-      "name": "Grade 7 English Admission Writing Rubric \u2014 15 marks",
+      "name": "Grade 7 English Admission Writing Rubric — 15 marks",
       "subject": "english",
       "grade_level": 7,
-      "stage_level": "secondary",
+      "stage_level": 7,
       "max_marks": 15,
       "criteria": [
         {

@@ -119,14 +119,41 @@ test('official admission bank import dry-run summarizes without Supabase mutatio
   assert.doesNotMatch(output, /upserted/);
 });
 
-test('official admission bank import maps seed subject and primary stage to database-compatible values', () => {
+test('official admission bank import maps seed subject and numeric stage to database-compatible values', () => {
   const result = spawnSync(process.execPath, [
     '--input-type=module',
     '-e',
-    "import { mapSeedSubjectToDb, mapSeedStageLevelToDb } from './scripts/import-admission-official-bank.mjs'; console.log(mapSeedSubjectToDb('maths')); console.log(mapSeedSubjectToDb('science')); console.log(mapSeedStageLevelToDb('primary', 5));",
+    "import { mapSeedSubjectToDb, mapSeedStageLevelToDb } from './scripts/import-admission-official-bank.mjs'; console.log(mapSeedSubjectToDb('maths')); console.log(mapSeedSubjectToDb('science')); console.log(mapSeedStageLevelToDb(7, 7));",
   ], { cwd: process.cwd(), encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
-  assert.deepEqual(result.stdout.trim().split('\n'), ['math', 'science', '5']);
+  assert.deepEqual(result.stdout.trim().split('\n'), ['math', 'science', '7']);
+});
+
+
+test('official admission bank pool rows never send secondary into smallint stage fields', async () => {
+  const moduleUrl = pathToFileURL(path.resolve('scripts/import-admission-official-bank.mjs')).href;
+  const { buildPoolRow } = await import(moduleUrl) as {
+    buildPoolRow: (pool: Record<string, unknown>) => Record<string, unknown>;
+  };
+
+  const row = buildPoolRow({
+    external_id: 'adm-g7-eng-v1-foundation-pool',
+    subject: 'english',
+    grade_level: 7,
+    stage_level: 7,
+    placement_band: 'foundation',
+    name: 'Grade 7 English Foundation',
+    content_version: 'adm-bank-v1-g7-english',
+    source_label: 'Brain Heist Official Admission Bank — Grade 7 English',
+    is_official: true,
+    is_locked: true,
+    content_owner: 'brain_heist',
+  });
+
+  assert.equal(row['stage'], 7);
+  assert.equal(row['stage_level'], 7);
+  assert.equal(row['grade_level'], 7);
+  assert.notEqual(row['stage'], 'secondary');
 });
 
 test('official admission bank question row maps editable fields for upsert refreshes', async () => {
@@ -138,7 +165,7 @@ test('official admission bank question row maps editable fields for upsert refre
     external_id: 'question-update-check',
     subject: 'science',
     grade_level: 6,
-    stage_level: 'primary',
+    stage_level: 6,
     question_type: 'mcq',
     prompt: 'Updated stem text',
     passage: 'Updated passage text',
