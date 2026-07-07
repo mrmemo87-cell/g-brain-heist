@@ -101,7 +101,14 @@ BEGIN
             INSERT INTO adm_selected_questions_tmp(question_id, normalized_stem)
             SELECT q.id, adm_normalize_question_stem(q.stem)
             FROM adm_questions q
+            JOIN adm_question_pools qp ON qp.id = q.pool_id
             WHERE q.pool_id = ANY(v_pool_ids) AND q.question_type = v_dist_key AND q.difficulty = v_diff_key AND q.status = 'published'
+              AND (q.is_official = true OR qp.is_official = true)
+              AND COALESCE(q.content_owner, qp.content_owner) = 'brain_heist'
+              AND q.external_id IS NOT NULL
+              AND COALESCE(q.content_version, qp.content_version) IS NOT NULL
+              AND COALESCE(q.content_version, qp.content_version) <> 'legacy-import'
+              AND COALESCE(q.content_version, qp.content_version) LIKE 'adm-bank-v1-g%'
               AND NOT EXISTS (SELECT 1 FROM adm_selected_questions_tmp s WHERE s.question_id = q.id OR s.normalized_stem = adm_normalize_question_stem(q.stem))
             ORDER BY RANDOM()
             LIMIT v_diff_count;
