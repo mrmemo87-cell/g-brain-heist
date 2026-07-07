@@ -74,7 +74,8 @@ test('current official bank duplicate branch ignores legacy import and unmanaged
   assert.match(scope, /coalesce\(q\.content_version, qp\.content_version\) <> 'legacy-import'/);
   assert.match(scope, /LIKE 'adm-bank-v1-g5-%'/);
   assert.match(scope, /LIKE 'adm-bank-v1-g6-%'/);
-  assert.doesNotMatch(scope, /adm-bank-v1-g7-%|adm-bank-v1-g8-%/);
+  assert.match(scope, /LIKE 'adm-bank-v1-g7-%'/);
+  assert.doesNotMatch(scope, /adm-bank-v1-g8-%/);
 });
 
 test('legacy cleanup inspection reports references and archive safety without deleting rows', () => {

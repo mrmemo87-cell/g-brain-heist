@@ -41,7 +41,7 @@ const isCurrentManagedAdmissionQuestion = (formQuestion: FormQuestionLike): bool
   return !!q?.external_id
     && owner === 'brain_heist'
     && version !== 'legacy-import'
-    && (String(version || '').startsWith('adm-bank-v1-g5-') || String(version || '').startsWith('adm-bank-v1-g6-'));
+    && (String(version || '').startsWith('adm-bank-v1-g5-') || String(version || '').startsWith('adm-bank-v1-g6-') || String(version || '').startsWith('adm-bank-v1-g7-'));
 };
 
 export function isCurrentManagedAdmissionForm(form: AdmissionFormLike): boolean {

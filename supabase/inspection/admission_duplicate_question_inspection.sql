@@ -1,8 +1,24 @@
 -- Admission duplicate-question inspection.
 -- Separates current managed official-bank content from legacy/unmanaged rows.
 -- Current managed official bank is Brain Heist content with a non-null external_id and
--- adm-bank-v1-g5/admission-bank-v1-g6 content versions only. Grade 7/8 legacy-import rows
+-- adm-bank-v1-g5/g6/g7 content versions only. Grade 8 legacy-import rows
 -- are intentionally reported separately and are not eligible for current official checks.
+
+-- Post-import Grade 7 verification helpers (run after seed import):
+--   SELECT grade_level, subject, content_version, COUNT(*) FROM adm_question_pools
+--     WHERE content_owner = 'brain_heist' AND content_version LIKE 'adm-bank-v1-g7-%'
+--     GROUP BY grade_level, subject, content_version ORDER BY subject;
+--   SELECT coalesce(q.grade_level, qp.grade_level) AS grade, qp.subject, coalesce(q.content_version, qp.content_version) AS content_version,
+--          COUNT(*) AS question_count, COUNT(*) FILTER (WHERE q.external_id IS NULL) AS missing_external_id_count,
+--          COUNT(*) FILTER (WHERE coalesce(q.content_version, qp.content_version) = 'legacy-import') AS legacy_import_count
+--     FROM adm_questions q JOIN adm_question_pools qp ON qp.id = q.pool_id
+--     WHERE coalesce(q.content_owner, qp.content_owner) = 'brain_heist'
+--       AND coalesce(q.content_version, qp.content_version) LIKE 'adm-bank-v1-g7-%'
+--     GROUP BY coalesce(q.grade_level, qp.grade_level), qp.subject, coalesce(q.content_version, qp.content_version)
+--     ORDER BY qp.subject;
+-- Expected for generated Grade 7 package forms from the main query below:
+--   duplicate_question_id_per_form = 0 rows, generated_form_duplicate_normalized_stem = 0 rows,
+--   current_official_bank_duplicate_normalized_stem = 0 rows for Grade 7, and legacy_or_unmanaged_question_count = 0.
 
 WITH form_questions AS (
   SELECT
@@ -62,7 +78,7 @@ WITH form_questions AS (
     AND q.external_id IS NOT NULL
     AND coalesce(q.content_version, qp.content_version) IS NOT NULL
     AND coalesce(q.content_version, qp.content_version) <> 'legacy-import'
-    AND (coalesce(q.content_version, qp.content_version) LIKE 'adm-bank-v1-g5-%' OR coalesce(q.content_version, qp.content_version) LIKE 'adm-bank-v1-g6-%')
+    AND (coalesce(q.content_version, qp.content_version) LIKE 'adm-bank-v1-g5-%' OR coalesce(q.content_version, qp.content_version) LIKE 'adm-bank-v1-g6-%' OR coalesce(q.content_version, qp.content_version) LIKE 'adm-bank-v1-g7-%')
 ), current_official_bank_stem_duplicates AS (
   SELECT form_code, grade, subject, form_id, normalized_stem AS duplicate_key, COUNT(*) AS duplicate_count,
          0::bigint AS legacy_or_unmanaged_question_count,
@@ -83,7 +99,7 @@ WITH form_questions AS (
   FROM adm_questions q LEFT JOIN adm_question_pools qp ON qp.id = q.pool_id
   WHERE (q.is_official = true OR qp.is_official = true)
     AND coalesce(q.content_owner, qp.content_owner) = 'brain_heist'
-    AND (coalesce(q.content_version, qp.content_version) = 'legacy-import' OR q.external_id IS NULL OR NOT (coalesce(q.content_version, qp.content_version) LIKE 'adm-bank-v1-g5-%' OR coalesce(q.content_version, qp.content_version) LIKE 'adm-bank-v1-g6-%'))
+    AND (coalesce(q.content_version, qp.content_version) = 'legacy-import' OR q.external_id IS NULL OR NOT (coalesce(q.content_version, qp.content_version) LIKE 'adm-bank-v1-g5-%' OR coalesce(q.content_version, qp.content_version) LIKE 'adm-bank-v1-g6-%' OR coalesce(q.content_version, qp.content_version) LIKE 'adm-bank-v1-g7-%'))
   GROUP BY coalesce(q.grade_level, qp.grade_level), coalesce(qp.subject, 'unknown'), coalesce(q.content_version, qp.content_version, 'missing-content-version')
 )
 SELECT 'duplicate_question_id_per_form' AS check_type, * FROM form_question_id_duplicates
