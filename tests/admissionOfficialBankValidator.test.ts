@@ -269,3 +269,22 @@ test('official admission bank validator reports Grade 7 English longest-answer b
   assert.notEqual(result.status, 0);
   assert.match(output, /grade 7 english official bank has correct option as uniquely longest/);
 });
+
+test('official admission bank validator hard-fails visible placeholder box glyphs', () => {
+  const root = mkdtempSync(path.join(tmpdir(), 'adm-official-bank-glyph-'));
+  for (const dir of ['english', 'maths', 'science', 'shared']) mkdirSync(path.join(root, dir), { recursive: true });
+  const seedRoot = path.join(process.cwd(), 'supabase', 'seed', 'admission-official-bank');
+  copyFileSync(path.join(seedRoot, 'shared', 'reading_passages.json'), path.join(root, 'shared', 'reading_passages.json'));
+  copyFileSync(path.join(seedRoot, 'shared', 'writing_rubrics.json'), path.join(root, 'shared', 'writing_rubrics.json'));
+  for (const subject of ['english', 'maths', 'science']) {
+    for (const grade of [5, 6, 7, 8]) {
+      const source = JSON.parse(readFileSync(path.join(seedRoot, subject, `grade_${grade}.json`), 'utf8'));
+      if (subject === 'maths' && grade === 6) source.questions[0].prompt = 'What is the missing number? 640 ÷ □ = 8';
+      writeJson(path.join(root, subject, `grade_${grade}.json`), source);
+    }
+  }
+  const result = runValidator(root);
+  const output = `${result.stdout}\n${result.stderr}`;
+  assert.notEqual(result.status, 0);
+  assert.match(output, /forbidden visible box\/replacement placeholder glyph/);
+});

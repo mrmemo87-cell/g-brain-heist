@@ -118,3 +118,15 @@ test('generated form option-quality inspection uses deployed Admission question 
     assert.match(generatedFormOptionQualityInspectionSql, /\bqp\.subject\b/);
   }
 });
+
+const distinctStemGenerateSql = readFileSync('supabase/migrations/20260708143000_admission_generation_distinct_stem_debug.sql', 'utf8');
+
+test('generation dedupes stems before insert and returns debug reason on invalid availability', () => {
+  assert.match(distinctStemGenerateSql, /SELECT DISTINCT ON \(adm_normalize_question_stem\(q\.stem\)\)/);
+  assert.match(distinctStemGenerateSql, /Not enough unique questions after dedupe/);
+  assert.match(distinctStemGenerateSql, /q\.is_official = true AND q\.is_locked = true/);
+  assert.match(distinctStemGenerateSql, /qp\.is_official = true AND qp\.is_locked = true/);
+  assert.match(distinctStemGenerateSql, /q\.external_id IS NOT NULL AND qp\.external_id IS NOT NULL/);
+  assert.match(distinctStemGenerateSql, /content_version\) <> 'legacy-import'/);
+  assert.match(distinctStemGenerateSql, /Duplicate question_order conflict/);
+});

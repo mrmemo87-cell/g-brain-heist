@@ -48,6 +48,12 @@ const WEAK_DISTRACTOR_PATTERNS = [
   /\bthrowaway\b/i,
 ];
 
+const FORBIDDEN_VISIBLE_GLYPH_PATTERNS = [
+  { pattern: /[□▢�]/u, label: 'box/replacement placeholder glyph' },
+  { pattern: /[\uFFFD]/u, label: 'Unicode replacement character' },
+  { pattern: /[\u25A0-\u25A3\u25A8-\u25A9\u25AB-\u25AE]/u, label: 'placeholder-like square glyph' },
+];
+
 function median(values) {
   const sorted = values.filter((value) => Number.isFinite(value)).sort((a, b) => a - b);
   if (sorted.length === 0) return 0;
@@ -398,6 +404,10 @@ function validateAntiTemplateText(errors, filePath, location, value) {
     const matched = FORBIDDEN_TEMPLATE_PATTERNS.find((pattern) => pattern.test(value));
     if (matched) {
       errors.push(`${filePath}: ${location} contains template/generator residue matching ${matched}: ${value.slice(0, 120)}`);
+    }
+    const glyphMatch = FORBIDDEN_VISIBLE_GLYPH_PATTERNS.find(({ pattern }) => pattern.test(value));
+    if (glyphMatch) {
+      errors.push(`${filePath}: ${location} contains forbidden visible ${glyphMatch.label}; use plain text variables/blanks instead: ${value.slice(0, 120)}`);
     }
     return;
   }

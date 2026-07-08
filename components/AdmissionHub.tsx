@@ -186,12 +186,51 @@ const countDistributionQuestions = (questions: AdmQuestion[], distribution: Reco
   let required = 0;
   let availableForRequired = 0;
   const missing: string[] = [];
+  const selectedStemKeys = new Set<string>();
+  const normalizeStem = (value: string | null | undefined) => String(value ?? '')
+    .toLowerCase()
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/\b(?:question|item|investigation|scenario|problem)\s+\d+\b/g, ' ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const eligibleQuestions = questions.filter(q =>
+    q.status === 'published'
+    && q.is_official === true
+    && q.is_locked === true
+    && q.pool?.is_official === true
+    && q.pool?.is_locked === true
+    && q.external_id
+    && q.pool?.external_id
+    && (q.content_owner || q.pool?.content_owner) === 'brain_heist'
+    && (q.content_version || q.pool?.content_version)
+    && (q.content_version || q.pool?.content_version) !== 'legacy-import'
+    && String(q.content_version || q.pool?.content_version).startsWith('adm-bank-v1-g')
+  );
   Object.entries(distribution).forEach(([type, diffs]) => {
     Object.entries(diffs).forEach(([difficulty, needed]) => {
       required += needed;
-      const available = questions.filter(q => q.status === 'published' && q.question_type === type && q.difficulty === difficulty).length;
+      const uniqueCandidates = eligibleQuestions.filter(q => q.question_type === type && q.difficulty === difficulty);
+      const uniqueStemKeys = new Set<string>();
+      uniqueCandidates.forEach(q => {
+        const stemKey = normalizeStem(q.stem);
+        if (stemKey && !selectedStemKeys.has(stemKey)) uniqueStemKeys.add(stemKey);
+      });
+      const available = uniqueStemKeys.size;
       availableForRequired += Math.min(available, needed);
-      if (available < needed) missing.push(`${needed - available} more ${difficulty} ${type.replace(/_/g, ' ')} question${needed - available === 1 ? '' : 's'}`);
+      if (available < needed) {
+        missing.push(`${needed - available} more unique official ${difficulty} ${type.replace(/_/g, ' ')} question${needed - available === 1 ? '' : 's'}`);
+      } else {
+        let selected = 0;
+        for (const q of uniqueCandidates) {
+          const stemKey = normalizeStem(q.stem);
+          if (!stemKey || selectedStemKeys.has(stemKey)) continue;
+          selectedStemKeys.add(stemKey);
+          selected += 1;
+          if (selected >= needed) break;
+        }
+      }
     });
   });
   return { required, availableForRequired, canGenerate: missing.length === 0 && required > 0, missing };
@@ -639,7 +678,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       }
 
       const res = await AdmService.generateTestForm(blueprint.id);
-      if (!res.success || !res.form_id) throw new Error(res.error || 'Generation failed');
+      if (!res.success || !res.form_id) throw new Error([res.error || 'Generation failed', res.debug_reason ? `Admin debug: ${res.debug_reason}` : null].filter(Boolean).join(' — '));
       const publishRes = await AdmService.publishForm(res.form_id);
       if (!publishRes.success) throw new Error(publishRes.error || 'Publish failed');
       await loadAll();
@@ -649,7 +688,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       addToast('Admission test generated and ready to share', 'success');
     } catch (err: any) {
       console.warn('Admission wizard generation failed', err);
-      setWizardError(friendlyAdmissionError(err.message));
+      setWizardError(`${friendlyAdmissionError(err.message)}${err.message?.includes('Admin debug:') ? ` (${err.message.split('Admin debug:').pop()?.trim()})` : ''}`);
     } finally {
       setWizardGenerating(false);
     }
