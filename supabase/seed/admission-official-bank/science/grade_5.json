@@ -91,7 +91,7 @@
       "prompt": "What do green plants need for photosynthesis?",
       "options": [
         "rocks, oil, and darkness",
-        "salt, metal, and wind with a plausible but incorrect detail added.",
+        "salt, metal, and wind.",
         "light, water, and carbon dioxide",
         "sound, sand, and sugar"
       ],
@@ -213,7 +213,7 @@
         "adult plant → seed → flower → seedling",
         "seed → seedling → adult plant → flower and seeds",
         "flower → adult plant → seedling → seed",
-        "seedling → flower → seed → seedling with a tempting but incomplete explanation."
+        "seedling → flower → seed → seedling."
       ],
       "correct_answer": "seed → seedling → adult plant → flower and seeds",
       "correct_index": 1,
@@ -303,7 +303,7 @@
         "Foxes would become producers.",
         "Rabbits would need no food.",
         "There would be less food for rabbits.",
-        "Grass would eat the foxes with a tempting but incomplete explanation."
+        "Grass would eat the foxes."
       ],
       "correct_answer": "There would be less food for rabbits.",
       "correct_index": 2,
@@ -421,7 +421,7 @@
       "prompt": "In a pond, algae are eaten by small insects, and small insects are eaten by fish. Which statement is best supported?",
       "options": [
         "Fish depend on algae indirectly.",
-        "Algae eat the fish directly with a plausible but incorrect detail added.",
+        "Algae eat the fish directly.",
         "Small insects are producers.",
         "Fish make food from sunlight."
       ],
@@ -450,7 +450,7 @@
       "question_type": "mcq",
       "prompt": "A wetland is drained and becomes dry soil. Which change is most likely?",
       "options": [
-        "All organisms will be unaffected while mixing in an extra unsupported condition.",
+        "All organisms will be unaffected.",
         "Some water-loving organisms will leave or die.",
         "Fish will have more places to swim.",
         "Plants will no longer need roots."
@@ -483,7 +483,7 @@
         "stretchy",
         "transparent",
         "magnetic",
-        "rough with a tempting but incomplete explanation."
+        "rough."
       ],
       "correct_answer": "transparent",
       "correct_index": 1,
@@ -543,7 +543,7 @@
         "magnet",
         "thermometer",
         "filter paper",
-        "lamp with a tempting but incomplete explanation."
+        "lamp."
       ],
       "correct_answer": "filter paper",
       "correct_index": 2,
@@ -630,12 +630,12 @@
       "question_type": "mcq",
       "prompt": "Which change is reversible?",
       "options": [
-        "melting chocolate and cooling it again",
+        "melting chocolate and cooling it again under these conditions",
         "baking a cake while using the evidence in the wrong order.",
         "rusting iron while using the evidence in the wrong order.",
-        "burning paper with a plausible but incorrect detail added."
+        "burning paper under these conditions."
       ],
-      "correct_answer": "melting chocolate and cooling it again",
+      "correct_answer": "melting chocolate and cooling it again under these conditions",
       "correct_index": 0,
       "explanation": "Melted chocolate can become solid again when cooled.",
       "marks": 1,
@@ -780,7 +780,7 @@
       "question_type": "mcq",
       "prompt": "A mixture contains salt, sand, and water. Which process helps recover salt after filtering out sand?",
       "options": [
-        "using a magnet while mixing in an extra unsupported condition.",
+        "using a magnet.",
         "adding more sand",
         "evaporating the water",
         "freezing the sand"
@@ -811,7 +811,7 @@
       "prompt": "A material for a bike helmet should mainly be ___.",
       "options": [
         "transparent and thin",
-        "magnetic and heavy with a plausible but incorrect detail added.",
+        "magnetic and heavy.",
         "hard and able to absorb impact",
         "soft and easy to tear"
       ],
@@ -840,7 +840,7 @@
       "question_type": "mcq",
       "prompt": "Which action is a pull?",
       "options": [
-        "pushing a door shut while mixing in an extra unsupported condition.",
+        "pushing a door shut.",
         "kicking a ball away",
         "pressing a button down",
         "opening a drawer toward you"
@@ -1020,7 +1020,7 @@
       "question_type": "mcq",
       "prompt": "Why are bicycle brake pads useful?",
       "options": [
-        "They remove gravity while mixing in an extra unsupported condition.",
+        "They remove gravity under these conditions.",
         "They make the wheel transparent.",
         "They increase friction to slow the wheel.",
         "They reduce all contact."
@@ -1051,7 +1051,7 @@
       "prompt": "Why does a ball thrown upward come back down?",
       "options": [
         "The ball runs out of colour.",
-        "Friction pulls it upward with a plausible but incorrect detail added.",
+        "Friction pulls it upward.",
         "Gravity pulls it toward Earth.",
         "Air changes it into water."
       ],
@@ -1080,9 +1080,9 @@
       "question_type": "mcq",
       "prompt": "Two equal pushes act in opposite directions on a box. What happens if the forces are balanced?",
       "options": [
-        "The box becomes a magnet with a plausible but incorrect detail added.",
-        "The box must fly upward with a plausible but incorrect detail added.",
-        "The box doubles its mass while mixing in an extra unsupported condition.",
+        "The box becomes a magnet under these conditions.",
+        "The box must fly upward under these conditions.",
+        "The box doubles its mass under these conditions.",
         "The box does not speed up in either direction."
       ],
       "correct_answer": "The box does not speed up in either direction.",
@@ -1173,7 +1173,7 @@
         "removes the box’s weight completely",
         "spreads the lifting over a longer distance",
         "turns the box into a liquid",
-        "stops all friction with a tempting but incomplete explanation."
+        "stops all friction under these conditions."
       ],
       "correct_answer": "spreads the lifting over a longer distance",
       "correct_index": 1,
@@ -1290,10 +1290,10 @@
       "question_type": "mcq",
       "prompt": "What is needed for a simple bulb circuit to light?",
       "options": [
-        "a broken path while mixing in an extra unsupported condition.",
-        "a paper clip only",
+        "a broken path under these conditions.",
+        "a paper clip only under these conditions",
         "a complete path with a cell and bulb",
-        "only a loose wire"
+        "only a loose wire under these conditions"
       ],
       "correct_answer": "a complete path with a cell and bulb",
       "correct_index": 2,
@@ -1383,7 +1383,7 @@
         "light and heat",
         "sound only",
         "gravity",
-        "soil with a tempting but incomplete explanation."
+        "soil."
       ],
       "correct_answer": "light and heat",
       "correct_index": 0,
@@ -1410,7 +1410,7 @@
       "question_type": "mcq",
       "prompt": "Why can you see your face in a mirror?",
       "options": [
-        "The mirror creates sunlight while mixing in an extra unsupported condition.",
+        "The mirror creates sunlight.",
         "Light reflects from the mirror to your eyes.",
         "Sound bounces into your eyes.",
         "The mirror absorbs all light."
@@ -1443,7 +1443,7 @@
         "lower temperature",
         "higher-pitched sound",
         "quieter colour",
-        "larger shadow with a tempting but incomplete explanation."
+        "larger shadow."
       ],
       "correct_answer": "higher-pitched sound",
       "correct_index": 1,
@@ -1530,10 +1530,10 @@
       "question_type": "mcq",
       "prompt": "Two identical bulbs are in a simple series circuit. Adding a third identical bulb in series will usually make each bulb ___.",
       "options": [
-        "unchanged forever with a plausible but incorrect detail added.",
-        "produce no heat but more light with a tempting but incomplete explanation.",
+        "unchanged forever under these conditions.",
+        "produce no heat but more light.",
         "dimmer with a specific but incorrect qualifier.",
-        "brighter with a tempting but incomplete explanation."
+        "brighter under these conditions."
       ],
       "correct_answer": "dimmer with a specific but incorrect qualifier.",
       "correct_index": 2,
@@ -1591,7 +1591,7 @@
       "prompt": "Soil is made from pieces of rock and ___.",
       "options": [
         "decayed living material",
-        "only metal with a plausible but incorrect detail added.",
+        "only metal.",
         "pure water only",
         "only plastic"
       ],
@@ -1680,7 +1680,7 @@
       "question_type": "mcq",
       "prompt": "What happens during condensation in the water cycle?",
       "options": [
-        "ice becomes rock while mixing in an extra unsupported condition.",
+        "ice becomes rock under these conditions.",
         "water vapour cools and forms liquid droplets",
         "liquid water becomes water vapour",
         "rain disappears into sunlight"
@@ -1740,7 +1740,7 @@
       "question_type": "mcq",
       "prompt": "A rain gauge is used to measure ___.",
       "options": [
-        "wind direction while mixing in an extra unsupported condition.",
+        "wind direction.",
         "air temperature",
         "amount of rainfall",
         "length of shadows"
@@ -1831,7 +1831,7 @@
       "prompt": "The thing you measure in an investigation is the ___.",
       "options": [
         "result variable",
-        "title with a plausible but incorrect detail added.",
+        "title.",
         "guess only",
         "decoration"
       ],
@@ -1953,7 +1953,7 @@
         "The cup had a label.",
         "The solid ice became liquid water.",
         "The ice was in a story.",
-        "The table was blue with a tempting but incomplete explanation."
+        "The table was blue."
       ],
       "correct_answer": "The solid ice became liquid water.",
       "correct_index": 1,
@@ -1983,7 +1983,7 @@
         "Plants do not need light.",
         "Cupboards make plants stronger.",
         "Light helped the plant grow better.",
-        "Windows stop all growth with a tempting but incomplete explanation."
+        "Windows stop all growth."
       ],
       "correct_answer": "Light helped the plant grow better.",
       "correct_index": 2,
@@ -2011,7 +2011,7 @@
       "prompt": "To test which paper towel absorbs most water, what should stay the same?",
       "options": [
         "the colour of the table",
-        "the day of the week with a plausible but incorrect detail added.",
+        "the day of the week.",
         "the amount of water used",
         "the brand of towel only"
       ],
@@ -2071,7 +2071,7 @@
       "prompt": "Why should measurements be repeated in an investigation?",
       "options": [
         "to make results more reliable",
-        "to avoid writing units with a plausible but incorrect detail added.",
+        "to avoid writing units.",
         "to change every variable",
         "to make the question shorter"
       ],
@@ -2130,10 +2130,10 @@
       "question_type": "mcq",
       "prompt": "A student says, \"The red ball rolls fastest.\" Which evidence best supports this?",
       "options": [
-        "The red ball looks brightest while mixing in an extra unsupported condition.",
+        "The red ball looks brightest under these conditions.",
         "The red ball travelled 2 metres in the shortest time in three trials.",
-        "The red ball was measured once without timing.",
-        "The red ball is the student’s favourite."
+        "The red ball was measured once without timing under these conditions.",
+        "The red ball is the student’s favourite under these conditions."
       ],
       "correct_answer": "The red ball travelled 2 metres in the shortest time in three trials.",
       "correct_index": 1,

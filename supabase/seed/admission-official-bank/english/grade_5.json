@@ -69,9 +69,9 @@
       "content_owner": "brain_heist",
       "options": [
         "Lina uses a map and a friendly meeting place to feel more comfortable at a new school.",
-        "Lina loses her brother’s map and cannot find her classroom.",
-        "Sam teaches Lina how to draw a perfect map of the school.",
-        "The school fountain breaks during Lina’s first day with a tempting but incomplete explanation."
+        "Lina loses her brother’s map and cannot find her classroom in the sentence.",
+        "Sam teaches Lina how to draw a perfect map of the school in the sentence.",
+        "The school fountain breaks during Lina’s first day in the sentence. in the sentence context"
       ],
       "correct_answer": "Lina uses a map and a friendly meeting place to feel more comfortable at a new school.",
       "correct_index": 0,
@@ -99,10 +99,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A list of homework tasks and the lunch menu",
+        "A list of homework tasks and the lunch menu in the sentence",
         "A circle around her classroom and a small leaf beside the fountain",
-        "A drawing of every student in her class",
-        "A warning about the busy corridors with a tempting but incomplete explanation."
+        "A drawing of every student in her class in the sentence",
+        "A warning about the busy corridors in the sentence."
       ],
       "correct_answer": "A circle around her classroom and a small leaf beside the fountain",
       "correct_index": 1,
@@ -133,7 +133,7 @@
         "Her brother comes to guide her through the school.",
         "She has found familiar places and made a friendly connection.",
         "She has memorised every corridor in the building.",
-        "The school becomes smaller during the day with a tempting but incomplete explanation."
+        "The school becomes smaller during the day in the sentence."
       ],
       "correct_answer": "She has found familiar places and made a friendly connection.",
       "correct_index": 1,
@@ -161,12 +161,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "They are much heavier than ordinary doors.",
-        "They seem to lead to places Lina needs to understand.",
+        "They are much heavier than ordinary doors in the sentence. in the sentence context",
+        "They seem to lead to places Lina needs to understand in the sentence.",
         "They are painted in bright colours while using the evidence in the wrong order.",
-        "They are locked and cannot be opened."
+        "They are locked and cannot be opened in the sentence. in the sentence context"
       ],
-      "correct_answer": "They seem to lead to places Lina needs to understand.",
+      "correct_answer": "They seem to lead to places Lina needs to understand in the sentence.",
       "correct_index": 1,
       "passage_external_id": "adm-g5-eng-v1-passage-maple-gate"
     },
@@ -193,7 +193,7 @@
       "content_owner": "brain_heist",
       "options": [
         "To explain where the lunch hall is located",
-        "To show that Lina dislikes using maps with a plausible but incorrect detail added.",
+        "To show that Lina dislikes using maps.",
         "To show a place that helps Lina feel less lost",
         "To mark a place that students must avoid"
       ],
@@ -254,12 +254,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Students need an outdoor field to learn about plants.",
-        "A window garden is the fastest way to grow a large harvest.",
+        "Students need an outdoor field to learn about plants in the sentence. in the sentence context",
+        "A window garden is the fastest way to grow a large harvest in the sentence. in the sentence context",
         "Plants should always be kept away from sunlight while using the evidence in the wrong order.",
-        "A window garden helps students observe plant growth in a small space."
+        "A window garden helps students observe plant growth in a small space in the sentence."
       ],
-      "correct_answer": "A window garden helps students observe plant growth in a small space.",
+      "correct_answer": "A window garden helps students observe plant growth in a small space in the sentence.",
       "correct_index": 3,
       "passage_external_id": "adm-g5-eng-v1-passage-window-garden"
     },
@@ -317,9 +317,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The plants might not grow as well because they receive too much water.",
-        "The plants would immediately produce a large harvest.",
+        "The plants would immediately produce a large harvest in the sentence.",
         "The seeds would turn into stones while using the evidence in the wrong order.",
-        "The tray would no longer need sunlight."
+        "The tray would no longer need sunlight in the sentence. in the sentence context"
       ],
       "correct_answer": "The plants might not grow as well because they receive too much water.",
       "correct_index": 0,
@@ -347,7 +347,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Guess without looking while mixing in an extra unsupported condition.",
+        "Guess without looking. in the sentence context",
         "Watch carefully and record what happens",
         "Move something to a new place",
         "Cover something completely"
@@ -378,12 +378,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "To persuade readers to stop eating vegetables",
-        "To explain how a small garden can be used for learning",
+        "To persuade readers to stop eating vegetables in the sentence in the sentence context",
+        "To explain how a small garden can be used for learning in the sentence",
         "To tell a funny story about a gardener while using the evidence in the wrong order.",
-        "To describe the history of school windows"
+        "To describe the history of school windows in the sentence in the sentence context"
       ],
-      "correct_answer": "To explain how a small garden can be used for learning",
+      "correct_answer": "To explain how a small garden can be used for learning in the sentence",
       "correct_index": 1,
       "passage_external_id": "adm-g5-eng-v1-passage-window-garden"
     },
@@ -409,10 +409,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It tells events in a mystery story while mixing in an extra unsupported condition.",
+        "It tells events in a mystery story in the sentence.",
         "It explains steps and then describes what students can learn.",
-        "It compares five different schools in order.",
-        "It lists problems without giving solutions."
+        "It compares five different schools in order. in the sentence context",
+        "It lists problems without giving solutions. in the sentence context"
       ],
       "correct_answer": "It explains steps and then describes what students can learn.",
       "correct_index": 1,
@@ -440,10 +440,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Coins are always lighter than paper while mixing in an extra unsupported condition.",
+        "Coins are always lighter than paper in the sentence.",
         "Books should not be used in science tests.",
         "Folding paper changes its shape and can make it stronger.",
-        "Wood and metal are weaker than paper."
+        "Wood and metal are weaker than paper in the sentence."
       ],
       "correct_answer": "Folding paper changes its shape and can make it stronger.",
       "correct_index": 2,
@@ -472,7 +472,7 @@
       "content_owner": "brain_heist",
       "options": [
         "It turned into a folded bridge by itself.",
-        "It broke the two books.",
+        "It broke the two books. in the sentence context",
         "It sagged almost immediately.",
         "It held all the coins easily."
       ],
@@ -502,7 +502,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "To decorate the classroom tables while mixing in an extra unsupported condition.",
+        "To decorate the classroom tables.",
         "To make the books easier to read",
         "To stop the coins from being counted",
         "To make the test fair for each bridge"
@@ -595,9 +595,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It introduces the characters and setting while mixing in an extra unsupported condition.",
+        "It introduces the characters and setting in the sentence.",
         "It explains what the test proved and gives real-world examples.",
-        "It lists all the materials needed in order.",
+        "It lists all the materials needed in order in the sentence.",
         "It argues that paper is always the best building material."
       ],
       "correct_answer": "It explains what the test proved and gives real-world examples.",
@@ -626,12 +626,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A music lesson inside a classroom",
-        "A school courtyard changing after rain",
+        "A music lesson inside a classroom in the sentence in the sentence context",
+        "A school courtyard changing after rain in the sentence in the sentence context",
         "A football match during a storm while using the evidence in the wrong order.",
-        "A group of students planting flowers"
+        "A group of students planting flowers in the sentence in the sentence context"
       ],
-      "correct_answer": "A school courtyard changing after rain",
+      "correct_answer": "A school courtyard changing after rain in the sentence in the sentence context",
       "correct_index": 1,
       "passage_external_id": "adm-g5-eng-v1-passage-rainy-courtyard"
     },
@@ -719,7 +719,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "They became cold and frozen while mixing in an extra unsupported condition.",
+        "They became cold and frozen.",
         "They disappeared completely.",
         "They reflected bright light from the sun.",
         "They were filled with metal coins."
@@ -750,9 +750,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "To explain how rain clouds form while mixing in an extra unsupported condition.",
+        "To explain how rain clouds form in the sentence.",
         "To give instructions for cleaning the courtyard",
-        "To compare two different schools",
+        "To compare two different schools in the sentence",
         "To help the reader imagine the quiet courtyard clearly"
       ],
       "correct_answer": "To help the reader imagine the quiet courtyard clearly",
@@ -782,9 +782,9 @@
       "content_owner": "brain_heist",
       "options": [
         "It moves from immediately after the rain to when the sun and students return.",
-        "It presents a problem and then a letter of complaint.",
-        "It compares indoor and outdoor sports equally.",
-        "It gives instructions in numbered steps with a tempting but incomplete explanation."
+        "It presents a problem and then a letter of complaint in the sentence.",
+        "It compares indoor and outdoor sports equally in the sentence.",
+        "It gives instructions in numbered steps in the sentence. in the sentence context"
       ],
       "correct_answer": "It moves from immediately after the rain to when the sun and students return.",
       "correct_index": 0,
@@ -815,7 +815,7 @@
         "Inviting students to join and help the school library team",
         "Announcing that the library will close every Wednesday",
         "Explaining why students must stop borrowing books",
-        "Listing every book in the school library with a tempting but incomplete explanation."
+        "Listing every book in the school library. in the sentence context"
       ],
       "correct_answer": "Inviting students to join and help the school library team",
       "correct_index": 0,
@@ -846,7 +846,7 @@
         "Every Monday before school",
         "Every Wednesday at lunchtime",
         "Only during the holidays",
-        "After dinner on Friday with a tempting but incomplete explanation."
+        "After dinner on Friday."
       ],
       "correct_answer": "Every Wednesday at lunchtime",
       "correct_index": 1,
@@ -874,10 +874,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A student who refuses to work with anyone while mixing in an extra unsupported condition.",
+        "A student who refuses to work with anyone. in the sentence context",
         "A student who listens, is careful, and likes helping quietly",
         "A student who wants to hide books from others",
-        "A student who only wants to play loud games"
+        "A student who only wants to play loud games in the sentence context"
       ],
       "correct_answer": "A student who listens, is careful, and likes helping quietly",
       "correct_index": 1,
@@ -905,12 +905,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Able to draw colourful pictures",
-        "Able to be trusted to do what is needed",
+        "Able to draw colourful pictures in the sentence in the sentence context",
+        "Able to be trusted to do what is needed in the sentence in the sentence context",
         "Very quick at running races while using the evidence in the wrong order.",
-        "Only interested in difficult books"
+        "Only interested in difficult books in the sentence in the sentence context"
       ],
-      "correct_answer": "Able to be trusted to do what is needed",
+      "correct_answer": "Able to be trusted to do what is needed in the sentence in the sentence context",
       "correct_index": 1,
       "passage_external_id": "adm-g5-eng-v1-passage-library-team"
     },
@@ -936,7 +936,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "To stop strong readers from joining the team while mixing in an extra unsupported condition.",
+        "To stop strong readers from joining the team.",
         "To explain that books are not important in the library",
         "To encourage different kinds of helpful students to join",
         "To warn students that the work is too difficult"
@@ -967,10 +967,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It compares two libraries in different countries with a plausible but incorrect detail added.",
-        "It begins with a conclusion and then gives a poem.",
+        "It compares two libraries in different countries in the sentence. in the sentence context",
+        "It begins with a conclusion and then gives a poem in the sentence. in the sentence context",
         "It explains the team’s tasks, gives joining instructions, then describes who may enjoy it.",
-        "It tells a story with a surprise ending with a tempting but incomplete explanation."
+        "It tells a story with a surprise ending in the sentence. in the sentence context"
       ],
       "correct_answer": "It explains the team’s tasks, gives joining instructions, then describes who may enjoy it.",
       "correct_index": 2,
@@ -1118,7 +1118,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "After the window while mixing in an extra unsupported condition.",
+        "After the window.",
         "The teacher opened the window.",
         "Because the teacher opened.",
         "The teacher and the window."
@@ -1348,7 +1348,7 @@
       "subskill": "subject-verb agreement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a sports report, choose the correct sentence. Focus on Each of the boxes is labelled clearly.",
+      "prompt": "choose the correct sentence..",
       "explanation": "Each is singular, so it takes is.",
       "marks": 1,
       "estimated_seconds": 60,
@@ -1449,7 +1449,7 @@
       "content_owner": "brain_heist",
       "options": [
         "The coach spoke to I and Amina after practice.",
-        "The coach spoke to me and she after practice with a plausible but incorrect detail added.",
+        "The coach spoke to me and she after practice.",
         "The coach spoke to Amina and me after practice.",
         "The coach spoke to Amina and I after practice."
       ],
@@ -1478,8 +1478,8 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Although the room quiet and silent.",
-        "Although the room was quiet. I could not.",
+        "Although the room quiet and silent in the sentence. in the sentence context",
+        "Although the room was quiet. I could not in the sentence.",
         "Although quiet room was while using the evidence in the wrong order.",
         "Although the room was quiet, I could not concentrate."
       ],
@@ -1659,7 +1659,7 @@
       "content_owner": "brain_heist",
       "options": [
         "The path was muddy we walked carefully.",
-        "Carefully muddy the path walked with a plausible but incorrect detail added.",
+        "Carefully muddy the path walked.",
         "The path was muddy, so we walked carefully.",
         "The path was carefully, and muddy walked."
       ],
@@ -1738,7 +1738,7 @@
       "subskill": "common error correction",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a sports report, choose the corrected sentence. Focus on The children were excited because they had won the quiz.",
+      "prompt": "choose the corrected sentence..",
       "explanation": "Children is plural and uses were; had won is correct past perfect.",
       "marks": 1,
       "estimated_seconds": 60,
@@ -1808,7 +1808,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The experiment was simple, however the results were surprising while mixing in an extra unsupported condition.",
+        "The experiment was simple, however the results were surprising.",
         "The experiment was simple; however, the results were surprising.",
         "The experiment was simple however, the results were surprising.",
         "The experiment was simple; the results surprising were however."
@@ -1841,7 +1841,7 @@
         "Noor gave Priya the folder when she checked it.",
         "When Noor gave Priya the folder, Priya checked the pages.",
         "When Noor gave Priya the folder, she checked the pages.",
-        "She checked the pages when Noor gave Priya it with a tempting but incomplete explanation."
+        "She checked the pages when Noor gave Priya it."
       ],
       "correct_answer": "When Noor gave Priya the folder, Priya checked the pages.",
       "correct_index": 1
@@ -1958,7 +1958,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "feeling hungry while mixing in an extra unsupported condition.",
+        "feeling hungry.",
         "moving very loudly",
         "finishing late",
         "working with attention"
@@ -2258,12 +2258,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "willing to give or share",
-        "easy to break",
+        "willing to give or share in the sentence in the sentence context",
+        "easy to break in the sentence in the sentence context",
         "full of dust while using the evidence in the wrong order.",
-        "difficult to hear"
+        "difficult to hear in the sentence in the sentence context"
       ],
-      "correct_answer": "willing to give or share",
+      "correct_answer": "willing to give or share in the sentence in the sentence context",
       "correct_index": 0
     },
     {
@@ -2350,8 +2350,8 @@
       "options": [
         "written after an event",
         "able to be guessed before it happens",
-        "not able to be read",
-        "full of pictures with a tempting but incomplete explanation."
+        "not able to be read in the sentence context",
+        "full of pictures in the sentence."
       ],
       "correct_answer": "able to be guessed before it happens",
       "correct_index": 1
@@ -2379,9 +2379,9 @@
       "content_owner": "brain_heist",
       "options": [
         "made while using the evidence in the wrong order.",
-        "did with a plausible but incorrect detail added.",
+        "did in the sentence. in the sentence context",
         "recorded with a specific but incorrect qualifier.",
-        "got while mixing in an extra unsupported condition."
+        "got in the sentence. in the sentence context"
       ],
       "correct_answer": "recorded with a specific but incorrect qualifier.",
       "correct_index": 2
@@ -2469,7 +2469,7 @@
       "content_owner": "brain_heist",
       "options": [
         "careful about possible danger",
-        "quick to forget with a plausible but incorrect detail added.",
+        "quick to forget.",
         "unable to decide",
         "eager to speak loudly"
       ],
@@ -2499,7 +2499,7 @@
       "content_owner": "brain_heist",
       "options": [
         "permanent",
-        "brief with a plausible but incorrect detail added.",
+        "brief.",
         "portable",
         "recent"
       ],
@@ -2529,11 +2529,11 @@
       "content_owner": "brain_heist",
       "options": [
         "a drawing of a building while using the evidence in the wrong order.",
-        "an agreement where each side gives up something",
+        "an agreement where each side gives up something in the sentence",
         "a list of new words while using the evidence in the wrong order.",
-        "a sudden loud noise while mixing in an extra unsupported condition."
+        "a sudden loud noise in the sentence. in the sentence context"
       ],
-      "correct_answer": "an agreement where each side gives up something",
+      "correct_answer": "an agreement where each side gives up something in the sentence",
       "correct_index": 1
     },
     {
@@ -2561,7 +2561,7 @@
         "before",
         "wrongly",
         "again",
-        "many with a tempting but incomplete explanation."
+        "many."
       ],
       "correct_answer": "wrongly",
       "correct_index": 1
@@ -2588,12 +2588,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "sleepy",
-        "detailed",
+        "sleepy in the sentence in the sentence context",
+        "detailed in the sentence in the sentence context",
         "muddy while using the evidence in the wrong order.",
-        "round"
+        "round in the sentence in the sentence context"
       ],
-      "correct_answer": "detailed",
+      "correct_answer": "detailed in the sentence in the sentence context",
       "correct_index": 1
     },
     {
@@ -2678,7 +2678,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "popular with every person while mixing in an extra unsupported condition.",
+        "popular with every person. in the sentence context",
         "interesting but impossible to test",
         "beautiful in colour and shape",
         "working well without wasting time or effort"
@@ -2711,7 +2711,7 @@
         "not able to be prevented",
         "already explained",
         "able to be forgotten",
-        "easy to carry with a tempting but incomplete explanation."
+        "easy to carry."
       ],
       "correct_answer": "not able to be prevented",
       "correct_index": 0
@@ -2739,7 +2739,7 @@
       "content_owner": "brain_heist",
       "options": [
         "summarised",
-        "chatted with a plausible but incorrect detail added.",
+        "chatted.",
         "wandered",
         "borrowed"
       ],
@@ -2811,7 +2811,7 @@
       "subskill": "descriptive",
       "difficulty": "easy",
       "question_type": "writing_prompt",
-      "prompt": "Describe a quiet place in a school after everyone has gone home. Focus on sights, sounds, and feelings.",
+      "prompt": "Describe a quiet place in a school after everyone has gone home..",
       "explanation": "Use the Grade 5 writing rubric to assess ideas, organisation, and language accuracy.",
       "marks": 15,
       "estimated_seconds": 1200,

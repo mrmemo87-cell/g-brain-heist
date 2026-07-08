@@ -488,12 +488,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "9 × 10 + 4",
-        "10 × 14",
+        "9 × 10 + 4 for this problem",
+        "10 × 14 for this problem",
         "9 + 14 while using the evidence in the wrong order.",
-        "9 × 10 + 9 × 4"
+        "9 × 10 + 9 × 4 for this problem"
       ],
-      "correct_answer": "9 × 10 + 9 × 4",
+      "correct_answer": "9 × 10 + 9 × 4 for this problem",
       "correct_index": 3
     },
     {

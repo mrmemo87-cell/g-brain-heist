@@ -68,7 +68,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Plants grow best with no light while mixing in an extra unsupported condition.",
+        "Plants grow best with no light.",
         "Plants need light to make food for growth.",
         "Darkness gives plants more energy.",
         "Windows add extra soil nutrients."
@@ -98,7 +98,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "They are all trying to look alike while mixing in an extra unsupported condition.",
+        "They are all trying to look alike.",
         "The weather changes their teeth each day.",
         "It prevents every animal from moving.",
         "Their structures help them get different foods."
@@ -128,7 +128,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Plants grow best with no light while mixing in an extra unsupported condition.",
+        "Plants grow best with no light.",
         "Plants need light to make food for growth.",
         "Darkness gives plants more energy.",
         "Windows add extra soil nutrients."
@@ -148,7 +148,7 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "In a sports report, why do animals in the same habitat often have different beak or tooth shapes? Focus on Their structures help them get different foods.",
+      "prompt": "why do animals in the same habitat often have different beak or tooth shapes?.",
       "explanation": "Their structures help them get different foods. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -159,7 +159,7 @@
       "content_owner": "brain_heist",
       "options": [
         "Their structures help them get different foods.",
-        "They are all trying to look alike with a plausible but incorrect detail added.",
+        "They are all trying to look alike.",
         "The weather changes their teeth each day.",
         "It prevents every animal from moving."
       ],
@@ -188,7 +188,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Plants grow best with no light while mixing in an extra unsupported condition.",
+        "Plants grow best with no light.",
         "Darkness gives plants more energy.",
         "Windows add extra soil nutrients.",
         "Plants need light to make food for growth."
@@ -208,7 +208,7 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "In a library conversation, why do animals in the same habitat often have different beak or tooth shapes? Focus on Their structures help them get different foods.",
+      "prompt": "why do animals in the same habitat often have different beak or tooth shapes?.",
       "explanation": "Their structures help them get different foods. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -218,7 +218,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "They are all trying to look alike while mixing in an extra unsupported condition.",
+        "They are all trying to look alike.",
         "The weather changes their teeth each day.",
         "Their structures help them get different foods.",
         "It prevents every animal from moving."
@@ -249,7 +249,7 @@
       "content_owner": "brain_heist",
       "options": [
         "Plants need light to make food for growth.",
-        "Plants grow best with no light with a plausible but incorrect detail added.",
+        "Plants grow best with no light.",
         "Darkness gives plants more energy.",
         "Windows add extra soil nutrients."
       ],
@@ -268,7 +268,7 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "In a science diary, why do animals in the same habitat often have different beak or tooth shapes? Focus on Their structures help them get different foods.",
+      "prompt": "why do animals in the same habitat often have different beak or tooth shapes?.",
       "explanation": "Their structures help them get different foods. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -278,7 +278,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "They are all trying to look alike while mixing in an extra unsupported condition.",
+        "They are all trying to look alike.",
         "The weather changes their teeth each day.",
         "Their structures help them get different foods.",
         "It prevents every animal from moving."
@@ -308,7 +308,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Plants grow best with no light while mixing in an extra unsupported condition.",
+        "Plants grow best with no light.",
         "Plants need light to make food for growth.",
         "Darkness gives plants more energy.",
         "Windows add extra soil nutrients."
@@ -328,7 +328,7 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "In a school newsletter, why do animals in the same habitat often have different beak or tooth shapes? Focus on Their structures help them get different foods.",
+      "prompt": "why do animals in the same habitat often have different beak or tooth shapes?.",
       "explanation": "Their structures help them get different foods. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -338,7 +338,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "They are all trying to look alike while mixing in an extra unsupported condition.",
+        "They are all trying to look alike.",
         "The weather changes their teeth each day.",
         "It prevents every animal from moving.",
         "Their structures help them get different foods."
@@ -368,7 +368,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Plants grow best with no light while mixing in an extra unsupported condition.",
+        "Plants grow best with no light.",
         "Plants need light to make food for growth.",
         "Darkness gives plants more energy.",
         "Windows add extra soil nutrients."
@@ -388,7 +388,7 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "In a museum guide, why do animals in the same habitat often have different beak or tooth shapes? Focus on Their structures help them get different foods.",
+      "prompt": "why do animals in the same habitat often have different beak or tooth shapes?.",
       "explanation": "Their structures help them get different foods. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -399,7 +399,7 @@
       "content_owner": "brain_heist",
       "options": [
         "Their structures help them get different foods.",
-        "They are all trying to look alike with a plausible but incorrect detail added.",
+        "They are all trying to look alike.",
         "The weather changes their teeth each day.",
         "It prevents every animal from moving."
       ],
@@ -428,7 +428,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Plants grow best with no light while mixing in an extra unsupported condition.",
+        "Plants grow best with no light.",
         "Darkness gives plants more energy.",
         "Windows add extra soil nutrients.",
         "Plants need light to make food for growth."
@@ -448,7 +448,7 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "In a travel timetable, why do animals in the same habitat often have different beak or tooth shapes? Focus on Their structures help them get different foods.",
+      "prompt": "why do animals in the same habitat often have different beak or tooth shapes?.",
       "explanation": "Their structures help them get different foods. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -458,7 +458,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "They are all trying to look alike while mixing in an extra unsupported condition.",
+        "They are all trying to look alike.",
         "The weather changes their teeth each day.",
         "Their structures help them get different foods.",
         "It prevents every animal from moving."
@@ -488,12 +488,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Metal transfers heat from your hand more quickly.",
-        "Metal is always at a lower temperature.",
+        "Metal transfers heat from your hand more quickly under these conditions.",
+        "Metal is always at a lower temperature under these conditions.",
         "Wood contains more cold air while using the evidence in the wrong order.",
-        "The spoons have different colours."
+        "The spoons have different colours under these conditions."
       ],
-      "correct_answer": "Metal transfers heat from your hand more quickly.",
+      "correct_answer": "Metal transfers heat from your hand more quickly under these conditions.",
       "correct_index": 0
     },
     {
@@ -519,7 +519,7 @@
       "content_owner": "brain_heist",
       "options": [
         "Burning paper",
-        "Baking bread with a plausible but incorrect detail added.",
+        "Baking bread.",
         "Melting an ice cube",
         "Rusting iron"
       ],
@@ -548,12 +548,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Metal is always at a lower temperature.",
-        "Metal transfers heat from your hand more quickly.",
+        "Metal is always at a lower temperature under these conditions.",
+        "Metal transfers heat from your hand more quickly under these conditions.",
         "Wood contains more cold air while using the evidence in the wrong order.",
-        "The spoons have different colours."
+        "The spoons have different colours under these conditions."
       ],
-      "correct_answer": "Metal transfers heat from your hand more quickly.",
+      "correct_answer": "Metal transfers heat from your hand more quickly under these conditions.",
       "correct_index": 1
     },
     {
@@ -568,7 +568,7 @@
       "subskill": "materials / chemistry",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "In a sports report, which change is usually reversible? Focus on Melting an ice cube.",
+      "prompt": "which change is usually reversible?.",
       "explanation": "Melting an ice cube This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -579,7 +579,7 @@
       "content_owner": "brain_heist",
       "options": [
         "Burning paper",
-        "Baking bread with a plausible but incorrect detail added.",
+        "Baking bread.",
         "Rusting iron",
         "Melting an ice cube"
       ],
@@ -608,12 +608,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Metal is always at a lower temperature.",
-        "Metal transfers heat from your hand more quickly.",
+        "Metal is always at a lower temperature under these conditions.",
+        "Metal transfers heat from your hand more quickly under these conditions.",
         "Wood contains more cold air while using the evidence in the wrong order.",
-        "The spoons have different colours."
+        "The spoons have different colours under these conditions."
       ],
-      "correct_answer": "Metal transfers heat from your hand more quickly.",
+      "correct_answer": "Metal transfers heat from your hand more quickly under these conditions.",
       "correct_index": 1
     },
     {
@@ -628,7 +628,7 @@
       "subskill": "materials / chemistry",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "In a library conversation, which change is usually reversible? Focus on Melting an ice cube.",
+      "prompt": "which change is usually reversible?.",
       "explanation": "Melting an ice cube This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -638,12 +638,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Melting an ice cube",
-        "Burning paper",
+        "Melting an ice cube under these conditions",
+        "Burning paper under these conditions",
         "Baking bread while using the evidence in the wrong order.",
-        "Rusting iron"
+        "Rusting iron under these conditions"
       ],
-      "correct_answer": "Melting an ice cube",
+      "correct_answer": "Melting an ice cube under these conditions",
       "correct_index": 0
     },
     {
@@ -669,7 +669,7 @@
       "content_owner": "brain_heist",
       "options": [
         "Metal is always at a lower temperature.",
-        "Wood contains more cold air with a plausible but incorrect detail added.",
+        "Wood contains more cold air under these conditions.",
         "The spoons have different colours.",
         "Metal transfers heat from your hand more quickly."
       ],
@@ -688,7 +688,7 @@
       "subskill": "materials / chemistry",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "In a science diary, which change is usually reversible? Focus on Melting an ice cube.",
+      "prompt": "which change is usually reversible?.",
       "explanation": "Melting an ice cube This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -699,7 +699,7 @@
       "content_owner": "brain_heist",
       "options": [
         "Burning paper",
-        "Baking bread with a plausible but incorrect detail added.",
+        "Baking bread.",
         "Melting an ice cube",
         "Rusting iron"
       ],
@@ -728,12 +728,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Metal transfers heat from your hand more quickly.",
-        "Metal is always at a lower temperature.",
+        "Metal transfers heat from your hand more quickly under these conditions.",
+        "Metal is always at a lower temperature under these conditions.",
         "Wood contains more cold air while using the evidence in the wrong order.",
-        "The spoons have different colours."
+        "The spoons have different colours under these conditions."
       ],
-      "correct_answer": "Metal transfers heat from your hand more quickly.",
+      "correct_answer": "Metal transfers heat from your hand more quickly under these conditions.",
       "correct_index": 0
     },
     {
@@ -748,7 +748,7 @@
       "subskill": "materials / chemistry",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "In a school newsletter, which change is usually reversible? Focus on Melting an ice cube.",
+      "prompt": "which change is usually reversible?.",
       "explanation": "Melting an ice cube This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -759,7 +759,7 @@
       "content_owner": "brain_heist",
       "options": [
         "Burning paper",
-        "Baking bread with a plausible but incorrect detail added.",
+        "Baking bread.",
         "Melting an ice cube",
         "Rusting iron"
       ],
@@ -788,12 +788,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Metal is always at a lower temperature.",
-        "Metal transfers heat from your hand more quickly.",
+        "Metal is always at a lower temperature under these conditions.",
+        "Metal transfers heat from your hand more quickly under these conditions.",
         "Wood contains more cold air while using the evidence in the wrong order.",
-        "The spoons have different colours."
+        "The spoons have different colours under these conditions."
       ],
-      "correct_answer": "Metal transfers heat from your hand more quickly.",
+      "correct_answer": "Metal transfers heat from your hand more quickly under these conditions.",
       "correct_index": 1
     },
     {
@@ -808,7 +808,7 @@
       "subskill": "materials / chemistry",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "In a museum guide, which change is usually reversible? Focus on Melting an ice cube.",
+      "prompt": "which change is usually reversible?.",
       "explanation": "Melting an ice cube This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -819,7 +819,7 @@
       "content_owner": "brain_heist",
       "options": [
         "Burning paper",
-        "Baking bread with a plausible but incorrect detail added.",
+        "Baking bread.",
         "Rusting iron",
         "Melting an ice cube"
       ],
@@ -851,7 +851,7 @@
         "The carpet gives the car more energy.",
         "The smooth table produces less friction.",
         "Gravity is stronger on the table.",
-        "The car has no mass on carpet with a tempting but incomplete explanation."
+        "The car has no mass on carpet."
       ],
       "correct_answer": "The smooth table produces less friction.",
       "correct_index": 1
@@ -908,12 +908,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The carpet gives the car more energy.",
-        "Gravity is stronger on the table.",
+        "The carpet gives the car more energy under these conditions.",
+        "Gravity is stronger on the table under these conditions.",
         "The car has no mass on carpet while using the evidence in the wrong order.",
-        "The smooth table produces less friction."
+        "The smooth table produces less friction under these conditions."
       ],
-      "correct_answer": "The smooth table produces less friction.",
+      "correct_answer": "The smooth table produces less friction under these conditions.",
       "correct_index": 3
     },
     {
@@ -928,7 +928,7 @@
       "subskill": "forces / physics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a sports report, why does a parachute slow a falling object? Focus on It increases air resistance.",
+      "prompt": "why does a parachute slow a falling object?.",
       "explanation": "It increases air resistance. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -971,7 +971,7 @@
         "The smooth table produces less friction.",
         "The carpet gives the car more energy.",
         "Gravity is stronger on the table.",
-        "The car has no mass on carpet with a tempting but incomplete explanation."
+        "The car has no mass on carpet."
       ],
       "correct_answer": "The smooth table produces less friction.",
       "correct_index": 0
@@ -988,7 +988,7 @@
       "subskill": "forces / physics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a library conversation, why does a parachute slow a falling object? Focus on It increases air resistance.",
+      "prompt": "why does a parachute slow a falling object?.",
       "explanation": "It increases air resistance. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1031,7 +1031,7 @@
         "The carpet gives the car more energy.",
         "The smooth table produces less friction.",
         "Gravity is stronger on the table.",
-        "The car has no mass on carpet with a tempting but incomplete explanation."
+        "The car has no mass on carpet."
       ],
       "correct_answer": "The smooth table produces less friction.",
       "correct_index": 1
@@ -1048,7 +1048,7 @@
       "subskill": "forces / physics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a science diary, why does a parachute slow a falling object? Focus on It increases air resistance.",
+      "prompt": "why does a parachute slow a falling object?.",
       "explanation": "It increases air resistance. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1091,7 +1091,7 @@
         "The carpet gives the car more energy.",
         "The smooth table produces less friction.",
         "Gravity is stronger on the table.",
-        "The car has no mass on carpet with a tempting but incomplete explanation."
+        "The car has no mass on carpet."
       ],
       "correct_answer": "The smooth table produces less friction.",
       "correct_index": 1
@@ -1108,7 +1108,7 @@
       "subskill": "forces / physics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a school newsletter, why does a parachute slow a falling object? Focus on It increases air resistance.",
+      "prompt": "why does a parachute slow a falling object?.",
       "explanation": "It increases air resistance. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1148,12 +1148,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The carpet gives the car more energy.",
-        "Gravity is stronger on the table.",
+        "The carpet gives the car more energy under these conditions.",
+        "Gravity is stronger on the table under these conditions.",
         "The car has no mass on carpet while using the evidence in the wrong order.",
-        "The smooth table produces less friction."
+        "The smooth table produces less friction under these conditions."
       ],
-      "correct_answer": "The smooth table produces less friction.",
+      "correct_answer": "The smooth table produces less friction under these conditions.",
       "correct_index": 3
     },
     {
@@ -1168,7 +1168,7 @@
       "subskill": "forces / physics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a museum guide, why does a parachute slow a falling object? Focus on It increases air resistance.",
+      "prompt": "why does a parachute slow a falling object?.",
       "explanation": "It increases air resistance. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1209,9 +1209,9 @@
       "content_owner": "brain_heist",
       "options": [
         "Light travels in straight lines and cannot pass through the opaque book.",
-        "Sound pushes the light backwards.",
+        "Sound pushes the light backwards under these conditions.",
         "The book creates new darkness while using the evidence in the wrong order.",
-        "Light bends around every object equally."
+        "Light bends around every object equally under these conditions."
       ],
       "correct_answer": "Light travels in straight lines and cannot pass through the opaque book.",
       "correct_index": 0
@@ -1258,7 +1258,7 @@
       "subskill": "energy, light, sound, and electricity",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a sports report, why does a shadow form when a book blocks a torch beam? Focus on Light travels in straight lines and cannot pass through the opaque book.",
+      "prompt": "why does a shadow form when a book blocks a torch beam?.",
       "explanation": "Light travels in straight lines and cannot pass through the opaque book. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1268,10 +1268,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Sound pushes the light backwards.",
+        "Sound pushes the light backwards under these conditions.",
         "Light travels in straight lines and cannot pass through the opaque book.",
         "The book creates new darkness while using the evidence in the wrong order.",
-        "Light bends around every object equally."
+        "Light bends around every object equally under these conditions."
       ],
       "correct_answer": "Light travels in straight lines and cannot pass through the opaque book.",
       "correct_index": 1
@@ -1288,7 +1288,7 @@
       "subskill": "energy, light, sound, and electricity",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a sports report, which material would be best for a wire in a simple circuit? Focus on Copper.",
+      "prompt": "which material would be best for a wire in a simple circuit?.",
       "explanation": "Copper This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1318,7 +1318,7 @@
       "subskill": "energy, light, sound, and electricity",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a library conversation, why does a shadow form when a book blocks a torch beam? Focus on Light travels in straight lines and cannot pass through the opaque book.",
+      "prompt": "why does a shadow form when a book blocks a torch beam?.",
       "explanation": "Light travels in straight lines and cannot pass through the opaque book. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1328,10 +1328,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Sound pushes the light backwards.",
+        "Sound pushes the light backwards under these conditions.",
         "Light travels in straight lines and cannot pass through the opaque book.",
         "The book creates new darkness while using the evidence in the wrong order.",
-        "Light bends around every object equally."
+        "Light bends around every object equally under these conditions."
       ],
       "correct_answer": "Light travels in straight lines and cannot pass through the opaque book.",
       "correct_index": 1
@@ -1348,7 +1348,7 @@
       "subskill": "energy, light, sound, and electricity",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a library conversation, which material would be best for a wire in a simple circuit? Focus on Copper.",
+      "prompt": "which material would be best for a wire in a simple circuit?.",
       "explanation": "Copper This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1378,7 +1378,7 @@
       "subskill": "energy, light, sound, and electricity",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a science diary, why does a shadow form when a book blocks a torch beam? Focus on Light travels in straight lines and cannot pass through the opaque book.",
+      "prompt": "why does a shadow form when a book blocks a torch beam?.",
       "explanation": "Light travels in straight lines and cannot pass through the opaque book. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1388,9 +1388,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Sound pushes the light backwards.",
-        "The book creates new darkness with a plausible but incorrect detail added.",
-        "Light bends around every object equally.",
+        "Sound pushes the light backwards under these conditions.",
+        "The book creates new darkness under these conditions.",
+        "Light bends around every object equally under these conditions.",
         "Light travels in straight lines and cannot pass through the opaque book."
       ],
       "correct_answer": "Light travels in straight lines and cannot pass through the opaque book.",
@@ -1408,7 +1408,7 @@
       "subskill": "energy, light, sound, and electricity",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a science diary, which material would be best for a wire in a simple circuit? Focus on Copper.",
+      "prompt": "which material would be best for a wire in a simple circuit?.",
       "explanation": "Copper This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1438,7 +1438,7 @@
       "subskill": "energy, light, sound, and electricity",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a school newsletter, why does a shadow form when a book blocks a torch beam? Focus on Light travels in straight lines and cannot pass through the opaque book.",
+      "prompt": "why does a shadow form when a book blocks a torch beam?.",
       "explanation": "Light travels in straight lines and cannot pass through the opaque book. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1449,9 +1449,9 @@
       "content_owner": "brain_heist",
       "options": [
         "Light travels in straight lines and cannot pass through the opaque book.",
-        "Sound pushes the light backwards.",
+        "Sound pushes the light backwards under these conditions.",
         "The book creates new darkness while using the evidence in the wrong order.",
-        "Light bends around every object equally."
+        "Light bends around every object equally under these conditions."
       ],
       "correct_answer": "Light travels in straight lines and cannot pass through the opaque book.",
       "correct_index": 0
@@ -1468,7 +1468,7 @@
       "subskill": "energy, light, sound, and electricity",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a school newsletter, which material would be best for a wire in a simple circuit? Focus on Copper.",
+      "prompt": "which material would be best for a wire in a simple circuit?.",
       "explanation": "Copper This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1498,7 +1498,7 @@
       "subskill": "energy, light, sound, and electricity",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a museum guide, why does a shadow form when a book blocks a torch beam? Focus on Light travels in straight lines and cannot pass through the opaque book.",
+      "prompt": "why does a shadow form when a book blocks a torch beam?.",
       "explanation": "Light travels in straight lines and cannot pass through the opaque book. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1508,10 +1508,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Sound pushes the light backwards.",
+        "Sound pushes the light backwards under these conditions.",
         "Light travels in straight lines and cannot pass through the opaque book.",
         "The book creates new darkness while using the evidence in the wrong order.",
-        "Light bends around every object equally."
+        "Light bends around every object equally under these conditions."
       ],
       "correct_answer": "Light travels in straight lines and cannot pass through the opaque book.",
       "correct_index": 1
@@ -1528,7 +1528,7 @@
       "subskill": "energy, light, sound, and electricity",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a museum guide, which material would be best for a wire in a simple circuit? Focus on Copper.",
+      "prompt": "which material would be best for a wire in a simple circuit?.",
       "explanation": "Copper This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1599,9 +1599,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The Moon is visible because sunlight bounces from its surface.",
-        "The Moon makes its own daylight.",
+        "The Moon makes its own daylight under these conditions.",
         "The Moon is a star while using the evidence in the wrong order.",
-        "The Moon is always hot while mixing in an extra unsupported condition."
+        "The Moon is always hot under these conditions."
       ],
       "correct_answer": "The Moon is visible because sunlight bounces from its surface.",
       "correct_index": 0
@@ -1618,7 +1618,7 @@
       "subskill": "earth and space",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a sports report, why do we have day and night on Earth? Focus on Earth rotates on its axis.",
+      "prompt": "why do we have day and night on Earth?.",
       "explanation": "Earth rotates on its axis. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1648,7 +1648,7 @@
       "subskill": "earth and space",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a sports report, which observation is evidence that the Moon reflects sunlight? Focus on The Moon is visible because sunlight bounces from its surface.",
+      "prompt": "which observation is evidence that the Moon reflects sunlight?.",
       "explanation": "The Moon is visible because sunlight bounces from its surface. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1658,10 +1658,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The Moon makes its own daylight.",
-        "The Moon is a star with a plausible but incorrect detail added.",
+        "The Moon makes its own daylight under these conditions.",
+        "The Moon is a star under these conditions.",
         "The Moon is visible because sunlight bounces from its surface.",
-        "The Moon is always hot while mixing in an extra unsupported condition."
+        "The Moon is always hot under these conditions."
       ],
       "correct_answer": "The Moon is visible because sunlight bounces from its surface.",
       "correct_index": 2
@@ -1678,7 +1678,7 @@
       "subskill": "earth and space",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a library conversation, why do we have day and night on Earth? Focus on Earth rotates on its axis.",
+      "prompt": "why do we have day and night on Earth?.",
       "explanation": "Earth rotates on its axis. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1708,7 +1708,7 @@
       "subskill": "earth and space",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a library conversation, which observation is evidence that the Moon reflects sunlight? Focus on The Moon is visible because sunlight bounces from its surface.",
+      "prompt": "which observation is evidence that the Moon reflects sunlight?.",
       "explanation": "The Moon is visible because sunlight bounces from its surface. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1718,10 +1718,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The Moon makes its own daylight.",
-        "The Moon is a star with a plausible but incorrect detail added.",
+        "The Moon makes its own daylight under these conditions.",
+        "The Moon is a star under these conditions.",
         "The Moon is visible because sunlight bounces from its surface.",
-        "The Moon is always hot while mixing in an extra unsupported condition."
+        "The Moon is always hot under these conditions."
       ],
       "correct_answer": "The Moon is visible because sunlight bounces from its surface.",
       "correct_index": 2
@@ -1738,7 +1738,7 @@
       "subskill": "earth and space",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a science diary, why do we have day and night on Earth? Focus on Earth rotates on its axis.",
+      "prompt": "why do we have day and night on Earth?.",
       "explanation": "Earth rotates on its axis. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1768,7 +1768,7 @@
       "subskill": "earth and space",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a science diary, which observation is evidence that the Moon reflects sunlight? Focus on The Moon is visible because sunlight bounces from its surface.",
+      "prompt": "which observation is evidence that the Moon reflects sunlight?.",
       "explanation": "The Moon is visible because sunlight bounces from its surface. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1778,9 +1778,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The Moon makes its own daylight.",
-        "The Moon is a star with a plausible but incorrect detail added.",
-        "The Moon is always hot with a tempting but incomplete explanation.",
+        "The Moon makes its own daylight under these conditions.",
+        "The Moon is a star under these conditions.",
+        "The Moon is always hot under these conditions.",
         "The Moon is visible because sunlight bounces from its surface."
       ],
       "correct_answer": "The Moon is visible because sunlight bounces from its surface.",
@@ -1808,12 +1808,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The brand of towel only",
-        "The amount of water used for each towel",
+        "The brand of towel only under these conditions",
+        "The amount of water used for each towel under these conditions",
         "The result they prefer while using the evidence in the wrong order.",
-        "The colour of the table"
+        "The colour of the table under these conditions"
       ],
-      "correct_answer": "The amount of water used for each towel",
+      "correct_answer": "The amount of water used for each towel under these conditions",
       "correct_index": 1
     },
     {
@@ -1869,7 +1869,7 @@
       "content_owner": "brain_heist",
       "options": [
         "The brand of towel only",
-        "The result they prefer with a plausible but incorrect detail added.",
+        "The result they prefer.",
         "The colour of the table",
         "The amount of water used for each towel"
       ],
@@ -1888,7 +1888,7 @@
       "subskill": "scientific enquiry / working scientifically",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "In a sports report, why should a scientist repeat a measurement several times? Focus on To make the result more reliable.",
+      "prompt": "why should a scientist repeat a measurement several times?.",
       "explanation": "To make the result more reliable. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1928,12 +1928,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The amount of water used for each towel",
-        "The brand of towel only",
+        "The amount of water used for each towel under these conditions",
+        "The brand of towel only under these conditions",
         "The result they prefer while using the evidence in the wrong order.",
-        "The colour of the table"
+        "The colour of the table under these conditions"
       ],
-      "correct_answer": "The amount of water used for each towel",
+      "correct_answer": "The amount of water used for each towel under these conditions",
       "correct_index": 0
     },
     {
@@ -1948,7 +1948,7 @@
       "subskill": "scientific enquiry / working scientifically",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "In a library conversation, why should a scientist repeat a measurement several times? Focus on To make the result more reliable.",
+      "prompt": "why should a scientist repeat a measurement several times?.",
       "explanation": "To make the result more reliable. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1988,12 +1988,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The brand of towel only",
-        "The amount of water used for each towel",
+        "The brand of towel only under these conditions",
+        "The amount of water used for each towel under these conditions",
         "The result they prefer while using the evidence in the wrong order.",
-        "The colour of the table"
+        "The colour of the table under these conditions"
       ],
-      "correct_answer": "The amount of water used for each towel",
+      "correct_answer": "The amount of water used for each towel under these conditions",
       "correct_index": 1
     },
     {
@@ -2008,7 +2008,7 @@
       "subskill": "scientific enquiry / working scientifically",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "In a science diary, why should a scientist repeat a measurement several times? Focus on To make the result more reliable.",
+      "prompt": "why should a scientist repeat a measurement several times?.",
       "explanation": "To make the result more reliable. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2048,12 +2048,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The brand of towel only",
-        "The amount of water used for each towel",
+        "The brand of towel only under these conditions",
+        "The amount of water used for each towel under these conditions",
         "The result they prefer while using the evidence in the wrong order.",
-        "The colour of the table"
+        "The colour of the table under these conditions"
       ],
-      "correct_answer": "The amount of water used for each towel",
+      "correct_answer": "The amount of water used for each towel under these conditions",
       "correct_index": 1
     },
     {
@@ -2068,7 +2068,7 @@
       "subskill": "scientific enquiry / working scientifically",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "In a school newsletter, why should a scientist repeat a measurement several times? Focus on To make the result more reliable.",
+      "prompt": "why should a scientist repeat a measurement several times?.",
       "explanation": "To make the result more reliable. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2109,7 +2109,7 @@
       "content_owner": "brain_heist",
       "options": [
         "The brand of towel only",
-        "The result they prefer with a plausible but incorrect detail added.",
+        "The result they prefer.",
         "The colour of the table",
         "The amount of water used for each towel"
       ],
@@ -2128,7 +2128,7 @@
       "subskill": "scientific enquiry / working scientifically",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "In a museum guide, why should a scientist repeat a measurement several times? Focus on To make the result more reliable.",
+      "prompt": "why should a scientist repeat a measurement several times?.",
       "explanation": "To make the result more reliable. This directly matches the evidence in the question.",
       "marks": 1,
       "estimated_seconds": 75,

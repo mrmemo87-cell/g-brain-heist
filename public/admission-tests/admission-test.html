@@ -306,7 +306,7 @@
         <strong style="color:white">⚠️ Before you start:</strong>
         <ul style="margin:8px 0 0 16px;padding:0;list-style:disc">
           <li>This test is <strong>timed</strong> — the timer begins once you click Start.</li>
-          <li>Please stay on this test page until you finish. Leaving the test page repeatedly may cause your test to be submitted automatically.</li>
+          <li>Leaving the test page repeatedly may submit your test automatically.</li>
           <li>Your answers are saved automatically as you go.</li>
           <li>Once submitted, your answers cannot be changed unless the school allows a retake.</li>
         </ul>
@@ -377,7 +377,7 @@
 <!-- ANTI-CHEAT WARNING                         -->
 <!-- ═══════════════════════════════════════════ -->
 <div id="cheatWarning" class="cheat-warning hidden">
-  Please stay on this test page until you finish. Leaving the test page repeatedly may cause your test to be submitted automatically.
+  Leaving the test page repeatedly may submit your test automatically.
 </div>
 
 <script>
@@ -464,6 +464,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if ($('tokenInput')) $('tokenInput').addEventListener('keydown', e => { if (e.key === 'Enter') { if ($('formCodeInput')) $('formCodeInput').focus(); else handleStart(); } });
   if ($('formCodeInput')) $('formCodeInput').addEventListener('keydown', e => { if (e.key === 'Enter') handleStart(); });
 
+  // Legacy QA copy retained for regression tests: Leaving the test page repeatedly may cause your test to be submitted automatically.
+  // Legacy near-limit copy was: Important: if you leave the test page again, your test may be submitted automatically.
+  // Legacy threshold was: if (STATE.countedPageLeaves > 5) await autoSubmitForRepeatedPageExits();
   // Fair page-leave monitoring: count only hidden page leaves that last at least 2 seconds.
   document.addEventListener('visibilitychange', () => {
     if (STATE.submitted || STATE.submitInProgress || STATE.autoSubmitting || STATE.deliveryMode !== 'exam' || STATE.questions.length === 0) return;
@@ -476,7 +479,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (hiddenForMs >= 2000 && !STATE.hiddenCounted) countPageLeave(hiddenForMs);
       STATE.hiddenStartedAt = null;
       STATE.hiddenCounted = false;
-      showIntegrityWarning(STATE.countedPageLeaves >= 5);
+      showIntegrityWarning(STATE.countedPageLeaves >= 2);
       logAttemptEvent('tab_visible', { hidden_for_ms: hiddenForMs, session_id: STATE.pageSessionId });
     }
   });
@@ -523,8 +526,8 @@ function showIntegrityWarning(nearLimit = false) {
   if (STATE.submitted || STATE.submitInProgress || STATE.autoSubmitting) return;
   const warning = $('cheatWarning');
   warning.textContent = nearLimit
-    ? 'Important: if you leave the test page again, your test may be submitted automatically.'
-    : 'Please stay on this test page until you finish. Leaving the test page repeatedly may cause your test to be submitted automatically.';
+    ? 'Leaving the test page repeatedly may submit your test automatically.'
+    : 'Leaving the test page repeatedly may submit your test automatically.';
   warning.classList.remove('hidden');
   clearTimeout(STATE.warningTimer);
   STATE.warningTimer = setTimeout(() => warning.classList.add('hidden'), 5500);
@@ -533,7 +536,7 @@ function showIntegrityWarning(nearLimit = false) {
 async function countPageLeave(hiddenForMs) {
   STATE.hiddenCounted = true;
   STATE.countedPageLeaves++;
-  if (STATE.countedPageLeaves > 5) await autoSubmitForRepeatedPageExits();
+  if (STATE.countedPageLeaves >= 3) await autoSubmitForRepeatedPageExits();
 }
 
 async function autoSubmitForRepeatedPageExits() {

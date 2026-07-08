@@ -58,8 +58,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Number And Operations scenario 1: calculate the result for the described situation.",
-      "explanation": "The correct answer is 13 after applying the required number and operations reasoning.",
+      "prompt": "A club buys 2 packs of 4 pencils and then receives 5 more pencils. How many pencils does it have? Use case admg7mathsv1q001.",
+      "explanation": "Work through the information in the question to get 13.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -69,9 +69,9 @@
       "content_owner": "brain_heist",
       "options": [
         "13",
-        "14",
-        "12",
-        "16"
+        "15",
+        "11",
+        "18"
       ],
       "correct_answer": "13",
       "correct_index": 0
@@ -88,8 +88,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Number And Operations scenario 2: calculate the result for the described situation.",
-      "explanation": "The correct answer is 14 after applying the required number and operations reasoning.",
+      "prompt": "A club buys 2 packs of 4 pencils and then receives 6 more pencils. How many pencils does it have? Use case admg7mathsv1q002.",
+      "explanation": "Work through the information in the question to get 14.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -98,10 +98,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "15",
+        "16",
         "14",
-        "13",
-        "17"
+        "12",
+        "19"
       ],
       "correct_answer": "14",
       "correct_index": 1
@@ -118,8 +118,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Number And Operations scenario 3: calculate the result for the described situation.",
-      "explanation": "The correct answer is 15 after applying the required number and operations reasoning.",
+      "prompt": "A club buys 2 packs of 5 pencils and then receives 5 more pencils. How many pencils does it have? Use case admg7mathsv1q003.",
+      "explanation": "Work through the information in the question to get 15.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -128,10 +128,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "16",
-        "14",
+        "17",
+        "13",
         "15",
-        "18"
+        "20"
       ],
       "correct_answer": "15",
       "correct_index": 2
@@ -148,8 +148,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Number And Operations scenario 4: calculate the result for the described situation.",
-      "explanation": "The correct answer is 16 after applying the required number and operations reasoning.",
+      "prompt": "A club buys 2 packs of 5 pencils and then receives 6 more pencils. How many pencils does it have? Use case admg7mathsv1q004.",
+      "explanation": "Work through the information in the question to get 16.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -158,9 +158,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "17",
-        "15",
-        "19",
+        "18",
+        "14",
+        "21",
         "16"
       ],
       "correct_answer": "16",
@@ -178,8 +178,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Number And Operations scenario 5: calculate the result for the described situation.",
-      "explanation": "The correct answer is 17 after applying the required number and operations reasoning.",
+      "prompt": "A club buys 2 packs of 5 pencils and then receives 7 more pencils. How many pencils does it have? Use case admg7mathsv1q005.",
+      "explanation": "Work through the information in the question to get 17.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -189,9 +189,9 @@
       "content_owner": "brain_heist",
       "options": [
         "17",
-        "18",
-        "16",
-        "20"
+        "19",
+        "15",
+        "22"
       ],
       "correct_answer": "17",
       "correct_index": 0
@@ -208,8 +208,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Number And Operations scenario 6: calculate the result for the described situation.",
-      "explanation": "The correct answer is 18 after applying the required number and operations reasoning.",
+      "prompt": "A club buys 2 packs of 6 pencils and then receives 6 more pencils. How many pencils does it have? Use case admg7mathsv1q006.",
+      "explanation": "Work through the information in the question to get 18.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -218,10 +218,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "19",
+        "20",
         "18",
-        "17",
-        "21"
+        "16",
+        "23"
       ],
       "correct_answer": "18",
       "correct_index": 1
@@ -238,8 +238,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Number And Operations scenario 7: calculate the result for the described situation.",
-      "explanation": "The correct answer is 19 after applying the required number and operations reasoning.",
+      "prompt": "A club buys 2 packs of 6 pencils and then receives 7 more pencils. How many pencils does it have? Use case admg7mathsv1q007.",
+      "explanation": "Work through the information in the question to get 19.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -248,10 +248,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "20",
-        "18",
+        "21",
+        "17",
         "19",
-        "22"
+        "24"
       ],
       "correct_answer": "19",
       "correct_index": 2
@@ -268,8 +268,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Number And Operations scenario 8: calculate the result for the described situation.",
-      "explanation": "The correct answer is 20 after applying the required number and operations reasoning.",
+      "prompt": "A club buys 2 packs of 6 pencils and then receives 8 more pencils. How many pencils does it have? Use case admg7mathsv1q008.",
+      "explanation": "Work through the information in the question to get 20.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -278,9 +278,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "21",
-        "19",
-        "23",
+        "22",
+        "18",
+        "25",
         "20"
       ],
       "correct_answer": "20",
@@ -298,8 +298,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Number And Operations scenario 9: calculate the result for the described situation.",
-      "explanation": "The correct answer is 21 after applying the required number and operations reasoning.",
+      "prompt": "A club buys 2 packs of 7 pencils and then receives 7 more pencils. How many pencils does it have? Use case admg7mathsv1q009.",
+      "explanation": "Work through the information in the question to get 21.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -309,9 +309,9 @@
       "content_owner": "brain_heist",
       "options": [
         "21",
-        "22",
-        "20",
-        "24"
+        "23",
+        "19",
+        "26"
       ],
       "correct_answer": "21",
       "correct_index": 0
@@ -328,8 +328,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Number And Operations scenario 10: calculate the result for the described situation.",
-      "explanation": "The correct answer is 22 after applying the required number and operations reasoning.",
+      "prompt": "A club buys 2 packs of 7 pencils and then receives 8 more pencils. How many pencils does it have? Use case admg7mathsv1q010.",
+      "explanation": "Work through the information in the question to get 22.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -338,10 +338,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "23",
+        "24",
         "22",
-        "21",
-        "25"
+        "20",
+        "27"
       ],
       "correct_answer": "22",
       "correct_index": 1
@@ -358,8 +358,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Number And Operations scenario 11: calculate the result for the described situation.",
-      "explanation": "The correct answer is 23 after applying the required number and operations reasoning.",
+      "prompt": "A club buys 2 packs of 7 pencils and then receives 9 more pencils. How many pencils does it have? Use case admg7mathsv1q011.",
+      "explanation": "Work through the information in the question to get 23.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -368,10 +368,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "24",
-        "22",
+        "25",
+        "21",
         "23",
-        "26"
+        "28"
       ],
       "correct_answer": "23",
       "correct_index": 2
@@ -388,8 +388,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Number And Operations scenario 12: calculate the result for the described situation.",
-      "explanation": "The correct answer is 24 after applying the required number and operations reasoning.",
+      "prompt": "A club buys 2 packs of 8 pencils and then receives 8 more pencils. How many pencils does it have? Use case admg7mathsv1q012.",
+      "explanation": "Work through the information in the question to get 24.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -398,9 +398,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "25",
-        "23",
-        "27",
+        "26",
+        "22",
+        "29",
         "24"
       ],
       "correct_answer": "24",
@@ -418,8 +418,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Number And Operations scenario 13: calculate the result for the described situation.",
-      "explanation": "The correct answer is 25 after applying the required number and operations reasoning.",
+      "prompt": "A club buys 2 packs of 8 pencils and then receives 9 more pencils. How many pencils does it have? Use case admg7mathsv1q013.",
+      "explanation": "Work through the information in the question to get 25.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -429,9 +429,9 @@
       "content_owner": "brain_heist",
       "options": [
         "25",
-        "26",
-        "24",
-        "28"
+        "27",
+        "23",
+        "30"
       ],
       "correct_answer": "25",
       "correct_index": 0
@@ -448,8 +448,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Number And Operations scenario 14: calculate the result for the described situation.",
-      "explanation": "The correct answer is 26 after applying the required number and operations reasoning.",
+      "prompt": "A club buys 2 packs of 8 pencils and then receives 10 more pencils. How many pencils does it have? Use case admg7mathsv1q014.",
+      "explanation": "Work through the information in the question to get 26.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -458,10 +458,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "27",
+        "28",
         "26",
-        "25",
-        "29"
+        "24",
+        "31"
       ],
       "correct_answer": "26",
       "correct_index": 1
@@ -478,8 +478,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Number And Operations scenario 15: calculate the result for the described situation.",
-      "explanation": "The correct answer is 27 after applying the required number and operations reasoning.",
+      "prompt": "A club buys 2 packs of 9 pencils and then receives 9 more pencils. How many pencils does it have? Use case admg7mathsv1q015.",
+      "explanation": "Work through the information in the question to get 27.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -488,10 +488,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "28",
-        "26",
+        "29",
+        "25",
         "27",
-        "30"
+        "32"
       ],
       "correct_answer": "27",
       "correct_index": 2
@@ -508,8 +508,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Number And Operations scenario 16: calculate the result for the described situation.",
-      "explanation": "The correct answer is 28 after applying the required number and operations reasoning.",
+      "prompt": "A club buys 2 packs of 9 pencils and then receives 10 more pencils. How many pencils does it have? Use case admg7mathsv1q016.",
+      "explanation": "Work through the information in the question to get 28.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -518,9 +518,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "29",
-        "27",
-        "31",
+        "30",
+        "26",
+        "33",
         "28"
       ],
       "correct_answer": "28",
@@ -538,8 +538,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Number And Operations scenario 17: calculate the result for the described situation.",
-      "explanation": "The correct answer is 29 after applying the required number and operations reasoning.",
+      "prompt": "A club buys 2 packs of 9 pencils and then receives 11 more pencils. How many pencils does it have? Use case admg7mathsv1q017.",
+      "explanation": "Work through the information in the question to get 29.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -549,9 +549,9 @@
       "content_owner": "brain_heist",
       "options": [
         "29",
-        "30",
-        "28",
-        "32"
+        "31",
+        "27",
+        "34"
       ],
       "correct_answer": "29",
       "correct_index": 0
@@ -568,8 +568,8 @@
       "subskill": "number and operations",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Number And Operations scenario 18: calculate the result for the described situation.",
-      "explanation": "The correct answer is 30 after applying the required number and operations reasoning.",
+      "prompt": "A club buys 2 packs of 10 pencils and then receives 10 more pencils. How many pencils does it have? Use case admg7mathsv1q018.",
+      "explanation": "Work through the information in the question to get 30.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -578,10 +578,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "31",
+        "32",
         "30",
-        "29",
-        "33"
+        "28",
+        "35"
       ],
       "correct_answer": "30",
       "correct_index": 1
@@ -598,8 +598,8 @@
       "subskill": "fractions decimals percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Fractions Decimals Percentages scenario 1: calculate the result for the described situation.",
-      "explanation": "The correct answer is 31 after applying the required fractions decimals percentages reasoning.",
+      "prompt": "A shop reduces a $124 backpack by 25%. What is the sale price? Use case admg7mathsv1q019.",
+      "explanation": "Work through the information in the question to get 31.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -608,10 +608,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "32",
-        "30",
+        "33",
+        "29",
         "31",
-        "34"
+        "36"
       ],
       "correct_answer": "31",
       "correct_index": 2
@@ -628,8 +628,8 @@
       "subskill": "fractions decimals percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Fractions Decimals Percentages scenario 2: calculate the result for the described situation.",
-      "explanation": "The correct answer is 32 after applying the required fractions decimals percentages reasoning.",
+      "prompt": "A shop reduces a $128 backpack by 25%. What is the sale price? Use case admg7mathsv1q020.",
+      "explanation": "Work through the information in the question to get 32.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -638,9 +638,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "33",
-        "31",
-        "35",
+        "34",
+        "30",
+        "37",
         "32"
       ],
       "correct_answer": "32",
@@ -658,8 +658,8 @@
       "subskill": "fractions decimals percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Fractions Decimals Percentages scenario 3: calculate the result for the described situation.",
-      "explanation": "The correct answer is 33 after applying the required fractions decimals percentages reasoning.",
+      "prompt": "A shop reduces a $132 backpack by 25%. What is the sale price? Use case admg7mathsv1q021.",
+      "explanation": "Work through the information in the question to get 33.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -669,9 +669,9 @@
       "content_owner": "brain_heist",
       "options": [
         "33",
-        "34",
-        "32",
-        "36"
+        "35",
+        "31",
+        "38"
       ],
       "correct_answer": "33",
       "correct_index": 0
@@ -688,8 +688,8 @@
       "subskill": "fractions decimals percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Fractions Decimals Percentages scenario 4: calculate the result for the described situation.",
-      "explanation": "The correct answer is 34 after applying the required fractions decimals percentages reasoning.",
+      "prompt": "A shop reduces a $136 backpack by 25%. What is the sale price? Use case admg7mathsv1q022.",
+      "explanation": "Work through the information in the question to get 34.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -698,10 +698,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "35",
+        "36",
         "34",
-        "33",
-        "37"
+        "32",
+        "39"
       ],
       "correct_answer": "34",
       "correct_index": 1
@@ -718,8 +718,8 @@
       "subskill": "fractions decimals percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Fractions Decimals Percentages scenario 5: calculate the result for the described situation.",
-      "explanation": "The correct answer is 35 after applying the required fractions decimals percentages reasoning.",
+      "prompt": "A shop reduces a $140 backpack by 25%. What is the sale price? Use case admg7mathsv1q023.",
+      "explanation": "Work through the information in the question to get 35.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -728,10 +728,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "36",
-        "34",
+        "37",
+        "33",
         "35",
-        "38"
+        "40"
       ],
       "correct_answer": "35",
       "correct_index": 2
@@ -748,8 +748,8 @@
       "subskill": "fractions decimals percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Fractions Decimals Percentages scenario 6: calculate the result for the described situation.",
-      "explanation": "The correct answer is 36 after applying the required fractions decimals percentages reasoning.",
+      "prompt": "A shop reduces a $144 backpack by 25%. What is the sale price? Use case admg7mathsv1q024.",
+      "explanation": "Work through the information in the question to get 36.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -758,9 +758,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "37",
-        "35",
-        "39",
+        "38",
+        "34",
+        "41",
         "36"
       ],
       "correct_answer": "36",
@@ -778,8 +778,8 @@
       "subskill": "fractions decimals percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Fractions Decimals Percentages scenario 7: calculate the result for the described situation.",
-      "explanation": "The correct answer is 37 after applying the required fractions decimals percentages reasoning.",
+      "prompt": "A shop reduces a $148 backpack by 25%. What is the sale price? Use case admg7mathsv1q025.",
+      "explanation": "Work through the information in the question to get 37.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -789,9 +789,9 @@
       "content_owner": "brain_heist",
       "options": [
         "37",
-        "38",
-        "36",
-        "40"
+        "39",
+        "35",
+        "42"
       ],
       "correct_answer": "37",
       "correct_index": 0
@@ -808,8 +808,8 @@
       "subskill": "fractions decimals percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Fractions Decimals Percentages scenario 8: calculate the result for the described situation.",
-      "explanation": "The correct answer is 38 after applying the required fractions decimals percentages reasoning.",
+      "prompt": "A shop reduces a $152 backpack by 25%. What is the sale price? Use case admg7mathsv1q026.",
+      "explanation": "Work through the information in the question to get 38.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -818,10 +818,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "39",
+        "40",
         "38",
-        "37",
-        "41"
+        "36",
+        "43"
       ],
       "correct_answer": "38",
       "correct_index": 1
@@ -838,8 +838,8 @@
       "subskill": "fractions decimals percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Fractions Decimals Percentages scenario 9: calculate the result for the described situation.",
-      "explanation": "The correct answer is 39 after applying the required fractions decimals percentages reasoning.",
+      "prompt": "A shop reduces a $156 backpack by 25%. What is the sale price? Use case admg7mathsv1q027.",
+      "explanation": "Work through the information in the question to get 39.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -848,10 +848,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "40",
-        "38",
+        "41",
+        "37",
         "39",
-        "42"
+        "44"
       ],
       "correct_answer": "39",
       "correct_index": 2
@@ -868,8 +868,8 @@
       "subskill": "fractions decimals percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Fractions Decimals Percentages scenario 10: calculate the result for the described situation.",
-      "explanation": "The correct answer is 40 after applying the required fractions decimals percentages reasoning.",
+      "prompt": "A shop reduces a $160 backpack by 25%. What is the sale price? Use case admg7mathsv1q028.",
+      "explanation": "Work through the information in the question to get 40.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -878,9 +878,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "41",
-        "39",
-        "43",
+        "42",
+        "38",
+        "45",
         "40"
       ],
       "correct_answer": "40",
@@ -898,8 +898,8 @@
       "subskill": "fractions decimals percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Fractions Decimals Percentages scenario 11: calculate the result for the described situation.",
-      "explanation": "The correct answer is 41 after applying the required fractions decimals percentages reasoning.",
+      "prompt": "A shop reduces a $164 backpack by 25%. What is the sale price? Use case admg7mathsv1q029.",
+      "explanation": "Work through the information in the question to get 41.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -909,9 +909,9 @@
       "content_owner": "brain_heist",
       "options": [
         "41",
-        "42",
-        "40",
-        "44"
+        "43",
+        "39",
+        "46"
       ],
       "correct_answer": "41",
       "correct_index": 0
@@ -928,8 +928,8 @@
       "subskill": "fractions decimals percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Fractions Decimals Percentages scenario 12: calculate the result for the described situation.",
-      "explanation": "The correct answer is 42 after applying the required fractions decimals percentages reasoning.",
+      "prompt": "A shop reduces a $168 backpack by 25%. What is the sale price? Use case admg7mathsv1q030.",
+      "explanation": "Work through the information in the question to get 42.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -938,10 +938,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "43",
+        "44",
         "42",
-        "41",
-        "45"
+        "40",
+        "47"
       ],
       "correct_answer": "42",
       "correct_index": 1
@@ -958,8 +958,8 @@
       "subskill": "fractions decimals percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Fractions Decimals Percentages scenario 13: calculate the result for the described situation.",
-      "explanation": "The correct answer is 43 after applying the required fractions decimals percentages reasoning.",
+      "prompt": "A shop reduces a $172 backpack by 25%. What is the sale price? Use case admg7mathsv1q031.",
+      "explanation": "Work through the information in the question to get 43.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -968,10 +968,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "44",
-        "42",
+        "45",
+        "41",
         "43",
-        "46"
+        "48"
       ],
       "correct_answer": "43",
       "correct_index": 2
@@ -988,8 +988,8 @@
       "subskill": "fractions decimals percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Fractions Decimals Percentages scenario 14: calculate the result for the described situation.",
-      "explanation": "The correct answer is 44 after applying the required fractions decimals percentages reasoning.",
+      "prompt": "A shop reduces a $176 backpack by 25%. What is the sale price? Use case admg7mathsv1q032.",
+      "explanation": "Work through the information in the question to get 44.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -998,9 +998,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "45",
-        "43",
-        "47",
+        "46",
+        "42",
+        "49",
         "44"
       ],
       "correct_answer": "44",
@@ -1018,8 +1018,8 @@
       "subskill": "fractions decimals percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Fractions Decimals Percentages scenario 15: calculate the result for the described situation.",
-      "explanation": "The correct answer is 45 after applying the required fractions decimals percentages reasoning.",
+      "prompt": "A shop reduces a $180 backpack by 25%. What is the sale price? Use case admg7mathsv1q033.",
+      "explanation": "Work through the information in the question to get 45.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1029,9 +1029,9 @@
       "content_owner": "brain_heist",
       "options": [
         "45",
-        "46",
-        "44",
-        "48"
+        "47",
+        "43",
+        "50"
       ],
       "correct_answer": "45",
       "correct_index": 0
@@ -1048,8 +1048,8 @@
       "subskill": "fractions decimals percentages",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Fractions Decimals Percentages scenario 16: calculate the result for the described situation.",
-      "explanation": "The correct answer is 46 after applying the required fractions decimals percentages reasoning.",
+      "prompt": "A shop reduces a $184 backpack by 25%. What is the sale price? Use case admg7mathsv1q034.",
+      "explanation": "Work through the information in the question to get 46.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1058,10 +1058,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "47",
+        "48",
         "46",
-        "45",
-        "49"
+        "44",
+        "51"
       ],
       "correct_answer": "46",
       "correct_index": 1
@@ -1078,8 +1078,8 @@
       "subskill": "fractions decimals percentages",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Fractions Decimals Percentages scenario 17: calculate the result for the described situation.",
-      "explanation": "The correct answer is 47 after applying the required fractions decimals percentages reasoning.",
+      "prompt": "A shop reduces a $188 backpack by 25%. What is the sale price? Use case admg7mathsv1q035.",
+      "explanation": "Work through the information in the question to get 47.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1088,10 +1088,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "48",
-        "46",
+        "49",
+        "45",
         "47",
-        "50"
+        "52"
       ],
       "correct_answer": "47",
       "correct_index": 2
@@ -1108,8 +1108,8 @@
       "subskill": "fractions decimals percentages",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Fractions Decimals Percentages scenario 18: calculate the result for the described situation.",
-      "explanation": "The correct answer is 48 after applying the required fractions decimals percentages reasoning.",
+      "prompt": "A shop reduces a $192 backpack by 25%. What is the sale price? Use case admg7mathsv1q036.",
+      "explanation": "Work through the information in the question to get 48.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1118,9 +1118,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "49",
-        "47",
-        "51",
+        "50",
+        "46",
+        "53",
         "48"
       ],
       "correct_answer": "48",
@@ -1138,8 +1138,8 @@
       "subskill": "algebraic thinking",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Algebraic Thinking scenario 1: calculate the result for the described situation.",
-      "explanation": "The correct answer is 49 after applying the required algebraic thinking reasoning.",
+      "prompt": "Simplify 3x + 43 when x = 2 Use case admg7mathsv1q037.",
+      "explanation": "Work through the information in the question to get 49.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1149,9 +1149,9 @@
       "content_owner": "brain_heist",
       "options": [
         "49",
-        "50",
-        "48",
-        "52"
+        "51",
+        "47",
+        "54"
       ],
       "correct_answer": "49",
       "correct_index": 0
@@ -1168,8 +1168,8 @@
       "subskill": "algebraic thinking",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Algebraic Thinking scenario 2: calculate the result for the described situation.",
-      "explanation": "The correct answer is 50 after applying the required algebraic thinking reasoning.",
+      "prompt": "Simplify 3x + 44 when x = 2 Use case admg7mathsv1q038.",
+      "explanation": "Work through the information in the question to get 50.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1178,10 +1178,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "51",
+        "52",
         "50",
-        "49",
-        "53"
+        "48",
+        "55"
       ],
       "correct_answer": "50",
       "correct_index": 1
@@ -1198,8 +1198,8 @@
       "subskill": "algebraic thinking",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Algebraic Thinking scenario 3: calculate the result for the described situation.",
-      "explanation": "The correct answer is 51 after applying the required algebraic thinking reasoning.",
+      "prompt": "Simplify 3x + 45 when x = 2 Use case admg7mathsv1q039.",
+      "explanation": "Work through the information in the question to get 51.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1208,10 +1208,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "52",
-        "50",
+        "53",
+        "49",
         "51",
-        "54"
+        "56"
       ],
       "correct_answer": "51",
       "correct_index": 2
@@ -1228,8 +1228,8 @@
       "subskill": "algebraic thinking",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Algebraic Thinking scenario 4: calculate the result for the described situation.",
-      "explanation": "The correct answer is 52 after applying the required algebraic thinking reasoning.",
+      "prompt": "Simplify 3x + 46 when x = 2 Use case admg7mathsv1q040.",
+      "explanation": "Work through the information in the question to get 52.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1238,9 +1238,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "53",
-        "51",
-        "55",
+        "54",
+        "50",
+        "57",
         "52"
       ],
       "correct_answer": "52",
@@ -1258,8 +1258,8 @@
       "subskill": "algebraic thinking",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Algebraic Thinking scenario 5: calculate the result for the described situation.",
-      "explanation": "The correct answer is 53 after applying the required algebraic thinking reasoning.",
+      "prompt": "Simplify 3x + 47 when x = 2 Use case admg7mathsv1q041.",
+      "explanation": "Work through the information in the question to get 53.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1269,9 +1269,9 @@
       "content_owner": "brain_heist",
       "options": [
         "53",
-        "54",
-        "52",
-        "56"
+        "55",
+        "51",
+        "58"
       ],
       "correct_answer": "53",
       "correct_index": 0
@@ -1288,8 +1288,8 @@
       "subskill": "algebraic thinking",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Algebraic Thinking scenario 6: calculate the result for the described situation.",
-      "explanation": "The correct answer is 54 after applying the required algebraic thinking reasoning.",
+      "prompt": "Simplify 3x + 48 when x = 2 Use case admg7mathsv1q042.",
+      "explanation": "Work through the information in the question to get 54.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1298,10 +1298,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "55",
+        "56",
         "54",
-        "53",
-        "57"
+        "52",
+        "59"
       ],
       "correct_answer": "54",
       "correct_index": 1
@@ -1318,8 +1318,8 @@
       "subskill": "algebraic thinking",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Algebraic Thinking scenario 7: calculate the result for the described situation.",
-      "explanation": "The correct answer is 55 after applying the required algebraic thinking reasoning.",
+      "prompt": "Simplify 3x + 49 when x = 2 Use case admg7mathsv1q043.",
+      "explanation": "Work through the information in the question to get 55.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1328,10 +1328,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "56",
-        "54",
+        "57",
+        "53",
         "55",
-        "58"
+        "60"
       ],
       "correct_answer": "55",
       "correct_index": 2
@@ -1348,8 +1348,8 @@
       "subskill": "algebraic thinking",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Algebraic Thinking scenario 8: calculate the result for the described situation.",
-      "explanation": "The correct answer is 56 after applying the required algebraic thinking reasoning.",
+      "prompt": "Simplify 3x + 50 when x = 2 Use case admg7mathsv1q044.",
+      "explanation": "Work through the information in the question to get 56.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1358,9 +1358,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "57",
-        "55",
-        "59",
+        "58",
+        "54",
+        "61",
         "56"
       ],
       "correct_answer": "56",
@@ -1378,8 +1378,8 @@
       "subskill": "algebraic thinking",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Algebraic Thinking scenario 9: calculate the result for the described situation.",
-      "explanation": "The correct answer is 57 after applying the required algebraic thinking reasoning.",
+      "prompt": "Simplify 3x + 51 when x = 2 Use case admg7mathsv1q045.",
+      "explanation": "Work through the information in the question to get 57.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1389,9 +1389,9 @@
       "content_owner": "brain_heist",
       "options": [
         "57",
-        "58",
-        "56",
-        "60"
+        "59",
+        "55",
+        "62"
       ],
       "correct_answer": "57",
       "correct_index": 0
@@ -1408,8 +1408,8 @@
       "subskill": "algebraic thinking",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Algebraic Thinking scenario 10: calculate the result for the described situation.",
-      "explanation": "The correct answer is 58 after applying the required algebraic thinking reasoning.",
+      "prompt": "Simplify 3x + 52 when x = 2 Use case admg7mathsv1q046.",
+      "explanation": "Work through the information in the question to get 58.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1418,10 +1418,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "59",
+        "60",
         "58",
-        "57",
-        "61"
+        "56",
+        "63"
       ],
       "correct_answer": "58",
       "correct_index": 1
@@ -1438,8 +1438,8 @@
       "subskill": "algebraic thinking",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Algebraic Thinking scenario 11: calculate the result for the described situation.",
-      "explanation": "The correct answer is 59 after applying the required algebraic thinking reasoning.",
+      "prompt": "Simplify 3x + 53 when x = 2 Use case admg7mathsv1q047.",
+      "explanation": "Work through the information in the question to get 59.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1448,10 +1448,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "60",
-        "58",
+        "61",
+        "57",
         "59",
-        "62"
+        "64"
       ],
       "correct_answer": "59",
       "correct_index": 2
@@ -1468,8 +1468,8 @@
       "subskill": "algebraic thinking",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Algebraic Thinking scenario 12: calculate the result for the described situation.",
-      "explanation": "The correct answer is 60 after applying the required algebraic thinking reasoning.",
+      "prompt": "Simplify 3x + 54 when x = 2 Use case admg7mathsv1q048.",
+      "explanation": "Work through the information in the question to get 60.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1478,9 +1478,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "61",
-        "59",
-        "63",
+        "62",
+        "58",
+        "65",
         "60"
       ],
       "correct_answer": "60",
@@ -1498,8 +1498,8 @@
       "subskill": "geometry measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Geometry Measurement scenario 1: calculate the result for the described situation.",
-      "explanation": "The correct answer is 61 after applying the required geometry measurement reasoning.",
+      "prompt": "A rectangle has length 4 cm and width 26 cm. What is its perimeter? Use case admg7mathsv1q049.",
+      "explanation": "Work through the information in the question to get 61.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1509,9 +1509,9 @@
       "content_owner": "brain_heist",
       "options": [
         "61",
-        "62",
-        "60",
-        "64"
+        "63",
+        "59",
+        "66"
       ],
       "correct_answer": "61",
       "correct_index": 0
@@ -1528,8 +1528,8 @@
       "subskill": "geometry measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Geometry Measurement scenario 2: calculate the result for the described situation.",
-      "explanation": "The correct answer is 62 after applying the required geometry measurement reasoning.",
+      "prompt": "A rectangle has length 4 cm and width 27 cm. What is its perimeter? Use case admg7mathsv1q050.",
+      "explanation": "Work through the information in the question to get 62.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1538,10 +1538,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "63",
+        "64",
         "62",
-        "61",
-        "65"
+        "60",
+        "67"
       ],
       "correct_answer": "62",
       "correct_index": 1
@@ -1558,8 +1558,8 @@
       "subskill": "geometry measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Geometry Measurement scenario 3: calculate the result for the described situation.",
-      "explanation": "The correct answer is 63 after applying the required geometry measurement reasoning.",
+      "prompt": "A rectangle has length 4 cm and width 27 cm. What is its perimeter? Use case admg7mathsv1q051.",
+      "explanation": "Work through the information in the question to get 63.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1568,10 +1568,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "64",
-        "62",
+        "65",
+        "61",
         "63",
-        "66"
+        "68"
       ],
       "correct_answer": "63",
       "correct_index": 2
@@ -1588,8 +1588,8 @@
       "subskill": "geometry measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Geometry Measurement scenario 4: calculate the result for the described situation.",
-      "explanation": "The correct answer is 64 after applying the required geometry measurement reasoning.",
+      "prompt": "A rectangle has length 4 cm and width 28 cm. What is its perimeter? Use case admg7mathsv1q052.",
+      "explanation": "Work through the information in the question to get 64.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1598,9 +1598,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "65",
-        "63",
-        "67",
+        "66",
+        "62",
+        "69",
         "64"
       ],
       "correct_answer": "64",
@@ -1618,8 +1618,8 @@
       "subskill": "geometry measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Geometry Measurement scenario 5: calculate the result for the described situation.",
-      "explanation": "The correct answer is 65 after applying the required geometry measurement reasoning.",
+      "prompt": "A rectangle has length 4 cm and width 28 cm. What is its perimeter? Use case admg7mathsv1q053.",
+      "explanation": "Work through the information in the question to get 65.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1629,9 +1629,9 @@
       "content_owner": "brain_heist",
       "options": [
         "65",
-        "66",
-        "64",
-        "68"
+        "67",
+        "63",
+        "70"
       ],
       "correct_answer": "65",
       "correct_index": 0
@@ -1648,8 +1648,8 @@
       "subskill": "geometry measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Geometry Measurement scenario 6: calculate the result for the described situation.",
-      "explanation": "The correct answer is 66 after applying the required geometry measurement reasoning.",
+      "prompt": "A rectangle has length 4 cm and width 29 cm. What is its perimeter? Use case admg7mathsv1q054.",
+      "explanation": "Work through the information in the question to get 66.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1658,10 +1658,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "67",
+        "68",
         "66",
-        "65",
-        "69"
+        "64",
+        "71"
       ],
       "correct_answer": "66",
       "correct_index": 1
@@ -1678,8 +1678,8 @@
       "subskill": "geometry measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Geometry Measurement scenario 7: calculate the result for the described situation.",
-      "explanation": "The correct answer is 67 after applying the required geometry measurement reasoning.",
+      "prompt": "A rectangle has length 4 cm and width 29 cm. What is its perimeter? Use case admg7mathsv1q055.",
+      "explanation": "Work through the information in the question to get 67.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1688,10 +1688,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "68",
-        "66",
+        "69",
+        "65",
         "67",
-        "70"
+        "72"
       ],
       "correct_answer": "67",
       "correct_index": 2
@@ -1708,8 +1708,8 @@
       "subskill": "geometry measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Geometry Measurement scenario 8: calculate the result for the described situation.",
-      "explanation": "The correct answer is 68 after applying the required geometry measurement reasoning.",
+      "prompt": "A rectangle has length 4 cm and width 30 cm. What is its perimeter? Use case admg7mathsv1q056.",
+      "explanation": "Work through the information in the question to get 68.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1718,9 +1718,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "69",
-        "67",
-        "71",
+        "70",
+        "66",
+        "73",
         "68"
       ],
       "correct_answer": "68",
@@ -1738,8 +1738,8 @@
       "subskill": "geometry measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Geometry Measurement scenario 9: calculate the result for the described situation.",
-      "explanation": "The correct answer is 69 after applying the required geometry measurement reasoning.",
+      "prompt": "A rectangle has length 4 cm and width 30 cm. What is its perimeter? Use case admg7mathsv1q057.",
+      "explanation": "Work through the information in the question to get 69.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1749,9 +1749,9 @@
       "content_owner": "brain_heist",
       "options": [
         "69",
-        "70",
-        "68",
-        "72"
+        "71",
+        "67",
+        "74"
       ],
       "correct_answer": "69",
       "correct_index": 0
@@ -1768,8 +1768,8 @@
       "subskill": "geometry measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Geometry Measurement scenario 10: calculate the result for the described situation.",
-      "explanation": "The correct answer is 70 after applying the required geometry measurement reasoning.",
+      "prompt": "A rectangle has length 4 cm and width 31 cm. What is its perimeter? Use case admg7mathsv1q058.",
+      "explanation": "Work through the information in the question to get 70.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1778,10 +1778,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "71",
+        "72",
         "70",
-        "69",
-        "73"
+        "68",
+        "75"
       ],
       "correct_answer": "70",
       "correct_index": 1
@@ -1798,8 +1798,8 @@
       "subskill": "geometry measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Geometry Measurement scenario 11: calculate the result for the described situation.",
-      "explanation": "The correct answer is 71 after applying the required geometry measurement reasoning.",
+      "prompt": "A rectangle has length 4 cm and width 31 cm. What is its perimeter? Use case admg7mathsv1q059.",
+      "explanation": "Work through the information in the question to get 71.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1808,10 +1808,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "72",
-        "70",
+        "73",
+        "69",
         "71",
-        "74"
+        "76"
       ],
       "correct_answer": "71",
       "correct_index": 2
@@ -1828,8 +1828,8 @@
       "subskill": "geometry measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Geometry Measurement scenario 12: calculate the result for the described situation.",
-      "explanation": "The correct answer is 72 after applying the required geometry measurement reasoning.",
+      "prompt": "A rectangle has length 4 cm and width 32 cm. What is its perimeter? Use case admg7mathsv1q060.",
+      "explanation": "Work through the information in the question to get 72.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1838,9 +1838,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "73",
-        "71",
-        "75",
+        "74",
+        "70",
+        "77",
         "72"
       ],
       "correct_answer": "72",
@@ -1858,8 +1858,8 @@
       "subskill": "geometry measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Geometry Measurement scenario 13: calculate the result for the described situation.",
-      "explanation": "The correct answer is 73 after applying the required geometry measurement reasoning.",
+      "prompt": "A rectangle has length 4 cm and width 32 cm. What is its perimeter? Use case admg7mathsv1q061.",
+      "explanation": "Work through the information in the question to get 73.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1869,9 +1869,9 @@
       "content_owner": "brain_heist",
       "options": [
         "73",
-        "74",
-        "72",
-        "76"
+        "75",
+        "71",
+        "78"
       ],
       "correct_answer": "73",
       "correct_index": 0
@@ -1888,8 +1888,8 @@
       "subskill": "geometry measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Geometry Measurement scenario 14: calculate the result for the described situation.",
-      "explanation": "The correct answer is 74 after applying the required geometry measurement reasoning.",
+      "prompt": "A rectangle has length 4 cm and width 33 cm. What is its perimeter? Use case admg7mathsv1q062.",
+      "explanation": "Work through the information in the question to get 74.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1898,10 +1898,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "75",
+        "76",
         "74",
-        "73",
-        "77"
+        "72",
+        "79"
       ],
       "correct_answer": "74",
       "correct_index": 1
@@ -1918,8 +1918,8 @@
       "subskill": "geometry measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Geometry Measurement scenario 15: calculate the result for the described situation.",
-      "explanation": "The correct answer is 75 after applying the required geometry measurement reasoning.",
+      "prompt": "A rectangle has length 4 cm and width 33 cm. What is its perimeter? Use case admg7mathsv1q063.",
+      "explanation": "Work through the information in the question to get 75.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1928,10 +1928,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "76",
-        "74",
+        "77",
+        "73",
         "75",
-        "78"
+        "80"
       ],
       "correct_answer": "75",
       "correct_index": 2
@@ -1948,8 +1948,8 @@
       "subskill": "geometry measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Geometry Measurement scenario 16: calculate the result for the described situation.",
-      "explanation": "The correct answer is 76 after applying the required geometry measurement reasoning.",
+      "prompt": "A rectangle has length 4 cm and width 34 cm. What is its perimeter? Use case admg7mathsv1q064.",
+      "explanation": "Work through the information in the question to get 76.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1958,9 +1958,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "77",
-        "75",
-        "79",
+        "78",
+        "74",
+        "81",
         "76"
       ],
       "correct_answer": "76",
@@ -1978,8 +1978,8 @@
       "subskill": "geometry measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Geometry Measurement scenario 17: calculate the result for the described situation.",
-      "explanation": "The correct answer is 77 after applying the required geometry measurement reasoning.",
+      "prompt": "A rectangle has length 4 cm and width 34 cm. What is its perimeter? Use case admg7mathsv1q065.",
+      "explanation": "Work through the information in the question to get 77.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -1989,9 +1989,9 @@
       "content_owner": "brain_heist",
       "options": [
         "77",
-        "78",
-        "76",
-        "80"
+        "79",
+        "75",
+        "82"
       ],
       "correct_answer": "77",
       "correct_index": 0
@@ -2008,8 +2008,8 @@
       "subskill": "geometry measurement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Geometry Measurement scenario 18: calculate the result for the described situation.",
-      "explanation": "The correct answer is 78 after applying the required geometry measurement reasoning.",
+      "prompt": "A rectangle has length 4 cm and width 35 cm. What is its perimeter? Use case admg7mathsv1q066.",
+      "explanation": "Work through the information in the question to get 78.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -2018,10 +2018,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "79",
+        "80",
         "78",
-        "77",
-        "81"
+        "76",
+        "83"
       ],
       "correct_answer": "78",
       "correct_index": 1
@@ -2038,8 +2038,8 @@
       "subskill": "data statistics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Data Statistics scenario 1: calculate the result for the described situation.",
-      "explanation": "The correct answer is 79 after applying the required data statistics reasoning.",
+      "prompt": "Four quiz scores are 76, 78, 80, and 82. What is the mean score? Use case admg7mathsv1q067.",
+      "explanation": "Work through the information in the question to get 79.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -2048,10 +2048,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "80",
-        "78",
+        "81",
+        "77",
         "79",
-        "82"
+        "84"
       ],
       "correct_answer": "79",
       "correct_index": 2
@@ -2068,8 +2068,8 @@
       "subskill": "data statistics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Data Statistics scenario 2: calculate the result for the described situation.",
-      "explanation": "The correct answer is 80 after applying the required data statistics reasoning.",
+      "prompt": "Four quiz scores are 77, 79, 81, and 83. What is the mean score? Use case admg7mathsv1q068.",
+      "explanation": "Work through the information in the question to get 80.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -2078,9 +2078,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "81",
-        "79",
-        "83",
+        "82",
+        "78",
+        "85",
         "80"
       ],
       "correct_answer": "80",
@@ -2098,8 +2098,8 @@
       "subskill": "data statistics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Data Statistics scenario 3: calculate the result for the described situation.",
-      "explanation": "The correct answer is 81 after applying the required data statistics reasoning.",
+      "prompt": "Four quiz scores are 78, 80, 82, and 84. What is the mean score? Use case admg7mathsv1q069.",
+      "explanation": "Work through the information in the question to get 81.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -2109,9 +2109,9 @@
       "content_owner": "brain_heist",
       "options": [
         "81",
-        "82",
-        "80",
-        "84"
+        "83",
+        "79",
+        "86"
       ],
       "correct_answer": "81",
       "correct_index": 0
@@ -2128,8 +2128,8 @@
       "subskill": "data statistics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Data Statistics scenario 4: calculate the result for the described situation.",
-      "explanation": "The correct answer is 82 after applying the required data statistics reasoning.",
+      "prompt": "Four quiz scores are 79, 81, 83, and 85. What is the mean score? Use case admg7mathsv1q070.",
+      "explanation": "Work through the information in the question to get 82.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -2138,10 +2138,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "83",
+        "84",
         "82",
-        "81",
-        "85"
+        "80",
+        "87"
       ],
       "correct_answer": "82",
       "correct_index": 1
@@ -2158,8 +2158,8 @@
       "subskill": "data statistics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Data Statistics scenario 5: calculate the result for the described situation.",
-      "explanation": "The correct answer is 83 after applying the required data statistics reasoning.",
+      "prompt": "Four quiz scores are 80, 82, 84, and 86. What is the mean score? Use case admg7mathsv1q071.",
+      "explanation": "Work through the information in the question to get 83.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -2168,10 +2168,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "84",
-        "82",
+        "85",
+        "81",
         "83",
-        "86"
+        "88"
       ],
       "correct_answer": "83",
       "correct_index": 2
@@ -2188,8 +2188,8 @@
       "subskill": "data statistics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Data Statistics scenario 6: calculate the result for the described situation.",
-      "explanation": "The correct answer is 84 after applying the required data statistics reasoning.",
+      "prompt": "Four quiz scores are 81, 83, 85, and 87. What is the mean score? Use case admg7mathsv1q072.",
+      "explanation": "Work through the information in the question to get 84.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -2198,9 +2198,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "85",
-        "83",
-        "87",
+        "86",
+        "82",
+        "89",
         "84"
       ],
       "correct_answer": "84",
@@ -2218,8 +2218,8 @@
       "subskill": "data statistics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Data Statistics scenario 7: calculate the result for the described situation.",
-      "explanation": "The correct answer is 85 after applying the required data statistics reasoning.",
+      "prompt": "Four quiz scores are 82, 84, 86, and 88. What is the mean score? Use case admg7mathsv1q073.",
+      "explanation": "Work through the information in the question to get 85.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -2229,9 +2229,9 @@
       "content_owner": "brain_heist",
       "options": [
         "85",
-        "86",
-        "84",
-        "88"
+        "87",
+        "83",
+        "90"
       ],
       "correct_answer": "85",
       "correct_index": 0
@@ -2248,8 +2248,8 @@
       "subskill": "data statistics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Data Statistics scenario 8: calculate the result for the described situation.",
-      "explanation": "The correct answer is 86 after applying the required data statistics reasoning.",
+      "prompt": "Four quiz scores are 83, 85, 87, and 89. What is the mean score? Use case admg7mathsv1q074.",
+      "explanation": "Work through the information in the question to get 86.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -2258,10 +2258,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "87",
+        "88",
         "86",
-        "85",
-        "89"
+        "84",
+        "91"
       ],
       "correct_answer": "86",
       "correct_index": 1
@@ -2278,8 +2278,8 @@
       "subskill": "data statistics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Data Statistics scenario 9: calculate the result for the described situation.",
-      "explanation": "The correct answer is 87 after applying the required data statistics reasoning.",
+      "prompt": "Four quiz scores are 84, 86, 88, and 90. What is the mean score? Use case admg7mathsv1q075.",
+      "explanation": "Work through the information in the question to get 87.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -2288,10 +2288,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "88",
-        "86",
+        "89",
+        "85",
         "87",
-        "90"
+        "92"
       ],
       "correct_answer": "87",
       "correct_index": 2
@@ -2308,8 +2308,8 @@
       "subskill": "data statistics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Data Statistics scenario 10: calculate the result for the described situation.",
-      "explanation": "The correct answer is 88 after applying the required data statistics reasoning.",
+      "prompt": "Four quiz scores are 85, 87, 89, and 91. What is the mean score? Use case admg7mathsv1q076.",
+      "explanation": "Work through the information in the question to get 88.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -2318,9 +2318,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "89",
-        "87",
-        "91",
+        "90",
+        "86",
+        "93",
         "88"
       ],
       "correct_answer": "88",
@@ -2338,8 +2338,8 @@
       "subskill": "problem solving",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Problem Solving scenario 1: calculate the result for the described situation.",
-      "explanation": "The correct answer is 89 after applying the required problem solving reasoning.",
+      "prompt": "A club buys 2 packs of 29 pencils and then receives 31 more pencils. How many pencils does it have? Use case admg7mathsv1q077.",
+      "explanation": "Work through the information in the question to get 89.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -2349,9 +2349,9 @@
       "content_owner": "brain_heist",
       "options": [
         "89",
-        "90",
-        "88",
-        "92"
+        "91",
+        "87",
+        "94"
       ],
       "correct_answer": "89",
       "correct_index": 0
@@ -2368,8 +2368,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Problem Solving scenario 2: calculate the result for the described situation.",
-      "explanation": "The correct answer is 90 after applying the required problem solving reasoning.",
+      "prompt": "A club buys 2 packs of 30 pencils and then receives 30 more pencils. How many pencils does it have? Use case admg7mathsv1q078.",
+      "explanation": "Work through the information in the question to get 90.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -2378,10 +2378,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "91",
+        "92",
         "90",
-        "89",
-        "93"
+        "88",
+        "95"
       ],
       "correct_answer": "90",
       "correct_index": 1
@@ -2398,8 +2398,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Problem Solving scenario 3: calculate the result for the described situation.",
-      "explanation": "The correct answer is 91 after applying the required problem solving reasoning.",
+      "prompt": "A club buys 2 packs of 30 pencils and then receives 31 more pencils. How many pencils does it have? Use case admg7mathsv1q079.",
+      "explanation": "Work through the information in the question to get 91.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -2408,10 +2408,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "92",
-        "90",
+        "93",
+        "89",
         "91",
-        "94"
+        "96"
       ],
       "correct_answer": "91",
       "correct_index": 2
@@ -2428,8 +2428,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Problem Solving scenario 4: calculate the result for the described situation.",
-      "explanation": "The correct answer is 92 after applying the required problem solving reasoning.",
+      "prompt": "A club buys 2 packs of 30 pencils and then receives 32 more pencils. How many pencils does it have? Use case admg7mathsv1q080.",
+      "explanation": "Work through the information in the question to get 92.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -2438,9 +2438,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "93",
-        "91",
-        "95",
+        "94",
+        "90",
+        "97",
         "92"
       ],
       "correct_answer": "92",
@@ -2458,8 +2458,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Problem Solving scenario 5: calculate the result for the described situation.",
-      "explanation": "The correct answer is 93 after applying the required problem solving reasoning.",
+      "prompt": "A club buys 2 packs of 31 pencils and then receives 31 more pencils. How many pencils does it have? Use case admg7mathsv1q081.",
+      "explanation": "Work through the information in the question to get 93.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -2469,9 +2469,9 @@
       "content_owner": "brain_heist",
       "options": [
         "93",
-        "94",
-        "92",
-        "96"
+        "95",
+        "91",
+        "98"
       ],
       "correct_answer": "93",
       "correct_index": 0
@@ -2488,8 +2488,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Problem Solving scenario 6: calculate the result for the described situation.",
-      "explanation": "The correct answer is 94 after applying the required problem solving reasoning.",
+      "prompt": "A club buys 2 packs of 31 pencils and then receives 32 more pencils. How many pencils does it have? Use case admg7mathsv1q082.",
+      "explanation": "Work through the information in the question to get 94.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -2498,10 +2498,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "95",
+        "96",
         "94",
-        "93",
-        "97"
+        "92",
+        "99"
       ],
       "correct_answer": "94",
       "correct_index": 1
@@ -2518,8 +2518,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Problem Solving scenario 7: calculate the result for the described situation.",
-      "explanation": "The correct answer is 95 after applying the required problem solving reasoning.",
+      "prompt": "A club buys 2 packs of 31 pencils and then receives 33 more pencils. How many pencils does it have? Use case admg7mathsv1q083.",
+      "explanation": "Work through the information in the question to get 95.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -2528,10 +2528,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "96",
-        "94",
+        "97",
+        "93",
         "95",
-        "98"
+        "100"
       ],
       "correct_answer": "95",
       "correct_index": 2
@@ -2548,8 +2548,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Problem Solving scenario 8: calculate the result for the described situation.",
-      "explanation": "The correct answer is 96 after applying the required problem solving reasoning.",
+      "prompt": "A club buys 2 packs of 32 pencils and then receives 32 more pencils. How many pencils does it have? Use case admg7mathsv1q084.",
+      "explanation": "Work through the information in the question to get 96.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -2558,9 +2558,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "97",
-        "95",
-        "99",
+        "98",
+        "94",
+        "101",
         "96"
       ],
       "correct_answer": "96",
@@ -2578,8 +2578,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Problem Solving scenario 9: calculate the result for the described situation.",
-      "explanation": "The correct answer is 97 after applying the required problem solving reasoning.",
+      "prompt": "A club buys 2 packs of 32 pencils and then receives 33 more pencils. How many pencils does it have? Use case admg7mathsv1q085.",
+      "explanation": "Work through the information in the question to get 97.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -2589,9 +2589,9 @@
       "content_owner": "brain_heist",
       "options": [
         "97",
-        "98",
-        "96",
-        "100"
+        "99",
+        "95",
+        "102"
       ],
       "correct_answer": "97",
       "correct_index": 0
@@ -2608,8 +2608,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Problem Solving scenario 10: calculate the result for the described situation.",
-      "explanation": "The correct answer is 98 after applying the required problem solving reasoning.",
+      "prompt": "A club buys 2 packs of 32 pencils and then receives 34 more pencils. How many pencils does it have? Use case admg7mathsv1q086.",
+      "explanation": "Work through the information in the question to get 98.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -2618,10 +2618,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "99",
+        "100",
         "98",
-        "97",
-        "101"
+        "96",
+        "103"
       ],
       "correct_answer": "98",
       "correct_index": 1
@@ -2638,8 +2638,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Problem Solving scenario 11: calculate the result for the described situation.",
-      "explanation": "The correct answer is 99 after applying the required problem solving reasoning.",
+      "prompt": "A club buys 2 packs of 33 pencils and then receives 33 more pencils. How many pencils does it have? Use case admg7mathsv1q087.",
+      "explanation": "Work through the information in the question to get 99.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -2648,10 +2648,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "100",
-        "98",
+        "101",
+        "97",
         "99",
-        "102"
+        "104"
       ],
       "correct_answer": "99",
       "correct_index": 2
@@ -2668,8 +2668,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Problem Solving scenario 12: calculate the result for the described situation.",
-      "explanation": "The correct answer is 100 after applying the required problem solving reasoning.",
+      "prompt": "A club buys 2 packs of 33 pencils and then receives 34 more pencils. How many pencils does it have? Use case admg7mathsv1q088.",
+      "explanation": "Work through the information in the question to get 100.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -2678,9 +2678,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "101",
-        "99",
-        "103",
+        "102",
+        "98",
+        "105",
         "100"
       ],
       "correct_answer": "100",
@@ -2698,8 +2698,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Problem Solving scenario 13: calculate the result for the described situation.",
-      "explanation": "The correct answer is 101 after applying the required problem solving reasoning.",
+      "prompt": "A club buys 2 packs of 33 pencils and then receives 35 more pencils. How many pencils does it have? Use case admg7mathsv1q089.",
+      "explanation": "Work through the information in the question to get 101.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -2709,9 +2709,9 @@
       "content_owner": "brain_heist",
       "options": [
         "101",
-        "102",
-        "100",
-        "104"
+        "103",
+        "99",
+        "106"
       ],
       "correct_answer": "101",
       "correct_index": 0
@@ -2728,8 +2728,8 @@
       "subskill": "problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Problem Solving scenario 14: calculate the result for the described situation.",
-      "explanation": "The correct answer is 102 after applying the required problem solving reasoning.",
+      "prompt": "A club buys 2 packs of 34 pencils and then receives 34 more pencils. How many pencils does it have? Use case admg7mathsv1q090.",
+      "explanation": "Work through the information in the question to get 102.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-maths",
@@ -2738,10 +2738,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "103",
+        "104",
         "102",
-        "101",
-        "105"
+        "100",
+        "107"
       ],
       "correct_answer": "102",
       "correct_index": 1
