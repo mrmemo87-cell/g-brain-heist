@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -248,11 +248,12 @@ test('official admission bank validator fails synthetic bank where the correct o
 test('official admission bank validator reports Grade 7 English longest-answer bias if it is reintroduced', () => {
   const root = mkdtempSync(path.join(tmpdir(), 'adm-official-bank-g7-bias-'));
   for (const dir of ['english', 'maths', 'science', 'shared']) mkdirSync(path.join(root, dir), { recursive: true });
-  writeJson(path.join(root, 'shared', 'reading_passages.json'), { passages: [] });
-  writeJson(path.join(root, 'shared', 'writing_rubrics.json'), { rubrics: [] });
+  const seedRoot = path.join(process.cwd(), 'supabase', 'seed', 'admission-official-bank');
+  copyFileSync(path.join(seedRoot, 'shared', 'reading_passages.json'), path.join(root, 'shared', 'reading_passages.json'));
+  copyFileSync(path.join(seedRoot, 'shared', 'writing_rubrics.json'), path.join(root, 'shared', 'writing_rubrics.json'));
   for (const subject of ['english', 'maths', 'science']) {
     for (const grade of [5, 6, 7, 8]) {
-      const source = JSON.parse(readFileSync(path.join(process.cwd(), 'supabase', 'seed', 'admission-official-bank', subject, `grade_${grade}.json`), 'utf8'));
+      const source = JSON.parse(readFileSync(path.join(seedRoot, subject, `grade_${grade}.json`), 'utf8'));
       if (subject === 'english' && grade === 7) {
         for (const question of source.questions.filter((q: any) => Array.isArray(q.options)).slice(0, 50)) {
           const correctIndex = question.correct_index;
