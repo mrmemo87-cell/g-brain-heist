@@ -7,6 +7,7 @@ const generateSql = readFileSync('supabase/migrations/20260629143500_admission_g
 const seedDoc = readFileSync('docs/admissions/official-bank-seed-format.md', 'utf8');
 const legacyArchiveSql = readFileSync('supabase/migrations/20260707180000_admission_archive_unreferenced_legacy_official_bank.sql', 'utf8');
 const legacyInspectionSql = readFileSync('supabase/inspection/admission_legacy_official_bank_cleanup_inspection.sql', 'utf8');
+const generatedFormOptionQualityInspectionSql = readFileSync('supabase/inspection/admission_generated_form_option_quality_inspection.sql', 'utf8');
 
 test('admission official bank migration adds locked ownership metadata', () => {
   for (const token of [
@@ -104,4 +105,16 @@ test('legacy inspection reports archived legacy separately from active unmanaged
   assert.match(legacyInspectionSql, /active_unmanaged_question_count/);
   assert.match(legacyInspectionSql, /referenced_form_count/);
   assert.match(legacyInspectionSql, /referenced_attempt_count/);
+});
+
+test('generated form option-quality inspection uses deployed Admission question schema', () => {
+  assert.doesNotMatch(generatedFormOptionQualityInspectionSql, /\bq\.prompt\b/);
+  assert.doesNotMatch(generatedFormOptionQualityInspectionSql, /\bq\.subject\b/);
+  assert.doesNotMatch(generatedFormOptionQualityInspectionSql, /\badm_questions\.prompt\b/);
+  assert.doesNotMatch(generatedFormOptionQualityInspectionSql, /\badm_questions\.subject\b/);
+  assert.match(generatedFormOptionQualityInspectionSql, /\bq\.stem\b/);
+
+  if (/\bsubject\b/i.test(generatedFormOptionQualityInspectionSql)) {
+    assert.match(generatedFormOptionQualityInspectionSql, /\bqp\.subject\b/);
+  }
 });

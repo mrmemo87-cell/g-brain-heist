@@ -12,12 +12,12 @@ WITH form_questions AS (
     f.created_at,
     q.id AS question_id,
     q.external_id,
-    q.prompt,
+    q.stem,
     q.correct_index,
     q.options,
     q.content_owner,
     q.content_version,
-    lower(regexp_replace(coalesce(q.prompt, ''), '[^a-z0-9]+', ' ', 'g')) AS normalized_stem
+    lower(regexp_replace(coalesce(q.stem, ''), '[^a-z0-9]+', ' ', 'g')) AS normalized_stem
   FROM public.adm_test_forms f
   JOIN public.adm_test_form_questions fq ON fq.form_id = f.id
   JOIN public.adm_questions q ON q.id = fq.question_id
@@ -27,7 +27,7 @@ WITH form_questions AS (
     form_code,
     question_id,
     external_id,
-    prompt,
+    stem,
     correct_index,
     content_owner,
     content_version,
