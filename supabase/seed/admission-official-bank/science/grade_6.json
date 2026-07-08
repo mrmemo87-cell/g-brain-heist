@@ -88,8 +88,8 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Why do animals in the same habitat often have different beak or tooth shapes?",
-      "explanation": "Their structures help them get different foods. This directly matches the evidence in the question.",
+      "prompt": "Why might a bird have a long, narrow beak?",
+      "explanation": "A long, narrow beak can help a bird reach nectar or small insects.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -98,13 +98,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "They are all trying to look alike.",
-        "The weather changes their teeth each day.",
-        "It prevents every animal from moving.",
-        "Their structures help them get different foods."
+        "To store water in feathers.",
+        "To make its bones heavier.",
+        "To reach nectar in flowers.",
+        "To stop it from flying."
       ],
-      "correct_answer": "Their structures help them get different foods.",
-      "correct_index": 3
+      "correct_answer": "To reach nectar in flowers.",
+      "correct_index": 2
     },
     {
       "external_id": "adm-g6-science-v1-q003",
@@ -148,8 +148,8 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "why do animals in the same habitat often have different beak or tooth shapes?.",
-      "explanation": "Their structures help them get different foods. This directly matches the evidence in the question.",
+      "prompt": "Why do meat-eating animals often have sharp canine teeth?",
+      "explanation": "Sharp canine teeth help some animals grip and tear meat.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -158,13 +158,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Their structures help them get different foods.",
-        "They are all trying to look alike.",
-        "The weather changes their teeth each day.",
-        "It prevents every animal from moving."
+        "To chew grass slowly.",
+        "To clean their fur.",
+        "To grip and tear food.",
+        "To help them breathe."
       ],
-      "correct_answer": "Their structures help them get different foods.",
-      "correct_index": 0
+      "correct_answer": "To grip and tear food.",
+      "correct_index": 2
     },
     {
       "external_id": "adm-g6-science-v1-q005",
@@ -208,8 +208,8 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "why do animals in the same habitat often have different beak or tooth shapes?.",
-      "explanation": "Their structures help them get different foods. This directly matches the evidence in the question.",
+      "prompt": "How do webbed feet help a duck survive near water?",
+      "explanation": "Webbed feet push against water and help ducks swim.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -218,12 +218,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "They are all trying to look alike.",
-        "The weather changes their teeth each day.",
-        "Their structures help them get different foods.",
-        "It prevents every animal from moving."
+        "They help it climb trees.",
+        "They keep its eyes dry.",
+        "They help it swim.",
+        "They make its beak sharper."
       ],
-      "correct_answer": "Their structures help them get different foods.",
+      "correct_answer": "They help it swim.",
       "correct_index": 2
     },
     {
@@ -268,8 +268,8 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "why do animals in the same habitat often have different beak or tooth shapes?.",
-      "explanation": "Their structures help them get different foods. This directly matches the evidence in the question.",
+      "prompt": "Why do plant-eating animals often have broad, flat teeth?",
+      "explanation": "Broad, flat teeth help herbivores grind leaves, stems, and grass.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -278,13 +278,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "They are all trying to look alike.",
-        "The weather changes their teeth each day.",
-        "Their structures help them get different foods.",
-        "It prevents every animal from moving."
+        "To catch insects in flight.",
+        "To make loud warning calls.",
+        "To store food in winter.",
+        "To grind tough plant material."
       ],
-      "correct_answer": "Their structures help them get different foods.",
-      "correct_index": 2
+      "correct_answer": "To grind tough plant material.",
+      "correct_index": 3
     },
     {
       "external_id": "adm-g6-science-v1-q009",
@@ -328,8 +328,8 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "why do animals in the same habitat often have different beak or tooth shapes?.",
-      "explanation": "Their structures help them get different foods. This directly matches the evidence in the question.",
+      "prompt": "How can brown fur help a small animal living on dry ground?",
+      "explanation": "Camouflage can help an animal avoid predators.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -338,13 +338,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "They are all trying to look alike.",
-        "The weather changes their teeth each day.",
-        "It prevents every animal from moving.",
-        "Their structures help them get different foods."
+        "It makes the animal heavier.",
+        "It helps the animal blend in.",
+        "It changes the animal’s diet.",
+        "It makes the animal waterproof."
       ],
-      "correct_answer": "Their structures help them get different foods.",
-      "correct_index": 3
+      "correct_answer": "It helps the animal blend in.",
+      "correct_index": 1
     },
     {
       "external_id": "adm-g6-science-v1-q011",
@@ -388,8 +388,8 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "why do animals in the same habitat often have different beak or tooth shapes?.",
-      "explanation": "Their structures help them get different foods. This directly matches the evidence in the question.",
+      "prompt": "Why might an owl have large eyes?",
+      "explanation": "Large eyes can help an owl see in low light.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -398,13 +398,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Their structures help them get different foods.",
-        "They are all trying to look alike.",
-        "The weather changes their teeth each day.",
-        "It prevents every animal from moving."
+        "To chew harder food.",
+        "To swim faster.",
+        "To see better in dim light.",
+        "To grow longer feathers."
       ],
-      "correct_answer": "Their structures help them get different foods.",
-      "correct_index": 0
+      "correct_answer": "To see better in dim light.",
+      "correct_index": 2
     },
     {
       "external_id": "adm-g6-science-v1-q013",
@@ -448,8 +448,8 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "why do animals in the same habitat often have different beak or tooth shapes?.",
-      "explanation": "Their structures help them get different foods. This directly matches the evidence in the question.",
+      "prompt": "Why do animals in the same habitat often have different beaks or teeth?",
+      "explanation": "Different beaks and teeth are adaptations for different food sources.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -458,12 +458,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "They are all trying to look alike.",
-        "The weather changes their teeth each day.",
-        "Their structures help them get different foods.",
-        "It prevents every animal from moving."
+        "They all hunt in the same way.",
+        "They have no need for shelter.",
+        "They eat different kinds of food.",
+        "They live without competition."
       ],
-      "correct_answer": "Their structures help them get different foods.",
+      "correct_answer": "They eat different kinds of food.",
       "correct_index": 2
     },
     {
@@ -509,7 +509,7 @@
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "Which change is usually reversible?",
-      "explanation": "Melting an ice cube This directly matches the evidence in the question.",
+      "explanation": "Frozen water can melt back into liquid water.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -518,12 +518,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Burning paper",
-        "Baking bread.",
-        "Melting an ice cube",
-        "Rusting iron"
+        "Burning dry leaves.",
+        "Cooking an egg.",
+        "Freezing water into ice.",
+        "Baking bread dough."
       ],
-      "correct_answer": "Melting an ice cube",
+      "correct_answer": "Freezing water into ice.",
       "correct_index": 2
     },
     {
@@ -568,8 +568,8 @@
       "subskill": "materials / chemistry",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "which change is usually reversible?.",
-      "explanation": "Melting an ice cube This directly matches the evidence in the question.",
+      "prompt": "Which material change can usually be undone by cooling?",
+      "explanation": "Melted wax can become solid again when it cools.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -578,13 +578,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Burning paper",
-        "Baking bread.",
-        "Rusting iron",
-        "Melting an ice cube"
+        "Rusting an iron nail.",
+        "Burning a matchstick.",
+        "Melting candle wax.",
+        "Mixing cement with water."
       ],
-      "correct_answer": "Melting an ice cube",
-      "correct_index": 3
+      "correct_answer": "Melting candle wax.",
+      "correct_index": 2
     },
     {
       "external_id": "adm-g6-science-v1-q019",
@@ -628,8 +628,8 @@
       "subskill": "materials / chemistry",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Which change is usually reversible?",
-      "explanation": "Melting is usually reversible because water can freeze again.",
+      "prompt": "Which change can usually be reversed by freezing again?",
+      "explanation": "Melted ice can become solid again if it is cooled below freezing.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -688,8 +688,8 @@
       "subskill": "materials / chemistry",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "which change is usually reversible?.",
-      "explanation": "Melting an ice cube This directly matches the evidence in the question.",
+      "prompt": "Which example shows a reversible physical change?",
+      "explanation": "A rubber band can usually return to its original shape after stretching.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -698,13 +698,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Burning paper",
-        "Baking bread.",
-        "Melting an ice cube",
-        "Rusting iron"
+        "Toasting bread.",
+        "Boiling an egg.",
+        "Burning paper.",
+        "Stretching a rubber band."
       ],
-      "correct_answer": "Melting an ice cube",
-      "correct_index": 2
+      "correct_answer": "Stretching a rubber band.",
+      "correct_index": 3
     },
     {
       "external_id": "adm-g6-science-v1-q023",
@@ -748,8 +748,8 @@
       "subskill": "materials / chemistry",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "which change is usually reversible?.",
-      "explanation": "Melting an ice cube This directly matches the evidence in the question.",
+      "prompt": "Which mixture could be separated most easily by sieving?",
+      "explanation": "A sieve can separate larger gravel pieces from smaller sand grains.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -758,12 +758,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Burning paper",
-        "Baking bread.",
-        "Melting an ice cube",
-        "Rusting iron"
+        "Salt dissolved in water.",
+        "Sugar melted in a pan.",
+        "Sand and gravel.",
+        "Paint mixed with water."
       ],
-      "correct_answer": "Melting an ice cube",
+      "correct_answer": "Sand and gravel.",
       "correct_index": 2
     },
     {
@@ -808,8 +808,8 @@
       "subskill": "materials / chemistry",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "which change is usually reversible?.",
-      "explanation": "Melting an ice cube This directly matches the evidence in the question.",
+      "prompt": "Which process is part of the water cycle and reversible?",
+      "explanation": "Water can evaporate into vapour and later condense back into liquid.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -818,13 +818,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Burning paper",
-        "Baking bread.",
-        "Rusting iron",
-        "Melting an ice cube"
+        "Burning wood.",
+        "Rusting metal.",
+        "Evaporation and condensation.",
+        "Cooking pancake batter."
       ],
-      "correct_answer": "Melting an ice cube",
-      "correct_index": 3
+      "correct_answer": "Evaporation and condensation.",
+      "correct_index": 2
     },
     {
       "external_id": "adm-g6-science-v1-q027",
@@ -869,7 +869,7 @@
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Why does a parachute slow a falling object?",
-      "explanation": "It increases air resistance. This directly matches the evidence in the question.",
+      "explanation": "A parachute has a large surface area, which increases air resistance.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -878,13 +878,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It increases air resistance.",
-        "It removes gravity.",
+        "It removes gravity completely.",
         "It makes the object weightless.",
-        "It turns air into a solid."
+        "It increases air resistance.",
+        "It turns air into water."
       ],
       "correct_answer": "It increases air resistance.",
-      "correct_index": 0
+      "correct_index": 2
     },
     {
       "external_id": "adm-g6-science-v1-q029",
@@ -928,8 +928,8 @@
       "subskill": "forces / physics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "why does a parachute slow a falling object?.",
-      "explanation": "It increases air resistance. This directly matches the evidence in the question.",
+      "prompt": "Which parachute would usually fall more slowly?",
+      "explanation": "A larger canopy catches more air and creates more drag.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -938,13 +938,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It removes gravity.",
-        "It makes the object weightless.",
-        "It increases air resistance.",
-        "It turns air into a solid."
+        "One with no strings.",
+        "One with a larger canopy.",
+        "One made from a tiny square.",
+        "One folded tightly shut."
       ],
-      "correct_answer": "It increases air resistance.",
-      "correct_index": 2
+      "correct_answer": "One with a larger canopy.",
+      "correct_index": 1
     },
     {
       "external_id": "adm-g6-science-v1-q031",
@@ -988,8 +988,8 @@
       "subskill": "forces / physics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "why does a parachute slow a falling object?.",
-      "explanation": "It increases air resistance. This directly matches the evidence in the question.",
+      "prompt": "What force pulls a parachutist downward?",
+      "explanation": "Gravity pulls objects toward Earth.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -998,12 +998,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It removes gravity.",
-        "It makes the object weightless.",
-        "It increases air resistance.",
-        "It turns air into a solid."
+        "Friction from the ground.",
+        "Magnetism from clouds.",
+        "Gravity.",
+        "Sound energy."
       ],
-      "correct_answer": "It increases air resistance.",
+      "correct_answer": "Gravity.",
       "correct_index": 2
     },
     {
@@ -1048,8 +1048,8 @@
       "subskill": "forces / physics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "why does a parachute slow a falling object?.",
-      "explanation": "It increases air resistance. This directly matches the evidence in the question.",
+      "prompt": "What force acts upward against a falling parachute?",
+      "explanation": "Air resistance acts against the motion of the falling parachute.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1058,13 +1058,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It removes gravity.",
-        "It makes the object weightless.",
-        "It turns air into a solid.",
-        "It increases air resistance."
+        "Electric current.",
+        "Light reflection.",
+        "Air resistance.",
+        "Water pressure."
       ],
-      "correct_answer": "It increases air resistance.",
-      "correct_index": 3
+      "correct_answer": "Air resistance.",
+      "correct_index": 2
     },
     {
       "external_id": "adm-g6-science-v1-q035",
@@ -1108,8 +1108,8 @@
       "subskill": "forces / physics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "why does a parachute slow a falling object?.",
-      "explanation": "It increases air resistance. This directly matches the evidence in the question.",
+      "prompt": "Why should parachute tests use the same drop height each time?",
+      "explanation": "Keeping the drop height the same makes the comparison fair.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1118,13 +1118,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It increases air resistance.",
-        "It removes gravity.",
-        "It makes the object weightless.",
-        "It turns air into a solid."
+        "To change two variables.",
+        "To make gravity disappear.",
+        "To keep the test fair.",
+        "To avoid measuring time."
       ],
-      "correct_answer": "It increases air resistance.",
-      "correct_index": 0
+      "correct_answer": "To keep the test fair.",
+      "correct_index": 2
     },
     {
       "external_id": "adm-g6-science-v1-q037",
@@ -1168,8 +1168,8 @@
       "subskill": "forces / physics",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "why does a parachute slow a falling object?.",
-      "explanation": "It increases air resistance. This directly matches the evidence in the question.",
+      "prompt": "What happens when air resistance increases on a falling object?",
+      "explanation": "More air resistance can reduce the falling speed.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1178,13 +1178,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It removes gravity.",
-        "It makes the object weightless.",
-        "It increases air resistance.",
-        "It turns air into a solid."
+        "It becomes magnetic.",
+        "It may fall more slowly.",
+        "It changes into a gas.",
+        "It stops having mass."
       ],
-      "correct_answer": "It increases air resistance.",
-      "correct_index": 2
+      "correct_answer": "It may fall more slowly.",
+      "correct_index": 1
     },
     {
       "external_id": "adm-g6-science-v1-q039",
@@ -1208,13 +1208,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Light travels straight and is blocked.",
         "Sound pushes the light backwards.",
+        "Light travels straight and is blocked.",
         "The book creates new darkness.",
         "Light bends equally around objects."
       ],
       "correct_answer": "Light travels straight and is blocked.",
-      "correct_index": 0
+      "correct_index": 1
     },
     {
       "external_id": "adm-g6-science-v1-q040",
@@ -1229,7 +1229,7 @@
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Which material would be best for a wire in a simple circuit?",
-      "explanation": "Copper This directly matches the evidence in the question.",
+      "explanation": "Copper is a good electrical conductor.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1238,13 +1238,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Rubber",
-        "Plastic",
-        "Copper",
-        "Wood"
+        "Rubber.",
+        "Dry wood.",
+        "Plastic.",
+        "Copper."
       ],
-      "correct_answer": "Copper",
-      "correct_index": 2
+      "correct_answer": "Copper.",
+      "correct_index": 3
     },
     {
       "external_id": "adm-g6-science-v1-q041",
@@ -1258,8 +1258,8 @@
       "subskill": "energy, light, sound, and electricity",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Why does a shadow form when a book blocks a torch beam?",
-      "explanation": "The book blocks the torch beam, so less light reaches the area behind it.",
+      "prompt": "Which object would make the clearest shadow?",
+      "explanation": "Opaque objects block light and form clear shadows.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1268,13 +1268,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Sound pushes the light backwards.",
-        "Light travels straight and is blocked.",
-        "The book creates new darkness.",
-        "Light bends equally around objects."
+        "A clear glass window.",
+        "A thin sheet of air.",
+        "An opaque cardboard card.",
+        "A transparent plastic cup."
       ],
-      "correct_answer": "Light travels straight and is blocked.",
-      "correct_index": 1
+      "correct_answer": "An opaque cardboard card.",
+      "correct_index": 2
     },
     {
       "external_id": "adm-g6-science-v1-q042",
@@ -1288,8 +1288,8 @@
       "subskill": "energy, light, sound, and electricity",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "which material would be best for a wire in a simple circuit?.",
-      "explanation": "Copper This directly matches the evidence in the question.",
+      "prompt": "Why is plastic often used around electrical wires?",
+      "explanation": "Plastic does not conduct electricity well, so it helps protect users.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1298,12 +1298,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Rubber",
-        "Plastic",
-        "Wood",
-        "Copper"
+        "It is a liquid metal.",
+        "It makes current stronger.",
+        "It stores sunlight.",
+        "It is an insulator."
       ],
-      "correct_answer": "Copper",
+      "correct_answer": "It is an insulator.",
       "correct_index": 3
     },
     {
@@ -1318,8 +1318,8 @@
       "subskill": "energy, light, sound, and electricity",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Why does a shadow form when a book blocks a torch beam?",
-      "explanation": "Light travels in straight lines, so an opaque object can block the beam.",
+      "prompt": "What happens to a shadow when an object moves closer to a torch?",
+      "explanation": "Moving an object closer to the light source can make its shadow larger.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1328,13 +1328,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Sound pushes the light backwards.",
-        "Light travels straight and is blocked.",
-        "The book creates new darkness.",
-        "Light bends equally around objects."
+        "It may become larger.",
+        "It always disappears.",
+        "It becomes a sound.",
+        "It turns transparent."
       ],
-      "correct_answer": "Light travels straight and is blocked.",
-      "correct_index": 1
+      "correct_answer": "It may become larger.",
+      "correct_index": 0
     },
     {
       "external_id": "adm-g6-science-v1-q044",
@@ -1348,8 +1348,8 @@
       "subskill": "energy, light, sound, and electricity",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "which material would be best for a wire in a simple circuit?.",
-      "explanation": "Copper This directly matches the evidence in the question.",
+      "prompt": "What is needed for a bulb to light in a simple circuit?",
+      "explanation": "Current flows when the circuit is complete.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1358,12 +1358,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Copper",
-        "Rubber",
-        "Plastic",
-        "Wood"
+        "A complete circuit.",
+        "A broken wire.",
+        "Only one battery end.",
+        "A plastic gap."
       ],
-      "correct_answer": "Copper",
+      "correct_answer": "A complete circuit.",
       "correct_index": 0
     },
     {
@@ -1378,8 +1378,8 @@
       "subskill": "energy, light, sound, and electricity",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Why does a shadow form when a book blocks a torch beam?",
-      "explanation": "A shadow appears where the book prevents light from reaching the surface.",
+      "prompt": "Which statement about light is correct?",
+      "explanation": "Light usually travels in straight lines.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1388,13 +1388,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Sound pushes the light backwards.",
-        "The book creates new darkness.",
-        "Light bends equally around objects.",
-        "Light travels straight and is blocked."
+        "Light needs wires to move.",
+        "Light travels in straight lines.",
+        "Light cannot travel through air.",
+        "Light is made only by mirrors."
       ],
-      "correct_answer": "Light travels straight and is blocked.",
-      "correct_index": 3
+      "correct_answer": "Light travels in straight lines.",
+      "correct_index": 1
     },
     {
       "external_id": "adm-g6-science-v1-q046",
@@ -1408,8 +1408,8 @@
       "subskill": "energy, light, sound, and electricity",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "which material would be best for a wire in a simple circuit?.",
-      "explanation": "Copper This directly matches the evidence in the question.",
+      "prompt": "What does a switch do in a circuit?",
+      "explanation": "A switch controls whether the circuit is complete or broken.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1418,13 +1418,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Rubber",
-        "Plastic",
-        "Copper",
-        "Wood"
+        "It opens or closes the circuit.",
+        "It turns metal into plastic.",
+        "It removes all energy.",
+        "It makes wires disappear."
       ],
-      "correct_answer": "Copper",
-      "correct_index": 2
+      "correct_answer": "It opens or closes the circuit.",
+      "correct_index": 0
     },
     {
       "external_id": "adm-g6-science-v1-q047",
@@ -1438,8 +1438,8 @@
       "subskill": "energy, light, sound, and electricity",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Why does a shadow form when a book blocks a torch beam?",
-      "explanation": "The opaque book blocks the straight path of the torch light.",
+      "prompt": "Why does frosted glass make a blurry shadow?",
+      "explanation": "Frosted glass lets some light through but scatters it.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1448,12 +1448,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Light travels straight and is blocked.",
-        "Sound pushes the light backwards.",
-        "The book creates new darkness.",
-        "Light bends equally around objects."
+        "It scatters some light.",
+        "It creates its own light.",
+        "It blocks all sound.",
+        "It removes gravity."
       ],
-      "correct_answer": "Light travels straight and is blocked.",
+      "correct_answer": "It scatters some light.",
       "correct_index": 0
     },
     {
@@ -1468,8 +1468,8 @@
       "subskill": "energy, light, sound, and electricity",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "which material would be best for a wire in a simple circuit?.",
-      "explanation": "Copper This directly matches the evidence in the question.",
+      "prompt": "Which item is a good electrical conductor?",
+      "explanation": "Most metals conduct electricity well.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1478,13 +1478,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Rubber",
-        "Plastic",
-        "Copper",
-        "Wood"
+        "A metal paperclip.",
+        "A rubber eraser.",
+        "A wooden ruler.",
+        "A plastic spoon."
       ],
-      "correct_answer": "Copper",
-      "correct_index": 2
+      "correct_answer": "A metal paperclip.",
+      "correct_index": 0
     },
     {
       "external_id": "adm-g6-science-v1-q049",
@@ -1498,8 +1498,8 @@
       "subskill": "energy, light, sound, and electricity",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Why does a shadow form when a book blocks a torch beam?",
-      "explanation": "The book blocks light from reaching the area behind it, creating a shadow.",
+      "prompt": "Where is a shadow usually found?",
+      "explanation": "A shadow forms on the side away from the light source.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1508,13 +1508,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Sound pushes the light backwards.",
-        "Light travels straight and is blocked.",
-        "The book creates new darkness.",
-        "Light bends equally around objects."
+        "Behind an object blocking light.",
+        "Inside the light source.",
+        "Only above the Sun.",
+        "Under every transparent object."
       ],
-      "correct_answer": "Light travels straight and is blocked.",
-      "correct_index": 1
+      "correct_answer": "Behind an object blocking light.",
+      "correct_index": 0
     },
     {
       "external_id": "adm-g6-science-v1-q050",
@@ -1528,8 +1528,8 @@
       "subskill": "energy, light, sound, and electricity",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "which material would be best for a wire in a simple circuit?.",
-      "explanation": "Copper This directly matches the evidence in the question.",
+      "prompt": "Why will a bulb not light if one wire is disconnected?",
+      "explanation": "A disconnected wire breaks the circuit, so current cannot flow around it.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1538,13 +1538,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Rubber",
-        "Plastic",
-        "Wood",
-        "Copper"
+        "The circuit is incomplete.",
+        "The bulb becomes heavier.",
+        "The battery turns off forever.",
+        "The wire becomes transparent."
       ],
-      "correct_answer": "Copper",
-      "correct_index": 3
+      "correct_answer": "The circuit is incomplete.",
+      "correct_index": 0
     },
     {
       "external_id": "adm-g6-science-v1-q051",
@@ -1559,7 +1559,7 @@
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Why do we have day and night on Earth?",
-      "explanation": "Earth rotates on its axis. This directly matches the evidence in the question.",
+      "explanation": "Day and night happen because Earth rotates.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1568,13 +1568,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The Moon covers the Sun every night.",
         "Earth rotates on its axis.",
-        "Earth moves closer to the Sun each day.",
-        "Clouds block the Sun at night."
+        "The Moon covers Earth daily.",
+        "Clouds block the Sun at night.",
+        "Earth stops moving at sunset."
       ],
       "correct_answer": "Earth rotates on its axis.",
-      "correct_index": 1
+      "correct_index": 0
     },
     {
       "external_id": "adm-g6-science-v1-q052",
@@ -1618,8 +1618,8 @@
       "subskill": "earth and space",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "why do we have day and night on Earth?.",
-      "explanation": "Earth rotates on its axis. This directly matches the evidence in the question.",
+      "prompt": "What causes the Sun to appear to move across the sky?",
+      "explanation": "Earth’s rotation makes the Sun appear to move across the sky.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1628,13 +1628,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The Moon covers the Sun every night.",
-        "Earth moves closer to the Sun each day.",
-        "Clouds block the Sun at night.",
-        "Earth rotates on its axis."
+        "Earth’s rotation.",
+        "The Sun orbiting Earth each day.",
+        "The Moon pushing sunlight.",
+        "Clouds turning the sky."
       ],
-      "correct_answer": "Earth rotates on its axis.",
-      "correct_index": 3
+      "correct_answer": "Earth’s rotation.",
+      "correct_index": 0
     },
     {
       "external_id": "adm-g6-science-v1-q054",
@@ -1648,8 +1648,8 @@
       "subskill": "earth and space",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "which observation is evidence that the Moon reflects sunlight?.",
-      "explanation": "The Moon is visible because sunlight bounces from its surface. This directly matches the evidence in the question.",
+      "prompt": "Why can we often see the Moon at night?",
+      "explanation": "The Moon does not make its own light; it reflects sunlight.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1658,13 +1658,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The Moon makes its own daylight under these conditions.",
-        "The Moon is a star under these conditions.",
-        "The Moon is visible because sunlight bounces from its surface.",
-        "The Moon is always hot under these conditions."
+        "It reflects light from the Sun.",
+        "It burns like a small star.",
+        "It makes light from clouds.",
+        "It shines only by electricity."
       ],
-      "correct_answer": "The Moon is visible because sunlight bounces from its surface.",
-      "correct_index": 2
+      "correct_answer": "It reflects light from the Sun.",
+      "correct_index": 0
     },
     {
       "external_id": "adm-g6-science-v1-q055",
@@ -1678,8 +1678,8 @@
       "subskill": "earth and space",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "why do we have day and night on Earth?.",
-      "explanation": "Earth rotates on its axis. This directly matches the evidence in the question.",
+      "prompt": "About how long does Earth take to complete one rotation?",
+      "explanation": "Earth takes about 24 hours to rotate once.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1688,13 +1688,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Earth rotates on its axis.",
-        "The Moon covers the Sun every night.",
-        "Earth moves closer to the Sun each day.",
-        "Clouds block the Sun at night."
+        "One hour.",
+        "One day.",
+        "One month.",
+        "One year."
       ],
-      "correct_answer": "Earth rotates on its axis.",
-      "correct_index": 0
+      "correct_answer": "One day.",
+      "correct_index": 1
     },
     {
       "external_id": "adm-g6-science-v1-q056",
@@ -1708,8 +1708,8 @@
       "subskill": "earth and space",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "which observation is evidence that the Moon reflects sunlight?.",
-      "explanation": "The Moon is visible because sunlight bounces from its surface. This directly matches the evidence in the question.",
+      "prompt": "Why does the Moon look different during the month?",
+      "explanation": "Moon phases happen because we see different portions of its sunlit side.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1718,13 +1718,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The Moon makes its own daylight under these conditions.",
-        "The Moon is a star under these conditions.",
-        "The Moon is visible because sunlight bounces from its surface.",
-        "The Moon is always hot under these conditions."
+        "We see different lit parts.",
+        "The Moon changes its size.",
+        "The Sun turns on and off.",
+        "Earth stops rotating."
       ],
-      "correct_answer": "The Moon is visible because sunlight bounces from its surface.",
-      "correct_index": 2
+      "correct_answer": "We see different lit parts.",
+      "correct_index": 0
     },
     {
       "external_id": "adm-g6-science-v1-q057",
@@ -1738,8 +1738,8 @@
       "subskill": "earth and space",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "why do we have day and night on Earth?.",
-      "explanation": "Earth rotates on its axis. This directly matches the evidence in the question.",
+      "prompt": "Which side of Earth has daytime?",
+      "explanation": "The side of Earth facing the Sun has daytime.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1748,13 +1748,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The Moon covers the Sun every night.",
-        "Earth rotates on its axis.",
-        "Earth moves closer to the Sun each day.",
-        "Clouds block the Sun at night."
+        "The side facing the Sun.",
+        "The side facing away from the Sun.",
+        "Only the North Pole.",
+        "Only places near oceans."
       ],
-      "correct_answer": "Earth rotates on its axis.",
-      "correct_index": 1
+      "correct_answer": "The side facing the Sun.",
+      "correct_index": 0
     },
     {
       "external_id": "adm-g6-science-v1-q058",
@@ -1768,8 +1768,8 @@
       "subskill": "earth and space",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "which observation is evidence that the Moon reflects sunlight?.",
-      "explanation": "The Moon is visible because sunlight bounces from its surface. This directly matches the evidence in the question.",
+      "prompt": "Which statement about the Moon is correct?",
+      "explanation": "The Moon appears bright because it reflects light from the Sun.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1778,13 +1778,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The Moon makes its own daylight under these conditions.",
-        "The Moon is a star under these conditions.",
-        "The Moon is always hot under these conditions.",
-        "The Moon is visible because sunlight bounces from its surface."
+        "It reflects sunlight.",
+        "It is a star.",
+        "It makes daylight.",
+        "It is hotter than the Sun."
       ],
-      "correct_answer": "The Moon is visible because sunlight bounces from its surface.",
-      "correct_index": 3
+      "correct_answer": "It reflects sunlight.",
+      "correct_index": 0
     },
     {
       "external_id": "adm-g6-science-v1-q059",
@@ -1829,7 +1829,7 @@
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Why should a scientist repeat a measurement several times?",
-      "explanation": "To make the result more reliable. This directly matches the evidence in the question.",
+      "explanation": "Repeating measurements helps make results more reliable.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1838,12 +1838,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "To make the result more reliable.",
-        "To change the question each time.",
-        "To avoid recording data.",
-        "To make every answer identical."
+        "To improve reliability.",
+        "To avoid writing results.",
+        "To change every variable.",
+        "To make the test unfair."
       ],
-      "correct_answer": "To make the result more reliable.",
+      "correct_answer": "To improve reliability.",
       "correct_index": 0
     },
     {
@@ -1888,8 +1888,8 @@
       "subskill": "scientific enquiry / working scientifically",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "why should a scientist repeat a measurement several times?.",
-      "explanation": "To make the result more reliable. This directly matches the evidence in the question.",
+      "prompt": "What should students do if one result is very different from the others?",
+      "explanation": "A very unusual result may be an anomaly and should be checked.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1898,13 +1898,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "To change the question each time.",
-        "To avoid recording data.",
-        "To make the result more reliable.",
-        "To make every answer identical."
+        "Check for an anomaly.",
+        "Delete all results.",
+        "Change the question.",
+        "Ignore the method."
       ],
-      "correct_answer": "To make the result more reliable.",
-      "correct_index": 2
+      "correct_answer": "Check for an anomaly.",
+      "correct_index": 0
     },
     {
       "external_id": "adm-g6-science-v1-q063",
@@ -1948,8 +1948,8 @@
       "subskill": "scientific enquiry / working scientifically",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "why should a scientist repeat a measurement several times?.",
-      "explanation": "To make the result more reliable. This directly matches the evidence in the question.",
+      "prompt": "Why is calculating an average useful after repeated trials?",
+      "explanation": "An average can reduce the effect of small random differences.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1958,13 +1958,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "To change the question each time.",
-        "To avoid recording data.",
-        "To make the result more reliable.",
-        "To make every answer identical."
+        "It gives a more reliable result.",
+        "It removes the need for units.",
+        "It changes the equipment.",
+        "It proves all guesses right."
       ],
-      "correct_answer": "To make the result more reliable.",
-      "correct_index": 2
+      "correct_answer": "It gives a more reliable result.",
+      "correct_index": 0
     },
     {
       "external_id": "adm-g6-science-v1-q065",
@@ -2008,8 +2008,8 @@
       "subskill": "scientific enquiry / working scientifically",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "why should a scientist repeat a measurement several times?.",
-      "explanation": "To make the result more reliable. This directly matches the evidence in the question.",
+      "prompt": "In a fair test, why should only one variable be changed?",
+      "explanation": "Changing one variable helps link the result to that variable.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -2018,13 +2018,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "To change the question each time.",
-        "To avoid recording data.",
-        "To make every answer identical.",
-        "To make the result more reliable."
+        "To see what caused the result.",
+        "To make the test faster only.",
+        "To avoid measuring anything.",
+        "To make all answers the same."
       ],
-      "correct_answer": "To make the result more reliable.",
-      "correct_index": 3
+      "correct_answer": "To see what caused the result.",
+      "correct_index": 0
     },
     {
       "external_id": "adm-g6-science-v1-q067",
@@ -2068,8 +2068,8 @@
       "subskill": "scientific enquiry / working scientifically",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "why should a scientist repeat a measurement several times?.",
-      "explanation": "To make the result more reliable. This directly matches the evidence in the question.",
+      "prompt": "Why should results be recorded in a table?",
+      "explanation": "A table helps organise results so they can be compared.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -2078,12 +2078,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "To make the result more reliable.",
-        "To change the question each time.",
-        "To avoid recording data.",
-        "To make every answer identical."
+        "To organise data clearly.",
+        "To hide repeated results.",
+        "To change the equipment.",
+        "To remove all errors."
       ],
-      "correct_answer": "To make the result more reliable.",
+      "correct_answer": "To organise data clearly.",
       "correct_index": 0
     },
     {
@@ -2128,8 +2128,8 @@
       "subskill": "scientific enquiry / working scientifically",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "why should a scientist repeat a measurement several times?.",
-      "explanation": "To make the result more reliable. This directly matches the evidence in the question.",
+      "prompt": "Which conclusion is best supported by repeated similar results?",
+      "explanation": "Similar repeated results give stronger support to a conclusion.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -2138,13 +2138,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "To change the question each time.",
-        "To avoid recording data.",
-        "To make the result more reliable.",
-        "To make every answer identical."
+        "The pattern is reliable.",
+        "The method was never followed.",
+        "The variables all changed.",
+        "The measurements are useless."
       ],
-      "correct_answer": "To make the result more reliable.",
-      "correct_index": 2
+      "correct_answer": "The pattern is reliable.",
+      "correct_index": 0
     }
   ]
 }
