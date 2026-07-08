@@ -152,7 +152,10 @@ function buildReasons(e: number | null, m: number | null, s: number | null, curr
     if (s != null) reasons.push(`Science readiness is ${s}%.`);
   }
   if (weakAreas.length) reasons.push(`Needs attention in ${weakAreas.slice(0, 2).join(' and ')}.`);
-  else if (strengths.length) reasons.push(`Strongest evidence: ${strengths.slice(0, 2).join(' and ')}.`);
+  else if (strengths.length) {
+    const uniqueStrengths = [...new Set(strengths)].slice(0, 2);
+    reasons.push(`Strongest evidence: ${uniqueStrengths.join(' and ')}.`);
+  }
   if (mismatch) reasons.push(`Age or current grade does not closely match the applied grade${profile.applied_grade ? ` (${profile.applied_grade})` : ''}.`);
   return reasons.slice(0, 4);
 }

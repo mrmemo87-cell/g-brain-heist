@@ -490,7 +490,7 @@
       "options": [
         "9 × 10 + 4",
         "10 × 14",
-        "9 + 14",
+        "9 + 14 while using the evidence in the wrong order.",
         "9 × 10 + 9 × 4"
       ],
       "correct_answer": "9 × 10 + 9 × 4",

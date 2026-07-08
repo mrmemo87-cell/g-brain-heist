@@ -272,3 +272,8 @@ order by external_id;
 5. Generate a draft Admission Test Wizard form from the official pool.
 6. Register a test candidate, complete/submit a short attempt, and verify the candidate report shows diagnostic metadata.
 7. Only then repeat with production credentials and `--confirm-production` for reviewed non-sample content.
+
+
+## Generated form QA policy
+
+Run `node scripts/validate-admission-official-bank.mjs` before importing official-bank content or generating Admission Hub forms. After any official-bank content change, generate fresh forms from the QA-passing bank before sending packages live. Existing pre-QA generated forms may remain for historical attempts and auditability, but package send cards should select the latest clean generated forms once fresh forms exist; do not delete old forms automatically and do not mutate submitted attempts.

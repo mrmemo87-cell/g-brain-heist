@@ -69,9 +69,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The conclusion that correctly uses evidence from the cell microscope slide.",
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the cell microscope slide.",
       "correct_index": 0
@@ -98,10 +98,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "The conclusion that correctly uses evidence from the digestive system model.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the digestive system model.",
       "correct_index": 1
@@ -128,10 +128,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
         "The conclusion that correctly uses evidence from the pond ecosystem change.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the pond ecosystem change.",
       "correct_index": 2
@@ -158,9 +158,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect.",
+        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
         "The conclusion that correctly uses evidence from the plant root hair sample."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the plant root hair sample.",
@@ -189,9 +189,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The conclusion that correctly uses evidence from the heart rate activity.",
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the heart rate activity.",
       "correct_index": 0
@@ -218,10 +218,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "The conclusion that correctly uses evidence from the food web balance.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the food web balance.",
       "correct_index": 1
@@ -248,10 +248,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
         "The conclusion that correctly uses evidence from the microbe safety poster.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the microbe safety poster.",
       "correct_index": 2
@@ -278,9 +278,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect.",
+        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
         "The conclusion that correctly uses evidence from the leaf starch test."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the leaf starch test.",
@@ -309,9 +309,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The conclusion that correctly uses evidence from the joint movement diagram.",
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the joint movement diagram.",
       "correct_index": 0
@@ -338,7 +338,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "The conclusion that correctly uses evidence from the habitat survey.",
         "A conclusion that changes two variables at once.",
         "A conclusion that confuses cause and effect."
@@ -368,10 +368,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
         "The conclusion that correctly uses evidence from the respiration comparison.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the respiration comparison.",
       "correct_index": 2
@@ -398,9 +398,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect.",
+        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
         "The conclusion that correctly uses evidence from the classification key."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the classification key.",
@@ -429,7 +429,7 @@
       "content_owner": "brain_heist",
       "options": [
         "The conclusion that correctly uses evidence from the adaptation case.",
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
         "A conclusion that confuses cause and effect."
       ],
@@ -458,10 +458,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "The conclusion that correctly uses evidence from the blood vessel model.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the blood vessel model.",
       "correct_index": 1
@@ -488,10 +488,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
         "The conclusion that correctly uses evidence from the particle diagram.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the particle diagram.",
       "correct_index": 2
@@ -518,9 +518,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect.",
+        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
         "The conclusion that correctly uses evidence from the mixture of sand and salt."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the mixture of sand and salt.",
@@ -549,9 +549,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The conclusion that correctly uses evidence from the evaporation tray.",
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the evaporation tray.",
       "correct_index": 0
@@ -578,10 +578,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "The conclusion that correctly uses evidence from the filter paper test.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the filter paper test.",
       "correct_index": 1
@@ -608,10 +608,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
         "The conclusion that correctly uses evidence from the acid and alkali indicator.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the acid and alkali indicator.",
       "correct_index": 2
@@ -638,9 +638,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect.",
+        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
         "The conclusion that correctly uses evidence from the dissolving temperature trial."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the dissolving temperature trial.",
@@ -669,9 +669,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The conclusion that correctly uses evidence from the metal property comparison.",
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the metal property comparison.",
       "correct_index": 0
@@ -698,10 +698,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "The conclusion that correctly uses evidence from the gas in a syringe.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the gas in a syringe.",
       "correct_index": 1
@@ -728,10 +728,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
         "The conclusion that correctly uses evidence from the chromatography strip.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the chromatography strip.",
       "correct_index": 2
@@ -758,9 +758,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect.",
+        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
         "The conclusion that correctly uses evidence from the reversible change."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the reversible change.",
@@ -789,9 +789,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The conclusion that correctly uses evidence from the density observation.",
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the density observation.",
       "correct_index": 0
@@ -818,7 +818,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "The conclusion that correctly uses evidence from the rust prevention.",
         "A conclusion that changes two variables at once.",
         "A conclusion that confuses cause and effect."
@@ -848,10 +848,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
         "The conclusion that correctly uses evidence from the balanced forces cart.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the balanced forces cart.",
       "correct_index": 2
@@ -878,9 +878,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect.",
+        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
         "The conclusion that correctly uses evidence from the energy transfer in kettle."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the energy transfer in kettle.",
@@ -909,9 +909,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The conclusion that correctly uses evidence from the simple circuit fault.",
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the simple circuit fault.",
       "correct_index": 0
@@ -938,10 +938,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "The conclusion that correctly uses evidence from the light reflection mirror.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the light reflection mirror.",
       "correct_index": 1
@@ -968,10 +968,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
         "The conclusion that correctly uses evidence from the sound vibration ruler.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the sound vibration ruler.",
       "correct_index": 2
@@ -998,9 +998,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect.",
+        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
         "The conclusion that correctly uses evidence from the friction on surfaces."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the friction on surfaces.",
@@ -1029,9 +1029,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The conclusion that correctly uses evidence from the spring extension graph.",
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the spring extension graph.",
       "correct_index": 0
@@ -1058,10 +1058,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "The conclusion that correctly uses evidence from the thermal insulation cups.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the thermal insulation cups.",
       "correct_index": 1
@@ -1088,10 +1088,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
         "The conclusion that correctly uses evidence from the magnet sorting task.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the magnet sorting task.",
       "correct_index": 2
@@ -1118,9 +1118,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect.",
+        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
         "The conclusion that correctly uses evidence from the speed from distance time."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the speed from distance time.",
@@ -1149,9 +1149,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The conclusion that correctly uses evidence from the pressure under shoes.",
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the pressure under shoes.",
       "correct_index": 0
@@ -1178,10 +1178,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "The conclusion that correctly uses evidence from the lever in a classroom.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the lever in a classroom.",
       "correct_index": 1
@@ -1208,10 +1208,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
         "The conclusion that correctly uses evidence from the moon phases calendar.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the moon phases calendar.",
       "correct_index": 2
@@ -1238,9 +1238,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect.",
+        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
         "The conclusion that correctly uses evidence from the season and tilted Earth."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the season and tilted Earth.",
@@ -1269,9 +1269,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The conclusion that correctly uses evidence from the rock cycle sample.",
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the rock cycle sample.",
       "correct_index": 0
@@ -1298,10 +1298,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "The conclusion that correctly uses evidence from the water cycle diagram.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the water cycle diagram.",
       "correct_index": 1
@@ -1328,10 +1328,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
         "The conclusion that correctly uses evidence from the weather pressure record.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the weather pressure record.",
       "correct_index": 2
@@ -1358,9 +1358,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect.",
+        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
         "The conclusion that correctly uses evidence from the solar system scale."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the solar system scale.",
@@ -1389,9 +1389,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The conclusion that correctly uses evidence from the eclipse shadow model.",
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the eclipse shadow model.",
       "correct_index": 0
@@ -1418,10 +1418,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "The conclusion that correctly uses evidence from the soil layers in a jar.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the soil layers in a jar.",
       "correct_index": 1
@@ -1448,10 +1448,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
         "The conclusion that correctly uses evidence from the river erosion bend.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the river erosion bend.",
       "correct_index": 2
@@ -1478,9 +1478,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect.",
+        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
         "The conclusion that correctly uses evidence from the renewable energy site."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the renewable energy site.",
@@ -1509,9 +1509,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The conclusion that correctly uses evidence from the fossil evidence layer.",
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the fossil evidence layer.",
       "correct_index": 0
@@ -1538,10 +1538,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "The conclusion that correctly uses evidence from the day length pattern.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the day length pattern.",
       "correct_index": 1
@@ -1568,10 +1568,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
         "The conclusion that correctly uses evidence from the independent variable choice.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the independent variable choice.",
       "correct_index": 2
@@ -1598,9 +1598,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect.",
+        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
         "The conclusion that correctly uses evidence from the fair test improvement."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the fair test improvement.",
@@ -1629,9 +1629,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The conclusion that correctly uses evidence from the repeat readings table.",
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the repeat readings table.",
       "correct_index": 0
@@ -1658,10 +1658,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "The conclusion that correctly uses evidence from the line graph conclusion.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the line graph conclusion.",
       "correct_index": 1
@@ -1688,10 +1688,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
         "The conclusion that correctly uses evidence from the control variable check.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the control variable check.",
       "correct_index": 2
@@ -1718,9 +1718,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect.",
+        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
         "The conclusion that correctly uses evidence from the anomaly in results."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the anomaly in results.",
@@ -1749,9 +1749,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The conclusion that correctly uses evidence from the risk assessment step.",
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the risk assessment step.",
       "correct_index": 0
@@ -1778,10 +1778,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "The conclusion that correctly uses evidence from the best measuring instrument.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the best measuring instrument.",
       "correct_index": 1
@@ -1808,10 +1808,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
         "The conclusion that correctly uses evidence from the school garden watering.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the school garden watering.",
       "correct_index": 2
@@ -1838,9 +1838,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect.",
+        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
         "The conclusion that correctly uses evidence from the sports bottle material."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the sports bottle material.",
@@ -1869,9 +1869,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The conclusion that correctly uses evidence from the classroom heat loss.",
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the classroom heat loss.",
       "correct_index": 0
@@ -1898,10 +1898,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "The conclusion that correctly uses evidence from the traffic noise screen.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the traffic noise screen.",
       "correct_index": 1
@@ -1928,10 +1928,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
         "The conclusion that correctly uses evidence from the recycling separation plan.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the recycling separation plan.",
       "correct_index": 2
@@ -1958,9 +1958,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect.",
+        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
         "The conclusion that correctly uses evidence from the safe food storage."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the safe food storage.",
@@ -1989,9 +1989,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The conclusion that correctly uses evidence from the battery-powered torch.",
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the battery-powered torch.",
       "correct_index": 0
@@ -2018,10 +2018,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "The conclusion that correctly uses evidence from the flood warning data.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the flood warning data.",
       "correct_index": 1
@@ -2048,10 +2048,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
         "The conclusion that correctly uses evidence from the greenhouse design.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the greenhouse design.",
       "correct_index": 2
@@ -2078,9 +2078,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect.",
+        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
         "The conclusion that correctly uses evidence from the bridge material choice."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the bridge material choice.",
@@ -2109,9 +2109,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The conclusion that correctly uses evidence from the clean water filter.",
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the clean water filter.",
       "correct_index": 0
@@ -2138,10 +2138,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion that ignores the evidence.",
+        "A conclusion based on a different measurement than the one described.",
         "The conclusion that correctly uses evidence from the playground surface choice.",
         "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
       ],
       "correct_answer": "The conclusion that correctly uses evidence from the playground surface choice.",
       "correct_index": 1

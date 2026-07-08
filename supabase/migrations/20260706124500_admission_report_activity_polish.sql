@@ -41,7 +41,7 @@ BEGIN
     UNION ALL SELECT 40, 'Candidate left the test page ' || c || ' time' || CASE WHEN c=1 THEN '' ELSE 's' END FROM counts WHERE event_type = 'tab_hidden'
     UNION ALL SELECT 50, 'Candidate returned to the test page ' || c || ' time' || CASE WHEN c=1 THEN '' ELSE 's' END FROM counts WHERE event_type = 'tab_visible'
     UNION ALL SELECT 60, 'Submit button clicked ' || c || ' time' || CASE WHEN c=1 THEN '' ELSE 's' END FROM counts WHERE event_type = 'submit_clicked'
-    UNION ALL SELECT 70, 'Timer expired ' || c || ' time' || CASE WHEN c=1 THEN '' ELSE 's' END FROM counts WHERE event_type = 'submit_time_expired'
+    UNION ALL SELECT 70, 'Timer expired ' || c || ' time' || CASE WHEN c=1 THEN '' ELSE 's' END FROM counts WHERE event_type = 'submit_time_expired' AND v_attempt.status = 'expired'
     UNION ALL SELECT 80, 'Test auto-submitted after repeated page exits.' FROM counts WHERE event_type = 'auto_submit_repeated_page_exits'
     UNION ALL SELECT 90, 'Test submitted.' FROM counts WHERE event_type = 'submitted' AND NOT EXISTS (SELECT 1 FROM counts WHERE event_type = 'auto_submit_repeated_page_exits')
     UNION ALL SELECT 100, 'Submitted at ' || to_char(v_attempt.submitted_at AT TIME ZONE 'UTC', 'HH12:MI AM') WHERE v_attempt.submitted_at IS NOT NULL

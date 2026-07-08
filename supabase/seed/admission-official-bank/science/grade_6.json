@@ -68,7 +68,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Plants grow best with no light.",
+        "Plants grow best with no light while mixing in an extra unsupported condition.",
         "Plants need light to make food for growth.",
         "Darkness gives plants more energy.",
         "Windows add extra soil nutrients."
@@ -98,7 +98,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "They are all trying to look alike.",
+        "They are all trying to look alike while mixing in an extra unsupported condition.",
         "The weather changes their teeth each day.",
         "It prevents every animal from moving.",
         "Their structures help them get different foods."
@@ -128,7 +128,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Plants grow best with no light.",
+        "Plants grow best with no light while mixing in an extra unsupported condition.",
         "Plants need light to make food for growth.",
         "Darkness gives plants more energy.",
         "Windows add extra soil nutrients."
@@ -159,7 +159,7 @@
       "content_owner": "brain_heist",
       "options": [
         "Their structures help them get different foods.",
-        "They are all trying to look alike.",
+        "They are all trying to look alike with a plausible but incorrect detail added.",
         "The weather changes their teeth each day.",
         "It prevents every animal from moving."
       ],
@@ -188,7 +188,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Plants grow best with no light.",
+        "Plants grow best with no light while mixing in an extra unsupported condition.",
         "Darkness gives plants more energy.",
         "Windows add extra soil nutrients.",
         "Plants need light to make food for growth."
@@ -218,7 +218,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "They are all trying to look alike.",
+        "They are all trying to look alike while mixing in an extra unsupported condition.",
         "The weather changes their teeth each day.",
         "Their structures help them get different foods.",
         "It prevents every animal from moving."
@@ -249,7 +249,7 @@
       "content_owner": "brain_heist",
       "options": [
         "Plants need light to make food for growth.",
-        "Plants grow best with no light.",
+        "Plants grow best with no light with a plausible but incorrect detail added.",
         "Darkness gives plants more energy.",
         "Windows add extra soil nutrients."
       ],
@@ -278,7 +278,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "They are all trying to look alike.",
+        "They are all trying to look alike while mixing in an extra unsupported condition.",
         "The weather changes their teeth each day.",
         "Their structures help them get different foods.",
         "It prevents every animal from moving."
@@ -308,7 +308,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Plants grow best with no light.",
+        "Plants grow best with no light while mixing in an extra unsupported condition.",
         "Plants need light to make food for growth.",
         "Darkness gives plants more energy.",
         "Windows add extra soil nutrients."
@@ -338,7 +338,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "They are all trying to look alike.",
+        "They are all trying to look alike while mixing in an extra unsupported condition.",
         "The weather changes their teeth each day.",
         "It prevents every animal from moving.",
         "Their structures help them get different foods."
@@ -368,7 +368,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Plants grow best with no light.",
+        "Plants grow best with no light while mixing in an extra unsupported condition.",
         "Plants need light to make food for growth.",
         "Darkness gives plants more energy.",
         "Windows add extra soil nutrients."
@@ -399,7 +399,7 @@
       "content_owner": "brain_heist",
       "options": [
         "Their structures help them get different foods.",
-        "They are all trying to look alike.",
+        "They are all trying to look alike with a plausible but incorrect detail added.",
         "The weather changes their teeth each day.",
         "It prevents every animal from moving."
       ],
@@ -428,7 +428,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Plants grow best with no light.",
+        "Plants grow best with no light while mixing in an extra unsupported condition.",
         "Darkness gives plants more energy.",
         "Windows add extra soil nutrients.",
         "Plants need light to make food for growth."
@@ -458,7 +458,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "They are all trying to look alike.",
+        "They are all trying to look alike while mixing in an extra unsupported condition.",
         "The weather changes their teeth each day.",
         "Their structures help them get different foods.",
         "It prevents every animal from moving."
@@ -490,7 +490,7 @@
       "options": [
         "Metal transfers heat from your hand more quickly.",
         "Metal is always at a lower temperature.",
-        "Wood contains more cold air.",
+        "Wood contains more cold air while using the evidence in the wrong order.",
         "The spoons have different colours."
       ],
       "correct_answer": "Metal transfers heat from your hand more quickly.",
@@ -519,7 +519,7 @@
       "content_owner": "brain_heist",
       "options": [
         "Burning paper",
-        "Baking bread",
+        "Baking bread with a plausible but incorrect detail added.",
         "Melting an ice cube",
         "Rusting iron"
       ],
@@ -550,7 +550,7 @@
       "options": [
         "Metal is always at a lower temperature.",
         "Metal transfers heat from your hand more quickly.",
-        "Wood contains more cold air.",
+        "Wood contains more cold air while using the evidence in the wrong order.",
         "The spoons have different colours."
       ],
       "correct_answer": "Metal transfers heat from your hand more quickly.",
@@ -579,7 +579,7 @@
       "content_owner": "brain_heist",
       "options": [
         "Burning paper",
-        "Baking bread",
+        "Baking bread with a plausible but incorrect detail added.",
         "Rusting iron",
         "Melting an ice cube"
       ],
@@ -610,7 +610,7 @@
       "options": [
         "Metal is always at a lower temperature.",
         "Metal transfers heat from your hand more quickly.",
-        "Wood contains more cold air.",
+        "Wood contains more cold air while using the evidence in the wrong order.",
         "The spoons have different colours."
       ],
       "correct_answer": "Metal transfers heat from your hand more quickly.",
@@ -640,7 +640,7 @@
       "options": [
         "Melting an ice cube",
         "Burning paper",
-        "Baking bread",
+        "Baking bread while using the evidence in the wrong order.",
         "Rusting iron"
       ],
       "correct_answer": "Melting an ice cube",
@@ -669,7 +669,7 @@
       "content_owner": "brain_heist",
       "options": [
         "Metal is always at a lower temperature.",
-        "Wood contains more cold air.",
+        "Wood contains more cold air with a plausible but incorrect detail added.",
         "The spoons have different colours.",
         "Metal transfers heat from your hand more quickly."
       ],
@@ -699,7 +699,7 @@
       "content_owner": "brain_heist",
       "options": [
         "Burning paper",
-        "Baking bread",
+        "Baking bread with a plausible but incorrect detail added.",
         "Melting an ice cube",
         "Rusting iron"
       ],
@@ -730,7 +730,7 @@
       "options": [
         "Metal transfers heat from your hand more quickly.",
         "Metal is always at a lower temperature.",
-        "Wood contains more cold air.",
+        "Wood contains more cold air while using the evidence in the wrong order.",
         "The spoons have different colours."
       ],
       "correct_answer": "Metal transfers heat from your hand more quickly.",
@@ -759,7 +759,7 @@
       "content_owner": "brain_heist",
       "options": [
         "Burning paper",
-        "Baking bread",
+        "Baking bread with a plausible but incorrect detail added.",
         "Melting an ice cube",
         "Rusting iron"
       ],
@@ -790,7 +790,7 @@
       "options": [
         "Metal is always at a lower temperature.",
         "Metal transfers heat from your hand more quickly.",
-        "Wood contains more cold air.",
+        "Wood contains more cold air while using the evidence in the wrong order.",
         "The spoons have different colours."
       ],
       "correct_answer": "Metal transfers heat from your hand more quickly.",
@@ -819,7 +819,7 @@
       "content_owner": "brain_heist",
       "options": [
         "Burning paper",
-        "Baking bread",
+        "Baking bread with a plausible but incorrect detail added.",
         "Rusting iron",
         "Melting an ice cube"
       ],
@@ -851,7 +851,7 @@
         "The carpet gives the car more energy.",
         "The smooth table produces less friction.",
         "Gravity is stronger on the table.",
-        "The car has no mass on carpet."
+        "The car has no mass on carpet with a tempting but incomplete explanation."
       ],
       "correct_answer": "The smooth table produces less friction.",
       "correct_index": 1
@@ -910,7 +910,7 @@
       "options": [
         "The carpet gives the car more energy.",
         "Gravity is stronger on the table.",
-        "The car has no mass on carpet.",
+        "The car has no mass on carpet while using the evidence in the wrong order.",
         "The smooth table produces less friction."
       ],
       "correct_answer": "The smooth table produces less friction.",
@@ -971,7 +971,7 @@
         "The smooth table produces less friction.",
         "The carpet gives the car more energy.",
         "Gravity is stronger on the table.",
-        "The car has no mass on carpet."
+        "The car has no mass on carpet with a tempting but incomplete explanation."
       ],
       "correct_answer": "The smooth table produces less friction.",
       "correct_index": 0
@@ -1031,7 +1031,7 @@
         "The carpet gives the car more energy.",
         "The smooth table produces less friction.",
         "Gravity is stronger on the table.",
-        "The car has no mass on carpet."
+        "The car has no mass on carpet with a tempting but incomplete explanation."
       ],
       "correct_answer": "The smooth table produces less friction.",
       "correct_index": 1
@@ -1091,7 +1091,7 @@
         "The carpet gives the car more energy.",
         "The smooth table produces less friction.",
         "Gravity is stronger on the table.",
-        "The car has no mass on carpet."
+        "The car has no mass on carpet with a tempting but incomplete explanation."
       ],
       "correct_answer": "The smooth table produces less friction.",
       "correct_index": 1
@@ -1150,7 +1150,7 @@
       "options": [
         "The carpet gives the car more energy.",
         "Gravity is stronger on the table.",
-        "The car has no mass on carpet.",
+        "The car has no mass on carpet while using the evidence in the wrong order.",
         "The smooth table produces less friction."
       ],
       "correct_answer": "The smooth table produces less friction.",
@@ -1210,7 +1210,7 @@
       "options": [
         "Light travels in straight lines and cannot pass through the opaque book.",
         "Sound pushes the light backwards.",
-        "The book creates new darkness.",
+        "The book creates new darkness while using the evidence in the wrong order.",
         "Light bends around every object equally."
       ],
       "correct_answer": "Light travels in straight lines and cannot pass through the opaque book.",
@@ -1270,7 +1270,7 @@
       "options": [
         "Sound pushes the light backwards.",
         "Light travels in straight lines and cannot pass through the opaque book.",
-        "The book creates new darkness.",
+        "The book creates new darkness while using the evidence in the wrong order.",
         "Light bends around every object equally."
       ],
       "correct_answer": "Light travels in straight lines and cannot pass through the opaque book.",
@@ -1330,7 +1330,7 @@
       "options": [
         "Sound pushes the light backwards.",
         "Light travels in straight lines and cannot pass through the opaque book.",
-        "The book creates new darkness.",
+        "The book creates new darkness while using the evidence in the wrong order.",
         "Light bends around every object equally."
       ],
       "correct_answer": "Light travels in straight lines and cannot pass through the opaque book.",
@@ -1389,7 +1389,7 @@
       "content_owner": "brain_heist",
       "options": [
         "Sound pushes the light backwards.",
-        "The book creates new darkness.",
+        "The book creates new darkness with a plausible but incorrect detail added.",
         "Light bends around every object equally.",
         "Light travels in straight lines and cannot pass through the opaque book."
       ],
@@ -1450,7 +1450,7 @@
       "options": [
         "Light travels in straight lines and cannot pass through the opaque book.",
         "Sound pushes the light backwards.",
-        "The book creates new darkness.",
+        "The book creates new darkness while using the evidence in the wrong order.",
         "Light bends around every object equally."
       ],
       "correct_answer": "Light travels in straight lines and cannot pass through the opaque book.",
@@ -1510,7 +1510,7 @@
       "options": [
         "Sound pushes the light backwards.",
         "Light travels in straight lines and cannot pass through the opaque book.",
-        "The book creates new darkness.",
+        "The book creates new darkness while using the evidence in the wrong order.",
         "Light bends around every object equally."
       ],
       "correct_answer": "Light travels in straight lines and cannot pass through the opaque book.",
@@ -1600,8 +1600,8 @@
       "options": [
         "The Moon is visible because sunlight bounces from its surface.",
         "The Moon makes its own daylight.",
-        "The Moon is a star.",
-        "The Moon is always hot."
+        "The Moon is a star while using the evidence in the wrong order.",
+        "The Moon is always hot while mixing in an extra unsupported condition."
       ],
       "correct_answer": "The Moon is visible because sunlight bounces from its surface.",
       "correct_index": 0
@@ -1659,9 +1659,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The Moon makes its own daylight.",
-        "The Moon is a star.",
+        "The Moon is a star with a plausible but incorrect detail added.",
         "The Moon is visible because sunlight bounces from its surface.",
-        "The Moon is always hot."
+        "The Moon is always hot while mixing in an extra unsupported condition."
       ],
       "correct_answer": "The Moon is visible because sunlight bounces from its surface.",
       "correct_index": 2
@@ -1719,9 +1719,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The Moon makes its own daylight.",
-        "The Moon is a star.",
+        "The Moon is a star with a plausible but incorrect detail added.",
         "The Moon is visible because sunlight bounces from its surface.",
-        "The Moon is always hot."
+        "The Moon is always hot while mixing in an extra unsupported condition."
       ],
       "correct_answer": "The Moon is visible because sunlight bounces from its surface.",
       "correct_index": 2
@@ -1779,8 +1779,8 @@
       "content_owner": "brain_heist",
       "options": [
         "The Moon makes its own daylight.",
-        "The Moon is a star.",
-        "The Moon is always hot.",
+        "The Moon is a star with a plausible but incorrect detail added.",
+        "The Moon is always hot with a tempting but incomplete explanation.",
         "The Moon is visible because sunlight bounces from its surface."
       ],
       "correct_answer": "The Moon is visible because sunlight bounces from its surface.",
@@ -1810,7 +1810,7 @@
       "options": [
         "The brand of towel only",
         "The amount of water used for each towel",
-        "The result they prefer",
+        "The result they prefer while using the evidence in the wrong order.",
         "The colour of the table"
       ],
       "correct_answer": "The amount of water used for each towel",
@@ -1869,7 +1869,7 @@
       "content_owner": "brain_heist",
       "options": [
         "The brand of towel only",
-        "The result they prefer",
+        "The result they prefer with a plausible but incorrect detail added.",
         "The colour of the table",
         "The amount of water used for each towel"
       ],
@@ -1930,7 +1930,7 @@
       "options": [
         "The amount of water used for each towel",
         "The brand of towel only",
-        "The result they prefer",
+        "The result they prefer while using the evidence in the wrong order.",
         "The colour of the table"
       ],
       "correct_answer": "The amount of water used for each towel",
@@ -1990,7 +1990,7 @@
       "options": [
         "The brand of towel only",
         "The amount of water used for each towel",
-        "The result they prefer",
+        "The result they prefer while using the evidence in the wrong order.",
         "The colour of the table"
       ],
       "correct_answer": "The amount of water used for each towel",
@@ -2050,7 +2050,7 @@
       "options": [
         "The brand of towel only",
         "The amount of water used for each towel",
-        "The result they prefer",
+        "The result they prefer while using the evidence in the wrong order.",
         "The colour of the table"
       ],
       "correct_answer": "The amount of water used for each towel",
@@ -2109,7 +2109,7 @@
       "content_owner": "brain_heist",
       "options": [
         "The brand of towel only",
-        "The result they prefer",
+        "The result they prefer with a plausible but incorrect detail added.",
         "The colour of the table",
         "The amount of water used for each towel"
       ],
