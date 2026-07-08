@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -213,4 +213,58 @@ ${result.stderr}`;
   assert.notEqual(result.status, 0);
   assert.match(output, /stage_level > 0 for DB smallint compatibility/);
   assert.match(output, /received \"secondary\"/);
+});
+
+test('official admission bank validator fails synthetic bank where the correct option is always longest', () => {
+  const root = mkdtempSync(path.join(tmpdir(), 'adm-official-bank-bias-'));
+  for (const dir of ['english', 'maths', 'science', 'shared']) mkdirSync(path.join(root, dir), { recursive: true });
+  writeJson(path.join(root, 'shared', 'reading_passages.json'), { passages: [] });
+  writeJson(path.join(root, 'shared', 'writing_rubrics.json'), { rubrics: [] });
+  const empty = { content_version: 'test', source_label: 'Brain Heist Official Admission Bank — Test', pools: [], questions: [] };
+  for (const subject of ['english', 'maths', 'science']) for (const grade of [5, 6, 7, 8]) writeJson(path.join(root, subject, `grade_${grade}.json`), empty);
+  writeJson(path.join(root, 'english', 'grade_7.json'), {
+    content_version: 'test',
+    source_label: 'Brain Heist Official Admission Bank — Test',
+    pools: [{
+      external_id: 'bias-pool', subject: 'english', grade_level: 7, stage_level: 7, placement_band: 'target', name: 'Bias Pool',
+      content_version: 'test', source_label: 'Brain Heist Official Admission Bank — Test', is_official: true, is_locked: true, content_owner: 'brain_heist',
+    }],
+    questions: Array.from({ length: 10 }, (_, index) => ({
+      external_id: `bias-q-${index}`, pool_external_id: 'bias-pool', subject: 'english', grade_level: 7, stage_level: 7,
+      placement_band: 'target', diagnostic_skill: 'Reading', strand: 'reading', subskill: `bias ${index}`, difficulty: 'medium',
+      question_type: 'mcq', prompt: `Synthetic bias prompt ${index}`, options: ['short', 'brief', 'tiny', 'the only very long correct answer every time'],
+      correct_index: 3, correct_answer: 'the only very long correct answer every time', explanation: 'Synthetic explanation.', marks: 1,
+      estimated_seconds: 30, content_version: 'test', source_label: 'Brain Heist Official Admission Bank — Test', is_official: true,
+      is_locked: true, content_owner: 'brain_heist',
+    })),
+  });
+  const result = runValidator(root);
+  const output = `${result.stdout}\n${result.stderr}`;
+  assert.notEqual(result.status, 0);
+  assert.match(output, /correct option as uniquely longest 100\.0%/);
+  assert.match(output, /answer-position D is 100\.0%/);
+});
+
+test('official admission bank validator reports Grade 7 English longest-answer bias if it is reintroduced', () => {
+  const root = mkdtempSync(path.join(tmpdir(), 'adm-official-bank-g7-bias-'));
+  for (const dir of ['english', 'maths', 'science', 'shared']) mkdirSync(path.join(root, dir), { recursive: true });
+  writeJson(path.join(root, 'shared', 'reading_passages.json'), { passages: [] });
+  writeJson(path.join(root, 'shared', 'writing_rubrics.json'), { rubrics: [] });
+  for (const subject of ['english', 'maths', 'science']) {
+    for (const grade of [5, 6, 7, 8]) {
+      const source = JSON.parse(readFileSync(path.join(process.cwd(), 'supabase', 'seed', 'admission-official-bank', subject, `grade_${grade}.json`), 'utf8'));
+      if (subject === 'english' && grade === 7) {
+        for (const question of source.questions.filter((q: any) => Array.isArray(q.options)).slice(0, 50)) {
+          const correctIndex = question.correct_index;
+          question.options = question.options.map((option: string, optionIndex: number) => optionIndex === correctIndex ? `${option} with a uniquely identifying extra phrase` : option.replace(/ with .*/, ''));
+          question.correct_answer = question.options[correctIndex];
+        }
+      }
+      writeJson(path.join(root, subject, `grade_${grade}.json`), source);
+    }
+  }
+  const result = runValidator(root);
+  const output = `${result.stdout}\n${result.stderr}`;
+  assert.notEqual(result.status, 0);
+  assert.match(output, /grade 7 english official bank has correct option as uniquely longest/);
 });

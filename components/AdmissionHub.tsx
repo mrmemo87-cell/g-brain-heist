@@ -2289,7 +2289,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   <div>
                     <h4 className="text-sm font-semibold text-red-300 mb-1">Areas for Improvement</h4>
                     <ul className="text-xs text-gray-300 space-y-0.5">
-                      {(reportData.weaknesses ?? []).map((w, i) => <li key={i}>△ {w}</li>)}
+                      {(reportData.weaknesses ?? []).length > 0 ? (reportData.weaknesses ?? []).map((w, i) => <li key={i}>△ {w}</li>) : <li>No major weak area detected from this attempt.</li>}
                     </ul>
                   </div>
                 </div>

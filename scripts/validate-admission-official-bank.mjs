@@ -29,6 +29,115 @@ const REQUIRED_OFFICIAL_FLAGS = {
   content_owner: 'brain_heist',
 };
 
+const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
+const MAX_UNIQUE_LONGEST_CORRECT_RATIO = 0.4;
+const MAX_ANSWER_POSITION_RATIO = 0.4;
+const MIN_ANSWER_POSITION_RATIO = 0.1;
+const EXTREME_CORRECT_LENGTH_RATIO = 1.8;
+const EXTREME_CORRECT_LENGTH_DELTA = 20;
+const SHORT_OPTION_RATIO = 0.45;
+const SHORT_OPTION_DELTA = 18;
+const WEAK_DISTRACTOR_PATTERNS = [
+  /\ball of the above\b/i,
+  /\bnone of the above\b/i,
+  /\bunsupported idea unrelated\b/i,
+  /\bnot stated or implied\b/i,
+  /\bignores the evidence\b/i,
+  /\bunclear meaning\b/i,
+  /\bobviously wrong\b/i,
+  /\bthrowaway\b/i,
+];
+
+function median(values) {
+  const sorted = values.filter((value) => Number.isFinite(value)).sort((a, b) => a - b);
+  if (sorted.length === 0) return 0;
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+}
+
+function preview(value, length = 96) {
+  return String(value ?? '').replace(/\s+/g, ' ').trim().slice(0, length);
+}
+
+function correctOptionIndex(question) {
+  if (Number.isInteger(question.correct_index)) return question.correct_index;
+  if (!Array.isArray(question.options)) return -1;
+  return question.options.findIndex((option) => String(option) === String(question.correct_answer));
+}
+
+function validateMcqOptionQuality(errors, mcqEntries) {
+  const byBank = new Map();
+  for (const entry of mcqEntries) {
+    const question = entry.question;
+    if (!Array.isArray(question.options) || question.options.length < 4) continue;
+    const key = `${question.grade_level}|${question.subject}`;
+    if (!byBank.has(key)) byBank.set(key, []);
+    byBank.get(key).push(entry);
+
+    const index = correctOptionIndex(question);
+    if (index < 0 || index >= question.options.length) continue;
+    const optionTexts = question.options.map((option) => String(option ?? '').trim());
+    const lengths = optionTexts.map((option) => option.length);
+    const correctLength = lengths[index];
+    const distractorLengths = lengths.filter((_, optionIndex) => optionIndex !== index);
+    const medianDistractorLength = median(distractorLengths);
+    if (medianDistractorLength > 0 && correctLength > medianDistractorLength * EXTREME_CORRECT_LENGTH_RATIO && correctLength - medianDistractorLength > EXTREME_CORRECT_LENGTH_DELTA) {
+      errors.push(`${entry.filePath}: ${entry.location} ${question.external_id} has extreme correct-option length imbalance (${correctLength} chars vs median distractor ${medianDistractorLength.toFixed(1)}): "${preview(question.prompt)}"`);
+    }
+
+    const maxLength = Math.max(...lengths);
+    const minLength = Math.min(...lengths);
+    if (maxLength - minLength > SHORT_OPTION_DELTA && minLength < median(lengths) * SHORT_OPTION_RATIO) {
+      const shortIndex = lengths.indexOf(minLength);
+      errors.push(`${entry.filePath}: ${entry.location} ${question.external_id} has an obviously short option ${OPTION_LETTERS[shortIndex] ?? shortIndex + 1} (${minLength} chars vs max ${maxLength}): "${preview(question.prompt)}"`);
+    }
+
+    optionTexts.forEach((option, optionIndex) => {
+      const weakPattern = WEAK_DISTRACTOR_PATTERNS.find((pattern) => pattern.test(option));
+      if (weakPattern) {
+        errors.push(`${entry.filePath}: ${entry.location} ${question.external_id} option ${OPTION_LETTERS[optionIndex] ?? optionIndex + 1} uses weak/filler wording matching ${weakPattern}: "${preview(option)}"`);
+      }
+    });
+
+    const seen = new Set();
+    optionTexts.forEach((option, optionIndex) => {
+      const normalized = option.toLowerCase().trim();
+      if (!normalized) return;
+      if (seen.has(normalized)) errors.push(`${entry.filePath}: ${entry.location} ${question.external_id} repeats option text at ${OPTION_LETTERS[optionIndex] ?? optionIndex + 1}: "${preview(option)}"`);
+      seen.add(normalized);
+    });
+  }
+
+  for (const [key, entries] of byBank) {
+    const [grade, subject] = key.split('|');
+    let uniqueLongestCorrect = 0;
+    const answerCounts = new Map(OPTION_LETTERS.map((letter) => [letter, 0]));
+    let eligible = 0;
+    for (const entry of entries) {
+      const { question } = entry;
+      const index = correctOptionIndex(question);
+      if (index < 0 || index >= 4) continue;
+      eligible += 1;
+      answerCounts.set(OPTION_LETTERS[index], (answerCounts.get(OPTION_LETTERS[index]) ?? 0) + 1);
+      const lengths = question.options.map((option) => String(option ?? '').trim().length);
+      const maxLength = Math.max(...lengths);
+      if (lengths[index] === maxLength && lengths.filter((length) => length === maxLength).length === 1) uniqueLongestCorrect += 1;
+    }
+    if (!eligible) continue;
+    const longestPct = (uniqueLongestCorrect / eligible) * 100;
+    if (uniqueLongestCorrect / eligible > MAX_UNIQUE_LONGEST_CORRECT_RATIO) {
+      errors.push(`grade ${grade} ${subject} official bank has correct option as uniquely longest ${longestPct.toFixed(1)}% of MCQs (${uniqueLongestCorrect}/${eligible}); threshold is ${(MAX_UNIQUE_LONGEST_CORRECT_RATIO * 100).toFixed(0)}%`);
+    }
+    for (const letter of OPTION_LETTERS) {
+      const count = answerCounts.get(letter) ?? 0;
+      const ratio = count / eligible;
+      if (ratio > MAX_ANSWER_POSITION_RATIO || ratio < MIN_ANSWER_POSITION_RATIO) {
+        errors.push(`grade ${grade} ${subject} official bank answer-position ${letter} is ${(ratio * 100).toFixed(1)}% (${count}/${eligible}); expected between ${(MIN_ANSWER_POSITION_RATIO * 100).toFixed(0)}% and ${(MAX_ANSWER_POSITION_RATIO * 100).toFixed(0)}%`);
+      }
+    }
+  }
+}
+
 
 export function normalizeAdmissionQuestionStem(value) {
   return String(value ?? '')
@@ -348,6 +457,7 @@ export function validateAdmissionOfficialBank(seedDir = DEFAULT_SEED_DIR) {
   const poolIds = new Set();
   const parsedGradeFiles = [];
   const questionsByStemScope = new Map();
+  const mcqEntries = [];
 
   for (const { filePath, subject } of gradeFiles(seedDir)) {
     const data = readJson(filePath);
@@ -380,6 +490,7 @@ export function validateAdmissionOfficialBank(seedDir = DEFAULT_SEED_DIR) {
         passageIds,
         rubricIds,
       );
+      if (Array.isArray(question.options)) mcqEntries.push({ filePath, location: `questions[${index}]`, question });
       const scope = [question.grade_level, question.subject, question.question_type, question.strand || '', question.subskill || ''].join('|');
       if (!questionsByStemScope.has(scope)) questionsByStemScope.set(scope, []);
       questionsByStemScope.get(scope).push({ filePath, location: `questions[${index}]`, question });
@@ -387,6 +498,7 @@ export function validateAdmissionOfficialBank(seedDir = DEFAULT_SEED_DIR) {
   }
 
   validateDuplicateQuestionStems(errors, questionsByStemScope);
+  validateMcqOptionQuality(errors, mcqEntries);
 
   return { ok: errors.length === 0, errors };
 }
