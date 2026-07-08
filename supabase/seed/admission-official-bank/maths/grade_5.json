@@ -1680,14 +1680,14 @@
       "question_type": "mcq",
       "prompt": "Which shape always has 4 lines of symmetry?",
       "options": [
-        "square with a specific but incorrect qualifier.",
-        "scalene triangle while using the evidence in the wrong order.",
-        "rectangle with unequal sides for this problem.",
-        "parallelogram for this problem."
+        "square.",
+        "scalene triangle.",
+        "unequal rectangle.",
+        "ordinary parallelogram."
       ],
-      "correct_answer": "square with a specific but incorrect qualifier.",
+      "correct_answer": "square.",
       "correct_index": 0,
-      "explanation": "A square has 4 equal sides and 4 lines of symmetry.",
+      "explanation": "A square has four equal sides and four lines of symmetry.",
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-maths",
