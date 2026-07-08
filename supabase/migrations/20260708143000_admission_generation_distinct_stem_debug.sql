@@ -1,0 +1,140 @@
+-- Align Admission Hub generation with availability by deduping candidate rows before INSERT
+-- and returning compact admin-safe debug reasons instead of allowing unique conflicts.
+CREATE OR REPLACE FUNCTION rpc_adm_generate_test_form(
+    p_blueprint_id UUID,
+    p_form_code TEXT DEFAULT NULL
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_bp adm_blueprints%ROWTYPE;
+    v_form_id UUID;
+    v_existing_form_id UUID;
+    v_existing_status TEXT;
+    v_base_form_code TEXT;
+    v_form_code TEXT;
+    v_pool_ids UUID[];
+    v_dist_key TEXT;
+    v_dist_val JSONB;
+    v_diff_key TEXT;
+    v_diff_count INT;
+    v_selected_count INT;
+    v_total_required INT := 0;
+    v_available_unique INT;
+BEGIN
+    SELECT * INTO v_bp FROM adm_blueprints WHERE id = p_blueprint_id;
+    IF v_bp.id IS NULL THEN RETURN jsonb_build_object('success', false, 'error', 'Blueprint not found', 'debug_reason', 'Blueprint not found'); END IF;
+
+    IF v_bp.school_id IS NOT NULL AND NOT EXISTS (
+        SELECT 1 FROM school_members sm WHERE sm.school_id = v_bp.school_id AND sm.user_id = auth.uid() AND sm.role_in_school = 'school_admin' AND sm.status = 'active'
+    ) THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Access denied — not a school admin of this school', 'debug_reason', 'Access denied');
+    END IF;
+
+    IF v_bp.pool_id IS NOT NULL THEN
+        SELECT ARRAY_AGG(id) INTO v_pool_ids FROM adm_question_pools
+        WHERE id = v_bp.pool_id AND is_active = true AND is_official = true AND is_locked = true AND school_id IS NULL
+          AND subject = v_bp.subject AND (stage = v_bp.target_stage OR stage_level = v_bp.target_stage OR v_bp.target_stage IS NULL)
+          AND content_owner = 'brain_heist' AND external_id IS NOT NULL AND content_version IS NOT NULL
+          AND content_version <> 'legacy-import' AND content_version LIKE 'adm-bank-v1-g%';
+    ELSE
+        SELECT ARRAY_AGG(id ORDER BY stage NULLS LAST, name) INTO v_pool_ids FROM adm_question_pools
+        WHERE is_official = true AND is_locked = true AND is_active = true AND school_id IS NULL AND subject = v_bp.subject
+          AND (stage = v_bp.target_stage OR stage_level = v_bp.target_stage OR v_bp.target_stage IS NULL)
+          AND content_owner = 'brain_heist' AND external_id IS NOT NULL AND content_version IS NOT NULL
+          AND content_version <> 'legacy-import' AND content_version LIKE 'adm-bank-v1-g%';
+    END IF;
+
+    IF v_pool_ids IS NULL THEN RETURN jsonb_build_object('success', false, 'error', 'No official Brain Heist admission question pools match this blueprint', 'debug_reason', 'No matching official managed pools'); END IF;
+
+    v_base_form_code := COALESCE(p_form_code, UPPER(LEFT(v_bp.subject, 3)) || COALESCE(v_bp.target_stage::text, '') || '-' || TO_CHAR(NOW(), 'YYYY') || '-' || UPPER(SUBSTR(gen_random_uuid()::text, 1, 4)));
+    v_form_code := v_base_form_code;
+    PERFORM pg_advisory_xact_lock(hashtext(COALESCE(v_bp.school_id::text, 'platform') || ':' || v_base_form_code));
+
+    SELECT id, status INTO v_existing_form_id, v_existing_status FROM adm_test_forms WHERE school_id = v_bp.school_id AND form_code = v_form_code;
+    IF v_existing_form_id IS NOT NULL AND v_existing_status = 'draft' THEN
+        RETURN jsonb_build_object('success', true, 'form_id', v_existing_form_id, 'form_code', v_form_code, 'idempotent', true);
+    END IF;
+    WHILE EXISTS (SELECT 1 FROM adm_test_forms WHERE school_id = v_bp.school_id AND form_code = v_form_code) LOOP
+        v_form_code := v_base_form_code || '-' || UPPER(SUBSTR(gen_random_uuid()::text, 1, 4));
+    END LOOP;
+
+    DROP TABLE IF EXISTS adm_selected_questions_tmp;
+    CREATE TEMP TABLE adm_selected_questions_tmp(question_id uuid PRIMARY KEY, normalized_stem text UNIQUE) ON COMMIT DROP;
+
+    FOR v_dist_key, v_dist_val IN SELECT * FROM jsonb_each(v_bp.question_distribution) LOOP
+        FOR v_diff_key, v_diff_count IN SELECT key, value::int FROM jsonb_each_text(v_dist_val) LOOP
+            v_total_required := v_total_required + v_diff_count;
+
+            SELECT COUNT(*) INTO v_available_unique FROM (
+                SELECT DISTINCT ON (adm_normalize_question_stem(q.stem)) q.id
+                FROM adm_questions q
+                JOIN adm_question_pools qp ON qp.id = q.pool_id
+                WHERE q.pool_id = ANY(v_pool_ids) AND q.question_type = v_dist_key AND q.difficulty = v_diff_key AND q.status = 'published'
+                  AND q.is_official = true AND q.is_locked = true AND qp.is_official = true AND qp.is_locked = true
+                  AND COALESCE(q.content_owner, qp.content_owner) = 'brain_heist'
+                  AND q.external_id IS NOT NULL AND qp.external_id IS NOT NULL
+                  AND COALESCE(q.content_version, qp.content_version) IS NOT NULL
+                  AND COALESCE(q.content_version, qp.content_version) <> 'legacy-import'
+                  AND COALESCE(q.content_version, qp.content_version) LIKE 'adm-bank-v1-g%'
+                  AND NOT EXISTS (SELECT 1 FROM adm_selected_questions_tmp s WHERE s.question_id = q.id OR s.normalized_stem = adm_normalize_question_stem(q.stem))
+                ORDER BY adm_normalize_question_stem(q.stem), RANDOM()
+            ) candidates;
+
+            IF v_available_unique < v_diff_count THEN
+                RETURN jsonb_build_object(
+                  'success', false,
+                  'error', 'Not enough unique official questions available for this grade/subject/test blueprint.',
+                  'debug_reason', 'Not enough unique questions after dedupe',
+                  'question_type', v_dist_key,
+                  'difficulty', v_diff_key,
+                  'required', v_diff_count,
+                  'available_unique', v_available_unique
+                );
+            END IF;
+
+            INSERT INTO adm_selected_questions_tmp(question_id, normalized_stem)
+            SELECT question_id, normalized_stem
+            FROM (
+                SELECT DISTINCT ON (adm_normalize_question_stem(q.stem))
+                  q.id AS question_id,
+                  adm_normalize_question_stem(q.stem) AS normalized_stem,
+                  RANDOM() AS random_order
+                FROM adm_questions q
+                JOIN adm_question_pools qp ON qp.id = q.pool_id
+                WHERE q.pool_id = ANY(v_pool_ids) AND q.question_type = v_dist_key AND q.difficulty = v_diff_key AND q.status = 'published'
+                  AND q.is_official = true AND q.is_locked = true AND qp.is_official = true AND qp.is_locked = true
+                  AND COALESCE(q.content_owner, qp.content_owner) = 'brain_heist'
+                  AND q.external_id IS NOT NULL AND qp.external_id IS NOT NULL
+                  AND COALESCE(q.content_version, qp.content_version) IS NOT NULL
+                  AND COALESCE(q.content_version, qp.content_version) <> 'legacy-import'
+                  AND COALESCE(q.content_version, qp.content_version) LIKE 'adm-bank-v1-g%'
+                  AND NOT EXISTS (SELECT 1 FROM adm_selected_questions_tmp s WHERE s.question_id = q.id OR s.normalized_stem = adm_normalize_question_stem(q.stem))
+                ORDER BY adm_normalize_question_stem(q.stem), RANDOM()
+            ) deduped
+            ORDER BY random_order
+            LIMIT v_diff_count;
+            GET DIAGNOSTICS v_selected_count = ROW_COUNT;
+            IF v_selected_count < v_diff_count THEN
+                RETURN jsonb_build_object('success', false, 'error', 'Not enough unique official questions available for this grade/subject/test blueprint.', 'debug_reason', 'Not enough unique questions after dedupe');
+            END IF;
+        END LOOP;
+    END LOOP;
+
+    IF v_total_required = 0 THEN RETURN jsonb_build_object('success', false, 'error', 'No questions matched the blueprint distribution', 'debug_reason', 'No questions matched blueprint distribution'); END IF;
+
+    v_form_id := gen_random_uuid();
+    INSERT INTO adm_test_forms (id, blueprint_id, school_id, form_code, status, created_by) VALUES (v_form_id, p_blueprint_id, v_bp.school_id, v_form_code, 'draft', v_bp.created_by);
+    INSERT INTO adm_test_form_questions (form_id, question_id, question_order)
+    SELECT v_form_id, question_id, ROW_NUMBER() OVER (ORDER BY RANDOM()) FROM adm_selected_questions_tmp;
+
+    RETURN jsonb_build_object('success', true, 'form_id', v_form_id, 'form_code', v_form_code, 'questions_selected', v_total_required);
+EXCEPTION WHEN unique_violation THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Admission form generation failed.', 'debug_reason', 'Duplicate question_order conflict');
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION rpc_adm_generate_test_form(UUID, TEXT) TO authenticated;

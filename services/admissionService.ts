@@ -40,6 +40,7 @@ export type DeliveryMode = 'practice' | 'exam';
 
 export interface AdmQuestionPool {
   id: string;
+  external_id?: string | null;
   school_id: string | null;
   subject: string;
   stage: number | null;
@@ -91,6 +92,7 @@ export interface AdmQuestion {
   content_owner?: string | null;
   content_version?: string | null;
   source_label?: string | null;
+  pool?: Pick<AdmQuestionPool, 'is_official' | 'is_locked' | 'content_owner' | 'content_version' | 'external_id'> | null;
   explanation: string | null;
   status: QuestionStatus;
   created_at: string;
@@ -369,7 +371,7 @@ export async function createQuestionPool(
 export async function fetchQuestions(poolId: string): Promise<AdmQuestion[]> {
   const { data, error } = await supabase
     .from('adm_questions')
-    .select('*')
+    .select('*, pool:adm_question_pools(is_official,is_locked,content_owner,content_version,external_id)')
     .eq('pool_id', poolId)
     .order('question_type')
     .order('difficulty');
@@ -504,7 +506,7 @@ export async function fetchTestForms(schoolId: string): Promise<AdmTestForm[]> {
   return data ?? [];
 }
 
-export async function generateTestForm(blueprintId: string, formCode?: string | null): Promise<{ success: boolean; form_id?: string; form_code?: string; idempotent?: boolean; error?: string }> {
+export async function generateTestForm(blueprintId: string, formCode?: string | null): Promise<{ success: boolean; form_id?: string; form_code?: string; idempotent?: boolean; error?: string; debug_reason?: string }> {
   const { data, error } = await supabase.rpc('rpc_adm_generate_test_form', {
     p_blueprint_id: blueprintId,
     p_form_code: formCode ?? null,
