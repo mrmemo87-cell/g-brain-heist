@@ -69,9 +69,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The passage mainly explains an important idea in The Lantern Club.",
-        "It is about a completely unrelated event in the sentence.",
-        "It gives information that is not in the passage. in the sentence context",
-        "It contradicts the passage's meaning in the sentence."
+        "It is about a completely unrelated event.",
+        "It gives information that is not in the passage.",
+        "It contradicts the passage's meaning."
       ],
       "correct_answer": "The passage mainly explains an important idea in The Lantern Club.",
       "correct_index": 0,
@@ -161,12 +161,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event in the sentence. in the sentence context",
-        "It gives information that is not in the passage in the sentence. in the sentence context",
-        "It contradicts the passage's meaning while using the evidence in the wrong order.",
-        "The word is used with this meaning in the passage in the sentence."
+        "It is about a completely unrelated event.",
+        "It gives information that is not in the passage.",
+        "It contradicts the passage's meaning.",
+        "The word is used with this meaning in the passage."
       ],
-      "correct_answer": "The word is used with this meaning in the passage in the sentence.",
+      "correct_answer": "The word is used with this meaning in the passage.",
       "correct_index": 3,
       "passage_external_id": "adm-g6-eng-v1-passage-lantern"
     },
@@ -192,10 +192,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event in the sentence.",
+        "It is about a completely unrelated event.",
         "The writer's purpose is to inform or engage the reader clearly.",
         "It gives information that is not in the passage.",
-        "It contradicts the passage's meaning in the sentence."
+        "It contradicts the passage's meaning."
       ],
       "correct_answer": "The writer's purpose is to inform or engage the reader clearly.",
       "correct_index": 1,
@@ -224,9 +224,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The passage is organised to guide the reader from one idea to the next.",
-        "It is about a completely unrelated event in the sentence.",
-        "It gives information that is not in the passage in the sentence.",
-        "It contradicts the passage's meaning in the sentence. in the sentence context"
+        "It is about a completely unrelated event.",
+        "It gives information that is not in the passage.",
+        "It contradicts the passage's meaning."
       ],
       "correct_answer": "The passage is organised to guide the reader from one idea to the next.",
       "correct_index": 0,
@@ -254,9 +254,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event in the sentence. in the sentence context",
-        "It gives information that is not in the passage in the sentence. in the sentence context",
-        "It contradicts the passage's meaning while using the evidence in the wrong order.",
+        "It is about a completely unrelated event.",
+        "It gives information that is not in the passage.",
+        "It contradicts the passage's meaning.",
         "The passage mainly explains an important idea in Why Wetlands Matter."
       ],
       "correct_answer": "The passage mainly explains an important idea in Why Wetlands Matter.",
@@ -378,10 +378,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event in the sentence.",
+        "It is about a completely unrelated event.",
         "The writer's purpose is to inform or engage the reader clearly.",
         "It gives information that is not in the passage.",
-        "It contradicts the passage's meaning in the sentence."
+        "It contradicts the passage's meaning."
       ],
       "correct_answer": "The writer's purpose is to inform or engage the reader clearly.",
       "correct_index": 1,
@@ -409,9 +409,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event in the sentence. in the sentence context",
-        "It gives information that is not in the passage in the sentence. in the sentence context",
-        "It contradicts the passage's meaning while using the evidence in the wrong order.",
+        "It is about a completely unrelated event.",
+        "It gives information that is not in the passage.",
+        "It contradicts the passage's meaning.",
         "The passage is organised to guide the reader from one idea to the next."
       ],
       "correct_answer": "The passage is organised to guide the reader from one idea to the next.",
@@ -430,8 +430,8 @@
       "subskill": "main idea",
       "difficulty": "easy",
       "question_type": "reading_comprehension",
-      "prompt": "In 'How a Sundial Tells Time', which answer best shows main idea?",
-      "explanation": "The correct answer is supported by details and clues in the linked passage.",
+      "prompt": "In 'How a Sundial Tells Time', which answer best states the main idea?",
+      "explanation": "The passage mainly explains how a sundial uses the Sun’s shadow to show time.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -440,13 +440,13 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event in the sentence. in the sentence context",
-        "The passage mainly explains an important idea in How a Sundial Tells Time.",
-        "It gives information that is not in the passage in the sentence.",
-        "It contradicts the passage's meaning in the sentence. in the sentence context"
+        "A sundial uses shadows to show the time of day.",
+        "A sundial uses batteries to make a bell ring.",
+        "A sundial works only indoors under bright lamps.",
+        "A sundial records the weather during storms."
       ],
-      "correct_answer": "The passage mainly explains an important idea in How a Sundial Tells Time.",
-      "correct_index": 1,
+      "correct_answer": "A sundial uses shadows to show the time of day.",
+      "correct_index": 0,
       "passage_external_id": "adm-g6-eng-v1-passage-sundial"
     },
     {
@@ -502,12 +502,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event in the sentence. in the sentence context",
-        "It gives information that is not in the passage in the sentence. in the sentence context",
-        "It contradicts the passage's meaning while using the evidence in the wrong order.",
-        "The reader can infer this from clues in the passage in the sentence."
+        "It is about a completely unrelated event.",
+        "It gives information that is not in the passage.",
+        "It contradicts the passage's meaning.",
+        "The reader can infer this from clues in the passage."
       ],
-      "correct_answer": "The reader can infer this from clues in the passage in the sentence.",
+      "correct_answer": "The reader can infer this from clues in the passage.",
       "correct_index": 3,
       "passage_external_id": "adm-g6-eng-v1-passage-sundial"
     },
@@ -565,9 +565,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The writer's purpose is to inform or engage the reader clearly.",
-        "It is about a completely unrelated event in the sentence.",
+        "It is about a completely unrelated event.",
         "It gives information that is not in the passage.",
-        "It contradicts the passage's meaning in the sentence."
+        "It contradicts the passage's meaning."
       ],
       "correct_answer": "The writer's purpose is to inform or engage the reader clearly.",
       "correct_index": 0,
@@ -595,10 +595,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event in the sentence.",
-        "It gives information that is not in the passage in the sentence.",
+        "It is about a completely unrelated event.",
+        "It gives information that is not in the passage.",
         "The passage is organised to guide the reader from one idea to the next.",
-        "It contradicts the passage's meaning in the sentence. in the sentence context"
+        "It contradicts the passage's meaning."
       ],
       "correct_answer": "The passage is organised to guide the reader from one idea to the next.",
       "correct_index": 2,
@@ -626,10 +626,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event in the sentence.",
+        "It is about a completely unrelated event.",
         "The passage mainly explains an important idea in The Morning Market.",
-        "It gives information that is not in the passage in the sentence.",
-        "It contradicts the passage's meaning in the sentence."
+        "It gives information that is not in the passage.",
+        "It contradicts the passage's meaning."
       ],
       "correct_answer": "The passage mainly explains an important idea in The Morning Market.",
       "correct_index": 1,
@@ -657,12 +657,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event in the sentence. in the sentence context",
-        "It gives information that is not in the passage in the sentence. in the sentence context",
-        "It contradicts the passage's meaning while using the evidence in the wrong order.",
-        "A detail stated in the passage supports the answer in the sentence."
+        "It is about a completely unrelated event.",
+        "It gives information that is not in the passage.",
+        "It contradicts the passage's meaning.",
+        "A detail stated in the passage supports the answer."
       ],
-      "correct_answer": "A detail stated in the passage supports the answer in the sentence.",
+      "correct_answer": "A detail stated in the passage supports the answer.",
       "correct_index": 3,
       "passage_external_id": "adm-g6-eng-v1-passage-market"
     },
@@ -750,12 +750,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event in the sentence. in the sentence context",
-        "It gives information that is not in the passage in the sentence. in the sentence context",
-        "It contradicts the passage's meaning while using the evidence in the wrong order.",
-        "The writer's purpose is to inform or engage the reader clearly. in the sentence context"
+        "It is about a completely unrelated event.",
+        "It gives information that is not in the passage.",
+        "It contradicts the passage's meaning.",
+        "The writer's purpose is to inform or engage the reader clearly."
       ],
-      "correct_answer": "The writer's purpose is to inform or engage the reader clearly. in the sentence context",
+      "correct_answer": "The writer's purpose is to inform or engage the reader clearly.",
       "correct_index": 3,
       "passage_external_id": "adm-g6-eng-v1-passage-market"
     },
@@ -781,10 +781,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event in the sentence.",
-        "It gives information that is not in the passage in the sentence.",
+        "It is about a completely unrelated event.",
+        "It gives information that is not in the passage.",
         "The passage is organised to guide the reader from one idea to the next.",
-        "It contradicts the passage's meaning in the sentence. in the sentence context"
+        "It contradicts the passage's meaning."
       ],
       "correct_answer": "The passage is organised to guide the reader from one idea to the next.",
       "correct_index": 2,
@@ -813,9 +813,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The passage mainly explains an important idea in Green Team Notice.",
-        "It is about a completely unrelated event in the sentence.",
-        "It gives information that is not in the passage in the sentence.",
-        "It contradicts the passage's meaning in the sentence."
+        "It is about a completely unrelated event.",
+        "It gives information that is not in the passage.",
+        "It contradicts the passage's meaning."
       ],
       "correct_answer": "The passage mainly explains an important idea in Green Team Notice.",
       "correct_index": 0,
@@ -905,12 +905,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event in the sentence. in the sentence context",
-        "It gives information that is not in the passage in the sentence. in the sentence context",
-        "It contradicts the passage's meaning while using the evidence in the wrong order.",
-        "The word is used with this meaning in the passage in the sentence."
+        "It is about a completely unrelated event.",
+        "It gives information that is not in the passage.",
+        "It contradicts the passage's meaning.",
+        "The word is used with this meaning in the passage."
       ],
-      "correct_answer": "The word is used with this meaning in the passage in the sentence.",
+      "correct_answer": "The word is used with this meaning in the passage.",
       "correct_index": 3,
       "passage_external_id": "adm-g6-eng-v1-passage-green-team"
     },
@@ -936,10 +936,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event in the sentence.",
+        "It is about a completely unrelated event.",
         "The writer's purpose is to inform or engage the reader clearly.",
         "It gives information that is not in the passage.",
-        "It contradicts the passage's meaning in the sentence."
+        "It contradicts the passage's meaning."
       ],
       "correct_answer": "The writer's purpose is to inform or engage the reader clearly.",
       "correct_index": 1,
@@ -968,9 +968,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The passage is organised to guide the reader from one idea to the next.",
-        "It is about a completely unrelated event in the sentence.",
-        "It gives information that is not in the passage in the sentence.",
-        "It contradicts the passage's meaning in the sentence. in the sentence context"
+        "It is about a completely unrelated event.",
+        "It gives information that is not in the passage.",
+        "It contradicts the passage's meaning."
       ],
       "correct_answer": "The passage is organised to guide the reader from one idea to the next.",
       "correct_index": 0,
@@ -1048,8 +1048,8 @@
       "subskill": "punctuation",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "Which sentence is punctuated correctly?",
-      "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
+      "prompt": "Which sentence correctly punctuates Maya's direct question?",
+      "explanation": "The correct sentence uses a comma before the spoken words and places the question mark inside the quotation marks.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1121,7 +1121,7 @@
         "Although the path was muddy. The team reached the field on time.",
         "Although the path was muddy, the team reached the field on time.",
         "The path muddy, the team reached the field on time.",
-        "Although muddy the field on time in the sentence."
+        "Although muddy the field on time."
       ],
       "correct_answer": "Although the path was muddy, the team reached the field on time.",
       "correct_index": 1
@@ -1390,7 +1390,7 @@
       "options": [
         "Although the path was muddy. The team reached the field on time.",
         "The path muddy, the team reached the field on time.",
-        "Although muddy the field on time in the sentence.",
+        "Although muddy the field on time.",
         "Although the path was muddy, the team reached the field on time."
       ],
       "correct_answer": "Although the path was muddy, the team reached the field on time.",
@@ -1661,7 +1661,7 @@
         "Although the path was muddy. The team reached the field on time.",
         "Although the path was muddy, the team reached the field on time.",
         "The path muddy, the team reached the field on time.",
-        "Although muddy the field on time in the sentence."
+        "Although muddy the field on time."
       ],
       "correct_answer": "Although the path was muddy, the team reached the field on time.",
       "correct_index": 1
@@ -1948,8 +1948,8 @@
       "subskill": "word meaning in context",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In the sentence “The judge gave a fair decision,” what does “fair” mean?",
-      "explanation": "The correct option best fits the meaning and context of the sentence.",
+      "prompt": "In the phrase “a fair decision,” what does “fair” mean?",
+      "explanation": "A fair decision is one that is just, reasonable, and not biased.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -1958,12 +1958,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "pale in colour while using the evidence in the wrong order.",
-        "sunny in the sentence. in the sentence context",
-        "crowded in the sentence. in the sentence context",
-        "just and reasonable with a specific but incorrect qualifier."
+        "pale in colour.",
+        "sunny.",
+        "crowded.",
+        "just and reasonable."
       ],
-      "correct_answer": "just and reasonable with a specific but incorrect qualifier.",
+      "correct_answer": "just and reasonable.",
       "correct_index": 3
     },
     {
@@ -2158,8 +2158,8 @@
       "subskill": "word meaning in context",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "in the sentence “The judge gave a fair decision,” what does “fair” mean?.",
-      "explanation": "The correct option best fits the meaning and context of the sentence.",
+      "prompt": "In the phrase “a rapid response,” what does “rapid” mean?",
+      "explanation": "Rapid means happening quickly or with speed.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2168,12 +2168,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "just and reasonable with a specific but incorrect qualifier.",
-        "pale in colour in the sentence. in the sentence context",
-        "sunny while using the evidence in the wrong order.",
-        "crowded in the sentence. in the sentence context"
+        "very quick.",
+        "carefully hidden.",
+        "unusually heavy.",
+        "full of detail."
       ],
-      "correct_answer": "just and reasonable with a specific but incorrect qualifier.",
+      "correct_answer": "very quick.",
       "correct_index": 0
     },
     {
@@ -2218,7 +2218,7 @@
       "subskill": "precise word choice",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "which word best completes the sentence: The instructions were clear and ______..",
+      "prompt": "which word best completes the sentence: The instructions were clear and ______.",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2368,8 +2368,8 @@
       "subskill": "word meaning in context",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "in the sentence “The judge gave a fair decision,” what does “fair” mean?.",
-      "explanation": "The correct option best fits the meaning and context of the sentence.",
+      "prompt": "In the phrase “a fragile vase,” what does “fragile” mean?",
+      "explanation": "Fragile means delicate or easy to break.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2378,12 +2378,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "pale in colour while using the evidence in the wrong order.",
-        "just and reasonable with a specific but incorrect qualifier.",
-        "sunny while using the evidence in the wrong order.",
-        "crowded in the sentence. in the sentence context"
+        "brightly coloured.",
+        "easily broken.",
+        "recently cleaned.",
+        "very expensive."
       ],
-      "correct_answer": "just and reasonable with a specific but incorrect qualifier.",
+      "correct_answer": "easily broken.",
       "correct_index": 1
     },
     {
@@ -2428,7 +2428,7 @@
       "subskill": "precise word choice",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "which word best completes the sentence: The instructions were clear and ______..",
+      "prompt": "which word best completes the sentence: The instructions were clear and ______.",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2578,8 +2578,8 @@
       "subskill": "word meaning in context",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "in the sentence “The judge gave a fair decision,” what does “fair” mean?.",
-      "explanation": "The correct option best fits the meaning and context of the sentence.",
+      "prompt": "In the phrase “a generous donation,” what does “generous” mean?",
+      "explanation": "Generous means willing to give freely or more than expected.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-english",
@@ -2588,12 +2588,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "pale in colour while using the evidence in the wrong order.",
-        "sunny in the sentence. in the sentence context",
-        "crowded in the sentence. in the sentence context",
-        "just and reasonable with a specific but incorrect qualifier."
+        "acting without care.",
+        "usual or expected.",
+        "kept secret.",
+        "ready to give freely."
       ],
-      "correct_answer": "just and reasonable with a specific but incorrect qualifier.",
+      "correct_answer": "ready to give freely.",
       "correct_index": 3
     },
     {
@@ -2638,7 +2638,7 @@
       "subskill": "precise word choice",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "which word best completes the sentence: The instructions were clear and ______..",
+      "prompt": "which word best completes the sentence: The instructions were clear and ______.",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,

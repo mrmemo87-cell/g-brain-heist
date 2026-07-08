@@ -479,7 +479,7 @@
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "Which expression has the same value as 9 × 14?",
-      "explanation": "9 × 10 + 9 × 4 is correct because it follows the calculation or reasoning described in the question.",
+      "explanation": "Using the distributive property, 9 × 14 = 9 × (10 + 4) = 9 × 10 + 9 × 4.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-maths",
@@ -488,12 +488,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "9 × 10 + 4 for this problem",
-        "10 × 14 for this problem",
-        "9 + 14 while using the evidence in the wrong order.",
-        "9 × 10 + 9 × 4 for this problem"
+        "9 × 10 + 4 × 1",
+        "10 × 14 − 1 × 4",
+        "9 × 7 + 9 × 6",
+        "9 × 10 + 9 × 4"
       ],
-      "correct_answer": "9 × 10 + 9 × 4 for this problem",
+      "correct_answer": "9 × 10 + 9 × 4",
       "correct_index": 3
     },
     {

@@ -299,7 +299,7 @@
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "Maya puts one plant on a bright windowsill and another in a closed cupboard, giving both the same amount of water. The windowsill plant stays healthier. Why?",
-      "explanation": "Plants need light to make food for growth. This directly matches the evidence in the question.",
+      "explanation": "Plants need light for photosynthesis, which helps them make food for growth.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -309,11 +309,11 @@
       "content_owner": "brain_heist",
       "options": [
         "Plants grow best with no light.",
-        "Plants need light to make food for growth.",
-        "Darkness gives plants more energy.",
-        "Windows add extra soil nutrients."
+        "Plants use light to make food.",
+        "Darkness gives plants energy.",
+        "Windows add nutrients to soil."
       ],
-      "correct_answer": "Plants need light to make food for growth.",
+      "correct_answer": "Plants use light to make food.",
       "correct_index": 1
     },
     {
@@ -359,7 +359,7 @@
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "Two plants are the same kind and get the same water. The one that receives sunlight has greener leaves after several days. Which statement best explains this result?",
-      "explanation": "Plants need light to make food for growth. This directly matches the evidence in the question.",
+      "explanation": "The plant with sunlight grows better because light helps plants make food.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -369,11 +369,11 @@
       "content_owner": "brain_heist",
       "options": [
         "Plants grow best with no light.",
-        "Plants need light to make food for growth.",
-        "Darkness gives plants more energy.",
-        "Windows add extra soil nutrients."
+        "Plants use light to make food.",
+        "Darkness gives plants energy.",
+        "Windows add nutrients to soil."
       ],
-      "correct_answer": "Plants need light to make food for growth.",
+      "correct_answer": "Plants use light to make food.",
       "correct_index": 1
     },
     {
@@ -419,7 +419,7 @@
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "A plant left in a bright place grows better than a matching plant left in darkness. What role does light play for the plant?",
-      "explanation": "Plants need light to make food for growth. This directly matches the evidence in the question.",
+      "explanation": "Light helps plants make food, which supports healthy growth.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -429,11 +429,11 @@
       "content_owner": "brain_heist",
       "options": [
         "Plants grow best with no light.",
-        "Darkness gives plants more energy.",
-        "Windows add extra soil nutrients.",
-        "Plants need light to make food for growth."
+        "Darkness gives plants energy.",
+        "Windows add nutrients to soil.",
+        "Plants use light to make food."
       ],
-      "correct_answer": "Plants need light to make food for growth.",
+      "correct_answer": "Plants use light to make food.",
       "correct_index": 3
     },
     {
@@ -479,7 +479,7 @@
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "A metal spoon and a wooden spoon are left in the same room. The metal spoon feels colder when touched. Why does this happen?",
-      "explanation": "Metal transfers heat from your hand more quickly. This directly matches the evidence in the question.",
+      "explanation": "Metal feels cooler because it transfers heat away from your hand faster than wood.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -488,12 +488,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Metal transfers heat from your hand more quickly under these conditions.",
-        "Metal is always at a lower temperature under these conditions.",
-        "Wood contains more cold air while using the evidence in the wrong order.",
-        "The spoons have different colours under these conditions."
+        "Metal conducts heat away faster.",
+        "Metal starts colder than wood.",
+        "Wood contains trapped cold air.",
+        "Colour changes how warm it feels."
       ],
-      "correct_answer": "Metal transfers heat from your hand more quickly under these conditions.",
+      "correct_answer": "Metal conducts heat away faster.",
       "correct_index": 0
     },
     {
@@ -539,7 +539,7 @@
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "A metal spoon and a wooden spoon sit in the same room. The metal spoon feels colder to your hand even though both have been in the room. Why?",
-      "explanation": "Metal transfers heat from your hand more quickly. This directly matches the evidence in the question.",
+      "explanation": "Both spoons may be the same temperature, but metal conducts heat away more quickly.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -548,12 +548,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Metal is always at a lower temperature under these conditions.",
-        "Metal transfers heat from your hand more quickly under these conditions.",
-        "Wood contains more cold air while using the evidence in the wrong order.",
-        "The spoons have different colours under these conditions."
+        "Metal starts colder than wood.",
+        "Metal conducts heat away faster.",
+        "Wood contains trapped cold air.",
+        "Colour changes how warm it feels."
       ],
-      "correct_answer": "Metal transfers heat from your hand more quickly under these conditions.",
+      "correct_answer": "Metal conducts heat away faster.",
       "correct_index": 1
     },
     {
@@ -599,7 +599,7 @@
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "Two spoons have been on the same table all morning: one metal and one wooden. When touched, the metal spoon feels cooler. Which explanation is best?",
-      "explanation": "Metal transfers heat from your hand more quickly. This directly matches the evidence in the question.",
+      "explanation": "Metal is a better conductor, so it removes heat from your hand faster.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -608,12 +608,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Metal is always at a lower temperature under these conditions.",
-        "Metal transfers heat from your hand more quickly under these conditions.",
-        "Wood contains more cold air while using the evidence in the wrong order.",
-        "The spoons have different colours under these conditions."
+        "Metal starts colder than wood.",
+        "Metal conducts heat away faster.",
+        "Wood contains trapped cold air.",
+        "Colour changes how warm it feels."
       ],
-      "correct_answer": "Metal transfers heat from your hand more quickly under these conditions.",
+      "correct_answer": "Metal conducts heat away faster.",
       "correct_index": 1
     },
     {
@@ -628,8 +628,8 @@
       "subskill": "materials / chemistry",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "which change is usually reversible?.",
-      "explanation": "Melting an ice cube This directly matches the evidence in the question.",
+      "prompt": "Which change is usually reversible?",
+      "explanation": "Melting is usually reversible because water can freeze again.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -638,12 +638,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Melting an ice cube under these conditions",
-        "Burning paper under these conditions",
-        "Baking bread while using the evidence in the wrong order.",
-        "Rusting iron under these conditions"
+        "Melting an ice cube.",
+        "Burning a sheet of paper.",
+        "Baking bread dough.",
+        "Rusting an iron nail."
       ],
-      "correct_answer": "Melting an ice cube under these conditions",
+      "correct_answer": "Melting an ice cube.",
       "correct_index": 0
     },
     {
@@ -719,7 +719,7 @@
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "Metal and wooden spoons are left side by side in a kitchen. The metal spoon feels colder at first touch. What is the main reason?",
-      "explanation": "Metal transfers heat from your hand more quickly. This directly matches the evidence in the question.",
+      "explanation": "The metal spoon feels colder because it conducts heat away from your hand quickly.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -728,12 +728,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Metal transfers heat from your hand more quickly under these conditions.",
-        "Metal is always at a lower temperature under these conditions.",
-        "Wood contains more cold air while using the evidence in the wrong order.",
-        "The spoons have different colours under these conditions."
+        "Metal conducts heat away faster.",
+        "Metal starts colder than wood.",
+        "Wood contains trapped cold air.",
+        "Colour changes how warm it feels."
       ],
-      "correct_answer": "Metal transfers heat from your hand more quickly under these conditions.",
+      "correct_answer": "Metal conducts heat away faster.",
       "correct_index": 0
     },
     {
@@ -779,7 +779,7 @@
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "A metal spoon may feel cooler than a wooden spoon from the same room. Which statement correctly explains the feeling?",
-      "explanation": "Metal transfers heat from your hand more quickly. This directly matches the evidence in the question.",
+      "explanation": "Metal transfers heat from your hand faster, so it can feel cooler at first touch.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -788,12 +788,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Metal is always at a lower temperature under these conditions.",
-        "Metal transfers heat from your hand more quickly under these conditions.",
-        "Wood contains more cold air while using the evidence in the wrong order.",
-        "The spoons have different colours under these conditions."
+        "Metal starts colder than wood.",
+        "Metal conducts heat away faster.",
+        "Wood contains trapped cold air.",
+        "Colour changes how warm it feels."
       ],
-      "correct_answer": "Metal transfers heat from your hand more quickly under these conditions.",
+      "correct_answer": "Metal conducts heat away faster.",
       "correct_index": 1
     },
     {
@@ -910,7 +910,7 @@
       "options": [
         "The carpet gives the car more energy under these conditions.",
         "Gravity is stronger on the table under these conditions.",
-        "The car has no mass on carpet while using the evidence in the wrong order.",
+        "The car has no mass on carpet.",
         "The smooth table produces less friction under these conditions."
       ],
       "correct_answer": "The smooth table produces less friction under these conditions.",
@@ -1150,7 +1150,7 @@
       "options": [
         "The carpet gives the car more energy under these conditions.",
         "Gravity is stronger on the table under these conditions.",
-        "The car has no mass on carpet while using the evidence in the wrong order.",
+        "The car has no mass on carpet.",
         "The smooth table produces less friction under these conditions."
       ],
       "correct_answer": "The smooth table produces less friction under these conditions.",
@@ -1199,7 +1199,7 @@
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Why does a shadow form when a book blocks a torch beam?",
-      "explanation": "Light travels in straight lines and cannot pass through the opaque book. This directly matches the evidence in the question.",
+      "explanation": "A shadow forms because light travels in straight lines and the opaque book blocks it.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1208,12 +1208,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Light travels in straight lines and cannot pass through the opaque book.",
-        "Sound pushes the light backwards under these conditions.",
-        "The book creates new darkness while using the evidence in the wrong order.",
-        "Light bends around every object equally under these conditions."
+        "Light travels straight and is blocked.",
+        "Sound pushes the light backwards.",
+        "The book creates new darkness.",
+        "Light bends equally around objects."
       ],
-      "correct_answer": "Light travels in straight lines and cannot pass through the opaque book.",
+      "correct_answer": "Light travels straight and is blocked.",
       "correct_index": 0
     },
     {
@@ -1258,8 +1258,8 @@
       "subskill": "energy, light, sound, and electricity",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "why does a shadow form when a book blocks a torch beam?.",
-      "explanation": "Light travels in straight lines and cannot pass through the opaque book. This directly matches the evidence in the question.",
+      "prompt": "Why does a shadow form when a book blocks a torch beam?",
+      "explanation": "The book blocks the torch beam, so less light reaches the area behind it.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1268,12 +1268,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Sound pushes the light backwards under these conditions.",
-        "Light travels in straight lines and cannot pass through the opaque book.",
-        "The book creates new darkness while using the evidence in the wrong order.",
-        "Light bends around every object equally under these conditions."
+        "Sound pushes the light backwards.",
+        "Light travels straight and is blocked.",
+        "The book creates new darkness.",
+        "Light bends equally around objects."
       ],
-      "correct_answer": "Light travels in straight lines and cannot pass through the opaque book.",
+      "correct_answer": "Light travels straight and is blocked.",
       "correct_index": 1
     },
     {
@@ -1318,8 +1318,8 @@
       "subskill": "energy, light, sound, and electricity",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "why does a shadow form when a book blocks a torch beam?.",
-      "explanation": "Light travels in straight lines and cannot pass through the opaque book. This directly matches the evidence in the question.",
+      "prompt": "Why does a shadow form when a book blocks a torch beam?",
+      "explanation": "Light travels in straight lines, so an opaque object can block the beam.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1328,12 +1328,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Sound pushes the light backwards under these conditions.",
-        "Light travels in straight lines and cannot pass through the opaque book.",
-        "The book creates new darkness while using the evidence in the wrong order.",
-        "Light bends around every object equally under these conditions."
+        "Sound pushes the light backwards.",
+        "Light travels straight and is blocked.",
+        "The book creates new darkness.",
+        "Light bends equally around objects."
       ],
-      "correct_answer": "Light travels in straight lines and cannot pass through the opaque book.",
+      "correct_answer": "Light travels straight and is blocked.",
       "correct_index": 1
     },
     {
@@ -1378,8 +1378,8 @@
       "subskill": "energy, light, sound, and electricity",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "why does a shadow form when a book blocks a torch beam?.",
-      "explanation": "Light travels in straight lines and cannot pass through the opaque book. This directly matches the evidence in the question.",
+      "prompt": "Why does a shadow form when a book blocks a torch beam?",
+      "explanation": "A shadow appears where the book prevents light from reaching the surface.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1388,12 +1388,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Sound pushes the light backwards under these conditions.",
-        "The book creates new darkness under these conditions.",
-        "Light bends around every object equally under these conditions.",
-        "Light travels in straight lines and cannot pass through the opaque book."
+        "Sound pushes the light backwards.",
+        "The book creates new darkness.",
+        "Light bends equally around objects.",
+        "Light travels straight and is blocked."
       ],
-      "correct_answer": "Light travels in straight lines and cannot pass through the opaque book.",
+      "correct_answer": "Light travels straight and is blocked.",
       "correct_index": 3
     },
     {
@@ -1438,8 +1438,8 @@
       "subskill": "energy, light, sound, and electricity",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "why does a shadow form when a book blocks a torch beam?.",
-      "explanation": "Light travels in straight lines and cannot pass through the opaque book. This directly matches the evidence in the question.",
+      "prompt": "Why does a shadow form when a book blocks a torch beam?",
+      "explanation": "The opaque book blocks the straight path of the torch light.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1448,12 +1448,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Light travels in straight lines and cannot pass through the opaque book.",
-        "Sound pushes the light backwards under these conditions.",
-        "The book creates new darkness while using the evidence in the wrong order.",
-        "Light bends around every object equally under these conditions."
+        "Light travels straight and is blocked.",
+        "Sound pushes the light backwards.",
+        "The book creates new darkness.",
+        "Light bends equally around objects."
       ],
-      "correct_answer": "Light travels in straight lines and cannot pass through the opaque book.",
+      "correct_answer": "Light travels straight and is blocked.",
       "correct_index": 0
     },
     {
@@ -1498,8 +1498,8 @@
       "subskill": "energy, light, sound, and electricity",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "why does a shadow form when a book blocks a torch beam?.",
-      "explanation": "Light travels in straight lines and cannot pass through the opaque book. This directly matches the evidence in the question.",
+      "prompt": "Why does a shadow form when a book blocks a torch beam?",
+      "explanation": "The book blocks light from reaching the area behind it, creating a shadow.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1508,12 +1508,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Sound pushes the light backwards under these conditions.",
-        "Light travels in straight lines and cannot pass through the opaque book.",
-        "The book creates new darkness while using the evidence in the wrong order.",
-        "Light bends around every object equally under these conditions."
+        "Sound pushes the light backwards.",
+        "Light travels straight and is blocked.",
+        "The book creates new darkness.",
+        "Light bends equally around objects."
       ],
-      "correct_answer": "Light travels in straight lines and cannot pass through the opaque book.",
+      "correct_answer": "Light travels straight and is blocked.",
       "correct_index": 1
     },
     {
@@ -1589,7 +1589,7 @@
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Which observation is evidence that the Moon reflects sunlight?",
-      "explanation": "The Moon is visible because sunlight bounces from its surface. This directly matches the evidence in the question.",
+      "explanation": "The Moon is visible because sunlight reflects from its surface.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1598,12 +1598,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The Moon is visible because sunlight bounces from its surface.",
-        "The Moon makes its own daylight under these conditions.",
-        "The Moon is a star while using the evidence in the wrong order.",
-        "The Moon is always hot under these conditions."
+        "Sunlight reflects from the Moon.",
+        "The Moon creates its own daylight.",
+        "The Moon is a nearby star.",
+        "The Moon stays hot at night."
       ],
-      "correct_answer": "The Moon is visible because sunlight bounces from its surface.",
+      "correct_answer": "Sunlight reflects from the Moon.",
       "correct_index": 0
     },
     {
@@ -1799,7 +1799,7 @@
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Students compare how much water different paper towel brands can absorb. Which measurement should be kept the same for each trial?",
-      "explanation": "The amount of water used for each towel This directly matches the evidence in the question.",
+      "explanation": "A fair test changes the towel brand but keeps the amount of water the same.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1808,12 +1808,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The brand of towel only under these conditions",
-        "The amount of water used for each towel under these conditions",
-        "The result they prefer while using the evidence in the wrong order.",
-        "The colour of the table under these conditions"
+        "The towel brand being tested.",
+        "The amount of water added.",
+        "The result they expected.",
+        "The colour of the table."
       ],
-      "correct_answer": "The amount of water used for each towel under these conditions",
+      "correct_answer": "The amount of water added.",
       "correct_index": 1
     },
     {
@@ -1859,7 +1859,7 @@
       "difficulty": "hard",
       "question_type": "mcq",
       "prompt": "A class compares several paper towel brands to see which absorbs the most water. Which condition should stay the same each time to make the test fair?",
-      "explanation": "The amount of water used for each towel This directly matches the evidence in the question.",
+      "explanation": "The amount of water should stay the same so only the towel brand is compared.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1868,12 +1868,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The brand of towel only",
-        "The result they prefer.",
-        "The colour of the table",
-        "The amount of water used for each towel"
+        "The towel brand being tested.",
+        "The result they wanted.",
+        "The colour of the table.",
+        "The amount of water added."
       ],
-      "correct_answer": "The amount of water used for each towel",
+      "correct_answer": "The amount of water added.",
       "correct_index": 3
     },
     {
@@ -1919,7 +1919,7 @@
       "difficulty": "hard",
       "question_type": "mcq",
       "prompt": "Students test paper towels by adding water and measuring how much each towel holds. What should they control so the comparison is fair?",
-      "explanation": "The amount of water used for each towel This directly matches the evidence in the question.",
+      "explanation": "The water amount is a controlled variable because it should stay the same in each trial.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1928,12 +1928,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The amount of water used for each towel under these conditions",
-        "The brand of towel only under these conditions",
-        "The result they prefer while using the evidence in the wrong order.",
-        "The colour of the table under these conditions"
+        "The amount of water added.",
+        "The towel brand being tested.",
+        "The result they preferred.",
+        "The colour of the table."
       ],
-      "correct_answer": "The amount of water used for each towel under these conditions",
+      "correct_answer": "The amount of water added.",
       "correct_index": 0
     },
     {
@@ -1979,7 +1979,7 @@
       "difficulty": "hard",
       "question_type": "mcq",
       "prompt": "A group wants to find the most absorbent paper towel. Which part of the procedure should be kept the same for every brand?",
-      "explanation": "The amount of water used for each towel This directly matches the evidence in the question.",
+      "explanation": "Keeping the water amount the same makes the absorbency comparison fair.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1988,12 +1988,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The brand of towel only under these conditions",
-        "The amount of water used for each towel under these conditions",
-        "The result they prefer while using the evidence in the wrong order.",
-        "The colour of the table under these conditions"
+        "The towel brand being tested.",
+        "The amount of water added.",
+        "The result they preferred.",
+        "The colour of the table."
       ],
-      "correct_answer": "The amount of water used for each towel under these conditions",
+      "correct_answer": "The amount of water added.",
       "correct_index": 1
     },
     {
@@ -2039,7 +2039,7 @@
       "difficulty": "hard",
       "question_type": "mcq",
       "prompt": "Paper towel samples are compared for absorbency. Which choice describes a controlled variable in this fair test?",
-      "explanation": "The amount of water used for each towel This directly matches the evidence in the question.",
+      "explanation": "A controlled variable is something kept the same during a fair test.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -2048,12 +2048,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The brand of towel only under these conditions",
-        "The amount of water used for each towel under these conditions",
-        "The result they prefer while using the evidence in the wrong order.",
-        "The colour of the table under these conditions"
+        "The towel brand being tested.",
+        "The amount of water added.",
+        "The result they preferred.",
+        "The colour of the table."
       ],
-      "correct_answer": "The amount of water used for each towel under these conditions",
+      "correct_answer": "The amount of water added.",
       "correct_index": 1
     },
     {
@@ -2099,7 +2099,7 @@
       "difficulty": "hard",
       "question_type": "mcq",
       "prompt": "To compare paper towel absorbency fairly, students change only the towel brand. What should remain the same during each trial?",
-      "explanation": "The amount of water used for each towel This directly matches the evidence in the question.",
+      "explanation": "Only the towel brand should change; the water amount should remain constant.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -2108,12 +2108,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The brand of towel only",
-        "The result they prefer.",
-        "The colour of the table",
-        "The amount of water used for each towel"
+        "The towel brand being tested.",
+        "The result they preferred.",
+        "The colour of the table.",
+        "The amount of water added."
       ],
-      "correct_answer": "The amount of water used for each towel",
+      "correct_answer": "The amount of water added.",
       "correct_index": 3
     },
     {

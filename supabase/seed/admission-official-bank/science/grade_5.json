@@ -630,12 +630,12 @@
       "question_type": "mcq",
       "prompt": "Which change is reversible?",
       "options": [
-        "melting chocolate and cooling it again under these conditions",
-        "baking a cake while using the evidence in the wrong order.",
-        "rusting iron while using the evidence in the wrong order.",
-        "burning paper under these conditions."
+        "melting and cooling chocolate.",
+        "baking cake batter in an oven.",
+        "rusting iron left in rain.",
+        "burning paper into ash."
       ],
-      "correct_answer": "melting chocolate and cooling it again under these conditions",
+      "correct_answer": "melting and cooling chocolate.",
       "correct_index": 0,
       "explanation": "Melted chocolate can become solid again when cooled.",
       "marks": 1,
