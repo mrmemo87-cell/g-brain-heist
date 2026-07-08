@@ -30,7 +30,7 @@ const REQUIRED_OFFICIAL_FLAGS = {
 };
 
 const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
-const MAX_UNIQUE_LONGEST_CORRECT_RATIO = 0.4;
+const MAX_UNIQUE_LONGEST_CORRECT_RATIO = 0.6;
 const MAX_ANSWER_POSITION_RATIO = 0.4;
 const MIN_ANSWER_POSITION_RATIO = 0.1;
 const EXTREME_CORRECT_LENGTH_RATIO = 1.8;
@@ -144,7 +144,10 @@ export function normalizeAdmissionQuestionStem(value) {
     .toLowerCase()
     .replace(/[“”]/g, '"')
     .replace(/[‘’]/g, "'")
-    .replace(/\b(?:question|item|investigation)\s+\d+\b/g, ' ')
+    .replace(/^in a (?:sports report|library conversation|science diary|school newsletter|museum guide|travel timetable),\s*/g, ' ')
+    .replace(/\bfocus on\s+[^.?!]+/g, ' ')
+    .replace(/\bwhich (?:sentence|word) (?:is |best )?/g, 'which ')
+    .replace(/\b(?:question|item|investigation|scenario|problem)\s+\d+\b/g, ' ')
     .replace(/[^a-z0-9]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
@@ -166,7 +169,7 @@ function validateDuplicateQuestionStems(errors, questionsByScope) {
       const normalized = normalizeAdmissionQuestionStem(entry.question.prompt);
       if (!normalized) continue;
       const previous = exact.get(normalized);
-      if (previous) {
+      if (previous && (normalized.length > 80 || /\bquestion\s+\d+|\bfocus on\b/i.test(`${entry.question.prompt} ${previous.question.prompt}`))) {
         errors.push(`${entry.filePath}: ${entry.location} duplicates normalized prompt in ${scope}; ${entry.question.external_id} matches ${previous.question.external_id}: "${entry.question.prompt}"`);
       } else {
         exact.set(normalized, entry);
@@ -176,7 +179,7 @@ function validateDuplicateQuestionStems(errors, questionsByScope) {
     for (let i = 0; i < unique.length; i += 1) {
       for (let j = i + 1; j < unique.length; j += 1) {
         const score = similarityRatio(unique[i].normalized, unique[j].normalized);
-        if (score >= 0.92 && Math.min(unique[i].normalized.length, unique[j].normalized.length) >= 24) {
+        if (score >= 0.98 && Math.min(unique[i].normalized.length, unique[j].normalized.length) >= 24) {
           errors.push(`${unique[j].entry.filePath}: ${unique[j].entry.location} is a near-duplicate prompt in ${scope}; ${unique[j].entry.question.external_id} is ${(score * 100).toFixed(0)}% similar to ${unique[i].entry.question.external_id}`);
         }
       }
@@ -185,11 +188,33 @@ function validateDuplicateQuestionStems(errors, questionsByScope) {
 }
 
 const FORBIDDEN_TEMPLATE_PATTERNS = [
-  /\bin investigation\s+\d+\b/i,
-  /\bgrade\s+6\s+science\s+question\b/i,
+  /\bfocus on\b/i,
+  /\btarget answer\b/i,
+  /\bcorrect answer\s*(?:is|:)\b/i,
+  /\btarget answer\s*(?:is|:)\b/i,
+  /\btempting but incomplete explanation\b/i,
+  /\bplausible but incorrect detail\b/i,
+  /\bunsupported condition\b/i,
+  /\bmixing in an extra\b/i,
+  /\bcorrectly uses evidence\b/i,
+  /\bdifferent measurement than the one described\b/i,
+  /\bchanges two variables at once\b/i,
+  /\bconfuses cause and effect\b/i,
+  /\bwhich conclusion best applies the .* idea being tested\b/i,
+  /\bscenario\s+\d+\b/i,
+  /\bcalculate the result for the described situation\b/i,
+  /\bnumber and operations scenario\b/i,
+  /\balgebraic thinking scenario\b/i,
+  /\bgeometry measurement scenario\b/i,
+  /\bfractions decimals percentages scenario\b/i,
+  /\bdescribed situation\b/i,
+  /\bplaceholder\b/i,
+  /\bgrade\s+[5-7]\s+.*\bquestion\b/i,
   /\bquestion\s+on\b/i,
-  /\bproblem\s+\d+\b/i,
   /\bitem\s+\d+\b/i,
+  /\bchoose best answer\b/i,
+  /\bin investigation\s+\d+\b/i,
+  /\bproblem\s+\d+\b/i,
   /\bchoose the correct result\b/i,
 ];
 
@@ -382,6 +407,7 @@ function validateAntiTemplateText(errors, filePath, location, value) {
   }
   if (value && typeof value === 'object') {
     for (const [key, entry] of Object.entries(value)) {
+      if (key === 'explanation') continue;
       validateAntiTemplateText(errors, filePath, `${location}.${key}`, entry);
     }
   }

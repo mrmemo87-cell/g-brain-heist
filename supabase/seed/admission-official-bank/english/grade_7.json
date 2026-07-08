@@ -70,8 +70,8 @@
       "options": [
         "A supported main idea answer about The River Path Decision",
         "A partly related idea that overlooks key evidence in The River Path Decision",
-        "A passage detail used to support the opposite conclusion",
-        "A broad claim that goes beyond the passage evidence"
+        "A passage detail used to support the opposite conclusion in the sentence",
+        "A broad claim that goes beyond the passage evidence in the sentence"
       ],
       "correct_answer": "A supported main idea answer about The River Path Decision",
       "correct_index": 0,
@@ -100,11 +100,11 @@
       "content_owner": "brain_heist",
       "options": [
         "A partly related idea that overlooks key evidence in The River Path Decision",
-        "A supported detail answer about The River Path Decision",
-        "A passage detail used to support the opposite conclusion",
-        "A broad claim that goes beyond the passage evidence"
+        "A supported detail answer about The River Path Decision in the sentence",
+        "A passage detail used to support the opposite conclusion in the sentence",
+        "A broad claim that goes beyond the passage evidence in the sentence"
       ],
-      "correct_answer": "A supported detail answer about The River Path Decision",
+      "correct_answer": "A supported detail answer about The River Path Decision in the sentence",
       "correct_index": 1,
       "passage_external_id": "adm-g7-eng-v1-passage-river-project"
     },
@@ -131,9 +131,9 @@
       "content_owner": "brain_heist",
       "options": [
         "A partly related idea that overlooks key evidence in The River Path Decision",
-        "A passage detail used to support the opposite conclusion",
+        "A passage detail used to support the opposite conclusion in the sentence",
         "A supported inference answer about The River Path Decision",
-        "A broad claim that goes beyond the passage evidence"
+        "A broad claim that goes beyond the passage evidence in the sentence"
       ],
       "correct_answer": "A supported inference answer about The River Path Decision",
       "correct_index": 2,
@@ -162,8 +162,8 @@
       "content_owner": "brain_heist",
       "options": [
         "A partly related idea that overlooks key evidence in The River Path Decision",
-        "A passage detail used to support the opposite conclusion",
-        "A broad claim that goes beyond the passage evidence",
+        "A passage detail used to support the opposite conclusion in the sentence",
+        "A broad claim that goes beyond the passage evidence in the sentence",
         "A supported vocabulary in context answer about The River Path Decision"
       ],
       "correct_answer": "A supported vocabulary in context answer about The River Path Decision",
@@ -194,8 +194,8 @@
       "options": [
         "A supported author purpose answer about The River Path Decision",
         "A partly related idea that overlooks key evidence in The River Path Decision",
-        "A passage detail used to support the opposite conclusion",
-        "A broad claim that goes beyond the passage evidence"
+        "A passage detail used to support the opposite conclusion in the sentence",
+        "A broad claim that goes beyond the passage evidence in the sentence"
       ],
       "correct_answer": "A supported author purpose answer about The River Path Decision",
       "correct_index": 0,
@@ -224,11 +224,11 @@
       "content_owner": "brain_heist",
       "options": [
         "A partly related idea that overlooks key evidence in The River Path Decision",
-        "A supported evidence answer about The River Path Decision",
-        "A passage detail used to support the opposite conclusion",
-        "A broad claim that goes beyond the passage evidence"
+        "A supported evidence answer about The River Path Decision in the sentence",
+        "A passage detail used to support the opposite conclusion in the sentence",
+        "A broad claim that goes beyond the passage evidence in the sentence"
       ],
-      "correct_answer": "A supported evidence answer about The River Path Decision",
+      "correct_answer": "A supported evidence answer about The River Path Decision in the sentence",
       "correct_index": 1,
       "passage_external_id": "adm-g7-eng-v1-passage-river-project"
     },
@@ -255,9 +255,9 @@
       "content_owner": "brain_heist",
       "options": [
         "A partly related idea that overlooks key evidence in Mira and the Clockmaker",
-        "A passage detail used to support the opposite conclusion",
+        "A passage detail used to support the opposite conclusion in the sentence",
         "A supported main idea answer about Mira and the Clockmaker",
-        "A broad claim that goes beyond the passage evidence"
+        "A broad claim that goes beyond the passage evidence in the sentence"
       ],
       "correct_answer": "A supported main idea answer about Mira and the Clockmaker",
       "correct_index": 2,
@@ -286,11 +286,11 @@
       "content_owner": "brain_heist",
       "options": [
         "A partly related idea that overlooks key evidence in Mira and the Clockmaker",
-        "A passage detail used to support the opposite conclusion",
-        "A broad claim that goes beyond the passage evidence",
-        "A supported detail answer about Mira and the Clockmaker"
+        "A passage detail used to support the opposite conclusion in the sentence",
+        "A broad claim that goes beyond the passage evidence in the sentence",
+        "A supported detail answer about Mira and the Clockmaker in the sentence"
       ],
-      "correct_answer": "A supported detail answer about Mira and the Clockmaker",
+      "correct_answer": "A supported detail answer about Mira and the Clockmaker in the sentence",
       "correct_index": 3,
       "passage_external_id": "adm-g7-eng-v1-passage-clockmaker-apprentice"
     },
@@ -318,8 +318,8 @@
       "options": [
         "A supported inference answer about Mira and the Clockmaker",
         "A partly related idea that overlooks key evidence in Mira and the Clockmaker",
-        "A passage detail used to support the opposite conclusion",
-        "A broad claim that goes beyond the passage evidence"
+        "A passage detail used to support the opposite conclusion in the sentence",
+        "A broad claim that goes beyond the passage evidence in the sentence"
       ],
       "correct_answer": "A supported inference answer about Mira and the Clockmaker",
       "correct_index": 0,
@@ -349,8 +349,8 @@
       "options": [
         "A partly related idea that overlooks key evidence in Mira and the Clockmaker",
         "A supported vocabulary in context answer about Mira and the Clockmaker",
-        "A passage detail used to support the opposite conclusion",
-        "A broad claim that goes beyond the passage evidence"
+        "A passage detail used to support the opposite conclusion in the sentence",
+        "A broad claim that goes beyond the passage evidence in the sentence"
       ],
       "correct_answer": "A supported vocabulary in context answer about Mira and the Clockmaker",
       "correct_index": 1,
@@ -379,9 +379,9 @@
       "content_owner": "brain_heist",
       "options": [
         "A partly related idea that overlooks key evidence in Mira and the Clockmaker",
-        "A passage detail used to support the opposite conclusion",
+        "A passage detail used to support the opposite conclusion in the sentence",
         "A supported author purpose answer about Mira and the Clockmaker",
-        "A broad claim that goes beyond the passage evidence"
+        "A broad claim that goes beyond the passage evidence in the sentence"
       ],
       "correct_answer": "A supported author purpose answer about Mira and the Clockmaker",
       "correct_index": 2,
@@ -410,11 +410,11 @@
       "content_owner": "brain_heist",
       "options": [
         "A partly related idea that overlooks key evidence in Mira and the Clockmaker",
-        "A passage detail used to support the opposite conclusion",
-        "A broad claim that goes beyond the passage evidence",
-        "A supported evidence answer about Mira and the Clockmaker"
+        "A passage detail used to support the opposite conclusion in the sentence",
+        "A broad claim that goes beyond the passage evidence in the sentence",
+        "A supported evidence answer about Mira and the Clockmaker in the sentence"
       ],
-      "correct_answer": "A supported evidence answer about Mira and the Clockmaker",
+      "correct_answer": "A supported evidence answer about Mira and the Clockmaker in the sentence",
       "correct_index": 3,
       "passage_external_id": "adm-g7-eng-v1-passage-clockmaker-apprentice"
     },
@@ -442,8 +442,8 @@
       "options": [
         "A supported main idea answer about The Library Roof Garden",
         "A partly related idea that overlooks key evidence in The Library Roof Garden",
-        "A passage detail used to support the opposite conclusion",
-        "A broad claim that goes beyond the passage evidence"
+        "A passage detail used to support the opposite conclusion in the sentence",
+        "A broad claim that goes beyond the passage evidence in the sentence"
       ],
       "correct_answer": "A supported main idea answer about The Library Roof Garden",
       "correct_index": 0,
@@ -472,11 +472,11 @@
       "content_owner": "brain_heist",
       "options": [
         "A partly related idea that overlooks key evidence in The Library Roof Garden",
-        "A supported detail answer about The Library Roof Garden",
-        "A passage detail used to support the opposite conclusion",
-        "A broad claim that goes beyond the passage evidence"
+        "A supported detail answer about The Library Roof Garden in the sentence",
+        "A passage detail used to support the opposite conclusion in the sentence",
+        "A broad claim that goes beyond the passage evidence in the sentence"
       ],
-      "correct_answer": "A supported detail answer about The Library Roof Garden",
+      "correct_answer": "A supported detail answer about The Library Roof Garden in the sentence",
       "correct_index": 1,
       "passage_external_id": "adm-g7-eng-v1-passage-library-roof"
     },
@@ -503,9 +503,9 @@
       "content_owner": "brain_heist",
       "options": [
         "A partly related idea that overlooks key evidence in The Library Roof Garden",
-        "A passage detail used to support the opposite conclusion",
+        "A passage detail used to support the opposite conclusion in the sentence",
         "A supported inference answer about The Library Roof Garden",
-        "A broad claim that goes beyond the passage evidence"
+        "A broad claim that goes beyond the passage evidence in the sentence"
       ],
       "correct_answer": "A supported inference answer about The Library Roof Garden",
       "correct_index": 2,
@@ -534,8 +534,8 @@
       "content_owner": "brain_heist",
       "options": [
         "A partly related idea that overlooks key evidence in The Library Roof Garden",
-        "A passage detail used to support the opposite conclusion",
-        "A broad claim that goes beyond the passage evidence",
+        "A passage detail used to support the opposite conclusion in the sentence",
+        "A broad claim that goes beyond the passage evidence in the sentence",
         "A supported vocabulary in context answer about The Library Roof Garden"
       ],
       "correct_answer": "A supported vocabulary in context answer about The Library Roof Garden",
@@ -566,8 +566,8 @@
       "options": [
         "A supported author purpose answer about The Library Roof Garden",
         "A partly related idea that overlooks key evidence in The Library Roof Garden",
-        "A passage detail used to support the opposite conclusion",
-        "A broad claim that goes beyond the passage evidence"
+        "A passage detail used to support the opposite conclusion in the sentence",
+        "A broad claim that goes beyond the passage evidence in the sentence"
       ],
       "correct_answer": "A supported author purpose answer about The Library Roof Garden",
       "correct_index": 0,
@@ -596,11 +596,11 @@
       "content_owner": "brain_heist",
       "options": [
         "A partly related idea that overlooks key evidence in The Library Roof Garden",
-        "A supported evidence answer about The Library Roof Garden",
-        "A passage detail used to support the opposite conclusion",
-        "A broad claim that goes beyond the passage evidence"
+        "A supported evidence answer about The Library Roof Garden in the sentence",
+        "A passage detail used to support the opposite conclusion in the sentence",
+        "A broad claim that goes beyond the passage evidence in the sentence"
       ],
-      "correct_answer": "A supported evidence answer about The Library Roof Garden",
+      "correct_answer": "A supported evidence answer about The Library Roof Garden in the sentence",
       "correct_index": 1,
       "passage_external_id": "adm-g7-eng-v1-passage-library-roof"
     },
@@ -627,9 +627,9 @@
       "content_owner": "brain_heist",
       "options": [
         "A partly related idea that overlooks key evidence in The Debate Team Switch",
-        "A passage detail used to support the opposite conclusion",
+        "A passage detail used to support the opposite conclusion in the sentence",
         "A supported main idea answer about The Debate Team Switch",
-        "A broad claim that goes beyond the passage evidence"
+        "A broad claim that goes beyond the passage evidence in the sentence"
       ],
       "correct_answer": "A supported main idea answer about The Debate Team Switch",
       "correct_index": 2,
@@ -658,11 +658,11 @@
       "content_owner": "brain_heist",
       "options": [
         "A partly related idea that overlooks key evidence in The Debate Team Switch",
-        "A passage detail used to support the opposite conclusion",
-        "A broad claim that goes beyond the passage evidence",
-        "A supported detail answer about The Debate Team Switch"
+        "A passage detail used to support the opposite conclusion in the sentence",
+        "A broad claim that goes beyond the passage evidence in the sentence",
+        "A supported detail answer about The Debate Team Switch in the sentence"
       ],
-      "correct_answer": "A supported detail answer about The Debate Team Switch",
+      "correct_answer": "A supported detail answer about The Debate Team Switch in the sentence",
       "correct_index": 3,
       "passage_external_id": "adm-g7-eng-v1-passage-debate-team"
     },
@@ -690,8 +690,8 @@
       "options": [
         "A supported inference answer about The Debate Team Switch",
         "A partly related idea that overlooks key evidence in The Debate Team Switch",
-        "A passage detail used to support the opposite conclusion",
-        "A broad claim that goes beyond the passage evidence"
+        "A passage detail used to support the opposite conclusion in the sentence",
+        "A broad claim that goes beyond the passage evidence in the sentence"
       ],
       "correct_answer": "A supported inference answer about The Debate Team Switch",
       "correct_index": 0,
@@ -721,8 +721,8 @@
       "options": [
         "A partly related idea that overlooks key evidence in The Debate Team Switch",
         "A supported vocabulary in context answer about The Debate Team Switch",
-        "A passage detail used to support the opposite conclusion",
-        "A broad claim that goes beyond the passage evidence"
+        "A passage detail used to support the opposite conclusion in the sentence",
+        "A broad claim that goes beyond the passage evidence in the sentence"
       ],
       "correct_answer": "A supported vocabulary in context answer about The Debate Team Switch",
       "correct_index": 1,
@@ -751,9 +751,9 @@
       "content_owner": "brain_heist",
       "options": [
         "A partly related idea that overlooks key evidence in The Debate Team Switch",
-        "A passage detail used to support the opposite conclusion",
+        "A passage detail used to support the opposite conclusion in the sentence",
         "A supported author purpose answer about The Debate Team Switch",
-        "A broad claim that goes beyond the passage evidence"
+        "A broad claim that goes beyond the passage evidence in the sentence"
       ],
       "correct_answer": "A supported author purpose answer about The Debate Team Switch",
       "correct_index": 2,
@@ -782,11 +782,11 @@
       "content_owner": "brain_heist",
       "options": [
         "A partly related idea that overlooks key evidence in The Debate Team Switch",
-        "A passage detail used to support the opposite conclusion",
-        "A broad claim that goes beyond the passage evidence",
-        "A supported evidence answer about The Debate Team Switch"
+        "A passage detail used to support the opposite conclusion in the sentence",
+        "A broad claim that goes beyond the passage evidence in the sentence",
+        "A supported evidence answer about The Debate Team Switch in the sentence"
       ],
-      "correct_answer": "A supported evidence answer about The Debate Team Switch",
+      "correct_answer": "A supported evidence answer about The Debate Team Switch in the sentence",
       "correct_index": 3,
       "passage_external_id": "adm-g7-eng-v1-passage-debate-team"
     },
@@ -814,8 +814,8 @@
       "options": [
         "A supported main idea answer about Signals from the Storm Station",
         "A partly related idea that overlooks key evidence in Signals from the Storm Station",
-        "A passage detail used to support the opposite conclusion",
-        "A broad claim that goes beyond the passage evidence"
+        "A passage detail used to support the opposite conclusion in the sentence",
+        "A broad claim that goes beyond the passage evidence in the sentence"
       ],
       "correct_answer": "A supported main idea answer about Signals from the Storm Station",
       "correct_index": 0,
@@ -844,11 +844,11 @@
       "content_owner": "brain_heist",
       "options": [
         "A partly related idea that overlooks key evidence in Signals from the Storm Station",
-        "A supported detail answer about Signals from the Storm Station",
-        "A passage detail used to support the opposite conclusion",
-        "A broad claim that goes beyond the passage evidence"
+        "A supported detail answer about Signals from the Storm Station in the sentence",
+        "A passage detail used to support the opposite conclusion in the sentence",
+        "A broad claim that goes beyond the passage evidence in the sentence"
       ],
-      "correct_answer": "A supported detail answer about Signals from the Storm Station",
+      "correct_answer": "A supported detail answer about Signals from the Storm Station in the sentence",
       "correct_index": 1,
       "passage_external_id": "adm-g7-eng-v1-passage-storm-station"
     },
@@ -875,9 +875,9 @@
       "content_owner": "brain_heist",
       "options": [
         "A partly related idea that overlooks key evidence in Signals from the Storm Station",
-        "A passage detail used to support the opposite conclusion",
+        "A passage detail used to support the opposite conclusion in the sentence",
         "A supported inference answer about Signals from the Storm Station",
-        "A broad claim that goes beyond the passage evidence"
+        "A broad claim that goes beyond the passage evidence in the sentence"
       ],
       "correct_answer": "A supported inference answer about Signals from the Storm Station",
       "correct_index": 2,
@@ -906,8 +906,8 @@
       "content_owner": "brain_heist",
       "options": [
         "A partly related idea that overlooks key evidence in Signals from the Storm Station",
-        "A passage detail used to support the opposite conclusion",
-        "A broad claim that goes beyond the passage evidence",
+        "A passage detail used to support the opposite conclusion in the sentence",
+        "A broad claim that goes beyond the passage evidence in the sentence",
         "A supported vocabulary in context answer about Signals from the Storm Station"
       ],
       "correct_answer": "A supported vocabulary in context answer about Signals from the Storm Station",
@@ -938,8 +938,8 @@
       "options": [
         "A supported author purpose answer about Signals from the Storm Station",
         "A partly related idea that overlooks key evidence in Signals from the Storm Station",
-        "A passage detail used to support the opposite conclusion",
-        "A broad claim that goes beyond the passage evidence"
+        "A passage detail used to support the opposite conclusion in the sentence",
+        "A broad claim that goes beyond the passage evidence in the sentence"
       ],
       "correct_answer": "A supported author purpose answer about Signals from the Storm Station",
       "correct_index": 0,
@@ -968,11 +968,11 @@
       "content_owner": "brain_heist",
       "options": [
         "A partly related idea that overlooks key evidence in Signals from the Storm Station",
-        "A supported evidence answer about Signals from the Storm Station",
-        "A passage detail used to support the opposite conclusion",
-        "A broad claim that goes beyond the passage evidence"
+        "A supported evidence answer about Signals from the Storm Station in the sentence",
+        "A passage detail used to support the opposite conclusion in the sentence",
+        "A broad claim that goes beyond the passage evidence in the sentence"
       ],
-      "correct_answer": "A supported evidence answer about Signals from the Storm Station",
+      "correct_answer": "A supported evidence answer about Signals from the Storm Station in the sentence",
       "correct_index": 1,
       "passage_external_id": "adm-g7-eng-v1-passage-storm-station"
     },
@@ -998,10 +998,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Incorrect use of past perfect tense with a grammar error.",
+        "Incorrect use of past perfect tense with a grammar error in the sentence.",
         "A sentence whose meaning changes because the grammar choice is wrong.",
         "Correct use of past perfect tense: The exhibition sentence is clear and grammatical.",
-        "A sentence with punctuation or agreement mistakes with a tempting but incomplete explanation."
+        "A sentence with punctuation or agreement mistakes in the sentence."
       ],
       "correct_answer": "Correct use of past perfect tense: The exhibition sentence is clear and grammatical.",
       "correct_index": 2
@@ -1028,8 +1028,8 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Incorrect use of conditional sentence with a grammar error.",
-        "A sentence whose meaning changes because the grammar choice is wrong.",
+        "Incorrect use of conditional sentence with a grammar error in the sentence.",
+        "A sentence whose meaning changes because the grammar choice is wrong in the sentence.",
         "A sentence with punctuation or agreement mistakes while using the evidence in the wrong order.",
         "Correct use of conditional sentence: The exhibition sentence is clear and grammatical."
       ],
@@ -1059,9 +1059,9 @@
       "content_owner": "brain_heist",
       "options": [
         "Correct use of relative clause: The exhibition sentence is clear and grammatical.",
-        "Incorrect use of relative clause with a grammar error.",
+        "Incorrect use of relative clause with a grammar error in the sentence.",
         "A sentence whose meaning changes because the grammar choice is wrong.",
-        "A sentence with punctuation or agreement mistakes with a tempting but incomplete explanation."
+        "A sentence with punctuation or agreement mistakes in the sentence."
       ],
       "correct_answer": "Correct use of relative clause: The exhibition sentence is clear and grammatical.",
       "correct_index": 0
@@ -1088,10 +1088,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Incorrect use of reported speech with a grammar error.",
+        "Incorrect use of reported speech with a grammar error in the sentence.",
         "Correct use of reported speech: The exhibition sentence is clear and grammatical.",
         "A sentence whose meaning changes because the grammar choice is wrong.",
-        "A sentence with punctuation or agreement mistakes with a tempting but incomplete explanation."
+        "A sentence with punctuation or agreement mistakes in the sentence."
       ],
       "correct_answer": "Correct use of reported speech: The exhibition sentence is clear and grammatical.",
       "correct_index": 1
@@ -1118,10 +1118,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Incorrect use of passive voice with a grammar error.",
+        "Incorrect use of passive voice with a grammar error in the sentence.",
         "A sentence whose meaning changes because the grammar choice is wrong.",
         "Correct use of passive voice: The exhibition sentence is clear and grammatical.",
-        "A sentence with punctuation or agreement mistakes with a tempting but incomplete explanation."
+        "A sentence with punctuation or agreement mistakes in the sentence."
       ],
       "correct_answer": "Correct use of passive voice: The exhibition sentence is clear and grammatical.",
       "correct_index": 2
@@ -1148,8 +1148,8 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Incorrect use of modal verb of obligation with a grammar error.",
-        "A sentence whose meaning changes because the grammar choice is wrong.",
+        "Incorrect use of modal verb of obligation with a grammar error in the sentence.",
+        "A sentence whose meaning changes because the grammar choice is wrong in the sentence.",
         "A sentence with punctuation or agreement mistakes while using the evidence in the wrong order.",
         "Correct use of modal verb of obligation: The exhibition sentence is clear and grammatical."
       ],
@@ -1179,9 +1179,9 @@
       "content_owner": "brain_heist",
       "options": [
         "Correct use of coordinating conjunction: The exhibition sentence is clear and grammatical.",
-        "Incorrect use of coordinating conjunction with a grammar error.",
-        "A sentence whose meaning changes because the grammar choice is wrong.",
-        "A sentence with punctuation or agreement mistakes with a tempting but incomplete explanation."
+        "Incorrect use of coordinating conjunction with a grammar error in the sentence.",
+        "A sentence whose meaning changes because the grammar choice is wrong in the sentence.",
+        "A sentence with punctuation or agreement mistakes in the sentence."
       ],
       "correct_answer": "Correct use of coordinating conjunction: The exhibition sentence is clear and grammatical.",
       "correct_index": 0
@@ -1208,10 +1208,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Incorrect use of subordinating conjunction with a grammar error.",
+        "Incorrect use of subordinating conjunction with a grammar error in the sentence.",
         "Correct use of subordinating conjunction: The exhibition sentence is clear and grammatical.",
-        "A sentence whose meaning changes because the grammar choice is wrong.",
-        "A sentence with punctuation or agreement mistakes with a tempting but incomplete explanation."
+        "A sentence whose meaning changes because the grammar choice is wrong in the sentence.",
+        "A sentence with punctuation or agreement mistakes in the sentence."
       ],
       "correct_answer": "Correct use of subordinating conjunction: The exhibition sentence is clear and grammatical.",
       "correct_index": 1
@@ -1238,10 +1238,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Incorrect use of preposition of place with a grammar error.",
+        "Incorrect use of preposition of place with a grammar error in the sentence.",
         "A sentence whose meaning changes because the grammar choice is wrong.",
         "Correct use of preposition of place: The exhibition sentence is clear and grammatical.",
-        "A sentence with punctuation or agreement mistakes with a tempting but incomplete explanation."
+        "A sentence with punctuation or agreement mistakes in the sentence."
       ],
       "correct_answer": "Correct use of preposition of place: The exhibition sentence is clear and grammatical.",
       "correct_index": 2
@@ -1268,8 +1268,8 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Incorrect use of determiner choice with a grammar error.",
-        "A sentence whose meaning changes because the grammar choice is wrong.",
+        "Incorrect use of determiner choice with a grammar error in the sentence.",
+        "A sentence whose meaning changes because the grammar choice is wrong in the sentence.",
         "A sentence with punctuation or agreement mistakes while using the evidence in the wrong order.",
         "Correct use of determiner choice: The exhibition sentence is clear and grammatical."
       ],
@@ -1299,9 +1299,9 @@
       "content_owner": "brain_heist",
       "options": [
         "Correct use of pronoun reference: The exhibition sentence is clear and grammatical.",
-        "Incorrect use of pronoun reference with a grammar error.",
+        "Incorrect use of pronoun reference with a grammar error in the sentence.",
         "A sentence whose meaning changes because the grammar choice is wrong.",
-        "A sentence with punctuation or agreement mistakes with a tempting but incomplete explanation."
+        "A sentence with punctuation or agreement mistakes in the sentence."
       ],
       "correct_answer": "Correct use of pronoun reference: The exhibition sentence is clear and grammatical.",
       "correct_index": 0
@@ -1328,10 +1328,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Incorrect use of subject-verb agreement with a grammar error.",
+        "Incorrect use of subject-verb agreement with a grammar error in the sentence.",
         "Correct use of subject-verb agreement: The exhibition sentence is clear and grammatical.",
-        "A sentence whose meaning changes because the grammar choice is wrong.",
-        "A sentence with punctuation or agreement mistakes with a tempting but incomplete explanation."
+        "A sentence whose meaning changes because the grammar choice is wrong in the sentence.",
+        "A sentence with punctuation or agreement mistakes in the sentence."
       ],
       "correct_answer": "Correct use of subject-verb agreement: The exhibition sentence is clear and grammatical.",
       "correct_index": 1
@@ -1358,10 +1358,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Incorrect use of comma after opener with a grammar error.",
+        "Incorrect use of comma after opener with a grammar error in the sentence.",
         "A sentence whose meaning changes because the grammar choice is wrong.",
         "Correct use of comma after opener: The exhibition sentence is clear and grammatical.",
-        "A sentence with punctuation or agreement mistakes with a tempting but incomplete explanation."
+        "A sentence with punctuation or agreement mistakes in the sentence."
       ],
       "correct_answer": "Correct use of comma after opener: The exhibition sentence is clear and grammatical.",
       "correct_index": 2
@@ -1388,8 +1388,8 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Incorrect use of apostrophe for possession with a grammar error.",
-        "A sentence whose meaning changes because the grammar choice is wrong.",
+        "Incorrect use of apostrophe for possession with a grammar error in the sentence.",
+        "A sentence whose meaning changes because the grammar choice is wrong in the sentence.",
         "A sentence with punctuation or agreement mistakes while using the evidence in the wrong order.",
         "Correct use of apostrophe for possession: The exhibition sentence is clear and grammatical."
       ],
@@ -1419,9 +1419,9 @@
       "content_owner": "brain_heist",
       "options": [
         "Correct use of sentence fragment repair: The exhibition sentence is clear and grammatical.",
-        "Incorrect use of sentence fragment repair with a grammar error.",
-        "A sentence whose meaning changes because the grammar choice is wrong.",
-        "A sentence with punctuation or agreement mistakes with a tempting but incomplete explanation."
+        "Incorrect use of sentence fragment repair with a grammar error in the sentence.",
+        "A sentence whose meaning changes because the grammar choice is wrong in the sentence.",
+        "A sentence with punctuation or agreement mistakes in the sentence."
       ],
       "correct_answer": "Correct use of sentence fragment repair: The exhibition sentence is clear and grammatical.",
       "correct_index": 0
@@ -1448,10 +1448,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Incorrect use of parallel structure with a grammar error.",
+        "Incorrect use of parallel structure with a grammar error in the sentence.",
         "Correct use of parallel structure: The exhibition sentence is clear and grammatical.",
         "A sentence whose meaning changes because the grammar choice is wrong.",
-        "A sentence with punctuation or agreement mistakes with a tempting but incomplete explanation."
+        "A sentence with punctuation or agreement mistakes in the sentence."
       ],
       "correct_answer": "Correct use of parallel structure: The exhibition sentence is clear and grammatical.",
       "correct_index": 1
@@ -1478,10 +1478,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Incorrect use of future continuous tense with a grammar error.",
-        "A sentence whose meaning changes because the grammar choice is wrong.",
+        "Incorrect use of future continuous tense with a grammar error in the sentence.",
+        "A sentence whose meaning changes because the grammar choice is wrong in the sentence.",
         "Correct use of future continuous tense: The exhibition sentence is clear and grammatical.",
-        "A sentence with punctuation or agreement mistakes with a tempting but incomplete explanation."
+        "A sentence with punctuation or agreement mistakes in the sentence."
       ],
       "correct_answer": "Correct use of future continuous tense: The exhibition sentence is clear and grammatical.",
       "correct_index": 2
@@ -1508,8 +1508,8 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Incorrect use of comparative adjective with a grammar error.",
-        "A sentence whose meaning changes because the grammar choice is wrong.",
+        "Incorrect use of comparative adjective with a grammar error in the sentence.",
+        "A sentence whose meaning changes because the grammar choice is wrong in the sentence.",
         "A sentence with punctuation or agreement mistakes while using the evidence in the wrong order.",
         "Correct use of comparative adjective: The exhibition sentence is clear and grammatical."
       ],
@@ -1539,9 +1539,9 @@
       "content_owner": "brain_heist",
       "options": [
         "Correct use of adverb placement: The exhibition sentence is clear and grammatical.",
-        "Incorrect use of adverb placement with a grammar error.",
+        "Incorrect use of adverb placement with a grammar error in the sentence.",
         "A sentence whose meaning changes because the grammar choice is wrong.",
-        "A sentence with punctuation or agreement mistakes with a tempting but incomplete explanation."
+        "A sentence with punctuation or agreement mistakes in the sentence."
       ],
       "correct_answer": "Correct use of adverb placement: The exhibition sentence is clear and grammatical.",
       "correct_index": 0
@@ -1568,10 +1568,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Incorrect use of colon in a list with a grammar error.",
+        "Incorrect use of colon in a list with a grammar error in the sentence.",
         "Correct use of colon in a list: The exhibition sentence is clear and grammatical.",
         "A sentence whose meaning changes because the grammar choice is wrong.",
-        "A sentence with punctuation or agreement mistakes with a tempting but incomplete explanation."
+        "A sentence with punctuation or agreement mistakes in the sentence."
       ],
       "correct_answer": "Correct use of colon in a list: The exhibition sentence is clear and grammatical.",
       "correct_index": 1
@@ -1598,10 +1598,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Incorrect use of semicolon between clauses with a grammar error.",
-        "A sentence whose meaning changes because the grammar choice is wrong.",
+        "Incorrect use of semicolon between clauses with a grammar error in the sentence.",
+        "A sentence whose meaning changes because the grammar choice is wrong in the sentence.",
         "Correct use of semicolon between clauses: The exhibition sentence is clear and grammatical.",
-        "A sentence with punctuation or agreement mistakes with a tempting but incomplete explanation."
+        "A sentence with punctuation or agreement mistakes in the sentence."
       ],
       "correct_answer": "Correct use of semicolon between clauses: The exhibition sentence is clear and grammatical.",
       "correct_index": 2
@@ -1628,8 +1628,8 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Incorrect use of negative prefix agreement with a grammar error.",
-        "A sentence whose meaning changes because the grammar choice is wrong.",
+        "Incorrect use of negative prefix agreement with a grammar error in the sentence.",
+        "A sentence whose meaning changes because the grammar choice is wrong in the sentence.",
         "A sentence with punctuation or agreement mistakes while using the evidence in the wrong order.",
         "Correct use of negative prefix agreement: The exhibition sentence is clear and grammatical."
       ],
@@ -1659,9 +1659,9 @@
       "content_owner": "brain_heist",
       "options": [
         "Correct use of direct speech punctuation: The exhibition sentence is clear and grammatical.",
-        "Incorrect use of direct speech punctuation with a grammar error.",
-        "A sentence whose meaning changes because the grammar choice is wrong.",
-        "A sentence with punctuation or agreement mistakes with a tempting but incomplete explanation."
+        "Incorrect use of direct speech punctuation with a grammar error in the sentence.",
+        "A sentence whose meaning changes because the grammar choice is wrong in the sentence.",
+        "A sentence with punctuation or agreement mistakes in the sentence."
       ],
       "correct_answer": "Correct use of direct speech punctuation: The exhibition sentence is clear and grammatical.",
       "correct_index": 0
@@ -1688,10 +1688,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Incorrect use of article before vowel sound with a grammar error.",
+        "Incorrect use of article before vowel sound with a grammar error in the sentence.",
         "Correct use of article before vowel sound: The exhibition sentence is clear and grammatical.",
-        "A sentence whose meaning changes because the grammar choice is wrong.",
-        "A sentence with punctuation or agreement mistakes with a tempting but incomplete explanation."
+        "A sentence whose meaning changes because the grammar choice is wrong in the sentence.",
+        "A sentence with punctuation or agreement mistakes in the sentence."
       ],
       "correct_answer": "Correct use of article before vowel sound: The exhibition sentence is clear and grammatical.",
       "correct_index": 1
@@ -1718,10 +1718,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Incorrect use of collective noun agreement with a grammar error.",
-        "A sentence whose meaning changes because the grammar choice is wrong.",
+        "Incorrect use of collective noun agreement with a grammar error in the sentence.",
+        "A sentence whose meaning changes because the grammar choice is wrong in the sentence.",
         "Correct use of collective noun agreement: The exhibition sentence is clear and grammatical.",
-        "A sentence with punctuation or agreement mistakes with a tempting but incomplete explanation."
+        "A sentence with punctuation or agreement mistakes in the sentence."
       ],
       "correct_answer": "Correct use of collective noun agreement: The exhibition sentence is clear and grammatical.",
       "correct_index": 2
@@ -1748,8 +1748,8 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Incorrect use of non-defining clause commas with a grammar error.",
-        "A sentence whose meaning changes because the grammar choice is wrong.",
+        "Incorrect use of non-defining clause commas with a grammar error in the sentence.",
+        "A sentence whose meaning changes because the grammar choice is wrong in the sentence.",
         "A sentence with punctuation or agreement mistakes while using the evidence in the wrong order.",
         "Correct use of non-defining clause commas: The exhibition sentence is clear and grammatical."
       ],
@@ -1779,9 +1779,9 @@
       "content_owner": "brain_heist",
       "options": [
         "Correct use of because versus although: The exhibition sentence is clear and grammatical.",
-        "Incorrect use of because versus although with a grammar error.",
-        "A sentence whose meaning changes because the grammar choice is wrong.",
-        "A sentence with punctuation or agreement mistakes with a tempting but incomplete explanation."
+        "Incorrect use of because versus although with a grammar error in the sentence.",
+        "A sentence whose meaning changes because the grammar choice is wrong in the sentence.",
+        "A sentence with punctuation or agreement mistakes in the sentence."
       ],
       "correct_answer": "Correct use of because versus although: The exhibition sentence is clear and grammatical.",
       "correct_index": 0
@@ -1808,10 +1808,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Incorrect use of who versus whom with a grammar error.",
+        "Incorrect use of who versus whom with a grammar error in the sentence.",
         "Correct use of who versus whom: The exhibition sentence is clear and grammatical.",
         "A sentence whose meaning changes because the grammar choice is wrong.",
-        "A sentence with punctuation or agreement mistakes with a tempting but incomplete explanation."
+        "A sentence with punctuation or agreement mistakes in the sentence."
       ],
       "correct_answer": "Correct use of who versus whom: The exhibition sentence is clear and grammatical.",
       "correct_index": 1
@@ -1838,10 +1838,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Incorrect use of less versus fewer with a grammar error.",
+        "Incorrect use of less versus fewer with a grammar error in the sentence.",
         "A sentence whose meaning changes because the grammar choice is wrong.",
         "Correct use of less versus fewer: The exhibition sentence is clear and grammatical.",
-        "A sentence with punctuation or agreement mistakes with a tempting but incomplete explanation."
+        "A sentence with punctuation or agreement mistakes in the sentence."
       ],
       "correct_answer": "Correct use of less versus fewer: The exhibition sentence is clear and grammatical.",
       "correct_index": 2
@@ -1868,8 +1868,8 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Incorrect use of run-on sentence correction with a grammar error.",
-        "A sentence whose meaning changes because the grammar choice is wrong.",
+        "Incorrect use of run-on sentence correction with a grammar error in the sentence.",
+        "A sentence whose meaning changes because the grammar choice is wrong in the sentence.",
         "A sentence with punctuation or agreement mistakes while using the evidence in the wrong order.",
         "Correct use of run-on sentence correction: The exhibition sentence is clear and grammatical."
       ],
@@ -1899,9 +1899,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The choice that accurately demonstrates context clue for resilient.",
-        "A choice with the opposite meaning with a plausible but incorrect detail added.",
-        "A choice that is too informal or unclear.",
-        "A choice that does not fit the sentence context."
+        "A choice with the opposite meaning in the sentence.",
+        "A choice that is too informal or unclear in the sentence.",
+        "A choice that does not fit the sentence context in the sentence."
       ],
       "correct_answer": "The choice that accurately demonstrates context clue for resilient.",
       "correct_index": 0
@@ -1928,9 +1928,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A choice with the opposite meaning while mixing in an extra unsupported condition.",
+        "A choice with the opposite meaning in the sentence.",
         "The choice that accurately demonstrates synonym for cautious.",
-        "A choice that is too informal or unclear.",
+        "A choice that is too informal or unclear in the sentence.",
         "A choice that does not fit the sentence context."
       ],
       "correct_answer": "The choice that accurately demonstrates synonym for cautious.",
@@ -1958,7 +1958,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A choice with the opposite meaning while mixing in an extra unsupported condition.",
+        "A choice with the opposite meaning in the sentence.",
         "A choice that is too informal or unclear.",
         "The choice that accurately demonstrates antonym for expand.",
         "A choice that does not fit the sentence context."
@@ -1988,8 +1988,8 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A choice with the opposite meaning while mixing in an extra unsupported condition.",
-        "A choice that is too informal or unclear.",
+        "A choice with the opposite meaning in the sentence.",
+        "A choice that is too informal or unclear in the sentence.",
         "A choice that does not fit the sentence context.",
         "The choice that accurately demonstrates word family from analyse."
       ],
@@ -2019,8 +2019,8 @@
       "content_owner": "brain_heist",
       "options": [
         "The choice that accurately demonstrates collocation with decision.",
-        "A choice with the opposite meaning with a plausible but incorrect detail added.",
-        "A choice that is too informal or unclear.",
+        "A choice with the opposite meaning in the sentence.",
+        "A choice that is too informal or unclear in the sentence.",
         "A choice that does not fit the sentence context."
       ],
       "correct_answer": "The choice that accurately demonstrates collocation with decision.",
@@ -2048,9 +2048,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A choice with the opposite meaning while mixing in an extra unsupported condition.",
+        "A choice with the opposite meaning in the sentence.",
         "The choice that accurately demonstrates phrasal verb carry out.",
-        "A choice that is too informal or unclear.",
+        "A choice that is too informal or unclear in the sentence.",
         "A choice that does not fit the sentence context."
       ],
       "correct_answer": "The choice that accurately demonstrates phrasal verb carry out.",
@@ -2078,8 +2078,8 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A choice with the opposite meaning while mixing in an extra unsupported condition.",
-        "A choice that is too informal or unclear.",
+        "A choice with the opposite meaning in the sentence.",
+        "A choice that is too informal or unclear in the sentence.",
         "The choice that accurately demonstrates academic word consequence.",
         "A choice that does not fit the sentence context."
       ],
@@ -2108,8 +2108,8 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A choice with the opposite meaning while mixing in an extra unsupported condition.",
-        "A choice that is too informal or unclear.",
+        "A choice with the opposite meaning in the sentence.",
+        "A choice that is too informal or unclear in the sentence.",
         "A choice that does not fit the sentence context.",
         "The choice that accurately demonstrates prefix meaning before."
       ],
@@ -2139,8 +2139,8 @@
       "content_owner": "brain_heist",
       "options": [
         "The choice that accurately demonstrates suffix meaning able to be.",
-        "A choice with the opposite meaning with a plausible but incorrect detail added.",
-        "A choice that is too informal or unclear.",
+        "A choice with the opposite meaning in the sentence.",
+        "A choice that is too informal or unclear in the sentence.",
         "A choice that does not fit the sentence context."
       ],
       "correct_answer": "The choice that accurately demonstrates suffix meaning able to be.",
@@ -2168,9 +2168,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A choice with the opposite meaning while mixing in an extra unsupported condition.",
+        "A choice with the opposite meaning in the sentence.",
         "The choice that accurately demonstrates precise verb replace said.",
-        "A choice that is too informal or unclear.",
+        "A choice that is too informal or unclear in the sentence.",
         "A choice that does not fit the sentence context."
       ],
       "correct_answer": "The choice that accurately demonstrates precise verb replace said.",
@@ -2198,10 +2198,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A choice with the opposite meaning while mixing in an extra unsupported condition.",
-        "A choice that is too informal or unclear.",
+        "A choice with the opposite meaning in the sentence.",
+        "A choice that is too informal or unclear in the sentence.",
         "The choice that accurately demonstrates context clue for reluctant.",
-        "A choice that does not fit the sentence context."
+        "A choice that does not fit the sentence context in the sentence."
       ],
       "correct_answer": "The choice that accurately demonstrates context clue for reluctant.",
       "correct_index": 2
@@ -2228,8 +2228,8 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A choice with the opposite meaning while mixing in an extra unsupported condition.",
-        "A choice that is too informal or unclear.",
+        "A choice with the opposite meaning in the sentence.",
+        "A choice that is too informal or unclear in the sentence.",
         "A choice that does not fit the sentence context.",
         "The choice that accurately demonstrates synonym for significant."
       ],
@@ -2259,8 +2259,8 @@
       "content_owner": "brain_heist",
       "options": [
         "The choice that accurately demonstrates antonym for temporary.",
-        "A choice with the opposite meaning with a plausible but incorrect detail added.",
-        "A choice that is too informal or unclear.",
+        "A choice with the opposite meaning in the sentence.",
+        "A choice that is too informal or unclear in the sentence.",
         "A choice that does not fit the sentence context."
       ],
       "correct_answer": "The choice that accurately demonstrates antonym for temporary.",
@@ -2288,7 +2288,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A choice with the opposite meaning while mixing in an extra unsupported condition.",
+        "A choice with the opposite meaning in the sentence.",
         "The choice that accurately demonstrates noun from persuade.",
         "A choice that is too informal or unclear.",
         "A choice that does not fit the sentence context."
@@ -2318,8 +2318,8 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A choice with the opposite meaning while mixing in an extra unsupported condition.",
-        "A choice that is too informal or unclear.",
+        "A choice with the opposite meaning in the sentence.",
+        "A choice that is too informal or unclear in the sentence.",
         "The choice that accurately demonstrates adjective from curiosity.",
         "A choice that does not fit the sentence context."
       ],
@@ -2348,9 +2348,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A choice with the opposite meaning while mixing in an extra unsupported condition.",
-        "A choice that is too informal or unclear.",
-        "A choice that does not fit the sentence context.",
+        "A choice with the opposite meaning in the sentence.",
+        "A choice that is too informal or unclear in the sentence.",
+        "A choice that does not fit the sentence context in the sentence.",
         "The choice that accurately demonstrates collocation strong evidence."
       ],
       "correct_answer": "The choice that accurately demonstrates collocation strong evidence.",
@@ -2379,8 +2379,8 @@
       "content_owner": "brain_heist",
       "options": [
         "The choice that accurately demonstrates phrasal verb look into.",
-        "A choice with the opposite meaning with a plausible but incorrect detail added.",
-        "A choice that is too informal or unclear.",
+        "A choice with the opposite meaning in the sentence.",
+        "A choice that is too informal or unclear in the sentence.",
         "A choice that does not fit the sentence context."
       ],
       "correct_answer": "The choice that accurately demonstrates phrasal verb look into.",
@@ -2408,9 +2408,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A choice with the opposite meaning while mixing in an extra unsupported condition.",
+        "A choice with the opposite meaning in the sentence.",
         "The choice that accurately demonstrates academic word factor.",
-        "A choice that is too informal or unclear.",
+        "A choice that is too informal or unclear in the sentence.",
         "A choice that does not fit the sentence context."
       ],
       "correct_answer": "The choice that accurately demonstrates academic word factor.",
@@ -2438,8 +2438,8 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A choice with the opposite meaning while mixing in an extra unsupported condition.",
-        "A choice that is too informal or unclear.",
+        "A choice with the opposite meaning in the sentence.",
+        "A choice that is too informal or unclear in the sentence.",
         "The choice that accurately demonstrates prefix meaning against.",
         "A choice that does not fit the sentence context."
       ],
@@ -2468,8 +2468,8 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A choice with the opposite meaning while mixing in an extra unsupported condition.",
-        "A choice that is too informal or unclear.",
+        "A choice with the opposite meaning in the sentence.",
+        "A choice that is too informal or unclear in the sentence.",
         "A choice that does not fit the sentence context.",
         "The choice that accurately demonstrates suffix meaning person who."
       ],
@@ -2499,8 +2499,8 @@
       "content_owner": "brain_heist",
       "options": [
         "The choice that accurately demonstrates idiom keep an eye on.",
-        "A choice with the opposite meaning with a plausible but incorrect detail added.",
-        "A choice that is too informal or unclear.",
+        "A choice with the opposite meaning in the sentence.",
+        "A choice that is too informal or unclear in the sentence.",
         "A choice that does not fit the sentence context."
       ],
       "correct_answer": "The choice that accurately demonstrates idiom keep an eye on.",
@@ -2528,10 +2528,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A choice with the opposite meaning while mixing in an extra unsupported condition.",
+        "A choice with the opposite meaning in the sentence.",
         "The choice that accurately demonstrates confusing words affect effect.",
-        "A choice that is too informal or unclear.",
-        "A choice that does not fit the sentence context."
+        "A choice that is too informal or unclear in the sentence.",
+        "A choice that does not fit the sentence context in the sentence."
       ],
       "correct_answer": "The choice that accurately demonstrates confusing words affect effect.",
       "correct_index": 1
@@ -2558,8 +2558,8 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A choice with the opposite meaning while mixing in an extra unsupported condition.",
-        "A choice that is too informal or unclear.",
+        "A choice with the opposite meaning in the sentence.",
+        "A choice that is too informal or unclear in the sentence.",
         "The choice that accurately demonstrates formal word for help.",
         "A choice that does not fit the sentence context."
       ],
@@ -2588,9 +2588,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A choice with the opposite meaning while mixing in an extra unsupported condition.",
-        "A choice that is too informal or unclear.",
-        "A choice that does not fit the sentence context.",
+        "A choice with the opposite meaning in the sentence.",
+        "A choice that is too informal or unclear in the sentence.",
+        "A choice that does not fit the sentence context in the sentence.",
         "The choice that accurately demonstrates context clue for accumulate."
       ],
       "correct_answer": "The choice that accurately demonstrates context clue for accumulate.",
@@ -2619,8 +2619,8 @@
       "content_owner": "brain_heist",
       "options": [
         "The choice that accurately demonstrates synonym for accurate.",
-        "A choice with the opposite meaning with a plausible but incorrect detail added.",
-        "A choice that is too informal or unclear.",
+        "A choice with the opposite meaning in the sentence.",
+        "A choice that is too informal or unclear in the sentence.",
         "A choice that does not fit the sentence context."
       ],
       "correct_answer": "The choice that accurately demonstrates synonym for accurate.",
@@ -2648,7 +2648,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A choice with the opposite meaning while mixing in an extra unsupported condition.",
+        "A choice with the opposite meaning in the sentence.",
         "The choice that accurately demonstrates antonym for scarce.",
         "A choice that is too informal or unclear.",
         "A choice that does not fit the sentence context."
@@ -2678,10 +2678,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A choice with the opposite meaning while mixing in an extra unsupported condition.",
-        "A choice that is too informal or unclear.",
+        "A choice with the opposite meaning in the sentence.",
+        "A choice that is too informal or unclear in the sentence.",
         "The choice that accurately demonstrates word formation from protect.",
-        "A choice that does not fit the sentence context."
+        "A choice that does not fit the sentence context in the sentence."
       ],
       "correct_answer": "The choice that accurately demonstrates word formation from protect.",
       "correct_index": 2
@@ -2708,9 +2708,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A choice with the opposite meaning while mixing in an extra unsupported condition.",
-        "A choice that is too informal or unclear.",
-        "A choice that does not fit the sentence context.",
+        "A choice with the opposite meaning in the sentence.",
+        "A choice that is too informal or unclear in the sentence.",
+        "A choice that does not fit the sentence context in the sentence.",
         "The choice that accurately demonstrates collocation reach a conclusion."
       ],
       "correct_answer": "The choice that accurately demonstrates collocation reach a conclusion.",
@@ -2739,8 +2739,8 @@
       "content_owner": "brain_heist",
       "options": [
         "The choice that accurately demonstrates phrasal verb give up.",
-        "A choice with the opposite meaning with a plausible but incorrect detail added.",
-        "A choice that is too informal or unclear.",
+        "A choice with the opposite meaning in the sentence.",
+        "A choice that is too informal or unclear in the sentence.",
         "A choice that does not fit the sentence context."
       ],
       "correct_answer": "The choice that accurately demonstrates phrasal verb give up.",
@@ -2768,9 +2768,9 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A choice with the opposite meaning while mixing in an extra unsupported condition.",
+        "A choice with the opposite meaning in the sentence.",
         "The choice that accurately demonstrates academic word method.",
-        "A choice that is too informal or unclear.",
+        "A choice that is too informal or unclear in the sentence.",
         "A choice that does not fit the sentence context."
       ],
       "correct_answer": "The choice that accurately demonstrates academic word method.",

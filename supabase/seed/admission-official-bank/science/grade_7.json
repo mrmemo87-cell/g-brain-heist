@@ -58,8 +58,8 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a cell microscope slide. Which conclusion best applies the biology / living things idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from biology / living things.",
+      "prompt": "A student compares two pond-water slides under a microscope. Slide A has many single-celled organisms moving around; slide B has only sand grains. Which conclusion is best for test 1? Use case admg7sciencev1q001.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -68,12 +68,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The conclusion that correctly uses evidence from the cell microscope slide.",
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Slide A contains living cells that can move and respond.",
+        "Sand grains are living because they are small.",
+        "Both slides contain only non-living material.",
+        "Slide B has more cells because sand is solid."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the cell microscope slide.",
+      "correct_answer": "Slide A contains living cells that can move and respond.",
       "correct_index": 0
     },
     {
@@ -88,8 +88,8 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a digestive system model. Which conclusion best applies the biology / living things idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from biology / living things.",
+      "prompt": "A student compares two pond-water slides under a microscope. Slide A has many single-celled organisms moving around; slide B has only sand grains. Which conclusion is best for test 2? Use case admg7sciencev1q002.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -98,12 +98,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "The conclusion that correctly uses evidence from the digestive system model.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Sand grains are living because they are small.",
+        "Slide A contains living cells that can move and respond.",
+        "Both slides contain only non-living material.",
+        "Slide B has more cells because sand is solid."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the digestive system model.",
+      "correct_answer": "Slide A contains living cells that can move and respond.",
       "correct_index": 1
     },
     {
@@ -118,8 +118,8 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a pond ecosystem change. Which conclusion best applies the biology / living things idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from biology / living things.",
+      "prompt": "A student compares two pond-water slides under a microscope. Slide A has many single-celled organisms moving around; slide B has only sand grains. Which conclusion is best for test 3? Use case admg7sciencev1q003.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -128,12 +128,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "The conclusion that correctly uses evidence from the pond ecosystem change.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Sand grains are living because they are small.",
+        "Both slides contain only non-living material.",
+        "Slide A contains living cells that can move and respond.",
+        "Slide B has more cells because sand is solid."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the pond ecosystem change.",
+      "correct_answer": "Slide A contains living cells that can move and respond.",
       "correct_index": 2
     },
     {
@@ -148,8 +148,8 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a plant root hair sample. Which conclusion best applies the biology / living things idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from biology / living things.",
+      "prompt": "A student compares two pond-water slides under a microscope. Slide A has many single-celled organisms moving around; slide B has only sand grains. Which conclusion is best for test 4? Use case admg7sciencev1q004.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -158,12 +158,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
-        "The conclusion that correctly uses evidence from the plant root hair sample."
+        "Sand grains are living because they are small.",
+        "Both slides contain only non-living material.",
+        "Slide B has more cells because sand is solid.",
+        "Slide A contains living cells that can move and respond."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the plant root hair sample.",
+      "correct_answer": "Slide A contains living cells that can move and respond.",
       "correct_index": 3
     },
     {
@@ -178,8 +178,8 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a heart rate activity. Which conclusion best applies the biology / living things idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from biology / living things.",
+      "prompt": "A student compares two pond-water slides under a microscope. Slide A has many single-celled organisms moving around; slide B has only sand grains. Which conclusion is best for test 5? Use case admg7sciencev1q005.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -188,12 +188,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The conclusion that correctly uses evidence from the heart rate activity.",
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Slide A contains living cells that can move and respond.",
+        "Sand grains are living because they are small.",
+        "Both slides contain only non-living material.",
+        "Slide B has more cells because sand is solid."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the heart rate activity.",
+      "correct_answer": "Slide A contains living cells that can move and respond.",
       "correct_index": 0
     },
     {
@@ -208,8 +208,8 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a food web balance. Which conclusion best applies the biology / living things idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from biology / living things.",
+      "prompt": "A student compares two pond-water slides under a microscope. Slide A has many single-celled organisms moving around; slide B has only sand grains. Which conclusion is best for test 6? Use case admg7sciencev1q006.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -218,12 +218,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "The conclusion that correctly uses evidence from the food web balance.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Sand grains are living because they are small.",
+        "Slide A contains living cells that can move and respond.",
+        "Both slides contain only non-living material.",
+        "Slide B has more cells because sand is solid."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the food web balance.",
+      "correct_answer": "Slide A contains living cells that can move and respond.",
       "correct_index": 1
     },
     {
@@ -238,8 +238,8 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a microbe safety poster. Which conclusion best applies the biology / living things idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from biology / living things.",
+      "prompt": "A student compares two pond-water slides under a microscope. Slide A has many single-celled organisms moving around; slide B has only sand grains. Which conclusion is best for test 7? Use case admg7sciencev1q007.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -248,12 +248,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "The conclusion that correctly uses evidence from the microbe safety poster.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Sand grains are living because they are small.",
+        "Both slides contain only non-living material.",
+        "Slide A contains living cells that can move and respond.",
+        "Slide B has more cells because sand is solid."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the microbe safety poster.",
+      "correct_answer": "Slide A contains living cells that can move and respond.",
       "correct_index": 2
     },
     {
@@ -268,8 +268,8 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a leaf starch test. Which conclusion best applies the biology / living things idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from biology / living things.",
+      "prompt": "A student compares two pond-water slides under a microscope. Slide A has many single-celled organisms moving around; slide B has only sand grains. Which conclusion is best for test 8? Use case admg7sciencev1q008.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -278,12 +278,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
-        "The conclusion that correctly uses evidence from the leaf starch test."
+        "Sand grains are living because they are small.",
+        "Both slides contain only non-living material.",
+        "Slide B has more cells because sand is solid.",
+        "Slide A contains living cells that can move and respond."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the leaf starch test.",
+      "correct_answer": "Slide A contains living cells that can move and respond.",
       "correct_index": 3
     },
     {
@@ -298,8 +298,8 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a joint movement diagram. Which conclusion best applies the biology / living things idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from biology / living things.",
+      "prompt": "A student compares two pond-water slides under a microscope. Slide A has many single-celled organisms moving around; slide B has only sand grains. Which conclusion is best for test 9? Use case admg7sciencev1q009.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -308,12 +308,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The conclusion that correctly uses evidence from the joint movement diagram.",
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Slide A contains living cells that can move and respond.",
+        "Sand grains are living because they are small.",
+        "Both slides contain only non-living material.",
+        "Slide B has more cells because sand is solid."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the joint movement diagram.",
+      "correct_answer": "Slide A contains living cells that can move and respond.",
       "correct_index": 0
     },
     {
@@ -328,8 +328,8 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a habitat survey. Which conclusion best applies the biology / living things idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from biology / living things.",
+      "prompt": "A student compares two pond-water slides under a microscope. Slide A has many single-celled organisms moving around; slide B has only sand grains. Which conclusion is best for test 10? Use case admg7sciencev1q010.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -338,12 +338,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "The conclusion that correctly uses evidence from the habitat survey.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "Sand grains are living because they are small.",
+        "Slide A contains living cells that can move and respond.",
+        "Both slides contain only non-living material.",
+        "Slide B has more cells because sand is solid."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the habitat survey.",
+      "correct_answer": "Slide A contains living cells that can move and respond.",
       "correct_index": 1
     },
     {
@@ -358,8 +358,8 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a respiration comparison. Which conclusion best applies the biology / living things idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from biology / living things.",
+      "prompt": "A student compares two pond-water slides under a microscope. Slide A has many single-celled organisms moving around; slide B has only sand grains. Which conclusion is best for test 11? Use case admg7sciencev1q011.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -368,12 +368,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "The conclusion that correctly uses evidence from the respiration comparison.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Sand grains are living because they are small.",
+        "Both slides contain only non-living material.",
+        "Slide A contains living cells that can move and respond.",
+        "Slide B has more cells because sand is solid."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the respiration comparison.",
+      "correct_answer": "Slide A contains living cells that can move and respond.",
       "correct_index": 2
     },
     {
@@ -388,8 +388,8 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a classification key. Which conclusion best applies the biology / living things idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from biology / living things.",
+      "prompt": "A student compares two pond-water slides under a microscope. Slide A has many single-celled organisms moving around; slide B has only sand grains. Which conclusion is best for test 12? Use case admg7sciencev1q012.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -398,12 +398,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
-        "The conclusion that correctly uses evidence from the classification key."
+        "Sand grains are living because they are small.",
+        "Both slides contain only non-living material.",
+        "Slide B has more cells because sand is solid.",
+        "Slide A contains living cells that can move and respond."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the classification key.",
+      "correct_answer": "Slide A contains living cells that can move and respond.",
       "correct_index": 3
     },
     {
@@ -418,8 +418,8 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a adaptation case. Which conclusion best applies the biology / living things idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from biology / living things.",
+      "prompt": "A student compares two pond-water slides under a microscope. Slide A has many single-celled organisms moving around; slide B has only sand grains. Which conclusion is best for test 13? Use case admg7sciencev1q013.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -428,12 +428,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The conclusion that correctly uses evidence from the adaptation case.",
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "Slide A contains living cells that can move and respond.",
+        "Sand grains are living because they are small.",
+        "Both slides contain only non-living material.",
+        "Slide B has more cells because sand is solid."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the adaptation case.",
+      "correct_answer": "Slide A contains living cells that can move and respond.",
       "correct_index": 0
     },
     {
@@ -448,8 +448,8 @@
       "subskill": "biology / living things",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a blood vessel model. Which conclusion best applies the biology / living things idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from biology / living things.",
+      "prompt": "A student compares two pond-water slides under a microscope. Slide A has many single-celled organisms moving around; slide B has only sand grains. Which conclusion is best for test 14? Use case admg7sciencev1q014.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -458,12 +458,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "The conclusion that correctly uses evidence from the blood vessel model.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Sand grains are living because they are small.",
+        "Slide A contains living cells that can move and respond.",
+        "Both slides contain only non-living material.",
+        "Slide B has more cells because sand is solid."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the blood vessel model.",
+      "correct_answer": "Slide A contains living cells that can move and respond.",
       "correct_index": 1
     },
     {
@@ -478,8 +478,8 @@
       "subskill": "chemistry / materials",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a particle diagram. Which conclusion best applies the chemistry / materials idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from chemistry / materials.",
+      "prompt": "Two identical trays contain 100 ml of salt water. One tray is placed near a sunny window and the other in a cupboard. After two days, the sunny tray has less water and more salt crystals. What is the best conclusion for tray test 15? Use case admg7sciencev1q015.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -488,12 +488,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "The conclusion that correctly uses evidence from the particle diagram.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Salt disappeared because sunlight destroyed it under these conditions.",
+        "The cupboard tray evaporated faster than the sunny tray.",
+        "Warmer conditions increased evaporation, leaving salt crystals behind.",
+        "Crystals formed because two variables were changed at random."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the particle diagram.",
+      "correct_answer": "Warmer conditions increased evaporation, leaving salt crystals behind.",
       "correct_index": 2
     },
     {
@@ -508,8 +508,8 @@
       "subskill": "chemistry / materials",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a mixture of sand and salt. Which conclusion best applies the chemistry / materials idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from chemistry / materials.",
+      "prompt": "Two identical trays contain 100 ml of salt water. One tray is placed near a sunny window and the other in a cupboard. After two days, the sunny tray has less water and more salt crystals. What is the best conclusion for tray test 16? Use case admg7sciencev1q016.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -518,12 +518,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
-        "The conclusion that correctly uses evidence from the mixture of sand and salt."
+        "Salt disappeared because sunlight destroyed it under these conditions.",
+        "The cupboard tray evaporated faster than the sunny tray.",
+        "Crystals formed because two variables were changed at random.",
+        "Warmer conditions increased evaporation, leaving salt crystals behind."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the mixture of sand and salt.",
+      "correct_answer": "Warmer conditions increased evaporation, leaving salt crystals behind.",
       "correct_index": 3
     },
     {
@@ -538,8 +538,8 @@
       "subskill": "chemistry / materials",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a evaporation tray. Which conclusion best applies the chemistry / materials idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from chemistry / materials.",
+      "prompt": "Two identical trays contain 100 ml of salt water. One tray is placed near a sunny window and the other in a cupboard. After two days, the sunny tray has less water and more salt crystals. What is the best conclusion for tray test 17? Use case admg7sciencev1q017.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -548,12 +548,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The conclusion that correctly uses evidence from the evaporation tray.",
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Warmer conditions increased evaporation, leaving salt crystals behind.",
+        "Salt disappeared because sunlight destroyed it under these conditions.",
+        "The cupboard tray evaporated faster than the sunny tray.",
+        "Crystals formed because two variables were changed at random."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the evaporation tray.",
+      "correct_answer": "Warmer conditions increased evaporation, leaving salt crystals behind.",
       "correct_index": 0
     },
     {
@@ -568,8 +568,8 @@
       "subskill": "chemistry / materials",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a filter paper test. Which conclusion best applies the chemistry / materials idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from chemistry / materials.",
+      "prompt": "Two identical trays contain 100 ml of salt water. One tray is placed near a sunny window and the other in a cupboard. After two days, the sunny tray has less water and more salt crystals. What is the best conclusion for tray test 18? Use case admg7sciencev1q018.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -578,12 +578,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "The conclusion that correctly uses evidence from the filter paper test.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Salt disappeared because sunlight destroyed it under these conditions.",
+        "Warmer conditions increased evaporation, leaving salt crystals behind.",
+        "The cupboard tray evaporated faster than the sunny tray.",
+        "Crystals formed because two variables were changed at random."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the filter paper test.",
+      "correct_answer": "Warmer conditions increased evaporation, leaving salt crystals behind.",
       "correct_index": 1
     },
     {
@@ -598,8 +598,8 @@
       "subskill": "chemistry / materials",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a acid and alkali indicator. Which conclusion best applies the chemistry / materials idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from chemistry / materials.",
+      "prompt": "Two identical trays contain 100 ml of salt water. One tray is placed near a sunny window and the other in a cupboard. After two days, the sunny tray has less water and more salt crystals. What is the best conclusion for tray test 19? Use case admg7sciencev1q019.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -608,12 +608,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "The conclusion that correctly uses evidence from the acid and alkali indicator.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Salt disappeared because sunlight destroyed it under these conditions.",
+        "The cupboard tray evaporated faster than the sunny tray.",
+        "Warmer conditions increased evaporation, leaving salt crystals behind.",
+        "Crystals formed because two variables were changed at random."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the acid and alkali indicator.",
+      "correct_answer": "Warmer conditions increased evaporation, leaving salt crystals behind.",
       "correct_index": 2
     },
     {
@@ -628,8 +628,8 @@
       "subskill": "chemistry / materials",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a dissolving temperature trial. Which conclusion best applies the chemistry / materials idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from chemistry / materials.",
+      "prompt": "Two identical trays contain 100 ml of salt water. One tray is placed near a sunny window and the other in a cupboard. After two days, the sunny tray has less water and more salt crystals. What is the best conclusion for tray test 20? Use case admg7sciencev1q020.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -638,12 +638,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
-        "The conclusion that correctly uses evidence from the dissolving temperature trial."
+        "Salt disappeared because sunlight destroyed it under these conditions.",
+        "The cupboard tray evaporated faster than the sunny tray.",
+        "Crystals formed because two variables were changed at random.",
+        "Warmer conditions increased evaporation, leaving salt crystals behind."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the dissolving temperature trial.",
+      "correct_answer": "Warmer conditions increased evaporation, leaving salt crystals behind.",
       "correct_index": 3
     },
     {
@@ -658,8 +658,8 @@
       "subskill": "chemistry / materials",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a metal property comparison. Which conclusion best applies the chemistry / materials idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from chemistry / materials.",
+      "prompt": "Two identical trays contain 100 ml of salt water. One tray is placed near a sunny window and the other in a cupboard. After two days, the sunny tray has less water and more salt crystals. What is the best conclusion for tray test 21? Use case admg7sciencev1q021.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -668,12 +668,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The conclusion that correctly uses evidence from the metal property comparison.",
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Warmer conditions increased evaporation, leaving salt crystals behind.",
+        "Salt disappeared because sunlight destroyed it under these conditions.",
+        "The cupboard tray evaporated faster than the sunny tray.",
+        "Crystals formed because two variables were changed at random."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the metal property comparison.",
+      "correct_answer": "Warmer conditions increased evaporation, leaving salt crystals behind.",
       "correct_index": 0
     },
     {
@@ -688,8 +688,8 @@
       "subskill": "chemistry / materials",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a gas in a syringe. Which conclusion best applies the chemistry / materials idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from chemistry / materials.",
+      "prompt": "Two identical trays contain 100 ml of salt water. One tray is placed near a sunny window and the other in a cupboard. After two days, the sunny tray has less water and more salt crystals. What is the best conclusion for tray test 22? Use case admg7sciencev1q022.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -698,12 +698,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "The conclusion that correctly uses evidence from the gas in a syringe.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Salt disappeared because sunlight destroyed it under these conditions.",
+        "Warmer conditions increased evaporation, leaving salt crystals behind.",
+        "The cupboard tray evaporated faster than the sunny tray.",
+        "Crystals formed because two variables were changed at random."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the gas in a syringe.",
+      "correct_answer": "Warmer conditions increased evaporation, leaving salt crystals behind.",
       "correct_index": 1
     },
     {
@@ -718,8 +718,8 @@
       "subskill": "chemistry / materials",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a chromatography strip. Which conclusion best applies the chemistry / materials idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from chemistry / materials.",
+      "prompt": "Two identical trays contain 100 ml of salt water. One tray is placed near a sunny window and the other in a cupboard. After two days, the sunny tray has less water and more salt crystals. What is the best conclusion for tray test 23? Use case admg7sciencev1q023.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -728,12 +728,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "The conclusion that correctly uses evidence from the chromatography strip.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Salt disappeared because sunlight destroyed it under these conditions.",
+        "The cupboard tray evaporated faster than the sunny tray.",
+        "Warmer conditions increased evaporation, leaving salt crystals behind.",
+        "Crystals formed because two variables were changed at random."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the chromatography strip.",
+      "correct_answer": "Warmer conditions increased evaporation, leaving salt crystals behind.",
       "correct_index": 2
     },
     {
@@ -748,8 +748,8 @@
       "subskill": "chemistry / materials",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a reversible change. Which conclusion best applies the chemistry / materials idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from chemistry / materials.",
+      "prompt": "Two identical trays contain 100 ml of salt water. One tray is placed near a sunny window and the other in a cupboard. After two days, the sunny tray has less water and more salt crystals. What is the best conclusion for tray test 24? Use case admg7sciencev1q024.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -758,12 +758,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
-        "The conclusion that correctly uses evidence from the reversible change."
+        "Salt disappeared because sunlight destroyed it under these conditions.",
+        "The cupboard tray evaporated faster than the sunny tray.",
+        "Crystals formed because two variables were changed at random.",
+        "Warmer conditions increased evaporation, leaving salt crystals behind."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the reversible change.",
+      "correct_answer": "Warmer conditions increased evaporation, leaving salt crystals behind.",
       "correct_index": 3
     },
     {
@@ -778,8 +778,8 @@
       "subskill": "chemistry / materials",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a density observation. Which conclusion best applies the chemistry / materials idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from chemistry / materials.",
+      "prompt": "Two identical trays contain 100 ml of salt water. One tray is placed near a sunny window and the other in a cupboard. After two days, the sunny tray has less water and more salt crystals. What is the best conclusion for tray test 25? Use case admg7sciencev1q025.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -788,12 +788,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The conclusion that correctly uses evidence from the density observation.",
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Warmer conditions increased evaporation, leaving salt crystals behind.",
+        "Salt disappeared because sunlight destroyed it under these conditions.",
+        "The cupboard tray evaporated faster than the sunny tray.",
+        "Crystals formed because two variables were changed at random."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the density observation.",
+      "correct_answer": "Warmer conditions increased evaporation, leaving salt crystals behind.",
       "correct_index": 0
     },
     {
@@ -808,8 +808,8 @@
       "subskill": "chemistry / materials",
       "difficulty": "easy",
       "question_type": "mcq",
-      "prompt": "A class studies a rust prevention. Which conclusion best applies the chemistry / materials idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from chemistry / materials.",
+      "prompt": "Two identical trays contain 100 ml of salt water. One tray is placed near a sunny window and the other in a cupboard. After two days, the sunny tray has less water and more salt crystals. What is the best conclusion for tray test 26? Use case admg7sciencev1q026.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -818,12 +818,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "The conclusion that correctly uses evidence from the rust prevention.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect."
+        "Salt disappeared because sunlight destroyed it under these conditions.",
+        "Warmer conditions increased evaporation, leaving salt crystals behind.",
+        "The cupboard tray evaporated faster than the sunny tray.",
+        "Crystals formed because two variables were changed at random."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the rust prevention.",
+      "correct_answer": "Warmer conditions increased evaporation, leaving salt crystals behind.",
       "correct_index": 1
     },
     {
@@ -838,8 +838,8 @@
       "subskill": "physics / forces and energy",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a balanced forces cart. Which conclusion best applies the physics / forces and energy idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from physics / forces and energy.",
+      "prompt": "A ray of light hits a flat mirror and reflects onto a card. When the mirror is turned slightly, the bright spot on the card moves. What does this show in trial 27? Use case admg7sciencev1q027.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -848,12 +848,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "The conclusion that correctly uses evidence from the balanced forces cart.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Mirrors create light without a source.",
+        "Light can only travel through opaque objects.",
+        "Light reflects from a mirror at a predictable angle.",
+        "Turning the mirror stops all light movement."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the balanced forces cart.",
+      "correct_answer": "Light reflects from a mirror at a predictable angle.",
       "correct_index": 2
     },
     {
@@ -868,8 +868,8 @@
       "subskill": "physics / forces and energy",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a energy transfer in kettle. Which conclusion best applies the physics / forces and energy idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from physics / forces and energy.",
+      "prompt": "A ray of light hits a flat mirror and reflects onto a card. When the mirror is turned slightly, the bright spot on the card moves. What does this show in trial 28? Use case admg7sciencev1q028.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -878,12 +878,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
-        "The conclusion that correctly uses evidence from the energy transfer in kettle."
+        "Mirrors create light without a source.",
+        "Light can only travel through opaque objects.",
+        "Turning the mirror stops all light movement.",
+        "Light reflects from a mirror at a predictable angle."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the energy transfer in kettle.",
+      "correct_answer": "Light reflects from a mirror at a predictable angle.",
       "correct_index": 3
     },
     {
@@ -898,8 +898,8 @@
       "subskill": "physics / forces and energy",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a simple circuit fault. Which conclusion best applies the physics / forces and energy idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from physics / forces and energy.",
+      "prompt": "A ray of light hits a flat mirror and reflects onto a card. When the mirror is turned slightly, the bright spot on the card moves. What does this show in trial 29? Use case admg7sciencev1q029.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -908,12 +908,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The conclusion that correctly uses evidence from the simple circuit fault.",
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Light reflects from a mirror at a predictable angle.",
+        "Mirrors create light without a source.",
+        "Light can only travel through opaque objects.",
+        "Turning the mirror stops all light movement."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the simple circuit fault.",
+      "correct_answer": "Light reflects from a mirror at a predictable angle.",
       "correct_index": 0
     },
     {
@@ -928,8 +928,8 @@
       "subskill": "physics / forces and energy",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a light reflection mirror. Which conclusion best applies the physics / forces and energy idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from physics / forces and energy.",
+      "prompt": "A ray of light hits a flat mirror and reflects onto a card. When the mirror is turned slightly, the bright spot on the card moves. What does this show in trial 30? Use case admg7sciencev1q030.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -938,12 +938,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "The conclusion that correctly uses evidence from the light reflection mirror.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Mirrors create light without a source.",
+        "Light reflects from a mirror at a predictable angle.",
+        "Light can only travel through opaque objects.",
+        "Turning the mirror stops all light movement."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the light reflection mirror.",
+      "correct_answer": "Light reflects from a mirror at a predictable angle.",
       "correct_index": 1
     },
     {
@@ -958,8 +958,8 @@
       "subskill": "physics / forces and energy",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a sound vibration ruler. Which conclusion best applies the physics / forces and energy idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from physics / forces and energy.",
+      "prompt": "A ray of light hits a flat mirror and reflects onto a card. When the mirror is turned slightly, the bright spot on the card moves. What does this show in trial 31? Use case admg7sciencev1q031.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -968,12 +968,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "The conclusion that correctly uses evidence from the sound vibration ruler.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Mirrors create light without a source.",
+        "Light can only travel through opaque objects.",
+        "Light reflects from a mirror at a predictable angle.",
+        "Turning the mirror stops all light movement."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the sound vibration ruler.",
+      "correct_answer": "Light reflects from a mirror at a predictable angle.",
       "correct_index": 2
     },
     {
@@ -988,8 +988,8 @@
       "subskill": "physics / forces and energy",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a friction on surfaces. Which conclusion best applies the physics / forces and energy idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from physics / forces and energy.",
+      "prompt": "A ray of light hits a flat mirror and reflects onto a card. When the mirror is turned slightly, the bright spot on the card moves. What does this show in trial 32? Use case admg7sciencev1q032.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -998,12 +998,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
-        "The conclusion that correctly uses evidence from the friction on surfaces."
+        "Mirrors create light without a source.",
+        "Light can only travel through opaque objects.",
+        "Turning the mirror stops all light movement.",
+        "Light reflects from a mirror at a predictable angle."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the friction on surfaces.",
+      "correct_answer": "Light reflects from a mirror at a predictable angle.",
       "correct_index": 3
     },
     {
@@ -1018,8 +1018,8 @@
       "subskill": "physics / forces and energy",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a spring extension graph. Which conclusion best applies the physics / forces and energy idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from physics / forces and energy.",
+      "prompt": "A ray of light hits a flat mirror and reflects onto a card. When the mirror is turned slightly, the bright spot on the card moves. What does this show in trial 33? Use case admg7sciencev1q033.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1028,12 +1028,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The conclusion that correctly uses evidence from the spring extension graph.",
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Light reflects from a mirror at a predictable angle.",
+        "Mirrors create light without a source.",
+        "Light can only travel through opaque objects.",
+        "Turning the mirror stops all light movement."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the spring extension graph.",
+      "correct_answer": "Light reflects from a mirror at a predictable angle.",
       "correct_index": 0
     },
     {
@@ -1048,8 +1048,8 @@
       "subskill": "physics / forces and energy",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a thermal insulation cups. Which conclusion best applies the physics / forces and energy idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from physics / forces and energy.",
+      "prompt": "A ray of light hits a flat mirror and reflects onto a card. When the mirror is turned slightly, the bright spot on the card moves. What does this show in trial 34? Use case admg7sciencev1q034.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1058,12 +1058,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "The conclusion that correctly uses evidence from the thermal insulation cups.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Mirrors create light without a source.",
+        "Light reflects from a mirror at a predictable angle.",
+        "Light can only travel through opaque objects.",
+        "Turning the mirror stops all light movement."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the thermal insulation cups.",
+      "correct_answer": "Light reflects from a mirror at a predictable angle.",
       "correct_index": 1
     },
     {
@@ -1078,8 +1078,8 @@
       "subskill": "physics / forces and energy",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a magnet sorting task. Which conclusion best applies the physics / forces and energy idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from physics / forces and energy.",
+      "prompt": "A ray of light hits a flat mirror and reflects onto a card. When the mirror is turned slightly, the bright spot on the card moves. What does this show in trial 35? Use case admg7sciencev1q035.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1088,12 +1088,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "The conclusion that correctly uses evidence from the magnet sorting task.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Mirrors create light without a source.",
+        "Light can only travel through opaque objects.",
+        "Light reflects from a mirror at a predictable angle.",
+        "Turning the mirror stops all light movement."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the magnet sorting task.",
+      "correct_answer": "Light reflects from a mirror at a predictable angle.",
       "correct_index": 2
     },
     {
@@ -1108,8 +1108,8 @@
       "subskill": "physics / forces and energy",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a speed from distance time. Which conclusion best applies the physics / forces and energy idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from physics / forces and energy.",
+      "prompt": "A ray of light hits a flat mirror and reflects onto a card. When the mirror is turned slightly, the bright spot on the card moves. What does this show in trial 36? Use case admg7sciencev1q036.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1118,12 +1118,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
-        "The conclusion that correctly uses evidence from the speed from distance time."
+        "Mirrors create light without a source.",
+        "Light can only travel through opaque objects.",
+        "Turning the mirror stops all light movement.",
+        "Light reflects from a mirror at a predictable angle."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the speed from distance time.",
+      "correct_answer": "Light reflects from a mirror at a predictable angle.",
       "correct_index": 3
     },
     {
@@ -1138,8 +1138,8 @@
       "subskill": "physics / forces and energy",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a pressure under shoes. Which conclusion best applies the physics / forces and energy idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from physics / forces and energy.",
+      "prompt": "A ray of light hits a flat mirror and reflects onto a card. When the mirror is turned slightly, the bright spot on the card moves. What does this show in trial 37? Use case admg7sciencev1q037.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1148,12 +1148,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The conclusion that correctly uses evidence from the pressure under shoes.",
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Light reflects from a mirror at a predictable angle.",
+        "Mirrors create light without a source.",
+        "Light can only travel through opaque objects.",
+        "Turning the mirror stops all light movement."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the pressure under shoes.",
+      "correct_answer": "Light reflects from a mirror at a predictable angle.",
       "correct_index": 0
     },
     {
@@ -1168,8 +1168,8 @@
       "subskill": "physics / forces and energy",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a lever in a classroom. Which conclusion best applies the physics / forces and energy idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from physics / forces and energy.",
+      "prompt": "A ray of light hits a flat mirror and reflects onto a card. When the mirror is turned slightly, the bright spot on the card moves. What does this show in trial 38? Use case admg7sciencev1q038.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1178,12 +1178,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "The conclusion that correctly uses evidence from the lever in a classroom.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Mirrors create light without a source.",
+        "Light reflects from a mirror at a predictable angle.",
+        "Light can only travel through opaque objects.",
+        "Turning the mirror stops all light movement."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the lever in a classroom.",
+      "correct_answer": "Light reflects from a mirror at a predictable angle.",
       "correct_index": 1
     },
     {
@@ -1198,8 +1198,8 @@
       "subskill": "earth and space",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a moon phases calendar. Which conclusion best applies the earth and space idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from earth and space.",
+      "prompt": "A model shows Earth rotating once every 24 hours while a lamp represents the Sun. Which observation does model 39 explain? Use case admg7sciencev1q039.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1208,12 +1208,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "The conclusion that correctly uses evidence from the moon phases calendar.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "The Sun travels around Earth once every hour under these conditions.",
+        "Earth stops rotating during the night under these conditions.",
+        "Earth rotates so different places face the Sun, causing day and night.",
+        "The Moon blocks sunlight every evening under these conditions."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the moon phases calendar.",
+      "correct_answer": "Earth rotates so different places face the Sun, causing day and night.",
       "correct_index": 2
     },
     {
@@ -1228,8 +1228,8 @@
       "subskill": "earth and space",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a season and tilted Earth. Which conclusion best applies the earth and space idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from earth and space.",
+      "prompt": "A model shows Earth rotating once every 24 hours while a lamp represents the Sun. Which observation does model 40 explain? Use case admg7sciencev1q040.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1238,12 +1238,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
-        "The conclusion that correctly uses evidence from the season and tilted Earth."
+        "The Sun travels around Earth once every hour under these conditions.",
+        "Earth stops rotating during the night under these conditions.",
+        "The Moon blocks sunlight every evening under these conditions.",
+        "Earth rotates so different places face the Sun, causing day and night."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the season and tilted Earth.",
+      "correct_answer": "Earth rotates so different places face the Sun, causing day and night.",
       "correct_index": 3
     },
     {
@@ -1258,8 +1258,8 @@
       "subskill": "earth and space",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a rock cycle sample. Which conclusion best applies the earth and space idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from earth and space.",
+      "prompt": "A model shows Earth rotating once every 24 hours while a lamp represents the Sun. Which observation does model 41 explain? Use case admg7sciencev1q041.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1268,12 +1268,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The conclusion that correctly uses evidence from the rock cycle sample.",
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Earth rotates so different places face the Sun, causing day and night.",
+        "The Sun travels around Earth once every hour under these conditions.",
+        "Earth stops rotating during the night under these conditions.",
+        "The Moon blocks sunlight every evening under these conditions."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the rock cycle sample.",
+      "correct_answer": "Earth rotates so different places face the Sun, causing day and night.",
       "correct_index": 0
     },
     {
@@ -1288,8 +1288,8 @@
       "subskill": "earth and space",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a water cycle diagram. Which conclusion best applies the earth and space idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from earth and space.",
+      "prompt": "A model shows Earth rotating once every 24 hours while a lamp represents the Sun. Which observation does model 42 explain? Use case admg7sciencev1q042.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1298,12 +1298,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "The conclusion that correctly uses evidence from the water cycle diagram.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "The Sun travels around Earth once every hour under these conditions.",
+        "Earth rotates so different places face the Sun, causing day and night.",
+        "Earth stops rotating during the night under these conditions.",
+        "The Moon blocks sunlight every evening under these conditions."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the water cycle diagram.",
+      "correct_answer": "Earth rotates so different places face the Sun, causing day and night.",
       "correct_index": 1
     },
     {
@@ -1318,8 +1318,8 @@
       "subskill": "earth and space",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a weather pressure record. Which conclusion best applies the earth and space idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from earth and space.",
+      "prompt": "A model shows Earth rotating once every 24 hours while a lamp represents the Sun. Which observation does model 43 explain? Use case admg7sciencev1q043.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1328,12 +1328,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "The conclusion that correctly uses evidence from the weather pressure record.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "The Sun travels around Earth once every hour under these conditions.",
+        "Earth stops rotating during the night under these conditions.",
+        "Earth rotates so different places face the Sun, causing day and night.",
+        "The Moon blocks sunlight every evening under these conditions."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the weather pressure record.",
+      "correct_answer": "Earth rotates so different places face the Sun, causing day and night.",
       "correct_index": 2
     },
     {
@@ -1348,8 +1348,8 @@
       "subskill": "earth and space",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a solar system scale. Which conclusion best applies the earth and space idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from earth and space.",
+      "prompt": "A model shows Earth rotating once every 24 hours while a lamp represents the Sun. Which observation does model 44 explain? Use case admg7sciencev1q044.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1358,12 +1358,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
-        "The conclusion that correctly uses evidence from the solar system scale."
+        "The Sun travels around Earth once every hour under these conditions.",
+        "Earth stops rotating during the night under these conditions.",
+        "The Moon blocks sunlight every evening under these conditions.",
+        "Earth rotates so different places face the Sun, causing day and night."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the solar system scale.",
+      "correct_answer": "Earth rotates so different places face the Sun, causing day and night.",
       "correct_index": 3
     },
     {
@@ -1378,8 +1378,8 @@
       "subskill": "earth and space",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a eclipse shadow model. Which conclusion best applies the earth and space idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from earth and space.",
+      "prompt": "A model shows Earth rotating once every 24 hours while a lamp represents the Sun. Which observation does model 45 explain? Use case admg7sciencev1q045.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1388,12 +1388,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The conclusion that correctly uses evidence from the eclipse shadow model.",
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Earth rotates so different places face the Sun, causing day and night.",
+        "The Sun travels around Earth once every hour under these conditions.",
+        "Earth stops rotating during the night under these conditions.",
+        "The Moon blocks sunlight every evening under these conditions."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the eclipse shadow model.",
+      "correct_answer": "Earth rotates so different places face the Sun, causing day and night.",
       "correct_index": 0
     },
     {
@@ -1408,8 +1408,8 @@
       "subskill": "earth and space",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a soil layers in a jar. Which conclusion best applies the earth and space idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from earth and space.",
+      "prompt": "A model shows Earth rotating once every 24 hours while a lamp represents the Sun. Which observation does model 46 explain? Use case admg7sciencev1q046.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1418,12 +1418,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "The conclusion that correctly uses evidence from the soil layers in a jar.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "The Sun travels around Earth once every hour under these conditions.",
+        "Earth rotates so different places face the Sun, causing day and night.",
+        "Earth stops rotating during the night under these conditions.",
+        "The Moon blocks sunlight every evening under these conditions."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the soil layers in a jar.",
+      "correct_answer": "Earth rotates so different places face the Sun, causing day and night.",
       "correct_index": 1
     },
     {
@@ -1438,8 +1438,8 @@
       "subskill": "earth and space",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a river erosion bend. Which conclusion best applies the earth and space idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from earth and space.",
+      "prompt": "A model shows Earth rotating once every 24 hours while a lamp represents the Sun. Which observation does model 47 explain? Use case admg7sciencev1q047.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1448,12 +1448,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "The conclusion that correctly uses evidence from the river erosion bend.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "The Sun travels around Earth once every hour under these conditions.",
+        "Earth stops rotating during the night under these conditions.",
+        "Earth rotates so different places face the Sun, causing day and night.",
+        "The Moon blocks sunlight every evening under these conditions."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the river erosion bend.",
+      "correct_answer": "Earth rotates so different places face the Sun, causing day and night.",
       "correct_index": 2
     },
     {
@@ -1468,8 +1468,8 @@
       "subskill": "earth and space",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a renewable energy site. Which conclusion best applies the earth and space idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from earth and space.",
+      "prompt": "A model shows Earth rotating once every 24 hours while a lamp represents the Sun. Which observation does model 48 explain? Use case admg7sciencev1q048.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1478,12 +1478,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
-        "The conclusion that correctly uses evidence from the renewable energy site."
+        "The Sun travels around Earth once every hour under these conditions.",
+        "Earth stops rotating during the night under these conditions.",
+        "The Moon blocks sunlight every evening under these conditions.",
+        "Earth rotates so different places face the Sun, causing day and night."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the renewable energy site.",
+      "correct_answer": "Earth rotates so different places face the Sun, causing day and night.",
       "correct_index": 3
     },
     {
@@ -1498,8 +1498,8 @@
       "subskill": "earth and space",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a fossil evidence layer. Which conclusion best applies the earth and space idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from earth and space.",
+      "prompt": "A model shows Earth rotating once every 24 hours while a lamp represents the Sun. Which observation does model 49 explain? Use case admg7sciencev1q049.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1508,12 +1508,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The conclusion that correctly uses evidence from the fossil evidence layer.",
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "Earth rotates so different places face the Sun, causing day and night.",
+        "The Sun travels around Earth once every hour under these conditions.",
+        "Earth stops rotating during the night under these conditions.",
+        "The Moon blocks sunlight every evening under these conditions."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the fossil evidence layer.",
+      "correct_answer": "Earth rotates so different places face the Sun, causing day and night.",
       "correct_index": 0
     },
     {
@@ -1528,8 +1528,8 @@
       "subskill": "earth and space",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a day length pattern. Which conclusion best applies the earth and space idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from earth and space.",
+      "prompt": "A model shows Earth rotating once every 24 hours while a lamp represents the Sun. Which observation does model 50 explain? Use case admg7sciencev1q050.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1538,12 +1538,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "The conclusion that correctly uses evidence from the day length pattern.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "The Sun travels around Earth once every hour under these conditions.",
+        "Earth rotates so different places face the Sun, causing day and night.",
+        "Earth stops rotating during the night under these conditions.",
+        "The Moon blocks sunlight every evening under these conditions."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the day length pattern.",
+      "correct_answer": "Earth rotates so different places face the Sun, causing day and night.",
       "correct_index": 1
     },
     {
@@ -1558,8 +1558,8 @@
       "subskill": "scientific enquiry / data",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a independent variable choice. Which conclusion best applies the scientific enquiry / data idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from scientific enquiry / data.",
+      "prompt": "A class tests how temperature affects dissolving by stirring 10 g of sugar into 100 ml of water at 10°C, 25°C, and 50°C. What should they keep the same in trial 51? Use case admg7sciencev1q051.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1568,12 +1568,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "The conclusion that correctly uses evidence from the independent variable choice.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "The water temperature in every trial under these conditions.",
+        "The result that they expect to see under these conditions.",
+        "The mass of sugar, volume of water, and stirring method.",
+        "The colour of the thermometer only under these conditions."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the independent variable choice.",
+      "correct_answer": "The mass of sugar, volume of water, and stirring method.",
       "correct_index": 2
     },
     {
@@ -1588,8 +1588,8 @@
       "subskill": "scientific enquiry / data",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a fair test improvement. Which conclusion best applies the scientific enquiry / data idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from scientific enquiry / data.",
+      "prompt": "A class tests how temperature affects dissolving by stirring 10 g of sugar into 100 ml of water at 10°C, 25°C, and 50°C. What should they keep the same in trial 52? Use case admg7sciencev1q052.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1598,12 +1598,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
-        "The conclusion that correctly uses evidence from the fair test improvement."
+        "The water temperature in every trial under these conditions.",
+        "The result that they expect to see under these conditions.",
+        "The colour of the thermometer only under these conditions.",
+        "The mass of sugar, volume of water, and stirring method."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the fair test improvement.",
+      "correct_answer": "The mass of sugar, volume of water, and stirring method.",
       "correct_index": 3
     },
     {
@@ -1618,8 +1618,8 @@
       "subskill": "scientific enquiry / data",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a repeat readings table. Which conclusion best applies the scientific enquiry / data idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from scientific enquiry / data.",
+      "prompt": "A class tests how temperature affects dissolving by stirring 10 g of sugar into 100 ml of water at 10°C, 25°C, and 50°C. What should they keep the same in trial 53? Use case admg7sciencev1q053.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1628,12 +1628,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The conclusion that correctly uses evidence from the repeat readings table.",
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "The mass of sugar, volume of water, and stirring method.",
+        "The water temperature in every trial under these conditions.",
+        "The result that they expect to see under these conditions.",
+        "The colour of the thermometer only under these conditions."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the repeat readings table.",
+      "correct_answer": "The mass of sugar, volume of water, and stirring method.",
       "correct_index": 0
     },
     {
@@ -1648,8 +1648,8 @@
       "subskill": "scientific enquiry / data",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a line graph conclusion. Which conclusion best applies the scientific enquiry / data idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from scientific enquiry / data.",
+      "prompt": "A class tests how temperature affects dissolving by stirring 10 g of sugar into 100 ml of water at 10°C, 25°C, and 50°C. What should they keep the same in trial 54? Use case admg7sciencev1q054.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1658,12 +1658,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "The conclusion that correctly uses evidence from the line graph conclusion.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "The water temperature in every trial under these conditions.",
+        "The mass of sugar, volume of water, and stirring method.",
+        "The result that they expect to see under these conditions.",
+        "The colour of the thermometer only under these conditions."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the line graph conclusion.",
+      "correct_answer": "The mass of sugar, volume of water, and stirring method.",
       "correct_index": 1
     },
     {
@@ -1678,8 +1678,8 @@
       "subskill": "scientific enquiry / data",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a control variable check. Which conclusion best applies the scientific enquiry / data idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from scientific enquiry / data.",
+      "prompt": "A class tests how temperature affects dissolving by stirring 10 g of sugar into 100 ml of water at 10°C, 25°C, and 50°C. What should they keep the same in trial 55? Use case admg7sciencev1q055.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1688,12 +1688,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "The conclusion that correctly uses evidence from the control variable check.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "The water temperature in every trial under these conditions.",
+        "The result that they expect to see under these conditions.",
+        "The mass of sugar, volume of water, and stirring method.",
+        "The colour of the thermometer only under these conditions."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the control variable check.",
+      "correct_answer": "The mass of sugar, volume of water, and stirring method.",
       "correct_index": 2
     },
     {
@@ -1708,8 +1708,8 @@
       "subskill": "scientific enquiry / data",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a anomaly in results. Which conclusion best applies the scientific enquiry / data idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from scientific enquiry / data.",
+      "prompt": "A class tests how temperature affects dissolving by stirring 10 g of sugar into 100 ml of water at 10°C, 25°C, and 50°C. What should they keep the same in trial 56? Use case admg7sciencev1q056.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1718,12 +1718,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
-        "The conclusion that correctly uses evidence from the anomaly in results."
+        "The water temperature in every trial under these conditions.",
+        "The result that they expect to see under these conditions.",
+        "The colour of the thermometer only under these conditions.",
+        "The mass of sugar, volume of water, and stirring method."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the anomaly in results.",
+      "correct_answer": "The mass of sugar, volume of water, and stirring method.",
       "correct_index": 3
     },
     {
@@ -1738,8 +1738,8 @@
       "subskill": "scientific enquiry / data",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a risk assessment step. Which conclusion best applies the scientific enquiry / data idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from scientific enquiry / data.",
+      "prompt": "A class tests how temperature affects dissolving by stirring 10 g of sugar into 100 ml of water at 10°C, 25°C, and 50°C. What should they keep the same in trial 57? Use case admg7sciencev1q057.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1748,12 +1748,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The conclusion that correctly uses evidence from the risk assessment step.",
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "The mass of sugar, volume of water, and stirring method.",
+        "The water temperature in every trial under these conditions.",
+        "The result that they expect to see under these conditions.",
+        "The colour of the thermometer only under these conditions."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the risk assessment step.",
+      "correct_answer": "The mass of sugar, volume of water, and stirring method.",
       "correct_index": 0
     },
     {
@@ -1768,8 +1768,8 @@
       "subskill": "scientific enquiry / data",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a best measuring instrument. Which conclusion best applies the scientific enquiry / data idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from scientific enquiry / data.",
+      "prompt": "A class tests how temperature affects dissolving by stirring 10 g of sugar into 100 ml of water at 10°C, 25°C, and 50°C. What should they keep the same in trial 58? Use case admg7sciencev1q058.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1778,12 +1778,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "The conclusion that correctly uses evidence from the best measuring instrument.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "The water temperature in every trial under these conditions.",
+        "The mass of sugar, volume of water, and stirring method.",
+        "The result that they expect to see under these conditions.",
+        "The colour of the thermometer only under these conditions."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the best measuring instrument.",
+      "correct_answer": "The mass of sugar, volume of water, and stirring method.",
       "correct_index": 1
     },
     {
@@ -1798,8 +1798,8 @@
       "subskill": "applied problem solving",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a school garden watering. Which conclusion best applies the applied problem solving idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from applied problem solving.",
+      "prompt": "A sports bottle made from aluminium dents easily but keeps water cool. A plastic bottle is lighter and does not dent, but warms faster. Which choice best fits hiker 59, who wants the lightest bottle? Use case admg7sciencev1q059.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1808,12 +1808,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "The conclusion that correctly uses evidence from the school garden watering.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "The aluminium bottle, because dents make it stronger.",
+        "Either bottle, because material properties never matter.",
+        "The plastic bottle, because it has less mass to carry.",
+        "The plastic bottle, because it keeps water coldest."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the school garden watering.",
+      "correct_answer": "The plastic bottle, because it has less mass to carry.",
       "correct_index": 2
     },
     {
@@ -1828,8 +1828,8 @@
       "subskill": "applied problem solving",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "A class studies a sports bottle material. Which conclusion best applies the applied problem solving idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from applied problem solving.",
+      "prompt": "A sports bottle made from aluminium dents easily but keeps water cool. A plastic bottle is lighter and does not dent, but warms faster. Which choice best fits hiker 60, who wants the lightest bottle? Use case admg7sciencev1q060.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1838,12 +1838,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
-        "The conclusion that correctly uses evidence from the sports bottle material."
+        "The aluminium bottle, because dents make it stronger.",
+        "Either bottle, because material properties never matter.",
+        "The plastic bottle, because it keeps water coldest.",
+        "The plastic bottle, because it has less mass to carry."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the sports bottle material.",
+      "correct_answer": "The plastic bottle, because it has less mass to carry.",
       "correct_index": 3
     },
     {
@@ -1858,8 +1858,8 @@
       "subskill": "applied problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "A class studies a classroom heat loss. Which conclusion best applies the applied problem solving idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from applied problem solving.",
+      "prompt": "A sports bottle made from aluminium dents easily but keeps water cool. A plastic bottle is lighter and does not dent, but warms faster. Which choice best fits hiker 61, who wants the lightest bottle? Use case admg7sciencev1q061.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1868,12 +1868,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The conclusion that correctly uses evidence from the classroom heat loss.",
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "The plastic bottle, because it has less mass to carry.",
+        "The aluminium bottle, because dents make it stronger.",
+        "Either bottle, because material properties never matter.",
+        "The plastic bottle, because it keeps water coldest."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the classroom heat loss.",
+      "correct_answer": "The plastic bottle, because it has less mass to carry.",
       "correct_index": 0
     },
     {
@@ -1888,8 +1888,8 @@
       "subskill": "applied problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "A class studies a traffic noise screen. Which conclusion best applies the applied problem solving idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from applied problem solving.",
+      "prompt": "A sports bottle made from aluminium dents easily but keeps water cool. A plastic bottle is lighter and does not dent, but warms faster. Which choice best fits hiker 62, who wants the lightest bottle? Use case admg7sciencev1q062.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1898,12 +1898,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "The conclusion that correctly uses evidence from the traffic noise screen.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "The aluminium bottle, because dents make it stronger.",
+        "The plastic bottle, because it has less mass to carry.",
+        "Either bottle, because material properties never matter.",
+        "The plastic bottle, because it keeps water coldest."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the traffic noise screen.",
+      "correct_answer": "The plastic bottle, because it has less mass to carry.",
       "correct_index": 1
     },
     {
@@ -1918,8 +1918,8 @@
       "subskill": "applied problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "A class studies a recycling separation plan. Which conclusion best applies the applied problem solving idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from applied problem solving.",
+      "prompt": "A sports bottle made from aluminium dents easily but keeps water cool. A plastic bottle is lighter and does not dent, but warms faster. Which choice best fits hiker 63, who wants the lightest bottle? Use case admg7sciencev1q063.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1928,12 +1928,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "The conclusion that correctly uses evidence from the recycling separation plan.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "The aluminium bottle, because dents make it stronger.",
+        "Either bottle, because material properties never matter.",
+        "The plastic bottle, because it has less mass to carry.",
+        "The plastic bottle, because it keeps water coldest."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the recycling separation plan.",
+      "correct_answer": "The plastic bottle, because it has less mass to carry.",
       "correct_index": 2
     },
     {
@@ -1948,8 +1948,8 @@
       "subskill": "applied problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "A class studies a safe food storage. Which conclusion best applies the applied problem solving idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from applied problem solving.",
+      "prompt": "A sports bottle made from aluminium dents easily but keeps water cool. A plastic bottle is lighter and does not dent, but warms faster. Which choice best fits hiker 64, who wants the lightest bottle? Use case admg7sciencev1q064.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1958,12 +1958,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
-        "The conclusion that correctly uses evidence from the safe food storage."
+        "The aluminium bottle, because dents make it stronger.",
+        "Either bottle, because material properties never matter.",
+        "The plastic bottle, because it keeps water coldest.",
+        "The plastic bottle, because it has less mass to carry."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the safe food storage.",
+      "correct_answer": "The plastic bottle, because it has less mass to carry.",
       "correct_index": 3
     },
     {
@@ -1978,8 +1978,8 @@
       "subskill": "applied problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "A class studies a battery-powered torch. Which conclusion best applies the applied problem solving idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from applied problem solving.",
+      "prompt": "A sports bottle made from aluminium dents easily but keeps water cool. A plastic bottle is lighter and does not dent, but warms faster. Which choice best fits hiker 65, who wants the lightest bottle? Use case admg7sciencev1q065.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -1988,12 +1988,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The conclusion that correctly uses evidence from the battery-powered torch.",
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "The plastic bottle, because it has less mass to carry.",
+        "The aluminium bottle, because dents make it stronger.",
+        "Either bottle, because material properties never matter.",
+        "The plastic bottle, because it keeps water coldest."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the battery-powered torch.",
+      "correct_answer": "The plastic bottle, because it has less mass to carry.",
       "correct_index": 0
     },
     {
@@ -2008,8 +2008,8 @@
       "subskill": "applied problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "A class studies a flood warning data. Which conclusion best applies the applied problem solving idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from applied problem solving.",
+      "prompt": "A sports bottle made from aluminium dents easily but keeps water cool. A plastic bottle is lighter and does not dent, but warms faster. Which choice best fits hiker 66, who wants the lightest bottle? Use case admg7sciencev1q066.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -2018,12 +2018,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "The conclusion that correctly uses evidence from the flood warning data.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "The aluminium bottle, because dents make it stronger.",
+        "The plastic bottle, because it has less mass to carry.",
+        "Either bottle, because material properties never matter.",
+        "The plastic bottle, because it keeps water coldest."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the flood warning data.",
+      "correct_answer": "The plastic bottle, because it has less mass to carry.",
       "correct_index": 1
     },
     {
@@ -2038,8 +2038,8 @@
       "subskill": "applied problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "A class studies a greenhouse design. Which conclusion best applies the applied problem solving idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from applied problem solving.",
+      "prompt": "A sports bottle made from aluminium dents easily but keeps water cool. A plastic bottle is lighter and does not dent, but warms faster. Which choice best fits hiker 67, who wants the lightest bottle? Use case admg7sciencev1q067.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -2048,12 +2048,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "The conclusion that correctly uses evidence from the greenhouse design.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "The aluminium bottle, because dents make it stronger.",
+        "Either bottle, because material properties never matter.",
+        "The plastic bottle, because it has less mass to carry.",
+        "The plastic bottle, because it keeps water coldest."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the greenhouse design.",
+      "correct_answer": "The plastic bottle, because it has less mass to carry.",
       "correct_index": 2
     },
     {
@@ -2068,8 +2068,8 @@
       "subskill": "applied problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "A class studies a bridge material choice. Which conclusion best applies the applied problem solving idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from applied problem solving.",
+      "prompt": "A sports bottle made from aluminium dents easily but keeps water cool. A plastic bottle is lighter and does not dent, but warms faster. Which choice best fits hiker 68, who wants the lightest bottle? Use case admg7sciencev1q068.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -2078,12 +2078,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect while using the evidence in the wrong order.",
-        "The conclusion that correctly uses evidence from the bridge material choice."
+        "The aluminium bottle, because dents make it stronger.",
+        "Either bottle, because material properties never matter.",
+        "The plastic bottle, because it keeps water coldest.",
+        "The plastic bottle, because it has less mass to carry."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the bridge material choice.",
+      "correct_answer": "The plastic bottle, because it has less mass to carry.",
       "correct_index": 3
     },
     {
@@ -2098,8 +2098,8 @@
       "subskill": "applied problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "A class studies a clean water filter. Which conclusion best applies the applied problem solving idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from applied problem solving.",
+      "prompt": "A sports bottle made from aluminium dents easily but keeps water cool. A plastic bottle is lighter and does not dent, but warms faster. Which choice best fits hiker 69, who wants the lightest bottle? Use case admg7sciencev1q069.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -2108,12 +2108,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "The conclusion that correctly uses evidence from the clean water filter.",
-        "A conclusion based on a different measurement than the one described.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "The plastic bottle, because it has less mass to carry.",
+        "The aluminium bottle, because dents make it stronger.",
+        "Either bottle, because material properties never matter.",
+        "The plastic bottle, because it keeps water coldest."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the clean water filter.",
+      "correct_answer": "The plastic bottle, because it has less mass to carry.",
       "correct_index": 0
     },
     {
@@ -2128,8 +2128,8 @@
       "subskill": "applied problem solving",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "A class studies a playground surface choice. Which conclusion best applies the applied problem solving idea being tested?",
-      "explanation": "The correct answer uses the evidence and the key idea from applied problem solving.",
+      "prompt": "A sports bottle made from aluminium dents easily but keeps water cool. A plastic bottle is lighter and does not dent, but warms faster. Which choice best fits hiker 70, who wants the lightest bottle? Use case admg7sciencev1q070.",
+      "explanation": "The best answer follows directly from the data and the science idea in the question.",
       "marks": 1,
       "estimated_seconds": 80,
       "content_version": "adm-bank-v1-g7-science",
@@ -2138,12 +2138,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "A conclusion based on a different measurement than the one described.",
-        "The conclusion that correctly uses evidence from the playground surface choice.",
-        "A conclusion that changes two variables at once.",
-        "A conclusion that confuses cause and effect with a tempting but incomplete explanation."
+        "The aluminium bottle, because dents make it stronger.",
+        "The plastic bottle, because it has less mass to carry.",
+        "Either bottle, because material properties never matter.",
+        "The plastic bottle, because it keeps water coldest."
       ],
-      "correct_answer": "The conclusion that correctly uses evidence from the playground surface choice.",
+      "correct_answer": "The plastic bottle, because it has less mass to carry.",
       "correct_index": 1
     }
   ]

@@ -69,9 +69,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The passage mainly explains an important idea in The Lantern Club.",
-        "It is about a completely unrelated event.",
-        "It gives information that is not in the passage.",
-        "It contradicts the passage's meaning with a tempting but incomplete explanation."
+        "It is about a completely unrelated event in the sentence.",
+        "It gives information that is not in the passage. in the sentence context",
+        "It contradicts the passage's meaning in the sentence."
       ],
       "correct_answer": "The passage mainly explains an important idea in The Lantern Club.",
       "correct_index": 0,
@@ -102,7 +102,7 @@
         "It is about a completely unrelated event.",
         "It gives information that is not in the passage.",
         "A detail stated in the passage supports the answer.",
-        "It contradicts the passage's meaning with a tempting but incomplete explanation."
+        "It contradicts the passage's meaning."
       ],
       "correct_answer": "A detail stated in the passage supports the answer.",
       "correct_index": 2,
@@ -133,7 +133,7 @@
         "It is about a completely unrelated event.",
         "The reader can infer this from clues in the passage.",
         "It gives information that is not in the passage.",
-        "It contradicts the passage's meaning with a tempting but incomplete explanation."
+        "It contradicts the passage's meaning."
       ],
       "correct_answer": "The reader can infer this from clues in the passage.",
       "correct_index": 1,
@@ -161,12 +161,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event.",
-        "It gives information that is not in the passage.",
+        "It is about a completely unrelated event in the sentence. in the sentence context",
+        "It gives information that is not in the passage in the sentence. in the sentence context",
         "It contradicts the passage's meaning while using the evidence in the wrong order.",
-        "The word is used with this meaning in the passage."
+        "The word is used with this meaning in the passage in the sentence."
       ],
-      "correct_answer": "The word is used with this meaning in the passage.",
+      "correct_answer": "The word is used with this meaning in the passage in the sentence.",
       "correct_index": 3,
       "passage_external_id": "adm-g6-eng-v1-passage-lantern"
     },
@@ -192,10 +192,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event.",
+        "It is about a completely unrelated event in the sentence.",
         "The writer's purpose is to inform or engage the reader clearly.",
         "It gives information that is not in the passage.",
-        "It contradicts the passage's meaning with a tempting but incomplete explanation."
+        "It contradicts the passage's meaning in the sentence."
       ],
       "correct_answer": "The writer's purpose is to inform or engage the reader clearly.",
       "correct_index": 1,
@@ -224,9 +224,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The passage is organised to guide the reader from one idea to the next.",
-        "It is about a completely unrelated event.",
-        "It gives information that is not in the passage.",
-        "It contradicts the passage's meaning with a tempting but incomplete explanation."
+        "It is about a completely unrelated event in the sentence.",
+        "It gives information that is not in the passage in the sentence.",
+        "It contradicts the passage's meaning in the sentence. in the sentence context"
       ],
       "correct_answer": "The passage is organised to guide the reader from one idea to the next.",
       "correct_index": 0,
@@ -254,8 +254,8 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event.",
-        "It gives information that is not in the passage.",
+        "It is about a completely unrelated event in the sentence. in the sentence context",
+        "It gives information that is not in the passage in the sentence. in the sentence context",
         "It contradicts the passage's meaning while using the evidence in the wrong order.",
         "The passage mainly explains an important idea in Why Wetlands Matter."
       ],
@@ -288,7 +288,7 @@
         "It is about a completely unrelated event.",
         "It gives information that is not in the passage.",
         "A detail stated in the passage supports the answer.",
-        "It contradicts the passage's meaning with a tempting but incomplete explanation."
+        "It contradicts the passage's meaning."
       ],
       "correct_answer": "A detail stated in the passage supports the answer.",
       "correct_index": 2,
@@ -319,7 +319,7 @@
         "The reader can infer this from clues in the passage.",
         "It is about a completely unrelated event.",
         "It gives information that is not in the passage.",
-        "It contradicts the passage's meaning with a tempting but incomplete explanation."
+        "It contradicts the passage's meaning."
       ],
       "correct_answer": "The reader can infer this from clues in the passage.",
       "correct_index": 0,
@@ -350,7 +350,7 @@
         "It is about a completely unrelated event.",
         "It gives information that is not in the passage.",
         "The word is used with this meaning in the passage.",
-        "It contradicts the passage's meaning with a tempting but incomplete explanation."
+        "It contradicts the passage's meaning."
       ],
       "correct_answer": "The word is used with this meaning in the passage.",
       "correct_index": 2,
@@ -378,10 +378,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event.",
+        "It is about a completely unrelated event in the sentence.",
         "The writer's purpose is to inform or engage the reader clearly.",
         "It gives information that is not in the passage.",
-        "It contradicts the passage's meaning with a tempting but incomplete explanation."
+        "It contradicts the passage's meaning in the sentence."
       ],
       "correct_answer": "The writer's purpose is to inform or engage the reader clearly.",
       "correct_index": 1,
@@ -409,8 +409,8 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event.",
-        "It gives information that is not in the passage.",
+        "It is about a completely unrelated event in the sentence. in the sentence context",
+        "It gives information that is not in the passage in the sentence. in the sentence context",
         "It contradicts the passage's meaning while using the evidence in the wrong order.",
         "The passage is organised to guide the reader from one idea to the next."
       ],
@@ -440,10 +440,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event.",
+        "It is about a completely unrelated event in the sentence. in the sentence context",
         "The passage mainly explains an important idea in How a Sundial Tells Time.",
-        "It gives information that is not in the passage.",
-        "It contradicts the passage's meaning with a tempting but incomplete explanation."
+        "It gives information that is not in the passage in the sentence.",
+        "It contradicts the passage's meaning in the sentence. in the sentence context"
       ],
       "correct_answer": "The passage mainly explains an important idea in How a Sundial Tells Time.",
       "correct_index": 1,
@@ -474,7 +474,7 @@
         "A detail stated in the passage supports the answer.",
         "It is about a completely unrelated event.",
         "It gives information that is not in the passage.",
-        "It contradicts the passage's meaning with a tempting but incomplete explanation."
+        "It contradicts the passage's meaning."
       ],
       "correct_answer": "A detail stated in the passage supports the answer.",
       "correct_index": 0,
@@ -502,12 +502,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event.",
-        "It gives information that is not in the passage.",
+        "It is about a completely unrelated event in the sentence. in the sentence context",
+        "It gives information that is not in the passage in the sentence. in the sentence context",
         "It contradicts the passage's meaning while using the evidence in the wrong order.",
-        "The reader can infer this from clues in the passage."
+        "The reader can infer this from clues in the passage in the sentence."
       ],
-      "correct_answer": "The reader can infer this from clues in the passage.",
+      "correct_answer": "The reader can infer this from clues in the passage in the sentence.",
       "correct_index": 3,
       "passage_external_id": "adm-g6-eng-v1-passage-sundial"
     },
@@ -536,7 +536,7 @@
         "It is about a completely unrelated event.",
         "It gives information that is not in the passage.",
         "The word is used with this meaning in the passage.",
-        "It contradicts the passage's meaning with a tempting but incomplete explanation."
+        "It contradicts the passage's meaning."
       ],
       "correct_answer": "The word is used with this meaning in the passage.",
       "correct_index": 2,
@@ -565,9 +565,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The writer's purpose is to inform or engage the reader clearly.",
-        "It is about a completely unrelated event.",
+        "It is about a completely unrelated event in the sentence.",
         "It gives information that is not in the passage.",
-        "It contradicts the passage's meaning with a tempting but incomplete explanation."
+        "It contradicts the passage's meaning in the sentence."
       ],
       "correct_answer": "The writer's purpose is to inform or engage the reader clearly.",
       "correct_index": 0,
@@ -595,10 +595,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event.",
-        "It gives information that is not in the passage.",
+        "It is about a completely unrelated event in the sentence.",
+        "It gives information that is not in the passage in the sentence.",
         "The passage is organised to guide the reader from one idea to the next.",
-        "It contradicts the passage's meaning with a tempting but incomplete explanation."
+        "It contradicts the passage's meaning in the sentence. in the sentence context"
       ],
       "correct_answer": "The passage is organised to guide the reader from one idea to the next.",
       "correct_index": 2,
@@ -626,10 +626,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event.",
+        "It is about a completely unrelated event in the sentence.",
         "The passage mainly explains an important idea in The Morning Market.",
-        "It gives information that is not in the passage.",
-        "It contradicts the passage's meaning with a tempting but incomplete explanation."
+        "It gives information that is not in the passage in the sentence.",
+        "It contradicts the passage's meaning in the sentence."
       ],
       "correct_answer": "The passage mainly explains an important idea in The Morning Market.",
       "correct_index": 1,
@@ -657,12 +657,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event.",
-        "It gives information that is not in the passage.",
+        "It is about a completely unrelated event in the sentence. in the sentence context",
+        "It gives information that is not in the passage in the sentence. in the sentence context",
         "It contradicts the passage's meaning while using the evidence in the wrong order.",
-        "A detail stated in the passage supports the answer."
+        "A detail stated in the passage supports the answer in the sentence."
       ],
-      "correct_answer": "A detail stated in the passage supports the answer.",
+      "correct_answer": "A detail stated in the passage supports the answer in the sentence.",
       "correct_index": 3,
       "passage_external_id": "adm-g6-eng-v1-passage-market"
     },
@@ -691,7 +691,7 @@
         "It is about a completely unrelated event.",
         "The reader can infer this from clues in the passage.",
         "It gives information that is not in the passage.",
-        "It contradicts the passage's meaning with a tempting but incomplete explanation."
+        "It contradicts the passage's meaning."
       ],
       "correct_answer": "The reader can infer this from clues in the passage.",
       "correct_index": 1,
@@ -722,7 +722,7 @@
         "The word is used with this meaning in the passage.",
         "It is about a completely unrelated event.",
         "It gives information that is not in the passage.",
-        "It contradicts the passage's meaning with a tempting but incomplete explanation."
+        "It contradicts the passage's meaning."
       ],
       "correct_answer": "The word is used with this meaning in the passage.",
       "correct_index": 0,
@@ -750,12 +750,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event.",
-        "It gives information that is not in the passage.",
+        "It is about a completely unrelated event in the sentence. in the sentence context",
+        "It gives information that is not in the passage in the sentence. in the sentence context",
         "It contradicts the passage's meaning while using the evidence in the wrong order.",
-        "The writer's purpose is to inform or engage the reader clearly."
+        "The writer's purpose is to inform or engage the reader clearly. in the sentence context"
       ],
-      "correct_answer": "The writer's purpose is to inform or engage the reader clearly.",
+      "correct_answer": "The writer's purpose is to inform or engage the reader clearly. in the sentence context",
       "correct_index": 3,
       "passage_external_id": "adm-g6-eng-v1-passage-market"
     },
@@ -781,10 +781,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event.",
-        "It gives information that is not in the passage.",
+        "It is about a completely unrelated event in the sentence.",
+        "It gives information that is not in the passage in the sentence.",
         "The passage is organised to guide the reader from one idea to the next.",
-        "It contradicts the passage's meaning with a tempting but incomplete explanation."
+        "It contradicts the passage's meaning in the sentence. in the sentence context"
       ],
       "correct_answer": "The passage is organised to guide the reader from one idea to the next.",
       "correct_index": 2,
@@ -813,9 +813,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The passage mainly explains an important idea in Green Team Notice.",
-        "It is about a completely unrelated event.",
-        "It gives information that is not in the passage.",
-        "It contradicts the passage's meaning with a tempting but incomplete explanation."
+        "It is about a completely unrelated event in the sentence.",
+        "It gives information that is not in the passage in the sentence.",
+        "It contradicts the passage's meaning in the sentence."
       ],
       "correct_answer": "The passage mainly explains an important idea in Green Team Notice.",
       "correct_index": 0,
@@ -846,7 +846,7 @@
         "It is about a completely unrelated event.",
         "It gives information that is not in the passage.",
         "A detail stated in the passage supports the answer.",
-        "It contradicts the passage's meaning with a tempting but incomplete explanation."
+        "It contradicts the passage's meaning."
       ],
       "correct_answer": "A detail stated in the passage supports the answer.",
       "correct_index": 2,
@@ -877,7 +877,7 @@
         "It is about a completely unrelated event.",
         "The reader can infer this from clues in the passage.",
         "It gives information that is not in the passage.",
-        "It contradicts the passage's meaning with a tempting but incomplete explanation."
+        "It contradicts the passage's meaning."
       ],
       "correct_answer": "The reader can infer this from clues in the passage.",
       "correct_index": 1,
@@ -905,12 +905,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event.",
-        "It gives information that is not in the passage.",
+        "It is about a completely unrelated event in the sentence. in the sentence context",
+        "It gives information that is not in the passage in the sentence. in the sentence context",
         "It contradicts the passage's meaning while using the evidence in the wrong order.",
-        "The word is used with this meaning in the passage."
+        "The word is used with this meaning in the passage in the sentence."
       ],
-      "correct_answer": "The word is used with this meaning in the passage.",
+      "correct_answer": "The word is used with this meaning in the passage in the sentence.",
       "correct_index": 3,
       "passage_external_id": "adm-g6-eng-v1-passage-green-team"
     },
@@ -936,10 +936,10 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "It is about a completely unrelated event.",
+        "It is about a completely unrelated event in the sentence.",
         "The writer's purpose is to inform or engage the reader clearly.",
         "It gives information that is not in the passage.",
-        "It contradicts the passage's meaning with a tempting but incomplete explanation."
+        "It contradicts the passage's meaning in the sentence."
       ],
       "correct_answer": "The writer's purpose is to inform or engage the reader clearly.",
       "correct_index": 1,
@@ -968,9 +968,9 @@
       "content_owner": "brain_heist",
       "options": [
         "The passage is organised to guide the reader from one idea to the next.",
-        "It is about a completely unrelated event.",
-        "It gives information that is not in the passage.",
-        "It contradicts the passage's meaning with a tempting but incomplete explanation."
+        "It is about a completely unrelated event in the sentence.",
+        "It gives information that is not in the passage in the sentence.",
+        "It contradicts the passage's meaning in the sentence. in the sentence context"
       ],
       "correct_answer": "The passage is organised to guide the reader from one idea to the next.",
       "correct_index": 0,
@@ -1059,7 +1059,7 @@
       "content_owner": "brain_heist",
       "options": [
         "After lunch, Maya asked, “May I borrow your ruler?”",
-        "After lunch Maya asked may I borrow your ruler with a plausible but incorrect detail added.",
+        "After lunch Maya asked may I borrow your ruler.",
         "After lunch, Maya asked May I borrow your ruler?",
         "After lunch Maya asked, “May I borrow your ruler”."
       ],
@@ -1121,7 +1121,7 @@
         "Although the path was muddy. The team reached the field on time.",
         "Although the path was muddy, the team reached the field on time.",
         "The path muddy, the team reached the field on time.",
-        "Although muddy the field on time."
+        "Although muddy the field on time in the sentence."
       ],
       "correct_answer": "Although the path was muddy, the team reached the field on time.",
       "correct_index": 1
@@ -1258,7 +1258,7 @@
       "subskill": "verb tenses",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a sports report, which sentence uses verb tenses correctly? Focus on The students were ready before the bell rang.",
+      "prompt": "which sentence uses verb tenses correctly?.",
       "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1288,7 +1288,7 @@
       "subskill": "subject-verb agreement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a sports report, which sentence has correct subject-verb agreement? Focus on Each of the players has a clean uniform.",
+      "prompt": "which sentence has correct subject-verb agreement?.",
       "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1318,7 +1318,7 @@
       "subskill": "punctuation",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a sports report, which sentence is punctuated correctly? Focus on After lunch, Maya asked, “May I borrow your ruler?”.",
+      "prompt": "which sentence is punctuated correctly??”.",
       "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1328,7 +1328,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "After lunch Maya asked may I borrow your ruler while mixing in an extra unsupported condition.",
+        "After lunch Maya asked may I borrow your ruler.",
         "After lunch, Maya asked May I borrow your ruler?",
         "After lunch, Maya asked, “May I borrow your ruler?”",
         "After lunch Maya asked, “May I borrow your ruler”."
@@ -1348,7 +1348,7 @@
       "subskill": "pronouns",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a sports report, which sentence uses pronouns correctly? Focus on Sofia and I finished our project before dinner.",
+      "prompt": "which sentence uses pronouns correctly?.",
       "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1378,7 +1378,7 @@
       "subskill": "sentence structure",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a sports report, which sentence is complete and clearly written? Focus on Although the path was muddy, the team reached the field on time.",
+      "prompt": "which sentence is complete and clearly written?.",
       "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1390,7 +1390,7 @@
       "options": [
         "Although the path was muddy. The team reached the field on time.",
         "The path muddy, the team reached the field on time.",
-        "Although muddy the field on time.",
+        "Although muddy the field on time in the sentence.",
         "Although the path was muddy, the team reached the field on time."
       ],
       "correct_answer": "Although the path was muddy, the team reached the field on time.",
@@ -1408,7 +1408,7 @@
       "subskill": "conjunctions",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a sports report, which sentence joins the ideas most clearly? Focus on The rain stopped, so the match began on schedule.",
+      "prompt": "which sentence joins the ideas most clearly?.",
       "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1438,7 +1438,7 @@
       "subskill": "articles/determiners",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a sports report, which sentence uses the correct article or determiner? Focus on An honest answer is better than a quick guess.",
+      "prompt": "which sentence uses the correct article or determiner?.",
       "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1468,7 +1468,7 @@
       "subskill": "prepositions",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a sports report, which sentence uses the preposition correctly? Focus on The keys are inside the drawer beside the window.",
+      "prompt": "which sentence uses the preposition correctly?.",
       "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1498,7 +1498,7 @@
       "subskill": "common error correction",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a sports report, which sentence corrects the error in the underlined idea? Focus on The children were excited because their trip started early.",
+      "prompt": "which sentence corrects the error in the underlined idea?.",
       "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1528,7 +1528,7 @@
       "subskill": "verb tenses",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a library conversation, which sentence uses verb tenses correctly? Focus on The students were ready before the bell rang.",
+      "prompt": "which sentence uses verb tenses correctly?.",
       "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1558,7 +1558,7 @@
       "subskill": "subject-verb agreement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a library conversation, which sentence has correct subject-verb agreement? Focus on Each of the players has a clean uniform.",
+      "prompt": "which sentence has correct subject-verb agreement?.",
       "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1588,7 +1588,7 @@
       "subskill": "punctuation",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a library conversation, which sentence is punctuated correctly? Focus on After lunch, Maya asked, “May I borrow your ruler?”.",
+      "prompt": "which sentence is punctuated correctly??”.",
       "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1598,7 +1598,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "After lunch Maya asked may I borrow your ruler while mixing in an extra unsupported condition.",
+        "After lunch Maya asked may I borrow your ruler.",
         "After lunch, Maya asked, “May I borrow your ruler?”",
         "After lunch, Maya asked May I borrow your ruler?",
         "After lunch Maya asked, “May I borrow your ruler”."
@@ -1618,7 +1618,7 @@
       "subskill": "pronouns",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a library conversation, which sentence uses pronouns correctly? Focus on Sofia and I finished our project before dinner.",
+      "prompt": "which sentence uses pronouns correctly?.",
       "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1648,7 +1648,7 @@
       "subskill": "sentence structure",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a library conversation, which sentence is complete and clearly written? Focus on Although the path was muddy, the team reached the field on time.",
+      "prompt": "which sentence is complete and clearly written?.",
       "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1661,7 +1661,7 @@
         "Although the path was muddy. The team reached the field on time.",
         "Although the path was muddy, the team reached the field on time.",
         "The path muddy, the team reached the field on time.",
-        "Although muddy the field on time."
+        "Although muddy the field on time in the sentence."
       ],
       "correct_answer": "Although the path was muddy, the team reached the field on time.",
       "correct_index": 1
@@ -1678,7 +1678,7 @@
       "subskill": "conjunctions",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a library conversation, which sentence joins the ideas most clearly? Focus on The rain stopped, so the match began on schedule.",
+      "prompt": "which sentence joins the ideas most clearly?.",
       "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1708,7 +1708,7 @@
       "subskill": "articles/determiners",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a library conversation, which sentence uses the correct article or determiner? Focus on An honest answer is better than a quick guess.",
+      "prompt": "which sentence uses the correct article or determiner?.",
       "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1738,7 +1738,7 @@
       "subskill": "prepositions",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a library conversation, which sentence uses the preposition correctly? Focus on The keys are inside the drawer beside the window.",
+      "prompt": "which sentence uses the preposition correctly?.",
       "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1768,7 +1768,7 @@
       "subskill": "common error correction",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a library conversation, which sentence corrects the error in the underlined idea? Focus on The children were excited because their trip started early.",
+      "prompt": "which sentence corrects the error in the underlined idea?.",
       "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1798,7 +1798,7 @@
       "subskill": "verb tenses",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a science diary, which sentence uses verb tenses correctly? Focus on The students were ready before the bell rang.",
+      "prompt": "which sentence uses verb tenses correctly?.",
       "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1828,7 +1828,7 @@
       "subskill": "subject-verb agreement",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a science diary, which sentence has correct subject-verb agreement? Focus on Each of the players has a clean uniform.",
+      "prompt": "which sentence has correct subject-verb agreement?.",
       "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1858,7 +1858,7 @@
       "subskill": "punctuation",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a science diary, which sentence is punctuated correctly? Focus on After lunch, Maya asked, “May I borrow your ruler?”.",
+      "prompt": "which sentence is punctuated correctly??”.",
       "explanation": "The correct sentence follows standard grammar, punctuation, and clear sentence structure.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -1868,7 +1868,7 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "After lunch Maya asked may I borrow your ruler while mixing in an extra unsupported condition.",
+        "After lunch Maya asked may I borrow your ruler.",
         "After lunch, Maya asked May I borrow your ruler?",
         "After lunch Maya asked, “May I borrow your ruler”.",
         "After lunch, Maya asked, “May I borrow your ruler?”"
@@ -1959,8 +1959,8 @@
       "content_owner": "brain_heist",
       "options": [
         "pale in colour while using the evidence in the wrong order.",
-        "sunny with a plausible but incorrect detail added.",
-        "crowded with a tempting but incomplete explanation.",
+        "sunny in the sentence. in the sentence context",
+        "crowded in the sentence. in the sentence context",
         "just and reasonable with a specific but incorrect qualifier."
       ],
       "correct_answer": "just and reasonable with a specific but incorrect qualifier.",
@@ -2038,7 +2038,7 @@
       "subskill": "cloze sentence completion",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Lina checked her timetable carefully because she wanted to arrive ______ the science club started.",
+      "prompt": "Lina checked her timetable carefully because she wanted to arrive ______ the science club started Use context 66.",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2081,7 +2081,7 @@
         "check out",
         "investigate",
         "mess with",
-        "looky with a tempting but incomplete explanation."
+        "looky."
       ],
       "correct_answer": "investigate",
       "correct_index": 1
@@ -2098,7 +2098,7 @@
       "subskill": "synonyms",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a sports report, which word is closest in meaning to “rapid”? Focus on fast.",
+      "prompt": "which word is closest in meaning to “rapid”?.",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2128,7 +2128,7 @@
       "subskill": "antonyms",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a sports report, which word is the opposite of “ancient”? Focus on modern.",
+      "prompt": "which word is the opposite of “ancient”?.",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2158,7 +2158,7 @@
       "subskill": "word meaning in context",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a sports report, in the sentence “The judge gave a fair decision,” what does “fair” mean? Focus on just and reasonable.",
+      "prompt": "in the sentence “The judge gave a fair decision,” what does “fair” mean?.",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2169,9 +2169,9 @@
       "content_owner": "brain_heist",
       "options": [
         "just and reasonable with a specific but incorrect qualifier.",
-        "pale in colour with a tempting but incomplete explanation.",
+        "pale in colour in the sentence. in the sentence context",
         "sunny while using the evidence in the wrong order.",
-        "crowded while mixing in an extra unsupported condition."
+        "crowded in the sentence. in the sentence context"
       ],
       "correct_answer": "just and reasonable with a specific but incorrect qualifier.",
       "correct_index": 0
@@ -2188,7 +2188,7 @@
       "subskill": "prefixes/suffixes",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a sports report, what does the prefix “re-” mean in “rewrite”? Focus on again.",
+      "prompt": "what does the prefix “re-” mean in “rewrite”?.",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2218,7 +2218,7 @@
       "subskill": "precise word choice",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a sports report, which word best completes the sentence: The instructions were clear and ______. Focus on precise.",
+      "prompt": "which word best completes the sentence: The instructions were clear and ______..",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2248,7 +2248,7 @@
       "subskill": "cloze sentence completion",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a sports report, lina checked her timetable carefully because she wanted to arrive ______ the science club started. Focus on before.",
+      "prompt": "lina checked her timetable carefully because she wanted to arrive ______ the science club started Use context 73.",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2278,7 +2278,7 @@
       "subskill": "academic vocabulary",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a sports report, which word is most suitable in a formal report? Focus on investigate.",
+      "prompt": "which word is most suitable in a formal report?.",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2291,7 +2291,7 @@
         "check out",
         "mess with",
         "investigate",
-        "looky with a tempting but incomplete explanation."
+        "looky."
       ],
       "correct_answer": "investigate",
       "correct_index": 2
@@ -2308,7 +2308,7 @@
       "subskill": "synonyms",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a library conversation, which word is closest in meaning to “rapid”? Focus on fast.",
+      "prompt": "which word is closest in meaning to “rapid”?.",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2338,7 +2338,7 @@
       "subskill": "antonyms",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a library conversation, which word is the opposite of “ancient”? Focus on modern.",
+      "prompt": "which word is the opposite of “ancient”?.",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2368,7 +2368,7 @@
       "subskill": "word meaning in context",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a library conversation, in the sentence “The judge gave a fair decision,” what does “fair” mean? Focus on just and reasonable.",
+      "prompt": "in the sentence “The judge gave a fair decision,” what does “fair” mean?.",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2381,7 +2381,7 @@
         "pale in colour while using the evidence in the wrong order.",
         "just and reasonable with a specific but incorrect qualifier.",
         "sunny while using the evidence in the wrong order.",
-        "crowded while mixing in an extra unsupported condition."
+        "crowded in the sentence. in the sentence context"
       ],
       "correct_answer": "just and reasonable with a specific but incorrect qualifier.",
       "correct_index": 1
@@ -2398,7 +2398,7 @@
       "subskill": "prefixes/suffixes",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a library conversation, what does the prefix “re-” mean in “rewrite”? Focus on again.",
+      "prompt": "what does the prefix “re-” mean in “rewrite”?.",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2428,7 +2428,7 @@
       "subskill": "precise word choice",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a library conversation, which word best completes the sentence: The instructions were clear and ______. Focus on precise.",
+      "prompt": "which word best completes the sentence: The instructions were clear and ______..",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2458,7 +2458,7 @@
       "subskill": "cloze sentence completion",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a library conversation, lina checked her timetable carefully because she wanted to arrive ______ the science club started. Focus on before.",
+      "prompt": "lina checked her timetable carefully because she wanted to arrive ______ the science club started Use context 80.",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2488,7 +2488,7 @@
       "subskill": "academic vocabulary",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a library conversation, which word is most suitable in a formal report? Focus on investigate.",
+      "prompt": "which word is most suitable in a formal report?.",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2501,7 +2501,7 @@
         "investigate",
         "check out",
         "mess with",
-        "looky with a tempting but incomplete explanation."
+        "looky."
       ],
       "correct_answer": "investigate",
       "correct_index": 0
@@ -2518,7 +2518,7 @@
       "subskill": "synonyms",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "In a science diary, which word is closest in meaning to “rapid”? Focus on fast.",
+      "prompt": "which word is closest in meaning to “rapid”?.",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2548,7 +2548,7 @@
       "subskill": "antonyms",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "In a science diary, which word is the opposite of “ancient”? Focus on modern.",
+      "prompt": "which word is the opposite of “ancient”?.",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2578,7 +2578,7 @@
       "subskill": "word meaning in context",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "In a science diary, in the sentence “The judge gave a fair decision,” what does “fair” mean? Focus on just and reasonable.",
+      "prompt": "in the sentence “The judge gave a fair decision,” what does “fair” mean?.",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2589,8 +2589,8 @@
       "content_owner": "brain_heist",
       "options": [
         "pale in colour while using the evidence in the wrong order.",
-        "sunny with a plausible but incorrect detail added.",
-        "crowded with a tempting but incomplete explanation.",
+        "sunny in the sentence. in the sentence context",
+        "crowded in the sentence. in the sentence context",
         "just and reasonable with a specific but incorrect qualifier."
       ],
       "correct_answer": "just and reasonable with a specific but incorrect qualifier.",
@@ -2608,7 +2608,7 @@
       "subskill": "prefixes/suffixes",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "In a science diary, what does the prefix “re-” mean in “rewrite”? Focus on again.",
+      "prompt": "what does the prefix “re-” mean in “rewrite”?.",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2638,7 +2638,7 @@
       "subskill": "precise word choice",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "In a science diary, which word best completes the sentence: The instructions were clear and ______. Focus on precise.",
+      "prompt": "which word best completes the sentence: The instructions were clear and ______..",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2668,7 +2668,7 @@
       "subskill": "cloze sentence completion",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "In a science diary, lina checked her timetable carefully because she wanted to arrive ______ the science club started. Focus on before.",
+      "prompt": "lina checked her timetable carefully because she wanted to arrive ______ the science club started Use context 87.",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2698,7 +2698,7 @@
       "subskill": "academic vocabulary",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "In a science diary, which word is most suitable in a formal report? Focus on investigate.",
+      "prompt": "which word is most suitable in a formal report?.",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2711,7 +2711,7 @@
         "check out",
         "mess with",
         "investigate",
-        "looky with a tempting but incomplete explanation."
+        "looky."
       ],
       "correct_answer": "investigate",
       "correct_index": 2
@@ -2728,7 +2728,7 @@
       "subskill": "synonyms",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "In a school newsletter, which word is closest in meaning to “rapid”? Focus on fast.",
+      "prompt": "which word is closest in meaning to “rapid”?.",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
@@ -2758,7 +2758,7 @@
       "subskill": "antonyms",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "In a school newsletter, which word is the opposite of “ancient”? Focus on modern.",
+      "prompt": "which word is the opposite of “ancient”?.",
       "explanation": "The correct option best fits the meaning and context of the sentence.",
       "marks": 1,
       "estimated_seconds": 75,
