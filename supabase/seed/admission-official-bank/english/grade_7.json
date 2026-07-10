@@ -2335,11 +2335,11 @@
       "placement_band": "target",
       "diagnostic_skill": "Vocabulary in context",
       "strand": "vocabulary",
-      "subskill": "collocation strong evidence",
+      "subskill": "vocabulary in context: orderly",
       "difficulty": "medium",
       "question_type": "mcq",
-      "prompt": "Which phrase is the correct collocation?",
-      "explanation": "Strong evidence is the natural collocation.",
+      "prompt": "Read the sentence: 'The discussion became lively, but the chairperson kept the meeting orderly.' What does orderly mean in this sentence?",
+      "explanation": "In this sentence, orderly means organised and controlled, even though the discussion was lively.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g7-english",
@@ -2348,12 +2348,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "tall evidence.",
-        "heavy evidence.",
-        "wide evidence.",
-        "strong evidence."
+        "noisy and difficult to follow",
+        "finished earlier than expected",
+        "arranged only by age",
+        "well organised and controlled"
       ],
-      "correct_answer": "strong evidence.",
+      "correct_answer": "well organised and controlled",
       "correct_index": 3
     },
     {
@@ -2695,11 +2695,11 @@
       "placement_band": "stretch",
       "diagnostic_skill": "Vocabulary in context",
       "strand": "vocabulary",
-      "subskill": "collocation reach a conclusion",
+      "subskill": "vocabulary in context: convincing",
       "difficulty": "hard",
       "question_type": "mcq",
-      "prompt": "Which phrase is the correct collocation?",
-      "explanation": "Reach a conclusion is the natural collocation.",
+      "prompt": "Read the sentence: 'The evidence was convincing, so the committee accepted the proposal.' What does convincing mean in this sentence?",
+      "explanation": "In this sentence, convincing means likely to persuade people or make them accept an idea.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g7-english",
@@ -2708,12 +2708,12 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "catch a conclusion.",
-        "do a conclusion.",
-        "make a conclusion.",
-        "reach a conclusion."
+        "written in formal language",
+        "finished without delay",
+        "kept private from others",
+        "likely to persuade people"
       ],
-      "correct_answer": "reach a conclusion.",
+      "correct_answer": "likely to persuade people",
       "correct_index": 3
     },
     {
