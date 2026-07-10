@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+process.env.NO_COLOR = '1';
+process.env.FORCE_COLOR = '0';
+import util from 'node:util';
+util.inspect.defaultOptions.colors = false;
 import { createClient } from '@supabase/supabase-js';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
