@@ -130,3 +130,23 @@ test('generation dedupes stems before insert and returns debug reason on invalid
   assert.match(distinctStemGenerateSql, /content_version\) <> 'legacy-import'/);
   assert.match(distinctStemGenerateSql, /Duplicate question_order conflict/);
 });
+
+const uniqueSubskillGenerateSql = readFileSync('supabase/migrations/20260710120000_admission_generate_unique_subskill_first.sql', 'utf8');
+
+test('admission generation uses unique-subskill first pass with controlled shortage fallback', () => {
+  assert.match(uniqueSubskillGenerateSql, /First pass: only select candidates whose canonical subskill has not already/);
+  assert.match(uniqueSubskillGenerateSql, /OR s\.subskill = COALESCE\(NULLIF\(q\.subskill, ''\), NULLIF\(q\.diagnostic_skill, ''\), NULLIF\(q\.topic, ''\), adm_normalize_question_stem\(q\.stem\)\)/);
+  assert.match(uniqueSubskillGenerateSql, /v_remaining_count := v_diff_count - v_first_pass_count/);
+  assert.match(uniqueSubskillGenerateSql, /IF v_remaining_count > 0 THEN/);
+  assert.match(uniqueSubskillGenerateSql, /Second pass: fallback only for shortages after the unique-subskill pass/);
+});
+
+test('unique-subskill generation preserves existing uniqueness, filters, and interleaved ordering', () => {
+  assert.match(uniqueSubskillGenerateSql, /question_id uuid PRIMARY KEY/);
+  assert.match(uniqueSubskillGenerateSql, /normalized_stem text UNIQUE/);
+  assert.match(uniqueSubskillGenerateSql, /s\.question_id = q\.id\s+OR s\.normalized_stem = adm_normalize_question_stem\(q\.stem\)/);
+  assert.match(uniqueSubskillGenerateSql, /q\.is_official = true AND q\.is_locked = true/);
+  assert.match(uniqueSubskillGenerateSql, /qp\.is_official = true AND qp\.is_locked = true/);
+  assert.match(uniqueSubskillGenerateSql, /content_version\) <> 'legacy-import'/);
+  assert.match(uniqueSubskillGenerateSql, /ROW_NUMBER\(\) OVER \(ORDER BY strand_round ASC, random_order ASC\) AS question_order/);
+});

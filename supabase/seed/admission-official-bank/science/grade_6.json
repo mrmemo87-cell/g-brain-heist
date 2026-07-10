@@ -53,9 +53,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Biology / living things",
+      "diagnostic_skill": "Living things: needs and adaptations",
       "strand": "biology / living things",
-      "subskill": "biology / living things",
+      "subskill": "Plants require light",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "A student places one plant near a sunny window and another plant in a dark cupboard. After two weeks, the plant near the window has greener leaves and healthier growth. Which explanation is best?",
@@ -74,7 +74,8 @@
         "Windows add extra soil nutrients."
       ],
       "correct_answer": "Plants need light to make food for growth.",
-      "correct_index": 1
+      "correct_index": 1,
+      "topic": "Plants require light"
     },
     {
       "external_id": "adm-g6-science-v1-q002",
@@ -83,9 +84,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Biology / living things",
+      "diagnostic_skill": "Living things: needs and adaptations",
       "strand": "biology / living things",
-      "subskill": "biology / living things",
+      "subskill": "Bird beak adaptations",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "Why might a bird have a long, narrow beak?",
@@ -104,7 +105,8 @@
         "To stop it from flying."
       ],
       "correct_answer": "To reach nectar in flowers.",
-      "correct_index": 2
+      "correct_index": 2,
+      "topic": "Bird beak adaptations"
     },
     {
       "external_id": "adm-g6-science-v1-q003",
@@ -113,9 +115,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Biology / living things",
+      "diagnostic_skill": "Living things: needs and adaptations",
       "strand": "biology / living things",
-      "subskill": "biology / living things",
+      "subskill": "Plants require light",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "Two identical plants are watered equally. One is kept by a sunny window, and the other is kept in a dark cupboard. After two weeks, the window plant has greener leaves and healthier growth. Which explanation is best?",
@@ -134,7 +136,8 @@
         "Windows add extra soil nutrients."
       ],
       "correct_answer": "Plants need light to make food for growth.",
-      "correct_index": 1
+      "correct_index": 1,
+      "topic": "Plants require light"
     },
     {
       "external_id": "adm-g6-science-v1-q004",
@@ -143,9 +146,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Biology / living things",
+      "diagnostic_skill": "Living things: needs and adaptations",
       "strand": "biology / living things",
-      "subskill": "biology / living things",
+      "subskill": "Carnivore tooth adaptations",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "Why do meat-eating animals often have sharp canine teeth?",
@@ -164,7 +167,8 @@
         "To help them breathe."
       ],
       "correct_answer": "To grip and tear food.",
-      "correct_index": 2
+      "correct_index": 2,
+      "topic": "Carnivore tooth adaptations"
     },
     {
       "external_id": "adm-g6-science-v1-q005",
@@ -173,9 +177,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Biology / living things",
+      "diagnostic_skill": "Living things: needs and adaptations",
       "strand": "biology / living things",
-      "subskill": "biology / living things",
+      "subskill": "Plants require light",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "A class compares two bean plants. The plant near the window grows better than the plant kept without light. What does this show about plants?",
@@ -194,7 +198,8 @@
         "Plants need light to make food for growth."
       ],
       "correct_answer": "Plants need light to make food for growth.",
-      "correct_index": 3
+      "correct_index": 3,
+      "topic": "Plants require light"
     },
     {
       "external_id": "adm-g6-science-v1-q006",
@@ -203,9 +208,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Biology / living things",
+      "diagnostic_skill": "Living things: needs and adaptations",
       "strand": "biology / living things",
-      "subskill": "biology / living things",
+      "subskill": "Webbed feet adaptations",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "How do webbed feet help a duck survive near water?",
@@ -224,7 +229,8 @@
         "They make its beak sharper."
       ],
       "correct_answer": "They help it swim.",
-      "correct_index": 2
+      "correct_index": 2,
+      "topic": "Webbed feet adaptations"
     },
     {
       "external_id": "adm-g6-science-v1-q007",
@@ -233,9 +239,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Biology / living things",
+      "diagnostic_skill": "Living things: needs and adaptations",
       "strand": "biology / living things",
-      "subskill": "biology / living things",
+      "subskill": "Plants require light",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "A seedling with enough water and sunlight looks greener than a seedling kept in darkness. Which idea best explains the difference?",
@@ -254,7 +260,8 @@
         "Windows add extra soil nutrients."
       ],
       "correct_answer": "Plants need light to make food for growth.",
-      "correct_index": 0
+      "correct_index": 0,
+      "topic": "Plants require light"
     },
     {
       "external_id": "adm-g6-science-v1-q008",
@@ -263,9 +270,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Biology / living things",
+      "diagnostic_skill": "Living things: needs and adaptations",
       "strand": "biology / living things",
-      "subskill": "biology / living things",
+      "subskill": "Herbivore tooth adaptations",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "Why do plant-eating animals often have broad, flat teeth?",
@@ -284,7 +291,8 @@
         "To grind tough plant material."
       ],
       "correct_answer": "To grind tough plant material.",
-      "correct_index": 3
+      "correct_index": 3,
+      "topic": "Herbivore tooth adaptations"
     },
     {
       "external_id": "adm-g6-science-v1-q009",
@@ -293,9 +301,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Biology / living things",
+      "diagnostic_skill": "Living things: needs and adaptations",
       "strand": "biology / living things",
-      "subskill": "biology / living things",
+      "subskill": "Plants require light",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "Maya puts one plant on a bright windowsill and another in a closed cupboard, giving both the same amount of water. The windowsill plant stays healthier. Why?",
@@ -314,7 +322,8 @@
         "Windows add nutrients to soil."
       ],
       "correct_answer": "Plants use light to make food.",
-      "correct_index": 1
+      "correct_index": 1,
+      "topic": "Plants require light"
     },
     {
       "external_id": "adm-g6-science-v1-q010",
@@ -323,9 +332,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Biology / living things",
+      "diagnostic_skill": "Living things: needs and adaptations",
       "strand": "biology / living things",
-      "subskill": "biology / living things",
+      "subskill": "Camouflage adaptations",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "How can brown fur help a small animal living on dry ground?",
@@ -340,11 +349,12 @@
       "options": [
         "It makes the animal heavier.",
         "It helps the animal blend in.",
-        "It changes the animal’s diet.",
+        "It changes the animal\u2019s diet.",
         "It makes the animal waterproof."
       ],
       "correct_answer": "It helps the animal blend in.",
-      "correct_index": 1
+      "correct_index": 1,
+      "topic": "Camouflage adaptations"
     },
     {
       "external_id": "adm-g6-science-v1-q011",
@@ -353,9 +363,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Biology / living things",
+      "diagnostic_skill": "Living things: needs and adaptations",
       "strand": "biology / living things",
-      "subskill": "biology / living things",
+      "subskill": "Plants require light",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "Two plants are the same kind and get the same water. The one that receives sunlight has greener leaves after several days. Which statement best explains this result?",
@@ -374,7 +384,8 @@
         "Windows add nutrients to soil."
       ],
       "correct_answer": "Plants use light to make food.",
-      "correct_index": 1
+      "correct_index": 1,
+      "topic": "Plants require light"
     },
     {
       "external_id": "adm-g6-science-v1-q012",
@@ -383,9 +394,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Biology / living things",
+      "diagnostic_skill": "Living things: needs and adaptations",
       "strand": "biology / living things",
-      "subskill": "biology / living things",
+      "subskill": "Nocturnal vision adaptations",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "Why might an owl have large eyes?",
@@ -404,7 +415,8 @@
         "To grow longer feathers."
       ],
       "correct_answer": "To see better in dim light.",
-      "correct_index": 2
+      "correct_index": 2,
+      "topic": "Nocturnal vision adaptations"
     },
     {
       "external_id": "adm-g6-science-v1-q013",
@@ -413,9 +425,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Biology / living things",
+      "diagnostic_skill": "Living things: needs and adaptations",
       "strand": "biology / living things",
-      "subskill": "biology / living things",
+      "subskill": "Plants require light",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "A plant left in a bright place grows better than a matching plant left in darkness. What role does light play for the plant?",
@@ -434,7 +446,8 @@
         "Plants use light to make food."
       ],
       "correct_answer": "Plants use light to make food.",
-      "correct_index": 3
+      "correct_index": 3,
+      "topic": "Plants require light"
     },
     {
       "external_id": "adm-g6-science-v1-q014",
@@ -443,9 +456,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Biology / living things",
+      "diagnostic_skill": "Scientific enquiry: fair tests and reliable evidence",
       "strand": "biology / living things",
-      "subskill": "biology / living things",
+      "subskill": "Adaptation to feeding niches",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "Why do animals in the same habitat often have different beaks or teeth?",
@@ -464,7 +477,8 @@
         "They live without competition."
       ],
       "correct_answer": "They eat different kinds of food.",
-      "correct_index": 2
+      "correct_index": 2,
+      "topic": "Adaptation to feeding niches"
     },
     {
       "external_id": "adm-g6-science-v1-q015",
@@ -473,9 +487,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Materials / chemistry",
+      "diagnostic_skill": "Materials: properties and changes",
       "strand": "materials / chemistry",
-      "subskill": "materials / chemistry",
+      "subskill": "Thermal conduction",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "A metal spoon and a wooden spoon are left in the same room. The metal spoon feels colder when touched. Why does this happen?",
@@ -494,7 +508,8 @@
         "Colour changes how warm it feels."
       ],
       "correct_answer": "Metal conducts heat away faster.",
-      "correct_index": 0
+      "correct_index": 0,
+      "topic": "Thermal conduction"
     },
     {
       "external_id": "adm-g6-science-v1-q016",
@@ -503,9 +518,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Materials / chemistry",
+      "diagnostic_skill": "Materials: properties and changes",
       "strand": "materials / chemistry",
-      "subskill": "materials / chemistry",
+      "subskill": "Reversible changes of state",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "Which change is usually reversible?",
@@ -524,7 +539,8 @@
         "Baking bread dough."
       ],
       "correct_answer": "Freezing water into ice.",
-      "correct_index": 2
+      "correct_index": 2,
+      "topic": "Reversible changes of state"
     },
     {
       "external_id": "adm-g6-science-v1-q017",
@@ -533,9 +549,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Materials / chemistry",
+      "diagnostic_skill": "Materials: properties and changes",
       "strand": "materials / chemistry",
-      "subskill": "materials / chemistry",
+      "subskill": "Thermal conduction",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "A metal spoon and a wooden spoon sit in the same room. The metal spoon feels colder to your hand even though both have been in the room. Why?",
@@ -554,7 +570,8 @@
         "Colour changes how warm it feels."
       ],
       "correct_answer": "Metal conducts heat away faster.",
-      "correct_index": 1
+      "correct_index": 1,
+      "topic": "Thermal conduction"
     },
     {
       "external_id": "adm-g6-science-v1-q018",
@@ -563,9 +580,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Materials / chemistry",
+      "diagnostic_skill": "Materials: properties and changes",
       "strand": "materials / chemistry",
-      "subskill": "materials / chemistry",
+      "subskill": "Reversible changes of state",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "Which material change can usually be undone by cooling?",
@@ -584,7 +601,8 @@
         "Mixing cement with water."
       ],
       "correct_answer": "Melting candle wax.",
-      "correct_index": 2
+      "correct_index": 2,
+      "topic": "Reversible changes of state"
     },
     {
       "external_id": "adm-g6-science-v1-q019",
@@ -593,9 +611,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Materials / chemistry",
+      "diagnostic_skill": "Materials: properties and changes",
       "strand": "materials / chemistry",
-      "subskill": "materials / chemistry",
+      "subskill": "Thermal conduction",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "Two spoons have been on the same table all morning: one metal and one wooden. When touched, the metal spoon feels cooler. Which explanation is best?",
@@ -614,7 +632,8 @@
         "Colour changes how warm it feels."
       ],
       "correct_answer": "Metal conducts heat away faster.",
-      "correct_index": 1
+      "correct_index": 1,
+      "topic": "Thermal conduction"
     },
     {
       "external_id": "adm-g6-science-v1-q020",
@@ -623,9 +642,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Materials / chemistry",
+      "diagnostic_skill": "Materials: properties and changes",
       "strand": "materials / chemistry",
-      "subskill": "materials / chemistry",
+      "subskill": "Reversible changes of state",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "Which change can usually be reversed by freezing again?",
@@ -644,7 +663,8 @@
         "Rusting an iron nail."
       ],
       "correct_answer": "Melting an ice cube.",
-      "correct_index": 0
+      "correct_index": 0,
+      "topic": "Reversible changes of state"
     },
     {
       "external_id": "adm-g6-science-v1-q021",
@@ -653,9 +673,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Materials / chemistry",
+      "diagnostic_skill": "Materials: properties and changes",
       "strand": "materials / chemistry",
-      "subskill": "materials / chemistry",
+      "subskill": "Thermal conduction",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "A student touches a metal spoon and a wooden spoon that are both at room conditions. Why can the metal spoon feel colder?",
@@ -674,7 +694,8 @@
         "Metal transfers heat from your hand more quickly."
       ],
       "correct_answer": "Metal transfers heat from your hand more quickly.",
-      "correct_index": 3
+      "correct_index": 3,
+      "topic": "Thermal conduction"
     },
     {
       "external_id": "adm-g6-science-v1-q022",
@@ -683,9 +704,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Materials / chemistry",
+      "diagnostic_skill": "Materials: properties and changes",
       "strand": "materials / chemistry",
-      "subskill": "materials / chemistry",
+      "subskill": "Reversible changes of state",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "Which example shows a reversible physical change?",
@@ -704,7 +725,8 @@
         "Stretching a rubber band."
       ],
       "correct_answer": "Stretching a rubber band.",
-      "correct_index": 3
+      "correct_index": 3,
+      "topic": "Reversible changes of state"
     },
     {
       "external_id": "adm-g6-science-v1-q023",
@@ -713,9 +735,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Materials / chemistry",
+      "diagnostic_skill": "Materials: properties and changes",
       "strand": "materials / chemistry",
-      "subskill": "materials / chemistry",
+      "subskill": "Thermal conduction",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "Metal and wooden spoons are left side by side in a kitchen. The metal spoon feels colder at first touch. What is the main reason?",
@@ -734,7 +756,8 @@
         "Colour changes how warm it feels."
       ],
       "correct_answer": "Metal conducts heat away faster.",
-      "correct_index": 0
+      "correct_index": 0,
+      "topic": "Thermal conduction"
     },
     {
       "external_id": "adm-g6-science-v1-q024",
@@ -743,9 +766,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Materials / chemistry",
+      "diagnostic_skill": "Materials: properties and changes",
       "strand": "materials / chemistry",
-      "subskill": "materials / chemistry",
+      "subskill": "Separating mixtures by sieving",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "Which mixture could be separated most easily by sieving?",
@@ -764,7 +787,8 @@
         "Paint mixed with water."
       ],
       "correct_answer": "Sand and gravel.",
-      "correct_index": 2
+      "correct_index": 2,
+      "topic": "Separating mixtures by sieving"
     },
     {
       "external_id": "adm-g6-science-v1-q025",
@@ -773,9 +797,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Materials / chemistry",
+      "diagnostic_skill": "Materials: properties and changes",
       "strand": "materials / chemistry",
-      "subskill": "materials / chemistry",
+      "subskill": "Thermal conduction",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "A metal spoon may feel cooler than a wooden spoon from the same room. Which statement correctly explains the feeling?",
@@ -794,7 +818,8 @@
         "Colour changes how warm it feels."
       ],
       "correct_answer": "Metal conducts heat away faster.",
-      "correct_index": 1
+      "correct_index": 1,
+      "topic": "Thermal conduction"
     },
     {
       "external_id": "adm-g6-science-v1-q026",
@@ -803,9 +828,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "foundation",
-      "diagnostic_skill": "Materials / chemistry",
+      "diagnostic_skill": "Materials: properties and changes",
       "strand": "materials / chemistry",
-      "subskill": "materials / chemistry",
+      "subskill": "Reversible changes of state",
       "difficulty": "easy",
       "question_type": "mcq",
       "prompt": "Which process is part of the water cycle and reversible?",
@@ -824,7 +849,8 @@
         "Cooking pancake batter."
       ],
       "correct_answer": "Evaporation and condensation.",
-      "correct_index": 2
+      "correct_index": 2,
+      "topic": "Reversible changes of state"
     },
     {
       "external_id": "adm-g6-science-v1-q027",
@@ -833,9 +859,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Forces / physics",
+      "diagnostic_skill": "Forces: motion, friction, and air resistance",
       "strand": "forces / physics",
-      "subskill": "forces / physics",
+      "subskill": "Friction between surfaces",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "A toy car rolls farther on a smooth table than on a carpet. Which explanation best describes why this happens?",
@@ -854,7 +880,8 @@
         "The car has no mass on carpet."
       ],
       "correct_answer": "The smooth table produces less friction.",
-      "correct_index": 1
+      "correct_index": 1,
+      "topic": "Friction between surfaces"
     },
     {
       "external_id": "adm-g6-science-v1-q028",
@@ -863,9 +890,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Forces / physics",
+      "diagnostic_skill": "Forces: motion, friction, and air resistance",
       "strand": "forces / physics",
-      "subskill": "forces / physics",
+      "subskill": "Air resistance and parachutes",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Why does a parachute slow a falling object?",
@@ -884,7 +911,8 @@
         "It turns air into water."
       ],
       "correct_answer": "It increases air resistance.",
-      "correct_index": 2
+      "correct_index": 2,
+      "topic": "Air resistance and parachutes"
     },
     {
       "external_id": "adm-g6-science-v1-q029",
@@ -893,9 +921,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Forces / physics",
+      "diagnostic_skill": "Forces: motion, friction, and air resistance",
       "strand": "forces / physics",
-      "subskill": "forces / physics",
+      "subskill": "Friction between surfaces",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "A toy car rolls farther across a smooth table than across a carpet when pushed with the same force. Which explanation best describes why?",
@@ -914,7 +942,8 @@
         "The smooth table produces less friction under these conditions."
       ],
       "correct_answer": "The smooth table produces less friction under these conditions.",
-      "correct_index": 3
+      "correct_index": 3,
+      "topic": "Friction between surfaces"
     },
     {
       "external_id": "adm-g6-science-v1-q030",
@@ -923,9 +952,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Forces / physics",
+      "diagnostic_skill": "Forces: motion, friction, and air resistance",
       "strand": "forces / physics",
-      "subskill": "forces / physics",
+      "subskill": "Air resistance and parachutes",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Which parachute would usually fall more slowly?",
@@ -944,7 +973,8 @@
         "One folded tightly shut."
       ],
       "correct_answer": "One with a larger canopy.",
-      "correct_index": 1
+      "correct_index": 1,
+      "topic": "Air resistance and parachutes"
     },
     {
       "external_id": "adm-g6-science-v1-q031",
@@ -953,9 +983,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Forces / physics",
+      "diagnostic_skill": "Forces: motion, friction, and air resistance",
       "strand": "forces / physics",
-      "subskill": "forces / physics",
+      "subskill": "Friction between surfaces",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Sam releases a toy car down the same ramp onto two surfaces. It travels farther on a smooth floor than on carpet. What causes the difference?",
@@ -974,7 +1004,8 @@
         "The car has no mass on carpet."
       ],
       "correct_answer": "The smooth table produces less friction.",
-      "correct_index": 0
+      "correct_index": 0,
+      "topic": "Friction between surfaces"
     },
     {
       "external_id": "adm-g6-science-v1-q032",
@@ -983,9 +1014,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Forces / physics",
+      "diagnostic_skill": "Forces: motion, friction, and air resistance",
       "strand": "forces / physics",
-      "subskill": "forces / physics",
+      "subskill": "Gravity pulls downward",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "What force pulls a parachutist downward?",
@@ -1004,7 +1035,8 @@
         "Sound energy."
       ],
       "correct_answer": "Gravity.",
-      "correct_index": 2
+      "correct_index": 2,
+      "topic": "Gravity pulls downward"
     },
     {
       "external_id": "adm-g6-science-v1-q033",
@@ -1013,9 +1045,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Forces / physics",
+      "diagnostic_skill": "Forces: motion, friction, and air resistance",
       "strand": "forces / physics",
-      "subskill": "forces / physics",
+      "subskill": "Friction between surfaces",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "A toy car slows quickly on carpet but keeps rolling longer on a smooth tabletop. Which idea best explains this?",
@@ -1034,7 +1066,8 @@
         "The car has no mass on carpet."
       ],
       "correct_answer": "The smooth table produces less friction.",
-      "correct_index": 1
+      "correct_index": 1,
+      "topic": "Friction between surfaces"
     },
     {
       "external_id": "adm-g6-science-v1-q034",
@@ -1043,9 +1076,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Forces / physics",
+      "diagnostic_skill": "Forces: motion, friction, and air resistance",
       "strand": "forces / physics",
-      "subskill": "forces / physics",
+      "subskill": "Air resistance and parachutes",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "What force acts upward against a falling parachute?",
@@ -1064,7 +1097,8 @@
         "Water pressure."
       ],
       "correct_answer": "Air resistance.",
-      "correct_index": 2
+      "correct_index": 2,
+      "topic": "Air resistance and parachutes"
     },
     {
       "external_id": "adm-g6-science-v1-q035",
@@ -1073,9 +1107,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Forces / physics",
+      "diagnostic_skill": "Forces: motion, friction, and air resistance",
       "strand": "forces / physics",
-      "subskill": "forces / physics",
+      "subskill": "Friction between surfaces",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "When a toy car moves over carpet, it stops sooner than it does on a smooth surface. Why does the carpet change the motion?",
@@ -1094,7 +1128,8 @@
         "The car has no mass on carpet."
       ],
       "correct_answer": "The smooth table produces less friction.",
-      "correct_index": 1
+      "correct_index": 1,
+      "topic": "Friction between surfaces"
     },
     {
       "external_id": "adm-g6-science-v1-q036",
@@ -1103,9 +1138,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Forces / physics",
+      "diagnostic_skill": "Scientific enquiry: fair tests and reliable evidence",
       "strand": "forces / physics",
-      "subskill": "forces / physics",
+      "subskill": "Controlled variables",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Why should parachute tests use the same drop height each time?",
@@ -1124,7 +1159,8 @@
         "To avoid measuring time."
       ],
       "correct_answer": "To keep the test fair.",
-      "correct_index": 2
+      "correct_index": 2,
+      "topic": "Controlled variables"
     },
     {
       "external_id": "adm-g6-science-v1-q037",
@@ -1133,9 +1169,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Forces / physics",
+      "diagnostic_skill": "Forces: motion, friction, and air resistance",
       "strand": "forces / physics",
-      "subskill": "forces / physics",
+      "subskill": "Friction between surfaces",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "A smooth surface lets a toy car roll a longer distance than a rough carpet. Which statement best explains the result?",
@@ -1154,7 +1190,8 @@
         "The smooth table produces less friction under these conditions."
       ],
       "correct_answer": "The smooth table produces less friction under these conditions.",
-      "correct_index": 3
+      "correct_index": 3,
+      "topic": "Friction between surfaces"
     },
     {
       "external_id": "adm-g6-science-v1-q038",
@@ -1163,9 +1200,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Forces / physics",
+      "diagnostic_skill": "Forces: motion, friction, and air resistance",
       "strand": "forces / physics",
-      "subskill": "forces / physics",
+      "subskill": "Air resistance and parachutes",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "What happens when air resistance increases on a falling object?",
@@ -1184,7 +1221,8 @@
         "It stops having mass."
       ],
       "correct_answer": "It may fall more slowly.",
-      "correct_index": 1
+      "correct_index": 1,
+      "topic": "Air resistance and parachutes"
     },
     {
       "external_id": "adm-g6-science-v1-q039",
@@ -1193,9 +1231,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Energy, light, sound, and electricity",
+      "diagnostic_skill": "Light: travel and shadows",
       "strand": "energy, light, sound, and electricity",
-      "subskill": "energy, light, sound, and electricity",
+      "subskill": "Shadow formation",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Why does a shadow form when a book blocks a torch beam?",
@@ -1214,7 +1252,8 @@
         "Light bends equally around objects."
       ],
       "correct_answer": "Light travels straight and is blocked.",
-      "correct_index": 1
+      "correct_index": 1,
+      "topic": "Shadow formation"
     },
     {
       "external_id": "adm-g6-science-v1-q040",
@@ -1223,9 +1262,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Energy, light, sound, and electricity",
+      "diagnostic_skill": "Electricity: simple circuits and materials",
       "strand": "energy, light, sound, and electricity",
-      "subskill": "energy, light, sound, and electricity",
+      "subskill": "Electrical conductors and insulators",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Which material would be best for a wire in a simple circuit?",
@@ -1244,7 +1283,8 @@
         "Copper."
       ],
       "correct_answer": "Copper.",
-      "correct_index": 3
+      "correct_index": 3,
+      "topic": "Electrical conductors and insulators"
     },
     {
       "external_id": "adm-g6-science-v1-q041",
@@ -1253,9 +1293,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Energy, light, sound, and electricity",
+      "diagnostic_skill": "Light: travel and shadows",
       "strand": "energy, light, sound, and electricity",
-      "subskill": "energy, light, sound, and electricity",
+      "subskill": "Shadow formation",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Which object would make the clearest shadow?",
@@ -1274,7 +1314,8 @@
         "A transparent plastic cup."
       ],
       "correct_answer": "An opaque cardboard card.",
-      "correct_index": 2
+      "correct_index": 2,
+      "topic": "Shadow formation"
     },
     {
       "external_id": "adm-g6-science-v1-q042",
@@ -1283,9 +1324,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Energy, light, sound, and electricity",
+      "diagnostic_skill": "Electricity: simple circuits and materials",
       "strand": "energy, light, sound, and electricity",
-      "subskill": "energy, light, sound, and electricity",
+      "subskill": "Electrical conductors and insulators",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Why is plastic often used around electrical wires?",
@@ -1304,7 +1345,8 @@
         "It is an insulator."
       ],
       "correct_answer": "It is an insulator.",
-      "correct_index": 3
+      "correct_index": 3,
+      "topic": "Electrical conductors and insulators"
     },
     {
       "external_id": "adm-g6-science-v1-q043",
@@ -1313,9 +1355,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Energy, light, sound, and electricity",
+      "diagnostic_skill": "Light: travel and shadows",
       "strand": "energy, light, sound, and electricity",
-      "subskill": "energy, light, sound, and electricity",
+      "subskill": "Shadow formation",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "What happens to a shadow when an object moves closer to a torch?",
@@ -1334,7 +1376,8 @@
         "It turns transparent."
       ],
       "correct_answer": "It may become larger.",
-      "correct_index": 0
+      "correct_index": 0,
+      "topic": "Shadow formation"
     },
     {
       "external_id": "adm-g6-science-v1-q044",
@@ -1343,9 +1386,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Energy, light, sound, and electricity",
+      "diagnostic_skill": "Electricity: simple circuits and materials",
       "strand": "energy, light, sound, and electricity",
-      "subskill": "energy, light, sound, and electricity",
+      "subskill": "Complete and incomplete circuits",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "What is needed for a bulb to light in a simple circuit?",
@@ -1364,7 +1407,8 @@
         "A plastic gap."
       ],
       "correct_answer": "A complete circuit.",
-      "correct_index": 0
+      "correct_index": 0,
+      "topic": "Complete and incomplete circuits"
     },
     {
       "external_id": "adm-g6-science-v1-q045",
@@ -1373,9 +1417,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Energy, light, sound, and electricity",
+      "diagnostic_skill": "Light: travel and shadows",
       "strand": "energy, light, sound, and electricity",
-      "subskill": "energy, light, sound, and electricity",
+      "subskill": "Straight-line travel of light",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Which statement about light is correct?",
@@ -1394,7 +1438,8 @@
         "Light is made only by mirrors."
       ],
       "correct_answer": "Light travels in straight lines.",
-      "correct_index": 1
+      "correct_index": 1,
+      "topic": "Straight-line travel of light"
     },
     {
       "external_id": "adm-g6-science-v1-q046",
@@ -1403,9 +1448,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Energy, light, sound, and electricity",
+      "diagnostic_skill": "Electricity: simple circuits and materials",
       "strand": "energy, light, sound, and electricity",
-      "subskill": "energy, light, sound, and electricity",
+      "subskill": "Complete and incomplete circuits",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "What does a switch do in a circuit?",
@@ -1424,7 +1469,8 @@
         "It makes wires disappear."
       ],
       "correct_answer": "It opens or closes the circuit.",
-      "correct_index": 0
+      "correct_index": 0,
+      "topic": "Complete and incomplete circuits"
     },
     {
       "external_id": "adm-g6-science-v1-q047",
@@ -1433,9 +1479,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Energy, light, sound, and electricity",
+      "diagnostic_skill": "Light: travel and shadows",
       "strand": "energy, light, sound, and electricity",
-      "subskill": "energy, light, sound, and electricity",
+      "subskill": "Shadow formation",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Why does frosted glass make a blurry shadow?",
@@ -1454,7 +1500,8 @@
         "It removes gravity."
       ],
       "correct_answer": "It scatters some light.",
-      "correct_index": 0
+      "correct_index": 0,
+      "topic": "Shadow formation"
     },
     {
       "external_id": "adm-g6-science-v1-q048",
@@ -1463,9 +1510,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Energy, light, sound, and electricity",
+      "diagnostic_skill": "Electricity: simple circuits and materials",
       "strand": "energy, light, sound, and electricity",
-      "subskill": "energy, light, sound, and electricity",
+      "subskill": "Electrical conductors and insulators",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Which item is a good electrical conductor?",
@@ -1484,7 +1531,8 @@
         "A plastic spoon."
       ],
       "correct_answer": "A metal paperclip.",
-      "correct_index": 0
+      "correct_index": 0,
+      "topic": "Electrical conductors and insulators"
     },
     {
       "external_id": "adm-g6-science-v1-q049",
@@ -1493,9 +1541,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Energy, light, sound, and electricity",
+      "diagnostic_skill": "Light: travel and shadows",
       "strand": "energy, light, sound, and electricity",
-      "subskill": "energy, light, sound, and electricity",
+      "subskill": "Shadow formation",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Where is a shadow usually found?",
@@ -1514,7 +1562,8 @@
         "Under every transparent object."
       ],
       "correct_answer": "Behind an object blocking light.",
-      "correct_index": 0
+      "correct_index": 0,
+      "topic": "Shadow formation"
     },
     {
       "external_id": "adm-g6-science-v1-q050",
@@ -1523,9 +1572,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Energy, light, sound, and electricity",
+      "diagnostic_skill": "Electricity: simple circuits and materials",
       "strand": "energy, light, sound, and electricity",
-      "subskill": "energy, light, sound, and electricity",
+      "subskill": "Complete and incomplete circuits",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Why will a bulb not light if one wire is disconnected?",
@@ -1544,7 +1593,8 @@
         "The wire becomes transparent."
       ],
       "correct_answer": "The circuit is incomplete.",
-      "correct_index": 0
+      "correct_index": 0,
+      "topic": "Complete and incomplete circuits"
     },
     {
       "external_id": "adm-g6-science-v1-q051",
@@ -1553,9 +1603,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Earth and space",
+      "diagnostic_skill": "Earth and space: daily and monthly patterns",
       "strand": "earth and space",
-      "subskill": "earth and space",
+      "subskill": "Earth rotation and day/night",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Why do we have day and night on Earth?",
@@ -1574,7 +1624,8 @@
         "Earth stops moving at sunset."
       ],
       "correct_answer": "Earth rotates on its axis.",
-      "correct_index": 0
+      "correct_index": 0,
+      "topic": "Earth rotation and day/night"
     },
     {
       "external_id": "adm-g6-science-v1-q052",
@@ -1583,9 +1634,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Earth and space",
+      "diagnostic_skill": "Earth and space: daily and monthly patterns",
       "strand": "earth and space",
-      "subskill": "earth and space",
+      "subskill": "Phases of the Moon",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Which observation is evidence that the Moon reflects sunlight?",
@@ -1604,7 +1655,8 @@
         "The Moon stays hot at night."
       ],
       "correct_answer": "Sunlight reflects from the Moon.",
-      "correct_index": 0
+      "correct_index": 0,
+      "topic": "Phases of the Moon"
     },
     {
       "external_id": "adm-g6-science-v1-q053",
@@ -1613,13 +1665,13 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Earth and space",
+      "diagnostic_skill": "Earth and space: daily and monthly patterns",
       "strand": "earth and space",
-      "subskill": "earth and space",
+      "subskill": "Earth rotation and day/night",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "What causes the Sun to appear to move across the sky?",
-      "explanation": "Earth’s rotation makes the Sun appear to move across the sky.",
+      "explanation": "Earth\u2019s rotation makes the Sun appear to move across the sky.",
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g6-science",
@@ -1628,13 +1680,14 @@
       "is_locked": true,
       "content_owner": "brain_heist",
       "options": [
-        "Earth’s rotation.",
+        "Earth\u2019s rotation.",
         "The Sun orbiting Earth each day.",
         "The Moon pushing sunlight.",
         "Clouds turning the sky."
       ],
-      "correct_answer": "Earth’s rotation.",
-      "correct_index": 0
+      "correct_answer": "Earth\u2019s rotation.",
+      "correct_index": 0,
+      "topic": "Earth rotation and day/night"
     },
     {
       "external_id": "adm-g6-science-v1-q054",
@@ -1643,9 +1696,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Earth and space",
+      "diagnostic_skill": "Earth and space: daily and monthly patterns",
       "strand": "earth and space",
-      "subskill": "earth and space",
+      "subskill": "Phases of the Moon",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Why can we often see the Moon at night?",
@@ -1664,7 +1717,8 @@
         "It shines only by electricity."
       ],
       "correct_answer": "It reflects light from the Sun.",
-      "correct_index": 0
+      "correct_index": 0,
+      "topic": "Phases of the Moon"
     },
     {
       "external_id": "adm-g6-science-v1-q055",
@@ -1673,9 +1727,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Earth and space",
+      "diagnostic_skill": "Earth and space: daily and monthly patterns",
       "strand": "earth and space",
-      "subskill": "earth and space",
+      "subskill": "Earth rotation and day/night",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "About how long does Earth take to complete one rotation?",
@@ -1694,7 +1748,8 @@
         "One year."
       ],
       "correct_answer": "One day.",
-      "correct_index": 1
+      "correct_index": 1,
+      "topic": "Earth rotation and day/night"
     },
     {
       "external_id": "adm-g6-science-v1-q056",
@@ -1703,9 +1758,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Earth and space",
+      "diagnostic_skill": "Earth and space: daily and monthly patterns",
       "strand": "earth and space",
-      "subskill": "earth and space",
+      "subskill": "Phases of the Moon",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Why does the Moon look different during the month?",
@@ -1724,7 +1779,8 @@
         "Earth stops rotating."
       ],
       "correct_answer": "We see different lit parts.",
-      "correct_index": 0
+      "correct_index": 0,
+      "topic": "Phases of the Moon"
     },
     {
       "external_id": "adm-g6-science-v1-q057",
@@ -1733,9 +1789,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Earth and space",
+      "diagnostic_skill": "Earth and space: daily and monthly patterns",
       "strand": "earth and space",
-      "subskill": "earth and space",
+      "subskill": "Earth rotation and day/night",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Which side of Earth has daytime?",
@@ -1754,7 +1810,8 @@
         "Only places near oceans."
       ],
       "correct_answer": "The side facing the Sun.",
-      "correct_index": 0
+      "correct_index": 0,
+      "topic": "Earth rotation and day/night"
     },
     {
       "external_id": "adm-g6-science-v1-q058",
@@ -1763,9 +1820,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Earth and space",
+      "diagnostic_skill": "Earth and space: daily and monthly patterns",
       "strand": "earth and space",
-      "subskill": "earth and space",
+      "subskill": "Phases of the Moon",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Which statement about the Moon is correct?",
@@ -1784,7 +1841,8 @@
         "It is hotter than the Sun."
       ],
       "correct_answer": "It reflects sunlight.",
-      "correct_index": 0
+      "correct_index": 0,
+      "topic": "Phases of the Moon"
     },
     {
       "external_id": "adm-g6-science-v1-q059",
@@ -1793,9 +1851,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Scientific enquiry / working scientifically",
+      "diagnostic_skill": "Scientific enquiry: fair tests and reliable evidence",
       "strand": "scientific enquiry / working scientifically",
-      "subskill": "scientific enquiry / working scientifically",
+      "subskill": "Controlled variables",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Students compare how much water different paper towel brands can absorb. Which measurement should be kept the same for each trial?",
@@ -1814,7 +1872,8 @@
         "The colour of the table."
       ],
       "correct_answer": "The amount of water added.",
-      "correct_index": 1
+      "correct_index": 1,
+      "topic": "Controlled variables"
     },
     {
       "external_id": "adm-g6-science-v1-q060",
@@ -1823,9 +1882,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "target",
-      "diagnostic_skill": "Scientific enquiry / working scientifically",
+      "diagnostic_skill": "Scientific enquiry: fair tests and reliable evidence",
       "strand": "scientific enquiry / working scientifically",
-      "subskill": "scientific enquiry / working scientifically",
+      "subskill": "Reliability and repeated trials",
       "difficulty": "medium",
       "question_type": "mcq",
       "prompt": "Why should a scientist repeat a measurement several times?",
@@ -1844,7 +1903,8 @@
         "To make the test unfair."
       ],
       "correct_answer": "To improve reliability.",
-      "correct_index": 0
+      "correct_index": 0,
+      "topic": "Reliability and repeated trials"
     },
     {
       "external_id": "adm-g6-science-v1-q061",
@@ -1853,9 +1913,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "stretch",
-      "diagnostic_skill": "Scientific enquiry / working scientifically",
+      "diagnostic_skill": "Scientific enquiry: fair tests and reliable evidence",
       "strand": "scientific enquiry / working scientifically",
-      "subskill": "scientific enquiry / working scientifically",
+      "subskill": "Controlled variables",
       "difficulty": "hard",
       "question_type": "mcq",
       "prompt": "A class compares several paper towel brands to see which absorbs the most water. Which condition should stay the same each time to make the test fair?",
@@ -1874,7 +1934,8 @@
         "The amount of water added."
       ],
       "correct_answer": "The amount of water added.",
-      "correct_index": 3
+      "correct_index": 3,
+      "topic": "Controlled variables"
     },
     {
       "external_id": "adm-g6-science-v1-q062",
@@ -1883,9 +1944,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "stretch",
-      "diagnostic_skill": "Scientific enquiry / working scientifically",
+      "diagnostic_skill": "Scientific enquiry: fair tests and reliable evidence",
       "strand": "scientific enquiry / working scientifically",
-      "subskill": "scientific enquiry / working scientifically",
+      "subskill": "Reliability and repeated trials",
       "difficulty": "hard",
       "question_type": "mcq",
       "prompt": "What should students do if one result is very different from the others?",
@@ -1904,7 +1965,8 @@
         "Ignore the method."
       ],
       "correct_answer": "Check for an anomaly.",
-      "correct_index": 0
+      "correct_index": 0,
+      "topic": "Reliability and repeated trials"
     },
     {
       "external_id": "adm-g6-science-v1-q063",
@@ -1913,9 +1975,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "stretch",
-      "diagnostic_skill": "Scientific enquiry / working scientifically",
+      "diagnostic_skill": "Scientific enquiry: fair tests and reliable evidence",
       "strand": "scientific enquiry / working scientifically",
-      "subskill": "scientific enquiry / working scientifically",
+      "subskill": "Controlled variables",
       "difficulty": "hard",
       "question_type": "mcq",
       "prompt": "Students test paper towels by adding water and measuring how much each towel holds. What should they control so the comparison is fair?",
@@ -1934,7 +1996,8 @@
         "The colour of the table."
       ],
       "correct_answer": "The amount of water added.",
-      "correct_index": 0
+      "correct_index": 0,
+      "topic": "Controlled variables"
     },
     {
       "external_id": "adm-g6-science-v1-q064",
@@ -1943,9 +2006,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "stretch",
-      "diagnostic_skill": "Scientific enquiry / working scientifically",
+      "diagnostic_skill": "Scientific enquiry: fair tests and reliable evidence",
       "strand": "scientific enquiry / working scientifically",
-      "subskill": "scientific enquiry / working scientifically",
+      "subskill": "Reliability and repeated trials",
       "difficulty": "hard",
       "question_type": "mcq",
       "prompt": "Why is calculating an average useful after repeated trials?",
@@ -1964,7 +2027,8 @@
         "It proves all guesses right."
       ],
       "correct_answer": "It gives a more reliable result.",
-      "correct_index": 0
+      "correct_index": 0,
+      "topic": "Reliability and repeated trials"
     },
     {
       "external_id": "adm-g6-science-v1-q065",
@@ -1973,9 +2037,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "stretch",
-      "diagnostic_skill": "Scientific enquiry / working scientifically",
+      "diagnostic_skill": "Scientific enquiry: fair tests and reliable evidence",
       "strand": "scientific enquiry / working scientifically",
-      "subskill": "scientific enquiry / working scientifically",
+      "subskill": "Controlled variables",
       "difficulty": "hard",
       "question_type": "mcq",
       "prompt": "A group wants to find the most absorbent paper towel. Which part of the procedure should be kept the same for every brand?",
@@ -1994,7 +2058,8 @@
         "The colour of the table."
       ],
       "correct_answer": "The amount of water added.",
-      "correct_index": 1
+      "correct_index": 1,
+      "topic": "Controlled variables"
     },
     {
       "external_id": "adm-g6-science-v1-q066",
@@ -2003,9 +2068,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "stretch",
-      "diagnostic_skill": "Scientific enquiry / working scientifically",
+      "diagnostic_skill": "Scientific enquiry: fair tests and reliable evidence",
       "strand": "scientific enquiry / working scientifically",
-      "subskill": "scientific enquiry / working scientifically",
+      "subskill": "Controlled variables",
       "difficulty": "hard",
       "question_type": "mcq",
       "prompt": "In a fair test, why should only one variable be changed?",
@@ -2024,7 +2089,8 @@
         "To make all answers the same."
       ],
       "correct_answer": "To see what caused the result.",
-      "correct_index": 0
+      "correct_index": 0,
+      "topic": "Controlled variables"
     },
     {
       "external_id": "adm-g6-science-v1-q067",
@@ -2033,9 +2099,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "stretch",
-      "diagnostic_skill": "Scientific enquiry / working scientifically",
+      "diagnostic_skill": "Scientific enquiry: fair tests and reliable evidence",
       "strand": "scientific enquiry / working scientifically",
-      "subskill": "scientific enquiry / working scientifically",
+      "subskill": "Controlled variables",
       "difficulty": "hard",
       "question_type": "mcq",
       "prompt": "Paper towel samples are compared for absorbency. Which choice describes a controlled variable in this fair test?",
@@ -2054,7 +2120,8 @@
         "The colour of the table."
       ],
       "correct_answer": "The amount of water added.",
-      "correct_index": 1
+      "correct_index": 1,
+      "topic": "Controlled variables"
     },
     {
       "external_id": "adm-g6-science-v1-q068",
@@ -2063,9 +2130,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "stretch",
-      "diagnostic_skill": "Scientific enquiry / working scientifically",
+      "diagnostic_skill": "Scientific enquiry: fair tests and reliable evidence",
       "strand": "scientific enquiry / working scientifically",
-      "subskill": "scientific enquiry / working scientifically",
+      "subskill": "Recording results in tables",
       "difficulty": "hard",
       "question_type": "mcq",
       "prompt": "Why should results be recorded in a table?",
@@ -2084,7 +2151,8 @@
         "To remove all errors."
       ],
       "correct_answer": "To organise data clearly.",
-      "correct_index": 0
+      "correct_index": 0,
+      "topic": "Recording results in tables"
     },
     {
       "external_id": "adm-g6-science-v1-q069",
@@ -2093,9 +2161,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "stretch",
-      "diagnostic_skill": "Scientific enquiry / working scientifically",
+      "diagnostic_skill": "Scientific enquiry: fair tests and reliable evidence",
       "strand": "scientific enquiry / working scientifically",
-      "subskill": "scientific enquiry / working scientifically",
+      "subskill": "Controlled variables",
       "difficulty": "hard",
       "question_type": "mcq",
       "prompt": "To compare paper towel absorbency fairly, students change only the towel brand. What should remain the same during each trial?",
@@ -2114,7 +2182,8 @@
         "The amount of water added."
       ],
       "correct_answer": "The amount of water added.",
-      "correct_index": 3
+      "correct_index": 3,
+      "topic": "Controlled variables"
     },
     {
       "external_id": "adm-g6-science-v1-q070",
@@ -2123,9 +2192,9 @@
       "grade_level": 6,
       "stage_level": 6,
       "placement_band": "stretch",
-      "diagnostic_skill": "Scientific enquiry / working scientifically",
+      "diagnostic_skill": "Scientific enquiry: fair tests and reliable evidence",
       "strand": "scientific enquiry / working scientifically",
-      "subskill": "scientific enquiry / working scientifically",
+      "subskill": "Reliability and repeated trials",
       "difficulty": "hard",
       "question_type": "mcq",
       "prompt": "Which conclusion is best supported by repeated similar results?",
@@ -2144,7 +2213,8 @@
         "The measurements are useless."
       ],
       "correct_answer": "The pattern is reliable.",
-      "correct_index": 0
+      "correct_index": 0,
+      "topic": "Reliability and repeated trials"
     }
   ]
 }
