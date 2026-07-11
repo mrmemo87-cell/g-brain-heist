@@ -168,82 +168,177 @@ test('simulated 25-question Grade 6 Science generation prefers unique subskills 
   }
 });
 
-test('simulated fixed SQL batch generation limits repeats to unavoidable fallback only', () => {
-  const blueprint = [
+type Grade6Question = typeof grade6.questions[number];
+
+type BlueprintDistribution = Record<string, Record<string, number>>;
+
+const grade6ScienceBlueprintDistribution: BlueprintDistribution = {
+  mcq: { hard: 4, medium: 11, easy: 10 },
+};
+
+const canonical = (value: string) => value.trim().toLowerCase();
+
+function orderedSqlBuckets(distribution: BlueprintDistribution) {
+  const difficultyRank = (difficulty: string) => {
+    switch (difficulty.toLowerCase()) {
+      case 'easy': return 1;
+      case 'medium': return 2;
+      case 'hard': return 3;
+      default: return 100;
+    }
+  };
+
+  return Object.entries(distribution)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .flatMap(([question_type, difficulties]) => Object.entries(difficulties)
+      .sort(([left], [right]) => difficultyRank(left) - difficultyRank(right) || left.localeCompare(right))
+      .map(([difficulty, count]) => ({ question_type, difficulty, count })));
+}
+
+function insertionOrderSqlBuckets(distribution: BlueprintDistribution) {
+  return Object.entries(distribution)
+    .flatMap(([question_type, difficulties]) => Object.entries(difficulties)
+      .map(([difficulty, count]) => ({ question_type, difficulty, count })));
+}
+
+function simulateSqlBatchGeneration(seed: number, distribution: BlueprintDistribution, bucketOrder = orderedSqlBuckets) {
+  const random = seededRandom(seed);
+  const selected: Grade6Question[] = [];
+  const selectedIds = new Set<string>();
+  const selectedStems = new Set<string>();
+  const selectedCanonical = new Set<string>();
+  const fallbackEvents: Array<{ difficulty: string; unavoidable: boolean; repeatedConcepts: string[] }> = [];
+  const buckets = bucketOrder(distribution);
+
+  for (const bucket of buckets) {
+    const bucketQuestions = grade6.questions
+      .filter((question: { question_type: string; difficulty: string }) => question.question_type === bucket.question_type && question.difficulty === bucket.difficulty);
+
+    // The SQL performs an availability COUNT with `ORDER BY ..., RANDOM()` before
+    // the first-pass INSERT. Consume the same deterministic random values so the
+    // simulation's later RANDOM() calls model the production function's ordering.
+    for (const question of bucketQuestions) {
+      if (!selectedIds.has(question.external_id) && !selectedStems.has(normalizeStem(question.prompt))) random();
+    }
+
+    const laterDifficultyOverlap = (question: { question_type: string; subskill: string; difficulty: string }) => grade6.questions.some((candidate: { question_type: string; subskill: string; difficulty: string }) => (
+      candidate.question_type === question.question_type
+      && canonical(candidate.subskill) === canonical(question.subskill)
+      && orderedSqlBuckets({ [question.question_type]: { [question.difficulty]: 1, hard: 1 } }).some((orderedBucket, index, orderedBuckets) => {
+        const currentIndex = orderedBuckets.findIndex((item) => item.difficulty === question.difficulty);
+        return index > currentIndex && orderedBucket.difficulty === candidate.difficulty;
+      })
+    )) ? 1 : 0;
+
+    const candidates = bucketQuestions
+      .map((question: Grade6Question) => ({ question, overlap: laterDifficultyOverlap(question), sort: random() }))
+      .sort((a: { overlap: number; sort: number }, b: { overlap: number; sort: number }) => a.overlap - b.overlap || a.sort - b.sort)
+      .map((entry: { question: Grade6Question }) => entry.question);
+
+    const availableUniqueConcepts = new Set(candidates
+      .filter((question: { external_id: string; prompt: string; subskill: string }) => !selectedIds.has(question.external_id) && !selectedStems.has(normalizeStem(question.prompt)) && !selectedCanonical.has(canonical(question.subskill)))
+      .map((question: { subskill: string }) => canonical(question.subskill))).size;
+
+    const selectedBeforeFallback = selected.length;
+    const firstPassConcepts = new Set<string>();
+    for (const question of candidates) {
+      if (selected.filter((item: { difficulty: string }) => item.difficulty === bucket.difficulty).length >= bucket.count) break;
+      const stem = normalizeStem(question.prompt);
+      const concept = canonical(question.subskill);
+      if (selectedIds.has(question.external_id) || selectedStems.has(stem) || selectedCanonical.has(concept) || firstPassConcepts.has(concept)) continue;
+      selected.push(question);
+      selectedIds.add(question.external_id);
+      selectedStems.add(stem);
+      selectedCanonical.add(concept);
+      firstPassConcepts.add(concept);
+    }
+
+    assert.ok(firstPassConcepts.size <= availableUniqueConcepts);
+    const remaining = bucket.count - selected.filter((item: { difficulty: string }) => item.difficulty === bucket.difficulty).length;
+    if (remaining > 0) {
+      const fallbackBase = candidates
+        .filter((question: { external_id: string; prompt: string }) => !selectedIds.has(question.external_id) && !selectedStems.has(normalizeStem(question.prompt)))
+        .map((question: Grade6Question) => ({
+          question,
+          concept: canonical(question.subskill),
+          existing: selected.filter((item: { subskill: string }) => canonical(item.subskill) === canonical(question.subskill)).length,
+          sort: random(),
+        }))
+        .sort((a: { concept: string; sort: number }, b: { concept: string; sort: number }) => a.concept.localeCompare(b.concept) || a.sort - b.sort);
+      const conceptRounds = new Map<string, number>();
+      const byExistingConcept = fallbackBase
+        .map((entry: { question: Grade6Question; concept: string; existing: number; sort: number }) => {
+          const subskillRound = (conceptRounds.get(entry.concept) ?? 0) + 1;
+          conceptRounds.set(entry.concept, subskillRound);
+          return { ...entry, subskillRound };
+        })
+        .sort((a: { existing: number; subskillRound: number; sort: number }, b: { existing: number; subskillRound: number; sort: number }) => a.existing - b.existing || a.subskillRound - b.subskillRound || a.sort - b.sort);
+      const fallbackQuestions = byExistingConcept.slice(0, remaining).map(({ question }: { question: Grade6Question }) => question);
+      fallbackEvents.push({
+        difficulty: bucket.difficulty,
+        unavoidable: availableUniqueConcepts < bucket.count,
+        repeatedConcepts: fallbackQuestions
+          .map((question: { subskill: string }) => canonical(question.subskill))
+          .filter((concept: string) => selected.slice(0, selectedBeforeFallback).some((item: { subskill: string }) => canonical(item.subskill) === concept)),
+      });
+      for (const question of fallbackQuestions) {
+        selected.push(question);
+        selectedIds.add(question.external_id);
+        selectedStems.add(normalizeStem(question.prompt));
+        selectedCanonical.add(canonical(question.subskill));
+      }
+    }
+  }
+
+  return { selected, selectedIds, selectedStems, fallbackEvents, buckets };
+}
+
+test('simulated fixed SQL batch generation follows ordered difficulty buckets and limits repeats to unavoidable fallback only', () => {
+  assert.deepEqual(orderedSqlBuckets(grade6ScienceBlueprintDistribution), [
     { question_type: 'mcq', difficulty: 'easy', count: 10 },
     { question_type: 'mcq', difficulty: 'medium', count: 11 },
     { question_type: 'mcq', difficulty: 'hard', count: 4 },
-  ];
+  ]);
 
-  const canonical = (value: string) => value.trim().toLowerCase();
-
-  for (let seed = 1; seed <= 30; seed += 1) {
-    const random = seededRandom(seed);
-    const selected: typeof grade6.questions = [];
-    const selectedIds = new Set<string>();
-    const selectedStems = new Set<string>();
-    const selectedCanonical = new Set<string>();
-    const fallbackEvents: Array<{ difficulty: string; unavoidable: boolean }> = [];
-
-    for (const bucket of blueprint) {
-      const candidates = grade6.questions
-        .filter((question: { question_type: string; difficulty: string }) => question.question_type === bucket.question_type && question.difficulty === bucket.difficulty)
-        .map((question: typeof grade6.questions[number]) => ({ question, sort: random() }))
-        .sort((a: { sort: number }, b: { sort: number }) => a.sort - b.sort)
-        .map((entry: { question: typeof grade6.questions[number] }) => entry.question);
-
-      const availableUniqueConcepts = new Set(candidates
-        .filter((question: { external_id: string; prompt: string; subskill: string }) => !selectedIds.has(question.external_id) && !selectedStems.has(normalizeStem(question.prompt)) && !selectedCanonical.has(canonical(question.subskill)))
-        .map((question: { subskill: string }) => canonical(question.subskill))).size;
-
-      const firstPassConcepts = new Set<string>();
-      for (const question of candidates) {
-        if (selected.filter((item: { difficulty: string }) => item.difficulty === bucket.difficulty).length >= bucket.count) break;
-        const stem = normalizeStem(question.prompt);
-        const concept = canonical(question.subskill);
-        if (selectedIds.has(question.external_id) || selectedStems.has(stem) || selectedCanonical.has(concept) || firstPassConcepts.has(concept)) continue;
-        selected.push(question);
-        selectedIds.add(question.external_id);
-        selectedStems.add(stem);
-        selectedCanonical.add(concept);
-        firstPassConcepts.add(concept);
-      }
-
-      assert.ok(firstPassConcepts.size <= availableUniqueConcepts);
-      const remaining = bucket.count - selected.filter((item: { difficulty: string }) => item.difficulty === bucket.difficulty).length;
-      if (remaining > 0) {
-        fallbackEvents.push({ difficulty: bucket.difficulty, unavoidable: availableUniqueConcepts < bucket.count });
-        const byExistingConcept = candidates
-          .filter((question: { external_id: string; prompt: string }) => !selectedIds.has(question.external_id) && !selectedStems.has(normalizeStem(question.prompt)))
-          .map((question: typeof grade6.questions[number]) => ({ question, existing: selected.filter((item: { subskill: string }) => canonical(item.subskill) === canonical(question.subskill)).length, sort: random() }))
-          .sort((a: { existing: number; sort: number }, b: { existing: number; sort: number }) => a.existing - b.existing || a.sort - b.sort);
-        for (const { question } of byExistingConcept.slice(0, remaining)) {
-          selected.push(question);
-          selectedIds.add(question.external_id);
-          selectedStems.add(normalizeStem(question.prompt));
-          selectedCanonical.add(canonical(question.subskill));
-        }
-      }
-    }
+  for (let seed = 1; seed <= 100; seed += 1) {
+    const { selected, selectedIds, selectedStems, fallbackEvents } = simulateSqlBatchGeneration(seed, grade6ScienceBlueprintDistribution);
 
     assert.equal(selected.length, 25);
-    assert.equal(selectedIds.size, 25);
-    assert.equal(selectedStems.size, 25);
-    assert.ok(fallbackEvents.every((event) => event.unavoidable), `seed ${seed} used avoidable fallback`);
-    assert.ok(!fallbackEvents.some((event) => event.difficulty === 'medium'), `seed ${seed} repeated a medium concept despite enough unique medium concepts`);
+    assert.equal(selectedIds.size, 25, `seed ${seed} selected duplicate question IDs`);
+    assert.equal(selectedStems.size, 25, `seed ${seed} selected duplicate normalized stems`);
 
     const byDifficulty = (difficulty: string) => selected.filter((question: { difficulty: string }) => question.difficulty === difficulty);
     assert.equal(byDifficulty('easy').length, 10);
     assert.equal(byDifficulty('medium').length, 11);
     assert.equal(byDifficulty('hard').length, 4);
 
-    for (const concept of ['thermal conduction', 'friction between surfaces', 'plants require light']) {
-      assert.ok(selected.filter((question: { subskill: string }) => canonical(question.subskill) === concept).length < 3, `seed ${seed} selected 3 ${concept} questions`);
-    }
+    const conceptCounts = new Map<string, number>();
+    for (const question of selected) conceptCounts.set(canonical(question.subskill), (conceptCounts.get(canonical(question.subskill)) ?? 0) + 1);
+    assert.ok(conceptCounts.size >= 22, `seed ${seed} selected ${conceptCounts.size} distinct canonical concepts`);
+    assert.ok(selected.length - conceptCounts.size <= 3, `seed ${seed} had too many repeated slots`);
+    assert.ok(Math.max(...conceptCounts.values()) <= 3, `seed ${seed} selected a concept too often`);
+
+    assert.ok(fallbackEvents.every((event) => event.unavoidable), `seed ${seed} used avoidable fallback`);
+    assert.ok(!fallbackEvents.some((event) => event.difficulty === 'medium'), `seed ${seed} repeated a medium concept despite enough unique medium concepts`);
+    assert.ok(fallbackEvents.every((event) => ['easy', 'hard'].includes(event.difficulty)), `seed ${seed} fallback was not limited to easy and hard`);
+    assert.ok(fallbackEvents.length > 0, `seed ${seed} did not exercise fallback`);
+
+    const mediumConceptCounts = new Map<string, number>();
+    for (const question of byDifficulty('medium')) mediumConceptCounts.set(canonical(question.subskill), (mediumConceptCounts.get(canonical(question.subskill)) ?? 0) + 1);
+    assert.equal(Math.max(...mediumConceptCounts.values()), 1, `seed ${seed} repeated a medium concept`);
 
     const strandOrder = selected.map((question: { strand: string }) => question.strand);
     assert.ok(new Set(strandOrder.slice(0, 6)).size > 1, `seed ${seed} lost strand interleaving`);
   }
+});
+
+test('Grade 6 Science simulation exposes why SQL difficulty buckets must be explicitly ordered', () => {
+  const unorderedResult = simulateSqlBatchGeneration(1, grade6ScienceBlueprintDistribution, insertionOrderSqlBuckets);
+  assert.deepEqual(unorderedResult.buckets.map((bucket) => bucket.difficulty), ['hard', 'medium', 'easy']);
+  assert.ok(
+    unorderedResult.fallbackEvents.some((event) => event.difficulty === 'medium'),
+    'expected the hard-first simulation to require medium fallback without explicit SQL difficulty ordering',
+  );
 });
 
 test('canonical subskill normalization collapses casing and whitespace differences', () => {
