@@ -29,6 +29,13 @@ const REQUIRED_OFFICIAL_FLAGS = {
   content_owner: 'brain_heist',
 };
 
+const CURRICULUM_LINKAGE_STATUSES = new Set(['linked', 'legacy_review_required']);
+const LEGACY_LINKAGE_ALLOWED = new Set([
+  'english/grade_5.json','english/grade_6.json','english/grade_7.json','english/grade_8.json',
+  'maths/grade_5.json','maths/grade_6.json','maths/grade_7.json','maths/grade_8.json',
+  'science/grade_5.json','science/grade_6.json','science/grade_7.json','science/grade_8.json',
+]);
+
 const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
 const MAX_UNIQUE_LONGEST_CORRECT_RATIO = 0.6;
 const MAX_ANSWER_POSITION_RATIO = 0.4;
@@ -423,6 +430,63 @@ function validateAntiTemplateText(errors, filePath, location, value) {
   }
 }
 
+
+function curriculumMapFiles(root) {
+  const out = [];
+  for (const entry of readdirSync(root)) {
+    const filePath = path.join(root, entry);
+    const stat = statSync(filePath);
+    if (stat.isDirectory()) out.push(...curriculumMapFiles(filePath));
+    else if (entry.endsWith('.json') && entry !== 'schema.json' && !entry.endsWith('.template.json')) out.push(filePath);
+  }
+  return out;
+}
+
+function loadCurriculumMaps(seedDir, errors) {
+  const root = path.join(seedDir, 'curriculum-maps');
+  const maps = new Map();
+  for (const filePath of curriculumMapFiles(root)) {
+    const data = readJson(filePath);
+    if (data.__parseError) {
+      errors.push(`${filePath}: invalid curriculum map JSON: ${data.__parseError}`);
+      continue;
+    }
+    if (data.locked !== true) errors.push(`${filePath}: linked curriculum map must be locked`);
+    if (!data.map_id || !data.map_version) errors.push(`${filePath}: linked curriculum map requires map_id and map_version`);
+    const objectives = new Map();
+    for (const objective of Array.isArray(data.objectives) ? data.objectives : []) {
+      if (objective.objective_id) objectives.set(objective.objective_id, objective);
+      if (objective.source_status !== 'approved' || objective.review_status !== 'approved') {
+        errors.push(`${filePath}: objective ${objective.objective_id || '(missing id)'} is not approved for linked official-bank use`);
+      }
+    }
+    if (data.map_id && data.map_version) maps.set(`${data.map_id}@${data.map_version}`, { filePath, data, objectives });
+  }
+  return maps;
+}
+
+function validateLinkedQuestion(errors, filePath, location, bank, question, mapRecord) {
+  if (!question.curriculum_objective_id) {
+    errors.push(`${filePath}: ${location} linked question is missing curriculum_objective_id`);
+    return;
+  }
+  const objective = mapRecord.objectives.get(question.curriculum_objective_id);
+  if (!objective) {
+    errors.push(`${filePath}: ${location} references unknown curriculum_objective_id '${question.curriculum_objective_id}'`);
+    return;
+  }
+  if (objective.source_status !== 'approved' || objective.review_status !== 'approved') {
+    errors.push(`${filePath}: ${location} references unapproved curriculum objective '${question.curriculum_objective_id}'`);
+  }
+  if (objective.subject !== question.subject) errors.push(`${filePath}: ${location} subject '${question.subject}' does not match curriculum objective subject '${objective.subject}'`);
+  if (objective.school_grade !== question.grade_level) errors.push(`${filePath}: ${location} grade_level ${question.grade_level} does not match curriculum objective school_grade ${objective.school_grade}`);
+  if (objective.cambridge_stage !== question.stage_level) errors.push(`${filePath}: ${location} stage_level ${question.stage_level} does not match curriculum objective cambridge_stage ${objective.cambridge_stage}`);
+  if (!Array.isArray(objective.allowed_question_types) || !objective.allowed_question_types.includes(question.question_type)) errors.push(`${filePath}: ${location} question_type '${question.question_type}' is not allowed by curriculum objective '${question.curriculum_objective_id}'`);
+  if (!Array.isArray(objective.allowed_difficulties) || !objective.allowed_difficulties.includes(question.difficulty)) errors.push(`${filePath}: ${location} difficulty '${question.difficulty}' is not allowed by curriculum objective '${question.curriculum_objective_id}'`);
+  if (!question.cognitive_level) errors.push(`${filePath}: ${location} linked question is missing cognitive_level`);
+  else if (!Array.isArray(objective.allowed_cognitive_levels) || !objective.allowed_cognitive_levels.includes(question.cognitive_level)) errors.push(`${filePath}: ${location} cognitive_level '${question.cognitive_level}' is not allowed by curriculum objective '${question.curriculum_objective_id}'`);
+}
+
 function validateQuestion(errors, duplicateMap, filePath, location, question, poolIds, passageIds, rubricIds) {
   pushMissing(errors, filePath, location, question, [
     'external_id',
@@ -494,6 +558,7 @@ export function validateAdmissionOfficialBank(seedDir = DEFAULT_SEED_DIR) {
   const parsedGradeFiles = [];
   const questionsByStemScope = new Map();
   const mcqEntries = [];
+  let needsCurriculumMaps = false;
 
   for (const { filePath, subject } of gradeFiles(seedDir)) {
     const data = readJson(filePath);
@@ -510,11 +575,29 @@ export function validateAdmissionOfficialBank(seedDir = DEFAULT_SEED_DIR) {
       continue;
     }
     validateAntiTemplateText(errors, filePath, 'file', data);
+    const relativeGradeFile = path.relative(seedDir, filePath).replace(/\\/g, '/');
+    if (!CURRICULUM_LINKAGE_STATUSES.has(data.curriculum_linkage_status)) {
+      errors.push(`${filePath}: missing or invalid curriculum_linkage_status; use 'linked' for newly authored files or 'legacy_review_required' only for current reviewed legacy files`);
+    }
+    if (data.curriculum_linkage_status === 'legacy_review_required' && !LEGACY_LINKAGE_ALLOWED.has(relativeGradeFile)) {
+      errors.push(`${filePath}: legacy_review_required is not allowed for new official-bank grade files`);
+    }
+    if (data.curriculum_linkage_status === 'linked') {
+      needsCurriculumMaps = true;
+      if (!data.curriculum_map_id) errors.push(`${filePath}: linked content is missing curriculum_map_id`);
+      if (!data.curriculum_map_version) errors.push(`${filePath}: linked content is missing curriculum_map_version`);
+    }
     parsedGradeFiles.push({ filePath, subject, data });
     data.pools.forEach((pool, index) => validatePool(errors, duplicateMap, filePath, `pools[${index}]`, pool, poolIds));
   }
 
+  const curriculumMaps = needsCurriculumMaps ? loadCurriculumMaps(seedDir, errors) : new Map();
+
   for (const { filePath, data } of parsedGradeFiles) {
+    const mapRecord = data.curriculum_linkage_status === 'linked' && data.curriculum_map_id && data.curriculum_map_version ? curriculumMaps.get(`${data.curriculum_map_id}@${data.curriculum_map_version}`) : null;
+    if (data.curriculum_linkage_status === 'linked' && data.curriculum_map_id && data.curriculum_map_version && !mapRecord) {
+      errors.push(`${filePath}: linked curriculum map '${data.curriculum_map_id}@${data.curriculum_map_version}' was not found or is not a production map`);
+    }
     data.questions.forEach((question, index) => {
       validateQuestion(
         errors,
@@ -526,6 +609,7 @@ export function validateAdmissionOfficialBank(seedDir = DEFAULT_SEED_DIR) {
         passageIds,
         rubricIds,
       );
+      if (data.curriculum_linkage_status === 'linked' && mapRecord) validateLinkedQuestion(errors, filePath, `questions[${index}]`, data, question, mapRecord);
       if (Array.isArray(question.options)) mcqEntries.push({ filePath, location: `questions[${index}]`, question });
       const scope = [question.grade_level, question.subject, question.question_type, question.strand || '', question.subskill || ''].join('|');
       if (!questionsByStemScope.has(scope)) questionsByStemScope.set(scope, []);

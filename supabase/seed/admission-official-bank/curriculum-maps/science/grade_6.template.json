@@ -1,0 +1,54 @@
+{
+  "template_only": true,
+  "production_use": false,
+  "note": "Non-production structure only. Do not generate from this file. Replace placeholders only after licensed Cambridge source review and academic approval.",
+  "map_id": "TEMPLATE-SCIENCE-GRADE-6",
+  "map_version": "template-only",
+  "locked": false,
+  "grade_stage_mapping": {
+    "explicit": true,
+    "school_grade": 6,
+    "programme": "Cambridge Primary",
+    "cambridge_stage": 6,
+    "rationale": "Placeholder mapping structure for future licensed-source review.",
+    "reviewer": "PLACEHOLDER_ACADEMIC_REVIEWER",
+    "date": "PLACEHOLDER_REVIEW_DATE"
+  },
+  "objectives": [
+    {
+      "school_grade": 6,
+      "programme": "Cambridge Primary",
+      "cambridge_stage": 6,
+      "typical_age_min": 10,
+      "typical_age_max": 11,
+      "subject": "science",
+      "subject_code": "CAM_PRIMARY_SCIENCE",
+      "source_version": "PLACEHOLDER_LICENSED_CAMBRIDGE_SOURCE_VERSION",
+      "source_status": "licensed_required",
+      "objective_id": "PLACEHOLDER-SCI6-OBJECTIVE-ID",
+      "strand": "PLACEHOLDER_STRAND_FROM_LICENSED_SOURCE",
+      "subskill": "Identify the single variable that must be controlled in a described fair-test setup",
+      "learner_can": "PLACEHOLDER: human-approved learner-can statement transcribed from licensed source analysis, not invented by AI",
+      "prerequisites": [
+        "PLACEHOLDER-PREREQUISITE-OBJECTIVE-ID"
+      ],
+      "prohibited_extensions": [
+        "Do not introduce later-stage terminology or concepts not present in the approved source objective."
+      ],
+      "allowed_question_types": [
+        "mcq",
+        "structured"
+      ],
+      "allowed_difficulties": [
+        "easy",
+        "medium"
+      ],
+      "allowed_cognitive_levels": [
+        "understand",
+        "apply"
+      ],
+      "source_reference": "PLACEHOLDER_LICENSED_SOURCE_PAGE_OR_SECTION_REFERENCE",
+      "review_status": "template_only_not_approved"
+    }
+  ]
+}
