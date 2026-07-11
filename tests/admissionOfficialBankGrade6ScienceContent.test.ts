@@ -109,8 +109,8 @@ test('Grade 6 Science official bank count and blueprint-relevant distributions a
 test('simulated 25-question Grade 6 Science generation prefers unique subskills before shortage fallback', () => {
   const blueprint = [
     { question_type: 'mcq', difficulty: 'easy', count: 10 },
-    { question_type: 'mcq', difficulty: 'medium', count: 11 },
-    { question_type: 'mcq', difficulty: 'hard', count: 4 },
+    { question_type: 'mcq', difficulty: 'medium', count: 13 },
+    { question_type: 'mcq', difficulty: 'hard', count: 2 },
   ];
 
   for (let seed = 1; seed <= 30; seed += 1) {
@@ -173,7 +173,7 @@ type Grade6Question = typeof grade6.questions[number];
 type BlueprintDistribution = Record<string, Record<string, number>>;
 
 const grade6ScienceBlueprintDistribution: BlueprintDistribution = {
-  mcq: { hard: 4, medium: 11, easy: 10 },
+  mcq: { hard: 2, medium: 13, easy: 10 },
 };
 
 const canonical = (value: string) => value.trim().toLowerCase();
@@ -293,11 +293,65 @@ function simulateSqlBatchGeneration(seed: number, distribution: BlueprintDistrib
   return { selected, selectedIds, selectedStems, fallbackEvents, buckets };
 }
 
+function strandInterleavedOrder(selected: Grade6Question[], seed: number) {
+  const random = seededRandom(seed + 10_000);
+  const strandRounds = new Map<string, number>();
+  return selected
+    .map((question) => ({ question, strandSort: random(), randomOrder: random() }))
+    .sort((a, b) => a.question.strand.localeCompare(b.question.strand) || a.strandSort - b.strandSort)
+    .map((entry) => {
+      const strandRound = (strandRounds.get(entry.question.strand) ?? 0) + 1;
+      strandRounds.set(entry.question.strand, strandRound);
+      return { ...entry, strandRound };
+    })
+    .sort((a, b) => a.strandRound - b.strandRound || a.randomOrder - b.randomOrder)
+    .map(({ question }) => question);
+}
+
+function conceptsForDifficulty(difficulty: string) {
+  return new Set(grade6.questions
+    .filter((question: { question_type: string; difficulty: string }) => question.question_type === 'mcq' && question.difficulty === difficulty)
+    .map((question: { subskill: string }) => canonical(question.subskill)));
+}
+
+test('Grade 6 Science candidate graph proves 22 canonical concepts is the achievable maximum', () => {
+  const easyConcepts = conceptsForDifficulty('easy');
+  const mediumConcepts = conceptsForDifficulty('medium');
+  const hardConcepts = conceptsForDifficulty('hard');
+  const mediumHardOverlap = [...hardConcepts].filter((concept) => mediumConcepts.has(concept));
+  const hardOnlyConcepts = [...hardConcepts].filter((concept) => !mediumConcepts.has(concept));
+
+  assert.equal(easyConcepts.size, 11);
+  assert.equal(mediumConcepts.size, 11);
+  assert.equal(hardConcepts.size, 3);
+  assert.deepEqual(mediumHardOverlap.sort(), ['controlled variables', 'reliability and repeated trials']);
+  assert.deepEqual(hardOnlyConcepts, ['recording results in tables']);
+
+  const easyMaximum = Math.min(10, easyConcepts.size);
+  const mediumMaximum = Math.min(13, mediumConcepts.size);
+  const hardMaximumNewConceptsAfterMedium = Math.min(2, hardOnlyConcepts.length);
+  const theoreticalMaximum = easyMaximum + mediumMaximum + hardMaximumNewConceptsAfterMedium;
+
+  assert.equal(mediumMaximum, 11, 'medium has only 11 concepts for 13 required slots');
+  assert.equal(theoreticalMaximum, 22, 'actual 10/13/2 constraints cannot produce 23 global concepts');
+
+  for (let seed = 1; seed <= 100; seed += 1) {
+    const { selected } = simulateSqlBatchGeneration(seed, grade6ScienceBlueprintDistribution);
+    const selectedConcepts = new Set(selected.map((question: { subskill: string }) => canonical(question.subskill)));
+    assert.equal(selectedConcepts.size, theoreticalMaximum, `seed ${seed} did not reach the candidate-graph maximum`);
+  }
+});
+
 test('simulated fixed SQL batch generation follows ordered difficulty buckets and limits repeats to unavoidable fallback only', () => {
+  // Production Grade 6 Science uses 10 easy, 13 medium, and 2 hard MCQs.
+  // Medium has only 11 eligible canonical concepts, so two medium repeats are
+  // unavoidable; hard contributes one hard-only concept plus one concept that
+  // necessarily overlaps medium. The optimum is therefore 22 distinct concepts
+  // and 3 repeated slots, not the older 23-concept / 2-repeat expectation.
   assert.deepEqual(orderedSqlBuckets(grade6ScienceBlueprintDistribution), [
     { question_type: 'mcq', difficulty: 'easy', count: 10 },
-    { question_type: 'mcq', difficulty: 'medium', count: 11 },
-    { question_type: 'mcq', difficulty: 'hard', count: 4 },
+    { question_type: 'mcq', difficulty: 'medium', count: 13 },
+    { question_type: 'mcq', difficulty: 'hard', count: 2 },
   ]);
 
   for (let seed = 1; seed <= 100; seed += 1) {
@@ -309,25 +363,41 @@ test('simulated fixed SQL batch generation follows ordered difficulty buckets an
 
     const byDifficulty = (difficulty: string) => selected.filter((question: { difficulty: string }) => question.difficulty === difficulty);
     assert.equal(byDifficulty('easy').length, 10);
-    assert.equal(byDifficulty('medium').length, 11);
-    assert.equal(byDifficulty('hard').length, 4);
+    assert.equal(byDifficulty('medium').length, 13);
+    assert.equal(byDifficulty('hard').length, 2);
 
     const conceptCounts = new Map<string, number>();
     for (const question of selected) conceptCounts.set(canonical(question.subskill), (conceptCounts.get(canonical(question.subskill)) ?? 0) + 1);
-    assert.ok(conceptCounts.size >= 22, `seed ${seed} selected ${conceptCounts.size} distinct canonical concepts`);
-    assert.ok(selected.length - conceptCounts.size <= 3, `seed ${seed} had too many repeated slots`);
-    assert.ok(Math.max(...conceptCounts.values()) <= 3, `seed ${seed} selected a concept too often`);
+    const repeatedSlots = selected.length - conceptCounts.size;
+    assert.equal(conceptCounts.size, 22, `seed ${seed} selected ${conceptCounts.size} distinct canonical concepts`);
+    assert.equal(repeatedSlots, 3, `seed ${seed} had ${repeatedSlots} repeated slots`);
+    assert.ok(Math.max(...conceptCounts.values()) <= 2, `seed ${seed} selected a concept too often`);
 
     assert.ok(fallbackEvents.every((event) => event.unavoidable), `seed ${seed} used avoidable fallback`);
-    assert.ok(!fallbackEvents.some((event) => event.difficulty === 'medium'), `seed ${seed} repeated a medium concept despite enough unique medium concepts`);
-    assert.ok(fallbackEvents.every((event) => ['easy', 'hard'].includes(event.difficulty)), `seed ${seed} fallback was not limited to easy and hard`);
-    assert.ok(fallbackEvents.length > 0, `seed ${seed} did not exercise fallback`);
+    assert.deepEqual(fallbackEvents.map((event) => event.difficulty), ['medium', 'hard'], `seed ${seed} fallback difficulties changed`);
 
-    const mediumConceptCounts = new Map<string, number>();
+    const conceptsByDifficulty = (difficulty: string) => new Map<string, number>();
+    const easyConceptCounts = conceptsByDifficulty('easy');
+    for (const question of byDifficulty('easy')) easyConceptCounts.set(canonical(question.subskill), (easyConceptCounts.get(canonical(question.subskill)) ?? 0) + 1);
+    const mediumConceptCounts = conceptsByDifficulty('medium');
     for (const question of byDifficulty('medium')) mediumConceptCounts.set(canonical(question.subskill), (mediumConceptCounts.get(canonical(question.subskill)) ?? 0) + 1);
-    assert.equal(Math.max(...mediumConceptCounts.values()), 1, `seed ${seed} repeated a medium concept`);
+    const hardConceptCounts = conceptsByDifficulty('hard');
+    for (const question of byDifficulty('hard')) hardConceptCounts.set(canonical(question.subskill), (hardConceptCounts.get(canonical(question.subskill)) ?? 0) + 1);
 
-    const strandOrder = selected.map((question: { strand: string }) => question.strand);
+    assert.equal(easyConceptCounts.size, 10, `seed ${seed} easy distinct concepts changed`);
+    assert.equal(mediumConceptCounts.size, 11, `seed ${seed} medium distinct concepts changed`);
+    assert.equal(hardConceptCounts.size, 2, `seed ${seed} hard distinct concepts changed`);
+    assert.equal(byDifficulty('easy').length - easyConceptCounts.size, 0, `seed ${seed} repeated an easy concept`);
+    assert.equal(byDifficulty('medium').length - mediumConceptCounts.size, 2, `seed ${seed} medium repeated slots changed`);
+    assert.equal(byDifficulty('hard').length - hardConceptCounts.size, 0, `seed ${seed} repeated a hard concept`);
+
+    const mediumConcepts = new Set(mediumConceptCounts.keys());
+    const hardConcepts = new Set(hardConceptCounts.keys());
+    const hardOverlapsMedium = [...hardConcepts].filter((concept) => mediumConcepts.has(concept));
+    assert.equal(hardOverlapsMedium.length, 1, `seed ${seed} hard/medium overlap count changed`);
+
+    const finalOrder = strandInterleavedOrder(selected, seed);
+    const strandOrder = finalOrder.map((question: { strand: string }) => question.strand);
     assert.ok(new Set(strandOrder.slice(0, 6)).size > 1, `seed ${seed} lost strand interleaving`);
   }
 });
