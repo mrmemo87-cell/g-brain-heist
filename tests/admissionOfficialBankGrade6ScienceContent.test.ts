@@ -167,3 +167,87 @@ test('simulated 25-question Grade 6 Science generation prefers unique subskills 
     assert.ok(fallbackChecks.every(Boolean), `seed ${seed} used fallback while a unique-subskill candidate was still available`);
   }
 });
+
+test('simulated fixed SQL batch generation limits repeats to unavoidable fallback only', () => {
+  const blueprint = [
+    { question_type: 'mcq', difficulty: 'easy', count: 10 },
+    { question_type: 'mcq', difficulty: 'medium', count: 11 },
+    { question_type: 'mcq', difficulty: 'hard', count: 4 },
+  ];
+
+  const canonical = (value: string) => value.trim().toLowerCase();
+
+  for (let seed = 1; seed <= 30; seed += 1) {
+    const random = seededRandom(seed);
+    const selected: typeof grade6.questions = [];
+    const selectedIds = new Set<string>();
+    const selectedStems = new Set<string>();
+    const selectedCanonical = new Set<string>();
+    const fallbackEvents: Array<{ difficulty: string; unavoidable: boolean }> = [];
+
+    for (const bucket of blueprint) {
+      const candidates = grade6.questions
+        .filter((question: { question_type: string; difficulty: string }) => question.question_type === bucket.question_type && question.difficulty === bucket.difficulty)
+        .map((question: typeof grade6.questions[number]) => ({ question, sort: random() }))
+        .sort((a: { sort: number }, b: { sort: number }) => a.sort - b.sort)
+        .map((entry: { question: typeof grade6.questions[number] }) => entry.question);
+
+      const availableUniqueConcepts = new Set(candidates
+        .filter((question: { external_id: string; prompt: string; subskill: string }) => !selectedIds.has(question.external_id) && !selectedStems.has(normalizeStem(question.prompt)) && !selectedCanonical.has(canonical(question.subskill)))
+        .map((question: { subskill: string }) => canonical(question.subskill))).size;
+
+      const firstPassConcepts = new Set<string>();
+      for (const question of candidates) {
+        if (selected.filter((item: { difficulty: string }) => item.difficulty === bucket.difficulty).length >= bucket.count) break;
+        const stem = normalizeStem(question.prompt);
+        const concept = canonical(question.subskill);
+        if (selectedIds.has(question.external_id) || selectedStems.has(stem) || selectedCanonical.has(concept) || firstPassConcepts.has(concept)) continue;
+        selected.push(question);
+        selectedIds.add(question.external_id);
+        selectedStems.add(stem);
+        selectedCanonical.add(concept);
+        firstPassConcepts.add(concept);
+      }
+
+      assert.ok(firstPassConcepts.size <= availableUniqueConcepts);
+      const remaining = bucket.count - selected.filter((item: { difficulty: string }) => item.difficulty === bucket.difficulty).length;
+      if (remaining > 0) {
+        fallbackEvents.push({ difficulty: bucket.difficulty, unavoidable: availableUniqueConcepts < bucket.count });
+        const byExistingConcept = candidates
+          .filter((question: { external_id: string; prompt: string }) => !selectedIds.has(question.external_id) && !selectedStems.has(normalizeStem(question.prompt)))
+          .map((question: typeof grade6.questions[number]) => ({ question, existing: selected.filter((item: { subskill: string }) => canonical(item.subskill) === canonical(question.subskill)).length, sort: random() }))
+          .sort((a: { existing: number; sort: number }, b: { existing: number; sort: number }) => a.existing - b.existing || a.sort - b.sort);
+        for (const { question } of byExistingConcept.slice(0, remaining)) {
+          selected.push(question);
+          selectedIds.add(question.external_id);
+          selectedStems.add(normalizeStem(question.prompt));
+          selectedCanonical.add(canonical(question.subskill));
+        }
+      }
+    }
+
+    assert.equal(selected.length, 25);
+    assert.equal(selectedIds.size, 25);
+    assert.equal(selectedStems.size, 25);
+    assert.ok(fallbackEvents.every((event) => event.unavoidable), `seed ${seed} used avoidable fallback`);
+    assert.ok(!fallbackEvents.some((event) => event.difficulty === 'medium'), `seed ${seed} repeated a medium concept despite enough unique medium concepts`);
+
+    const byDifficulty = (difficulty: string) => selected.filter((question: { difficulty: string }) => question.difficulty === difficulty);
+    assert.equal(byDifficulty('easy').length, 10);
+    assert.equal(byDifficulty('medium').length, 11);
+    assert.equal(byDifficulty('hard').length, 4);
+
+    for (const concept of ['thermal conduction', 'friction between surfaces', 'plants require light']) {
+      assert.ok(selected.filter((question: { subskill: string }) => canonical(question.subskill) === concept).length < 3, `seed ${seed} selected 3 ${concept} questions`);
+    }
+
+    const strandOrder = selected.map((question: { strand: string }) => question.strand);
+    assert.ok(new Set(strandOrder.slice(0, 6)).size > 1, `seed ${seed} lost strand interleaving`);
+  }
+});
+
+test('canonical subskill normalization collapses casing and whitespace differences', () => {
+  const canonical = (value: string) => value.trim().toLowerCase();
+  assert.equal(canonical(' Thermal conduction '), canonical('thermal conduction'));
+  assert.equal(canonical('Plants require light'), canonical(' plants require light '));
+});
