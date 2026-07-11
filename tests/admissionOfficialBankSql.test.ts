@@ -173,3 +173,13 @@ test('batch-level fix preserves admission generation safety guarantees', () => {
   assert.match(batchSubskillFixSql, /v_available_unique < v_diff_count/);
   assert.match(batchSubskillFixSql, /ROW_NUMBER\(\) OVER \(ORDER BY strand_round ASC, random_order ASC\) AS question_order/);
 });
+
+
+const orderedDifficultyBucketsSql = readFileSync('supabase/migrations/20260711190000_admission_order_difficulty_buckets.sql', 'utf8');
+
+test('admission generation orders question type and difficulty buckets deterministically', () => {
+  assert.match(orderedDifficultyBucketsSql, /FROM jsonb_each\(v_bp\.question_distribution\)\s+ORDER BY key/);
+  assert.match(orderedDifficultyBucketsSql, /FROM jsonb_each_text\(v_dist_val\)\s+ORDER BY\s+CASE lower\(key\)\s+WHEN 'easy' THEN 1\s+WHEN 'medium' THEN 2\s+WHEN 'hard' THEN 3\s+ELSE 100\s+END,\s+key/);
+  assert.match(orderedDifficultyBucketsSql, /canonical_subskill text NOT NULL DEFAULT 'general'/);
+  assert.match(orderedDifficultyBucketsSql, /ROW_NUMBER\(\) OVER \(ORDER BY strand_round ASC, random_order ASC\) AS question_order/);
+});
