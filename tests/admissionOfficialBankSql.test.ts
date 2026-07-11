@@ -150,3 +150,26 @@ test('unique-subskill generation preserves existing uniqueness, filters, and int
   assert.match(uniqueSubskillGenerateSql, /content_version\) <> 'legacy-import'/);
   assert.match(uniqueSubskillGenerateSql, /ROW_NUMBER\(\) OVER \(ORDER BY strand_round ASC, random_order ASC\) AS question_order/);
 });
+
+const batchSubskillFixSql = readFileSync('supabase/migrations/20260710180000_admission_fix_batch_subskill_uniqueness.sql', 'utf8');
+
+test('admission generation fixes batch-level canonical subskill uniqueness', () => {
+  assert.match(batchSubskillFixSql, /canonical_subskill text NOT NULL DEFAULT 'general'/);
+  assert.match(batchSubskillFixSql, /lower\(btrim\(coalesce\(\s*nullif\(btrim\(q\.subskill\), ''\),\s*nullif\(btrim\(q\.diagnostic_skill\), ''\),\s*nullif\(btrim\(q\.topic\), ''\),\s*adm_normalize_question_stem\(q\.stem\)\s*\)\)\) AS canonical_subskill/);
+  assert.match(batchSubskillFixSql, /OR s\.canonical_subskill = lower\(btrim\(coalesce/);
+  assert.match(batchSubskillFixSql, /ROW_NUMBER\(\) OVER \(PARTITION BY bc\.canonical_subskill ORDER BY bc\.random_order\) AS subskill_round/);
+  assert.match(batchSubskillFixSql, /WHERE subskill_round = 1\s+ORDER BY existing_strand_count ASC, strand_round ASC, random_order ASC\s+LIMIT v_diff_count/);
+  assert.match(batchSubskillFixSql, /IF v_remaining_count > 0 THEN/);
+  assert.match(batchSubskillFixSql, /ORDER BY\s+existing_subskill_count ASC,\s+subskill_round ASC,\s+existing_strand_count ASC,\s+strand_round ASC,\s+random_order ASC/);
+});
+
+test('batch-level fix preserves admission generation safety guarantees', () => {
+  assert.match(batchSubskillFixSql, /school_members sm WHERE sm\.school_id = v_bp\.school_id AND sm\.user_id = auth\.uid\(\)/);
+  assert.match(batchSubskillFixSql, /adm_test_forms WHERE school_id = v_bp\.school_id AND form_code = v_form_code/);
+  assert.match(batchSubskillFixSql, /question_id uuid PRIMARY KEY/);
+  assert.match(batchSubskillFixSql, /normalized_stem text UNIQUE/);
+  assert.match(batchSubskillFixSql, /q\.is_official = true AND q\.is_locked = true AND qp\.is_official = true AND qp\.is_locked = true/);
+  assert.match(batchSubskillFixSql, /COALESCE\(q\.content_version, qp\.content_version\) LIKE 'adm-bank-v1-g%'/);
+  assert.match(batchSubskillFixSql, /v_available_unique < v_diff_count/);
+  assert.match(batchSubskillFixSql, /ROW_NUMBER\(\) OVER \(ORDER BY strand_round ASC, random_order ASC\) AS question_order/);
+});
