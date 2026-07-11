@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Brain Heist Admission Curriculum Map",
+  "type": "object",
+  "required": ["map_id", "map_version", "locked", "grade_stage_mapping", "objectives"],
+  "properties": {
+    "map_id": { "type": "string", "minLength": 1 },
+    "map_version": { "type": "string", "minLength": 1 },
+    "locked": { "const": true },
+    "grade_stage_mapping": {
+      "type": "object",
+      "required": ["explicit", "school_grade", "programme", "cambridge_stage"],
+      "properties": {
+        "explicit": { "const": true },
+        "school_grade": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "programme": { "type": "string" },
+        "cambridge_stage": { "type": ["integer", "string"] },
+        "rationale": { "type": "string" },
+        "reviewer": { "type": "string" },
+        "date": { "type": "string" }
+      }
+    },
+    "objectives": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["school_grade", "programme", "cambridge_stage", "typical_age_min", "typical_age_max", "subject", "subject_code", "source_version", "source_status", "objective_id", "strand", "subskill", "learner_can", "prerequisites", "prohibited_extensions", "allowed_question_types", "allowed_difficulties", "allowed_cognitive_levels", "source_reference", "review_status"],
+        "properties": {
+          "school_grade": { "type": "integer" }, "programme": { "type": "string" }, "cambridge_stage": { "type": ["integer", "string"] },
+          "typical_age_min": { "type": "integer" }, "typical_age_max": { "type": "integer" },
+          "subject": { "enum": ["english", "maths", "science"] }, "subject_code": { "type": "string" },
+          "source_version": { "type": "string" }, "source_status": { "type": "string" }, "objective_id": { "type": "string" },
+          "strand": { "type": "string" }, "subskill": { "type": "string" }, "learner_can": { "type": "string" },
+          "prerequisites": { "type": "array", "items": { "type": "string" } },
+          "prohibited_extensions": { "type": "array", "items": { "type": "string" } },
+          "allowed_question_types": { "type": "array", "items": { "type": "string" } },
+          "allowed_difficulties": { "type": "array", "items": { "type": "string" } },
+          "allowed_cognitive_levels": { "type": "array", "items": { "type": "string" } },
+          "source_reference": { "type": "string" }, "review_status": { "type": "string" }
+        }
+      }
+    }
+  }
+}

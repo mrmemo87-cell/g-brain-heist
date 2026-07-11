@@ -2,6 +2,11 @@
 
 This folder is the staging area for platform-owned, locked Admission Hub content. It is intentionally small right now and contains **sample/dev content only** so the seed shape, validation, and import process can be reviewed before the real Grade 5–8 bank is authored.
 
+
+## Authoring standard
+
+No new official bank should be authored without a validated curriculum map. Follow the permanent [Admission Bank Authoring Rulebook](../../../docs/admissions/ADMISSION_BANK_AUTHORING_RULEBOOK.md) before creating any additional grade bank.
+
 ## Folder structure
 
 ```text
@@ -25,9 +30,10 @@ supabase/seed/admission-official-bank/
 
 ## Validation
 
-Run this before any import:
+Run these fail-closed checks before any import or newly authored bank work:
 
 ```bash
+node scripts/validate-admission-curriculum-maps.mjs
 node scripts/validate-admission-official-bank.mjs
 ```
 
@@ -38,6 +44,10 @@ node scripts/validate-admission-official-bank.mjs path/to/admission-official-ban
 ```
 
 The validator fails on missing required metadata, duplicate `external_id`, invalid enum values, unsafe ownership/lock flags, bad scoring/timing fields, missing auto-scored answers, MCQs with fewer than 4 options, writing prompts without rubrics, and reading questions without a passage reference or inline passage.
+
+## Curriculum linkage policy
+
+Production-intended newly authored grade/subject files must set `curriculum_linkage_status: "linked"`, include `curriculum_map_id` and `curriculum_map_version`, and each question must include `curriculum_objective_id`. The official-bank validator cross-checks linked questions against the matching approved curriculum map. Current reviewed bank files are explicitly marked `curriculum_linkage_status: "legacy_review_required"`; this compatibility status is not allowed for new grade files.
 
 ## Pool schema
 
