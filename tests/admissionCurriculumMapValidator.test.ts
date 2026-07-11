@@ -124,3 +124,83 @@ test('admission curriculum map validator rejects invalid grade-stage and Grade 1
   assert.match(result.errors.join('\n'), /Grade 10 missing exact IGCSE/);
   assert.match(result.errors.join('\n'), /invalid programme\/subject code combination/);
 });
+
+function brainHeistInternationalObjective(overrides: Record<string, unknown> = {}) {
+  return {
+    school_grade: 10,
+    programme: 'brain_heist_international',
+    typical_age_min: 14,
+    typical_age_max: 16,
+    subject: 'maths',
+    objective_id: 'BH-MATHS-G10-001',
+    strand: 'Quantitative reasoning',
+    subskill: 'Interpret proportional change in an admissions-readiness context',
+    learner_can: 'Learner can interpret proportional change in an unfamiliar but age-appropriate context.',
+    level_definition: 'General international Grade 10 admission-readiness level, not an IGCSE syllabus.',
+    prerequisite_definition: 'Secure proportional reasoning from lower-secondary study.',
+    prerequisites: [],
+    prohibited_extensions: ['Do not require named IGCSE syllabus content.'],
+    allowed_question_types: ['mcq', 'structured'],
+    allowed_difficulties: ['medium'],
+    allowed_cognitive_levels: ['apply'],
+    source_references: ['England National Curriculum public programme of study summary', 'Common Core public ratio/proportional reasoning progression'],
+    source_review_status: 'approved',
+    academic_review_status: 'approved',
+    ...overrides,
+  };
+}
+
+function writeBrainHeistInternationalMap(objectives: unknown[], mapOverrides: Record<string, unknown> = {}) {
+  const root = mkdtempSync(path.join(os.tmpdir(), 'admission-bh-int-map-'));
+  mkdirSync(root, { recursive: true });
+  writeFileSync(path.join(root, 'grade_10_maths.json'), JSON.stringify({
+    map_id: 'BH-MATHS-G10-TEST',
+    map_version: 'test',
+    locked: true,
+    curriculum_authority: 'brain_heist',
+    programme: 'brain_heist_international',
+    assessment_style: 'international_school_admission',
+    official_affiliation: 'none',
+    reference_frameworks: ['England National Curriculum', 'Common Core'],
+    source_references: ['Public national curriculum references reviewed by Brain Heist academics.'],
+    source_licences: ['Public framework references only; original questions only.'],
+    copyright_policy: 'original_questions_only',
+    source_review_status: 'approved',
+    academic_review_status: 'approved',
+    grade_stage_mapping: { explicit: true, school_grade: 10, programme: 'brain_heist_international', level_definition: 'General international Grade 10 admission-readiness.' },
+    objectives,
+    ...mapOverrides,
+  }, null, 2));
+  return root;
+}
+
+test('admission curriculum map validator accepts Brain Heist International Grade 10 without Cambridge or IGCSE metadata', async () => {
+  const { validateAdmissionCurriculumMaps } = await loadValidator();
+  const result = validateAdmissionCurriculumMaps(writeBrainHeistInternationalMap([brainHeistInternationalObjective()]));
+  assert.equal(result.ok, true, result.errors.join('\n'));
+  assert.deepEqual(result.subjects, ['maths']);
+  assert.deepEqual(result.grades, ['10']);
+});
+
+test('admission curriculum map validator fails Brain Heist International maps without public source basis and original-question policy', async () => {
+  const { validateAdmissionCurriculumMaps } = await loadValidator();
+  const result = validateAdmissionCurriculumMaps(writeBrainHeistInternationalMap([
+    brainHeistInternationalObjective({ source_references: [], source_review_status: 'draft', academic_review_status: 'draft', level_definition: '', prerequisite_definition: '' }),
+  ], {
+    reference_frameworks: ['private exam pack'],
+    source_references: [],
+    source_licences: [],
+    copyright_policy: 'adapted_questions_allowed',
+    source_review_status: 'draft',
+    academic_review_status: 'draft',
+  }));
+  assert.equal(result.ok, false);
+  const output = result.errors.join('\n');
+  assert.match(output, /unreviewed reference_framework/);
+  assert.match(output, /missing source_references/);
+  assert.match(output, /copyright_policy original_questions_only/);
+  assert.match(output, /unapproved source_review_status/);
+  assert.match(output, /unapproved academic_review_status/);
+  assert.match(output, /missing level_definition/);
+  assert.match(output, /missing prerequisite_definition/);
+});

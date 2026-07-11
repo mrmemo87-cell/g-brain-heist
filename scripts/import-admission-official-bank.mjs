@@ -144,11 +144,32 @@ export function loadAdmissionSeed(seedDir = DEFAULT_SEED_DIR) {
   }
   for (const filePath of gradeFiles(seedDir)) {
     const data = readJson(filePath);
-    for (const pool of data.pools ?? []) pools.push({ ...pool, __filePath: filePath });
-    for (const question of data.questions ?? []) questions.push({ ...question, __filePath: filePath });
+    for (const pool of data.pools ?? []) pools.push({ ...pool, __filePath: filePath, __gradeFile: data });
+    for (const question of data.questions ?? []) questions.push({ ...question, __filePath: filePath, __gradeFile: data });
   }
 
   return { passages, rubrics, pools, questions };
+}
+
+function seedLinkageStatus(record) {
+  return record.curriculum_linkage_status ?? record.__gradeFile?.curriculum_linkage_status ?? null;
+}
+
+function objectiveSourceReference(question) {
+  return question.curriculum_source_reference ?? question.objective_source_reference ?? null;
+}
+
+function ensureLinkedMetadataNotLost(poolRows, questions) {
+  for (const row of poolRows) {
+    if (row.curriculum_linkage_status === 'linked' && (!row.curriculum_map_id || !row.curriculum_map_version)) {
+      throw new Error(`Refusing import because linked pool ${row.external_id} would lose curriculum map metadata`);
+    }
+  }
+  for (const question of questions) {
+    if (seedLinkageStatus(question) === 'linked' && !question.curriculum_objective_id) {
+      throw new Error(`Refusing import because linked question ${question.external_id} would lose curriculum_objective_id`);
+    }
+  }
 }
 
 function ensureOfficialRecord(record, label) {
@@ -175,6 +196,13 @@ export function buildPoolRow(pool) {
     content_version: pool.content_version,
     source_label: pool.source_label,
     placement_band: pool.placement_band,
+    curriculum_linkage_status: seedLinkageStatus(pool),
+    curriculum_map_id: seedLinkageStatus(pool) === 'linked' ? (pool.curriculum_map_id ?? pool.__gradeFile?.curriculum_map_id ?? null) : null,
+    curriculum_map_version: seedLinkageStatus(pool) === 'linked' ? (pool.curriculum_map_version ?? pool.__gradeFile?.curriculum_map_version ?? null) : null,
+    curriculum_programme: seedLinkageStatus(pool) === 'linked' ? (pool.curriculum_programme ?? pool.programme ?? pool.__gradeFile?.curriculum_programme ?? pool.__gradeFile?.programme ?? null) : null,
+    curriculum_subject_code: seedLinkageStatus(pool) === 'linked' ? (pool.curriculum_subject_code ?? pool.subject_code ?? pool.__gradeFile?.curriculum_subject_code ?? pool.__gradeFile?.subject_code ?? null) : null,
+    curriculum_source_version: seedLinkageStatus(pool) === 'linked' ? (pool.curriculum_source_version ?? pool.source_version ?? pool.__gradeFile?.curriculum_source_version ?? pool.__gradeFile?.source_version ?? null) : null,
+    curriculum_review_status: seedLinkageStatus(pool) === 'linked' ? (pool.curriculum_review_status ?? pool.review_status ?? pool.__gradeFile?.curriculum_review_status ?? pool.__gradeFile?.review_status ?? null) : null,
   };
 }
 
@@ -214,6 +242,9 @@ export function buildQuestionRow(question, poolId, passages, rubrics) {
     content_owner: 'brain_heist',
     content_version: question.content_version,
     source_label: question.source_label,
+    curriculum_objective_id: seedLinkageStatus(question) === 'linked' ? (question.curriculum_objective_id ?? null) : null,
+    curriculum_source_reference: seedLinkageStatus(question) === 'linked' ? objectiveSourceReference(question) : null,
+    curriculum_review_status: seedLinkageStatus(question) === 'linked' ? (question.curriculum_review_status ?? question.review_status ?? null) : seedLinkageStatus(question),
   };
 }
 
@@ -255,9 +286,18 @@ export async function importAdmissionOfficialBank({ seedDir = DEFAULT_SEED_DIR, 
     rubrics: seed.rubrics.size,
     upsertedPools: 0,
     upsertedQuestions: 0,
+    linkedQuestions: seed.questions.filter((question) => seedLinkageStatus(question) === 'linked').length,
+    legacyQuestions: seed.questions.filter((question) => seedLinkageStatus(question) === 'legacy_review_required').length,
+    missingObjectiveIds: seed.questions.filter((question) => seedLinkageStatus(question) === 'linked' && !question.curriculum_objective_id).length,
+    linkedPools: seed.pools.filter((pool) => seedLinkageStatus(pool) === 'linked').length,
+    legacyPools: seed.pools.filter((pool) => seedLinkageStatus(pool) === 'legacy_review_required').length,
   };
 
   const poolRows = seed.pools.map(buildPoolRow);
+  ensureLinkedMetadataNotLost(poolRows, seed.questions);
+  if (targetEnv.target === 'production' && summary.linkedQuestions > 0 && summary.missingObjectiveIds > 0) {
+    throw new Error('Refusing production import of linked content because objective IDs would be lost');
+  }
   const poolExternalIds = new Map(poolRows.map((row) => [row.external_id, row.external_id]));
   const questionRowsByPoolExternalId = seed.questions.map((question) => ({
     poolExternalId: question.pool_external_id,
@@ -298,6 +338,7 @@ function printSummary(result) {
   console.log(`Questions: ${summary.questions}${summary.dryRun ? '' : ` (${summary.upsertedQuestions} upserted)`}`);
   console.log(`Reading passages loaded: ${summary.passages}`);
   console.log(`Writing rubrics loaded: ${summary.rubrics}`);
+  console.log(`Curriculum linkage: ${summary.linkedPools} linked pools, ${summary.legacyPools} legacy pools, ${summary.linkedQuestions} linked questions, ${summary.legacyQuestions} legacy questions, ${summary.missingObjectiveIds} missing objective IDs`);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

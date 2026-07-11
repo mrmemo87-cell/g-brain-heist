@@ -442,6 +442,17 @@ function curriculumMapFiles(root) {
   return out;
 }
 
+function curriculumMapMode(data) {
+  const programme = data?.programme ?? data?.grade_stage_mapping?.programme;
+  if (data?.curriculum_authority === 'brain_heist' || programme === 'brain_heist_international') return 'brain_heist_international';
+  return 'cambridge_linked';
+}
+
+function objectiveApprovedForMode(objective, mode) {
+  if (mode === 'brain_heist_international') return objective.source_review_status === 'approved' && objective.academic_review_status === 'approved';
+  return objective.source_status === 'approved' && objective.review_status === 'approved';
+}
+
 function loadCurriculumMaps(seedDir, errors) {
   const root = path.join(seedDir, 'curriculum-maps');
   const maps = new Map();
@@ -453,14 +464,15 @@ function loadCurriculumMaps(seedDir, errors) {
     }
     if (data.locked !== true) errors.push(`${filePath}: linked curriculum map must be locked`);
     if (!data.map_id || !data.map_version) errors.push(`${filePath}: linked curriculum map requires map_id and map_version`);
+    const mode = curriculumMapMode(data);
     const objectives = new Map();
     for (const objective of Array.isArray(data.objectives) ? data.objectives : []) {
       if (objective.objective_id) objectives.set(objective.objective_id, objective);
-      if (objective.source_status !== 'approved' || objective.review_status !== 'approved') {
+      if (!objectiveApprovedForMode(objective, mode)) {
         errors.push(`${filePath}: objective ${objective.objective_id || '(missing id)'} is not approved for linked official-bank use`);
       }
     }
-    if (data.map_id && data.map_version) maps.set(`${data.map_id}@${data.map_version}`, { filePath, data, objectives });
+    if (data.map_id && data.map_version) maps.set(`${data.map_id}@${data.map_version}`, { filePath, data, objectives, mode });
   }
   return maps;
 }
@@ -475,12 +487,12 @@ function validateLinkedQuestion(errors, filePath, location, bank, question, mapR
     errors.push(`${filePath}: ${location} references unknown curriculum_objective_id '${question.curriculum_objective_id}'`);
     return;
   }
-  if (objective.source_status !== 'approved' || objective.review_status !== 'approved') {
+  if (!objectiveApprovedForMode(objective, mapRecord.mode)) {
     errors.push(`${filePath}: ${location} references unapproved curriculum objective '${question.curriculum_objective_id}'`);
   }
   if (objective.subject !== question.subject) errors.push(`${filePath}: ${location} subject '${question.subject}' does not match curriculum objective subject '${objective.subject}'`);
   if (objective.school_grade !== question.grade_level) errors.push(`${filePath}: ${location} grade_level ${question.grade_level} does not match curriculum objective school_grade ${objective.school_grade}`);
-  if (objective.cambridge_stage !== question.stage_level) errors.push(`${filePath}: ${location} stage_level ${question.stage_level} does not match curriculum objective cambridge_stage ${objective.cambridge_stage}`);
+  if (mapRecord.mode === 'cambridge_linked' && objective.cambridge_stage !== question.stage_level) errors.push(`${filePath}: ${location} stage_level ${question.stage_level} does not match curriculum objective cambridge_stage ${objective.cambridge_stage}`);
   if (!Array.isArray(objective.allowed_question_types) || !objective.allowed_question_types.includes(question.question_type)) errors.push(`${filePath}: ${location} question_type '${question.question_type}' is not allowed by curriculum objective '${question.curriculum_objective_id}'`);
   if (!Array.isArray(objective.allowed_difficulties) || !objective.allowed_difficulties.includes(question.difficulty)) errors.push(`${filePath}: ${location} difficulty '${question.difficulty}' is not allowed by curriculum objective '${question.curriculum_objective_id}'`);
   if (!question.cognitive_level) errors.push(`${filePath}: ${location} linked question is missing cognitive_level`);
