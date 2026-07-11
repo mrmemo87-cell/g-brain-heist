@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://brainheist.local/admission-bank-release-manifest.schema.json",
+  "title": "Admission Bank Release Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "curriculum_mode",
+    "subject",
+    "school_grade",
+    "expected_age_min",
+    "expected_age_max",
+    "map_id",
+    "map_version",
+    "bank_content_version",
+    "question_count",
+    "objective_count",
+    "deterministic_simulation_count",
+    "achieved_concept_diversity",
+    "validator_commit_sha",
+    "academic_reviewer",
+    "academic_review_date",
+    "department_head_approval",
+    "staging_verification",
+    "production_import_date",
+    "release_status"
+  ],
+  "properties": {
+    "curriculum_mode": { "enum": ["cambridge_linked", "brain_heist_international"] },
+    "curriculum_authority": { "enum": ["brain_heist", "cambridge", null] },
+    "programme": { "type": ["string", "null"] },
+    "assessment_style": { "enum": ["international_school_admission", null] },
+    "official_affiliation": { "enum": ["none", "cambridge_linked", null] },
+    "subject": { "enum": ["english", "maths", "science"] },
+    "school_grade": { "type": "integer", "minimum": 1, "maximum": 10 },
+    "expected_age_min": { "type": "integer", "minimum": 4, "maximum": 18 },
+    "expected_age_max": { "type": "integer", "minimum": 4, "maximum": 20 },
+    "cambridge_stage": { "type": ["integer", "string", "null"] },
+    "cambridge_programme": { "type": ["string", "null"], "minLength": 1 },
+    "cambridge_subject_code": { "type": ["string", "null"], "minLength": 1 },
+    "subject_code": { "type": ["string", "null"], "minLength": 1 },
+    "source_version": { "type": ["string", "null"], "minLength": 1 },
+    "syllabus_code": { "type": ["string", "null"], "minLength": 1 },
+    "igcse_syllabus_code": { "type": ["string", "null"], "minLength": 1 },
+    "igcse_subject_name": { "type": ["string", "null"], "minLength": 1 },
+    "igcse_pathway": { "type": ["string", "null"], "minLength": 1 },
+    "syllabus_year": { "type": ["integer", "string", "null"] },
+    "examination_year": { "type": ["integer", "string", "null"] },
+    "map_id": { "type": "string", "minLength": 1 },
+    "map_version": { "type": "string", "minLength": 1 },
+    "reference_frameworks": { "type": "array", "minItems": 1, "items": { "enum": ["CEFR", "England National Curriculum", "Common Core", "NGSS", "other reviewed public national or international standards"] } },
+    "source_references": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+    "source_licences": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+    "copyright_policy": { "enum": ["original_questions_only", null] },
+    "source_review_status": { "type": ["string", "null"] },
+    "academic_review_status": { "type": ["string", "null"] },
+    "bank_content_version": { "type": "string", "minLength": 1 },
+    "question_count": { "type": "integer", "minimum": 0 },
+    "objective_count": { "type": "integer", "minimum": 0 },
+    "deterministic_simulation_count": { "type": "integer", "minimum": 0 },
+    "achieved_concept_diversity": { "type": "number", "minimum": 0 },
+    "validator_commit_sha": { "type": "string", "pattern": "^[0-9a-fA-F]{7,40}$" },
+    "academic_reviewer": { "type": ["string", "null"], "minLength": 1 },
+    "academic_review_date": { "type": ["string", "null"], "format": "date" },
+    "department_head_approval": { "type": ["string", "null"] },
+    "staging_verification": { "type": ["string", "null"] },
+    "production_import_date": { "type": ["string", "null"], "format": "date" },
+    "release_status": { "enum": ["draft", "academic_review_required", "staging_required", "approved_for_production", "released"] }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "curriculum_mode": { "const": "brain_heist_international" } }, "required": ["curriculum_mode"] },
+      "then": {
+        "required": [
+          "curriculum_authority",
+          "programme",
+          "assessment_style",
+          "official_affiliation",
+          "reference_frameworks",
+          "source_references",
+          "source_licences",
+          "copyright_policy",
+          "source_review_status",
+          "academic_review_status"
+        ],
+        "properties": {
+          "curriculum_authority": { "const": "brain_heist" },
+          "programme": { "const": "brain_heist_international" },
+          "assessment_style": { "const": "international_school_admission" },
+          "official_affiliation": { "const": "none" },
+          "copyright_policy": { "const": "original_questions_only" },
+          "source_review_status": { "const": "approved" },
+          "academic_review_status": { "const": "approved" },
+          "cambridge_stage": { "type": ["integer", "string", "null"] },
+          "cambridge_programme": { "type": ["string", "null"] },
+          "cambridge_subject_code": { "type": ["string", "null"] },
+          "subject_code": { "type": ["string", "null"] },
+          "igcse_syllabus_code": { "type": ["string", "null"] },
+          "igcse_subject_name": { "type": ["string", "null"] },
+          "igcse_pathway": { "type": ["string", "null"] },
+          "syllabus_year": { "type": ["integer", "string", "null"] },
+          "examination_year": { "type": ["integer", "string", "null"] }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "curriculum_mode": { "const": "cambridge_linked" } }, "required": ["curriculum_mode"] },
+      "then": {
+        "required": ["cambridge_programme", "cambridge_stage", "subject_code", "source_version"],
+        "properties": {
+          "official_affiliation": { "enum": ["cambridge_linked", null] },
+          "cambridge_programme": { "type": "string", "minLength": 1 },
+          "cambridge_stage": { "type": ["integer", "string"] },
+          "subject_code": { "type": "string", "minLength": 1 },
+          "source_version": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "curriculum_mode": { "const": "cambridge_linked" },
+          "school_grade": { "const": 10 },
+          "cambridge_programme": { "enum": ["Cambridge IGCSE", "cambridge_igcse"] }
+        },
+        "required": ["curriculum_mode", "school_grade", "cambridge_programme"]
+      },
+      "then": { "required": ["igcse_syllabus_code", "igcse_subject_name", "igcse_pathway", "syllabus_year", "examination_year"] }
+    }
+  ]
+}

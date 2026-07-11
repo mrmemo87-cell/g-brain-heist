@@ -441,3 +441,36 @@ test('official bank validator rejects linked forbidden question type difficulty 
   assert.throws(() => execFileSync(process.execPath, [validator, root], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }), /difficulty 'hard' is not allowed/);
   assert.throws(() => execFileSync(process.execPath, [validator, root], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }), /cognitive_level 'evaluate' is not allowed/);
 });
+
+test('official bank validator accepts Brain Heist International linked content without Cambridge subject code', () => {
+  const root = linkedOfficialBankFixture({
+    map: {
+      curriculum_authority: 'brain_heist',
+      programme: 'brain_heist_international',
+      assessment_style: 'international_school_admission',
+      official_affiliation: 'none',
+      reference_frameworks: ['NGSS', 'other reviewed public national or international standards'],
+      source_references: ['Public science practice framework reviewed for admissions readiness.'],
+      source_licences: ['Public framework reference; original Brain Heist questions only.'],
+      copyright_policy: 'original_questions_only',
+      source_review_status: 'approved',
+      academic_review_status: 'approved',
+      grade_stage_mapping: { explicit: true, school_grade: 6, programme: 'brain_heist_international', level_definition: 'General international Grade 6 admission-readiness.' },
+    },
+    objective: {
+      programme: 'brain_heist_international',
+      subject_code: undefined,
+      source_version: undefined,
+      source_status: undefined,
+      source_reference: undefined,
+      review_status: undefined,
+      level_definition: 'General international Grade 6 admission-readiness scientific enquiry.',
+      prerequisite_definition: 'Basic observation and fair-test vocabulary.',
+      source_references: ['Public science practice framework reviewed for admissions readiness.'],
+      source_review_status: 'approved',
+      academic_review_status: 'approved',
+    },
+  });
+  const result = execFileSync(process.execPath, [validator, root], { encoding: 'utf8' });
+  assert.match(result, /validation passed/);
+});

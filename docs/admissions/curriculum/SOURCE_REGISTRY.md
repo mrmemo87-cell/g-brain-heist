@@ -1,6 +1,6 @@
 # Admission Curriculum Source Registry
 
-Approved curriculum maps must name an approved source entry. Real Cambridge-derived maps require licensed Cambridge curriculum or syllabus documents before objectives can be populated.
+Approved curriculum maps must name an approved source basis. Cambridge-linked maps require Cambridge-specific sources and metadata. Brain Heist International maps require approved public reference frameworks, clear source references/licences, independent Brain Heist objectives, and original Brain Heist questions only.
 
 | Source status | Meaning | Use |
 |---|---|---|
@@ -9,4 +9,4 @@ Approved curriculum maps must name an approved source entry. Real Cambridge-deri
 | `draft` | Internal draft only. | Do not generate. |
 | `deprecated` | Replaced or withdrawn. | Do not generate. |
 
-Grade 10 entries must identify the exact IGCSE subject syllabus, pathway, syllabus year, and examination year; a generic Stage 10 source is forbidden.
+Grade 10 Cambridge IGCSE entries must identify the exact IGCSE subject syllabus, pathway, syllabus year, and examination year. Brain Heist International Grade 10 entries may use a general international admission-readiness level and must not require IGCSE metadata unless the programme explicitly uses `cambridge_igcse`.
