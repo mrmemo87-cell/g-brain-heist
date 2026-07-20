@@ -8,10 +8,10 @@ import * as SchoolAdminService from '../services/schoolAdminService';
 import { supabase } from '../services/supabaseClient';
 import BackButton from './BackButton';
 import SettingsModal from './SettingsModal';
-import HelpModal from './HelpModal';
+const HelpModal = React.lazy(() => import('./HelpModal'));
 import { NotificationCenter } from './NotificationCenter';
-import DiagramBuilder from './geometry/DiagramBuilder';
-import QuestionBank from './teacher/QuestionBank';
+const DiagramBuilder = React.lazy(() => import('./geometry/DiagramBuilder'));
+const QuestionBank = React.lazy(() => import('./teacher/QuestionBank'));
 import JoinSchoolCard from './JoinSchoolCard';
 import '../src/styles/teacher-theme.css';
 import { brainsAlert } from '../src/utils/brainsAlert';
@@ -21,11 +21,11 @@ import { getQuestionsForQuiz, type QuestionData } from './cambridgeQuestionData'
 import { fetchSchoolPlanDetails, fetchEffectiveTier, isPro, fetchPilotQuotas, getQuotaForFeature, QUOTA_LABELS, FEATURE_TO_QUOTA, tryConsumePilotQuota, type SchoolPlanDetails, type AccountTier, type PilotQuotaStatus, type PilotQuota } from '../services/tierService';
 import ProfessionalCambridgeReport, { generateSerialNumber, StudentOverviewReport, getGradeFromPercentage } from './ProfessionalCambridgeReport';
 import type { ProfessionalReportData, StudentOverviewReportData, StudentTestEntry } from './ProfessionalCambridgeReport';
-import CollectiveAssignmentReport from './CollectiveAssignmentReport';
+const CollectiveAssignmentReport = React.lazy(() => import('./CollectiveAssignmentReport'));
 import { notificationService } from '../services/notificationService';
-import WritingMonitoringView from '../src/pages/writing/WritingMonitoringView';
-import WritingAnalyticsDashboard from '../src/pages/writing/WritingAnalyticsDashboard';
-import WritingExportCenter from '../src/pages/writing/WritingExportCenter';
+const WritingMonitoringView = React.lazy(() => import('../src/pages/writing/WritingMonitoringView'));
+const WritingAnalyticsDashboard = React.lazy(() => import('../src/pages/writing/WritingAnalyticsDashboard'));
+const WritingExportCenter = React.lazy(() => import('../src/pages/writing/WritingExportCenter'));
 import { normalizePart2CommunicativeAchievement, sanitizeCommunicativeAchievementText } from '../src/lib/writingCommunicativeAchievement';
 
 interface TeacherPortalProps {
@@ -102,6 +102,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [questions, setQuestions] = useState<TeacherQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const initCalledRef = useRef(false);
+  const questionsLoadRef = useRef<Promise<void> | null>(null);
   const [uploading, setUploading] = useState(false);
   const [backfillingQuestMissions, setBackfillingQuestMissions] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
@@ -619,6 +620,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         setView('students');
         break;
       case 'questions':
+        void loadQuestionsOnDemand();
         setView('question-bank');
         break;
       case 'assignments':
@@ -644,6 +646,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         loadCambridgeScores();
         break;
       case 'quests':
+        void loadQuestionsOnDemand();
         setView('quest-builder');
         loadMyQuests();
         break;
@@ -2771,65 +2774,63 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     link.click();
   };
 
+  const loadQuestionsOnDemand = () => {
+    if (questionsLoadRef.current) return questionsLoadRef.current;
+
+    const request = GameService.get_all_questions()
+      .then(setQuestions)
+      .catch((error) => {
+        console.error('Error loading global question bank:', error);
+        setQuestions([]);
+      })
+      .finally(() => {
+        questionsLoadRef.current = null;
+      });
+
+    questionsLoadRef.current = request;
+    return request;
+  };
+
   const loadTeacherData = async () => {
     try {
       setLoading(true);
       const teacherProfile = await GameService.get_teacher_profile();
-      
       if (!teacherProfile) {
-        // User is not a teacher yet, create profile
-        const newTeacher = await GameService.create_teacher_profile();
-        setTeacher(newTeacher);
+        setTeacher(await GameService.create_teacher_profile());
       } else {
         setTeacher(teacherProfile);
       }
 
-      // Run independent startup data fetches in parallel to reduce blocking time
-      const [classesResult, questionsResult, studentsResult, assignmentsResult] = await Promise.allSettled([
-        SchoolAdminService.getTeacherAssignedClasses(),
-        GameService.get_all_questions(),
-        GameService.get_students_for_assignment(),
-        GameService.get_teacher_assignments(),
-      ]);
+      // The usable dashboard opens as soon as identity is known. Secondary
+      // cards hydrate independently; the global question bank is tab-only.
+      setLoading(false);
 
-      if (classesResult.status === 'fulfilled') {
-        const classes = classesResult.value;
-        setAssignedClasses(classes);
-        setTeacherHasClassAssignments(classes.length > 0);
-        console.log('Loaded assigned classes:', classes);
-      } else {
-        console.error('Error loading assigned classes:', classesResult.reason);
-        setAssignedClasses([]);
-        setTeacherHasClassAssignments(false);
-      }
+      void SchoolAdminService.getTeacherAssignedClasses()
+        .then((classes) => {
+          setAssignedClasses(classes);
+          setTeacherHasClassAssignments(classes.length > 0);
+        })
+        .catch((error) => {
+          console.error('Error loading assigned classes:', error);
+          setAssignedClasses([]);
+          setTeacherHasClassAssignments(false);
+        });
 
-      if (questionsResult.status === 'fulfilled') {
-        // Load ALL questions from global bank (not just teacher's own)
-        // Content = shared: Teachers see all questions from all schools
-        setQuestions(questionsResult.value);
-      } else {
-        console.error('Error loading global question bank:', questionsResult.reason);
-        setQuestions([]);
-      }
+      void GameService.get_students_for_assignment()
+        .then(setAvailableStudents)
+        .catch((error) => {
+          console.error('Error loading students:', error);
+          setAvailableStudents([]);
+        });
 
-      if (studentsResult.status === 'fulfilled') {
-        const students = studentsResult.value;
-        console.log('Loaded students:', students);
-        setAvailableStudents(students);
-      } else {
-        console.error('Error loading students:', studentsResult.reason);
-        setAvailableStudents([]);
-      }
-
-      if (assignmentsResult.status === 'fulfilled') {
-        setAssignments(assignmentsResult.value);
-      } else {
-        console.error('Error loading assignments:', assignmentsResult.reason);
-        setAssignments([]);
-      }
+      void GameService.get_teacher_assignments()
+        .then(setAssignments)
+        .catch((error) => {
+          console.error('Error loading assignments:', error);
+          setAssignments([]);
+        });
     } catch (error) {
       console.error('Error loading teacher data:', error);
-    } finally {
       setLoading(false);
     }
   };
@@ -3087,6 +3088,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   const openBlankAssignmentForm = useCallback(() => {
     resetAssignmentDraft();
+    void loadQuestionsOnDemand();
     setView('create-assignment');
   }, [resetAssignmentDraft]);
 
@@ -3108,6 +3110,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       setAssignmentTopicMode('general');
       setAssignmentTopicName('');
     }
+    void loadQuestionsOnDemand();
     setView('create-assignment');
   }, [teacherAssignedSubjects]);
 
