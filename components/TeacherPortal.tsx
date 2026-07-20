@@ -3249,6 +3249,16 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       setSelectedReportAssignment(assignment);
       const rows = await GameService.get_teacher_assignment_report(assignment.id);
       setAssignmentReport(rows);
+      setAssignments((current) => current.map((item) => (
+        item.id === assignment.id
+          ? { ...item, completed_count: rows.length }
+          : item
+      )));
+      setSelectedReportAssignment((current) => (
+        current?.id === assignment.id
+          ? { ...current, completed_count: rows.length }
+          : current
+      ));
       
       // Also load question analysis
       try {
@@ -6088,7 +6098,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                         }`}
                       >
                         <div className="flex items-start justify-between mb-2">
-                          <span className="text-xs font-bold text-slate-500">Q{idx + 1}</span>
+                          <span className="text-xs font-bold text-slate-500">Q{qa.order_index ?? idx + 1}</span>
                           <span className={`text-lg font-bold ${
                             qa.accuracy_percent < 50 ? 'text-red-600' : qa.accuracy_percent < 70 ? 'text-amber-600' : 'text-green-600'
                           }`}>

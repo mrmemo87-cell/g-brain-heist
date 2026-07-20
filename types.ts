@@ -1083,6 +1083,7 @@ export interface StudentAssignmentAnswer {
 
 export interface AssignmentQuestionAnalysis {
   question_id: string;
+  order_index: number;
   question_text: string;
   correct_answer: string;
   total_attempts: number;
