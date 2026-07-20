@@ -749,6 +749,7 @@ DECLARE
   v_node_count INTEGER;
   v_explanation TEXT;
   v_time_taken_ms INTEGER;
+  v_cap_result JSONB;
 BEGIN
   IF v_user_id IS NULL THEN
     RAISE EXCEPTION 'Not authenticated';
