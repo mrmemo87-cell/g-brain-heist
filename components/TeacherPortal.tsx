@@ -320,8 +320,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [selectedAnalysisStudent, setSelectedAnalysisStudent] = useState<TeacherAssignmentReportRow | null>(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const [analysisTab, setAnalysisTab] = useState<'overview' | 'questions' | 'student'>('overview');
-  const [studentAssignmentAnalysis, setStudentAssignmentAnalysis] = useState<any | null>(null);
-  const [analysisModalOpen, setAnalysisModalOpen] = useState(false);
 
   // Cambridge Test Reports State
   const [cambridgeScores, setCambridgeScores] = useState<any[]>([]);
@@ -3277,18 +3275,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       );
       setStudentAnswers(answers);
       
-      // Generate AI analysis in parallel
-      try {
-        const analysis = await GameService.generate_assignment_analysis(
-          selectedReportAssignment.id,
-          student.student_id
-        );
-        setStudentAssignmentAnalysis(analysis);
-        setAnalysisModalOpen(true);
-      } catch (analysisError) {
-        console.warn('Could not generate AI analysis:', analysisError);
-        // Continue without AI analysis - it's optional
-      }
+      // Student-level reporting uses stored answers and scoring only.
+      // AI analysis remains off until its Edge Function has authenticated,
+      // school-scoped authorization and is deployed.
       
       setView('report-analysis');
     } catch (error) {
@@ -3972,6 +3961,31 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       alertItems.push({ tone: 'info', text: `Current success rate is ${successRate}%. Consider intervention.` });
     }
 
+    const teacherSetupSteps = [
+      {
+        label: 'Confirm classes and subjects',
+        complete: teacherHasClassAssignments,
+        detail: teacherHasClassAssignments
+          ? `${myClasses.length} class${myClasses.length === 1 ? '' : 'es'} ready: ${myClasses.slice(0, 3).join(' · ')}`
+          : 'Your school admin must assign at least one class and subject before you can send work.',
+      },
+      {
+        label: 'Choose teaching content',
+        complete: questions.length > 0,
+        detail: questions.length > 0
+          ? `${questions.length} question${questions.length === 1 ? '' : 's'} available in the question bank.`
+          : 'Add a question or ask your school admin to make approved content available.',
+      },
+      {
+        label: 'Send your first assignment',
+        complete: assignments.length > 0,
+        detail: assignments.length > 0
+          ? `${assignments.length} assignment${assignments.length === 1 ? '' : 's'} created.`
+          : 'Select questions, choose a class, set a deadline, then publish.',
+      },
+    ];
+    const teacherSetupComplete = teacherSetupSteps.every((step) => step.complete);
+
     return (
     <div className="space-y-8">
       {/* Welcome Section */}
@@ -3981,6 +3995,91 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         </h2>
         <p className="teacher-section-subtitle">Manage your classes, questions, and track student progress</p>
       </div>
+
+      <section
+        className="rounded-2xl border border-cyan-200 bg-white p-5 shadow-sm"
+        aria-labelledby="teacher-getting-started-title"
+      >
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <div className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-700">
+              {teacherSetupComplete ? 'Workspace ready' : 'Teacher quick start'}
+            </div>
+            <h3 id="teacher-getting-started-title" className="mt-1 text-xl font-bold text-slate-900">
+              {teacherSetupComplete ? 'You are ready to teach' : 'Start teaching in three clear steps'}
+            </h3>
+            <p className="mt-1 max-w-2xl text-sm text-slate-600">
+              {teacherSetupComplete
+                ? 'Your classes, content, and first assignment are in place. Use Reports to follow student progress.'
+                : 'Complete these once. Brain Heist will keep the rest of your workspace available while you set up.'}
+            </p>
+          </div>
+
+          {!teacherSetupComplete && (
+            !teacherHasClassAssignments ? (
+              isSchoolAdmin && onOpenSchoolAdmin ? (
+                <button
+                  type="button"
+                  onClick={onOpenSchoolAdmin}
+                  className="rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-cyan-500"
+                >
+                  Assign classes in School Admin
+                </button>
+              ) : (
+                <div className="max-w-sm rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                  Ask your school admin to assign your class and subject. You do not need to change anything in Supabase.
+                </div>
+              )
+            ) : questions.length === 0 ? (
+              <button
+                type="button"
+                onClick={() => setView('create-question')}
+                disabled={!isProPlan}
+                className="rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Create your first question
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={openBlankAssignmentForm}
+                disabled={!isProPlan}
+                className="rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Create your first assignment
+              </button>
+            )
+          )}
+        </div>
+
+        <ol className="mt-5 grid gap-3 md:grid-cols-3">
+          {teacherSetupSteps.map((step, index) => (
+            <li
+              key={step.label}
+              className={`rounded-xl border p-4 ${
+                step.complete
+                  ? 'border-emerald-200 bg-emerald-50'
+                  : 'border-slate-200 bg-slate-50'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span
+                  className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold ${
+                    step.complete
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-slate-200 text-slate-700'
+                  }`}
+                  aria-hidden="true"
+                >
+                  {step.complete ? '✓' : index + 1}
+                </span>
+                <span className="font-semibold text-slate-900">{step.label}</span>
+              </div>
+              <p className="mt-2 text-sm leading-5 text-slate-600">{step.detail}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
 
       {/* Stats Cards - Professional Grid */}
       {/* Uses myQuestions (teacher's own) for stats, not the global question bank */}
