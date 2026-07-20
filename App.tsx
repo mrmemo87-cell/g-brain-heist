@@ -54,7 +54,7 @@ const RivalryView = lazyRetry(() => import('./components/RivalryView'), 'Rivalry
 const InventoryView = lazyRetry(() => import('./components/InventoryView'), 'InventoryView');
 const LeaderboardView = lazyRetry(() => import('./components/LeaderboardView'), 'LeaderboardView');
 const AchievementView = lazyRetry(() => import('./components/AchievementView'), 'AchievementView');
-const TeacherPortal = lazyRetry(() => import('./components/TeacherPortal'), 'TeacherPortal');
+const TeacherPortal = lazyRetry(() => import('./components/TeacherDashboardEntry'), 'TeacherDashboardEntry');
 const AdminPortal = lazyRetry(() => import('./components/AdminPortal'), 'AdminPortal');
 const TournamentHub = lazyRetry(() => import('./components/TournamentHub'), 'TournamentHub');
 const TournamentAdminDashboard = lazyRetry(() => import('./components/TournamentAdminDashboard'), 'TournamentAdminDashboard');
@@ -732,56 +732,27 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         return;
       }
 
-      // ── FAST TEACHER PATH ──
-      // Peek at user role from a lightweight query before running the full whoami.
-      // Teachers skip AP regen, streak, clan, cosmetics, inventory, XP status.
+      // One minimal profile request decides the role and unlocks the dashboard.
+      // Expensive student game hydration and portal datasets load after paint.
       let profileData: Profile | null = null;
       try {
-        const { data: peekRow, error: peekError } = await supabase
-          .from('users')
-          .select('role, username, level, coins, gemstones, streak, avatar_url')
-          .eq('id', data.session.user.id)
-          .single();
-        if (peekError) {
-          throw peekError;
-        }
-        if (peekRow?.username) {
-          setPeekedUser({
-            username: peekRow.username,
-            level: peekRow.level ?? undefined,
-            coins: peekRow.coins ?? undefined,
-            gems: peekRow.gemstones ?? undefined,
-            streak: peekRow.streak ?? undefined,
-            avatarUrl: peekRow.avatar_url ?? undefined,
+        profileData = await GameService.whoamiFast();
+      } catch (fastBootError: any) {
+        // Preserve first-login/OAuth profile creation through the legacy path.
+        if (fastBootError?.code === 'PGRST116') {
+          const { session, profile: createdProfile } = await GameService.getCriticalBootData({
+            signal: criticalController.signal,
+            timeoutMs: 12000,
+            retryOnTimeout: 0,
           });
+          if (!session) {
+            setSessionMissing(true);
+            return;
+          }
+          profileData = createdProfile;
+        } else {
+          throw fastBootError;
         }
-        if (peekRow?.role === 'teacher') {
-          setPeekedRole('teacher');
-          profileData = await GameService.whoamiTeacher();
-        } else if (peekRow?.role === 'school_admin') {
-          // School admin = formal account, use lightweight teacher path
-          setPeekedRole('teacher');
-          profileData = await GameService.whoamiTeacher();
-        } else if (peekRow?.role) {
-          setPeekedRole(peekRow?.role === 'admin' ? 'admin' : 'student');
-        }
-      } catch { /* fall through to normal boot */ }
-
-      if (!profileData) {
-        const { session, profile: fullProfile } = await GameService.getCriticalBootData({
-          signal: criticalController.signal,
-          // whoami performs several post-profile hydration calls (AP, streak,
-          // cosmetics, school metadata). Fresh accounts can run slower,
-          // especially cross-region, so keep a more tolerant boot window.
-          timeoutMs: 25000,
-          retryOnTimeout: 2,
-        });
-
-        if (!session) {
-          setSessionMissing(true);
-          return;
-        }
-        profileData = fullProfile;
       }
 
       if (!profileData) {

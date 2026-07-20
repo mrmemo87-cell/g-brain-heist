@@ -1448,6 +1448,50 @@ export const whoamiTeacher = async (): Promise<Profile> => {
   return profile;
 };
 
+/**
+ * Minimal dashboard bootstrap for existing accounts.
+ * Returns only the persisted profile and school display fields; all game
+ * hydration (AP regeneration, clan, inventory, cosmetics and XP status)
+ * happens after the first interactive render.
+ */
+export const whoamiFast = async (): Promise<Profile> => {
+  const user = await getCurrentUser();
+  const { data: profile, error: profileError } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  if (profileError || !profile) {
+    throw profileError || new Error('Profile not found');
+  }
+
+  profile.gemstones = typeof profile.gemstones === 'number' ? profile.gemstones : 0;
+  profile.is_admin = typeof profile.is_admin === 'boolean' ? profile.is_admin : profile.role === 'admin';
+  profile.is_banned = isBannedFlag(profile.is_banned);
+  if (profile.is_banned) {
+    storeBanMessage(BAN_MESSAGE);
+    await supabase.auth.signOut();
+    throw new Error(BAN_MESSAGE);
+  }
+
+  if (profile.school_id) {
+    const { data: schoolData } = await supabase
+      .from('schools')
+      .select('name, logo_url')
+      .eq('id', profile.school_id)
+      .maybeSingle();
+    if (schoolData) {
+      profile.school_name = schoolData.name;
+      profile.school_logo_url = schoolData.logo_url;
+    }
+  }
+
+  // Presence must never delay the dashboard.
+  void supabase.from('users').update({ last_seen: new Date().toISOString() }).eq('id', user.id);
+  return profile as Profile;
+};
+
 export const whoami = async (): Promise<Profile> => {
   if (whoamiInFlight) {
     return whoamiInFlight;
