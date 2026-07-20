@@ -56,6 +56,9 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
   // Filters
   const [subjectFilter, setSubjectFilter] = useState<'all' | Subject>('all');
   const [batchFilter, setBatchFilter] = useState<string>('all');
+  const [assignmentFilter, setAssignmentFilter] = useState<string>('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
   // Sorting
@@ -105,11 +108,20 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
     return () => { cancelled = true; };
   }, [assignments]);
 
-  // ── Filtered assignments (by subject) ────────────────────────────────────
+  // ── Filtered assignments ─────────────────────────────────────────────────
   const filteredAssignments = useMemo(() => {
-    if (subjectFilter === 'all') return assignments;
-    return assignments.filter((a) => a.subject_name === subjectFilter);
-  }, [assignments, subjectFilter]);
+    const from = dateFrom ? new Date(`${dateFrom}T00:00:00`).getTime() : null;
+    const to = dateTo ? new Date(`${dateTo}T23:59:59.999`).getTime() : null;
+
+    return assignments.filter((assignment) => {
+      if (subjectFilter !== 'all' && assignment.subject_name !== subjectFilter) return false;
+      if (assignmentFilter !== 'all' && assignment.id !== assignmentFilter) return false;
+      const created = new Date(assignment.assigned_at).getTime();
+      if (from !== null && created < from) return false;
+      if (to !== null && created > to) return false;
+      return true;
+    });
+  }, [assignments, subjectFilter, assignmentFilter, dateFrom, dateTo]);
 
   // ── Unique subjects for filter dropdown ──────────────────────────────────
   const uniqueSubjects = useMemo(() => {
@@ -609,18 +621,57 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
           </select>
         )}
 
-        {/* Batch filter */}
+        {/* Class filter */}
         {uniqueBatches.length > 1 && (
           <select
+            aria-label="Filter by class"
             value={batchFilter}
             onChange={(e) => setBatchFilter(e.target.value)}
             className="rounded-lg border border-slate-300 text-sm px-3 py-2 focus:outline-none focus:border-cyan-500"
           >
-            <option value="all">All Batches</option>
+            <option value="all">All Classes</option>
             {uniqueBatches.map((b) => (
-              <option key={b} value={b}>{b}</option>
+              <option key={b} value={b}>Class {b}</option>
             ))}
           </select>
+        )}
+
+        <select
+          aria-label="Filter by assignment"
+          value={assignmentFilter}
+          onChange={(event) => setAssignmentFilter(event.target.value)}
+          className="max-w-[220px] rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none"
+        >
+          <option value="all">All Assignments</option>
+          {assignments.map((assignment) => (
+            <option key={assignment.id} value={assignment.id}>{assignment.title || assignment.topic_name}</option>
+          ))}
+        </select>
+
+        <label className="flex items-center gap-2 text-xs text-slate-500">
+          From
+          <input aria-label="Created from" type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} className="rounded-lg border border-slate-300 px-2 py-2 text-sm text-slate-700" />
+        </label>
+        <label className="flex items-center gap-2 text-xs text-slate-500">
+          To
+          <input aria-label="Created to" type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} className="rounded-lg border border-slate-300 px-2 py-2 text-sm text-slate-700" />
+        </label>
+
+        {(subjectFilter !== 'all' || batchFilter !== 'all' || assignmentFilter !== 'all' || dateFrom || dateTo || searchTerm) && (
+          <button
+            type="button"
+            onClick={() => {
+              setSubjectFilter('all');
+              setBatchFilter('all');
+              setAssignmentFilter('all');
+              setDateFrom('');
+              setDateTo('');
+              setSearchTerm('');
+            }}
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+          >
+            Clear filters
+          </button>
         )}
       </div>
 
