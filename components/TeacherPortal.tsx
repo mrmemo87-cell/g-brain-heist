@@ -4086,50 +4086,43 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         </ol>
       </section>
 
-      {/* Stats Cards - Professional Grid */}
-      {/* Uses myQuestions (teacher's own) for stats, not the global question bank */}
+      {/* Dashboard shortcuts */}
       <div className="teacher-stats-grid">
-        <div className="teacher-dashboard-stat cyan">
+        <button type="button" onClick={() => setView('students')} className="teacher-dashboard-stat cyan text-left" aria-label="Open My Students">
           <div className="teacher-dashboard-stat-info">
             <h4>My Classes</h4>
             <div className="teacher-dashboard-stat-value">{myClasses.length || 0}</div>
             <p className="teacher-dashboard-stat-sub">{myClasses.slice(0, 3).join(' · ') || 'No classes assigned'}</p>
           </div>
           <div className="teacher-dashboard-stat-icon">🏫</div>
-        </div>
-        
-        <div className="teacher-dashboard-stat green">
+        </button>
+
+        <button type="button" onClick={() => setView('assignments')} className="teacher-dashboard-stat green text-left" aria-label="Open Given Assignments">
           <div className="teacher-dashboard-stat-info">
-            <h4>Active Assignments</h4>
-            <div className="teacher-dashboard-stat-value">
-              {assignments.length}
-            </div>
+            <h4>Given Assignments</h4>
+            <div className="teacher-dashboard-stat-value">{assignments.length}</div>
             <p className="teacher-dashboard-stat-sub">{activeAssignments} in progress</p>
           </div>
           <div className="teacher-dashboard-stat-icon">📋</div>
-        </div>
-        
-        <div className="teacher-dashboard-stat amber">
+        </button>
+
+        <button type="button" onClick={() => setView('reports')} className="teacher-dashboard-stat amber text-left" aria-label="Open Student Responses">
           <div className="teacher-dashboard-stat-info">
             <h4>Student Responses</h4>
-            <div className="teacher-dashboard-stat-value">
-              {totalResponses}
-            </div>
+            <div className="teacher-dashboard-stat-value">{totalResponses}</div>
             <p className="teacher-dashboard-stat-sub">{myQuestions.length} questions in your bank</p>
           </div>
           <div className="teacher-dashboard-stat-icon">💬</div>
-        </div>
-        
-        <div className="teacher-dashboard-stat purple">
+        </button>
+
+        <button type="button" onClick={() => setView('reports')} className="teacher-dashboard-stat purple text-left" aria-label="Open Success Rate reports">
           <div className="teacher-dashboard-stat-info">
             <h4>Success Rate</h4>
             <div className="teacher-dashboard-stat-value">{successRate}%</div>
-            <p className="teacher-dashboard-stat-sub">
-              {questions.length} in global bank
-            </p>
+            <p className="teacher-dashboard-stat-sub">{questions.length} in global bank</p>
           </div>
           <div className="teacher-dashboard-stat-icon">📈</div>
-        </div>
+        </button>
       </div>
 
       <div className="teacher-dashboard-grid">
@@ -5150,6 +5143,63 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     </div>
   );
 
+  const renderStudents = () => {
+    const classOptions = Array.from(new Set(availableStudents.map((student) => student.batch).filter(Boolean))) as string[];
+
+    return (
+      <div className="space-y-6">
+        <div className="teacher-section-header">
+          <div>
+            <h2>👥 My Students</h2>
+            <p className="text-sm text-slate-500 mt-1">Only students in classes assigned to you are shown here.</p>
+          </div>
+        </div>
+
+        <div className="teacher-card p-4">
+          <label htmlFor="teacher-student-search" className="sr-only">Search students</label>
+          <input
+            id="teacher-student-search"
+            type="search"
+            value={studentSearchTerm}
+            onChange={(event) => setStudentSearchTerm(event.target.value)}
+            placeholder="Search by student name or class…"
+            className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+          />
+        </div>
+
+        {filteredStudents.length === 0 ? (
+          <div className="teacher-card p-10 text-center text-slate-500">No students match this view.</div>
+        ) : (
+          <div className="space-y-5">
+            {classOptions.map((classCode) => {
+              const classStudents = filteredStudents.filter((student) => student.batch === classCode);
+              if (classStudents.length === 0) return null;
+              return (
+                <section key={classCode} className="teacher-card p-0 overflow-hidden">
+                  <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-3">
+                    <h3 className="font-bold text-slate-800">Class {classCode}</h3>
+                    <span className="text-sm text-slate-500">{classStudents.length} student{classStudents.length === 1 ? '' : 's'}</span>
+                  </div>
+                  <ul className="divide-y divide-slate-100">
+                    {classStudents.map((student) => (
+                      <li key={student.id} className="flex items-center gap-3 px-5 py-3">
+                        <img src={student.avatar_url || '/default-avatar.png'} alt="" className="h-10 w-10 rounded-full object-cover bg-slate-100" />
+                        <div>
+                          <div className="font-semibold text-slate-800">{student.display_name || student.username}</div>
+                          <div className="text-xs text-slate-500">@{student.username} · Class {student.batch}</div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderAssignments = () => (
     <div className="space-y-6">
       {/* Header with Title and Create Button */}
@@ -5307,15 +5357,13 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   <p className="text-sm text-slate-600">
                     {assignment.subject_name} · Topic: {assignment.topic_name}
                   </p>
-                  <p className="text-sm text-slate-500">
-                    {assignment.assignment_mode === 'custom' 
-                      ? `Custom (${assignment.student_count} students)` 
-                      : `Class: ${assignment.batch}`
-                    } · Assigned {new Date(assignment.assigned_at).toLocaleDateString()}
-                  </p>
-                  <p className="text-sm text-slate-400">
-                    Due: {assignment.due_at ? new Date(assignment.due_at).toLocaleString() : 'No due date'}
-                  </p>
+                  <dl className="mt-3 grid grid-cols-2 gap-x-5 gap-y-2 text-sm sm:grid-cols-4">
+                    <div><dt className="text-xs font-semibold uppercase tracking-wide text-slate-400">Created</dt><dd className="text-slate-700">{new Date(assignment.assigned_at).toLocaleDateString()}</dd></div>
+                    <div><dt className="text-xs font-semibold uppercase tracking-wide text-slate-400">Class</dt><dd className="text-slate-700">{assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || '—'}</dd></div>
+                    <div><dt className="text-xs font-semibold uppercase tracking-wide text-slate-400">Questions</dt><dd className="text-slate-700">{assignment.question_count}</dd></div>
+                    <div><dt className="text-xs font-semibold uppercase tracking-wide text-slate-400">Students</dt><dd className="text-slate-700">{assignment.student_count}</dd></div>
+                  </dl>
+                  <p className="mt-2 text-sm text-slate-400">Due: {assignment.due_at ? new Date(assignment.due_at).toLocaleString() : 'No due date'}</p>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-purple-600">
