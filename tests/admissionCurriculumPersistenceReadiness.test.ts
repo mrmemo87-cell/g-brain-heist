@@ -12,7 +12,7 @@ async function auditor() { return await dynamicImport(pathToFileURL(path.resolve
 function writeJson(filePath: string, value: unknown) { mkdirSync(path.dirname(filePath), { recursive: true }); writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`); }
 function baseRoot() { const root = mkdtempSync(path.join(tmpdir(), 'adm-ready-')); for (const d of ['english','maths','science','shared','curriculum-maps/english']) mkdirSync(path.join(root,d), { recursive: true }); writeJson(path.join(root,'shared/reading_passages.json'), { passages: [] }); writeJson(path.join(root,'shared/writing_rubrics.json'), { rubrics: [] }); return root; }
 function pool(extra={}) { return { external_id:'pool-1', subject:'english', grade_level:1, stage_level:1, placement_band:'foundation', name:'Pool', content_version:'v1', source_label:'Brain Heist Official Admission Bank', is_official:true, is_locked:true, content_owner:'brain_heist', ...extra }; }
-function question(extra={}) { return { external_id:'q1', pool_external_id:'pool-1', subject:'english', grade_level:1, stage_level:1, placement_band:'foundation', diagnostic_skill:'Reading', strand:'reading', subskill:'inference from short texts', difficulty:'easy', cognitive_level:'recall', question_type:'mcq', prompt:'Which detail supports the idea?', options:['A detail','Wrong one','Wrong two','Wrong three'], correct_answer:'A detail', correct_index:0, explanation:'Because it supports the idea.', marks:1, estimated_seconds:30, content_version:'v1', source_label:'Brain Heist Official Admission Bank', is_official:true, is_locked:true, content_owner:'brain_heist', ...extra }; }
+function question(extra={}) { return { external_id:'q1', pool_external_id:'pool-1', subject:'english', grade_level:1, stage_level:1, placement_band:'foundation', diagnostic_skill:'Reading', strand:'reading', subskill:'inference from short texts', difficulty:'easy', cognitive_level:'apply', question_type:'mcq', prompt:'Which detail supports the idea?', options:['A detail','Wrong one','Wrong two','Wrong three'], correct_answer:'A detail', correct_index:0, explanation:'Because it supports the idea.', marks:1, estimated_seconds:30, content_version:'v1', source_label:'Brain Heist Official Admission Bank', is_official:true, is_locked:true, content_owner:'brain_heist', ...extra }; }
 function approvedMap(extraObjective={}) { return { map_id:'map-1', map_version:'2026.1', locked:true, objectives:[{ objective_id:'obj-1', source_status:'approved', review_status:'approved', source_reference:'Cambridge ref', ...extraObjective }] }; }
 
 test('additive migration adds nullable curriculum columns and audit indexes', () => {
@@ -26,8 +26,9 @@ test('importer maps linked curriculum metadata exactly', async () => {
   const file = { curriculum_linkage_status:'linked', curriculum_map_id:'map-1', curriculum_map_version:'2026.1', curriculum_programme:'Cambridge Primary', curriculum_subject_code:'ENG', curriculum_source_version:'src-v1', curriculum_review_status:'approved' };
   const p = buildPoolRow({ ...pool(), __gradeFile:file });
   assert.equal(p.curriculum_map_id, 'map-1'); assert.equal(p.curriculum_programme, 'Cambridge Primary'); assert.equal(p.curriculum_subject_code, 'ENG');
-  const q = buildQuestionRow({ ...question({ curriculum_objective_id:'obj-1', curriculum_source_reference:'ref', curriculum_review_status:'approved' }), __gradeFile:file }, 'pool-db-id', new Map(), new Map());
+  const q = buildQuestionRow({ ...question({ cognitive_level:'understand', curriculum_objective_id:'obj-1', curriculum_source_reference:'ref', curriculum_review_status:'approved' }), __gradeFile:file }, 'pool-db-id', new Map(), new Map());
   assert.equal(q.curriculum_objective_id, 'obj-1'); assert.equal(q.curriculum_source_reference, 'ref'); assert.equal(q.curriculum_review_status, 'approved');
+  assert.equal(q.cognitive_level, 'knowledge');
 });
 
 test('importer keeps legacy linkage explicit and nulls mapped fields', async () => {

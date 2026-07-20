@@ -101,6 +101,27 @@ export function mapSeedStageLevelToDb(stageLevel, gradeLevel) {
   return stageLevel;
 }
 
+export function mapSeedCognitiveLevelToDb(value) {
+  if (value === undefined || value === null || (typeof value === 'string' && value.trim() === '')) {
+    return 'application';
+  }
+
+  const normalized = String(value).trim().toLowerCase();
+  const cognitiveLevels = {
+    understand: 'knowledge',
+    knowledge: 'knowledge',
+    apply: 'application',
+    application: 'application',
+    reason: 'reasoning',
+    reasoning: 'reasoning',
+  };
+  const mapped = cognitiveLevels[normalized];
+  if (!mapped) {
+    throw new Error(`Unsupported seed cognitive_level ${JSON.stringify(value)}; expected understand, knowledge, apply, application, reason, or reasoning`);
+  }
+  return mapped;
+}
+
 function requirePositiveInteger(value, field, externalId) {
   if (!Number.isInteger(value) || value <= 0) {
     throw new Error(`${externalId} has invalid ${field}; expected a positive integer for DB smallint compatibility, received ${JSON.stringify(value)}`);
@@ -208,6 +229,9 @@ export function buildPoolRow(pool) {
 
 export function buildQuestionRow(question, poolId, passages, rubrics) {
   ensureOfficialRecord(question, `Question ${question.external_id}`);
+  if (seedLinkageStatus(question) === 'linked' && (question.cognitive_level === undefined || question.cognitive_level === null || (typeof question.cognitive_level === 'string' && question.cognitive_level.trim() === ''))) {
+    throw new Error(`Linked question ${question.external_id} is missing cognitive_level`);
+  }
   const passage = question.passage_external_id ? passages.get(question.passage_external_id) : null;
   const rubric = question.rubric_external_id ? rubrics.get(question.rubric_external_id) : null;
   const dbSubject = mapSeedSubjectToDb(question.subject);
@@ -224,7 +248,7 @@ export function buildQuestionRow(question, poolId, passages, rubrics) {
     correct_index: question.correct_index ?? null,
     marks: question.marks,
     difficulty: question.difficulty,
-    cognitive_level: question.cognitive_level ?? 'application',
+    cognitive_level: mapSeedCognitiveLevelToDb(question.cognitive_level),
     topic: question.diagnostic_skill,
     skill_tag: mapSkillTag(dbSubject, question.strand),
     diagnostic_skill: question.diagnostic_skill,

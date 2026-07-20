@@ -129,6 +129,22 @@ test('official admission bank import maps seed subject and numeric stage to data
   assert.deepEqual(result.stdout.trim().split('\n'), ['math', 'science', '7']);
 });
 
+test('official admission bank import maps cognitive levels to database-compatible values', async () => {
+  const moduleUrl = pathToFileURL(path.resolve('scripts/import-admission-official-bank.mjs')).href;
+  const { mapSeedCognitiveLevelToDb } = await import(moduleUrl) as {
+    mapSeedCognitiveLevelToDb: (value: unknown) => string;
+  };
+
+  assert.equal(mapSeedCognitiveLevelToDb(' understand '), 'knowledge');
+  assert.equal(mapSeedCognitiveLevelToDb('APPLY'), 'application');
+  assert.equal(mapSeedCognitiveLevelToDb('Reason'), 'reasoning');
+  assert.equal(mapSeedCognitiveLevelToDb('knowledge'), 'knowledge');
+  assert.equal(mapSeedCognitiveLevelToDb('application'), 'application');
+  assert.equal(mapSeedCognitiveLevelToDb('reasoning'), 'reasoning');
+  assert.equal(mapSeedCognitiveLevelToDb(undefined), 'application');
+  assert.throws(() => mapSeedCognitiveLevelToDb('evaluate'), /Unsupported seed cognitive_level "evaluate"/);
+});
+
 
 test('official admission bank pool rows never send secondary into smallint stage fields', async () => {
   const moduleUrl = pathToFileURL(path.resolve('scripts/import-admission-official-bank.mjs')).href;
@@ -174,6 +190,7 @@ test('official admission bank question row maps editable fields for upsert refre
     correct_index: 1,
     marks: 1,
     difficulty: 'medium',
+    cognitive_level: ' apply ',
     diagnostic_skill: 'Updated diagnostic skill',
     strand: 'working scientifically',
     subskill: 'Updated subskill',
@@ -198,4 +215,5 @@ test('official admission bank question row maps editable fields for upsert refre
   assert.equal(row['passage'], 'Updated passage text');
   assert.equal(row['placement_band'], 'target');
   assert.equal(row['content_version'], 'updated-version');
+  assert.equal(row['cognitive_level'], 'application');
 });
