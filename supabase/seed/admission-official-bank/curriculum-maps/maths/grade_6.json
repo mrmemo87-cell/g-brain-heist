@@ -1,0 +1,1313 @@
+{
+  "map_id": "BHI-MATH-G6",
+  "map_version": "2026.1",
+  "locked": true,
+  "curriculum_authority": "brain_heist",
+  "programme": "brain_heist_international",
+  "assessment_style": "international_school_admission",
+  "official_affiliation": "none",
+  "reference_frameworks": [
+    "England National Curriculum",
+    "Common Core"
+  ],
+  "source_references": [
+    "UK Department for Education, National curriculum in England: mathematics programmes of study, key stages 1 and 2, DFE-00180-2013, updated 2021.",
+    "Common Core State Standards Initiative, Grade 6 Mathematics overview and domains."
+  ],
+  "source_licences": [
+    "Open Government Licence v3.0 for GOV.UK content, except where otherwise stated.",
+    "Common Core State Standards public license for purposes supporting the Common Core State Standards Initiative."
+  ],
+  "copyright_policy": "original_questions_only",
+  "source_review_status": "approved",
+  "academic_review_status": "approved",
+  "grade_stage_mapping": {
+    "explicit": true,
+    "school_grade": 6,
+    "programme": "brain_heist_international",
+    "level_definition": "Upper-primary international-school admission readiness for learners typically aged 10 to 12.",
+    "rationale": "Blends secure Year 6 upper-primary expectations with internationally common Grade 6 ratio, rational-number, algebra, geometry, and statistics readiness."
+  },
+  "objectives": [
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-NUM-001",
+      "strand": "Number and operations",
+      "subskill": "Compare and order multi-digit whole numbers",
+      "learner_can": "Compare and order multi-digit whole numbers using place value.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "easy"
+      ],
+      "allowed_cognitive_levels": [
+        "understand",
+        "apply"
+      ],
+      "source_references": [
+        "England NC KS2 Year 6: Number and place value.",
+        "Common Core 6.NS.B: Fluently compute with multi-digit numbers."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-NUM-002",
+      "strand": "Number and operations",
+      "subskill": "Round whole numbers and decimals to a stated place",
+      "learner_can": "Round whole numbers and decimals to a stated place and use rounding to estimate.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "easy"
+      ],
+      "allowed_cognitive_levels": [
+        "understand",
+        "apply"
+      ],
+      "source_references": [
+        "England NC KS2 Year 6: Round any whole number to a required degree of accuracy.",
+        "Common Core 6.NS.B.3: Fluently compute with multi-digit decimals."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-NUM-003",
+      "strand": "Number and operations",
+      "subskill": "Multiply and divide multi-digit whole numbers",
+      "learner_can": "Multiply and divide multi-digit whole numbers accurately, including interpreting remainders.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [
+        "BHI-MATH-G6-NUM-001"
+      ],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "medium"
+      ],
+      "allowed_cognitive_levels": [
+        "apply",
+        "reason"
+      ],
+      "source_references": [
+        "England NC KS2 Year 6: Multiply and divide multi-digit numbers.",
+        "Common Core 6.NS.B.2-3: Fluently divide multi-digit numbers and compute decimals."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-NUM-004",
+      "strand": "Number and operations",
+      "subskill": "Find factors, multiples, prime factors, GCF, and LCM",
+      "learner_can": "Use factors, multiples, prime factorisation, greatest common factors, and least common multiples.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "medium"
+      ],
+      "allowed_cognitive_levels": [
+        "understand",
+        "apply",
+        "reason"
+      ],
+      "source_references": [
+        "England NC KS2 Year 6: Common factors, common multiples and prime numbers.",
+        "Common Core 6.NS.B.4: Find greatest common factors and least common multiples."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-NUM-005",
+      "strand": "Number and operations",
+      "subskill": "Apply order of operations with grouping and exponents",
+      "learner_can": "Evaluate numerical expressions using grouping, exponents, multiplication, division, addition, and subtraction in the correct order.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "medium"
+      ],
+      "allowed_cognitive_levels": [
+        "apply",
+        "reason"
+      ],
+      "source_references": [
+        "England NC KS2 Year 6: Use knowledge of order of operations.",
+        "Common Core 6.EE.A.1-2: Write and evaluate numerical expressions involving whole-number exponents."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-NUM-006",
+      "strand": "Number and operations",
+      "subskill": "Compare and calculate with negative integers in context",
+      "learner_can": "Compare negative integers and solve age-appropriate temperature and elevation changes.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "medium"
+      ],
+      "allowed_cognitive_levels": [
+        "understand",
+        "apply"
+      ],
+      "source_references": [
+        "England NC KS2 Year 6: Use negative numbers in context.",
+        "Common Core 6.NS.C.5-7: Understand positive and negative numbers and order rational numbers."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-NUM-007",
+      "strand": "Number and operations",
+      "subskill": "Use estimation and structure to verify complex calculations",
+      "learner_can": "Use estimation, compensation, and number structure to verify or efficiently complete a calculation.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [
+        "BHI-MATH-G6-NUM-002",
+        "BHI-MATH-G6-NUM-003"
+      ],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "hard"
+      ],
+      "allowed_cognitive_levels": [
+        "reason"
+      ],
+      "source_references": [
+        "England NC KS2: Use estimation to check answers and determine accuracy.",
+        "Common Core Mathematical Practices: Reason quantitatively and look for structure."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-FDP-001",
+      "strand": "Fractions, decimals, and percentages",
+      "subskill": "Simplify fractions and generate equivalent fractions",
+      "learner_can": "Simplify fractions and generate equivalent fractions using common factors and multiples.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "easy"
+      ],
+      "allowed_cognitive_levels": [
+        "understand",
+        "apply"
+      ],
+      "source_references": [
+        "England NC KS2 Year 6: Use common factors to simplify fractions and common multiples to express fractions in the same denomination.",
+        "Common Core prerequisite support from Grade 5 fraction equivalence."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-FDP-002",
+      "strand": "Fractions, decimals, and percentages",
+      "subskill": "Compare fractions, decimals, and percentages",
+      "learner_can": "Compare and order common fractions, decimals, and percentages by converting between forms.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "easy"
+      ],
+      "allowed_cognitive_levels": [
+        "understand",
+        "apply"
+      ],
+      "source_references": [
+        "England NC KS2 Year 6: Associate fractions with division and calculate decimal fraction equivalents; recall percentage equivalents.",
+        "Common Core 6.NS.C: Order rational numbers."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-FDP-003",
+      "strand": "Fractions, decimals, and percentages",
+      "subskill": "Add and subtract fractions with unlike denominators",
+      "learner_can": "Add and subtract fractions and mixed numbers with unlike denominators.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "medium"
+      ],
+      "allowed_cognitive_levels": [
+        "apply",
+        "reason"
+      ],
+      "source_references": [
+        "England NC KS2 Year 6: Add and subtract fractions with different denominators and mixed numbers.",
+        "Common Core fraction-operation readiness."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-FDP-004",
+      "strand": "Fractions, decimals, and percentages",
+      "subskill": "Multiply and divide fractions and mixed numbers",
+      "learner_can": "Multiply fractions and divide fractions or mixed numbers using reciprocal reasoning.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [
+        "BHI-MATH-G6-FDP-001",
+        "BHI-MATH-G6-FDP-003"
+      ],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "hard"
+      ],
+      "allowed_cognitive_levels": [
+        "apply",
+        "reason"
+      ],
+      "source_references": [
+        "England NC KS2 Year 6: Multiply simple pairs of proper fractions and divide proper fractions by whole numbers.",
+        "Common Core 6.NS.A.1: Interpret and compute quotients of fractions."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-FDP-005",
+      "strand": "Fractions, decimals, and percentages",
+      "subskill": "Multiply and divide decimals",
+      "learner_can": "Multiply and divide decimals accurately, including by decimal divisors.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "medium"
+      ],
+      "allowed_cognitive_levels": [
+        "apply",
+        "reason"
+      ],
+      "source_references": [
+        "England NC KS2 Year 6: Multiply and divide numbers involving decimals.",
+        "Common Core 6.NS.B.3: Fluently add, subtract, multiply and divide multi-digit decimals."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-FDP-006",
+      "strand": "Fractions, decimals, and percentages",
+      "subskill": "Calculate percentages and percentage change",
+      "learner_can": "Calculate a percentage of a quantity and solve simple percentage increase or decrease problems.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "medium"
+      ],
+      "allowed_cognitive_levels": [
+        "apply",
+        "reason"
+      ],
+      "source_references": [
+        "England NC KS2 Year 6: Solve problems involving percentages.",
+        "Common Core 6.RP.A.3c: Find a percent of a quantity and solve percent problems."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-FDP-007",
+      "strand": "Fractions, decimals, and percentages",
+      "subskill": "Solve ratio and unit-rate problems",
+      "learner_can": "Use equivalent ratios and unit rates to solve multi-step comparison and scaling problems.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [
+        "BHI-MATH-G6-NUM-003",
+        "BHI-MATH-G6-FDP-001"
+      ],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "hard"
+      ],
+      "allowed_cognitive_levels": [
+        "apply",
+        "reason"
+      ],
+      "source_references": [
+        "England NC KS2 Year 6: Solve problems involving relative sizes and unequal sharing using multiplication and division.",
+        "Common Core 6.RP.A.1-3: Understand ratio and rate concepts and solve problems."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-ALG-001",
+      "strand": "Algebraic thinking",
+      "subskill": "Evaluate expressions by substitution",
+      "learner_can": "Substitute values into one- and two-variable expressions and evaluate accurately.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "easy"
+      ],
+      "allowed_cognitive_levels": [
+        "understand",
+        "apply"
+      ],
+      "source_references": [
+        "England NC KS2 Year 6: Use simple formulae and express missing-number problems algebraically.",
+        "Common Core 6.EE.A.2: Write, read, and evaluate expressions."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-ALG-002",
+      "strand": "Algebraic thinking",
+      "subskill": "Translate verbal descriptions into algebraic expressions",
+      "learner_can": "Translate verbal and contextual relationships into algebraic expressions.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "medium"
+      ],
+      "allowed_cognitive_levels": [
+        "understand",
+        "apply",
+        "reason"
+      ],
+      "source_references": [
+        "England NC KS2 Year 6: Use simple formulae.",
+        "Common Core 6.EE.A.2: Write expressions that record operations with numbers and letters."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-ALG-003",
+      "strand": "Algebraic thinking",
+      "subskill": "Solve one-step equations",
+      "learner_can": "Solve one-step equations using inverse operations and verify the solution.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "medium"
+      ],
+      "allowed_cognitive_levels": [
+        "apply",
+        "reason"
+      ],
+      "source_references": [
+        "England NC KS2 Year 6: Find pairs of numbers that satisfy an equation with two unknowns.",
+        "Common Core 6.EE.B.5-7: Understand solving equations and solve x+p=q and px=q."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-ALG-004",
+      "strand": "Algebraic thinking",
+      "subskill": "Recognise and generate equivalent expressions",
+      "learner_can": "Use the distributive property and common factors to recognise or generate equivalent expressions.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "medium"
+      ],
+      "allowed_cognitive_levels": [
+        "understand",
+        "apply",
+        "reason"
+      ],
+      "source_references": [
+        "Common Core 6.EE.A.3-4: Apply properties to generate and identify equivalent expressions.",
+        "England NC KS2 algebra readiness through simple formulae and sequences."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-ALG-005",
+      "strand": "Algebraic thinking",
+      "subskill": "Interpret linear relationships in tables and inequalities",
+      "learner_can": "Identify a linear rule from a table and interpret a simple inequality over whole numbers.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [
+        "BHI-MATH-G6-ALG-001",
+        "BHI-MATH-G6-ALG-003"
+      ],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "hard"
+      ],
+      "allowed_cognitive_levels": [
+        "reason"
+      ],
+      "source_references": [
+        "Common Core 6.EE.B-C: Reason about equations, inequalities, and dependent-variable relationships.",
+        "England NC KS2: Generate and describe linear number sequences."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-GEO-001",
+      "strand": "Geometry and measurement",
+      "subskill": "Use angle facts and classify quadrilaterals",
+      "learner_can": "Use angle sums and defining properties to solve missing-angle and shape-classification questions.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "easy"
+      ],
+      "allowed_cognitive_levels": [
+        "understand",
+        "apply"
+      ],
+      "source_references": [
+        "England NC KS2 Year 6: Compare and classify geometric shapes and find unknown angles.",
+        "Common Core geometry prerequisite support."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-GEO-002",
+      "strand": "Geometry and measurement",
+      "subskill": "Plot and interpret coordinates in four quadrants",
+      "learner_can": "Plot, identify, and move points in all four quadrants of the coordinate plane.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "medium"
+      ],
+      "allowed_cognitive_levels": [
+        "understand",
+        "apply",
+        "reason"
+      ],
+      "source_references": [
+        "England NC KS2 Year 6: Describe positions on the full coordinate grid.",
+        "Common Core 6.NS.C.6-8 and 6.G.A.3: Use coordinates in all four quadrants."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-GEO-003",
+      "strand": "Geometry and measurement",
+      "subskill": "Calculate areas of triangles and quadrilaterals",
+      "learner_can": "Calculate areas of triangles, parallelograms, and trapezoids using appropriate dimensions.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "medium"
+      ],
+      "allowed_cognitive_levels": [
+        "apply",
+        "reason"
+      ],
+      "source_references": [
+        "England NC KS2 Year 6: Calculate area of parallelograms and triangles.",
+        "Common Core 6.G.A.1: Find areas of triangles, special quadrilaterals, and polygons."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-GEO-004",
+      "strand": "Geometry and measurement",
+      "subskill": "Calculate volume of rectangular prisms",
+      "learner_can": "Calculate volume of rectangular prisms and find a missing dimension.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "easy"
+      ],
+      "allowed_cognitive_levels": [
+        "understand",
+        "apply",
+        "reason"
+      ],
+      "source_references": [
+        "England NC KS2 Year 6: Calculate, estimate, and compare volume of cubes and cuboids.",
+        "Common Core 6.G.A.2: Find volume of right rectangular prisms."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-GEO-005",
+      "strand": "Geometry and measurement",
+      "subskill": "Calculate surface area from dimensions or nets",
+      "learner_can": "Calculate the surface area of cubes and rectangular prisms from dimensions or net information.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [
+        "BHI-MATH-G6-GEO-004"
+      ],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "hard"
+      ],
+      "allowed_cognitive_levels": [
+        "apply",
+        "reason"
+      ],
+      "source_references": [
+        "Common Core 6.G.A.4: Represent three-dimensional figures using nets and find surface area.",
+        "England NC KS2 geometry and measurement readiness."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-GEO-006",
+      "strand": "Geometry and measurement",
+      "subskill": "Convert metric units and calculate perimeter",
+      "learner_can": "Convert common metric units and calculate perimeters involving decimals.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "medium"
+      ],
+      "allowed_cognitive_levels": [
+        "apply",
+        "reason"
+      ],
+      "source_references": [
+        "England NC KS2 Year 6: Use, read, write, and convert between standard units; recognise miles and kilometres.",
+        "Common Core measurement application."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-GEO-007",
+      "strand": "Geometry and measurement",
+      "subskill": "Solve composite-area and scale problems",
+      "learner_can": "Decompose composite shapes or use a stated scale to solve multi-step measurement problems.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [
+        "BHI-MATH-G6-GEO-003",
+        "BHI-MATH-G6-FDP-007"
+      ],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "hard"
+      ],
+      "allowed_cognitive_levels": [
+        "apply",
+        "reason"
+      ],
+      "source_references": [
+        "England NC KS2: Recognise when it is possible to use formulae for area and volume.",
+        "Common Core 6.G.A.1 and ratio reasoning for scale contexts."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-DAT-001",
+      "strand": "Data and statistics",
+      "subskill": "Calculate mean, median, mode, and range",
+      "learner_can": "Calculate and interpret mean, median, mode, and range for small data sets.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "easy"
+      ],
+      "allowed_cognitive_levels": [
+        "understand",
+        "apply"
+      ],
+      "source_references": [
+        "England NC KS2 Year 6: Calculate and interpret the mean as an average.",
+        "Common Core 6.SP.B.5: Summarize numerical data sets."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-DAT-002",
+      "strand": "Data and statistics",
+      "subskill": "Interpret tables and frequency data",
+      "learner_can": "Extract information from tables and frequency data and calculate comparisons or averages.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "medium"
+      ],
+      "allowed_cognitive_levels": [
+        "apply",
+        "reason"
+      ],
+      "source_references": [
+        "England NC KS2 Year 6: Interpret and construct pie charts and line graphs and use these to solve problems.",
+        "Common Core 6.SP.B.4-5: Display and summarize numerical data."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-DAT-003",
+      "strand": "Data and statistics",
+      "subskill": "Identify statistical questions and describe distributions",
+      "learner_can": "Distinguish statistical questions and describe clusters, gaps, peaks, or outliers in a data set.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "medium"
+      ],
+      "allowed_cognitive_levels": [
+        "understand",
+        "reason"
+      ],
+      "source_references": [
+        "Common Core 6.SP.A.1-3: Recognize statistical questions and describe distributions.",
+        "England NC KS2 data interpretation readiness."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-DAT-004",
+      "strand": "Data and statistics",
+      "subskill": "Compare variability and the effect of outliers",
+      "learner_can": "Compare data sets using center and spread and explain the effect of an outlier.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "medium"
+      ],
+      "allowed_cognitive_levels": [
+        "apply",
+        "reason"
+      ],
+      "source_references": [
+        "Common Core 6.SP.A-B: Understand variability and summarize distributions.",
+        "England NC KS2 mean and graph interpretation."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-PS-001",
+      "strand": "Problem solving",
+      "subskill": "Select operations in multi-step whole-number contexts",
+      "learner_can": "Select and sequence whole-number operations to solve a two-step context.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "easy"
+      ],
+      "allowed_cognitive_levels": [
+        "apply"
+      ],
+      "source_references": [
+        "England NC KS2: Solve multi-step problems and decide which operations and methods to use.",
+        "Common Core Mathematical Practice 1: Make sense of problems and persevere."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-PS-002",
+      "strand": "Problem solving",
+      "subskill": "Solve money and elapsed-time problems",
+      "learner_can": "Solve multi-step money and elapsed-time problems using appropriate units.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "easy"
+      ],
+      "allowed_cognitive_levels": [
+        "apply"
+      ],
+      "source_references": [
+        "England NC KS2 measurement: Solve problems involving calculation and conversion of units.",
+        "Common Core mathematical modelling practice."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-PS-003",
+      "strand": "Problem solving",
+      "subskill": "Estimate answers and judge reasonableness",
+      "learner_can": "Choose a useful estimate and judge whether an exact answer is reasonable.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "easy"
+      ],
+      "allowed_cognitive_levels": [
+        "understand",
+        "reason"
+      ],
+      "source_references": [
+        "England NC KS2: Use estimation to check answers.",
+        "Common Core Mathematical Practice 6: Attend to precision."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-PS-004",
+      "strand": "Problem solving",
+      "subskill": "Interpret remainders in context",
+      "learner_can": "Interpret a division remainder appropriately for grouping, capacity, or leftover contexts.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "easy"
+      ],
+      "allowed_cognitive_levels": [
+        "apply",
+        "reason"
+      ],
+      "source_references": [
+        "England NC KS2: Interpret remainders as whole numbers, fractions, or by rounding, as appropriate.",
+        "Common Core problem-solving practice."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-PS-005",
+      "strand": "Problem solving",
+      "subskill": "Combine rates, percentages, and money",
+      "learner_can": "Combine rate or percentage reasoning with another operation in a multi-step context.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "medium"
+      ],
+      "allowed_cognitive_levels": [
+        "apply",
+        "reason"
+      ],
+      "source_references": [
+        "Common Core 6.RP.A.3: Use ratio and rate reasoning to solve real-world problems.",
+        "England NC KS2 Year 6: Solve problems involving percentages and scaling."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    },
+    {
+      "school_grade": 6,
+      "programme": "brain_heist_international",
+      "typical_age_min": 10,
+      "typical_age_max": 12,
+      "subject": "maths",
+      "objective_id": "BHI-MATH-G6-PS-006",
+      "strand": "Problem solving",
+      "subskill": "Model mixed measurement situations",
+      "learner_can": "Model a real-world measurement situation using perimeter, volume, and unit conversion.",
+      "level_definition": "Grade 6 international-school admission readiness: upper-primary fluency, application, and age-appropriate reasoning.",
+      "prerequisite_definition": "Assumes secure Grade 5 whole-number, fraction, decimal, measurement, and data foundations.",
+      "prerequisites": [],
+      "prohibited_extensions": [
+        "Do not require formal secondary-school algebraic proof.",
+        "Do not require trigonometry, irrational numbers, or advanced probability.",
+        "Do not rely on culturally specific knowledge unrelated to the mathematics."
+      ],
+      "allowed_question_types": [
+        "mcq"
+      ],
+      "allowed_difficulties": [
+        "medium"
+      ],
+      "allowed_cognitive_levels": [
+        "apply",
+        "reason"
+      ],
+      "source_references": [
+        "England NC KS2 measurement and geometry problem solving.",
+        "Common Core 6.G.A and Mathematical Practice 4: Model with mathematics."
+      ],
+      "source_review_status": "approved",
+      "academic_review_status": "approved"
+    }
+  ]
+}

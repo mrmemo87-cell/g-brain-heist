@@ -1,0 +1,51 @@
+{
+  "curriculum_mode": "brain_heist_international",
+  "curriculum_authority": "brain_heist",
+  "programme": "brain_heist_international",
+  "assessment_style": "international_school_admission",
+  "official_affiliation": "none",
+  "subject": "maths",
+  "school_grade": 6,
+  "expected_age_min": 10,
+  "expected_age_max": 12,
+  "cambridge_stage": null,
+  "cambridge_programme": null,
+  "cambridge_subject_code": null,
+  "subject_code": null,
+  "source_version": null,
+  "syllabus_code": null,
+  "igcse_syllabus_code": null,
+  "igcse_subject_name": null,
+  "igcse_pathway": null,
+  "syllabus_year": null,
+  "examination_year": null,
+  "map_id": "BHI-MATH-G6",
+  "map_version": "2026.1",
+  "reference_frameworks": [
+    "England National Curriculum",
+    "Common Core"
+  ],
+  "source_references": [
+    "UK Department for Education, National curriculum in England: mathematics programmes of study, key stages 1 and 2, DFE-00180-2013, updated 2021.",
+    "Common Core State Standards Initiative, Grade 6 Mathematics overview and domains."
+  ],
+  "source_licences": [
+    "Open Government Licence v3.0 for GOV.UK content, except where otherwise stated.",
+    "Common Core State Standards public license for purposes supporting the Common Core State Standards Initiative."
+  ],
+  "copyright_policy": "original_questions_only",
+  "source_review_status": "approved",
+  "academic_review_status": "approved",
+  "bank_content_version": "adm-bank-v2-g6-maths",
+  "question_count": 90,
+  "objective_count": 36,
+  "deterministic_simulation_count": 0,
+  "achieved_concept_diversity": 36,
+  "validator_commit_sha": "1a5a46d",
+  "academic_reviewer": null,
+  "academic_review_date": null,
+  "department_head_approval": null,
+  "staging_verification": null,
+  "production_import_date": null,
+  "release_status": "academic_review_required"
+}
