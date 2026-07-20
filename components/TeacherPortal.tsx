@@ -5980,7 +5980,10 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               <tr>
                 <th>Subject</th>
                 <th>Topic</th>
-                <th>Batch</th>
+                <th>Class</th>
+                <th>Created</th>
+                <th>Questions</th>
+                <th>Students</th>
                 <th>Due</th>
                 <th>Completed</th>
                 <th></th>
@@ -5991,10 +5994,11 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 <tr key={assignment.id}>
                   <td className="font-medium">{assignment.subject_name}</td>
                   <td>{assignment.topic_name}</td>
-                  <td>{assignment.batch}</td>
-                  <td>
-                    {assignment.due_at ? new Date(assignment.due_at).toLocaleDateString() : '—'}
-                  </td>
+                  <td>{assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || '—'}</td>
+                  <td>{new Date(assignment.assigned_at).toLocaleDateString()}</td>
+                  <td>{assignment.question_count}</td>
+                  <td>{assignment.student_count}</td>
+                  <td>{assignment.due_at ? new Date(assignment.due_at).toLocaleDateString() : '—'}</td>
                   <td>
                     <span className="teacher-badge teacher-badge-primary">
                       {assignment.completed_count}/{assignment.student_count}
@@ -6037,9 +6041,13 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             <p className="text-slate-600">
               {selectedReportAssignment.subject_name} · Topic {selectedReportAssignment.topic_name} · Batch {selectedReportAssignment.batch}
             </p>
-            <p className="text-sm text-slate-500">
-              Due {selectedReportAssignment.due_at ? new Date(selectedReportAssignment.due_at).toLocaleString() : 'No deadline'}
-            </p>
+            <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-5">
+              <div><dt className="text-xs font-semibold uppercase text-slate-400">Created</dt><dd>{new Date(selectedReportAssignment.assigned_at).toLocaleDateString()}</dd></div>
+              <div><dt className="text-xs font-semibold uppercase text-slate-400">Class</dt><dd>{selectedReportAssignment.assignment_mode === 'custom' ? 'Selected students' : selectedReportAssignment.batch || '—'}</dd></div>
+              <div><dt className="text-xs font-semibold uppercase text-slate-400">Questions</dt><dd>{selectedReportAssignment.question_count}</dd></div>
+              <div><dt className="text-xs font-semibold uppercase text-slate-400">Students</dt><dd>{selectedReportAssignment.student_count}</dd></div>
+              <div><dt className="text-xs font-semibold uppercase text-slate-400">Due</dt><dd>{selectedReportAssignment.due_at ? new Date(selectedReportAssignment.due_at).toLocaleDateString() : 'No deadline'}</dd></div>
+            </dl>
           </div>
 
           <div className="flex items-center justify-between">
@@ -6060,9 +6068,15 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               {/* Question Analysis Summary */}
               {questionAnalysis.length > 0 && (
                 <div className="mb-6">
-                  <h4 className="text-lg font-bold text-slate-800 mb-3">📊 Question Analysis</h4>
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                    <h4 className="text-lg font-bold text-slate-800">📊 Question Analysis</h4>
+                    <div className="inline-flex rounded-lg border border-slate-300 p-1 text-xs" aria-label="Question order">
+                      <button type="button" onClick={() => setAnswerOrder('assignment')} className={`rounded-md px-3 py-1.5 font-semibold ${answerOrder === 'assignment' ? 'bg-cyan-600 text-white' : 'text-slate-600'}`}>Assignment order</button>
+                      <button type="button" onClick={() => setAnswerOrder('review')} className={`rounded-md px-3 py-1.5 font-semibold ${answerOrder === 'review' ? 'bg-cyan-600 text-white' : 'text-slate-600'}`}>Needs review first</button>
+                    </div>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {questionAnalysis.map((qa, idx) => (
+                    {(answerOrder === 'assignment' ? questionAnalysis : [...questionAnalysis].sort((a, b) => a.accuracy_percent - b.accuracy_percent)).map((qa, idx) => (
                       <div 
                         key={qa.question_id} 
                         className={`p-4 rounded-xl border ${
@@ -6109,7 +6123,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                     <tr>
                       <th className="py-3 px-4 text-slate-700 font-semibold">Student</th>
                       <th className="py-3 px-4 text-slate-700 font-semibold">Batch</th>
-                      <th className="py-3 px-4 text-slate-700 font-semibold">Score</th>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">
+                        <span className="inline-flex items-center gap-1">Score <span title="Total XP points earned from correct answers. Each question can carry different points." aria-label="Score explanation" className="cursor-help text-cyan-600">ⓘ</span></span>
+                      </th>
                       <th className="py-3 px-4 text-slate-700 font-semibold">Correct</th>
                       <th className="py-3 px-4 text-slate-700 font-semibold">Incorrect</th>
                       <th className="py-3 px-4 text-slate-700 font-semibold">Accuracy</th>
@@ -6207,6 +6223,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               <div className="text-center">
                 <div className="text-2xl font-bold text-purple-600">{selectedAnalysisStudent.score}</div>
                 <div className="text-xs text-slate-500">Total Score</div>
+                <div className="mt-1 max-w-[180px] text-xs leading-4 text-slate-400">XP points earned from correct answers; questions may have different point values.</div>
               </div>
             </div>
           </div>
