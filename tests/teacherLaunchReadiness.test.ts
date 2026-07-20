@@ -26,3 +26,10 @@ test('teacher quick-start guide is app-first and avoids database setup instructi
   assert.doesNotMatch(guide, /Insert a row into the/);
   assert.doesNotMatch(guide, /use Supabase Table Editor/i);
 });
+
+test('student reports do not call an undeployed AI analysis function', () => {
+  const source = fs.readFileSync(teacherPortalPath, 'utf8');
+
+  assert.doesNotMatch(source, /GameService\.generate_assignment_analysis\(/);
+  assert.match(source, /Student-level reporting uses stored answers and scoring only/);
+});
