@@ -42,7 +42,7 @@ interface TeacherPortalProps {
 let _cachedPlanDetails: SchoolPlanDetails | null = null;
 let _cachedTeacherTier: AccountTier | null = null;
 
-type PortalView = 'dashboard' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'geometry-diagrams' | 'cambridge-reports' | 'quest-builder' | 'join-school';
+type PortalView = 'dashboard' | 'students' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'geometry-diagrams' | 'cambridge-reports' | 'quest-builder' | 'join-school';
 
 // XP points based on difficulty: Easy=10, Medium=15, Hard=20
 const getDefaultPointsForDifficulty = (diff: QuestionDifficulty): number => {
@@ -320,6 +320,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [selectedAnalysisStudent, setSelectedAnalysisStudent] = useState<TeacherAssignmentReportRow | null>(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const [analysisTab, setAnalysisTab] = useState<'overview' | 'questions' | 'student'>('overview');
+  const [answerOrder, setAnswerOrder] = useState<'assignment' | 'review'>('assignment');
 
   // Cambridge Test Reports State
   const [cambridgeScores, setCambridgeScores] = useState<any[]>([]);
@@ -595,8 +596,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       s.batch?.toLowerCase().includes(search)
     );
   }, [availableStudents, studentSearchTerm]);
-  const primarySection = useMemo<'dashboard' | 'questions' | 'assignments' | 'reports' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'cambridge' | 'quests' | 'lockdown' | 'join-school'>(() => {
+  const primarySection = useMemo<'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'cambridge' | 'quests' | 'lockdown' | 'join-school'>(() => {
     if (view === 'dashboard') return 'dashboard';
+    if (view === 'students') return 'students';
     if (view === 'join-school') return 'join-school';
     if (view === 'question-bank' || view === 'create-question' || view === 'csv-upload') return 'questions';
     if (view === 'assignments' || view === 'create-assignment') return 'assignments';
@@ -608,10 +610,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     return 'reports'; // catches 'reports', 'report-detail', 'report-analysis', 'collective-report'
   }, [view]);
 
-  const changeSection = (section: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'cambridge' | 'quests' | 'lockdown' | 'join-school') => {
+  const changeSection = (section: 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'cambridge' | 'quests' | 'lockdown' | 'join-school') => {
     switch (section) {
       case 'dashboard':
         setView('dashboard');
+        break;
+      case 'students':
+        setView('students');
         break;
       case 'questions':
         setView('question-bank');
@@ -8611,8 +8616,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
   const canAccessWritingInsights = profile.role === 'teacher' || profile.role === 'admin';
 
-  const navTabs: Array<{ id: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'cambridge' | 'quests' | 'lockdown' | 'join-school'; label: string; icon: string; description: string; proOnly?: boolean; highlight?: boolean }> = [
+  const navTabs: Array<{ id: 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'cambridge' | 'quests' | 'lockdown' | 'join-school'; label: string; icon: string; description: string; proOnly?: boolean; highlight?: boolean }> = [
     { id: 'dashboard', label: 'Dashboard', icon: '🏠', description: 'Overview & Quick Actions' },
+    { id: 'students', label: 'My Students', icon: '👥', description: 'Students in Your Assigned Classes' },
     ...(!profile.school_id ? [{ id: 'join-school' as const, label: 'Join Your School', icon: '🏫', description: 'Use your invite code to unlock school features', highlight: true }] : []),
     { id: 'questions', label: 'Question Bank', icon: '📚', description: 'Create & Manage Questions', proOnly: true },
     { id: 'assignments', label: 'Assignments', icon: '📋', description: 'Assign Work to Students', proOnly: true },
@@ -8862,9 +8868,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 />
                 Brains Heist Teacher Portal
               </h1>
-              <p className="teacher-header-subtitle">
-                Welcome back, <strong>{profile.username}</strong>. Review student progress, craft assignments, and keep your question bank organised — all in one focused hub.
-              </p>
+
               
               {/* Display Assigned Classes */}
               {teacherHasClassAssignments && assignedClasses.length > 0 && (
@@ -8957,6 +8961,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           {/* Main Content Panel */}
           <div className="teacher-main-panel min-h-0">
           {view === 'dashboard' && renderDashboard()}
+          {view === 'students' && renderStudents()}
           {view === 'create-question' && renderCreateQuestion()}
           {view === 'question-bank' && (
             <QuestionBank
