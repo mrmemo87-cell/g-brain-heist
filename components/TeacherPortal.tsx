@@ -320,8 +320,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [selectedAnalysisStudent, setSelectedAnalysisStudent] = useState<TeacherAssignmentReportRow | null>(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const [analysisTab, setAnalysisTab] = useState<'overview' | 'questions' | 'student'>('overview');
-  const [studentAssignmentAnalysis, setStudentAssignmentAnalysis] = useState<any | null>(null);
-  const [analysisModalOpen, setAnalysisModalOpen] = useState(false);
 
   // Cambridge Test Reports State
   const [cambridgeScores, setCambridgeScores] = useState<any[]>([]);
@@ -3277,18 +3275,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       );
       setStudentAnswers(answers);
       
-      // Generate AI analysis in parallel
-      try {
-        const analysis = await GameService.generate_assignment_analysis(
-          selectedReportAssignment.id,
-          student.student_id
-        );
-        setStudentAssignmentAnalysis(analysis);
-        setAnalysisModalOpen(true);
-      } catch (analysisError) {
-        console.warn('Could not generate AI analysis:', analysisError);
-        // Continue without AI analysis - it's optional
-      }
+      // Student-level reporting uses stored answers and scoring only.
+      // AI analysis remains off until its Edge Function has authenticated,
+      // school-scoped authorization and is deployed.
       
       setView('report-analysis');
     } catch (error) {
