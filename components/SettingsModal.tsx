@@ -332,15 +332,19 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 {usernameError && <p className="text-xs text-red-300">{usernameError}</p>}
                 {usernameSuccess && <p className="text-xs text-green-300">✅ Username updated!</p>}
               </div>
-              <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
-                <span className="text-gray-300">Level</span>
-                <span className="font-bold text-white">{profile.level}</span>
-              </div>
-              {profile.batch && (
-                <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
-                  <span className="text-gray-300">Batch</span>
-                  <span className="font-bold text-white">{profile.batch}</span>
-                </div>
+              {profile.role !== 'teacher' && (
+                <>
+                  <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
+                    <span className="text-gray-300">Level</span>
+                    <span className="font-bold text-white">{profile.level}</span>
+                  </div>
+                  {profile.batch && (
+                    <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
+                      <span className="text-gray-300">Batch</span>
+                      <span className="font-bold text-white">{profile.batch}</span>
+                    </div>
+                  )}
+                </>
               )}
               {profile.role === 'teacher' && (
                 <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
@@ -478,14 +482,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               </div>
 
               <button
+                type="button"
+                role="switch"
+                aria-checked={isLightMode}
+                aria-label="Ultra Performance Mode"
                 onClick={toggleLightMode}
-                className={`w-full px-4 py-3 rounded-lg font-semibold transition ${
-                  isLightMode
-                    ? 'bg-green-600 hover:bg-green-700 text-white'
-                    : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-                }`}
+                className="flex w-full items-center justify-between gap-4 rounded-lg border border-gray-600 bg-black/20 px-4 py-3 text-left transition hover:border-cyan-400"
               >
-                {isLightMode ? '✓ ENABLED - Ultra Fast' : '✗ DISABLED - Full Experience'}
+                <span>
+                  <span className="block font-semibold text-white">Ultra Performance</span>
+                  <span className="block text-xs text-gray-400">{isLightMode ? 'On — reduced visual effects' : 'Off — full visual experience'}</span>
+                </span>
+                <span className={`relative inline-flex h-7 w-12 flex-shrink-0 rounded-full transition-colors ${isLightMode ? 'bg-green-500' : 'bg-gray-600'}`}>
+                  <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-transform ${isLightMode ? 'translate-x-6' : 'translate-x-1'}`} />
+                </span>
               </button>
 
               {isLightMode && (
