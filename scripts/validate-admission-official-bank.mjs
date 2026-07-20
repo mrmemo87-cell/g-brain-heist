@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -433,6 +433,7 @@ function validateAntiTemplateText(errors, filePath, location, value) {
 
 function curriculumMapFiles(root) {
   const out = [];
+  if (!existsSync(root)) return out;
   for (const entry of readdirSync(root)) {
     const filePath = path.join(root, entry);
     const stat = statSync(filePath);

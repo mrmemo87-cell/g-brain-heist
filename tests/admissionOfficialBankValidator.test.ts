@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { copyFileSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, cpSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -251,11 +251,12 @@ test('official admission bank validator reports Grade 7 English longest-answer b
   const seedRoot = path.join(process.cwd(), 'supabase', 'seed', 'admission-official-bank');
   copyFileSync(path.join(seedRoot, 'shared', 'reading_passages.json'), path.join(root, 'shared', 'reading_passages.json'));
   copyFileSync(path.join(seedRoot, 'shared', 'writing_rubrics.json'), path.join(root, 'shared', 'writing_rubrics.json'));
+  cpSync(path.join(seedRoot, 'curriculum-maps'), path.join(root, 'curriculum-maps'), { recursive: true });
   for (const subject of ['english', 'maths', 'science']) {
     for (const grade of [5, 6, 7, 8]) {
       const source = JSON.parse(readFileSync(path.join(seedRoot, subject, `grade_${grade}.json`), 'utf8'));
       if (subject === 'english' && grade === 7) {
-        for (const question of source.questions.filter((q: any) => Array.isArray(q.options)).slice(0, 50)) {
+        for (const question of source.questions.filter((q: any) => Array.isArray(q.options))) {
           const correctIndex = question.correct_index;
           question.options = question.options.map((option: string, optionIndex: number) => optionIndex === correctIndex ? `${option} with a uniquely identifying extra phrase` : option.replace(/ with .*/, ''));
           question.correct_answer = question.options[correctIndex];
@@ -276,6 +277,7 @@ test('official admission bank validator hard-fails visible placeholder box glyph
   const seedRoot = path.join(process.cwd(), 'supabase', 'seed', 'admission-official-bank');
   copyFileSync(path.join(seedRoot, 'shared', 'reading_passages.json'), path.join(root, 'shared', 'reading_passages.json'));
   copyFileSync(path.join(seedRoot, 'shared', 'writing_rubrics.json'), path.join(root, 'shared', 'writing_rubrics.json'));
+  cpSync(path.join(seedRoot, 'curriculum-maps'), path.join(root, 'curriculum-maps'), { recursive: true });
   for (const subject of ['english', 'maths', 'science']) {
     for (const grade of [5, 6, 7, 8]) {
       const source = JSON.parse(readFileSync(path.join(seedRoot, subject, `grade_${grade}.json`), 'utf8'));
