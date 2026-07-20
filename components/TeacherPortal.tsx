@@ -36,13 +36,14 @@ interface TeacherPortalProps {
   isSchoolAdmin?: boolean;
   onOpenSchoolAdmin?: () => void;
   onOpenAdmissions?: () => void;
+  initialView?: PortalView;
 }
 
 // Plan details state (fetched once)
 let _cachedPlanDetails: SchoolPlanDetails | null = null;
 let _cachedTeacherTier: AccountTier | null = null;
 
-type PortalView = 'dashboard' | 'students' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'geometry-diagrams' | 'cambridge-reports' | 'quest-builder' | 'join-school';
+export type PortalView = 'dashboard' | 'students' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'geometry-diagrams' | 'cambridge-reports' | 'quest-builder' | 'join-school';
 
 // XP points based on difficulty: Easy=10, Medium=15, Hard=20
 const getDefaultPointsForDifficulty = (diff: QuestionDifficulty): number => {
@@ -96,8 +97,8 @@ const splitGrammarAndPunctuation = (items: { wrong: string; correct: string; exp
   return { grammar, punctuation };
 };
 
-const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, onLockdown, isSchoolAdmin, onOpenSchoolAdmin, onOpenAdmissions }) => {
-  const [view, setView] = useState<PortalView>('dashboard');
+const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, onLockdown, isSchoolAdmin, onOpenSchoolAdmin, onOpenAdmissions, initialView = 'dashboard' }) => {
+  const [view, setView] = useState<PortalView>(initialView);
   const [teacher, setTeacher] = useState<Teacher | null>(null);
   const [questions, setQuestions] = useState<TeacherQuestion[]>([]);
   const [loading, setLoading] = useState(true);
