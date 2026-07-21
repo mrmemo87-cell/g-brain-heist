@@ -12,6 +12,7 @@ const HelpModal = React.lazy(() => import('./HelpModal'));
 import { NotificationCenter } from './NotificationCenter';
 const DiagramBuilder = React.lazy(() => import('./geometry/DiagramBuilder'));
 const QuestionBank = React.lazy(() => import('./teacher/QuestionBank'));
+const AssignmentWizard = React.lazy(() => import('./teacher/AssignmentWizard'));
 import JoinSchoolCard from './JoinSchoolCard';
 import '../src/styles/teacher-theme.css';
 import { brainsAlert } from '../src/utils/brainsAlert';
@@ -3070,6 +3071,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   };
 
   const resetAssignmentDraft = useCallback(() => {
+    localStorage.removeItem('brains_heist_teacher_assignment_draft_v2');
     questionBankSubjectRef.current = false;
     setAssignmentQuestionIds([]);
     setAssignmentTitle('');
@@ -5400,572 +5402,66 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
   );
 
   const renderCreateAssignment = () => {
-    // If teacher has no assigned classes/subjects, show access denied
     if (!teacherHasClassAssignments) {
       return (
         <div className="max-w-3xl mx-auto">
-          <button
-            onClick={() => setView('dashboard')}
-            className="teacher-back-link mb-6"
-          >
+          <button onClick={() => setView('dashboard')} className="teacher-back-link mb-6">
             <span>←</span> Back to Dashboard
           </button>
-          
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-8 text-center mt-6">
             <div className="text-4xl mb-4">🔒</div>
             <h2 className="text-xl font-bold text-amber-800 mb-2">No Class Assignments</h2>
             <p className="text-amber-700 mb-4">
               You need to be assigned to at least one class and subject by your school admin before you can create assignments.
             </p>
-            <p className="text-sm text-amber-600">
-              Please contact your school administrator to assign you to classes.
-            </p>
+            <p className="text-sm text-amber-600">Please contact your school administrator to assign you to classes.</p>
           </div>
         </div>
       );
     }
-    
+
     return (
-    <div className="max-w-5xl mx-auto">
-      <button
-        onClick={() => setView('assignments')}
-        className="teacher-back-link mb-6"
+      <React.Suspense
+        fallback={(
+          <div className="min-h-[60vh] grid place-items-center rounded-2xl border border-cyan-400/20 bg-slate-950 text-cyan-100">
+            Preparing assignment workspace…
+          </div>
+        )}
       >
-        <span>←</span> Back to Assignments
-      </button>
-
-      <div className="teacher-assignment-form">
-        <div className="teacher-assignment-form-header">
-          <h2>Create Assignment</h2>
-          <p>Design engaging assignments for your students</p>
-        </div>
-        
-        <div className="teacher-assignment-form-body">
-        <form onSubmit={handleCreateAssignment}>
-          {/* Assignment Mode Selection */}
-          <div className="teacher-form-group-premium">
-            <label className="teacher-label-premium">Assignment Mode</label>
-            <div className="teacher-mode-toggle">
-              <button
-                type="button"
-                onClick={() => setAssignmentMode('batch')}
-                className={`teacher-mode-btn ${assignmentMode === 'batch' ? 'active' : ''}`}
-              >
-                <div className="teacher-mode-btn-icon">📚</div>
-                <div className="teacher-mode-btn-text">
-                  <h4>Assign to Class</h4>
-                  <p>Send to one or more classes you teach</p>
-                </div>
-              </button>
-              <button
-                type="button"
-                onClick={() => setAssignmentMode('custom')}
-                className={`teacher-mode-btn ${assignmentMode === 'custom' ? 'active' : ''}`}
-              >
-                <div className="teacher-mode-btn-icon">👥</div>
-                <div className="teacher-mode-btn-text">
-                  <h4>Select Students</h4>
-                  <p>Choose specific students</p>
-                </div>
-              </button>
-            </div>
-          </div>
-
-          {/* Batch Selection (only shown in batch mode) — multi-select */}
-          {assignmentMode === 'batch' && (
-            <div className="teacher-form-group-premium">
-              <label className="teacher-label-premium">Classes <span style={{ fontSize: '0.8em', fontWeight: 'normal', opacity: 0.7 }}>(select one or more)</span></label>
-              <div className="teacher-student-selector" style={{ maxHeight: 'none' }}>
-                <div className="teacher-student-selector-header">
-                  <span className="teacher-student-selector-title">
-                    {assignmentBatches.length === 0
-                      ? 'No class selected'
-                      : `${assignmentBatches.includes('All') ? availableBatches.length : assignmentBatches.filter((batch) => batch !== 'All').length} class${(assignmentBatches.includes('All') ? availableBatches.length : assignmentBatches.filter((batch) => batch !== 'All').length) !== 1 ? 'es' : ''} selected`}
-                  </span>
-                  <div className="teacher-student-selector-actions">
-                    <button
-                      type="button"
-                      onClick={() => setAssignmentBatches(['All', ...availableBatches])}
-                      className="teacher-student-select-all"
-                    >
-                      Select All
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setAssignmentBatches([])}
-                      className="teacher-student-clear"
-                    >
-                      Clear
-                    </button>
-                  </div>
-                </div>
-                <div className="teacher-student-list" style={{ maxHeight: '220px' }}>
-                  {/* "All Students" option */}
-                  <label
-                    className={`teacher-student-item ${assignmentBatches.includes('All') ? 'selected' : ''}`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={assignmentBatches.includes('All')}
-                      onChange={() => {
-                        setAssignmentBatches(prev =>
-                          prev.includes('All') ? prev.filter(b => b !== 'All') : [...prev, 'All']
-                        );
-                      }}
-                    />
-                    <div className="teacher-student-info">
-                      <div className="teacher-student-name">All Students</div>
-                      <div className="teacher-student-meta">{availableStudents.length} students total</div>
-                    </div>
-                  </label>
-                  {/* Individual batches */}
-                  {availableBatches.map(batch => {
-                    const count = availableStudents.filter(s => s.batch === batch).length;
-                    return (
-                      <label
-                        key={batch}
-                        className={`teacher-student-item ${assignmentBatches.includes(batch) ? 'selected' : ''}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={assignmentBatches.includes(batch)}
-                          onChange={() => {
-                            setAssignmentBatches(prev =>
-                              prev.includes(batch) ? prev.filter(b => b !== batch) : [...prev, batch]
-                            );
-                          }}
-                        />
-                        <div className="teacher-student-info">
-                          <div className="teacher-student-name">{batch}</div>
-                          <div className="teacher-student-meta">{count} student{count !== 1 ? 's' : ''}</div>
-                        </div>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Student Selection (only shown in custom mode) */}
-          {assignmentMode === 'custom' && (
-            <div className="teacher-form-group-premium">
-              <label className="teacher-label-premium">Select Students</label>
-              
-              {teacherHasClassAssignments && (
-                <div className="mb-3 rounded-lg border border-cyan-400/30 bg-cyan-500/10 px-3 py-2 text-xs text-cyan-100">
-                  ✓ Showing only students from your {assignedClasses.length} assigned class{assignedClasses.length !== 1 ? 'es' : ''}
-                </div>
-              )}
-              
-              <div className="teacher-student-selector">
-                <div className="teacher-student-selector-header">
-                  <span className="teacher-student-selector-title">
-                    {selectedStudentIds.length} student{selectedStudentIds.length !== 1 ? 's' : ''} selected
-                  </span>
-                  <div className="teacher-student-selector-actions">
-                    <button
-                      type="button"
-                      onClick={selectAllStudents}
-                      className="teacher-student-select-all"
-                    >
-                      Select All
-                    </button>
-                    <button
-                      type="button"
-                      onClick={deselectAllStudents}
-                      className="teacher-student-clear"
-                    >
-                    Clear
-                  </button>
-                </div>
-              </div>
-              
-              <div className="teacher-student-search">
-                <input
-                  type="text"
-                  placeholder="Search students..."
-                  value={studentSearchTerm}
-                  onChange={(e) => setStudentSearchTerm(e.target.value)}
-                />
-              </div>
-
-              <div className="teacher-student-list">
-                {filteredStudents.length === 0 ? (
-                  <div className="teacher-question-list-empty">No students found</div>
-                ) : (
-                  filteredStudents.map((student) => (
-                    <label
-                      key={student.id}
-                      className={`teacher-student-item ${selectedStudentIds.includes(student.id) ? 'selected' : ''}`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedStudentIds.includes(student.id)}
-                        onChange={() => toggleStudentSelection(student.id)}
-                      />
-                      <div className="teacher-student-info">
-                        <div className="teacher-student-name">{student.display_name}</div>
-                        <div className="teacher-student-meta">
-                          @{student.username} · Grade {student.grade} · {student.batch || 'No batch'}
-                        </div>
-                      </div>
-                    </label>
-                  ))
-                )}
-              </div>
-            </div>
-            </div>
-          )}
-
-          {/* Questions Summary - Show pre-selected questions from Question Bank */}
-          {assignmentQuestionIds.length > 0 && (
-            <div className="teacher-form-group-premium">
-              <label className="teacher-label-premium">Selected Questions</label>
-              <div className="teacher-question-list-premium">
-                <div className="teacher-question-list-header">
-                  <h4>✓ {assignmentQuestionIds.length} question{assignmentQuestionIds.length !== 1 ? 's' : ''} from {assignmentSubject}</h4>
-                  <span>{assignmentTopicMode === 'custom' ? assignmentTopicName : 'General'}</span>
-                </div>
-                <div className="teacher-question-list-body" style={{ maxHeight: '200px' }}>
-                  {selectedAssignmentQuestions
-                    .map((question) => (
-                      <div 
-                        key={question.id}
-                        className="teacher-question-list-item selected"
-                      >
-                        <div className="teacher-question-list-item-content">
-                          <p className="teacher-question-list-item-text">{question.question_text}</p>
-                          <div className="teacher-question-list-item-meta">
-                            <span className="teacher-question-list-item-topic">{question.topic_name || question.topic || 'General'}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  }
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Subject/Topic selection */}
-          <div className="teacher-form-grid">
-            <div className="teacher-form-group-premium">
-              <label className="teacher-label-premium">Subject</label>
-              <select
-                value={assignmentSubject}
-                onChange={(e) => setAssignmentSubject(e.target.value as Subject)}
-                className="teacher-select-premium"
-              >
-                {teacherAssignedSubjects.length > 0 ? (
-                  teacherAssignedSubjects.map(subj => (
-                    <option key={subj} value={subj}>{subj}</option>
-                  ))
-                ) : (
-                  <>
-                    <option value="Maths">Maths</option>
-                    <option value="Science">Science</option>
-                    <option value="English">English</option>
-                    <option value="Russian Language">Russian Language</option>
-                    <option value="Kyrgyz Language">Kyrgyz Language</option>
-                    <option value="German Language">German Language</option>
-                    <option value="Geography">Geography</option>
-                    <option value="Global Perspective">Global Perspective</option>
-                    <option value="ICT">ICT</option>
-                  </>
-                )}
-              </select>
-              {teacherAssignedSubjects.length > 0 && (
-                <p className="text-xs text-slate-500 mt-1">Only subjects assigned to your classes</p>
-              )}
-            </div>
-
-            <div className="teacher-form-group-premium">
-              <label className="teacher-label-premium">Difficulty</label>
-              <select
-                value={assignmentDifficulty}
-                onChange={(e) => setAssignmentDifficulty(e.target.value as QuestionDifficulty)}
-                className="teacher-select-premium"
-              >
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="teacher-form-group-premium">
-            <label className="teacher-label-premium">Topic</label>
-            <div className="flex flex-col md:flex-row gap-4">
-              <select
-                value={assignmentTopicMode}
-                onChange={(e) => setAssignmentTopicMode(e.target.value as 'general' | 'custom')}
-                className="teacher-select-premium"
-              >
-                <option value="general">General</option>
-                <option value="custom">Custom Topic</option>
-              </select>
-              {assignmentTopicMode === 'custom' && (
-                <input
-                  type="text"
-                  value={assignmentTopicName}
-                  onChange={(e) => setAssignmentTopicName(e.target.value)}
-                  className="teacher-input-premium flex-1"
-                  placeholder="Enter topic name"
-                  required
-                />
-              )}
-            </div>
-          </div>
-
-          
-
-          <div className="teacher-form-grid">
-            <div className="teacher-form-group-premium">
-              <label className="teacher-label-premium">Title (optional)</label>
-              <input
-                type="text"
-                value={assignmentTitle}
-                onChange={(e) => setAssignmentTitle(e.target.value)}
-                className="teacher-input-premium"
-                placeholder="e.g., Fractions Practice"
-              />
-            </div>
-            <div className="teacher-form-group-premium">
-              <label className="teacher-label-premium">Instructions</label>
-              <input
-                type="text"
-                value={assignmentInstructions}
-                onChange={(e) => setAssignmentInstructions(e.target.value)}
-                className="teacher-input-premium"
-                placeholder="e.g., Show your work"
-              />
-            </div>
-          </div>
-
-          <div className="teacher-form-group-premium">
-            <label className="teacher-label-premium">📝 Assignment Description (optional)</label>
-            <textarea
-              value={assignmentDescription}
-              onChange={(e) => setAssignmentDescription(e.target.value)}
-              className="teacher-input-premium"
-              placeholder="Explain what this assignment is about, what skills it covers, and why it matters. Students will see this before starting the assignment."
-              rows={3}
-              style={{ resize: 'vertical', fontFamily: 'inherit' }}
-            />
-            <p className="text-xs text-slate-400 mt-1">💡 Tips: Explain the learning goal, topic relevance, and any real-world application. This helps students understand the assignment purpose.</p>
-          </div>
-
-          <div className="teacher-form-group-premium">
-            <label className="teacher-label-premium">Due Date</label>
-            <div className="teacher-due-date-selector">
-              <div className="teacher-due-presets">
-                {[
-                  { label: 'Today', days: 0 },
-                  { label: 'Tomorrow', days: 1 },
-                  { label: '3 Days', days: 3 },
-                  { label: '1 Week', days: 7 },
-                  { label: '2 Weeks', days: 14 },
-                ].map(preset => {
-                  const presetDate = new Date();
-                  presetDate.setDate(presetDate.getDate() + preset.days);
-                  presetDate.setHours(23, 59, 0, 0);
-                  const presetValue = presetDate.toISOString().slice(0, 16);
-                  const isActive = assignmentDueAt === presetValue;
-                  return (
-                    <button
-                      key={preset.days}
-                      type="button"
-                      className={`teacher-due-preset-btn ${isActive ? 'active' : ''}`}
-                      onClick={() => setAssignmentDueAt(presetValue)}
-                    >
-                      {preset.label}
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="teacher-due-custom">
-                <span className="teacher-due-custom-label">Or pick a date:</span>
-                <input
-                  type="datetime-local"
-                  value={assignmentDueAt}
-                  onChange={(e) => setAssignmentDueAt(e.target.value)}
-                  className="teacher-input-premium"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Question selector */}
-          <div className="teacher-form-group-premium">
-            <div className="teacher-question-picker-title-row">
-              <label className="teacher-label-premium">Select Questions</label>
-              <button
-                type="button"
-                className="teacher-question-bank-shortcut"
-                onClick={() => setView('question-bank')}
-              >
-                📚 Open Question Bank
-              </button>
-            </div>
-            <div className="teacher-question-list-premium teacher-question-picker">
-              <div className="teacher-question-list-header teacher-question-picker-header">
-                <div>
-                  <h4>Choose questions for this assignment</h4>
-                  <span>
-                    {assignmentQuestionIds.length} selected · {assignmentFilteredQuestionPool.length} of {assignmentQuestionPool.length} {assignmentSubject} questions shown
-                  </span>
-                </div>
-                <div className="teacher-question-picker-header-actions">
-                  <button
-                    type="button"
-                    className="teacher-student-select-all"
-                    disabled={assignmentFilteredQuestionPool.length === 0}
-                    onClick={() => setAssignmentQuestionsSelected(assignmentFilteredQuestionPool.map((question) => question.id), true)}
-                  >
-                    Select shown
-                  </button>
-                  <button
-                    type="button"
-                    className="teacher-student-clear"
-                    disabled={assignmentQuestionIds.length === 0}
-                    onClick={() => setAssignmentQuestionIds([])}
-                  >
-                    Clear
-                  </button>
-                </div>
-              </div>
-
-              <div className="teacher-question-picker-controls">
-                <div className="teacher-question-search">
-                  <input
-                    type="text"
-                    placeholder="Search by question, answer, or topic..."
-                    value={assignmentQuestionSearchTerm}
-                    onChange={(e) => setAssignmentQuestionSearchTerm(e.target.value)}
-                  />
-                </div>
-                <div className="teacher-question-filter-grid">
-                  <select
-                    value={assignmentQuestionDifficultyFilter}
-                    onChange={(e) => setAssignmentQuestionDifficultyFilter(e.target.value as 'all' | QuestionDifficulty)}
-                    className="teacher-select-premium"
-                  >
-                    <option value="all">All difficulties</option>
-                    <option value="easy">Easy</option>
-                    <option value="medium">Medium</option>
-                    <option value="hard">Hard</option>
-                  </select>
-                  <select
-                    value={assignmentQuestionTypeFilter}
-                    onChange={(e) => setAssignmentQuestionTypeFilter(e.target.value as 'all' | QuestionType)}
-                    className="teacher-select-premium"
-                  >
-                    <option value="all">All question types</option>
-                    <option value="multiple_choice">Multiple choice</option>
-                    <option value="true_false">True / false</option>
-                    <option value="short_answer">Short answer</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="teacher-question-topic-summary">
-                {assignmentQuestionGroups.length === 0 ? (
-                  <span>No matching topics</span>
-                ) : (
-                  assignmentQuestionGroups.map((group) => {
-                    const selectedInTopic = group.questions.filter((question) => assignmentQuestionIds.includes(question.id)).length;
-                    return (
-                      <button
-                        key={group.topic}
-                        type="button"
-                        className={`teacher-question-topic-chip ${selectedInTopic > 0 ? 'active' : ''}`}
-                        onClick={() => setAssignmentQuestionsSelected(group.questions.map((question) => question.id), selectedInTopic < group.questions.length)}
-                      >
-                        <span>{group.topic}</span>
-                        <strong>{selectedInTopic}/{group.questions.length}</strong>
-                      </button>
-                    );
-                  })
-                )}
-              </div>
-
-              <div className="teacher-question-list-body teacher-question-grouped-body">
-              {assignmentQuestionPool.length === 0 ? (
-                <div className="teacher-question-list-empty">
-                  No {assignmentSubject} questions yet. Create questions for your assigned subject first.
-                </div>
-              ) : assignmentQuestionGroups.length === 0 ? (
-                <div className="teacher-question-list-empty">
-                  No questions match your search or filters. Try clearing the filters.
-                </div>
-              ) : (
-                assignmentQuestionGroups.map((group) => {
-                  const topicQuestionIds = group.questions.map((question) => question.id);
-                  const selectedInTopic = topicQuestionIds.filter((id) => assignmentQuestionIds.includes(id)).length;
-                  const allTopicSelected = selectedInTopic === topicQuestionIds.length;
-
-                  return (
-                    <section key={group.topic} className="teacher-question-topic-group">
-                      <div className="teacher-question-topic-group-header">
-                        <div>
-                          <h5>{group.topic}</h5>
-                          <p>{group.questions.length} question{group.questions.length !== 1 ? 's' : ''} · {selectedInTopic} selected</p>
-                        </div>
-                        <button
-                          type="button"
-                          className={allTopicSelected ? 'teacher-student-clear' : 'teacher-student-select-all'}
-                          onClick={() => setAssignmentQuestionsSelected(topicQuestionIds, !allTopicSelected)}
-                        >
-                          {allTopicSelected ? 'Remove topic' : 'Select topic'}
-                        </button>
-                      </div>
-
-                      {group.questions.map((question) => (
-                        <label
-                          key={question.id}
-                          className={`teacher-question-list-item ${assignmentQuestionIds.includes(question.id) ? 'selected' : ''}`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={assignmentQuestionIds.includes(question.id)}
-                            onChange={() => toggleAssignmentQuestion(question.id)}
-                          />
-                          <div className="teacher-question-list-item-content">
-                            <p className="teacher-question-list-item-text">{question.question_text}</p>
-                            <div className="teacher-question-list-item-meta">
-                              <span className="teacher-question-list-item-topic">{question.difficulty}</span>
-                              <span className="teacher-question-list-item-topic teacher-question-list-item-topic--type">
-                                {question.question_type.replace('_', ' ')}
-                              </span>
-                              <span>{question.points} XP</span>
-                            </div>
-                          </div>
-                        </label>
-                      ))}
-                    </section>
-                  );
-                })
-              )}
-            </div>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={assignmentSubmitting || assignmentQuestionIds.length === 0 || (assignmentMode === 'batch' && assignmentBatches.length === 0)}
-            className="teacher-submit-premium"
-          >
-            {assignmentSubmitting
-              ? 'Creating Assignment...'
-              : assignmentMode === 'batch' && (assignmentBatches.includes('All') ? availableBatches.length : assignmentBatches.filter((batch) => batch !== 'All').length) > 1
-                ? `Create Assignment for ${assignmentBatches.includes('All') ? availableBatches.length : assignmentBatches.filter((batch) => batch !== 'All').length} Classes (${assignmentQuestionIds.length} questions)`
-                : `Create Assignment (${assignmentQuestionIds.length} questions)`}
-          </button>
-        </form>
-        </div>
-      </div>
-    </div>
+        <AssignmentWizard
+          assignmentMode={assignmentMode}
+          setAssignmentMode={setAssignmentMode}
+          assignmentBatches={assignmentBatches}
+          setAssignmentBatches={setAssignmentBatches}
+          assignmentSubject={assignmentSubject}
+          setAssignmentSubject={setAssignmentSubject}
+          assignmentTitle={assignmentTitle}
+          setAssignmentTitle={setAssignmentTitle}
+          assignmentDescription={assignmentDescription}
+          setAssignmentDescription={setAssignmentDescription}
+          assignmentInstructions={assignmentInstructions}
+          setAssignmentInstructions={setAssignmentInstructions}
+          assignmentQuestionIds={assignmentQuestionIds}
+          setAssignmentQuestionIds={setAssignmentQuestionIds}
+          assignmentDueAt={assignmentDueAt}
+          setAssignmentDueAt={setAssignmentDueAt}
+          assignmentDifficulty={assignmentDifficulty}
+          setAssignmentDifficulty={setAssignmentDifficulty}
+          assignmentTopicMode={assignmentTopicMode}
+          setAssignmentTopicMode={setAssignmentTopicMode}
+          assignmentTopicName={assignmentTopicName}
+          setAssignmentTopicName={setAssignmentTopicName}
+          assignmentSubmitting={assignmentSubmitting}
+          availableStudents={availableStudents}
+          selectedStudentIds={selectedStudentIds}
+          setSelectedStudentIds={setSelectedStudentIds}
+          assignedClasses={assignedClasses}
+          teacherAssignedSubjects={teacherAssignedSubjects}
+          questions={questions}
+          onSubmit={handleCreateAssignment}
+          onCancel={() => setView('assignments')}
+        />
+      </React.Suspense>
     );
   };
 
