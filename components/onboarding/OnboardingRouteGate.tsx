@@ -17,26 +17,6 @@ interface OnboardingRouteGateProps {
   fallback?: React.ReactNode;
 }
 
-const DefaultOnboardingFallback: React.FC<{ onContinue: () => void; loading?: boolean }> = ({ onContinue, loading }) => (
-  <div className="min-h-screen flex items-center justify-center bg-slate-950 px-6 text-white">
-    <div className="w-full max-w-lg rounded-2xl border border-cyan-500/25 bg-slate-900/85 p-6 shadow-2xl shadow-cyan-950/30">
-      <div className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">FTUE foundation</div>
-      <h1 className="mt-3 text-2xl font-bold">Onboarding is preparing your next step</h1>
-      <p className="mt-3 text-sm leading-6 text-slate-300">
-        The Phase 1 onboarding resolver has detected an unfinished setup state. Full onboarding screens are not enabled yet, so you can safely continue to the existing Brains Heist experience.
-      </p>
-      <button
-        type="button"
-        className="mt-6 w-full rounded-xl bg-cyan-500 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-400 disabled:cursor-wait disabled:opacity-70"
-        onClick={onContinue}
-        disabled={loading}
-      >
-        Continue to Brains Heist
-      </button>
-    </div>
-  </div>
-);
-
 /**
  * Lightweight route protection shell. It now renders only the Phase 1A learner
  * FTUE when explicitly enabled; non-learner segments stay on existing routes.
@@ -108,7 +88,8 @@ const OnboardingRouteGate: React.FC<OnboardingRouteGateProps> = ({
   }
 
   if (loading || (!resolution && !error)) {
-    return <>{fallback ?? <DefaultOnboardingFallback onContinue={() => setBypass(true)} loading />}</>;
+    // Never interrupt an existing account with an onboarding holding screen.
+    return <>{children}</>;
   }
 
   // Resolver errors roll forward to the legacy dashboard to preserve rollback
@@ -123,7 +104,7 @@ const OnboardingRouteGate: React.FC<OnboardingRouteGateProps> = ({
   }
 
   // Teacher/admin FTUE is intentionally not implemented in Phase 1A. Preserve existing routes.
-  return <>{fallback ?? children}</>;
+  return <>{children}</>;
 };
 
 export default OnboardingRouteGate;
