@@ -54,7 +54,7 @@ const RivalryView = lazyRetry(() => import('./components/RivalryView'), 'Rivalry
 const InventoryView = lazyRetry(() => import('./components/InventoryView'), 'InventoryView');
 const LeaderboardView = lazyRetry(() => import('./components/LeaderboardView'), 'LeaderboardView');
 const AchievementView = lazyRetry(() => import('./components/AchievementView'), 'AchievementView');
-const TeacherPortal = lazyRetry(() => import('./components/TeacherDashboardEntry'), 'TeacherDashboardEntry');
+const TeacherPortal = lazyRetry(() => import('./components/TeacherPortal'), 'TeacherPortal');
 const AdminPortal = lazyRetry(() => import('./components/AdminPortal'), 'AdminPortal');
 const TournamentHub = lazyRetry(() => import('./components/TournamentHub'), 'TournamentHub');
 const TournamentAdminDashboard = lazyRetry(() => import('./components/TournamentAdminDashboard'), 'TournamentAdminDashboard');
