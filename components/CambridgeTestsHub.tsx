@@ -1125,15 +1125,19 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
     }
   };
 
+  const loadVerifiedExamIdentity = async () => {
+    const { data, error } = await supabase.rpc('get_my_cambridge_exam_identity');
+    if (error || !data?.success) {
+      alert(data?.error || error?.message || 'Your school administrator must confirm your real name before you can open a Cambridge test.');
+      return null;
+    }
+    localStorage.setItem('cambridge_test_user', JSON.stringify(data));
+    return data;
+  };
+
   // Open the test in iframe for review mode (no retake, no deletion)
-  const viewDetailedAnswers = (test: CambridgeTest) => {
-    localStorage.setItem('cambridge_test_user', JSON.stringify({
-      name: profile.username,
-      class: profile.batch || 'N/A',
-      grade: profile.grade,
-      schoolId: profile.school_id ?? null,
-      userId: profile.id,
-    }));
+  const viewDetailedAnswers = async (test: CambridgeTest) => {
+    if (!(await loadVerifiedExamIdentity())) return;
     setIsReviewMode(true);
     // Append review mode parameter so the test page skips anti-cheat and loads review directly
     const separator = test.url.includes('?') ? '&' : '?';
@@ -1141,22 +1145,16 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
   };
 
   const handleStartTest = async (test: CambridgeTest) => {
-    // Consume pilot quota if applicable
+    // Exams must use the student's school-verified real identity, never their codename.
+    if (!(await loadVerifiedExamIdentity())) return;
+
+    // Consume pilot quota only after identity validation succeeds.
     const quota = await tryConsumePilotQuota('cambridge_tests');
     if (!quota.proceed) {
       alert(quota.error || 'You\'ve reached the Cambridge test limit on the Pilot plan. Upgrade to continue.');
       return;
     }
 
-    // Store user info for the test form to use
-    localStorage.setItem('cambridge_test_user', JSON.stringify({
-      name: profile.username,
-      class: profile.batch || 'N/A',
-      grade: profile.grade,
-      schoolId: profile.school_id ?? null,
-      userId: profile.id,
-    }));
-    
     const isChemistryTest = test.subject === 'Chemistry';
     if (isChemistryTest && test.isCompleted && !test.scoresReleased) {
       return;
