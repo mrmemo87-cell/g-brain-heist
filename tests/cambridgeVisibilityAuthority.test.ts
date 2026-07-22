@@ -12,7 +12,7 @@ const schoolAdmin = fs.readFileSync(path.resolve(process.cwd(), 'components/scho
 
 test('student Cambridge visibility derives identity and roster server-side', () => {
   assert.match(migration, /v_student_id uuid := auth\.uid\(\)/);
-  assert.match(migration, /JOIN public\.class_students cs/);
+  assert.match(migration, /FROM public\.class_students cs/);
   assert.match(migration, /cs\.student_id = v_student_id/);
   assert.doesNotMatch(
     migration.match(/CREATE OR REPLACE FUNCTION public\.get_visible_cambridge_tests_for_student[\s\S]*?\$\$;/)?.[0] || '',
