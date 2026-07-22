@@ -1206,7 +1206,11 @@
     renderPart(
       "Part 1: Questions 1 — 5",
       "For each question, listen to the short recording and choose the correct picture: <strong>A, B or C</strong>.",
-      pictureCards(1, 5)
+      `<div class="example-box">
+        <div class="example-title">Worked example — Why did Jason visit Ally?</div>
+        <img class="source-question-image" src="${paperAssetBase}/q00.png" alt="Worked example showing Jason giving Ally a book, a small item, or an envelope; option B is circled" />
+        <div class="example-answer">Example answer: B</div>
+      </div>${pictureCards(1, 5)}`
     );
 
     renderPart(
