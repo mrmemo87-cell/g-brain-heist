@@ -984,25 +984,11 @@
     statusDiv.textContent = '📤 Submitting your answers...';
 
     try {
-      // Fetch school_id from authenticated user
-      let schoolId = null;
-      try {
-        const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-        if (user && !authError) {
-          const { data: userData, error: userError } = await supabaseClient
-            .from('users')
-            .select('school_id')
-            .eq('id', user.id)
-            .single();
-          
-          if (userData && userData.school_id) {
-            schoolId = userData.school_id;
-            console.log('✅ Fetched school_id:', schoolId);
-          }
-        }
-      } catch (e) {
-        console.log('ℹ️ Could not fetch school_id (student may be unauthenticated)');
-      }
+      const identity = (() => {
+        try { return JSON.parse(localStorage.getItem('cambridge_test_user') || '{}'); } catch { return {}; }
+      })();
+      const schoolId = identity.schoolId || null;
+      if (!schoolId) throw new Error('School identity is missing. Reopen the test from Brains Heist.');
 
       const { error } = await supabaseClient
         .from('quiz_scores')
@@ -1013,8 +999,9 @@
           score: score,
           total_questions: total,
           percentage: percentage,
-          answers: answers,
+          answers: { responses: answers, quiz_version: 'end-unit-4-v2' },
           time_taken_seconds: timeTaken,
+          scores_released: false,
           ...(schoolId && { school_id: schoolId })
         }]);
 
@@ -1046,12 +1033,63 @@
 
       document.querySelectorAll('input').forEach(input => input.disabled = true);
       showFinalScore(studentName);
+      try {
+        window.parent.postMessage({ type: 'CAMBRIDGE_TEST_COMPLETE', quizId: QUIZ_ID, score, total, percentage }, '*');
+      } catch (e) {}
     } catch (error) {
       statusDiv.className = 'submit-status submit-error';
       statusDiv.textContent = `❌ Failed to submit: ${error.message}. Please try again.`;
       submitBtn.disabled = false;
       document.querySelectorAll('input').forEach(input => input.disabled = false);
     }
+  }
+
+  async function loadReleasedReview() {
+    const identity = (() => { try { return JSON.parse(localStorage.getItem('cambridge_test_user') || '{}'); } catch { return {}; } })();
+    if (!identity.name) return;
+    const params = new URLSearchParams({
+      select: 'scores_released,score,total_questions,percentage,answers,time_taken_seconds',
+      student_name: `eq.${identity.name}`,
+      quiz_name: 'eq.End of Unit 4 Test (Stage 9 English)',
+      order: 'submitted_at.desc',
+      limit: '1'
+    });
+    if (identity.schoolId) params.set('school_id', `eq.${identity.schoolId}`);
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/quiz_scores?${params}`, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${getSupabaseAccessToken() ?? SUPABASE_ANON_KEY}` }
+    });
+    if (!response.ok) return;
+    const submission = (await response.json())[0];
+    if (!submission) return;
+    hasSubmitted = true;
+    document.querySelectorAll('input').forEach(input => input.disabled = true);
+    const finalScore = document.getElementById('finalScore');
+    finalScore.style.display = 'block';
+    if (!submission.scores_released) {
+      finalScore.innerHTML = '<h3>✅ Submitted</h3><p>Waiting for teacher release.</p>';
+      return;
+    }
+    const responses = submission.answers?.responses || submission.answers || {};
+    for (let i = 1; i <= total; i++) {
+      const answer = responses[i] ?? responses[String(i)] ?? '';
+      if (i >= 21 && i <= 30) {
+        const option = [...document.querySelectorAll(`input[name="q${i}"]`)].find(node => node.value === answer);
+        if (option) option.checked = true;
+      } else {
+        const input = document.getElementById(`q${i}`);
+        if (input) input.value = answer;
+      }
+      const expected = Array.isArray(correct[i]) ? correct[i][0] : correct[i];
+      const isCorrect = (Array.isArray(correct[i]) ? correct[i] : [correct[i]]).map(normalizeAnswer).includes(normalizeAnswer(answer));
+      const anchor = i >= 21 && i <= 30 ? document.querySelector(`input[name="q${i}"]`)?.closest('div') : document.getElementById(`q${i}`)?.parentElement;
+      if (anchor) {
+        const review = document.createElement('div');
+        review.style.cssText = `margin-top:6px;font-size:13px;font-weight:700;color:${isCorrect ? '#15803d' : '#b91c1c'}`;
+        review.textContent = isCorrect ? '✓ Correct' : `Your answer: ${answer || '—'} · Correct answer: ${expected}`;
+        anchor.appendChild(review);
+      }
+    }
+    finalScore.innerHTML = `<h3>✅ Released result</h3><p>Score: ${submission.score}/${submission.total_questions} (${submission.percentage}%)</p>`;
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -1061,6 +1099,7 @@
         antiCheatAcknowledged = true;
         stopTimer();
         if (typeof hideTimer === 'function') hideTimer();
+        loadReleasedReview();
       } else {
         startTimerIfReady();
       }
