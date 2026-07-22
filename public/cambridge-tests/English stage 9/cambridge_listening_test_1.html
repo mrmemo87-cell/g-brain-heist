@@ -700,7 +700,7 @@
   <h1>🎧 Cambridge Listening Test 1</h1>
   <p class="subtitle">Stage 9 Progression Listening Paper — Questions 1 — 30</p>
 
-  <div class="warning-box">
+  <div class="warning-box" id="testRules">
     <h3>⚠️ Important Rules</h3>
     <ul>
       <li>You can only submit <b>ONCE</b> – answers cannot be changed after submission</li>
@@ -711,7 +711,7 @@
     </ul>
   </div>
 
-  <div class="audio-box">
+  <div class="audio-box" id="testAudioPanel">
     <h3>🎧 Listening Test Audio</h3>
     <p>⚠️ Press play to start. The recording already includes every official repeat and cannot be paused or rewound.</p>
     
@@ -1089,6 +1089,11 @@
     try { submission = await fetchLatestSubmission(); } catch (error) { console.error('Could not verify listening submission', error); }
     if (!submission && !localStorage.getItem(`quiz_submitted_${QUIZ_ID}`)) return false;
     hasSubmitted = true;
+    closeAntiCheatModal();
+    const rules = document.getElementById('testRules');
+    const audioPanel = document.getElementById('testAudioPanel');
+    if (rules) rules.style.display = 'none';
+    if (audioPanel) audioPanel.style.display = 'none';
     try { window.parent.postMessage({ type: 'CAMBRIDGE_TEST_REVIEW_MODE' }, '*'); } catch(e) {}
     document.getElementById("alreadySubmitted").style.display = "block";
     document.querySelectorAll('input, select').forEach(input => input.disabled = true);
@@ -1097,20 +1102,29 @@
     const floatingBtn = document.getElementById("floatingSubmitBtn");
     const floatingDiv = document.getElementById("floatingSubmit");
     if (floatingBtn) { floatingBtn.disabled = true; floatingBtn.textContent = "✓ Submitted"; }
-    if (floatingDiv) floatingDiv.classList.add("submitted");
+    if (floatingDiv) {
+      floatingDiv.classList.add("submitted");
+      floatingDiv.style.display = 'none';
+    }
     const scoreDiv = document.getElementById("score");
     if (!submission?.scores_released) {
+      document.getElementById('alreadySubmitted').querySelector('p').textContent = 'Your teacher has not released the result yet.';
       scoreDiv.style.display = 'block';
       scoreDiv.textContent = '📊 Test submitted. Waiting for your teacher to release the result.';
       return true;
     }
+    document.getElementById('alreadySubmitted').querySelector('h3').textContent = '✅ Teacher feedback is ready';
+    document.getElementById('alreadySubmitted').querySelector('p').textContent = 'Review each incorrect or unanswered question below.';
     const savedAnswers = submission.answers?.responses || submission.answers || {};
     for (let i = 1; i <= total; i++) {
       const input = document.getElementById("q" + i);
       if (input) input.value = savedAnswers[i] || savedAnswers[String(i)] || '';
     }
+    const attemptedCount = Array.from({ length: total }, (_, index) => savedAnswers[index + 1] || savedAnswers[String(index + 1)] || '')
+      .filter(answer => String(answer).trim() !== '').length;
     calculateScore(true);
-    showFinalScore(getExamIdentity().name || 'Student', submission.score, submission.percentage, submission.time_taken_seconds || 0);
+    document.getElementById('alreadySubmitted').after(scoreDiv);
+    showFinalScore(getExamIdentity().name || 'Student', submission.score, submission.percentage, submission.time_taken_seconds || 0, attemptedCount);
     return true;
   }
 
@@ -1493,40 +1507,29 @@
     }
   }
 
-  function showFinalScore(studentName, score, percentage, timeTaken) {
+  function showFinalScore(studentName, score, percentage, timeTaken, attemptedCount = total) {
     let scoreClass = percentage >= 90 ? "score-excellent" : percentage >= 70 ? "score-good" : percentage >= 50 ? "score-average" : "score-needs-work";
     let emoji = percentage >= 90 ? "🏆" : percentage >= 70 ? "👍" : percentage >= 50 ? "📈" : "💪";
     const minutes = Math.floor(timeTaken / 60);
     const seconds = timeTaken % 60;
     const timeStr = timeTaken > 0 ? `${minutes}m ${seconds}s` : '';
+    const unansweredCount = Math.max(total - attemptedCount, 0);
+    const incorrectCount = Math.max(attemptedCount - score, 0);
 
     const scoreDiv = document.getElementById("score");
     scoreDiv.className = "show " + scoreClass;
     scoreDiv.innerHTML = `
       ${emoji} ${studentName}'s Score: <b>${score} / ${total}</b> (${percentage}%)
+      <br><span style="font-size: 14px; font-weight: 600;">Attempted ${attemptedCount}/${total} · ${score} correct · ${incorrectCount} incorrect · ${unansweredCount} unanswered</span>
       ${timeStr ? `<br><span style="font-size: 14px; font-weight: normal;">Time: ${timeStr}</span>` : ''}
     `;
     scoreDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
-  // Initialize
-  loadStudentInfoFromGame();
-  buildTest();
-  checkPreviousSubmission();
-  
-  document.getElementById('testAudio').addEventListener('play', startTimer);
-  
-  // Anti-cheat modal event listener
-  const antiCheatAcceptBtn = document.getElementById('antiCheatAcceptBtn');
-  if (antiCheatAcceptBtn) antiCheatAcceptBtn.addEventListener('click', acknowledgeAntiCheat);
-  
-  // Show anti-cheat modal on page load (skip in review mode)
-  if (!isReviewMode()) openAntiCheatModal();
-  
-  // Start ExamGuard after initialization
-  setTimeout(() => {
-    const hasSubmitted = localStorage.getItem(`quiz_submitted_${QUIZ_ID}`);
-    if (!hasSubmitted && !isReviewMode() && typeof window.ExamGuard !== 'undefined') {
+  function startExamGuard() {
+    if (hasSubmitted || isReviewMode() || typeof window.ExamGuard === 'undefined') return;
+    setTimeout(() => {
+      if (hasSubmitted) return;
       let autoSubmitTriggered = false;
       window.ExamGuard.start({
         promptContainer: document.querySelector('.container'),
@@ -1556,8 +1559,30 @@
           blockSelectAll: false,
         }
       });
+    }, 500);
+  }
+
+  async function initializeTest() {
+    loadStudentInfoFromGame();
+    buildTest();
+    document.getElementById('testAudio').addEventListener('play', startTimer);
+
+    const antiCheatAcceptBtn = document.getElementById('antiCheatAcceptBtn');
+    if (antiCheatAcceptBtn) antiCheatAcceptBtn.addEventListener('click', acknowledgeAntiCheat);
+
+    // The server is authoritative. Do not flash the rules or start ExamGuard
+    // while a submitted attempt is being opened for review on another device.
+    const existingSubmission = await checkPreviousSubmission();
+    if (existingSubmission || isReviewMode()) {
+      closeAntiCheatModal();
+      return;
     }
-  }, 500);
+
+    openAntiCheatModal();
+    startExamGuard();
+  }
+
+  initializeTest();
   
   window.addEventListener('beforeunload', function(e) {
     if (startTime && !hasSubmitted) {

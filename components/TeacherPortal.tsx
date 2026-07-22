@@ -19,6 +19,15 @@ import { brainsAlert } from '../src/utils/brainsAlert';
 import { chemistryAnswerKeys, chemistryQuestionRanges } from './chemistryAnswerKeys';
 import { buildBiologyAnswerKeyFromSavedMetadata, isBiologyCambridgeQuiz } from './biologyReviewAnswerKey';
 import { getQuestionsForQuiz, type QuestionData } from './cambridgeQuestionData';
+import {
+  CAMBRIDGE_LISTENING_TEST_1_ANSWER_KEY,
+  CAMBRIDGE_LISTENING_TEST_1_QUESTIONS,
+  CAMBRIDGE_LISTENING_TEST_1_SECTIONS,
+  getPrimaryCambridgeAnswer,
+  isCambridgeAnswerCorrect,
+  parseCambridgeResponses,
+  type CambridgeExpectedAnswer,
+} from './cambridgeListeningReview';
 import { fetchSchoolPlanDetails, fetchEffectiveTier, isPro, fetchPilotQuotas, getQuotaForFeature, QUOTA_LABELS, FEATURE_TO_QUOTA, tryConsumePilotQuota, type SchoolPlanDetails, type AccountTier, type PilotQuotaStatus, type PilotQuota } from '../services/tierService';
 import ProfessionalCambridgeReport, { generateSerialNumber, StudentOverviewReport, getGradeFromPercentage } from './ProfessionalCambridgeReport';
 import type { ProfessionalReportData, StudentOverviewReportData, StudentTestEntry } from './ProfessionalCambridgeReport';
@@ -748,7 +757,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   };
 
   // Correct answers for Cambridge tests
-  const correctAnswers: Record<string, Record<number, string>> = {
+  const correctAnswers: Record<string, Record<number, CambridgeExpectedAnswer>> = {
     'Cambridge Reading 25': {
       1:"common", 2:"typically", 3:"access", 4:"stay", 5:"hunt", 6:"defend", 7:"escape", 8:"number",
       9:"B", 10:"A", 11:"A", 12:"C", 13:"A",
@@ -757,13 +766,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       27:"C", 28:"A", 29:"B", 30:"C", 31:"A", 32:"D", 33:"C", 34:"A", 35:"B", 36:"C",
       37:"C", 38:"B", 39:"D", 40:"A", 41:"B", 42:"C"
     },
-    'Cambridge Listening Test 1': {
-      1:"C", 2:"A", 3:"B", 4:"B", 5:"C",
-      6:"B", 7:"B", 8:"A", 9:"C", 10:"A",
-      11:"Thursdays", 12:"flute", 13:"dance studio", 14:"restaurant", 15:"DRASTLE",
-      16:"B", 17:"C", 18:"C", 19:"A", 20:"A",
-      21:"H", 22:"E", 23:"D", 24:"C", 25:"B"
-    }
+    'Cambridge Listening Test 1': CAMBRIDGE_LISTENING_TEST_1_ANSWER_KEY,
   };
 
   // Skill categories for analysis
@@ -776,11 +779,12 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       "Detailed Analysis": { questions: [27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42], icon: "🎯" }
     },
     'Cambridge Listening Test 1': {
-      "Picture Selection": { questions: [1,2,3,4,5], icon: "🖼️" },
-      "Multiple Choice": { questions: [6,7,8,9,10], icon: "📝" },
-      "Form Completion": { questions: [11,12,13,14,15], icon: "📋" },
-      "Interview Comprehension": { questions: [16,17,18,19,20], icon: "🎤" },
-      "Speaker Matching": { questions: [21,22,23,24,25], icon: "🔊" }
+      "Picture Selection 1": { questions: [1,2,3,4,5], icon: "🖼️" },
+      "Picture Selection 2": { questions: [6,7,8,9,10], icon: "🖼️" },
+      "Short Conversations": { questions: [11,12,13,14,15], icon: "💬" },
+      "Writer Interview": { questions: [16,17,18,19,20], icon: "🎤" },
+      "Note Completion": { questions: [21,22,23,24,25], icon: "📝" },
+      "Musician Interview": { questions: [26,27,28,29,30], icon: "🎧" }
     }
   };
 
@@ -793,13 +797,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       { name: "Part 4: Grammar & Gap Fill", icon: "✍️", questions: [19,20,21,22,23,24,25,26] },
       { name: "Part 5: Detailed Comprehension", icon: "🎯", questions: [27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42] }
     ],
-    'Cambridge Listening Test 1': [
-      { name: "Part 1: Picture Selection", icon: "🖼️", questions: [1,2,3,4,5] },
-      { name: "Part 2: Multiple Choice", icon: "📝", questions: [6,7,8,9,10] },
-      { name: "Part 3: Form Completion", icon: "📋", questions: [11,12,13,14,15] },
-      { name: "Part 4: Interview", icon: "🎤", questions: [16,17,18,19,20] },
-      { name: "Part 5: Speaker Matching", icon: "🔊", questions: [21,22,23,24,25] }
-    ]
+    'Cambridge Listening Test 1': CAMBRIDGE_LISTENING_TEST_1_SECTIONS,
   };
 
   // Action plans for improvement
@@ -827,6 +825,30 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     "Picture Selection": {
       title: "Improve Visual Listening",
       tips: ["Study all pictures before audio plays", "Note key differences between options", "Listen for specific details"]
+    },
+    "Picture Selection 1": {
+      title: "Improve Visual Listening",
+      tips: ["Compare the three pictures before the recording", "Circle the detail that changes between options", "Listen for corrections and contrasts"]
+    },
+    "Picture Selection 2": {
+      title: "Improve Visual Listening",
+      tips: ["Compare the three pictures before the recording", "Circle the detail that changes between options", "Listen for corrections and contrasts"]
+    },
+    "Short Conversations": {
+      title: "Find the Speaker's Main Point",
+      tips: ["Read the question before listening", "Listen beyond matching words", "Use the speaker's final decision or opinion"]
+    },
+    "Writer Interview": {
+      title: "Follow Extended Interviews",
+      tips: ["Track one question at a time", "Listen for reasons and attitudes", "Watch for distractors that are mentioned then rejected"]
+    },
+    "Note Completion": {
+      title: "Strengthen Note Completion",
+      tips: ["Predict whether the gap needs a time, place, or object", "Write the exact word you hear", "Check spelling and singular/plural forms"]
+    },
+    "Musician Interview": {
+      title: "Follow Extended Interviews",
+      tips: ["Underline the difference between options", "Listen for paraphrases", "Choose the answer that matches the whole response"]
     },
     "Multiple Choice": {
       title: "Master MCQ Listening",
@@ -1336,7 +1358,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   // Analyze skill performance for a student
   const analyzeSkillPerformance = (student: any) => {
     const quizName = student.quiz_name;
-    const answers = student.answers || {};
+    const answers = getStudentResponses(student);
     const correct = correctAnswers[quizName] || {};
     const skills = skillCategories[quizName] || {};
     
@@ -1345,9 +1367,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     Object.entries(skills).forEach(([skill, data]) => {
       let skillCorrect = 0;
       data.questions.forEach(q => {
-        const studentAns = (answers[q] || '').toString().trim().toLowerCase();
-        const correctAns = (correct[q] || '').toString().toLowerCase();
-        if (studentAns === correctAns) skillCorrect++;
+        const expected = correct[q];
+        if (expected !== undefined && isCambridgeAnswerCorrect(answers[q], expected)) skillCorrect++;
       });
       result[skill] = {
         correct: skillCorrect,
@@ -1363,20 +1384,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const normalizeAnswer = (value: unknown) => (value ?? '').toString().trim();
 
   const getStudentResponses = (student: any) => {
-    const answers = student?.answers || {};
-    if (student?.quiz_name?.toLowerCase().includes('chemistry') || student?.quiz_name?.toLowerCase().includes('biology')) {
-      const responses = answers.responses || answers || {};
-      if (typeof responses === 'string') {
-        try {
-          return JSON.parse(responses);
-        } catch (error) {
-          console.warn('Failed to parse science responses:', error);
-          return {};
-        }
-      }
-      return responses;
-    }
-    return answers;
+    return parseCambridgeResponses(student?.answers);
   };
 
   /** Normalize dash-like characters so DB names (may contain U+FFFD from
@@ -1418,7 +1426,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     return filtered;
   };
 
-  const buildResponseSummary = (student: any, answerKey: Record<number, string>) => {
+  const buildResponseSummary = (student: any, answerKey: Record<number, CambridgeExpectedAnswer>) => {
     const responses = getStudentResponses(student);
     const totalQuestions = student?.total_questions || Object.keys(answerKey).length || 0;
     let correctCount = student?.score || 0;
@@ -1454,10 +1462,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         wrongCount = Math.max(totalQuestions - correctCount - unansweredCount, 0);
       } else {
         correctCount = 0;
-        Object.entries(answerKey).forEach(([qStr, correctAns]) => {
+        Object.entries(answerKey).forEach(([qStr, expectedAnswer]) => {
           const q = Number(qStr);
           const studentAns = normalizeAnswer(responses[q] ?? '');
-          const normalizedCorrect = normalizeAnswer(correctAns);
+          const correctAns = getPrimaryCambridgeAnswer(expectedAnswer);
 
           if (!studentAns) {
             unansweredCount++;
@@ -1465,7 +1473,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             return;
           }
 
-          if (studentAns.toLowerCase() === normalizedCorrect.toLowerCase()) {
+          if (isCambridgeAnswerCorrect(studentAns, expectedAnswer)) {
             correctCount++;
             details.push({ q, studentAns, correctAns: correctAns || '—', status: 'correct' });
             return;
@@ -7045,7 +7053,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         const answerKey = isChemistryTest ? getScienceAnswerKey(quizName, selectedCambridgeStudent) : (correctAnswers[quizName] || {});
         const sections = testSections[quizName] || [];
         const summary = buildResponseSummary(selectedCambridgeStudent, answerKey);
-        const questionBank = getQuestionsForQuiz(quizName);
+        const questionBank = quizName === 'Cambridge Listening Test 1'
+          ? CAMBRIDGE_LISTENING_TEST_1_QUESTIONS as QuestionData[]
+          : getQuestionsForQuiz(quizName);
         const questionMap = new Map<number, QuestionData>();
         questionBank.forEach(q => questionMap.set(q.number, q));
         const mistakes = summary.details
@@ -7119,7 +7129,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
               <div className="p-6 space-y-6">
                 {/* Summary Stats */}
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-blue-100 p-4 rounded-xl text-center">
+                    <div className="text-3xl">📝</div>
+                    <div className="text-3xl font-bold text-blue-700">{summary.totalQuestions - summary.unansweredCount}/{summary.totalQuestions}</div>
+                    <div className="text-sm text-gray-600">Attempted</div>
+                  </div>
                   <div className="bg-green-100 p-4 rounded-xl text-center">
                     <div className="text-3xl">✓</div>
                     <div className="text-3xl font-bold text-green-700">{summary.correctCount}</div>
@@ -7140,7 +7155,14 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 {/* Mistakes Summary */}
                 {mistakes.length > 0 && (
                   <div className="border-2 border-red-400 rounded-xl p-4">
-                    <h4 className="font-semibold text-red-800 mb-3">❌ Questions to Review ({mistakes.length})</h4>
+                    <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                      <h4 className="font-semibold text-red-800">🎯 Teaching Focus</h4>
+                      <div className="flex gap-2 text-xs font-semibold">
+                        <span className="rounded-full bg-red-100 px-2.5 py-1 text-red-700">{summary.wrongCount} incorrect</span>
+                        <span className="rounded-full bg-amber-100 px-2.5 py-1 text-amber-700">{summary.unansweredCount} unanswered</span>
+                      </div>
+                    </div>
+                    <p className="mb-3 text-sm text-slate-600">Review incorrect responses for misconceptions. Treat unanswered items separately as completion or time-management evidence.</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[200px] overflow-y-auto">
                       {mistakes.map((m) => (
                         <div key={m.q} className={`p-2 rounded-lg text-sm ${m.unanswered ? 'bg-amber-50 border border-amber-300' : 'bg-red-50 border border-red-300'}`}>
@@ -7160,15 +7182,22 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                     <h4 className="font-semibold text-blue-800 mb-3">📋 Detailed Answers by Section</h4>
                     {sections.map((section) => (
                       <div key={section.name} className="mb-4 border border-gray-200 rounded-xl overflow-hidden">
-                        <div className="bg-gray-100 px-4 py-2 font-semibold text-gray-700">
-                          {section.icon} {section.name}
+                        <div className="flex flex-wrap items-center justify-between gap-2 bg-gray-100 px-4 py-2 font-semibold text-gray-700">
+                          <span>{section.icon} {section.name}</span>
+                          <span className="text-xs font-medium text-slate-500">
+                            {section.questions.filter((q) => {
+                              const expected = answerKey[q];
+                              return expected !== undefined && isCambridgeAnswerCorrect(studentResponses[q], expected);
+                            }).length}/{section.questions.length} correct · {section.questions.filter(q => normalizeAnswer(studentResponses[q] ?? '') !== '').length}/{section.questions.length} attempted
+                          </span>
                         </div>
                         <div className="p-4">
                           <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
                             {section.questions.map((q) => {
                               const studentAns = normalizeAnswer(studentResponses[q] ?? '');
-                              const correctAns = answerKey[q] || '';
-                              const isCorrect = studentAns.toLowerCase() === normalizeAnswer(correctAns).toLowerCase();
+                              const expectedAnswer = answerKey[q];
+                              const correctAns = expectedAnswer === undefined ? '' : getPrimaryCambridgeAnswer(expectedAnswer);
+                              const isCorrect = expectedAnswer !== undefined && isCambridgeAnswerCorrect(studentAns, expectedAnswer);
                               const isEmpty = !studentAns;
                               
                               return (
