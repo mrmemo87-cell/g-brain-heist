@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="format-detection" content="telephone=no" />
-<title>Cambridge Reading 25 — Answer Form</title>
+<title>Cambridge Reading 25 — Grade 8 Reading Test</title>
 
 <!-- No external Supabase library needed - using fetch API directly -->
 <script src="../examguard.js?v=2"></script>
@@ -374,6 +374,18 @@
     margin: 8px 0;
     line-height: 1.4;
   }
+
+  .reading-intro { margin: 0 0 20px; padding: 16px 18px; border-radius: 12px; background: #eef6ff; border-left: 5px solid #2563eb; color: #1e3a5f; line-height: 1.65; }
+  .reading-intro h3 { margin: 0 0 8px; color: #123b72; }
+  .reading-intro p { margin: 0 0 10px; }
+  .reading-intro p:last-child { margin-bottom: 0; }
+  .task-instruction { margin: 0 0 14px; font-weight: 700; color: #334155; }
+  .question-card { display: block; padding: 14px; border: 1px solid #dbe4f0; border-radius: 12px; background: #fff; }
+  .question-card label { display: block; margin-bottom: 9px; line-height: 1.45; color: #1f2937; }
+  .question-card input, .question-card select { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #94a3b8; border-radius: 8px; background: white; color: #111827; font-size: 15px; }
+  .question-card input:focus, .question-card select:focus { outline: 3px solid rgba(37,99,235,.2); border-color: #2563eb; }
+  .option-key { margin: 12px 0; padding: 14px 18px; border-radius: 10px; background: #f8fafc; border: 1px solid #dbe4f0; color: #334155; line-height: 1.6; }
+  @media (max-width: 640px) { .container { padding: 18px 14px; } .reading-intro { padding: 14px; } .questions-grid { grid-template-columns: 1fr !important; } }
 </style>
 </head>
 <body>
@@ -394,7 +406,7 @@
   </div>
 
   <h1>📚 Cambridge Reading 25</h1>
-  <p class="subtitle">Answer Form — Questions 1 — 42</p>
+  <p class="subtitle">Grade 8 Reading Test — Questions 1–42</p>
 
   <div class="warning-box">
     <h3>⚠️ Important Rules</h3>
@@ -626,7 +638,7 @@
     document.getElementById("alreadySubmitted").style.display = "block";
     
     // Disable all inputs
-    document.querySelectorAll('input').forEach(input => {
+    document.querySelectorAll('input, select').forEach(input => {
       input.disabled = true;
     });
     document.getElementById("submitBtn").disabled = true;
@@ -659,28 +671,127 @@
     }, 1000);
   }
 
-  // Build inputs dynamically
+  // Original Grade 8 reading content and task-specific controls
+  const readingSections = [
+    {
+      title: "Section 1 — Questions 1–8 (Gap Fill)",
+      instruction: "Read the text. Write one word in each gap.",
+      passage: `<h3>Wild Neighbours</h3><p>Foxes are now a <strong>(1) _____</strong> sight in many cities. They <strong>(2) _____</strong> come out after dark, when streets are quieter. City parks give them <strong>(3) _____</strong> to water and sheltered places to <strong>(4) _____</strong>. Although foxes usually <strong>(5) _____</strong> alone, adults may work together to <strong>(6) _____</strong> their young. Their sharp hearing helps them <strong>(7) _____</strong> from danger. Researchers say the <strong>(8) _____</strong> of urban foxes is stable in most towns.</p>`,
+      questions: [
+        [1,"Complete gap 1."],[2,"Complete gap 2."],[3,"Complete gap 3."],[4,"Complete gap 4."],
+        [5,"Complete gap 5."],[6,"Complete gap 6."],[7,"Complete gap 7."],[8,"Complete gap 8."]
+      ]
+    },
+    {
+      title: "Section 1 — Questions 9–13 (Multiple Choice)",
+      instruction: "Read “Wild Neighbours” again. Choose the best answer.",
+      passage: `<h3>Wild Neighbours — Understanding the text</h3><p>The passage explains how foxes have adapted to city life, when they are active, and how they protect their young.</p>`,
+      questions: [
+        [9,"Why do foxes often appear after dark?",["A. Food tastes better at night","B. The streets are quieter","C. Parks close at sunset","D. Their young are asleep"]],
+        [10,"What do city parks provide?",["A. Water and shelter","B. Trained keepers","C. Underground trains","D. Farm animals"]],
+        [11,"How do foxes usually hunt?",["A. Alone","B. In large groups","C. With people","D. Only in parks"]],
+        [12,"What helps a fox notice danger?",["A. Its colour","B. Its tail","C. Its sharp hearing","D. Its size"]],
+        [13,"What do researchers say about urban fox numbers?",["A. They are mostly stable","B. They double every year","C. They are unknown","D. They are falling everywhere"]]
+      ]
+    },
+    {
+      title: "Section 2 — Questions 14–18 (Matching)",
+      instruction: "Five students want a weekend activity. Match each student to the best activity A–G. Two activities are extra.",
+      passage: `<h3>Weekend Activity Guide</h3><div class="option-key"><strong>A</strong> Young Reporters Workshop — interview local people and write a news page.<br><strong>B</strong> Hill Cycling — a fast outdoor route for experienced riders.<br><strong>C</strong> Community Garden — grow food and learn how plants support wildlife.<br><strong>D</strong> Digital Music Lab — compose a track using tablets and headphones.<br><strong>E</strong> River Kayaking — a full-day water challenge.<br><strong>F</strong> Repair Café — learn to mend small machines and broken household items.<br><strong>G</strong> Night Sky Club — use telescopes and identify planets.</div>`,
+      questions: [
+        [14,"Lina loves space and wants to use specialist equipment."],
+        [15,"Omar wants to create music without owning an instrument."],
+        [16,"Sara enjoys finding out how devices work and fixing things."],
+        [17,"Dani likes asking questions and writing about people."],
+        [18,"Mira wants a calm outdoor activity connected with nature."]
+      ],
+      matchOptions:["A","B","C","D","E","F","G"]
+    },
+    {
+      title: "Section 2 — Questions 19–26 (Gap Fill)",
+      instruction: "Read the text. Write one word in each gap.",
+      passage: `<h3>A Library of Things</h3><p>Imagine needing a drill but having <strong>(19) _____</strong> suitable at home. In a Library of Things, useful objects can <strong>(20) _____</strong> borrowed just like books. Members pay <strong>(21) _____</strong> a short loan, so they <strong>(22) _____</strong> complete a job without buying equipment. The idea reduces <strong>(23) _____</strong> amount of waste produced. <strong>(24) _____</strong> every neighbourhood shared rarely used objects, families <strong>(25) _____</strong> save money and learn <strong>(26) _____</strong> consume less.</p>`,
+      questions: [[19,"Complete gap 19."],[20,"Complete gap 20."],[21,"Complete gap 21."],[22,"Complete gap 22."],[23,"Complete gap 23."],[24,"Complete gap 24."],[25,"Complete gap 25."],[26,"Complete gap 26."]]
+    },
+    {
+      title: "Section 3 — Questions 27–36 (Multiple Choice)",
+      instruction: "Read the article and choose the best answer.",
+      passage: `<h3>The Quiet Hour</h3><p>At Westbridge School, one lesson each week begins without screens. Students place phones and tablets in a cabinet and spend forty minutes reading, drawing plans, or discussing a problem face to face. The idea came from a student council survey: many pupils said constant notifications made it difficult to concentrate.</p><p>At first, some teachers worried that the quiet hour would slow lessons down. After six weeks, however, they noticed that groups planned tasks more carefully and asked clearer questions. The programme does not reject technology. Devices return for research and presentation work once students have decided what they need to discover.</p><p>Year 8 student Amina says the change felt strange for the first two sessions. Now she prepares a list of ideas before opening a browser. The school will keep the programme next term, while measuring whether the benefits continue.</p>`,
+      questions: [
+        [27,"How often does the screen-free lesson begin?",["A. Every day","B. Twice a week","C. Once a week","D. Once a month"]],
+        [28,"Who suggested the idea?",["A. The student council","B. Parents","C. A technology company","D. The head teacher alone"]],
+        [29,"What problem did students report?",["A. Devices were too expensive","B. Notifications harmed concentration","C. Lessons were too short","D. Books were unavailable"]],
+        [30,"What did some teachers initially fear?",["A. Students would leave","B. Devices would break","C. Lessons would slow down","D. Homework would increase"]],
+        [31,"What improvement did teachers notice?",["A. Groups planned more carefully","B. Students wrote faster","C. Classes became shorter","D. Attendance doubled"]],
+        [32,"When are devices brought back?",["A. During registration","B. Before discussion","C. Only at home","D. For research and presentations"]],
+        [33,"What is the writer careful to explain?",["A. The school has no internet","B. All screens are banned","C. The programme does not reject technology","D. Teachers dislike tablets"]],
+        [34,"How did Amina feel at first?",["A. It felt strange","B. It was too easy","C. She was angry","D. She felt no change"]],
+        [35,"What does Amina do before browsing now?",["A. Calls a friend","B. Lists her ideas","C. Changes classrooms","D. Finishes the presentation"]],
+        [36,"What will the school do next term?",["A. End the programme","B. Ban all phones","C. Continue and measure it","D. Add more notifications"]]
+      ]
+    },
+    {
+      title: "Section 3 — Questions 37–42 (Multiple Choice)",
+      instruction: "Read the text and choose the best answer.",
+      passage: `<h3>Seeds Above the Streets</h3><p>A disused roof above a city market has become a small teaching garden. Science teacher Mr Chen started the project after noticing that many students understood food chains in theory but had rarely watched insects and plants interact. The roof could not hold deep soil, so the team chose light containers and plants with shallow roots.</p><p>The first crop was smaller than expected because strong winds dried the soil. Students solved the problem by adding screens made from reused wood. They now record temperature, rainfall, insect visits, and plant growth. Market workers receive herbs, while the data supports science lessons. Next year, students hope to test which flowers attract the widest range of pollinators.</p>`,
+      questions: [
+        [37,"Why did Mr Chen begin the garden?",["A. To sell vegetables","B. To decorate the market","C. To give students direct experience","D. To replace science lessons"]],
+        [38,"Why were light containers chosen?",["A. They were colourful","B. The roof could not hold deep soil","C. Students could take them home","D. The market requested them"]],
+        [39,"What caused the first crop to be small?",["A. Too much rain","B. No insects","C. Poor seeds","D. Strong winds dried the soil"]],
+        [40,"How did students respond?",["A. They built wind screens","B. They moved the garden","C. They stopped recording","D. They bought deeper soil"]],
+        [41,"Who receives the herbs?",["A. Parents","B. Market workers","C. Other schools","D. Tourists"]],
+        [42,"What will students investigate next?",["A. Roof strength","B. Vegetable prices","C. Flowers that attract pollinators","D. New market stalls"]]
+      ]
+    }
+  ];
+
   const container = document.getElementById("questions");
-  
-  sections.forEach(section => {
-    const sectionDiv = document.createElement("div");
+  readingSections.forEach(section => {
+    const sectionDiv = document.createElement("section");
     sectionDiv.className = "section";
-    
     const heading = document.createElement("h2");
     heading.textContent = section.title;
     sectionDiv.appendChild(heading);
-    
+    const instruction = document.createElement("p");
+    instruction.className = "task-instruction";
+    instruction.textContent = section.instruction;
+    sectionDiv.appendChild(instruction);
+    const passage = document.createElement("div");
+    passage.className = "reading-intro";
+    passage.innerHTML = section.passage;
+    sectionDiv.appendChild(passage);
     const grid = document.createElement("div");
     grid.className = "questions-grid";
-    
-    for (let i = section.start; i <= section.end; i++) {
-      const div = document.createElement("div");
-      div.className = "qrow";
-      div.id = "qrow" + i;
-      div.innerHTML = `<label>Q${i}:</label><input id="q${i}" autocomplete="off" oninput="startTimer()" />`;
-      grid.appendChild(div);
-    }
-    
+    section.questions.forEach(([number, prompt, options]) => {
+      const row = document.createElement("div");
+      row.className = "qrow question-card";
+      row.id = "qrow" + number;
+      const label = document.createElement("label");
+      label.htmlFor = "q" + number;
+      label.textContent = "Q" + number + ". " + prompt;
+      row.appendChild(label);
+      if (options || section.matchOptions) {
+        const select = document.createElement("select");
+        select.id = "q" + number;
+        select.setAttribute("aria-label", "Question " + number);
+        select.addEventListener("change", startTimer);
+        const choices = options || section.matchOptions;
+        select.innerHTML = '<option value="">Choose an answer</option>' + choices.map(choice => {
+          const value = String(choice).split(".")[0];
+          return '<option value="' + value + '">' + choice + '</option>';
+        }).join("");
+        row.appendChild(select);
+      } else {
+        const input = document.createElement("input");
+        input.id = "q" + number;
+        input.autocomplete = "off";
+        input.placeholder = "Type one word";
+        input.setAttribute("aria-label", "Question " + number);
+        input.addEventListener("input", startTimer);
+        row.appendChild(input);
+      }
+      grid.appendChild(row);
+    });
     sectionDiv.appendChild(grid);
     container.appendChild(sectionDiv);
   });
@@ -822,7 +933,7 @@
           submitBtn.textContent = '✅ Already Submitted';
           statusDiv.className = 'submit-status submit-error';
           statusDiv.textContent = '🚨 You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
-          document.querySelectorAll('input').forEach(input => input.disabled = true);
+          document.querySelectorAll('input, select').forEach(input => input.disabled = true);
           const floatingBtn = document.getElementById('floatingSubmitBtn');
           if (floatingBtn) { floatingBtn.disabled = true; floatingBtn.textContent = '✅ Already Submitted'; }
           return;
@@ -882,7 +993,7 @@
       }
       
       // Re-enable inputs on error
-      document.querySelectorAll('input').forEach(input => input.disabled = false);
+      document.querySelectorAll('input, select').forEach(input => input.disabled = false);
     }
   }
 

@@ -1,11 +1,34 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { useSchoolAdmin } from '../SchoolAdminContext';
+import { verifyStudentFullName } from '../../../services/schoolAdminService';
 
 const MemberActionModal: React.FC = () => {
   const {
     actionLoading, forceChangeAvatar, forceChangeLoading, forceChangeReason, forceChangeUsername, handleBanMember, handleClearProfileChange, handleForceProfileChange, handleRemoveMember, handleSuspendStudent, handleUnbanMember, handleUnsuspendStudent, handleUpdateRole, loadStudentModStatus, modTargetStatus, selectedMember, setForceChangeAvatar, setForceChangeReason, setForceChangeUsername, setModTargetId, setModTargetStatus, setSelectedMember, setShowMemberActionModal, setSuspendDuration, setSuspendReason, showMemberActionModal, students, suspendDuration, suspendLoading, suspendReason,
   } = useSchoolAdmin();
+  const [verifiedName, setVerifiedName] = React.useState('');
+  const [nameSaving, setNameSaving] = React.useState(false);
+  const [nameMessage, setNameMessage] = React.useState('');
+
+  React.useEffect(() => {
+    setVerifiedName(selectedMember?.full_name || '');
+    setNameMessage('');
+  }, [selectedMember?.user_id, selectedMember?.full_name]);
+
+  const reviewRealName = async (approved: boolean) => {
+    if (!selectedMember) return;
+    setNameSaving(true);
+    setNameMessage('');
+    const result = await verifyStudentFullName(selectedMember.user_id, approved, verifiedName);
+    setNameSaving(false);
+    if (!result.success) {
+      setNameMessage(result.error || 'Could not update the name');
+      return;
+    }
+    setSelectedMember({ ...selectedMember, full_name: result.full_name || verifiedName, full_name_status: result.status });
+    setNameMessage(approved ? 'Real name confirmed for school exams.' : 'Name returned to the student for correction.');
+  };
 
   return (
     <>
@@ -31,6 +54,33 @@ const MemberActionModal: React.FC = () => {
           </div>
 
           <div className="space-y-3">
+            {selectedMember.role === 'student' && (
+              <div className="bg-gray-700/50 rounded-lg p-4">
+                <div className="flex items-center justify-between gap-3 mb-2">
+                  <h4 className="text-sm font-medium text-gray-200">School exam identity</h4>
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    selectedMember.full_name_status === 'verified' ? 'bg-green-500/20 text-green-300' :
+                    selectedMember.full_name_status === 'rejected' ? 'bg-red-500/20 text-red-300' :
+                    'bg-amber-500/20 text-amber-300'
+                  }`}>{selectedMember.full_name_status || 'pending'}</span>
+                </div>
+                <label htmlFor="student-real-name" className="block text-xs text-gray-400 mb-1">Real first and last name</label>
+                <input
+                  id="student-real-name"
+                  value={verifiedName}
+                  onChange={(event) => setVerifiedName(event.target.value)}
+                  placeholder="Waiting for student submission"
+                  className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-600 text-white focus:outline-none focus:border-cyan-400"
+                />
+                <p className="mt-2 text-xs text-gray-400">Confirm against the school register. This name is used on Cambridge tests; the codename remains visible in game areas.</p>
+                <div className="grid grid-cols-2 gap-2 mt-3">
+                  <button onClick={() => reviewRealName(false)} disabled={nameSaving || !verifiedName.trim()} className="px-3 py-2 rounded-lg bg-red-600/80 hover:bg-red-500 disabled:opacity-50">Request correction</button>
+                  <button onClick={() => reviewRealName(true)} disabled={nameSaving || verifiedName.trim().length < 5 || !verifiedName.trim().includes(' ')} className="px-3 py-2 rounded-lg bg-green-600 hover:bg-green-500 disabled:opacity-50">{nameSaving ? 'Saving…' : 'Confirm name'}</button>
+                </div>
+                {nameMessage && <p className="mt-2 text-xs text-cyan-300">{nameMessage}</p>}
+              </div>
+            )}
+
             {/* Role Change */}
             <div className="bg-gray-700/50 rounded-lg p-4">
               <h4 className="text-sm font-medium text-gray-400 mb-2">Change Role</h4>

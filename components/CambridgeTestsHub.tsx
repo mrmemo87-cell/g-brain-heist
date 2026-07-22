@@ -1033,7 +1033,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       let progressQuery = supabase
         .from('quiz_scores')
         .select('quiz_name, score, total_questions, percentage, submitted_at, answers, scores_released')
-        .eq('student_name', profile.username)
+        .in('student_name', [profile.full_name, profile.username].filter(Boolean))
         .order('submitted_at', { ascending: false });
       
       // Defense-in-depth: scope to own school
@@ -1125,15 +1125,19 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
     }
   };
 
+  const loadVerifiedExamIdentity = async () => {
+    const { data, error } = await supabase.rpc('get_my_cambridge_exam_identity');
+    if (error || !data?.success) {
+      alert(data?.error || error?.message || 'Your school administrator must confirm your real name before you can open a Cambridge test.');
+      return null;
+    }
+    localStorage.setItem('cambridge_test_user', JSON.stringify(data));
+    return data;
+  };
+
   // Open the test in iframe for review mode (no retake, no deletion)
-  const viewDetailedAnswers = (test: CambridgeTest) => {
-    localStorage.setItem('cambridge_test_user', JSON.stringify({
-      name: profile.username,
-      class: profile.batch || 'N/A',
-      grade: profile.grade,
-      schoolId: profile.school_id ?? null,
-      userId: profile.id,
-    }));
+  const viewDetailedAnswers = async (test: CambridgeTest) => {
+    if (!(await loadVerifiedExamIdentity())) return;
     setIsReviewMode(true);
     // Append review mode parameter so the test page skips anti-cheat and loads review directly
     const separator = test.url.includes('?') ? '&' : '?';
@@ -1141,22 +1145,16 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
   };
 
   const handleStartTest = async (test: CambridgeTest) => {
-    // Consume pilot quota if applicable
+    // Exams must use the student's school-verified real identity, never their codename.
+    if (!(await loadVerifiedExamIdentity())) return;
+
+    // Consume pilot quota only after identity validation succeeds.
     const quota = await tryConsumePilotQuota('cambridge_tests');
     if (!quota.proceed) {
       alert(quota.error || 'You\'ve reached the Cambridge test limit on the Pilot plan. Upgrade to continue.');
       return;
     }
 
-    // Store user info for the test form to use
-    localStorage.setItem('cambridge_test_user', JSON.stringify({
-      name: profile.username,
-      class: profile.batch || 'N/A',
-      grade: profile.grade,
-      schoolId: profile.school_id ?? null,
-      userId: profile.id,
-    }));
-    
     const isChemistryTest = test.subject === 'Chemistry';
     if (isChemistryTest && test.isCompleted && !test.scoresReleased) {
       return;
@@ -1166,7 +1164,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       // Delete old submission from database so unique constraint allows re-submission
       try {
         const { data: retakeResult, error: retakeError } = await supabase.rpc('rpc_allow_cambridge_retake', {
-          p_student_name: profile.username,
+          p_student_name: profile.full_name || profile.username,
           p_quiz_name_pattern: `%${test.name}%`,
         });
         if (retakeError) {
@@ -1232,7 +1230,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       let feedbackQuery = supabase
         .from('quiz_scores')
         .select('*')
-        .eq('student_name', profile.username)
+        .in('student_name', [profile.full_name, profile.username].filter(Boolean))
         .ilike('quiz_name', '%writing%')
         .order('submitted_at', { ascending: false })
         .limit(1);
@@ -1246,7 +1244,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       const { data: historyRows } = await supabase
         .from('quiz_scores')
         .select('score, percentage, submitted_at, answers')
-        .eq('student_name', profile.username)
+        .in('student_name', [profile.full_name, profile.username].filter(Boolean))
         .eq('quiz_name', test.name)
         .order('submitted_at', { ascending: false })
         .limit(8);
@@ -1358,7 +1356,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       let reportQuery = supabase
         .from('quiz_scores')
         .select('*')
-        .eq('student_name', profile.username)
+        .in('student_name', [profile.full_name, profile.username].filter(Boolean))
         .order('submitted_at', { ascending: false });
       
       // Defense-in-depth: scope to own school

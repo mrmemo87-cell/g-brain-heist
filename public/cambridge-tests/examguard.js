@@ -9,6 +9,38 @@
   const VISIBILITY_DEDUP_MS = 600;
   const CLIPBOARD_DEDUP_MS = 300;
 
+  // Shared Cambridge exam shell: every protected subject receives the same
+  // typography, spacing, focus treatment, and Brain Heist accent system.
+  const installUnifiedExamShell = () => {
+    document.documentElement.classList.add('brains-heist-exam');
+    if (document.getElementById('brains-heist-exam-shell')) return;
+    const style = document.createElement('style');
+    style.id = 'brains-heist-exam-shell';
+    style.textContent = `
+      .brains-heist-exam body { color: #172033; }
+      .brains-heist-exam .container { max-width: 980px; border-radius: 18px; box-shadow: 0 20px 55px rgba(15,23,42,.22); }
+      .brains-heist-exam h1 { letter-spacing: -.025em; }
+      .brains-heist-exam h2 { border-radius: 10px; }
+      .brains-heist-exam button, .brains-heist-exam input, .brains-heist-exam select, .brains-heist-exam textarea {
+        min-height: 44px;
+      }
+      .brains-heist-exam button { transition: transform .16s ease, box-shadow .16s ease, filter .16s ease; }
+      .brains-heist-exam button:not(:disabled):hover { transform: translateY(-1px); filter: brightness(1.04); }
+      .brains-heist-exam :focus-visible { outline: 3px solid rgba(6,182,212,.45) !important; outline-offset: 2px; }
+      .brains-heist-exam .student-info input[readonly] { cursor: default; font-weight: 700; }
+      @media (max-width: 680px) {
+        .brains-heist-exam body { padding: 10px; }
+        .brains-heist-exam .container { border-radius: 14px; }
+      }
+    `;
+    (document.head || document.documentElement).appendChild(style);
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', installUnifiedExamShell, { once: true });
+  } else {
+    installUnifiedExamShell();
+  }
+
   const state = {
     active: false,
     pending: false,
