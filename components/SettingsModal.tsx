@@ -5,6 +5,7 @@ import { deactivate_neon_frame, deactivate_flicker_theme, brains_master_toggle_b
 import { isBrainsMasterActive } from '../src/utils/premiumHelpers';
 import AvatarWithFrame from './AvatarWithFrame';
 import { isFlickerThemeActive } from '../src/lib/cosmetics';
+import { supabase } from '../services/supabaseClient';
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -59,6 +60,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   const [usernameSaving, setUsernameSaving] = useState(false);
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const [usernameSuccess, setUsernameSuccess] = useState(false);
+
+  // Student real-name state. This is private school/exam identity, separate from the public username.
+  const [fullName, setFullName] = useState(profile.full_name || '');
+  const [fullNameStatus, setFullNameStatus] = useState(profile.full_name_status || 'pending');
+  const [fullNameSaving, setFullNameSaving] = useState(false);
+  const [fullNameMessage, setFullNameMessage] = useState<string | null>(null);
+  const [fullNameError, setFullNameError] = useState<string | null>(null);
 
   // Brains Master badge toggle
   const bmActive = isBrainsMasterActive(profile);
@@ -148,6 +156,32 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
       setUsernameError(error.message || 'Failed to update username.');
     } finally {
       setUsernameSaving(false);
+    }
+  };
+
+  const handleFullNameSave = async () => {
+    const trimmed = fullName.trim().replace(/\s+/g, ' ');
+    if (trimmed.length < 5 || !trimmed.includes(' ')) {
+      setFullNameError('Enter your real first and last name.');
+      return;
+    }
+    const changingVerifiedName = fullNameStatus === 'verified' && trimmed !== profile.full_name;
+    if (changingVerifiedName && !window.confirm('Changing a verified name sends it back to your school administrator for confirmation. Continue?')) {
+      return;
+    }
+    setFullNameSaving(true);
+    setFullNameError(null);
+    setFullNameMessage(null);
+    try {
+      const { data, error } = await supabase.rpc('submit_my_full_name', { p_full_name: trimmed });
+      if (error || !data?.success) throw new Error(data?.error || error?.message || 'Could not save your real name.');
+      setFullName(trimmed);
+      setFullNameStatus('pending');
+      setFullNameMessage('Saved. Your school administrator now needs to confirm this name.');
+    } catch (error: any) {
+      setFullNameError(error?.message || 'Could not save your real name.');
+    } finally {
+      setFullNameSaving(false);
     }
   };
 
@@ -287,6 +321,47 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           <div>
             <h3 className="font-heading text-xl mb-3" style={{ color: 'var(--amber-warn)' }}>Profile</h3>
             <div className="space-y-3">
+              {profile.role === 'student' && (
+                <div className="p-4 bg-black/20 rounded-lg space-y-3 border border-gray-700">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-semibold text-white">Real name</p>
+                      <p className="text-xs text-gray-400">Private school identity used on Cambridge tests—not your public codename.</p>
+                    </div>
+                    <span className={`shrink-0 text-xs px-2 py-1 rounded-full ${
+                      fullNameStatus === 'verified' ? 'bg-green-500/20 text-green-300 border border-green-500/40' :
+                      fullNameStatus === 'rejected' ? 'bg-red-500/20 text-red-300 border border-red-500/40' :
+                      'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                    }`}>
+                      {fullNameStatus === 'verified' ? 'Confirmed' : fullNameStatus === 'rejected' ? 'Correction required' : 'Awaiting confirmation'}
+                    </span>
+                  </div>
+                  <label htmlFor="settings-full-name" className="sr-only">Real first and last name</label>
+                  <input
+                    id="settings-full-name"
+                    type="text"
+                    autoComplete="name"
+                    value={fullName}
+                    onChange={(event) => { setFullName(event.target.value); setFullNameError(null); setFullNameMessage(null); }}
+                    placeholder="First and last name"
+                    maxLength={120}
+                    className="w-full min-h-11 bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void handleFullNameSave()}
+                    disabled={fullNameSaving || fullName.trim().length < 5 || !fullName.trim().includes(' ') || (fullNameStatus === 'verified' && fullName.trim() === profile.full_name)}
+                    className="w-full min-h-11 rounded-lg bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-700 disabled:text-gray-400 font-semibold text-white transition"
+                  >
+                    {fullNameSaving ? 'Saving…' : fullNameStatus === 'verified' ? 'Submit name change' : 'Send to school for confirmation'}
+                  </button>
+                  {fullNameStatus === 'pending' && <p className="text-xs text-amber-200">You can use Cambridge tests after a school administrator confirms this name.</p>}
+                  {fullNameStatus === 'rejected' && <p className="text-xs text-red-300">Your school requested a correction. Update the name and send it again.</p>}
+                  {fullNameError && <p role="alert" className="text-xs text-red-300">{fullNameError}</p>}
+                  {fullNameMessage && <p role="status" className="text-xs text-green-300">{fullNameMessage}</p>}
+                </div>
+              )}
+
               <div className="p-3 bg-black/20 rounded-lg space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-300">Username</span>
