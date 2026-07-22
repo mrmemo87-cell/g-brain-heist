@@ -18,6 +18,8 @@ export interface SchoolMember {
   user_id: string;
   username: string;
   email: string;
+  full_name: string | null;
+  full_name_status: 'pending' | 'verified' | 'rejected';
   role: SchoolRole;
   avatar_url: string | null;
   grade: number | null;
@@ -367,11 +369,19 @@ export async function listSchoolMembers(
       return { members: [], total: 0 };
     }
 
+    const { data: namesData } = await supabase.rpc('school_admin_get_member_names');
+    const namesById = new Map(
+      ((namesData?.success ? namesData.members : []) || []).map((row: any) => [row.user_id, row])
+    );
     const membersRaw = (data.members || []) as any[];
-    const mapped: SchoolMember[] = membersRaw.map((row) => ({
+    const mapped: SchoolMember[] = membersRaw.map((row) => {
+      const identity = namesById.get(row.user_id) as any;
+      return ({
       user_id: row.user_id,
       username: row.username,
       email: row.email,
+      full_name: identity?.full_name ?? null,
+      full_name_status: identity?.full_name_status ?? 'pending',
       role: row.role_in_school as SchoolRole,
       avatar_url: row.avatar_url,
       grade: row.grade,
@@ -383,13 +393,28 @@ export async function listSchoolMembers(
       banned_until: row.banned_until ?? null,
       required_changes: row.required_changes ?? null,
       joined_at: row.joined_at,
-    }));
+    });
+    });
 
     return { members: mapped, total: Number(data.total || 0) };
   } catch (err) {
     console.error('Exception listing school members:', err);
     return { members: [], total: 0 };
   }
+}
+
+export async function verifyStudentFullName(
+  studentId: string,
+  approved: boolean,
+  correctedFullName?: string
+): Promise<{ success: boolean; error?: string; full_name?: string; status?: string }> {
+  const { data, error } = await supabase.rpc('school_admin_verify_student_full_name', {
+    p_student_id: studentId,
+    p_approved: approved,
+    p_corrected_full_name: correctedFullName?.trim() || null,
+  });
+  if (error || !data?.success) return { success: false, error: data?.error || error?.message || 'Could not update name' };
+  return data;
 }
 
 /**
