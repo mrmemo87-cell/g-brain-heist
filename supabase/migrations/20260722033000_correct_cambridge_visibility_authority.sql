@@ -70,7 +70,8 @@ COMMENT ON TABLE public.teacher_cambridge_class_visibility IS
 -- matching class assignment owned by the recorded teacher.
 INSERT INTO public.teacher_cambridge_class_visibility
   (class_id, test_id, teacher_user_id, is_visible, created_at, updated_at)
-SELECT cta.class_id, ctv.test_id, cta.teacher_user_id, ctv.is_visible,
+SELECT DISTINCT ON (cta.class_id, ctv.test_id)
+       cta.class_id, ctv.test_id, cta.teacher_user_id, ctv.is_visible,
        COALESCE(ctv.created_at, now()), COALESCE(ctv.updated_at, now())
 FROM public.cambridge_test_visibility ctv
 JOIN public.cambridge_tests ct ON ct.id = ctv.test_id
@@ -84,6 +85,7 @@ WHERE lower(btrim(cta.subject)) = lower(btrim(ct.curriculum_subject))
     ct.mapped_grade_level IS NULL
     OR NULLIF(regexp_replace(c.grade_level, '[^0-9]', '', 'g'), '')::integer = ct.mapped_grade_level
   )
+ORDER BY cta.class_id, ctv.test_id, ctv.updated_at DESC NULLS LAST, ctv.created_at DESC NULLS LAST
 ON CONFLICT (class_id, test_id) DO UPDATE
 SET is_visible = EXCLUDED.is_visible,
     teacher_user_id = EXCLUDED.teacher_user_id,
