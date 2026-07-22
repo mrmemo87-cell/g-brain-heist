@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAdmin } from '../AdminContext';
 import { buildBiologyAnswerKeyFromSavedMetadata, isBiologyCambridgeQuiz, parseSavedAnswersPayload } from '../../biologyReviewAnswerKey';
+import { getPrimaryCambridgeAnswer, isCambridgeAnswerCorrect, parseCambridgeResponses } from '../../cambridgeListeningReview';
 
 const AnswerReflectionModal: React.FC = () => {
   const {
@@ -18,10 +19,8 @@ const AnswerReflectionModal: React.FC = () => {
         const isChemistryTest = quizName.toLowerCase().includes('chemistry') || isBiologyTest;
         const biologyAnswerMetadata = buildBiologyAnswerKeyFromSavedMetadata(reportStudent.answers);
 
-        // For Science tests, extract responses from answers.responses
-        const studentResponses = isChemistryTest 
-          ? (rawAnswers.responses || rawAnswers || {})
-          : rawAnswers;
+        // Every Cambridge paper may wrap numeric responses in answers.responses.
+        const studentResponses = parseCambridgeResponses(rawAnswers);
 
         // Get correct answers for tests that ship an answer key in the frontend
         const correctAnswersForQuiz = isChemistryTest ? getScienceAnswerKey(quizName, reportStudent) : (correctAnswers[quizName] || {});
@@ -39,12 +38,13 @@ const AnswerReflectionModal: React.FC = () => {
           Object.keys(correctAnswersForQuiz).forEach(qStr => {
             const q = parseInt(qStr);
             const studentAns = (studentResponses[q] || '').toString().trim();
-            const correctAns = correctAnswersForQuiz[q] || '';
+            const expectedAnswer = correctAnswersForQuiz[q];
+            const correctAns = expectedAnswer === undefined ? '' : getPrimaryCambridgeAnswer(expectedAnswer);
 
             if (!studentAns) {
               unansweredCount++;
               mistakes.push({ q, studentAns: '(No answer)', correctAns, unanswered: true });
-            } else if (studentAns.toLowerCase() === correctAns.toLowerCase()) {
+            } else if (expectedAnswer !== undefined && isCambridgeAnswerCorrect(studentAns, expectedAnswer)) {
               correctCount++;
             } else {
               wrongCount++;
@@ -126,8 +126,8 @@ const AnswerReflectionModal: React.FC = () => {
                         <span className="text-blue-600 text-sm">
                           {section.questions.filter(q => {
                             const studentAns = (studentResponses[q] || '').toString().trim().toLowerCase();
-                            const correctAns = (correctAnswersForQuiz[q] || '').toLowerCase();
-                            const isCorrect = studentAns === correctAns;
+                            const expectedAnswer = correctAnswersForQuiz[q];
+                            const isCorrect = expectedAnswer !== undefined && isCambridgeAnswerCorrect(studentAns, expectedAnswer);
                             if (isCorrect) sectionCorrect++;
                             return isCorrect;
                           }).length}/{section.questions.length} correct
@@ -136,8 +136,9 @@ const AnswerReflectionModal: React.FC = () => {
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-4">
                         {section.questions.map(q => {
                           const studentAns = (studentResponses[q] || '').toString().trim();
-                          const correctAns = correctAnswersForQuiz[q] || '';
-                          const isCorrect = studentAns.toLowerCase() === correctAns.toLowerCase();
+                          const expectedAnswer = correctAnswersForQuiz[q];
+                          const correctAns = expectedAnswer === undefined ? '' : getPrimaryCambridgeAnswer(expectedAnswer);
+                          const isCorrect = expectedAnswer !== undefined && isCambridgeAnswerCorrect(studentAns, expectedAnswer);
                           const isUnanswered = !studentAns;
 
                           return (

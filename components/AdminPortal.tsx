@@ -9,6 +9,13 @@ import * as SchoolAdminService from '../services/schoolAdminService';
 import { SchoolMember } from '../services/schoolAdminService';
 import { chemistryAnswerKeys, chemistryQuestionRanges } from './chemistryAnswerKeys';
 import { buildBiologyAnswerKeyFromSavedMetadata, isBiologyCambridgeQuiz } from './biologyReviewAnswerKey';
+import {
+  CAMBRIDGE_LISTENING_TEST_1_ANSWER_KEY,
+  CAMBRIDGE_LISTENING_TEST_1_SECTIONS,
+  isCambridgeAnswerCorrect,
+  parseCambridgeResponses,
+  type CambridgeExpectedAnswer,
+} from './cambridgeListeningReview';
 
 import AdminContext from './admin/AdminContext';
 import DashboardTab from './admin/tabs/DashboardTab';
@@ -790,7 +797,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   };
 
   // Correct answers for different tests
-  const correctAnswers: Record<string, Record<number, string>> = {
+  const correctAnswers: Record<string, Record<number, CambridgeExpectedAnswer>> = {
     'Cambridge Reading 25': {
       1:"common", 2:"typically", 3:"access", 4:"stay", 5:"hunt", 6:"defend", 7:"escape", 8:"number",
       9:"B", 10:"A", 11:"A", 12:"C", 13:"A",
@@ -799,13 +806,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       27:"C", 28:"A", 29:"B", 30:"C", 31:"A", 32:"D", 33:"C", 34:"A", 35:"B", 36:"C",
       37:"C", 38:"B", 39:"D", 40:"A", 41:"B", 42:"C"
     },
-    'Cambridge Listening Test 1': {
-      1:"C", 2:"A", 3:"B", 4:"B", 5:"C",
-      6:"B", 7:"B", 8:"A", 9:"C", 10:"A",
-      11:"Thursdays", 12:"flute", 13:"dance studio", 14:"restaurant", 15:"DRASTLE",
-      16:"B", 17:"C", 18:"C", 19:"A", 20:"A",
-      21:"H", 22:"E", 23:"D", 24:"C", 25:"B"
-    },
+    'Cambridge Listening Test 1': CAMBRIDGE_LISTENING_TEST_1_ANSWER_KEY,
     ...chemistryAnswerKeys
   };
 
@@ -850,11 +851,12 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       "Detailed Analysis": { questions: [27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42], icon: "🎯" }
     },
     'Cambridge Listening Test 1': {
-      "Picture Selection": { questions: [1,2,3,4,5], icon: "🖼️" },
-      "Multiple Choice": { questions: [6,7,8,9,10], icon: "📝" },
-      "Form Completion": { questions: [11,12,13,14,15], icon: "📋" },
-      "Interview Comprehension": { questions: [16,17,18,19,20], icon: "🎤" },
-      "Speaker Matching": { questions: [21,22,23,24,25], icon: "🔊" }
+      "Picture Selection 1": { questions: [1,2,3,4,5], icon: "🖼️" },
+      "Picture Selection 2": { questions: [6,7,8,9,10], icon: "🖼️" },
+      "Short Conversations": { questions: [11,12,13,14,15], icon: "💬" },
+      "Writer Interview": { questions: [16,17,18,19,20], icon: "🎤" },
+      "Note Completion": { questions: [21,22,23,24,25], icon: "📝" },
+      "Musician Interview": { questions: [26,27,28,29,30], icon: "🎧" }
     }
   };
 
@@ -867,13 +869,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       { name: "Part 4: Grammar & Gap Fill", icon: "✍️", questions: [19,20,21,22,23,24,25,26] },
       { name: "Part 5: Detailed Comprehension", icon: "🎯", questions: [27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42] }
     ],
-    'Cambridge Listening Test 1': [
-      { name: "Part 1: Picture Selection", icon: "🖼️", questions: [1,2,3,4,5] },
-      { name: "Part 2: Multiple Choice", icon: "📝", questions: [6,7,8,9,10] },
-      { name: "Part 3: Form Completion", icon: "📋", questions: [11,12,13,14,15] },
-      { name: "Part 4: Interview", icon: "🎤", questions: [16,17,18,19,20] },
-      { name: "Part 5: Speaker Matching", icon: "🔊", questions: [21,22,23,24,25] }
-    ]
+    'Cambridge Listening Test 1': CAMBRIDGE_LISTENING_TEST_1_SECTIONS,
   };
 
   // Action plans for improvement
@@ -927,7 +923,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   // Analyze skill performance
   const analyzeSkillPerformance = (result: any) => {
     const quizName = result.quiz_name || '';
-    const rawAnswers = result.answers || {};
+    const rawAnswers = parseCambridgeResponses(result.answers);
     const categories = skillCategories[quizName] || {};
     const correctAnswersForQuiz = correctAnswers[quizName] || {};
     
@@ -959,9 +955,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     Object.entries(categories).forEach(([skill, data]) => {
       let correctCount = 0;
       data.questions.forEach(q => {
-        const studentAns = (rawAnswers[q] || '').toString().trim().toLowerCase();
-        const correctAns = (correctAnswersForQuiz[q] || '').toString().toLowerCase();
-        if (studentAns === correctAns) correctCount++;
+        const expected = correctAnswersForQuiz[q];
+        if (expected !== undefined && isCambridgeAnswerCorrect(rawAnswers[q], expected)) correctCount++;
       });
       skillPerformance[skill] = {
         correct: correctCount,
