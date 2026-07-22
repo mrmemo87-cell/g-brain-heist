@@ -32,6 +32,22 @@ interface CambridgeTestsHubProps {
   onExit: () => void;
 }
 
+const LISTENING_TEST_1_VERSION = 'listening-1-stage9-v3';
+
+const isCompatibleCambridgeCompletion = (test: CambridgeTest, completion: any) => {
+  if (test.id !== 'cambridge-listening-1') return true;
+
+  try {
+    const answers = typeof completion?.answers === 'string'
+      ? JSON.parse(completion.answers)
+      : completion?.answers;
+    return completion?.total_questions === 30
+      && answers?.quiz_version === LISTENING_TEST_1_VERSION;
+  } catch {
+    return false;
+  }
+};
+
 // Available Cambridge tests - add new tests here
 const ENGLISH_TESTS: CambridgeTest[] = [
   {
@@ -59,9 +75,9 @@ const ENGLISH_TESTS: CambridgeTest[] = [
   {
     id: 'cambridge-listening-1',
     name: 'Cambridge Listening Test 1',
-    description: 'Complete listening test with 5 parts: picture selection, multiple choice, fill-in-the-blanks, interview, and matching exercises.',
-    duration: '30 min',
-    totalQuestions: 25,
+    description: 'Stage 9 Progression listening paper with six parts: picture selection, multiple choice, and information gap-fill.',
+    duration: '45 min',
+    totalQuestions: 30,
     difficulty: 'Intermediate',
     category: 'Listening',
     subject: 'English stage 9',
@@ -1064,6 +1080,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
         const normalizedTestId = normalizeTestName(test.id.replace(/-/g, ' '));
         const normalizedTestName = normalizeTestName(test.name);
         const completion = completedTests?.find(c => {
+          if (!isCompatibleCambridgeCompletion(test, c)) return false;
           const normalizedQuizName = normalizeTestName(c.quiz_name);
           return normalizedQuizName.includes(normalizedTestId)
             || normalizedQuizName.includes(normalizedTestName)
@@ -1358,6 +1375,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       const normalizedTestId = normalizeTestName(test.id.replace(/-/g, ' '));
       const normalizedTestName = normalizeTestName(test.name);
       const scoreRow = data.find(c => {
+        if (!isCompatibleCambridgeCompletion(test, c)) return false;
         const nq = normalizeTestName(c.quiz_name);
         return nq.includes(normalizedTestId) || nq.includes(normalizedTestName) || normalizedTestName.includes(nq);
       });

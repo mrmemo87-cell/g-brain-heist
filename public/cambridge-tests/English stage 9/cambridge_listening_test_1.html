@@ -831,7 +831,8 @@
       return params.get('mode') === 'review';
     }
 
-  const QUIZ_ID = 'cambridge_listening_1';
+  const QUIZ_ID = 'cambridge_listening_1_stage9_v3';
+  const QUIZ_VERSION = 'listening-1-stage9-v3';
   let hasSubmitted = false;
   let startTime = null;
   let timerInterval = null;
@@ -1027,14 +1028,18 @@
       student_name: `eq.${identity.name}`,
       quiz_name: 'eq.Cambridge Listening Test 1',
       order: 'submitted_at.desc',
-      limit: '1'
+      limit: '20'
     });
     if (identity.schoolId) params.set('school_id', `eq.${identity.schoolId}`);
     const response = await fetch(`${SUPABASE_URL}/rest/v1/quiz_scores?${params}`, {
       headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${getSupabaseAccessToken() ?? SUPABASE_ANON_KEY}` }
     });
     if (!response.ok) throw new Error(await response.text());
-    return (await response.json())[0] || null;
+    const submissions = await response.json();
+    return submissions.find((submission) =>
+      submission.total_questions === total &&
+      submission.answers?.quiz_version === QUIZ_VERSION
+    ) || null;
   }
 
   async function checkPreviousSubmission() {
@@ -1352,7 +1357,7 @@
         score: score,
         total_questions: total,
         percentage: percentage,
-        answers: { responses: answers, quiz_version: 'listening-1-stage9-v3' },
+        answers: { responses: answers, quiz_version: QUIZ_VERSION },
         time_taken_seconds: timeTaken,
         scores_released: false,
         school_id: identity.schoolId
@@ -1451,7 +1456,7 @@
   
   // Start ExamGuard after initialization
   setTimeout(() => {
-    const hasSubmitted = localStorage.getItem(`quiz_submitted_listening_test_1`);
+    const hasSubmitted = localStorage.getItem(`quiz_submitted_${QUIZ_ID}`);
     if (!hasSubmitted && !isReviewMode() && typeof window.ExamGuard !== 'undefined') {
       let autoSubmitTriggered = false;
       window.ExamGuard.start({
@@ -1471,7 +1476,7 @@
             }
           }
         },
-        testId: 'listening_test_1',
+        testId: 'listening_test_1_stage9_v3',
         maxViolations: 3,
         blurGraceMs: 300,
         actions: {
