@@ -771,18 +771,21 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
   const playerUsers = users.filter(isPlayerAccount);
 
-  // Delete a quiz score entry (via RPC — school-scoped)
+  // Preserve a Cambridge attempt and allow a retake (via scoped audited RPC).
   const deleteQuizScore = async (id: string, studentName: string) => {
-    if (!window.confirm(`Delete submission from ${studentName}? This will allow them to retake the test.`)) return;
+    if (!window.confirm(`Allow ${studentName} to retake this test? The original attempt will be preserved in audit history.`)) return;
     try {
-      const { data, error } = await supabase.rpc('school_admin_delete_quiz_submission', { p_score_id: id });
+      const { data, error } = await supabase.rpc('allow_cambridge_retake', {
+        p_score_id: id,
+        p_reason: 'Platform administrator authorized a retake',
+      });
       if (error) throw error;
       const result = typeof data === 'string' ? JSON.parse(data) : data;
       if (result && result.success === false) throw new Error(result.error || 'Failed');
-      addToast(`🗑️ Deleted submission from ${studentName}`, 'success');
+      addToast(`↻ Retake allowed for ${studentName}; original attempt preserved`, 'success');
       fetchQuizScores();
     } catch (error) {
-      reportRpcError('Failed to delete submission:', error, 'Failed to delete submission');
+      reportRpcError('Failed to allow retake:', error, 'Failed to allow retake');
     }
   };
 

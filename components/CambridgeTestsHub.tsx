@@ -33,6 +33,25 @@ interface CambridgeTestsHubProps {
 }
 
 const LISTENING_TEST_1_VERSION = 'listening-1-stage9-v3';
+const CAMBRIDGE_ATTEMPT_STORAGE_PREFIXES = [
+  'quiz_submitted_',
+  'quiz_student_',
+  'quiz_class_',
+  'quiz_draft_',
+];
+
+const clearStaleCambridgeAttemptLocks = () => {
+  for (let index = localStorage.length - 1; index >= 0; index -= 1) {
+    const key = localStorage.key(index);
+    if (key && CAMBRIDGE_ATTEMPT_STORAGE_PREFIXES.some(prefix => key.startsWith(prefix))) {
+      localStorage.removeItem(key);
+    }
+  }
+
+  // Legacy writing tests consume this one-time marker before checking their
+  // local lock. Other test shells safely ignore it.
+  localStorage.setItem('cambridge_retake', '1');
+};
 
 const isCompatibleCambridgeCompletion = (test: CambridgeTest, completion: any) => {
   if (test.id !== 'cambridge-listening-1') return true;
@@ -925,6 +944,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
   const [testSubmittedInSession, setTestSubmittedInSession] = useState(false);
   const [isReviewMode, setIsReviewMode] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [progressVerified, setProgressVerified] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const initialLoadDone = useRef(false);
 
@@ -1129,8 +1149,10 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       });
 
       setTests(testsWithProgress);
+      setProgressVerified(true);
     } catch (err) {
       console.error('Error loading test progress:', err);
+      setProgressVerified(false);
       // Filter by visibility even on error
       // Only show tests that are in the visible set
       const availableTests = AVAILABLE_TESTS.filter(test => 
@@ -1168,6 +1190,11 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       return;
     }
 
+    if (!progressVerified) {
+      alert('We could not verify your Cambridge attempt history. Refresh the page before starting so an existing submission is never overwritten.');
+      return;
+    }
+
     // Exams must use the student's school-verified real identity, never their codename.
     if (!(await loadVerifiedExamIdentity())) return;
 
@@ -1178,6 +1205,9 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       return;
     }
 
+    // The database is authoritative. If no active submission exists, remove
+    // stale browser-only locks so approved retakes work for every test shell.
+    clearStaleCambridgeAttemptLocks();
     setActiveTest(test);
   };
 

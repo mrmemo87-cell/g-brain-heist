@@ -864,30 +864,37 @@ export async function listClassStudents(classIds: string[], schoolId?: string): 
 }
 
 /**
- * Delete a quiz submission via RPC (school admin action)
+ * Preserve a Cambridge submission in audit history and allow a fresh attempt.
  */
-export async function deleteQuizSubmission(scoreId: string): Promise<{ success: boolean; error?: string }> {
+export async function allowQuizRetake(
+  scoreId: string,
+  reason?: string,
+): Promise<{ success: boolean; error?: string }> {
   try {
-    const { data, error } = await supabase.rpc('school_admin_delete_quiz_submission', {
+    const { data, error } = await supabase.rpc('allow_cambridge_retake', {
       p_score_id: scoreId,
+      p_reason: reason?.trim() || null,
     });
 
     if (error) {
-      console.error('Error deleting quiz submission:', error);
+      console.error('Error allowing Cambridge retake:', error);
       return { success: false, error: error.message };
     }
 
     const result = typeof data === 'string' ? JSON.parse(data) : data;
     if (result && result.success === false) {
-      return { success: false, error: result.error || 'Failed to delete submission' };
+      return { success: false, error: result.error || 'Failed to allow retake' };
     }
 
     return { success: true };
   } catch (err) {
-    console.error('Exception deleting quiz submission:', err);
+    console.error('Exception allowing Cambridge retake:', err);
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
+
+/** @deprecated Use allowQuizRetake. Kept for callers outside the current portal bundle. */
+export const deleteQuizSubmission = allowQuizRetake;
 
 // ============================================
 // Teacher Class Access Functions
