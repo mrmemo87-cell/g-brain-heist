@@ -346,6 +346,65 @@
     font-size: 14px;
     color: #333;
   }
+
+  .source-question-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0 0 16px;
+    border: 1px solid #dbe3ef;
+    border-radius: 10px;
+    background: #fff;
+  }
+  .choice-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: #f1f5f9;
+  }
+  .choice-row label {
+    color: #334155;
+    font-weight: 700;
+  }
+  .choice-select {
+    min-width: 150px;
+    min-height: 48px;
+    padding: 10px 38px 10px 14px;
+    border: 2px solid #cbd5e1;
+    border-radius: 10px;
+    background: #fff;
+    color: #0f172a;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .choice-select:focus {
+    outline: 3px solid rgba(99, 102, 241, 0.25);
+    border-color: #6366f1;
+  }
+  .tour-form {
+    border: 2px solid #1f2937;
+    padding: 24px;
+    background: #fff;
+  }
+  .tour-form h3 {
+    margin: 0 0 18px;
+    text-align: center;
+    letter-spacing: 0.04em;
+  }
+  .tour-line {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(150px, 220px);
+    gap: 14px;
+    align-items: center;
+    padding: 13px 0;
+    border-bottom: 1px dashed #cbd5e1;
+    color: #1e293b;
+    line-height: 1.45;
+  }
+  .tour-line:last-child { border-bottom: 0; }
   
   /* Matching section */
   .matching-options {
@@ -493,6 +552,14 @@
       width: 100%;
       max-width: 200px;
     }
+    .question-card { padding: 14px; }
+    .choice-row {
+      align-items: stretch;
+      flex-direction: column;
+    }
+    .choice-select { width: 100%; }
+    .tour-form { padding: 16px; }
+    .tour-line { grid-template-columns: 1fr; }
   }
   
   /* Mobile fixes for iOS and Android */
@@ -589,22 +656,22 @@
   </div>
 
   <h1>🎧 Cambridge Listening Test 1</h1>
-  <p class="subtitle">Answer Form — Questions 1 — 28</p>
+  <p class="subtitle">Stage 9 Progression Listening Paper — Questions 1 — 30</p>
 
   <div class="warning-box">
     <h3>⚠️ Important Rules</h3>
     <ul>
       <li>You can only submit <b>ONCE</b> – answers cannot be changed after submission</li>
-      <li>The audio will play <b>ONCE ONLY</b> – you cannot pause, rewind, or skip ahead</li>
-      <li>Listen carefully — once the audio starts, it cannot be stopped</li>
-      <li>Correct answers will only be shown <b>AFTER</b> you submit</li>
+      <li>The recording includes the paper's official repeats and cannot be paused, rewound, or skipped</li>
+      <li>Listen carefully — once the recording starts, it cannot be stopped</li>
+      <li>Your score and corrections are shown only after your teacher releases them</li>
       <li>Your submission time is recorded</li>
     </ul>
   </div>
 
   <div class="audio-box">
     <h3>🎧 Listening Test Audio</h3>
-    <p>⚠️ Press play to start. The audio will play <b>once only</b> and cannot be paused or rewound.</p>
+    <p>⚠️ Press play to start. The recording already includes every official repeat and cannot be paused or rewound.</p>
     
     <!-- Hidden actual audio element - works on iOS and Android -->
     <audio id="testAudio" preload="auto" playsinline>
@@ -768,50 +835,20 @@
   let hasSubmitted = false;
   let startTime = null;
   let timerInterval = null;
-  const total = 28;
+  const total = 30;
 
   // Correct Answers
   const correct = {
-    1: ["Mkere"],
-    2: ["Westall"],
-    3: ["BS8 9PU"],
-    4: [
-      "0.75 m",
-      "0.75 metre",
-      "0.75 meter",
-      "0.75 metres",
-      "0.75 meters",
-      "three quarters of a metre",
-      "three quarters of a meter",
-      "three quarter metre",
-      "three quarter meter",
-      "three quarters metre",
-      "three quarters meter",
-      "75 cm",
-      "75 cms"
-    ],
-    5: [
-      "0.5 m",
-      "0.5 metre",
-      "0.5 meter",
-      "0.5 metres",
-      "0.5 meters",
-      "half a metre",
-      "half a meter",
-      "a half metre",
-      "a half meter",
-      "half metre",
-      "half meter",
-      "50 cm",
-      "50 cms"
-    ],
-    6: ["books"],
-    7: ["toys"],
-    8: ["1700", "1,700"],
-    9: "B", 10: "B", 11: "A", 12: "C", 13: "A",
-    14: "Thursdays", 15: "flute", 16: "dance studio", 17: "restaurant", 18: "DRASTLE",
-    19: "B", 20: "C", 21: "C", 22: "A", 23: "A",
-    24: "H", 25: "E", 26: "D", 27: "C", 28: "B"
+    1: "C", 2: "C", 3: "B", 4: "A", 5: "C",
+    6: "C", 7: "C", 8: "C", 9: "A", 10: "B",
+    11: "A", 12: "B", 13: "C", 14: "B", 15: "C",
+    16: "C", 17: "B", 18: "C", 19: "A", 20: "C",
+    21: ["6:30", "6.30", "6 30", "half past six", "half past six pm", "half past six p.m.", "half past six in the evening"],
+    22: ["museum"],
+    23: ["garden", "gardens"],
+    24: ["painting", "local painting", "a painting", "a local painting"],
+    25: ["drink", "a drink"],
+    26: "A", 27: "B", 28: "C", 29: "A", 30: "B"
   };
 
   // Audio player state - no seeking allowed
@@ -1007,7 +1044,7 @@
     hasSubmitted = true;
     try { window.parent.postMessage({ type: 'CAMBRIDGE_TEST_REVIEW_MODE' }, '*'); } catch(e) {}
     document.getElementById("alreadySubmitted").style.display = "block";
-    document.querySelectorAll('input').forEach(input => input.disabled = true);
+    document.querySelectorAll('input, select').forEach(input => input.disabled = true);
     document.getElementById("submitBtn").disabled = true;
     document.getElementById("submitBtn").textContent = "✓ Submitted";
     const floatingBtn = document.getElementById("floatingSubmitBtn");
@@ -1044,343 +1081,165 @@
 
   function buildTest() {
     const container = document.getElementById("questions");
-    
-    // ==================== PART 1 ====================
-    const part1 = document.createElement("div");
-    part1.className = "section";
-    part1.innerHTML = `
-      <h2>Part 1: Questions 1 — 8</h2>
-      <div class="section-instructions">
-        Complete the form below.<br>
-        Write <strong>NO MORE THAN THREE WORDS AND/OR A NUMBER</strong> for each answer.
-      </div>
-      <div class="question-card">
-        <div class="listening-form">
-          <div class="listening-form__title">Packham's Shipping Agency — customer quotation</div>
-          <div class="listening-form__example">
-            <strong>Example</strong> Country of destination: <b>Kenya</b>
-          </div>
-          <div class="listening-form__row">
-            <span class="listening-form__label">Name</span>
-            <span class="listening-form__number">1</span>
-            <input type="text" id="q1" class="answer-input answer-input--text" oninput="startTimer()" />
-          </div>
-          <div class="listening-form__row">
-            <span class="listening-form__label">Address to be collected</span>
-            <span class="listening-form__number">2</span>
-            <div class="listening-form__inline">
-              <input type="text" id="q2" class="answer-input answer-input--text" oninput="startTimer()" />
-              <span>College, Downlands Rd</span>
-            </div>
-          </div>
-          <div class="listening-form__row">
-            <span class="listening-form__label">Town</span>
-            <span class="listening-form__hint">Downlands</span>
-          </div>
-          <div class="listening-form__row">
-            <span class="listening-form__label">Postcode</span>
-            <span class="listening-form__number">3</span>
-            <input type="text" id="q3" class="answer-input answer-input--text" oninput="startTimer()" />
-          </div>
-          <div class="listening-form__divider"></div>
-          <div class="listening-form__row">
-            <span class="listening-form__label">Size of crate</span>
-            <div class="crate-layout">
-              <div class="crate-diagram" aria-hidden="true"></div>
-              <div>
-                <div class="crate-dimension">Width: <span class="listening-form__number">4</span>
-                  <input type="text" id="q4" class="answer-input answer-input--text" oninput="startTimer()" />
-                </div>
-                <div class="crate-dimension">Height: <span class="listening-form__number">5</span>
-                  <input type="text" id="q5" class="answer-input answer-input--text" oninput="startTimer()" />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="listening-form__divider"></div>
-          <div class="listening-form__row">
-            <span class="listening-form__label">Contents</span>
-            <span class="listening-form__number">6</span>
-            <input type="text" id="q6" class="answer-input answer-input--text" oninput="startTimer()" />
-          </div>
-          <div class="listening-form__row">
-            <span class="listening-form__label">&nbsp;</span>
-            <span class="listening-form__number">7</span>
-            <input type="text" id="q7" class="answer-input answer-input--text" oninput="startTimer()" />
-          </div>
-          <div class="listening-form__row">
-            <span class="listening-form__label">Total estimated value</span>
-            <span class="listening-form__number">8</span>
-            <input type="text" id="q8" class="answer-input answer-input--text" oninput="startTimer()" />
-          </div>
-        </div>
-      </div>
-    `;
-    container.appendChild(part1);
+    const paperAssetBase = "./listening-test-1-paper";
 
-    // ==================== PART 2 ====================
-    const part2 = document.createElement("div");
-    part2.className = "section";
-    part2.innerHTML = `
-      <h2>Part 2: Questions 9 — 13</h2>
-      <div class="section-instructions">
-        You will hear people talking in five different situations.<br>
-        For each question, choose the correct answer <strong>A</strong>, <strong>B</strong> or <strong>C</strong>.
-      </div>
-      
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">9</span> You will hear two friends talking about transport in their city. What do they agree about it?</div>
-        <div class="options-list">
-          <div class="option-item">A) The trams are quite convenient.</div>
-          <div class="option-item">B) Travelling by bus is very expensive.</div>
-          <div class="option-item">C) The underground is always crowded.</div>
-        </div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q9" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-      
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">10</span> You will hear two friends talking about a museum about football. What did the girl enjoy most when she visited it?</div>
-        <div class="options-list">
-          <div class="option-item">A) looking at prizes the team received</div>
-          <div class="option-item">B) finding out about people in the team</div>
-          <div class="option-item">C) watching a documentary of the team playing</div>
-        </div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q10" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-      
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">11</span> You will hear a teacher telling his class about a photography competition. What information does he give them?</div>
-        <div class="options-list">
-          <div class="option-item">A) Everyone will see the winning entries.</div>
-          <div class="option-item">B) All students need to take part.</div>
-          <div class="option-item">C) Photos must show the natural world.</div>
-        </div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q11" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-      
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">12</span> You will hear two friends talking about their school library. What do they agree about it?</div>
-        <div class="options-list">
-          <div class="option-item">A) There are enough computers there.</div>
-          <div class="option-item">B) The opening hours are too short.</div>
-          <div class="option-item">C) There are lots of good novels there.</div>
-        </div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q12" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-      
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">13</span> You will hear a girl telling a friend about a film. Why does the girl want to see it?</div>
-        <div class="options-list">
-          <div class="option-item">A) She knows and loves the story.</div>
-          <div class="option-item">B) She's read some good reviews.</div>
-          <div class="option-item">C) She likes all the actors.</div>
-        </div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q13" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-    `;
-    container.appendChild(part2);
+    const choiceInput = (number) => `
+      <div class="choice-row">
+        <label for="q${number}">Question ${number} answer</label>
+        <select id="q${number}" class="choice-select" aria-label="Answer for question ${number}" onchange="startTimer()">
+          <option value="">Choose A, B or C</option>
+          <option value="A">A</option>
+          <option value="B">B</option>
+          <option value="C">C</option>
+        </select>
+      </div>`;
 
-    // ==================== PART 3 ====================
-    const part3 = document.createElement("div");
-    part3.className = "section";
-    part3.innerHTML = `
-      <h2>Part 3: Questions 14 — 18</h2>
-      <div class="section-instructions">
-        You will hear a teacher telling some students about the school orchestra.<br>
-        For each question, fill in the missing information in the numbered space.
-      </div>
-      
-      <div class="orchestra-form">
-        <h3 class="orchestra-title">School Orchestra</h3>
-        
-        <p class="orchestra-line">
-          Orchestra practices will be after school on <span class="q-number">(14)</span>
-          <input type="text" id="q14" class="orchestra-input" placeholder="....................." oninput="startTimer()" />
-          .
-        </p>
-        
-        <p class="orchestra-line">
-          The orchestra really needs students who can play the <span class="q-number">(15)</span>
-          <input type="text" id="q15" class="orchestra-input" placeholder="....................." oninput="startTimer()" />
-          .
-        </p>
-        
-        <p class="orchestra-line">
-          Practices will take place in the school <span class="q-number">(16)</span>
-          <input type="text" id="q16" class="orchestra-input" placeholder="....................." oninput="startTimer()" />
-          this term.
-        </p>
-        
-        <p class="orchestra-line">
-          At the end of term there will be a visit to a local <span class="q-number">(17)</span>
-          <input type="text" id="q17" class="orchestra-input" placeholder="....................." oninput="startTimer()" />
-          .
-        </p>
-        
-        <p class="orchestra-line">
-          Interested students should email the music teacher at <span class="q-number">(18)</span>
-          <input type="text" id="q18" class="orchestra-input" style="width: 140px;" placeholder="....................." oninput="startTimer()" />
-          @school.com.
-        </p>
-      </div>
-    `;
-    container.appendChild(part3);
+    const renderPart = (title, instructions, content) => {
+      const part = document.createElement("section");
+      part.className = "section";
+      part.innerHTML = `<h2>${title}</h2><div class="section-instructions">${instructions}</div>${content}`;
+      container.appendChild(part);
+    };
 
-    // ==================== PART 4 ====================
-    const part4 = document.createElement("div");
-    part4.className = "section";
-    part4.innerHTML = `
-      <h2>Part 4: Questions 19 — 23</h2>
-      <div class="section-instructions">
-        You will hear an interview with a girl called Mandy Livingstone who is talking about winning the Young Chef of the Year competition.<br>
-        For each question, choose the correct answer <strong>A</strong>, <strong>B</strong> or <strong>C</strong>.
-      </div>
-      
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">19</span> Mandy used to cook most with</div>
-        <div class="options-list">
-          <div class="option-item">A) her mum at the weekends.</div>
-          <div class="option-item">B) her dad after school.</div>
-          <div class="option-item">C) her grandmother in the holidays.</div>
-        </div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q19" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-      
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">20</span> How did Mandy find out about the competition?</div>
-        <div class="options-list">
-          <div class="option-item">A) She saw it advertised on a website.</div>
-          <div class="option-item">B) A teacher told her about it.</div>
-          <div class="option-item">C) She heard it mentioned on the radio.</div>
-        </div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q20" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-      
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">21</span> When Mandy's friends heard she was doing the competition they were</div>
-        <div class="options-list">
-          <div class="option-item">A) keen to help her prepare for it.</div>
-          <div class="option-item">B) surprised she wanted to take part.</div>
-          <div class="option-item">C) interested to know more about it.</div>
-        </div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q21" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-      
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">22</span> When Mandy was waiting for the results she felt that</div>
-        <div class="options-list">
-          <div class="option-item">A) she could have done better.</div>
-          <div class="option-item">B) other competitors were more talented.</div>
-          <div class="option-item">C) she had definitely won.</div>
-        </div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q22" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-      
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">23</span> What is Mandy hoping to do next?</div>
-        <div class="options-list">
-          <div class="option-item">A) make some videos about cooking</div>
-          <div class="option-item">B) get a qualification in cooking</div>
-          <div class="option-item">C) open her own restaurant</div>
-        </div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q23" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-    `;
-    container.appendChild(part4);
+    const pictureAlts = {
+      1: "Question 1: mother cooking, mother working at a computer, or mother serving at a shop counter",
+      2: "Question 2: missing a bus, travelling by bicycle, or standing beside a broken-down bus",
+      3: "Question 3: a plant book, a cookery book, or a photography book",
+      4: "Question 4: a passport, a wallet, or a mobile phone",
+      5: "Question 5: a music performance, a football match, or a wildlife programme",
+      6: "Question 6: three different arrangements of the washing machine, oven, and cupboards",
+      7: "Question 7: two women boating, a woman horse riding, or a family meal",
+      8: "Question 8: space exploration, motor racing, or ancient Egypt",
+      9: "Question 9: Tuesday the 21st, Wednesday the 22nd, or Friday the 24th",
+      10: "Question 10: gloves, a coat, or shoes"
+    };
 
-    // ==================== PART 5 ====================
-    const part5 = document.createElement("div");
-    part5.className = "section";
-    part5.innerHTML = `
-      <h2>Part 5: Questions 24 — 28</h2>
-      <div class="section-instructions">
-        You will hear five people talking about playing different sports.<br>
-        For speakers 1 — 5, choose from the list A–H what each speaker says.<br>
-        Use the letters only once. There are three extra letters which you do not need to use.
-      </div>
-      
-      <div class="matching-options">
-        <div class="matching-option"><strong>A</strong> – I do the sport with a family member.</div>
-        <div class="matching-option"><strong>B</strong> – I started doing the sport at school.</div>
-        <div class="matching-option"><strong>C</strong> – I have made lots of friends doing the sport.</div>
-        <div class="matching-option"><strong>D</strong> – I was injured recently.</div>
-        <div class="matching-option"><strong>E</strong> – I enjoy the sport more than I expected.</div>
-        <div class="matching-option"><strong>F</strong> – I would like my friends to join me.</div>
-        <div class="matching-option"><strong>G</strong> – I took part in a competition recently.</div>
-        <div class="matching-option"><strong>H</strong> – I have just got some new sports equipment.</div>
-      </div>
-      
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">24</span> Speaker 1</div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q24" class="answer-input" maxlength="1" placeholder="A-H" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-      
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">25</span> Speaker 2</div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q25" class="answer-input" maxlength="1" placeholder="A-H" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-      
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">26</span> Speaker 3</div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q26" class="answer-input" maxlength="1" placeholder="A-H" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-      
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">27</span> Speaker 4</div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q27" class="answer-input" maxlength="1" placeholder="A-H" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-      
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">28</span> Speaker 5</div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q28" class="answer-input" maxlength="1" placeholder="A-H" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-    `;
-    container.appendChild(part5);
+    const pictureCards = (start, end) => Array.from({ length: end - start + 1 }, (_, index) => {
+      const number = start + index;
+      const imageNumber = String(number).padStart(2, "0");
+      return `
+        <article class="question-card">
+          <img class="source-question-image" src="${paperAssetBase}/q${imageNumber}.png" alt="${pictureAlts[number]}" loading="lazy" />
+          ${choiceInput(number)}
+        </article>`;
+    }).join("");
+
+    const choiceQuestions = {
+      11: {
+        prompt: "You hear a teacher telling her class about a poster-drawing competition. What is the aim of the poster?",
+        options: ["to encourage young children to enjoy dairy products", "to give young children some scientific information", "to persuade young children to treat farm animals well"]
+      },
+      12: {
+        prompt: "You hear part of a talk given by a member of a teenage dance group. What main point is she making about dance?",
+        options: ["It’s similar to tennis.", "It requires a lot of concentration.", "The moves are not as hard as they seem."]
+      },
+      13: {
+        prompt: "You hear a girl talking about a sea-life centre she has visited recently. What surprised her about it?",
+        options: ["the way exhibits were presented", "the state of the building", "the attitude of the staff"]
+      },
+      14: {
+        prompt: "You hear a young man talking about a trip he made recently. What kind of trip was it?",
+        options: ["a climbing holiday", "a science expedition", "a team-building exercise"]
+      },
+      15: {
+        prompt: "You hear a teacher talking to his students about throwing away rubbish. What is the problem?",
+        options: ["where they are doing it", "how they are doing it", "when they are doing it"]
+      },
+      16: {
+        prompt: "Before becoming a full-time writer, Fiona worked …",
+        options: ["at a university.", "in publishing.", "as a lawyer."]
+      },
+      17: {
+        prompt: "How does Fiona feel about her life as a writer?",
+        options: ["She misses having a car.", "She likes working at home.", "She sometimes gets lonely."]
+      },
+      18: {
+        prompt: "Fiona decided to write stories for children because …",
+        options: ["she used to enjoy reading them herself.", "she loved looking at them in bookshops.", "she wanted to give some to her nephews."]
+      },
+      19: {
+        prompt: "When doing research for a story last year, Fiona spent time …",
+        options: ["learning things from an expert.", "reading lots about outdoor living.", "using a website about mountains."]
+      },
+      20: {
+        prompt: "In the near future, Fiona plans to …",
+        options: ["write a second story about the same character.", "make a cartoon film out of one of her stories.", "find a completely new idea for a story."]
+      },
+      26: {
+        prompt: "Grania says that most of her medical colleagues …",
+        options: ["are enthusiastic about her singing career.", "find it difficult to appreciate the music she makes.", "have expressed concern that her singing might affect her work."]
+      },
+      27: {
+        prompt: "How does Grania feel about her musical colleagues?",
+        options: ["She is annoyed that they frequently ask her for medical advice.", "She is relieved that they take her seriously as a musician.", "She is grateful for their tolerant attitude towards her other responsibilities."]
+      },
+      28: {
+        prompt: "What does Grania say about her future in her two professions?",
+        options: ["She would prefer to stay in medicine if she had to make a choice.", "She is confident the medical profession will continue to employ her.", "She will not make a choice between medicine and music at this stage."]
+      },
+      29: {
+        prompt: "What does Grania say about her children’s attitude to her music?",
+        options: ["Her son shows that he appreciates the kind of music she plays.", "Her daughter would prefer her to play a different kind of music.", "Both children support her by sometimes playing with her band."]
+      },
+      30: {
+        prompt: "What does Grania say about the music she listened to in her childhood?",
+        options: ["She regrets the extent of Western influences in African music.", "She benefited from a diversity of musical influences.", "She regards Kenyan music as the greatest influence on her."]
+      }
+    };
+
+    const choiceCards = (numbers) => numbers.map((number) => {
+      const question = choiceQuestions[number];
+      const options = question.options.map((option, index) => `<div class="option-item"><strong>${String.fromCharCode(65 + index)})</strong> ${option}</div>`).join("");
+      return `
+        <article class="question-card">
+          <div class="question-text"><span class="question-number">${number}</span>${question.prompt}</div>
+          <div class="options-list">${options}</div>
+          ${choiceInput(number)}
+        </article>`;
+    }).join("");
+
+    renderPart(
+      "Part 1: Questions 1 — 5",
+      "For each question, listen to the short recording and choose the correct picture: <strong>A, B or C</strong>.",
+      pictureCards(1, 5)
+    );
+
+    renderPart(
+      "Part 2: Questions 6 — 10",
+      "For each question, listen to the short recording and choose the correct picture: <strong>A, B or C</strong>.",
+      pictureCards(6, 10)
+    );
+
+    renderPart(
+      "Part 3: Questions 11 — 15",
+      "You will hear people talking in five different situations. Choose the correct answer <strong>A, B or C</strong>.",
+      choiceCards([11, 12, 13, 14, 15])
+    );
+
+    renderPart(
+      "Part 4: Questions 16 — 20",
+      "You will hear an interview with Fiona Marton about her work as a children’s writer. Choose <strong>A, B or C</strong>.",
+      choiceCards([16, 17, 18, 19, 20])
+    );
+
+    renderPart(
+      "Part 5: Questions 21 — 25",
+      "You will hear a guide talking about a city bus tour. Fill each gap with the missing information.",
+      `<div class="question-card"><div class="tour-form">
+        <h3>RED BUS CITY TOUR</h3>
+        <div class="tour-line"><span><strong>Bus service:</strong> the last bus is at <strong>(21)</strong></span><input id="q21" class="answer-input answer-input--text" type="text" autocomplete="off" aria-label="Answer for question 21" oninput="startTimer()" /></div>
+        <div class="tour-line"><span><strong>Ticket:</strong> entrance to the City <strong>(22)</strong></span><input id="q22" class="answer-input answer-input--text" type="text" autocomplete="off" aria-label="Answer for question 22" oninput="startTimer()" /></div>
+        <div class="tour-line"><span><strong>Ticket:</strong> tour of the <strong>(23)</strong> at 11 o’clock daily</span><input id="q23" class="answer-input answer-input--text" type="text" autocomplete="off" aria-label="Answer for question 23" oninput="startTimer()" /></div>
+        <div class="tour-line"><span><strong>Art market:</strong> buy a nice <strong>(24)</strong> at a good price</span><input id="q24" class="answer-input answer-input--text" type="text" autocomplete="off" aria-label="Answer for question 24" oninput="startTimer()" /></div>
+        <div class="tour-line"><span><strong>Riverside Park:</strong> get a <strong>(25)</strong> in the café without paying</span><input id="q25" class="answer-input answer-input--text" type="text" autocomplete="off" aria-label="Answer for question 25" oninput="startTimer()" /></div>
+      </div></div>`
+    );
+
+    renderPart(
+      "Part 6: Questions 26 — 30",
+      "You will hear an interview with Dr Grania Hudson, who also works as a professional musician. Choose <strong>A, B or C</strong>.",
+      choiceCards([26, 27, 28, 29, 30])
+    );
   }
 
   function normalizeAnswer(value) {
@@ -1400,9 +1259,6 @@
   }
 
   function formatCorrectAnswer(expectedAnswer, questionNumber) {
-    if (questionNumber === 6 || questionNumber === 7) {
-      return "books / toys";
-    }
     if (Array.isArray(expectedAnswer)) {
       return expectedAnswer[0];
     }
@@ -1411,23 +1267,10 @@
 
   function calculateScore(reveal = false) {
     let score = 0;
-    const answer6 = document.getElementById("q6").value;
-    const answer7 = document.getElementById("q7").value;
-    const normalized6 = normalizeAnswer(answer6);
-    const normalized7 = normalizeAnswer(answer7);
-    const pairCorrect =
-      (normalized6 === "books" && normalized7 === "toys") ||
-      (normalized6 === "toys" && normalized7 === "books");
-
     for (let i = 1; i <= total; i++) {
       const input = document.getElementById("q" + i);
-      let isCorrect = false;
-      if (i === 6 || i === 7) {
-        const normalized = normalizeAnswer(input.value);
-        isCorrect = pairCorrect ? (normalized === "books" || normalized === "toys") : isAnswerCorrect(input.value, correct[i]);
-      } else {
-        isCorrect = isAnswerCorrect(input.value, correct[i]);
-      }
+      if (!input) continue;
+      const isCorrect = isAnswerCorrect(input.value, correct[i]);
 
       if (isCorrect) score++;
       if (reveal) {
@@ -1509,7 +1352,7 @@
         score: score,
         total_questions: total,
         percentage: percentage,
-        answers: { responses: answers, quiz_version: 'listening-1-v2' },
+        answers: { responses: answers, quiz_version: 'listening-1-stage9-v3' },
         time_taken_seconds: timeTaken,
         scores_released: false,
         school_id: identity.schoolId
@@ -1521,7 +1364,7 @@
           submitBtn.textContent = '✅ Already Submitted';
           statusDiv.className = 'submit-status submit-error';
           statusDiv.textContent = '🚨 You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
-          document.querySelectorAll('input').forEach(input => input.disabled = true);
+          document.querySelectorAll('input, select').forEach(input => input.disabled = true);
           const floatingBtn = document.getElementById('floatingSubmitBtn');
           const floatingDiv = document.getElementById('floatingSubmit');
           if (floatingBtn) { floatingBtn.disabled = true; floatingBtn.textContent = '✅ Already Submitted'; }
