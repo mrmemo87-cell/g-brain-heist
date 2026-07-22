@@ -978,33 +978,56 @@
     } catch (e) { console.log('No game user info'); }
   }
 
-  function checkPreviousSubmission() {
-    const submitted = localStorage.getItem(`quiz_submitted_${QUIZ_ID}`);
-    if (submitted) {
-      const data = JSON.parse(submitted);
-      hasSubmitted = true;
-      // Notify parent we're in review mode (skip exit confirmation)
-      try { window.parent.postMessage({ type: 'CAMBRIDGE_TEST_REVIEW_MODE' }, '*'); } catch(e) {}
-      document.getElementById("alreadySubmitted").style.display = "block";
-      document.querySelectorAll('input').forEach(input => input.disabled = true);
-      document.getElementById("submitBtn").disabled = true;
-      document.getElementById("submitBtn").textContent = "✓ Already Submitted";
-      
-      // Disable floating button too
-      const floatingBtn = document.getElementById("floatingSubmitBtn");
-      const floatingDiv = document.getElementById("floatingSubmit");
-      if (floatingBtn) {
-        floatingBtn.disabled = true;
-        floatingBtn.textContent = "✓ Already Submitted";
-      }
-      if (floatingDiv) {
-        floatingDiv.classList.add("submitted");
-      }
-      
-      showFinalScore(data.studentName, data.score, Math.round((data.score / data.total) * 100), 0);
+  function getExamIdentity() {
+    try { return JSON.parse(localStorage.getItem('cambridge_test_user') || '{}'); } catch { return {}; }
+  }
+
+  async function fetchLatestSubmission() {
+    const identity = getExamIdentity();
+    if (!identity.name) return null;
+    const params = new URLSearchParams({
+      select: 'scores_released,score,total_questions,percentage,answers,time_taken_seconds,submitted_at',
+      student_name: `eq.${identity.name}`,
+      quiz_name: 'eq.Cambridge Listening Test 1',
+      order: 'submitted_at.desc',
+      limit: '1'
+    });
+    if (identity.schoolId) params.set('school_id', `eq.${identity.schoolId}`);
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/quiz_scores?${params}`, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${getSupabaseAccessToken() ?? SUPABASE_ANON_KEY}` }
+    });
+    if (!response.ok) throw new Error(await response.text());
+    return (await response.json())[0] || null;
+  }
+
+  async function checkPreviousSubmission() {
+    let submission = null;
+    try { submission = await fetchLatestSubmission(); } catch (error) { console.error('Could not verify listening submission', error); }
+    if (!submission && !localStorage.getItem(`quiz_submitted_${QUIZ_ID}`)) return false;
+    hasSubmitted = true;
+    try { window.parent.postMessage({ type: 'CAMBRIDGE_TEST_REVIEW_MODE' }, '*'); } catch(e) {}
+    document.getElementById("alreadySubmitted").style.display = "block";
+    document.querySelectorAll('input').forEach(input => input.disabled = true);
+    document.getElementById("submitBtn").disabled = true;
+    document.getElementById("submitBtn").textContent = "✓ Submitted";
+    const floatingBtn = document.getElementById("floatingSubmitBtn");
+    const floatingDiv = document.getElementById("floatingSubmit");
+    if (floatingBtn) { floatingBtn.disabled = true; floatingBtn.textContent = "✓ Submitted"; }
+    if (floatingDiv) floatingDiv.classList.add("submitted");
+    const scoreDiv = document.getElementById("score");
+    if (!submission?.scores_released) {
+      scoreDiv.style.display = 'block';
+      scoreDiv.textContent = '📊 Test submitted. Waiting for your teacher to release the result.';
       return true;
     }
-    return false;
+    const savedAnswers = submission.answers?.responses || submission.answers || {};
+    for (let i = 1; i <= total; i++) {
+      const input = document.getElementById("q" + i);
+      if (input) input.value = savedAnswers[i] || savedAnswers[String(i)] || '';
+    }
+    calculateScore(true);
+    showFinalScore(getExamIdentity().name || 'Student', submission.score, submission.percentage, submission.time_taken_seconds || 0);
+    return true;
   }
 
   function startTimer() {
@@ -1386,7 +1409,7 @@
     return expectedAnswer;
   }
 
-  function calculateScore() {
+  function calculateScore(reveal = false) {
     let score = 0;
     const answer6 = document.getElementById("q6").value;
     const answer7 = document.getElementById("q7").value;
@@ -1406,24 +1429,25 @@
         isCorrect = isAnswerCorrect(input.value, correct[i]);
       }
 
-      if (isCorrect) {
-        score++;
-        input.style.borderColor = "#22c55e";
-        input.style.backgroundColor = "#dcfce7";
-      } else {
-        input.style.borderColor = "#ef4444";
-        input.style.backgroundColor = "#fee2e2";
-        const correction = document.createElement("span");
-        correction.style.cssText = "color: #22c55e; font-weight: bold; font-size: 13px; margin-left: 10px;";
-        correction.textContent = `✓ ${formatCorrectAnswer(correct[i], i)}`;
-        input.parentElement.appendChild(correction);
+      if (isCorrect) score++;
+      if (reveal) {
+        input.style.borderColor = isCorrect ? "#22c55e" : "#ef4444";
+        input.style.backgroundColor = isCorrect ? "#dcfce7" : "#fee2e2";
+        input.parentElement.querySelectorAll('.released-correction').forEach(node => node.remove());
+        if (!isCorrect) {
+          const correction = document.createElement("span");
+          correction.className = 'released-correction';
+          correction.style.cssText = "display:block;color:#15803d;font-weight:bold;font-size:13px;margin-top:6px;";
+          correction.textContent = `Your answer: ${input.value || '—'} · Correct answer: ${formatCorrectAnswer(correct[i], i)}`;
+          input.parentElement.appendChild(correction);
+        }
+        input.disabled = true;
       }
-      input.disabled = true;
     }
     return score;
   }
 
-  async function submitScore() {
+  async function submitScore(options = {}) {
     const studentName = document.getElementById("studentName").value.trim();
     const studentClass = document.getElementById("studentClass").value.trim();
     const statusDiv = document.getElementById("submitStatus");
@@ -1446,7 +1470,9 @@
       return;
     }
     
-    if (!confirm("⚠️ ARE YOU SURE?\n\nYou can only submit ONCE.\nYour answers CANNOT be changed after this.\n\nClick OK to submit.")) return;
+    const isForced = options.force === true;
+    const autoSubmitReason = options.autoSubmitReason || options.reason || '';
+    if (!isForced && !confirm("⚠️ ARE YOU SURE?\n\nYou can only submit ONCE.\nYour answers CANNOT be changed after this.\n\nClick OK to submit.")) return false;
     
     const answers = {};
     for (let i = 1; i <= total; i++) {
@@ -1454,7 +1480,7 @@
     }
     
     const timeTaken = startTime ? Math.floor((new Date() - startTime) / 1000) : 0;
-    const score = calculateScore();
+    const score = calculateScore(false);
     const percentage = Math.round((score / total) * 100);
     
     if (timerInterval) clearInterval(timerInterval);
@@ -1474,6 +1500,8 @@
     }
     
     try {
+      const identity = getExamIdentity();
+      if (!identity.schoolId) throw new Error('School identity is missing. Reopen the test from Brains Heist.');
       const { error } = await supabaseClient.from('quiz_scores').insert([{
         student_name: studentName,
         student_class: studentClass,
@@ -1481,8 +1509,10 @@
         score: score,
         total_questions: total,
         percentage: percentage,
-        answers: answers,
-        time_taken_seconds: timeTaken
+        answers: { responses: answers, quiz_version: 'listening-1-v2' },
+        time_taken_seconds: timeTaken,
+        scores_released: false,
+        school_id: identity.schoolId
       }]);
       
       if (error) {
@@ -1525,7 +1555,12 @@
         window.parent.postMessage({ type: 'CAMBRIDGE_TEST_COMPLETE', quizId: QUIZ_ID, score, total, percentage }, '*');
       }
       
-      showFinalScore(studentName, score, percentage, timeTaken);
+      const scoreDiv = document.getElementById("score");
+      scoreDiv.style.display = 'block';
+      scoreDiv.textContent = isForced
+        ? `⚠️ Auto-submitted: ${autoSubmitReason || 'ExamGuard violation limit reached'}. Waiting for teacher release.`
+        : '📊 Test submitted. Waiting for your teacher to release the result.';
+      return true;
     } catch (error) {
       statusDiv.className = "submit-status submit-error";
       statusDiv.textContent = `❌ Failed: ${error.message}`;
@@ -1537,6 +1572,7 @@
         floatingBtn.disabled = false;
         floatingBtn.textContent = "📤 Submit Answers";
       }
+      return false;
     }
   }
 
@@ -1557,9 +1593,9 @@
   }
 
   // Initialize
-  checkPreviousSubmission();
   loadStudentInfoFromGame();
   buildTest();
+  checkPreviousSubmission();
   
   document.getElementById('testAudio').addEventListener('play', startTimer);
   
@@ -1581,14 +1617,14 @@
         onSubmit: () => {
           if (autoSubmitTriggered) return;
           autoSubmitTriggered = true;
-          submitScore();
+          submitScore({ force: true, autoSubmitReason: 'ExamGuard violation limit reached' }).then(ok => { if (!ok) autoSubmitTriggered = false; });
         },
         onViolation: (event) => {
           console.warn('ExamGuard violation (English test):', event);
           if (event.violationsCount >= 3) {
             if (!autoSubmitTriggered) {
               autoSubmitTriggered = true;
-              submitScore();
+              submitScore({ force: true, autoSubmitReason: 'ExamGuard violation limit reached' }).then(ok => { if (!ok) autoSubmitTriggered = false; });
             }
           }
         },
@@ -1617,7 +1653,7 @@
   window.addEventListener('message', (e) => {
     if (e.origin !== window.location.origin) return;
     if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-      submitScore();
+      submitScore({ force: true, autoSubmitReason: 'Exited test — auto-submitted' });
     }
   });
 </script>
