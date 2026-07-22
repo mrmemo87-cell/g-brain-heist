@@ -1033,7 +1033,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       let progressQuery = supabase
         .from('quiz_scores')
         .select('quiz_name, score, total_questions, percentage, submitted_at, answers, scores_released')
-        .eq('student_name', profile.username)
+        .in('student_name', [profile.full_name, profile.username].filter(Boolean))
         .order('submitted_at', { ascending: false });
       
       // Defense-in-depth: scope to own school
@@ -1164,7 +1164,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       // Delete old submission from database so unique constraint allows re-submission
       try {
         const { data: retakeResult, error: retakeError } = await supabase.rpc('rpc_allow_cambridge_retake', {
-          p_student_name: profile.username,
+          p_student_name: profile.full_name || profile.username,
           p_quiz_name_pattern: `%${test.name}%`,
         });
         if (retakeError) {
@@ -1230,7 +1230,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       let feedbackQuery = supabase
         .from('quiz_scores')
         .select('*')
-        .eq('student_name', profile.username)
+        .in('student_name', [profile.full_name, profile.username].filter(Boolean))
         .ilike('quiz_name', '%writing%')
         .order('submitted_at', { ascending: false })
         .limit(1);
@@ -1244,7 +1244,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       const { data: historyRows } = await supabase
         .from('quiz_scores')
         .select('score, percentage, submitted_at, answers')
-        .eq('student_name', profile.username)
+        .in('student_name', [profile.full_name, profile.username].filter(Boolean))
         .eq('quiz_name', test.name)
         .order('submitted_at', { ascending: false })
         .limit(8);
@@ -1356,7 +1356,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       let reportQuery = supabase
         .from('quiz_scores')
         .select('*')
-        .eq('student_name', profile.username)
+        .in('student_name', [profile.full_name, profile.username].filter(Boolean))
         .order('submitted_at', { ascending: false });
       
       // Defense-in-depth: scope to own school
