@@ -3482,6 +3482,27 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             throw new Error('multiple_choice rows require at least 2 options');
           }
 
+          if (questionType === 'multiple_choice') {
+            const spreadsheetDatePattern = /^(?:20\d{2}[⁄/]\d{1,2}[⁄/]\d{1,2}|\d{1,2}月\d{1,2}日)$/;
+            const convertedValue = [...options, correctAnswer].find(value => spreadsheetDatePattern.test(value));
+            if (convertedValue) {
+              throw new Error(
+                `"${convertedValue}" looks like a fraction converted into a date. Format fraction cells as Text in the spreadsheet, restore values such as 3/4, then export the CSV again.`
+              );
+            }
+
+            const normalizedOptions = options.map(value => value.trim().toLocaleLowerCase());
+            if (new Set(normalizedOptions).size !== normalizedOptions.length) {
+              throw new Error(
+                'Options must be unique. Duplicate TRUE/FALSE values usually mean the spreadsheet evaluated comparison formulas; format option cells as Text before exporting.'
+              );
+            }
+
+            if (!options.includes(correctAnswer)) {
+              throw new Error('correct_answer must exactly match one of the options');
+            }
+          }
+
           const questionData = {
             subject: subjectStr,
             topic: topicStr || 'General',
@@ -5004,6 +5025,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           <ol className="list-decimal list-inside space-y-2 text-sm text-slate-600">
             <li>Download the CSV template using the button below</li>
             <li>Fill in your questions following the template format</li>
+            <li>For fractions and comparisons, format option cells as <strong>Text</strong> so spreadsheets do not convert them into dates or TRUE/FALSE</li>
             <li>Save your file as a CSV (comma-separated values)</li>
             <li>Upload the file using the upload button</li>
             <li>Review the results and fix any errors if needed</li>
