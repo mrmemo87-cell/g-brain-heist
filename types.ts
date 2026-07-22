@@ -44,6 +44,8 @@ export interface Profile {
   id: string;
   username: string;
   full_name?: string | null;
+  full_name_status?: 'pending' | 'verified' | 'rejected';
+  full_name_verified_at?: string | null;
   grade: Grade | null; // null for teachers or admins without grade assignment
   batch: Batch | null; // null for teachers
   role?: UserRole; // User role - student by default
