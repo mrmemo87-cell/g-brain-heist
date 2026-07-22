@@ -355,6 +355,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [studentOverviewData, setStudentOverviewData] = useState<StudentOverviewReportData | null>(null);
   const [cambridgeDrawerOpen, setCambridgeDrawerOpen] = useState(false);
   const [cambridgeDrawerAttempt, setCambridgeDrawerAttempt] = useState<any | null>(null);
+  const [cambridgeRetakeAttempt, setCambridgeRetakeAttempt] = useState<any | null>(null);
+  const [cambridgeRetakeReason, setCambridgeRetakeReason] = useState('');
+  const [cambridgeRetakeSubmitting, setCambridgeRetakeSubmitting] = useState(false);
+  const [cambridgeRetakeError, setCambridgeRetakeError] = useState<string | null>(null);
 
   // Test Visibility Management State
   const [testVisibilitySettings, setTestVisibilitySettings] = useState<Map<string, boolean>>(new Map());
@@ -1666,8 +1670,51 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setCambridgeDrawerOpen(false);
   }, []);
 
+  const openCambridgeRetake = useCallback((attempt: any) => {
+    setCambridgeRetakeAttempt(attempt);
+    setCambridgeRetakeReason('');
+    setCambridgeRetakeError(null);
+  }, []);
+
+  const closeCambridgeRetake = useCallback(() => {
+    if (cambridgeRetakeSubmitting) return;
+    setCambridgeRetakeAttempt(null);
+    setCambridgeRetakeReason('');
+    setCambridgeRetakeError(null);
+  }, [cambridgeRetakeSubmitting]);
+
+  const allowCambridgeRetake = async () => {
+    if (!cambridgeRetakeAttempt?.id || cambridgeRetakeSubmitting) return;
+    setCambridgeRetakeSubmitting(true);
+    setCambridgeRetakeError(null);
+    try {
+      const { data, error } = await supabase.rpc('allow_cambridge_retake', {
+        p_score_id: cambridgeRetakeAttempt.id,
+        p_reason: cambridgeRetakeReason.trim() || null,
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Unable to allow this retake.');
+
+      setCambridgeSelectedIds(prev => prev.filter(id => id !== cambridgeRetakeAttempt.id));
+      setCambridgeRetakeAttempt(null);
+      setCambridgeRetakeReason('');
+      setCambridgeDrawerOpen(false);
+      setCambridgeDrawerAttempt(null);
+      await loadCambridgeScores();
+      brainsAlert(
+        `Retake allowed for ${data.student_name}. The original attempt was preserved in history.`,
+        'success'
+      );
+    } catch (error: any) {
+      console.error('Failed to allow Cambridge retake:', error);
+      setCambridgeRetakeError(error?.message || 'Unable to allow this retake.');
+    } finally {
+      setCambridgeRetakeSubmitting(false);
+    }
+  };
+
   useEffect(() => {
-    if (!cambridgeDrawerOpen) return;
+    if (!cambridgeDrawerOpen || cambridgeRetakeAttempt) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setCambridgeDrawerOpen(false);
@@ -1675,7 +1722,16 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [cambridgeDrawerOpen]);
+  }, [cambridgeDrawerOpen, cambridgeRetakeAttempt]);
+
+  useEffect(() => {
+    if (!cambridgeRetakeAttempt) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeCambridgeRetake();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [cambridgeRetakeAttempt, closeCambridgeRetake]);
 
   const buildMarkSet = (
     suggestedMarks: Record<string, unknown> | undefined,
@@ -6539,7 +6595,79 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   Release score
                 </button>
               )}
+              <button
+                onClick={() => openCambridgeRetake(drawerAttempt)}
+                className="w-full px-4 py-2 rounded-md border border-amber-300 bg-amber-50 text-sm font-semibold text-amber-800 hover:bg-amber-100"
+                title="Preserve this attempt and allow the student to take the test again"
+              >
+                ↻ Allow retake
+              </button>
             </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {cambridgeRetakeAttempt && createPortal(
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="cambridge-retake-title">
+          <button
+            type="button"
+            className="absolute inset-0 bg-slate-950/60"
+            onClick={closeCambridgeRetake}
+            aria-label="Cancel retake"
+          />
+          <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden">
+            <div className="border-b border-slate-200 px-6 py-5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-amber-600">Cambridge attempt</p>
+              <h3 id="cambridge-retake-title" className="mt-1 text-xl font-bold text-slate-900">Allow this student to retake?</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                The original attempt will be preserved in the audit history. It will stop appearing as the active result, and the student can start a fresh attempt.
+              </p>
+            </div>
+            <div className="space-y-4 px-6 py-5">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
+                <p className="font-semibold text-slate-900">{cambridgeRetakeAttempt.student_name}</p>
+                <p className="mt-1 text-slate-600">{cambridgeRetakeAttempt.student_class || 'No class'} · {cambridgeRetakeAttempt.quiz_name}</p>
+                <p className="mt-1 text-slate-500">Current result: {cambridgeRetakeAttempt.score}/{cambridgeRetakeAttempt.total_questions} ({cambridgeRetakeAttempt.percentage}%)</p>
+              </div>
+              <label className="block text-sm font-semibold text-slate-800" htmlFor="cambridge-retake-reason">
+                Reason <span className="font-normal text-slate-400">(optional)</span>
+              </label>
+              <textarea
+                id="cambridge-retake-reason"
+                value={cambridgeRetakeReason}
+                onChange={(event) => setCambridgeRetakeReason(event.target.value.slice(0, 500))}
+                rows={3}
+                maxLength={500}
+                autoFocus
+                placeholder="For example: interrupted connection, approved absence, or teacher-authorized second attempt"
+                className="w-full resize-y rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+              />
+              <p className="text-right text-xs text-slate-400">{cambridgeRetakeReason.length}/500</p>
+              {cambridgeRetakeError && (
+                <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {cambridgeRetakeError}
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col-reverse gap-2 border-t border-slate-200 bg-slate-50 px-6 py-4 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={closeCambridgeRetake}
+                disabled={cambridgeRetakeSubmitting}
+                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={allowCambridgeRetake}
+                disabled={cambridgeRetakeSubmitting}
+                className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700 disabled:cursor-wait disabled:opacity-60"
+              >
+                {cambridgeRetakeSubmitting ? 'Allowing retake…' : 'Preserve attempt and allow retake'}
+              </button>
             </div>
           </div>
         </div>,

@@ -312,26 +312,28 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     }
   };
 
-  const deleteQuizSubmission = async (scoreId: string, studentName: string) => {
+  const allowQuizRetake = async (scoreId: string, studentName: string) => {
     setConfirmDialog({
-      title: 'Delete Submission',
-      description: `Delete submission from ${studentName}? This will allow them to retake the test.`,
-      confirmLabel: 'Delete',
-      isDestructive: true,
+      title: 'Allow Cambridge Retake',
+      description: `Allow ${studentName} to take this test again? Their original attempt will be preserved in the audit history and removed from active results.`,
+      confirmLabel: 'Allow Retake',
       onConfirm: async () => {
         try {
-          const result = await SchoolAdminService.deleteQuizSubmission(scoreId);
+          const result = await SchoolAdminService.allowQuizRetake(
+            scoreId,
+            'School administrator authorized a retake',
+          );
 
           if (!result.success) {
-            addToast(`Failed to delete: ${result.error || 'Unknown error'}`, 'error');
+            addToast(`Failed to allow retake: ${result.error || 'Unknown error'}`, 'error');
             return;
           }
 
           setQuizScores(prev => prev.filter(score => score.id !== scoreId));
-          addToast(`Deleted submission for ${studentName}`, 'success');
+          addToast(`Retake allowed for ${studentName}; the original attempt was preserved`, 'success');
         } catch (error: any) {
-          console.error('Failed to delete submission:', error);
-          addToast(`Failed to delete submission: ${error.message}`, 'error');
+          console.error('Failed to allow retake:', error);
+          addToast(`Failed to allow retake: ${error.message}`, 'error');
         }
       },
     });
@@ -1220,7 +1222,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       confirmReason,
       copyToClipboard,
       dbSubjects,
-      deleteQuizSubmission,
+      allowQuizRetake,
       editingSubjectCode,
       editingSubjectId,
       editingSubjectName,

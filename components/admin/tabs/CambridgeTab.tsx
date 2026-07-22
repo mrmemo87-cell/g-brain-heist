@@ -177,9 +177,10 @@ const CambridgeTab: React.FC = () => {
                         </button>
                         <button
                           onClick={() => deleteQuizScore(score.id, score.student_name)}
-                          className="bg-red-600/30 hover:bg-red-600/50 border border-red-400 text-white text-xs px-3 py-1 rounded"
+                          className="bg-amber-600/30 hover:bg-amber-600/50 border border-amber-400 text-white text-xs px-3 py-1 rounded"
+                          title="Preserve this attempt and allow the student to retake"
                         >
-                          🗑️ Delete
+                          ↻ Allow Retake
                         </button>
                         {/* Show Release Score button for Science tests */}
                         {score.quiz_name && (score.quiz_name.toLowerCase().includes('chemistry') || score.quiz_name.toLowerCase().includes('biology')) && !score.scores_released && (

@@ -3,7 +3,7 @@ import { useSchoolAdmin } from '../SchoolAdminContext';
 
 const CambridgeTab: React.FC = () => {
   const {
-    bulkSetSchoolVisibility, classFilter, deleteQuizSubmission, exportCSV, fetchQuizScores, filteredQuizScores, filteredSchoolVisibility, loadSchoolVisibility, quizFilter, quizScores, quizScoresLoading, school, schoolVisibility, schoolVisibilityLoading, schoolVisibilitySubjectFilter, schoolVisibilitySubjects, selectedSchoolTests, setClassFilter, setConfirmDialog, setQuizFilter, setSchoolVisibilitySubjectFilter, setSelectedSchoolTests, setShowSchoolVisibility, showSchoolVisibility, students, teachers, toggleSchoolTestVisibility, uniqueClasses, uniqueQuizNames,
+    allowQuizRetake, bulkSetSchoolVisibility, classFilter, exportCSV, fetchQuizScores, filteredQuizScores, filteredSchoolVisibility, loadSchoolVisibility, quizFilter, quizScores, quizScoresLoading, school, schoolVisibility, schoolVisibilityLoading, schoolVisibilitySubjectFilter, schoolVisibilitySubjects, selectedSchoolTests, setClassFilter, setConfirmDialog, setQuizFilter, setSchoolVisibilitySubjectFilter, setSelectedSchoolTests, setShowSchoolVisibility, showSchoolVisibility, students, teachers, toggleSchoolTestVisibility, uniqueClasses, uniqueQuizNames,
   } = useSchoolAdmin();
 
   return (
@@ -296,11 +296,11 @@ const CambridgeTab: React.FC = () => {
                           </td>
                           <td className="px-4 py-3 text-sm text-center">
                             <button
-                              onClick={() => deleteQuizSubmission(score.id, score.student_name)}
-                              className="text-red-400 hover:text-red-300 transition-colors font-medium text-xs"
-                              title="Delete submission (allows retake)"
+                              onClick={() => allowQuizRetake(score.id, score.student_name)}
+                              className="text-amber-300 hover:text-amber-200 transition-colors font-medium text-xs"
+                              title="Preserve this attempt and allow a retake"
                             >
-                              🗑️ Delete
+                              ↻ Allow Retake
                             </button>
                           </td>
                         </tr>
