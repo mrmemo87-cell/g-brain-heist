@@ -619,41 +619,71 @@
     { title: "Section 3 — Questions 37-42 (Multiple Choice)", start: 37, end: 42 }
   ];
 
-  // Check if already submitted (using localStorage)
-  function checkPreviousSubmission() {
-    const submitted = localStorage.getItem(`quiz_submitted_${QUIZ_ID}`);
-    if (submitted) {
-      const data = JSON.parse(submitted);
-      showLockedState(data.score, data.total, data.studentName);
-      return true;
-    }
-    return false;
+  function getExamIdentity() {
+    try { return JSON.parse(localStorage.getItem('cambridge_test_user') || '{}'); } catch { return {}; }
   }
 
-  // Show locked state
-  function showLockedState(score, totalQ, studentName) {
-    hasSubmitted = true;
-      // Notify parent we're in review mode (skip exit confirmation)
-      try { window.parent.postMessage({ type: 'CAMBRIDGE_TEST_REVIEW_MODE' }, '*'); } catch(e) {}
-    document.getElementById("alreadySubmitted").style.display = "block";
-    
-    // Disable all inputs
-    document.querySelectorAll('input, select').forEach(input => {
-      input.disabled = true;
+  async function fetchLatestSubmission() {
+    const identity = getExamIdentity();
+    if (!identity.name) return null;
+    const params = new URLSearchParams({
+      select: 'scores_released,score,total_questions,percentage,answers,time_taken_seconds,submitted_at',
+      student_name: `eq.${identity.name}`,
+      quiz_name: 'eq.Cambridge Reading 25',
+      order: 'submitted_at.desc',
+      limit: '1'
     });
+    if (identity.schoolId) params.set('school_id', `eq.${identity.schoolId}`);
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/quiz_scores?${params}`, {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${getSupabaseAccessToken() ?? SUPABASE_ANON_KEY}`
+      }
+    });
+    if (!response.ok) throw new Error(await response.text());
+    const rows = await response.json();
+    return rows[0] || null;
+  }
+
+  async function checkPreviousSubmission() {
+    const localSubmission = localStorage.getItem(`quiz_submitted_${QUIZ_ID}`);
+    let serverSubmission = null;
+    try { serverSubmission = await fetchLatestSubmission(); } catch (error) { console.error('Could not verify Reading 25 submission', error); }
+    if (!localSubmission && !serverSubmission) return false;
+    showLockedState(serverSubmission);
+    return true;
+  }
+
+  function showLockedState(serverSubmission) {
+    hasSubmitted = true;
+    try { window.parent.postMessage({ type: 'CAMBRIDGE_TEST_REVIEW_MODE' }, '*'); } catch(e) {}
+    document.getElementById("alreadySubmitted").style.display = "block";
+    document.querySelectorAll('input, select').forEach(input => { input.disabled = true; });
     document.getElementById("submitBtn").disabled = true;
-    document.getElementById("submitBtn").textContent = "✓ Already Submitted";
-    
-    // Disable floating button too
+    document.getElementById("submitBtn").textContent = "✓ Submitted";
     const floatingBtn = document.getElementById("floatingSubmitBtn");
-    if (floatingBtn) {
-      floatingBtn.disabled = true;
-      floatingBtn.textContent = "✓ Submitted";
+    if (floatingBtn) { floatingBtn.disabled = true; floatingBtn.textContent = "✓ Submitted"; }
+
+    const scoreDiv = document.getElementById("score");
+    if (!serverSubmission?.scores_released) {
+      scoreDiv.className = 'final-score';
+      scoreDiv.style.display = 'block';
+      scoreDiv.textContent = '📊 Test submitted. Waiting for your teacher to release the result.';
+      return;
     }
-    
-    // Show their previous score
-    const percentage = Math.round((score / totalQ) * 100);
-    showFinalScore(studentName, score, percentage, 0);
+
+    const savedAnswers = serverSubmission.answers?.responses || serverSubmission.answers || {};
+    for (let i = 1; i <= total; i++) {
+      const input = document.getElementById("q" + i);
+      if (input) input.value = savedAnswers[i] || savedAnswers[String(i)] || '';
+    }
+    calculateScore(savedAnswers, true);
+    showFinalScore(
+      getExamIdentity().name || 'Student',
+      serverSubmission.score,
+      serverSubmission.percentage,
+      serverSubmission.time_taken_seconds || 0
+    );
   }
 
   // Start timer when student starts typing
@@ -796,37 +826,32 @@
     container.appendChild(sectionDiv);
   });
 
-  // Calculate score (only called after submission)
-  function calculateScore() {
+  function calculateScore(responses = null, reveal = false) {
     let score = 0;
-
     for (let i = 1; i <= total; i++) {
       const input = document.getElementById("q" + i);
       const qrow = document.getElementById("qrow" + i);
-      const userAns = input.value.trim().toLowerCase();
+      const rawAnswer = responses ? (responses[i] ?? responses[String(i)] ?? '') : input.value;
+      const userAns = String(rawAnswer).trim().toLowerCase();
       const correctAns = correct[i].toLowerCase();
-      
-      if (userAns === correctAns) {
-        score++;
-        input.className = "correct";
-      } else {
-        input.className = "incorrect";
-        // Show correct answer ONLY after submission
-        const correction = document.createElement("div");
-        correction.className = "correction";
-        correction.textContent = `✓ ${correct[i]}`;
-        qrow.appendChild(correction);
+      if (userAns === correctAns) score++;
+      if (reveal) {
+        input.className = userAns === correctAns ? "correct" : "incorrect";
+        qrow.querySelectorAll('.correction').forEach(node => node.remove());
+        if (userAns !== correctAns) {
+          const correction = document.createElement("div");
+          correction.className = "correction";
+          correction.textContent = `Your answer: ${rawAnswer || '—'} · Correct answer: ${correct[i]}`;
+          qrow.appendChild(correction);
+        }
+        input.disabled = true;
       }
-      
-      // Disable input after submission
-      input.disabled = true;
     }
-
     return score;
   }
 
-  // Submit score to Supabase
-  async function submitScore() {
+  // Submit score to Supabase. Forced submissions never ask for confirmation.
+  async function submitScore(options = {}) {
     const studentName = document.getElementById("studentName").value.trim();
     const studentClass = document.getElementById("studentClass").value.trim();
     const statusDiv = document.getElementById("submitStatus");
@@ -856,8 +881,11 @@
     }
     document.getElementById("studentClass").classList.remove("required-field");
     
-    // Confirm submission
-    const confirmSubmit = confirm(
+    const isForced = options.force === true;
+    const autoSubmitReason = options.autoSubmitReason || options.reason || '';
+
+    // Confirm only a voluntary submission.
+    const confirmSubmit = isForced || confirm(
       "⚠️ ARE YOU SURE?\n\n" +
       "• You can only submit ONCE\n" +
       "• Your answers CANNOT be changed after this\n" +
@@ -865,7 +893,7 @@
       "Click OK to submit, or Cancel to review your answers."
     );
     
-    if (!confirmSubmit) return;
+    if (!confirmSubmit) return false;
     
     // Collect all answers BEFORE calculating score
     const answers = {};
@@ -876,8 +904,8 @@
     // Calculate time taken
     const timeTaken = startTime ? Math.floor((new Date() - startTime) / 1000) : 0;
     
-    // Now calculate score (this also shows corrections)
-    const score = calculateScore();
+    // Score silently. Answers remain hidden until teacher release.
+    const score = calculateScore(answers, false);
     const percentage = Math.round((score / total) * 100);
     
     // Stop timer
@@ -893,25 +921,9 @@
     statusDiv.textContent = "📤 Submitting your answers...";
     
     try {
-      // Fetch school_id from authenticated user
-      let schoolId = null;
-      try {
-        const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-        if (user && !authError) {
-          const { data: userData, error: userError } = await supabaseClient
-            .from('users')
-            .select('school_id')
-            .eq('id', user.id)
-            .single();
-          
-          if (userData && userData.school_id) {
-            schoolId = userData.school_id;
-            console.log('✅ Fetched school_id:', schoolId);
-          }
-        }
-      } catch (e) {
-        console.log('ℹ️ Could not fetch school_id (student may be unauthenticated)');
-      }
+      const identity = getExamIdentity();
+      const schoolId = identity.schoolId || null;
+      if (!schoolId) throw new Error('School identity is missing. Reopen the test from Brains Heist.');
 
       const { data, error } = await supabaseClient
         .from('quiz_scores')
@@ -922,8 +934,9 @@
           score: score,
           total_questions: total,
           percentage: percentage,
-          answers: answers,
+          answers: { responses: answers, quiz_version: 'reading-25-v2' },
           time_taken_seconds: timeTaken,
+          scores_released: false,
           ...(schoolId && { school_id: schoolId })
         }]);
       
@@ -976,8 +989,13 @@
         console.log('Parent notification not available');
       }
       
-      // Show score
-      showFinalScore(studentName, score, percentage, timeTaken);
+      const scoreDiv = document.getElementById("score");
+      scoreDiv.className = 'final-score';
+      scoreDiv.style.display = 'block';
+      scoreDiv.textContent = isForced
+        ? `⚠️ Auto-submitted: ${autoSubmitReason || 'ExamGuard violation limit reached'}. Waiting for your teacher to release the result.`
+        : '📊 Test submitted. Waiting for your teacher to release the result.';
+      return true;
       
     } catch (error) {
       console.error('Submit error:', error);
@@ -994,6 +1012,7 @@
       
       // Re-enable inputs on error
       document.querySelectorAll('input, select').forEach(input => input.disabled = false);
+      return false;
     }
   }
 
@@ -1085,11 +1104,9 @@
     }
   });
 
-  // Check for previous submission on load
-  checkPreviousSubmission();
-  
-  // Load student info from game if available
+  // Load verified identity first, then reconcile local state with the server.
   loadStudentInfoFromGame();
+  checkPreviousSubmission();
   
   // Anti-cheat modal event listener
   const antiCheatAcceptBtn = document.getElementById('antiCheatAcceptBtn');
@@ -1109,14 +1126,14 @@
         onSubmit: () => {
           if (autoSubmitTriggered) return;
           autoSubmitTriggered = true;
-          submitScore();
+          submitScore({ force: true, autoSubmitReason: 'ExamGuard violation limit reached' }).then(ok => { if (!ok) autoSubmitTriggered = false; });
         },
         onViolation: (event) => {
           console.warn('ExamGuard violation (English test):', event);
           if (event.violationsCount >= 3) {
             if (!autoSubmitTriggered) {
               autoSubmitTriggered = true;
-              submitScore();
+              submitScore({ force: true, autoSubmitReason: 'ExamGuard violation limit reached' }).then(ok => { if (!ok) autoSubmitTriggered = false; });
             }
           }
         },
@@ -1138,7 +1155,7 @@
   window.addEventListener('message', (e) => {
     if (e.origin !== window.location.origin) return;
     if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-      submitScore();
+      submitScore({ force: true, autoSubmitReason: 'Exited test — auto-submitted' });
     }
   });
 </script>

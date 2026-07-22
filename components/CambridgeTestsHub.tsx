@@ -1145,45 +1145,22 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
   };
 
   const handleStartTest = async (test: CambridgeTest) => {
+    // A persisted attempt is immutable. Teachers control retakes and result release.
+    if (test.isCompleted) {
+      if (!test.requiresMarking && test.scoresReleased) await viewDetailedAnswers(test);
+      return;
+    }
+
     // Exams must use the student's school-verified real identity, never their codename.
     if (!(await loadVerifiedExamIdentity())) return;
 
-    // Consume pilot quota only after identity validation succeeds.
+    // Consume pilot quota only for a genuinely new attempt.
     const quota = await tryConsumePilotQuota('cambridge_tests');
     if (!quota.proceed) {
       alert(quota.error || 'You\'ve reached the Cambridge test limit on the Pilot plan. Upgrade to continue.');
       return;
     }
 
-    const isChemistryTest = test.subject === 'Chemistry';
-    if (isChemistryTest && test.isCompleted && !test.scoresReleased) {
-      return;
-    }
-    // If this is a retake, clear the previous submission lock from localStorage
-    if (test.isCompleted && !isChemistryTest) {
-      // Delete old submission from database so unique constraint allows re-submission
-      try {
-        const { data: retakeResult, error: retakeError } = await supabase.rpc('rpc_allow_cambridge_retake', {
-          p_student_name: profile.full_name || profile.username,
-          p_quiz_name_pattern: `%${test.name}%`,
-        });
-        if (retakeError) {
-          console.error('Failed to delete old submission for retake:', retakeError);
-        } else {
-          console.log('Old submission deleted for retake:', retakeResult);
-        }
-      } catch (e) {
-        console.error('Error calling retake RPC:', e);
-      }
-
-      // Clear the submission lock for writing tests
-      const quizId = test.id.replace(/-/g, '_');
-      localStorage.removeItem(`quiz_submitted_${quizId}`);
-      localStorage.removeItem(`quiz_draft_${quizId}`);
-      // Also set a flag indicating this is a retake
-      localStorage.setItem('cambridge_retake', 'true');
-    }
-    
     setActiveTest(test);
   };
 
@@ -1902,11 +1879,10 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                     gap: '20px',
                   }}>
                     {subjectTests.map(test => {
-                      const isChemistryTest = test.subject === 'Chemistry';
-                      const chemistryReportReady = isChemistryTest && test.isCompleted && test.scoresReleased;
-                      const chemistryLocked = isChemistryTest && test.isCompleted && !test.scoresReleased;
+                      const reportReady = !test.requiresMarking && test.isCompleted && test.scoresReleased;
+                      const resultLocked = !test.requiresMarking && test.isCompleted && !test.scoresReleased;
                       const actionLabel = test.isCompleted
-                        ? (isChemistryTest ? (chemistryReportReady ? '📊 View Detailed Answers' : '✅ Submitted') : '📄 Retake Test')
+                        ? (reportReady ? '📊 View Detailed Answers' : test.requiresMarking ? '✅ Submitted' : '🔒 Awaiting Release')
                         : '▶️ Start Test';
                       return (
                       <div
@@ -2016,13 +1992,13 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                                   fontWeight: 'bold',
                                   color: test.isAwaitingMarking
                                     ? '#f59e0b'
-                                    : chemistryLocked
+                                    : resultLocked
                                       ? '#f59e0b'
                                       : '#22c55e',
                                 }}>
                                   {test.isAwaitingMarking
                                     ? '⏳ Awaiting Marking'
-                                    : chemistryLocked
+                                    : resultLocked
                                       ? '🔒 Awaiting Release'
                                       : '✅ Completed'}
                                 </span>
@@ -2036,7 +2012,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                                   })}
                                 </p>
                               )}
-                              {chemistryLocked && (
+                              {resultLocked && (
                                 <p style={{ margin: '8px 0 0', fontSize: '11px', color: 'rgba(255,255,255,0.55)' }}>
                                   Detailed report will unlock once your teacher releases the results.
                                 </p>
@@ -2095,14 +2071,14 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                           )}
 
                           <button
-                            onClick={() => chemistryReportReady ? viewDetailedAnswers(test) : handleStartTest(test)}
-                            disabled={chemistryLocked}
+                            onClick={() => reportReady ? viewDetailedAnswers(test) : handleStartTest(test)}
+                            disabled={resultLocked}
                             style={{
                               width: '100%',
                               padding: '12px',
                               borderRadius: '10px',
                               border: 'none',
-                              cursor: chemistryLocked ? 'not-allowed' : 'pointer',
+                              cursor: resultLocked ? 'not-allowed' : 'pointer',
                               fontSize: '14px',
                               fontWeight: 600,
                               transition: 'all 0.2s',
@@ -2110,7 +2086,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                                 ? 'rgba(255,255,255,0.1)'
                                 : 'linear-gradient(135deg, #00f5ff, #00d4aa)',
                               color: test.isCompleted ? '#fff' : '#0f0c29',
-                              opacity: chemistryLocked ? 0.7 : 1,
+                              opacity: resultLocked ? 0.7 : 1,
                             }}
                           >
                             {actionLabel}
