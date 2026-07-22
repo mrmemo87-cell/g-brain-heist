@@ -141,7 +141,7 @@ export default function AssignmentWizard({
       if (ids.has(question.id)) return false;
       ids.add(question.id);
       const key = [
-        assignmentSubject,
+        question.subject,
         normalizeQuestionText(question.question_text),
         normalizeQuestionText(question.correct_answer || ''),
       ].join('|');
@@ -237,6 +237,9 @@ export default function AssignmentWizard({
       setAssignmentDescription(draft.assignmentDescription || '');
       setAssignmentInstructions(draft.assignmentInstructions || '');
       setAssignmentDueAt(draft.assignmentDueAt || '');
+      if (['easy', 'medium', 'hard'].includes(draft.assignmentDifficulty)) setAssignmentDifficulty(draft.assignmentDifficulty);
+      setAssignmentTopicMode(draft.assignmentTopicMode === 'custom' ? 'custom' : 'general');
+      setAssignmentTopicName(draft.assignmentTopicName || '');
       setStep(Math.min(6, Math.max(1, Number(draft.step) || 1)) as WizardStep);
       setRestored(true);
     } catch {
@@ -258,9 +261,12 @@ export default function AssignmentWizard({
       assignmentDescription,
       assignmentInstructions,
       assignmentDueAt,
+      assignmentDifficulty,
+      assignmentTopicMode,
+      assignmentTopicName,
     };
     localStorage.setItem(ASSIGNMENT_WIZARD_DRAFT_KEY, JSON.stringify(draft));
-  }, [assignmentBatches, assignmentDescription, assignmentDueAt, assignmentInstructions, assignmentMode, assignmentQuestionIds, assignmentSubject, assignmentTitle, selectedStudentIds, step]);
+  }, [assignmentBatches, assignmentDescription, assignmentDifficulty, assignmentDueAt, assignmentInstructions, assignmentMode, assignmentQuestionIds, assignmentSubject, assignmentTitle, assignmentTopicMode, assignmentTopicName, selectedStudentIds, step]);
 
   useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => {
