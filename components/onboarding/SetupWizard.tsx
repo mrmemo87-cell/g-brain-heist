@@ -33,6 +33,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
   const [grade, setGrade] = useState<Grade | null>(null);
   const [batch, setBatch] = useState<Batch>('N/A');
   const [username, setUsername] = useState(initialUsername || '');
+  const [fullName, setFullName] = useState('');
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -131,6 +132,10 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
     
     if (finalRole === 'student' && (!grade || !batch)) {
       setError('Please select your grade and class');
+      return;
+    }
+    if (finalRole === 'student' && (fullName.trim().length < 5 || !fullName.trim().includes(' '))) {
+      setError('Please enter your real first and last name');
       return;
     }
 
@@ -232,6 +237,17 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
         if (!setupResult.success) {
           setError(setupResult.error || 'Failed to complete setup');
           setStep('role');
+          return;
+        }
+      }
+
+      if (finalRole === 'student') {
+        const { data: nameResult, error: nameError } = await AuthService.supabase.rpc('submit_my_full_name', {
+          p_full_name: fullName.trim(),
+        });
+        if (nameError || !nameResult?.success) {
+          setError(nameResult?.error || nameError?.message || 'Could not save your real name');
+          setStep('student_details');
           return;
         }
       }
@@ -544,6 +560,20 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
 
       <div className="space-y-4">
         <label className="block">
+          <span className="text-sm font-medium text-gray-300 mb-2 block">Real full name *</span>
+          <input
+            type="text"
+            value={fullName}
+            onChange={(e) => { setFullName(e.target.value); setError(null); }}
+            autoComplete="name"
+            placeholder="First and last name"
+            className="w-full bg-gray-800 border border-gray-600 rounded-lg p-4 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all"
+            disabled={isLoading}
+          />
+          <p className="mt-1 text-xs text-gray-400">Used on school exams after your school administrator confirms it. Your codename stays public in the game.</p>
+        </label>
+
+        <label className="block">
           <span className="text-sm font-medium text-gray-300 mb-2 block">Grade *</span>
           <select
             value={grade || ''}
@@ -591,7 +621,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
 
         <button
           onClick={() => handleSubmit()}
-          disabled={!grade || !batch || isLoading}
+          disabled={!grade || !batch || fullName.trim().length < 5 || !fullName.trim().includes(' ') || isLoading}
           className="w-full py-4 rounded-lg font-bold text-lg bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:scale-100"
         >
           {isLoading ? 'Setting up...' : 'Complete Setup'}
