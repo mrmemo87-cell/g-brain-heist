@@ -34,7 +34,7 @@ const CambridgeTab: React.FC = () => {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h4 className="text-lg font-bold text-purple-300">🏫 School-Level Test Visibility</h4>
-                <p className="text-xs text-gray-400 mt-1">Hide or show Cambridge tests for your entire school. Hidden tests are invisible to all teachers and students.</p>
+                <p className="text-xs text-gray-400 mt-1">Choose which tests teachers may release. Disabling a test removes it from every class immediately.</p>
               </div>
               <button
                 onClick={loadSchoolVisibility}
@@ -103,7 +103,7 @@ const CambridgeTab: React.FC = () => {
                       <button
                         onClick={() => setConfirmDialog({
                           title: '✅ Show Selected Tests?',
-                          description: `This will make ${selectedSchoolTests.size} test(s) visible to all teachers and students in your school.`,
+                          description: `This will make ${selectedSchoolTests.size} test(s) available for teachers to release to their classes.`,
                           confirmLabel: 'Show Tests',
                           onConfirm: async () => {
                             await bulkSetSchoolVisibility(Array.from(selectedSchoolTests), true);
@@ -118,7 +118,7 @@ const CambridgeTab: React.FC = () => {
                       <button
                         onClick={() => setConfirmDialog({
                           title: '🔒 Hide Selected Tests?',
-                          description: `This will hide ${selectedSchoolTests.size} test(s) from ALL teachers and students in your school. They can be shown again later.`,
+                          description: `This will disable ${selectedSchoolTests.size} test(s) school-wide and remove them from every student, even if a teacher released them.`,
                           confirmLabel: 'Hide Tests',
                           isDestructive: true,
                           onConfirm: async () => {
@@ -163,8 +163,8 @@ const CambridgeTab: React.FC = () => {
                         onClick={() => setConfirmDialog({
                           title: test.is_visible ? '🔒 Hide This Test?' : '👁️ Show This Test?',
                           description: test.is_visible
-                            ? `"${test.test_name}" will be hidden from all teachers and students in your school.`
-                            : `"${test.test_name}" will become visible to teachers and students in your school.`,
+                            ? `"${test.test_name}" will be disabled school-wide and removed from every student's test list.`
+                            : `"${test.test_name}" will become available for teachers to release to assigned classes.`,
                           confirmLabel: test.is_visible ? 'Hide Test' : 'Show Test',
                           isDestructive: test.is_visible,
                           onConfirm: async () => {
@@ -184,7 +184,7 @@ const CambridgeTab: React.FC = () => {
                 </div>
 
                 <p className="text-xs text-gray-500 mt-3">
-                  💡 Hidden tests won't appear for any teacher or student in your school. Tests default to visible if not overridden.
+                  💡 School availability is the first gate. Students see an available test only after their teacher releases it to their class.
                 </p>
               </>
             )}
