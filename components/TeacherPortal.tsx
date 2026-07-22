@@ -697,61 +697,33 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     }
   }, [teacherAssignedSubjects]);
 
-  // Load visibility tests when visibility manager opens - dynamically based on teacher's assignments
+  // Load the server-authorized, class-scoped Cambridge catalog.
   useEffect(() => {
     if (!showVisibilityManager) return;
 
     const loadVisibilityTests = async () => {
       setVisibilityLoading(true);
       try {
-        // Get unique grade/subject combinations from teacher's assigned classes
-        const gradeSubjectCombos = new Map<string, { gradeLevel: number; subject: string }>();
-        
-        assignedClasses.forEach(cls => {
-          if (cls.grade_level && cls.subject) {
-            const key = `${cls.grade_level}-${cls.subject}`;
-            gradeSubjectCombos.set(key, {
-              gradeLevel: parseInt(cls.grade_level.toString()),
-              subject: cls.subject
-            });
-          }
+        const { data, error } = await supabase.rpc('get_teacher_cambridge_test_catalog');
+        if (error) throw error;
+        const rows = data || [];
+        setVisibilityTestsData(rows);
+        const next = new Map<string, boolean>();
+        rows.forEach((row: any) => {
+          next.set(`${row.class_id}|${row.test_id}`, row.teacher_released === true);
         });
-
-        // If no assigned classes, show nothing
-        if (gradeSubjectCombos.size === 0) {
-          setVisibilityTestsData([]);
-          setVisibilityLoading(false);
-          return;
-        }
-
-        // Fetch tests for each grade/subject combination
-        const allTests: any[] = [];
-        
-        for (const { gradeLevel, subject } of gradeSubjectCombos.values()) {
-          try {
-            const { data: tests } = await supabase.rpc('get_all_cambridge_tests', {
-              p_grade_level: gradeLevel,
-              p_subject: subject
-            });
-
-            if (tests) {
-              allTests.push(...tests.map((t: any) => ({ ...t, grade_level: gradeLevel })));
-            }
-          } catch (error) {
-            console.error(`Error loading tests for Grade ${gradeLevel} ${subject}:`, error);
-          }
-        }
-
-        setVisibilityTestsData(allTests);
+        setTestVisibilitySettings(next);
       } catch (error) {
-        console.error('Error loading visibility tests:', error);
+        console.error('Error loading Cambridge class releases:', error);
+        setVisibilityTestsData([]);
+        brainsAlert('Unable to load tests. Refresh and try again, or ask your school admin to verify your class and subject assignment.', 'error');
       } finally {
         setVisibilityLoading(false);
       }
     };
 
     loadVisibilityTests();
-  }, [showVisibilityManager, assignedClasses]);
+  }, [showVisibilityManager]);
 
   useEffect(() => {
     // Don't clear questions when subject was set from the Question Bank "Host" flow
@@ -973,103 +945,84 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     );
   };
 
-  // Load test visibility settings for the teacher
+  // Teacher releases are scoped to a real assigned class.
   const loadTestVisibilitySettings = async () => {
-    setVisibilityLoading(true);
-    try {
-      const { data, error } = await supabase.rpc('get_teacher_test_visibility_settings');
-
-      if (error) {
-        console.error('Error loading test visibility settings:', error);
-        return;
-      }
-
-      const visMap = new Map<string, boolean>();
-      if (data) {
-        data.forEach((row: { test_id: string; grade_level: number; subject: string; is_visible: boolean }) => {
-          visMap.set(`${row.test_id}|${row.grade_level}|${row.subject}`, row.is_visible);
-        });
-      }
-      setTestVisibilitySettings(visMap);
-    } catch (error) {
-      console.error('Exception loading visibility settings:', error);
-    } finally {
-      setVisibilityLoading(false);
-    }
+    // Opening the manager triggers the authoritative catalog effect above.
   };
 
-  // Toggle visibility for a single test
-  const toggleTestVisibility = async (testId: string, subject: string, gradeLevel: number, currentVisibility: boolean) => {
+  const toggleTestVisibility = async (
+    classId: string,
+    testId: string,
+    currentVisibility: boolean
+  ) => {
+    const newVisibility = !currentVisibility;
     try {
-      const newVisibility = !currentVisibility;
-      const { data, error } = await supabase.rpc('toggle_cambridge_test_visibility', {
+      const { data, error } = await supabase.rpc('set_teacher_cambridge_class_visibility', {
+        p_class_id: classId,
         p_test_id: testId,
-        p_subject: subject,
-        p_grade_level: gradeLevel,
-        p_is_visible: newVisibility
+        p_is_visible: newVisibility,
       });
-
-      if (error) {
-        console.error('Error toggling test visibility:', error);
-        brainsAlert('Unable to update test visibility: ' + error.message, 'error');
+      if (error) throw error;
+      if (!data?.success) {
+        brainsAlert(data?.error || 'Unable to update this class release.', 'error');
         return;
       }
-
-      if (data && data.error) {
-        brainsAlert('Error: ' + data.error, 'error');
-        return;
-      }
-
-      // Update local state
       setTestVisibilitySettings(prev => {
-        const newMap = new Map(prev);
-        newMap.set(`${testId}|${gradeLevel}|${subject}`, newVisibility);
-        return newMap;
+        const next = new Map(prev);
+        next.set(`${classId}|${testId}`, newVisibility);
+        return next;
       });
-
-      console.log('Test visibility updated:', data);
-    } catch (error) {
-      console.error('Exception toggling test visibility:', error);
-      brainsAlert('Something went wrong while updating test visibility.', 'error');
+      setVisibilityTestsData(prev => prev.map((test: any) =>
+        test.class_id === classId && test.test_id === testId
+          ? { ...test, teacher_released: newVisibility }
+          : test
+      ));
+    } catch (error: any) {
+      console.error('Exception updating Cambridge class release:', error);
+      brainsAlert(error?.message || 'Unable to update this class release.', 'error');
     }
   };
 
-  // Bulk set visibility for multiple tests
-  const bulkSetTestVisibility = async (testIds: string[], subject: string, gradeLevel: number, visibility: boolean) => {
+  const bulkSetTestVisibility = async (
+    classId: string,
+    testIds: string[],
+    visibility: boolean
+  ) => {
     try {
-      const { data, error } = await supabase.rpc('bulk_set_cambridge_test_visibility', {
+      const { data, error } = await supabase.rpc('bulk_set_teacher_cambridge_class_visibility', {
+        p_class_id: classId,
         p_test_ids: testIds,
-        p_subject: subject,
-        p_grade_level: gradeLevel,
-        p_is_visible: visibility
+        p_is_visible: visibility,
       });
-
-      if (error) {
-        console.error('Error bulk updating test visibility:', error);
-        brainsAlert('Unable to update test visibility: ' + error.message, 'error');
+      if (error) throw error;
+      if (!data?.success) {
+        brainsAlert(data?.error || 'Unable to update these class releases.', 'error');
         return;
       }
-
-      if (data && data.error) {
-        brainsAlert('Error: ' + data.error, 'error');
-        return;
-      }
-
-      // Update local state
+      const ids = new Set(testIds);
       setTestVisibilitySettings(prev => {
-        const newMap = new Map(prev);
-        testIds.forEach(id => newMap.set(`${id}|${gradeLevel}|${subject}`, visibility));
-        return newMap;
+        const next = new Map(prev);
+        testIds.forEach(id => next.set(`${classId}|${id}`, visibility));
+        return next;
       });
-
-      brainsAlert(data.message || 'Test visibility updated successfully.', 'success');
-    } catch (error) {
-      console.error('Exception bulk updating visibility:', error);
-      brainsAlert('Something went wrong while updating test visibility.', 'error');
+      setVisibilityTestsData(prev => prev.map((test: any) =>
+        test.class_id === classId && ids.has(test.test_id)
+          ? { ...test, teacher_released: visibility }
+          : test
+      ));
+      brainsAlert(
+        visibility
+          ? `Released ${data.updated_count} test(s) to this class.`
+          : `Hid ${data.updated_count} test(s) from this class.`,
+        'success'
+      );
+    } catch (error: any) {
+      console.error('Exception bulk updating Cambridge class releases:', error);
+      brainsAlert(error?.message || 'Unable to update these class releases.', 'error');
     }
   };
 
-  // ── School-Level Visibility Handlers ──────────────────────────────────
+  // ── School-Level Visibility Handlers  // ── School-Level Visibility Handlers ──────────────────────────────────
 
   const loadSchoolVisibility = async () => {
     setSchoolVisibilityLoading(true);
@@ -6133,221 +6086,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               >
                 👁️ Test Visibility
               </button>
-              {teacherAssignedSubjects.length > 0 && (
-                <button
-                  onClick={() => {
-                    setShowSchoolLevelVisibility(!showSchoolLevelVisibility);
-                    if (!showSchoolLevelVisibility && schoolVisibility.length === 0) {
-                      loadSchoolVisibility();
-                    }
-                  }}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                    showSchoolLevelVisibility
-                      ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                      : 'border border-indigo-400 text-indigo-700 hover:bg-indigo-50'
-                  }`}
-                  title="Manage school-wide test visibility for your subjects"
-                >
-                  🏫 School Visibility
-                </button>
-              )}
             </div>
           </div>
 
-      {/* School-Level Visibility Collapsible Panel */}
-      {showSchoolLevelVisibility && (
-        <div className="bg-white rounded-2xl p-5 border-2 border-indigo-200 shadow-sm mb-2">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h4 className="text-lg font-bold text-indigo-700">🏫 School-Level Test Visibility</h4>
-              <p className="text-xs text-slate-500 mt-1">Hide or show Cambridge tests school-wide for your assigned subjects. Hidden tests are invisible to all students.</p>
-            </div>
-            <button
-              onClick={loadSchoolVisibility}
-              disabled={schoolVisibilityLoading}
-              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
-            >
-              {schoolVisibilityLoading ? '⏳' : '🔄'} Refresh
-            </button>
-          </div>
-
-          {schoolVisibilityLoading ? (
-            <div className="text-center py-8 text-slate-400">
-              <div className="text-3xl mb-2">⏳</div>
-              Loading school visibility settings...
-            </div>
-          ) : teacherFilteredSchoolVisibility.length === 0 ? (
-            <div className="text-center py-8 text-slate-400">
-              <div className="text-3xl mb-2">📋</div>
-              No Cambridge tests found for your assigned subjects.
-            </div>
-          ) : (
-            <>
-              {/* Subject filter + selection + bulk actions */}
-              <div className="flex flex-wrap items-center gap-3 mb-4">
-                <select
-                  value={schoolVisibilitySubjectFilter}
-                  onChange={(e) => {
-                    setSchoolVisibilitySubjectFilter(e.target.value);
-                    setSelectedSchoolTests(new Set());
-                  }}
-                  className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-slate-700 text-sm focus:outline-none focus:border-indigo-500"
-                >
-                  <option value="all">All Subjects ({teacherFilteredSchoolVisibility.length})</option>
-                  {schoolVisSubjectOptions.map(subj => (
-                    <option key={subj} value={subj}>
-                      {subj} ({teacherFilteredSchoolVisibility.filter(t => t.subject === subj).length})
-                    </option>
-                  ))}
-                </select>
-
-                {/* Select All / Deselect All */}
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={selectedSchoolTests.size === displayedSchoolVisibility.length && displayedSchoolVisibility.length > 0}
-                    ref={el => { if (el) el.indeterminate = selectedSchoolTests.size > 0 && selectedSchoolTests.size < displayedSchoolVisibility.length; }}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedSchoolTests(new Set(displayedSchoolVisibility.map(t => t.test_id)));
-                      } else {
-                        setSelectedSchoolTests(new Set());
-                      }
-                    }}
-                    className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                  />
-                  <span className="text-xs text-slate-600 font-medium">
-                    {selectedSchoolTests.size === displayedSchoolVisibility.length && displayedSchoolVisibility.length > 0
-                      ? 'Deselect All'
-                      : 'Select All'} ({displayedSchoolVisibility.length})
-                  </span>
-                </label>
-
-                {/* Bulk actions for selected tests */}
-                {selectedSchoolTests.size > 0 && (
-                  <>
-                    <button
-                      onClick={() => setSchoolVisConfirmDialog({
-                        title: '✅ Show Selected Tests?',
-                        description: `This will make ${selectedSchoolTests.size} test(s) visible to all students in your school.`,
-                        confirmLabel: 'Show Tests',
-                        onConfirm: async () => {
-                          await bulkSetSchoolVisibility(Array.from(selectedSchoolTests), true);
-                          setSelectedSchoolTests(new Set());
-                        }
-                      })}
-                      disabled={Array.from(selectedSchoolTests).every(id => displayedSchoolVisibility.find(t => t.test_id === id)?.is_visible)}
-                      className="px-3 py-1.5 bg-green-50 hover:bg-green-100 border border-green-400 text-green-700 text-xs font-semibold rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                      ✅ Show Selected ({selectedSchoolTests.size})
-                    </button>
-                    <button
-                      onClick={() => setSchoolVisConfirmDialog({
-                        title: '🔒 Hide Selected Tests?',
-                        description: `This will hide ${selectedSchoolTests.size} test(s) from ALL students in your school. They can be shown again later.`,
-                        confirmLabel: 'Hide Tests',
-                        isDestructive: true,
-                        onConfirm: async () => {
-                          await bulkSetSchoolVisibility(Array.from(selectedSchoolTests), false);
-                          setSelectedSchoolTests(new Set());
-                        }
-                      })}
-                      disabled={Array.from(selectedSchoolTests).every(id => !displayedSchoolVisibility.find(t => t.test_id === id)?.is_visible)}
-                      className="px-3 py-1.5 bg-red-50 hover:bg-red-100 border border-red-400 text-red-700 text-xs font-semibold rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                      🚫 Hide Selected ({selectedSchoolTests.size})
-                    </button>
-                  </>
-                )}
-
-                <span className="text-xs text-slate-500 ml-auto">
-                  {selectedSchoolTests.size > 0 ? `${selectedSchoolTests.size} selected · ` : ''}
-                  {displayedSchoolVisibility.filter(t => t.is_visible).length} / {displayedSchoolVisibility.length} visible
-                </span>
-              </div>
-
-              {/* Tests list with checkboxes */}
-              <div className="bg-slate-50 rounded-lg border border-slate-200 divide-y divide-slate-200 max-h-80 overflow-y-auto">
-                {displayedSchoolVisibility.map(test => (
-                  <div key={test.test_id} className="px-4 py-3 flex items-center gap-3 hover:bg-slate-100 transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={selectedSchoolTests.has(test.test_id)}
-                      onChange={(e) => {
-                        const next = new Set(selectedSchoolTests);
-                        if (e.target.checked) next.add(test.test_id);
-                        else next.delete(test.test_id);
-                        setSelectedSchoolTests(next);
-                      }}
-                      className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 flex-shrink-0"
-                    />
-                    <div className="flex-1 min-w-0 mr-3">
-                      <p className="text-sm font-medium text-slate-900 truncate">{test.test_name}</p>
-                      <p className="text-xs text-slate-500">{test.subject} · {test.category || 'N/A'}</p>
-                    </div>
-                    <button
-                      onClick={() => setSchoolVisConfirmDialog({
-                        title: test.is_visible ? '🔒 Hide This Test?' : '👁️ Show This Test?',
-                        description: test.is_visible
-                          ? `"${test.test_name}" will be hidden from all students school-wide.`
-                          : `"${test.test_name}" will become visible to all students school-wide.`,
-                        confirmLabel: test.is_visible ? 'Hide Test' : 'Show Test',
-                        isDestructive: test.is_visible,
-                        onConfirm: async () => {
-                          await toggleSchoolTestVisibility(test.test_id, test.is_visible);
-                        }
-                      })}
-                      className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors flex-shrink-0 ${
-                        test.is_visible
-                          ? 'bg-green-100 text-green-700 border border-green-300 hover:bg-green-200'
-                          : 'bg-red-100 text-red-700 border border-red-300 hover:bg-red-200'
-                      }`}
-                    >
-                      {test.is_visible ? '👁️ Visible' : '🔒 Hidden'}
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              <p className="text-xs text-slate-500 mt-3">
-                💡 Hidden tests won't appear for any student in your school. Only tests matching your assigned subjects are shown here.
-              </p>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* School Visibility Confirmation Dialog */}
-      {schoolVisConfirmDialog && createPortal(
-        <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl border border-slate-200 mx-4">
-            <h3 className="text-xl font-bold text-slate-900 mb-2">{schoolVisConfirmDialog.title}</h3>
-            <p className="text-sm text-slate-600 mb-6">{schoolVisConfirmDialog.description}</p>
-            <div className="flex items-center justify-end gap-3">
-              <button
-                onClick={() => setSchoolVisConfirmDialog(null)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={async () => {
-                  await schoolVisConfirmDialog.onConfirm();
-                  setSchoolVisConfirmDialog(null);
-                }}
-                className={`px-4 py-2 rounded-lg font-semibold text-white transition-colors ${
-                  schoolVisConfirmDialog.isDestructive
-                    ? 'bg-red-600 hover:bg-red-500'
-                    : 'bg-indigo-600 hover:bg-indigo-500'
-                }`}
-              >
-                {schoolVisConfirmDialog.confirmLabel}
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+      <div className="mb-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-900">
+        <strong>How test access works:</strong> your school admin chooses which Cambridge tests the school can use. You then release available tests to each class you teach.
+      </div>
 
       <div className="cambridge-reports-body">
         {/* Left Sidebar - Filters (Desktop) */}
@@ -8031,146 +7775,98 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         );
       })()}
 
-      {/* Test Visibility Manager Modal */}
+      {/* Class-scoped Cambridge release manager */}
       {showVisibilityManager && (() => {
-        // Use component-level state to avoid hook violations
-        const tests = visibilityTestsData;
-
-        // Group tests by grade and subject
-        const testsByGradeSubject = tests.reduce((acc, test) => {
-          const key = `${test.grade_level}-${test.subject}`;
-          if (!acc[key]) {
-            acc[key] = {
-              gradeLevel: test.grade_level,
-              subject: test.subject,
-              tests: []
-            };
-          }
-          acc[key].tests.push(test);
-          return acc;
-        }, {} as Record<string, { gradeLevel: number; subject: string; tests: TestVisibilityItem[] }>);
-
-        const groups = Object.values(testsByGradeSubject);
+        const groups = Object.values(
+          visibilityTestsData.reduce((acc: Record<string, any>, test: any) => {
+            const key = `${test.class_id}|${test.curriculum_subject}`;
+            if (!acc[key]) {
+              acc[key] = {
+                classId: test.class_id,
+                classCode: test.class_code,
+                className: test.class_name,
+                gradeLevel: test.grade_level,
+                subject: test.curriculum_subject,
+                tests: [],
+              };
+            }
+            acc[key].tests.push(test);
+            return acc;
+          }, {})
+        ) as any[];
 
         return createPortal(
-          <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center">
-            <div className="bg-white rounded-2xl shadow-xl w-[90%] max-w-[1000px] max-h-[85vh] flex flex-col">
-              {/* Header */}
-              <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-6">
-                <div className="flex items-center justify-between">
+          <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-3" role="dialog" aria-modal="true" aria-labelledby="cambridge-release-title">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-[1000px] max-h-[90vh] flex flex-col overflow-hidden">
+              <div className="bg-gradient-to-r from-purple-700 to-indigo-700 text-white p-5 sm:p-6">
+                <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h2 className="text-2xl font-bold">👁️ Test Visibility Manager</h2>
-                    <p className="text-purple-100 text-sm mt-1">Control which Cambridge tests students can see</p>
+                    <p className="text-xs font-bold uppercase tracking-wider text-purple-200">Teacher release control</p>
+                    <h2 id="cambridge-release-title" className="text-2xl font-bold mt-1">Release Cambridge Tests</h2>
+                    <p className="text-purple-100 text-sm mt-1">Choose exactly what students in each assigned class can see.</p>
                   </div>
-                  <button
-                    onClick={() => setShowVisibilityManager(false)}
-                    className="text-white/80 hover:text-white text-3xl font-bold"
-                  >
-                    ×
-                  </button>
+                  <button onClick={() => setShowVisibilityManager(false)} className="min-h-11 min-w-11 rounded-xl bg-white/10 text-2xl hover:bg-white/20" aria-label="Close release manager">×</button>
                 </div>
               </div>
 
-              {/* Content */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-6" style={{ overflowX: 'hidden' }}>
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
                 {visibilityLoading ? (
-                  <div className="text-center py-12 text-gray-500">
-                    <div className="text-4xl mb-4">⏳</div>
-                    Loading tests and visibility settings...
+                  <div className="text-center py-12 text-gray-500" role="status">
+                    <div className="text-4xl mb-3">⏳</div>
+                    Loading tests for your classes…
                   </div>
-                ) : (
-                  groups.map(group => {
-                    const groupTests = group.tests;
-                    const allVisible = groupTests.every(t => testVisibilitySettings.get(`${t.test_id}|${group.gradeLevel}|${group.subject}`) === true);
-                    const someVisible = groupTests.some(t => testVisibilitySettings.get(`${t.test_id}|${group.gradeLevel}|${group.subject}`) === true);
-                    const noneVisible = !someVisible;
-
-                    return (
-                      <div key={`${group.gradeLevel}-${group.subject}`} className="border border-gray-200 rounded-xl overflow-hidden">
-                        {/* Group Header */}
-                        <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h3 className="font-bold text-gray-900">
-                                Grade {group.gradeLevel} - {group.subject}
-                              </h3>
-                              <p className="text-xs text-gray-500 mt-0.5">
-                                {groupTests.filter(t => testVisibilitySettings.get(`${t.test_id}|${group.gradeLevel}|${group.subject}`) === true).length} / {groupTests.length} visible
-                              </p>
-                            </div>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => bulkSetTestVisibility(
-                                  groupTests.map(t => t.test_id),
-                                  group.subject,
-                                  group.gradeLevel,
-                                  true
-                                )}
-                                disabled={allVisible}
-                                className="px-3 py-1 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                ✅ Show All
-                              </button>
-                              <button
-                                onClick={() => bulkSetTestVisibility(
-                                  groupTests.map(t => t.test_id),
-                                  group.subject,
-                                  group.gradeLevel,
-                                  false
-                                )}
-                                disabled={noneVisible}
-                                className="px-3 py-1 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                🚫 Hide All
-                              </button>
-                            </div>
-                          </div>
+                ) : groups.length === 0 ? (
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center">
+                    <div className="text-4xl mb-3">📚</div>
+                    <h3 className="font-bold text-amber-950">No matching Cambridge tests yet</h3>
+                    <p className="mt-2 text-sm text-amber-800">Ask your school admin to confirm that tests are enabled and that your class has the correct grade and subject assignment.</p>
+                  </div>
+                ) : groups.map(group => {
+                  const available = group.tests.filter((test: any) => test.school_available);
+                  const releasedCount = available.filter((test: any) => testVisibilitySettings.get(`${group.classId}|${test.test_id}`) === true).length;
+                  const allReleased = available.length > 0 && releasedCount === available.length;
+                  return (
+                    <section key={`${group.classId}-${group.subject}`} className="overflow-hidden rounded-2xl border border-gray-200" aria-labelledby={`release-${group.classId}`}>
+                      <div className="flex flex-col gap-3 border-b border-gray-200 bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <h3 id={`release-${group.classId}`} className="font-bold text-gray-950">{group.classCode} · {group.subject}</h3>
+                          <p className="text-xs text-gray-600 mt-1">Grade {group.gradeLevel} · {releasedCount} of {available.length} available tests released</p>
                         </div>
-
-                        {/* Tests List */}
-                        <div className="divide-y divide-gray-100">
-                          {groupTests.map(test => {
-                            const isVisible = testVisibilitySettings.get(`${test.test_id}|${test.grade_level}|${test.subject}`) === true;
-                            
-                            return (
-                              <div key={test.test_id} className="px-4 py-3 hover:bg-gray-50 flex items-center justify-between">
-                                <div className="flex-1">
-                                  <p className="text-sm font-medium text-gray-900">{test.test_name}</p>
-                                  <p className="text-xs text-gray-500 mt-0.5">ID: {test.test_id}</p>
-                                </div>
-                                <button
-                                  onClick={() => toggleTestVisibility(test.test_id, test.subject, test.grade_level, isVisible)}
-                                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                                    isVisible
-                                      ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                  }`}
-                                >
-                                  {isVisible ? '👁️ Visible' : '🔒 Hidden'}
-                                </button>
-                              </div>
-                            );
-                          })}
+                        <div className="flex gap-2">
+                          <button onClick={() => bulkSetTestVisibility(group.classId, available.map((test: any) => test.test_id), true)} disabled={allReleased || available.length === 0} className="min-h-10 rounded-lg bg-green-600 px-3 text-xs font-bold text-white disabled:opacity-40">Release all</button>
+                          <button onClick={() => bulkSetTestVisibility(group.classId, available.map((test: any) => test.test_id), false)} disabled={releasedCount === 0} className="min-h-10 rounded-lg bg-gray-700 px-3 text-xs font-bold text-white disabled:opacity-40">Hide all</button>
                         </div>
                       </div>
-                    );
-                  })
-                )}
+                      <div className="divide-y divide-gray-100">
+                        {group.tests.map((test: any) => {
+                          const released = testVisibilitySettings.get(`${group.classId}|${test.test_id}`) === true;
+                          return (
+                            <div key={test.test_id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+                              <div className="min-w-0 flex-1">
+                                <p className="font-semibold text-gray-950">{test.test_name}</p>
+                                <p className="mt-1 text-xs text-gray-600">{test.subject}{test.curriculum_stage ? ` · Cambridge Stage ${test.curriculum_stage}` : ''}{test.category ? ` · ${test.category}` : ''}</p>
+                                {!test.school_available && <p className="mt-2 text-xs font-semibold text-amber-700">Unavailable: disabled by your school administrator</p>}
+                              </div>
+                              <button
+                                onClick={() => toggleTestVisibility(group.classId, test.test_id, released)}
+                                disabled={!test.school_available}
+                                aria-pressed={released}
+                                className={`min-h-11 min-w-[132px] rounded-xl px-4 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:bg-amber-100 disabled:text-amber-700 ${released ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                              >
+                                {!test.school_available ? 'Admin disabled' : released ? '✓ Released' : 'Release'}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  );
+                })}
               </div>
 
-              {/* Footer */}
-              <div className="border-t border-gray-200 bg-gray-50 px-6 py-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-gray-600">
-                    💡 Students will only see tests marked as "Visible" for their grade
-                  </p>
-                  <button
-                    onClick={() => setShowVisibilityManager(false)}
-                    className="px-6 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
-                  >
-                    Done
-                  </button>
-                </div>
+              <div className="flex flex-col gap-3 border-t border-gray-200 bg-gray-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-xs text-gray-600">Students see a test only when the school enables it and you release it to their class.</p>
+                <button onClick={() => setShowVisibilityManager(false)} className="min-h-11 rounded-xl bg-purple-700 px-6 font-bold text-white hover:bg-purple-800">Done</button>
               </div>
             </div>
           </div>,
