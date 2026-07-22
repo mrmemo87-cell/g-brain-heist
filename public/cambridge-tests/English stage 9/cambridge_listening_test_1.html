@@ -161,6 +161,7 @@
   .question-text {
     font-size: 16px;
     font-weight: 600;
+    line-height: 1.5;
     color: #1e293b;
     margin-bottom: 15px;
   }
@@ -336,25 +337,64 @@
   .q-number { color: #6366f1; font-weight: bold; }
   
   /* Options display */
-  .options-list { margin: 10px 0 15px 0; }
+  .options-list { margin: 14px 0 18px; }
   .option-item {
     background: #f0f4ff;
     border: 1px solid #c7d2fe;
-    border-radius: 6px;
-    padding: 10px 15px;
-    margin: 5px 0;
-    font-size: 14px;
-    color: #333;
+    border-radius: 9px;
+    padding: 11px 15px;
+    margin: 7px 0;
+    font-size: 15px;
+    line-height: 1.45;
+    color: #1e293b;
   }
 
   .source-question-image {
     display: block;
     width: 100%;
     height: auto;
-    margin: 0 0 16px;
-    border: 1px solid #dbe3ef;
-    border-radius: 10px;
+    margin: 0;
+    border: 0;
+    border-radius: 6px;
     background: #fff;
+  }
+  .paper-question-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin: 0 0 16px;
+    color: #111827;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.45;
+  }
+  .paper-question-heading .question-number {
+    flex: 0 0 auto;
+    margin-top: 1px;
+  }
+  .paper-choice-labels {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: center;
+    margin: 8px 0 18px;
+    color: #111827;
+    font-size: 16px;
+    font-weight: 800;
+    text-align: center;
+  }
+  .paper-choice-labels span {
+    display: inline-grid;
+    min-width: 36px;
+    min-height: 36px;
+    place-items: center;
+    justify-self: center;
+  }
+  .paper-choice-labels .is-example-answer {
+    border: 2px solid #111827;
+    border-radius: 999px;
+  }
+  .example-box .source-question-image {
+    margin-top: 14px;
   }
   .choice-row {
     display: flex;
@@ -560,6 +600,8 @@
     .choice-select { width: 100%; }
     .tour-form { padding: 16px; }
     .tour-line { grid-template-columns: 1fr; }
+    .paper-question-heading { font-size: 16px; }
+    .paper-choice-labels { margin-top: 6px; }
   }
   
   /* Mobile fixes for iOS and Android */
@@ -1119,12 +1161,34 @@
       10: "Question 10: gloves, a coat, or shoes"
     };
 
+    const picturePrompts = {
+      1: "What is the boy’s mother doing now?",
+      2: "Why was the girl late for college this morning?",
+      3: "Which book does the man decide to buy?",
+      4: "What has Tom left at home?",
+      5: "Which video will Harry watch?",
+      6: "Which picture shows how the kitchen will look?",
+      7: "Which photograph shows Sara’s sister?",
+      8: "What is the subject of the actor’s next film?",
+      9: "When is the next orchestra practice going to be?",
+      10: "What will the girl put on?"
+    };
+
+    const pictureLabels = (exampleAnswer = '') => `
+      <div class="paper-choice-labels" aria-label="Picture options A, B and C">
+        <span>A</span>
+        <span class="${exampleAnswer === 'B' ? 'is-example-answer' : ''}">B</span>
+        <span>C</span>
+      </div>`;
+
     const pictureCards = (start, end) => Array.from({ length: end - start + 1 }, (_, index) => {
       const number = start + index;
       const imageNumber = String(number).padStart(2, "0");
       return `
         <article class="question-card">
-          <img class="source-question-image" src="${paperAssetBase}/q${imageNumber}.png" alt="${pictureAlts[number]}" loading="lazy" />
+          <div class="paper-question-heading"><span class="question-number">${number}</span><span>${picturePrompts[number]}</span></div>
+          <img class="source-question-image" src="${paperAssetBase}/q${imageNumber}.png" alt="${pictureAlts[number]}" loading="lazy" decoding="async" />
+          ${pictureLabels()}
           ${choiceInput(number)}
         </article>`;
     }).join("");
@@ -1207,8 +1271,9 @@
       "Part 1: Questions 1 — 5",
       "For each question, listen to the short recording and choose the correct picture: <strong>A, B or C</strong>.",
       `<div class="example-box">
-        <div class="example-title">Worked example — Why did Jason visit Ally?</div>
-        <img class="source-question-image" src="${paperAssetBase}/q00.png" alt="Worked example showing Jason giving Ally a book, a small item, or an envelope; option B is circled" />
+        <div class="example-title">Example: <span style="color:#111827;font-weight:600;">Why did Jason visit Ally?</span></div>
+        <img class="source-question-image" src="${paperAssetBase}/q00.png" alt="Worked example showing Jason giving Ally a book, a small item, or an envelope" decoding="async" />
+        ${pictureLabels('B')}
         <div class="example-answer">Example answer: B</div>
       </div>${pictureCards(1, 5)}`
     );
