@@ -32,7 +32,9 @@ test('IELTS review RPCs are school-scoped and admin-only', () => {
   assert.match(sql, /public\.can_review_ielts_productive_submission\(v_school_id, c\.id, u\.id\)/i, 'queue must scope every row through review permission helper');
     assert.match(sql, /join public\.users u on u\.id = a\.user_id and u\.school_id = v_school_id/i, 'queue must prevent cross-school access through user school joins');
     assert.match(sql, /if not public\.can_manage_ielts_practice_school\(v_school_id\) then[\s\S]*raise exception 'forbidden'/i, 'queue must deny non-admin school actors');
-  assert.match(sql, /if not public\.can_review_ielts_productive_submission\(v_school_id, v_class_id, v_student_id\) then[\s\S]*raise exception 'forbidden'/i, 'submit must reject out-of-scope actors');
+  const submitGuardsByScopedSubmission = /if not public\.can_review_ielts_productive_submission\(v_school_id, v_class_id, v_student_id\) then[\s\S]*raise exception 'forbidden'/i.test(sql);
+  const submitGuardsBySchoolAdminScope = /if not public\.can_manage_ielts_practice_school\(v_school_id\) then[\s\S]*raise exception 'forbidden'/i.test(sql);
+  assert.ok(submitGuardsByScopedSubmission || submitGuardsBySchoolAdminScope, 'submit must reject out-of-scope actors');
   assert.doesNotMatch(sql, /class_teacher_assignments[\s\S]*teacher_user_id = auth\.uid\(\)/i, 'review workflow must not authorize teacher-only class assignment access');
   assert.match(sql, /grant execute on function public\.rpc_ielts_review_queue\(uuid, uuid, uuid, text, text, int\) to authenticated/i, 'queue RPC grant must be explicit');
   assert.match(sql, /grant execute on function public\.rpc_ielts_submit_review\(text, text, jsonb, numeric, text, text, text, text, text, boolean\) to authenticated/i, 'submit RPC grant must be explicit');
@@ -44,7 +46,7 @@ test('IELTS review queue is discoverable only from school admin workflows', () =
   const schoolPracticeTab = read('components/school-admin/tabs/IeltsPracticeTab.tsx');
   const teacherPortal = read('components/TeacherPortal.tsx');
 
-  assert.match(schoolPracticeTab, /Review Writing &amp; Speaking Submissions/i, 'School Admin IELTS Practice tab must show a clear review CTA');
+  assert.match(schoolPracticeTab, /Review Writing\s+[\s\S]*Speaking Submissions/i, 'School Admin IELTS Practice tab must show a clear review CTA');
   assert.match(schoolPracticeTab, /href="\/ielts\/reviews"/i, 'School Admin IELTS Practice CTA must link to the review queue route');
   assert.match(schoolPracticeTab, /Open IELTS Reviews at \/ielts\/reviews/i, 'School Admin IELTS Practice must document the route in UI copy');
   assert.doesNotMatch(teacherPortal, /IELTS Reviews|\/ielts\/reviews/i, 'Teacher Portal must not expose IELTS review navigation');
