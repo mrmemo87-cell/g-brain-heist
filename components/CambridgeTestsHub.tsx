@@ -25,6 +25,8 @@ interface CambridgeTest {
   feedbackReleased?: boolean; // True if teacher has released feedback
   isMarked?: boolean; // True if teacher has marked the test
   scoresReleased?: boolean; // True if teacher released auto-marked score/report
+  attemptNumber?: number;
+  attemptedCount?: number;
 }
 
 interface CambridgeTestsHubProps {
@@ -945,7 +947,11 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
   const [isReviewMode, setIsReviewMode] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [progressVerified, setProgressVerified] = useState(false);
+  const [exitSubmissionPending, setExitSubmissionPending] = useState(false);
+  const [exitSubmissionError, setExitSubmissionError] = useState<string | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const exitSubmissionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initialLoadDone = useRef(false);
 
   // Fetch visible tests based on teacher visibility settings
@@ -1028,13 +1034,24 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
   // Listen for test completion and deletion messages from iframe
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin || event.source !== iframeRef.current?.contentWindow) {
+        return;
+      }
       if (event.data?.type === 'CAMBRIDGE_TEST_COMPLETE') {
         console.log('Test completed:', event.data);
+        if (exitSubmissionTimerRef.current) clearTimeout(exitSubmissionTimerRef.current);
+        setExitSubmissionPending(false);
+        setExitSubmissionError(null);
         setTestSubmittedInSession(true);
-        // Refresh the test list to show updated completion status
-        setTimeout(() => {
-          loadTestProgress();
-        }, 1000);
+        loadTestProgress(true);
+        if (autoCloseTimerRef.current) clearTimeout(autoCloseTimerRef.current);
+        autoCloseTimerRef.current = setTimeout(() => {
+          setActiveTest(null);
+          setShowExitConfirm(false);
+          setTestSubmittedInSession(false);
+          setIsReviewMode(false);
+          loadTestProgress(true);
+        }, 900);
       } else if (event.data?.type === 'CAMBRIDGE_TEST_DELETED') {
         console.log('Test submission deleted:', event.data);
         // Refresh the test list to show reset status (no longer marked as completed)
@@ -1048,7 +1065,11 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
     };
 
     window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
+    return () => {
+      window.removeEventListener('message', handleMessage);
+      if (exitSubmissionTimerRef.current) clearTimeout(exitSubmissionTimerRef.current);
+      if (autoCloseTimerRef.current) clearTimeout(autoCloseTimerRef.current);
+    };
   }, []);
 
   // Manual refresh: re-fetch visibility + progress without full loading spinner
@@ -1068,8 +1089,8 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       // Fetch completed tests from quiz_scores table (include answers for marking status)
       let progressQuery = supabase
         .from('quiz_scores')
-        .select('quiz_name, score, total_questions, percentage, submitted_at, answers, scores_released')
-        .in('student_name', [profile.full_name, profile.username].filter(Boolean))
+        .select('student_id, quiz_name, test_id, quiz_version, attempt_number, score, total_questions, percentage, submitted_at, answers, scores_released')
+        .eq('student_id', profile.id)
         .order('submitted_at', { ascending: false });
       
       // Defense-in-depth: scope to own school
@@ -1109,7 +1130,12 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
         
         // Check if this is a writing test awaiting marking
         // Parse answers if it's a string (Supabase sometimes returns JSONB as string)
-        let answers: { requires_marking?: boolean; feedback?: { releasedToStudent?: boolean } } | undefined;
+        let answers: {
+          requires_marking?: boolean;
+          feedback?: { releasedToStudent?: boolean };
+          responses?: Record<string, unknown>;
+          marks?: unknown;
+        } | undefined;
         if (completion?.answers) {
           answers = typeof completion.answers === 'string' 
             ? JSON.parse(completion.answers) 
@@ -1145,6 +1171,10 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
           feedbackReleased,
           isMarked,
           scoresReleased,
+          attemptNumber: completion?.attempt_number || 1,
+          attemptedCount: answers?.responses
+            ? Object.values(answers.responses).filter((answer) => String(answer ?? '').trim() !== '').length
+            : undefined,
         };
       });
 
@@ -1212,11 +1242,15 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
   };
 
   const handleTestComplete = () => {
+    if (exitSubmissionTimerRef.current) clearTimeout(exitSubmissionTimerRef.current);
+    if (autoCloseTimerRef.current) clearTimeout(autoCloseTimerRef.current);
     setActiveTest(null);
     setShowExitConfirm(false);
     setTestSubmittedInSession(false);
     setIsReviewMode(false);
-    loadTestProgress(); // Refresh completion status
+    setExitSubmissionPending(false);
+    setExitSubmissionError(null);
+    loadTestProgress(true);
   };
 
   // Show exit confirmation before leaving an active test
@@ -1231,17 +1265,26 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
 
   // Confirm exit: auto-submit via postMessage, then close
   const handleConfirmExit = () => {
+    if (exitSubmissionPending) return;
+    setExitSubmissionPending(true);
+    setExitSubmissionError(null);
     try {
       if (iframeRef.current?.contentWindow) {
-        iframeRef.current.contentWindow.postMessage({ type: 'FORCE_SUBMIT' }, '*');
+        iframeRef.current.contentWindow.postMessage({ type: 'FORCE_SUBMIT' }, window.location.origin);
+      } else {
+        throw new Error('The test window is not available.');
       }
     } catch (e) {
       console.error('Failed to send FORCE_SUBMIT to test iframe:', e);
+      setExitSubmissionPending(false);
+      setExitSubmissionError('The test could not be submitted. Keep this window open and try again.');
+      return;
     }
-    // Give the iframe a moment to process the auto-submit, then close
-    setTimeout(() => {
-      handleTestComplete();
-    }, 1200);
+    if (exitSubmissionTimerRef.current) clearTimeout(exitSubmissionTimerRef.current);
+    exitSubmissionTimerRef.current = setTimeout(() => {
+      setExitSubmissionPending(false);
+      setExitSubmissionError('Submission is taking longer than expected. Your test is still open—check your connection and try again.');
+    }, 12000);
   };
 
   // Function to view writing test feedback
@@ -1254,7 +1297,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       let feedbackQuery = supabase
         .from('quiz_scores')
         .select('*')
-        .in('student_name', [profile.full_name, profile.username].filter(Boolean))
+        .eq('student_id', profile.id)
         .ilike('quiz_name', '%writing%')
         .order('submitted_at', { ascending: false })
         .limit(1);
@@ -1268,7 +1311,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       const { data: historyRows } = await supabase
         .from('quiz_scores')
         .select('score, percentage, submitted_at, answers')
-        .in('student_name', [profile.full_name, profile.username].filter(Boolean))
+        .eq('student_id', profile.id)
         .eq('quiz_name', test.name)
         .order('submitted_at', { ascending: false })
         .limit(8);
@@ -1380,7 +1423,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       let reportQuery = supabase
         .from('quiz_scores')
         .select('*')
-        .in('student_name', [profile.full_name, profile.username].filter(Boolean))
+        .eq('student_id', profile.id)
         .order('submitted_at', { ascending: false });
       
       // Defense-in-depth: scope to own school
@@ -1645,7 +1688,11 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
             justifyContent: 'center',
             zIndex: 10000,
           }}>
-            <div style={{
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="cambridge-submit-exit-title"
+              style={{
               background: 'linear-gradient(145deg, #1e1b4b, #1a1a2e)',
               borderRadius: '16px',
               padding: '30px',
@@ -1655,24 +1702,31 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
               boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
               textAlign: 'center',
             }}>
-              <div style={{ fontSize: '48px', marginBottom: '15px' }}>⚠️</div>
-              <h3 style={{ margin: '0 0 10px', color: '#fff', fontSize: '20px', fontWeight: 700 }}>
-                Exit Test?
+              <div style={{ fontSize: '48px', marginBottom: '15px' }}>{exitSubmissionPending ? '⏳' : '⚠️'}</div>
+              <h3 id="cambridge-submit-exit-title" style={{ margin: '0 0 10px', color: '#fff', fontSize: '20px', fontWeight: 700 }}>
+                {exitSubmissionPending ? 'Submitting securely…' : 'Submit and exit?'}
               </h3>
               <p style={{ margin: '0 0 25px', color: 'rgba(255,255,255,0.8)', fontSize: '14px', lineHeight: '1.6' }}>
-                Exiting now will <strong style={{ color: '#ff6b6b' }}>automatically submit</strong> your current answers. 
-                You will not be able to retake this test.
+                {exitSubmissionPending
+                  ? 'Keep this window open. It will close automatically as soon as the school server confirms your submission.'
+                  : <>Your current answers will be submitted once. The test closes only after the school server confirms them.</>}
               </p>
+              {exitSubmissionError && (
+                <p role="alert" style={{ margin: '-10px 0 20px', color: '#fca5a5', fontSize: '13px', lineHeight: 1.5 }}>
+                  {exitSubmissionError}
+                </p>
+              )}
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
                 <button
                   onClick={() => setShowExitConfirm(false)}
+                  disabled={exitSubmissionPending}
                   style={{
                     padding: '10px 24px',
                     backgroundColor: 'rgba(255,255,255,0.1)',
                     color: '#fff',
                     border: '1px solid rgba(255,255,255,0.2)',
                     borderRadius: '10px',
-                    cursor: 'pointer',
+                    cursor: exitSubmissionPending ? 'not-allowed' : 'pointer',
                     fontSize: '14px',
                     fontWeight: 600,
                     transition: 'all 0.2s',
@@ -1682,19 +1736,20 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                 </button>
                 <button
                   onClick={handleConfirmExit}
+                  disabled={exitSubmissionPending}
                   style={{
                     padding: '10px 24px',
                     background: 'linear-gradient(135deg, #ef4444, #dc2626)',
                     color: '#fff',
                     border: 'none',
                     borderRadius: '10px',
-                    cursor: 'pointer',
+                    cursor: exitSubmissionPending ? 'wait' : 'pointer',
                     fontSize: '14px',
                     fontWeight: 600,
                     transition: 'all 0.2s',
                   }}
                 >
-                  Exit & Submit
+                  {exitSubmissionPending ? 'Waiting for confirmation…' : 'Submit & Exit'}
                 </button>
               </div>
             </div>
@@ -1930,7 +1985,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       const reportReady = !test.requiresMarking && test.isCompleted && test.scoresReleased;
                       const resultLocked = !test.requiresMarking && test.isCompleted && !test.scoresReleased;
                       const actionLabel = test.isCompleted
-                        ? (reportReady ? '📊 View Detailed Answers' : test.requiresMarking ? '✅ Submitted' : '🔒 Awaiting Release')
+                        ? (reportReady ? '📊 Review Results' : test.requiresMarking ? '✅ Submitted for Marking' : '🔒 Submitted · Awaiting Release')
                         : '▶️ Start Test';
                       return (
                       <div
@@ -2051,9 +2106,21 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                                       : '✅ Completed'}
                                 </span>
                               </div>
+                              {(test.attemptNumber || test.attemptedCount !== undefined) && (
+                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '9px' }}>
+                                  <span style={{ padding: '3px 8px', borderRadius: '999px', background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.78)', fontSize: '10px', fontWeight: 700 }}>
+                                    Attempt {test.attemptNumber || 1}
+                                  </span>
+                                  {test.attemptedCount !== undefined && (
+                                    <span style={{ padding: '3px 8px', borderRadius: '999px', background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.78)', fontSize: '10px', fontWeight: 700 }}>
+                                      {test.attemptedCount}/{test.totalQuestions} answered
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                               {test.completedAt && (
                                 <p style={{ margin: '8px 0 0', fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>
-                                  {test.isAwaitingMarking ? 'Submitted:' : 'Completed:'} {new Date(test.completedAt).toLocaleDateString('en-GB', {
+                                  Submitted {new Date(test.completedAt).toLocaleDateString('en-GB', {
                                     day: '2-digit',
                                     month: 'short',
                                     year: 'numeric',
