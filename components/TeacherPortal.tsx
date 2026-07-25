@@ -6176,7 +6176,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           </div>
 
       <div className="mb-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-900">
-        <strong>How test access works:</strong> your school admin chooses which Cambridge tests the school can use. You then release available tests to each class you teach.
+        <strong>Your Cambridge workspace:</strong> Your school admin chooses which Cambridge tests the school can use. You can then release available tests to each class you teach; results are limited to your assigned classes and subjects
+        {teacherAssignedSubjects.length > 0 ? ` (${teacherAssignedSubjects.join(', ')})` : ''}. Marking and score release stay limited to the subjects you teach.
       </div>
 
       <div className="cambridge-reports-body">
@@ -6340,6 +6341,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                         const isWritingTest = isTeacherMarkedCambridgeTest(score.quiz_name);
                         const needsMarking = isWritingTest && score.answers?.requires_marking;
                         const statusLabel = needsMarking ? 'Needs marking' : score.scores_released ? 'Released' : 'Pending';
+                        const parsedResponses = parseCambridgeResponses(score.answers);
+                        const attemptedCount = Object.values(parsedResponses).filter((answer) => String(answer ?? '').trim() !== '').length;
                         return (
                           <tr
                             key={score.id}
@@ -6363,18 +6366,27 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                                 aria-label={`Select ${score.student_name}`}
                               />
                             </td>
-                            <td className="px-4 py-3 font-medium text-slate-900">{score.student_name}</td>
+                            <td className="px-4 py-3">
+                              <div className="font-medium text-slate-900">{score.student_name}</div>
+                              <div className="mt-0.5 text-[11px] font-semibold text-slate-400">Attempt {score.attempt_number || 1}</div>
+                            </td>
                             <td className="px-4 py-3 text-slate-500">{score.student_class || '-'}</td>
                             <td className="px-4 py-3">
                               <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
                                 {score.quiz_name.replace('Cambridge ', '')}
                               </span>
+                              {score.test_subject && (
+                                <div className="mt-1 text-[11px] font-semibold text-indigo-600">{score.test_subject}</div>
+                              )}
                             </td>
                             <td className="px-4 py-3 text-center">
                               {needsMarking ? (
                                 <span className="inline-flex px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">Pending</span>
                               ) : (
-                                <span className="font-mono text-slate-800">{score.score}/{score.total_questions}</span>
+                                <div>
+                                  <span className="font-mono text-slate-800">{score.score}/{score.total_questions}</span>
+                                  <div className="mt-0.5 text-[11px] text-slate-400">{attemptedCount}/{score.total_questions} answered</div>
+                                </div>
                               )}
                             </td>
                             <td className="px-4 py-3 text-center">

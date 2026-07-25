@@ -841,6 +841,23 @@
   
   // Simple Supabase REST API wrapper (CSP-safe, no eval needed)
   const supabaseClient = {
+    rpc: async function(functionName, args) {
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${functionName}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${getSupabaseAccessToken() ?? SUPABASE_ANON_KEY}`
+          },
+          body: JSON.stringify(args || {})
+        });
+        if (!response.ok) throw new Error((await response.text()) || response.statusText);
+        return { data: await response.json(), error: null };
+      } catch (error) {
+        return { data: null, error };
+      }
+    },
     from: function(table) {
       return {
         insert: async function(data) {
@@ -874,8 +891,10 @@
     }
 
   const QUIZ_ID = 'cambridge_listening_1_stage9_v3';
+  const TEST_ID = 'cambridge-listening-1';
   const QUIZ_VERSION = 'listening-1-stage9-v3';
   let hasSubmitted = false;
+  let isSubmitting = false;
   let startTime = null;
   let timerInterval = null;
   const total = 30;
@@ -1063,30 +1082,29 @@
   }
 
   async function fetchLatestSubmission() {
-    const identity = getExamIdentity();
-    if (!identity.name) return null;
-    const params = new URLSearchParams({
-      select: 'scores_released,score,total_questions,percentage,answers,time_taken_seconds,submitted_at',
-      student_name: `eq.${identity.name}`,
-      quiz_name: 'eq.Cambridge Listening Test 1',
-      order: 'submitted_at.desc',
-      limit: '20'
+    const { data, error } = await supabaseClient.rpc('get_my_cambridge_attempt_state', {
+      p_test_id: TEST_ID,
+      p_quiz_version: QUIZ_VERSION
     });
-    if (identity.schoolId) params.set('school_id', `eq.${identity.schoolId}`);
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/quiz_scores?${params}`, {
-      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${getSupabaseAccessToken() ?? SUPABASE_ANON_KEY}` }
-    });
-    if (!response.ok) throw new Error(await response.text());
-    const submissions = await response.json();
-    return submissions.find((submission) =>
-      submission.total_questions === total &&
-      submission.answers?.quiz_version === QUIZ_VERSION
-    ) || null;
+    if (error) throw error;
+    if (!data?.success) throw new Error(data?.error || 'Submission status could not be verified');
+    return data.has_submission ? data.submission : null;
   }
 
   async function checkPreviousSubmission() {
     let submission = null;
-    try { submission = await fetchLatestSubmission(); } catch (error) { console.error('Could not verify listening submission', error); }
+    try {
+      submission = await fetchLatestSubmission();
+    } catch (error) {
+      console.error('Could not verify listening submission', error);
+      hasSubmitted = true;
+      closeAntiCheatModal();
+      document.getElementById('alreadySubmitted').style.display = 'block';
+      document.getElementById('alreadySubmitted').querySelector('h3').textContent = '⚠️ Submission status unavailable';
+      document.getElementById('alreadySubmitted').querySelector('p').textContent = 'We could not safely verify this attempt. Return to Brains Heist, check your connection, and refresh before trying again.';
+      document.querySelectorAll('input, select, button').forEach(control => control.disabled = true);
+      return true;
+    }
     if (!submission && !localStorage.getItem(`quiz_submitted_${QUIZ_ID}`)) return false;
     hasSubmitted = true;
     closeAntiCheatModal();
@@ -1129,8 +1147,8 @@
   }
 
   function startTimer() {
-    if (startTime) return;
-    startTime = new Date();
+    if (!startTime) startTime = new Date();
+    if (timerInterval) return;
     document.getElementById("timerBox").style.display = "block";
     timerInterval = setInterval(() => {
       const elapsed = Math.floor((new Date() - startTime) / 1000);
@@ -1384,10 +1402,10 @@
     const statusDiv = document.getElementById("submitStatus");
     const submitBtn = document.getElementById("submitBtn");
     
-    if (hasSubmitted) {
+    if (hasSubmitted || isSubmitting) {
       statusDiv.className = "submit-status submit-error";
-      statusDiv.textContent = "⚠️ You have already submitted.";
-      return;
+      statusDiv.textContent = isSubmitting ? "⏳ Your submission is already being confirmed." : "⚠️ You have already submitted.";
+      return false;
     }
     
     if (!studentName || studentName.length < 2) {
@@ -1414,12 +1432,16 @@
     const score = calculateScore(false);
     const percentage = Math.round((score / total) * 100);
     
-    if (timerInterval) clearInterval(timerInterval);
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
     
     document.getElementById("studentName").disabled = true;
     document.getElementById("studentClass").disabled = true;
     
     submitBtn.disabled = true;
+    isSubmitting = true;
     statusDiv.className = "submit-status submit-loading";
     statusDiv.textContent = "📤 Submitting...";
     
@@ -1433,38 +1455,32 @@
     try {
       const identity = getExamIdentity();
       if (!identity.schoolId) throw new Error('School identity is missing. Reopen the test from Brains Heist.');
-      const { error } = await supabaseClient.from('quiz_scores').insert([{
-        student_name: studentName,
-        student_class: studentClass,
-        quiz_name: 'Cambridge Listening Test 1',
-        score: score,
-        total_questions: total,
-        percentage: percentage,
-        answers: { responses: answers, quiz_version: QUIZ_VERSION },
-        time_taken_seconds: timeTaken,
-        scores_released: false,
-        school_id: identity.schoolId
-      }]);
-      
-      if (error) {
-        if (error.message && (error.message.includes('duplicate') || error.message.includes('unique') || error.message.includes('already exists'))) {
-          hasSubmitted = true;
-          submitBtn.textContent = '✅ Already Submitted';
-          statusDiv.className = 'submit-status submit-error';
-          statusDiv.textContent = '🚨 You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
-          document.querySelectorAll('input, select').forEach(input => input.disabled = true);
-          const floatingBtn = document.getElementById('floatingSubmitBtn');
-          const floatingDiv = document.getElementById('floatingSubmit');
-          if (floatingBtn) { floatingBtn.disabled = true; floatingBtn.textContent = '✅ Already Submitted'; }
-          if (floatingDiv) { floatingDiv.classList.add('submitted'); }
-          return;
-        }
-        throw error;
+      const submissionKeyStorage = `cambridge_submission_key_${QUIZ_ID}`;
+      let submissionKey = sessionStorage.getItem(submissionKeyStorage);
+      if (!submissionKey) {
+        submissionKey = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        sessionStorage.setItem(submissionKeyStorage, submissionKey);
       }
+      const { data, error } = await supabaseClient.rpc('submit_cambridge_attempt', {
+        p_quiz_name: 'Cambridge Listening Test 1',
+        p_test_id: TEST_ID,
+        p_quiz_version: QUIZ_VERSION,
+        p_answers: { responses: answers, quiz_version: QUIZ_VERSION, auto_submit_reason: autoSubmitReason || null },
+        p_score: score,
+        p_total_questions: total,
+        p_percentage: percentage,
+        p_time_taken_seconds: timeTaken,
+        p_submission_key: submissionKey
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'The school server did not accept the submission.');
       
       hasSubmitted = true;
+      isSubmitting = false;
+      stopAudioPlayback();
+      if (window.ExamGuard?.stop) window.ExamGuard.stop();
       localStorage.setItem(`quiz_submitted_${QUIZ_ID}`, JSON.stringify({
-        score, total, studentName, submittedAt: new Date().toISOString()
+        score, total, studentName, submittedAt: data.submission?.submitted_at || new Date().toISOString()
       }));
       
       statusDiv.className = "submit-status submit-success";
@@ -1483,7 +1499,16 @@
       }
       
       if (window.parent !== window) {
-        window.parent.postMessage({ type: 'CAMBRIDGE_TEST_COMPLETE', quizId: QUIZ_ID, score, total, percentage }, '*');
+        window.parent.postMessage({
+          type: 'CAMBRIDGE_TEST_COMPLETE',
+          quizId: QUIZ_ID,
+          testId: TEST_ID,
+          submissionId: data.submission?.id,
+          idempotent: data.idempotent === true,
+          score,
+          total,
+          percentage
+        }, window.location.origin);
       }
       
       const scoreDiv = document.getElementById("score");
@@ -1495,7 +1520,9 @@
     } catch (error) {
       statusDiv.className = "submit-status submit-error";
       statusDiv.textContent = `❌ Failed: ${error.message}`;
+      isSubmitting = false;
       submitBtn.disabled = false;
+      startTimer();
       
       // Re-enable floating button on error
       const floatingBtn = document.getElementById("floatingSubmitBtn");
