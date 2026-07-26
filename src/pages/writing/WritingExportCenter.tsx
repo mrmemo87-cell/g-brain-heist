@@ -3,9 +3,7 @@ import {
   exportAdminCalibrationReport,
   exportStudentMonthlyWritingReport,
   getTeacherAttemptListScoped,
-  getTeacherAttemptReportScoped,
   getTeacherExportRowsScoped,
-  getTeacherGeneralReportScoped,
   getTeacherSavedReportsScoped,
   getTeacherWritingReport,
   saveTeacherReportScoped,
@@ -14,7 +12,11 @@ import {
   TeacherWritingReport,
   WritingExportDocument,
 } from '../../lib/brains_heist/writingIntegrationService.js';
-import { openProfessionalWritingReport } from '../../lib/brains_heist/writingReportDocument.js';
+import {
+  humanizeWritingTag,
+  openProfessionalWritingReport,
+} from '../../lib/brains_heist/writingReportDocument.js';
+import type { SupportedGenre } from '../../lib/brains_heist/writingAssessment.js';
 
 interface WritingExportCenterProps {
   mode: 'student' | 'teacher' | 'admin';
@@ -23,327 +25,287 @@ interface WritingExportCenterProps {
   isLoading?: boolean;
   errorMessage?: string;
 }
+
+interface TeacherExportRow {
+  student_id: string;
+  student_name: string;
+  grade: number;
+  completion_rate: number;
+  latest_score: number | null;
+}
+
+interface TeacherReportDraft {
+  id?: string;
+  status: 'draft' | 'final';
+  strengths: string;
+  growth_targets: string;
+  next_steps: string;
+  teacher_comment: string;
+}
+
 type InputChangeEvent = { target: { value: string } };
 
-type EditableTeacherReportDraft = {
-  id?: string;
-  mode: 'student' | 'attempt';
-  status: 'draft' | 'final';
-  title: string;
-  overall_performance: string;
-  strengths: string;
-  recurring_weaknesses: string;
-  trend_progress: string;
-  teacher_recommendations: string;
-  prompt: string;
-  submission_text: string;
-  evaluation_breakdown: string;
-  precise_issues: string;
-  suggested_next_action: string;
-  comparison_to_previous: string;
-  teacher_comment: string;
-};
-
-const EMPTY_DRAFT: EditableTeacherReportDraft = {
-  mode: 'student',
+const EMPTY_DRAFT: TeacherReportDraft = {
   status: 'draft',
-  title: '',
-  overall_performance: '',
   strengths: '',
-  recurring_weaknesses: '',
-  trend_progress: '',
-  teacher_recommendations: '',
-  prompt: '',
-  submission_text: '',
-  evaluation_breakdown: '',
-  precise_issues: '',
-  suggested_next_action: '',
-  comparison_to_previous: '',
+  growth_targets: '',
+  next_steps: '',
   teacher_comment: '',
 };
 
-const renderExport = (doc: WritingExportDocument): React.ReactElement => (
-  <article style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: '#0f172a', display: 'grid', gap: 8 }}>
-    <h3 style={{ margin: 0 }}>{doc.title}</h3>
-    <div style={{ fontSize: 12, opacity: 0.85 }}>Generated: {doc.generated_at}</div>
-    <div dangerouslySetInnerHTML={{ __html: doc.html }} />
-    <details>
-      <summary>PDF-ready structure</summary>
-      <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12 }}>{JSON.stringify(doc.pdf_ready, null, 2)}</pre>
-    </details>
-  </article>
-);
-
-const renderTeacherSummary = (report: TeacherWritingReport): React.ReactElement => (
-  <article style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: '#0f172a', display: 'grid', gap: 8 }}>
-    <h3 style={{ margin: 0 }}>Teacher Writing Report</h3>
-    <div style={{ fontSize: 12, opacity: 0.85 }}>Generated: {report.generated_at}</div>
-    <section>
-      <strong>{report.student.student_name}</strong> · Grade {report.student.grade ?? '—'} · {report.student.class_name}
-    </section>
-    <section>
-      <strong>Reporting period:</strong> {report.period} · <strong>Genre:</strong> {report.genre}
-    </section>
-    <section>
-      <strong>Overall performance</strong>
-      <div>Automated formative estimate: {formatScore(report.overall_summary.latest_score)}</div>
-      <div>Trend delta: {report.overall_summary.score_trend_delta ?? '—'}</div>
-      <div>Writing submissions: {report.overall_summary.submission_count ?? 0}</div>
-      <div>Practice plan: {report.overall_summary.practice_completed_count ?? report.overall_summary.completed_tasks}/{report.overall_summary.practice_assigned_count ?? report.overall_summary.total_tasks} ({report.overall_summary.completion_rate_percent}%)</div>
-    </section>
-    <section>
-      <strong>Main strengths</strong>
-      <ul>{(report.strengths.length ? report.strengths : ['No strengths captured yet.']).map((item) => <li key={item}>{item}</li>)}</ul>
-    </section>
-    <section>
-      <strong>Priority weak areas</strong>
-      <ul>{(report.priority_weak_areas.length ? report.priority_weak_areas : ['No priority weaknesses captured yet.']).map((item) => <li key={item}>{item}</li>)}</ul>
-    </section>
-    <section>
-      <strong>Teacher actions</strong>
-      <ul>{(report.teacher_actions.length ? report.teacher_actions : ['No actions generated yet.']).map((item) => <li key={item}>{item}</li>)}</ul>
-    </section>
-  </article>
-);
-
 const parseList = (value: string): string[] =>
   value
-    .split(/\n|,/)
+    .split(/\n/)
     .map((item) => item.trim())
     .filter(Boolean);
+
+const formatScore = (score: number | null | undefined): string =>
+  score == null || Number.isNaN(Number(score)) ? 'Not scored' : `${Number(score)}/20`;
+
+const formatPeriod = (month: string): string => {
+  const [year, monthNumber] = month.split('-').map(Number);
+  if (!year || !monthNumber) return month;
+  return new Date(year, monthNumber - 1, 1).toLocaleDateString(undefined, {
+    month: 'long',
+    year: 'numeric',
+  });
+};
+
+const formatDate = (value: string): string => {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return 'Date unavailable';
+  return parsed.toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+};
+
+const getInitials = (name: string): string =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('') || 'ST';
 
 const isUuid = (value?: string): boolean =>
   Boolean(value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.trim()));
 
-const formatScore = (score: number | null | undefined): string => {
-  if (score == null || Number.isNaN(score)) return '—';
-  return `${score}/20`;
-};
+const renderExport = (doc: WritingExportDocument): React.ReactElement => (
+  <article className="writing-export-document">
+    <h3>{doc.title}</h3>
+    <div dangerouslySetInnerHTML={{ __html: doc.html }} />
+  </article>
+);
 
-export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
+const rubricItems = (report: TeacherWritingReport): Array<{ label: string; score: number | null }> => [
+  { label: 'Content', score: report.rubric_scores?.content ?? null },
+  { label: 'Purpose & audience', score: report.rubric_scores?.communicative_achievement ?? null },
+  { label: 'Organisation', score: report.rubric_scores?.organisation ?? null },
+  { label: 'Language', score: report.rubric_scores?.language ?? null },
+];
+
+const WritingEvidenceList = ({
+  attempts,
+  selectedAttemptId,
+  onSelect,
+}: {
+  attempts: TeacherWritingAttemptRecord[];
+  selectedAttemptId: string;
+  onSelect: (attemptId: string) => void;
+}): React.ReactElement => (
+  <div className="writing-reports__attempt-list">
+    {attempts.map((attempt) => {
+      const score = Number((attempt.assessment as Record<string, unknown> | undefined)?.['total_score']);
+      const isSelected = selectedAttemptId === attempt.attempt_id;
+      return (
+        <button
+          key={attempt.attempt_id}
+          type="button"
+          className={`writing-reports__attempt-card${isSelected ? ' is-selected' : ''}`}
+          onClick={() => onSelect(attempt.attempt_id)}
+          aria-pressed={isSelected}
+        >
+          <span className="writing-reports__attempt-icon">📝</span>
+          <span>
+            <strong>{attempt.attempt_type === 'initial_assessment' ? 'Baseline writing' : 'Writing submission'}</strong>
+            <small>{formatDate(attempt.created_at)} · {attempt.genre || 'Writing'}</small>
+          </span>
+          <b>{formatScore(Number.isFinite(score) ? score : null)}</b>
+        </button>
+      );
+    })}
+    {attempts.length === 0 && (
+      <div className="writing-reports__empty-inline">
+        No writing evidence has been submitted for this student yet.
+      </div>
+    )}
+  </div>
+);
+
+export const WritingExportCenter = ({
   mode,
   studentId,
   month = new Date().toISOString().slice(0, 7),
   isLoading = false,
   errorMessage,
-}) => {
+}: WritingExportCenterProps): React.ReactElement => {
+  const [teacherRows, setTeacherRows] = useState<TeacherExportRow[] | null>(null);
+  const [selectedStudentId, setSelectedStudentId] = useState('');
   const [teacherSummaryReport, setTeacherSummaryReport] = useState<TeacherWritingReport | null>(null);
-  const [teacherRows, setTeacherRows] = useState<Array<{ student_id: string; student_name: string; grade: number; completion_rate: number; latest_score: number | null }> | null>(null);
-  const [teacherReportError, setTeacherReportError] = useState<string>('');
-  const [teacherLoading, setTeacherLoading] = useState(false);
-  const [selectedStudentId, setSelectedStudentId] = useState<string>('');
-  const [searchQuery, setSearchQuery] = useState('');
-
   const [attempts, setAttempts] = useState<TeacherWritingAttemptRecord[]>([]);
-  const [selectedAttemptId, setSelectedAttemptId] = useState<string>('');
-  const [attemptReport, setAttemptReport] = useState<Record<string, unknown> | null>(null);
-  const [generalReport, setGeneralReport] = useState<Record<string, unknown> | null>(null);
+  const [selectedAttemptId, setSelectedAttemptId] = useState('');
   const [savedReports, setSavedReports] = useState<TeacherSavedWritingReport[]>([]);
-  const [editor, setEditor] = useState<EditableTeacherReportDraft>(EMPTY_DRAFT);
+  const [draft, setDraft] = useState<TeacherReportDraft>(EMPTY_DRAFT);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [teacherLoading, setTeacherLoading] = useState(false);
+  const [teacherReportError, setTeacherReportError] = useState('');
   const [editorMessage, setEditorMessage] = useState('');
-  const [showAttemptSubmissionText, setShowAttemptSubmissionText] = useState(false);
+  const [showSubmission, setShowSubmission] = useState(false);
 
-  const visibleRows = useMemo(
-    () => (teacherRows ?? []).filter((row) => !searchQuery || row.student_name.toLowerCase().includes(searchQuery.toLowerCase()) || row.student_id.toLowerCase().includes(searchQuery.toLowerCase())),
-    [teacherRows, searchQuery]
+  const visibleRows = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return teacherRows ?? [];
+    return (teacherRows ?? []).filter((row) =>
+      `${row.student_name} ${row.grade}`.toLowerCase().includes(query)
+    );
+  }, [teacherRows, searchQuery]);
+
+  const selectedAttempt = useMemo(
+    () => attempts.find((attempt) => attempt.attempt_id === selectedAttemptId) ?? null,
+    [attempts, selectedAttemptId]
   );
 
-  const selectedAttempt = attempts.find((item) => item.attempt_id === selectedAttemptId) ?? null;
-
-  const escapeCsvField = (value: string): string => {
-    const escaped = value.replace(/"/g, '""');
-    return /[",\n]/.test(escaped) ? `"${escaped}"` : escaped;
-  };
+  const editedReport = useMemo<TeacherWritingReport | null>(() => {
+    if (!teacherSummaryReport) return null;
+    const strengths = parseList(draft.strengths);
+    const growthTargets = parseList(draft.growth_targets);
+    const nextSteps = parseList(draft.next_steps);
+    return {
+      ...teacherSummaryReport,
+      strengths: strengths.length ? strengths : teacherSummaryReport.strengths,
+      priority_weak_areas: growthTargets.length
+        ? growthTargets
+        : teacherSummaryReport.priority_weak_areas,
+      teacher_actions: nextSteps.length ? nextSteps : teacherSummaryReport.teacher_actions,
+      student_friendly_summary: {
+        ...teacherSummaryReport.student_friendly_summary,
+        next_steps: nextSteps.length
+          ? nextSteps
+          : teacherSummaryReport.student_friendly_summary.next_steps,
+      },
+    };
+  }, [teacherSummaryReport, draft.strengths, draft.growth_targets, draft.next_steps]);
 
   const exportCsv = (): void => {
     if (!teacherRows || typeof window === 'undefined') return;
-    const header = 'student_name,student_id,grade,completion_rate,latest_score';
-    const lines = teacherRows.map((row) => {
-      const completion = `${Math.round(row.completion_rate * 100)}%`;
-      return [
-        escapeCsvField(row.student_name),
-        escapeCsvField(row.student_id),
-        escapeCsvField(String(row.grade)),
-        escapeCsvField(completion),
-        escapeCsvField(row.latest_score == null ? '' : String(row.latest_score)),
-      ].join(',');
-    });
+    const escapeField = (value: string): string => {
+      const escaped = value.replace(/"/g, '""');
+      return /[",\n]/.test(escaped) ? `"${escaped}"` : escaped;
+    };
+    const header = 'student_name,student_id,grade,practice_completion,latest_formative_score';
+    const lines = teacherRows.map((row) => [
+      escapeField(row.student_name),
+      escapeField(row.student_id),
+      escapeField(String(row.grade)),
+      escapeField(`${Math.round(row.completion_rate * 100)}%`),
+      escapeField(row.latest_score == null ? '' : String(row.latest_score)),
+    ].join(','));
     const blob = new Blob([[header, ...lines].join('\n')], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `writing-export-${month}.csv`;
+    link.download = `writing-class-summary-${month}.csv`;
     link.click();
     URL.revokeObjectURL(link.href);
   };
 
-  const exportEditorAsText = (): void => {
-    if (!teacherSummaryReport) return;
-    const editedReport: TeacherWritingReport = {
-      ...teacherSummaryReport,
-      strengths: parseList(editor.strengths).length ? parseList(editor.strengths) : teacherSummaryReport.strengths,
-      priority_weak_areas: parseList(editor.recurring_weaknesses).length
-        ? parseList(editor.recurring_weaknesses)
-        : teacherSummaryReport.priority_weak_areas,
-      teacher_actions: parseList(editor.teacher_recommendations).length
-        ? parseList(editor.teacher_recommendations)
-        : teacherSummaryReport.teacher_actions,
-      student_friendly_summary: {
-        ...teacherSummaryReport.student_friendly_summary,
-        progress_summary: editor.trend_progress.trim()
-          || teacherSummaryReport.student_friendly_summary.progress_summary,
-        next_steps: parseList(editor.suggested_next_action).length
-          ? parseList(editor.suggested_next_action)
-          : teacherSummaryReport.student_friendly_summary.next_steps,
-      },
-    };
-    openProfessionalWritingReport(editedReport, {
-      audience: 'teacher',
-      teacherComment: editor.teacher_comment,
-      reportStatus: editor.status,
+  const openReport = (audience: 'teacher' | 'parent'): void => {
+    if (!editedReport) return;
+    const opened = openProfessionalWritingReport(editedReport, {
+      audience,
+      teacherComment: draft.teacher_comment,
+      reportStatus: draft.status,
     });
+    if (!opened) setEditorMessage('Your browser blocked the report preview. Allow pop-ups and try again.');
   };
 
-  const exportParentReadyReport = (): void => {
-    if (!teacherSummaryReport) return;
-    const parentReport: TeacherWritingReport = {
-      ...teacherSummaryReport,
-      strengths: parseList(editor.strengths).length ? parseList(editor.strengths) : teacherSummaryReport.strengths,
-      priority_weak_areas: parseList(editor.recurring_weaknesses).length
-        ? parseList(editor.recurring_weaknesses)
-        : teacherSummaryReport.priority_weak_areas,
-      teacher_actions: parseList(editor.teacher_recommendations).length
-        ? parseList(editor.teacher_recommendations)
-        : teacherSummaryReport.teacher_actions,
-    };
-    openProfessionalWritingReport(parentReport, {
-      audience: 'parent',
-      teacherComment: editor.teacher_comment,
-      reportStatus: editor.status,
-    });
-  };
-
-  const loadSavedReports = (targetStudentId: string, targetAttemptId?: string, targetMode?: 'student' | 'attempt'): void => {
-    void getTeacherSavedReportsScoped({ student_id: targetStudentId, attempt_id: targetAttemptId, mode: targetMode }).then((result) => {
-      if (!result.ok || !result.data) return;
-      setSavedReports(result.data);
-    });
-  };
-
-  const hydrateEditorFromGeneral = (payload: Record<string, unknown>): void => {
-    const report = (payload['report'] as Record<string, unknown>) ?? {};
-    const summary = (report['overall_summary'] as Record<string, unknown>) ?? {};
-    setEditor((prev) => ({
-      ...prev,
-      mode: 'student',
-      title: 'Student-level Writing Report',
-      overall_performance: `Latest score: ${summary['latest_score'] ?? '—'}, trend delta: ${summary['score_trend_delta'] ?? '—'}, completion: ${summary['completion_rate_percent'] ?? '—'}%`,
-      strengths: ((report['strengths'] as string[]) ?? []).join('\n'),
-      recurring_weaknesses: ((report['repeated_error_patterns'] as string[]) ?? []).join('\n'),
-      trend_progress: String(((report['student_friendly_summary'] as Record<string, unknown>)?.['progress_summary'] ?? '')),
-      teacher_recommendations: ((report['teacher_actions'] as string[]) ?? []).join('\n'),
-    }));
-  };
-
-  const hydrateEditorFromAttempt = (payload: Record<string, unknown>): void => {
-    const attempt = (payload['attempt'] as Record<string, unknown>) ?? {};
-    const previousAttempt = (payload['previous_attempt'] as Record<string, unknown>) ?? {};
-    setEditor((prev) => ({
-      ...prev,
-      mode: 'attempt',
-      title: 'Attempt-level Writing Report',
-      prompt: String(attempt['prompt_text'] ?? ''),
-      submission_text: String(attempt['student_submission'] ?? ''),
-      evaluation_breakdown: JSON.stringify(attempt['assessment'] ?? {}, null, 2),
-      precise_issues: ((payload['precise_issues'] as string[]) ?? []).join('\n'),
-      suggested_next_action: String(payload['suggested_next_action'] ?? ''),
-      comparison_to_previous: previousAttempt && Object.keys(previousAttempt).length > 0
-        ? `Previous score: ${String((previousAttempt['assessment'] as Record<string, unknown> | undefined)?.['total_score'] ?? '—')}`
-        : 'No previous attempt found for comparison.',
-    }));
-  };
-
-  const saveEditorReport = (status: 'draft' | 'final'): void => {
-    if (!selectedStudentId) return;
-    setEditorMessage('Saving report…');
+  const saveReport = (status: 'draft' | 'final'): void => {
+    if (!selectedStudentId || !editedReport) return;
+    setEditorMessage(status === 'final' ? 'Finalizing report…' : 'Saving draft…');
     void saveTeacherReportScoped({
-      report_id: editor.id,
+      report_id: draft.id,
       student_id: selectedStudentId,
-      attempt_id: editor.mode === 'attempt' ? selectedAttemptId || undefined : undefined,
-      mode: editor.mode,
+      mode: 'student',
       month,
-      genre: (selectedAttempt?.genre as any) ?? undefined,
+      genre: editedReport.genre as SupportedGenre,
       status,
-      teacher_comment: editor.teacher_comment,
+      teacher_comment: draft.teacher_comment,
       report_payload: {
-        title: editor.title,
-        overall_performance: editor.overall_performance,
-        strengths: parseList(editor.strengths),
-        recurring_weaknesses: parseList(editor.recurring_weaknesses),
-        trend_progress: editor.trend_progress,
-        teacher_recommendations: parseList(editor.teacher_recommendations),
-        prompt: editor.prompt,
-        submission_text: editor.submission_text,
-        evaluation_breakdown: editor.evaluation_breakdown,
-        precise_issues: parseList(editor.precise_issues),
-        suggested_next_action: editor.suggested_next_action,
-        comparison_to_previous: editor.comparison_to_previous,
+        title: 'Writing Progress Report',
+        strengths: editedReport.strengths,
+        recurring_weaknesses: editedReport.priority_weak_areas,
+        teacher_recommendations: editedReport.teacher_actions,
       },
     }).then((result) => {
       if (!result.ok || !result.data) {
-        setEditorMessage(result.error ?? 'Unable to save report.');
+        setEditorMessage(result.error ?? 'The report could not be saved. Please try again.');
         return;
       }
-      const saved = result.data;
-      setEditor((prev) => ({ ...prev, id: saved.id, status: saved.status }));
-      setEditorMessage(`Saved ${saved.status} report at ${saved.updated_at}.`);
-      loadSavedReports(selectedStudentId, editor.mode === 'attempt' ? selectedAttemptId : undefined, editor.mode);
+      setDraft((current) => ({
+        ...current,
+        id: result.data?.id,
+        status: result.data?.status ?? status,
+      }));
+      setEditorMessage(status === 'final' ? 'Report finalized and ready to share.' : 'Draft saved.');
+      void getTeacherSavedReportsScoped({ student_id: selectedStudentId }).then((savedResult) => {
+        if (savedResult.ok && savedResult.data) setSavedReports(savedResult.data);
+      });
     });
+  };
+
+  const loadSavedReport = (saved: TeacherSavedWritingReport): void => {
+    const payload = saved.report_payload ?? {};
+    setDraft({
+      id: saved.id,
+      status: saved.status,
+      strengths: ((payload['strengths'] as string[]) ?? []).join('\n'),
+      growth_targets: ((payload['recurring_weaknesses'] as string[]) ?? []).join('\n'),
+      next_steps: ((payload['teacher_recommendations'] as string[]) ?? []).join('\n'),
+      teacher_comment: saved.teacher_comment ?? '',
+    });
+    setEditorMessage(`${saved.status === 'final' ? 'Final' : 'Draft'} report from ${formatDate(saved.updated_at)} loaded.`);
   };
 
   useEffect(() => {
     let cancelled = false;
-    if (mode !== 'teacher') {
-      setTeacherSummaryReport(null);
-      setTeacherRows(null);
-      setTeacherReportError('');
-      setTeacherLoading(false);
-      setSelectedStudentId('');
-      setAttempts([]);
-      setSelectedAttemptId('');
-      setAttemptReport(null);
-      setGeneralReport(null);
-      setSavedReports([]);
-      setEditor(EMPTY_DRAFT);
-      return;
-    }
-
+    if (mode !== 'teacher') return;
     setTeacherLoading(true);
     setTeacherReportError('');
-    const task = studentId
+
+    const request = studentId
       ? getTeacherWritingReport({ student_id: studentId, month, include_snippet: false })
       : getTeacherExportRowsScoped(month);
-    void task
+
+    void request
       .then((result) => {
         if (cancelled) return;
         if (!result.ok || !result.data) {
-          setTeacherSummaryReport(null);
-          setTeacherRows(null);
-          setTeacherReportError(result.error ?? 'Unable to generate teacher report.');
+          setTeacherReportError('Writing reports could not be loaded. Please refresh and try again.');
           return;
         }
         if (studentId) {
-          setTeacherSummaryReport(result.data as TeacherWritingReport);
           setTeacherRows(null);
+          setTeacherSummaryReport(result.data as TeacherWritingReport);
           setSelectedStudentId(studentId);
         } else {
-          const rows = result.data as Array<{ student_id: string; student_name: string; grade: number; completion_rate: number; latest_score: number | null }>;
+          const rows = result.data as TeacherExportRow[];
           setTeacherRows(rows);
-          setTeacherSummaryReport(null);
-          setSelectedStudentId(rows[0]?.student_id ?? '');
+          setSelectedStudentId((current) => current || rows[0]?.student_id || '');
         }
       })
-      .catch((err) => {
-        if (!cancelled) setTeacherReportError(err instanceof Error ? err.message : 'Unable to generate teacher report.');
+      .catch(() => {
+        if (!cancelled) setTeacherReportError('Writing reports could not be loaded. Please refresh and try again.');
       })
       .finally(() => {
         if (!cancelled) setTeacherLoading(false);
@@ -357,36 +319,43 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
   useEffect(() => {
     if (mode !== 'teacher' || !selectedStudentId) return;
     if (!isUuid(selectedStudentId)) {
-      setTeacherReportError(`Selected student reference "${selectedStudentId}" is not a valid UUID yet. Please refresh writing data or run migration 20260417183000.`);
+      setTeacherReportError('This student record needs refreshing. Ask your school administrator to check the student profile.');
       return;
     }
+
     let cancelled = false;
     setTeacherLoading(true);
-    setEditor(EMPTY_DRAFT);
+    setTeacherReportError('');
     setEditorMessage('');
+    setShowSubmission(false);
+    setDraft(EMPTY_DRAFT);
 
     void Promise.all([
       getTeacherWritingReport({ student_id: selectedStudentId, month, include_snippet: true }),
-      getTeacherAttemptListScoped({ student_id: selectedStudentId, limit: 80 }),
-      getTeacherGeneralReportScoped({ student_id: selectedStudentId, month }),
+      getTeacherAttemptListScoped({ student_id: selectedStudentId, limit: 30 }),
       getTeacherSavedReportsScoped({ student_id: selectedStudentId }),
-    ]).then(([summaryRes, attemptsRes, generalRes, savedRes]) => {
+    ]).then(([summaryResult, attemptsResult, savedResult]) => {
       if (cancelled) return;
-      if (summaryRes.ok && summaryRes.data) setTeacherSummaryReport(summaryRes.data);
-      if (attemptsRes.ok && attemptsRes.data) {
-        setAttempts(attemptsRes.data);
-        setSelectedAttemptId(attemptsRes.data[0]?.attempt_id ?? '');
-      } else {
-        setAttempts([]);
-        setSelectedAttemptId('');
+      if (!summaryResult.ok || !summaryResult.data) {
+        setTeacherSummaryReport(null);
+        setTeacherReportError('This student does not have enough writing data for a report yet.');
+        return;
       }
-      if (generalRes.ok && generalRes.data) {
-        setGeneralReport(generalRes.data);
-        hydrateEditorFromGeneral(generalRes.data);
-      } else {
-        setGeneralReport(null);
-      }
-      if (savedRes.ok && savedRes.data) setSavedReports(savedRes.data);
+
+      const report = summaryResult.data;
+      setTeacherSummaryReport(report);
+      setDraft({
+        status: 'draft',
+        strengths: report.strengths.join('\n'),
+        growth_targets: report.priority_weak_areas.map(humanizeWritingTag).join('\n'),
+        next_steps: report.teacher_actions.join('\n'),
+        teacher_comment: '',
+      });
+
+      const attemptRows = attemptsResult.ok && attemptsResult.data ? attemptsResult.data : [];
+      setAttempts(attemptRows);
+      setSelectedAttemptId(attemptRows[0]?.attempt_id ?? '');
+      setSavedReports(savedResult.ok && savedResult.data ? savedResult.data : []);
     }).finally(() => {
       if (!cancelled) setTeacherLoading(false);
     });
@@ -396,335 +365,313 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
     };
   }, [mode, selectedStudentId, month]);
 
-  useEffect(() => {
-    if (mode !== 'teacher' || !selectedStudentId || !selectedAttemptId) {
-      setAttemptReport(null);
-      setShowAttemptSubmissionText(false);
-      return;
-    }
-    if (!isUuid(selectedStudentId)) return;
-    let cancelled = false;
-    setTeacherLoading(true);
-    void Promise.all([
-      getTeacherAttemptReportScoped({ student_id: selectedStudentId, attempt_id: selectedAttemptId }),
-      getTeacherSavedReportsScoped({ student_id: selectedStudentId, attempt_id: selectedAttemptId, mode: 'attempt' }),
-    ]).then(([attemptRes, savedRes]) => {
-      if (cancelled) return;
-      if (attemptRes.ok && attemptRes.data) {
-        setAttemptReport(attemptRes.data);
-      } else {
-        setAttemptReport(null);
-      }
-      if (savedRes.ok && savedRes.data?.length) {
-        const savedData = savedRes.data;
-        setSavedReports((prev) => {
-          const byId = new Map(prev.map((item) => [item.id, item]));
-          savedData.forEach((item) => byId.set(item.id, item));
-          return [...byId.values()].sort((a, b) => b.updated_at.localeCompare(a.updated_at));
-        });
-      }
-    }).finally(() => {
-      if (!cancelled) setTeacherLoading(false);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [mode, selectedStudentId, selectedAttemptId]);
-
-  if (isLoading) return <div style={{ padding: 12, color: '#e5e7eb' }}>Loading exports…</div>;
-  if (errorMessage) return <div style={{ padding: 12, color: '#fca5a5' }}>Unable to load exports: {errorMessage}</div>;
+  if (isLoading) {
+    return <div className="writing-reports__state">Loading Writing Reports…</div>;
+  }
+  if (errorMessage) {
+    return <div className="writing-reports__state writing-reports__state--error">Writing Reports could not be opened. Please try again.</div>;
+  }
 
   if (mode === 'teacher') {
-    if (teacherLoading && !teacherRows && !teacherSummaryReport) return <div style={{ padding: 12, color: '#e5e7eb' }}>Generating teacher report…</div>;
-    if (teacherReportError) return <div style={{ padding: 12, color: '#fca5a5' }}>No export data available: {teacherReportError}</div>;
-    if (studentId && !teacherSummaryReport) return <div style={{ padding: 12, color: '#e5e7eb' }}>No export data available.</div>;
-    if (!studentId && !teacherRows) return <div style={{ padding: 12, color: '#e5e7eb' }}>No export data available.</div>;
+    const summary = teacherSummaryReport?.overall_summary;
+    const reportedSubmissions = summary?.submission_count ?? 0;
+    const submissions = Math.max(reportedSubmissions, summary?.latest_score != null ? 1 : 0);
+    const practiceCompleted = summary?.practice_completed_count ?? summary?.completed_tasks ?? 0;
+    const practiceAssigned = summary?.practice_assigned_count ?? summary?.total_tasks ?? 0;
+    const scoreTrend = summary?.score_trend_delta;
+    const trendLabel = submissions < 2
+      ? 'Baseline only'
+      : scoreTrend == null
+        ? 'No comparable trend'
+        : scoreTrend > 0
+          ? `Improved by ${scoreTrend}`
+          : scoreTrend < 0
+            ? `Down by ${Math.abs(scoreTrend)}`
+            : 'Holding steady';
+    const reportStage = submissions === 0
+      ? { label: 'No writing yet', tone: 'empty', copy: 'Ask the student to complete their first writing task.' }
+      : submissions === 1
+        ? { label: 'Baseline ready', tone: 'baseline', copy: 'This is a starting point. A trend appears after another comparable submission.' }
+        : { label: 'Progress report ready', tone: 'ready', copy: 'There is enough evidence to discuss progress and agree on next steps.' };
+    const integrityLabel = teacherSummaryReport?.integrity?.review_status === 'review_recommended'
+      ? 'Review the writing process before sharing this score.'
+      : teacherSummaryReport?.integrity?.review_status === 'no_concerns_observed'
+        ? 'No writing-process concerns were observed.'
+        : 'Practice mode: the score supports learning but does not verify authorship.';
 
     return (
-      <div style={{ padding: 12, color: '#e5e7eb', display: 'grid', gap: 12 }}>
-        <h2 style={{ margin: 0 }}>Quick Reports</h2>
-        <p style={{ margin: 0, color: '#94a3b8' }}>Generate clean reports without advanced setup.</p>
-        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
-          <article style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: 'linear-gradient(180deg, #0f172a, #0b1327)' }}>
-            <div style={{ fontWeight: 700 }}>Student Progress Summary</div>
-            <div style={{ fontSize: 12, color: '#cbd5e1', margin: '6px 0 10px' }}>Score, completion, strengths, growth areas, and teacher recommendations.</div>
-            <button
-              type="button"
-              onClick={exportEditorAsText}
-              disabled={!selectedStudentId || !editor.title}
-              style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 10px' }}
-            >
-              Preview &amp; Print Teacher Report
-            </button>
-          </article>
-          <article style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: 'linear-gradient(180deg, #0f172a, #0b1327)' }}>
-            <div style={{ fontWeight: 700 }}>Parent-Ready Report</div>
-            <div style={{ fontSize: 12, color: '#cbd5e1', margin: '6px 0 10px' }}>Plain-language progress, strengths, growth targets, and practical next steps.</div>
-            <button
-              type="button"
-              onClick={exportParentReadyReport}
-              disabled={!selectedStudentId || !teacherSummaryReport}
-              style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 10px' }}
-            >
-              Preview &amp; Print Parent Report
-            </button>
-          </article>
-          <article style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: 'linear-gradient(180deg, #0f172a, #0b1327)' }}>
-            <div style={{ fontWeight: 700 }}>Class Snapshot</div>
-            <div style={{ fontSize: 12, color: '#cbd5e1', margin: '6px 0 10px' }}>Class-level completion and performance overview for school analysis.</div>
-            <button
-              type="button"
-              onClick={exportCsv}
-              disabled={!teacherRows?.length}
-              style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 10px' }}
-            >
-              Export CSV
-            </button>
-          </article>
-        </section>
-        <details>
-          <summary style={{ cursor: 'pointer', color: '#93c5fd', fontWeight: 700 }}>Open Advanced Report Tools</summary>
-        {!studentId && teacherRows ? (
-          <div style={{ position: 'sticky', top: 0, zIndex: 3, background: '#020617', border: '1px solid #1e293b', borderRadius: 10, padding: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <input value={searchQuery} onChange={(event: InputChangeEvent) => setSearchQuery(event.target.value)} placeholder="Search student" style={{ flex: '1 1 220px', background: '#020617', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '8px 10px' }} />
-            <button type="button" onClick={exportCsv} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '8px 10px' }}>Export CSV</button>
+      <main className="writing-reports">
+        <header className="writing-reports__header">
+          <div>
+            <span className="writing-reports__eyebrow">Writing Hub · Reports</span>
+            <h2>Turn writing evidence into a clear conversation</h2>
+            <p>Choose a student, check the learning story, add your professional comment, then print a school-ready report.</p>
           </div>
-        ) : null}
+          <div className="writing-reports__period">
+            <span>Reporting period</span>
+            <strong>{formatPeriod(month)}</strong>
+          </div>
+        </header>
 
-        <div style={{ display: 'grid', gridTemplateColumns: studentId ? 'minmax(0, 1fr)' : 'minmax(0, 2fr) minmax(280px, 1fr)', gap: 10 }}>
-          {!studentId && teacherRows ? (
-            <article style={{ border: '1px solid #334155', borderRadius: 12, padding: 14, background: 'linear-gradient(180deg, #0f172a, #0b1327)', overflowX: 'auto' }}>
-              <h3 style={{ margin: 0 }}>Teacher Writing Class Summary</h3>
-              <div style={{ fontSize: 12, opacity: 0.85, marginBottom: 8 }}>Month: {month}</div>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                <thead>
-                  <tr>
-                    <th align="left">Student</th>
-                    <th align="left">Grade</th>
-                    <th align="left">Completion</th>
-                    <th align="left">Latest score</th>
-                    <th align="left">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {visibleRows.map((row) => (
-                    <tr key={row.student_id} style={{ borderTop: '1px solid #1e293b' }}>
-                      <td>{row.student_name}</td>
-                      <td>{row.grade}</td>
-                      <td>{Math.round(row.completion_rate * 100)}%</td>
-                      <td>{formatScore(row.latest_score)}</td>
-                      <td>
-                        <button type="button" onClick={() => setSelectedStudentId(row.student_id)} style={{ borderRadius: 6, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '4px 8px' }}>Open student</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </article>
-          ) : null}
+        <ol className="writing-reports__steps" aria-label="Report workflow">
+          <li className={selectedStudentId ? 'is-complete' : 'is-current'}><b>1</b><span><strong>Choose</strong><small>Select a student</small></span></li>
+          <li className={teacherSummaryReport ? 'is-complete' : selectedStudentId ? 'is-current' : ''}><b>2</b><span><strong>Review</strong><small>Understand the evidence</small></span></li>
+          <li className={teacherSummaryReport ? 'is-current' : ''}><b>3</b><span><strong>Share</strong><small>Comment and print</small></span></li>
+        </ol>
 
-          <aside id="selected-student-report" style={{ border: '1px solid #334155', borderRadius: 12, padding: 14, background: 'linear-gradient(180deg, #0f172a, #0b1327)', display: 'grid', gap: 10 }}>
-            <strong>Selected student workspace</strong>
-            {!selectedStudentId ? <div>Select a student row to load details.</div> : null}
-            {selectedStudentId && !isUuid(selectedStudentId) ? (
-              <div style={{ border: '1px solid #7f1d1d', background: '#3a1212', color: '#fecaca', borderRadius: 8, padding: 10 }}>
-                This student id is not UUID-shaped (`{selectedStudentId}`), so secure teacher RPCs will fail with 400 until data is normalized.
+        {teacherRows && (
+          <section className="writing-reports__picker" aria-labelledby="writing-student-picker-title">
+            <div className="writing-reports__section-heading">
+              <div>
+                <span>Step 1</span>
+                <h3 id="writing-student-picker-title">Choose a student</h3>
               </div>
-            ) : null}
-            {teacherSummaryReport ? renderTeacherSummary(teacherSummaryReport) : null}
+              <button type="button" className="writing-reports__button writing-reports__button--quiet" onClick={exportCsv}>
+                Export class summary
+              </button>
+            </div>
+            <label className="writing-reports__search">
+              <span>Search by student name or grade</span>
+              <input
+                value={searchQuery}
+                onChange={(event: InputChangeEvent) => setSearchQuery(event.target.value)}
+                placeholder="Start typing a student name…"
+              />
+            </label>
+            <div className="writing-reports__student-list">
+              {visibleRows.map((row) => (
+                <button
+                  key={row.student_id}
+                  type="button"
+                  className={`writing-reports__student-card${row.student_id === selectedStudentId ? ' is-selected' : ''}`}
+                  onClick={() => setSelectedStudentId(row.student_id)}
+                  aria-pressed={row.student_id === selectedStudentId}
+                >
+                  <span className="writing-reports__avatar">{getInitials(row.student_name)}</span>
+                  <span>
+                    <strong>{row.student_name}</strong>
+                    <small>Grade {row.grade} · {formatScore(row.latest_score)}</small>
+                  </span>
+                  <i aria-hidden="true">→</i>
+                </button>
+              ))}
+              {visibleRows.length === 0 && <div className="writing-reports__empty-inline">No students match that search.</div>}
+            </div>
+          </section>
+        )}
 
-            {selectedStudentId ? (
-              <section style={{ border: '1px solid #334155', borderRadius: 8, padding: 10, display: 'grid', gap: 8 }}>
-                <strong>Attempts (full text available)</strong>
-                {attempts.length === 0 ? <div>No attempts available.</div> : null}
-                <div style={{ display: 'grid', gap: 6, maxHeight: 220, overflow: 'auto' }}>
-                  {attempts.map((item) => (
-                    <button
-                      key={item.attempt_id}
-                      type="button"
-                      onClick={() => setSelectedAttemptId(item.attempt_id)}
-                      style={{
-                        textAlign: 'left',
-                        borderRadius: 8,
-                        border: selectedAttemptId === item.attempt_id ? '1px solid #60a5fa' : '1px solid #334155',
-                        background: '#111827',
-                        color: '#f8fafc',
-                        padding: '8px 10px',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <div><strong>{item.attempt_type ?? 'attempt'}</strong> · {new Date(item.created_at).toLocaleString()}</div>
-                      <div style={{ fontSize: 12, opacity: 0.85 }}>Score: {formatScore(Number((item.assessment as Record<string, unknown>)?.['total_score'] ?? NaN))} · Retry mode: {item.retry_kind === 'same_prompt' ? 'Retry prompt' : item.retry_kind === 'new_prompt' ? 'New prompt' : item.retry_kind ?? '—'}</div>
+        {teacherReportError && (
+          <div className="writing-reports__state writing-reports__state--error" role="alert">
+            {teacherReportError}
+          </div>
+        )}
+
+        {teacherLoading && selectedStudentId && (
+          <div className="writing-reports__state" aria-live="polite">Building the student’s writing story…</div>
+        )}
+
+        {teacherSummaryReport && !teacherLoading && (
+          <>
+            <section className="writing-reports__overview" aria-labelledby="writing-report-overview-title">
+              <div className="writing-reports__student-hero">
+                <span className="writing-reports__avatar writing-reports__avatar--large">
+                  {getInitials(teacherSummaryReport.student.student_name)}
+                </span>
+                <div>
+                  <span>Student writing story</span>
+                  <h3 id="writing-report-overview-title">{teacherSummaryReport.student.student_name}</h3>
+                  <p>
+                    Grade {teacherSummaryReport.student.grade ?? '—'} · {teacherSummaryReport.student.class_name}
+                    {' · '}{teacherSummaryReport.genre}
+                  </p>
+                </div>
+                <span className={`writing-reports__readiness writing-reports__readiness--${reportStage.tone}`}>{reportStage.label}</span>
+              </div>
+
+              <div className="writing-reports__guidance">
+                <strong>What this report means</strong>
+                <span>{reportStage.copy}</span>
+              </div>
+
+              <div className="writing-reports__metrics">
+                <article>
+                  <span>Formative estimate</span>
+                  <strong>{formatScore(summary?.latest_score)}</strong>
+                  <small>Use with teacher judgement</small>
+                </article>
+                <article>
+                  <span>Writing evidence</span>
+                  <strong>{submissions}</strong>
+                  <small>{submissions === 1 ? 'submission' : 'submissions'}</small>
+                </article>
+                <article>
+                  <span>Practice plan</span>
+                  <strong>{practiceAssigned ? `${practiceCompleted}/${practiceAssigned}` : 'Not assigned'}</strong>
+                  <small>{practiceAssigned ? 'tasks completed' : 'No practice tasks yet'}</small>
+                </article>
+                <article>
+                  <span>Progress trend</span>
+                  <strong>{trendLabel}</strong>
+                  <small>{submissions < 2 ? 'Needs another submission' : 'Compared with the baseline'}</small>
+                </article>
+              </div>
+
+              <div className="writing-reports__learning-grid">
+                <article className="writing-reports__learning-card writing-reports__learning-card--strength">
+                  <span>✓</span>
+                  <div>
+                    <h4>What the student is doing well</h4>
+                    <ul>
+                      {(editedReport?.strengths.length ? editedReport.strengths : ['Strengths will appear after a complete writing submission.'])
+                        .slice(0, 3)
+                        .map((item) => <li key={item}>{item}</li>)}
+                    </ul>
+                  </div>
+                </article>
+                <article className="writing-reports__learning-card writing-reports__learning-card--growth">
+                  <span>↑</span>
+                  <div>
+                    <h4>Best focus for the next lesson</h4>
+                    <ul>
+                      {(editedReport?.priority_weak_areas.length
+                        ? editedReport.priority_weak_areas.map(humanizeWritingTag)
+                        : ['A focused growth target will appear when enough evidence is available.'])
+                        .slice(0, 3)
+                        .map((item) => <li key={item}>{item}</li>)}
+                    </ul>
+                  </div>
+                </article>
+              </div>
+
+              <section className="writing-reports__rubric" aria-labelledby="writing-rubric-title">
+                <div>
+                  <span>Assessment snapshot</span>
+                  <h4 id="writing-rubric-title">How the formative estimate was built</h4>
+                </div>
+                <div className="writing-reports__rubric-grid">
+                  {rubricItems(teacherSummaryReport).map((item) => {
+                    const score = item.score == null ? 0 : Math.max(0, Math.min(5, item.score));
+                    return (
+                      <div key={item.label}>
+                        <span><b>{item.label}</b><strong>{item.score == null ? '—' : `${score}/5`}</strong></span>
+                        <i><em style={{ width: `${(score / 5) * 100}%` }} /></i>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+
+              <div className="writing-reports__integrity">
+                <span aria-hidden="true">🛡️</span>
+                <div><strong>Writing-process context</strong><p>{integrityLabel}</p></div>
+              </div>
+            </section>
+
+            <section className="writing-reports__personalize" aria-labelledby="writing-personalize-title">
+              <div className="writing-reports__section-heading">
+                <div>
+                  <span>Step 3</span>
+                  <h3 id="writing-personalize-title">Make the report personal</h3>
+                  <p>We prepared the learning points. Adjust only what you want families to see.</p>
+                </div>
+                <span className={`writing-reports__status writing-reports__status--${draft.status}`}>
+                  {draft.status === 'final' ? 'Final report' : 'Draft'}
+                </span>
+              </div>
+
+              <div className="writing-reports__editor-grid">
+                <label>
+                  <span>Strengths</span>
+                  <small>One clear point per line</small>
+                  <textarea rows={4} value={draft.strengths} onChange={(event: InputChangeEvent) => setDraft((current) => ({ ...current, strengths: event.target.value }))} />
+                </label>
+                <label>
+                  <span>Next growth targets</span>
+                  <small>Use language a parent will understand</small>
+                  <textarea rows={4} value={draft.growth_targets} onChange={(event: InputChangeEvent) => setDraft((current) => ({ ...current, growth_targets: event.target.value }))} />
+                </label>
+                <label>
+                  <span>Recommended next steps</span>
+                  <small>Practical actions for school and home</small>
+                  <textarea rows={4} value={draft.next_steps} onChange={(event: InputChangeEvent) => setDraft((current) => ({ ...current, next_steps: event.target.value }))} />
+                </label>
+                <label>
+                  <span>Your professional comment</span>
+                  <small>This appears above your name in the printed report</small>
+                  <textarea maxLength={600} rows={4} value={draft.teacher_comment} onChange={(event: InputChangeEvent) => setDraft((current) => ({ ...current, teacher_comment: event.target.value }))} placeholder="Add a short, encouraging comment…" />
+                </label>
+              </div>
+
+              <div className="writing-reports__actions">
+                <button type="button" className="writing-reports__button writing-reports__button--primary" onClick={() => openReport('parent')}>
+                  Preview family report
+                </button>
+                <button type="button" className="writing-reports__button" onClick={() => openReport('teacher')}>
+                  Preview teacher report
+                </button>
+                <button type="button" className="writing-reports__button writing-reports__button--quiet" onClick={() => saveReport('draft')}>
+                  Save draft
+                </button>
+                <button type="button" className="writing-reports__button writing-reports__button--final" onClick={() => saveReport('final')}>
+                  Finalize report
+                </button>
+              </div>
+              <p className="writing-reports__message" aria-live="polite">{editorMessage}</p>
+            </section>
+
+            <details className="writing-reports__evidence">
+              <summary>
+                <span><b>View writing evidence</b><small>Submissions, prompts and rubric scores</small></span>
+                <i aria-hidden="true">⌄</i>
+              </summary>
+              <div className="writing-reports__evidence-body">
+                <WritingEvidenceList attempts={attempts} selectedAttemptId={selectedAttemptId} onSelect={(attemptId) => {
+                  setSelectedAttemptId(attemptId);
+                  setShowSubmission(false);
+                }} />
+                {selectedAttempt && (
+                  <article className="writing-reports__attempt-detail">
+                    <span>Selected evidence</span>
+                    <h4>{selectedAttempt.prompt_text || 'Writing prompt unavailable'}</h4>
+                    <div className="writing-reports__attempt-rubric">
+                      {Object.entries((selectedAttempt.assessment as Record<string, unknown> | undefined)?.['subscores'] as Record<string, unknown> ?? {}).map(([key, value]) => (
+                        <span key={key}><b>{humanizeWritingTag(key)}</b>{String(value)}/5</span>
+                      ))}
+                    </div>
+                    {!showSubmission ? (
+                      <button type="button" className="writing-reports__button writing-reports__button--quiet" onClick={() => setShowSubmission(true)}>
+                        Read student submission
+                      </button>
+                    ) : (
+                      <div className="writing-reports__submission">
+                        <strong>Student submission</strong>
+                        <p>{selectedAttempt.student_submission || 'No submission text is available.'}</p>
+                      </div>
+                    )}
+                  </article>
+                )}
+              </div>
+            </details>
+
+            {savedReports.length > 0 && (
+              <details className="writing-reports__evidence">
+                <summary>
+                  <span><b>Saved reports</b><small>{savedReports.length} saved version{savedReports.length === 1 ? '' : 's'}</small></span>
+                  <i aria-hidden="true">⌄</i>
+                </summary>
+                <div className="writing-reports__saved-list">
+                  {savedReports.map((saved) => (
+                    <button key={saved.id} type="button" onClick={() => loadSavedReport(saved)}>
+                      <span><strong>{saved.status === 'final' ? 'Final report' : 'Draft report'}</strong><small>{formatDate(saved.updated_at)}</small></span>
+                      <i aria-hidden="true">Open</i>
                     </button>
                   ))}
                 </div>
-              </section>
-            ) : null}
-
-            {selectedAttempt ? (
-              <section style={{ border: '1px solid #334155', borderRadius: 8, padding: 10, display: 'grid', gap: 8 }}>
-                <strong>Attempt detail</strong>
-                <div><strong>Prompt:</strong> {selectedAttempt.prompt_text || 'No prompt text available.'}</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 8 }}>
-                  <article style={{ border: '1px solid #1f2937', borderRadius: 8, padding: 8, background: '#020617' }}>
-                    <div style={{ marginBottom: 6 }}><strong>Full student submission</strong></div>
-                    {!showAttemptSubmissionText ? (
-                      <div style={{ display: 'grid', gap: 6 }}>
-                        <div style={{ fontSize: 12, color: '#cbd5e1' }}>Detailed writing text is protected by default.</div>
-                        <button type="button" onClick={() => setShowAttemptSubmissionText(true)} style={{ width: 'fit-content', borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 9px' }}>View Full Submission</button>
-                        <small style={{ color: '#94a3b8' }}>Viewing full submission is a sensitive action and may be logged.</small>
-                      </div>
-                    ) : (
-                      <pre style={{ margin: 0, whiteSpace: 'pre-wrap', maxHeight: 240, overflow: 'auto' }}>{selectedAttempt.student_submission || 'No submission text found.'}</pre>
-                    )}
-                  </article>
-                  <article style={{ border: '1px solid #1f2937', borderRadius: 8, padding: 8, background: '#020617' }}>
-                    <div style={{ marginBottom: 6 }}><strong>AI evaluation / assessment</strong></div>
-                    <pre style={{ margin: 0, whiteSpace: 'pre-wrap', maxHeight: 240, overflow: 'auto' }}>{JSON.stringify(selectedAttempt.assessment ?? {}, null, 2)}</pre>
-                  </article>
-                </div>
-                {attemptReport ? (
-                  <details>
-                    <summary>Attempt-level comparison and precise issues</summary>
-                    <pre style={{ marginTop: 8, whiteSpace: 'pre-wrap', maxHeight: 260, overflow: 'auto' }}>{JSON.stringify(attemptReport, null, 2)}</pre>
-                  </details>
-                ) : null}
-              </section>
-            ) : null}
-
-            {selectedStudentId ? (
-              <section style={{ border: '1px solid #334155', borderRadius: 8, padding: 10, display: 'grid', gap: 8 }}>
-                <strong>Editable report builder (student-level + attempt-level)</strong>
-                {teacherLoading && <small style={{ color: '#94a3b8' }}>Loading reports…</small>}
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <button 
-                    type="button" 
-                    disabled={!generalReport || teacherLoading}
-                    onClick={() => generalReport && hydrateEditorFromGeneral(generalReport)} 
-                    title={!generalReport && !teacherLoading ? 'No student report available' : ''}
-                    style={{ 
-                      borderRadius: 8, 
-                      border: '1px solid #334155', 
-                      background: generalReport && !teacherLoading ? '#1e293b' : '#0f172a',
-                      color: generalReport && !teacherLoading ? '#fff' : '#64748b',
-                      padding: '6px 8px',
-                      cursor: generalReport && !teacherLoading ? 'pointer' : 'not-allowed',
-                      opacity: generalReport && !teacherLoading ? 1 : 0.5
-                    }}>
-                    Generate student report template
-                  </button>
-                  <button 
-                    type="button" 
-                    disabled={!attemptReport || teacherLoading}
-                    onClick={() => attemptReport && hydrateEditorFromAttempt(attemptReport)}
-                    title={!attemptReport && !teacherLoading ? 'Select an attempt first' : ''}
-                    style={{ 
-                      borderRadius: 8, 
-                      border: '1px solid #334155', 
-                      background: attemptReport && !teacherLoading ? '#1e293b' : '#0f172a',
-                      color: attemptReport && !teacherLoading ? '#fff' : '#64748b',
-                      padding: '6px 8px',
-                      cursor: attemptReport && !teacherLoading ? 'pointer' : 'not-allowed',
-                      opacity: attemptReport && !teacherLoading ? 1 : 0.5
-                    }}>
-                    Generate attempt report template
-                  </button>
-                  <button type="button" onClick={exportEditorAsText} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#fff', padding: '6px 8px' }}>Preview &amp; Print Edited Report</button>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>
-                  <label style={{ display: 'grid', gap: 4 }}>
-                    Mode
-                    <select value={editor.mode} onChange={(event: InputChangeEvent) => setEditor((prev) => ({ ...prev, mode: event.target.value as 'student' | 'attempt' }))} style={{ background: '#020617', border: '1px solid #334155', color: '#fff', borderRadius: 8, padding: '8px 10px' }}>
-                      <option value="student">Student-level report</option>
-                      <option value="attempt">Attempt-level report</option>
-                    </select>
-                  </label>
-                  <label style={{ display: 'grid', gap: 4 }}>
-                    Status
-                    <select value={editor.status} onChange={(event: InputChangeEvent) => setEditor((prev) => ({ ...prev, status: event.target.value as 'draft' | 'final' }))} style={{ background: '#020617', border: '1px solid #334155', color: '#fff', borderRadius: 8, padding: '8px 10px' }}>
-                      <option value="draft">Draft</option>
-                      <option value="final">Final</option>
-                    </select>
-                  </label>
-                </div>
-
-                {[
-                  ['title', 'Title'],
-                  ['overall_performance', 'Overall performance'],
-                  ['strengths', 'Strengths (newline/comma-separated)'],
-                  ['recurring_weaknesses', 'Recurring weaknesses (newline/comma-separated)'],
-                  ['trend_progress', 'Trend/progress'],
-                  ['teacher_recommendations', 'Teacher recommendations (newline/comma-separated)'],
-                  ['prompt', 'Prompt'],
-                  ['submission_text', 'Full submission text'],
-                  ['evaluation_breakdown', 'Evaluation breakdown (text/JSON)'],
-                  ['precise_issues', 'Precise issues observed (newline/comma-separated)'],
-                  ['suggested_next_action', 'Suggested next action'],
-                  ['comparison_to_previous', 'Comparison to previous attempt'],
-                  ['teacher_comment', 'Teacher comment'],
-                ].map(([key, label]) => (
-                  <label key={key} style={{ display: 'grid', gap: 4 }}>
-                    {label}
-                    <textarea
-                      value={(editor as any)[key] ?? ''}
-                      onChange={(event: any) => setEditor((prev) => ({ ...prev, [key]: event.target.value }))}
-                      rows={key === 'submission_text' || key === 'evaluation_breakdown' ? 8 : 3}
-                      style={{ background: '#020617', border: '1px solid #334155', color: '#fff', borderRadius: 8, padding: '8px 10px', fontFamily: key === 'evaluation_breakdown' ? 'monospace' : 'inherit' }}
-                    />
-                  </label>
-                ))}
-
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <button type="button" onClick={() => saveEditorReport('draft')} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#fff', padding: '6px 8px' }}>Save draft</button>
-                  <button type="button" onClick={() => saveEditorReport('final')} style={{ borderRadius: 8, border: '1px solid #334155', background: '#14532d', color: '#bbf7d0', padding: '6px 8px' }}>Save final</button>
-                </div>
-                {editorMessage ? <small>{editorMessage}</small> : null}
-
-                <details>
-                  <summary>Saved teacher reports ({savedReports.length})</summary>
-                  <div style={{ display: 'grid', gap: 6, marginTop: 8 }}>
-                    {savedReports.map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => {
-                          const payload = item.report_payload ?? {};
-                          setEditor({
-                            id: item.id,
-                            mode: item.report_mode,
-                            status: item.status,
-                            title: String(payload['title'] ?? ''),
-                            overall_performance: String(payload['overall_performance'] ?? ''),
-                            strengths: ((payload['strengths'] as string[]) ?? []).join('\n'),
-                            recurring_weaknesses: ((payload['recurring_weaknesses'] as string[]) ?? []).join('\n'),
-                            trend_progress: String(payload['trend_progress'] ?? ''),
-                            teacher_recommendations: ((payload['teacher_recommendations'] as string[]) ?? []).join('\n'),
-                            prompt: String(payload['prompt'] ?? ''),
-                            submission_text: String(payload['submission_text'] ?? ''),
-                            evaluation_breakdown: String(payload['evaluation_breakdown'] ?? ''),
-                            precise_issues: ((payload['precise_issues'] as string[]) ?? []).join('\n'),
-                            suggested_next_action: String(payload['suggested_next_action'] ?? ''),
-                            comparison_to_previous: String(payload['comparison_to_previous'] ?? ''),
-                            teacher_comment: item.teacher_comment ?? '',
-                          });
-                          if (item.attempt_id) setSelectedAttemptId(item.attempt_id);
-                          setEditorMessage(`Loaded saved report ${item.id}.`);
-                        }}
-                        style={{ textAlign: 'left', borderRadius: 8, border: '1px solid #334155', background: '#111827', color: '#f8fafc', padding: '8px 10px' }}
-                      >
-                        <div><strong>{item.report_mode === 'student' ? 'Student-level' : 'Attempt-level'}</strong> · {item.status}</div>
-                        <div style={{ fontSize: 12, opacity: 0.85 }}>{item.updated_at}</div>
-                      </button>
-                    ))}
-                    {savedReports.length === 0 ? <div>No saved reports yet.</div> : null}
-                  </div>
-                </details>
-              </section>
-            ) : null}
-          </aside>
-        </div>
-        </details>
-      </div>
+              </details>
+            )}
+          </>
+        )}
+      </main>
     );
   }
 
@@ -734,16 +681,16 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
         ? exportStudentMonthlyWritingReport(studentId, month)
         : { ok: false, error: 'studentId is required for student exports.' }
       : studentId
-      ? exportAdminCalibrationReport(studentId, month)
-      : { ok: false, error: 'studentId is required for admin exports.' };
+        ? exportAdminCalibrationReport(studentId, month)
+        : { ok: false, error: 'studentId is required for admin exports.' };
 
   if (!result.ok || !result.data) {
-    return <div style={{ padding: 12, color: '#e5e7eb' }}>No export data available: {result.error ?? 'Unknown error'}</div>;
+    return <div className="writing-reports__state">No export data is available yet.</div>;
   }
 
   return (
-    <div style={{ padding: 12, color: '#e5e7eb', display: 'grid', gap: 10 }}>
-      <h2 style={{ margin: 0 }}>Writing Export Center</h2>
+    <div className="writing-export-center">
+      <h2>Writing Export Center</h2>
       {renderExport(result.data)}
     </div>
   );
