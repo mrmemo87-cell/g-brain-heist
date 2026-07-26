@@ -332,14 +332,14 @@ test('writing export center renders student/teacher/admin exports', () => {
   const studentHtml = renderToStaticMarkup(
     React.createElement(WritingExportCenter, { mode: 'student', studentId: 'exp-ui-1', month: '2026-03' })
   );
-  assert.ok(studentHtml.includes('No export data available'));
+  assert.ok(studentHtml.includes('No export data is available yet'));
 
   const teacherHtml = renderToStaticMarkup(
     React.createElement(WritingExportCenter, { mode: 'teacher', month: '2026-03' })
   );
   assert.ok(
-    teacherHtml.includes('No export data available'),
-    `Expected teacher export static render to show missing-data fallback before async fetch. First 500 chars:\n${teacherHtml.slice(0, 500)}`
+    teacherHtml.includes('Turn writing evidence into a clear conversation'),
+    `Expected teacher export static render to show the teacher-first report workflow. First 500 chars:\n${teacherHtml.slice(0, 500)}`
   );
 
   const adminHtml = renderToStaticMarkup(
@@ -351,15 +351,15 @@ test('writing export center renders student/teacher/admin exports', () => {
 test('writing export center loading/error/missing-data states', () => {
   __resetWritingIntegrationStoreForTests();
   const loadingHtml = renderToStaticMarkup(React.createElement(WritingExportCenter, { mode: 'teacher', isLoading: true }));
-  assert.ok(loadingHtml.includes('Loading exports'));
+  assert.ok(loadingHtml.includes('Loading Writing Reports'));
 
   const errorHtml = renderToStaticMarkup(
     React.createElement(WritingExportCenter, { mode: 'teacher', errorMessage: 'network timeout' })
   );
-  assert.ok(errorHtml.includes('Unable to load exports'));
+  assert.ok(errorHtml.includes('Writing Reports could not be opened'));
 
   const missingHtml = renderToStaticMarkup(React.createElement(WritingExportCenter, { mode: 'student', month: '2026-03' }));
-  assert.ok(missingHtml.includes('No export data available'));
+  assert.ok(missingHtml.includes('No export data is available yet'));
 });
 
 test('writing analytics dashboard renders aggregated views with drill-down links', () => {

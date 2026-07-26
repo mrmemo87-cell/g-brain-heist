@@ -4384,7 +4384,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           <button
             type="button"
             onClick={() => !isDisabledT('Geometry Builder') ? setView('geometry-diagrams') : undefined}
-            className={`teacher-tool-card orange ${isDisabledT('Geometry Builder') ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`teacher-tool-card teacher-tool-card--geometry orange ${isDisabledT('Geometry Builder') ? 'opacity-50 cursor-not-allowed' : ''}`}
             disabled={isDisabledT('Geometry Builder')}
           >
             <div className="teacher-tool-icon">📐</div>

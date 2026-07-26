@@ -3733,6 +3733,10 @@
     margin-bottom: 0;
   }
 
+  .teacher-tools-grid.teacher-tools-grid--single {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .teacher-action-card,
   .teacher-action-card.teacher-action-card--mini,
   .teacher-tool-card {
@@ -3746,6 +3750,31 @@
   .teacher-tool-icon {
     margin-bottom: 0.45rem;
     font-size: 1.65rem;
+  }
+
+  .teacher-tool-card--geometry {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    width: 100%;
+    min-height: 104px;
+  }
+
+  .teacher-tool-card--geometry .teacher-tool-icon {
+    margin: 0;
+  }
+
+  .teacher-tool-card--geometry .teacher-tool-title {
+    overflow-wrap: normal;
+    word-break: normal;
+    hyphens: none;
+  }
+
+  .teacher-tool-card--geometry .teacher-pro-badge-sm {
+    grid-column: 1 / -1;
+    justify-self: start;
+    max-width: 100%;
+    margin-left: 0;
   }
 
   .teacher-action-title,

@@ -54,6 +54,9 @@ test('teacher dashboard keeps only the unique specialist tool and protects its m
   assert.doesNotMatch(specialistSection, />Admission Hub</);
   assert.match(teacherTheme, /\.teacher-tools-grid--single\s*\{\s*grid-template-columns: minmax\(0, 38rem\);/);
   assert.match(teacherTheme, /\.teacher-tool-title\s*\{[\s\S]*word-break: keep-all;/);
+  assert.match(specialistSection, /teacher-tool-card--geometry/);
+  assert.match(teacherTheme, /\.teacher-tools-grid\.teacher-tools-grid--single\s*\{\s*grid-template-columns: minmax\(0, 1fr\);/);
+  assert.match(teacherTheme, /\.teacher-tool-card--geometry \.teacher-tool-title\s*\{[\s\S]*overflow-wrap: normal;[\s\S]*word-break: normal;/);
 });
 
 test('Clan Wars stays inside the teacher workspace without an app-level reload', () => {
