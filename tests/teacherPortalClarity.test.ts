@@ -16,7 +16,8 @@ test('teacher account settings hide student-only progression fields', () => {
 test('teacher dashboard shortcuts navigate to their destinations', () => {
   assert.match(teacherPortal, /onClick=\{\(\) => setView\('students'\)\}/);
   assert.match(teacherPortal, /Given Assignments/);
-  assert.match(teacherPortal, /aria-label="Open Student Responses"/);
+  assert.match(teacherPortal, /aria-label="Open Student Submissions"/);
+  assert.match(teacherPortal, /Assignment Success/);
   assert.doesNotMatch(teacherPortal, /Review student progress, craft assignments/);
 });
 

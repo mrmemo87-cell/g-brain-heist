@@ -310,6 +310,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   // Assignment state
   const [assignments, setAssignments] = useState<TeacherAssignmentSummary[]>([]);
+  const [assignmentSuccess, setAssignmentSuccess] = useState<GameService.TeacherAssignmentSuccessSummary | null>(null);
   const [assignmentMode, setAssignmentMode] = useState<'batch' | 'custom'>('batch');
   const [assignmentBatches, setAssignmentBatches] = useState<string[]>([]);
   const questionBankSubjectRef = useRef(false);
@@ -467,12 +468,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     questions.forEach((q) => subjects.add(q.subject));
     return Array.from(subjects).sort();
   }, [questions]);
-
-  // Filter to get only the teacher's own questions (for stats)
-  const myQuestions = useMemo(() => {
-    if (!teacher) return [];
-    return questions.filter((q) => q.teacher_id === teacher.id);
-  }, [questions, teacher]);
 
   const topicFilterOptions = useMemo(() => {
     const topics = new Set<string>();
@@ -762,6 +757,22 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       console.error('Error loading assignments:', error);
     }
   };
+
+  const loadAssignmentSuccess = useCallback(async () => {
+    try {
+      const summary = await GameService.get_teacher_assignment_success_summary();
+      setAssignmentSuccess(summary);
+    } catch (error) {
+      console.error('Error loading assignment success:', error);
+      setAssignmentSuccess(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (view === 'dashboard') {
+      void loadAssignmentSuccess();
+    }
+  }, [view, loadAssignmentSuccess]);
 
   // Correct answers for Cambridge tests
   const correctAnswers: Record<string, Record<number, CambridgeExpectedAnswer>> = {
@@ -3906,10 +3917,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
   const renderDashboard = () => {
     const myClasses = Array.from(new Set(assignedClasses.map((cls) => cls.class_code)));
     const activeAssignments = assignments.filter((a) => a.completed_count < a.student_count).length;
-    const totalResponses = myQuestions.reduce((sum, q) => sum + (q.times_answered || 0), 0);
-    const successRate = myQuestions.length > 0
-      ? Math.round((myQuestions.reduce((sum, q) => sum + (q.times_correct || 0), 0) / Math.max(totalResponses, 1)) * 100)
-      : 0;
+    const totalSubmissions = assignmentSuccess?.submission_count ?? 0;
+    const hasAssignmentSuccess = totalSubmissions > 0;
+    const successRate = assignmentSuccess?.success_rate ?? 0;
     const pendingWriting = cambridgeScores.filter(
       (score) => isTeacherMarkedCambridgeTest(score.quiz_name) && score.answers?.requires_marking
     ).length;
@@ -3991,7 +4001,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     if (!teacherHasClassAssignments) topIssues.push('No class assignments are configured for this teacher account.');
     if (lowCompletionClasses.length > 0) topIssues.push(`${lowCompletionClasses.length} class(es) are below 60% assignment completion.`);
     if (studentsWithoutClass > 0) topIssues.push(`${studentsWithoutClass} student(s) have no class/batch mapping.`);
-    if (successRate > 0 && successRate < 65) topIssues.push(`Question bank success rate is ${successRate}% (below target).`);
+    if (hasAssignmentSuccess && successRate < 65) topIssues.push(`Assignment success rate is ${successRate}% (below target).`);
     if (pendingWriting > 0) topIssues.push(`${pendingWriting} Cambridge writing submission(s) still need marking.`);
 
     const recommendedActions = [
@@ -4011,7 +4021,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       teacherHasClassAssignments
         ? `Prepare next class for ${myClasses.slice(0, 2).join(' • ')}${myClasses.length > 2 ? '…' : ''}.`
         : 'Coordinate with school admin to finalize class assignments.',
-      successRate < 65
+      !hasAssignmentSuccess
+        ? 'Assignment success will appear after the first student submission.'
+        : successRate < 65
         ? 'Success rate is below 65% — prioritize revision and targeted support.'
         : 'Success trend is healthy — keep momentum with formative checks.',
     ];
@@ -4023,34 +4035,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     if (!teacherHasClassAssignments) {
       alertItems.push({ tone: 'warning', text: 'No class assignments found for this teacher account.' });
     }
-    if (successRate < 65) {
+    if (hasAssignmentSuccess && successRate < 65) {
       alertItems.push({ tone: 'info', text: `Current success rate is ${successRate}%. Consider intervention.` });
     }
-
-    const teacherSetupSteps = [
-      {
-        label: 'Confirm classes and subjects',
-        complete: teacherHasClassAssignments,
-        detail: teacherHasClassAssignments
-          ? `${myClasses.length} class${myClasses.length === 1 ? '' : 'es'} ready: ${myClasses.slice(0, 3).join(' · ')}`
-          : 'Your school admin must assign at least one class and subject before you can send work.',
-      },
-      {
-        label: 'Choose teaching content',
-        complete: questions.length > 0,
-        detail: questions.length > 0
-          ? `${questions.length} question${questions.length === 1 ? '' : 's'} available in the question bank.`
-          : 'Add a question or ask your school admin to make approved content available.',
-      },
-      {
-        label: 'Send your first assignment',
-        complete: assignments.length > 0,
-        detail: assignments.length > 0
-          ? `${assignments.length} assignment${assignments.length === 1 ? '' : 's'} created.`
-          : 'Select questions, choose a class, set a deadline, then publish.',
-      },
-    ];
-    const teacherSetupComplete = teacherSetupSteps.every((step) => step.complete);
 
     return (
     <div className="space-y-8">
@@ -4061,88 +4048,6 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         </h2>
         <p className="teacher-section-subtitle">Manage your classes, questions, and track student progress</p>
       </div>
-
-      {!teacherSetupComplete && (
-      <section
-        className="teacher-quick-start rounded-2xl border border-cyan-200 bg-white p-5 shadow-sm"
-        aria-labelledby="teacher-getting-started-title"
-      >
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <div className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-700">Teacher quick start</div>
-            <h3 id="teacher-getting-started-title" className="mt-1 text-xl font-bold text-slate-900">
-              Start teaching in three clear steps
-            </h3>
-            <p className="mt-1 max-w-2xl text-sm text-slate-600">
-              Complete these once. Brain Heist will keep the rest of your workspace available while you set up.
-            </p>
-          </div>
-
-          {!teacherHasClassAssignments ? (
-              isSchoolAdmin && onOpenSchoolAdmin ? (
-                <button
-                  type="button"
-                  onClick={onOpenSchoolAdmin}
-                  className="rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-cyan-500"
-                >
-                  Assign classes in School Admin
-                </button>
-              ) : (
-                <div className="max-w-sm rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                  Ask your school admin to assign your class and subject. You do not need to change anything in Supabase.
-                </div>
-              )
-            ) : questions.length === 0 ? (
-              <button
-                type="button"
-                onClick={() => setView('create-question')}
-                disabled={!isProPlan}
-                className="rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Create your first question
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={openBlankAssignmentForm}
-                disabled={!isProPlan}
-                className="rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Create your first assignment
-              </button>
-            )
-          }
-        </div>
-
-        <ol className="mt-5 grid gap-3 md:grid-cols-3">
-          {teacherSetupSteps.map((step, index) => (
-            <li
-              key={step.label}
-              className={`rounded-xl border p-4 ${
-                step.complete
-                  ? 'border-emerald-200 bg-emerald-50'
-                  : 'border-slate-200 bg-slate-50'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <span
-                  className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold ${
-                    step.complete
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-slate-200 text-slate-700'
-                  }`}
-                  aria-hidden="true"
-                >
-                  {step.complete ? '✓' : index + 1}
-                </span>
-                <span className="font-semibold text-slate-900">{step.label}</span>
-              </div>
-              <p className="mt-2 text-sm leading-5 text-slate-600">{step.detail}</p>
-            </li>
-          ))}
-        </ol>
-      </section>
-      )}
 
       {/* Dashboard shortcuts */}
       <div className="teacher-stats-grid">
@@ -4164,20 +4069,24 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           <div className="teacher-dashboard-stat-icon">📋</div>
         </button>
 
-        <button type="button" onClick={() => setView('reports')} className="teacher-dashboard-stat amber text-left" aria-label="Open Student Responses">
+        <button type="button" onClick={() => setView('reports')} className="teacher-dashboard-stat amber text-left" aria-label="Open Student Submissions">
           <div className="teacher-dashboard-stat-info">
-            <h4>Student Responses</h4>
-            <div className="teacher-dashboard-stat-value">{totalResponses}</div>
-            <p className="teacher-dashboard-stat-sub">{myQuestions.length} questions in your bank</p>
+            <h4>Student Submissions</h4>
+            <div className="teacher-dashboard-stat-value">{assignmentSuccess ? totalSubmissions : '—'}</div>
+            <p className="teacher-dashboard-stat-sub">Completed given assignments</p>
           </div>
           <div className="teacher-dashboard-stat-icon">💬</div>
         </button>
 
-        <button type="button" onClick={() => setView('reports')} className="teacher-dashboard-stat purple text-left" aria-label="Open Success Rate reports">
+        <button type="button" onClick={() => setView('reports')} className="teacher-dashboard-stat purple text-left" aria-label="Open Assignment Success reports">
           <div className="teacher-dashboard-stat-info">
-            <h4>Success Rate</h4>
-            <div className="teacher-dashboard-stat-value">{successRate}%</div>
-            <p className="teacher-dashboard-stat-sub">{questions.length} in global bank</p>
+            <h4>Assignment Success</h4>
+            <div className="teacher-dashboard-stat-value">{assignmentSuccess ? `${successRate}%` : '—'}</div>
+            <p className="teacher-dashboard-stat-sub">
+              {hasAssignmentSuccess
+                ? `${assignmentSuccess?.correct_answer_count ?? 0}/${assignmentSuccess?.answered_question_count ?? 0} answers correct`
+                : 'Appears after the first submission'}
+            </p>
           </div>
           <div className="teacher-dashboard-stat-icon">📈</div>
         </button>

@@ -6,15 +6,12 @@ import test from 'node:test';
 const teacherPortalPath = path.resolve(process.cwd(), 'components/TeacherPortal.tsx');
 const teacherGuidePath = path.resolve(process.cwd(), 'docs/teacher-guide.md');
 
-test('teacher dashboard provides a clear first-work checklist', () => {
+test('teacher dashboard omits the retired quick-start checklist', () => {
   const source = fs.readFileSync(teacherPortalPath, 'utf8');
 
-  assert.match(source, /Start teaching in three clear steps/);
-  assert.match(source, /Confirm classes and subjects/);
-  assert.match(source, /Choose teaching content/);
-  assert.match(source, /Send your first assignment/);
-  assert.match(source, /You do not need to change anything in Supabase/);
-  assert.match(source, /Assign classes in School Admin/);
+  assert.doesNotMatch(source, /Teacher quick start/i);
+  assert.doesNotMatch(source, /Start teaching in three clear steps/);
+  assert.doesNotMatch(source, /teacherSetupSteps/);
 });
 
 test('teacher quick-start guide is app-first and avoids database setup instructions', () => {

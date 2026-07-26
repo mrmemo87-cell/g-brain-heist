@@ -34,8 +34,8 @@ test('phone headers stay compact and respect device safe areas', () => {
   assert.match(teacherTheme, /\.teacher-desktop-plan-badge[\s\S]*display: none !important;/);
 });
 
-test('teacher onboarding and Clan Wars avoid duplicate high-cost chrome', () => {
-  assert.match(teacherPortal, /\{!teacherSetupComplete && \(/);
+test('teacher dashboard and Clan Wars avoid duplicate high-cost chrome', () => {
+  assert.doesNotMatch(teacherPortal, /teacherSetupComplete/);
   assert.match(teacherPortal, /if \(!isSchoolAdmin \|\| !onOpenSchoolAdmin\) return null/);
   const returnActions = clanTerritory.match(/Return to Dashboard/g) ?? [];
   assert.equal(returnActions.length, 0);
