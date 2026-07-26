@@ -1017,6 +1017,104 @@
   border-collapse: collapse;
 }
 
+.teacher-topbar {
+  background: #07101f !important;
+  opacity: 1;
+  isolation: isolate;
+  box-shadow: 0 10px 28px rgba(2, 6, 23, 0.34);
+}
+
+.teacher-desktop-plan-badge {
+  display: flex;
+}
+
+.teacher-mobile-plan-badge {
+  display: none !important;
+}
+
+.teacher-writing-hub {
+  min-width: 0;
+}
+
+.teacher-writing-hub__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.25rem;
+  margin-bottom: 1rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(14, 165, 233, 0.2);
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(8, 47, 73, 0.12), rgba(79, 70, 229, 0.08)), #fff;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.07);
+}
+
+.teacher-writing-hub__eyebrow {
+  color: #0369a1;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.teacher-writing-hub__header h2 {
+  margin: 0.3rem 0 0.25rem;
+  color: #0f172a;
+  font-size: clamp(1.45rem, 3vw, 2rem);
+  font-weight: 850;
+}
+
+.teacher-writing-hub__header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.teacher-writing-hub__tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+  padding: 0.35rem;
+  border: 1px solid #dbeafe;
+  border-radius: 15px;
+  background: #f8fafc;
+}
+
+.teacher-writing-hub__tabs button {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.65rem 0.8rem;
+  border: 0;
+  border-radius: 11px;
+  color: #475569;
+  background: transparent;
+  font-size: 0.82rem;
+  font-weight: 750;
+  white-space: nowrap;
+  transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.teacher-writing-hub__tabs button.is-active {
+  color: #fff;
+  background: linear-gradient(135deg, #0284c7, #4f46e5);
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.24);
+}
+
+.teacher-writing-hub__content {
+  min-width: 0;
+}
+
+.teacher-section-loading {
+  display: grid;
+  min-height: 240px;
+  place-items: center;
+  color: #475569;
+  font-weight: 700;
+}
+
 @media (max-width: 767px) {
   .teacher-stats-grid,
   .teacher-dashboard-grid,
@@ -3459,7 +3557,12 @@
     font-size: 0.94rem;
   }
 
+  .teacher-desktop-plan-badge {
+    display: none !important;
+  }
+
   .teacher-mobile-plan-badge {
+    display: inline-flex !important;
     max-width: 92px;
     overflow: hidden;
     padding: 0.25rem 0.45rem;
@@ -3478,6 +3581,21 @@
 
   .teacher-portal-container {
     padding: 0.8rem 0.65rem calc(5.8rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .teacher-writing-hub__header {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .teacher-writing-hub__tabs {
+    width: 100%;
+  }
+
+  .teacher-writing-hub__tabs button {
+    min-width: 0;
+    padding-inline: 0.45rem;
   }
 
   .teacher-header {
