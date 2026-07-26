@@ -95,3 +95,20 @@ test('premium Writing Hub keeps authorship context, score meaning, and teacher r
   assert.match(sql, /cta\.teacher_user_id = \(select auth\.uid\(\)\)/);
   assert.match(sql, /when 'supervised' then 3/);
 });
+
+test('student Writing Hub rehydrates by authenticated student before showing prompt history', () => {
+  const hub = readProjectFile('src/pages/writing/WritingHub.tsx');
+  const integration = readProjectFile('src/lib/brains_heist/writingIntegrationService.ts');
+  const repository = readProjectFile('src/lib/brains_heist/writingRepository.ts');
+
+  assert.match(repository, /ownerStudentId:\s*activeStudentId/);
+  assert.match(integration, /ensureWritingHydrationForStudent/);
+  assert.match(integration, /hydratedStudentId\s*!==\s*expectedStudentId/);
+  assert.match(integration, /generation\s*!==\s*hydrationGeneration/);
+  assert.match(hub, /ensureWritingHydrationForStudent\(studentId\)/);
+  assert.match(hub, /\[studentId,\s*activeGenre,\s*assessment\?\.total_score,\s*hydrationStatus\]/);
+  assert.match(hub, /hydratedForStudentId === studentId/);
+  assert.match(hub, /Checking saved submissions…/);
+  assert.match(hub, /Loading your saved writing and feedback…/);
+  assert.match(hub, /if \(!studentHistoryReady\) return;/);
+});
