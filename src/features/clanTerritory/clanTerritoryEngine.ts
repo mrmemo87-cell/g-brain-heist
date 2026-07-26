@@ -10,6 +10,7 @@ import {
 } from "./clanTerritoryTypes";
 import type { MapId } from "./mapCatalog";
 import { MAP_CATALOG } from "./mapCatalog";
+import { canEnterClanTerritoryOfficialRoom } from "./clanTerritoryEligibility";
 
 const VALID_MAP_IDS = new Set<string>(MAP_CATALOG.map((e) => e.id));
 
@@ -97,7 +98,11 @@ export function clanTerritoryReducer(
           return state;
         }
         if (state.officialClassCodes && state.officialClassCodes.length > 0) {
-          if (!player.batch || !state.officialClassCodes.includes(player.batch)) {
+          if (!canEnterClanTerritoryOfficialRoom(
+            state.officialClassCodes,
+            player.classCodes,
+            player.batch,
+          )) {
             console.log("[clanTerritoryEngine] JOIN rejected: class mismatch for official arena");
             return state;
           }
