@@ -57,13 +57,16 @@ test('teacher feedback actions save securely and copy intentionally', () => {
 
 test('teacher quick reports open professional print previews instead of raw text downloads', () => {
   const source = readProjectFile('src/pages/writing/WritingExportCenter.tsx');
-  assert.match(source, /exportParentReadyReport/);
-  assert.match(source, /Preview &amp; Print Teacher Report/);
-  assert.match(source, /Preview &amp; Print Parent Report/);
+  assert.match(source, /Turn writing evidence into a clear conversation/);
+  assert.match(source, /Preview teacher report/);
+  assert.match(source, /Preview family report/);
   assert.match(source, /openProfessionalWritingReport/);
   assert.doesNotMatch(source, /text\/plain/);
-  assert.match(source, /Class Snapshot/);
-  assert.doesNotMatch(source, /Use Advanced Tools/);
+  assert.match(source, /View writing evidence/);
+  assert.doesNotMatch(source, /Open Advanced Report Tools/);
+  assert.doesNotMatch(source, /AI evaluation \/ assessment/);
+  assert.doesNotMatch(source, /JSON\.stringify\(selectedAttempt/);
+  assert.doesNotMatch(source, /UUID-shaped/);
 });
 
 test('premium Writing Hub keeps authorship context, score meaning, and teacher reporting synchronized', () => {
@@ -79,9 +82,11 @@ test('premium Writing Hub keeps authorship context, score meaning, and teacher r
   assert.match(monitoring, /Writing Command Center/);
   assert.match(monitoring, /practice_completed_count/);
   assert.match(monitoring, /openProfessionalWritingReport/);
-  assert.match(exports, /Preview &amp; Print Parent Report/);
+  assert.match(exports, /Preview family report/);
   assert.doesNotMatch(exports, /text\/plain/);
+  assert.match(exports, /Practice mode: the score supports learning but does not verify authorship/);
   assert.match(report, /Confidential student learning record/);
+  assert.match(report, /@page\{size:A4 portrait;margin:9mm\}/);
   assert.match(sql, /'submission_count'/);
   assert.match(sql, /'practice_completed_count'/);
   assert.match(sql, /'needs_review'/);
