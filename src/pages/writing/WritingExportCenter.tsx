@@ -201,6 +201,45 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
     URL.revokeObjectURL(link.href);
   };
 
+  const exportParentReadyReport = (): void => {
+    if (typeof window === 'undefined' || !teacherSummaryReport) return;
+    const report = teacherSummaryReport;
+    const content = [
+      'Writing Progress Report',
+      `Student: ${report.student.student_name}`,
+      `Class: ${report.student.class_name}`,
+      `Reporting period: ${report.period}`,
+      `Writing genre: ${report.genre}`,
+      '',
+      `Progress: ${report.overall_summary.completed_tasks} of ${report.overall_summary.total_tasks} activities completed (${report.overall_summary.completion_rate_percent}%).`,
+      `Latest writing score: ${formatScore(report.overall_summary.latest_score)}.`,
+      '',
+      'What is going well',
+      ...(report.strengths.length
+        ? report.strengths.map((item) => `• ${item}`)
+        : ['• The student is building evidence through continued writing practice.']),
+      '',
+      'What to improve next',
+      ...(report.priority_weak_areas.length
+        ? report.priority_weak_areas.map((item) => `• ${item}`)
+        : ['• Continue regular practice and review the teacher’s next target.']),
+      '',
+      'How school and home can help',
+      ...(report.teacher_actions.length
+        ? report.teacher_actions.map((item) => `• ${item}`)
+        : ['• Encourage the student to revise one paragraph after reading feedback.']),
+      '',
+      'Teacher note',
+      editor.teacher_comment.trim() || 'No additional teacher note has been added.',
+    ].join('\n');
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `parent-writing-report-${selectedStudentId || 'student'}-${month}.txt`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
   const loadSavedReports = (targetStudentId: string, targetAttemptId?: string, targetMode?: 'student' | 'attempt'): void => {
     void getTeacherSavedReportsScoped({ student_id: targetStudentId, attempt_id: targetAttemptId, mode: targetMode }).then((result) => {
       if (!result.ok || !result.data) return;
@@ -424,28 +463,42 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
         <h2 style={{ margin: 0 }}>Quick Reports</h2>
         <p style={{ margin: 0, color: '#94a3b8' }}>Generate clean reports without advanced setup.</p>
         <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
-          {(
-            [
-              ['Student Progress Summary', 'Fast snapshot of score, completion, and growth areas.', false],
-              ['Parent-Ready Report', 'Plain language strengths, growth targets, and next steps.', false],
-              ['Class Snapshot', 'Class-level completion and performance overview.', true],
-            ] as Array<[title: string, desc: string, isReady: boolean]>
-          ).map(([title, desc, isReady]) => (
-            <article key={title} style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: 'linear-gradient(180deg, #0f172a, #0b1327)' }}>
-              <div style={{ fontWeight: 700 }}>{title}</div>
-              <div style={{ fontSize: 12, color: '#cbd5e1', margin: '6px 0 10px' }}>{desc}</div>
-              <button
-                type="button"
-                onClick={() => {
-                  if (isReady) exportCsv();
-                }}
-                disabled={!isReady}
-                style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 10px' }}
-              >
-                {isReady ? 'Export CSV' : 'Use Advanced Tools'}
-              </button>
-            </article>
-          ))}
+          <article style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: 'linear-gradient(180deg, #0f172a, #0b1327)' }}>
+            <div style={{ fontWeight: 700 }}>Student Progress Summary</div>
+            <div style={{ fontSize: 12, color: '#cbd5e1', margin: '6px 0 10px' }}>Score, completion, strengths, growth areas, and teacher recommendations.</div>
+            <button
+              type="button"
+              onClick={exportEditorAsText}
+              disabled={!selectedStudentId || !editor.title}
+              style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 10px' }}
+            >
+              Download Summary
+            </button>
+          </article>
+          <article style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: 'linear-gradient(180deg, #0f172a, #0b1327)' }}>
+            <div style={{ fontWeight: 700 }}>Parent-Ready Report</div>
+            <div style={{ fontSize: 12, color: '#cbd5e1', margin: '6px 0 10px' }}>Plain-language progress, strengths, growth targets, and practical next steps.</div>
+            <button
+              type="button"
+              onClick={exportParentReadyReport}
+              disabled={!selectedStudentId || !teacherSummaryReport}
+              style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 10px' }}
+            >
+              Download Parent Report
+            </button>
+          </article>
+          <article style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: 'linear-gradient(180deg, #0f172a, #0b1327)' }}>
+            <div style={{ fontWeight: 700 }}>Class Snapshot</div>
+            <div style={{ fontSize: 12, color: '#cbd5e1', margin: '6px 0 10px' }}>Class-level completion and performance overview for school analysis.</div>
+            <button
+              type="button"
+              onClick={exportCsv}
+              disabled={!teacherRows?.length}
+              style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 10px' }}
+            >
+              Export CSV
+            </button>
+          </article>
         </section>
         <details>
           <summary style={{ cursor: 'pointer', color: '#93c5fd', fontWeight: 700 }}>Open Advanced Report Tools</summary>

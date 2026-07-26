@@ -121,6 +121,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       : initialView;
   const [view, setView] = useState<PortalView>(normalizedInitialView);
   const [writingHubSection, setWritingHubSection] = useState<WritingHubSection>(initialWritingSection);
+  const [writingHubFilterQuery, setWritingHubFilterQuery] = useState('');
   const [teacher, setTeacher] = useState<Teacher | null>(null);
   const [questions, setQuestions] = useState<TeacherQuestion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -8447,8 +8448,16 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 </div>
               </div>
               <div className="teacher-writing-hub__content">
-                {writingHubSection === 'monitor' && <WritingMonitoringView />}
-                {writingHubSection === 'analytics' && <WritingAnalyticsDashboard />}
+                {writingHubSection === 'monitor' && <WritingMonitoringView filterQuery={writingHubFilterQuery} />}
+                {writingHubSection === 'analytics' && (
+                  <WritingAnalyticsDashboard
+                    onNavigate={(path) => {
+                      const [, query = ''] = path.split('?');
+                      setWritingHubFilterQuery(query ? `?${query}` : '');
+                      setWritingHubSection('monitor');
+                    }}
+                  />
+                )}
                 {writingHubSection === 'reports' && <WritingExportCenter mode="teacher" />}
               </div>
             </section>

@@ -4751,6 +4751,7 @@ const buildWritingDraftStorageKey = (studentId: string, genre: SupportedGenre, p
 const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentName, grade, genre }) => {
   const [activeGenre, setActiveGenre] = useState<SupportedGenre>(genre);
   const [promptText, setPromptText] = useState(defaultPromptByGenre[genre]);
+  const [promptId, setPromptId] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -4777,20 +4778,19 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   const [lastAttemptId, setLastAttemptId] = useState<string | null>(null);
   const [lastRetryKind, setLastRetryKind] = useState<'same_prompt' | 'new_prompt'>('new_prompt');
   const [promptHistoryCount, setPromptHistoryCount] = useState<number>(0);
+  const [availablePromptCount, setAvailablePromptCount] = useState<number>(1);
+  const [hydrationStatus, setHydrationStatus] = useState(getWritingHydrationStatus());
+  const [persistenceStatus, setPersistenceStatus] = useState(getWritingPersistenceStatus());
   const responseFieldRef = useRef<HTMLTextAreaElement | null>(null);
   const cinematicTextPanelRef = useRef<HTMLDivElement | null>(null);
   const cinematicRangeRefs = useRef<Record<number, HTMLSpanElement | null>>({});
   const cinematicTracePathRef = useRef<SVGPathElement | null>(null);
   const observerCleanupRef = useRef<(() => void) | null>(null);
+  const managedPromptLoadKeyRef = useRef('');
   const targetWordCount = grade <= 7 ? 80 : grade <= 9 ? 120 : 160;
   const wordCount = countWords(draft);
   const wordTone = useMemo(() => getWordCounterTone(wordCount, targetWordCount), [wordCount, targetWordCount]);
   const isVeryShortDraft = wordCount > 0 && wordCount < Math.max(10, Math.floor(targetWordCount * 0.2));
-  const availablePromptCount = useMemo(() => {
-    const promptRes = listWritingPrompts({ genre: activeGenre, grade, is_active: true });
-    if (!promptRes.ok || !promptRes.data) return 1;
-    return Math.max(1, promptRes.data.length);
-  }, [activeGenre, grade]);
   const hasPromptRotation = availablePromptCount > 1;
   const draftStorageKey = useMemo(
     () => buildWritingDraftStorageKey(studentId, activeGenre, promptText),
@@ -4801,6 +4801,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   useEffect(() => {
     setActiveGenre(genre);
     setPromptText(defaultPromptByGenre[genre]);
+    setPromptId(null);
     setDraft('');
     setAssessment(null);
     setAiFeedback(null);
@@ -4815,6 +4816,15 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     setLastAttemptId(null);
     setLastRetryKind('new_prompt');
   }, [genre]);
+
+  useEffect(() => {
+    const unsubscribeHydration = subscribeToWritingHydrationStatus(setHydrationStatus);
+    const unsubscribePersistence = subscribeToWritingPersistenceStatus(setPersistenceStatus);
+    return () => {
+      unsubscribeHydration();
+      unsubscribePersistence();
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -4903,6 +4913,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
         student_id: studentId,
         grade,
         genre: nextGenre,
+        current_prompt_id: promptId ?? undefined,
         current_prompt_text: promptText,
         weakness_tags: weaknessTags,
         use_ai_polish: true,
@@ -4910,6 +4921,10 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       let resolvedPrompt = defaultPromptByGenre[nextGenre];
       if (nextPrompt.ok && nextPrompt.data?.prompt_text?.trim()) {
         resolvedPrompt = nextPrompt.data.prompt_text.trim();
+        setPromptId(nextPrompt.data.prompt_id);
+        setAvailablePromptCount(Math.max(1, nextPrompt.data.pool_size ?? availablePromptCount));
+      } else {
+        setPromptId(null);
       }
       if (normalizePromptForComparison(resolvedPrompt) === normalizePromptForComparison(previousPrompt)) {
         setNotice(
@@ -4942,6 +4957,13 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     }
   };
 
+  useEffect(() => {
+    const loadKey = `${studentId}:${activeGenre}`;
+    if (managedPromptLoadKeyRef.current === loadKey) return;
+    managedPromptLoadKeyRef.current = loadKey;
+    void loadFreshPrompt(activeGenre);
+  }, [studentId, activeGenre]);
+
   const submitAttempt = async (retryKind: 'same_prompt' | 'new_prompt') => {
     if (!draft.trim()) {
       setError('Please write your response before submitting.');
@@ -4960,6 +4982,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       grade,
       genre: activeGenre,
       prompt_text: promptText,
+      prompt_id: promptId,
       target_word_count: targetWordCount,
       student_response: draft,
       revision_cycle_id: currentCycleId,
@@ -5003,6 +5026,9 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
             rich_feedback: parsedFeedback,
             created_at: new Date().toISOString(),
           });
+          setCinematicIndex(null);
+          setCinematicDone(false);
+          setShowCinematicFeedback(true);
         }
       } else {
         setAiFeedback(null);
@@ -5163,6 +5189,13 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     if (!showCinematicFeedback) return;
     const panel = document.querySelector('.simple-cinematic-panel');
     if (!panel) return;
+    const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+
+    if (prefersReducedMotion) {
+      setCinematicIndex(cinematicRanges.length > 0 ? 0 : null);
+      setCinematicDone(true);
+      return;
+    }
 
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
     tl.fromTo(panel, { opacity: 0, scale: 0.97, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: 0.5 });
@@ -5265,6 +5298,15 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   }, [showCinematicFeedback]);
 
   useEffect(() => {
+    if (typeof window === 'undefined' || !showCinematicFeedback) return;
+    const onDismiss = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setShowCinematicFeedback(false);
+    };
+    window.addEventListener('keydown', onDismiss);
+    return () => window.removeEventListener('keydown', onDismiss);
+  }, [showCinematicFeedback]);
+
+  useEffect(() => {
     observerCleanupRef.current?.();
     observerCleanupRef.current = null;
     if (!showCinematicFeedback || cinematicRanges.length === 0) return;
@@ -5290,22 +5332,6 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     };
     return observerCleanupRef.current;
   }, [showCinematicFeedback, cinematicRanges.length]);
-
-  const handlePasteCapture = (event: any) => {
-    const target = event?.target;
-    const isTextInput =
-      target instanceof HTMLTextAreaElement
-      || (target instanceof HTMLInputElement && ['text', 'search', 'email', 'url', 'tel', 'password', ''].includes(target.type || 'text'))
-      || Boolean(target?.isContentEditable);
-    if (!isTextInput) return;
-    event.preventDefault();
-    setNotice('Pasting is disabled in Writing Hub. Please type your own response.');
-  };
-
-  const handleCopyCapture = (event: any) => {
-    event.preventDefault();
-    setNotice('Copying is disabled on this page.');
-  };
 
   const strengths = (aiFeedback?.what_is_working ?? aiFeedback?.strengths ?? []).filter(Boolean).slice(0, 4);
   const improvements = (aiFeedback?.what_is_missing ?? aiFeedback?.weaknesses ?? []).filter(Boolean).slice(0, 4);
@@ -5343,22 +5369,64 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   ] : [];
 
   return (
-    <div style={{ padding: 16, width: '100%', maxWidth: 980, margin: '0 auto', display: 'grid', gap: 14, color: '#0f172a', background: '#f8fafc' }} onPasteCapture={handlePasteCapture} onCopyCapture={handleCopyCapture}>
-      <section data-testid="writing-hub-student-view" style={{ borderRadius: 12, border: '1px solid #dbeafe', background: '#ffffff', padding: 16 }}>
-        <h2 data-testid="writing-hub-title" style={{ margin: 0, fontSize: 22 }}>Your Writing Space</h2>
-        <p style={{ margin: '6px 0 0', color: '#475569' }}>Simple writing flow: write → submit → read feedback → revise.</p>
-        {notice && <p style={{ margin: '10px 0 0', color: '#1d4ed8' }}>{notice}</p>}
-        {error && <p style={{ margin: '10px 0 0', color: '#b91c1c' }}>{error}</p>}
+    <div className="writing-studio">
+      <section data-testid="writing-hub-student-view" className="writing-studio__hero">
+        <div>
+          <span className="writing-studio__eyebrow">AI writing coach</span>
+          <h2 data-testid="writing-hub-title">Your Writing Studio</h2>
+          <span className="writing-studio__legacy-label">Your Writing Space</span>
+          <p>One clear loop: understand the task, write, watch your feedback, then improve.</p>
+        </div>
+        <div className="writing-studio__save-state" data-state={persistenceStatus.state} aria-live="polite">
+          <span aria-hidden="true" />
+          {hydrationStatus === 'loading'
+            ? 'Loading your work…'
+            : hydrationStatus === 'degraded'
+              ? 'Working offline — reconnect to sync'
+              : persistenceStatus.state === 'saving'
+                ? 'Saving securely…'
+                : persistenceStatus.state === 'failed'
+                  ? 'Save failed — keep this page open'
+                  : persistenceStatus.state === 'saved'
+                    ? 'Saved securely'
+                    : 'Ready'}
+        </div>
+        <ol className="writing-studio__steps" aria-label="Writing journey">
+          {['Prompt', 'Write', 'Feedback', 'Revise'].map((label, index) => {
+            const activeStep = assessment
+              ? 3
+              : lastRetryKind === 'same_prompt' && attemptNumber > 1
+                ? 4
+                : draft.trim()
+                  ? 2
+                  : 1;
+            return (
+              <li key={label} className={index + 1 <= activeStep ? 'is-active' : ''}>
+                <span>{index + 1}</span>{label}
+              </li>
+            );
+          })}
+        </ol>
+        {notice && <p className="writing-studio__notice" aria-live="polite">{notice}</p>}
+        {error && <p className="writing-studio__error" role="alert">{error}</p>}
       </section>
 
-      <section data-testid="writing-hub-today-section" style={{ borderRadius: 12, border: '1px solid #dbeafe', background: '#ffffff', padding: 16, display: 'grid', gap: 10 }}>
-        <h3 style={{ margin: 0, fontSize: 16 }}>Today</h3>
+      <section data-testid="writing-hub-today-section" className="writing-studio__card writing-studio__prompt-card">
+        <div className="writing-studio__section-heading">
+          <div>
+            <span>Step 1 · Today</span>
+            <h3>Understand your task</h3>
+          </div>
+          <button type="button" className="writing-studio__secondary-button" onClick={() => setShowPromptChooser((value) => !value)} disabled={busy}>
+            {showPromptChooser ? 'Hide genres' : 'Change genre'}
+          </button>
+        </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
           <strong>{toGenreLabel(activeGenre)}</strong>
           <span style={{ color: '#0369a1' }}>🎯 {toWordCountLabel(targetWordCount)}</span>
-          <span style={{ color: '#334155' }}>🕘 Prompt history: {promptHistoryCount}</span>
+          <span style={{ color: '#334155' }}>🕘 {promptHistoryCount} previous {promptHistoryCount === 1 ? 'submission' : 'submissions'}</span>
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {showPromptChooser && <div className="writing-studio__genre-grid">
           {SUPPORTED_GENRES.map((item) => (
             <button
               key={item}
@@ -5377,13 +5445,16 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
               {toGenreLabel(item)}
             </button>
           ))}
-        </div>
-        <p style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{promptText}</p>
+        </div>}
+        <div className="writing-studio__prompt-copy">{promptText}</div>
       </section>
 
-      <section data-testid="writing-hub-response-section" style={{ borderRadius: 12, border: '1px solid #dbeafe', background: '#ffffff', padding: 16, display: 'grid', gap: 10 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <strong>Your Response</strong>
+      <section data-testid="writing-hub-response-section" className="writing-studio__card writing-studio__response-card">
+        <div className="writing-studio__section-heading">
+          <div>
+            <span>Step 2</span>
+            <h3>Your Response</h3>
+          </div>
           <span style={{ color: wordTone.accent }}>{wordCount} / {toWordCountLabel(targetWordCount)}</span>
         </div>
         <textarea
@@ -5391,14 +5462,19 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
           value={draft}
           onChange={(e: { target: { value: string } }) => setDraft(e.target.value)}
           placeholder="Write your response here."
-          style={{ minHeight: 220, borderRadius: 8, border: '1px solid #cbd5e1', padding: 12, fontSize: 15, lineHeight: 1.6, color: '#0f172a', background: '#ffffff' }}
+          className="writing-studio__editor"
+          aria-describedby="writing-editor-help"
         />
+        <p id="writing-editor-help" className="writing-studio__editor-help">
+          Your draft saves securely while you work. Pasting is allowed for accessibility; your school’s academic-integrity policy still applies.
+        </p>
+        {isVeryShortDraft && <p className="writing-studio__gentle-warning">Add a little more detail before submitting so your feedback can be useful.</p>}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button
             type="button"
             onClick={() => void submitAttempt(lastRetryKind)}
             disabled={busy || !draft.trim()}
-            style={{ borderRadius: 8, border: '1px solid #2563eb', background: '#2563eb', color: '#ffffff', padding: '10px 14px', cursor: 'pointer' }}
+            className="writing-studio__primary-button"
           >
             {busy ? 'Analyzing…' : 'Submit for Feedback'}
           </button>
@@ -5406,7 +5482,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
             type="button"
             onClick={beginRetrySamePrompt}
             disabled={busy}
-            style={{ borderRadius: 8, border: '1px solid #cbd5e1', background: '#ffffff', color: '#0f172a', padding: '10px 14px', cursor: 'pointer' }}
+            className="writing-studio__secondary-button"
           >
             Retry this prompt
           </button>
@@ -5414,7 +5490,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
             type="button"
             onClick={() => void loadFreshPrompt(activeGenre)}
             disabled={busy}
-            style={{ borderRadius: 8, border: '1px solid #cbd5e1', background: '#ffffff', color: '#0f172a', padding: '10px 14px', cursor: 'pointer' }}
+            className="writing-studio__secondary-button"
           >
             New prompt
           </button>
@@ -5422,9 +5498,28 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       </section>
 
       {assessment && (
-        <section style={{ borderRadius: 12, border: '1px solid #dbeafe', background: '#ffffff', padding: 16, display: 'grid', gap: 12 }}>
-          <h3 style={{ margin: 0 }}>Detailed feedback</h3>
-          <p style={{ margin: 0 }}><strong>Score:</strong> {assessment.total_score}/20</p>
+        <section className="writing-studio__card writing-studio__feedback-card feedback-result-card">
+          <div className="writing-studio__section-heading">
+            <div>
+              <span>Step 3</span>
+              <h3>Your feedback</h3>
+            </div>
+            <div className="writing-studio__score">{assessment.total_score}<small>/20</small></div>
+          </div>
+          {cinematicRanges.length > 0 && (
+            <button
+              type="button"
+              className="writing-studio__cinematic-button"
+              onClick={() => {
+                setCinematicIndex(null);
+                setCinematicDone(false);
+                setShowCinematicFeedback(true);
+              }}
+            >
+              <span aria-hidden="true">▶</span>
+              Play Cinematic Feedback
+            </button>
+          )}
           <div style={{ display: 'grid', gap: 10, marginTop: 2 }}>
             {rubricScores.map((item) => {
               const safeScore = Math.max(0, Math.min(5, Number(item.value ?? 0)));
@@ -5494,7 +5589,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       )}
 
       {writingHistoryByGenre.ok && (
-        <section style={{ borderRadius: 12, border: '1px solid #dbeafe', background: '#ffffff', padding: 16, display: 'grid', gap: 10 }}>
+        <section className="writing-studio__card writing-studio__archive">
           <h3 style={{ margin: 0 }}>Writing archive</h3>
           <p style={{ margin: 0, color: '#475569' }}>All previous writing by genre with saved feedback.</p>
           {writingHistoryByGenre.data?.map((genreHistory) => (
@@ -5577,6 +5672,91 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
             </details>
           ))}
         </section>
+      )}
+      {showCinematicFeedback && typeof document !== 'undefined' && createPortal(
+        <div className="cinematic-feedback" role="dialog" aria-modal="true" aria-labelledby="cinematic-feedback-title">
+          <div className="cinematic-feedback__backdrop" />
+          <section className="simple-cinematic-panel">
+            <header className="cinematic-feedback__header">
+              <div>
+                <span>{cinematicModeLabel}</span>
+                <h2 id="cinematic-feedback-title">Cinematic Feedback</h2>
+                <p>Green shows what is working. Red shows your clearest next improvement.</p>
+              </div>
+              <button type="button" className="cinematic-feedback__close" onClick={() => setShowCinematicFeedback(false)} aria-label="Close cinematic feedback">×</button>
+            </header>
+
+            <div className="cinematic-feedback__grid">
+              <div className="cinematic-text-panel" ref={cinematicTextPanelRef} tabIndex={0} aria-label="Your submitted writing with animated feedback">
+                <svg className="cinematic-feedback__trace" aria-hidden="true">
+                  <path ref={cinematicTracePathRef} fill="none" strokeWidth="3" strokeLinecap="round" />
+                </svg>
+                <div className="cinematic-feedback__essay">
+                  {renderAnnotatedText(submittedText, cinematicRanges, cinematicIndex, handleRangeMount)}
+                </div>
+              </div>
+
+              <aside className={`cinematic-detail-card cinematic-feedback__detail cinematic-feedback__detail--${activeCinematicRange?.polarity ?? 'neutral'}`}>
+                {activeCinematicRange ? (
+                  <>
+                    <span className="cinematic-feedback__detail-label">
+                      {activeCinematicRange.polarity === 'strong' ? '✓ Keep this' : '✦ Improve this'}
+                    </span>
+                    <h3>{issueTypeLabel}</h3>
+                    <blockquote>{normalizedReviewIssue.originalSentence}</blockquote>
+                    <p>{whatToImproveText}</p>
+                    {betterVersionText && activeCinematicRange.polarity === 'weak' && (
+                      <div className="cinematic-feedback__upgrade">
+                        <span>A stronger version</span>
+                        <p>{betterVersionText}</p>
+                      </div>
+                    )}
+                    <p className="cinematic-feedback__why"><strong>Why it matters:</strong> {whyItMattersText}</p>
+                  </>
+                ) : (
+                  <>
+                    <span className="cinematic-feedback__detail-label">Review starting</span>
+                    <h3>Watch your writing come alive</h3>
+                    <p>We will move through the strongest moments and the most useful improvements.</p>
+                  </>
+                )}
+              </aside>
+            </div>
+
+            <section className="cinematic-rubric-section cinematic-feedback__rubric" aria-label="Rubric scores">
+              {rubricRows.map((row) => {
+                const score = Math.max(0, Math.min(5, Number(row.value ?? 0)));
+                return (
+                  <div key={row.key}>
+                    <span>{row.label}</span>
+                    <div><i className="rubric-bar-fill" style={{ width: `${(score / 5) * 100}%` }} /></div>
+                    <strong>{row.value ?? '—'}/5</strong>
+                  </div>
+                );
+              })}
+            </section>
+
+            <footer className="cinematic-nav-bar cinematic-feedback__footer">
+              <div>
+                {cinematicRanges.length
+                  ? `${Math.min((cinematicIndex ?? -1) + 1, cinematicRanges.length)} of ${cinematicRanges.length}`
+                  : 'Rubric overview'}
+              </div>
+              <div className="cinematic-feedback__controls">
+                <button type="button" onClick={() => setCinematicIndex((current) => Math.max(0, (current ?? 1) - 1))} disabled={cinematicIndex == null || cinematicIndex <= 0}>Previous</button>
+                <button type="button" onClick={() => setCinematicIndex((current) => Math.min(cinematicRanges.length - 1, (current ?? -1) + 1))} disabled={cinematicRanges.length === 0 || cinematicIndex === cinematicRanges.length - 1}>Next</button>
+                <button type="button" className="is-primary" onClick={() => {
+                  setShowCinematicFeedback(false);
+                  beginRetrySamePrompt();
+                }}>
+                  Improve my draft
+                </button>
+              </div>
+              {cinematicDone && <span className="cinematic-feedback__complete">Review complete — now make one powerful improvement.</span>}
+            </footer>
+          </section>
+        </div>,
+        document.body
       )}
     </div>
   );
