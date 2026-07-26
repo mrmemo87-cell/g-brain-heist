@@ -321,6 +321,143 @@ body.lite-mode [class*="border-gray-7"] {
   border: 0;
 }
 
+.clan-setup-progress {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.clan-setup-progress li {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.7rem;
+  border: 1px solid rgba(100, 116, 139, 0.35);
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.72);
+  color: #64748b;
+}
+
+.clan-setup-progress li > span {
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.clan-setup-progress li div {
+  min-width: 0;
+}
+
+.clan-setup-progress strong,
+.clan-setup-progress small {
+  display: block;
+}
+
+.clan-setup-progress strong {
+  color: #cbd5e1;
+  font-size: 0.78rem;
+}
+
+.clan-setup-progress small {
+  margin-top: 0.1rem;
+  overflow: hidden;
+  font-size: 0.62rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clan-setup-progress li.is-current {
+  border-color: rgba(34, 211, 238, 0.72);
+  color: #22d3ee;
+  background: rgba(8, 145, 178, 0.16);
+  box-shadow: 0 0 22px rgba(34, 211, 238, 0.1);
+}
+
+.clan-setup-progress li.is-current strong,
+.clan-setup-progress li.is-complete strong {
+  color: #f8fafc;
+}
+
+.clan-setup-progress li.is-complete {
+  border-color: rgba(52, 211, 153, 0.45);
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.clan-setup-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(100, 116, 139, 0.3);
+}
+
+.clan-setup-actions button {
+  min-height: 46px;
+  padding: 0.75rem 1.2rem;
+  border-radius: 12px;
+  font-weight: 800;
+  transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
+}
+
+.clan-setup-actions button:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.clan-setup-actions__back {
+  border: 1px solid #475569;
+  color: #cbd5e1;
+  background: rgba(15, 23, 42, 0.72);
+}
+
+.clan-setup-actions__continue {
+  min-width: 132px;
+  border: 1px solid #22d3ee;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.9), rgba(79, 70, 229, 0.9));
+  box-shadow: 0 8px 22px rgba(8, 145, 178, 0.2);
+}
+
+.clan-setup-actions__continue:disabled {
+  cursor: not-allowed;
+  border-color: #334155;
+  color: #64748b;
+  background: #0f172a;
+  box-shadow: none;
+}
+
+@media (max-width: 640px) {
+  .clan-setup-progress {
+    grid-template-columns: repeat(4, minmax(56px, 1fr));
+    gap: 0.3rem;
+  }
+
+  .clan-setup-progress li {
+    justify-content: center;
+    padding: 0.55rem 0.25rem;
+  }
+
+  .clan-setup-progress li > span {
+    width: 1.6rem;
+    height: 1.6rem;
+  }
+
+  .clan-setup-progress li div {
+    display: none;
+  }
+}
+
 .neon-frame-xl {
   padding: 0.45rem;
 }

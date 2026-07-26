@@ -128,6 +128,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   // Game configuration settings
   const [durationMinutes, setDurationMinutes] = useState(5);
   const [selectedMap, setSelectedMap] = useState('default');
+  const [configurationStep, setConfigurationStep] = useState(1);
   const [discoveredRooms, setDiscoveredRooms] = useState<Record<string, DiscoveredRoom>>({});
   const [resolvedClanId, setResolvedClanId] = useState<ClanId | null>(clanId ?? null);
   const [resolvedClanName, setResolvedClanName] = useState<string | null>(clanName ?? null);
@@ -143,6 +144,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const [isRefreshingProfile, setIsRefreshingProfile] = useState(false);
   const [allowClanlessPlayers, setAllowClanlessPlayers] = useState(false);
   const [arenaMode, setArenaMode] = useState<ArenaMode>("official");
+  const configuredArenaMode: ArenaMode = isTeacher ? "official" : arenaMode;
   const [userSchoolId, setUserSchoolId] = useState<string | null>(null);
   const [studentBatch, setStudentBatch] = useState<string | null>(null);
   const [availableBatches, setAvailableBatches] = useState<SchoolBatchInfo[]>([]);
@@ -167,17 +169,8 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const autoStartTriggeredRef = useRef(false);
 
   const [lockdownLimits, setLockdownLimits] = useState<LockdownLimits>(FREE_LOCKDOWN_LIMITS);
-  const effectiveAllowedMaps = useMemo(() => {
-    if (lockdownLimits.allowed_maps === null) return null;
-    const allowed = new Set(lockdownLimits.allowed_maps);
-    if (isTeacher && !userSchoolId) {
-      allowed.add('default');
-      allowed.add('city');
-      allowed.add('unitedkingdom');
-    }
-    return Array.from(allowed);
-  }, [isTeacher, lockdownLimits.allowed_maps, userSchoolId]);
-  const isMapLocked = (mapId: string) => effectiveAllowedMaps !== null && !effectiveAllowedMaps.includes(mapId);
+  // Territory maps are part of the core classroom experience, not a plan gate.
+  const isMapLocked = (_mapId: string) => false;
   const effectiveDurationMax = lockdownLimits.max_duration_minutes ?? 20;
 
   const durationPercentage = ((durationMinutes - 2) / (effectiveDurationMax - 2)) * 100;
@@ -203,18 +196,16 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   }, [canHost]);
 
   useEffect(() => {
-    if (!canHost) return;
-    if (!userSchoolId && arenaMode === "official") {
-      setArenaMode("open");
+    if (isTeacher && arenaMode !== "official") {
+      setArenaMode("official");
     }
-  }, [canHost, userSchoolId, arenaMode]);
+  }, [isTeacher, arenaMode]);
 
   useEffect(() => {
     if (lockdownLimits.max_duration_minutes && durationMinutes > lockdownLimits.max_duration_minutes) {
       setDurationMinutes(lockdownLimits.max_duration_minutes);
     }
-    if (isMapLocked(selectedMap)) setSelectedMap('default');
-  }, [lockdownLimits, selectedMap, effectiveAllowedMaps]);
+  }, [lockdownLimits, durationMinutes]);
 
   useEffect(() => {
     if (!canHost) return;
@@ -671,6 +662,8 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   }, [transport]);
 
   const handleCreateRoom = () => {
+    setConfigurationStep(1);
+    if (isTeacher) setArenaMode("official");
     setMode('configure');
   };
 
@@ -690,7 +683,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       }
 
       const id = await transport.createRoom({
-        arenaMode,
+        arenaMode: configuredArenaMode,
         allowClanlessPlayers,
         schoolId: userSchoolId || undefined,
         teacherName: teacherName || playerName,
@@ -718,7 +711,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       upsertHostRoom({
         roomId: id,
         state: gameState,
-        arenaMode,
+        arenaMode: configuredArenaMode,
         selectedMap,
         durationMinutes,
         allowClanlessPlayers,
@@ -734,7 +727,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     
     // Otherwise proceed with room creation (legacy flow)
     const id = await transport.createRoom({
-      arenaMode,
+      arenaMode: configuredArenaMode,
       allowClanlessPlayers,
       schoolId: userSchoolId || undefined,
       teacherName: teacherName || playerName,
@@ -760,7 +753,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     upsertHostRoom({
       roomId: id,
       state: gameState,
-      arenaMode,
+      arenaMode: configuredArenaMode,
       selectedMap,
       durationMinutes,
       allowClanlessPlayers,
@@ -908,8 +901,15 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
 
   const missingClanAssignment = !resolvedClanId || !resolvedClanName;
   const canCreateRoom =
-    (arenaMode === "open" || selectedBatches.length > 0) &&
+    (configuredArenaMode === "open" || selectedBatches.length > 0) &&
+    (!isTeacher || Boolean(userSchoolId)) &&
     (!scheduleEnabled || Boolean(scheduledStartAt));
+  const canContinueConfiguration =
+    configurationStep === 1
+      ? (selectedBatches.length > 0 && (!isTeacher || Boolean(userSchoolId)))
+      : configurationStep === 3
+        ? (!scheduleEnabled || Boolean(scheduledStartAt))
+        : true;
   const filteredRooms = useMemo(() => {
     const rooms = Object.values(discoveredRooms);
     return rooms.filter((room) => {
@@ -987,7 +987,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     upsertHostRoom({
       roomId,
       state: gameState,
-      arenaMode,
+      arenaMode: configuredArenaMode,
       selectedMap,
       durationMinutes,
       allowClanlessPlayers,
@@ -999,7 +999,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       lastUpdatedAt: Date.now(),
     });
   }, [
-    arenaMode,
+    configuredArenaMode,
     allowClanlessPlayers,
     durationMinutes,
     gameState,
@@ -1065,7 +1065,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
             }
           />
         )}
-        <div className="min-h-screen bg-slate-950 flex items-start justify-center px-4 py-10 overflow-y-auto">
+        <div className={`${isTeacher ? "min-h-0 rounded-3xl" : "min-h-screen"} bg-slate-950 flex items-start justify-center px-3 py-6 sm:px-4 sm:py-10 overflow-y-auto`}>
           <div className="w-full max-w-2xl space-y-8">
           <div className="space-y-3 text-center">
             <button
@@ -1078,17 +1078,45 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
               Configure Battle
             </span>
             <h1 className="font-heading text-4xl text-white tracking-tight">Game Settings</h1>
-            <p className="text-sm text-gray-400">Customize the battle duration, map, and objectives for your clan war.</p>
+            <p className="text-sm text-gray-400">One clear decision at a time. Your existing battle rules stay intact.</p>
           </div>
 
-          {lockdownLimits.tier === 'free' && (
+          <ol className="clan-setup-progress" aria-label="Game setup progress">
+            {[
+              ['Audience', 'Choose classes'],
+              ['Map', 'Choose territory'],
+              ['Rules', 'Set timing'],
+              ['Review', 'Check and launch'],
+            ].map(([label, description], index) => {
+              const step = index + 1;
+              const isComplete = configurationStep > step;
+              const isCurrent = configurationStep === step;
+              return (
+                <li
+                  key={label}
+                  className={isCurrent ? 'is-current' : isComplete ? 'is-complete' : ''}
+                  aria-current={isCurrent ? 'step' : undefined}
+                >
+                  <span>{isComplete ? '✓' : step}</span>
+                  <div>
+                    <strong>{label}</strong>
+                    <small>{description}</small>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+
+          {lockdownLimits.tier === 'free' && configurationStep === 3 && (
             <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-200 flex items-center gap-2">
               <span className="text-base">⚡</span>
-              <span>Free plan — {lockdownLimits.max_duration_minutes}min max, limited maps, up to {lockdownLimits.max_students} students.</span>
+              <span>Your current plan supports battles up to {lockdownLimits.max_duration_minutes} minutes and {lockdownLimits.max_students} students. Every map is available.</span>
             </div>
           )}
 
-          <div className="card-glass p-8 space-y-6">
+          <div className="card-glass p-4 space-y-6 sm:p-8">
+            {configurationStep === 3 && (
+              <>
             {/* Duration Setting */}
             <div className="space-y-3">
               <label className="block text-sm font-bold text-white">Battle Duration</label>
@@ -1111,8 +1139,11 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
               </div>
               <p className="text-xs text-gray-400">How long clans battle for territory control (2-{effectiveDurationMax} minutes)</p>
             </div>
+              </>
+            )}
 
             {/* Map Selection */}
+            {configurationStep === 2 && (
             <div className="space-y-3">
               <label className="block text-sm font-bold text-white">Territory Map</label>
               <div className="space-y-4">
@@ -1124,7 +1155,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                       <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
                         {category}
                       </h4>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         {entries.map(({ id, emoji, label, desc }) => {
                           const locked = isMapLocked(id);
                           return (
@@ -1153,39 +1184,19 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                 })}
               </div>
             </div>
+            )}
 
+            {configurationStep === 1 && (
+              <>
             <div className="space-y-3">
-              <label className="block text-sm font-bold text-white">Arena Mode</label>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={() => setArenaMode("official")}
-                  disabled={!userSchoolId}
-                  className={`rounded-xl border p-4 text-left transition ${
-                    arenaMode === "official"
-                      ? "border-emerald-400 bg-emerald-500/20"
-                      : "border-slate-700 bg-slate-800/50 hover:border-slate-600"
-                  } ${!userSchoolId ? "cursor-not-allowed opacity-50 hover:border-slate-700" : ""}`}
-                >
-                  <p className="font-bold text-emerald-200">✅ Official Arena</p>
-                  <p className="mt-1 text-xs text-slate-300">
-                    {!userSchoolId
-                      ? "Inactive: join a school to unlock Official Arena."
-                      : "Verified school/class match. Official rewards enabled."}
-                  </p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setArenaMode("open")}
-                  className={`rounded-xl border p-4 text-left transition ${
-                    arenaMode === "open"
-                      ? "border-cyan-400 bg-cyan-500/20"
-                      : "border-slate-700 bg-slate-800/50 hover:border-slate-600"
-                  }`}
-                >
-                  <p className="font-bold text-cyan-200">🌐 Open Arena</p>
-                  <p className="mt-1 text-xs text-slate-300">Cross-class / cross-school friendly. Uses reduced reward caps.</p>
-                </button>
+              <label className="block text-sm font-bold text-white">School Arena</label>
+              <div className="rounded-xl border border-emerald-400/60 bg-emerald-500/15 p-4">
+                <p className="font-bold text-emerald-200">✅ Official School Arena</p>
+                <p className="mt-1 text-xs text-slate-300">
+                  {userSchoolId
+                    ? "Only students in the classes you select can join. School safeguards and official rewards are enabled."
+                    : "Connect this teacher account to a school before hosting a class battle."}
+                </p>
               </div>
             </div>
 
@@ -1193,9 +1204,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
             <div className="space-y-3">
               <label className="block text-sm font-bold text-white">Target Classes</label>
               <p className="text-xs text-gray-400 -mt-1">
-                {arenaMode === "official"
-                  ? "Select one or more classes. Official Arena enforces these classes."
-                  : "Optional for Open Arena. Leave blank to allow broad join by room code."}
+                Select one or more assigned classes. Only students in these classes can join.
               </p>
               {availableBatches.length > 0 ? (
                 <div className="space-y-2 max-h-48 overflow-y-auto rounded-xl border border-slate-700 bg-slate-900/60 p-3">
@@ -1254,7 +1263,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
               )}
               {selectedBatches.length === 0 && (
                 <p className="text-xs text-amber-400">
-                  {arenaMode === "official" ? "Please select at least one class for Official Arena." : "Open Arena with no class restriction."}
+                  Please select at least one class for this official school arena.
                 </p>
               )}
             </div>
@@ -1311,8 +1320,12 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                 )}
               </div>
             )}
+              </>
+            )}
 
             {/* Schedule Start */}
+            {configurationStep === 3 && (
+              <>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div>
@@ -1364,10 +1377,14 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                   : "Students without clans will be blocked from entering this arena."}
               </p>
             </div>
+              </>
+            )}
 
+            {configurationStep === 4 && (
+              <>
             <div className="pt-4 border-t border-slate-700">
               <h3 className="text-sm font-bold text-white mb-3">Battle Preview</h3>
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
                 <div className="bg-slate-800/50 rounded-lg p-3">
                   <p className="text-gray-400 text-xs mb-1">Duration</p>
                   <p className="text-white font-bold">{durationMinutes} minutes</p>
@@ -1378,9 +1395,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                 </div>
                 <div className="bg-slate-800/50 rounded-lg p-3">
                   <p className="text-gray-400 text-xs mb-1">Mode</p>
-                  <p className={`font-bold ${arenaMode === "official" ? "text-emerald-300" : "text-cyan-300"}`}>
-                    {arenaMode === "official" ? "✅ Official Arena" : "🌐 Open Arena"}
-                  </p>
+                  <p className="font-bold text-emerald-300">✅ Official School Arena</p>
                 </div>
                 <div className="bg-slate-800/50 rounded-lg p-3">
                   <p className="text-gray-400 text-xs mb-1">Classes</p>
@@ -1403,13 +1418,11 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                 <div className="bg-slate-800/50 rounded-lg p-3">
                   <p className="text-gray-400 text-xs mb-1">Access</p>
                   <p className="text-white font-bold">
-                    {arenaMode === "official"
-                      ? (allowClanlessPlayers ? "Official classes · clans + independents" : "Official classes · clan members only")
-                      : (allowClanlessPlayers ? "Open join · clans + independents" : "Open join · clan members only")}
+                    {allowClanlessPlayers ? "Official classes · clans + independents" : "Official classes · clan members only"}
                   </p>
                 </div>
                 {selectedClanIds.length > 0 && (
-                  <div className="bg-slate-800/50 rounded-lg p-3 col-span-2">
+                  <div className="bg-slate-800/50 rounded-lg p-3 sm:col-span-2">
                     <p className="text-gray-400 text-xs mb-1">Allowed Clans</p>
                     <p className="text-white font-bold">
                       {availableClans
@@ -1431,13 +1444,35 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
             </button>
             {!canCreateRoom && (
               <p className="text-xs text-amber-300 text-center">
-                {arenaMode === "open"
-                  ? "Pick a scheduled start time before creating the Open Arena."
+                {!userSchoolId
+                  ? "Connect this teacher account to a school before creating an arena."
                   : (selectedBatches.length > 0
                     ? "Pick a scheduled start time before creating the Official Arena."
                     : "Select at least one class before creating the Official Arena.")}
               </p>
             )}
+              </>
+            )}
+
+            <div className="clan-setup-actions">
+              <button
+                type="button"
+                onClick={() => configurationStep === 1 ? setMode('menu') : setConfigurationStep((step) => Math.max(1, step - 1))}
+                className="clan-setup-actions__back"
+              >
+                {configurationStep === 1 ? 'Cancel' : 'Back'}
+              </button>
+              {configurationStep < 4 && (
+                <button
+                  type="button"
+                  onClick={() => setConfigurationStep((step) => Math.min(4, step + 1))}
+                  disabled={!canContinueConfiguration}
+                  className="clan-setup-actions__continue"
+                >
+                  Continue
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -36,6 +36,7 @@ import { notificationService } from '../services/notificationService';
 const WritingMonitoringView = React.lazy(() => import('../src/pages/writing/WritingMonitoringView'));
 const WritingAnalyticsDashboard = React.lazy(() => import('../src/pages/writing/WritingAnalyticsDashboard'));
 const WritingExportCenter = React.lazy(() => import('../src/pages/writing/WritingExportCenter'));
+const ClanTerritoryManager = React.lazy(() => import('../src/features/clanTerritory/ClanTerritoryManager'));
 import { normalizePart2CommunicativeAchievement, sanitizeCommunicativeAchievementText } from '../src/lib/writingCommunicativeAchievement';
 
 interface TeacherPortalProps {
@@ -53,7 +54,9 @@ interface TeacherPortalProps {
 let _cachedPlanDetails: SchoolPlanDetails | null = null;
 let _cachedTeacherTier: AccountTier | null = null;
 
-export type PortalView = 'dashboard' | 'students' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'geometry-diagrams' | 'cambridge-reports' | 'quest-builder' | 'join-school';
+export type PortalView = 'dashboard' | 'students' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'writing-hub' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'clan-wars' | 'geometry-diagrams' | 'cambridge-reports' | 'quest-builder' | 'join-school';
+type TeacherNavSection = 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'writing-hub' | 'cambridge' | 'quests' | 'clan-wars' | 'join-school';
+type WritingHubSection = 'monitor' | 'analytics' | 'reports';
 
 // XP points based on difficulty: Easy=10, Medium=15, Hard=20
 const getDefaultPointsForDifficulty = (diff: QuestionDifficulty): number => {
@@ -107,8 +110,17 @@ const splitGrammarAndPunctuation = (items: { wrong: string; correct: string; exp
   return { grammar, punctuation };
 };
 
-const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, onLockdown, isSchoolAdmin, onOpenSchoolAdmin, onOpenAdmissions, initialView = 'dashboard' }) => {
-  const [view, setView] = useState<PortalView>(initialView);
+const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, isSchoolAdmin, onOpenSchoolAdmin, onOpenAdmissions, initialView = 'dashboard' }) => {
+  const initialWritingSection: WritingHubSection =
+    initialView === 'writing-analytics' ? 'analytics' :
+      initialView === 'writing-export-center' ? 'reports' :
+        'monitor';
+  const normalizedInitialView: PortalView =
+    ['writing-monitoring', 'writing-analytics', 'writing-export-center'].includes(initialView)
+      ? 'writing-hub'
+      : initialView;
+  const [view, setView] = useState<PortalView>(normalizedInitialView);
+  const [writingHubSection, setWritingHubSection] = useState<WritingHubSection>(initialWritingSection);
   const [teacher, setTeacher] = useState<Teacher | null>(null);
   const [questions, setQuestions] = useState<TeacherQuestion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -613,21 +625,20 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       s.batch?.toLowerCase().includes(search)
     );
   }, [availableStudents, studentSearchTerm]);
-  const primarySection = useMemo<'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'cambridge' | 'quests' | 'lockdown' | 'join-school'>(() => {
+  const primarySection = useMemo<TeacherNavSection>(() => {
     if (view === 'dashboard') return 'dashboard';
     if (view === 'students') return 'students';
     if (view === 'join-school') return 'join-school';
     if (view === 'question-bank' || view === 'create-question' || view === 'csv-upload') return 'questions';
     if (view === 'assignments' || view === 'create-assignment') return 'assignments';
-    if (view === 'writing-monitoring') return 'writing-monitoring';
-    if (view === 'writing-analytics') return 'writing-analytics';
-    if (view === 'writing-export-center') return 'writing-export-center';
+    if (view === 'writing-hub' || view === 'writing-monitoring' || view === 'writing-analytics' || view === 'writing-export-center') return 'writing-hub';
+    if (view === 'clan-wars') return 'clan-wars';
     if (view === 'cambridge-reports') return 'cambridge';
     if (view === 'quest-builder') return 'quests';
     return 'reports'; // catches 'reports', 'report-detail', 'report-analysis', 'collective-report'
   }, [view]);
 
-  const changeSection = (section: 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'cambridge' | 'quests' | 'lockdown' | 'join-school') => {
+  const changeSection = (section: TeacherNavSection) => {
     setMobileWorkspaceMenuOpen(false);
     switch (section) {
       case 'dashboard':
@@ -649,14 +660,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         setAssignmentReport([]);
         setView('reports');
         break;
-      case 'writing-monitoring':
-        setView('writing-monitoring');
-        break;
-      case 'writing-analytics':
-        setView('writing-analytics');
-        break;
-      case 'writing-export-center':
-        setView('writing-export-center');
+      case 'writing-hub':
+        setView('writing-hub');
         break;
       case 'cambridge':
         setView('cambridge-reports');
@@ -667,8 +672,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         setView('quest-builder');
         loadMyQuests();
         break;
-      case 'lockdown':
-        if (onLockdown) onLockdown();
+      case 'clan-wars':
+        setView('clan-wars');
         break;
       case 'join-school':
         setView('join-school');
@@ -4266,14 +4271,14 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </>;
           })()}
 
-          {/* Lockdown Mode - Free for non-pilot, quota-tracked for pilot */}
-          {onLockdown && (() => {
+          {/* Clan Wars - Free for non-pilot, quota-tracked for pilot */}
+          {(() => {
             const isPilotLd = pilotQuotas?.is_pilot && !pilotQuotas?.expired;
             const ldQuota = getQuotaForFeature('Lockdown Mode', pilotQuotas);
             const ldExhausted = isPilotLd && ldQuota?.exhausted === true;
             return (
               <button
-                onClick={() => !ldExhausted ? onLockdown() : undefined}
+                onClick={() => !ldExhausted ? setView('clan-wars') : undefined}
                 className={`teacher-action-card teacher-action-card-lockdown teacher-action-card--mini ${ldExhausted ? 'opacity-50 cursor-not-allowed' : ''}`}
                 data-color="emerald"
                 disabled={ldExhausted}
@@ -4287,9 +4292,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 {ldExhausted && (
                   <span className="teacher-pro-badge" style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)', borderColor: '#ef4444' }}>⚡ UPGRADE</span>
                 )}
-                <div className="teacher-action-icon">🔒</div>
-                <h4 className="teacher-action-title">Lockdown Mode</h4>
-                <p className="teacher-action-desc">Host a live classroom session</p>
+                <div className="teacher-action-icon">⚔️</div>
+                <h4 className="teacher-action-title">Clan Wars</h4>
+                <p className="teacher-action-desc">Host an official class battle</p>
               </button>
             );
           })()}
@@ -8167,7 +8172,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
   const canAccessWritingInsights = profile.role === 'teacher' || profile.role === 'admin';
 
-  const navTabs: Array<{ id: 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'cambridge' | 'quests' | 'lockdown' | 'join-school'; label: string; icon: string; description: string; proOnly?: boolean; highlight?: boolean }> = [
+  const navTabs: Array<{ id: TeacherNavSection; label: string; icon: string; description: string; proOnly?: boolean; highlight?: boolean }> = [
     { id: 'dashboard', label: 'Dashboard', icon: '🏠', description: 'Overview & Quick Actions' },
     { id: 'students', label: 'My Students', icon: '👥', description: 'Students in Your Assigned Classes' },
     ...(!profile.school_id ? [{ id: 'join-school' as const, label: 'Join Your School', icon: '🏫', description: 'Use your invite code to unlock school features', highlight: true }] : []),
@@ -8176,12 +8181,10 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     { id: 'reports', label: 'Reports', icon: '📊', description: 'Student Performance', proOnly: true },
     ...(canAccessWritingInsights
       ? [
-          { id: 'writing-monitoring' as const, label: 'Writing Monitor', icon: '📝', description: 'Student-by-student progress tracker', proOnly: true },
-          { id: 'writing-analytics' as const, label: 'Writing Analytics', icon: '📈', description: 'Class patterns, retry behavior, weak-skill trends', proOnly: true },
-          { id: 'writing-export-center' as const, label: 'Writing Reports', icon: '📤', description: 'Create, edit, save, and export report cards', proOnly: true },
+          { id: 'writing-hub' as const, label: 'Writing Hub', icon: '✍️', description: 'Monitor, analyse, and export writing progress', proOnly: true },
         ]
       : []),
-    { id: 'lockdown', label: 'Lockdown Mode', icon: '🔒', description: 'Host Live Classroom Sessions' },
+    { id: 'clan-wars', label: 'Clan Wars', icon: '⚔️', description: 'Host official class battles' },
     { id: 'cambridge', label: 'Cambridge Tests', icon: '✍️', description: 'Writing & Test Results', proOnly: true },
     { id: 'quests', label: 'Quest Builder', icon: '🗺️', description: 'Create V2 Quest Missions', proOnly: true },
   ];
@@ -8211,21 +8214,18 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       questions: 'Question Bank',
       assignments: 'New Assignment',
       reports: 'Performance Reports',
-      'writing-monitoring': 'Performance Reports',
-      'writing-analytics': 'Performance Reports',
-      'writing-export-center': 'Performance Reports',
-      lockdown: 'Lockdown Mode',
+      'writing-hub': 'Performance Reports',
+      'clan-wars': 'Lockdown Mode',
       cambridge: 'Cambridge Marking',
     };
     const featureLabel = tabQuotaMap[tab.id];
     const quota = featureLabel ? getQuotaForFeature(featureLabel, pilotQuotas) : null;
     const pilotExhausted = Boolean(isPilot && quota?.exhausted);
-    const missingHandler = tab.id === 'lockdown' && !onLockdown;
     return {
       isPilot,
       quota,
       pilotExhausted,
-      locked: Boolean((tab.proOnly && !isProPlan) || pilotExhausted || missingHandler),
+      locked: Boolean((tab.proOnly && !isProPlan) || pilotExhausted),
     };
   };
   const mobilePrimaryTabs = navTabs.filter((tab) =>
@@ -8237,7 +8237,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       {/* Top Navigation Bar */}
       <header
         ref={topNavRef}
-        className="teacher-topbar fixed left-0 right-0 top-0 z-50 border-b border-slate-800/60 bg-slate-950/95 backdrop-blur"
+        className="teacher-topbar fixed left-0 right-0 top-0 z-50 border-b border-slate-800 bg-slate-950"
         style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 20px)' }}
       >
         <div className="teacher-topbar-inner mx-auto flex w-full max-w-[1600px] items-center justify-between px-3 py-2 sm:px-4 lg:px-6">
@@ -8267,7 +8267,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
             {/* Plan Badge */}
             {planBadge && (
-              <div className={`plan-badge plan-badge--${planBadge.color} flex-shrink-0 hidden sm:flex`}>
+              <div className={`teacher-desktop-plan-badge plan-badge plan-badge--${planBadge.color} flex-shrink-0`}>
                 <span className="plan-badge__icon">{planBadge.icon}</span>
                 <span className="plan-badge__label">{planBadge.label}</span>
                 {planBadge.countdown && <span className="plan-badge__countdown">{planBadge.countdown}</span>}
@@ -8565,9 +8565,54 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           {view === 'assignments' && renderAssignments()}
           {view === 'create-assignment' && renderCreateAssignment()}
           {view === 'reports' && renderReports()}
-          {view === 'writing-monitoring' && canAccessWritingInsights && <WritingMonitoringView />}
-          {view === 'writing-analytics' && canAccessWritingInsights && <WritingAnalyticsDashboard />}
-          {view === 'writing-export-center' && canAccessWritingInsights && <WritingExportCenter mode="teacher" />}
+          {view === 'writing-hub' && canAccessWritingInsights && (
+            <section className="teacher-writing-hub" aria-labelledby="writing-hub-title">
+              <div className="teacher-writing-hub__header">
+                <div>
+                  <span className="teacher-writing-hub__eyebrow">Writing workspace</span>
+                  <h2 id="writing-hub-title">✍️ Writing Hub</h2>
+                  <p>Follow student progress, understand class patterns, and prepare reports in one place.</p>
+                </div>
+                <div className="teacher-writing-hub__tabs" role="tablist" aria-label="Writing Hub sections">
+                  {([
+                    ['monitor', '📝', 'Monitor'],
+                    ['analytics', '📈', 'Analytics'],
+                    ['reports', '📤', 'Reports'],
+                  ] as const).map(([section, icon, label]) => (
+                    <button
+                      key={section}
+                      type="button"
+                      role="tab"
+                      aria-selected={writingHubSection === section}
+                      className={writingHubSection === section ? 'is-active' : ''}
+                      onClick={() => setWritingHubSection(section)}
+                    >
+                      <span aria-hidden="true">{icon}</span>
+                      <span>{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="teacher-writing-hub__content">
+                {writingHubSection === 'monitor' && <WritingMonitoringView />}
+                {writingHubSection === 'analytics' && <WritingAnalyticsDashboard />}
+                {writingHubSection === 'reports' && <WritingExportCenter mode="teacher" />}
+              </div>
+            </section>
+          )}
+          {view === 'clan-wars' && (
+            <React.Suspense fallback={<div className="teacher-section-loading">Preparing Clan Wars…</div>}>
+              <ClanTerritoryManager
+                onExit={() => setView('dashboard')}
+                isTeacher
+                canHost
+                playerName={profile.username || 'Teacher'}
+                clanId={profile.clan_id}
+                clanName={profile.clan_name}
+                assignedClasses={assignedClasses}
+              />
+            </React.Suspense>
+          )}
           {view === 'report-detail' && renderReportDetail()}
           {view === 'report-analysis' && renderReportAnalysis()}
           {view === 'collective-report' && (
