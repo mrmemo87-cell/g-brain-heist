@@ -697,6 +697,7 @@ export type GameAction =
           clanName: string;
           clanColor?: string;
           schoolId?: string | null;
+          classCodes?: string[];
           batch?: string | null;
         };
       };

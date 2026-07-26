@@ -15,6 +15,10 @@ import * as SchoolAdminService from "../../../services/schoolAdminService";
 import { fetchLockdownLimits, type LockdownLimits, FREE_LOCKDOWN_LIMITS, tryConsumePilotQuota } from "../../../services/tierService";
 import { FreeTierWatermark } from "../../../components/FreeTierWatermark";
 import { MAP_CATALOG, MAP_ZONE_COUNTS } from "./mapCatalog";
+import {
+  canEnterClanTerritoryOfficialRoom,
+  normalizeClanTerritoryClassCodes,
+} from "./clanTerritoryEligibility";
 type ArenaMode = "official" | "open";
 
 interface ClanTerritoryManagerProps {
@@ -146,7 +150,8 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const [arenaMode, setArenaMode] = useState<ArenaMode>("official");
   const configuredArenaMode: ArenaMode = isTeacher ? "official" : arenaMode;
   const [userSchoolId, setUserSchoolId] = useState<string | null>(null);
-  const [studentBatch, setStudentBatch] = useState<string | null>(null);
+  const [studentClassCodes, setStudentClassCodes] = useState<string[]>([]);
+  const studentBatch = studentClassCodes[0] ?? null;
   const [availableBatches, setAvailableBatches] = useState<SchoolBatchInfo[]>([]);
   const [selectedBatches, setSelectedBatches] = useState<string[]>([]);
   const [availableClans, setAvailableClans] = useState<ClanSummary[]>([]);
@@ -433,55 +438,67 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   // On mount, try to fetch clan data directly (don't wait for props)
   useEffect(() => {
     fetchClanDataDirectly();
-    // Also fetch the user's school_id for room isolation
-    fetchUserSchoolId();
     fetchUserProfile();
   }, []);
-
-  const fetchUserSchoolId = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      
-      const { data } = await supabase
-        .from('users')
-        .select('school_id')
-        .eq('id', user.id)
-        .single();
-      
-      if (data?.school_id) {
-        setUserSchoolId(data.school_id);
-      }
-    } catch (error) {
-      console.warn('Failed to fetch user school_id:', error);
-    }
-  };
 
   const fetchUserProfile = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) return null;
 
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('username, batch')
+      const { data: contextData, error: contextError } = await supabase
+        .rpc('rpc_clan_territory_my_context');
+
+      if (!contextError && contextData) {
+        const context = contextData as {
+          username?: string | null;
+          school_id?: string | null;
+          class_codes?: string[] | null;
+        };
+        const classCodes = normalizeClanTerritoryClassCodes(context.class_codes);
+
+        if (context.username) setTeacherName(context.username);
+        setUserSchoolId(context.school_id ?? null);
+        setStudentClassCodes(classCodes);
+
+        return {
+          schoolId: context.school_id ?? null,
+          classCodes,
+        };
+      }
+
+      if (contextError) {
+        console.warn(
+          'Failed to fetch canonical Clan Territory context; using users fallback:',
+          contextError.message ?? contextError,
+        );
+      }
+
+      // Backward-compatible fallback while a deployment is rolling out. `users`
+      // is the active profile table; the legacy `profiles` table is not reliable.
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from('users')
+        .select('username, batch, school_id')
         .eq('id', user.id)
         .maybeSingle();
 
-      if (error) {
-        console.warn('Failed to fetch user profile:', error.message ?? error);
-        return;
+      if (fallbackError) {
+        console.warn('Failed to fetch Clan Territory user fallback:', fallbackError.message ?? fallbackError);
+        return null;
       }
 
-      if (data?.username) {
-        setTeacherName(data.username);
-      }
+      const classCodes = normalizeClanTerritoryClassCodes([fallbackData?.batch]);
+      if (fallbackData?.username) setTeacherName(fallbackData.username);
+      setUserSchoolId(fallbackData?.school_id ?? null);
+      setStudentClassCodes(classCodes);
 
-      if (data?.batch) {
-        setStudentBatch(data.batch);
-      }
+      return {
+        schoolId: fallbackData?.school_id ?? null,
+        classCodes,
+      };
     } catch (error) {
-      console.warn('Failed to fetch user profile:', error);
+      console.warn('Failed to fetch Clan Territory user context:', error);
+      return null;
     }
   };
 
@@ -797,13 +814,19 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
 
     const roomMetadata = discoveredRoomsRef.current[normalizedRoomId] ?? discoveredRoomsRef.current[targetRoomId];
     const roomArenaMode: ArenaMode = roomMetadata?.arenaMode === "open" ? "open" : "official";
+    const refreshedContext = await fetchUserProfile();
+    const joiningSchoolId = refreshedContext?.schoolId ?? userSchoolId;
+    const joiningClassCodes = refreshedContext?.classCodes?.length
+      ? refreshedContext.classCodes
+      : studentClassCodes;
+    const joiningBatch = joiningClassCodes[0] ?? studentBatch;
     if (roomArenaMode === "official") {
-      if (!userSchoolId) {
+      if (!joiningSchoolId) {
         alert("🚫 Official Arena requires a verified school profile.");
         return;
       }
       if (roomMetadata?.classCodes && roomMetadata.classCodes.length > 0) {
-        if (!studentBatch || !roomMetadata.classCodes.includes(studentBatch)) {
+        if (!canEnterClanTerritoryOfficialRoom(roomMetadata.classCodes, joiningClassCodes, joiningBatch)) {
           alert("🚫 Official Arena restricted: your class is not eligible for this room.");
           return;
         }
@@ -836,8 +859,9 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
         {
           clanColor: activeClanColor,
           playerId: stablePlayerId,
-          schoolId: userSchoolId,
-          batch: studentBatch,
+          schoolId: joiningSchoolId,
+          classCodes: joiningClassCodes,
+          batch: joiningBatch,
         }
       );
       setRoomId(normalizedRoomId);
@@ -915,14 +939,18 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     return rooms.filter((room) => {
       if (room.arenaMode === "open") return true;
       // Filter by class / batch
-      if (studentBatch && !room.classCodes?.includes(studentBatch)) return false;
+      if (
+        room.classCodes &&
+        room.classCodes.length > 0 &&
+        !canEnterClanTerritoryOfficialRoom(room.classCodes, studentClassCodes, studentBatch)
+      ) return false;
       // Filter by allowed clans (if the room restricts clans)
       if (room.allowedClanIds && room.allowedClanIds.length > 0 && resolvedClanId) {
         if (!room.allowedClanIds.includes(resolvedClanId)) return false;
       }
       return true;
     });
-  }, [discoveredRooms, studentBatch, resolvedClanId]);
+  }, [discoveredRooms, studentBatch, studentClassCodes, resolvedClanId]);
 
   const totalHostArenaPages = Math.max(1, Math.ceil(storedHostRooms.length / ARENAS_PER_PAGE));
   const totalLiveArenaPages = Math.max(1, Math.ceil(filteredRooms.length / ARENAS_PER_PAGE));

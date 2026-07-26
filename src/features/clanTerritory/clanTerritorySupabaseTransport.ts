@@ -283,7 +283,13 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     playerName: string,
     clanId: string,
     clanName: string,
-    options?: { clanColor?: string; playerId?: string; schoolId?: string | null; batch?: string | null }
+    options?: {
+      clanColor?: string;
+      playerId?: string;
+      schoolId?: string | null;
+      classCodes?: string[];
+      batch?: string | null;
+    }
   ): Promise<PlayerId> {
     const playerId = options?.playerId ?? crypto.randomUUID();
     this.isHost = false;
@@ -332,6 +338,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
           clanName,
           clanColor,
           schoolId: options?.schoolId ?? null,
+          classCodes: options?.classCodes ?? [],
           batch: options?.batch ?? null,
         },
       },

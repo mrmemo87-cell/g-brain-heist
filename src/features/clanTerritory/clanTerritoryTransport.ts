@@ -31,7 +31,13 @@ export interface ClanTerritoryTransport {
     playerName: string,
     clanId: string,
     clanName: string,
-    options?: { clanColor?: string; playerId?: string; schoolId?: string | null; batch?: string | null }
+    options?: {
+      clanColor?: string;
+      playerId?: string;
+      schoolId?: string | null;
+      classCodes?: string[];
+      batch?: string | null;
+    }
   ): Promise<PlayerId>;
   onGameState(roomId: RoomId, callback: (state: ClanTerritoryGameState) => void): () => void;
   sendAction(roomId: RoomId, action: GameAction): Promise<void>;
