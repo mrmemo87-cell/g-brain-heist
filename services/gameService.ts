@@ -78,6 +78,7 @@ import {
     recordQuestionAttempt,
     createAssignment as rpcCreateAssignment,
     getAssignmentsForTeacher as rpcGetAssignmentsForTeacher,
+    getTeacherAssignmentSuccessSummary as rpcGetTeacherAssignmentSuccessSummary,
     getStudentsForAssignment as rpcGetStudentsForAssignment,
     getStudentActiveAssignment as rpcGetStudentActiveAssignment,
     getStudentPendingAssignments as rpcGetStudentPendingAssignments,
@@ -5794,6 +5795,26 @@ export const get_teacher_assignments = async (teacherId?: string): Promise<Teach
     if (error) throw new Error(error.message || 'Failed to load assignments');
 
     return (data as TeacherAssignmentSummary[]) || [];
+};
+
+export type TeacherAssignmentSuccessSummary = {
+    submission_count: number;
+    answered_question_count: number;
+    correct_answer_count: number;
+    success_rate: number;
+};
+
+export const get_teacher_assignment_success_summary = async (): Promise<TeacherAssignmentSuccessSummary> => {
+    const { data, error } = await rpcGetTeacherAssignmentSuccessSummary();
+    if (error) throw new Error(error.message || 'Failed to load assignment success');
+
+    const row = (Array.isArray(data) ? data[0] : data) as Partial<TeacherAssignmentSuccessSummary> | null;
+    return {
+        submission_count: Number(row?.submission_count || 0),
+        answered_question_count: Number(row?.answered_question_count || 0),
+        correct_answer_count: Number(row?.correct_answer_count || 0),
+        success_rate: Number(row?.success_rate || 0),
+    };
 };
 
 export const get_students_for_assignment = async (teacherId?: string): Promise<StudentForAssignment[]> => {

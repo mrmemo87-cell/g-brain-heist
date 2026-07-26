@@ -3678,14 +3678,6 @@
     line-height: 1.45;
   }
 
-  .teacher-quick-start {
-    padding: 1rem;
-  }
-
-  .teacher-quick-start ol {
-    grid-template-columns: 1fr;
-  }
-
   .teacher-stats-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.65rem;
