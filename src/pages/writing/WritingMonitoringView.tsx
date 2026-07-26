@@ -4,6 +4,7 @@ import {
   getTeacherMonitoringOverviewScoped,
   getTeacherWritingReport,
   getTeacherAttemptListScoped,
+  saveTeacherReportScoped,
   TeacherWritingAttemptRecord,
   getWritingMonitoringOverview,
   TeacherWritingReport,
@@ -190,7 +191,8 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
   const [activeQueueTab, setActiveQueueTab] = useState<'urgent' | 'improving' | 'on_track' | 'all'>('all');
   const [actionedToday, setActionedToday] = useState<Set<string>>(new Set());
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
-  const [isPracticeOpen, setIsPracticeOpen] = useState(false);
+  const [feedbackDraft, setFeedbackDraft] = useState('Praise:\n\nGrowth target:\n\nNext step:');
+  const [feedbackStatus, setFeedbackStatus] = useState('');
   const [isReportLoading, setIsReportLoading] = useState(false);
   const [reportError, setReportError] = useState('');
   const [openReportData, setOpenReportData] = useState<TeacherWritingReport | null>(null);
@@ -421,6 +423,40 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
       `Readiness: ${targetRow.ready_for_monthly_review ? 'Ready for monthly review' : 'Not ready for monthly review yet'}`,
     ].join('\n');
     downloadText(`writing-summary-${studentId}-${month}.txt`, content);
+  };
+
+  const saveFeedbackDraft = (): void => {
+    if (!selectedRow || !feedbackDraft.trim()) return;
+    setFeedbackStatus('Saving securely…');
+    void saveTeacherReportScoped({
+      student_id: selectedRow.student_id,
+      mode: 'student',
+      month,
+      status: 'draft',
+      teacher_comment: feedbackDraft.trim(),
+      report_payload: {
+        title: `Writing feedback for ${toDisplayLabel(selectedRow.student_name, selectedRow.student_id)}`,
+        praise_growth_next_step: feedbackDraft.trim(),
+        latest_score: selectedRow.latest_score,
+        attempts_count: selectedRow.attempts_count,
+        focus_areas: selectedRow.repeated_weakness_hotspots,
+      },
+    }).then((result) => {
+      if (!result.ok) {
+        setFeedbackStatus(result.error ?? 'Unable to save feedback.');
+        return;
+      }
+      setFeedbackStatus('Draft saved securely.');
+      setActionedToday((current) => new Set(current).add(selectedRow.student_id));
+    });
+  };
+
+  const copyFeedbackDraft = (): void => {
+    if (typeof navigator === 'undefined' || !feedbackDraft.trim()) return;
+    void navigator.clipboard.writeText(feedbackDraft).then(
+      () => setFeedbackStatus('Copied to clipboard.'),
+      () => setFeedbackStatus('Copy failed. Select the text and copy manually.')
+    );
   };
 
   if (isLoading) {
@@ -805,30 +841,18 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
           <div style={{ ...shellCard, width: 'min(640px, 100%)', padding: 16, display: 'grid', gap: 10 }}>
             <h3 style={{ margin: 0 }}>Give Feedback</h3>
             <textarea
-              defaultValue={`Praise:
-
-Growth target:
-
-Next step:`}
+              value={feedbackDraft}
+              onChange={(event: InputChangeEvent) => {
+                setFeedbackDraft(event.target.value);
+                setFeedbackStatus('');
+              }}
               style={{ minHeight: 180, background: '#0f172a', color: '#fff', border: '1px solid #334155', borderRadius: 8, padding: 10 }}
             />
+            {feedbackStatus ? <div aria-live="polite" style={{ color: feedbackStatus.includes('failed') || feedbackStatus.includes('Unable') ? '#fca5a5' : '#86efac', fontSize: 13 }}>{feedbackStatus}</div> : null}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button type="button" style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#fff', padding: '8px 12px' }}>Save Draft</button>
-              <button type="button" style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#fff', padding: '8px 12px' }}>Copy Feedback</button>
+              <button type="button" onClick={saveFeedbackDraft} disabled={!feedbackDraft.trim()} style={{ borderRadius: 8, border: '1px solid #2563eb', background: '#1d4ed8', color: '#fff', padding: '8px 12px' }}>Save Draft</button>
+              <button type="button" onClick={copyFeedbackDraft} disabled={!feedbackDraft.trim()} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#fff', padding: '8px 12px' }}>Copy Feedback</button>
               <button type="button" onClick={() => setIsFeedbackOpen(false)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#0f172a', color: '#fff', padding: '8px 12px' }}>Cancel</button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-      {isPracticeOpen ? (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(2,6,23,0.7)', zIndex: 50, display: 'grid', placeItems: 'center', padding: 16 }}>
-          <div style={{ ...shellCard, width: 'min(560px, 100%)', padding: 16, display: 'grid', gap: 10 }}>
-            <h3 style={{ margin: 0 }}>Assign Practice</h3>
-            <div style={{ color: '#cbd5e1' }}>Suggested task: Short sentence accuracy practice.</div>
-            <div style={{ fontSize: 12, color: '#94a3b8' }}>Practice assignment will be connected in the next phase.</div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button type="button" disabled style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#64748b', padding: '8px 12px' }}>Assign</button>
-              <button type="button" onClick={() => setIsPracticeOpen(false)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#0f172a', color: '#fff', padding: '8px 12px' }}>Cancel</button>
             </div>
           </div>
         </div>
