@@ -1,0 +1,949 @@
+.writing-reports,
+.writing-reports * {
+  box-sizing: border-box;
+}
+
+.writing-reports {
+  width: 100%;
+  min-width: 0;
+  padding: clamp(0.75rem, 2vw, 1.35rem);
+  color: #172033;
+  font-family: "IBM Plex Sans", Inter, system-ui, sans-serif;
+}
+
+.writing-reports button,
+.writing-reports input,
+.writing-reports textarea {
+  font: inherit;
+}
+
+.writing-reports__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid #dfe7f3;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 92% 12%, rgba(45, 212, 191, 0.2), transparent 30%),
+    linear-gradient(135deg, #f8fbff, #f0f4ff);
+}
+
+.writing-reports__eyebrow,
+.writing-reports__section-heading > div > span,
+.writing-reports__student-hero > div > span,
+.writing-reports__rubric > div:first-child > span {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #315dd7;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.writing-reports__header h2 {
+  max-width: 700px;
+  margin: 0;
+  color: #12203a;
+  font-size: clamp(1.65rem, 4vw, 2.45rem);
+  line-height: 1.08;
+}
+
+.writing-reports__header p {
+  max-width: 720px;
+  margin: 0.75rem 0 0;
+  color: #61708a;
+  line-height: 1.55;
+}
+
+.writing-reports__period {
+  flex: 0 0 auto;
+  min-width: 180px;
+  padding: 0.9rem 1rem;
+  border: 1px solid #d9e2f1;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.writing-reports__period span,
+.writing-reports__period strong {
+  display: block;
+}
+
+.writing-reports__period span {
+  color: #72809a;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.writing-reports__period strong {
+  margin-top: 0.3rem;
+  color: #17233d;
+}
+
+.writing-reports__steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.writing-reports__steps li {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.85rem;
+  border: 1px solid #dfe6f1;
+  border-radius: 15px;
+  background: #fff;
+  color: #7a879b;
+}
+
+.writing-reports__steps b {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: #edf1f7;
+  font-size: 0.8rem;
+}
+
+.writing-reports__steps span,
+.writing-reports__steps strong,
+.writing-reports__steps small {
+  display: block;
+  min-width: 0;
+}
+
+.writing-reports__steps strong {
+  color: #4a5871;
+  font-size: 0.88rem;
+}
+
+.writing-reports__steps small {
+  margin-top: 0.1rem;
+  overflow: hidden;
+  font-size: 0.7rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.writing-reports__steps li.is-current {
+  border-color: #9bb2ff;
+  background: #f0f3ff;
+}
+
+.writing-reports__steps li.is-current b {
+  background: #4157e8;
+  color: #fff;
+}
+
+.writing-reports__steps li.is-complete {
+  border-color: #bde9df;
+  color: #237465;
+  background: #f0fcf8;
+}
+
+.writing-reports__steps li.is-complete b {
+  background: #22a98e;
+  color: #fff;
+}
+
+.writing-reports__picker,
+.writing-reports__overview,
+.writing-reports__personalize,
+.writing-reports__evidence {
+  margin-top: 1rem;
+  border: 1px solid #dfe6f1;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 12px 34px rgba(32, 51, 86, 0.07);
+}
+
+.writing-reports__picker,
+.writing-reports__personalize {
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+}
+
+.writing-reports__section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.writing-reports__section-heading h3,
+.writing-reports__section-heading p {
+  margin: 0;
+}
+
+.writing-reports__section-heading h3 {
+  color: #15213a;
+  font-size: 1.25rem;
+}
+
+.writing-reports__section-heading p {
+  margin-top: 0.35rem;
+  color: #6d7b92;
+  font-size: 0.88rem;
+}
+
+.writing-reports__search {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 1rem;
+  color: #58677e;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.writing-reports__search input,
+.writing-reports__editor-grid textarea {
+  width: 100%;
+  border: 1px solid #cfd9e8;
+  border-radius: 13px;
+  background: #f9fbfe;
+  color: #172033;
+  outline: none;
+}
+
+.writing-reports__search input {
+  min-height: 48px;
+  padding: 0.8rem 0.95rem;
+}
+
+.writing-reports__search input:focus,
+.writing-reports__editor-grid textarea:focus {
+  border-color: #5869ea;
+  box-shadow: 0 0 0 3px rgba(88, 105, 234, 0.13);
+}
+
+.writing-reports__student-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.65rem;
+  margin-top: 0.85rem;
+}
+
+.writing-reports__student-card {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 68px;
+  padding: 0.75rem;
+  border: 1px solid #dbe3ef;
+  border-radius: 15px;
+  background: #fff;
+  color: #18233b;
+  cursor: pointer;
+  text-align: left;
+}
+
+.writing-reports__student-card:hover,
+.writing-reports__student-card.is-selected {
+  border-color: #7282ef;
+  background: #f3f5ff;
+}
+
+.writing-reports__student-card > span:nth-child(2),
+.writing-reports__student-card strong,
+.writing-reports__student-card small {
+  display: block;
+  min-width: 0;
+}
+
+.writing-reports__student-card strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.writing-reports__student-card small {
+  margin-top: 0.2rem;
+  color: #718099;
+}
+
+.writing-reports__student-card i {
+  color: #6171e3;
+  font-style: normal;
+}
+
+.writing-reports__avatar {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 13px;
+  background: linear-gradient(145deg, #27cdbb, #5362ec);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.writing-reports__avatar--large {
+  width: 3.6rem;
+  height: 3.6rem;
+  border-radius: 17px;
+  font-size: 1rem;
+}
+
+.writing-reports__overview {
+  overflow: hidden;
+}
+
+.writing-reports__student-hero {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+  background:
+    radial-gradient(circle at 90% 10%, rgba(47, 205, 187, 0.18), transparent 34%),
+    linear-gradient(135deg, #f7faff, #eef2ff);
+}
+
+.writing-reports__student-hero > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.writing-reports__student-hero h3,
+.writing-reports__student-hero p {
+  margin: 0;
+}
+
+.writing-reports__student-hero h3 {
+  overflow: hidden;
+  color: #13203a;
+  font-size: clamp(1.25rem, 3vw, 1.65rem);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.writing-reports__student-hero p {
+  margin-top: 0.3rem;
+  color: #68778f;
+}
+
+.writing-reports__readiness,
+.writing-reports__status {
+  flex: 0 0 auto;
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.writing-reports__readiness--empty {
+  background: #f1f4f8;
+  color: #66758d;
+}
+
+.writing-reports__readiness--baseline,
+.writing-reports__status--draft {
+  background: #fff4d8;
+  color: #8b5b05;
+}
+
+.writing-reports__readiness--ready,
+.writing-reports__status--final {
+  background: #dcf8ef;
+  color: #176a5c;
+}
+
+.writing-reports__guidance {
+  display: flex;
+  gap: 0.5rem 0.75rem;
+  padding: 0.8rem clamp(1rem, 2.5vw, 1.5rem);
+  border-top: 1px solid #e5eaf2;
+  border-bottom: 1px solid #e5eaf2;
+  background: #fbfcfe;
+  color: #526178;
+  font-size: 0.86rem;
+}
+
+.writing-reports__guidance strong {
+  color: #25324a;
+}
+
+.writing-reports__metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.7rem;
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+}
+
+.writing-reports__metrics article {
+  min-width: 0;
+  padding: 0.9rem;
+  border: 1px solid #e0e6f0;
+  border-radius: 15px;
+  background: #f8faff;
+}
+
+.writing-reports__metrics span,
+.writing-reports__metrics strong,
+.writing-reports__metrics small {
+  display: block;
+}
+
+.writing-reports__metrics span {
+  color: #74829a;
+  font-size: 0.67rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.writing-reports__metrics strong {
+  margin-top: 0.4rem;
+  color: #172742;
+  font-size: clamp(1rem, 2.5vw, 1.35rem);
+  line-height: 1.15;
+}
+
+.writing-reports__metrics small {
+  margin-top: 0.3rem;
+  color: #7b879b;
+  line-height: 1.3;
+}
+
+.writing-reports__learning-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  padding: 0 clamp(1rem, 2.5vw, 1.5rem) 1rem;
+}
+
+.writing-reports__learning-card {
+  display: flex;
+  min-width: 0;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid;
+  border-radius: 17px;
+}
+
+.writing-reports__learning-card > span {
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  font-weight: 900;
+}
+
+.writing-reports__learning-card h4,
+.writing-reports__learning-card ul {
+  margin: 0;
+}
+
+.writing-reports__learning-card h4 {
+  color: #192640;
+  font-size: 0.96rem;
+}
+
+.writing-reports__learning-card ul {
+  margin-top: 0.55rem;
+  padding-left: 1.05rem;
+  color: #56657c;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.writing-reports__learning-card li + li {
+  margin-top: 0.35rem;
+}
+
+.writing-reports__learning-card--strength {
+  border-color: #bde9df;
+  background: #f3fcf9;
+}
+
+.writing-reports__learning-card--strength > span {
+  background: #d5f6ed;
+  color: #13715f;
+}
+
+.writing-reports__learning-card--growth {
+  border-color: #f5d5d9;
+  background: #fff8f8;
+}
+
+.writing-reports__learning-card--growth > span {
+  background: #ffe7e9;
+  color: #a33a4c;
+}
+
+.writing-reports__rubric {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.75fr) minmax(0, 2fr);
+  gap: 1rem;
+  margin: 0 clamp(1rem, 2.5vw, 1.5rem) 1rem;
+  padding: 1rem;
+  border: 1px solid #e0e6ef;
+  border-radius: 17px;
+}
+
+.writing-reports__rubric h4 {
+  margin: 0;
+  color: #1a2740;
+}
+
+.writing-reports__rubric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem 1rem;
+}
+
+.writing-reports__rubric-grid > div > span {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: #58667c;
+  font-size: 0.78rem;
+}
+
+.writing-reports__rubric-grid > div > i {
+  display: block;
+  height: 6px;
+  margin-top: 0.35rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e8edf5;
+}
+
+.writing-reports__rubric-grid em {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2bc8b7, #5564e8);
+}
+
+.writing-reports__integrity {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  margin: 0 clamp(1rem, 2.5vw, 1.5rem) 1.5rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 14px;
+  background: #fff8e8;
+  color: #72551d;
+}
+
+.writing-reports__integrity strong,
+.writing-reports__integrity p {
+  display: block;
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.writing-reports__integrity p {
+  margin-top: 0.15rem;
+}
+
+.writing-reports__editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.writing-reports__editor-grid label,
+.writing-reports__editor-grid label > span,
+.writing-reports__editor-grid label > small {
+  display: block;
+}
+
+.writing-reports__editor-grid label > span {
+  color: #28354c;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.writing-reports__editor-grid label > small {
+  min-height: 1.25rem;
+  margin: 0.18rem 0 0.35rem;
+  color: #7a879b;
+}
+
+.writing-reports__editor-grid textarea {
+  min-height: 116px;
+  padding: 0.75rem 0.85rem;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.writing-reports__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.writing-reports__button {
+  min-height: 44px;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid #cdd7e6;
+  border-radius: 12px;
+  background: #fff;
+  color: #26344c;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.writing-reports__button:hover {
+  transform: translateY(-1px);
+}
+
+.writing-reports__button--primary {
+  border-color: #5264eb;
+  background: linear-gradient(135deg, #3159d7, #584bec);
+  color: #fff;
+}
+
+.writing-reports__button--quiet {
+  background: #f4f7fb;
+}
+
+.writing-reports__button--final {
+  border-color: #a5dfd1;
+  background: #e7faf5;
+  color: #176a5c;
+}
+
+.writing-reports__message {
+  min-height: 1.25rem;
+  margin: 0.6rem 0 0;
+  color: #526079;
+  font-size: 0.8rem;
+}
+
+.writing-reports__evidence {
+  overflow: hidden;
+}
+
+.writing-reports__evidence > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1.2rem;
+  color: #23314a;
+  cursor: pointer;
+  list-style: none;
+}
+
+.writing-reports__evidence > summary::-webkit-details-marker {
+  display: none;
+}
+
+.writing-reports__evidence > summary span,
+.writing-reports__evidence > summary b,
+.writing-reports__evidence > summary small {
+  display: block;
+}
+
+.writing-reports__evidence > summary small {
+  margin-top: 0.2rem;
+  color: #7a879b;
+}
+
+.writing-reports__evidence > summary i {
+  font-style: normal;
+  transition: transform 160ms ease;
+}
+
+.writing-reports__evidence[open] > summary i {
+  transform: rotate(180deg);
+}
+
+.writing-reports__evidence-body {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.5fr);
+  gap: 0.8rem;
+  padding: 0 1rem 1rem;
+  border-top: 1px solid #edf0f5;
+}
+
+.writing-reports__attempt-list {
+  display: grid;
+  align-content: start;
+  gap: 0.5rem;
+  padding-top: 1rem;
+}
+
+.writing-reports__attempt-card {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem;
+  border: 1px solid #dce3ed;
+  border-radius: 13px;
+  background: #fff;
+  color: #26344c;
+  cursor: pointer;
+  text-align: left;
+}
+
+.writing-reports__attempt-card.is-selected {
+  border-color: #7181ed;
+  background: #f2f4ff;
+}
+
+.writing-reports__attempt-card span:nth-child(2),
+.writing-reports__attempt-card strong,
+.writing-reports__attempt-card small {
+  display: block;
+  min-width: 0;
+}
+
+.writing-reports__attempt-card small {
+  margin-top: 0.15rem;
+  color: #7a879b;
+}
+
+.writing-reports__attempt-card > b {
+  color: #4055d4;
+  font-size: 0.78rem;
+}
+
+.writing-reports__attempt-detail {
+  min-width: 0;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #dde4ef;
+  border-radius: 15px;
+  background: #f9fbfe;
+}
+
+.writing-reports__attempt-detail > span {
+  color: #6070d7;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.writing-reports__attempt-detail h4 {
+  margin: 0.45rem 0 0.75rem;
+  color: #243049;
+  line-height: 1.45;
+}
+
+.writing-reports__attempt-rubric {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.8rem;
+}
+
+.writing-reports__attempt-rubric span {
+  display: inline-flex;
+  gap: 0.35rem;
+  padding: 0.4rem 0.55rem;
+  border-radius: 9px;
+  background: #eef2f8;
+  color: #56647b;
+  font-size: 0.72rem;
+}
+
+.writing-reports__submission {
+  max-height: 320px;
+  overflow: auto;
+  padding: 0.85rem;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.writing-reports__submission p {
+  margin: 0.45rem 0 0;
+  color: #44526a;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.writing-reports__saved-list {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0 1rem 1rem;
+}
+
+.writing-reports__saved-list button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid #dce3ed;
+  border-radius: 12px;
+  background: #f9fbfe;
+  color: #26344c;
+  cursor: pointer;
+  text-align: left;
+}
+
+.writing-reports__saved-list span,
+.writing-reports__saved-list strong,
+.writing-reports__saved-list small {
+  display: block;
+}
+
+.writing-reports__saved-list small {
+  margin-top: 0.15rem;
+  color: #7a879b;
+}
+
+.writing-reports__saved-list i {
+  color: #4c5ed7;
+  font-size: 0.75rem;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.writing-reports__state,
+.writing-reports__empty-inline {
+  padding: 1rem;
+  border: 1px solid #dfe6f1;
+  border-radius: 14px;
+  background: #f8fafc;
+  color: #64748b;
+}
+
+.writing-reports__state {
+  margin: 1rem;
+}
+
+.writing-reports__state--error {
+  border-color: #f2c7ce;
+  background: #fff4f5;
+  color: #9b3345;
+}
+
+.writing-export-center,
+.writing-export-document {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .writing-reports {
+    padding: 0.55rem;
+  }
+
+  .writing-reports__header {
+    display: block;
+    border-radius: 18px;
+  }
+
+  .writing-reports__period {
+    width: 100%;
+    min-width: 0;
+    margin-top: 1rem;
+  }
+
+  .writing-reports__steps {
+    gap: 0.35rem;
+  }
+
+  .writing-reports__steps li {
+    justify-content: center;
+    gap: 0;
+    padding: 0.6rem 0.25rem;
+    text-align: center;
+  }
+
+  .writing-reports__steps li > span {
+    display: none;
+  }
+
+  .writing-reports__steps b {
+    width: 1.8rem;
+    height: 1.8rem;
+  }
+
+  .writing-reports__section-heading {
+    display: grid;
+  }
+
+  .writing-reports__section-heading .writing-reports__button {
+    width: 100%;
+  }
+
+  .writing-reports__student-list,
+  .writing-reports__metrics,
+  .writing-reports__learning-grid,
+  .writing-reports__editor-grid,
+  .writing-reports__rubric,
+  .writing-reports__rubric-grid,
+  .writing-reports__evidence-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .writing-reports__student-hero {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .writing-reports__student-hero > div {
+    width: calc(100% - 4.5rem);
+  }
+
+  .writing-reports__readiness {
+    margin-left: 4.5rem;
+  }
+
+  .writing-reports__guidance {
+    display: grid;
+  }
+
+  .writing-reports__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .writing-reports__metrics article {
+    padding: 0.8rem;
+  }
+
+  .writing-reports__rubric {
+    gap: 0.75rem;
+  }
+
+  .writing-reports__actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .writing-reports__button {
+    width: 100%;
+  }
+
+  .writing-reports__evidence-body {
+    padding-top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .writing-reports *,
+  .writing-reports *::before,
+  .writing-reports *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
