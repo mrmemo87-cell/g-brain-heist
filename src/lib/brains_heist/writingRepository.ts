@@ -2,6 +2,7 @@ import { supabase } from '../../../services/supabaseClient.js';
 import { getEnvVar } from '../../../services/env.js';
 
 export interface SerializedWritingPersistenceStore {
+  ownerStudentId?: string;
   profiles: Array<[string, unknown]>;
   usernamesById?: Record<string, string>;
   states: Array<[string, unknown]>;
@@ -142,6 +143,7 @@ export const loadWritingStoreSnapshot = async (
   }
 
   return {
+    ownerStudentId: activeStudentId,
     profiles: profileRows.map((row: any) => [row.student_id, row.profile]),
     usernamesById,
     states: stateRows.flatMap((row: any): Array<[string, unknown]> => {
