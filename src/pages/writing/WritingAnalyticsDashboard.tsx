@@ -28,6 +28,22 @@ type InputChangeEvent = { target: { value: string } };
 type SelectChangeEvent = { target: { value: string } };
 type MonitoringRow = WritingMonitoringOverview['student_rows'][number] & { class_name?: string | null };
 
+const toSafeAnalyticsError = (message?: string): string => {
+  if (!message) return 'Writing analytics is temporarily unavailable. Refresh this page or try again shortly.';
+  const normalized = message.toLowerCase();
+  if (
+    normalized.includes('coalesce')
+    || normalized.includes('postgres')
+    || normalized.includes('rpc')
+    || normalized.includes('function')
+    || normalized.includes('operator')
+    || normalized.includes('type')
+  ) {
+    return 'Writing analytics is temporarily unavailable. Refresh this page or ask your school administrator for help.';
+  }
+  return message;
+};
+
 export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps> = ({
   gradeFilter,
   genreFilter,
@@ -58,7 +74,7 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
       if (cancelled) return;
       if (!dashRes.ok || !dashRes.data) {
         setDashboard(null);
-        setLoadError(dashRes.error ?? 'No analytics data available.');
+        setLoadError(toSafeAnalyticsError(dashRes.error));
         return;
       }
       setDashboard(dashRes.data);
@@ -153,8 +169,8 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
   }, [monitoring, searchQuery, sortKey]);
 
   if (isLoading) return <div style={{ padding: 12, color: '#e5e7eb' }}>Loading analytics…</div>;
-  if (errorMessage) return <div style={{ padding: 12, color: '#fca5a5' }}>Unable to load analytics: {errorMessage}</div>;
-  if (loadError) return <div style={{ padding: 12, color: '#e5e7eb' }}>{loadError}</div>;
+  if (errorMessage) return <div style={{ padding: 12, color: '#fca5a5' }}>Unable to load analytics. {toSafeAnalyticsError(errorMessage)}</div>;
+  if (loadError) return <div style={{ padding: 12, color: '#e5e7eb' }}>{toSafeAnalyticsError(loadError)}</div>;
   if (!data) {
     return (
       <div style={{ padding: 12, color: '#e5e7eb' }}>
@@ -164,7 +180,7 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
   }
 
   return (
-    <div ref={shellRef} style={{ padding: 20, color: '#f3f4f6', display: 'grid', gap: 20, background: '#0a0f1a' }}>
+    <div className="writing-analytics" ref={shellRef} style={{ padding: 20, color: '#f3f4f6', display: 'grid', gap: 20, background: '#0a0f1a' }}>
       <section>
         <h1 style={{ margin: 0, fontSize: 32, fontWeight: 900, color: '#ffffff', letterSpacing: -0.5 }}>Writing Analytics</h1>
         <p style={{ margin: '8px 0 0', color: '#94a3b8', fontSize: 14 }}>Class-level patterns, retry trends, and intervention opportunities</p>
@@ -213,8 +229,8 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
                 <tr style={{ background: '#111b31', borderBottom: '2px solid #334155' }}>
                   <th align="left" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Student</th>
                   <th align="center" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Grade</th>
-                  <th align="center" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Complete</th>
-                  <th align="center" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Score</th>
+                  <th align="center" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Practice</th>
+                  <th align="center" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Formative estimate</th>
                   <th align="left" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Focus Areas</th>
                   <th align="center" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Status</th>
                 </tr>
@@ -228,15 +244,16 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
                         <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{row.class_name ?? 'Unassigned'}</div>
                       </td>
                       <td style={{ padding: '11px 12px', textAlign: 'center', fontWeight: 600 }}>{row.current_grade}</td>
-                      <td style={{ padding: '11px 12px', textAlign: 'center', fontWeight: 600, color: '#93c5fd' }}>{Math.round(row.completion_rate * 100)}%</td>
-                      <td style={{ padding: '11px 12px', textAlign: 'center', fontWeight: 600 }}>{row.latest_score ?? '—'}</td>
+                      <td style={{ padding: '11px 12px', textAlign: 'center', fontWeight: 600, color: '#93c5fd' }}>{row.practice_completed_count ?? 0}/{row.practice_assigned_count ?? 0}</td>
+                      <td style={{ padding: '11px 12px', textAlign: 'center', fontWeight: 600 }}>{row.latest_score == null ? '—' : `${row.latest_score}/20`}</td>
                       <td style={{ padding: '11px 12px', fontSize: 12 }}>
                         {row.repeated_weakness_hotspots.length ? row.repeated_weakness_hotspots.map(toTeacherWeaknessLabel).join(', ') : <span style={{ color: '#64748b' }}>—</span>}
                       </td>
                       <td style={{ padding: '11px 12px', textAlign: 'center' }}>
-                        {row.stalled && <span style={{ background: '#7f1d1d', color: '#fecaca', borderRadius: 6, padding: '4px 8px', fontSize: 11, fontWeight: 600 }}>Needs support</span>}
+                        {row.status === 'needs_review' && <span style={{ background: '#7c2d12', color: '#fed7aa', borderRadius: 6, padding: '4px 8px', fontSize: 11, fontWeight: 600 }}>Review evidence</span>}
+                        {row.stalled && row.status !== 'needs_review' && <span style={{ background: '#7f1d1d', color: '#fecaca', borderRadius: 6, padding: '4px 8px', fontSize: 11, fontWeight: 600 }}>Needs support</span>}
                         {row.improving && !row.stalled && <span style={{ background: '#14532d', color: '#bbf7d0', borderRadius: 6, padding: '4px 8px', fontSize: 11, fontWeight: 600 }}>Improving</span>}
-                        {!row.stalled && !row.improving && <span style={{ background: '#1e293b', color: '#cbd5e1', borderRadius: 6, padding: '4px 8px', fontSize: 11, fontWeight: 600 }}>Stable</span>}
+                        {!row.stalled && !row.improving && row.status !== 'needs_review' && <span style={{ background: '#1e293b', color: '#cbd5e1', borderRadius: 6, padding: '4px 8px', fontSize: 11, fontWeight: 600 }}>{row.status === 'plan_ready' ? 'Plan ready' : 'On track'}</span>}
                       </td>
                     </tr>
                   ))

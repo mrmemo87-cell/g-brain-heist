@@ -14,6 +14,7 @@ import {
   TeacherWritingReport,
   WritingExportDocument,
 } from '../../lib/brains_heist/writingIntegrationService.js';
+import { openProfessionalWritingReport } from '../../lib/brains_heist/writingReportDocument.js';
 
 interface WritingExportCenterProps {
   mode: 'student' | 'teacher' | 'admin';
@@ -85,9 +86,10 @@ const renderTeacherSummary = (report: TeacherWritingReport): React.ReactElement 
     </section>
     <section>
       <strong>Overall performance</strong>
-      <div>Latest score: {report.overall_summary.latest_score ?? '—'}</div>
+      <div>Automated formative estimate: {formatScore(report.overall_summary.latest_score)}</div>
       <div>Trend delta: {report.overall_summary.score_trend_delta ?? '—'}</div>
-      <div>Completion: {report.overall_summary.completed_tasks}/{report.overall_summary.total_tasks} ({report.overall_summary.completion_rate_percent}%)</div>
+      <div>Writing submissions: {report.overall_summary.submission_count ?? 0}</div>
+      <div>Practice plan: {report.overall_summary.practice_completed_count ?? report.overall_summary.completed_tasks}/{report.overall_summary.practice_assigned_count ?? report.overall_summary.total_tasks} ({report.overall_summary.completion_rate_percent}%)</div>
     </section>
     <section>
       <strong>Main strengths</strong>
@@ -175,69 +177,49 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
   };
 
   const exportEditorAsText = (): void => {
-    if (typeof window === 'undefined') return;
-    const content = [
-      `Mode: ${editor.mode}`,
-      `Status: ${editor.status}`,
-      `Title: ${editor.title}`,
-      `Overall performance: ${editor.overall_performance}`,
-      `Strengths: ${editor.strengths}`,
-      `Recurring weaknesses: ${editor.recurring_weaknesses}`,
-      `Trend/progress: ${editor.trend_progress}`,
-      `Teacher recommendations: ${editor.teacher_recommendations}`,
-      `Prompt: ${editor.prompt}`,
-      `Submission text:\n${editor.submission_text}`,
-      `Evaluation breakdown: ${editor.evaluation_breakdown}`,
-      `Precise issues: ${editor.precise_issues}`,
-      `Suggested next action: ${editor.suggested_next_action}`,
-      `Comparison to previous: ${editor.comparison_to_previous}`,
-      `Teacher comment: ${editor.teacher_comment}`,
-    ].join('\n\n');
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `teacher-writing-report-${selectedStudentId || 'student'}-${selectedAttemptId || 'student'}.txt`;
-    link.click();
-    URL.revokeObjectURL(link.href);
+    if (!teacherSummaryReport) return;
+    const editedReport: TeacherWritingReport = {
+      ...teacherSummaryReport,
+      strengths: parseList(editor.strengths).length ? parseList(editor.strengths) : teacherSummaryReport.strengths,
+      priority_weak_areas: parseList(editor.recurring_weaknesses).length
+        ? parseList(editor.recurring_weaknesses)
+        : teacherSummaryReport.priority_weak_areas,
+      teacher_actions: parseList(editor.teacher_recommendations).length
+        ? parseList(editor.teacher_recommendations)
+        : teacherSummaryReport.teacher_actions,
+      student_friendly_summary: {
+        ...teacherSummaryReport.student_friendly_summary,
+        progress_summary: editor.trend_progress.trim()
+          || teacherSummaryReport.student_friendly_summary.progress_summary,
+        next_steps: parseList(editor.suggested_next_action).length
+          ? parseList(editor.suggested_next_action)
+          : teacherSummaryReport.student_friendly_summary.next_steps,
+      },
+    };
+    openProfessionalWritingReport(editedReport, {
+      audience: 'teacher',
+      teacherComment: editor.teacher_comment,
+      reportStatus: editor.status,
+    });
   };
 
   const exportParentReadyReport = (): void => {
-    if (typeof window === 'undefined' || !teacherSummaryReport) return;
-    const report = teacherSummaryReport;
-    const content = [
-      'Writing Progress Report',
-      `Student: ${report.student.student_name}`,
-      `Class: ${report.student.class_name}`,
-      `Reporting period: ${report.period}`,
-      `Writing genre: ${report.genre}`,
-      '',
-      `Progress: ${report.overall_summary.completed_tasks} of ${report.overall_summary.total_tasks} activities completed (${report.overall_summary.completion_rate_percent}%).`,
-      `Latest writing score: ${formatScore(report.overall_summary.latest_score)}.`,
-      '',
-      'What is going well',
-      ...(report.strengths.length
-        ? report.strengths.map((item) => `• ${item}`)
-        : ['• The student is building evidence through continued writing practice.']),
-      '',
-      'What to improve next',
-      ...(report.priority_weak_areas.length
-        ? report.priority_weak_areas.map((item) => `• ${item}`)
-        : ['• Continue regular practice and review the teacher’s next target.']),
-      '',
-      'How school and home can help',
-      ...(report.teacher_actions.length
-        ? report.teacher_actions.map((item) => `• ${item}`)
-        : ['• Encourage the student to revise one paragraph after reading feedback.']),
-      '',
-      'Teacher note',
-      editor.teacher_comment.trim() || 'No additional teacher note has been added.',
-    ].join('\n');
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `parent-writing-report-${selectedStudentId || 'student'}-${month}.txt`;
-    link.click();
-    URL.revokeObjectURL(link.href);
+    if (!teacherSummaryReport) return;
+    const parentReport: TeacherWritingReport = {
+      ...teacherSummaryReport,
+      strengths: parseList(editor.strengths).length ? parseList(editor.strengths) : teacherSummaryReport.strengths,
+      priority_weak_areas: parseList(editor.recurring_weaknesses).length
+        ? parseList(editor.recurring_weaknesses)
+        : teacherSummaryReport.priority_weak_areas,
+      teacher_actions: parseList(editor.teacher_recommendations).length
+        ? parseList(editor.teacher_recommendations)
+        : teacherSummaryReport.teacher_actions,
+    };
+    openProfessionalWritingReport(parentReport, {
+      audience: 'parent',
+      teacherComment: editor.teacher_comment,
+      reportStatus: editor.status,
+    });
   };
 
   const loadSavedReports = (targetStudentId: string, targetAttemptId?: string, targetMode?: 'student' | 'attempt'): void => {
@@ -472,7 +454,7 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
               disabled={!selectedStudentId || !editor.title}
               style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 10px' }}
             >
-              Download Summary
+              Preview &amp; Print Teacher Report
             </button>
           </article>
           <article style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: 'linear-gradient(180deg, #0f172a, #0b1327)' }}>
@@ -484,7 +466,7 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
               disabled={!selectedStudentId || !teacherSummaryReport}
               style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 10px' }}
             >
-              Download Parent Report
+              Preview &amp; Print Parent Report
             </button>
           </article>
           <article style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: 'linear-gradient(180deg, #0f172a, #0b1327)' }}>
@@ -647,7 +629,7 @@ export const WritingExportCenter: React.FC<WritingExportCenterProps> = ({
                     }}>
                     Generate attempt report template
                   </button>
-                  <button type="button" onClick={exportEditorAsText} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#fff', padding: '6px 8px' }}>Export edited report</button>
+                  <button type="button" onClick={exportEditorAsText} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#fff', padding: '6px 8px' }}>Preview &amp; Print Edited Report</button>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>
                   <label style={{ display: 'grid', gap: 4 }}>

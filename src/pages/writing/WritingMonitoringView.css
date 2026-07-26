@@ -1,0 +1,166 @@
+.writing-monitor {
+  width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+}
+
+.writing-monitor__sync {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  color: #67e8f9;
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.writing-monitor__sync::before {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2dd4bf;
+  box-shadow: 0 0 12px rgba(45, 212, 191, 0.8);
+  content: "";
+}
+
+.writing-monitor__student-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.writing-monitor__student-metrics > div {
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid #26334a;
+  border-radius: 9px;
+  background: rgba(15, 23, 42, 0.75);
+}
+
+.writing-monitor__student-metrics small,
+.writing-monitor__student-metrics strong {
+  display: block;
+}
+
+.writing-monitor__student-metrics small {
+  overflow: hidden;
+  color: #94a3b8;
+  font-size: 0.63rem;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.writing-monitor__student-metrics strong {
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+  color: #f8fafc;
+  font-size: 0.9rem;
+}
+
+.writing-monitor__mode-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 0.7fr);
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.writing-monitor__mode-control span {
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.writing-monitor__mode-control select {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 7px 9px;
+  color: #f8fafc;
+  background: #0b1223;
+}
+
+.writing-monitor__integrity {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid #155e75;
+  border-radius: 11px;
+  color: #cffafe;
+  background: rgba(8, 145, 178, 0.1);
+}
+
+.writing-monitor__integrity span {
+  color: #a5b4c8;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.writing-monitor__integrity--review_recommended {
+  border-color: #9a3412;
+  color: #fed7aa;
+  background: rgba(154, 52, 18, 0.14);
+}
+
+@media (max-width: 700px) {
+  .writing-monitor {
+    gap: 12px !important;
+    padding: 10px !important;
+    padding-bottom: 110px !important;
+  }
+
+  .writing-monitor h1 {
+    font-size: 1.55rem !important;
+  }
+
+  .writing-monitor__summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .writing-monitor__summary > div {
+    min-height: 118px;
+    padding: 12px !important;
+  }
+
+  .writing-monitor__summary > div > div:nth-child(2) {
+    font-size: 1.8rem !important;
+  }
+
+  .writing-monitor__student-card {
+    padding: 12px !important;
+  }
+
+  .writing-monitor__student-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .writing-monitor__modal-backdrop {
+    place-items: end center !important;
+    padding: 0 !important;
+  }
+
+  .writing-monitor__modal {
+    width: 100% !important;
+    max-height: 92dvh !important;
+    border-radius: 18px 18px 0 0 !important;
+    padding: 15px !important;
+  }
+
+  .writing-monitor__mode-control {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 390px) {
+  .writing-monitor__summary {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .writing-monitor__student-metrics small {
+    white-space: normal;
+  }
+}

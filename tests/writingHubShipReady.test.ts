@@ -55,11 +55,38 @@ test('teacher feedback actions save securely and copy intentionally', () => {
   assert.doesNotMatch(source, /Practice assignment will be connected in the next phase/);
 });
 
-test('teacher quick reports are real downloads instead of dead controls', () => {
+test('teacher quick reports open professional print previews instead of raw text downloads', () => {
   const source = readProjectFile('src/pages/writing/WritingExportCenter.tsx');
   assert.match(source, /exportParentReadyReport/);
-  assert.match(source, /Download Summary/);
-  assert.match(source, /Download Parent Report/);
+  assert.match(source, /Preview &amp; Print Teacher Report/);
+  assert.match(source, /Preview &amp; Print Parent Report/);
+  assert.match(source, /openProfessionalWritingReport/);
+  assert.doesNotMatch(source, /text\/plain/);
   assert.match(source, /Class Snapshot/);
   assert.doesNotMatch(source, /Use Advanced Tools/);
+});
+
+test('premium Writing Hub keeps authorship context, score meaning, and teacher reporting synchronized', () => {
+  const hub = readProjectFile('src/pages/writing/WritingHub.tsx');
+  const monitoring = readProjectFile('src/pages/writing/WritingMonitoringView.tsx');
+  const exports = readProjectFile('src/pages/writing/WritingExportCenter.tsx');
+  const report = readProjectFile('src/lib/brains_heist/writingReportDocument.ts');
+  const sql = readProjectFile('supabase/migrations/20260726160000_writing_hub_premium_release.sql');
+
+  assert.match(hub, /Automated estimate/);
+  assert.match(hub, /getStudentWritingIntegrityMode/);
+  assert.match(hub, /recordWritingPaste/);
+  assert.match(monitoring, /Writing Command Center/);
+  assert.match(monitoring, /practice_completed_count/);
+  assert.match(monitoring, /openProfessionalWritingReport/);
+  assert.match(exports, /Preview &amp; Print Parent Report/);
+  assert.doesNotMatch(exports, /text\/plain/);
+  assert.match(report, /Confidential student learning record/);
+  assert.match(sql, /'submission_count'/);
+  assert.match(sql, /'practice_completed_count'/);
+  assert.match(sql, /'needs_review'/);
+  assert.match(sql, /latest_integrity_signals/);
+  assert.match(sql, /uq_bh_writing_attempts_attempt_key/);
+  assert.match(sql, /cta\.teacher_user_id = \(select auth\.uid\(\)\)/);
+  assert.match(sql, /when 'supervised' then 3/);
 });

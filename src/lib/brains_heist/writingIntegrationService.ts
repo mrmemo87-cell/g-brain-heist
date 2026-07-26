@@ -36,6 +36,11 @@ import {
   WritingPromptContextTag,
   WritingPromptFocusTag,
 } from './writingPromptProgression.js';
+import {
+  WritingCompositionTelemetry,
+  WritingIntegrityMode,
+  WritingIntegrityReviewStatus,
+} from './writingIntegrity.js';
 
 export interface StudentWritingProfile {
   student_id: string;
@@ -63,6 +68,7 @@ export interface WritingAttempt {
   rich_feedback?: unknown;
   rich_feedback_source_submission_type?: 'initial';
   rich_feedback_created_at?: string;
+  integrity_signals?: WritingCompositionTelemetry;
 }
 
 export interface WeeklyWritingPlan {
@@ -493,6 +499,7 @@ interface SubmitInitialWritingAssessmentInput {
   parent_attempt_id?: string | null;
   prompt_id?: string | null;
   attempted_at?: string;
+  integrity_signals?: WritingCompositionTelemetry;
 }
 
 interface SubmitDailyWritingPracticeInput {
@@ -563,6 +570,7 @@ export const submitInitialWritingAssessment = (
     prompt_text: input.prompt_text,
     student_submission: input.student_response,
     assessment: flow.assessment_result,
+    integrity_signals: input.integrity_signals,
   });
 
   const wk = weekKey(now);
@@ -1061,6 +1069,18 @@ export interface WritingMonitoringOverview {
     improving: boolean;
     ready_for_monthly_review: boolean;
     attempts_count: number;
+    class_id?: string | null;
+    class_name?: string;
+    submission_count?: number;
+    baseline_submission_count?: number;
+    practice_assigned_count?: number;
+    practice_completed_count?: number;
+    practice_completion_rate?: number;
+    status?: 'not_started' | 'plan_ready' | 'needs_review' | 'needs_support' | 'improving' | 'on_track';
+    status_reason?: string;
+    latest_attempt_at?: string | null;
+    latest_integrity_signals?: WritingCompositionTelemetry | null;
+    integrity_mode?: WritingIntegrityMode;
   }>;
   hotspot_tags: string[];
   stalled_students: string[];
@@ -1466,6 +1486,32 @@ export const getWritingMonitoringOverview = (
     const weeklyTargetSummary = state.active_week_plan
       ? `${state.active_week_plan.primary_target} • ${state.active_week_plan.secondary_target}`
       : 'No active weekly target';
+    const latestAttempt = attempts[attempts.length - 1];
+    const latestIntegritySignals = latestAttempt?.integrity_signals ?? null;
+    const status: NonNullable<WritingMonitoringOverview['student_rows'][number]['status']> =
+      attemptsCount === 0
+        ? 'not_started'
+        : latestIntegritySignals?.review_status === 'review_recommended'
+          ? 'needs_review'
+          : stalled
+            ? 'needs_support'
+            : improving
+              ? 'improving'
+              : attemptsCount === 1 && completed === 0
+                ? 'plan_ready'
+                : 'on_track';
+    const statusReason =
+      status === 'not_started'
+        ? 'No writing has been submitted in this period.'
+        : status === 'needs_review'
+          ? 'Writing-process evidence needs teacher review before this score is used.'
+          : status === 'needs_support'
+            ? 'Comparable writing or practice evidence needs support.'
+            : status === 'improving'
+              ? 'The latest comparable writing evidence improved.'
+              : status === 'plan_ready'
+                ? 'Baseline complete. The personalized practice plan is ready to begin.'
+                : 'Writing and practice evidence are on track.';
 
     rows.push({
       student_name: resolveStudentLabel(studentId, profile?.student_name),
@@ -1486,6 +1532,16 @@ export const getWritingMonitoringOverview = (
       improving,
       ready_for_monthly_review: readyForMonthlyReview,
       attempts_count: attemptsCount,
+      submission_count: attemptsCount,
+      baseline_submission_count: attempts.filter((attempt) => attempt.attempt_type === 'initial_assessment').length,
+      practice_assigned_count: totalTasks,
+      practice_completed_count: completed,
+      practice_completion_rate: completionRate,
+      status,
+      status_reason: statusReason,
+      latest_attempt_at: latestAttempt?.created_at ?? null,
+      latest_integrity_signals: latestIntegritySignals,
+      integrity_mode: latestIntegritySignals?.mode ?? 'practice',
     });
   }
 
@@ -2517,6 +2573,54 @@ export const requestWritingAiAssist = async (input: {
   }
 };
 
+export interface StudentWritingIntegrityContext {
+  mode: WritingIntegrityMode;
+  class_id: string | null;
+  class_name: string;
+}
+
+export const getStudentWritingIntegrityMode = async (): Promise<ServiceResponse<StudentWritingIntegrityContext>> => {
+  if (typeof process !== 'undefined' && process.env?.['NODE_ENV'] === 'test') {
+    return ok({ mode: 'practice', class_id: null, class_name: 'Practice workspace' });
+  }
+
+  try {
+    const { supabase } = await import('../../../services/supabaseClient.js');
+    const { data, error } = await supabase.rpc('rpc_bh_writing_student_integrity_mode');
+    if (error || !data || typeof data !== 'object') {
+      return ok({ mode: 'practice', class_id: null, class_name: 'Practice workspace' });
+    }
+
+    const remote = data as Record<string, unknown>;
+    const mode = remote['mode'];
+    return ok({
+      mode: mode === 'independent' || mode === 'supervised' ? mode : 'practice',
+      class_id: typeof remote['class_id'] === 'string' ? remote['class_id'] : null,
+      class_name: typeof remote['class_name'] === 'string' ? remote['class_name'] : 'Practice workspace',
+    });
+  } catch {
+    return ok({ mode: 'practice', class_id: null, class_name: 'Practice workspace' });
+  }
+};
+
+export const setTeacherWritingIntegrityMode = async (input: {
+  class_id: string;
+  mode: WritingIntegrityMode;
+}): Promise<ServiceResponse<StudentWritingIntegrityContext>> => {
+  if (!input.class_id) return badRequest('Select a class before changing its writing mode.');
+  try {
+    const { supabase } = await import('../../../services/supabaseClient.js');
+    const { data, error } = await supabase.rpc('rpc_bh_writing_teacher_set_integrity_mode', {
+      p_class_id: input.class_id,
+      p_mode: input.mode,
+    });
+    if (error || !data) return badRequest('Unable to update the class writing mode. Please try again.');
+    return ok(data as StudentWritingIntegrityContext);
+  } catch {
+    return badRequest('Unable to update the class writing mode. Please try again.');
+  }
+};
+
 export interface TeacherWritingReport {
   report_type: 'teacher_writing_report';
   generated_at: string;
@@ -2529,12 +2633,33 @@ export interface TeacherWritingReport {
     class_name: string;
   };
   genre: string;
+  institution?: {
+    school_name: string;
+    school_logo_url?: string | null;
+    teacher_name: string;
+  };
   overall_summary: {
     latest_score: number | null;
     score_trend_delta: number | null;
     completion_rate_percent: number;
     completed_tasks: number;
     total_tasks: number;
+    submission_count?: number;
+    baseline_submission_count?: number;
+    practice_assigned_count?: number;
+    practice_completed_count?: number;
+  };
+  rubric_scores?: {
+    content: number | null;
+    communicative_achievement: number | null;
+    organisation: number | null;
+    language: number | null;
+  };
+  integrity?: {
+    mode: WritingIntegrityMode;
+    review_status: WritingIntegrityReviewStatus;
+    reasons: string[];
+    paste_ratio_percent: number;
   };
   strengths: string[];
   priority_weak_areas: string[];
@@ -2624,6 +2749,22 @@ export const mapCalibrationCaseToTeacherReport = (
       completion_rate_percent: completionRatePercent,
       completed_tasks: completedTasks,
       total_tasks: totalTasks,
+      submission_count: c.latest_assessment ? 1 : 0,
+      baseline_submission_count: c.latest_assessment ? 1 : 0,
+      practice_completed_count: completedTasks,
+      practice_assigned_count: totalTasks,
+    },
+    rubric_scores: {
+      content: c.latest_assessment?.subscores.content ?? null,
+      communicative_achievement: c.latest_assessment?.subscores.communicative_achievement ?? null,
+      organisation: c.latest_assessment?.subscores.organisation ?? null,
+      language: c.latest_assessment?.subscores.language ?? null,
+    },
+    integrity: {
+      mode: 'practice',
+      review_status: 'practice_mode',
+      reasons: [],
+      paste_ratio_percent: 0,
     },
     strengths,
     priority_weak_areas: c.latest_assessment?.weakness_tags ?? [],
@@ -2688,7 +2829,14 @@ export const getTeacherAttemptListScoped = async (input: {
       p_limit: input.limit ?? 80,
     });
     if (error || !data) return badRequest(error?.message ?? 'Unable to load teacher attempt list.');
-    return ok(data as TeacherWritingAttemptRecord[]);
+    const seenAttemptIds = new Set<string>();
+    const deduplicated = (data as TeacherWritingAttemptRecord[]).filter((attempt) => {
+      const attemptKey = attempt.attempt_id || attempt.row_id;
+      if (seenAttemptIds.has(attemptKey)) return false;
+      seenAttemptIds.add(attemptKey);
+      return true;
+    });
+    return ok(deduplicated);
   } catch (error) {
     return badRequest(error instanceof Error ? error.message : 'Unable to load teacher attempt list.');
   }
