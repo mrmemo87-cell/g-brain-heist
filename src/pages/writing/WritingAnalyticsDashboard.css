@@ -1,0 +1,19 @@
+.writing-analytics {
+  min-width: 0;
+  overflow-x: clip;
+}
+
+@media (max-width: 700px) {
+  .writing-analytics {
+    gap: 12px !important;
+    padding: 10px 10px 110px !important;
+  }
+
+  .writing-analytics h1 {
+    font-size: 1.55rem !important;
+  }
+
+  .writing-analytics table {
+    min-width: 680px;
+  }
+}
