@@ -4359,12 +4359,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         </div>
       </div>
 
-      {/* Tools Section */}
+      {/* Geometry Builder is the only dashboard tool without its own portal navigation route. */}
       <div className="teacher-mb-8">
         <h3 className="teacher-subsection-title">
-          <span>🛠️</span> Teaching Tools
+          <span>📐</span> Specialist Tool
         </h3>
-        <div className="teacher-tools-grid">
+        <div className="teacher-tools-grid teacher-tools-grid--single">
           {(() => {
             const tq = (label: string): PilotQuota | null => getQuotaForFeature(label, pilotQuotas);
             const isPilot = pilotQuotas?.is_pilot && !pilotQuotas?.expired;
@@ -4381,6 +4381,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             };
             return <>
           <button
+            type="button"
             onClick={() => !isDisabledT('Geometry Builder') ? setView('geometry-diagrams') : undefined}
             className={`teacher-tool-card orange ${isDisabledT('Geometry Builder') ? 'opacity-50 cursor-not-allowed' : ''}`}
             disabled={isDisabledT('Geometry Builder')}
@@ -4393,65 +4394,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             {!isProPlan && !isPilot && <span className="teacher-pro-badge-sm">PRO</span>}
             {quotaBadgeSm('Geometry Builder')}
           </button>
-
-          <button
-            onClick={() => !isDisabledT('Performance Reports') ? setView('reports') : undefined}
-            className={`teacher-tool-card blue ${isDisabledT('Performance Reports') ? 'opacity-50 cursor-not-allowed' : ''}`}
-            disabled={isDisabledT('Performance Reports')}
-          >
-            <div className="teacher-tool-icon">📊</div>
-            <div className="teacher-tool-info">
-              <h4 className="teacher-tool-title">Performance Reports</h4>
-              <p className="teacher-tool-desc">Track student accuracy & completion</p>
-            </div>
-            {!isProPlan && !isPilot && <span className="teacher-pro-badge-sm">PRO</span>}
-            {quotaBadgeSm('Performance Reports')}
-          </button>
-
-          <button
-            onClick={() => {
-              if (isDisabledT('Cambridge Marking')) return;
-              setView('cambridge-reports');
-              loadCambridgeScores();
-            }}
-            className={`teacher-tool-card teal ${isDisabledT('Cambridge Marking') ? 'opacity-50 cursor-not-allowed' : ''}`}
-            disabled={isDisabledT('Cambridge Marking')}
-          >
-            <div className="teacher-tool-icon">✍️</div>
-            <div className="teacher-tool-info">
-              <h4 className="teacher-tool-title">Cambridge Tests</h4>
-              <p className="teacher-tool-desc">Mark writing tests & view results</p>
-            </div>
-            {!isProPlan && !isPilot && <span className="teacher-pro-badge-sm">PRO</span>}
-            {quotaBadgeSm('Cambridge Marking')}
-          </button>
             </>;
           })()}
-
-          {isSchoolAdmin && onOpenSchoolAdmin && (
-            <button
-              onClick={onOpenSchoolAdmin}
-              className="teacher-tool-card purple"
-            >
-              <div className="teacher-tool-icon">🏫</div>
-              <div className="teacher-tool-info">
-                <h4 className="teacher-tool-title">School Admin Portal</h4>
-                <p className="teacher-tool-desc">Manage school members & settings</p>
-              </div>
-            </button>
-          )}
-          {isSchoolAdmin && onOpenAdmissions && (
-            <button
-              onClick={onOpenAdmissions}
-              className="teacher-tool-card purple"
-            >
-              <div className="teacher-tool-icon">🎓</div>
-              <div className="teacher-tool-info">
-                <h4 className="teacher-tool-title">Admission Hub</h4>
-                <p className="teacher-tool-desc">Entrance tests & candidate placement</p>
-              </div>
-            </button>
-          )}
         </div>
       </div>
     </div>

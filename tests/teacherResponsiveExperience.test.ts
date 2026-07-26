@@ -41,6 +41,21 @@ test('teacher dashboard and Clan Wars avoid duplicate high-cost chrome', () => {
   assert.equal(returnActions.length, 0);
 });
 
+test('teacher dashboard keeps only the unique specialist tool and protects its mobile label', () => {
+  const specialistSection = teacherPortal.match(
+    /Geometry Builder is the only dashboard tool[\s\S]*?<\/div>\s*<\/div>\s*<\/div>\s*\);\s*\};/
+  )?.[0] ?? '';
+
+  assert.match(specialistSection, />\s*Specialist Tool\s*</);
+  assert.match(specialistSection, />Geometry Builder</);
+  assert.doesNotMatch(specialistSection, />Performance Reports</);
+  assert.doesNotMatch(specialistSection, />Cambridge Tests</);
+  assert.doesNotMatch(specialistSection, />School Admin Portal</);
+  assert.doesNotMatch(specialistSection, />Admission Hub</);
+  assert.match(teacherTheme, /\.teacher-tools-grid--single\s*\{\s*grid-template-columns: minmax\(0, 38rem\);/);
+  assert.match(teacherTheme, /\.teacher-tool-title\s*\{[\s\S]*word-break: keep-all;/);
+});
+
 test('Clan Wars stays inside the teacher workspace without an app-level reload', () => {
   assert.match(teacherPortal, /const ClanTerritoryManager = React\.lazy/);
   assert.match(teacherPortal, /case 'clan-wars':\s*setView\('clan-wars'\)/);
