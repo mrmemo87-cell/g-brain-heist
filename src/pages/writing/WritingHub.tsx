@@ -25,8 +25,21 @@ import {
   submitDailyWritingPractice,
   submitInitialWritingAssessment,
   getStudentPromptAttemptCount,
+  getStudentWritingIntegrityMode,
 } from '../../lib/brains_heist/writingIntegrationService.js';
 import { FALLBACK_PROMPT_BY_GENRE, WEAKNESS_TAG_TO_MISSION_CATEGORY } from '../../lib/brains_heist/writingPromptProgression.js';
+import {
+  createWritingCompositionTelemetry,
+  finalizeWritingCompositionTelemetry,
+  recordWritingFocusLoss,
+  recordWritingInput,
+  recordWritingPaste,
+  recordWritingVisibilityHidden,
+  toWritingIntegrityModeLabel,
+  toWritingIntegrityReviewLabel,
+  WritingCompositionTelemetry,
+  WritingIntegrityMode,
+} from '../../lib/brains_heist/writingIntegrity.js';
 import { quest_get_missions, QuestMissionRow } from '../../../services/gameService.js';
 
 interface WritingHubProps {
@@ -37,6 +50,11 @@ interface WritingHubProps {
   month?: string;
   onOpenQuestMission?: (missionId?: string) => void;
 }
+type WritingTextareaChangeEvent = { target: { value: string } };
+type WritingPasteEvent = {
+  clipboardData: { getData: (format: string) => string };
+  preventDefault: () => void;
+};
 type SupportedGenre = WritingHubProps['genre'];
 
 export interface WritingDashboardSnapshot {
@@ -4777,6 +4795,12 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   const [attemptNumber, setAttemptNumber] = useState<number>(1);
   const [lastAttemptId, setLastAttemptId] = useState<string | null>(null);
   const [lastRetryKind, setLastRetryKind] = useState<'same_prompt' | 'new_prompt'>('new_prompt');
+  const [integrityMode, setIntegrityMode] = useState<WritingIntegrityMode>('practice');
+  const [compositionTelemetry, setCompositionTelemetry] = useState<WritingCompositionTelemetry>(
+    () => createWritingCompositionTelemetry('practice')
+  );
+  const [latestIntegritySignals, setLatestIntegritySignals] = useState<WritingCompositionTelemetry | null>(null);
+  const [revisionOriginText, setRevisionOriginText] = useState('');
   const [promptHistoryCount, setPromptHistoryCount] = useState<number>(0);
   const [availablePromptCount, setAvailablePromptCount] = useState<number>(1);
   const [hydrationStatus, setHydrationStatus] = useState(getWritingHydrationStatus());
@@ -4787,6 +4811,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   const cinematicTracePathRef = useRef<SVGPathElement | null>(null);
   const observerCleanupRef = useRef<(() => void) | null>(null);
   const managedPromptLoadKeyRef = useRef('');
+  const pastedCharactersToIgnoreRef = useRef(0);
   const targetWordCount = grade <= 7 ? 80 : grade <= 9 ? 120 : 160;
   const wordCount = countWords(draft);
   const wordTone = useMemo(() => getWordCounterTone(wordCount, targetWordCount), [wordCount, targetWordCount]);
@@ -4815,7 +4840,22 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     setAttemptNumber(1);
     setLastAttemptId(null);
     setLastRetryKind('new_prompt');
+    setLatestIntegritySignals(null);
+    setRevisionOriginText('');
+    setCompositionTelemetry(createWritingCompositionTelemetry(integrityMode));
   }, [genre]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void getStudentWritingIntegrityMode().then((result) => {
+      if (cancelled || !result.ok || !result.data) return;
+      setIntegrityMode(result.data.mode);
+      setCompositionTelemetry(createWritingCompositionTelemetry(result.data.mode));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [studentId]);
 
   useEffect(() => {
     const unsubscribeHydration = subscribeToWritingHydrationStatus(setHydrationStatus);
@@ -4884,7 +4924,18 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [draft]);
 
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const handleVisibility = () => {
+      if (document.visibilityState !== 'hidden' || !draft.trim()) return;
+      setCompositionTelemetry((current) => recordWritingVisibilityHidden(current));
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [draft]);
+
   const beginRetrySamePrompt = () => {
+    setRevisionOriginText(submittedText || draft);
     setLastRetryKind('same_prompt');
     setDraft('');
     setAssessment(null);
@@ -4894,6 +4945,8 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     setCinematicDone(false);
     setCinematicIndex(null);
     setShowFullEssayContext(false);
+    setLatestIntegritySignals(null);
+    setCompositionTelemetry(createWritingCompositionTelemetry(integrityMode, lastAttemptId));
     setNotice('Retry this prompt: write an improved version, then submit.');
     setTimeout(() => responseFieldRef.current?.focus(), 0);
   };
@@ -4947,6 +5000,9 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       setAttemptNumber(1);
       setLastAttemptId(null);
       setLastRetryKind('new_prompt');
+      setRevisionOriginText('');
+      setLatestIntegritySignals(null);
+      setCompositionTelemetry(createWritingCompositionTelemetry(integrityMode));
       setShowPromptChooser(false);
       setTimeout(() => responseFieldRef.current?.focus(), 0);
     } catch (e) {
@@ -4975,6 +5031,11 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
 
     const currentCycleId = retryKind === 'new_prompt' ? createRevisionCycleId() : revisionCycleId;
     const currentAttemptNumber = retryKind === 'new_prompt' ? 1 : attemptNumber;
+    const finalizedIntegritySignals = finalizeWritingCompositionTelemetry(
+      compositionTelemetry,
+      draft,
+      retryKind === 'same_prompt' ? revisionOriginText : ''
+    );
 
     const result = submitInitialWritingAssessment({
       student_id: studentId,
@@ -4989,6 +5050,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       attempt_number: currentAttemptNumber,
       retry_kind: retryKind,
       parent_attempt_id: retryKind === 'same_prompt' ? lastAttemptId : null,
+      integrity_signals: finalizedIntegritySignals,
     });
 
     if (!result.ok || !result.data) {
@@ -5003,6 +5065,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     setRevisionCycleId(currentCycleId);
     setAttemptNumber(currentAttemptNumber + 1);
     setLastRetryKind(retryKind);
+    setLatestIntegritySignals(finalizedIntegritySignals);
     if (typeof window !== 'undefined') {
       window.localStorage.removeItem(draftStorageKey);
     }
@@ -5073,6 +5136,9 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       : cinematicTrust.mode === 'stale_feedback'
         ? 'Guided review mode'
         : 'Guided review mode';
+  const cinematicProgress = cinematicRanges.length > 0
+    ? Math.round((((cinematicIndex ?? -1) + 1) / cinematicRanges.length) * 100)
+    : 100;
   const activeCinematicRange = cinematicIndex != null ? cinematicRanges[cinematicIndex] ?? null : null;
   const activeCinematicDetail = useMemo(
     () => describeHighlight(activeCinematicRange, submittedText, aiFeedback),
@@ -5457,16 +5523,57 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
           </div>
           <span style={{ color: wordTone.accent }}>{wordCount} / {toWordCountLabel(targetWordCount)}</span>
         </div>
+        <div className={`writing-studio__integrity-mode writing-studio__integrity-mode--${integrityMode}`}>
+          <div>
+            <strong>{toWritingIntegrityModeLabel(integrityMode)}</strong>
+            <span>
+              {integrityMode === 'practice'
+                ? 'Use support responsibly. Pasting is recorded so your teacher can understand the writing process.'
+                : integrityMode === 'independent'
+                  ? 'Write in this editor using your own words. Pasting is disabled.'
+                  : 'Your teacher is supervising this assessment. Pasting and leaving the page are recorded.'}
+            </span>
+          </div>
+          <span className="writing-studio__integrity-badge">
+            {integrityMode === 'practice' ? 'Support allowed' : 'Original writing'}
+          </span>
+        </div>
         <textarea
           ref={responseFieldRef}
           value={draft}
-          onChange={(e: { target: { value: string } }) => setDraft(e.target.value)}
+          onChange={(event: WritingTextareaChangeEvent) => {
+            const nextValue = event.target.value;
+            const ignoredPasteCharacters = pastedCharactersToIgnoreRef.current;
+            pastedCharactersToIgnoreRef.current = 0;
+            setCompositionTelemetry((current) =>
+              recordWritingInput(current, draft, nextValue, new Date(), ignoredPasteCharacters ?? 0)
+            );
+            setDraft(nextValue);
+          }}
+          onPaste={(event: WritingPasteEvent) => {
+            const pastedText = event.clipboardData.getData('text');
+            const shouldBlock = integrityMode !== 'practice';
+            setCompositionTelemetry((current) =>
+              recordWritingPaste(current, pastedText.length, shouldBlock)
+            );
+            if (shouldBlock) {
+              event.preventDefault();
+              setError(`${toWritingIntegrityModeLabel(integrityMode)} requires writing directly in the editor. Pasting is disabled.`);
+              return;
+            }
+            pastedCharactersToIgnoreRef.current = pastedText.length;
+            setNotice('Paste recorded as part of your writing process. Your score remains a formative estimate.');
+          }}
+          onBlur={() => {
+            if (!draft.trim()) return;
+            setCompositionTelemetry((current) => recordWritingFocusLoss(current));
+          }}
           placeholder="Write your response here."
           className="writing-studio__editor"
           aria-describedby="writing-editor-help"
         />
         <p id="writing-editor-help" className="writing-studio__editor-help">
-          Your draft saves securely while you work. Pasting is allowed for accessibility; your school’s academic-integrity policy still applies.
+          Your draft saves securely while you work. Accessibility accommodations can be arranged by your teacher.
         </p>
         {isVeryShortDraft && <p className="writing-studio__gentle-warning">Add a little more detail before submitting so your feedback can be useful.</p>}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -5502,10 +5609,25 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
           <div className="writing-studio__section-heading">
             <div>
               <span>Step 3</span>
-              <h3>Your feedback</h3>
+              <h3>Your formative feedback</h3>
             </div>
-            <div className="writing-studio__score">{assessment.total_score}<small>/20</small></div>
+            <div>
+              <span className="writing-studio__score-label">Automated estimate</span>
+              <div className="writing-studio__score">{assessment.total_score}<small>/20</small></div>
+            </div>
           </div>
+          {latestIntegritySignals && (
+            <div className={`writing-studio__integrity-result writing-studio__integrity-result--${latestIntegritySignals.review_status}`}>
+              <strong>{toWritingIntegrityReviewLabel(latestIntegritySignals.review_status)}</strong>
+              <span>
+                {latestIntegritySignals.review_status === 'review_recommended'
+                  ? 'Your teacher can review the writing-process evidence before using this result.'
+                  : latestIntegritySignals.review_status === 'practice_mode'
+                    ? 'This result supports learning; it does not verify who wrote the response.'
+                    : 'No concern was observed by the writing-process checks. Your teacher remains the final judge.'}
+              </span>
+            </div>
+          )}
           {cinematicRanges.length > 0 && (
             <button
               type="button"
@@ -5679,12 +5801,22 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
           <section className="simple-cinematic-panel">
             <header className="cinematic-feedback__header">
               <div>
-                <span>{cinematicModeLabel}</span>
-                <h2 id="cinematic-feedback-title">Cinematic Feedback</h2>
-                <p>Green shows what is working. Red shows your clearest next improvement.</p>
+                <span>{cinematicModeLabel} · live writing replay</span>
+                <h2 id="cinematic-feedback-title">Your writing, illuminated</h2>
+                <span className="sr-only">Green shows what is working. Red shows your clearest next improvement.</span>
+                <p><b className="cinematic-feedback__legend-dot is-strong" /> Green preserves a strong choice. <b className="cinematic-feedback__legend-dot is-growth" /> Coral reveals your next upgrade.</p>
               </div>
-              <button type="button" className="cinematic-feedback__close" onClick={() => setShowCinematicFeedback(false)} aria-label="Close cinematic feedback">×</button>
+              <div className="cinematic-feedback__header-actions">
+                <div className="cinematic-feedback__score-orbit" aria-label={`Automated formative estimate ${assessment?.total_score ?? 0} out of 20`}>
+                  <strong>{assessment?.total_score ?? '—'}</strong>
+                  <span>/20</span>
+                </div>
+                <button type="button" className="cinematic-feedback__close" onClick={() => setShowCinematicFeedback(false)} aria-label="Close cinematic feedback">×</button>
+              </div>
             </header>
+            <div className="cinematic-feedback__progress" aria-label={`Feedback replay ${cinematicProgress} percent complete`}>
+              <i style={{ width: `${cinematicProgress}%` }} />
+            </div>
 
             <div className="cinematic-feedback__grid">
               <div className="cinematic-text-panel" ref={cinematicTextPanelRef} tabIndex={0} aria-label="Your submitted writing with animated feedback">
@@ -5752,7 +5884,11 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                   Improve my draft
                 </button>
               </div>
-              {cinematicDone && <span className="cinematic-feedback__complete">Review complete — now make one powerful improvement.</span>}
+              {cinematicDone && (
+                <span className="cinematic-feedback__complete">
+                  <strong>Revision mission:</strong> improve one coral passage, keep the green strengths, then submit your own stronger draft.
+                </span>
+              )}
             </footer>
           </section>
         </div>,
