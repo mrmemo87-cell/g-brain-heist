@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
 import {
   getTeacherMonitoringOverviewScoped,
@@ -9,9 +9,12 @@ import {
   getWritingMonitoringOverview,
   TeacherWritingReport,
   WritingMonitoringOverview,
+  setTeacherWritingIntegrityMode,
 } from '../../lib/brains_heist/writingIntegrationService.js';
 import { parseAdminDrilldownFilters } from '../../lib/brains_heist/writingAdminFilters.js';
 import { WRITING_ADMIN_HELP } from '../../lib/brains_heist/writingAdminHelp.js';
+import { openProfessionalWritingReport } from '../../lib/brains_heist/writingReportDocument.js';
+import type { WritingIntegrityMode } from '../../lib/brains_heist/writingIntegrity.js';
 
 interface WritingMonitoringViewProps {
   month?: string;
@@ -117,10 +120,11 @@ const extractAttemptFeedbackText = (attempt: TeacherWritingAttemptRecord): strin
 };
 
 const getReportConfidenceState = (report: TeacherWritingReport): ReportConfidenceState => {
-  const completedTasks = report.overall_summary.completed_tasks;
+  const submissionCount =
+    report.overall_summary.submission_count ?? report.overall_summary.completed_tasks;
   const completionRate = report.overall_summary.completion_rate_percent;
   const hasScore = report.overall_summary.latest_score != null && !Number.isNaN(report.overall_summary.latest_score);
-  const hasNoAttempts = completedTasks <= 0;
+  const hasNoAttempts = submissionCount <= 0;
 
   if (hasNoAttempts && !hasScore) return 'no_data';
   if (completionRate <= 0 && !hasScore) return 'no_data';
@@ -128,7 +132,7 @@ const getReportConfidenceState = (report: TeacherWritingReport): ReportConfidenc
   const strengths = report.strengths.filter((item) => Boolean(item?.trim()));
   const weakAreas = report.priority_weak_areas.filter((item) => Boolean(item?.trim()));
   const hasMissingAnalysis = !report.latest_evaluation || !report.monthly_summary;
-  const veryLowAttempts = completedTasks < 2;
+  const veryLowAttempts = submissionCount < 2;
 
   if (veryLowAttempts || weakAreas.length === 0 || hasMissingAnalysis || strengths.length === 0) return 'partial_data';
   return 'full_insight';
@@ -153,16 +157,6 @@ const toTrendLabel = (row: MonitoringRow): 'Improving' | 'Stable' | 'Declining' 
   if (positives >= 2 && positives > negatives) return 'Improving';
   if (negatives >= 2 && negatives > positives) return 'Declining';
   return 'Stable';
-};
-
-const downloadText = (filename: string, content: string): void => {
-  if (typeof window === 'undefined') return;
-  const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(link.href);
 };
 
 export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
@@ -197,6 +191,8 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
   const [reportError, setReportError] = useState('');
   const [openReportData, setOpenReportData] = useState<TeacherWritingReport | null>(null);
   const [attemptRows, setAttemptRows] = useState<TeacherWritingAttemptRecord[]>([]);
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
+  const [modeUpdateStatus, setModeUpdateStatus] = useState('');
 
   const filters = parseAdminDrilldownFilters(filterQuery);
 
@@ -246,23 +242,34 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
     return next;
   }, [allRows, filters, activeQuickFilter, gradeFilter, classFilter, weakAreaFilter, supportFilter, readinessFilter, searchQuery, sortKey]);
 
+  const refreshOverview = useCallback(async (): Promise<void> => {
+    if (isTestRuntime) return;
+    const result = await getTeacherMonitoringOverviewScoped(month);
+    if (!result.ok || !result.data) {
+      setLoadError(result.error ?? 'Writing data could not be refreshed. Please try again.');
+      return;
+    }
+    setOverview(result.data);
+    setLastSyncedAt(new Date());
+    setLoadError('');
+  }, [month, isTestRuntime]);
+
   useEffect(() => {
     if (isTestRuntime) return;
-    let cancelled = false;
-    void getTeacherMonitoringOverviewScoped(month).then((result) => {
-      if (cancelled) return;
-      if (!result.ok || !result.data) {
-        setOverview(null);
-        setLoadError(result.error ?? 'No writing monitoring data available yet.');
-        return;
-      }
-      setOverview(result.data);
-      setLoadError('');
-    });
-    return () => {
-      cancelled = true;
+    void refreshOverview();
+    const refreshTimer = window.setInterval(() => void refreshOverview(), 30_000);
+    const refreshOnFocus = () => void refreshOverview();
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') void refreshOverview();
     };
-  }, [month, isTestRuntime]);
+    window.addEventListener('focus', refreshOnFocus);
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+    return () => {
+      window.clearInterval(refreshTimer);
+      window.removeEventListener('focus', refreshOnFocus);
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
+    };
+  }, [isTestRuntime, refreshOverview]);
 
   useEffect(() => {
     const nodes = [headerRef.current, listRef.current, detailsRef.current].filter(Boolean);
@@ -312,6 +319,13 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
           return;
         }
         setOpenReportData(reportResult.data);
+        const report = reportResult.data;
+        setFeedbackDraft([
+          `Praise: ${report.strengths[0] ?? 'Thank you for completing this writing task.'}`,
+          `Growth target: ${report.priority_weak_areas[0] ? toTeacherWeaknessLabel(report.priority_weak_areas[0]) : 'Use one feedback target in the next draft.'}`,
+          `Next step: ${report.teacher_actions[0] ?? 'Revise one paragraph and explain what changed.'}`,
+        ].join('\n\n'));
+        setFeedbackStatus('');
         if (attemptsResult.ok && attemptsResult.data) setAttemptRows(attemptsResult.data);
         setActionedToday((prev) => new Set(prev).add(studentId));
       })
@@ -321,118 +335,47 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
 
   useEffect(() => {
     if (activeQueueTab !== 'all') return;
-    if (allRows.some((row) => row.stalled)) setActiveQueueTab('urgent');
+    if (allRows.some((row) => row.status === 'needs_review' || row.status === 'needs_support' || row.stalled)) {
+      setActiveQueueTab('urgent');
+    }
   }, [allRows, activeQueueTab]);
 
   const queueRows = useMemo(() => {
     if (activeQueueTab === 'all') return rows;
-    if (activeQueueTab === 'urgent') return rows.filter((row) => row.stalled);
+    if (activeQueueTab === 'urgent') {
+      return rows.filter((row) => row.status === 'needs_review' || row.status === 'needs_support' || row.stalled);
+    }
     if (activeQueueTab === 'improving') return rows.filter((row) => row.improving && !row.stalled);
-    return rows.filter((row) => !row.stalled && !row.improving);
+    return rows.filter((row) => !row.stalled && row.status !== 'needs_review' && !row.improving);
   }, [rows, activeQueueTab]);
 
   const getWhyFlagged = (row: MonitoringRow): string => {
-    if (row.stalled) return 'Repeated grammar accuracy weakness in recent attempts.';
+    if (row.status_reason) return row.status_reason;
+    if (row.stalled) return 'Comparable writing evidence is not improving yet.';
     if (row.improving) return 'Recent writing indicators show consistent progress.';
-    return 'Stable progress with no high-priority risk signal.';
-  };
-  const buildPrintableReportHtml = (report: TeacherWritingReport): string => {
-    const submissionCount = report.overall_summary.completed_tasks;
-    const latestScore = report.overall_summary.latest_score;
-    const strengths = report.strengths.length ? report.strengths : ['No strengths captured yet'];
-    const weakAreas = report.priority_weak_areas.length ? report.priority_weak_areas.map(toTeacherWeaknessLabel) : ['No repeated weak areas yet'];
-    const actions = report.teacher_actions.length ? report.teacher_actions : ['No actions generated yet'];
-    const generatedAt = new Date().toLocaleString();
-    const rows = [
-      ['Reporting period', report.period],
-      ['Genre', report.genre],
-      ['Latest score', formatScoreLabel(latestScore)],
-      ['Submissions', `${submissionCount}`],
-      ['Trend delta', report.overall_summary.score_trend_delta ?? '—'],
-      ['Progress summary', report.student_friendly_summary.progress_summary],
-      ['Priority weak areas', weakAreas.join(', ')],
-      ['Teacher actions', actions.join(' • ')],
-      ['Strengths', strengths.join(' • ')],
-    ];
-    const renderedRows = rows
-      .map(([label, value]) => `<tr><th>${label}</th><td>${value}</td></tr>`)
-      .join('');
-    return `<!doctype html>
-<html><head><meta charset="utf-8"/><title>Student Writing Review</title>
-<style>
-body{font-family:Inter,Segoe UI,Arial,sans-serif;padding:26px;color:#0f172a;background:#f8fafc}
-.card{border:1px solid #cbd5e1;border-radius:14px;background:#fff;overflow:hidden}
-.header{padding:18px 22px;background:linear-gradient(120deg,#1e293b,#334155);color:#f8fafc}
-.header h1{margin:0;font-size:28px;letter-spacing:.3px}
-.header p{margin:6px 0 0;color:#cbd5e1}
-.meta-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:16px 22px;background:#eef2ff;border-bottom:1px solid #cbd5e1}
-.meta-box{background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:10px}
-.meta-box .label{font-size:11px;text-transform:uppercase;color:#64748b;font-weight:700;letter-spacing:.35px}
-.meta-box .value{margin-top:4px;font-size:18px;font-weight:800;color:#0f172a}
-table{width:100%;border-collapse:collapse}
-th,td{border:1px solid #e2e8f0;padding:10px 12px;vertical-align:top}
-th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:uppercase;letter-spacing:.35px}
-.student-bar{padding:14px 22px;background:#f8fafc;border-bottom:1px solid #e2e8f0;font-size:16px}
-.meta{padding:14px 22px;font-size:12px;color:#64748b}
-</style></head>
-<body>
-  <article class="card">
-    <header class="header">
-      <h1>Writing Report Card</h1>
-      <p>Teacher report • generated ${generatedAt}</p>
-    </header>
-    <div class="student-bar"><strong>${report.student.student_name}</strong> · Grade ${report.student.grade ?? '—'} · ${report.student.class_name ?? 'Unassigned'}</div>
-    <section class="meta-grid">
-      <div class="meta-box"><div class="label">Latest score</div><div class="value">${formatScoreLabel(latestScore)}</div></div>
-      <div class="meta-box"><div class="label">Submissions</div><div class="value">${submissionCount}</div></div>
-      <div class="meta-box"><div class="label">Weak areas</div><div class="value">${weakAreas.length}</div></div>
-      <div class="meta-box"><div class="label">Actions</div><div class="value">${actions.length}</div></div>
-    </section>
-    <table>${renderedRows}</table>
-    <div class="meta">Confidential — for teacher and student support planning.</div>
-  </article>
-</body></html>`;
+    if ((row.submission_count ?? row.attempts_count ?? 0) === 1) {
+      return 'Baseline complete. The personalized practice plan is ready to begin.';
+    }
+    return 'Writing and practice evidence are on track.';
   };
 
   const printOpenReport = (): void => {
-    if (!openReportData || typeof window === 'undefined') return;
-    const printWindow = window.open('', '_blank', 'width=1080,height=820');
-    if (!printWindow) return;
-    printWindow.document.open();
-    printWindow.document.write(buildPrintableReportHtml(openReportData));
-    printWindow.document.close();
-    const triggerPrint = (): void => {
-      printWindow.focus();
-      printWindow.print();
-    };
-    printWindow.onload = triggerPrint;
-    window.setTimeout(triggerPrint, 350);
+    if (!openReportData) return;
+    openProfessionalWritingReport(openReportData, {
+      audience: 'teacher',
+      teacherComment: feedbackDraft,
+      reportStatus: feedbackStatus.includes('final') ? 'final' : 'draft',
+    });
   };
 
-  const handleExportStudent = (studentId: string): void => {
-    const targetRow = allRows.find((row) => row.student_id === studentId);
-    if (!targetRow) return;
-    const content = [
-      `Student: ${toDisplayLabel(targetRow.student_name, targetRow.student_id)}`,
-      `Grade: ${targetRow.current_grade}`,
-      `Submissions: ${targetRow.attempts_count ?? 0}`,
-      `Latest score: ${targetRow.latest_score ?? 'No score yet'}`,
-      `Recent trend: ${toTrendLabel(targetRow)}`,
-      `Weak areas: ${targetRow.repeated_weakness_hotspots.map(toTeacherWeaknessLabel).join(', ') || 'None yet'}`,
-      `Next focus: ${targetRow.weekly_target_summary}`,
-      `Readiness: ${targetRow.ready_for_monthly_review ? 'Ready for monthly review' : 'Not ready for monthly review yet'}`,
-    ].join('\n');
-    downloadText(`writing-summary-${studentId}-${month}.txt`, content);
-  };
-
-  const saveFeedbackDraft = (): void => {
+  const saveFeedbackDraft = (status: 'draft' | 'final' = 'draft'): void => {
     if (!selectedRow || !feedbackDraft.trim()) return;
-    setFeedbackStatus('Saving securely…');
+    setFeedbackStatus(status === 'final' ? 'Publishing feedback...' : 'Saving securely...');
     void saveTeacherReportScoped({
       student_id: selectedRow.student_id,
       mode: 'student',
       month,
-      status: 'draft',
+      status,
       teacher_comment: feedbackDraft.trim(),
       report_payload: {
         title: `Writing feedback for ${toDisplayLabel(selectedRow.student_name, selectedRow.student_id)}`,
@@ -446,7 +389,7 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
         setFeedbackStatus(result.error ?? 'Unable to save feedback.');
         return;
       }
-      setFeedbackStatus('Draft saved securely.');
+      setFeedbackStatus(status === 'final' ? 'Feedback finalized and saved.' : 'Draft saved securely.');
       setActionedToday((current) => new Set(current).add(selectedRow.student_id));
     });
   };
@@ -457,6 +400,22 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
       () => setFeedbackStatus('Copied to clipboard.'),
       () => setFeedbackStatus('Copy failed. Select the text and copy manually.')
     );
+  };
+
+  const updateClassIntegrityMode = (row: MonitoringRow, mode: WritingIntegrityMode): void => {
+    if (!row.class_id) {
+      setModeUpdateStatus('This student is not assigned to an active class.');
+      return;
+    }
+    setModeUpdateStatus('Updating class writing mode...');
+    void setTeacherWritingIntegrityMode({ class_id: row.class_id, mode }).then((result) => {
+      if (!result.ok) {
+        setModeUpdateStatus(result.error ?? 'Unable to update the class writing mode.');
+        return;
+      }
+      setModeUpdateStatus(`${result.data?.class_name ?? row.class_name ?? 'Class'} is now in ${mode} mode.`);
+      void refreshOverview();
+    });
   };
 
   if (isLoading) {
@@ -477,32 +436,41 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
     );
   }
   if (errorMessage) return <div style={{ padding: 12, color: '#fca5a5' }}>Unable to load writing monitor: {errorMessage}</div>;
-  if (loadError) return <div style={{ padding: 12, color: '#e5e7eb' }}>{loadError}</div>;
+  if (loadError && !overview) return <div style={{ padding: 12, color: '#e5e7eb' }}>{loadError}</div>;
   if (!overview) return <div style={{ padding: 12, color: '#e5e7eb' }}>No writing monitoring data available yet.</div>;
   if (overview.student_rows.length === 0) return <div style={{ padding: 12, color: '#e5e7eb' }}>No students with writing records yet.</div>;
 
-  const stalledCount = allRows.filter((row) => row.stalled).length;
+  const stalledCount = allRows.filter((row) => row.status === 'needs_review' || row.status === 'needs_support' || row.stalled).length;
   const improvingCount = allRows.filter((row) => row.improving).length;
-  const monthlyReadyCount = allRows.filter((row) => row.ready_for_monthly_review).length;
+  const planReadyCount = allRows.filter((row) => row.status === 'plan_ready').length;
+  const onTrackCount = allRows.filter((row) => row.status === 'on_track' || row.improving).length;
 
   return (
-    <div style={{ padding: 20, color: '#f3f4f6', display: 'grid', gap: 20, background: '#0a0f1a' }}>
+    <div className="writing-monitor" style={{ padding: 20, color: '#f3f4f6', display: 'grid', gap: 20, background: '#0a0f1a' }}>
       <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Weekly target</span>
       <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Teacher/Admin Writing Monitor</span>
+      {loadError ? (
+        <div role="status" style={{ padding: '10px 12px', border: '1px solid #92400e', borderRadius: 9, color: '#fed7aa', background: 'rgba(146,64,14,.14)', fontSize: 12 }}>
+          Live refresh paused. Showing the most recent synchronized data.
+        </div>
+      ) : null}
 
       {/* Header Section */}
       <section ref={headerRef} style={{ display: 'grid', gap: 16 }}>
         <div>
-          <h1 style={{ margin: 0, color: '#ffffff', fontSize: 32, fontWeight: 900, letterSpacing: -0.5 }}>Today’s Focus</h1>
-          <p style={{ margin: '8px 0 0', color: '#94a3b8', fontSize: 14 }}>Start with students who need action now.</p>
+          <h1 style={{ margin: 0, color: '#ffffff', fontSize: 32, fontWeight: 900, letterSpacing: -0.5 }}>Writing Command Center</h1>
+          <p style={{ margin: '8px 0 0', color: '#94a3b8', fontSize: 14 }}>One live view of submissions, practice, progress, and writing-process evidence.</p>
+          <span className="writing-monitor__sync">
+            {lastSyncedAt ? `Synced ${lastSyncedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Live sync active'}
+          </span>
         </div>
 
         {/* Key Metrics */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14 }}>
+        <div className="writing-monitor__summary" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 14 }}>
           <div style={{ ...shellCard, padding: 16, display: 'grid', gap: 8, border: '1px solid #1e293b' }}>
-            <div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>Need Help</div>
+            <div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>Review now</div>
             <div style={{ fontSize: 36, fontWeight: 900, color: '#fca5a5' }}>{stalledCount}</div>
-            <div style={{ fontSize: 12, color: '#cbd5e1' }}>Need support now</div>
+            <div style={{ fontSize: 12, color: '#cbd5e1' }}>Evidence or progress needs attention</div>
           </div>
           <div style={{ ...shellCard, padding: 16, display: 'grid', gap: 8, border: '1px solid #1e293b' }}>
             <div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>Improving</div>
@@ -510,20 +478,25 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
             <div style={{ fontSize: 12, color: '#cbd5e1' }}>Making progress</div>
           </div>
           <div style={{ ...shellCard, padding: 16, display: 'grid', gap: 8, border: '1px solid #1e293b' }}>
-            <div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>On Track</div>
-            <div style={{ fontSize: 36, fontWeight: 900, color: '#93c5fd' }}>{monthlyReadyCount}</div>
-            <div style={{ fontSize: 12, color: '#cbd5e1' }}>Stable progress</div>
+            <div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>Plan ready</div>
+            <div style={{ fontSize: 36, fontWeight: 900, color: '#fcd34d' }}>{planReadyCount}</div>
+            <div style={{ fontSize: 12, color: '#cbd5e1' }}>Baseline done; practice can begin</div>
+          </div>
+          <div style={{ ...shellCard, padding: 16, display: 'grid', gap: 8, border: '1px solid #1e293b' }}>
+            <div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>On track</div>
+            <div style={{ fontSize: 36, fontWeight: 900, color: '#93c5fd' }}>{onTrackCount}</div>
+            <div style={{ fontSize: 12, color: '#cbd5e1' }}>No priority action required</div>
           </div>
         </div>
-        <div style={{ fontSize: 12, color: '#94a3b8' }}>Actioned today: {actionedToday.size} • Start with Need Help, then check Improving.</div>
+        <div style={{ fontSize: 12, color: '#94a3b8' }}>Actioned today: {actionedToday.size} • Start with Review now, then check Plan ready.</div>
 
       </section>
 
       <section style={{ ...shellCard, padding: 12, border: '1px solid #1e293b', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {[
-          ['urgent', `Need Help (${allRows.filter((row) => row.stalled).length})`],
+          ['urgent', `Review now (${stalledCount})`],
           ['improving', `Improving (${allRows.filter((row) => row.improving && !row.stalled).length})`],
-          ['on_track', `On Track (${allRows.filter((row) => !row.stalled && !row.improving).length})`],
+          ['on_track', `On Track (${allRows.filter((row) => !row.stalled && row.status !== 'needs_review' && !row.improving).length})`],
           ['all', `All Students (${rows.length})`],
         ].map(([key, label]) => (
           <button key={key} type="button" onClick={() => setActiveQueueTab(key as any)} style={{ ...chipStyle(activeQueueTab === key ? 'info' : 'neutral'), border: 'none', cursor: 'pointer' }}>{label}</button>
@@ -593,37 +566,56 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
         <div ref={listRef} style={{ display: 'grid', gap: 12 }}>
           {queueRows.map((row) => {
             const selected = selectedRow?.student_id === row.student_id;
-            const statusLabel = row.stalled ? 'Urgent' : row.improving ? 'Improving' : 'On Track';
+            const statusLabel =
+              row.status === 'needs_review' ? 'Review evidence'
+                : row.status === 'needs_support' || row.stalled ? 'Needs support'
+                  : row.status === 'plan_ready' ? 'Plan ready'
+                    : row.status === 'not_started' ? 'Not started'
+                      : row.improving ? 'Improving'
+                        : 'On track';
+            const statusTone =
+              row.status === 'needs_review' || row.status === 'needs_support' || row.stalled
+                ? 'danger'
+                : row.improving
+                  ? 'success'
+                  : row.status === 'plan_ready'
+                    ? 'info'
+                    : 'neutral';
             return (
-              <article key={row.student_id} onClick={() => setSelectedStudentId(row.student_id)} style={{ ...shellCard, padding: 14, border: selected ? '1px solid #3b82f6' : '1px solid #1e293b', cursor: 'pointer', display: 'grid', gap: 10 }}>
+              <article className="writing-monitor__student-card" key={row.student_id} onClick={() => setSelectedStudentId(row.student_id)} style={{ ...shellCard, padding: 14, border: selected ? '1px solid #3b82f6' : '1px solid #1e293b', cursor: 'pointer', display: 'grid', gap: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
                   <div>
                     <div style={{ fontWeight: 800, fontSize: 16 }}>{toDisplayLabel(row.student_name, row.student_id)}</div>
                     <div style={{ fontSize: 12, color: '#94a3b8' }}>{row.class_name ?? 'Unassigned'} • Grade {row.current_grade}</div>
                   </div>
-                  <span style={{ ...chipStyle(row.stalled ? 'danger' : row.improving ? 'success' : 'neutral') }}>{statusLabel}</span>
+                  <span style={{ ...chipStyle(statusTone) }}>{statusLabel}</span>
                 </div>
-                <div><small style={{ color: '#94a3b8' }}>Latest score</small><div>{formatScoreLabel(row.latest_score)}</div></div>
-                <div style={{ fontSize: 13, color: '#cbd5e1' }}><strong>Why flagged:</strong> {getWhyFlagged(row)}</div>
+                <div className="writing-monitor__student-metrics">
+                  <div><small>Formative estimate</small><strong>{formatScoreLabel(row.latest_score)}</strong></div>
+                  <div><small>Submissions</small><strong>{row.submission_count ?? row.attempts_count ?? 0}</strong></div>
+                  <div><small>Practice plan</small><strong>{row.practice_completed_count ?? 0}/{row.practice_assigned_count ?? 0}</strong></div>
+                  <div><small>Trend</small><strong>{(row.submission_count ?? row.attempts_count ?? 0) < 2 ? 'Baseline' : toTrendLabel(row)}</strong></div>
+                </div>
+                <div style={{ fontSize: 13, color: '#cbd5e1' }}><strong>Why this status:</strong> {getWhyFlagged(row)}</div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <button type="button" onClick={(event: React.MouseEvent<HTMLButtonElement>) => { event.stopPropagation(); openReport(row.student_id); }} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '7px 10px' }}>Review</button>
                 </div>
               </article>
             );
           })}
-          {queueRows.length === 0 ? <div style={{ ...shellCard, padding: 20, textAlign: 'center', color: '#cbd5e1' }}>{activeQueueTab === 'urgent' ? 'No students need help right now. Nice — check Improving or All Students.' : 'No students match these filters.'}</div> : null}
+          {queueRows.length === 0 ? <div style={{ ...shellCard, padding: 20, textAlign: 'center', color: '#cbd5e1' }}>{activeQueueTab === 'urgent' ? 'No writing evidence needs review right now. Check Plan ready or All Students.' : 'No students match these filters.'}</div> : null}
         </div>
       </div>
 
       {/* Report Modal */}
       {isReportOpen ? (
-        <div onClick={() => setIsReportOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(2,6,23,0.85)', zIndex: 40, display: 'grid', placeItems: 'center', padding: 16 }}>
-          <div onClick={(event: React.MouseEvent<HTMLDivElement>) => event.stopPropagation()} style={{ ...shellCard, width: 'min(900px, 100%)', maxHeight: '90vh', overflow: 'auto', padding: 20, display: 'grid', gap: 14, border: '1px solid #1e293b', boxShadow: '0 20px 60px rgba(0,0,0,0.8)' }}>
+        <div className="writing-monitor__modal-backdrop" onClick={() => setIsReportOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(2,6,23,0.85)', zIndex: 40, display: 'grid', placeItems: 'center', padding: 16 }}>
+          <div className="writing-monitor__modal" onClick={(event: React.MouseEvent<HTMLDivElement>) => event.stopPropagation()} style={{ ...shellCard, width: 'min(900px, 100%)', maxHeight: '90vh', overflow: 'auto', padding: 20, display: 'grid', gap: 14, border: '1px solid #1e293b', boxShadow: '0 20px 60px rgba(0,0,0,0.8)' }}>
             {/* Report Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, borderBottom: '1px solid #1e293b', paddingBottom: 14 }}>
               <div>
-                <h2 style={{ margin: 0, fontSize: 24, fontWeight: 900, color: '#f8fafc' }}>Student Review</h2>
-                <p style={{ margin: '6px 0 0', fontSize: 12, color: '#94a3b8' }}>Teacher full access: submissions and feedback visible.</p>
+                <h2 style={{ margin: 0, fontSize: 24, fontWeight: 900, color: '#f8fafc' }}>Writing Evidence Review</h2>
+                <p style={{ margin: '6px 0 0', fontSize: 12, color: '#94a3b8' }}>Review the score, writing process, practice, feedback, and revision history together.</p>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button type="button" onClick={() => setIsReportOpen(false)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '10px 14px', fontWeight: 700, fontSize: 13 }}>Close</button>
@@ -642,12 +634,16 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                   const showPartialMessage = confidenceState === 'partial_data';
                   const showNoDataMessage = confidenceState === 'no_data';
                   const statusLabel = showNoDataMessage
-                    ? 'No Data'
-                    : selectedRow?.stalled
-                      ? 'Urgent'
-                      : selectedRow?.improving
-                        ? 'Improving'
-                        : 'On Track';
+                    ? 'No data'
+                    : selectedRow?.status === 'needs_review'
+                      ? 'Review evidence'
+                      : selectedRow?.status === 'plan_ready'
+                        ? 'Plan ready'
+                        : selectedRow?.stalled
+                          ? 'Needs support'
+                          : selectedRow?.improving
+                            ? 'Improving'
+                            : 'On track';
                   const suggestedNextStep = hasWeaknesses
                     ? openReportData.teacher_actions[0] ?? openReportData.student_friendly_summary.next_steps?.[0] ?? null
                     : null;
@@ -658,22 +654,55 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                 <div style={{ display: 'grid', gap: 8, background: 'rgba(30, 41, 59, 0.5)', borderRadius: 10, padding: 14, border: '1px solid #1e293b' }}>
                   <div style={{ fontSize: 18, fontWeight: 900, color: '#f8fafc' }}>{openReportData.student.student_name}</div>
                   <div style={{ fontSize: 13, color: '#cbd5e1' }}>Grade {openReportData.student.grade ?? '—'} • {openReportData.student.class_name ?? 'Unassigned'} • {statusLabel}</div>
+                  {selectedRow?.class_id ? (
+                    <label className="writing-monitor__mode-control">
+                      <span>Class writing mode</span>
+                      <select
+                        value={selectedRow.integrity_mode ?? 'practice'}
+                        onChange={(event: SelectChangeEvent) => updateClassIntegrityMode(selectedRow, event.target.value as WritingIntegrityMode)}
+                      >
+                        <option value="practice">Practice - support allowed</option>
+                        <option value="independent">Independent - paste blocked</option>
+                        <option value="supervised">Supervised assessment</option>
+                      </select>
+                    </label>
+                  ) : null}
+                  {modeUpdateStatus ? <div aria-live="polite" style={{ fontSize: 12, color: '#a5f3fc' }}>{modeUpdateStatus}</div> : null}
                 </div>
 
                 {/* Key Metrics Grid */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
                   <div style={{ background: 'rgba(59, 130, 246, 0.08)', border: '1px solid #1e3a8a', borderRadius: 10, padding: 12 }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>Latest Score</div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>Formative estimate</div>
                     <div style={{ fontSize: 22, fontWeight: 900, color: '#93c5fd' }}>{formatScoreLabel(openReportData.overall_summary.latest_score)}</div>
                   </div>
                   <div style={{ background: 'rgba(34, 197, 94, 0.08)', border: '1px solid #15803d', borderRadius: 10, padding: 12 }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>Submissions</div>
-                    <div style={{ fontSize: 22, fontWeight: 900, color: '#86efac' }}>{attemptRows.length || openReportData.overall_summary.completed_tasks}</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: '#86efac' }}>{openReportData.overall_summary.submission_count ?? attemptRows.length}</div>
                   </div>
                   <div style={{ background: 'rgba(249, 115, 22, 0.08)', border: '1px solid #92400e', borderRadius: 10, padding: 12 }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>Trend</div>
-                    <div style={{ fontSize: 22, fontWeight: 900, color: '#fbbf24' }}>{(attemptRows.length || openReportData.overall_summary.completed_tasks) < 2 ? '—' : (openReportData.overall_summary.score_trend_delta ?? '—')}</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: '#fbbf24' }}>{(openReportData.overall_summary.submission_count ?? attemptRows.length) < 2 ? 'Baseline' : (openReportData.overall_summary.score_trend_delta ?? 'Stable')}</div>
                   </div>
+                  <div style={{ background: 'rgba(45, 212, 191, 0.08)', border: '1px solid #0f766e', borderRadius: 10, padding: 12 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>Practice plan</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: '#99f6e4' }}>{openReportData.overall_summary.practice_completed_count ?? openReportData.overall_summary.completed_tasks}/{openReportData.overall_summary.practice_assigned_count ?? openReportData.overall_summary.total_tasks}</div>
+                  </div>
+                </div>
+                <div className={`writing-monitor__integrity writing-monitor__integrity--${openReportData.integrity?.review_status ?? 'practice_mode'}`}>
+                  <strong>
+                    {openReportData.integrity?.review_status === 'review_recommended'
+                      ? 'Writing-process review recommended'
+                      : openReportData.integrity?.review_status === 'no_concerns_observed'
+                        ? 'No process concern observed'
+                        : 'Practice evidence'}
+                  </strong>
+                  <span>
+                    Mode: {openReportData.integrity?.mode ?? 'practice'}.
+                    {openReportData.integrity?.review_status === 'review_recommended'
+                      ? ` Signals: ${(openReportData.integrity.reasons ?? []).map(toTeacherWeaknessLabel).join(', ') || 'unusual composition pattern'}.`
+                      : ' Automated results remain formative and teacher judgement is final.'}
+                  </span>
                 </div>
 
                 {/* Detailed Info */}
@@ -685,7 +714,7 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                         ? 'No writing data available yet. Ask the student to complete a task to generate insights.'
                         : showPartialMessage
                           ? 'Not enough data to identify clear strengths or weaknesses yet.'
-                          : `Latest score ${formatScoreLabel(openReportData.overall_summary.latest_score)} across ${(attemptRows.length || openReportData.overall_summary.completed_tasks)} submission${(attemptRows.length || openReportData.overall_summary.completed_tasks) === 1 ? '' : 's'}.`}
+                          : `Latest formative estimate ${formatScoreLabel(openReportData.overall_summary.latest_score)} across ${(openReportData.overall_summary.submission_count ?? attemptRows.length)} submission${(openReportData.overall_summary.submission_count ?? attemptRows.length) === 1 ? '' : 's'}.`}
                     </div>
                   </div>
                   {showAdvancedAnalysis ? (
@@ -825,7 +854,7 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', borderTop: '1px solid #1e293b', paddingTop: 12 }}>
                   <button type="button" onClick={() => setIsFeedbackOpen(true)} style={{ borderRadius: 8, border: '1px solid #3b82f6', background: '#1d4ed8', color: '#fff', padding: '8px 12px' }}>Give Feedback</button>
-                  <button type="button" onClick={() => selectedRow && handleExportStudent(selectedRow.student_id)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#111827', color: '#fff', padding: '8px 12px' }}>Generate Report</button>
+                  <button type="button" onClick={printOpenReport} style={{ borderRadius: 8, border: '1px solid #14b8a6', background: '#0f766e', color: '#fff', padding: '8px 12px', fontWeight: 800 }}>Preview &amp; Print Report</button>
                   <button type="button" onClick={() => setIsReportOpen(false)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#fff', padding: '8px 12px' }}>Close</button>
                 </div>
                     </>
@@ -839,8 +868,15 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
       {isFeedbackOpen ? (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(2,6,23,0.7)', zIndex: 50, display: 'grid', placeItems: 'center', padding: 16 }}>
           <div style={{ ...shellCard, width: 'min(640px, 100%)', padding: 16, display: 'grid', gap: 10 }}>
-            <h3 style={{ margin: 0 }}>Give Feedback</h3>
+            <div>
+              <h3 style={{ margin: 0 }}>Teacher Feedback</h3>
+              <p style={{ margin: '5px 0 0', color: '#94a3b8', fontSize: 13 }}>
+                A suggested praise, growth target, and next step are ready. Edit them in your own voice.
+              </p>
+            </div>
+            <label htmlFor="writing-feedback-editor" style={{ color: '#cbd5e1', fontSize: 12, fontWeight: 800 }}>Feedback to student</label>
             <textarea
+              id="writing-feedback-editor"
               value={feedbackDraft}
               onChange={(event: InputChangeEvent) => {
                 setFeedbackDraft(event.target.value);
@@ -850,7 +886,8 @@ th{background:#f8fafc;text-align:left;width:240px;font-size:12px;text-transform:
             />
             {feedbackStatus ? <div aria-live="polite" style={{ color: feedbackStatus.includes('failed') || feedbackStatus.includes('Unable') ? '#fca5a5' : '#86efac', fontSize: 13 }}>{feedbackStatus}</div> : null}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button type="button" onClick={saveFeedbackDraft} disabled={!feedbackDraft.trim()} style={{ borderRadius: 8, border: '1px solid #2563eb', background: '#1d4ed8', color: '#fff', padding: '8px 12px' }}>Save Draft</button>
+              <button type="button" onClick={() => saveFeedbackDraft('draft')} disabled={!feedbackDraft.trim()} style={{ borderRadius: 8, border: '1px solid #2563eb', background: '#1d4ed8', color: '#fff', padding: '8px 12px' }}>Save Draft</button>
+              <button type="button" onClick={() => saveFeedbackDraft('final')} disabled={!feedbackDraft.trim()} style={{ borderRadius: 8, border: '1px solid #0f766e', background: '#0f766e', color: '#fff', padding: '8px 12px', fontWeight: 800 }}>Finalize Feedback</button>
               <button type="button" onClick={copyFeedbackDraft} disabled={!feedbackDraft.trim()} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#fff', padding: '8px 12px' }}>Copy Feedback</button>
               <button type="button" onClick={() => setIsFeedbackOpen(false)} style={{ borderRadius: 8, border: '1px solid #334155', background: '#0f172a', color: '#fff', padding: '8px 12px' }}>Cancel</button>
             </div>
