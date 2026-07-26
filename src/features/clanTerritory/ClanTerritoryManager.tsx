@@ -1572,14 +1572,14 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
           }
         />
       )}
-      <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-7xl space-y-8">
+      <div className="flex min-h-[calc(100vh-12rem)] items-start justify-center px-3 pb-8 pt-4 sm:items-center sm:p-6">
+      <div className="w-full max-w-7xl space-y-6 sm:space-y-8">
         <div className="text-center space-y-2">
           <span className="inline-flex items-center justify-center rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-amber-300">
             Territory Control
           </span>
-          <h1 className="font-heading text-4xl text-white tracking-tight">CLAN WARS</h1>
-          <p className="text-gray-400">Compete for territory dominance</p>
+          <h1 className="font-heading text-3xl text-white tracking-tight sm:text-4xl">CLAN WARS</h1>
+          <p className="text-sm text-gray-400 sm:text-base">Compete for territory dominance</p>
         </div>
 
         <div className="grid gap-4">
@@ -1913,10 +1913,6 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
             </div>
           )}
         </div>
-
-        <button onClick={onExit} className="w-full text-gray-500 hover:text-gray-300 text-sm">
-          ← Return to Dashboard
-        </button>
       </div>
     </div>
     </>

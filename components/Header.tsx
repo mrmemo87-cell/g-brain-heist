@@ -369,13 +369,16 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-slate-800/60 bg-slate-950/85 backdrop-blur">
+      <header
+        className="sticky top-0 z-40 border-b border-slate-800/60 bg-slate-950/95 backdrop-blur"
+        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+      >
         <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-2 px-3 py-2 sm:px-4 lg:px-6">
           
           {/* Mobile Layout (< 768px) */}
           <div className="md:hidden">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="flex min-w-0 items-center gap-2">
                 <img 
                   src="/logo.png" 
                   alt="Brains Heist Logo" 
@@ -385,29 +388,10 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                 <button
                   type="button"
                   onClick={handleBrandClick}
-                  className="font-heading text-lg font-black tracking-wider select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 truncate"
+                  className="font-heading flex-shrink-0 text-lg font-black tracking-wider text-cyan-300 select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70"
                   aria-label="Go to dashboard"
                 >
-                  <span
-                    className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]"
-                    style={{
-                      backgroundImage: 'linear-gradient(90deg, #22d3ee 0%, #3b82f6 25%, #8b5cf6 50%, #3b82f6 75%, #22d3ee 100%)',
-                      animation: 'shimmer 3s linear infinite',
-                    }}
-                  >
-                    BRAINS
-                  </span>
-                  {' '}
-                  <span
-                    className="bg-gradient-to-r from-pink-500 via-red-500 to-orange-500 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]"
-                    style={{
-                      backgroundImage: 'linear-gradient(90deg, #ec4899 0%, #ef4444 25%, #f97316 50%, #ef4444 75%, #ec4899 100%)',
-                      animation: 'shimmer 3s linear infinite',
-                      animationDelay: '1.5s',
-                    }}
-                  >
-                    HEIST
-                  </span>
+                  BH
                 </button>
               </div>
               {/* Plan Badge - Mobile */}

@@ -133,6 +133,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '/BRAINS.svg');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [topNavMenuOpen, setTopNavMenuOpen] = useState(false);
+  const [mobileWorkspaceMenuOpen, setMobileWorkspaceMenuOpen] = useState(false);
   const topNavRef = useRef<HTMLElement | null>(null);
   const topNavMenuRef = useRef<HTMLDivElement | null>(null);
   const [topNavHeight, setTopNavHeight] = useState(0);
@@ -627,6 +628,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   }, [view]);
 
   const changeSection = (section: 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'cambridge' | 'quests' | 'lockdown' | 'join-school') => {
+    setMobileWorkspaceMenuOpen(false);
     switch (section) {
       case 'dashboard':
         setView('dashboard');
@@ -4055,27 +4057,23 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         <p className="teacher-section-subtitle">Manage your classes, questions, and track student progress</p>
       </div>
 
+      {!teacherSetupComplete && (
       <section
-        className="rounded-2xl border border-cyan-200 bg-white p-5 shadow-sm"
+        className="teacher-quick-start rounded-2xl border border-cyan-200 bg-white p-5 shadow-sm"
         aria-labelledby="teacher-getting-started-title"
       >
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <div className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-700">
-              {teacherSetupComplete ? 'Workspace ready' : 'Teacher quick start'}
-            </div>
+            <div className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-700">Teacher quick start</div>
             <h3 id="teacher-getting-started-title" className="mt-1 text-xl font-bold text-slate-900">
-              {teacherSetupComplete ? 'You are ready to teach' : 'Start teaching in three clear steps'}
+              Start teaching in three clear steps
             </h3>
             <p className="mt-1 max-w-2xl text-sm text-slate-600">
-              {teacherSetupComplete
-                ? 'Your classes, content, and first assignment are in place. Use Reports to follow student progress.'
-                : 'Complete these once. Brain Heist will keep the rest of your workspace available while you set up.'}
+              Complete these once. Brain Heist will keep the rest of your workspace available while you set up.
             </p>
           </div>
 
-          {!teacherSetupComplete && (
-            !teacherHasClassAssignments ? (
+          {!teacherHasClassAssignments ? (
               isSchoolAdmin && onOpenSchoolAdmin ? (
                 <button
                   type="button"
@@ -4108,7 +4106,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 Create your first assignment
               </button>
             )
-          )}
+          }
         </div>
 
         <ol className="mt-5 grid gap-3 md:grid-cols-3">
@@ -4139,6 +4137,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           ))}
         </ol>
       </section>
+      )}
 
       {/* Dashboard shortcuts */}
       <div className="teacher-stats-grid">
@@ -4306,7 +4305,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           </h3>
           {assignments.length > 0 ? (
             <div className="teacher-table-container">
-              <table className="teacher-table">
+              <table className="teacher-table teacher-responsive-summary-table">
                 <thead>
                   <tr>
                     <th>Title</th>
@@ -4318,10 +4317,10 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 <tbody>
                   {assignments.slice(0, 5).map((a) => (
                     <tr key={a.id}>
-                      <td style={{ fontWeight: 500 }}>{a.title}</td>
-                      <td>{a.subject_name}</td>
-                      <td style={{ textAlign: 'center' }}>{a.completed_count}/{a.student_count}</td>
-                      <td style={{ textAlign: 'center' }}>
+                      <td data-label="Assignment" style={{ fontWeight: 500 }}>{a.title}</td>
+                      <td data-label="Subject">{a.subject_name}</td>
+                      <td data-label="Completed" style={{ textAlign: 'center' }}>{a.completed_count}/{a.student_count}</td>
+                      <td data-label="Status" style={{ textAlign: 'center' }}>
                         <span className={`teacher-badge ${
                           a.completed_count >= a.student_count ? 'success' : 'warning'
                         }`}>
@@ -4365,7 +4364,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             <p className="text-sm text-slate-500">No class health data yet. Class metrics will appear after assignments and submissions.</p>
           ) : (
             <div className="teacher-table-container">
-              <table className="teacher-table">
+              <table className="teacher-table teacher-responsive-summary-table">
                 <thead>
                   <tr>
                     <th>Class</th>
@@ -4378,15 +4377,15 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 <tbody>
                   {classHealthRows.map((row) => (
                     <tr key={row.classCode}>
-                      <td style={{ fontWeight: 600 }}>{row.classCode}</td>
-                      <td style={{ textAlign: 'center' }}>{row.studentCount}</td>
-                      <td style={{ textAlign: 'center' }}>{row.assignmentsInProgress}</td>
-                      <td style={{ textAlign: 'center' }}>
+                      <td data-label="Class" style={{ fontWeight: 600 }}>{row.classCode}</td>
+                      <td data-label="Students" style={{ textAlign: 'center' }}>{row.studentCount}</td>
+                      <td data-label="In progress" style={{ textAlign: 'center' }}>{row.assignmentsInProgress}</td>
+                      <td data-label="Completion" style={{ textAlign: 'center' }}>
                         <span className={`teacher-badge ${row.completionRate >= 75 ? 'success' : row.completionRate >= 50 ? 'warning' : 'danger'}`}>
                           {row.completionRate}%
                         </span>
                       </td>
-                      <td style={{ textAlign: 'center' }}>{row.averageScore !== null ? `${row.averageScore}%` : '—'}</td>
+                      <td data-label="Average score" style={{ textAlign: 'center' }}>{row.averageScore !== null ? `${row.averageScore}%` : '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -5524,7 +5523,46 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         </div>
       ) : (
         <div className="teacher-card p-0 overflow-hidden">
-          <table className="teacher-table">
+          <div className="teacher-mobile-record-list" aria-label="Assignment reports">
+            {assignments.map((assignment) => {
+              const completed = assignment.completed_count >= assignment.student_count;
+              const completionPercent = assignment.student_count > 0
+                ? Math.round((assignment.completed_count / assignment.student_count) * 100)
+                : 0;
+              return (
+                <article key={assignment.id} className="teacher-mobile-record-card">
+                  <div className="teacher-mobile-record-heading">
+                    <div>
+                      <span className="teacher-mobile-record-eyebrow">{assignment.subject_name}</span>
+                      <h3>{assignment.title || assignment.topic_name}</h3>
+                    </div>
+                    <span className={`teacher-badge ${completed ? 'success' : 'warning'}`}>
+                      {completed ? 'Complete' : 'In progress'}
+                    </span>
+                  </div>
+                  <dl className="teacher-mobile-record-meta">
+                    <div><dt>Class</dt><dd>{assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || '—'}</dd></div>
+                    <div><dt>Questions</dt><dd>{assignment.question_count}</dd></div>
+                    <div><dt>Created</dt><dd>{new Date(assignment.assigned_at).toLocaleDateString()}</dd></div>
+                    <div><dt>Due</dt><dd>{assignment.due_at ? new Date(assignment.due_at).toLocaleDateString() : 'No deadline'}</dd></div>
+                  </dl>
+                  <div className="teacher-mobile-record-progress">
+                    <div>
+                      <span>Student completion</span>
+                      <strong>{assignment.completed_count}/{assignment.student_count}</strong>
+                    </div>
+                    <div className="teacher-mobile-progress-track" aria-label={`${completionPercent}% completed`}>
+                      <span style={{ width: `${completionPercent}%` }} />
+                    </div>
+                  </div>
+                  <button type="button" onClick={() => handleOpenReport(assignment)} className="teacher-mobile-record-action">
+                    View assignment report <span aria-hidden="true">→</span>
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+          <table className="teacher-table teacher-desktop-only-table">
             <thead>
               <tr>
                 <th>Subject</th>
@@ -6059,13 +6097,13 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       {/* Fixed Header Section - Always Visible */}
       <div className="cambridge-reports-header">
         {/* Row 1: Title + Stats */}
-        <div className="flex items-center justify-between gap-3 mb-3">
+        <div className="cambridge-reports-title-row flex items-center justify-between gap-3 mb-3">
           <div className="flex items-center gap-3 min-w-0">
             <h2 className="text-lg font-semibold tracking-tight flex items-center gap-2 whitespace-nowrap">
               <span className="text-xl">📊</span> Cambridge Tests
             </h2>
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-xs flex-shrink-0">
+          <div className="cambridge-summary-chips flex flex-wrap items-center gap-2 text-xs flex-shrink-0">
             <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-100 border border-slate-200">
               <span className="text-slate-500">Total:</span>
               <span className="font-bold text-slate-900">{cambridgeStats.totalSubmissions}</span>
@@ -6082,7 +6120,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           </div>
         </div>
         {/* Row 2: Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="cambridge-header-actions flex flex-wrap items-center gap-2">
               <details className="relative">
                 <summary className="list-none cursor-pointer select-none bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-blue-700">
                   Release Scores ▾
@@ -6175,7 +6213,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </div>
           </div>
 
-      <div className="mb-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-900">
+      <div className="cambridge-workspace-note mb-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-900">
         <strong>Your Cambridge workspace:</strong> Your school admin chooses which Cambridge tests the school can use. You can then release available tests to each class you teach; results are limited to your assigned classes and subjects
         {teacherAssignedSubjects.length > 0 ? ` (${teacherAssignedSubjects.join(', ')})` : ''}. Marking and score release stay limited to the subjects you teach.
       </div>
@@ -6210,7 +6248,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         {/* Main Content Area */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0 }}>
           {/* Toolbar Row */}
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-3 bg-white border border-slate-200 rounded-xl px-3 py-2" style={{ flexShrink: 0 }}>
+          <div className="cambridge-toolbar flex flex-wrap items-center justify-between gap-3 mb-3 bg-white border border-slate-200 rounded-xl px-3 py-2" style={{ flexShrink: 0 }}>
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => setCambridgeFiltersOpen(true)}
@@ -6313,7 +6351,58 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   </div>
                 )}
 
-                <div className="bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col">
+                <div className="cambridge-mobile-results lg:hidden">
+                  {visibleScores.map((score) => {
+                    const isWritingTest = isTeacherMarkedCambridgeTest(score.quiz_name);
+                    const needsMarking = isWritingTest && score.answers?.requires_marking;
+                    const statusLabel = needsMarking ? 'Needs marking' : score.scores_released ? 'Released' : 'Pending release';
+                    const parsedResponses = parseCambridgeResponses(score.answers);
+                    const attemptedCount = Object.values(parsedResponses).filter((answer) => String(answer ?? '').trim() !== '').length;
+                    return (
+                      <article key={score.id} className="cambridge-attempt-card">
+                        <div className="cambridge-attempt-card__top">
+                          <label className="cambridge-attempt-card__check">
+                            <input
+                              type="checkbox"
+                              checked={cambridgeSelectedIds.includes(score.id)}
+                              onChange={() => toggleCambridgeSelection(score.id)}
+                            />
+                            <span className="sr-only">Select {score.student_name}</span>
+                          </label>
+                          <div className="min-w-0 flex-1">
+                            <h3>{score.student_name}</h3>
+                            <p>{score.student_class || 'No class'} · Attempt {score.attempt_number || 1}</p>
+                          </div>
+                          <span className={`cambridge-attempt-status ${
+                            needsMarking ? 'is-marking' : score.scores_released ? 'is-released' : 'is-pending'
+                          }`}>
+                            {statusLabel}
+                          </span>
+                        </div>
+                        <div className="cambridge-attempt-card__test">
+                          <span>{score.test_subject || 'Cambridge'}</span>
+                          <strong>{score.quiz_name.replace('Cambridge ', '')}</strong>
+                        </div>
+                        <dl className="cambridge-attempt-card__metrics">
+                          <div><dt>Score</dt><dd>{needsMarking ? '—' : `${score.score}/${score.total_questions}`}</dd></div>
+                          <div><dt>Answered</dt><dd>{attemptedCount}/{score.total_questions}</dd></div>
+                          <div><dt>Result</dt><dd>{needsMarking ? 'Pending' : `${score.percentage}%`}</dd></div>
+                          <div><dt>Time</dt><dd>{formatCambridgeTime(score.time_taken_seconds)}</dd></div>
+                        </dl>
+                        <button type="button" onClick={() => openCambridgeDrawer(score)} className="cambridge-attempt-card__action">
+                          {needsMarking ? 'Open marking' : 'Review attempt'} <span aria-hidden="true">→</span>
+                        </button>
+                      </article>
+                    );
+                  })}
+                  {!hasRows && (
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500">
+                      No results match these filters.
+                    </div>
+                  )}
+                </div>
+
+                <div className="hidden bg-white border border-slate-200 rounded-xl shadow-sm lg:flex lg:flex-col">
                 <div className="overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100 scroll-smooth flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
                   <table className="w-full text-sm border-collapse min-w-[1100px]">
                     <thead className="bg-slate-50 text-slate-600">
@@ -8116,18 +8205,44 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     return { label: plan.toUpperCase(), color: colorMap[plan] || 'blue', icon: iconMap[plan] || '⚡', countdown: null };
   };
   const planBadge = getPlanBadge();
+  const getNavTabState = (tab: (typeof navTabs)[number]) => {
+    const isPilot = pilotQuotas?.is_pilot && !pilotQuotas?.expired;
+    const tabQuotaMap: Record<string, string> = {
+      questions: 'Question Bank',
+      assignments: 'New Assignment',
+      reports: 'Performance Reports',
+      'writing-monitoring': 'Performance Reports',
+      'writing-analytics': 'Performance Reports',
+      'writing-export-center': 'Performance Reports',
+      lockdown: 'Lockdown Mode',
+      cambridge: 'Cambridge Marking',
+    };
+    const featureLabel = tabQuotaMap[tab.id];
+    const quota = featureLabel ? getQuotaForFeature(featureLabel, pilotQuotas) : null;
+    const pilotExhausted = Boolean(isPilot && quota?.exhausted);
+    const missingHandler = tab.id === 'lockdown' && !onLockdown;
+    return {
+      isPilot,
+      quota,
+      pilotExhausted,
+      locked: Boolean((tab.proOnly && !isProPlan) || pilotExhausted || missingHandler),
+    };
+  };
+  const mobilePrimaryTabs = navTabs.filter((tab) =>
+    ['dashboard', 'students', 'assignments', 'reports'].includes(tab.id)
+  );
 
   return (
     <div className="teacher-portal">
       {/* Top Navigation Bar */}
       <header
         ref={topNavRef}
-        className="fixed left-0 right-0 top-0 z-50 border-b border-slate-800/60 bg-slate-950/90 backdrop-blur"
+        className="teacher-topbar fixed left-0 right-0 top-0 z-50 border-b border-slate-800/60 bg-slate-950/95 backdrop-blur"
         style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 20px)' }}
       >
-        <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between px-3 py-2 sm:px-4 lg:px-6">
+        <div className="teacher-topbar-inner mx-auto flex w-full max-w-[1600px] items-center justify-between px-3 py-2 sm:px-4 lg:px-6">
           {/* Left: Logo + Brand */}
-          <div className="flex items-center gap-2 lg:gap-3 min-w-0">
+          <div className="teacher-topbar-brand flex min-w-0 items-center gap-2 lg:gap-3">
             <img
               src="/logo.png"
               alt="Brains Heist"
@@ -8158,6 +8273,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 {planBadge.countdown && <span className="plan-badge__countdown">{planBadge.countdown}</span>}
               </div>
             )}
+            {planBadge && (
+              <div className={`teacher-mobile-plan-badge plan-badge plan-badge--${planBadge.color} sm:hidden`}>
+                <span className="plan-badge__label">{planBadge.label}</span>
+                {planBadge.countdown && <span className="plan-badge__countdown">{planBadge.countdown}</span>}
+              </div>
+            )}
           </div>
 
           {/* Right: Actions */}
@@ -8168,7 +8289,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 setShowNotifications((prev) => !prev);
                 setUnreadCount(0);
               }}
-              className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-700 bg-slate-900/70 text-lg text-slate-200 shadow-sm shadow-slate-950/40 transition hover:border-purple-500/60 hover:text-white"
+              className="relative hidden h-11 w-11 items-center justify-center rounded-2xl border border-slate-700 bg-slate-900/70 text-lg text-slate-200 shadow-sm shadow-slate-950/40 transition hover:border-purple-500/60 hover:text-white sm:flex"
               aria-label="Open notifications"
               title="Notifications"
             >
@@ -8191,7 +8312,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             <button
               type="button"
               onClick={() => setTopNavMenuOpen((prev) => !prev)}
-              className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-700 bg-slate-900/70 text-2xl text-slate-200 shadow-sm shadow-slate-950/40 transition hover:border-cyan-500/60 hover:text-white"
+              className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-700 bg-slate-900/70 text-xl text-slate-200 shadow-sm shadow-slate-950/40 transition hover:border-cyan-500/60 hover:text-white"
               aria-label="Open quick menu"
             >
               ☰
@@ -8211,6 +8332,22 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
             {topNavMenuOpen && (
               <div className="absolute right-0 top-14 z-[60] w-60 max-w-[90vw] rounded-2xl border border-slate-800/70 bg-slate-950/95 p-2 shadow-2xl shadow-slate-950/70">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowNotifications(true);
+                    setUnreadCount(0);
+                    setTopNavMenuOpen(false);
+                  }}
+                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm text-slate-200 transition hover:bg-slate-800/60 sm:hidden"
+                >
+                  <span className="flex items-center gap-2"><span className="text-lg">🔔</span>Notifications</span>
+                  {unreadCount > 0 && (
+                    <span className="rounded-full bg-red-500 px-1.5 py-0.5 text-[11px] font-bold text-white">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
                 <button
                   type="button"
                   onClick={() => {
@@ -8328,13 +8465,14 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   alt="Brains Heist"
                   className="h-9 w-9 rounded-md object-contain inline-block mr-2 align-[-0.3rem]"
                 />
-                Brains Heist Teacher Portal
+                <span className="hidden sm:inline">Brains Heist Teacher Portal</span>
+                <span className="sm:hidden">Teacher Portal</span>
               </h1>
 
               
               {/* Display Assigned Classes */}
               {teacherHasClassAssignments && assignedClasses.length > 0 && (
-                <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                <div className="teacher-assigned-classes mt-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-sky-700 font-semibold text-sm">📚 Your Assigned Classes ({assignedClasses.length})</span>
                   </div>
@@ -8375,27 +8513,11 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
         <div className="teacher-workspace-shell">
           {/* Navigation */}
-          <aside className="teacher-sidebar">
+          <aside className="teacher-sidebar teacher-desktop-sidebar">
             <div className="teacher-nav-container teacher-nav-container--sidebar">
               <div className="teacher-nav-grid teacher-nav-grid--sidebar">
                 {navTabs.map((tab) => {
-                  const isPilot = pilotQuotas?.is_pilot && !pilotQuotas?.expired;
-                  // Map nav tab IDs to feature labels for quota lookup
-                  const tabQuotaMap: Record<string, string> = {
-                    questions: 'Question Bank',
-                    assignments: 'New Assignment',
-                    reports: 'Performance Reports',
-                    'writing-monitoring': 'Performance Reports',
-                    'writing-analytics': 'Performance Reports',
-                    'writing-export-center': 'Performance Reports',
-                    lockdown: 'Lockdown Mode',
-                    cambridge: 'Cambridge Marking',
-                  };
-                  const featureLabel = tabQuotaMap[tab.id];
-                  const tq = featureLabel ? getQuotaForFeature(featureLabel, pilotQuotas) : null;
-                  const pilotExhausted = isPilot && tq?.exhausted === true;
-                  const missingHandler = tab.id === 'lockdown' && !onLockdown;
-                  const locked = (tab.proOnly && !isProPlan) || pilotExhausted || missingHandler;
+                  const { isPilot, quota: tq, pilotExhausted, locked } = getNavTabState(tab);
                   return (
                     <button
                       key={tab.id}
@@ -8468,7 +8590,79 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           )}
           </div>
         </div>
+
+        <nav className="teacher-mobile-bottom-nav" aria-label="Teacher workspace">
+          {mobilePrimaryTabs.map((tab) => {
+            const { locked } = getNavTabState(tab);
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => { if (!locked) changeSection(tab.id); }}
+                disabled={locked}
+                className={primarySection === tab.id ? 'is-active' : ''}
+                aria-current={primarySection === tab.id ? 'page' : undefined}
+              >
+                <span aria-hidden="true">{tab.icon}</span>
+                <small>{tab.label === 'My Students' ? 'Students' : tab.label}</small>
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => setMobileWorkspaceMenuOpen(true)}
+            className={!mobilePrimaryTabs.some((tab) => tab.id === primarySection) ? 'is-active' : ''}
+            aria-expanded={mobileWorkspaceMenuOpen}
+          >
+            <span aria-hidden="true">•••</span>
+            <small>More</small>
+          </button>
+        </nav>
       </div>
+
+      {mobileWorkspaceMenuOpen && createPortal(
+        <div className="teacher-mobile-menu-layer" role="dialog" aria-modal="true" aria-labelledby="teacher-mobile-menu-title">
+          <button
+            type="button"
+            className="teacher-mobile-menu-backdrop"
+            onClick={() => setMobileWorkspaceMenuOpen(false)}
+            aria-label="Close workspace menu"
+          />
+          <div className="teacher-mobile-menu-sheet">
+            <div className="teacher-mobile-menu-heading">
+              <div>
+                <p>Teacher workspace</p>
+                <h2 id="teacher-mobile-menu-title">All tools</h2>
+              </div>
+              <button type="button" onClick={() => setMobileWorkspaceMenuOpen(false)} aria-label="Close workspace menu">×</button>
+            </div>
+            <div className="teacher-mobile-menu-grid">
+              {navTabs.map((tab) => {
+                const { isPilot, quota, pilotExhausted, locked } = getNavTabState(tab);
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => { if (!locked) changeSection(tab.id); }}
+                    disabled={locked}
+                    className={primarySection === tab.id ? 'is-active' : ''}
+                  >
+                    <span className="teacher-mobile-menu-icon" aria-hidden="true">{tab.icon}</span>
+                    <span className="teacher-mobile-menu-copy">
+                      <strong>{tab.label}</strong>
+                      <small>{tab.description}</small>
+                    </span>
+                    {locked && !isPilot && <em>PRO</em>}
+                    {pilotExhausted && <em>Upgrade</em>}
+                    {isPilot && quota && !quota.exhausted && <em>{quota.remaining}/{quota.limit}</em>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };
@@ -8505,8 +8699,11 @@ const TeacherPlanBanner: React.FC<{
     const daysLeft = Math.max(0, Math.ceil(
       (new Date(trial_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
     ));
+    // Teachers already see the active plan in the persistent top bar. Keep this
+    // second banner only when it provides the school admin with a billing action.
+    if (!isSchoolAdmin || !onOpenSchoolAdmin) return null;
     return (
-      <div className="mx-4 my-2 rounded-lg border border-cyan-500/30 bg-cyan-500/5 px-4 py-2.5 flex items-center justify-between flex-wrap gap-2">
+      <div className="teacher-plan-callout mx-4 my-2 rounded-lg border border-cyan-500/30 bg-cyan-500/5 px-4 py-2.5 flex items-center justify-between flex-wrap gap-2">
         <span className="text-sm text-cyan-200">
           🚀 <strong>Pilot Trial</strong> — {daysLeft} day{daysLeft !== 1 ? 's' : ''} remaining.
           {' '}All features unlocked.
