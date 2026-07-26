@@ -940,9 +940,17 @@
   margin-bottom: 2rem;
 }
 
+.teacher-tools-grid--single {
+  grid-template-columns: minmax(0, 38rem);
+}
+
 @media (min-width: 768px) {
   .teacher-tools-grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+
+  .teacher-tools-grid--single {
+    grid-template-columns: minmax(0, 38rem);
   }
 }
 
@@ -970,23 +978,14 @@
 
 .teacher-tool-card.orange:hover { border-color: #fb923c; }
 
-.teacher-tool-card.blue {
-  background: linear-gradient(135deg, #eff6ff, #dbeafe);
-  border-color: #bfdbfe;
-}
-
-.teacher-tool-card.blue:hover { border-color: #3b82f6; }
-
-.teacher-tool-card.teal {
-  background: linear-gradient(135deg, #f0fdfa, #ccfbf1);
-  border-color: #99f6e4;
-}
-
-.teacher-tool-card.teal:hover { border-color: #14b8a6; }
-
 .teacher-tool-icon {
   font-size: 2.5rem;
   flex-shrink: 0;
+}
+
+.teacher-tool-info {
+  min-width: 0;
+  flex: 1;
 }
 
 .teacher-tool-title {
@@ -994,6 +993,8 @@
   font-weight: 700;
   color: var(--teacher-text);
   margin-bottom: 0.25rem;
+  overflow-wrap: normal;
+  word-break: keep-all;
 }
 
 .teacher-tool-desc {
@@ -2696,6 +2697,10 @@
     gap: 0.75rem;
   }
 
+  .teacher-tools-grid--single {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .teacher-tool-card {
     padding: 1rem;
   }
@@ -2716,6 +2721,10 @@
 
   .teacher-tools-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .teacher-tools-grid--single {
+    grid-template-columns: minmax(0, 38rem);
   }
 }
 
@@ -3945,5 +3954,9 @@
   .teacher-actions-grid,
   .teacher-tools-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .teacher-tools-grid--single {
+    grid-template-columns: minmax(0, 38rem);
   }
 }
