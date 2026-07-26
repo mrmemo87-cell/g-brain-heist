@@ -245,7 +245,7 @@ export const persistWritingStoreSnapshot = async (snapshot: SerializedWritingPer
   );
 
   await Promise.all([
-    replaceTableByKey('bh_writing_attempts', bindStudentRows(snapshot.attempts), 'student_id'),
+    upsertWritingAttempts(bindStudentRows(snapshot.attempts)),
     replaceTableByKey('bh_writing_weekly_plans', bindStudentRows(snapshot.weeklyPlans), 'student_id'),
     replaceTableByKey('bh_writing_daily_tasks', bindStudentRows(snapshot.dailyTasks), 'student_id'),
     replaceTableByKey('bh_writing_daily_submissions', bindStudentRows(snapshot.dailySubmissions), 'student_id'),
@@ -276,6 +276,21 @@ const replaceTableByKey = async (table: string, rows: unknown[], key: string): P
   if (!rows.length) return;
   const insertRes = await supabase.from(table).insert(rows.map((payload) => ({ payload: safe(payload) })));
   ensureNoError(insertRes, `insert ${table} failed`);
+};
+
+const upsertWritingAttempts = async (rows: unknown[]): Promise<void> => {
+  if (!rows.length) return;
+  const payloadRows = rows
+    .filter((payload) => Boolean(readKey(payload, 'id')))
+    .map((payload) => ({
+      attempt_key: readKey(payload, 'id'),
+      payload: safe(payload),
+    }));
+  if (!payloadRows.length) return;
+  const upsertRes = await supabase
+    .from('bh_writing_attempts')
+    .upsert(payloadRows, { onConflict: 'attempt_key', ignoreDuplicates: false });
+  ensureNoError(upsertRes, 'upsert writing attempts failed');
 };
 
 const replaceFollowups = async (
