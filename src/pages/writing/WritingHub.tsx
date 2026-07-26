@@ -12,6 +12,7 @@ import {
   getMonthlyWritingReport,
   requestWritingAiAssist,
   persistInitialWritingRichFeedback,
+  ensureWritingHydrationForStudent,
   retryWritingHydration,
   subscribeToWritingPersistenceStatus,
   subscribeToWritingHydrationStatus,
@@ -4803,6 +4804,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   const [revisionOriginText, setRevisionOriginText] = useState('');
   const [promptHistoryCount, setPromptHistoryCount] = useState<number>(0);
   const [availablePromptCount, setAvailablePromptCount] = useState<number>(1);
+  const [hydratedForStudentId, setHydratedForStudentId] = useState<string | null>(null);
   const [hydrationStatus, setHydrationStatus] = useState(getWritingHydrationStatus());
   const [persistenceStatus, setPersistenceStatus] = useState(getWritingPersistenceStatus());
   const responseFieldRef = useRef<HTMLTextAreaElement | null>(null);
@@ -4817,11 +4819,17 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   const wordTone = useMemo(() => getWordCounterTone(wordCount, targetWordCount), [wordCount, targetWordCount]);
   const isVeryShortDraft = wordCount > 0 && wordCount < Math.max(10, Math.floor(targetWordCount * 0.2));
   const hasPromptRotation = availablePromptCount > 1;
+  const studentHistoryReady = hydratedForStudentId === studentId
+    && hydrationStatus !== 'idle'
+    && hydrationStatus !== 'loading';
   const draftStorageKey = useMemo(
     () => buildWritingDraftStorageKey(studentId, activeGenre, promptText),
     [studentId, activeGenre, promptText]
   );
-  const writingHistoryByGenre = listStudentWritingHistoryByGenre(studentId);
+  const writingHistoryByGenre = useMemo(
+    () => listStudentWritingHistoryByGenre(studentId),
+    [studentId, hydrationStatus, assessment?.total_score, aiFeedback]
+  );
 
   useEffect(() => {
     setActiveGenre(genre);
@@ -4867,6 +4875,19 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+    managedPromptLoadKeyRef.current = '';
+    setPromptHistoryCount(0);
+    setHydratedForStudentId(null);
+    void ensureWritingHydrationForStudent(studentId).finally(() => {
+      if (!cancelled) setHydratedForStudentId(studentId);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [studentId]);
+
+  useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
       const savedPayload = window.localStorage.getItem(draftStorageKey);
@@ -4889,7 +4910,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     }
     const activeGenreHistory = historyResult.data.find((item) => item.genre === activeGenre);
     setPromptHistoryCount(activeGenreHistory?.entries.length ?? 0);
-  }, [studentId, activeGenre, assessment?.total_score]);
+  }, [studentId, activeGenre, assessment?.total_score, hydrationStatus]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -5014,11 +5035,12 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   };
 
   useEffect(() => {
+    if (!studentHistoryReady) return;
     const loadKey = `${studentId}:${activeGenre}`;
     if (managedPromptLoadKeyRef.current === loadKey) return;
     managedPromptLoadKeyRef.current = loadKey;
     void loadFreshPrompt(activeGenre);
-  }, [studentId, activeGenre]);
+  }, [studentId, activeGenre, studentHistoryReady]);
 
   const submitAttempt = async (retryKind: 'same_prompt' | 'new_prompt') => {
     if (!draft.trim()) {
@@ -5490,7 +5512,11 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
           <strong>{toGenreLabel(activeGenre)}</strong>
           <span style={{ color: '#0369a1' }}>🎯 {toWordCountLabel(targetWordCount)}</span>
-          <span style={{ color: '#334155' }}>🕘 {promptHistoryCount} previous {promptHistoryCount === 1 ? 'submission' : 'submissions'}</span>
+          <span style={{ color: '#334155' }}>
+            🕘 {!studentHistoryReady
+              ? 'Checking saved submissions…'
+              : `${promptHistoryCount} previous ${promptHistoryCount === 1 ? 'submission' : 'submissions'}`}
+          </span>
         </div>
         {showPromptChooser && <div className="writing-studio__genre-grid">
           {SUPPORTED_GENRES.map((item) => (
@@ -5710,7 +5736,14 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
         </section>
       )}
 
-      {writingHistoryByGenre.ok && (
+      {!studentHistoryReady && (
+        <section className="writing-studio__card writing-studio__archive" aria-live="polite">
+          <h3 style={{ margin: 0 }}>Writing archive</h3>
+          <p style={{ margin: 0, color: '#475569' }}>Loading your saved writing and feedback…</p>
+        </section>
+      )}
+
+      {studentHistoryReady && writingHistoryByGenre.ok && (
         <section className="writing-studio__card writing-studio__archive">
           <h3 style={{ margin: 0 }}>Writing archive</h3>
           <p style={{ margin: 0, color: '#475569' }}>All previous writing by genre with saved feedback.</p>
