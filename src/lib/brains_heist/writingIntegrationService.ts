@@ -160,6 +160,8 @@ const store: WritingPersistenceStore = {
 
 const WRITING_STORE_KEY = 'gbh_writing_integration_v2_fallback';
 const HYDRATION_TIMEOUT_MS = 12000;
+let hydratedStudentId: string | null = null;
+let hydrationGeneration = 0;
 
 const getStorage = (): Storage | null => {
   try {
@@ -173,6 +175,7 @@ const getStorage = (): Storage | null => {
 };
 
 const serializeStore = (): SerializedWritingPersistenceStore => ({
+  ownerStudentId: hydratedStudentId ?? undefined,
   profiles: [...store.profiles.entries()],
   usernamesById: store.usernamesById,
   states: [...store.states.entries()],
@@ -269,6 +272,7 @@ const applyFallbackSnapshot = (storage: Storage | null): boolean => {
     const raw = storage.getItem(WRITING_STORE_KEY);
     if (!raw) return false;
     const fallback = JSON.parse(raw) as SerializedWritingPersistenceStore;
+    hydratedStudentId = fallback.ownerStudentId ?? null;
     store.profiles = new Map(fallback.profiles as Array<[string, StudentWritingProfile]>);
     store.usernamesById = fallback.usernamesById ?? {};
     const loadedStates = new Map<string, StudentWritingState>();
@@ -301,8 +305,10 @@ const applyFallbackSnapshot = (storage: Storage | null): boolean => {
 const applyHydratedSnapshot = (
   parsed: SerializedWritingPersistenceStore,
   hydrateStartVersion: number,
-  reason: 'initial' | 'late-after-timeout'
+  reason: 'initial' | 'late-after-timeout',
+  generation: number
 ): void => {
+  if (generation !== hydrationGeneration) return;
   if (storeMutationVersion !== hydrateStartVersion) {
     console.warn('[writingIntegrationService] Skipping DB hydration apply due to newer in-memory mutations.');
     hydrationState = 'ready';
@@ -313,6 +319,7 @@ const applyHydratedSnapshot = (
     console.info('[writingIntegrationService] DB hydration recovered after timeout; applying fresh snapshot.');
   }
   lastPersistenceMode = 'db';
+  hydratedStudentId = parsed.ownerStudentId ?? null;
   store.profiles = new Map(parsed.profiles as Array<[string, StudentWritingProfile]>);
   store.usernamesById = parsed.usernamesById ?? {};
   const loadedStates = new Map<string, StudentWritingState>();
@@ -345,6 +352,7 @@ const hydrateStore = (): Promise<void> => {
   hydrationTriggered = true;
   hydrationState = 'loading';
   notifyHydrationListeners();
+  const generation = ++hydrationGeneration;
   const hydrateStartVersion = storeMutationVersion;
   const storage = getStorage();
   if (getWritingRepositoryMode() !== 'db') {
@@ -374,14 +382,14 @@ const hydrateStore = (): Promise<void> => {
         notifyHydrationListeners();
         void dbLoadPromise
           .then((lateParsed) => {
-            if (lateParsed) applyHydratedSnapshot(lateParsed, hydrateStartVersion, 'late-after-timeout');
+            if (lateParsed) applyHydratedSnapshot(lateParsed, hydrateStartVersion, 'late-after-timeout', generation);
           })
           .catch((error) => {
             console.warn('Writing integration DB late hydration recovery failed.', error);
           });
         return;
       }
-      applyHydratedSnapshot(parsed, hydrateStartVersion, 'initial');
+      applyHydratedSnapshot(parsed, hydrateStartVersion, 'initial', generation);
     })
     .catch((error) => {
       hydrationState = 'degraded';
@@ -443,6 +451,43 @@ export const retryWritingHydration = (): Promise<void> => {
   hydrationState = 'idle';
   notifyHydrationListeners();
   return hydrateStore();
+};
+
+const clearStudentScopedWritingStore = (): void => {
+  store.profiles.clear();
+  store.usernamesById = {};
+  store.states.clear();
+  store.attempts = [];
+  store.weeklyPlans = [];
+  store.dailyTasks = [];
+  store.dailySubmissions = [];
+  store.dailyEvaluations = [];
+  store.monthlyReports = [];
+  store.memorySnapshots = [];
+  store.promptBank = [];
+  store.reviewSignals = [];
+  store.calibrationFollowUpByStudent = {};
+};
+
+export const ensureWritingHydrationForStudent = async (studentId: string): Promise<void> => {
+  const expectedStudentId = studentId.trim();
+  if (!expectedStudentId) return;
+  if (hydrationState === 'ready' && hydratedStudentId === expectedStudentId) return;
+
+  if (hydratedStudentId && hydratedStudentId !== expectedStudentId) {
+    clearStudentScopedWritingStore();
+    hydratedStudentId = null;
+    storeMutationVersion = 0;
+  }
+
+  await retryWritingHydration();
+  if (hydrationState === 'ready' && hydratedStudentId && hydratedStudentId !== expectedStudentId) {
+    clearStudentScopedWritingStore();
+    hydrationState = 'degraded';
+    lastPersistenceMode = 'runtime-only';
+    console.warn('[writingIntegrationService] Writing hydration identity did not match the active student.');
+    notifyHydrationListeners();
+  }
 };
 
 export const subscribeToWritingHydrationStatus = (
@@ -3052,6 +3097,8 @@ export const __resetWritingIntegrationStoreForTests = (): void => {
   store.reviewSignals = [];
   store.calibrationFollowUpByStudent = {};
   storeMutationVersion = 0;
+  hydratedStudentId = null;
+  hydrationGeneration += 1;
   hydrationTriggered = false;
   hydrationInFlight = null;
   hydrationState = 'idle';

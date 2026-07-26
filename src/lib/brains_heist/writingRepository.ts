@@ -2,6 +2,7 @@ import { supabase } from '../../../services/supabaseClient.js';
 import { getEnvVar } from '../../../services/env.js';
 
 export interface SerializedWritingPersistenceStore {
+  ownerStudentId?: string;
   profiles: Array<[string, unknown]>;
   usernamesById?: Record<string, string>;
   states: Array<[string, unknown]>;
@@ -37,6 +38,11 @@ const ensureNoError = (result: { error: { message: string } | null }, context: s
 };
 const isStatementTimeoutError = (result: { error: { message: string } | null }): boolean =>
   Boolean(result.error?.message?.toLowerCase().includes('statement timeout'));
+const isMissingAttemptKeyError = (result: { error: { message: string } | null }): boolean => {
+  const message = result.error?.message?.toLowerCase() ?? '';
+  return message.includes('attempt_key')
+    && (message.includes('does not exist') || message.includes('schema cache') || message.includes('column'));
+};
 const withStudentBinding = <T extends Record<string, unknown>>(row: T, studentId: string): T => {
   if (typeof row['student_id'] === 'string') {
     return { ...row, student_id: studentId };
@@ -142,6 +148,7 @@ export const loadWritingStoreSnapshot = async (
   }
 
   return {
+    ownerStudentId: activeStudentId,
     profiles: profileRows.map((row: any) => [row.student_id, row.profile]),
     usernamesById,
     states: stateRows.flatMap((row: any): Array<[string, unknown]> => {
@@ -290,6 +297,18 @@ const upsertWritingAttempts = async (rows: unknown[]): Promise<void> => {
   const upsertRes = await supabase
     .from('bh_writing_attempts')
     .upsert(payloadRows, { onConflict: 'attempt_key', ignoreDuplicates: false });
+  if (isMissingAttemptKeyError(upsertRes)) {
+    const attemptIds = payloadRows
+      .map((row) => readKey(row.payload, 'id'))
+      .filter((value): value is string => Boolean(value));
+    const deleteRes = await supabase.from('bh_writing_attempts').delete().in('payload->>id', attemptIds);
+    ensureNoError(deleteRes, 'replace legacy writing attempts failed');
+    const insertRes = await supabase.from('bh_writing_attempts').insert(
+      payloadRows.map((row) => ({ payload: row.payload }))
+    );
+    ensureNoError(insertRes, 'insert legacy writing attempts failed');
+    return;
+  }
   ensureNoError(upsertRes, 'upsert writing attempts failed');
 };
 
