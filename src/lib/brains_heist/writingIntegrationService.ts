@@ -406,7 +406,10 @@ const persistStore = (): void => {
       });
     });
   const storage = getStorage();
-  if (storage) {
+  // Production writing records belong in Supabase, not in a shared browser profile.
+  // Keep the serialized fallback only for test/offline runtimes where DB persistence
+  // is intentionally unavailable.
+  if (storage && getWritingRepositoryMode() !== 'db') {
     storage.setItem(WRITING_STORE_KEY, JSON.stringify(snapshot));
   }
 };
@@ -1144,6 +1147,7 @@ export interface SmartWritingPromptSelection {
   mission_hint_categories: string[];
   selection_source: 'prompt_bank' | 'fallback_default';
   used_weakness_tags: string[];
+  pool_size?: number;
 }
 
 export interface WritingExportDocument {
@@ -2042,6 +2046,7 @@ export const getSmartWritingPromptForStudent = async (input: {
   student_id: string;
   grade: number;
   genre: SupportedGenre;
+  current_prompt_id?: string;
   current_prompt_text?: string;
   weakness_tags?: string[];
   use_ai_polish?: boolean;
@@ -2056,6 +2061,45 @@ export const getSmartWritingPromptForStudent = async (input: {
   const weaknessTags = (input.weakness_tags?.length ? input.weakness_tags : state?.latest_assessment?.weakness_tags ?? []).slice(0, 4);
   const weaknessFocusTargets = weaknessTags.flatMap((tag) => WEAKNESS_TAG_TO_PROMPT_FOCUS[tag as keyof typeof WEAKNESS_TAG_TO_PROMPT_FOCUS] ?? []);
   const uniqueFocusTargets = [...new Set(weaknessFocusTargets)];
+
+  // In production, use the school-managed, safety-approved prompt bank through a
+  // student-safe RPC. The in-memory structured bank remains the deterministic
+  // fallback for tests and temporary network failures.
+  const isTestRuntime = typeof process !== 'undefined' && process.env?.['NODE_ENV'] === 'test';
+  if (!isTestRuntime) {
+    try {
+      const { supabase } = await import('../../../services/supabaseClient.js');
+      const { data, error } = await supabase.rpc('rpc_bh_writing_student_prompt', {
+        p_grade: normalizedGrade,
+        p_genre: input.genre,
+        p_current_prompt_id: input.current_prompt_id ?? null,
+      });
+      const remote = data && typeof data === 'object' ? data as Record<string, unknown> : null;
+      const remotePrompt = typeof remote?.['prompt_text'] === 'string' ? remote['prompt_text'].trim() : '';
+      if (!error && remotePrompt) {
+        const difficulty = remote?.['difficulty_label'];
+        const focusTags = Array.isArray(remote?.['focus_tags']) ? remote['focus_tags'] as WritingPromptFocusTag[] : uniqueFocusTargets;
+        const contextTags = Array.isArray(remote?.['context_tags']) ? remote['context_tags'] as WritingPromptContextTag[] : [];
+        return ok({
+          prompt_text: remotePrompt,
+          base_prompt_text: remotePrompt,
+          genre: input.genre,
+          prompt_id: typeof remote?.['prompt_id'] === 'string' ? remote['prompt_id'] : null,
+          difficulty_level: difficulty === 'foundational' || difficulty === 'stretch' ? difficulty : 'core',
+          target_word_count: Number(remote?.['target_word_count']) || (normalizedGrade <= 7 ? 80 : normalizedGrade <= 9 ? 120 : 160),
+          focus_tags: focusTags,
+          context_tags: contextTags,
+          mission_hint_categories: [...new Set(weaknessTags.map((tag) => WEAKNESS_TAG_TO_MISSION_CATEGORY[tag as keyof typeof WEAKNESS_TAG_TO_MISSION_CATEGORY]).filter(Boolean))],
+          selection_source: 'prompt_bank',
+          used_weakness_tags: weaknessTags,
+          pool_size: Math.max(1, Number(remote?.['pool_size']) || 1),
+        });
+      }
+      if (error) console.warn('[writingIntegrationService] Student prompt RPC unavailable; using safe fallback.', error.message);
+    } catch (error) {
+      console.warn('[writingIntegrationService] Student prompt RPC failed; using safe fallback.', error);
+    }
+  }
 
   const recentAttempts = store.attempts
     .filter((attempt) => attempt.student_id === input.student_id && attempt.genre === input.genre)
