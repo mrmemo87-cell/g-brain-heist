@@ -102,6 +102,9 @@ test('student Writing Hub rehydrates by authenticated student before showing pro
   const repository = readProjectFile('src/lib/brains_heist/writingRepository.ts');
 
   assert.match(repository, /ownerStudentId:\s*activeStudentId/);
+  assert.match(repository, /isMissingAttemptKeyError/);
+  assert.match(repository, /\.in\('payload->>id', attemptIds\)/);
+  assert.match(repository, /insert legacy writing attempts failed/);
   assert.match(integration, /ensureWritingHydrationForStudent/);
   assert.match(integration, /hydratedStudentId\s*!==\s*expectedStudentId/);
   assert.match(integration, /generation\s*!==\s*hydrationGeneration/);
