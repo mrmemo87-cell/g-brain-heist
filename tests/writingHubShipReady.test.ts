@@ -31,11 +31,46 @@ test('writing prompt rotation migration deduplicates identities and remembers re
 
 test('cinematic feedback has responsive, accessible, reduced-motion styling', () => {
   const css = readProjectFile('src/pages/writing/WritingHub.css');
+  const source = readProjectFile('src/pages/writing/WritingHub.tsx');
   assert.match(css, /\.cinematic-feedback/);
   assert.match(css, /\.cinematic-feedback__detail--strong/);
   assert.match(css, /\.cinematic-feedback__detail--weak/);
+  assert.match(css, /\.cinematic-feedback__finale/);
+  assert.match(source, /Insight \{/);
+  assert.match(source, /Watch it transform/);
+  assert.match(source, /Start my revision/);
+  assert.match(source, /spotlightMode/);
   assert.match(css, /@media \(max-width: 760px\)/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
+});
+
+test('teacher monitoring rows are enriched from the authorized live class roster', () => {
+  const sql = readProjectFile('supabase/migrations/20260728153000_writing_monitor_roster_context.sql');
+  assert.match(sql, /class_students/);
+  assert.match(sql, /class_teacher_assignments/);
+  assert.match(sql, /actor\.school_id = c\.school_id/);
+  assert.match(sql, /'class_id'/);
+  assert.match(sql, /'class_name'/);
+  assert.match(sql, /'current_grade'/);
+  assert.match(sql, /with ordinality/);
+  assert.doesNotMatch(sql, /coalesce\([^)]*'Unassigned'/);
+});
+
+test('teacher monitor and analytics use the same premium workspace language and roster context', () => {
+  const monitoring = readProjectFile('src/pages/writing/WritingMonitoringView.tsx');
+  const analytics = readProjectFile('src/pages/writing/WritingAnalyticsDashboard.tsx');
+  const monitoringCss = readProjectFile('src/pages/writing/WritingMonitoringView.css');
+  const analyticsCss = readProjectFile('src/pages/writing/WritingAnalyticsDashboard.css');
+
+  assert.match(monitoring, /writing-teacher-surface/);
+  assert.match(monitoring, /Class and grade come from the live school roster/);
+  assert.match(monitoring, /Class not linked/);
+  assert.doesNotMatch(monitoring, /\?\? 'Unassigned'/);
+  assert.match(analytics, /writing-teacher-surface/);
+  assert.match(analytics, /getClassLabel/);
+  assert.doesNotMatch(analytics, /\?\? 'Unassigned'/);
+  assert.match(monitoringCss, /\.writing-teacher-hero/);
+  assert.match(analyticsCss, /\.writing-analytics__section/);
 });
 
 test('production persistence does not store the full Writing Hub snapshot on shared devices', () => {
