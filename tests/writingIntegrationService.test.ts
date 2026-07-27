@@ -409,6 +409,52 @@ test('rich feedback persists complete weakness memory and remains replayable in 
   assert.ok(essayEntry.rich_feedback);
 });
 
+test('existing saved feedback is backfilled into weakness memory on student load', () => {
+  __resetWritingIntegrationStoreForTests();
+  submitInitialWritingAssessment({
+    student_id: 'feedback-backfill-1',
+    grade: 8,
+    genre: 'essay',
+    prompt_text: prompt,
+    target_word_count: 120,
+    student_response: 'There is many reason for this event and it was importent',
+  });
+  // Complete the normal hydration cycle before simulating an older persisted
+  // attempt whose rich feedback predates canonical weakness tagging.
+  getStudentWritingState('feedback-backfill-1', 'essay');
+  const store = __getWritingIntegrationStoreForTests();
+  store.attempts[0]!.rich_feedback = {
+    grammar_fixes: [
+      {
+        issue: 'subject-verb agreement',
+        original: 'There is many reason',
+        better_version: 'There are many reasons',
+      },
+      {
+        issue: 'spelling',
+        original: 'importent',
+        better_version: 'important',
+      },
+    ],
+    punctuation_fixes: [
+      {
+        original: 'it was importent',
+        better_version: 'it was important.',
+      },
+    ],
+  };
+
+  const state = getStudentWritingState('feedback-backfill-1', 'essay');
+  assert.strictEqual(state.ok, true);
+  assert.ok(state.data!.latest_assessment!.weakness_tags.includes('agreement_error'));
+  assert.ok(state.data!.latest_assessment!.weakness_tags.includes('spelling_error'));
+  assert.ok(state.data!.latest_assessment!.weakness_tags.includes('punctuation_error'));
+  assert.strictEqual(
+    state.data!.repeated_error_memory.byStudent['feedback-backfill-1']!.tagCounts.agreement_error,
+    1
+  );
+});
+
 test('student/teacher/admin exports produce html and pdf-ready payloads', () => {
   __resetWritingIntegrationStoreForTests();
   submitInitialWritingAssessment({

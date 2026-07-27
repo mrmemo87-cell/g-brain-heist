@@ -628,6 +628,69 @@ const rebuildRepeatedErrorMemoryForGenre = (
   return memory;
 };
 
+const synchronizeSavedFeedbackWeaknessMemory = (
+  studentId: string,
+  genre: SupportedGenre
+): boolean => {
+  let changed = false;
+  store.attempts
+    .filter((attempt) => attempt.student_id === studentId && attempt.genre === genre)
+    .forEach((attempt) => {
+      if (!attempt.rich_feedback || typeof attempt.rich_feedback !== 'object' || Array.isArray(attempt.rich_feedback)) return;
+      const feedbackTags = inferFeedbackWeaknessTags(attempt.rich_feedback as Record<string, unknown>);
+      const mergedTags = [...new Set([...attempt.assessment.weakness_tags, ...feedbackTags])];
+      const storedFeedbackTags = attempt.feedback_weakness_tags ?? [];
+      if (
+        mergedTags.length === attempt.assessment.weakness_tags.length
+        && feedbackTags.length === storedFeedbackTags.length
+        && feedbackTags.every((tag) => storedFeedbackTags.includes(tag))
+      ) return;
+      attempt.feedback_weakness_tags = feedbackTags;
+      attempt.assessment = {
+        ...attempt.assessment,
+        weakness_tags: mergedTags,
+      };
+      changed = true;
+    });
+  if (!changed) return false;
+
+  const state = getStateForGenre(studentId, genre);
+  if (!state) return false;
+  const memory = rebuildRepeatedErrorMemoryForGenre(studentId, genre);
+  const latestAttempt = store.attempts
+    .filter((attempt) => attempt.student_id === studentId && attempt.genre === genre)
+    .sort((left, right) => right.created_at.localeCompare(left.created_at))[0];
+  if (!latestAttempt) return false;
+  const weeklyPlan = generateWeeklyImprovementPlan({
+    assessment: latestAttempt.assessment,
+    grade: state.grade,
+    genre,
+    repeatedErrorMemory: memory,
+    studentId,
+  });
+  const dailyTasks = generateDailyWritingTasksForWeek({
+    weekly_plan: weeklyPlan,
+    latest_assessment: latestAttempt.assessment,
+    grade: state.grade,
+    target_genre: genre,
+    repeated_error_memory: memory,
+    student_id: studentId,
+  });
+  setStateForGenre(studentId, genre, {
+    ...state,
+    latest_assessment: latestAttempt.assessment,
+    repeated_error_memory: memory,
+    active_week_plan: weeklyPlan,
+    active_daily_tasks: dailyTasks,
+  });
+  const currentWeek = store.weeklyPlans
+    .filter((plan) => plan.student_id === studentId && plan.genre === genre)
+    .sort((left, right) => right.created_at.localeCompare(left.created_at))[0];
+  if (currentWeek) currentWeek.plan = weeklyPlan;
+  persistStore();
+  return true;
+};
+
 interface ServiceResponse<T> {
   ok: boolean;
   data?: T;
@@ -767,6 +830,7 @@ export const submitInitialWritingAssessment = (
 export const getStudentWritingState = (studentId: string, genre?: SupportedGenre): ServiceResponse<StudentWritingState> => {
   hydrateStore();
   const resolvedGenre = genre ?? getProfileGenre(studentId);
+  synchronizeSavedFeedbackWeaknessMemory(studentId, resolvedGenre);
   const state = getStateForGenre(studentId, resolvedGenre);
   if (!state) {
     const profile = store.profiles.get(studentId);
