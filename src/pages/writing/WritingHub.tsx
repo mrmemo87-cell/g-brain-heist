@@ -27,6 +27,7 @@ import {
   submitInitialWritingAssessment,
   getStudentPromptAttemptCount,
   getStudentWritingIntegrityMode,
+  StudentWritingHistoryEntry,
 } from '../../lib/brains_heist/writingIntegrationService.js';
 import { FALLBACK_PROMPT_BY_GENRE, WEAKNESS_TAG_TO_MISSION_CATEGORY } from '../../lib/brains_heist/writingPromptProgression.js';
 import {
@@ -91,6 +92,7 @@ interface WritingAiFeedbackAssist {
   example_revision_start?: string;
   strengths?: string[];
   weaknesses?: string[];
+  weakness_tags?: string[];
   next_steps?: string[];
   monthly_report_summary?: string;
   anchor_version?: string;
@@ -116,6 +118,13 @@ interface WritingAiFeedbackAssist {
     done_criteria?: string;
     evidence?: string;
   }>;
+}
+
+interface CinematicReplaySource {
+  attemptId: string;
+  submittedText: string;
+  assessment: NonNullable<StudentWritingHistoryEntry['assessment']>;
+  feedback: WritingAiFeedbackAssist;
 }
 
 interface TextAnchorRange {
@@ -2511,7 +2520,8 @@ const WritingHubLegacy: React.FC<WritingHubProps> = ({ studentId, studentName, g
     submissionText: string,
     promptForFeedback: string,
     weaknessesForFeedback: string[],
-    source: 'initial' | 'daily'
+    source: 'initial' | 'daily',
+    attemptId?: string
   ) => {
     setIsAnalyzingRichFeedback(true);
     const aiFeedback = await requestWritingAiAssist({
@@ -2536,6 +2546,7 @@ const WritingHubLegacy: React.FC<WritingHubProps> = ({ studentId, studentName, g
         const persistResult = persistInitialWritingRichFeedback({
           student_id: studentId,
           genre: activeGenre,
+          attempt_id: attemptId,
           rich_feedback: ai,
         });
         if (!persistResult.ok) {
@@ -2612,7 +2623,13 @@ const WritingHubLegacy: React.FC<WritingHubProps> = ({ studentId, studentName, g
     setReviewScanComplete(false);
     setReviewActiveIndex(null);
     try {
-      const aiResult = await loadRichFeedback(safeInitialResponse, promptForSubmission, latestWeaknesses, 'initial');
+      const aiResult = await loadRichFeedback(
+        safeInitialResponse,
+        promptForSubmission,
+        latestWeaknesses,
+        'initial',
+        result.data?.attempt_id
+      );
       if (aiResult.ok) {
         setAiReviewViewMode('full');
         setShowAiReviewModal(false);
@@ -4788,6 +4805,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   const [aiFeedback, setAiFeedback] = useState<WritingAiFeedbackAssist | null>(null);
   const [submittedText, setSubmittedText] = useState('');
   const [showCinematicFeedback, setShowCinematicFeedback] = useState(false);
+  const [cinematicReplaySource, setCinematicReplaySource] = useState<CinematicReplaySource | null>(null);
   const [cinematicIndex, setCinematicIndex] = useState<number | null>(null);
   const [cinematicDone, setCinematicDone] = useState(false);
   const [showFullEssayContext, setShowFullEssayContext] = useState(false);
@@ -4840,6 +4858,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     setAiFeedback(null);
     setSubmittedText('');
     setShowCinematicFeedback(false);
+    setCinematicReplaySource(null);
     setShowPromptChooser(false);
     setShowFullEssayContext(false);
     setCinematicIndex(null);
@@ -4963,6 +4982,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     setAiFeedback(null);
     setSubmittedText('');
     setShowCinematicFeedback(false);
+    setCinematicReplaySource(null);
     setCinematicDone(false);
     setCinematicIndex(null);
     setShowFullEssayContext(false);
@@ -4983,6 +5003,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       const stateRes = getStudentWritingState(studentId, nextGenre);
       const weaknessTags = stateRes.ok && stateRes.data?.latest_assessment ? stateRes.data.latest_assessment.weakness_tags.slice(0, 4) : [];
       const previousPrompt = promptText;
+      const previousPromptId = promptId;
       const nextPrompt = await getSmartWritingPromptForStudent({
         student_id: studentId,
         grade,
@@ -4993,17 +5014,25 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
         use_ai_polish: true,
       });
       let resolvedPrompt = defaultPromptByGenre[nextGenre];
+      let resolvedPromptId: string | null = null;
       if (nextPrompt.ok && nextPrompt.data?.prompt_text?.trim()) {
         resolvedPrompt = nextPrompt.data.prompt_text.trim();
-        setPromptId(nextPrompt.data.prompt_id);
+        resolvedPromptId = nextPrompt.data.prompt_id;
+        setPromptId(resolvedPromptId);
         setAvailablePromptCount(Math.max(1, nextPrompt.data.pool_size ?? availablePromptCount));
       } else {
         setPromptId(null);
       }
-      if (normalizePromptForComparison(resolvedPrompt) === normalizePromptForComparison(previousPrompt)) {
+      const samePromptIdentity = Boolean(
+        previousPromptId
+        && resolvedPromptId
+        && previousPromptId === resolvedPromptId
+      );
+      const samePromptText = normalizePromptForComparison(resolvedPrompt) === normalizePromptForComparison(previousPrompt);
+      if (samePromptIdentity || samePromptText) {
         setNotice(
           hasPromptRotation
-            ? 'Prompt pool returned the same task. You can still retry this prompt now, and we will rotate on the next request.'
+            ? 'This is still the same task, so it has not been labelled as a new prompt. Choose New prompt again or retry it.'
             : `Only one active ${toGenreLabel(nextGenre).toLowerCase()} prompt is enabled, so New prompt keeps the same task.`
         );
       } else {
@@ -5015,6 +5044,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       setAiFeedback(null);
       setSubmittedText('');
       setShowCinematicFeedback(false);
+      setCinematicReplaySource(null);
       setCinematicIndex(null);
       setCinematicDone(false);
       setRevisionCycleId(createRevisionCycleId());
@@ -5108,9 +5138,11 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
           persistInitialWritingRichFeedback({
             student_id: studentId,
             genre: activeGenre,
+            attempt_id: result.data.attempt_id,
             rich_feedback: parsedFeedback,
             created_at: new Date().toISOString(),
           });
+          setCinematicReplaySource(null);
           setCinematicIndex(null);
           setCinematicDone(false);
           setShowCinematicFeedback(true);
@@ -5126,17 +5158,37 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     }
   };
 
+  const playSavedCinematicFeedback = (entry: StudentWritingHistoryEntry) => {
+    if (!entry.student_submission.trim() || !entry.assessment || !entry.rich_feedback || typeof entry.rich_feedback !== 'object') {
+      setError('This older submission does not have enough saved feedback for a cinematic replay.');
+      return;
+    }
+    setError('');
+    setCinematicReplaySource({
+      attemptId: entry.id,
+      submittedText: entry.student_submission,
+      assessment: entry.assessment,
+      feedback: entry.rich_feedback as WritingAiFeedbackAssist,
+    });
+    setCinematicIndex(null);
+    setCinematicDone(false);
+    setShowCinematicFeedback(true);
+  };
+
+  const activeCinematicText = cinematicReplaySource?.submittedText ?? submittedText;
+  const activeCinematicFeedback = cinematicReplaySource?.feedback ?? aiFeedback;
+  const activeCinematicAssessment = cinematicReplaySource?.assessment ?? assessment;
   const trustedRanges = useMemo(
-    () => buildAnchorRanges(submittedText, aiFeedback),
-    [submittedText, aiFeedback]
+    () => buildAnchorRanges(activeCinematicText, activeCinematicFeedback),
+    [activeCinematicText, activeCinematicFeedback]
   );
   const fallbackRanges = useMemo(
-    () => buildFallbackHighlightRanges(submittedText, aiFeedback),
-    [submittedText, aiFeedback]
+    () => buildFallbackHighlightRanges(activeCinematicText, activeCinematicFeedback),
+    [activeCinematicText, activeCinematicFeedback]
   );
   const cinematicTrust = useMemo(
-    () => evaluateAnchorTrust(submittedText, aiFeedback),
-    [submittedText, aiFeedback]
+    () => evaluateAnchorTrust(activeCinematicText, activeCinematicFeedback),
+    [activeCinematicText, activeCinematicFeedback]
   );
   const cinematicRanges = useMemo(
     () => buildBalancedReviewSequence(
@@ -5147,10 +5199,10 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   );
   const improvementGuidance = useMemo(
     () => [
-      aiFeedback?.next_move,
-      ...(aiFeedback?.next_steps ?? []),
+      activeCinematicFeedback?.next_move,
+      ...(activeCinematicFeedback?.next_steps ?? []),
     ].filter(Boolean).join(' ') || 'Focus on the mistake tags, then rewrite for clearer task coverage and language control.',
-    [aiFeedback]
+    [activeCinematicFeedback]
   );
   const cinematicModeLabel =
     cinematicTrust.mode === 'trusted'
@@ -5163,16 +5215,16 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     : 100;
   const activeCinematicRange = cinematicIndex != null ? cinematicRanges[cinematicIndex] ?? null : null;
   const activeCinematicDetail = useMemo(
-    () => describeHighlight(activeCinematicRange, submittedText, aiFeedback),
-    [activeCinematicRange, submittedText, aiFeedback]
+    () => describeHighlight(activeCinematicRange, activeCinematicText, activeCinematicFeedback),
+    [activeCinematicRange, activeCinematicText, activeCinematicFeedback]
   );
   const activeSnippet = useMemo(() => {
     if (!activeCinematicRange) return '';
-    return submittedText.slice(activeCinematicRange.start, activeCinematicRange.end).trim() || activeCinematicRange.sourceExactText?.trim() || '';
-  }, [activeCinematicRange, submittedText]);
+    return activeCinematicText.slice(activeCinematicRange.start, activeCinematicRange.end).trim() || activeCinematicRange.sourceExactText?.trim() || '';
+  }, [activeCinematicRange, activeCinematicText]);
   const activeLessonFix = useMemo(
-    () => pickLessonFixForRange(activeCinematicRange, activeSnippet, aiFeedback),
-    [activeCinematicRange, activeSnippet, aiFeedback]
+    () => pickLessonFixForRange(activeCinematicRange, activeSnippet, activeCinematicFeedback),
+    [activeCinematicRange, activeSnippet, activeCinematicFeedback]
   );
   const activeReviewIssue = useMemo((): GuidedReviewIssue => {
     const originalSentence = activeSnippet || activeCinematicRange?.sourceExactText || 'No snippet available.';
@@ -5244,12 +5296,12 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   }, [issueConsistency, normalizedReviewIssue.id, normalizedReviewIssue.evidenceSpan]);
   const rubricRows = useMemo(
     () => [
-      { key: 'content', label: 'Content', value: assessment?.subscores.content ?? null },
-      { key: 'organisation', label: 'Organization', value: assessment?.subscores.organisation ?? null },
-      { key: 'language', label: 'Language', value: assessment?.subscores.language ?? null },
-      { key: 'communicative_achievement', label: 'Communicative Achievement', value: assessment?.subscores.communicative_achievement ?? null },
+      { key: 'content', label: 'Content', value: activeCinematicAssessment?.subscores.content ?? null },
+      { key: 'organisation', label: 'Organization', value: activeCinematicAssessment?.subscores.organisation ?? null },
+      { key: 'language', label: 'Language', value: activeCinematicAssessment?.subscores.language ?? null },
+      { key: 'communicative_achievement', label: 'Communicative Achievement', value: activeCinematicAssessment?.subscores.communicative_achievement ?? null },
     ],
-    [assessment]
+    [activeCinematicAssessment]
   );
 
   const handleRangeMount = (index: number, element: HTMLSpanElement | null) => {
@@ -5308,7 +5360,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     const timers: number[] = [];
     let elapsed = 600;
     cinematicRanges.forEach((range, idx) => {
-      const segment = submittedText.slice(range.start, range.end);
+      const segment = activeCinematicText.slice(range.start, range.end);
       const delay = getHighlightAnimationDurationMs(segment.length) + 80;
       timers.push(window.setTimeout(() => {
         if (!cancelled) setCinematicIndex(idx);
@@ -5323,7 +5375,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       tl.kill();
       timers.forEach((timer) => window.clearTimeout(timer));
     };
-  }, [showCinematicFeedback, cinematicRanges, submittedText]);
+  }, [showCinematicFeedback, cinematicRanges, activeCinematicText]);
 
   useEffect(() => {
     if (!showCinematicFeedback || cinematicIndex == null) return;
@@ -5370,7 +5422,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     scrollLineIntoComfortZone(panel, lineRects[0] ?? null);
 
     return () => { stepTl.kill(); };
-  }, [showCinematicFeedback, cinematicIndex, submittedText, activeCinematicRange?.polarity]);
+  }, [showCinematicFeedback, cinematicIndex, activeCinematicText, activeCinematicRange?.polarity]);
 
   useEffect(() => {
     if (typeof document === 'undefined' || !showCinematicFeedback) return;
@@ -5659,6 +5711,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
               type="button"
               className="writing-studio__cinematic-button"
               onClick={() => {
+                setCinematicReplaySource(null);
                 setCinematicIndex(null);
                 setCinematicDone(false);
                 setShowCinematicFeedback(true);
@@ -5780,6 +5833,21 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                     <p style={{ margin: 0, color: '#475569', fontSize: 13 }}>
                       <strong>Issues:</strong> Grammar {entry.grammar_issue_count} · Punctuation {entry.punctuation_issue_count}
                     </p>
+                    {entry.weakness_tags.length > 0 && (
+                      <p style={{ margin: 0, color: '#475569', fontSize: 13 }}>
+                        <strong>Focus memory:</strong> {entry.weakness_tags.map((tag) => tag.replaceAll('_', ' ')).join(' · ')}
+                      </p>
+                    )}
+                    {entry.has_feedback && entry.assessment && entry.student_submission.trim() && (
+                      <button
+                        type="button"
+                        className="writing-studio__cinematic-button"
+                        onClick={() => playSavedCinematicFeedback(entry)}
+                      >
+                        <span aria-hidden="true">▶</span>
+                        Replay Cinematic Feedback
+                      </button>
+                    )}
                     <div style={{ display: 'grid', gap: 6, marginTop: 2 }}>
                       {[
                         { label: 'Content', value: entry.rubric_scores.content },
@@ -5840,8 +5908,8 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                 <p><b className="cinematic-feedback__legend-dot is-strong" /> Green preserves a strong choice. <b className="cinematic-feedback__legend-dot is-growth" /> Coral reveals your next upgrade.</p>
               </div>
               <div className="cinematic-feedback__header-actions">
-                <div className="cinematic-feedback__score-orbit" aria-label={`Automated formative estimate ${assessment?.total_score ?? 0} out of 20`}>
-                  <strong>{assessment?.total_score ?? '—'}</strong>
+                <div className="cinematic-feedback__score-orbit" aria-label={`Automated formative estimate ${activeCinematicAssessment?.total_score ?? 0} out of 20`}>
+                  <strong>{activeCinematicAssessment?.total_score ?? '—'}</strong>
                   <span>/20</span>
                 </div>
                 <button type="button" className="cinematic-feedback__close" onClick={() => setShowCinematicFeedback(false)} aria-label="Close cinematic feedback">×</button>
@@ -5857,7 +5925,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                   <path ref={cinematicTracePathRef} fill="none" strokeWidth="3" strokeLinecap="round" />
                 </svg>
                 <div className="cinematic-feedback__essay">
-                  {renderAnnotatedText(submittedText, cinematicRanges, cinematicIndex, handleRangeMount)}
+                  {renderAnnotatedText(activeCinematicText, cinematicRanges, cinematicIndex, handleRangeMount)}
                 </div>
               </div>
 
@@ -5912,9 +5980,13 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                 <button type="button" onClick={() => setCinematicIndex((current) => Math.min(cinematicRanges.length - 1, (current ?? -1) + 1))} disabled={cinematicRanges.length === 0 || cinematicIndex === cinematicRanges.length - 1}>Next</button>
                 <button type="button" className="is-primary" onClick={() => {
                   setShowCinematicFeedback(false);
-                  beginRetrySamePrompt();
+                  if (cinematicReplaySource) {
+                    setCinematicReplaySource(null);
+                  } else {
+                    beginRetrySamePrompt();
+                  }
                 }}>
-                  Improve my draft
+                  {cinematicReplaySource ? 'Close feedback' : 'Improve my draft'}
                 </button>
               </div>
               {cinematicDone && (

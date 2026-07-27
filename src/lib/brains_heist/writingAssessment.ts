@@ -829,7 +829,23 @@ export const generateWeeklyImprovementPlan = (input: WeeklyPlanInput): WeeklyImp
     (a, b) => weaknessBySubscale[b] - weaknessBySubscale[a]
   );
 
-  const weaknessTags = [...input.assessment.weakness_tags];
+  const recentlyObservedTags = new Set(
+    attempts.slice(-3).flatMap((attempt) => attempt.result.weakness_tags)
+  );
+  const historicalTags = (Object.entries(tagCounts) as Array<[WeaknessTag, number | undefined]>)
+    .filter(([tag, count]) => (count ?? 0) > 0 && recentlyObservedTags.has(tag))
+    .sort((left, right) => {
+      const countDelta = (right[1] ?? 0) - (left[1] ?? 0);
+      if (countDelta !== 0) return countDelta;
+      const leftLatestIndex = attempts.map((attempt) => attempt.result.weakness_tags.includes(left[0])).lastIndexOf(true);
+      const rightLatestIndex = attempts.map((attempt) => attempt.result.weakness_tags.includes(right[0])).lastIndexOf(true);
+      return rightLatestIndex - leftLatestIndex;
+    })
+    .map(([tag]) => tag);
+  const weaknessTags = [...new Set([
+    ...input.assessment.weakness_tags,
+    ...historicalTags,
+  ])];
   const repeatedPrimaryTag = weaknessTags.find((tag) => (tagCounts[tag] ?? 0) >= 2);
   const primarySubscale = sortedSubscales[0];
   const primaryTag =

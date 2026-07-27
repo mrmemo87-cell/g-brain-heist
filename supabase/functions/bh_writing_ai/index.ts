@@ -35,6 +35,7 @@ type AiResult = {
   example_revision_start?: string;
   strengths?: string[];
   weaknesses?: string[];
+  weakness_tags?: string[];
   next_steps?: string[];
   focus?: string;
   drills?: string[];
@@ -283,6 +284,32 @@ const normalizeAiResult = (mode: Mode, raw: unknown): AiResult | null => {
     const normalizedGrammarFixes = normalizeFixes(value.grammar_fixes);
     const normalizedPunctuationFixes = normalizeFixes(value.punctuation_fixes);
     const repartitionedFixes = repartitionFixes(normalizedGrammarFixes, normalizedPunctuationFixes);
+    const allowedWeaknessTags = new Set([
+      "missed_content_point",
+      "partial_content_coverage",
+      "irrelevant_detail",
+      "under_length",
+      "wrong_tone",
+      "weak_register_control",
+      "weak_genre_convention",
+      "weak_audience_awareness",
+      "weak_paragraphing",
+      "poor_sequencing",
+      "weak_linking",
+      "repetitive_flow",
+      "tense_error",
+      "agreement_error",
+      "article_error",
+      "preposition_error",
+      "fragment",
+      "run_on",
+      "weak_word_choice",
+      "spelling_error",
+      "punctuation_error",
+    ]);
+    const weaknessTags = Array.isArray(value.weakness_tags)
+      ? [...new Set(value.weakness_tags.map(String).filter((tag) => allowedWeaknessTags.has(tag)))].slice(0, 12)
+      : [];
 
     const normalizeHighlights = (input: unknown): AiResult["highlights"] => {
       if (!Array.isArray(input)) return [];
@@ -357,6 +384,7 @@ const normalizeAiResult = (mode: Mode, raw: unknown): AiResult | null => {
         typeof value.example_revision_start === "string" ? value.example_revision_start : "",
       strengths: Array.isArray(value.strengths) ? value.strengths.map(String) : [],
       weaknesses: Array.isArray(value.weaknesses) ? value.weaknesses.map(String) : [],
+      weakness_tags: weaknessTags,
       next_steps: Array.isArray(value.next_steps) ? value.next_steps.map(String) : [],
       monthly_report_summary:
         typeof value.monthly_report_summary === "string" ? value.monthly_report_summary : "",
@@ -416,6 +444,7 @@ const buildUserPrompt = (payload: Payload): string => {
       '- example_revision_start: one concrete improved sentence/starter when useful',
       "- strengths: 2 short specific positives",
       "- weaknesses: 2 short plain-English weakness summaries",
+      "- weakness_tags: every detected weakness as canonical machine-readable tags selected only from missed_content_point | partial_content_coverage | irrelevant_detail | under_length | wrong_tone | weak_register_control | weak_genre_convention | weak_audience_awareness | weak_paragraphing | poor_sequencing | weak_linking | repetitive_flow | tense_error | agreement_error | article_error | preposition_error | fragment | run_on | weak_word_choice | spelling_error | punctuation_error",
       "- next_steps: 2 or 3 clear actionable next steps",
       "- monthly_report_summary: 1 short progress summary sentence",
       "- Optional future-safe keys when confidence is high: anchor_version, highlights[], repair_steps[]",
