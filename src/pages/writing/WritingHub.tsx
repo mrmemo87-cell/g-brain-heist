@@ -3,7 +3,6 @@ import type { MutableRefObject } from 'react';
 import { createPortal } from 'react-dom';
 import gsap from 'gsap';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
-import { Observer } from 'gsap/Observer';
 import {
   getCurrentWeeklyPlan,
   getStudentGenrePathStatuses,
@@ -170,7 +169,7 @@ interface WritingMissionRecommendation {
   mission?: Pick<QuestMissionRow, 'id' | 'title' | 'subject' | 'difficulty' | 'mission_type'>;
 }
 
-gsap.registerPlugin(DrawSVGPlugin, Observer);
+gsap.registerPlugin(DrawSVGPlugin);
 
 const toAlignmentLabel = (alignment?: WritingAiFeedbackAssist['alignment']): string => {
   const labels: Record<NonNullable<WritingAiFeedbackAssist['alignment']>, string> = {
@@ -709,20 +708,35 @@ interface ReviewHighlightSpanProps {
   range: TextAnchorRange;
   segment: string;
   isActive: boolean;
+  spotlightMode?: boolean;
   onMount?: (index: number, element: HTMLSpanElement | null) => void;
 }
 
-const ReviewHighlightSpan: React.FC<ReviewHighlightSpanProps> = ({ index, range, segment, isActive, onMount }) => {
+const ReviewHighlightSpan: React.FC<ReviewHighlightSpanProps> = ({
+  index,
+  range,
+  segment,
+  isActive,
+  spotlightMode = false,
+  onMount,
+}) => {
   const strong = range.polarity === 'strong';
+  const isQuiet = spotlightMode && !isActive;
 
   const highlightStyle = {
-    background: isActive
+    background: isQuiet
+      ? 'transparent'
+      : isActive
       ? (strong ? 'rgba(74, 222, 128, 0.35)' : 'rgba(248, 113, 113, 0.34)')
       : (strong ? 'rgba(74, 222, 128, 0.18)' : 'rgba(248, 113, 113, 0.16)'),
-    borderBottom: isActive
+    borderBottom: isQuiet
+      ? '2px solid transparent'
+      : isActive
       ? (strong ? '2px solid rgba(74, 222, 128, 0.9)' : '2px solid rgba(248, 113, 113, 0.9)')
       : (strong ? '2px solid rgba(74, 222, 128, 0.45)' : '2px solid rgba(248, 113, 113, 0.42)'),
-    color: isActive
+    color: isQuiet
+      ? 'inherit'
+      : isActive
       ? (strong ? 'var(--hub-highlight-strong-active, #d9f99d)' : 'var(--hub-highlight-weak-active, #fecaca)')
       : (strong ? 'var(--hub-highlight-strong-idle, rgba(187,247,208,0.9))' : 'var(--hub-highlight-weak-idle, rgba(254,202,202,0.9))'),
     boxShadow: isActive ? (strong ? '0 0 0 1px rgba(74, 222, 128, 0.5)' : '0 0 0 1px rgba(248, 113, 113, 0.5)') : 'none',
@@ -750,7 +764,8 @@ const renderAnnotatedText = (
   text: string,
   ranges: TextAnchorRange[],
   activeIndex: number | null = null,
-  onHighlightMount?: (index: number, element: HTMLSpanElement | null) => void
+  onHighlightMount?: (index: number, element: HTMLSpanElement | null) => void,
+  spotlightMode = false
 ): React.ReactNode => {
   if (!text) return text;
   const normalizedRanges = [...ranges]
@@ -775,6 +790,7 @@ const renderAnnotatedText = (
         range={range}
         segment={segment}
         isActive={idx === activeIndex}
+        spotlightMode={spotlightMode}
         onMount={onHighlightMount}
       />
     );
@@ -4829,7 +4845,6 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   const cinematicTextPanelRef = useRef<HTMLDivElement | null>(null);
   const cinematicRangeRefs = useRef<Record<number, HTMLSpanElement | null>>({});
   const cinematicTracePathRef = useRef<SVGPathElement | null>(null);
-  const observerCleanupRef = useRef<(() => void) | null>(null);
   const managedPromptLoadKeyRef = useRef('');
   const pastedCharactersToIgnoreRef = useRef(0);
   const targetWordCount = grade <= 7 ? 80 : grade <= 9 ? 120 : 160;
@@ -5210,9 +5225,11 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       : cinematicTrust.mode === 'stale_feedback'
         ? 'Guided review mode'
         : 'Guided review mode';
-  const cinematicProgress = cinematicRanges.length > 0
-    ? Math.round((((cinematicIndex ?? -1) + 1) / cinematicRanges.length) * 100)
-    : 100;
+  const cinematicProgress = cinematicDone
+    ? 100
+    : cinematicRanges.length > 0
+      ? Math.round((((cinematicIndex ?? 0) + 1) / (cinematicRanges.length + 1)) * 100)
+      : 100;
   const activeCinematicRange = cinematicIndex != null ? cinematicRanges[cinematicIndex] ?? null : null;
   const activeCinematicDetail = useMemo(
     () => describeHighlight(activeCinematicRange, activeCinematicText, activeCinematicFeedback),
@@ -5333,7 +5350,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
 
     if (prefersReducedMotion) {
       setCinematicIndex(cinematicRanges.length > 0 ? 0 : null);
-      setCinematicDone(true);
+      setCinematicDone(cinematicRanges.length === 0);
       return;
     }
 
@@ -5341,41 +5358,42 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     tl.fromTo(panel, { opacity: 0, scale: 0.97, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: 0.5 });
     tl.fromTo(panel.querySelector('.cinematic-text-panel'), { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4 }, '-=0.2');
     tl.fromTo('.cinematic-detail-card', { opacity: 0, x: -12 }, { opacity: 1, x: 0, duration: 0.35 }, '-=0.15');
-    tl.fromTo('.cinematic-rubric-section', { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.35 }, '-=0.1');
     tl.fromTo('.cinematic-nav-bar', { opacity: 0 }, { opacity: 1, duration: 0.25 }, '-=0.1');
-    tl.add(() => {
-      const bars = document.querySelectorAll('.rubric-bar-fill');
-      bars.forEach((bar) => {
-        const target = (bar as HTMLElement).style.width || '0%';
-        gsap.fromTo(bar, { width: '0%' }, { width: target, duration: 0.8, ease: 'power2.out', delay: 0.05 });
-      });
-    }, '-=0.15');
 
     if (cinematicRanges.length === 0) {
       setCinematicDone(true);
       setCinematicIndex(null);
-      return;
+    } else {
+      setCinematicDone(false);
+      setCinematicIndex(0);
     }
-    let cancelled = false;
-    const timers: number[] = [];
-    let elapsed = 600;
-    cinematicRanges.forEach((range, idx) => {
-      const segment = activeCinematicText.slice(range.start, range.end);
-      const delay = getHighlightAnimationDurationMs(segment.length) + 80;
-      timers.push(window.setTimeout(() => {
-        if (!cancelled) setCinematicIndex(idx);
-      }, elapsed));
-      elapsed += delay;
-    });
-    timers.push(window.setTimeout(() => {
-      if (!cancelled) setCinematicDone(true);
-    }, elapsed + 200));
     return () => {
-      cancelled = true;
       tl.kill();
-      timers.forEach((timer) => window.clearTimeout(timer));
     };
   }, [showCinematicFeedback, cinematicRanges, activeCinematicText]);
+
+  useEffect(() => {
+    if (!showCinematicFeedback || !cinematicDone) return;
+    const finale = document.querySelector('.cinematic-feedback__finale');
+    if (!finale) return;
+    const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    if (prefersReducedMotion) return;
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    tl.fromTo(finale, { opacity: 0, y: 16, scale: 0.985 }, { opacity: 1, y: 0, scale: 1, duration: 0.42 });
+    tl.fromTo(
+      finale.querySelectorAll('.cinematic-feedback__rubric > div'),
+      { opacity: 0, y: 10 },
+      { opacity: 1, y: 0, duration: 0.28, stagger: 0.07 },
+      '-=0.18'
+    );
+    tl.add(() => {
+      finale.querySelectorAll('.rubric-bar-fill').forEach((bar) => {
+        const target = (bar as HTMLElement).style.width || '0%';
+        gsap.fromTo(bar, { width: '0%' }, { width: target, duration: 0.65, ease: 'power2.out' });
+      });
+    }, '-=0.15');
+    return () => { tl.kill(); };
+  }, [showCinematicFeedback, cinematicDone]);
 
   useEffect(() => {
     if (!showCinematicFeedback || cinematicIndex == null) return;
@@ -5447,30 +5465,18 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   }, [showCinematicFeedback]);
 
   useEffect(() => {
-    observerCleanupRef.current?.();
-    observerCleanupRef.current = null;
     if (!showCinematicFeedback || cinematicRanges.length === 0) return;
-    const panel = cinematicTextPanelRef.current;
-    if (!panel || typeof window === 'undefined') return;
-    const observer = Observer.create({
-      target: panel,
-      wheelSpeed: -1,
-      tolerance: 8,
-      preventDefault: false,
-      type: 'wheel,touch,pointer',
-      onUp: () => setCinematicIndex((prev) => Math.max(0, (prev ?? 0) - 1)),
-      onDown: () => setCinematicIndex((prev) => Math.min(cinematicRanges.length - 1, (prev ?? 0) + 1)),
-    });
+    if (typeof window === 'undefined') return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'ArrowRight') setCinematicIndex((prev) => Math.min(cinematicRanges.length - 1, (prev ?? 0) + 1));
+      if (event.key === 'ArrowRight') {
+        setCinematicIndex((prev) => Math.min(cinematicRanges.length - 1, (prev ?? 0) + 1));
+      }
       if (event.key === 'ArrowLeft') setCinematicIndex((prev) => Math.max(0, (prev ?? 0) - 1));
     };
     window.addEventListener('keydown', onKeyDown);
-    observerCleanupRef.current = () => {
-      observer.kill();
+    return () => {
       window.removeEventListener('keydown', onKeyDown);
     };
-    return observerCleanupRef.current;
   }, [showCinematicFeedback, cinematicRanges.length]);
 
   const strengths = (aiFeedback?.what_is_working ?? aiFeedback?.strengths ?? []).filter(Boolean).slice(0, 4);
@@ -5919,81 +5925,136 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
               <i style={{ width: `${cinematicProgress}%` }} />
             </div>
 
-            <div className="cinematic-feedback__grid">
-              <div className="cinematic-text-panel" ref={cinematicTextPanelRef} tabIndex={0} aria-label="Your submitted writing with animated feedback">
-                <svg className="cinematic-feedback__trace" aria-hidden="true">
-                  <path ref={cinematicTracePathRef} fill="none" strokeWidth="3" strokeLinecap="round" />
-                </svg>
-                <div className="cinematic-feedback__essay">
-                  {renderAnnotatedText(activeCinematicText, cinematicRanges, cinematicIndex, handleRangeMount)}
-                </div>
-              </div>
-
-              <aside className={`cinematic-detail-card cinematic-feedback__detail cinematic-feedback__detail--${activeCinematicRange?.polarity ?? 'neutral'}`}>
-                {activeCinematicRange ? (
-                  <>
-                    <span className="cinematic-feedback__detail-label">
-                      {activeCinematicRange.polarity === 'strong' ? '✓ Keep this' : '✦ Improve this'}
-                    </span>
-                    <h3>{issueTypeLabel}</h3>
-                    <blockquote>{normalizedReviewIssue.originalSentence}</blockquote>
-                    <p>{whatToImproveText}</p>
-                    {betterVersionText && activeCinematicRange.polarity === 'weak' && (
-                      <div className="cinematic-feedback__upgrade">
-                        <span>A stronger version</span>
-                        <p>{betterVersionText}</p>
-                      </div>
-                    )}
-                    <p className="cinematic-feedback__why"><strong>Why it matters:</strong> {whyItMattersText}</p>
-                  </>
-                ) : (
-                  <>
-                    <span className="cinematic-feedback__detail-label">Review starting</span>
-                    <h3>Watch your writing come alive</h3>
-                    <p>We will move through the strongest moments and the most useful improvements.</p>
-                  </>
-                )}
-              </aside>
-            </div>
-
-            <section className="cinematic-rubric-section cinematic-feedback__rubric" aria-label="Rubric scores">
-              {rubricRows.map((row) => {
-                const score = Math.max(0, Math.min(5, Number(row.value ?? 0)));
-                return (
-                  <div key={row.key}>
-                    <span>{row.label}</span>
-                    <div><i className="rubric-bar-fill" style={{ width: `${(score / 5) * 100}%` }} /></div>
-                    <strong>{row.value ?? '—'}/5</strong>
+            {!cinematicDone ? (
+              <div className="cinematic-feedback__grid">
+                <div className="cinematic-text-panel" ref={cinematicTextPanelRef} tabIndex={0} aria-label="Your submitted writing with one focused feedback insight">
+                  <div className="cinematic-feedback__scene-label">
+                    <span>{activeCinematicRange?.polarity === 'strong' ? 'Strength spotlight' : 'Revision spotlight'}</span>
+                    <strong>Insight {(cinematicIndex ?? 0) + 1} of {cinematicRanges.length}</strong>
                   </div>
-                );
-              })}
-            </section>
+                  <svg className="cinematic-feedback__trace" aria-hidden="true">
+                    <path ref={cinematicTracePathRef} fill="none" strokeWidth="3" strokeLinecap="round" />
+                  </svg>
+                  <div className="cinematic-feedback__essay">
+                    {renderAnnotatedText(activeCinematicText, cinematicRanges, cinematicIndex, handleRangeMount, true)}
+                  </div>
+                </div>
+
+                <aside aria-live="polite" className={`cinematic-detail-card cinematic-feedback__detail cinematic-feedback__detail--${activeCinematicRange?.polarity ?? 'neutral'}`}>
+                  {activeCinematicRange ? (
+                    <>
+                      <span className="cinematic-feedback__detail-label">
+                        {activeCinematicRange.polarity === 'strong' ? '✓ Keep this choice' : '✦ Your next upgrade'}
+                      </span>
+                      <h3>{issueTypeLabel}</h3>
+                      <div className="cinematic-feedback__coaching-block">
+                        <span>What happened</span>
+                        <blockquote>{normalizedReviewIssue.originalSentence}</blockquote>
+                        <p>{whatToImproveText}</p>
+                      </div>
+                      {betterVersionText && activeCinematicRange.polarity === 'weak' && (
+                        <div className="cinematic-feedback__upgrade">
+                          <span>Watch it transform</span>
+                          <del>{normalizedReviewIssue.originalSentence}</del>
+                          <p>{betterVersionText}</p>
+                        </div>
+                      )}
+                      <p className="cinematic-feedback__why"><strong>Writer’s rule:</strong> {whyItMattersText}</p>
+                    </>
+                  ) : (
+                    <>
+                      <span className="cinematic-feedback__detail-label">Review starting</span>
+                      <h3>Your strongest next move</h3>
+                      <p>We will reveal one useful writing decision at a time.</p>
+                    </>
+                  )}
+                </aside>
+              </div>
+            ) : (
+              <section className="cinematic-feedback__finale" aria-label="Feedback review complete">
+                <div className="cinematic-feedback__finale-copy">
+                  <span className="cinematic-feedback__detail-label">Review complete</span>
+                  <h3>Your revision mission is ready</h3>
+                  <p>{improvementGuidance}</p>
+                  <div>
+                    <strong>Keep</strong>
+                    <span>the green choices that already help your reader</span>
+                  </div>
+                  <div>
+                    <strong>Upgrade</strong>
+                    <span>one coral passage using the stronger version as a guide</span>
+                  </div>
+                  <div>
+                    <strong>Resubmit</strong>
+                    <span>your own improved draft to measure real progress</span>
+                  </div>
+                </div>
+                <section className="cinematic-rubric-section cinematic-feedback__rubric" aria-label="Rubric scores">
+                  {rubricRows.map((row) => {
+                    const score = Math.max(0, Math.min(5, Number(row.value ?? 0)));
+                    return (
+                      <div key={row.key}>
+                        <span>{row.label}</span>
+                        <div><i className="rubric-bar-fill" style={{ width: `${(score / 5) * 100}%` }} /></div>
+                        <strong>{row.value ?? '—'}/5</strong>
+                      </div>
+                    );
+                  })}
+                </section>
+              </section>
+            )}
 
             <footer className="cinematic-nav-bar cinematic-feedback__footer">
               <div>
-                {cinematicRanges.length
-                  ? `${Math.min((cinematicIndex ?? -1) + 1, cinematicRanges.length)} of ${cinematicRanges.length}`
-                  : 'Rubric overview'}
+                {cinematicDone
+                  ? 'Review complete'
+                  : cinematicRanges.length
+                    ? `Insight ${Math.min((cinematicIndex ?? 0) + 1, cinematicRanges.length)} of ${cinematicRanges.length}`
+                    : 'Review complete'}
               </div>
               <div className="cinematic-feedback__controls">
-                <button type="button" onClick={() => setCinematicIndex((current) => Math.max(0, (current ?? 1) - 1))} disabled={cinematicIndex == null || cinematicIndex <= 0}>Previous</button>
-                <button type="button" onClick={() => setCinematicIndex((current) => Math.min(cinematicRanges.length - 1, (current ?? -1) + 1))} disabled={cinematicRanges.length === 0 || cinematicIndex === cinematicRanges.length - 1}>Next</button>
-                <button type="button" className="is-primary" onClick={() => {
-                  setShowCinematicFeedback(false);
-                  if (cinematicReplaySource) {
-                    setCinematicReplaySource(null);
-                  } else {
-                    beginRetrySamePrompt();
-                  }
-                }}>
-                  {cinematicReplaySource ? 'Close feedback' : 'Improve my draft'}
+                <button
+                  type="button"
+                  className="is-secondary"
+                  onClick={() => {
+                    if (cinematicDone) {
+                      setCinematicDone(false);
+                      setCinematicIndex(Math.max(0, cinematicRanges.length - 1));
+                      return;
+                    }
+                    setCinematicIndex((current) => Math.max(0, (current ?? 1) - 1));
+                  }}
+                  disabled={!cinematicDone && (cinematicIndex == null || cinematicIndex <= 0)}
+                >
+                  Previous
                 </button>
+                {!cinematicDone ? (
+                  <button
+                    type="button"
+                    className="is-primary"
+                    onClick={() => {
+                      if (cinematicRanges.length === 0 || cinematicIndex === cinematicRanges.length - 1) {
+                        setCinematicDone(true);
+                        return;
+                      }
+                      setCinematicIndex((current) => Math.min(cinematicRanges.length - 1, (current ?? 0) + 1));
+                    }}
+                  >
+                    {cinematicIndex === cinematicRanges.length - 1 ? 'See my revision mission' : 'Continue'}
+                  </button>
+                ) : (
+                  <button type="button" className="is-primary" aria-label={cinematicReplaySource ? 'Close feedback replay' : 'Improve my draft'} onClick={() => {
+                    setShowCinematicFeedback(false);
+                    if (cinematicReplaySource) {
+                      setCinematicReplaySource(null);
+                    } else {
+                      beginRetrySamePrompt();
+                    }
+                  }}>
+                    {cinematicReplaySource ? 'Close replay' : 'Start my revision'}
+                  </button>
+                )}
               </div>
-              {cinematicDone && (
-                <span className="cinematic-feedback__complete">
-                  <strong>Revision mission:</strong> improve one coral passage, keep the green strengths, then submit your own stronger draft.
-                </span>
-              )}
             </footer>
           </section>
         </div>,

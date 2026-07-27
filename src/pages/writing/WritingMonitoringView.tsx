@@ -96,6 +96,11 @@ const formatScoreLabel = (score: number | null | undefined): string => {
   return `${score}/20`;
 };
 
+const getClassLabel = (row: Pick<MonitoringRow, 'class_name' | 'current_grade'>): string => {
+  const className = row.class_name?.trim();
+  return className || `Grade ${row.current_grade} · Class not linked`;
+};
+
 type ReportConfidenceState = 'no_data' | 'partial_data' | 'full_insight';
 
 
@@ -200,9 +205,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
 
   const gradeOptions = useMemo(() => [...new Set(allRows.map((row) => String(row.current_grade)))].sort((a, b) => Number(a) - Number(b)), [allRows]);
   const classOptions = useMemo(() => {
-    const classes = [...new Set(allRows.map((row) => (row.class_name ?? '').trim()).filter(Boolean))].sort();
-    const hasUnassigned = allRows.some((row) => !(row.class_name ?? '').trim());
-    return hasUnassigned ? [...classes, 'Unassigned'] : classes;
+    return [...new Set(allRows.map((row) => getClassLabel(row)))].sort();
   }, [allRows]);
 
   const rows = useMemo(() => {
@@ -215,7 +218,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
       if (activeQuickFilter === 'stalled' && !row.stalled) return false;
       if (activeQuickFilter === 'improving' && !row.improving) return false;
       if (gradeFilter !== 'all' && String(row.current_grade) !== gradeFilter) return false;
-      const normalizedClass = (row.class_name ?? '').trim() || 'Unassigned';
+      const normalizedClass = getClassLabel(row);
       if (classFilter !== 'all' && normalizedClass !== classFilter) return false;
       if (weakAreaFilter !== 'all' && !row.repeated_weakness_hotspots.includes(weakAreaFilter)) return false;
 
@@ -226,7 +229,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
       if (readinessFilter === 'ready' && !row.ready_for_monthly_review) return false;
       if (readinessFilter === 'not_ready' && row.ready_for_monthly_review) return false;
 
-      const searchable = `${toDisplayLabel(row.student_name, row.student_id)} ${(row.class_name ?? 'Unassigned')} ${row.weekly_target_summary} ${row.repeated_weakness_hotspots.join(' ')}`.toLowerCase();
+      const searchable = `${toDisplayLabel(row.student_name, row.student_id)} ${getClassLabel(row)} ${row.weekly_target_summary} ${row.repeated_weakness_hotspots.join(' ')}`.toLowerCase();
       if (searchQuery && !searchable.includes(searchQuery.toLowerCase())) return false;
       return true;
     });
@@ -446,7 +449,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
   const onTrackCount = allRows.filter((row) => row.status === 'on_track' || row.improving).length;
 
   return (
-    <div className="writing-monitor" style={{ padding: 20, color: '#f3f4f6', display: 'grid', gap: 20, background: '#0a0f1a' }}>
+    <div className="writing-monitor writing-teacher-surface" style={{ padding: 20, color: '#f3f4f6', display: 'grid', gap: 20, background: '#0a0f1a' }}>
       <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Weekly target</span>
       <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Teacher/Admin Writing Monitor</span>
       {loadError ? (
@@ -456,10 +459,11 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
       ) : null}
 
       {/* Header Section */}
-      <section ref={headerRef} style={{ display: 'grid', gap: 16 }}>
+      <section ref={headerRef} className="writing-teacher-hero" style={{ display: 'grid', gap: 16 }}>
         <div>
+          <span className="writing-teacher-eyebrow">Student progress</span>
           <h1 style={{ margin: 0, color: '#ffffff', fontSize: 32, fontWeight: 900, letterSpacing: -0.5 }}>Writing Command Center</h1>
-          <p style={{ margin: '8px 0 0', color: '#94a3b8', fontSize: 14 }}>One live view of submissions, practice, progress, and writing-process evidence.</p>
+          <p style={{ margin: '8px 0 0', color: '#94a3b8', fontSize: 14 }}>Start with students who need action, then open one evidence review to decide the next teaching move.</p>
           <span className="writing-monitor__sync">
             {lastSyncedAt ? `Synced ${lastSyncedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Live sync active'}
           </span>
@@ -467,22 +471,22 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
 
         {/* Key Metrics */}
         <div className="writing-monitor__summary" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 14 }}>
-          <div style={{ ...shellCard, padding: 16, display: 'grid', gap: 8, border: '1px solid #1e293b' }}>
+          <div className="writing-teacher-metric is-attention" style={{ ...shellCard, padding: 16, display: 'grid', gap: 8, border: '1px solid #1e293b' }}>
             <div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>Review now</div>
             <div style={{ fontSize: 36, fontWeight: 900, color: '#fca5a5' }}>{stalledCount}</div>
             <div style={{ fontSize: 12, color: '#cbd5e1' }}>Evidence or progress needs attention</div>
           </div>
-          <div style={{ ...shellCard, padding: 16, display: 'grid', gap: 8, border: '1px solid #1e293b' }}>
+          <div className="writing-teacher-metric is-positive" style={{ ...shellCard, padding: 16, display: 'grid', gap: 8, border: '1px solid #1e293b' }}>
             <div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>Improving</div>
             <div style={{ fontSize: 36, fontWeight: 900, color: '#86efac' }}>{improvingCount}</div>
             <div style={{ fontSize: 12, color: '#cbd5e1' }}>Making progress</div>
           </div>
-          <div style={{ ...shellCard, padding: 16, display: 'grid', gap: 8, border: '1px solid #1e293b' }}>
+          <div className="writing-teacher-metric is-ready" style={{ ...shellCard, padding: 16, display: 'grid', gap: 8, border: '1px solid #1e293b' }}>
             <div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>Plan ready</div>
             <div style={{ fontSize: 36, fontWeight: 900, color: '#fcd34d' }}>{planReadyCount}</div>
             <div style={{ fontSize: 12, color: '#cbd5e1' }}>Baseline done; practice can begin</div>
           </div>
-          <div style={{ ...shellCard, padding: 16, display: 'grid', gap: 8, border: '1px solid #1e293b' }}>
+          <div className="writing-teacher-metric is-calm" style={{ ...shellCard, padding: 16, display: 'grid', gap: 8, border: '1px solid #1e293b' }}>
             <div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>On track</div>
             <div style={{ fontSize: 36, fontWeight: 900, color: '#93c5fd' }}>{onTrackCount}</div>
             <div style={{ fontSize: 12, color: '#cbd5e1' }}>No priority action required</div>
@@ -492,19 +496,26 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
 
       </section>
 
-      <section style={{ ...shellCard, padding: 12, border: '1px solid #1e293b', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        {[
+      <section className="writing-monitor__queues" aria-label="Student action queues" style={{ ...shellCard, padding: 12, border: '1px solid #1e293b', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {([
           ['urgent', `Review now (${stalledCount})`],
           ['improving', `Improving (${allRows.filter((row) => row.improving && !row.stalled).length})`],
           ['on_track', `On Track (${allRows.filter((row) => !row.stalled && row.status !== 'needs_review' && !row.improving).length})`],
           ['all', `All Students (${rows.length})`],
-        ].map(([key, label]) => (
-          <button key={key} type="button" onClick={() => setActiveQueueTab(key as any)} style={{ ...chipStyle(activeQueueTab === key ? 'info' : 'neutral'), border: 'none', cursor: 'pointer' }}>{label}</button>
+        ] as const).map(([key, label]) => (
+          <button className={activeQueueTab === key ? 'is-active' : ''} key={key} type="button" onClick={() => setActiveQueueTab(key)} style={{ ...chipStyle(activeQueueTab === key ? 'info' : 'neutral'), border: 'none', cursor: 'pointer' }}>{label}</button>
         ))}
       </section>
       {/* Filters Section */}
 
-      <section style={{ ...shellCard, padding: 16, display: 'grid', gap: 12, border: '1px solid #1e293b' }}>
+      <section className="writing-monitor__filters writing-teacher-card" style={{ ...shellCard, padding: 16, display: 'grid', gap: 12, border: '1px solid #1e293b' }}>
+        <div className="writing-teacher-section-heading">
+          <div>
+            <span>Find a student</span>
+            <h2>Filter the evidence queue</h2>
+            <p>Class and grade come from the live school roster.</p>
+          </div>
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
           <select value={classFilter} onChange={(event: SelectChangeEvent) => setClassFilter(event.target.value)} style={{ background: "#0f1728", border: "1px solid #334155", color: "#f8fafc", borderRadius: 8, padding: "10px 12px", fontSize: 13 }}><option value="all">All Classes</option>{classOptions.map((value) => <option key={value} value={value}>{value}</option>)}</select>
           <input value={searchQuery} onChange={(event: InputChangeEvent) => setSearchQuery(event.target.value)} placeholder="Search by name..." type="text" style={{ background: '#0f1728', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '10px 12px', fontSize: 13 }} />
@@ -586,7 +597,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
                   <div>
                     <div style={{ fontWeight: 800, fontSize: 16 }}>{toDisplayLabel(row.student_name, row.student_id)}</div>
-                    <div style={{ fontSize: 12, color: '#94a3b8' }}>{row.class_name ?? 'Unassigned'} • Grade {row.current_grade}</div>
+                    <div className="writing-monitor__student-context" style={{ fontSize: 12, color: '#94a3b8' }}>{getClassLabel(row)} • Grade {row.current_grade}</div>
                   </div>
                   <span style={{ ...chipStyle(statusTone) }}>{statusLabel}</span>
                 </div>
@@ -596,9 +607,9 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
                   <div><small>Practice plan</small><strong>{row.practice_completed_count ?? 0}/{row.practice_assigned_count ?? 0}</strong></div>
                   <div><small>Trend</small><strong>{(row.submission_count ?? row.attempts_count ?? 0) < 2 ? 'Baseline' : toTrendLabel(row)}</strong></div>
                 </div>
-                <div style={{ fontSize: 13, color: '#cbd5e1' }}><strong>Why this status:</strong> {getWhyFlagged(row)}</div>
+                <div className="writing-monitor__status-reason" style={{ fontSize: 13, color: '#cbd5e1' }}><strong>Why this status:</strong> {getWhyFlagged(row)}</div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <button type="button" onClick={(event: React.MouseEvent<HTMLButtonElement>) => { event.stopPropagation(); openReport(row.student_id); }} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '7px 10px' }}>Review</button>
+                  <button className="writing-teacher-button" type="button" onClick={(event: React.MouseEvent<HTMLButtonElement>) => { event.stopPropagation(); openReport(row.student_id); }} style={{ borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '7px 10px' }}>Open evidence review</button>
                 </div>
               </article>
             );
@@ -653,7 +664,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
                 {/* Student Info */}
                 <div style={{ display: 'grid', gap: 8, background: 'rgba(30, 41, 59, 0.5)', borderRadius: 10, padding: 14, border: '1px solid #1e293b' }}>
                   <div style={{ fontSize: 18, fontWeight: 900, color: '#f8fafc' }}>{openReportData.student.student_name}</div>
-                  <div style={{ fontSize: 13, color: '#cbd5e1' }}>Grade {openReportData.student.grade ?? '—'} • {openReportData.student.class_name ?? 'Unassigned'} • {statusLabel}</div>
+                  <div style={{ fontSize: 13, color: '#cbd5e1' }}>Grade {openReportData.student.grade ?? '—'} • {openReportData.student.class_name?.trim() || 'Class not linked'} • {statusLabel}</div>
                   {selectedRow?.class_id ? (
                     <label className="writing-monitor__mode-control">
                       <span>Class writing mode</span>

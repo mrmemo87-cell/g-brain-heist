@@ -119,6 +119,8 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
       .replace(/\s+/g, ' ')
       .trim()
       .replace(/\b\w/g, (char) => char.toUpperCase());
+  const getClassLabel = (row: MonitoringRow): string =>
+    row.class_name?.trim() || `Grade ${row.current_grade} · Class not linked`;
   const studentLabelsById = new Map(
     monitoring
       ? monitoring.student_rows.map((row) => [row.student_id, toDisplayLabel(row.student_name, row.student_id)])
@@ -129,7 +131,7 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
 
   const buildPath = (basePath: string, params: Record<string, string | number | undefined>): string =>
     `${basePath}${serializeAdminDrilldownFilters(params)}`;
-  const navigateTo = (path: string, event: any): void => {
+  const navigateTo = (path: string, event: React.MouseEvent<HTMLButtonElement>): void => {
     event.preventDefault();
     if (onNavigate) {
       onNavigate(path);
@@ -180,31 +182,32 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
   }
 
   return (
-    <div className="writing-analytics" ref={shellRef} style={{ padding: 20, color: '#f3f4f6', display: 'grid', gap: 20, background: '#0a0f1a' }}>
-      <section>
+    <div className="writing-analytics writing-teacher-surface" ref={shellRef} style={{ padding: 20, color: '#f3f4f6', display: 'grid', gap: 20, background: '#0a0f1a' }}>
+      <section className="writing-teacher-hero writing-analytics__hero">
+        <span className="writing-teacher-eyebrow">Class intelligence</span>
         <h1 style={{ margin: 0, fontSize: 32, fontWeight: 900, color: '#ffffff', letterSpacing: -0.5 }}>Writing Analytics</h1>
-        <p style={{ margin: '8px 0 0', color: '#94a3b8', fontSize: 14 }}>Class-level patterns, retry trends, and intervention opportunities</p>
+        <p style={{ margin: '8px 0 0', color: '#94a3b8', fontSize: 14 }}>Turn class-wide writing patterns into a clear teaching priority for your next lesson.</p>
       </section>
       <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Writing Analytics Dashboard</span>
 
-      <section data-analytics-card="true" style={{ border: '1px solid #1e3a8a', borderRadius: 12, padding: 14, background: 'rgba(30, 58, 138, 0.12)', display: 'grid', gap: 8 }}>
+      <section className="writing-analytics__explainer writing-teacher-card" data-analytics-card="true" style={{ border: '1px solid #1e3a8a', borderRadius: 12, padding: 14, background: 'rgba(30, 58, 138, 0.12)', display: 'grid', gap: 8 }}>
         <div style={{ fontSize: 12, fontWeight: 700, color: '#93c5fd', letterSpacing: 0.5, textTransform: 'uppercase' }}>About this view</div>
         <p style={{ margin: 0, color: '#cbd5e1', fontSize: 13, lineHeight: 1.5 }}>
-          See class-wide patterns in weak skills and retry behavior. Different from Writing Monitor, which tracks individual students one-by-one.
+          Use this tab to spot shared needs across a class. Use Monitor when you need to review one student’s writing evidence and take action.
         </p>
       </section>
 
-      <div data-analytics-card="true" style={{ position: 'sticky', top: 0, zIndex: 3, background: '#0a0f1a', border: '1px solid #1e293b', borderRadius: 12, padding: 14, display: 'grid', gap: 12 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
-          <div style={{ display: 'grid', gap: 4 }}>
+      <div className="writing-analytics__summary writing-teacher-card" data-analytics-card="true" style={{ position: 'sticky', top: 0, zIndex: 3, background: '#0a0f1a', border: '1px solid #1e293b', borderRadius: 12, padding: 14, display: 'grid', gap: 12 }}>
+        <div className="writing-analytics__metrics" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
+          <div className="writing-teacher-metric is-attention" style={{ display: 'grid', gap: 4 }}>
             <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase' }}>Needing Support</div>
             <div style={{ fontSize: 28, fontWeight: 900, color: '#f87171' }}>{data?.summary.stalled_count ?? 0}</div>
           </div>
-          <div style={{ display: 'grid', gap: 4 }}>
+          <div className="writing-teacher-metric is-positive" style={{ display: 'grid', gap: 4 }}>
             <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase' }}>Improving</div>
             <div style={{ fontSize: 28, fontWeight: 900, color: '#86efac' }}>{data?.summary.improving_count ?? 0}</div>
           </div>
-          <div style={{ display: 'grid', gap: 4 }}>
+          <div className="writing-teacher-metric is-calm" style={{ display: 'grid', gap: 4 }}>
             <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase' }}>Total</div>
             <div style={{ fontSize: 28, fontWeight: 900, color: '#93c5fd' }}>{data?.summary.total_students ?? 0}</div>
           </div>
@@ -221,8 +224,14 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
       </div>
 
       {data && (
-        <section data-analytics-card="true" style={{ border: '1px solid #1e293b', borderRadius: 12, padding: 16, background: 'rgba(15, 23, 42, 0.5)' }}>
-          <h2 style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 800, color: '#f8fafc' }}>Student Summary</h2>
+        <section className="writing-analytics__section writing-teacher-card" data-analytics-card="true" style={{ border: '1px solid #1e293b', borderRadius: 12, padding: 16, background: 'rgba(15, 23, 42, 0.5)' }}>
+          <div className="writing-teacher-section-heading">
+            <div>
+              <span>Student evidence</span>
+              <h2 style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 800, color: '#f8fafc' }}>Who needs what?</h2>
+              <p>Compare practice, scores, focus areas, and current status without losing the class context.</p>
+            </div>
+          </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
@@ -241,7 +250,7 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
                     <tr key={row.student_id} style={{ borderBottom: '1px solid #1e293b', color: '#e2e8f0' }}>
                       <td style={{ padding: '11px 12px' }}>
                         <div style={{ fontWeight: 600 }}>{toDisplayLabel(row.student_name, row.student_id)}</div>
-                        <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{row.class_name ?? 'Unassigned'}</div>
+                        <div className="writing-analytics__student-context" style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{getClassLabel(row)}</div>
                       </td>
                       <td style={{ padding: '11px 12px', textAlign: 'center', fontWeight: 600 }}>{row.current_grade}</td>
                       <td style={{ padding: '11px 12px', textAlign: 'center', fontWeight: 600, color: '#93c5fd' }}>{row.practice_completed_count ?? 0}/{row.practice_assigned_count ?? 0}</td>
@@ -271,17 +280,18 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
       )}
 
       {data && data.most_common_weakness_tags && data.most_common_weakness_tags.length > 0 && (
-        <section data-analytics-card="true" style={{ border: '1px solid #1e293b', borderRadius: 12, padding: 16, background: 'rgba(15, 23, 42, 0.5)' }}>
-          <h2 style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 800, color: '#f8fafc' }}>Most Common Weak Areas</h2>
+        <section className="writing-analytics__section writing-teacher-card" data-analytics-card="true" style={{ border: '1px solid #1e293b', borderRadius: 12, padding: 16, background: 'rgba(15, 23, 42, 0.5)' }}>
+          <span className="sr-only">Most Common Weak Areas</span>
+          <h2 style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 800, color: '#f8fafc' }}>Most common teaching priorities</h2>
           <div style={{ display: 'grid', gap: 8 }}>
             {data.most_common_weakness_tags.map((item) => (
-              <div key={item.tag} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'rgba(30, 41, 59, 0.3)', borderRadius: 8, border: '1px solid #1e293b' }}>
+              <div className="writing-analytics__priority-row" key={item.tag} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'rgba(30, 41, 59, 0.3)', borderRadius: 8, border: '1px solid #1e293b' }}>
                 <div>
                   <div style={{ fontWeight: 600, color: '#e2e8f0' }}>{toTeacherWeaknessLabel(item.tag)}</div>
                   <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{item.count} students</div>
                 </div>
                 <button
-                  onClick={(event: any) => navigateTo(buildPath(monitoringBasePath, { weakness_tag: item.tag, grade: gradeFilter, genre: genreFilter }), event)}
+                  onClick={(event: React.MouseEvent<HTMLButtonElement>) => navigateTo(buildPath(monitoringBasePath, { weakness_tag: item.tag, grade: gradeFilter, genre: genreFilter }), event)}
                   style={{ borderRadius: 6, border: '1px solid #334155', background: '#1e293b', color: '#93c5fd', padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
                 >
                   View students
@@ -293,7 +303,7 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
       )}
 
       {data && data.prompt_effectiveness && data.prompt_effectiveness.length > 0 && (
-        <section data-analytics-card="true" style={{ border: '1px solid #1e293b', borderRadius: 12, padding: 16, background: 'rgba(15, 23, 42, 0.5)' }}>
+        <section className="writing-analytics__section writing-teacher-card" data-analytics-card="true" style={{ border: '1px solid #1e293b', borderRadius: 12, padding: 16, background: 'rgba(15, 23, 42, 0.5)' }}>
           <h2 style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 800, color: '#f8fafc' }}>Prompt Effectiveness</h2>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -319,11 +329,12 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
       )}
 
       {data && (
-        <section data-analytics-card="true" style={{ border: '1px solid #1e293b', borderRadius: 12, padding: 16, background: 'rgba(15, 23, 42, 0.5)' }}>
-          <h2 style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 800, color: '#f8fafc' }}>Recommended Actions</h2>
+        <section className="writing-analytics__section writing-teacher-card" data-analytics-card="true" style={{ border: '1px solid #1e293b', borderRadius: 12, padding: 16, background: 'rgba(15, 23, 42, 0.5)' }}>
+          <span className="sr-only">Recommended Actions</span>
+          <h2 style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 800, color: '#f8fafc' }}>Recommended teaching actions</h2>
           <div style={{ display: 'grid', gap: 10 }}>
             {data.pilot_readiness.monthly_comparison_ready_students.length > 0 && (
-              <div style={{ padding: '12px', background: 'rgba(34, 197, 94, 0.08)', borderRadius: 8, border: '1px solid #14532d' }}>
+              <div className="writing-analytics__action is-positive" style={{ padding: '12px', background: 'rgba(34, 197, 94, 0.08)', borderRadius: 8, border: '1px solid #14532d' }}>
                 <div style={{ fontWeight: 600, color: '#86efac', marginBottom: 4 }}>✓ Ready for monthly reviews:</div>
                 <div style={{ color: '#e2e8f0', fontSize: 13 }}>
                   {data.pilot_readiness.monthly_comparison_ready_students.map((studentId) => studentLabelsById.get(studentId) ?? 'Student').join(', ') || 'None'}
@@ -331,7 +342,7 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
               </div>
             )}
             {data.pilot_readiness.overused_prompts.length > 0 && (
-              <div style={{ padding: '12px', background: 'rgba(249, 115, 22, 0.08)', borderRadius: 8, border: '1px solid #92400e' }}>
+              <div className="writing-analytics__action is-warning" style={{ padding: '12px', background: 'rgba(249, 115, 22, 0.08)', borderRadius: 8, border: '1px solid #92400e' }}>
                 <div style={{ fontWeight: 600, color: '#fbbf24', marginBottom: 4 }}>⚠ Overused prompts to refresh:</div>
                 <div style={{ color: '#e2e8f0', fontSize: 13 }}>
                   {data.pilot_readiness.overused_prompts.map((id, idx) => (
@@ -344,7 +355,7 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
               </div>
             )}
             {data.pilot_readiness.low_improvement_target_tags.length > 0 && (
-              <div style={{ padding: '12px', background: 'rgba(244, 63, 94, 0.08)', borderRadius: 8, border: '1px solid #7f1d1d' }}>
+              <div className="writing-analytics__action is-attention" style={{ padding: '12px', background: 'rgba(244, 63, 94, 0.08)', borderRadius: 8, border: '1px solid #7f1d1d' }}>
                 <div style={{ fontWeight: 600, color: '#f87171', marginBottom: 4 }}>! Weaknesses needing intervention:</div>
                 <div style={{ color: '#e2e8f0', fontSize: 13 }}>
                   {data.pilot_readiness.low_improvement_target_tags.map((tag) => toTeacherWeaknessLabel(tag)).join(', ')}
