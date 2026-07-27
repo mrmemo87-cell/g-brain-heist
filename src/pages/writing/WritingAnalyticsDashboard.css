@@ -3,6 +3,107 @@
   overflow-x: clip;
 }
 
+.writing-analytics__hero {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.writing-analytics__explainer {
+  border-left: 4px solid #5b6ee8 !important;
+}
+
+.writing-analytics__explainer > div {
+  color: #315dd7 !important;
+}
+
+.writing-analytics__explainer p {
+  color: #5f6e86 !important;
+}
+
+.writing-analytics__summary {
+  position: static !important;
+}
+
+.writing-analytics__metrics .writing-teacher-metric {
+  min-height: 100px;
+}
+
+.writing-analytics__summary input,
+.writing-analytics__summary select {
+  min-height: 46px;
+  border: 1px solid #cfd9e8 !important;
+  border-radius: 12px !important;
+  color: #172033 !important;
+  background: #f9fbfe !important;
+}
+
+.writing-analytics__section {
+  padding: clamp(1rem, 2.5vw, 1.5rem) !important;
+}
+
+.writing-analytics__section h2 {
+  color: #15213a !important;
+}
+
+.writing-analytics__section > div {
+  min-width: 0;
+}
+
+.writing-analytics__section table {
+  overflow: hidden;
+  border: 1px solid #dfe6f1;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.writing-analytics__section thead tr {
+  border-color: #dfe6f1 !important;
+  background: #f3f6fb !important;
+}
+
+.writing-analytics__section th {
+  color: #5e6c82 !important;
+}
+
+.writing-analytics__section tbody tr {
+  border-color: #e5ebf3 !important;
+  color: #25324a !important;
+}
+
+.writing-analytics__student-context {
+  color: #6d7b92 !important;
+}
+
+.writing-analytics__section button {
+  border: 1px solid #9bb2ff !important;
+  color: #315dd7 !important;
+  background: #f1f4ff !important;
+}
+
+.writing-analytics__priority-row,
+.writing-analytics__action {
+  border-color: #e0e7f0 !important;
+  color: #25324a !important;
+  background: #f8faff !important;
+}
+
+.writing-analytics__priority-row > div > div:first-child,
+.writing-analytics__action > div:last-child {
+  color: #25324a !important;
+}
+
+.writing-analytics__action.is-positive {
+  border-left: 4px solid #2dd4bf !important;
+}
+
+.writing-analytics__action.is-warning {
+  border-left: 4px solid #fbbf24 !important;
+}
+
+.writing-analytics__action.is-attention {
+  border-left: 4px solid #fb7185 !important;
+}
+
 @media (max-width: 700px) {
   .writing-analytics {
     gap: 12px !important;
@@ -15,5 +116,9 @@
 
   .writing-analytics table {
     min-width: 680px;
+  }
+
+  .writing-analytics__summary > div:last-child {
+    grid-template-columns: 1fr !important;
   }
 }
