@@ -76,7 +76,21 @@ const inferFocusArea = (primaryTarget: string): 'language' | 'organisation' | 'c
 const repeatedTagCounts = (memory: RepeatedErrorMemory, studentId: string): Partial<Record<WeaknessTag, number>> =>
   memory.byStudent[studentId]?.tagCounts ?? {};
 
-const getTopTargetTags = (assessment: WritingAssessmentResult): WeaknessTag[] => assessment.weakness_tags.slice(0, 3);
+const getTopTargetTags = (
+  assessment: WritingAssessmentResult,
+  memory: RepeatedErrorMemory,
+  studentId: string
+): WeaknessTag[] => {
+  const studentMemory = memory.byStudent[studentId];
+  const recentTags = new Set(
+    (studentMemory?.attempts ?? []).slice(-3).flatMap((attempt) => attempt.result.weakness_tags)
+  );
+  const historicalTags = (Object.entries(studentMemory?.tagCounts ?? {}) as Array<[WeaknessTag, number | undefined]>)
+    .filter(([tag, count]) => (count ?? 0) > 0 && recentTags.has(tag))
+    .sort((left, right) => (right[1] ?? 0) - (left[1] ?? 0))
+    .map(([tag]) => tag);
+  return [...new Set([...assessment.weakness_tags, ...historicalTags])].slice(0, 3);
+};
 
 const buildCriteria = (tags: WeaknessTag[], genre: SupportedGenre, includeWordCount: boolean): string[] => {
   const criteria: string[] = [];
@@ -157,7 +171,7 @@ export const generateDailyWritingTasksForWeek = (input: DailyTaskGeneratorInput)
   const focusArea = inferFocusArea(input.weekly_plan.primary_target);
   const supportLevel = supportLevelForGrade(input.grade);
   const baseWords = baseWordCountForGrade(input.grade);
-  const tags = getTopTargetTags(input.latest_assessment);
+  const tags = getTopTargetTags(input.latest_assessment, input.repeated_error_memory, input.student_id);
   const tagCounts = repeatedTagCounts(input.repeated_error_memory, input.student_id);
   const hasRepeatedErrors = Object.values(tagCounts).some((count) => (count ?? 0) >= 2);
   const weakWordCount = (tagCounts.under_length ?? 0) >= 2 || input.latest_assessment.weakness_tags.includes('under_length');

@@ -1,11 +1,15 @@
 import {
+  createEmptyErrorMemory,
+  generateWeeklyImprovementPlan,
   MonthlyComparisonResult,
   MonthlyGrowthReport,
+  storeAttemptInErrorMemory,
   SupportedGenre,
+  WeaknessTag,
   WeeklyImprovementPlan,
   WritingAssessmentResult,
 } from './writingAssessment.js';
-import { DailyWritingTask } from './writingTaskGenerator.js';
+import { DailyWritingTask, generateDailyWritingTasksForWeek } from './writingTaskGenerator.js';
 import { WritingPracticeEvaluationResult } from './writingPracticeEvaluator.js';
 import {
   createInitialStudentWritingState,
@@ -66,6 +70,7 @@ export interface WritingAttempt {
   student_submission?: string;
   assessment: WritingAssessmentResult;
   rich_feedback?: unknown;
+  feedback_weakness_tags?: WeaknessTag[];
   rich_feedback_source_submission_type?: 'initial';
   rich_feedback_created_at?: string;
   integrity_signals?: WritingCompositionTelemetry;
@@ -521,6 +526,171 @@ const normalizeGrade = (grade: unknown): number | null => {
 const buildId = (prefix: string): string => `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
 const weekKey = (isoDate: string): string => isoDate.slice(0, 10);
 
+const WRITING_WEAKNESS_TAGS: WeaknessTag[] = [
+  'missed_content_point',
+  'partial_content_coverage',
+  'irrelevant_detail',
+  'under_length',
+  'wrong_tone',
+  'weak_register_control',
+  'weak_genre_convention',
+  'weak_audience_awareness',
+  'weak_paragraphing',
+  'poor_sequencing',
+  'weak_linking',
+  'repetitive_flow',
+  'tense_error',
+  'agreement_error',
+  'article_error',
+  'preposition_error',
+  'fragment',
+  'run_on',
+  'weak_word_choice',
+  'spelling_error',
+  'punctuation_error',
+];
+const WRITING_WEAKNESS_TAG_SET = new Set<string>(WRITING_WEAKNESS_TAGS);
+
+const readObjectArray = (value: unknown): Array<Record<string, unknown>> =>
+  Array.isArray(value)
+    ? value.filter((item): item is Record<string, unknown> => Boolean(item && typeof item === 'object' && !Array.isArray(item)))
+    : [];
+
+const tokenizeWords = (value: string): string[] =>
+  value.toLowerCase().match(/[a-z]+/g) ?? [];
+
+const levenshteinDistance = (left: string, right: string): number => {
+  const previous = Array.from({ length: right.length + 1 }, (_, index) => index);
+  for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
+    let diagonal = previous[0];
+    previous[0] = leftIndex;
+    for (let rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
+      const above = previous[rightIndex];
+      const replacementCost = left[leftIndex - 1] === right[rightIndex - 1] ? 0 : 1;
+      previous[rightIndex] = Math.min(
+        previous[rightIndex] + 1,
+        previous[rightIndex - 1] + 1,
+        diagonal + replacementCost
+      );
+      diagonal = above;
+    }
+  }
+  return previous[right.length];
+};
+
+const containsLikelySpellingCorrection = (original: string, better: string): boolean => {
+  const originalWords = tokenizeWords(original);
+  const betterWords = tokenizeWords(better);
+  const removed = originalWords.filter((word) => !betterWords.includes(word));
+  const added = betterWords.filter((word) => !originalWords.includes(word));
+  return removed.some((before) =>
+    before.length >= 4 && added.some((after) => Math.abs(before.length - after.length) <= 2 && levenshteinDistance(before, after) <= 2)
+  );
+};
+
+const inferFeedbackWeaknessTags = (feedback: Record<string, unknown>): WeaknessTag[] => {
+  const tags = new Set<WeaknessTag>();
+  const explicitTags = Array.isArray(feedback['weakness_tags']) ? feedback['weakness_tags'] : [];
+  explicitTags.forEach((tag) => {
+    if (typeof tag === 'string' && WRITING_WEAKNESS_TAG_SET.has(tag)) tags.add(tag as WeaknessTag);
+  });
+
+  readObjectArray(feedback['grammar_fixes']).forEach((fix) => {
+    const issue = typeof fix['issue'] === 'string' ? fix['issue'].toLowerCase() : '';
+    const original = typeof fix['original'] === 'string' ? fix['original'] : '';
+    const better = typeof fix['better_version'] === 'string' ? fix['better_version'] : '';
+    const combined = `${issue} ${original} ${better}`;
+    if (/agreement|subject.?verb|\bthere is\b.*\bthere are\b|\bthere are\b.*\bthere is\b|\bhas\b.*\bhave\b|\bhave\b.*\bhas\b/i.test(combined)) tags.add('agreement_error');
+    if (/tense|past tense|present tense|verb time/i.test(combined)) tags.add('tense_error');
+    if (/\barticle\b|\ba\b.*\ban\b|\ban\b.*\ba\b|\bthe\b/i.test(issue)) tags.add('article_error');
+    if (/preposition/i.test(issue)) tags.add('preposition_error');
+    if (/fragment|incomplete sentence/i.test(issue)) tags.add('fragment');
+    if (/run.?on|sentence boundary/i.test(issue)) tags.add('run_on');
+    if (/spelling|misspell|typo/i.test(issue) || containsLikelySpellingCorrection(original, better)) tags.add('spelling_error');
+  });
+  if (readObjectArray(feedback['punctuation_fixes']).length > 0) tags.add('punctuation_error');
+  if (readObjectArray(feedback['natural_phrase_upgrades']).length > 0) tags.add('weak_word_choice');
+  if (readObjectArray(feedback['style_tone_feedback']).length > 0) tags.add('weak_register_control');
+  return [...tags];
+};
+
+const rebuildRepeatedErrorMemoryForGenre = (
+  studentId: string,
+  genre: SupportedGenre
+): StudentWritingState['repeated_error_memory'] => {
+  let memory = createEmptyErrorMemory();
+  store.attempts
+    .filter((attempt) => attempt.student_id === studentId && attempt.genre === genre && Boolean(attempt.assessment))
+    .sort((left, right) => left.created_at.localeCompare(right.created_at))
+    .forEach((attempt) => {
+      memory = storeAttemptInErrorMemory(memory, studentId, attempt.assessment, attempt.created_at);
+    });
+  return memory;
+};
+
+const synchronizeSavedFeedbackWeaknessMemory = (
+  studentId: string,
+  genre: SupportedGenre
+): boolean => {
+  let changed = false;
+  store.attempts
+    .filter((attempt) => attempt.student_id === studentId && attempt.genre === genre)
+    .forEach((attempt) => {
+      if (!attempt.rich_feedback || typeof attempt.rich_feedback !== 'object' || Array.isArray(attempt.rich_feedback)) return;
+      const feedbackTags = inferFeedbackWeaknessTags(attempt.rich_feedback as Record<string, unknown>);
+      const mergedTags = [...new Set([...attempt.assessment.weakness_tags, ...feedbackTags])];
+      const storedFeedbackTags = attempt.feedback_weakness_tags ?? [];
+      if (
+        mergedTags.length === attempt.assessment.weakness_tags.length
+        && feedbackTags.length === storedFeedbackTags.length
+        && feedbackTags.every((tag) => storedFeedbackTags.includes(tag))
+      ) return;
+      attempt.feedback_weakness_tags = feedbackTags;
+      attempt.assessment = {
+        ...attempt.assessment,
+        weakness_tags: mergedTags,
+      };
+      changed = true;
+    });
+  if (!changed) return false;
+
+  const state = getStateForGenre(studentId, genre);
+  if (!state) return false;
+  const memory = rebuildRepeatedErrorMemoryForGenre(studentId, genre);
+  const latestAttempt = store.attempts
+    .filter((attempt) => attempt.student_id === studentId && attempt.genre === genre)
+    .sort((left, right) => right.created_at.localeCompare(left.created_at))[0];
+  if (!latestAttempt) return false;
+  const weeklyPlan = generateWeeklyImprovementPlan({
+    assessment: latestAttempt.assessment,
+    grade: state.grade,
+    genre,
+    repeatedErrorMemory: memory,
+    studentId,
+  });
+  const dailyTasks = generateDailyWritingTasksForWeek({
+    weekly_plan: weeklyPlan,
+    latest_assessment: latestAttempt.assessment,
+    grade: state.grade,
+    target_genre: genre,
+    repeated_error_memory: memory,
+    student_id: studentId,
+  });
+  setStateForGenre(studentId, genre, {
+    ...state,
+    latest_assessment: latestAttempt.assessment,
+    repeated_error_memory: memory,
+    active_week_plan: weeklyPlan,
+    active_daily_tasks: dailyTasks,
+  });
+  const currentWeek = store.weeklyPlans
+    .filter((plan) => plan.student_id === studentId && plan.genre === genre)
+    .sort((left, right) => right.created_at.localeCompare(left.created_at))[0];
+  if (currentWeek) currentWeek.plan = weeklyPlan;
+  persistStore();
+  return true;
+};
+
 interface ServiceResponse<T> {
   ok: boolean;
   data?: T;
@@ -660,6 +830,7 @@ export const submitInitialWritingAssessment = (
 export const getStudentWritingState = (studentId: string, genre?: SupportedGenre): ServiceResponse<StudentWritingState> => {
   hydrateStore();
   const resolvedGenre = genre ?? getProfileGenre(studentId);
+  synchronizeSavedFeedbackWeaknessMemory(studentId, resolvedGenre);
   const state = getStateForGenre(studentId, resolvedGenre);
   if (!state) {
     const profile = store.profiles.get(studentId);
@@ -691,10 +862,15 @@ export interface StudentWritingHistoryEntry {
   id: string;
   genre: SupportedGenre;
   attempt_type: WritingAttempt['attempt_type'];
+  prompt_id: string | null;
   created_at: string;
   prompt_text: string;
   student_submission: string;
   total_score: number | null;
+  assessment: WritingAssessmentResult | null;
+  rich_feedback: unknown | null;
+  integrity_signals: WritingCompositionTelemetry | null;
+  weakness_tags: WeaknessTag[];
   has_feedback: boolean;
   feedback_summary: string | null;
   feedback_next_move: string | null;
@@ -784,15 +960,26 @@ export const listStudentWritingHistoryByGenre = (studentId: string): ServiceResp
       id: attempt.id,
       genre: attempt.genre,
       attempt_type: attempt.attempt_type,
+      prompt_id: attempt.prompt_id ?? null,
       created_at: attempt.created_at,
       prompt_text: attempt.prompt_text?.trim() ?? '',
       student_submission: attempt.student_submission?.trim() ?? '',
       total_score: attempt.assessment?.total_score ?? null,
+      assessment: attempt.assessment ?? null,
+      rich_feedback: feedback,
+      integrity_signals: attempt.integrity_signals ?? null,
+      weakness_tags: attempt.assessment?.weakness_tags ?? [],
       has_feedback: Boolean(feedback),
       feedback_summary: summary,
       feedback_next_move: nextMove,
-      grammar_issue_count: attempt.assessment?.weakness_tags?.filter((tag) => /grammar|agreement|tense|article|preposition/i.test(String(tag))).length ?? 0,
-      punctuation_issue_count: attempt.assessment?.weakness_tags?.filter((tag) => /punctuation|capital/i.test(String(tag))).length ?? 0,
+      grammar_issue_count: Math.max(
+        readObjectArray(feedback?.['grammar_fixes']).length,
+        attempt.assessment?.weakness_tags?.filter((tag) => /agreement|tense|article|preposition|fragment|run_on|spelling/i.test(String(tag))).length ?? 0
+      ),
+      punctuation_issue_count: Math.max(
+        readObjectArray(feedback?.['punctuation_fixes']).length,
+        attempt.assessment?.weakness_tags?.filter((tag) => /punctuation|capital/i.test(String(tag))).length ?? 0
+      ),
       feedback_quick_fixes: Array.isArray(feedback?.['quick_fixes'])
           ? (feedback?.['quick_fixes'] as Array<Record<string, unknown>>).map((item) => ({
             type: typeof item?.['type'] === 'string' ? item['type'] : 'Language',
@@ -857,6 +1044,7 @@ export const getStudentPromptAttemptCount = (input: {
 export const persistInitialWritingRichFeedback = (input: {
   student_id: string;
   genre: SupportedGenre;
+  attempt_id?: string;
   rich_feedback: unknown;
   created_at?: string;
 }): ServiceResponse<{ saved: boolean }> => {
@@ -872,7 +1060,9 @@ export const persistInitialWritingRichFeedback = (input: {
         attempt.attempt_type === 'initial_assessment'
     )
     .sort((a, b) => b.created_at.localeCompare(a.created_at));
-  const targetAttempt = attempts[0];
+  const targetAttempt = input.attempt_id
+    ? attempts.find((attempt) => attempt.id === input.attempt_id)
+    : attempts[0];
   if (!targetAttempt) return badRequest('initial assessment attempt not found.');
 
   const richFeedbackClone = JSON.parse(JSON.stringify(input.rich_feedback)) as Record<string, unknown>;
@@ -890,8 +1080,52 @@ export const persistInitialWritingRichFeedback = (input: {
     delete richFeedbackClone['repair_steps'];
   }
   targetAttempt.rich_feedback = richFeedbackClone;
+  const feedbackWeaknessTags = inferFeedbackWeaknessTags(richFeedbackClone);
+  targetAttempt.feedback_weakness_tags = feedbackWeaknessTags;
+  targetAttempt.assessment = {
+    ...targetAttempt.assessment,
+    weakness_tags: [...new Set([
+      ...targetAttempt.assessment.weakness_tags,
+      ...feedbackWeaknessTags,
+    ])],
+  };
   targetAttempt.rich_feedback_source_submission_type = 'initial';
   targetAttempt.rich_feedback_created_at = input.created_at ?? new Date().toISOString();
+
+  const state = getStateForGenre(input.student_id, input.genre);
+  if (state) {
+    const memory = rebuildRepeatedErrorMemoryForGenre(input.student_id, input.genre);
+    const latestAttempt = attempts
+      .slice()
+      .sort((left, right) => right.created_at.localeCompare(left.created_at))[0] ?? targetAttempt;
+    const latestAssessment = latestAttempt.assessment;
+    const weeklyPlan = generateWeeklyImprovementPlan({
+      assessment: latestAssessment,
+      grade: state.grade,
+      genre: input.genre,
+      repeatedErrorMemory: memory,
+      studentId: input.student_id,
+    });
+    const dailyTasks = generateDailyWritingTasksForWeek({
+      weekly_plan: weeklyPlan,
+      latest_assessment: latestAssessment,
+      grade: state.grade,
+      target_genre: input.genre,
+      repeated_error_memory: memory,
+      student_id: input.student_id,
+    });
+    setStateForGenre(input.student_id, input.genre, {
+      ...state,
+      latest_assessment: latestAssessment,
+      repeated_error_memory: memory,
+      active_week_plan: weeklyPlan,
+      active_daily_tasks: dailyTasks,
+    });
+    const currentWeek = store.weeklyPlans
+      .filter((plan) => plan.student_id === input.student_id && plan.genre === input.genre)
+      .sort((left, right) => right.created_at.localeCompare(left.created_at))[0];
+    if (currentWeek) currentWeek.plan = weeklyPlan;
+  }
   persistStore();
   return ok({ saved: true });
 };
@@ -2159,7 +2393,16 @@ export const getSmartWritingPromptForStudent = async (input: {
   if (normalizedGrade === null) return badRequest('grade must be an integer between 6 and 12.');
   const state = getStateForGenre(input.student_id, input.genre);
   const targetDifficulty = normalizeDifficultyForState(normalizedGrade, state?.current_difficulty_state);
-  const weaknessTags = (input.weakness_tags?.length ? input.weakness_tags : state?.latest_assessment?.weakness_tags ?? []).slice(0, 4);
+  const historicalTagCounts = state?.repeated_error_memory.byStudent[input.student_id]?.tagCounts ?? {};
+  const historicalWeaknessTags = Object.entries(historicalTagCounts)
+    .filter((entry): entry is [WeaknessTag, number] => WRITING_WEAKNESS_TAG_SET.has(entry[0]) && Number(entry[1] ?? 0) > 0)
+    .sort((left, right) => right[1] - left[1])
+    .map(([tag]) => tag);
+  const weaknessTags = [...new Set([
+    ...(input.weakness_tags ?? []),
+    ...(state?.latest_assessment?.weakness_tags ?? []),
+    ...historicalWeaknessTags,
+  ])].slice(0, 6);
   const weaknessFocusTargets = weaknessTags.flatMap((tag) => WEAKNESS_TAG_TO_PROMPT_FOCUS[tag as keyof typeof WEAKNESS_TAG_TO_PROMPT_FOCUS] ?? []);
   const uniqueFocusTargets = [...new Set(weaknessFocusTargets)];
 
@@ -2207,6 +2450,7 @@ export const getSmartWritingPromptForStudent = async (input: {
     .sort((a, b) => b.created_at.localeCompare(a.created_at))
     .slice(0, 5);
   const recentPromptTexts = recentAttempts.map((attempt) => normalizePromptText(attempt.prompt_text ?? '')).filter(Boolean);
+  const recentPromptIds = recentAttempts.map((attempt) => attempt.prompt_id).filter((value): value is string => Boolean(value));
   const currentPromptNormalized = input.current_prompt_text ? normalizePromptText(input.current_prompt_text) : null;
   const normalizedStarterEmailPrompt = normalizePromptText(EMAIL_STARTER_PROMPT_TEXT);
   const hasCompletedStarterEmailPrompt = store.attempts.some(
@@ -2221,8 +2465,17 @@ export const getSmartWritingPromptForStudent = async (input: {
     .filter((prompt) => prompt.genre === input.genre)
     .filter((prompt) => gradeMatchesBand(normalizedGrade, prompt.grade_band));
 
-  const exactDifficultyCandidates = allCandidates.filter((prompt) => prompt.difficulty_label === targetDifficulty);
-  const candidates = exactDifficultyCandidates.length > 0 ? exactDifficultyCandidates : allCandidates;
+  const uniqueCandidates = [...new Map(
+    allCandidates.map((prompt) => [`${prompt.id}|${normalizePromptText(prompt.prompt_text)}`, prompt])
+  ).values()];
+  const unseenCandidates = uniqueCandidates.filter((prompt) => {
+    const normalizedPrompt = normalizePromptText(prompt.prompt_text);
+    return prompt.id !== input.current_prompt_id
+      && !recentPromptIds.slice(0, 2).includes(prompt.id)
+      && normalizedPrompt !== currentPromptNormalized
+      && !recentPromptTexts.slice(0, 2).includes(normalizedPrompt);
+  });
+  const candidates = unseenCandidates.length > 0 ? unseenCandidates : uniqueCandidates;
 
   if (input.genre === 'email' && !hasCompletedStarterEmailPrompt) {
     const starterPromptRecord = allCandidates.find((prompt) => normalizePromptText(prompt.prompt_text) === normalizedStarterEmailPrompt) ?? null;
@@ -2238,6 +2491,7 @@ export const getSmartWritingPromptForStudent = async (input: {
       mission_hint_categories: [...new Set(weaknessTags.map((tag) => WEAKNESS_TAG_TO_MISSION_CATEGORY[tag as keyof typeof WEAKNESS_TAG_TO_MISSION_CATEGORY]).filter(Boolean))],
       selection_source: 'fallback_default',
       used_weakness_tags: weaknessTags,
+      pool_size: uniqueCandidates.length,
     });
   }
 
@@ -2256,6 +2510,7 @@ export const getSmartWritingPromptForStudent = async (input: {
       mission_hint_categories: [...new Set(weaknessTags.map((tag) => WEAKNESS_TAG_TO_MISSION_CATEGORY[tag as keyof typeof WEAKNESS_TAG_TO_MISSION_CATEGORY]).filter(Boolean))],
       selection_source: 'fallback_default',
       used_weakness_tags: weaknessTags,
+      pool_size: uniqueCandidates.length,
     });
   }
 
@@ -2265,11 +2520,19 @@ export const getSmartWritingPromptForStudent = async (input: {
       const { focus_tags, context_tags } = resolvePromptFocusAndContext(prompt);
       const matchedWeaknessFocus = focus_tags.filter((tag) => uniqueFocusTargets.includes(tag)).length;
       const recentIndex = recentPromptTexts.findIndex((item) => item === normalizedPrompt);
-      const recencyPenalty = recentIndex === -1 ? 0 : recentIndex < 2 ? 24 : 12;
-      const sameAsCurrentPenalty = currentPromptNormalized && currentPromptNormalized === normalizedPrompt ? 30 : 0;
+      const recentIdIndex = recentPromptIds.findIndex((item) => item === prompt.id);
+      const recencyPenalty = Math.max(
+        recentIndex === -1 ? 0 : recentIndex < 2 ? 120 : 50,
+        recentIdIndex === -1 ? 0 : recentIdIndex < 2 ? 120 : 50
+      );
+      const sameAsCurrentPenalty =
+        (currentPromptNormalized && currentPromptNormalized === normalizedPrompt) || prompt.id === input.current_prompt_id
+          ? 500
+          : 0;
+      const difficultyBonus = prompt.difficulty_label === targetDifficulty ? 18 : 0;
       const lastUsedTimestamp = prompt.rotation_metadata.last_used_at ? Date.parse(prompt.rotation_metadata.last_used_at) : 0;
       const freshnessBonus = lastUsedTimestamp > 0 ? Math.min(8, Math.floor((Date.now() - lastUsedTimestamp) / (1000 * 60 * 60 * 24 * 3))) : 8;
-      const score = matchedWeaknessFocus * 14 + freshnessBonus - recencyPenalty - sameAsCurrentPenalty - Math.min(8, prompt.usage_count);
+      const score = matchedWeaknessFocus * 14 + difficultyBonus + freshnessBonus - recencyPenalty - sameAsCurrentPenalty - Math.min(8, prompt.usage_count);
       return { prompt, score, focus_tags, context_tags };
     })
     .sort((a, b) => {
@@ -2316,6 +2579,7 @@ export const getSmartWritingPromptForStudent = async (input: {
     mission_hint_categories: [...new Set(weaknessTags.map((tag) => WEAKNESS_TAG_TO_MISSION_CATEGORY[tag as keyof typeof WEAKNESS_TAG_TO_MISSION_CATEGORY]).filter(Boolean))],
     selection_source: 'prompt_bank',
     used_weakness_tags: weaknessTags,
+    pool_size: uniqueCandidates.length,
   });
 };
 

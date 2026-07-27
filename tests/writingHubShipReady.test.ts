@@ -10,12 +10,23 @@ test('student Writing Hub exposes the complete four-step journey and cinematic f
   const activeSimpleLoop = source.slice(source.indexOf('const WritingHubSimpleLoop'));
   assert.match(activeSimpleLoop, /\['Prompt', 'Write', 'Feedback', 'Revise'\]/);
   assert.match(activeSimpleLoop, /Play Cinematic Feedback/);
+  assert.match(activeSimpleLoop, /Replay Cinematic Feedback/);
+  assert.match(activeSimpleLoop, /playSavedCinematicFeedback/);
   assert.match(activeSimpleLoop, /Cinematic Feedback/);
   assert.match(activeSimpleLoop, /Green shows what is working\. Red shows your clearest next improvement\./);
-  assert.match(activeSimpleLoop, /renderAnnotatedText\(submittedText, cinematicRanges/);
+  assert.match(activeSimpleLoop, /renderAnnotatedText\(activeCinematicText, cinematicRanges/);
   assert.match(activeSimpleLoop, /Improve my draft/);
   assert.doesNotMatch(activeSimpleLoop, /Pasting is disabled in Writing Hub/);
   assert.doesNotMatch(activeSimpleLoop, /Copying is disabled on this page/);
+});
+
+test('writing prompt rotation migration deduplicates identities and remembers recent tasks', () => {
+  const sql = readProjectFile('supabase/migrations/20260727120000_writing_prompt_rotation_integrity.sql');
+  assert.match(sql, /bh_writing_prompt_bank_payload_id_unique/);
+  assert.match(sql, /recent_attempts/);
+  assert.match(sql, /payload->>'prompt_id'/);
+  assert.match(sql, /p_current_prompt_id/);
+  assert.match(sql, /pool_size/);
 });
 
 test('cinematic feedback has responsive, accessible, reduced-motion styling', () => {
