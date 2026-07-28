@@ -103,6 +103,14 @@ const getClassLabel = (row: Pick<MonitoringRow, 'class_name' | 'current_grade'>)
 
 type ReportConfidenceState = 'no_data' | 'partial_data' | 'full_insight';
 
+const getReportSubmissionCount = (report: TeacherWritingReport, loadedAttemptCount = 0): number => {
+  const reportedCount =
+    report.overall_summary.submission_count ??
+    report.overall_summary.baseline_submission_count ??
+    report.overall_summary.completed_tasks ??
+    0;
+  return Math.max(reportedCount, loadedAttemptCount, 0);
+};
 
 const extractAttemptFeedbackText = (attempt: TeacherWritingAttemptRecord): string => {
   const richFeedback = (attempt.rich_feedback ?? {}) as Record<string, unknown>;
@@ -124,22 +132,19 @@ const extractAttemptFeedbackText = (attempt: TeacherWritingAttemptRecord): strin
   return 'No feedback available yet.';
 };
 
-const getReportConfidenceState = (report: TeacherWritingReport): ReportConfidenceState => {
-  const submissionCount =
-    report.overall_summary.submission_count ?? report.overall_summary.completed_tasks;
-  const completionRate = report.overall_summary.completion_rate_percent;
+const getReportConfidenceState = (
+  report: TeacherWritingReport,
+  loadedAttemptCount = 0
+): ReportConfidenceState => {
+  const submissionCount = getReportSubmissionCount(report, loadedAttemptCount);
   const hasScore = report.overall_summary.latest_score != null && !Number.isNaN(report.overall_summary.latest_score);
-  const hasNoAttempts = submissionCount <= 0;
-
-  if (hasNoAttempts && !hasScore) return 'no_data';
-  if (completionRate <= 0 && !hasScore) return 'no_data';
-
   const strengths = report.strengths.filter((item) => Boolean(item?.trim()));
-  const weakAreas = report.priority_weak_areas.filter((item) => Boolean(item?.trim()));
-  const hasMissingAnalysis = !report.latest_evaluation || !report.monthly_summary;
-  const veryLowAttempts = submissionCount < 2;
+  const weakAreas = [...report.priority_weak_areas, ...report.repeated_error_patterns]
+    .filter((item) => Boolean(item?.trim()));
+  const hasSavedAnalysis = strengths.length > 0 || weakAreas.length > 0;
 
-  if (veryLowAttempts || weakAreas.length === 0 || hasMissingAnalysis || strengths.length === 0) return 'partial_data';
+  if (submissionCount <= 0 && !hasScore && !hasSavedAnalysis) return 'no_data';
+  if (submissionCount < 2 || weakAreas.length === 0 || strengths.length === 0) return 'partial_data';
   return 'full_insight';
 };
 
@@ -639,9 +644,18 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
             {openReportData && (
               <div style={{ display: 'grid', gap: 16 }}>
                 {(() => {
-                  const confidenceState = getReportConfidenceState(openReportData);
-                  const hasWeaknesses = openReportData.priority_weak_areas.length > 0;
-                  const showAdvancedAnalysis = confidenceState === 'full_insight';
+                  const submissionCount = getReportSubmissionCount(openReportData, attemptRows.length);
+                  const strengths = openReportData.strengths.filter((item) => Boolean(item?.trim()));
+                  const weaknessAreas = [
+                    ...new Set([
+                      ...openReportData.priority_weak_areas,
+                      ...openReportData.repeated_error_patterns,
+                    ].filter((item) => Boolean(item?.trim()))),
+                  ];
+                  const hasStrengths = strengths.length > 0;
+                  const hasWeaknesses = weaknessAreas.length > 0;
+                  const hasSavedAnalysis = hasStrengths || hasWeaknesses;
+                  const confidenceState = getReportConfidenceState(openReportData, attemptRows.length);
                   const showPartialMessage = confidenceState === 'partial_data';
                   const showNoDataMessage = confidenceState === 'no_data';
                   const statusLabel = showNoDataMessage
@@ -689,11 +703,11 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
                   </div>
                   <div style={{ background: 'rgba(34, 197, 94, 0.08)', border: '1px solid #15803d', borderRadius: 10, padding: 12 }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>Submissions</div>
-                    <div style={{ fontSize: 22, fontWeight: 900, color: '#86efac' }}>{openReportData.overall_summary.submission_count ?? attemptRows.length}</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: '#86efac' }}>{submissionCount}</div>
                   </div>
                   <div style={{ background: 'rgba(249, 115, 22, 0.08)', border: '1px solid #92400e', borderRadius: 10, padding: 12 }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>Trend</div>
-                    <div style={{ fontSize: 22, fontWeight: 900, color: '#fbbf24' }}>{(openReportData.overall_summary.submission_count ?? attemptRows.length) < 2 ? 'Baseline' : (openReportData.overall_summary.score_trend_delta ?? 'Stable')}</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: '#fbbf24' }}>{submissionCount < 2 ? 'Baseline' : (openReportData.overall_summary.score_trend_delta ?? 'Stable')}</div>
                   </div>
                   <div style={{ background: 'rgba(45, 212, 191, 0.08)', border: '1px solid #0f766e', borderRadius: 10, padding: 12 }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>Practice plan</div>
@@ -724,27 +738,33 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
                       {showNoDataMessage
                         ? 'No writing data available yet. Ask the student to complete a task to generate insights.'
                         : showPartialMessage
-                          ? 'Not enough data to identify clear strengths or weaknesses yet.'
-                          : `Latest formative estimate ${formatScoreLabel(openReportData.overall_summary.latest_score)} across ${(openReportData.overall_summary.submission_count ?? attemptRows.length)} submission${(openReportData.overall_summary.submission_count ?? attemptRows.length) === 1 ? '' : 's'}.`}
+                          ? hasSavedAnalysis
+                            ? `Initial evidence is ready from ${submissionCount} submission${submissionCount === 1 ? '' : 's'}. Saved strengths and priority targets are shown below; trend confidence improves after another comparable submission.`
+                            : 'A baseline submission is saved, but detailed strengths and priority targets are not available for this attempt.'
+                          : `Latest formative estimate ${formatScoreLabel(openReportData.overall_summary.latest_score)} across ${submissionCount} submission${submissionCount === 1 ? '' : 's'}.`}
                     </div>
                   </div>
-                  {showAdvancedAnalysis ? (
-                    <>
-                      <div>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Strength</div>
-                        <div style={{ fontSize: 14, color: '#e2e8f0' }}>{openReportData.strengths.join(', ')}</div>
+                  {hasStrengths ? (
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Strength</div>
+                      <div style={{ fontSize: 14, color: '#e2e8f0' }}>{strengths.join(' ')}</div>
+                    </div>
+                  ) : null}
+                  {hasWeaknesses ? (
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Priority improvement targets</div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {weaknessAreas.map((tag) => (
+                          <span key={tag} style={chipStyle('danger')}>{toTeacherWeaknessLabel(tag)}</span>
+                        ))}
                       </div>
-                      <div>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Needs Work</div>
-                        <div style={{ fontSize: 14, color: '#e2e8f0' }}>{openReportData.priority_weak_areas.map(toTeacherWeaknessLabel).join(', ')}</div>
-                      </div>
-                      {suggestedNextStep ? (
-                        <div>
-                          <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Suggested next step</div>
-                          <div style={{ fontSize: 14, color: '#e2e8f0', lineHeight: 1.6 }}>{suggestedNextStep}</div>
-                        </div>
-                      ) : null}
-                    </>
+                    </div>
+                  ) : null}
+                  {suggestedNextStep ? (
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>Suggested next step</div>
+                      <div style={{ fontSize: 14, color: '#e2e8f0', lineHeight: 1.6 }}>{suggestedNextStep}</div>
+                    </div>
                   ) : null}
                   <div style={{ border: '1px solid #334155', borderRadius: 10, padding: 12, background: '#0b1223' }}>
                     <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 6, textTransform: 'uppercase' }}>Attempt history (genre, submission, feedback)</div>
