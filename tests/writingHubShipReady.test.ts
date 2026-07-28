@@ -73,6 +73,18 @@ test('teacher monitor and analytics use the same premium workspace language and 
   assert.match(analyticsCss, /\.writing-analytics__section/);
 });
 
+test('teacher evidence review exposes saved first-submission insights immediately', () => {
+  const monitoring = readProjectFile('src/pages/writing/WritingMonitoringView.tsx');
+
+  assert.match(monitoring, /getReportSubmissionCount/);
+  assert.match(monitoring, /Initial evidence is ready from/);
+  assert.match(monitoring, /Saved strengths and priority targets are shown below/);
+  assert.match(monitoring, /Priority improvement targets/);
+  assert.match(monitoring, /repeated_error_patterns/);
+  assert.doesNotMatch(monitoring, /showAdvancedAnalysis/);
+  assert.doesNotMatch(monitoring, /Not enough data to identify clear strengths or weaknesses yet/);
+});
+
 test('production persistence does not store the full Writing Hub snapshot on shared devices', () => {
   const source = readProjectFile('src/lib/brains_heist/writingIntegrationService.ts');
   assert.match(source, /storage && getWritingRepositoryMode\(\) !== 'db'/);
