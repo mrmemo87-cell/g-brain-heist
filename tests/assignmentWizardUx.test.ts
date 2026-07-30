@@ -24,11 +24,11 @@ test('question bank filters and deduplicates slash variants in the UI', () => {
   }
 });
 
-test('wizard saves drafts and protects accidental exits', () => {
-  assert.match(wizard, /brains_heist_teacher_assignment_draft_v2/);
-  assert.match(wizard, /localStorage\.setItem/);
+test('wizard clearly discards drafts and protects accidental exits', () => {
   assert.match(wizard, /beforeunload/);
-  assert.match(wizard, /Draft restored/);
+  assert.match(wizard, /Your progress will be lost and cannot be recovered/);
+  assert.doesNotMatch(wizard, /localStorage\.setItem/);
+  assert.doesNotMatch(wizard, /Draft restored/);
 });
 
 test('existing assignment publish handler remains the only creation path', () => {

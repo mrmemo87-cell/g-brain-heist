@@ -4,12 +4,11 @@ import type { TeacherAssignedClass } from '../../services/schoolAdminService';
 import { brainsAlert } from '../../src/utils/brainsAlert';
 import './AssignmentWizard.css';
 
-export const ASSIGNMENT_WIZARD_DRAFT_KEY = 'brains_heist_teacher_assignment_draft_v2';
-
 type AssignmentMode = 'batch' | 'custom';
 type WizardStep = 1 | 2 | 3 | 4 | 5 | 6;
 type XpFilter = 'all' | 'low' | 'medium' | 'high';
 type QuestionSort = 'recommended' | 'xp-high' | 'xp-low' | 'time-short' | 'difficulty';
+type QuestionPool = 'all' | 'brains-heist' | 'mine';
 
 interface AssignmentWizardProps {
   assignmentMode: AssignmentMode;
@@ -40,16 +39,17 @@ interface AssignmentWizardProps {
   setSelectedStudentIds: React.Dispatch<React.SetStateAction<string[]>>;
   assignedClasses: TeacherAssignedClass[];
   teacherAssignedSubjects: string[];
+  teacherId?: string;
   questions: TeacherQuestion[];
   onSubmit: (event: React.FormEvent) => Promise<void>;
   onCancel: () => void;
 }
 
 const STEPS = [
-  { id: 1, short: 'Audience', question: 'Who is this for?' },
-  { id: 2, short: 'Subject', question: 'What subject?' },
+  { id: 1, short: 'Subject', question: 'What subject?' },
+  { id: 2, short: 'Audience', question: 'Who is this for?' },
   { id: 3, short: 'Questions', question: 'Which questions?' },
-  { id: 4, short: 'Details', question: 'What should students know?' },
+  { id: 4, short: 'Details', question: 'Add Title and Description' },
   { id: 5, short: 'Due date', question: 'When is it due?' },
   { id: 6, short: 'Review', question: 'Is everything correct?' },
 ] as const;
@@ -109,6 +109,7 @@ export default function AssignmentWizard({
   setSelectedStudentIds,
   assignedClasses,
   teacherAssignedSubjects,
+  teacherId,
   questions,
   onSubmit,
   onCancel,
@@ -122,9 +123,9 @@ export default function AssignmentWizard({
   const [typeFilter, setTypeFilter] = useState<'all' | QuestionType>('all');
   const [xpFilter, setXpFilter] = useState<XpFilter>('all');
   const [sort, setSort] = useState<QuestionSort>('recommended');
+  const [questionPool, setQuestionPool] = useState<QuestionPool>('all');
   const [previewQuestion, setPreviewQuestion] = useState<TeacherQuestion | null>(null);
   const [customDueDate, setCustomDueDate] = useState(false);
-  const [restored, setRestored] = useState(false);
 
   const uniqueClasses = useMemo(() => {
     const classes = new Map<string, TeacherAssignedClass>();
@@ -179,6 +180,9 @@ export default function AssignmentWizard({
       const xp = question.points || 0;
       return (
         (!debouncedQuestionSearch || haystack.includes(debouncedQuestionSearch)) &&
+        (questionPool === 'all' ||
+          (questionPool === 'mine' && Boolean(teacherId) && question.teacher_id === teacherId) ||
+          (questionPool === 'brains-heist' && (!teacherId || question.teacher_id !== teacherId))) &&
         (topicFilter === 'all' || topic === topicFilter) &&
         (difficultyFilter === 'all' || question.difficulty === difficultyFilter) &&
         (typeFilter === 'all' || question.question_type === typeFilter) &&
@@ -196,7 +200,7 @@ export default function AssignmentWizard({
       if (sort === 'difficulty') return difficultyScore[a.difficulty] - difficultyScore[b.difficulty];
       return Number(assignmentQuestionIds.includes(b.id)) - Number(assignmentQuestionIds.includes(a.id));
     });
-  }, [assignmentQuestionIds, debouncedQuestionSearch, difficultyFilter, subjectQuestions, topicFilter, typeFilter, xpFilter, sort]);
+  }, [assignmentQuestionIds, debouncedQuestionSearch, difficultyFilter, questionPool, sort, subjectQuestions, teacherId, topicFilter, typeFilter, xpFilter]);
 
   const selectedQuestions = useMemo(
     () => subjectQuestions.filter((question) => assignmentQuestionIds.includes(question.id)),
@@ -223,60 +227,22 @@ export default function AssignmentWizard({
   const estimatedMinutes = selectedQuestions.length ? Math.max(1, Math.ceil(totalSeconds / 60)) : 0;
 
   useEffect(() => {
-    if (assignmentQuestionIds.length) return;
-    try {
-      const raw = localStorage.getItem(ASSIGNMENT_WIZARD_DRAFT_KEY);
-      if (!raw) return;
-      const draft = JSON.parse(raw);
-      setAssignmentMode(draft.assignmentMode === 'custom' ? 'custom' : 'batch');
-      setAssignmentBatches(Array.isArray(draft.assignmentBatches) ? draft.assignmentBatches : []);
-      if (teacherAssignedSubjects.includes(draft.assignmentSubject)) setAssignmentSubject(draft.assignmentSubject);
-      setAssignmentQuestionIds(Array.isArray(draft.assignmentQuestionIds) ? draft.assignmentQuestionIds : []);
-      setSelectedStudentIds(Array.isArray(draft.selectedStudentIds) ? draft.selectedStudentIds : []);
-      setAssignmentTitle(draft.assignmentTitle || '');
-      setAssignmentDescription(draft.assignmentDescription || '');
-      setAssignmentInstructions(draft.assignmentInstructions || '');
-      setAssignmentDueAt(draft.assignmentDueAt || '');
-      if (['easy', 'medium', 'hard'].includes(draft.assignmentDifficulty)) setAssignmentDifficulty(draft.assignmentDifficulty);
-      setAssignmentTopicMode(draft.assignmentTopicMode === 'custom' ? 'custom' : 'general');
-      setAssignmentTopicName(draft.assignmentTopicName || '');
-      setStep(Math.min(6, Math.max(1, Number(draft.step) || 1)) as WizardStep);
-      setRestored(true);
-    } catch {
-      localStorage.removeItem(ASSIGNMENT_WIZARD_DRAFT_KEY);
-    }
-    // Restore exactly once when the wizard opens.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    const draft = {
-      step,
-      assignmentMode,
-      assignmentBatches,
-      assignmentSubject,
-      assignmentQuestionIds,
-      selectedStudentIds,
-      assignmentTitle,
-      assignmentDescription,
-      assignmentInstructions,
-      assignmentDueAt,
-      assignmentDifficulty,
-      assignmentTopicMode,
-      assignmentTopicName,
-    };
-    localStorage.setItem(ASSIGNMENT_WIZARD_DRAFT_KEY, JSON.stringify(draft));
-  }, [assignmentBatches, assignmentDescription, assignmentDifficulty, assignmentDueAt, assignmentInstructions, assignmentMode, assignmentQuestionIds, assignmentSubject, assignmentTitle, assignmentTopicMode, assignmentTopicName, selectedStudentIds, step]);
-
-  useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => {
-      if (!assignmentQuestionIds.length && !assignmentTitle && !assignmentBatches.length && !selectedStudentIds.length) return;
+      if (
+        !assignmentQuestionIds.length &&
+        !assignmentTitle &&
+        !assignmentDescription &&
+        !assignmentInstructions &&
+        !assignmentDueAt &&
+        !assignmentBatches.length &&
+        !selectedStudentIds.length
+      ) return;
       event.preventDefault();
       event.returnValue = '';
     };
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
-  }, [assignmentBatches.length, assignmentQuestionIds.length, assignmentTitle, selectedStudentIds.length]);
+  }, [assignmentBatches.length, assignmentDescription, assignmentDueAt, assignmentInstructions, assignmentQuestionIds.length, assignmentTitle, selectedStudentIds.length]);
 
   const toggleBatch = (batch: string) => {
     setAssignmentBatches((current) => current.includes(batch) ? current.filter((item) => item !== batch && item !== 'All') : [...current.filter((item) => item !== 'All'), batch]);
@@ -291,11 +257,11 @@ export default function AssignmentWizard({
   };
 
   const continueFrom = (currentStep: WizardStep) => {
-    if (currentStep === 1) {
+    if (currentStep === 1 && !assignmentSubject) return brainsAlert('Please choose a subject.', 'info');
+    if (currentStep === 2) {
       if (assignmentMode === 'batch' && !assignmentBatches.length) return brainsAlert('Please select at least one class/batch for this assignment.', 'info');
       if (assignmentMode === 'custom' && !selectedStudentIds.length) return brainsAlert('Please select at least one student for this assignment.', 'info');
     }
-    if (currentStep === 2 && !assignmentSubject) return brainsAlert('Please choose a subject.', 'info');
     if (currentStep === 3) {
       if (!assignmentQuestionIds.length) return brainsAlert('Select at least one question to assign.', 'info');
       setAssignmentDifficulty(averageDifficulty);
@@ -305,8 +271,14 @@ export default function AssignmentWizard({
   };
 
   const leaveWizard = () => {
-    const hasDraft = assignmentQuestionIds.length || assignmentTitle || assignmentBatches.length || selectedStudentIds.length;
-    if (!hasDraft || window.confirm('Leave this assignment? Your draft will be saved for next time.')) onCancel();
+    const hasDraft = assignmentQuestionIds.length ||
+      assignmentTitle ||
+      assignmentDescription ||
+      assignmentInstructions ||
+      assignmentDueAt ||
+      assignmentBatches.length ||
+      selectedStudentIds.length;
+    if (!hasDraft || window.confirm('Leave this assignment? Your progress will be lost and cannot be recovered.')) onCancel();
   };
 
   const summary = (
@@ -324,16 +296,6 @@ export default function AssignmentWizard({
           ? selectedClasses.map((item) => item.class_code).join(', ') || 'No class selected'
           : audienceStudents.length ? 'Individual students' : 'No students selected'}
       </p>
-      {step === 3 && (
-        <button type="button" className="aw-button aw-button--ghost" disabled={!selectedQuestions.length} onClick={() => setPreviewQuestion(selectedQuestions[0] || null)}>
-          Preview selection
-        </button>
-      )}
-      {step < 6 && (
-        <button type="button" className="aw-button aw-button--primary" onClick={() => continueFrom(step)}>
-          Continue <span aria-hidden="true">→</span>
-        </button>
-      )}
     </aside>
   );
 
@@ -345,7 +307,7 @@ export default function AssignmentWizard({
           <p>Create assignment</p>
           <h1>{STEPS[step - 1].question}</h1>
         </div>
-        {restored && <span className="aw-restored" role="status">Draft restored</span>}
+        <span className="aw-progress-note">Changes are not saved until you publish.</span>
       </header>
 
       <nav className="aw-progress" aria-label="Assignment creation progress">
@@ -375,7 +337,7 @@ export default function AssignmentWizard({
             <h2 id={`wizard-step-${step}`}>{STEPS[step - 1].short}</h2>
           </div>
 
-          {step === 1 && (
+          {step === 2 && (
             <div className="aw-step">
               <div className="aw-choice-grid aw-choice-grid--two" role="radiogroup" aria-label="Assignment audience">
                 <button type="button" role="radio" aria-checked={assignmentMode === 'batch'} className={assignmentMode === 'batch' ? 'aw-choice is-selected' : 'aw-choice'} onClick={() => setAssignmentMode('batch')}>
@@ -425,7 +387,7 @@ export default function AssignmentWizard({
             </div>
           )}
 
-          {step === 2 && (
+          {step === 1 && (
             <div className="aw-step">
               <p className="aw-intro">Only subjects assigned to your classes are available.</p>
               <div className="aw-subject-grid" role="radiogroup" aria-label="Choose subject">
@@ -443,6 +405,11 @@ export default function AssignmentWizard({
             <div className="aw-step aw-questions">
               <div className="aw-toolbar">
                 <label className="aw-search aw-search--wide"><span>⌕</span><input value={questionSearch} onChange={(event) => setQuestionSearch(event.target.value)} placeholder="Search question, answer, topic, tags…" aria-label="Search question bank" /></label>
+                <select value={questionPool} onChange={(event) => setQuestionPool(event.target.value as QuestionPool)} aria-label="Choose question pool">
+                  <option value="all">All pools</option>
+                  <option value="brains-heist">Brains Heist Pool</option>
+                  <option value="mine">My Pool</option>
+                </select>
                 <select value={topicFilter} onChange={(event) => { setTopicFilter(event.target.value); setAssignmentTopicMode(event.target.value === 'all' ? 'general' : 'custom'); setAssignmentTopicName(event.target.value === 'all' ? '' : event.target.value); }} aria-label="Filter by topic">
                   <option value="all">All topics</option>{topics.map((topic) => <option key={topic} value={topic}>{topic}</option>)}
                 </select>
@@ -461,30 +428,58 @@ export default function AssignmentWizard({
               </div>
               <div className="aw-question-actions">
                 <span>{filteredQuestions.length} unique question{filteredQuestions.length === 1 ? '' : 's'}</span>
-                <button type="button" onClick={() => setAssignmentQuestionIds((current) => [...new Set([...current, ...filteredQuestions.map((question) => question.id)])])}>Select shown</button>
+                <button type="button" onClick={() => setAssignmentQuestionIds((current) => [...new Set([...current, ...filteredQuestions.map((question) => question.id)])])}>Select all</button>
                 <button type="button" onClick={() => setAssignmentQuestionIds([])}>Clear</button>
               </div>
-              <div className="aw-question-grid">
-                {filteredQuestions.map((question) => {
-                  const selected = assignmentQuestionIds.includes(question.id);
-                  const topic = question.topic_name || question.topic || 'General';
-                  return (
-                    <article key={question.id} className={selected ? 'aw-question-card is-selected' : 'aw-question-card'}>
-                      <button type="button" className="aw-question-card__select" aria-pressed={selected} onClick={() => toggleQuestion(question.id)} aria-label={`${selected ? 'Remove' : 'Select'} question`}>
-                        <span className="aw-check">{selected ? '✓' : ''}</span>
-                        <p>{question.question_text}</p>
-                      </button>
-                      <div className="aw-badges">
-                        <span data-tone={question.difficulty}>{question.difficulty}</span>
-                        <span>{topic}</span>
-                        <span>{formatQuestionType(question.question_type)}</span>
-                        <span>{question.points} XP</span>
-                      </div>
-                      <footer><span>◷ {Math.max(1, Math.ceil((question.time_limit || 60) / 60))} min</span><button type="button" onClick={() => setPreviewQuestion(question)}>Preview</button></footer>
-                    </article>
-                  );
-                })}
-                {!filteredQuestions.length && <div className="aw-empty">No questions match these filters. Try broadening your search.</div>}
+              <div className="aw-question-transfer">
+                <section className="aw-question-pane" aria-labelledby="available-question-heading">
+                  <header>
+                    <div><span>Question bank</span><h3 id="available-question-heading">Available questions</h3></div>
+                    <b>{filteredQuestions.filter((question) => !assignmentQuestionIds.includes(question.id)).length}</b>
+                  </header>
+                  <div className="aw-question-grid">
+                    {filteredQuestions.filter((question) => !assignmentQuestionIds.includes(question.id)).map((question) => {
+                      const topic = question.topic_name || question.topic || 'General';
+                      return (
+                        <article key={question.id} className="aw-question-card">
+                          <button type="button" className="aw-question-card__select" aria-pressed="false" onClick={() => toggleQuestion(question.id)} aria-label="Add question">
+                            <span className="aw-check">+</span>
+                            <p>{question.question_text}</p>
+                          </button>
+                          <div className="aw-badges">
+                            <span data-tone={question.difficulty}>{question.difficulty}</span>
+                            <span>{topic}</span>
+                            <span>{formatQuestionType(question.question_type)}</span>
+                          </div>
+                          <footer><span>{question.points} points</span><button type="button" onClick={() => setPreviewQuestion(question)}>Preview</button></footer>
+                        </article>
+                      );
+                    })}
+                    {!filteredQuestions.some((question) => !assignmentQuestionIds.includes(question.id)) && <div className="aw-empty">No available questions match these filters.</div>}
+                  </div>
+                </section>
+                <section className="aw-question-pane aw-question-pane--selected" aria-labelledby="selected-question-heading">
+                  <header>
+                    <div><span>Assignment</span><h3 id="selected-question-heading">Selected questions</h3></div>
+                    <b>{selectedQuestions.length}</b>
+                  </header>
+                  <div className="aw-question-grid">
+                    {selectedQuestions.map((question, index) => (
+                      <article key={question.id} className="aw-question-card is-selected">
+                        <button type="button" className="aw-question-card__select" aria-pressed="true" onClick={() => toggleQuestion(question.id)} aria-label="Remove question">
+                          <span className="aw-order">{index + 1}</span>
+                          <p>{question.question_text}</p>
+                        </button>
+                        <div className="aw-badges">
+                          <span>{question.topic_name || question.topic || 'General'}</span>
+                          <span>{formatQuestionType(question.question_type)}</span>
+                        </div>
+                        <footer><span>{question.points} points</span><button type="button" onClick={() => setPreviewQuestion(question)}>Preview</button></footer>
+                      </article>
+                    ))}
+                    {!selectedQuestions.length && <div className="aw-empty">Selected questions will appear here.</div>}
+                  </div>
+                </section>
               </div>
             </div>
           )}
@@ -514,8 +509,8 @@ export default function AssignmentWizard({
             <div className="aw-step aw-review">
               <div className="aw-review__hero"><span>Ready to publish</span><h2>{assignmentTitle || `${assignmentSubject} assignment`}</h2><p>{selectedQuestions.length} questions · {estimatedMinutes} minutes · {totalXp} XP</p></div>
               {[
-                ['Audience', assignmentMode === 'batch' ? selectedClasses.map((item) => item.class_code).join(', ') : `${audienceStudents.length} individual students`, 1],
-                ['Subject', assignmentSubject, 2],
+                ['Subject', assignmentSubject, 1],
+                ['Audience', assignmentMode === 'batch' ? selectedClasses.map((item) => item.class_code).join(', ') : `${audienceStudents.length} individual students`, 2],
                 ['Questions', `${selectedQuestions.length} across ${new Set(selectedQuestions.map((q) => q.topic_name || q.topic || 'General')).size} topics · ${averageDifficulty}`, 3],
                 ['Details', [assignmentDescription, assignmentInstructions].filter(Boolean).join(' · ') || 'No additional details', 4],
                 ['Due date', formatDueDate(assignmentDueAt), 5],
@@ -528,11 +523,30 @@ export default function AssignmentWizard({
             </div>
           )}
 
-          {step < 6 && step !== 3 && (
-            <div className="aw-footer"><button type="button" className="aw-button aw-button--primary" onClick={() => continueFrom(step)}>Continue <span aria-hidden="true">→</span></button></div>
-          )}
         </section>
         {summary}
+        <div className="aw-floating-nav" aria-label="Wizard navigation">
+          <button
+            type="button"
+            className="aw-button aw-button--ghost"
+            onClick={() => {
+              setStep((current) => Math.max(1, current - 1) as WizardStep);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            disabled={step === 1}
+          >
+            <span aria-hidden="true">←</span> Back
+          </button>
+          {step < 6 ? (
+            <button type="button" className="aw-button aw-button--primary" onClick={() => continueFrom(step)}>
+              Next <span aria-hidden="true">→</span>
+            </button>
+          ) : (
+            <button type="submit" className="aw-button aw-button--primary" disabled={assignmentSubmitting}>
+              {assignmentSubmitting ? 'Publishing…' : 'Publish assignment'}
+            </button>
+          )}
+        </div>
       </form>
 
       {previewQuestion && (

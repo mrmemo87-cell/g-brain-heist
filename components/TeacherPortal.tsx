@@ -147,6 +147,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [topNavMenuOpen, setTopNavMenuOpen] = useState(false);
   const [mobileWorkspaceMenuOpen, setMobileWorkspaceMenuOpen] = useState(false);
+  const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(false);
   const topNavRef = useRef<HTMLElement | null>(null);
   const topNavMenuRef = useRef<HTMLDivElement | null>(null);
   const [topNavHeight, setTopNavHeight] = useState(0);
@@ -611,6 +612,20 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       return true;
     });
   }, [assignments, assignmentSearchTerm, assignmentSubjectFilter, assignmentStatusFilter]);
+
+  const assignmentsByGroup = useMemo(() => {
+    const groups = new Map<string, { inProgress: TeacherAssignmentSummary[]; completed: TeacherAssignmentSummary[] }>();
+    filteredAssignments.forEach((assignment) => {
+      const groupName = assignment.assignment_mode === 'custom'
+        ? 'Selected students'
+        : assignment.batch || 'Class not specified';
+      const group = groups.get(groupName) || { inProgress: [], completed: [] };
+      const isComplete = assignment.student_count > 0 && assignment.completed_count >= assignment.student_count;
+      group[isComplete ? 'completed' : 'inProgress'].push(assignment);
+      groups.set(groupName, group);
+    });
+    return [...groups.entries()].sort(([left], [right]) => left.localeCompare(right));
+  }, [filteredAssignments]);
   
   const filteredStudents = useMemo(() => {
     if (!studentSearchTerm.trim()) return availableStudents;
@@ -636,6 +651,20 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   const changeSection = (section: TeacherNavSection) => {
     setMobileWorkspaceMenuOpen(false);
+    if (view === 'create-assignment') {
+      const hasProgress = Boolean(
+        assignmentQuestionIds.length ||
+        assignmentTitle.trim() ||
+        assignmentDescription.trim() ||
+        assignmentInstructions.trim() ||
+        assignmentDueAt ||
+        assignmentBatches.length ||
+        selectedStudentIds.length,
+      );
+      if (hasProgress && !window.confirm('Leave this assignment? Your progress will be lost and cannot be recovered.')) {
+        return;
+      }
+    }
     switch (section) {
       case 'dashboard':
         setView('dashboard');
@@ -4052,7 +4081,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
       {/* Dashboard shortcuts */}
       <div className="teacher-stats-grid">
-        <button type="button" onClick={() => setView('students')} className="teacher-dashboard-stat cyan text-left" aria-label="Open My Students">
+        <button type="button" onClick={() => setView('students')} className="teacher-dashboard-stat cyan text-left" aria-label="Open My Classes">
           <div className="teacher-dashboard-stat-info">
             <h4>My Classes</h4>
             <div className="teacher-dashboard-stat-value">{myClasses.length || 0}</div>
@@ -4061,20 +4090,20 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           <div className="teacher-dashboard-stat-icon">🏫</div>
         </button>
 
-        <button type="button" onClick={() => setView('assignments')} className="teacher-dashboard-stat green text-left" aria-label="Open Given Assignments">
+        <button type="button" onClick={() => setView('assignments')} className="teacher-dashboard-stat green text-left" aria-label="Open Assignments">
           <div className="teacher-dashboard-stat-info">
-            <h4>Given Assignments</h4>
+            <h4>Assignments</h4>
             <div className="teacher-dashboard-stat-value">{assignments.length}</div>
             <p className="teacher-dashboard-stat-sub">{activeAssignments} in progress</p>
           </div>
           <div className="teacher-dashboard-stat-icon">📋</div>
         </button>
 
-        <button type="button" onClick={() => setView('reports')} className="teacher-dashboard-stat amber text-left" aria-label="Open Student Submissions">
+        <button type="button" onClick={() => setView('reports')} className="teacher-dashboard-stat amber text-left" aria-label="Open Reports">
           <div className="teacher-dashboard-stat-info">
-            <h4>Student Submissions</h4>
+            <h4>Reports</h4>
             <div className="teacher-dashboard-stat-value">{assignmentSuccess ? totalSubmissions : '—'}</div>
-            <p className="teacher-dashboard-stat-sub">Completed given assignments</p>
+            <p className="teacher-dashboard-stat-sub">Completed assignment submissions</p>
           </div>
           <div className="teacher-dashboard-stat-icon">💬</div>
         </button>
@@ -4446,9 +4475,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         {editingQuestion ? '✏️ Edit Question' : '➕ Create New Question'}
       </h2>
 
-      {/* Quick Templates */}
+      {/* Question type selector */}
       <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6">
-        <h3 className="text-sm font-semibold text-slate-700 mb-3">⚡ Quick Templates</h3>
+        <h3 className="text-sm font-semibold text-slate-700 mb-3">Question type</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           <button
             type="button"
@@ -4486,47 +4515,22 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           
           <button
             type="button"
-            onClick={() => {
-              setQuestionType('short_answer');
-              setQuestionText('');
-              setOptions([
-                { text: '', image_url: undefined },
-                { text: '', image_url: undefined },
-                { text: '', image_url: undefined },
-                { text: '', image_url: undefined }
-              ]);
-              setOptionImages([null, null, null, null]);
-            }}
-            className="p-3 bg-white hover:bg-amber-50 border border-slate-200 hover:border-amber-400 rounded-lg transition-all text-sm"
+            disabled
+            className="cursor-not-allowed rounded-lg border border-slate-200 bg-slate-100 p-3 text-sm opacity-65"
           >
             <div className="text-2xl mb-1">✏️</div>
-            <div className="text-amber-600 font-semibold">Short Answer</div>
+            <div className="font-semibold text-slate-500">Short Answer</div>
+            <div className="mt-1 text-xs text-slate-400">Unavailable</div>
           </button>
           
           <button
             type="button"
-            onClick={() => {
-              setQuestionText('');
-              setQuestionImage(null);
-              setQuestionImageUrl('');
-              setSubject('Maths');
-              setDifficulty('easy');
-              setQuestionType('multiple_choice');
-              setOptions([
-                { text: '', image_url: undefined },
-                { text: '', image_url: undefined },
-                { text: '', image_url: undefined },
-                { text: '', image_url: undefined }
-              ]);
-              setOptionImages([null, null, null, null]);
-              setCorrectAnswer('');
-              setExplanation('');
-              setPoints(10);
-            }}
-            className="p-3 bg-white hover:bg-slate-100 border border-slate-200 hover:border-slate-400 rounded-lg transition-all text-sm"
+            disabled
+            className="cursor-not-allowed rounded-lg border border-slate-200 bg-slate-100 p-3 text-sm opacity-65"
           >
-            <div className="text-2xl mb-1">🔄</div>
-            <div className="text-slate-600 font-semibold">Reset Form</div>
+            <div className="text-2xl mb-1">↕</div>
+            <div className="font-semibold text-slate-500">Drag &amp; Drop</div>
+            <div className="mt-1 text-xs text-slate-400">Coming soon</div>
           </button>
         </div>
       </div>
@@ -4614,7 +4618,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
           {/* Question Type */}
           <div className="teacher-form-group">
-            <label className="teacher-label">Question Type</label>
+            <label className="teacher-label">Question type</label>
             <select
               value={questionType}
               onChange={(e) => setQuestionType(e.target.value as any)}
@@ -4623,7 +4627,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             >
               <option value="multiple_choice">Multiple Choice</option>
               <option value="true_false">True/False</option>
-              <option value="short_answer">Short Answer</option>
+              <option value="short_answer" disabled>Short Answer — unavailable</option>
+              <option value="drag_drop" disabled>Drag &amp; Drop — coming soon</option>
             </select>
           </div>
 
@@ -5057,56 +5062,92 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
   );
 
   const renderStudents = () => {
-    const classOptions = Array.from(new Set(availableStudents.map((student) => student.batch).filter(Boolean))) as string[];
+    const classMap = new Map<string, { subjects: Set<string>; students: StudentForAssignment[] }>();
+    assignedClasses
+      .filter((assignedClass) => assignedClass.is_active)
+      .forEach((assignedClass) => {
+        const existing = classMap.get(assignedClass.class_code) || { subjects: new Set<string>(), students: [] };
+        if (assignedClass.subject) existing.subjects.add(assignedClass.subject);
+        classMap.set(assignedClass.class_code, existing);
+      });
+    availableStudents.forEach((student) => {
+      const classCode = student.batch || 'Class not assigned';
+      const existing = classMap.get(classCode) || { subjects: new Set<string>(), students: [] };
+      existing.students.push(student);
+      classMap.set(classCode, existing);
+    });
+    const search = studentSearchTerm.trim().toLocaleLowerCase();
+    const classGroups = [...classMap.entries()]
+      .map(([classCode, value]) => ({
+        classCode,
+        subjects: [...value.subjects].sort(),
+        students: value.students.filter((student) => !search || [
+          student.display_name,
+          student.username,
+          student.batch,
+        ].join(' ').toLocaleLowerCase().includes(search)),
+      }))
+      .filter((group) => !search ||
+        group.students.length > 0 ||
+        group.classCode.toLocaleLowerCase().includes(search) ||
+        group.subjects.some((subjectName) => subjectName.toLocaleLowerCase().includes(search)))
+      .sort((left, right) => left.classCode.localeCompare(right.classCode));
 
     return (
       <div className="space-y-6">
         <div className="teacher-section-header">
           <div>
-            <h2>👥 My Students</h2>
-            <p className="text-sm text-slate-500 mt-1">Only students in classes assigned to you are shown here.</p>
+            <h2>🏫 My Classes</h2>
+            <p className="text-sm text-slate-500 mt-1">Every assigned class, subject, and student in one organised view.</p>
           </div>
         </div>
 
         <div className="teacher-card p-4">
-          <label htmlFor="teacher-student-search" className="sr-only">Search students</label>
+          <label htmlFor="teacher-student-search" className="sr-only">Search classes and students</label>
           <input
             id="teacher-student-search"
             type="search"
             value={studentSearchTerm}
             onChange={(event) => setStudentSearchTerm(event.target.value)}
-            placeholder="Search by student name or class…"
+            placeholder="Search by class, subject, or student…"
             className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
           />
         </div>
 
-        {filteredStudents.length === 0 ? (
-          <div className="teacher-card p-10 text-center text-slate-500">No students match this view.</div>
+        {classGroups.length === 0 ? (
+          <div className="teacher-card p-10 text-center text-slate-500">No classes or students match this search.</div>
         ) : (
-          <div className="space-y-5">
-            {classOptions.map((classCode) => {
-              const classStudents = filteredStudents.filter((student) => student.batch === classCode);
-              if (classStudents.length === 0) return null;
-              return (
-                <section key={classCode} className="teacher-card p-0 overflow-hidden">
-                  <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-3">
-                    <h3 className="font-bold text-slate-800">Class {classCode}</h3>
-                    <span className="text-sm text-slate-500">{classStudents.length} student{classStudents.length === 1 ? '' : 's'}</span>
+          <div className="grid gap-5 xl:grid-cols-2">
+            {classGroups.map((group) => (
+                <section key={group.classCode} className="teacher-card p-0 overflow-hidden">
+                  <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <h3 className="font-bold text-slate-800">Class {group.classCode}</h3>
+                      <span className="text-sm text-slate-500">{group.students.length} student{group.students.length === 1 ? '' : 's'}</span>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {group.subjects.length
+                        ? group.subjects.map((subjectName) => <span key={subjectName} className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600">{subjectName}</span>)
+                        : <span className="text-xs text-slate-400">No subject linked</span>}
+                    </div>
                   </div>
-                  <ul className="divide-y divide-slate-100">
-                    {classStudents.map((student) => (
+                  {group.students.length ? (
+                    <ul className="divide-y divide-slate-100">
+                    {group.students.map((student) => (
                       <li key={student.id} className="flex items-center gap-3 px-5 py-3">
                         <img src={student.avatar_url || '/default-avatar.png'} alt="" className="h-10 w-10 rounded-full object-cover bg-slate-100" />
-                        <div>
+                        <div className="min-w-0">
                           <div className="font-semibold text-slate-800">{student.display_name || student.username}</div>
-                          <div className="text-xs text-slate-500">@{student.username} · Class {student.batch}</div>
+                          <div className="truncate text-xs text-slate-500">@{student.username} · Grade {student.grade || '—'}</div>
                         </div>
                       </li>
                     ))}
-                  </ul>
+                    </ul>
+                  ) : (
+                    <p className="px-5 py-6 text-sm text-slate-500">No students are currently enrolled in this assigned class.</p>
+                  )}
                 </section>
-              );
-            })}
+            ))}
           </div>
         )}
       </div>
@@ -5249,49 +5290,62 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           </button>
         </div>
       ) : (
-        <div className="space-y-4">
-          {filteredAssignments.map((assignment) => (
-            <div key={assignment.id} className="teacher-card hover:shadow-lg transition-shadow">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                      assignment.completed_count >= assignment.student_count
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-amber-100 text-amber-700'
-                    }`}>
-                      {assignment.completed_count >= assignment.student_count ? '✅ Complete' : '⏳ In Progress'}
-                    </span>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">
-                      {assignment.subject_name}
-                    </span>
-                  </div>
-                  <h3 className="text-xl font-bold text-slate-800 mb-1">{assignment.title || assignment.topic_name}</h3>
-                  <p className="text-sm text-slate-600">
-                    {assignment.subject_name} · Topic: {assignment.topic_name}
-                  </p>
-                  <dl className="mt-3 grid grid-cols-2 gap-x-5 gap-y-2 text-sm sm:grid-cols-4">
-                    <div><dt className="text-xs font-semibold uppercase tracking-wide text-slate-400">Created</dt><dd className="text-slate-700">{new Date(assignment.assigned_at).toLocaleDateString()}</dd></div>
-                    <div><dt className="text-xs font-semibold uppercase tracking-wide text-slate-400">Class</dt><dd className="text-slate-700">{assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || '—'}</dd></div>
-                    <div><dt className="text-xs font-semibold uppercase tracking-wide text-slate-400">Questions</dt><dd className="text-slate-700">{assignment.question_count}</dd></div>
-                    <div><dt className="text-xs font-semibold uppercase tracking-wide text-slate-400">Students</dt><dd className="text-slate-700">{assignment.student_count}</dd></div>
-                  </dl>
-                  <p className="mt-2 text-sm text-slate-400">Due: {assignment.due_at ? new Date(assignment.due_at).toLocaleString() : 'No due date'}</p>
+        <div className="space-y-6">
+          {assignmentsByGroup.map(([groupName, progressGroups]) => (
+            <section key={groupName} className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+              <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-5 py-4">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-blue-600">Assignment group</span>
+                  <h3 className="mt-1 text-lg font-bold text-slate-800">{groupName}</h3>
                 </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-purple-600">
-                    {assignment.completed_count}/{assignment.student_count}
-                  </div>
-                  <div className="text-xs text-slate-500">Students completed</div>
-                  <button
-                    onClick={() => handleOpenReport(assignment)}
-                    className="teacher-btn teacher-btn-secondary mt-3"
-                  >
-                    View Report
-                  </button>
+                <div className="flex gap-2 text-xs font-semibold">
+                  <span className="rounded-full bg-amber-100 px-3 py-1 text-amber-800">{progressGroups.inProgress.length} in progress</span>
+                  <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-800">{progressGroups.completed.length} completed</span>
                 </div>
+              </header>
+              <div className="space-y-5 p-4">
+                {([
+                  ['In progress', progressGroups.inProgress, 'amber'],
+                  ['Completed', progressGroups.completed, 'emerald'],
+                ] as const).map(([progressLabel, progressAssignments, tone]) => (
+                  progressAssignments.length ? (
+                    <section key={progressLabel}>
+                      <h4 className={`mb-3 text-sm font-bold ${tone === 'amber' ? 'text-amber-800' : 'text-emerald-800'}`}>{progressLabel}</h4>
+                      <div className="grid gap-3 xl:grid-cols-2">
+                        {progressAssignments.map((assignment) => {
+                          const completionPercent = assignment.student_count > 0
+                            ? Math.round((assignment.completed_count / assignment.student_count) * 100)
+                            : 0;
+                          return (
+                            <article key={assignment.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <span className="text-xs font-bold text-blue-600">{assignment.subject_name} · {assignment.topic_name}</span>
+                                  <h5 className="mt-1 text-lg font-bold text-slate-800">{assignment.title || assignment.topic_name}</h5>
+                                </div>
+                                <strong className="text-lg text-slate-700">{completionPercent}%</strong>
+                              </div>
+                              <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100" aria-label={`${completionPercent}% completed`}>
+                                <span className={`block h-full rounded-full ${tone === 'amber' ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${completionPercent}%` }} />
+                              </div>
+                              <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Questions</dt><dd>{assignment.question_count}</dd></div>
+                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Students</dt><dd>{assignment.student_count}</dd></div>
+                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Completed</dt><dd>{assignment.completed_count}/{assignment.student_count}</dd></div>
+                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Due</dt><dd>{assignment.due_at ? new Date(assignment.due_at).toLocaleDateString() : 'None'}</dd></div>
+                              </dl>
+                              <button onClick={() => handleOpenReport(assignment)} className="teacher-btn teacher-btn-secondary mt-4 w-full">
+                                View report
+                              </button>
+                            </article>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  ) : null
+                ))}
               </div>
-            </div>
+            </section>
           ))}
         </div>
       )}
@@ -5354,6 +5408,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           setSelectedStudentIds={setSelectedStudentIds}
           assignedClasses={assignedClasses}
           teacherAssignedSubjects={teacherAssignedSubjects}
+          teacherId={teacher?.id}
           questions={questions}
           onSubmit={handleCreateAssignment}
           onCancel={() => setView('assignments')}
@@ -5425,6 +5480,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             <thead>
               <tr>
                 <th>Subject</th>
+                <th>Title</th>
                 <th>Topic</th>
                 <th>Class</th>
                 <th>Created</th>
@@ -5439,6 +5495,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               {assignments.map((assignment) => (
                 <tr key={assignment.id}>
                   <td className="font-medium">{assignment.subject_name}</td>
+                  <td className="font-medium">{assignment.title || assignment.topic_name}</td>
                   <td>{assignment.topic_name}</td>
                   <td>{assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || '—'}</td>
                   <td>{new Date(assignment.assigned_at).toLocaleDateString()}</td>
@@ -8024,15 +8081,19 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     );
   }
 
-  const canAccessWritingInsights = profile.role === 'teacher' || profile.role === 'admin';
+  const teachesEnglish = teacherAssignedSubjects.some((subjectName) =>
+    subjectName.trim().toLocaleLowerCase().includes('english'),
+  );
+  const canAccessWritingInsights =
+    profile.role === 'admin' || (profile.role === 'teacher' && teachesEnglish);
 
   const navTabs: Array<{ id: TeacherNavSection; label: string; icon: string; description: string; proOnly?: boolean; highlight?: boolean }> = [
     { id: 'dashboard', label: 'Dashboard', icon: '🏠', description: 'Overview & Quick Actions' },
-    { id: 'students', label: 'My Students', icon: '👥', description: 'Students in Your Assigned Classes' },
+    { id: 'students', label: 'My Classes', icon: '🏫', description: 'Assigned Classes & Students' },
     ...(!profile.school_id ? [{ id: 'join-school' as const, label: 'Join Your School', icon: '🏫', description: 'Use your invite code to unlock school features', highlight: true }] : []),
-    { id: 'questions', label: 'Question Bank', icon: '📚', description: 'Create & Manage Questions', proOnly: true },
     { id: 'assignments', label: 'Assignments', icon: '📋', description: 'Assign Work to Students', proOnly: true },
     { id: 'reports', label: 'Reports', icon: '📊', description: 'Student Performance', proOnly: true },
+    { id: 'questions', label: 'Question Bank', icon: '📚', description: 'Create & Manage Questions', proOnly: true },
     ...(canAccessWritingInsights
       ? [
           { id: 'writing-hub' as const, label: 'Writing Hub', icon: '✍️', description: 'Monitor, analyse, and export writing progress', proOnly: true },
@@ -8365,10 +8426,20 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           onOpenSchoolAdmin={onOpenSchoolAdmin}
         />
 
-        <div className="teacher-workspace-shell">
+        <div className={`teacher-workspace-shell ${desktopSidebarCollapsed ? 'is-sidebar-collapsed' : ''}`}>
           {/* Navigation */}
-          <aside className="teacher-sidebar teacher-desktop-sidebar">
+          <aside className={`teacher-sidebar teacher-desktop-sidebar ${desktopSidebarCollapsed ? 'is-collapsed' : ''}`}>
             <div className="teacher-nav-container teacher-nav-container--sidebar">
+              <button
+                type="button"
+                className="teacher-sidebar-toggle"
+                onClick={() => setDesktopSidebarCollapsed((collapsed) => !collapsed)}
+                aria-label={desktopSidebarCollapsed ? 'Expand side navigation' : 'Collapse side navigation'}
+                title={desktopSidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'}
+              >
+                <span aria-hidden="true">{desktopSidebarCollapsed ? '→' : '←'}</span>
+                <span>{desktopSidebarCollapsed ? 'Expand' : 'Collapse'}</span>
+              </button>
               <div className="teacher-nav-grid teacher-nav-grid--sidebar">
                 {navTabs.map((tab) => {
                   const { isPilot, quota: tq, pilotExhausted, locked } = getNavTabState(tab);
@@ -8378,6 +8449,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                       onClick={() => { if (!locked) changeSection(tab.id); }}
                       disabled={locked}
                       className={`teacher-nav-btn ${primarySection === tab.id ? 'active' : ''} ${locked ? 'teacher-nav-locked' : ''} ${tab.highlight ? 'teacher-nav-btn--highlight' : ''}`}
+                      title={desktopSidebarCollapsed ? tab.label : undefined}
                     >
                       <span className="teacher-nav-icon">{tab.icon}</span>
                       <div className="teacher-nav-text">
@@ -8511,7 +8583,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 aria-current={primarySection === tab.id ? 'page' : undefined}
               >
                 <span aria-hidden="true">{tab.icon}</span>
-                <small>{tab.label === 'My Students' ? 'Students' : tab.label}</small>
+                <small>{tab.label === 'My Classes' ? 'Classes' : tab.label}</small>
               </button>
             );
           })}

@@ -334,6 +334,11 @@
   align-items: start;
   width: 100%;
   min-width: 0;
+  transition: grid-template-columns 0.22s ease;
+}
+
+.teacher-workspace-shell.is-sidebar-collapsed {
+  grid-template-columns: 76px minmax(0, 1fr);
 }
 
 .teacher-sidebar {
@@ -346,6 +351,38 @@
   margin-bottom: 0;
   width: 100%;
   max-width: 100%;
+}
+
+.teacher-sidebar-toggle {
+  display: flex;
+  width: 100%;
+  min-height: 2.55rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  margin-bottom: 0.55rem;
+  border: 1px solid #dbe4ef;
+  border-radius: 11px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.teacher-sidebar.is-collapsed .teacher-sidebar-toggle span:last-child,
+.teacher-sidebar.is-collapsed .teacher-nav-text {
+  display: none;
+}
+
+.teacher-sidebar.is-collapsed .teacher-nav-btn {
+  min-height: 52px;
+  justify-content: center;
+  padding: 0.75rem;
+}
+
+.teacher-sidebar.is-collapsed .teacher-nav-icon {
+  font-size: 1.35rem;
 }
 
 .teacher-nav-grid--sidebar {
