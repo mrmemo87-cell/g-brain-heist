@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { QuestionDifficulty, QuestionType, StudentForAssignment, Subject, TeacherQuestion } from '../../types';
 import type { TeacherAssignedClass } from '../../services/schoolAdminService';
-import { brainsAlert } from '../../src/utils/brainsAlert';
+import { brainsAlert, brainsConfirm } from '../../src/utils/brainsAlert';
+import QuestionPreviewModal from './QuestionPreviewModal';
 import './AssignmentWizard.css';
 
 type AssignmentMode = 'batch' | 'custom';
@@ -126,6 +127,7 @@ export default function AssignmentWizard({
   const [questionPool, setQuestionPool] = useState<QuestionPool>('all');
   const [previewQuestion, setPreviewQuestion] = useState<TeacherQuestion | null>(null);
   const [customDueDate, setCustomDueDate] = useState(false);
+  const [reviewConfirmed, setReviewConfirmed] = useState(false);
   const wizardTopRef = useRef<HTMLDivElement>(null);
 
   const uniqueClasses = useMemo(() => {
@@ -183,7 +185,7 @@ export default function AssignmentWizard({
         (!debouncedQuestionSearch || haystack.includes(debouncedQuestionSearch)) &&
         (questionPool === 'all' ||
           (questionPool === 'mine' && Boolean(teacherId) && question.teacher_id === teacherId) ||
-          (questionPool === 'brains-heist' && (!teacherId || question.teacher_id !== teacherId))) &&
+          (questionPool === 'brains-heist' && !question.teacher_id)) &&
         (topicFilter === 'all' || topic === topicFilter) &&
         (difficultyFilter === 'all' || question.difficulty === difficultyFilter) &&
         (typeFilter === 'all' || question.question_type === typeFilter) &&
@@ -274,10 +276,14 @@ export default function AssignmentWizard({
       if (!assignmentQuestionIds.length) return brainsAlert('Select at least one question to assign.', 'info');
       setAssignmentDifficulty(averageDifficulty);
     }
+    if (currentStep === 4 && !assignmentTitle.trim()) {
+      return brainsAlert('Add an assignment title before continuing.', 'info');
+    }
+    if (currentStep < 6) setReviewConfirmed(false);
     goToStep(Math.min(6, currentStep + 1) as WizardStep);
   };
 
-  const leaveWizard = () => {
+  const leaveWizard = async () => {
     const hasDraft = assignmentQuestionIds.length ||
       assignmentTitle ||
       assignmentDescription ||
@@ -285,7 +291,33 @@ export default function AssignmentWizard({
       assignmentDueAt ||
       assignmentBatches.length ||
       selectedStudentIds.length;
-    if (!hasDraft || window.confirm('Leave this assignment? Your progress will be lost and cannot be recovered.')) onCancel();
+    if (!hasDraft) {
+      onCancel();
+      return;
+    }
+    const confirmed = await brainsConfirm({
+      title: 'Leave assignment setup?',
+      message: 'This assignment has not been published. Your selected audience, questions, title, and due date will be lost.',
+      confirmLabel: 'Leave and discard',
+      cancelLabel: 'Keep editing',
+      destructive: true,
+    });
+    if (confirmed) onCancel();
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!assignmentTitle.trim()) {
+      brainsAlert('Assignment title is required.', 'info');
+      goToStep(4);
+      return;
+    }
+    if (step !== 6 || !reviewConfirmed) {
+      brainsAlert('Review the complete assignment and confirm it is ready before publishing.', 'info');
+      goToStep(6);
+      return;
+    }
+    await onSubmit(event);
   };
 
   const summary = (
@@ -344,7 +376,7 @@ export default function AssignmentWizard({
         </section>
       </div>
 
-      <form onSubmit={onSubmit} className="aw-layout">
+      <form onSubmit={handleSubmit} className="aw-layout">
         <section className="aw-card" aria-labelledby={`wizard-step-${step}`}>
           <div className="aw-card__heading">
             <span>Step {step} of 6</span>
@@ -500,7 +532,7 @@ export default function AssignmentWizard({
 
           {step === 4 && (
             <div className="aw-step aw-details">
-              <label><span>Assignment title</span><input value={assignmentTitle} onChange={(event) => setAssignmentTitle(event.target.value)} placeholder="e.g. Fractions confidence check" /></label>
+              <label><span>Assignment title <strong aria-hidden="true">*</strong></span><input required aria-required="true" value={assignmentTitle} onChange={(event) => { setAssignmentTitle(event.target.value); setReviewConfirmed(false); }} placeholder="e.g. Fractions confidence check" /><small>Required. This is the name students and reports will show.</small></label>
               <label><span>Description</span><textarea rows={3} value={assignmentDescription} onChange={(event) => setAssignmentDescription(event.target.value)} placeholder="Explain the learning goal and why this work matters…" /></label>
               <label><span>Instructions</span><textarea rows={3} value={assignmentInstructions} onChange={(event) => setAssignmentInstructions(event.target.value)} placeholder="Tell students what to prepare, show, or submit…" /></label>
             </div>
@@ -531,9 +563,10 @@ export default function AssignmentWizard({
               ].map(([label, value, target]) => (
                 <div className="aw-review__row" key={String(label)}><span><small>{label}</small><strong>{value}</strong></span><button type="button" onClick={() => goToStep(target as WizardStep)}>Edit</button></div>
               ))}
-              <button type="submit" className="aw-publish" disabled={assignmentSubmitting}>
-                {assignmentSubmitting ? <><span className="aw-spinner" /> Publishing assignment…</> : '🚀 Publish Assignment'}
-              </button>
+              <label className="aw-review-confirm">
+                <input type="checkbox" checked={reviewConfirmed} onChange={(event) => setReviewConfirmed(event.target.checked)} />
+                <span><strong>I have reviewed this assignment</strong><small>The audience, questions, title, and timing are correct. Publishing sends it to students.</small></span>
+              </label>
             </div>
           )}
 
@@ -554,7 +587,7 @@ export default function AssignmentWizard({
                 Next <span aria-hidden="true">→</span>
               </button>
             ) : (
-              <button type="submit" className="aw-button aw-button--primary" disabled={assignmentSubmitting}>
+              <button type="submit" className="aw-button aw-button--primary" disabled={assignmentSubmitting || !reviewConfirmed}>
                 {assignmentSubmitting ? 'Publishing…' : 'Publish assignment'}
               </button>
             )}
@@ -562,16 +595,7 @@ export default function AssignmentWizard({
         </div>
       </form>
 
-      {previewQuestion && (
-        <div className="aw-modal" role="dialog" aria-modal="true" aria-labelledby="aw-preview-title" onMouseDown={(event) => event.target === event.currentTarget && setPreviewQuestion(null)}>
-          <div className="aw-modal__card">
-            <button type="button" onClick={() => setPreviewQuestion(null)} aria-label="Close preview">×</button>
-            <span>Student preview</span><h2 id="aw-preview-title">{previewQuestion.question_text}</h2>
-            {previewQuestion.options?.length ? <ul>{previewQuestion.options.map((option, index) => <li key={index}>{typeof option === 'string' ? option : option.text}</li>)}</ul> : null}
-            <p><strong>Correct answer:</strong> {previewQuestion.correct_answer}</p>
-          </div>
-        </div>
-      )}
+      {previewQuestion ? <QuestionPreviewModal question={previewQuestion} onClose={() => setPreviewQuestion(null)} /> : null}
     </div>
   );
 }
