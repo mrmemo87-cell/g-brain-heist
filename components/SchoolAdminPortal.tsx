@@ -154,6 +154,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
   const [savingSettings, setSavingSettings] = useState(false);
   const [settingsLogoFile, setSettingsLogoFile] = useState<File | null>(null);
   const [settingsLogoPreview, setSettingsLogoPreview] = useState('');
+  const [settingsLogoStatus, setSettingsLogoStatus] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null);
 
   // Cambridge Tests Reports State
   const [quizScores, setQuizScores] = useState<any[]>([]);
@@ -718,15 +719,21 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     if (!school) return;
 
     setSavingSettings(true);
+    setSettingsLogoStatus(settingsLogoFile
+      ? { type: 'info', message: 'Uploading your new logo…' }
+      : { type: 'info', message: 'Saving school settings…' });
     let logoUrl = school.logo_url;
     if (settingsLogoFile) {
       const upload = await SchoolAdminService.uploadSchoolLogo(school.id, settingsLogoFile);
       if (!upload.success || !upload.url) {
         setSavingSettings(false);
-        addToast(upload.error || 'Failed to upload school logo', 'error');
+        const message = upload.error || 'Failed to upload school logo';
+        setSettingsLogoStatus({ type: 'error', message: `Logo not updated. ${message}` });
+        addToast(message, 'error');
         return;
       }
       logoUrl = upload.url;
+      setSettingsLogoStatus({ type: 'info', message: 'Logo uploaded. Applying it across the school…' });
     }
     const result = await SchoolAdminService.updateSchoolSettings(school.id, {
       name: settingsName,
@@ -737,12 +744,25 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     setSavingSettings(false);
 
     if (result.success) {
+      // Update this portal immediately rather than waiting for another profile load.
+      setSchool(current => current ? { ...current, name: settingsName, logo_url: logoUrl } : current);
       setSettingsLogoFile(null);
       setSettingsLogoPreview('');
-      addToast('Settings saved successfully', 'success');
+      setSettingsLogoStatus({
+        type: 'success',
+        message: settingsLogoFile
+          ? 'Logo updated successfully. It is now used across school dashboards and reports.'
+          : 'School settings saved successfully.',
+      });
+      window.dispatchEvent(new CustomEvent('school-branding-updated', {
+        detail: { schoolId: school.id, schoolName: settingsName, schoolLogoUrl: logoUrl },
+      }));
+      addToast(settingsLogoFile ? 'School logo updated successfully' : 'Settings saved successfully', 'success');
       await refreshSchool(school.id);
     } else {
-      addToast(result.error || 'Failed to save settings', 'error');
+      const message = result.error || 'Failed to save settings';
+      setSettingsLogoStatus({ type: 'error', message: `Changes were not applied. ${message}` });
+      addToast(message, 'error');
     }
   };
 
@@ -1358,6 +1378,8 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       setSettingsName,
       setSettingsLogoFile,
       setSettingsLogoPreview,
+      settingsLogoStatus,
+      setSettingsLogoStatus,
       setShowMemberActionModal,
       setShowSchoolVisibility,
       setStudentPage,
