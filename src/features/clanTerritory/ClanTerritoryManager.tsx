@@ -19,6 +19,7 @@ import {
   canEnterClanTerritoryOfficialRoom,
   normalizeClanTerritoryClassCodes,
 } from "./clanTerritoryEligibility";
+import { brainsAlert } from "../../utils/brainsAlert";
 type ArenaMode = "official" | "open";
 
 interface ClanTerritoryManagerProps {
@@ -695,7 +696,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       // Consume pilot quota if applicable
       const quota = await tryConsumePilotQuota('lockdown_sessions');
       if (!quota.proceed) {
-        alert(quota.error || 'You\'ve reached the lockdown session limit on the Pilot plan. Upgrade to continue.');
+        brainsAlert(quota.error || 'You\'ve reached the lockdown session limit on the Pilot plan. Upgrade to continue.', 'info');
         return;
       }
 
@@ -822,12 +823,12 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     const joiningBatch = joiningClassCodes[0] ?? studentBatch;
     if (roomArenaMode === "official") {
       if (!joiningSchoolId) {
-        alert("🚫 Official Arena requires a verified school profile.");
+        brainsAlert("Official Arena requires a verified school profile.", 'info');
         return;
       }
       if (roomMetadata?.classCodes && roomMetadata.classCodes.length > 0) {
         if (!canEnterClanTerritoryOfficialRoom(roomMetadata.classCodes, joiningClassCodes, joiningBatch)) {
-          alert("🚫 Official Arena restricted: your class is not eligible for this room.");
+          brainsAlert("Official Arena restricted: your class is not eligible for this room.", 'info');
           return;
         }
       }
@@ -875,7 +876,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       setMode("player");
     } catch (e) {
       console.error("Failed to join", e);
-      alert("Failed to join arena: " + (e instanceof Error ? e.message : "Unknown error"));
+      brainsAlert("Failed to join arena: " + (e instanceof Error ? e.message : "Unknown error"), 'error');
     }
   };
 
@@ -885,7 +886,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       await transport.sendAction(roomId, { type: "START_GAME", payload: { duration: durationMinutes * 60 } });
     } catch (error) {
       console.error("Failed to start arena:", error);
-      alert("Unable to start arena right now. Please wait a moment and try again.");
+      brainsAlert("Unable to start arena right now. Please wait a moment and try again.", 'error');
     }
   };
 
@@ -895,7 +896,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       await transport.sendAction(roomId, { type: "END_GAME" });
     } catch (error) {
       console.error("Failed to end arena:", error);
-      alert("Unable to end arena right now. Please try again.");
+      brainsAlert("Unable to end arena right now. Please try again.", 'error');
     }
   };
 
@@ -919,7 +920,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       await transport.sendAction(roomId, { type: "KICK_PLAYER", payload: { playerId: pid } });
     } catch (error) {
       console.error("Failed to remove player:", error);
-      alert("Unable to remove this player right now. Please try again.");
+      brainsAlert("Unable to remove this player right now. Please try again.", 'error');
     }
   };
 
@@ -1069,7 +1070,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       setMode("host");
     } catch (error) {
       console.error("Failed to resume host room:", error);
-      alert("Unable to resume this arena. Please create a new one.");
+      brainsAlert("Unable to resume this arena. Please create a new one.", 'error');
     }
   };
 
@@ -1635,7 +1636,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
           }
         />
       )}
-      <div className="flex min-h-[calc(100vh-12rem)] items-start justify-center px-3 pb-8 pt-4 sm:items-center sm:p-6">
+      <div className="flex min-h-[calc(100vh-12rem)] items-start justify-center rounded-3xl bg-slate-950 px-3 pb-8 pt-4 shadow-inner sm:items-center sm:p-6">
       <div className="w-full max-w-7xl space-y-6 sm:space-y-8">
         <div className="text-center space-y-2">
           <span className="inline-flex items-center justify-center rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-amber-300">
