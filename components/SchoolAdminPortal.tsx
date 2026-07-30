@@ -225,12 +225,14 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
         SchoolAdminService.listSchoolMembers(schoolId, { role: 'school_admin', limit: 100 }).then((res) => res.members),
       ]);
 
-      setClasses(classList);
-      setTeachers(teacherList);
-      setTeacherAssignments(assignmentsList);
-      setStudents(studentList);
-      setDbSubjects(subjectList);
-      setSchoolAdmins(adminList);
+      // RPC contracts should return arrays, but keep the portal render-safe when a
+      // partially deployed backend returns null or an object-shaped payload.
+      setClasses(Array.isArray(classList) ? classList : []);
+      setTeachers(Array.isArray(teacherList) ? teacherList : []);
+      setTeacherAssignments(Array.isArray(assignmentsList) ? assignmentsList : []);
+      setStudents(Array.isArray(studentList) ? studentList : []);
+      setDbSubjects(Array.isArray(subjectList) ? subjectList : []);
+      setSchoolAdmins(Array.isArray(adminList) ? adminList : []);
 
       const classIds = classList.map((cls) => cls.id);
       const studentRows = await SchoolAdminService.listClassStudents(classIds, schoolId);

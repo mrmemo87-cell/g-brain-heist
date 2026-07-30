@@ -1025,6 +1025,10 @@ export async function listSchoolSubjects(schoolId: string): Promise<SchoolSubjec
     }
 
     const rows = (typeof data === 'string' ? JSON.parse(data) : data) || [];
+    if (!Array.isArray(rows)) {
+      console.error('Invalid school subjects response: expected an array');
+      return [];
+    }
     return rows;
   } catch (err) {
     console.error('Exception fetching school subjects:', err);

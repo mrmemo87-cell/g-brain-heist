@@ -5,8 +5,9 @@ import type { SchoolRole } from '../../../types';
 const MembersTab: React.FC = () => {
   const { actionLoading, bulkMemberAction, handleBulkMemberAction, loadStudentModStatus, memberPage, memberPageSize, memberRoleFilter, memberSearch, memberTotalPages, members, schoolAdmins, selectedMemberIds, setBulkMemberAction, setMemberPage, setMemberPageSize, setMemberRoleFilter, setMemberSearch, setModTargetId, setModTargetStatus, setSelectedMember, setShowMemberActionModal, toggleMemberSelection, toggleSelectAllMembers } = useSchoolAdmin();
   const activePeopleTab: 'teacher' | 'student' = memberRoleFilter === 'student' ? 'student' : 'teacher';
-  const administrators = schoolAdmins;
-  const visiblePeople = members.filter((member: any) => member.role === activePeopleTab);
+  const administrators = Array.isArray(schoolAdmins) ? schoolAdmins : [];
+  const communityMembers = Array.isArray(members) ? members : [];
+  const visiblePeople = communityMembers.filter((member: any) => member.role === activePeopleTab);
 
   const openMember = (member: any) => {
     setSelectedMember(member); setShowMemberActionModal(true);

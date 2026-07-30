@@ -2,10 +2,17 @@ import React from 'react';
 import { useSchoolAdmin } from '../SchoolAdminContext';
 
 const DashboardTab: React.FC = () => {
-  const { classes, dbSubjects, setActiveTab, stats, studentAssignments, students, teacherAssignments, teachers, school } = useSchoolAdmin();
+  const context = useSchoolAdmin();
+  const classes = Array.isArray(context.classes) ? context.classes : [];
+  const subjects = Array.isArray(context.dbSubjects) ? context.dbSubjects : [];
+  const students = Array.isArray(context.students) ? context.students : [];
+  const teacherAssignments = Array.isArray(context.teacherAssignments) ? context.teacherAssignments : [];
+  const teachers = Array.isArray(context.teachers) ? context.teachers : [];
+  const studentAssignments = context.studentAssignments ?? {};
+  const { setActiveTab, stats, school } = context;
   const activeClasses = classes.filter((item: any) => item.is_active);
   const placedStudents = students.filter((student: any) => studentAssignments[student.user_id]);
-  const assignedTeachers = new Set(teacherAssignments.filter((item: any) => item.is_active !== false).map((item: any) => item.teacher_id));
+  const assignedTeachers = new Set(teacherAssignments.filter((item: any) => item.active !== false).map((item: any) => item.teacher_user_id));
   const mappedSubjects = new Set(teacherAssignments.map((item: any) => (item.subject || '').trim().toLowerCase()).filter(Boolean));
   const metrics = [
     { label: 'Students on roll', value: stats.students, note: 'Current enrolment', tone: 'blue' },
@@ -17,7 +24,7 @@ const DashboardTab: React.FC = () => {
     { label: 'Classes', value: activeClasses.length, detail: `${classes.length - activeClasses.length} archived`, assigned: activeClasses.length, total: Math.max(classes.length, 1) },
     { label: 'Students', value: students.length, detail: `${students.length - placedStudents.length} not assigned`, assigned: placedStudents.length, total: Math.max(students.length, 1) },
     { label: 'Teachers', value: teachers.length, detail: `${teachers.length - assignedTeachers.size} not assigned`, assigned: assignedTeachers.size, total: Math.max(teachers.length, 1) },
-    { label: 'Subjects', value: dbSubjects.length, detail: `${dbSubjects.filter((subject: any) => !mappedSubjects.has(subject.subject_name?.toLowerCase())).length} not assigned`, assigned: dbSubjects.filter((subject: any) => mappedSubjects.has(subject.subject_name?.toLowerCase())).length, total: Math.max(dbSubjects.length, 1) },
+    { label: 'Subjects', value: subjects.length, detail: `${subjects.filter((subject: any) => !mappedSubjects.has((subject.name || '').toLowerCase())).length} not assigned`, assigned: subjects.filter((subject: any) => mappedSubjects.has((subject.name || '').toLowerCase())).length, total: Math.max(subjects.length, 1) },
   ];
 
   return <div className="space-y-6">

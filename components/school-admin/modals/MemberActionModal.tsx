@@ -92,7 +92,7 @@ const MemberActionModal: React.FC = () => {
                 <h4 className="text-sm font-medium text-gray-200 mb-2">Academic placement</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <input type="number" value={selectedGrade} onChange={e => setSelectedGrade(e.target.value ? Number(e.target.value) : '')} placeholder="Year group" aria-label="Year group" />
-                  <select value={selectedClassId} onChange={e => setSelectedClassId(e.target.value)} aria-label="Class"><option value="">Not assigned to a class</option>{classes.filter((item: any) => item.is_active).map((item: any) => <option key={item.id} value={item.id}>{item.class_code} — {item.class_name}</option>)}</select>
+                  <select value={selectedClassId} onChange={e => setSelectedClassId(e.target.value)} aria-label="Class"><option value="">Not assigned to a class</option>{(Array.isArray(classes) ? classes : []).filter((item: any) => item.is_active).map((item: any) => <option key={item.id} value={item.id}>{item.class_code} — {item.class_name}</option>)}</select>
                 </div>
                 <button className="mt-3 w-full px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg font-medium" disabled={studentSaving} onClick={() => handleEnrollStudent(selectedMember.user_id, selectedClassId, selectedGrade)}>{studentSaving ? 'Saving…' : 'Save academic placement'}</button>
               </div>
