@@ -1472,7 +1472,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
 
       {/* ─── IELTS Academy Hub ────────────────────────────────────── */}
       {activeTab === 'ielts' && (
-        <div className="school-admin-themed-tab space-y-5">
+        <div className="school-admin-themed-tab school-admin-ielts-tab space-y-5">
 
           {/* Banner */}
           <div className="relative overflow-hidden rounded-2xl border border-teal-500/20 bg-gradient-to-br from-slate-900 via-blue-950 to-teal-950 p-6 shadow-2xl">
