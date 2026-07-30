@@ -31,11 +31,11 @@ interface AdmissionHubProps {
 // ── Band Colours ──
 
 const BAND_COLORS: Record<PlacementBand, string> = {
-  A: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+  A: 'bg-emerald-100 text-emerald-700 border-emerald-200',
   B: 'bg-sky-500/20 text-sky-300 border-sky-500/40',
-  C: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+  C: 'bg-amber-100 text-amber-700 border-amber-200',
   D: 'bg-orange-500/20 text-orange-300 border-orange-500/40',
-  E: 'bg-red-500/20 text-red-300 border-red-500/40',
+  E: 'bg-red-100 text-red-700 border-red-200',
 };
 
 const BAND_LABELS: Record<PlacementBand, string> = {
@@ -1099,36 +1099,36 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
   const statusPill = (status: string) => {
     const map: Record<string, string> = {
-      draft: 'bg-gray-500/20 text-gray-300 border-gray-500/40',
-      published: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
-      closed: 'bg-red-500/20 text-red-300 border-red-500/40',
-      registered: 'bg-blue-500/20 text-blue-300 border-blue-500/40',
-      testing: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-      completed: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
-      placed: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
-      in_progress: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-      submitted: 'bg-blue-500/20 text-blue-300 border-blue-500/40',
-      scored: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
-      pending: 'bg-gray-500/20 text-gray-400 border-gray-500/40',
-      'not sent': 'bg-gray-500/20 text-gray-500 border-gray-600/40',
-      expired: 'bg-red-500/20 text-red-300 border-red-500/40',
+      draft: 'bg-gray-500/20 text-slate-700 border-slate-300',
+      published: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+      closed: 'bg-red-100 text-red-700 border-red-200',
+      registered: 'bg-blue-500/20 text-blue-700 border-blue-500/40',
+      testing: 'bg-amber-100 text-amber-700 border-amber-200',
+      completed: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+      placed: 'bg-purple-500/20 text-purple-700 border-purple-500/40',
+      in_progress: 'bg-amber-100 text-amber-700 border-amber-200',
+      submitted: 'bg-blue-500/20 text-blue-700 border-blue-500/40',
+      scored: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+      pending: 'bg-gray-500/20 text-slate-600 border-slate-300',
+      'not sent': 'bg-gray-500/20 text-slate-500 border-slate-300',
+      expired: 'bg-red-100 text-red-700 border-red-200',
     };
     return (
-      <span className={`inline-flex px-2 py-0.5 rounded-md border text-xs font-semibold capitalize ${map[status] || 'bg-gray-500/20 text-gray-300'}`}>
+      <span className={`inline-flex px-2 py-0.5 rounded-md border text-xs font-semibold capitalize ${map[status] || 'bg-gray-500/20 text-slate-700'}`}>
         {status.replace('_', ' ')}
       </span>
     );
   };
 
-  const inputClass = 'w-full rounded-lg border border-gray-600 bg-black/40 px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:border-cyan-400 focus:outline-none';
-  const btnPrimary = 'rounded-lg bg-cyan-600 hover:bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition disabled:opacity-40 disabled:cursor-not-allowed';
-  const btnSecondary = 'rounded-lg border border-gray-600 hover:border-gray-500 px-3 py-1.5 text-xs text-gray-300 hover:text-white transition';
+  const inputClass = 'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#1e4b82] focus:outline-none focus:ring-2 focus:ring-[#1e4b82]/20 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500';
+  const btnPrimary = 'rounded-lg bg-[#1e4b82] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#173d6c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4b82]/30 disabled:cursor-not-allowed disabled:opacity-50';
+  const btnSecondary = 'rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4b82]/20 disabled:cursor-not-allowed disabled:opacity-50';
 
   // ── RENDER ──
 
   if (loading && !schoolId) {
     return (
-      <div className="flex min-h-[40vh] items-center justify-center text-cyan-200">
+      <div className="flex min-h-[40vh] items-center justify-center text-cyan-700">
         <div className="h-8 w-8 rounded-full border-2 border-cyan-400/70 border-t-transparent animate-spin" />
         <span className="ml-3 text-sm">Loading Admission Hub…</span>
       </div>
@@ -1141,15 +1141,15 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
         <BackButton onClick={onComplete} label="Back" />
         <div className="card-glass p-8 text-center">
           <span className="text-4xl mb-3 block">🏫</span>
-          <h2 className="text-xl font-heading text-white mb-2">No School Access</h2>
-          <p className="text-sm text-gray-400">You need school admin or teacher role to access the Admission Hub.</p>
+          <h2 className="text-xl font-heading text-slate-900 mb-2">No School Access</h2>
+          <p className="text-sm text-slate-600">You need school admin or teacher role to access the Admission Hub.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 pb-12 rounded-3xl bg-gradient-to-br from-sky-50 via-white to-cyan-50 p-4 text-slate-900">
+    <div className="admission-hub-admin-theme mx-auto max-w-6xl space-y-6 overflow-x-hidden pb-12 text-slate-900">
       {/* Header */}
       <div className="flex items-center gap-4">
         <BackButton onClick={onComplete} label="Back" />
@@ -1162,7 +1162,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
         <button
           onClick={() => loadAll()}
           disabled={loading}
-          className="rounded-lg border border-gray-600 hover:border-cyan-500 bg-slate-800/60 hover:bg-slate-700/60 px-3 py-2 text-sm text-gray-300 hover:text-cyan-200 transition flex items-center gap-1.5 disabled:opacity-40"
+          className="rounded-lg border border-slate-300 hover:border-cyan-500 bg-slate-50 hover:bg-slate-100 px-3 py-2 text-sm text-slate-700 hover:text-cyan-700 transition flex items-center gap-1.5 disabled:opacity-40"
           title="Refresh data"
         >
           <span className={loading ? 'animate-spin' : ''}>🔄</span> Refresh
@@ -1179,8 +1179,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
             aria-selected={activeTab === t.key}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition ${
               activeTab === t.key
-                ? 'bg-cyan-600/30 text-cyan-200 border border-cyan-500/50'
-                : 'bg-slate-800/50 text-gray-400 border border-transparent hover:text-gray-200 hover:bg-slate-700/50'
+                ? 'bg-[#1e4b82] text-white border border-[#1e4b82]'
+                : 'bg-slate-50 text-slate-600 border border-transparent hover:text-slate-800 hover:bg-slate-100'
             }`}
           >
             <span>{t.icon}</span> {t.label}
@@ -1191,7 +1191,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
       {/* Loading overlay */}
       {loading && (
-        <div className="flex items-center gap-2 text-cyan-300 text-sm py-4">
+        <div className="flex items-center gap-2 text-cyan-700 text-sm py-4">
           <div className="h-4 w-4 rounded-full border-2 border-cyan-400/70 border-t-transparent animate-spin" />
           Loading data…
         </div>
@@ -1200,12 +1200,12 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       {/*  ━━━ CREATE ADMISSION TEST WIZARD ━━━  */}
       {activeTab === 'create' && !loading && (
         <div className="space-y-5">
-          <div className="rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-cyan-950/40 via-slate-900/80 to-indigo-950/40 p-6">
+          <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-blue-50 via-white to-cyan-50 p-6 shadow-sm">
             <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">School-friendly setup</p>
-                <h2 className="mt-1 text-2xl font-heading text-white">Create an admission test</h2>
-                <p className="mt-2 max-w-2xl text-sm text-gray-300">Choose the grade, subject, length, and difficulty. The Hub will create the technical setup and test form behind the scenes.</p>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-700">School-friendly setup</p>
+                <h2 className="mt-1 text-2xl font-heading text-slate-900">Create an admission test</h2>
+                <p className="mt-2 max-w-2xl text-sm text-slate-700">Choose the grade, subject, length, and difficulty. The Hub will create the technical setup and test form behind the scenes.</p>
               </div>
               <button onClick={() => setActiveTab('blueprints')} className={btnSecondary}>Advanced setup</button>
             </div>
@@ -1213,7 +1213,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
               {['Basics', 'Style', 'Questions', 'Review', 'Share'].map((label, i) => {
                 const step = i + 1;
                 return (
-                  <button key={label} onClick={() => setWizardStep(step)} className={`rounded-xl border px-2 py-3 text-center text-xs transition ${wizardStep === step ? 'border-cyan-400 bg-cyan-500/20 text-cyan-100' : wizardStep > step ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-200' : 'border-gray-700 bg-slate-800/50 text-gray-400'}`}>
+                  <button key={label} onClick={() => setWizardStep(step)} className={`rounded-xl border px-2 py-3 text-center text-xs transition ${wizardStep === step ? 'border-cyan-400 bg-cyan-50 text-cyan-800' : wizardStep > step ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-slate-50 text-slate-600'}`}>
                     <div className="text-lg">{wizardStep > step ? '✓' : step}</div>
                     <div className="font-semibold">{label}</div>
                   </button>
@@ -1222,76 +1222,76 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
             </div>
           </div>
 
-          {wizardError && <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-100">⚠️ {wizardError}</div>}
+          {wizardError && <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">⚠️ {wizardError}</div>}
 
           {wizardStep === 1 && (
-            <div className="rounded-xl border border-gray-700 bg-slate-800/70 p-5 space-y-4">
-              <h3 className="font-semibold text-white">Step 1: Test basics</h3>
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+              <h3 className="font-semibold text-slate-900">Step 1: Test basics</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2"><label className="block text-xs font-semibold text-gray-300 mb-1">Test name</label><input className={inputClass} value={wizardName} onChange={e => { setWizardNameEdited(true); setWizardName(e.target.value); }} /></div>
-                <div><label className="block text-xs font-semibold text-gray-300 mb-1">Grade / Stage</label><input type="number" min={1} className={inputClass} value={wizardGrade} onChange={e => setWizardGrade(+e.target.value)} /></div>
-                <div><label className="block text-xs font-semibold text-gray-300 mb-1">Subject</label><select className={inputClass} value={wizardSubject} onChange={e => setWizardSubject(e.target.value)}><option value="english">English</option><option value="math">Maths</option><option value="science">Science</option><option value="chemistry">Chemistry</option></select></div>
-                <div className="md:col-span-2"><label className="block text-xs font-semibold text-gray-300 mb-1">Internal setup note <span className="text-gray-500">(optional, not shown to candidates yet)</span></label><textarea className={inputClass} rows={3} value={wizardDescription} onChange={e => setWizardDescription(e.target.value)} placeholder="Example: Remind office staff that calculators are not allowed. This note is not saved to the test." /><p className="mt-1 text-[11px] text-amber-200/80">Candidate-facing instructions are not supported by the current admission test backend, so this note is only for this setup session.</p></div>
+                <div className="md:col-span-2"><label className="block text-xs font-semibold text-slate-700 mb-1">Test name</label><input className={inputClass} value={wizardName} onChange={e => { setWizardNameEdited(true); setWizardName(e.target.value); }} /></div>
+                <div><label className="block text-xs font-semibold text-slate-700 mb-1">Grade / Stage</label><input type="number" min={1} className={inputClass} value={wizardGrade} onChange={e => setWizardGrade(+e.target.value)} /></div>
+                <div><label className="block text-xs font-semibold text-slate-700 mb-1">Subject</label><select className={inputClass} value={wizardSubject} onChange={e => setWizardSubject(e.target.value)}><option value="english">English</option><option value="math">Maths</option><option value="science">Science</option><option value="chemistry">Chemistry</option></select></div>
+                <div className="md:col-span-2"><label className="block text-xs font-semibold text-slate-700 mb-1">Internal setup note <span className="text-slate-500">(optional, not shown to candidates yet)</span></label><textarea className={inputClass} rows={3} value={wizardDescription} onChange={e => setWizardDescription(e.target.value)} placeholder="Example: Remind office staff that calculators are not allowed. This note is not saved to the test." /><p className="mt-1 text-[11px] text-amber-700">Candidate-facing instructions are not supported by the current admission test backend, so this note is only for this setup session.</p></div>
               </div>
               <button onClick={() => setWizardStep(2)} disabled={!wizardName.trim()} className={btnPrimary}>Next: Test style</button>
             </div>
           )}
 
           {wizardStep === 2 && (
-            <div className="rounded-xl border border-gray-700 bg-slate-800/70 p-5 space-y-4">
-              <h3 className="font-semibold text-white">Step 2: Test style</h3>
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+              <h3 className="font-semibold text-slate-900">Step 2: Test style</h3>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                {(Object.keys(WIZARD_DIFFICULTY_META) as WizardDifficulty[]).map(key => <button key={key} onClick={() => setWizardDifficulty(key)} className={`rounded-xl border p-3 text-left ${wizardDifficulty === key ? 'border-cyan-400 bg-cyan-500/20' : 'border-gray-700 bg-slate-900/50 hover:border-gray-500'}`}><div className="font-semibold text-white">{WIZARD_DIFFICULTY_META[key].label}</div><div className="mt-1 text-xs text-gray-400">{WIZARD_DIFFICULTY_META[key].description}</div></button>)}
+                {(Object.keys(WIZARD_DIFFICULTY_META) as WizardDifficulty[]).map(key => <button key={key} onClick={() => setWizardDifficulty(key)} className={`rounded-xl border p-3 text-left ${wizardDifficulty === key ? 'border-cyan-400 bg-cyan-50' : 'border-slate-200 bg-slate-50 hover:border-slate-300'}`}><div className="font-semibold text-slate-900">{WIZARD_DIFFICULTY_META[key].label}</div><div className="mt-1 text-xs text-slate-600">{WIZARD_DIFFICULTY_META[key].description}</div></button>)}
               </div>
-              {wizardDifficulty === 'custom' && <div className="rounded-lg border border-indigo-500/30 bg-indigo-500/10 p-3 text-sm text-indigo-100">Custom distributions are available in Advanced setup. This wizard will use the balanced mix unless you switch to Advanced setup.</div>}
+              {wizardDifficulty === 'custom' && <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-800">Custom distributions are available in Advanced setup. This wizard will use the balanced mix unless you switch to Advanced setup.</div>}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div><label className="block text-xs font-semibold text-gray-300 mb-1">Number of questions</label><input type="number" min={1} className={inputClass} value={wizardQuestionCount} onChange={e => setWizardQuestionCount(+e.target.value)} /></div>
-                <div><label className="block text-xs font-semibold text-gray-300 mb-1">Duration (minutes)</label><input type="number" min={5} className={inputClass} value={wizardDuration} onChange={e => setWizardDuration(+e.target.value)} /></div>
-                <div><label className="block text-xs font-semibold text-gray-300 mb-1">Pass mark (%)</label><input type="number" min={1} max={100} className={inputClass} value={wizardPassPercentage} onChange={e => setWizardPassPercentage(+e.target.value)} /></div>
+                <div><label className="block text-xs font-semibold text-slate-700 mb-1">Number of questions</label><input type="number" min={1} className={inputClass} value={wizardQuestionCount} onChange={e => setWizardQuestionCount(+e.target.value)} /></div>
+                <div><label className="block text-xs font-semibold text-slate-700 mb-1">Duration (minutes)</label><input type="number" min={5} className={inputClass} value={wizardDuration} onChange={e => setWizardDuration(+e.target.value)} /></div>
+                <div><label className="block text-xs font-semibold text-slate-700 mb-1">Pass mark (%)</label><input type="number" min={1} max={100} className={inputClass} value={wizardPassPercentage} onChange={e => setWizardPassPercentage(+e.target.value)} /></div>
               </div>
               <div className="flex gap-2"><button onClick={() => setWizardStep(1)} className={btnSecondary}>Back</button><button onClick={() => setWizardStep(3)} className={btnPrimary}>Next: Question source</button></div>
             </div>
           )}
 
           {wizardStep === 3 && (
-            <div className="rounded-xl border border-gray-700 bg-slate-800/70 p-5 space-y-4">
-              <h3 className="font-semibold text-white">Step 3: Question source</h3>
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+              <h3 className="font-semibold text-slate-900">Step 3: Question source</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <button onClick={() => setWizardSource('auto')} className={`rounded-xl border p-4 text-left ${wizardSource === 'auto' ? 'border-emerald-400 bg-emerald-500/15' : 'border-gray-700 bg-slate-900/50'}`}><div className="font-semibold text-white">Recommended: auto-select official questions</div><div className="text-xs text-gray-400 mt-1">Use official locked Brain Heist content matching this subject and Grade / Stage.</div></button>
-                <button onClick={() => setWizardSource('pool')} className={`rounded-xl border p-4 text-left ${wizardSource === 'pool' ? 'border-cyan-400 bg-cyan-500/15' : 'border-gray-700 bg-slate-900/50'}`}><div className="font-semibold text-white">Advanced: choose an official bank pool</div><div className="text-xs text-gray-400 mt-1">Limit this test to one readable official or legacy pool.</div></button>
+                <button onClick={() => setWizardSource('auto')} className={`rounded-xl border p-4 text-left ${wizardSource === 'auto' ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200 bg-slate-50'}`}><div className="font-semibold text-slate-900">Recommended: auto-select official questions</div><div className="text-xs text-slate-600 mt-1">Use official locked Brain Heist content matching this subject and Grade / Stage.</div></button>
+                <button onClick={() => setWizardSource('pool')} className={`rounded-xl border p-4 text-left ${wizardSource === 'pool' ? 'border-cyan-400 bg-cyan-50' : 'border-slate-200 bg-slate-50'}`}><div className="font-semibold text-slate-900">Advanced: choose an official bank pool</div><div className="text-xs text-slate-600 mt-1">Limit this test to one readable official or legacy pool.</div></button>
               </div>
-              {wizardSource === 'pool' && <div><label className="block text-xs font-semibold text-gray-300 mb-1">Question pool</label><select className={inputClass} value={wizardPoolId} onChange={e => setWizardPoolId(e.target.value)}><option value="">Choose a pool…</option>{pools.filter(p => p.is_active && p.subject === wizardSubject).map(p => <option key={p.id} value={p.id}>{p.name}{p.stage ? ` (Stage ${p.stage})` : ''}</option>)}</select></div>}
-              <div className={`rounded-xl border p-4 ${wizardCanGenerate ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-amber-500/40 bg-amber-500/10'}`}>
-                <div className="flex items-center justify-between gap-3"><div className="font-semibold text-white">Availability check</div>{wizardCheckingAvailability && <span className="text-xs text-cyan-300">Checking…</span>}</div>
-                <p className="mt-1 text-sm text-gray-300">Found {wizardAvailability.availableForRequired} of {wizardQuestionCount} required matching published questions across {wizardMatchingPools.length} pool{wizardMatchingPools.length === 1 ? '' : 's'}.</p>
-                {wizardCanGenerate ? <p className="mt-1 text-sm text-emerald-200">This setup can generate a valid admission test.</p> : <p className="mt-1 text-sm text-amber-100">{wizardMatchingPools.length === 0 ? `No active ${wizardSubjectLabel} pool matches Grade / Stage ${wizardGrade}.` : `Missing: ${wizardAvailability.missing.join(', ') || `${wizardQuestionCount - wizardAvailability.required} more matching published questions`}.`}</p>}
+              {wizardSource === 'pool' && <div><label className="block text-xs font-semibold text-slate-700 mb-1">Question pool</label><select className={inputClass} value={wizardPoolId} onChange={e => setWizardPoolId(e.target.value)}><option value="">Choose a pool…</option>{pools.filter(p => p.is_active && p.subject === wizardSubject).map(p => <option key={p.id} value={p.id}>{p.name}{p.stage ? ` (Stage ${p.stage})` : ''}</option>)}</select></div>}
+              <div className={`rounded-xl border p-4 ${wizardCanGenerate ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'}`}>
+                <div className="flex items-center justify-between gap-3"><div className="font-semibold text-slate-900">Availability check</div>{wizardCheckingAvailability && <span className="text-xs text-cyan-700">Checking…</span>}</div>
+                <p className="mt-1 text-sm text-slate-700">Found {wizardAvailability.availableForRequired} of {wizardQuestionCount} required matching published questions across {wizardMatchingPools.length} pool{wizardMatchingPools.length === 1 ? '' : 's'}.</p>
+                {wizardCanGenerate ? <p className="mt-1 text-sm text-emerald-700">This setup can generate a valid admission test.</p> : <p className="mt-1 text-sm text-amber-800">{wizardMatchingPools.length === 0 ? `No active ${wizardSubjectLabel} pool matches Grade / Stage ${wizardGrade}.` : `Missing: ${wizardAvailability.missing.join(', ') || `${wizardQuestionCount - wizardAvailability.required} more matching published questions`}.`}</p>}
               </div>
               <div className="flex gap-2"><button onClick={() => setWizardStep(2)} className={btnSecondary}>Back</button><button onClick={() => setWizardStep(4)} disabled={!wizardCanGenerate} className={btnPrimary}>Next: Review</button></div>
             </div>
           )}
 
           {wizardStep === 4 && (
-            <div className="rounded-xl border border-gray-700 bg-slate-800/70 p-5 space-y-4">
-              <h3 className="font-semibold text-white">Step 4: Review & Generate</h3>
-              <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 p-4 text-cyan-50">This will create a Grade {wizardGrade} {wizardSubjectLabel} admission test with {wizardQuestionCount} questions, {wizardDuration} minutes, {WIZARD_DIFFICULTY_META[wizardDifficulty].label.toLowerCase()} difficulty, pass mark {wizardPassPercentage}%.</div>
-              {wizardDescription.trim() && <div className="rounded-lg border border-gray-700 bg-slate-900/60 p-3 text-sm text-gray-300"><span className="font-semibold text-white">Internal setup note only:</span> {wizardDescription}<div className="mt-1 text-[11px] text-amber-200/80">This note is not saved or shown to candidates.</div></div>}
-              <div className="text-xs text-gray-500">We’ll prepare and activate the test for candidate-specific links.</div>
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+              <h3 className="font-semibold text-slate-900">Step 4: Review & Generate</h3>
+              <div className="rounded-xl border border-cyan-200 bg-cyan-50 p-4 text-cyan-800">This will create a Grade {wizardGrade} {wizardSubjectLabel} admission test with {wizardQuestionCount} questions, {wizardDuration} minutes, {WIZARD_DIFFICULTY_META[wizardDifficulty].label.toLowerCase()} difficulty, pass mark {wizardPassPercentage}%.</div>
+              {wizardDescription.trim() && <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700"><span className="font-semibold text-slate-900">Internal setup note only:</span> {wizardDescription}<div className="mt-1 text-[11px] text-amber-700">This note is not saved or shown to candidates.</div></div>}
+              <div className="text-xs text-slate-500">We’ll prepare and activate the test for candidate-specific links.</div>
               <div className="flex gap-2"><button onClick={() => setWizardStep(3)} disabled={wizardGenerating} className={btnSecondary}>Back</button><button onClick={handleWizardGenerate} disabled={wizardGenerating || !wizardCanGenerate} className={btnPrimary}>{wizardGenerating ? 'Generating admission test…' : 'Generate Admission Test'}</button></div>
             </div>
           )}
 
           {wizardStep === 5 && (
-            <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-5 space-y-4">
-              <h3 className="text-lg font-semibold text-white">Step 5: Publish / Share</h3>
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 space-y-4">
+              <h3 className="text-lg font-semibold text-slate-900">Step 5: Publish / Share</h3>
               {wizardResult ? <>
-                <p className="text-sm text-emerald-100">Your admission test is ready. This app uses candidate-specific test links, so register candidates to create personal test links. You can also copy the form code for your office records.</p>
+                <p className="text-sm text-emerald-800">Your admission test is ready. This app uses candidate-specific test links, so register candidates to create personal test links. You can also copy the form code for your office records.</p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div className="rounded-lg bg-slate-900/60 p-3"><div className="text-xs text-gray-400">Test</div><div className="font-semibold text-white">{wizardResult.blueprint.name}</div></div>
-                  <div className="rounded-lg bg-slate-900/60 p-3"><div className="text-xs text-gray-400">Form code</div><div className="font-mono text-lg text-cyan-200">{wizardResult.formCode}</div></div>
-                  <div className="rounded-lg bg-slate-900/60 p-3"><div className="text-xs text-gray-400">Status</div><div>{statusPill(wizardResult.form?.status || 'published')}</div></div>
+                  <div className="rounded-lg bg-slate-50 p-3"><div className="text-xs text-slate-600">Test</div><div className="font-semibold text-slate-900">{wizardResult.blueprint.name}</div></div>
+                  <div className="rounded-lg bg-slate-50 p-3"><div className="text-xs text-slate-600">Form code</div><div className="font-mono text-lg text-cyan-700">{wizardResult.formCode}</div></div>
+                  <div className="rounded-lg bg-slate-50 p-3"><div className="text-xs text-slate-600">Status</div><div>{statusPill(wizardResult.form?.status || 'published')}</div></div>
                 </div>
                 <div className="flex flex-wrap gap-2"><button onClick={() => { navigator.clipboard.writeText(wizardResult.formCode); addToast('Form code copied', 'success'); }} className={btnPrimary}>Copy form code</button><button onClick={() => setActiveTab('candidates')} className={btnSecondary}>Go to Candidates</button><button onClick={() => setActiveTab('results')} className={btnSecondary}>Go to Results</button><button onClick={() => setActiveTab('forms')} className={btnSecondary}>Manage in Advanced Test Forms</button><button onClick={resetWizardForNewTest} className={btnSecondary}>Start another admission test</button></div>
-              </> : <p className="text-sm text-gray-300">Generate an admission test first, then sharing options will appear here.</p>}
+              </> : <p className="text-sm text-slate-700">Generate an admission test first, then sharing options will appear here.</p>}
             </div>
           )}
         </div>
@@ -1301,8 +1301,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       {activeTab === 'overview' && !loading && (
         <div className="space-y-6" ref={overviewCardsRef}>
           {/* Admission overview - Visual Step Tracker */}
-          <div className="rounded-2xl border border-cyan-500/20 bg-gradient-to-r from-slate-800/80 via-slate-800/60 to-slate-800/80 p-5">
-            <h3 className="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
+          <div className="rounded-2xl border border-cyan-200 bg-gradient-to-r from-white via-slate-50 to-white p-5">
+            <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
               <span className="text-lg">🚀</span> Admission overview
             </h3>
             <div className="flex items-center justify-between gap-1">
@@ -1314,17 +1314,17 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                       onClick={() => setActiveTab(step.key as AdmTab)}
                       className={`flex-1 rounded-xl p-3 text-center transition-all cursor-pointer border ${
                         done
-                          ? 'border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20'
-                          : 'border-gray-700 bg-slate-800/40 hover:bg-slate-700/40'
+                          ? 'border-emerald-200 bg-emerald-50 hover:bg-emerald-100'
+                          : 'border-slate-200 bg-slate-50 hover:bg-slate-100/40'
                       }`}
                     >
                       <div className={`text-2xl mb-1 ${done ? 'grayscale-0' : 'grayscale opacity-50'}`}>{step.icon}</div>
-                      <div className={`text-xs font-semibold ${done ? 'text-emerald-300' : 'text-gray-400'}`}>{step.label}</div>
-                      <div className="text-[10px] text-gray-500 mt-0.5">{step.desc}</div>
+                      <div className={`text-xs font-semibold ${done ? 'text-emerald-700' : 'text-slate-600'}`}>{step.label}</div>
+                      <div className="text-[10px] text-slate-500 mt-0.5">{step.desc}</div>
                       {done && <div className="text-emerald-400 text-xs mt-1">✓</div>}
                     </button>
                     {i < PIPELINE_STEPS.length - 1 && (
-                      <div className={`w-6 h-0.5 shrink-0 ${done ? 'bg-emerald-500/50' : 'bg-gray-700'}`} />
+                      <div className={`w-6 h-0.5 shrink-0 ${done ? 'bg-emerald-500/50' : 'bg-slate-100'}`} />
                     )}
                   </React.Fragment>
                 );
@@ -1334,22 +1334,22 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {statCard('Candidates waiting', candidates.filter(c => c.status === 'registered').length, '⏳', 'border-cyan-500/30')}
+            {statCard('Candidates waiting', candidates.filter(c => c.status === 'registered').length, '⏳', 'border-cyan-200')}
             {statCard('Tests in progress', attempts.filter(a => a.status === 'in_progress').length, '📝', 'border-blue-500/30')}
-            {statCard('Results ready', attempts.filter(a => a.status === 'submitted' || a.status === 'scored').length, '✅', 'border-indigo-500/30')}
-            {statCard('Needs attention', attempts.filter(a => a.status === 'submitted').length, '🔎', 'border-purple-500/30')}
+            {statCard('Results ready', attempts.filter(a => a.status === 'submitted' || a.status === 'scored').length, '✅', 'border-indigo-200')}
+            {statCard('Needs attention', attempts.filter(a => a.status === 'submitted').length, '🔎', 'border-purple-200')}
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {statCard('Active Tests', forms.filter(f => f.status === 'published').length, '✅', 'border-emerald-500/30')}
-            {statCard('Attempts', attempts.length, '📊', 'border-amber-500/30')}
+            {statCard('Active Tests', forms.filter(f => f.status === 'published').length, '✅', 'border-emerald-200')}
+            {statCard('Attempts', attempts.length, '📊', 'border-amber-200')}
             {statCard('Scored', attempts.filter(a => a.status === 'scored').length, '🏆', 'border-yellow-500/30')}
             {statCard('Placed', placements.length, '🎯', 'border-pink-500/30')}
           </div>
 
           {/* Band Distribution Chart */}
           {placements.length > 0 && (
-            <div className="rounded-xl border border-gray-700 bg-slate-800/60 p-5">
-              <h3 className="text-sm font-semibold text-gray-300 mb-3">Band Distribution</h3>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">Band Distribution</h3>
               <div className="flex items-end gap-3 h-32">
                 {(['A', 'B', 'C', 'D', 'E'] as PlacementBand[]).map(band => {
                   const count = bandDistribution[band];
@@ -1357,7 +1357,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   const heightPct = (count / maxBand) * 100;
                   return (
                     <div key={band} className="flex-1 flex flex-col items-center gap-1">
-                      <span className="text-xs text-gray-300 font-bold">{count}</span>
+                      <span className="text-xs text-slate-700 font-bold">{count}</span>
                       <div className="w-full rounded-t-lg relative" style={{ height: `${Math.max(heightPct, 4)}%` }}>
                         <div className={`absolute inset-0 rounded-t-lg ${BAND_COLORS[band].split(' ')[0]} opacity-70`} />
                       </div>
@@ -1373,22 +1373,22 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
           {/* Quick Action Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button onClick={() => setActiveTab('candidates')} className="group rounded-xl border border-purple-500/30 bg-slate-800/60 p-5 hover:bg-purple-900/20 hover:border-purple-500/50 transition-all text-left">
+            <button onClick={() => setActiveTab('candidates')} className="group rounded-xl border border-purple-200 bg-slate-50 p-5 hover:bg-purple-50 hover:border-purple-500/50 transition-all text-left">
               <span className="text-3xl block mb-2 group-hover:scale-110 transition-transform">➕</span>
-              <div className="text-sm font-semibold text-white">Register Candidates</div>
-              <div className="text-xs text-gray-400 mt-1">Add one or bulk import from CSV</div>
+              <div className="text-sm font-semibold text-slate-900">Register Candidates</div>
+              <div className="text-xs text-slate-600 mt-1">Add one or bulk import from CSV</div>
               {candidates.length > 0 && <div className="text-xs text-purple-400 mt-2">{candidates.filter(c => c.status === 'registered').length} awaiting test</div>}
             </button>
-            <button onClick={() => setActiveTab('forms')} className="group rounded-xl border border-indigo-500/30 bg-slate-800/60 p-5 hover:bg-indigo-900/20 hover:border-indigo-500/50 transition-all text-left">
+            <button onClick={() => setActiveTab('forms')} className="group rounded-xl border border-indigo-200 bg-slate-50 p-5 hover:bg-indigo-900/20 hover:border-indigo-500/50 transition-all text-left">
               <span className="text-3xl block mb-2 group-hover:scale-110 transition-transform">📋</span>
-              <div className="text-sm font-semibold text-white">Manage Tests</div>
-              <div className="text-xs text-gray-400 mt-1">Generate, publish, or close test forms</div>
+              <div className="text-sm font-semibold text-slate-900">Manage Tests</div>
+              <div className="text-xs text-slate-600 mt-1">Generate, publish, or close test forms</div>
               {forms.filter(f => f.status === 'published').length > 0 && <div className="text-xs text-indigo-400 mt-2">{forms.filter(f => f.status === 'published').length} active</div>}
             </button>
-            <button onClick={() => setActiveTab('results')} className="group rounded-xl border border-amber-500/30 bg-slate-800/60 p-5 hover:bg-amber-900/20 hover:border-amber-500/50 transition-all text-left">
+            <button onClick={() => setActiveTab('results')} className="group rounded-xl border border-amber-200 bg-slate-50 p-5 hover:bg-amber-900/20 hover:border-amber-500/50 transition-all text-left">
               <span className="text-3xl block mb-2 group-hover:scale-110 transition-transform">🏆</span>
-              <div className="text-sm font-semibold text-white">View Results</div>
-              <div className="text-xs text-gray-400 mt-1">Review scores, AI analysis & placements</div>
+              <div className="text-sm font-semibold text-slate-900">View Results</div>
+              <div className="text-xs text-slate-600 mt-1">Review scores, AI analysis & placements</div>
               {attempts.filter(a => a.status === 'scored' && !placements.find(p => p.attempt_id === a.id)).length > 0 && (
                 <div className="text-xs text-amber-400 mt-2 animate-pulse">{attempts.filter(a => a.status === 'scored' && !placements.find(p => p.attempt_id === a.id)).length} need placement</div>
               )}
@@ -1397,17 +1397,17 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
           {/* Recent Activity */}
           {attempts.length > 0 && (
-            <div className="rounded-xl border border-gray-700 bg-slate-800/60 p-4">
-              <h3 className="text-sm font-semibold text-gray-300 mb-3">Recent Activity</h3>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">Recent Activity</h3>
               <div className="space-y-2">
                 {attempts.slice(0, 5).map(a => {
                   const cand = candidates.find(c => c.id === a.candidate_id);
                   return (
                     <div key={a.id} className="flex items-center gap-3 text-xs">
-                      <span className="text-gray-500 w-28 shrink-0">{new Date(a.created_at).toLocaleDateString()}</span>
-                      <span className="text-white font-medium">{cand?.full_name || 'Unknown'}</span>
+                      <span className="text-slate-500 w-28 shrink-0">{new Date(a.created_at).toLocaleDateString()}</span>
+                      <span className="text-slate-900 font-medium">{cand?.full_name || 'Unknown'}</span>
                       {statusPill(a.status)}
-                      {a.percentage !== null && <span className="text-cyan-300 ml-auto">{a.percentage}%</span>}
+                      {a.percentage !== null && <span className="text-cyan-700 ml-auto">{a.percentage}%</span>}
                     </div>
                   );
                 })}
@@ -1421,24 +1421,24 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       {activeTab === 'pools' && !loading && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white">Official Question Bank</h2>
-            <div className="text-xs text-gray-400">
+            <h2 className="text-lg font-semibold text-slate-900">Official Question Bank</h2>
+            <div className="text-xs text-slate-600">
               {pools.length} readable pool{pools.length !== 1 ? 's' : ''} loaded
             </div>
           </div>
 
           {/* Available subjects */}
-          <div className="rounded-xl border border-gray-700 bg-slate-800/60 p-4">
-            <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Official Brain Heist admission content</h4>
-            <p className="text-sm text-gray-300 mb-3">Locked for assessment fairness. Schools can generate tests, but cannot edit official questions.</p>
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <h4 className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-3">Official Brain Heist admission content</h4>
+            <p className="text-sm text-slate-700 mb-3">Locked for assessment fairness. Schools can generate tests, but cannot edit official questions.</p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {Object.entries(BLUEPRINT_PRESETS).map(([key, preset]) => {
                 const poolExists = pools.some(p => p.subject.toLowerCase() === key);
                 return (
-                  <div key={key} className={`rounded-lg border p-3 text-center ${poolExists ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-gray-700 bg-slate-800/40 opacity-50'}`}>
+                  <div key={key} className={`rounded-lg border p-3 text-center ${poolExists ? 'border-emerald-200 bg-emerald-500/5' : 'border-slate-200 bg-slate-50 opacity-50'}`}>
                     <div className="text-2xl mb-1">{preset.icon}</div>
-                    <div className="text-sm font-semibold text-white">{preset.label}</div>
-                    <div className="text-xs text-gray-400 mt-0.5">
+                    <div className="text-sm font-semibold text-slate-900">{preset.label}</div>
+                    <div className="text-xs text-slate-600 mt-0.5">
                       {poolExists ? '✓ Pool ready' : 'Not imported yet'}
                     </div>
                   </div>
@@ -1450,8 +1450,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
           {pools.length === 0 ? (
             <div className="card-glass p-8 text-center">
               <span className="text-4xl block mb-3">📝</span>
-              <p className="text-gray-400 text-sm">No official question bank pools are visible yet.</p>
-              <p className="text-gray-500 text-xs mt-1">Platform admins can seed locked Brain Heist official admission content.</p>
+              <p className="text-slate-600 text-sm">No official question bank pools are visible yet.</p>
+              <p className="text-slate-500 text-xs mt-1">Platform admins can seed locked Brain Heist official admission content.</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -1459,19 +1459,19 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 const subjectKey = p.subject.toLowerCase();
                 const preset = BLUEPRINT_PRESETS[subjectKey];
                 return (
-                  <div key={p.id} className="rounded-xl border border-gray-700 bg-slate-800/60 p-4 flex items-center justify-between hover:border-gray-600 transition">
+                  <div key={p.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4 flex items-center justify-between hover:border-slate-300 transition">
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">{preset?.icon || '📄'}</span>
                       <div>
-                        <div className="font-semibold text-white">{p.name}</div>
-                        <div className="text-xs text-gray-400">{p.subject} · Stage {p.stage || p.stage_level || 'Any'} {p.is_official ? '· Official Brain Heist admission content' : p.school_id ? '· Legacy school content' : '· Legacy global content'}</div>
-                        <div className="text-[10px] text-cyan-300 mt-0.5">{p.is_locked ? '🔒 Locked for assessment fairness' : 'Read-only here for school admins'} · {p.source_label || 'Admission content'}</div>
+                        <div className="font-semibold text-slate-900">{p.name}</div>
+                        <div className="text-xs text-slate-600">{p.subject} · Stage {p.stage || p.stage_level || 'Any'} {p.is_official ? '· Official Brain Heist admission content' : p.school_id ? '· Legacy school content' : '· Legacy global content'}</div>
+                        <div className="text-[10px] text-cyan-700 mt-0.5">{p.is_locked ? '🔒 Locked for assessment fairness' : 'Read-only here for school admins'} · {p.source_label || 'Admission content'}</div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xs text-gray-500">{new Date(p.created_at).toLocaleDateString()}</div>
+                      <div className="text-xs text-slate-500">{new Date(p.created_at).toLocaleDateString()}</div>
                       {p.is_active && <div className="text-[10px] text-emerald-400 mt-0.5">Active</div>}
-                      {p.is_official && <div className="text-[10px] text-cyan-300 mt-0.5">Official · {p.content_version || 'versioned'}</div>}
+                      {p.is_official && <div className="text-[10px] text-cyan-700 mt-0.5">Official · {p.content_version || 'versioned'}</div>}
                     </div>
                   </div>
                 );
@@ -1485,17 +1485,17 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       {activeTab === 'blueprints' && !loading && (
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white">Test Blueprints</h2>
+            <h2 className="text-lg font-semibold text-slate-900">Test Blueprints</h2>
             <button onClick={() => setCreatingBlueprint(!creatingBlueprint)} className={btnSecondary}>
               {creatingBlueprint ? 'Cancel' : '+ New Blueprint'}
             </button>
           </div>
 
           {creatingBlueprint && (
-            <div className="rounded-xl border border-cyan-500/30 bg-slate-800/80 p-5 space-y-4">
+            <div className="rounded-xl border border-cyan-200 bg-white p-5 space-y-4">
               {/* Subject Preset Buttons */}
               <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-2">Quick Preset — click to auto-fill</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2">Quick Preset — click to auto-fill</label>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(BLUEPRINT_PRESETS).map(([key, preset]) => (
                     <button
@@ -1503,8 +1503,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                       onClick={() => applySubjectPreset(key)}
                       className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm transition ${
                         bpSubject === key
-                          ? 'border-cyan-500 bg-cyan-600/20 text-cyan-200'
-                          : 'border-gray-600 bg-slate-700/60 text-gray-300 hover:border-gray-500'
+                          ? 'border-cyan-500 bg-cyan-600/20 text-cyan-700'
+                          : 'border-slate-300 bg-slate-100 text-slate-700 hover:border-slate-300'
                       }`}
                     >
                       <span>{preset.icon}</span> {preset.label}
@@ -1515,11 +1515,11 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Name</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Name</label>
                   <input className={inputClass} value={bpName} onChange={e => setBpName(e.target.value)} placeholder="e.g. English Stage 9 — Admission Test" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Subject</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Subject</label>
                   <select className={inputClass} value={bpSubject} onChange={e => applySubjectPreset(e.target.value)}>
                     <option value="english">English</option>
                     <option value="math">Mathematics</option>
@@ -1528,7 +1528,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   </select>
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Question Pool</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Question Pool</label>
                   <select className={inputClass} value={bpPoolId ?? ''} onChange={e => handlePoolSelect(e.target.value)}>
                     <option value="">Auto-match by stage</option>
                     {subjectPools.map(p => (
@@ -1541,7 +1541,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                     <p className="text-[10px] text-cyan-400 mt-0.5">Questions will be drawn exclusively from this pool.</p>
                   )}
                   {!bpPoolId && subjectPools.length > 0 && (
-                    <p className="text-[10px] text-gray-500 mt-0.5">
+                    <p className="text-[10px] text-slate-500 mt-0.5">
                       {subjectPools.filter(p => p.stage === bpTargetStage).length > 0
                         ? `Will match: ${subjectPools.filter(p => p.stage === bpTargetStage).map(p => p.name).join(', ')}`
                         : 'No pool matches this stage — select one above or adjust stage.'}
@@ -1549,23 +1549,23 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   )}
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Target Stage</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Target Stage</label>
                   <input type="number" className={inputClass} value={bpTargetStage} onChange={e => setBpTargetStage(+e.target.value)} />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Duration (min)</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Duration (min)</label>
                   <input type="number" className={inputClass} value={bpDuration} onChange={e => setBpDuration(+e.target.value)} />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Total Marks</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Total Marks</label>
                   <input type="number" className={inputClass} value={bpTotalMarks} onChange={e => setBpTotalMarks(+e.target.value)} />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Pass Percentage (%)</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Pass Percentage (%)</label>
                   <input type="number" className={inputClass} value={bpPassPercentage} onChange={e => setBpPassPercentage(+e.target.value)} />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Mode</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Mode</label>
                   <select className={inputClass} value={bpDelivery} onChange={e => setBpDelivery(e.target.value as 'practice' | 'exam')}>
                     <option value="exam">Exam</option>
                     <option value="practice">Practice</option>
@@ -1573,7 +1573,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-2">Question Distribution</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2">Question Distribution</label>
                 <div className="space-y-2">
                   {distRows.map((row, ri) => (
                     <div key={ri} className="flex items-center gap-2">
@@ -1600,22 +1600,22 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                           onChange={e => { const next = [...distRows]; next[ri].medium = +e.target.value; setDistRows(next); }} />
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="text-[10px] text-red-400">Hard</span>
+                        <span className="text-[10px] text-red-700">Hard</span>
                         <input type="number" min={0} className={`${inputClass} w-14 text-center`} value={row.hard}
                           onChange={e => { const next = [...distRows]; next[ri].hard = +e.target.value; setDistRows(next); }} />
                       </div>
-                      <span className="text-xs text-gray-500 w-8 text-right">{row.easy + row.medium + row.hard}</span>
-                      <button onClick={() => setDistRows(distRows.filter((_, i) => i !== ri))} className="text-red-400 hover:text-red-300 text-sm px-1" title="Remove">✕</button>
+                      <span className="text-xs text-slate-500 w-8 text-right">{row.easy + row.medium + row.hard}</span>
+                      <button onClick={() => setDistRows(distRows.filter((_, i) => i !== ri))} className="text-red-700 hover:text-red-700 text-sm px-1" title="Remove">✕</button>
                     </div>
                   ))}
                   <button
                     onClick={() => setDistRows([...distRows, { type: '', easy: 0, medium: 0, hard: 0 }])}
-                    className="text-xs text-cyan-400 hover:text-cyan-300 mt-1"
+                    className="text-xs text-cyan-400 hover:text-cyan-700 mt-1"
                   >
                     + Add question type
                   </button>
-                  <div className="text-xs text-gray-500 mt-1">
-                    Total: <strong className="text-white">{distRows.reduce((s, r) => s + r.easy + r.medium + r.hard, 0)}</strong> questions
+                  <div className="text-xs text-slate-500 mt-1">
+                    Total: <strong className="text-slate-900">{distRows.reduce((s, r) => s + r.easy + r.medium + r.hard, 0)}</strong> questions
                   </div>
                 </div>
               </div>
@@ -1626,7 +1626,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
           )}
 
           {blueprints.length === 0 && !creatingBlueprint ? (
-            <div className="card-glass p-6 text-center text-gray-400 text-sm">
+            <div className="card-glass p-6 text-center text-slate-600 text-sm">
               No blueprints yet. Create one to define your test structure.
             </div>
           ) : (
@@ -1634,18 +1634,18 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
               {blueprints.map((bp) => {
                 const linkedPool = bp.pool_id ? pools.find(p => p.id === bp.pool_id) : null;
                 return (
-                <div key={bp.id} className="rounded-xl border border-gray-700 bg-slate-800/60 p-4">
+                <div key={bp.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="font-semibold text-white">{bp.name}</div>
-                      <div className="text-xs text-gray-400">
+                      <div className="font-semibold text-slate-900">{bp.name}</div>
+                      <div className="text-xs text-slate-600">
                         {bp.duration_minutes}min · {bp.total_marks} marks · {bp.delivery_mode} · pass ≥ {bp.pass_percentage}%
                         {linkedPool && <span className="ml-1 text-cyan-400">· Pool: {linkedPool.name}</span>}
-                        {!linkedPool && bp.target_stage && <span className="ml-1 text-gray-500">· auto-match stage {bp.target_stage}</span>}
+                        {!linkedPool && bp.target_stage && <span className="ml-1 text-slate-500">· auto-match stage {bp.target_stage}</span>}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button onClick={() => handleDeleteBlueprint(bp.id)} className="text-xs px-2 py-1 rounded bg-red-600/20 text-red-400 hover:bg-red-600/40 transition" title="Delete blueprint">🗑</button>
+                      <button onClick={() => handleDeleteBlueprint(bp.id)} className="text-xs px-2 py-1 rounded bg-red-600/20 text-red-700 hover:bg-red-600/40 transition" title="Delete blueprint">🗑</button>
                     </div>
                   </div>
                   <div className="mt-2 flex flex-wrap gap-1">
@@ -1654,7 +1654,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                         ? Object.values(val as Record<string, number>).reduce((s, n) => s + n, 0)
                         : val;
                       return (
-                        <span key={type} className="px-2 py-0.5 rounded bg-slate-700 text-xs text-gray-300">
+                        <span key={type} className="px-2 py-0.5 rounded bg-slate-100 text-xs text-slate-700">
                           {type}: {String(total)}
                         </span>
                       );
@@ -1672,24 +1672,24 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       {activeTab === 'forms' && !loading && (
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white">Test Forms</h2>
+            <h2 className="text-lg font-semibold text-slate-900">Test Forms</h2>
             <button onClick={() => !isGeneratingForm && setGeneratingForm(!generatingForm)} disabled={isGeneratingForm} className={btnSecondary}>
               {generatingForm ? 'Cancel' : '+ Generate Form'}
             </button>
           </div>
 
           {generatingForm && (
-            <div className="rounded-xl border border-indigo-500/30 bg-slate-800/80 p-5 space-y-4">
+            <div className="rounded-xl border border-indigo-200 bg-white p-5 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Blueprint</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Blueprint</label>
                   <select className={inputClass} value={genBlueprintId} onChange={e => generateFormCode(e.target.value)}>
                     <option value="">Select blueprint…</option>
                     {blueprints.map(bp => <option key={bp.id} value={bp.id}>{bp.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Form Code (auto-generated, editable)</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Form Code (auto-generated, editable)</label>
                   <input className={inputClass} value={genFormCode} onChange={e => setGenFormCode(e.target.value)} placeholder="e.g. ENG9-2026-A" />
                 </div>
               </div>
@@ -1700,7 +1700,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
           )}
 
           {forms.length === 0 && !generatingForm ? (
-            <div className="card-glass p-6 text-center text-gray-400 text-sm">
+            <div className="card-glass p-6 text-center text-slate-600 text-sm">
               No test forms yet. Generate one from a blueprint.
             </div>
           ) : (
@@ -1708,28 +1708,28 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
               {forms.map((f) => {
                 const bp = blueprints.find(b => b.id === f.blueprint_id);
                 return (
-                <div key={f.id} className="rounded-xl border border-gray-700 bg-slate-800/60 p-4">
+                <div key={f.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="font-mono text-sm font-bold text-white">{f.form_code}</div>
+                      <div className="font-mono text-sm font-bold text-slate-900">{f.form_code}</div>
                       {statusPill(f.status)}
                     </div>
                     <div className="flex items-center gap-2">
                       {f.status === 'draft' && (
-                        <button onClick={() => handlePublishForm(f.id)} className="text-xs px-2 py-1 rounded bg-emerald-600/30 text-emerald-300 hover:bg-emerald-600/50 transition">
+                        <button onClick={() => handlePublishForm(f.id)} className="text-xs px-2 py-1 rounded bg-emerald-600/30 text-emerald-700 hover:bg-emerald-600/50 transition">
                           Publish
                         </button>
                       )}
                       {f.status === 'published' && (
-                        <button onClick={() => handleCloseForm(f.id)} className="text-xs px-2 py-1 rounded bg-red-600/30 text-red-300 hover:bg-red-600/50 transition">
+                        <button onClick={() => handleCloseForm(f.id)} className="text-xs px-2 py-1 rounded bg-red-600/30 text-red-700 hover:bg-red-600/50 transition">
                           Close
                         </button>
                       )}
-                      <button onClick={() => handleDeleteForm(f.id)} className="text-xs px-2 py-1 rounded bg-red-600/20 text-red-400 hover:bg-red-600/40 transition" title="Delete form">🗑</button>
+                      <button onClick={() => handleDeleteForm(f.id)} className="text-xs px-2 py-1 rounded bg-red-600/20 text-red-700 hover:bg-red-600/40 transition" title="Delete form">🗑</button>
                     </div>
                   </div>
-                  {bp && <div className="mt-2 text-sm font-medium text-gray-200">{bp.name}</div>}
-                  <div className="text-xs text-gray-500 mt-1">
+                  {bp && <div className="mt-2 text-sm font-medium text-slate-800">{bp.name}</div>}
+                  <div className="text-xs text-slate-500 mt-1">
                     Created {new Date(f.created_at).toLocaleString()}
                     {f.published_at && ` · Published ${new Date(f.published_at).toLocaleString()}`}
                   </div>
@@ -1745,17 +1745,17 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       {activeTab === 'candidates' && !loading && (
         <div className="space-y-6">
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <h2 className="text-lg font-semibold text-white">Candidates</h2>
+            <h2 className="text-lg font-semibold text-slate-900">Candidates</h2>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => { setBulkMode(false); setCreatingCandidate(!creatingCandidate); }}
-                className={`${btnSecondary} ${!bulkMode && creatingCandidate ? 'border-cyan-500 text-cyan-300' : ''}`}
+                className={`${btnSecondary} ${!bulkMode && creatingCandidate ? 'border-cyan-500 text-cyan-700' : ''}`}
               >
                 {creatingCandidate && !bulkMode ? 'Cancel' : '+ Add One'}
               </button>
               <button
                 onClick={() => { setBulkMode(true); setCreatingCandidate(!creatingCandidate || !bulkMode); }}
-                className={`${btnSecondary} ${bulkMode && creatingCandidate ? 'border-cyan-500 text-cyan-300' : ''}`}
+                className={`${btnSecondary} ${bulkMode && creatingCandidate ? 'border-cyan-500 text-cyan-700' : ''}`}
               >
                 {creatingCandidate && bulkMode ? 'Cancel' : '📋 Bulk Import'}
               </button>
@@ -1764,12 +1764,12 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
           {/* Bulk import */}
           {creatingCandidate && bulkMode && (
-            <div className="rounded-xl border border-amber-500/30 bg-slate-800/80 p-5 space-y-3">
+            <div className="rounded-xl border border-amber-200 bg-white p-5 space-y-3">
               <div className="flex items-start gap-3">
                 <span className="text-2xl">📋</span>
                 <div className="flex-1">
-                  <h4 className="text-sm font-semibold text-white mb-1">Paste candidate list</h4>
-                  <p className="text-xs text-gray-400 mb-3">One candidate per line. Format: <span className="font-mono text-cyan-400">Name, Email, Phone, Grade</span> (comma or tab separated)</p>
+                  <h4 className="text-sm font-semibold text-slate-900 mb-1">Paste candidate list</h4>
+                  <p className="text-xs text-slate-600 mb-3">One candidate per line. Format: <span className="font-mono text-cyan-400">Name, Email, Phone, Grade</span> (comma or tab separated)</p>
                   <textarea
                     className={`${inputClass} h-32 font-mono text-xs`}
                     value={bulkText}
@@ -1777,7 +1777,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                     placeholder={`Ahmed Al-Rashid, parent@email.com, +971501234567, 9\nFatima Hassan, fatima@school.com, +971509876543, 9\nOmar Khalid, , +971507654321, 8`}
                   />
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-slate-500">
                       {bulkText.trim() ? `${bulkText.trim().split('\n').filter(l => l.trim()).length} candidate(s) detected` : 'Paste from spreadsheet or type manually'}
                     </span>
                     <button onClick={handleBulkImport} disabled={!bulkText.trim()} className={btnPrimary}>
@@ -1791,50 +1791,50 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
           {/* Single candidate form */}
           {creatingCandidate && !bulkMode && (
-            <div className="rounded-xl border border-purple-500/30 bg-slate-800/80 p-5 space-y-4">
+            <div className="rounded-xl border border-purple-200 bg-white p-5 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Full Name *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Full Name *</label>
                   <input className={inputClass} value={candName} onChange={e => setCandName(e.target.value)} placeholder="Ahmed Al-Rashid" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Email *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Email *</label>
                   <input type="email" className={inputClass} value={candEmail} onChange={e => setCandEmail(e.target.value)} placeholder="parent@email.com" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Parent Phone *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Parent Phone *</label>
                   <input className={inputClass} value={candPhone} onChange={e => setCandPhone(e.target.value)} placeholder="+971 50 123 4567" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Applied Grade *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Applied Grade *</label>
                   <input type="number" className={inputClass} value={candAppliedGrade} onChange={e => setCandAppliedGrade(e.target.value)} placeholder="9" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Current Grade <span className="text-gray-500 font-normal">(optional)</span></label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Current Grade <span className="text-slate-500 font-normal">(optional)</span></label>
                   <input type="number" className={inputClass} value={candCurrentGrade} onChange={e => setCandCurrentGrade(e.target.value)} placeholder="7" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Date of Birth <span className="text-gray-500 font-normal">(optional)</span></label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Date of Birth <span className="text-slate-500 font-normal">(optional)</span></label>
                   <input type="date" className={inputClass} value={candDob} onChange={e => setCandDob(e.target.value)} />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Previous Curriculum <span className="text-gray-500 font-normal">(optional)</span></label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Previous Curriculum <span className="text-slate-500 font-normal">(optional)</span></label>
                   <input className={inputClass} value={candPreviousCurriculum} onChange={e => setCandPreviousCurriculum(e.target.value)} placeholder="Cambridge, CBSE, IB…" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Previous School Language <span className="text-gray-500 font-normal">(optional)</span></label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Previous School Language <span className="text-slate-500 font-normal">(optional)</span></label>
                   <input className={inputClass} value={candPreviousSchoolLanguage} onChange={e => setCandPreviousSchoolLanguage(e.target.value)} placeholder="English, Arabic…" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Home Language <span className="text-gray-500 font-normal">(optional)</span></label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Home Language <span className="text-slate-500 font-normal">(optional)</span></label>
                   <input className={inputClass} value={candHomeLanguage} onChange={e => setCandHomeLanguage(e.target.value)} placeholder="Arabic, English…" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Years in English-medium Education <span className="text-gray-500 font-normal">(optional)</span></label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Years in English-medium Education <span className="text-slate-500 font-normal">(optional)</span></label>
                   <input type="number" step="0.5" className={inputClass} value={candYearsEnglishMedium} onChange={e => setCandYearsEnglishMedium(e.target.value)} placeholder="3" />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Admin Notes <span className="text-gray-500 font-normal">(optional)</span></label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Admin Notes <span className="text-slate-500 font-normal">(optional)</span></label>
                   <input className={inputClass} value={candNotes} onChange={e => setCandNotes(e.target.value)} placeholder="Any additional notes…" />
                 </div>
               </div>
@@ -1848,13 +1848,13 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
           <div className="rounded-xl border border-cyan-500/25 bg-cyan-950/20 p-4">
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div>
-                <h3 className="text-sm font-semibold text-white">Grade 6 Admission Package</h3>
-                <p className="text-xs text-cyan-100/80 mt-1">Recommended Grade 6 bundle: English required, Maths required, Science optional. Register one candidate once, then send each matching subject link below.</p>
+                <h3 className="text-sm font-semibold text-slate-900">Grade 6 Admission Package</h3>
+                <p className="text-xs text-cyan-800/80 mt-1">Recommended Grade 6 bundle: English required, Maths required, Science optional. Register one candidate once, then send each matching subject link below.</p>
               </div>
               <div className="flex flex-wrap gap-2 text-[11px]">
-                <span className="px-2 py-1 rounded-full bg-emerald-500/15 text-emerald-200 border border-emerald-500/30">English required</span>
-                <span className="px-2 py-1 rounded-full bg-emerald-500/15 text-emerald-200 border border-emerald-500/30">Maths required</span>
-                <span className="px-2 py-1 rounded-full bg-slate-700/60 text-gray-200 border border-gray-600">Science optional</span>
+                <span className="px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">English required</span>
+                <span className="px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Maths required</span>
+                <span className="px-2 py-1 rounded-full bg-slate-100 text-slate-800 border border-slate-300">Science optional</span>
               </div>
             </div>
           </div>
@@ -1863,7 +1863,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
           {candidates.length > 0 && (
             <div className="flex items-center gap-3 flex-wrap">
               <div className="relative flex-1 min-w-[200px]">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">🔍</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">🔍</span>
                 <input
                   className={`${inputClass} pl-9`}
                   value={candSearch}
@@ -1882,21 +1882,21 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 <option value="completed">Completed</option>
                 <option value="placed">Placed</option>
               </select>
-              <span className="text-xs text-gray-500">{filteredCandidates.length} of {candidates.length}</span>
+              <span className="text-xs text-slate-500">{filteredCandidates.length} of {candidates.length}</span>
             </div>
           )}
 
           {candidates.length === 0 && !creatingCandidate ? (
             <div className="card-glass p-8 text-center">
               <span className="text-4xl block mb-3">👤</span>
-              <p className="text-gray-400 text-sm">No candidates registered yet.</p>
-              <p className="text-gray-500 text-xs mt-1">Click "+ Add One" or "Bulk Import" to get started.</p>
+              <p className="text-slate-600 text-sm">No candidates registered yet.</p>
+              <p className="text-slate-500 text-xs mt-1">Click "+ Add One" or "Bulk Import" to get started.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-xs text-gray-400 border-b border-gray-700">
+                  <tr className="text-left text-xs text-slate-600 border-b border-slate-200">
                     <th className="pb-2 pr-4">Name</th>
                     <th className="pb-2 pr-4">Contact</th>
                     <th className="pb-2 pr-4">Grade</th>
@@ -1917,15 +1917,15 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                     const attemptedFormIds = new Set(attempts.filter(a => a.candidate_id === c.id).map(a => a.form_id));
                     const historyForms = forms.filter(f => attemptedFormIds.has(f.id) && !matchingForms.some(pf => pf.id === f.id));
                     return (
-                      <tr key={c.id} className="text-gray-300 hover:bg-slate-700/30 transition">
+                      <tr key={c.id} className="text-slate-700 hover:bg-slate-100 transition">
                         <td className="py-3 pr-4">
-                          <div className="font-medium text-white">{c.full_name}</div>
-                          <div className="text-[10px] text-gray-500 mt-0.5">Candidate-specific links are private</div>
+                          <div className="font-medium text-slate-900">{c.full_name}</div>
+                          <div className="text-[10px] text-slate-500 mt-0.5">Candidate-specific links are private</div>
                         </td>
                         <td className="py-3 pr-4 text-xs">
                           {c.email && <div>{c.email}</div>}
-                          {c.parent_phone && <div className="text-gray-500">{c.parent_phone}</div>}
-                          {!c.email && !c.parent_phone && <span className="text-gray-600">—</span>}
+                          {c.parent_phone && <div className="text-slate-500">{c.parent_phone}</div>}
+                          {!c.email && !c.parent_phone && <span className="text-slate-600">—</span>}
                         </td>
                         <td className="py-3 pr-4 text-xs">{c.applied_grade || '—'}</td>
                         <td className="py-3 pr-4">
@@ -1934,13 +1934,13 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                               const attempt = attempts.find(a => a.candidate_id === c.id && a.form_id === f.id);
                               return (
                                 <div key={f.id} className="flex items-center gap-2">
-                                  <span className="text-[10px] text-gray-400 min-w-[9rem]">{admissionSubjectLabel(getFormSubject(f, blueprints))} · {f.form_code}{f.status !== 'published' ? ' · history' : ''}{isFormCodeSubjectConflict(f, blueprints) ? ' · legacy/stale' : ''}</span>
+                                  <span className="text-[10px] text-slate-600 min-w-[9rem]">{admissionSubjectLabel(getFormSubject(f, blueprints))} · {f.form_code}{f.status !== 'published' ? ' · history' : ''}{isFormCodeSubjectConflict(f, blueprints) ? ' · legacy/stale' : ''}</span>
                                   {statusPill(getAdmissionLifecycleStatus(attempt, f.status === 'published'))}
                                 </div>
                               );
                             })}
-                            {matchingForms.length === 0 && <span className="text-xs text-amber-300">No current clean forms for Grade {c.applied_grade || '—'}</span>}
-                            {matchingForms.length > 0 && <span className="text-[10px] text-emerald-300">Showing current Grade {c.applied_grade || '—'} admission package</span>}
+                            {matchingForms.length === 0 && <span className="text-xs text-amber-700">No current clean forms for Grade {c.applied_grade || '—'}</span>}
+                            {matchingForms.length > 0 && <span className="text-[10px] text-emerald-700">Showing current Grade {c.applied_grade || '—'} admission package</span>}
                           </div>
                         </td>
                         <td className="py-3 pr-4 min-w-[280px]">
@@ -1950,44 +1950,44 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                               const attempt = attempts.find(a => a.candidate_id === c.id && a.form_id === f.id);
                               const isOtherGrade = getFormGrade(f, blueprints) !== c.applied_grade;
                               return (
-                                <div key={f.id} className={`rounded-lg border p-2 ${isOtherGrade ? 'border-amber-600/40 bg-amber-950/20' : 'border-gray-700 bg-slate-900/40'}`}>
+                                <div key={f.id} className={`rounded-lg border p-2 ${isOtherGrade ? 'border-amber-600/40 bg-amber-950/20' : 'border-slate-200 bg-slate-50'}`}>
                                   <div className="flex items-start justify-between gap-2">
                                     <div>
-                                      <div className="text-xs font-semibold text-white">{getAdmissionFormTitle(f, blueprints)}</div>
-                                      <div className="text-[10px] text-gray-400">Code <span className="font-mono">{f.form_code}</span> · {getAttemptLabel(attempt, true)}</div>
-                                      {isOtherGrade && <div className="text-[10px] text-amber-300">Other grade — send only by exception</div>}
+                                      <div className="text-xs font-semibold text-slate-900">{getAdmissionFormTitle(f, blueprints)}</div>
+                                      <div className="text-[10px] text-slate-600">Code <span className="font-mono">{f.form_code}</span> · {getAttemptLabel(attempt, true)}</div>
+                                      {isOtherGrade && <div className="text-[10px] text-amber-700">Other grade — send only by exception</div>}
                                     </div>
                                     <div className="flex items-center gap-1">
                                       {isFinalAdmissionAttempt(attempt) ? (
                                         <>
-                                          <button onClick={() => handleViewReport(attempt!.id)} className="text-xs px-2 py-1 rounded bg-blue-600/30 text-blue-300 hover:bg-blue-600/50 transition">View result</button>
-                                          <button onClick={() => handleViewReport(attempt!.id)} className="text-xs px-2 py-1 rounded bg-amber-600/20 text-amber-300 hover:bg-amber-600/40 transition">Activity notes</button>
-                                          <button onClick={() => handleResetAttemptForRetake(attempt!.id)} className="text-xs px-2 py-1 rounded bg-white/10 text-white hover:bg-white/20 transition">Allow retake</button>
+                                          <button onClick={() => handleViewReport(attempt!.id)} className="text-xs px-2 py-1 rounded bg-blue-600/30 text-blue-700 hover:bg-blue-600/50 transition">View result</button>
+                                          <button onClick={() => handleViewReport(attempt!.id)} className="text-xs px-2 py-1 rounded bg-amber-600/20 text-amber-700 hover:bg-amber-600/40 transition">Activity notes</button>
+                                          <button onClick={() => handleResetAttemptForRetake(attempt!.id)} className="text-xs px-2 py-1 rounded bg-white/10 text-slate-900 hover:bg-white/20 transition">Allow retake</button>
                                         </>
                                       ) : (
                                         <>
-                                          <button onClick={() => { navigator.clipboard.writeText(link); addToast(`${getAdmissionFormTitle(f, blueprints)} link copied`, 'success'); }} className="text-xs px-2 py-1 rounded bg-cyan-600/30 text-cyan-300 hover:bg-cyan-600/50 transition" title={`Copy ${getAdmissionFormTitle(f, blueprints)} link`}>Copy</button>
+                                          <button onClick={() => { navigator.clipboard.writeText(link); addToast(`${getAdmissionFormTitle(f, blueprints)} link copied`, 'success'); }} className="text-xs px-2 py-1 rounded bg-cyan-600/30 text-cyan-700 hover:bg-cyan-600/50 transition" title={`Copy ${getAdmissionFormTitle(f, blueprints)} link`}>Copy</button>
                                           {c.parent_phone && <button onClick={() => shareViaWhatsApp(c.parent_phone, link, c.full_name)} className="text-xs px-2 py-1 rounded bg-green-600/30 text-green-300 hover:bg-green-600/50 transition" title={`WhatsApp ${getAdmissionFormTitle(f, blueprints)} link`}>WhatsApp</button>}
-                                          {c.email && <button onClick={() => shareViaEmail(c.email, link, c.full_name)} className="text-xs px-2 py-1 rounded bg-blue-600/30 text-blue-300 hover:bg-blue-600/50 transition" title={`Email ${getAdmissionFormTitle(f, blueprints)} link`}>Email</button>}
+                                          {c.email && <button onClick={() => shareViaEmail(c.email, link, c.full_name)} className="text-xs px-2 py-1 rounded bg-blue-600/30 text-blue-700 hover:bg-blue-600/50 transition" title={`Email ${getAdmissionFormTitle(f, blueprints)} link`}>Email</button>}
                                         </>
                                       )}
                                     </div>
                                   </div>
                                 </div>
                               );
-                            }) : <span className="text-xs text-gray-600 italic">No current clean matching tests</span>}
+                            }) : <span className="text-xs text-slate-600 italic">No current clean matching tests</span>}
                             {otherGradeForms.length > 0 && (
-                              <button type="button" onClick={() => setShowOtherGradeFormsForCandidate(prev => ({ ...prev, [c.id]: !prev[c.id] }))} className="text-[11px] text-amber-300 hover:text-amber-200">
+                              <button type="button" onClick={() => setShowOtherGradeFormsForCandidate(prev => ({ ...prev, [c.id]: !prev[c.id] }))} className="text-[11px] text-amber-700 hover:text-amber-700">
                                 {showOtherGrades ? 'Hide other grades' : `Show ${otherGradeForms.length} other-grade form(s)`}
                               </button>
                             )}
                           </div>
                         </td>
                         <td className="py-3">
-                          <button onClick={() => setCandidateFileId(c.id)} className="text-xs px-2 py-1 rounded bg-amber-600/20 text-amber-300 hover:bg-amber-600/40 transition" title="View candidate details">View candidate</button>
+                          <button onClick={() => setCandidateFileId(c.id)} className="text-xs px-2 py-1 rounded bg-amber-600/20 text-amber-700 hover:bg-amber-600/40 transition" title="View candidate details">View candidate</button>
                         </td>
                         <td className="py-3">
-                          <button onClick={() => handleDeleteCandidate(c.id)} className="text-xs px-1.5 py-1 rounded bg-red-600/20 text-red-400 hover:bg-red-600/40 transition" title="Delete candidate">🗑</button>
+                          <button onClick={() => handleDeleteCandidate(c.id)} className="text-xs px-1.5 py-1 rounded bg-red-600/20 text-red-700 hover:bg-red-600/40 transition" title="Delete candidate">🗑</button>
                         </td>
                       </tr>
                     );
@@ -2003,12 +2003,12 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       {activeTab === 'results' && !loading && (
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white">Test Results</h2>
+            <h2 className="text-lg font-semibold text-slate-900">Test Results</h2>
             {attempts.filter(a => a.status === 'scored').length > 0 && (
-              <div className="flex items-center gap-3 text-xs text-gray-400">
-                <span>Avg: <strong className="text-cyan-300">{Math.round(attempts.filter(a => a.percentage != null).reduce((s, a) => s + (a.percentage || 0), 0) / Math.max(attempts.filter(a => a.percentage != null).length, 1))}%</strong></span>
-                <span>Scored: <strong className="text-emerald-300">{attempts.filter(a => a.status === 'scored').length}</strong></span>
-                <span>Placed: <strong className="text-purple-300">{placements.length}</strong></span>
+              <div className="flex items-center gap-3 text-xs text-slate-600">
+                <span>Avg: <strong className="text-cyan-700">{Math.round(attempts.filter(a => a.percentage != null).reduce((s, a) => s + (a.percentage || 0), 0) / Math.max(attempts.filter(a => a.percentage != null).length, 1))}%</strong></span>
+                <span>Scored: <strong className="text-emerald-700">{attempts.filter(a => a.status === 'scored').length}</strong></span>
+                <span>Placed: <strong className="text-purple-700">{placements.length}</strong></span>
               </div>
             )}
           </div>
@@ -2016,8 +2016,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
           {attempts.length === 0 ? (
             <div className="card-glass p-8 text-center">
               <span className="text-4xl block mb-3">🏆</span>
-              <p className="text-gray-400 text-sm">No test attempts yet.</p>
-              <p className="text-gray-500 text-xs mt-1">Results will appear here once candidates complete their tests.</p>
+              <p className="text-slate-600 text-sm">No test attempts yet.</p>
+              <p className="text-slate-500 text-xs mt-1">Results will appear here once candidates complete their tests.</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -2028,20 +2028,20 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   const cand = candidates.find(c => c.id === cId);
                   const candAttempts = attempts.filter(a => a.candidate_id === cId);
                   return (
-                    <div key={cId} className="rounded-2xl border border-gray-700 bg-slate-800/40 overflow-hidden">
+                    <div key={cId} className="rounded-2xl border border-slate-200 bg-slate-50 overflow-hidden">
                       {/* Candidate header */}
-                      <div className="flex items-center gap-3 px-5 py-3 bg-slate-800/80 border-b border-gray-700/50">
+                      <div className="flex items-center gap-3 px-5 py-3 bg-white border-b border-slate-200">
                         <div className="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center text-lg font-bold text-white">
                           {(cand?.full_name || 'U')[0].toUpperCase()}
                         </div>
                         <div className="flex-1">
-                          <div className="font-semibold text-white">{cand?.full_name || 'Unknown'}</div>
-                          <div className="text-[11px] text-gray-500">
+                          <div className="font-semibold text-slate-900">{cand?.full_name || 'Unknown'}</div>
+                          <div className="text-[11px] text-slate-500">
                             {cand?.email || ''}{cand?.email && cand?.parent_phone ? ' · ' : ''}{cand?.parent_phone || ''}
                             {cand?.applied_grade ? ` · Grade ${cand.applied_grade}` : ''}
                           </div>
                         </div>
-                        <div className="text-xs text-gray-500">{candAttempts.length} test{candAttempts.length > 1 ? 's' : ''}</div>
+                        <div className="text-xs text-slate-500">{candAttempts.length} test{candAttempts.length > 1 ? 's' : ''}</div>
                       </div>
 
                       {/* Per-test results */}
@@ -2052,29 +2052,29 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                           const testLabel = bp ? `${bp.subject.charAt(0).toUpperCase() + bp.subject.slice(1)}` : (form?.form_code || 'Test');
                           const placement = placements.find(p => p.attempt_id === a.id);
                           const scorePct = a.percentage ?? 0;
-                          const scoreColor = scorePct >= 80 ? 'text-emerald-400' : scorePct >= 60 ? 'text-cyan-400' : scorePct >= 40 ? 'text-amber-400' : 'text-red-400';
+                          const scoreColor = scorePct >= 80 ? 'text-emerald-400' : scorePct >= 60 ? 'text-cyan-400' : scorePct >= 40 ? 'text-amber-400' : 'text-red-700';
                           const barColor = scorePct >= 80 ? 'bg-emerald-500' : scorePct >= 60 ? 'bg-cyan-500' : scorePct >= 40 ? 'bg-amber-500' : 'bg-red-500';
                           return (
                             <div key={a.id} className="px-5 py-3">
                               <div className="flex items-center justify-between flex-wrap gap-2">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-xs px-2 py-0.5 rounded bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 font-semibold">{testLabel}</span>
-                                  <span className="text-[10px] text-gray-500 font-mono">{form?.form_code}</span>
+                                  <span className="text-xs px-2 py-0.5 rounded bg-indigo-600/30 text-indigo-700 border border-indigo-500/40 font-semibold">{testLabel}</span>
+                                  <span className="text-[10px] text-slate-500 font-mono">{form?.form_code}</span>
                                   {statusPill(a.status)}
-                                  <span className="text-xs text-gray-500">{new Date(a.created_at).toLocaleDateString()}</span>
+                                  <span className="text-xs text-slate-500">{new Date(a.created_at).toLocaleDateString()}</span>
                                 </div>
                                 <div className="flex items-center gap-3">
                                   {a.percentage !== null && (
                                     <div className="text-right">
                                       <span className={`text-xl font-bold ${scoreColor}`}>{a.percentage}%</span>
-                                      <span className="text-xs text-gray-500 ml-1">{a.total_score}/{a.max_score}</span>
+                                      <span className="text-xs text-slate-500 ml-1">{a.total_score}/{a.max_score}</span>
                                     </div>
                                   )}
                                 </div>
                               </div>
 
                               {a.percentage !== null && (
-                                <div className="mt-2 h-1.5 rounded-full bg-slate-700 overflow-hidden">
+                                <div className="mt-2 h-1.5 rounded-full bg-slate-100 overflow-hidden">
                                   <div className={`h-full rounded-full ${barColor} transition-all`} style={{ width: `${scorePct}%` }} />
                                 </div>
                               )}
@@ -2083,13 +2083,13 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                                 <div>{placement && <span className="mr-2">{bandBadge(placement.band)}</span>}</div>
                                 <div className="flex items-center gap-2">
                                   {a.status === 'scored' && (
-                                    <button onClick={() => handleViewReport(a.id)} className="text-xs px-3 py-1 rounded-lg bg-blue-600/30 text-blue-300 hover:bg-blue-600/50 transition flex items-center gap-1">
+                                    <button onClick={() => handleViewReport(a.id)} className="text-xs px-3 py-1 rounded-lg bg-blue-600/30 text-blue-700 hover:bg-blue-600/50 transition flex items-center gap-1">
                                       📊 Report
                                     </button>
                                   )}
                                   {a.status === 'scored' && !placement && (
                                     <div className="flex items-center gap-1">
-                                      <span className="text-xs text-gray-500 mr-1">Place:</span>
+                                      <span className="text-xs text-slate-500 mr-1">Place:</span>
                                       {(['A', 'B', 'C', 'D', 'E'] as PlacementBand[]).map(b => (
                                         <button
                                           key={b}
@@ -2102,8 +2102,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                                       ))}
                                     </div>
                                   )}
-                                  <button onClick={() => handleResetAttemptForRetake(a.id)} className="text-xs px-2 py-1 rounded bg-amber-600/20 text-amber-300 hover:bg-amber-600/40 transition" title="Reset attempt for retake">Allow retake</button>
-                                  <button onClick={() => handleDeleteAttempt(a.id)} className="text-xs px-1.5 py-1 rounded bg-red-600/20 text-red-400 hover:bg-red-600/40 transition" title="Delete attempt">🗑</button>
+                                  <button onClick={() => handleResetAttemptForRetake(a.id)} className="text-xs px-2 py-1 rounded bg-amber-600/20 text-amber-700 hover:bg-amber-600/40 transition" title="Reset attempt for retake">Allow retake</button>
+                                  <button onClick={() => handleDeleteAttempt(a.id)} className="text-xs px-1.5 py-1 rounded bg-red-600/20 text-red-700 hover:bg-red-600/40 transition" title="Delete attempt">🗑</button>
                                 </div>
                               </div>
                             </div>
@@ -2122,21 +2122,21 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       {/*  ━━━ AUDIT TAB ━━━  */}
       {activeTab === 'audit' && (
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-white">Activity Log</h2>
+          <h2 className="text-lg font-semibold text-slate-900">Activity Log</h2>
           {auditLog.length === 0 ? (
-            <div className="card-glass p-6 text-center text-gray-400 text-sm">No entries yet.</div>
+            <div className="card-glass p-6 text-center text-slate-600 text-sm">No entries yet.</div>
           ) : (
             <div className="space-y-2 max-h-[70vh] overflow-y-auto pr-1">
               {auditLog.map((entry, i) => {
                 const details = entry.details || {};
                 const actionMap: Record<string, { icon: string; label: string; color: string }> = {
-                  attempt_started: { icon: '🚀', label: 'Test Started', color: 'text-blue-300' },
-                  attempt_scored: { icon: '✅', label: 'Test Scored', color: 'text-emerald-300' },
-                  form_published: { icon: '📋', label: 'Form Published', color: 'text-indigo-300' },
-                  form_closed: { icon: '🔒', label: 'Form Closed', color: 'text-red-300' },
-                  placement_decided: { icon: '🎯', label: 'Placement Made', color: 'text-purple-300' },
+                  attempt_started: { icon: '🚀', label: 'Test Started', color: 'text-blue-700' },
+                  attempt_scored: { icon: '✅', label: 'Test Scored', color: 'text-emerald-700' },
+                  form_published: { icon: '📋', label: 'Form Published', color: 'text-indigo-700' },
+                  form_closed: { icon: '🔒', label: 'Form Closed', color: 'text-red-700' },
+                  placement_decided: { icon: '🎯', label: 'Placement Made', color: 'text-purple-700' },
                 };
-                const actionInfo = actionMap[entry.action] || { icon: '📝', label: entry.action.replace(/_/g, ' '), color: 'text-gray-300' };
+                const actionInfo = actionMap[entry.action] || { icon: '📝', label: entry.action.replace(/_/g, ' '), color: 'text-slate-700' };
                 const candidateName = details.candidate || '';
                 const formCode = details.form_code || '';
                 const score = details.score != null ? `${details.score}/${details.max}` : '';
@@ -2144,22 +2144,22 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 const band = details.band || '';
 
                 return (
-                  <div key={i} className="rounded-lg border border-gray-700/50 bg-slate-800/40 px-4 py-3 flex items-start gap-3">
+                  <div key={i} className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 flex items-start gap-3">
                     <span className="text-lg mt-0.5">{actionInfo.icon}</span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={`text-sm font-semibold ${actionInfo.color}`}>{actionInfo.label}</span>
-                        {candidateName && <span className="text-sm text-white">{candidateName}</span>}
-                        {formCode && <span className="text-xs px-1.5 py-0.5 rounded bg-slate-700 text-gray-400 font-mono">{formCode}</span>}
+                        {candidateName && <span className="text-sm text-slate-900">{candidateName}</span>}
+                        {formCode && <span className="text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-mono">{formCode}</span>}
                       </div>
                       {(score || band) && (
                         <div className="flex items-center gap-2 mt-0.5">
-                          {score && <span className="text-xs text-gray-400">Score: {score} ({pct})</span>}
-                          {band && <span className="text-xs text-gray-400">Band: {band}</span>}
+                          {score && <span className="text-xs text-slate-600">Score: {score} ({pct})</span>}
+                          {band && <span className="text-xs text-slate-600">Band: {band}</span>}
                         </div>
                       )}
                     </div>
-                    <span className="text-[11px] text-gray-500 shrink-0">
+                    <span className="text-[11px] text-slate-500 shrink-0">
                       {new Date(entry.created_at).toLocaleDateString()} {new Date(entry.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
@@ -2173,7 +2173,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       {/*  ━━━ REPORT MODAL ━━━  */}
       {showReport && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4" onClick={() => { setShowReport(false); setReportData(null); }}>
-          <div className="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl bg-slate-900 border border-gray-700 p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl bg-white border border-slate-200 p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
             {reportLoading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="h-8 w-8 rounded-full border-2 border-cyan-400/70 border-t-transparent animate-spin" />
@@ -2182,46 +2182,46 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-xl font-heading text-white">{reportData.candidate_name}</h3>
-                    <p className="text-xs text-gray-400">Form: {reportData.form_label || AdmService.buildAdmissionReportFormLabel(reportData.form_code, reportData.candidate_profile?.applied_grade, reportData.answers?.[0]?.subject)}</p>
-                    <p className="text-xs text-gray-500 font-mono">Code {reportData.form_code || '—'}</p>
+                    <h3 className="text-xl font-heading text-slate-900">{reportData.candidate_name}</h3>
+                    <p className="text-xs text-slate-600">Form: {reportData.form_label || AdmService.buildAdmissionReportFormLabel(reportData.form_code, reportData.candidate_profile?.applied_grade, reportData.answers?.[0]?.subject)}</p>
+                    <p className="text-xs text-slate-500 font-mono">Code {reportData.form_code || '—'}</p>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-white">{reportData.percentage}%</div>
+                    <div className="text-3xl font-bold text-slate-900">{reportData.percentage}%</div>
                     {bandBadge(reportData.band)}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
-                  {statCard('Score', `${visibleReportScoreTotal}/${visibleReportQuestionTotal}`, '🎯', 'border-cyan-500/30')}
-                  {statCard('Started', new Date(reportData.started_at).toLocaleTimeString(), '🕐', 'border-gray-500/30')}
-                  {statCard('Submitted', new Date(reportData.submitted_at).toLocaleTimeString(), '✅', 'border-emerald-500/30')}
+                  {statCard('Score', `${visibleReportScoreTotal}/${visibleReportQuestionTotal}`, '🎯', 'border-cyan-200')}
+                  {statCard('Started', new Date(reportData.started_at).toLocaleTimeString(), '🕐', 'border-slate-300/30')}
+                  {statCard('Submitted', new Date(reportData.submitted_at).toLocaleTimeString(), '✅', 'border-emerald-200')}
                 </div>
 
                 <AdmissionReportPartialAttemptNotice metrics={visibleReportPartialAttemptMetrics.partialAttempt ? visibleReportPartialAttemptMetrics : reportPartialAttemptMetrics} />
 
                 {(reportData.activity_events ?? []).some(e => e.event_type === 'auto_submit_repeated_page_exits') && (
-                  <div className="inline-flex w-fit rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-200">Unusual activity: repeated page exits</div>
+                  <div className="inline-flex w-fit rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">Unusual activity: repeated page exits</div>
                 )}
 
-                <div className="rounded-xl border border-amber-500/30 bg-amber-900/10 p-4">
-                  <h4 className="text-sm font-semibold text-amber-200 mb-2">Activity notes</h4>
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                  <h4 className="text-sm font-semibold text-amber-700 mb-2">Activity notes</h4>
                   {(reportData.activity_notes ?? []).length > 0 ? (
-                    <ul className="text-xs text-amber-50/90 list-disc pl-5 space-y-1">
+                    <ul className="text-xs text-amber-800 list-disc pl-5 space-y-1">
                       {(reportData.activity_notes ?? []).map((note, i) => <li key={i}>{note}</li>)}
                     </ul>
-                  ) : <p className="text-xs text-amber-50/90">No activity notes recorded for this attempt.</p>}
-                  <p className="mt-2 text-[11px] text-amber-100/70">Activity notes help the school review unusual test behaviour. They do not automatically prove misconduct.</p>
+                  ) : <p className="text-xs text-amber-800">No activity notes recorded for this attempt.</p>}
+                  <p className="mt-2 text-[11px] text-amber-800/70">Activity notes help the school review unusual test behaviour. They do not automatically prove misconduct.</p>
                 </div>
 
                 {reportData.placement_recommendation && (
-                  <div className="rounded-xl border border-cyan-500/30 bg-cyan-900/10 p-4 space-y-3">
+                  <div className="rounded-xl border border-cyan-200 bg-cyan-900/10 p-4 space-y-3">
                     <div className="flex items-center justify-between gap-3 flex-wrap">
                       <div>
-                        <h4 className="text-sm font-semibold text-cyan-200">Placement Recommendation</h4>
-                        <p className="text-lg font-bold text-white">{reportData.placement_recommendation.label}</p>
+                        <h4 className="text-sm font-semibold text-cyan-700">Placement Recommendation</h4>
+                        <p className="text-lg font-bold text-slate-900">{reportData.placement_recommendation.label}</p>
                       </div>
-                      {reportData.placement_recommendation.interviewFlag && reportData.placement_recommendation.label !== 'Interview recommended' && <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-200">Interview recommended</span>}
+                      {reportData.placement_recommendation.interviewFlag && reportData.placement_recommendation.label !== 'Interview recommended' && <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">Interview recommended</span>}
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                       {(() => {
@@ -2233,46 +2233,46 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                         ];
                         const visible = rec.isPackageReport ? cards : cards.filter(card => card.key === rec.currentSubject);
                         return visible.map(card => (
-                          <div key={card.key} className="rounded-lg bg-slate-900/50 p-3"><span className="text-xs text-gray-400">{card.label}</span><p className="text-white font-semibold">{card.value ?? 'Not enough data'}{card.value != null ? '%' : ''}</p></div>
+                          <div key={card.key} className="rounded-lg bg-slate-50 p-3"><span className="text-xs text-slate-600">{card.label}</span><p className="text-slate-900 font-semibold">{card.value ?? 'Not enough data'}{card.value != null ? '%' : ''}</p></div>
                         ));
                       })()}
                     </div>
                     <div>
-                      <h5 className="text-xs font-semibold text-gray-300 mb-1">Why this recommendation?</h5>
-                      <ul className="text-xs text-gray-300 list-disc pl-5 space-y-0.5">{reportData.placement_recommendation.reasons.map((r, i) => <li key={i}>{r}</li>)}</ul>
+                      <h5 className="text-xs font-semibold text-slate-700 mb-1">Why this recommendation?</h5>
+                      <ul className="text-xs text-slate-700 list-disc pl-5 space-y-0.5">{reportData.placement_recommendation.reasons.map((r, i) => <li key={i}>{r}</li>)}</ul>
                     </div>
-                    <p className="text-xs text-cyan-100"><strong>Next action:</strong> {reportData.placement_recommendation.nextAction}</p>
+                    <p className="text-xs text-cyan-800"><strong>Next action:</strong> {reportData.placement_recommendation.nextAction}</p>
                   </div>
                 )}
 
                 {reportData.candidate_profile && (
-                  <div className="rounded-xl border border-gray-700 bg-slate-800/50 p-4">
-                    <h4 className="text-sm font-semibold text-gray-300 mb-2">Candidate Academic Profile</h4>
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <h4 className="text-sm font-semibold text-slate-700 mb-2">Candidate Academic Profile</h4>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
-                      <div><span className="text-gray-500">Applying for</span><p className="text-white">Grade {reportData.candidate_profile.applied_grade ?? '—'}</p></div>
-                      <div><span className="text-gray-500">Current grade</span><p className="text-white">{reportData.candidate_profile.current_grade ?? '—'}</p></div>
-                      <div><span className="text-gray-500">Date of birth</span><p className="text-white">{reportData.candidate_profile.date_of_birth ?? '—'}</p></div>
-                      <div><span className="text-gray-500">Previous curriculum</span><p className="text-white">{reportData.candidate_profile.previous_curriculum ?? '—'}</p></div>
-                      <div><span className="text-gray-500">School language</span><p className="text-white">{reportData.candidate_profile.previous_school_language ?? '—'}</p></div>
-                      <div><span className="text-gray-500">Home language</span><p className="text-white">{reportData.candidate_profile.home_language ?? '—'}</p></div>
-                      <div><span className="text-gray-500">English-medium years</span><p className="text-white">{reportData.candidate_profile.years_english_medium ?? '—'}</p></div>
+                      <div><span className="text-slate-500">Applying for</span><p className="text-slate-900">Grade {reportData.candidate_profile.applied_grade ?? '—'}</p></div>
+                      <div><span className="text-slate-500">Current grade</span><p className="text-slate-900">{reportData.candidate_profile.current_grade ?? '—'}</p></div>
+                      <div><span className="text-slate-500">Date of birth</span><p className="text-slate-900">{reportData.candidate_profile.date_of_birth ?? '—'}</p></div>
+                      <div><span className="text-slate-500">Previous curriculum</span><p className="text-slate-900">{reportData.candidate_profile.previous_curriculum ?? '—'}</p></div>
+                      <div><span className="text-slate-500">School language</span><p className="text-slate-900">{reportData.candidate_profile.previous_school_language ?? '—'}</p></div>
+                      <div><span className="text-slate-500">Home language</span><p className="text-slate-900">{reportData.candidate_profile.home_language ?? '—'}</p></div>
+                      <div><span className="text-slate-500">English-medium years</span><p className="text-slate-900">{reportData.candidate_profile.years_english_medium ?? '—'}</p></div>
                     </div>
                   </div>
                 )}
 
                 {/* Diagnostic Breakdown */}
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-300 mb-2">Diagnostic Breakdown</h4>
+                  <h4 className="text-sm font-semibold text-slate-700 mb-2">Diagnostic Breakdown</h4>
                   {(reportData.diagnostic_breakdown ?? []).length === 0 ? (
-                    <p className="text-xs text-gray-500">Detailed subject and skill tags are not available for this older test yet.</p>
+                    <p className="text-xs text-slate-500">Detailed subject and skill tags are not available for this older test yet.</p>
                   ) : (
                     <div className="space-y-1.5">
                       {(reportData.diagnostic_breakdown ?? []).map((t) => (
                         <div key={t.key} className="flex items-center gap-2">
-                          <span className="text-xs text-gray-400 w-48 truncate">{AdmService.admissionSubjectLabel(t.subject)} · {t.skill}</span>
-                          {t.difficulty && <span className="rounded-full border border-slate-600 bg-slate-800 px-2 py-0.5 text-[10px] text-gray-400 capitalize">Difficulty: {t.difficulty}</span>}
-                          <div className="flex-1 h-3 rounded bg-slate-700 overflow-hidden"><div className={`h-full rounded transition-all ${t.percentage >= 70 ? 'bg-emerald-500' : t.percentage >= 50 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${t.percentage}%` }} /></div>
-                          <span className="text-xs text-gray-300 w-16 text-right">{t.score}/{t.maxScore}</span>
+                          <span className="text-xs text-slate-600 w-48 truncate">{AdmService.admissionSubjectLabel(t.subject)} · {t.skill}</span>
+                          {t.difficulty && <span className="rounded-full border border-slate-600 bg-white px-2 py-0.5 text-[10px] text-slate-600 capitalize">Difficulty: {t.difficulty}</span>}
+                          <div className="flex-1 h-3 rounded bg-slate-100 overflow-hidden"><div className={`h-full rounded transition-all ${t.percentage >= 70 ? 'bg-emerald-500' : t.percentage >= 50 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${t.percentage}%` }} /></div>
+                          <span className="text-xs text-slate-700 w-16 text-right">{t.score}/{t.maxScore}</span>
                         </div>
                       ))}
                     </div>
@@ -2281,18 +2281,18 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
                 {/* By Topic */}
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-300 mb-2">Performance by Topic</h4>
+                  <h4 className="text-sm font-semibold text-slate-700 mb-2">Performance by Topic</h4>
                   <div className="space-y-1.5">
                     {(reportData.by_topic ?? []).map((t, i) => (
                       <div key={i} className="flex items-center gap-2">
-                        <span className="text-xs text-gray-400 w-40 truncate">{t.topic}</span>
-                        <div className="flex-1 h-3 rounded bg-slate-700 overflow-hidden">
+                        <span className="text-xs text-slate-600 w-40 truncate">{t.topic}</span>
+                        <div className="flex-1 h-3 rounded bg-slate-100 overflow-hidden">
                           <div
                             className={`h-full rounded transition-all ${t.pct >= 70 ? 'bg-emerald-500' : t.pct >= 50 ? 'bg-amber-500' : 'bg-red-500'}`}
                             style={{ width: `${t.pct}%` }}
                           />
                         </div>
-                        <span className="text-xs text-gray-300 w-12 text-right">{t.correct}/{t.total}</span>
+                        <span className="text-xs text-slate-700 w-12 text-right">{t.correct}/{t.total}</span>
                       </div>
                     ))}
                   </div>
@@ -2300,18 +2300,18 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
                 {/* By Type */}
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-300 mb-2">Performance by Question Type</h4>
+                  <h4 className="text-sm font-semibold text-slate-700 mb-2">Performance by Question Type</h4>
                   <div className="space-y-1.5">
                     {(reportData.by_type ?? []).map((t, i) => (
                       <div key={i} className="flex items-center gap-2">
-                        <span className="text-xs text-gray-400 w-40 truncate capitalize">{t.question_type.replace('_', ' ')}</span>
-                        <div className="flex-1 h-3 rounded bg-slate-700 overflow-hidden">
+                        <span className="text-xs text-slate-600 w-40 truncate capitalize">{t.question_type.replace('_', ' ')}</span>
+                        <div className="flex-1 h-3 rounded bg-slate-100 overflow-hidden">
                           <div
                             className={`h-full rounded transition-all ${t.pct >= 70 ? 'bg-emerald-500' : t.pct >= 50 ? 'bg-amber-500' : 'bg-red-500'}`}
                             style={{ width: `${t.pct}%` }}
                           />
                         </div>
-                        <span className="text-xs text-gray-300 w-12 text-right">{t.correct}/{t.total}</span>
+                        <span className="text-xs text-slate-700 w-12 text-right">{t.correct}/{t.total}</span>
                       </div>
                     ))}
                   </div>
@@ -2320,14 +2320,14 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 {/* Strengths / Weaknesses */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <h4 className="text-sm font-semibold text-emerald-300 mb-1">Strengths</h4>
-                    <ul className="text-xs text-gray-300 space-y-0.5">
+                    <h4 className="text-sm font-semibold text-emerald-700 mb-1">Strengths</h4>
+                    <ul className="text-xs text-slate-700 space-y-0.5">
                       {(reportData.strengths ?? []).length > 0 ? (reportData.strengths ?? []).map((s, i) => <li key={i}>✓ {s}</li>) : <li>No clear strengths yet — more completed answers are needed.</li>}
                     </ul>
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-red-300 mb-1">Areas for Improvement</h4>
-                    <ul className="text-xs text-gray-300 space-y-0.5">
+                    <h4 className="text-sm font-semibold text-red-700 mb-1">Areas for Improvement</h4>
+                    <ul className="text-xs text-slate-700 space-y-0.5">
                       {(reportData.weaknesses ?? []).length > 0 ? (reportData.weaknesses ?? []).map((w, i) => <li key={i}>△ {w}</li>) : <li>No major weak area detected from this attempt.</li>}
                     </ul>
                   </div>
@@ -2335,11 +2335,11 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
                 {/* AI Summary */}
                 {reportData.ai_summary && (
-                  <div className="rounded-xl border border-purple-500/30 bg-purple-900/20 p-4">
-                    <h4 className="text-sm font-semibold text-purple-300 mb-2 flex items-center gap-2">
+                  <div className="rounded-xl border border-purple-200 bg-purple-50 p-4">
+                    <h4 className="text-sm font-semibold text-purple-700 mb-2 flex items-center gap-2">
                       <span>🤖</span> AI Assessment
                     </h4>
-                    <p className="text-sm text-gray-300 whitespace-pre-wrap">{reportData.ai_summary}</p>
+                    <p className="text-sm text-slate-700 whitespace-pre-wrap">{reportData.ai_summary}</p>
                   </div>
                 )}
 
@@ -2347,14 +2347,14 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 {!reportData.ai_summary && !AdmService.isObjectiveAutoScoredAdmissionReport(reportData) && (
                   <div className="space-y-2">
                     {(reportData.answers ?? []).some(a => ['email_writing','essay_writing','gap_fill','sentence_transformation','error_correction','word_formation','open_cloze','short_answer','structured'].includes(a.question_type)) && (
-                      <div className="rounded-lg border border-amber-500/30 bg-amber-900/10 px-3 py-2 text-xs text-amber-200">
+                      <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
                         ⚠️ This test has writing and/or open-ended answers that need AI grading for accurate scores. Click below to run AI grading.
                       </div>
                     )}
                     <button
                       onClick={() => handleGenerateAiReport(reportAttemptId!)}
                       disabled={generatingAiReport || !reportAttemptId}
-                      className="w-full rounded-lg border border-purple-500/40 bg-purple-600/20 hover:bg-purple-600/30 px-4 py-2 text-sm text-purple-200 transition flex items-center justify-center gap-2 disabled:opacity-40"
+                      className="w-full rounded-lg border border-purple-500/40 bg-purple-600/20 hover:bg-purple-600/30 px-4 py-2 text-sm text-purple-800 transition flex items-center justify-center gap-2 disabled:opacity-40"
                     >
                       {generatingAiReport ? (
                         <><span className="animate-spin">🔄</span> AI Grading in Progress (this may take a minute)...</>
@@ -2369,7 +2369,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 <div>
                   <button
                     onClick={() => setShowAnswers(!showAnswers)}
-                    className="w-full flex items-center justify-between text-sm font-semibold text-gray-300 hover:text-white py-2 transition"
+                    className="w-full flex items-center justify-between text-sm font-semibold text-slate-700 hover:text-slate-900 py-2 transition"
                   >
                     <span>📝 Detailed Answers ({visibleReportAnsweredCount} questions)</span>
                     <span className="text-lg">{showAnswers ? '▲' : '▼'}</span>
@@ -2378,7 +2378,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   {showAnswers && (
                     <div className="space-y-3 mt-2 max-h-[50vh] overflow-y-auto pr-1">
                       {reportData.answer_details_available === false && (
-                        <div className="rounded-lg border border-amber-500/30 bg-amber-900/10 p-3 text-sm text-amber-200">
+                        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
                           {reportData.answer_detail_message || 'Detailed answers unavailable'}
                         </div>
                       )}
@@ -2387,9 +2387,9 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                           key={ans.question_id || i}
                           className={`rounded-lg border p-3 ${
                             ans.is_correct
-                              ? 'border-emerald-500/30 bg-emerald-900/10'
+                              ? 'border-emerald-200 bg-emerald-900/10'
                               : ans.is_correct === null || ['email_writing','essay_writing'].includes(ans.question_type)
-                              ? 'border-amber-500/30 bg-amber-900/10'
+                              ? 'border-amber-200 bg-amber-50'
                               : !ans.ai_feedback && ['gap_fill','sentence_transformation','error_correction','word_formation','open_cloze','short_answer','structured'].includes(ans.question_type)
                               ? 'border-yellow-500/30 bg-yellow-900/10'
                               : 'border-red-500/30 bg-red-900/10'
@@ -2397,30 +2397,30 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                         >
                           <div className="flex items-start justify-between gap-2 mb-2">
                             <div className="flex items-center gap-2">
-                              <span className="text-xs px-2 py-0.5 rounded bg-slate-700 text-gray-300 capitalize">
+                              <span className="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700 capitalize">
                                 {ans.question_type.replace(/_/g, ' ')}
                               </span>
                               {!ans.ai_feedback && ans.is_correct !== true && ['email_writing','essay_writing','gap_fill','sentence_transformation','error_correction','word_formation','open_cloze','short_answer','structured'].includes(ans.question_type) && (
-                                <span className="text-xs px-2 py-0.5 rounded bg-amber-800/50 text-amber-300">⏳ Needs AI</span>
+                                <span className="text-xs px-2 py-0.5 rounded bg-amber-800/50 text-amber-700">⏳ Needs AI</span>
                               )}
                               {ans.ai_feedback && (
-                                <span className="text-xs px-2 py-0.5 rounded bg-purple-800/50 text-purple-300">🤖 AI Graded</span>
+                                <span className="text-xs px-2 py-0.5 rounded bg-purple-800/50 text-purple-700">🤖 AI Graded</span>
                               )}
                             </div>
                             <span className={`text-xs font-bold ${
                               ans.is_correct ? 'text-emerald-400' 
                               : ans.is_correct === null ? 'text-amber-400'
-                              : 'text-red-400'
+                              : 'text-red-700'
                             }`}>
                               {ans.marks_awarded}/{ans.marks_possible}
                             </span>
                           </div>
-                          <p className="text-sm text-white mb-2">{ans.stem}</p>
+                          <p className="text-sm text-slate-900 mb-2">{ans.stem}</p>
                           
                           {/* Student Response */}
                           <div className="text-xs">
-                            <span className="text-gray-400">Student answered: </span>
-                            <span className={ans.is_correct ? 'text-emerald-300' : ans.is_correct === null ? 'text-amber-300' : 'text-red-300'}>
+                            <span className="text-slate-600">Student answered: </span>
+                            <span className={ans.is_correct ? 'text-emerald-700' : ans.is_correct === null ? 'text-amber-700' : 'text-red-700'}>
                               {typeof ans.response === 'object'
                                 ? (ans.response?.text || ans.response?.index) ?? JSON.stringify(ans.response)
                                 : ans.response || '(no answer)'}
@@ -2430,8 +2430,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                           {/* Correct Answer (for non-writing) */}
                           {!['email_writing', 'essay_writing'].includes(ans.question_type) && !ans.is_correct && (
                             <div className="text-xs mt-1">
-                              <span className="text-gray-400">Correct: </span>
-                              <span className="text-emerald-300">
+                              <span className="text-slate-600">Correct: </span>
+                              <span className="text-emerald-700">
                                 {typeof ans.correct_answer === 'object'
                                   ? JSON.stringify(ans.correct_answer)
                                   : ans.correct_answer}
@@ -2441,15 +2441,15 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                           
                           {/* AI Feedback for writing */}
                           {ans.ai_feedback && (
-                            <div className="mt-2 p-2 rounded bg-purple-900/20 border border-purple-500/20">
-                              <span className="text-xs text-purple-300 font-semibold">🤖 AI Feedback:</span>
-                              <p className="text-xs text-gray-300 mt-1 whitespace-pre-wrap">{ans.ai_feedback}</p>
+                            <div className="mt-2 p-2 rounded bg-purple-50 border border-purple-500/20">
+                              <span className="text-xs text-purple-700 font-semibold">🤖 AI Feedback:</span>
+                              <p className="text-xs text-slate-700 mt-1 whitespace-pre-wrap">{ans.ai_feedback}</p>
                             </div>
                           )}
                           
                           {/* Explanation */}
                           {ans.explanation && (
-                            <div className="text-xs text-gray-500 mt-2 italic">
+                            <div className="text-xs text-slate-500 mt-2 italic">
                               💡 {ans.explanation}
                             </div>
                           )}
@@ -2464,7 +2464,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 </button>
               </div>
             ) : (
-              <div className="text-center text-gray-400 py-8">No report data</div>
+              <div className="text-center text-slate-600 py-8">No report data</div>
             )}
           </div>
         </div>
@@ -2481,43 +2481,43 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4" onClick={() => setCandidateFileId(null)}>
-            <div className="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl bg-slate-900 border border-gray-700 p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl bg-white border border-slate-200 p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
               {/* Header */}
               <div className="flex items-center gap-3 mb-5">
                 <span className="text-3xl">📁</span>
                 <div>
-                  <h2 className="text-xl font-bold text-white">{cand.full_name}</h2>
-                  <p className="text-xs text-gray-400">
+                  <h2 className="text-xl font-bold text-slate-900">{cand.full_name}</h2>
+                  <p className="text-xs text-slate-600">
                     Candidate details · Registered {new Date(cand.created_at).toLocaleDateString()}
                   </p>
                 </div>
-                <button onClick={() => setCandidateFileId(null)} className="ml-auto text-gray-400 hover:text-white text-xl">✕</button>
+                <button onClick={() => setCandidateFileId(null)} className="ml-auto text-slate-600 hover:text-slate-900 text-xl">✕</button>
               </div>
 
               {/* Personal Info */}
-              <div className="rounded-lg border border-gray-700/50 bg-slate-800/50 p-4 mb-4">
-                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Candidate profile</h3>
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 mb-4">
+                <h3 className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Candidate profile</h3>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <span className="text-gray-500 text-xs">Email</span>
-                    <p className="text-white">{cand.email || '—'}</p>
+                    <span className="text-slate-500 text-xs">Email</span>
+                    <p className="text-slate-900">{cand.email || '—'}</p>
                   </div>
                   <div>
-                    <span className="text-gray-500 text-xs">Phone</span>
-                    <p className="text-white">{cand.parent_phone || '—'}</p>
+                    <span className="text-slate-500 text-xs">Phone</span>
+                    <p className="text-slate-900">{cand.parent_phone || '—'}</p>
                   </div>
                   <div>
-                    <span className="text-gray-500 text-xs">Applied Grade</span>
-                    <p className="text-white">{cand.applied_grade || '—'}</p>
+                    <span className="text-slate-500 text-xs">Applied Grade</span>
+                    <p className="text-slate-900">{cand.applied_grade || '—'}</p>
                   </div>
                   <div>
-                    <span className="text-gray-500 text-xs">Status</span>
+                    <span className="text-slate-500 text-xs">Status</span>
                     <p>{statusPill(cand.status)}</p>
                   </div>
                   {cand.notes && (
                     <div className="col-span-2">
-                      <span className="text-gray-500 text-xs">Notes</span>
-                      <p className="text-white text-xs">{cand.notes}</p>
+                      <span className="text-slate-500 text-xs">Notes</span>
+                      <p className="text-slate-900 text-xs">{cand.notes}</p>
                     </div>
                   )}
                   <div className="col-span-2 rounded-lg border border-sky-200 bg-sky-50 p-3 text-xs text-sky-900">
@@ -2549,12 +2549,12 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
               </div>
 
               {/* Attempts / Results / Retake */}
-              <div className="rounded-lg border border-gray-700/50 bg-slate-800/50 p-4 mb-4">
-                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 mb-4">
+                <h3 className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
                   Attempts, Results, Activity notes, and Retake ({candAttempts.length})
                 </h3>
                 {candAttempts.length === 0 ? (
-                  <p className="text-gray-500 text-sm">No tests taken yet.</p>
+                  <p className="text-slate-500 text-sm">No tests taken yet.</p>
                 ) : (
                   <div className="space-y-3">
                     {candAttempts.map(a => {
@@ -2563,22 +2563,22 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                       const subjectLabel = bp?.subject ? bp.subject.charAt(0).toUpperCase() + bp.subject.slice(1) : 'Unknown';
                       const pct = a.max_score ? Math.round((a.total_score / a.max_score) * 100) : 0;
                       return (
-                        <div key={a.id} className="rounded-lg border border-gray-600/30 bg-slate-700/30 p-3">
+                        <div key={a.id} className="rounded-lg border border-slate-300/30 bg-slate-100 p-3">
                           <div className="flex items-center justify-between mb-1">
                             <div className="flex items-center gap-2">
-                              <span className="text-sm font-semibold text-white">{subjectLabel}</span>
-                              {form && <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-600 text-gray-400 font-mono">{form.form_code}</span>}
+                              <span className="text-sm font-semibold text-slate-900">{subjectLabel}</span>
+                              {form && <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-600 text-slate-600 font-mono">{form.form_code}</span>}
                               {statusPill(a.status)}
                             </div>
-                            <span className="text-[11px] text-gray-500">{new Date(a.started_at).toLocaleDateString()}</span>
+                            <span className="text-[11px] text-slate-500">{new Date(a.started_at).toLocaleDateString()}</span>
                           </div>
                           {a.status === 'scored' && (
                             <div className="mt-2">
                               <div className="flex items-center justify-between text-xs mb-1">
-                                <span className="text-gray-400">Score: {a.total_score}/{a.max_score}</span>
-                                <span className={`font-bold ${pct >= 80 ? 'text-emerald-400' : pct >= 60 ? 'text-blue-400' : pct >= 40 ? 'text-amber-400' : 'text-red-400'}`}>{pct}%</span>
+                                <span className="text-slate-600">Score: {a.total_score}/{a.max_score}</span>
+                                <span className={`font-bold ${pct >= 80 ? 'text-emerald-400' : pct >= 60 ? 'text-blue-400' : pct >= 40 ? 'text-amber-400' : 'text-red-700'}`}>{pct}%</span>
                               </div>
-                              <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                              <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                                 <div className={`h-full rounded-full ${pct >= 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-blue-500' : pct >= 40 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${pct}%` }} />
                               </div>
                             </div>
@@ -2590,9 +2590,9 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                             <p className="text-xs text-blue-400 mt-1">🔄 Test in progress…</p>
                           )}
                           <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                            {(a.status === 'submitted' || a.status === 'scored') && <button onClick={() => handleViewReport(a.id)} className="rounded-lg bg-blue-600/30 px-3 py-1 text-blue-200 hover:bg-blue-600/50">View result</button>}
-                            <button onClick={() => handleViewReport(a.id)} className="rounded-lg bg-amber-600/20 px-3 py-1 text-amber-200 hover:bg-amber-600/40">Activity notes</button>
-                            <button onClick={() => handleResetAttemptForRetake(a.id)} className="rounded-lg bg-white/10 px-3 py-1 text-white hover:bg-white/20">Allow retake</button>
+                            {(a.status === 'submitted' || a.status === 'scored') && <button onClick={() => handleViewReport(a.id)} className="rounded-lg bg-blue-600/30 px-3 py-1 text-blue-800 hover:bg-blue-600/50">View result</button>}
+                            <button onClick={() => handleViewReport(a.id)} className="rounded-lg bg-amber-600/20 px-3 py-1 text-amber-700 hover:bg-amber-600/40">Activity notes</button>
+                            <button onClick={() => handleResetAttemptForRetake(a.id)} className="rounded-lg bg-white/10 px-3 py-1 text-slate-900 hover:bg-white/20">Allow retake</button>
                           </div>
                         </div>
                       );
@@ -2608,7 +2608,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 </h3>
                 <p className="mb-3 text-xs text-amber-900">Activity notes help the school review unusual test behaviour. They do not automatically prove misconduct.</p>
                 {candAuditEntries.length === 0 ? (
-                  <p className="text-gray-500 text-sm">No activity notes recorded for this attempt.</p>
+                  <p className="text-slate-500 text-sm">No activity notes recorded for this attempt.</p>
                 ) : (
                   <div className="space-y-2 max-h-48 overflow-y-auto">
                     {candAuditEntries.map((entry, i) => {
@@ -2621,11 +2621,11 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                       const info = actionMap[entry.action] || { icon: '📝', label: entry.action.replace(/_/g, ' ') };
                       return (
                         <div key={i} className="flex items-center gap-2 text-xs">
-                          <span className="text-gray-500 w-28 shrink-0">{new Date(entry.created_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                          <span className="text-slate-500 w-28 shrink-0">{new Date(entry.created_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                           <span>{info.icon}</span>
-                          <span className="text-gray-300">{info.label}</span>
-                          {details.form_code && <span className="text-gray-500 font-mono">({details.form_code})</span>}
-                          {details.band && <span className="text-gray-500">Band {details.band}</span>}
+                          <span className="text-slate-700">{info.label}</span>
+                          {details.form_code && <span className="text-slate-500 font-mono">({details.form_code})</span>}
+                          {details.band && <span className="text-slate-500">Band {details.band}</span>}
                         </div>
                       );
                     })}

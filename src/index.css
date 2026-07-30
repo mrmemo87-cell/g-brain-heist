@@ -1949,25 +1949,25 @@ button {
 
 /* Convert legacy tab surfaces to the administrative light palette without
    changing their behaviour or removing any operational controls. */
-.school-admin-content .bg-gray-950, .school-admin-content .bg-gray-900,
-.school-admin-content .bg-gray-900\/70, .school-admin-content .bg-gray-800,
-.school-admin-content .bg-gray-800\/80, .school-admin-content .bg-gray-800\/50,
-.school-admin-content .bg-slate-900 { background:#fff !important; }
-.school-admin-content [class*="from-gray-"], .school-admin-content [class*="from-slate-"],
-.school-admin-content [class*="via-blue-"], .school-admin-content [class*="to-slate-"] { background:#fff !important; }
-.school-admin-content .text-white, .school-admin-content .text-gray-100,
-.school-admin-content .text-gray-200, .school-admin-content .text-gray-300 { color:var(--school-ink) !important; }
-.school-admin-content .text-gray-400, .school-admin-content .text-gray-500,
-.school-admin-content .text-gray-600 { color:var(--school-muted) !important; }
-.school-admin-content .text-slate-400, .school-admin-content .text-slate-500,
-.school-admin-content .text-slate-600 { color:var(--school-muted) !important; }
-.school-admin-content .border-gray-700, .school-admin-content .border-gray-700\/50,
-.school-admin-content .border-gray-600 { border-color:#dce3ea !important; }
-.school-admin-content > div > section, .school-admin-content > div > div { box-shadow:none; }
-.school-admin-content input, .school-admin-content select, .school-admin-content textarea { color:#1e293b !important; background:#fff !important; border-color:#cbd5e1 !important; }
-.school-admin-content table { background:#fff; color:var(--school-ink); }
-.school-admin-content th { background:#eef2f6 !important; color:#42526a !important; }
-.school-admin-content td { border-color:#e2e8f0 !important; }
+.school-admin-content > :not(.admission-hub-admin-theme) .bg-gray-950, .school-admin-content > :not(.admission-hub-admin-theme) .bg-gray-900,
+.school-admin-content > :not(.admission-hub-admin-theme) .bg-gray-900\/70, .school-admin-content > :not(.admission-hub-admin-theme) .bg-gray-800,
+.school-admin-content > :not(.admission-hub-admin-theme) .bg-gray-800\/80, .school-admin-content > :not(.admission-hub-admin-theme) .bg-gray-800\/50,
+.school-admin-content > :not(.admission-hub-admin-theme) .bg-slate-900 { background:#fff !important; }
+.school-admin-content > :not(.admission-hub-admin-theme) [class*="from-gray-"], .school-admin-content > :not(.admission-hub-admin-theme) [class*="from-slate-"],
+.school-admin-content > :not(.admission-hub-admin-theme) [class*="via-blue-"], .school-admin-content > :not(.admission-hub-admin-theme) [class*="to-slate-"] { background:#fff !important; }
+.school-admin-content > :not(.admission-hub-admin-theme) .text-white, .school-admin-content > :not(.admission-hub-admin-theme) .text-gray-100,
+.school-admin-content > :not(.admission-hub-admin-theme) .text-gray-200, .school-admin-content > :not(.admission-hub-admin-theme) .text-gray-300 { color:var(--school-ink) !important; }
+.school-admin-content > :not(.admission-hub-admin-theme) .text-gray-400, .school-admin-content > :not(.admission-hub-admin-theme) .text-gray-500,
+.school-admin-content > :not(.admission-hub-admin-theme) .text-gray-600 { color:var(--school-muted) !important; }
+.school-admin-content > :not(.admission-hub-admin-theme) .text-slate-400, .school-admin-content > :not(.admission-hub-admin-theme) .text-slate-500,
+.school-admin-content > :not(.admission-hub-admin-theme) .text-slate-600 { color:var(--school-muted) !important; }
+.school-admin-content > :not(.admission-hub-admin-theme) .border-gray-700, .school-admin-content > :not(.admission-hub-admin-theme) .border-gray-700\/50,
+.school-admin-content > :not(.admission-hub-admin-theme) .border-gray-600 { border-color:#dce3ea !important; }
+.school-admin-content > :not(.admission-hub-admin-theme) > section, .school-admin-content > :not(.admission-hub-admin-theme) > div { box-shadow:none; }
+.school-admin-content > :not(.admission-hub-admin-theme) input, .school-admin-content > :not(.admission-hub-admin-theme) select, .school-admin-content > :not(.admission-hub-admin-theme) textarea { color:#1e293b !important; background:#fff !important; border-color:#cbd5e1 !important; }
+.school-admin-content > :not(.admission-hub-admin-theme) table { background:#fff; color:var(--school-ink); }
+.school-admin-content > :not(.admission-hub-admin-theme) th { background:#eef2f6 !important; color:#42526a !important; }
+.school-admin-content > :not(.admission-hub-admin-theme) td { border-color:#e2e8f0 !important; }
 
 /* Billing and IELTS use the same light surfaces as every other admin tool. */
 .school-admin-themed-tab [class*="bg-gradient-to"],
