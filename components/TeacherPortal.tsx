@@ -8099,9 +8099,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           { id: 'writing-hub' as const, label: 'Writing Hub', icon: '✍️', description: 'Monitor, analyse, and export writing progress', proOnly: true },
         ]
       : []),
-    { id: 'clan-wars', label: 'Clan Wars', icon: '⚔️', description: 'Host official class battles' },
     { id: 'cambridge', label: 'Cambridge Tests', icon: '✍️', description: 'Writing & Test Results', proOnly: true },
     { id: 'quests', label: 'Quest Builder', icon: '🗺️', description: 'Create V2 Quest Missions', proOnly: true },
+    { id: 'clan-wars', label: 'Clan Wars', icon: '⚔️', description: 'Host official class battles' },
   ];
 
   // Plan badge info for top bar
