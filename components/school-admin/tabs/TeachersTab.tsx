@@ -168,7 +168,7 @@ const TeachersTab: React.FC = () => {
                           setConfirmDialog({
                             title: 'Delete assignment',
                             description: `Remove ${teacher?.username || 'this teacher'} from teaching ${assignment.subject} in ${cls?.class_code || 'this class'}?`,
-                            confirmLabel: 'Delete assignment',
+                            confirmLabel: 'Delete',
                             cancelLabel: 'Cancel',
                             isDestructive: true,
                             onConfirm: async () => {
