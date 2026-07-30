@@ -1927,6 +1927,8 @@ button {
   box-shadow: 0 4px 18px rgba(23, 36, 59, .05);
 }
 .school-admin-header h1 { color: var(--school-ink) !important; letter-spacing: -.025em; }
+.school-admin-identity, .school-admin-identity-copy { min-width:0; }
+.school-admin-identity-copy h1 { overflow-wrap:anywhere; }
 .school-admin-eyebrow { color: var(--school-blue); font-size: .68rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
 .school-admin-session { color: var(--school-muted); font-size: .75rem; }
 .school-admin-crest { display:grid; place-items:center; width:3rem; height:3rem; border-radius:.75rem; color:#fff; background:var(--school-blue); border-bottom:3px solid var(--school-gold); font-family:Georgia,serif; font-size:1.45rem; font-weight:700; }
@@ -1963,6 +1965,47 @@ button {
 .school-admin-content table { background:#fff; color:var(--school-ink); }
 .school-admin-content th { background:#eef2f6 !important; color:#42526a !important; }
 .school-admin-content td { border-color:#e2e8f0 !important; }
+
+/* Shared operational surfaces used by school-admin management pages. */
+.admin-section-heading h2 { margin:.15rem 0 .35rem; color:var(--school-ink); font-size:clamp(1.55rem,2.4vw,2rem); line-height:1.2; letter-spacing:-.025em; }
+.admin-section-heading p:last-child, .admin-card-heading p { max-width:46rem; color:var(--school-muted); font-size:.88rem; line-height:1.55; }
+.admin-form-card, .admin-table-card { overflow:hidden; border:1px solid #dce3ea; border-radius:.9rem; background:#fff; box-shadow:0 8px 30px rgba(23,36,59,.045); }
+.admin-card-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; padding:1.15rem 1.25rem; border-bottom:1px solid #e5eaf0; }
+.admin-card-heading h3 { margin:0 0 .2rem; color:var(--school-ink); font-size:1rem; font-weight:750; }
+.admin-form-grid { display:grid; grid-template-columns:minmax(0,2fr) minmax(12rem,1fr); gap:1rem; padding:1.25rem; }
+.admin-field { display:flex; flex-direction:column; gap:.4rem; color:#334155; font-size:.78rem; font-weight:700; }
+.admin-field span { display:flex; justify-content:space-between; gap:.75rem; }
+.admin-field i { color:#7c8798; font-size:.68rem; font-style:normal; font-weight:600; }
+.admin-field input, .admin-table-card input { min-height:2.65rem; padding:.65rem .75rem; border:1px solid #cbd5e1; border-radius:.55rem; font-size:.86rem; }
+.admin-form-actions { display:flex; justify-content:flex-end; padding:0 1.25rem 1.25rem; }
+.admin-button-primary, .admin-button-ghost, .admin-button-danger { display:inline-flex; min-height:2.55rem; align-items:center; justify-content:center; padding:.6rem .9rem; border:1px solid transparent; border-radius:.55rem; font-size:.8rem; font-weight:750; transition:background .15s,border-color .15s,color .15s; }
+.admin-button-primary { color:#fff; background:var(--school-blue); }
+.admin-button-primary:hover:not(:disabled) { background:#0f315c; }
+.admin-button-ghost { color:#334155; background:#fff; border-color:#cbd5e1; }
+.admin-button-ghost:hover { background:#f1f5f9; border-color:#94a3b8; }
+.admin-button-danger { color:#9f1239; background:#fff7f8; border-color:#fecdd3; }
+.admin-button-danger:hover { color:#fff; background:#9f1239; border-color:#9f1239; }
+.admin-button-small { min-height:2rem; padding:.35rem .65rem; }
+.admin-button-primary:disabled { cursor:not-allowed; opacity:.55; }
+.admin-table-scroll { overflow-x:auto; }
+.admin-table-card table { width:100%; border-collapse:collapse; }
+.admin-table-card th, .admin-table-card td { padding:.8rem 1.25rem; text-align:left; white-space:nowrap; }
+.admin-table-card th { font-size:.7rem; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
+.admin-table-card td { border-top:1px solid #e8edf2; color:#475569; font-size:.82rem; }
+.admin-table-card td strong { color:var(--school-ink); }
+.admin-table-card tbody tr:hover { background:#f8fafc; }
+.admin-actions-column { text-align:right !important; }
+.admin-row-actions { text-align:right !important; }
+.admin-row-actions > * + * { margin-left:.4rem; }
+.admin-muted { color:#8793a4; }
+.admin-empty-state { padding:3.5rem 1.25rem; text-align:center; }
+.admin-empty-state h3 { color:var(--school-ink); font-size:1rem; font-weight:750; }
+.admin-empty-state p { max-width:30rem; margin:.35rem auto 0; color:var(--school-muted); font-size:.84rem; }
+.school-admin-portal :is(button,input,select,textarea,a):focus-visible { outline:3px solid rgba(37,99,235,.3); outline-offset:2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .school-admin-portal *, .school-admin-portal *::before, .school-admin-portal *::after { scroll-behavior:auto !important; transition-duration:.01ms !important; animation-duration:.01ms !important; animation-iteration-count:1 !important; }
+}
 
 /* Keep native dropdown menus readable in dark admin portals */
 .admin-portal select,
@@ -2042,6 +2085,9 @@ button {
     line-height: 1.2;
   }
 
+  .school-admin-header > div { align-items:flex-start; }
+  .school-admin-identity { max-width:calc(100% - 5.5rem); }
+
   .school-admin-tabs {
     display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
   }
@@ -2050,6 +2096,11 @@ button {
     font-size: .72rem; padding:.55rem;
   }
   .school-admin-security-note, .school-admin-nav-label { display:none; }
+  .admin-form-grid { grid-template-columns:1fr; }
+  .admin-card-heading, .admin-form-grid { padding:1rem; }
+  .admin-form-actions { padding:0 1rem 1rem; }
+  .admin-form-actions .admin-button-primary { width:100%; }
+  .admin-table-card th, .admin-table-card td { padding:.7rem .85rem; }
 }
 
 
