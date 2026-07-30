@@ -29,7 +29,7 @@ test('assignment wizard follows the subject-first light workflow', () => {
   assert.match(wizard, />Select all</);
   assert.match(wizard, /Available questions/);
   assert.match(wizard, /Selected questions/);
-  assert.match(wizard, /Your progress will be lost and cannot be recovered/);
+  assert.match(wizard, /Leave assignment setup\?/);
   assert.doesNotMatch(wizard, /Preview selection/);
   assert.match(wizardStyles, /background: linear-gradient\(180deg, #f8fafc, #eef2f7\)/);
   assert.match(wizardStyles, /\.aw-floating-nav/);
@@ -43,6 +43,10 @@ test('question bank uses formal official and teacher-owned pools', () => {
   assert.match(questionBank, />My Pool</);
   assert.match(questionBank, /Curriculum workspace/);
   assert.doesNotMatch(questionBank, /Mission|Loadout|Quest-ready|🎮/i);
+  assert.match(questionBank, /question\.teacher_id\)/);
+  assert.match(questionBank, /Protected app pool/);
+  assert.match(questionBank, /Rename topic/);
+  assert.match(questionBank, /Delete topic/);
 });
 
 test('desktop navigation can collapse to create more workspace', () => {

@@ -986,3 +986,45 @@
     transition: none;
   }
 }
+
+.aw-details label > small {
+  color: #64748b;
+  font-size: .74rem;
+}
+
+.aw-details label > span strong {
+  color: #dc2626;
+}
+
+.aw-review-confirm {
+  display: flex;
+  align-items: flex-start;
+  gap: .8rem;
+  border: 1px solid #bfdbfe;
+  border-radius: .9rem;
+  background: #eff6ff;
+  padding: 1rem;
+  cursor: pointer;
+}
+
+.aw-review-confirm input {
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: .15rem;
+  accent-color: #2563eb;
+}
+
+.aw-review-confirm span {
+  display: grid;
+  gap: .25rem;
+}
+
+.aw-review-confirm small {
+  color: #475569;
+  line-height: 1.45;
+}
+
+.aw-button:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}

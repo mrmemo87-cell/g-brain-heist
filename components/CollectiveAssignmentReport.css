@@ -1,0 +1,41 @@
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  .collective-report-root,
+  .collective-report-root * {
+    visibility: visible !important;
+  }
+
+  .collective-report-root {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    padding: 18mm 12mm;
+    background: white !important;
+    color: #0f172a !important;
+  }
+
+  .collective-report-no-print,
+  .teacher-mobile-bottom-nav,
+  .teacher-sidebar,
+  .teacher-top-nav {
+    display: none !important;
+  }
+
+  .collective-report-root .teacher-card {
+    break-inside: avoid;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: none !important;
+  }
+
+  .collective-report-root table {
+    font-size: 9px;
+  }
+
+  @page {
+    size: landscape;
+    margin: 10mm;
+  }
+}
