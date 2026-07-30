@@ -21,6 +21,13 @@ test('teacher dashboard shortcuts navigate to their destinations', () => {
   assert.doesNotMatch(teacherPortal, /Review student progress, craft assignments/);
 });
 
+test('student alerts identify the learner, assignment, and reason for follow-up', () => {
+  assert.match(teacherPortal, /needs help with “\$\{assignmentLabel\}”/);
+  assert.match(teacherPortal, /has not completed “\$\{assignmentLabel\}”/);
+  assert.match(teacherPortal, /dashboardAssignmentReports/);
+  assert.doesNotMatch(teacherPortal, /Current success rate is \$\{successRate\}%\. Consider intervention\./);
+});
+
 test('teacher portal exposes assigned students and assignment metadata', () => {
   assert.match(teacherPortal, /const renderStudents/);
   assert.match(teacherPortal, />🏫 My Classes</);

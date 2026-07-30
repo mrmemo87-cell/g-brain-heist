@@ -342,6 +342,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   // Assignment state
   const [assignments, setAssignments] = useState<TeacherAssignmentSummary[]>([]);
+  const [dashboardAssignmentReports, setDashboardAssignmentReports] = useState<Record<string, TeacherAssignmentReportRow[]>>({});
+  const [dashboardReportsLoaded, setDashboardReportsLoaded] = useState(false);
   const [deletingAssignmentId, setDeletingAssignmentId] = useState<string | null>(null);
   const [assignmentSuccess, setAssignmentSuccess] = useState<GameService.TeacherAssignmentSuccessSummary | null>(null);
   const [assignmentMode, setAssignmentMode] = useState<'batch' | 'custom'>('batch');
@@ -821,6 +823,32 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       void loadAssignmentSuccess();
     }
   }, [view, loadAssignmentSuccess]);
+
+  useEffect(() => {
+    if (view !== 'dashboard' || assignments.length === 0) {
+      setDashboardAssignmentReports({});
+      setDashboardReportsLoaded(false);
+      return;
+    }
+
+    let cancelled = false;
+    setDashboardReportsLoaded(false);
+    void GameService.get_all_assignment_reports(assignments.map((assignment) => assignment.id))
+      .then((reports) => {
+        if (!cancelled) {
+          setDashboardAssignmentReports(reports);
+          setDashboardReportsLoaded(true);
+        }
+      })
+      .catch((error) => {
+        console.error('Error loading dashboard assignment details:', error);
+        if (!cancelled) setDashboardAssignmentReports({});
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [view, assignments]);
 
   // Correct answers for Cambridge tests
   const correctAnswers: Record<string, Record<number, CambridgeExpectedAnswer>> = {
@@ -3869,14 +3897,53 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     ];
 
     const alertItems: Array<{ tone: 'warning' | 'info'; text: string }> = [];
-    if (activeAssignments > 0) {
-      alertItems.push({ tone: 'warning', text: `${activeAssignments} assignment${activeAssignments > 1 ? 's' : ''} need follow-up.` });
+    const studentNameById = new Map(
+      availableStudents.map((student) => [student.id, student.display_name || student.username])
+    );
+
+    if (dashboardReportsLoaded) assignments.forEach((assignment) => {
+      const assignmentLabel = assignment.title || assignment.topic_name || 'Untitled assignment';
+      const completedRows = dashboardAssignmentReports[assignment.id] || [];
+      const completedStudentIds = new Set(completedRows.map((row) => row.student_id));
+
+      completedRows
+        .filter((row) => Number(row.accuracy) < 65)
+        .forEach((row) => {
+          const studentName = studentNameById.get(row.student_id) || row.student_name || 'Student name unavailable';
+          alertItems.push({
+            tone: 'info',
+            text: `${studentName} needs help with “${assignmentLabel}” (${Math.round(Number(row.accuracy))}% accuracy).`,
+          });
+        });
+
+      if (assignment.completed_count >= assignment.student_count || assignment.assignment_mode === 'custom' || !assignment.batch) return;
+
+      availableStudents
+        .filter((student) => student.batch === assignment.batch && !completedStudentIds.has(student.id))
+        .forEach((student) => {
+          alertItems.push({
+            tone: 'warning',
+            text: `${student.display_name || student.username} has not completed “${assignmentLabel}”.`,
+          });
+        });
+    });
+
+    const visibleStudentAlerts = alertItems.slice(0, 8);
+    if (alertItems.length > visibleStudentAlerts.length) {
+      visibleStudentAlerts.push({
+        tone: 'warning',
+        text: `${alertItems.length - visibleStudentAlerts.length} more student follow-up${alertItems.length - visibleStudentAlerts.length === 1 ? '' : 's'} — open Reports for the full list.`,
+      });
+    }
+
+    if (activeAssignments > 0 && alertItems.length === 0) {
+      visibleStudentAlerts.push({
+        tone: 'warning',
+        text: `${activeAssignments} in-progress assignment${activeAssignments > 1 ? 's' : ''} — open Reports to review the assigned students.`,
+      });
     }
     if (!teacherHasClassAssignments) {
-      alertItems.push({ tone: 'warning', text: 'No class assignments found for this teacher account.' });
-    }
-    if (hasAssignmentSuccess && successRate < 65) {
-      alertItems.push({ tone: 'info', text: `Current success rate is ${successRate}%. Consider intervention.` });
+      visibleStudentAlerts.push({ tone: 'warning', text: 'No class assignments found for this teacher account.' });
     }
 
     return (
@@ -4095,9 +4162,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           <h3 className="teacher-subsection-title">
             <span>🚨</span> Student Alerts
           </h3>
-          {alertItems.length > 0 ? (
+          {visibleStudentAlerts.length > 0 ? (
             <ul className="teacher-alert-list">
-              {alertItems.map((item, idx) => (
+              {visibleStudentAlerts.map((item, idx) => (
                 <li key={idx} className={`teacher-alert-item ${item.tone}`}>
                   {item.text}
                 </li>
