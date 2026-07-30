@@ -56,6 +56,8 @@ test('desktop navigation can collapse to create more workspace', () => {
   assert.match(portal, /aria-label=\{desktopSidebarCollapsed \? 'Expand side navigation' : 'Collapse side navigation'\}/);
   assert.match(teacherTheme, /\.teacher-workspace-shell\.is-sidebar-collapsed/);
   assert.match(teacherTheme, /\.teacher-sidebar\.is-collapsed \.teacher-nav-text/);
+  assert.match(teacherTheme, /\.teacher-sidebar\.is-collapsed \.teacher-nav-btn\s*\{[^}]*width: 3\.5rem;[^}]*justify-self: center;/s);
+  assert.match(teacherTheme, /\.teacher-sidebar\.is-collapsed \.teacher-nav-grid--sidebar\s*\{\s*grid-template-columns: minmax\(0, 1fr\);/);
   assert.match(teacherTheme, /content: attr\(data-label\)/);
   assert.match(portal, /data-label=\{tab\.label\}/);
 });

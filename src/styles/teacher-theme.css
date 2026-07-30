@@ -394,11 +394,18 @@
 
 .teacher-sidebar.is-collapsed .teacher-nav-btn {
   position: relative;
+  width: 3.5rem;
+  max-width: 100%;
   min-height: 56px;
+  justify-self: center;
   justify-content: center;
   gap: 0;
   padding: 0.55rem;
   border-radius: 15px;
+}
+
+.teacher-sidebar.is-collapsed .teacher-nav-grid--sidebar {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .teacher-sidebar.is-collapsed .teacher-nav-icon {
