@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import type { Subject, Teacher, TeacherQuestion } from '../../types';
 import QuestionPreviewModal from './QuestionPreviewModal';
+import { isBrainsHeistPoolQuestion, isMyPoolQuestion } from './questionPool.js';
 import './QuestionBank.css';
 
 interface QuestionBankProps {
@@ -57,8 +58,8 @@ export default function QuestionBank({
   }, [questions, restrictedSubjects]);
 
   const pools = useMemo(() => ({
-    'brains-heist': permittedQuestions.filter((question) => !question.teacher_id),
-    mine: permittedQuestions.filter((question) => Boolean(teacher) && question.teacher_id === teacher?.id),
+    'brains-heist': permittedQuestions.filter((question) => isBrainsHeistPoolQuestion(question, teacher?.id)),
+    mine: permittedQuestions.filter((question) => isMyPoolQuestion(question, teacher?.id)),
   }), [permittedQuestions, teacher]);
 
   const poolQuestions = pools[activePool];

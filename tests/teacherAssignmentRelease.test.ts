@@ -17,8 +17,8 @@ test('assignment workspace is one dated group with subject and progress categori
 });
 
 test('official questions are protected and teacher questions remain owned', () => {
-  assert.match(bank, /'brains-heist': permittedQuestions\.filter\(\(question\) => !question\.teacher_id\)/);
-  assert.match(bank, /question\.teacher_id === teacher\?\.id/);
+  assert.match(bank, /isBrainsHeistPoolQuestion\(question, teacher\?\.id\)/);
+  assert.match(bank, /isMyPoolQuestion\(question, teacher\?\.id\)/);
   assert.match(bank, /Approved app library · read-only/);
   assert.match(portal, /Only questions in My Pool can be deleted/);
   assert.match(portal, /is_public: false/);

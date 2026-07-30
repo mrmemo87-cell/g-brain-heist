@@ -3,6 +3,7 @@ import type { QuestionDifficulty, QuestionType, StudentForAssignment, Subject, T
 import type { TeacherAssignedClass } from '../../services/schoolAdminService';
 import { brainsAlert, brainsConfirm } from '../../src/utils/brainsAlert';
 import QuestionPreviewModal from './QuestionPreviewModal';
+import { isBrainsHeistPoolQuestion, isMyPoolQuestion } from './questionPool.js';
 import './AssignmentWizard.css';
 
 type AssignmentMode = 'batch' | 'custom';
@@ -191,8 +192,8 @@ export default function AssignmentWizard({
       return (
         (!debouncedQuestionSearch || haystack.includes(debouncedQuestionSearch)) &&
         (questionPool === 'all' ||
-          (questionPool === 'mine' && Boolean(teacherId) && question.teacher_id === teacherId) ||
-          (questionPool === 'brains-heist' && !question.teacher_id)) &&
+          (questionPool === 'mine' && isMyPoolQuestion(question, teacherId)) ||
+          (questionPool === 'brains-heist' && isBrainsHeistPoolQuestion(question, teacherId))) &&
         (topicFilter === 'all' || topic === topicFilter) &&
         (difficultyFilter === 'all' || question.difficulty === difficultyFilter) &&
         (typeFilter === 'all' || question.question_type === typeFilter) &&
