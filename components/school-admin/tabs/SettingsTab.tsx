@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSchoolAdmin } from '../SchoolAdminContext';
+import InvitesTab from './InvitesTab';
 
 const SettingsTab: React.FC = () => {
   const {
@@ -7,7 +8,9 @@ const SettingsTab: React.FC = () => {
   } = useSchoolAdmin();
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-3xl space-y-6">
+      <section className="admin-section-heading"><div><p className="school-admin-eyebrow">Joining & access</p><h2>School identity and access</h2><p>The school code is the single controlled route for teachers and students joining this workspace.</p></div></section>
+      <InvitesTab />
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
         <h3 className="text-lg font-semibold mb-4">School Settings</h3>
 
@@ -41,7 +44,7 @@ const SettingsTab: React.FC = () => {
               <span className="text-white">Allow student self-registration</span>
             </label>
             <p className="text-xs text-gray-500 ml-6">
-              When enabled, students can sign up for this school without an invite code
+              Controls whether students may use the school code to create an account
             </p>
 
             <label className="flex items-center gap-3 cursor-pointer">
@@ -54,7 +57,7 @@ const SettingsTab: React.FC = () => {
               <span className="text-white">Allow teacher self-registration</span>
             </label>
             <p className="text-xs text-gray-500 ml-6">
-              When enabled, teachers can sign up for this school without an invite code
+              Controls whether teachers may use the school code to create an account
             </p>
           </div>
 
