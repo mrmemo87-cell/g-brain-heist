@@ -407,7 +407,7 @@ export default function AssignmentWizard({
                     <button type="button" onClick={() => setSelectedStudentIds([])}>Clear</button>
                   </div>
                   <div className="aw-student-grid">
-                    {availableStudents.filter((student) => [student.display_name, student.username, student.batch].join(' ').toLocaleLowerCase().includes(studentSearch.toLocaleLowerCase())).map((student) => {
+                    {availableStudents.filter((student) => [student.display_name, student.batch].join(' ').toLocaleLowerCase().includes(studentSearch.toLocaleLowerCase())).map((student) => {
                       const selected = selectedStudentIds.includes(student.id);
                       return (
                         <button key={student.id} type="button" aria-pressed={selected} onClick={() => toggleStudent(student.id)} className={selected ? 'aw-student-card is-selected' : 'aw-student-card'}>
