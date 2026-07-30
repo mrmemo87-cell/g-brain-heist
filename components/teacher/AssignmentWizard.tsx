@@ -13,6 +13,8 @@ type QuestionSort = 'recommended' | 'xp-high' | 'xp-low' | 'time-short' | 'diffi
 type QuestionPool = 'all' | 'brains-heist' | 'mine';
 
 interface AssignmentWizardProps {
+  initialStep?: WizardStep;
+  lockedSubject?: Subject | null;
   assignmentMode: AssignmentMode;
   setAssignmentMode: (mode: AssignmentMode) => void;
   assignmentBatches: string[];
@@ -89,7 +91,20 @@ const dueDateValue = (days: number) => {
   return new Date(date.getTime() - offset * 60_000).toISOString().slice(0, 16);
 };
 
+const localDateTimeValue = (date = new Date()) => {
+  const offset = date.getTimezoneOffset();
+  return new Date(date.getTime() - offset * 60_000).toISOString().slice(0, 16);
+};
+
+const isPastDueDate = (value: string) => {
+  if (!value) return false;
+  const due = new Date(value);
+  return Number.isNaN(due.getTime()) || due.getTime() <= Date.now();
+};
+
 export default function AssignmentWizard({
+  initialStep = 1,
+  lockedSubject = null,
   assignmentMode,
   setAssignmentMode,
   assignmentBatches,
@@ -123,7 +138,7 @@ export default function AssignmentWizard({
   onSubmit,
   onCancel,
 }: AssignmentWizardProps) {
-  const [step, setStep] = useState<WizardStep>(1);
+  const [step, setStep] = useState<WizardStep>(initialStep);
   const [studentSearch, setStudentSearch] = useState('');
   const [questionSearch, setQuestionSearch] = useState('');
   const [debouncedQuestionSearch, setDebouncedQuestionSearch] = useState('');
@@ -169,7 +184,8 @@ export default function AssignmentWizard({
   );
 
   const topics = useMemo(
-    () => [...new Set(subjectQuestions.map((question) => question.topic_name || question.topic || 'General'))].sort(),
+    () => [...new Set(subjectQuestions.map((question) => question.topic_name || question.topic || 'General'))]
+      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true })),
     [subjectQuestions],
   );
 
@@ -287,6 +303,9 @@ export default function AssignmentWizard({
     if (currentStep === 4 && !assignmentTitle.trim()) {
       return brainsAlert('Add an assignment title before continuing.', 'info');
     }
+    if (currentStep === 5 && isPastDueDate(assignmentDueAt)) {
+      return brainsAlert('Choose a due date and time in the future. Students cannot receive an assignment that is already overdue.', 'error');
+    }
     if (currentStep < 6) setReviewConfirmed(false);
     goToStep(Math.min(6, currentStep + 1) as WizardStep);
   };
@@ -318,6 +337,11 @@ export default function AssignmentWizard({
     if (!assignmentTitle.trim()) {
       brainsAlert('Assignment title is required.', 'info');
       goToStep(4);
+      return;
+    }
+    if (isPastDueDate(assignmentDueAt)) {
+      brainsAlert('Choose a due date and time in the future before publishing.', 'error');
+      goToStep(5);
       return;
     }
     if (step !== 6 || !reviewConfirmed) {
@@ -391,10 +415,9 @@ export default function AssignmentWizard({
                     const selected = assignmentBatches.includes('All') || assignmentBatches.includes(item.class_code);
                     return (
                       <button key={item.class_code} type="button" aria-pressed={selected} onClick={() => toggleBatch(item.class_code)} className={selected ? 'aw-class-card is-selected' : 'aw-class-card'}>
+                        <span className="aw-class-icon" aria-hidden="true">🏫</span>
+                        <span className="aw-class-card__details"><strong>{item.class_code}</strong><small>{item.subject} · {count} student{count === 1 ? '' : 's'}</small></span>
                         <span className="aw-check">{selected ? '✓' : ''}</span>
-                        <strong>{item.class_code}</strong>
-                        <small>{item.subject}</small>
-                        <span>{count} student{count === 1 ? '' : 's'}</span>
                       </button>
                     );
                   })}
@@ -407,7 +430,7 @@ export default function AssignmentWizard({
                     <button type="button" onClick={() => setSelectedStudentIds([])}>Clear</button>
                   </div>
                   <div className="aw-student-grid">
-                    {availableStudents.filter((student) => [student.display_name, student.batch].join(' ').toLocaleLowerCase().includes(studentSearch.toLocaleLowerCase())).map((student) => {
+                    {availableStudents.filter((student) => [student.display_name, student.username, student.batch].join(' ').toLocaleLowerCase().includes(studentSearch.toLocaleLowerCase())).map((student) => {
                       const selected = selectedStudentIds.includes(student.id);
                       return (
                         <button key={student.id} type="button" aria-pressed={selected} onClick={() => toggleStudent(student.id)} className={selected ? 'aw-student-card is-selected' : 'aw-student-card'}>
@@ -425,14 +448,23 @@ export default function AssignmentWizard({
 
           {step === 1 && (
             <div className="aw-step">
-              <p className="aw-intro">Only subjects assigned to your classes are available.</p>
+              {lockedSubject ? (
+                <div className="aw-subject-lock" role="status">
+                  <strong>{lockedSubject} is fixed for this assignment.</strong>
+                  <span>You already added {lockedSubject} questions from the Question Bank. Remove those questions and start a blank assignment to choose another subject.</span>
+                </div>
+              ) : <p className="aw-intro">Only subjects assigned to your classes are available.</p>}
               <div className="aw-subject-grid" role="radiogroup" aria-label="Choose subject">
-                {teacherAssignedSubjects.map((subject) => (
-                  <button key={subject} type="button" role="radio" aria-checked={assignmentSubject === subject} className={assignmentSubject === subject ? 'aw-subject is-selected' : 'aw-subject'} onClick={() => setAssignmentSubject(subject as Subject)}>
+                {[...teacherAssignedSubjects].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true })).map((subject) => {
+                  const disabled = Boolean(lockedSubject && normalizeSubject(subject) !== normalizeSubject(lockedSubject));
+                  return (
+                  <button key={subject} type="button" role="radio" aria-checked={assignmentSubject === subject} disabled={disabled} aria-disabled={disabled} className={`${assignmentSubject === subject ? 'aw-subject is-selected' : 'aw-subject'}${disabled ? ' is-disabled' : ''}`} onClick={() => !disabled && setAssignmentSubject(subject as Subject)}>
                     <span aria-hidden="true">{subject === 'Maths' ? '∑' : subject === 'Science' ? '⚗' : subject === 'English' ? 'Aa' : '◆'}</span>
                     <strong>{subject}</strong>
+                    {disabled ? <small>Unavailable — {lockedSubject} questions selected</small> : null}
                   </button>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -537,7 +569,7 @@ export default function AssignmentWizard({
                 })}
                 <button type="button" className={customDueDate ? 'aw-due-card is-selected' : 'aw-due-card'} onClick={() => setCustomDueDate(true)}><span>▦</span><strong>Custom date</strong><small>Choose date and time</small></button>
               </div>
-              {customDueDate && <label className="aw-custom-date"><span>Custom due date</span><input type="datetime-local" value={assignmentDueAt} onChange={(event) => setAssignmentDueAt(event.target.value)} /></label>}
+              {customDueDate && <label className="aw-custom-date"><span>Custom due date</span><input type="datetime-local" min={localDateTimeValue()} value={assignmentDueAt} aria-invalid={isPastDueDate(assignmentDueAt)} onChange={(event) => setAssignmentDueAt(event.target.value)} />{isPastDueDate(assignmentDueAt) ? <small className="aw-field-error">Choose a future date and time. This assignment would already be overdue.</small> : null}</label>}
             </div>
           )}
 
