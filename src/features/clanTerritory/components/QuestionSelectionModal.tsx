@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import * as GameService from "../../../../services/gameService";
-import { supabase } from "../../../../services/supabaseClient";
 import { brainsAlert } from "../../../utils/brainsAlert";
+import { normalizeClanWarSubject, questionBelongsToPool, type QuestionPoolFilter } from "../questionPoolFilters";
 
 interface Question {
   id: string;
@@ -15,6 +15,7 @@ interface Question {
   options?: unknown[];
   question_type?: string;
   teacher_id?: string | null;
+  is_mine?: boolean | null;
   explanation?: string | null;
   image_url?: string | null;
 }
@@ -24,15 +25,6 @@ interface QuestionSelectionModalProps {
   onCancel: () => void;
   restrictedSubjects?: string[];
 }
-
-type PoolFilter = "all" | "brains-heist" | "mine";
-
-const normalizeSubject = (value: string) => {
-  const normalized = value.trim().toLocaleLowerCase().replace(/\s+/g, " ");
-  if (["math", "maths", "mathematics"].includes(normalized)) return "maths";
-  if (normalized === "english language") return "english";
-  return normalized;
-};
 
 const questionTopic = (question: Question) => question.topic_name || question.topic || "General";
 const optionText = (option: unknown) => {
@@ -52,22 +44,19 @@ export const QuestionSelectionModal: React.FC<QuestionSelectionModalProps> = ({
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [teacherId, setTeacherId] = useState<string | null>(null);
-  const [poolFilter, setPoolFilter] = useState<PoolFilter>("all");
+  const [poolFilter, setPoolFilter] = useState<QuestionPoolFilter>("all");
   const [subjectFilter, setSubjectFilter] = useState("all");
   const [topicFilter, setTopicFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [previewQuestion, setPreviewQuestion] = useState<Question | null>(null);
-  const restrictedSubjectKey = restrictedSubjects?.map(normalizeSubject).sort().join("|") || "";
+  const restrictedSubjectKey = restrictedSubjects?.map(normalizeClanWarSubject).sort().join("|") || "";
 
   useEffect(() => {
     let cancelled = false;
     const fetchQuestions = async () => {
       try {
         setLoading(true);
-        const [{ data: auth }, available] = await Promise.all([
-          supabase.auth.getUser(),
-          (async () => {
+        const available = await (async () => {
             const pageSize = 500;
             const unique = new Map<string, Question>();
             for (let offset = 0; ; offset += pageSize) {
@@ -76,15 +65,13 @@ export const QuestionSelectionModal: React.FC<QuestionSelectionModalProps> = ({
               if (page.length < pageSize) break;
             }
             return [...unique.values()];
-          })(),
-        ]);
+          })();
         if (cancelled) return;
         const permitted = restrictedSubjects?.length
-          ? new Set(restrictedSubjects.map(normalizeSubject))
+          ? new Set(restrictedSubjects.map(normalizeClanWarSubject))
           : null;
-        setTeacherId(auth.user?.id || null);
         setQuestions((available as Question[]).filter((question) =>
-          !permitted || permitted.has(normalizeSubject(question.subject || "")),
+          !permitted || permitted.has(normalizeClanWarSubject(question.subject || "")),
         ));
       } catch (error) {
         console.error("Failed to load Clan Wars questions:", error);
@@ -100,26 +87,33 @@ export const QuestionSelectionModal: React.FC<QuestionSelectionModalProps> = ({
     return () => { cancelled = true; };
   }, [restrictedSubjectKey]);
 
-  const poolQuestions = useMemo(() => questions.filter((question) => {
-    if (poolFilter === "brains-heist") return !question.teacher_id;
-    if (poolFilter === "mine") return Boolean(teacherId) && question.teacher_id === teacherId;
-    return !question.teacher_id || (Boolean(teacherId) && question.teacher_id === teacherId);
-  }), [poolFilter, questions, teacherId]);
-
-  const subjects = useMemo(
-    () => [...new Set(poolQuestions.map((question) => question.subject).filter(Boolean))].sort(),
-    [poolQuestions],
+  const poolQuestions = useMemo(
+    () => questions.filter((question) => questionBelongsToPool(question, poolFilter)),
+    [poolFilter, questions],
   );
+
+  const subjects = useMemo(() => {
+    const labelsByKey = new Map<string, string>();
+    restrictedSubjects?.filter(Boolean).forEach((subject) =>
+      labelsByKey.set(normalizeClanWarSubject(subject), subject.trim()),
+    );
+    poolQuestions.forEach((question) => {
+      const key = normalizeClanWarSubject(question.subject || "");
+      if (key && !labelsByKey.has(key)) labelsByKey.set(key, question.subject);
+    });
+    return [...labelsByKey].map(([value, label]) => ({ value, label }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [poolQuestions, restrictedSubjectKey]);
   const topics = useMemo(
     () => [...new Set(poolQuestions
-      .filter((question) => subjectFilter === "all" || question.subject === subjectFilter)
+      .filter((question) => subjectFilter === "all" || normalizeClanWarSubject(question.subject) === subjectFilter)
       .map(questionTopic))].sort(),
     [poolQuestions, subjectFilter],
   );
   const filteredQuestions = useMemo(() => {
     const query = search.trim().toLocaleLowerCase();
     return poolQuestions.filter((question) => {
-      if (subjectFilter !== "all" && question.subject !== subjectFilter) return false;
+      if (subjectFilter !== "all" && normalizeClanWarSubject(question.subject) !== subjectFilter) return false;
       if (topicFilter !== "all" && questionTopic(question) !== topicFilter) return false;
       return !query || [question.question_text, question.subject, questionTopic(question), question.difficulty]
         .join(" ").toLocaleLowerCase().includes(query);
@@ -127,7 +121,7 @@ export const QuestionSelectionModal: React.FC<QuestionSelectionModalProps> = ({
   }, [poolQuestions, search, subjectFilter, topicFilter]);
 
   useEffect(() => {
-    if (subjectFilter !== "all" && !subjects.includes(subjectFilter)) setSubjectFilter("all");
+    if (subjectFilter !== "all" && !subjects.some((subject) => subject.value === subjectFilter)) setSubjectFilter("all");
   }, [subjectFilter, subjects]);
 
   useEffect(() => {
@@ -161,8 +155,8 @@ export const QuestionSelectionModal: React.FC<QuestionSelectionModalProps> = ({
         </header>
 
         <div className="grid gap-3 border-b border-slate-800 bg-slate-900/65 p-4 sm:grid-cols-2 lg:grid-cols-5 sm:p-6">
-          <label className="grid gap-1 text-xs font-bold text-slate-400"><span>Question pool</span><select value={poolFilter} onChange={(event) => setPoolFilter(event.target.value as PoolFilter)} className="min-h-11 rounded-xl border border-slate-700 bg-slate-950 px-3 text-white"><option value="all">All available pools</option><option value="brains-heist">Brains Heist Pool</option><option value="mine">My Pool</option></select></label>
-          <label className="grid gap-1 text-xs font-bold text-slate-400"><span>Subject</span><select value={subjectFilter} onChange={(event) => setSubjectFilter(event.target.value)} className="min-h-11 rounded-xl border border-slate-700 bg-slate-950 px-3 text-white"><option value="all">All subjects</option>{subjects.map((subject) => <option key={subject} value={subject}>{subject}</option>)}</select></label>
+          <label className="grid gap-1 text-xs font-bold text-slate-400"><span>Question pool</span><select value={poolFilter} onChange={(event) => setPoolFilter(event.target.value as QuestionPoolFilter)} className="min-h-11 rounded-xl border border-slate-700 bg-slate-950 px-3 text-white"><option value="all">All available pools</option><option value="brains-heist">Brains Heist Pool</option><option value="mine">My Pool</option></select></label>
+          <label className="grid gap-1 text-xs font-bold text-slate-400"><span>Subject</span><select value={subjectFilter} onChange={(event) => setSubjectFilter(event.target.value)} className="min-h-11 rounded-xl border border-slate-700 bg-slate-950 px-3 text-white"><option value="all">All subjects</option>{subjects.map((subject) => <option key={subject.value} value={subject.value}>{subject.label}</option>)}</select></label>
           <label className="grid gap-1 text-xs font-bold text-slate-400"><span>Topic</span><select value={topicFilter} onChange={(event) => setTopicFilter(event.target.value)} className="min-h-11 rounded-xl border border-slate-700 bg-slate-950 px-3 text-white"><option value="all">All topics</option>{topics.map((topic) => <option key={topic} value={topic}>{topic}</option>)}</select></label>
           <label className="grid gap-1 text-xs font-bold text-slate-400 lg:col-span-2"><span>Search questions</span><input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search by question, topic, or difficulty…" className="min-h-11 rounded-xl border border-slate-700 bg-slate-950 px-3 text-white placeholder:text-slate-600" /></label>
         </div>
@@ -178,7 +172,7 @@ export const QuestionSelectionModal: React.FC<QuestionSelectionModalProps> = ({
               {filteredQuestions.map((question) => {
                 const selected = selectedIds.has(question.id);
                 return <article key={question.id} className={`rounded-2xl border p-4 transition ${selected ? "border-cyan-400 bg-cyan-950/35 shadow-lg shadow-cyan-950/20" : "border-slate-700 bg-slate-900/65 hover:border-slate-500"}`}>
-                  <div className="flex items-start gap-3"><button type="button" onClick={() => toggleQuestion(question.id)} aria-pressed={selected} className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md border text-xs font-black ${selected ? "border-cyan-300 bg-cyan-400 text-slate-950" : "border-slate-600 bg-slate-950 text-transparent"}`}>✓</button><div className="min-w-0 flex-1"><div className="mb-2 flex flex-wrap gap-1.5"><span className="rounded-md bg-slate-800 px-2 py-1 text-[10px] font-bold text-slate-300">{question.teacher_id ? "MY POOL" : "BRAINS HEIST"}</span><span className="rounded-md bg-blue-950 px-2 py-1 text-[10px] font-bold text-blue-300">{questionTopic(question)}</span><span className="rounded-md bg-slate-800 px-2 py-1 text-[10px] font-bold uppercase text-slate-400">{question.difficulty}</span></div><p className="line-clamp-3 text-sm font-semibold leading-6 text-white">{question.question_text}</p></div></div>
+                  <div className="flex items-start gap-3"><button type="button" onClick={() => toggleQuestion(question.id)} aria-pressed={selected} className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md border text-xs font-black ${selected ? "border-cyan-300 bg-cyan-400 text-slate-950" : "border-slate-600 bg-slate-950 text-transparent"}`}>✓</button><div className="min-w-0 flex-1"><div className="mb-2 flex flex-wrap gap-1.5"><span className="rounded-md bg-slate-800 px-2 py-1 text-[10px] font-bold text-slate-300">{question.is_mine ? "MY POOL" : "BRAINS HEIST"}</span><span className="rounded-md bg-blue-950 px-2 py-1 text-[10px] font-bold text-blue-300">{questionTopic(question)}</span><span className="rounded-md bg-slate-800 px-2 py-1 text-[10px] font-bold uppercase text-slate-400">{question.difficulty}</span></div><p className="line-clamp-3 text-sm font-semibold leading-6 text-white">{question.question_text}</p></div></div>
                   <footer className="mt-4 flex items-center justify-between border-t border-slate-800 pt-3"><span className="text-xs text-slate-500">{question.subject} · {(question.question_type || "question").replace(/_/g, " ")}</span><button type="button" onClick={() => setPreviewQuestion(question)} className="rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-xs font-bold text-white hover:border-cyan-400">Preview</button></footer>
                 </article>;
               })}

@@ -169,6 +169,8 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const stableAssignedClasses = assignedClasses && assignedClasses.length > 0 ? assignedClasses : EMPTY_CLASSES;
   const [loadedAssignedClasses, setLoadedAssignedClasses] = useState<SchoolAdminService.TeacherAssignedClass[]>(stableAssignedClasses);
   const assignedClassesLoadedRef = useRef(false);
+  const providedAssignedClassesRef = useRef(assignedClasses);
+  providedAssignedClassesRef.current = assignedClasses;
   const batchAutoSelectedRef = useRef(false);
   const previousBgMusicEnabled = useRef<boolean | null>(null);
   const discoveredRoomsRef = useRef<Record<string, DiscoveredRoom>>({});
@@ -242,16 +244,27 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       try {
         console.log("📚 Loading teacher assigned classes...");
         const classes = await SchoolAdminService.getTeacherAssignedClasses();
+        if (providedAssignedClassesRef.current?.length) return;
         setLoadedAssignedClasses(classes);
         console.log("✅ Loaded assigned classes:", classes);
       } catch (error) {
         console.warn("Failed to load assigned classes:", error);
-        setLoadedAssignedClasses([]);
+        if (!providedAssignedClassesRef.current?.length) setLoadedAssignedClasses([]);
       }
     };
 
     loadAssignedClasses();
   }, [isTeacher, stableAssignedClasses]);
+
+  // Parent data commonly arrives after this manager mounts. Keep the local copy in
+  // sync so Clan Wars receives the teacher's actual subject instead of retaining
+  // the empty initial value used while the portal is loading.
+  useEffect(() => {
+    if (assignedClasses && assignedClasses.length > 0) {
+      assignedClassesLoadedRef.current = true;
+      setLoadedAssignedClasses(assignedClasses);
+    }
+  }, [assignedClasses]);
 
   // Stable count of loaded assigned classes to avoid re-triggering batch effect on array ref change
   const assignedClassCount = loadedAssignedClasses.length;
