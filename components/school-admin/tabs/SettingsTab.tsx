@@ -12,13 +12,13 @@ const SettingsTab: React.FC = () => {
       <section className="admin-section-heading"><div><p className="school-admin-eyebrow">Joining & access</p><h2>School identity and access</h2><p>The school code is the single controlled route for teachers and students joining this workspace.</p></div></section>
       <InvitesTab />
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h3 className="text-lg font-semibold mb-4">School Settings</h3>
+        <h3 className="mb-4 text-lg font-semibold text-slate-900">School Settings</h3>
 
         <div className="space-y-4">
           <div className="school-logo-setting">
             <img src={settingsLogoPreview || school.logo_url || '/logo.png'} alt="Current school logo" />
             <div>
-              <label htmlFor="school-logo" className="block text-sm font-medium">School logo</label>
+              <label htmlFor="school-logo" className="block text-sm font-medium text-slate-900">School logo</label>
               <p>Shown in this portal, teacher and student dashboards, and school reports.</p>
               <input id="school-logo" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => {
                 const file = event.target.files?.[0] || null;

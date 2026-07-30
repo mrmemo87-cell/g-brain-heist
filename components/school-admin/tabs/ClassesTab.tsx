@@ -10,7 +10,7 @@ const ClassesTab: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h3 className="text-lg font-semibold mb-4">{classForm.id ? 'Edit Class' : 'Create Class'}</h3>
+        <h3 className="mb-4 text-lg font-semibold text-slate-900">{classForm.id ? 'Edit Class' : 'Create Class'}</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-1">Class Code</label>

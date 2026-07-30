@@ -9,7 +9,7 @@ const InvitesTab: React.FC = () => {
   return (
     <div className="space-y-4">
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h3 className="text-lg font-semibold mb-4">Current Invite Code</h3>
+        <h3 className="mb-4 text-lg font-semibold text-slate-900">Current Invite Code</h3>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <button
