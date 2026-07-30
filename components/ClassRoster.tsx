@@ -498,29 +498,15 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
                     </div>
                   ) : (
                     <>
-                      {/* Stats Bar */}
-                      {expanded.stats && (
+                      {/* Keep the register focused on school operations rather than game statistics. */}
+                      {expanded.stats && expanded.stats.teachers.length > 0 && (
                         <div className="p-3 bg-gray-750 border-b border-gray-700 flex flex-wrap gap-4 text-sm">
                           <div className="flex items-center gap-1">
-                            <span className="text-gray-400">Avg Level:</span>
-                            <span className="text-cyan-400 font-medium">{expanded.stats.avg_level}</span>
+                            <span className="text-gray-400">Assigned teachers:</span>
+                            <span className="text-green-400">
+                              {expanded.stats.teachers.map((t) => `${t.username} (${t.subject})`).join(', ')}
+                            </span>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <span className="text-gray-400">Avg XP:</span>
-                            <span className="text-purple-400 font-medium">{expanded.stats.avg_xp.toLocaleString()}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <span className="text-gray-400">Total XP:</span>
-                            <span className="text-amber-400 font-medium">{expanded.stats.total_xp.toLocaleString()}</span>
-                          </div>
-                          {expanded.stats.teachers.length > 0 && (
-                            <div className="flex items-center gap-1">
-                              <span className="text-gray-400">Teachers:</span>
-                              <span className="text-green-400">
-                                {expanded.stats.teachers.map((t) => `${t.username} (${t.subject})`).join(', ')}
-                              </span>
-                            </div>
-                          )}
                         </div>
                       )}
                       

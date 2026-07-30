@@ -17,7 +17,7 @@ const MembersTab: React.FC = () => {
   const selectRole = (role: SchoolRole) => { setMemberRoleFilter(role); setMemberPage(1); };
 
   return <div className="space-y-5">
-    <section className="admin-section-heading"><div><p className="school-admin-eyebrow">People directory</p><h2>School community</h2><p>Open any profile to manage identity, role, class placement, access and administrative status.</p></div></section>
+    <section className="admin-section-heading"><div><p className="school-admin-eyebrow">Administration</p><h2>Students &amp; Staff</h2><p>Review students, teachers and administrators, including their placement, access and account status.</p></div></section>
 
     <section className="community-admins">
       <div className="community-section-title"><div><span className="community-icon">A</span><div><h3>School administrators</h3><p>Authorised users with whole-school control</p></div></div><strong>{administrators.length || '—'}</strong></div>

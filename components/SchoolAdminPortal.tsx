@@ -1383,7 +1383,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     <div className="school-admin-portal min-h-screen" data-testid="school-admin-portal">
       <header className="school-admin-header">
         <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-3">
+          <div className="school-admin-identity flex items-center gap-3">
             {school.logo_url ? (
               <div className="relative">
                 <img 
@@ -1393,9 +1393,11 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
                 />
               </div>
             ) : (
-              <div className="school-admin-crest">S</div>
+              <div className="school-admin-crest" aria-hidden="true">
+                {school.name.trim().charAt(0).toUpperCase() || 'S'}
+              </div>
             )}
-            <div>
+            <div className="school-admin-identity-copy">
               <p className="school-admin-eyebrow">School administration</p>
               <h1 className="text-2xl font-bold">
                 {school.name}
@@ -1417,28 +1419,27 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       <div className="school-admin-layout">
       <aside className="school-admin-sidebar" aria-label="School administration sections">
         <p className="school-admin-nav-label">Administration</p>
-      <div className="school-admin-tabs" role="tablist" aria-label="School admin navigation">
+      <nav className="school-admin-tabs" aria-label="School admin navigation">
         {(['dashboard', 'members', 'classes', 'subjects', 'admissions', 'cambridge', 'ielts', 'billing', 'settings'] as AdminTab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            role="tab"
             data-testid={`school-admin-tab-${tab}`}
-            aria-selected={activeTab === tab}
+            aria-current={activeTab === tab ? 'page' : undefined}
             className={activeTab === tab ? 'is-active' : ''}
           >
             {tab === 'dashboard' && 'Overview'}
-            {tab === 'members' && `School community (${membersTotal})`}
-            {tab === 'classes' && 'Organisation & register'}
-            {tab === 'subjects' && 'Curriculum subjects'}
-            {tab === 'admissions' && 'Admissions hub'}
-            {tab === 'billing' && 'Plan & billing'}
-            {tab === 'settings' && 'School settings'}
-            {tab === 'cambridge' && 'Cambridge assessments'}
-            {tab === 'ielts' && 'IELTS programme'}
+            {tab === 'members' && `Students & Staff (${membersTotal})`}
+            {tab === 'classes' && 'Classes & Registration'}
+            {tab === 'subjects' && 'Curriculum & Subjects'}
+            {tab === 'admissions' && 'Admissions'}
+            {tab === 'billing' && 'Plan & Billing'}
+            {tab === 'settings' && 'School Settings'}
+            {tab === 'cambridge' && 'Cambridge Assessments'}
+            {tab === 'ielts' && 'IELTS Programme'}
           </button>
         ))}
-      </div>
+      </nav>
       <div className="school-admin-security-note"><strong>Secure school record</strong><span>Changes are limited to authorised administrators.</span></div>
       </aside>
 
