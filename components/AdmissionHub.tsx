@@ -18,6 +18,7 @@ import type {
 import { supabase } from '../services/supabaseClient';
 import { buildAdmissionWizardBlueprintName, buildAdmissionWizardDefaultName, getAdmissionWizardSubjectLabel } from '../src/lib/admissionWizardNaming';
 import { AdmissionReportPartialAttemptNotice, resolveAdmissionReportPartialAttempt, resolveAdmissionReportVisiblePartialAttempt } from './admissionReportPartialAttempt';
+import { useSchoolBranding } from '../src/hooks/useSchoolBranding';
 
 // ── Types ──
 
@@ -393,6 +394,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   const [loading, setLoading] = useState(true);
   const [schoolId, setSchoolId] = useState<string | null>(null);
   const [schoolName, setSchoolName] = useState<string>('');
+  const { schoolName: reportSchoolName, schoolLogoUrl: reportSchoolLogoUrl } = useSchoolBranding({ schoolId, schoolName });
 
   // Data
   const [pools, setPools] = useState<AdmQuestionPool[]>([]);
@@ -2180,6 +2182,10 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
               </div>
             ) : reportData ? (
               <div className="space-y-6">
+                <header className="flex items-center gap-3 border-b border-slate-700 pb-4">
+                  <img src={reportSchoolLogoUrl} alt={`${reportSchoolName} logo`} className="h-12 w-12 rounded-lg bg-white object-contain p-1" />
+                  <div><h2 className="text-lg font-bold text-white">{reportSchoolName}</h2><p className="text-xs text-gray-400">Admission Assessment Report</p></div>
+                </header>
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-xl font-heading text-white">{reportData.candidate_name}</h3>

@@ -1,5 +1,6 @@
 import React, { useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useSchoolBranding } from '../src/hooks/useSchoolBranding';
 
 // ─── Serial Number Generator ─────────────────────────────────────────────────
 function generateSerialNumber(recordId: string, studentName: string, submittedAt: string): string {
@@ -47,6 +48,8 @@ export interface ProfessionalReportData {
   fallbackPlan?: ActionPlanItem;
   personalizedNote: string;
   schoolName?: string;
+  schoolLogoUrl?: string | null;
+  schoolId?: string | null;
 }
 
 // ─── Student Overview Report Data ────────────────────────────────────────────
@@ -71,6 +74,8 @@ export interface StudentOverviewReportData {
   bestScore: StudentTestEntry | null;
   worstScore: StudentTestEntry | null;
   schoolName?: string;
+  schoolLogoUrl?: string | null;
+  schoolId?: string | null;
 }
 
 interface ProfessionalCambridgeReportProps {
@@ -250,6 +255,7 @@ const ProfessionalCambridgeReport: React.FC<ProfessionalCambridgeReportProps> = 
   });
 
   const handlePrint = () => window.print();
+  const { schoolName, schoolLogoUrl } = useSchoolBranding({ schoolId: data.schoolId, schoolName: data.schoolName, schoolLogoUrl: data.schoolLogoUrl });
 
   return createPortal(
     <div
@@ -268,7 +274,7 @@ const ProfessionalCambridgeReport: React.FC<ProfessionalCambridgeReportProps> = 
           style={{ zIndex: 0, opacity: 0.03 }}
         >
           <span style={{ fontSize: '120px', fontWeight: 900, color: '#1e1b4b', transform: 'rotate(-30deg)', letterSpacing: '8px' }}>
-            BRAINS HEIST
+            {schoolName.toUpperCase()}
           </span>
         </div>
 
@@ -277,10 +283,10 @@ const ProfessionalCambridgeReport: React.FC<ProfessionalCambridgeReportProps> = 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ width: '44px', height: '44px', background: '#fff', borderRadius: '10px', padding: '4px', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
-                <img src="/logo.png" alt="Brains Heist" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                <img src={schoolLogoUrl} alt={`${schoolName} logo`} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               </div>
               <div>
-                <h1 style={{ margin: 0, fontSize: '18px', fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase' }}>Brains Heist</h1>
+                <h1 style={{ margin: 0, fontSize: '18px', fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase' }}>{schoolName}</h1>
                 <p style={{ margin: 0, fontSize: '10px', color: '#c7d2fe', letterSpacing: '0.5px' }}>Cambridge Assessment Performance Report</p>
               </div>
             </div>
@@ -503,7 +509,7 @@ const ProfessionalCambridgeReport: React.FC<ProfessionalCambridgeReportProps> = 
               <span>This serial number can be used to verify and reprint this report at any time.</span>
             </div>
             <div style={{ fontSize: '8px', color: '#94a3b8' }}>
-              Generated: {printDate} • Brains Heist Learning Platform • Confidential
+              Generated: {printDate} • {schoolName} • Confidential
             </div>
           </div>
           <div className="no-print" style={{ display: 'flex', gap: '8px' }}>
@@ -586,6 +592,7 @@ const StudentOverviewReport: React.FC<StudentOverviewReportProps> = ({
   });
 
   const handlePrint = () => window.print();
+  const { schoolName, schoolLogoUrl } = useSchoolBranding({ schoolId: data.schoolId, schoolName: data.schoolName, schoolLogoUrl: data.schoolLogoUrl });
 
   // Score distribution
   const scoreDistribution = useMemo(() => {
@@ -646,7 +653,7 @@ const StudentOverviewReport: React.FC<StudentOverviewReportProps> = ({
           style={{ zIndex: 0, opacity: 0.03 }}
         >
           <span style={{ fontSize: '120px', fontWeight: 900, color: '#1e1b4b', transform: 'rotate(-30deg)', letterSpacing: '8px' }}>
-            BRAINS HEIST
+            {schoolName.toUpperCase()}
           </span>
         </div>
 
@@ -655,10 +662,10 @@ const StudentOverviewReport: React.FC<StudentOverviewReportProps> = ({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ width: '44px', height: '44px', background: '#fff', borderRadius: '10px', padding: '4px', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
-                <img src="/logo.png" alt="Brains Heist" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                <img src={schoolLogoUrl} alt={`${schoolName} logo`} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               </div>
               <div>
-                <h1 style={{ margin: 0, fontSize: '18px', fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase' }}>Brains Heist</h1>
+                <h1 style={{ margin: 0, fontSize: '18px', fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase' }}>{schoolName}</h1>
                 <p style={{ margin: 0, fontSize: '10px', color: '#c7d2fe', letterSpacing: '0.5px' }}>Student Performance Overview Report</p>
               </div>
             </div>
@@ -957,7 +964,7 @@ const StudentOverviewReport: React.FC<StudentOverviewReportProps> = ({
               <span>This serial number can be used to verify and reprint this report at any time.</span>
             </div>
             <div style={{ fontSize: '8px', color: '#94a3b8' }}>
-              Generated: {printDate} • Brains Heist Learning Platform • Confidential
+              Generated: {printDate} • {schoolName} • Confidential
             </div>
           </div>
           <div className="no-print" style={{ display: 'flex', gap: '8px' }}>

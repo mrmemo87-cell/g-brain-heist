@@ -17,6 +17,7 @@ import { notifyTeachersOfExamGuard } from '@/services/notificationService';
 import { supabase } from '@/services/supabaseClient';
 import { logIeltsViolation } from '@/services/ieltsViolationService';
 import { ExamGuard } from '../../utils/examGuard';
+import { useSchoolBranding } from '../../hooks/useSchoolBranding';
 
 const stepLabels = ['Reading', 'Listening', 'Writing', 'Review & Submit'];
 const MAX_EXAM_GUARD_VIOLATIONS = 3;
@@ -41,7 +42,17 @@ const IeltsSession: React.FC = () => {
   const [writingAnswer, setWritingAnswer] = useState('');
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
   const [userTier, setUserTier] = useState('free');
+  const [schoolId, setSchoolId] = useState<string | null>(null);
+  const { schoolName, schoolLogoUrl } = useSchoolBranding({ schoolId });
   const isPrimeUser = isIeltsPrime({ tier: userTier });
+
+  useEffect(() => {
+    void supabase.auth.getUser().then(async ({ data: authData }) => {
+      if (!authData.user) return;
+      const { data } = await supabase.from('users').select('school_id').eq('id', authData.user.id).maybeSingle();
+      setSchoolId(data?.school_id ?? null);
+    });
+  }, []);
 
   const { data: session, isLoading, error } = useQuery({
     queryKey: ['ielts-session', sessionId],
@@ -266,7 +277,7 @@ const IeltsSession: React.FC = () => {
     return (
       <div className="space-y-8">
         <header className="rounded-2xl border border-slate-200 bg-white p-6">
-          <p className="text-sm uppercase tracking-[0.3em] text-slate-400">IELTS Session Report</p>
+          <div className="mb-4 flex items-center gap-3"><img src={schoolLogoUrl} alt={`${schoolName} logo`} className="h-12 w-12 rounded-lg object-contain" /><div><strong className="text-slate-900">{schoolName}</strong><p className="text-sm uppercase tracking-[0.3em] text-slate-400">IELTS Session Report</p></div></div>
           <h1 className="text-3xl font-semibold text-slate-900">Reference: {session.reference_code}</h1>
           <div className="mt-2 text-sm text-slate-500">
             <span>{getModuleLabel(session)}</span> ·{' '}

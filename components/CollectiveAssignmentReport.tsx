@@ -4,6 +4,7 @@ import { TeacherAssignmentSummary, TeacherAssignmentReportRow, Subject, StudentF
 import * as GameService from '../services/gameService';
 import { brainsAlert } from '../src/utils/brainsAlert';
 import './CollectiveAssignmentReport.css';
+import { useSchoolBranding } from '../src/hooks/useSchoolBranding';
 
 // localStorage key prefix for persisted custom orders
 const CUSTOM_ORDER_STORAGE_KEY = 'brains_collective_report_custom_order';
@@ -66,6 +67,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
   school,
   teacherName,
 }) => {
+  const { schoolName, schoolLogoUrl } = useSchoolBranding({ schoolId: school.id, schoolName: school.name, schoolLogoUrl: school.logoUrl });
   // Work state
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
@@ -596,14 +598,14 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
     const averages = displayRows.filter(row => row.completedCount > 0).map(row => row.averageAccuracy);
     return {
       reportId: `CAR-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`,
-      school: { id: school.id || '', name: school.name || 'School', ...(school.logoUrl ? { logoUrl: school.logoUrl } : {}) },
+      school: { id: school.id || '', name: schoolName, ...(schoolLogoUrl ? { logoUrl: schoolLogoUrl } : {}) },
       report: { title: reportTitle.trim() || 'Class Achievement Report', academicYear, term: term || undefined, dateFrom, dateTo, generatedAt, generatedBy: teacherName },
       context: { className: [...new Set(displayRows.map(row => row.batch))].join(', '), subjects: [...new Set(filteredAssignments.map(a => a.subject_name))], assignmentCount: filteredAssignments.length, studentCount: displayRows.length },
       assignments: filteredAssignments.map(a => ({ id: a.id, title: a.title || a.topic_name, subject: a.subject_name, date: a.assigned_at })),
       students: displayRows.map(row => ({ id: row.studentId, name: row.studentName, className: row.batch, results: filteredAssignments.map(a => ({ assignmentId: a.id, percentage: row.scores[a.id]?.accuracy ?? null, status: row.scores[a.id] ? 'submitted' : 'not_submitted' })), completedCount: row.completedCount, assignmentCount: filteredAssignments.length, average: row.completedCount ? row.averageAccuracy : null, status: getStudentStatus(row).label })),
       summary: { classAverage: summaryStats?.totalCompleted ? summaryStats.avgAcc : null, completionRate: summaryStats?.completionRate ?? 0, supportCount: summaryStats?.needsAttention ?? 0, highestAverage: averages.length ? Math.max(...averages) : null, lowestAverage: averages.length ? Math.min(...averages) : null },
     };
-  }, [academicYear, dateFrom, dateTo, displayRows, filteredAssignments, generatedAt, reportTitle, school, summaryStats, teacherName, term]);
+  }, [academicYear, dateFrom, dateTo, displayRows, filteredAssignments, generatedAt, reportTitle, school.id, schoolLogoUrl, schoolName, summaryStats, teacherName, term]);
 
   const printReport = useCallback(() => {
     if (!printDocumentRef.current || !reportModel.students.length || !reportModel.assignments.length) return;
