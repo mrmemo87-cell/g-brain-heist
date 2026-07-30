@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { QuestionDifficulty, QuestionType, StudentForAssignment, Subject, TeacherQuestion } from '../../types';
 import type { TeacherAssignedClass } from '../../services/schoolAdminService';
 import { brainsAlert } from '../../src/utils/brainsAlert';
@@ -46,12 +46,12 @@ interface AssignmentWizardProps {
 }
 
 const STEPS = [
-  { id: 1, short: 'Subject', question: 'What subject?' },
-  { id: 2, short: 'Audience', question: 'Who is this for?' },
-  { id: 3, short: 'Questions', question: 'Which questions?' },
-  { id: 4, short: 'Details', question: 'Add Title and Description' },
-  { id: 5, short: 'Due date', question: 'When is it due?' },
-  { id: 6, short: 'Review', question: 'Is everything correct?' },
+  { id: 1, short: 'Subject', question: 'What subject?', helper: 'Choose the curriculum subject this assignment belongs to.' },
+  { id: 2, short: 'Audience', question: 'Who is this for?', helper: 'Select the classes or individual students who should receive it.' },
+  { id: 3, short: 'Questions', question: 'Which questions?', helper: 'Filter the question bank, then move the questions you want into the assignment.' },
+  { id: 4, short: 'Details', question: 'Add Title and Description', helper: 'Give students a clear title, learning goal, and instructions.' },
+  { id: 5, short: 'Due date', question: 'When is it due?', helper: 'Choose when the assignment closes for students.' },
+  { id: 6, short: 'Review', question: 'Is everything correct?', helper: 'Check the audience, questions, timing, and details before publishing.' },
 ] as const;
 
 const normalizeQuestionText = (value: string) =>
@@ -126,6 +126,7 @@ export default function AssignmentWizard({
   const [questionPool, setQuestionPool] = useState<QuestionPool>('all');
   const [previewQuestion, setPreviewQuestion] = useState<TeacherQuestion | null>(null);
   const [customDueDate, setCustomDueDate] = useState(false);
+  const wizardTopRef = useRef<HTMLDivElement>(null);
 
   const uniqueClasses = useMemo(() => {
     const classes = new Map<string, TeacherAssignedClass>();
@@ -256,6 +257,13 @@ export default function AssignmentWizard({
     setAssignmentQuestionIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
   };
 
+  const goToStep = (targetStep: WizardStep) => {
+    setStep(targetStep);
+    window.requestAnimationFrame(() => {
+      wizardTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
   const continueFrom = (currentStep: WizardStep) => {
     if (currentStep === 1 && !assignmentSubject) return brainsAlert('Please choose a subject.', 'info');
     if (currentStep === 2) {
@@ -266,8 +274,7 @@ export default function AssignmentWizard({
       if (!assignmentQuestionIds.length) return brainsAlert('Select at least one question to assign.', 'info');
       setAssignmentDifficulty(averageDifficulty);
     }
-    setStep(Math.min(6, currentStep + 1) as WizardStep);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    goToStep(Math.min(6, currentStep + 1) as WizardStep);
   };
 
   const leaveWizard = () => {
@@ -304,31 +311,38 @@ export default function AssignmentWizard({
       <header className="aw-header">
         <button type="button" className="aw-back" onClick={leaveWizard} aria-label="Back to assignments">← Assignments</button>
         <div>
-          <p>Create assignment</p>
-          <h1>{STEPS[step - 1].question}</h1>
+          <p>Assignment wizard</p>
+          <h1>Create an assignment</h1>
         </div>
         <span className="aw-progress-note">Changes are not saved until you publish.</span>
       </header>
 
-      <nav className="aw-progress" aria-label="Assignment creation progress">
-        {STEPS.map((item) => {
-          const complete = item.id < step;
-          const current = item.id === step;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              disabled={item.id > step}
-              onClick={() => item.id <= step && setStep(item.id as WizardStep)}
-              className={current ? 'is-current' : complete ? 'is-complete' : ''}
-              aria-current={current ? 'step' : undefined}
-            >
-              <span>{complete ? '✓' : item.id}</span>
-              <small>{item.short}</small>
-            </button>
-          );
-        })}
-      </nav>
+      <div ref={wizardTopRef} className="aw-wizard-anchor">
+        <nav className="aw-progress" aria-label="Assignment creation progress">
+          {STEPS.map((item) => {
+            const complete = item.id < step;
+            const current = item.id === step;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                disabled={item.id > step}
+                onClick={() => item.id <= step && goToStep(item.id as WizardStep)}
+                className={current ? 'is-current' : complete ? 'is-complete' : ''}
+                aria-current={current ? 'step' : undefined}
+              >
+                <span>{complete ? '✓' : item.id}</span>
+                <small>{item.short}</small>
+              </button>
+            );
+          })}
+        </nav>
+        <section className="aw-step-question" aria-live="polite">
+          <span>Step {step} of {STEPS.length}</span>
+          <h2>{STEPS[step - 1].question}</h2>
+          <p>{STEPS[step - 1].helper}</p>
+        </section>
+      </div>
 
       <form onSubmit={onSubmit} className="aw-layout">
         <section className="aw-card" aria-labelledby={`wizard-step-${step}`}>
@@ -515,7 +529,7 @@ export default function AssignmentWizard({
                 ['Details', [assignmentDescription, assignmentInstructions].filter(Boolean).join(' · ') || 'No additional details', 4],
                 ['Due date', formatDueDate(assignmentDueAt), 5],
               ].map(([label, value, target]) => (
-                <div className="aw-review__row" key={String(label)}><span><small>{label}</small><strong>{value}</strong></span><button type="button" onClick={() => setStep(target as WizardStep)}>Edit</button></div>
+                <div className="aw-review__row" key={String(label)}><span><small>{label}</small><strong>{value}</strong></span><button type="button" onClick={() => goToStep(target as WizardStep)}>Edit</button></div>
               ))}
               <button type="submit" className="aw-publish" disabled={assignmentSubmitting}>
                 {assignmentSubmitting ? <><span className="aw-spinner" /> Publishing assignment…</> : '🚀 Publish Assignment'}
@@ -524,28 +538,27 @@ export default function AssignmentWizard({
           )}
 
         </section>
-        {summary}
-        <div className="aw-floating-nav" aria-label="Wizard navigation">
-          <button
-            type="button"
-            className="aw-button aw-button--ghost"
-            onClick={() => {
-              setStep((current) => Math.max(1, current - 1) as WizardStep);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            disabled={step === 1}
-          >
-            <span aria-hidden="true">←</span> Back
-          </button>
-          {step < 6 ? (
-            <button type="button" className="aw-button aw-button--primary" onClick={() => continueFrom(step)}>
-              Next <span aria-hidden="true">→</span>
+        <div className="aw-floating-dock">
+          {summary}
+          <div className="aw-floating-nav" aria-label="Wizard navigation">
+            <button
+              type="button"
+              className="aw-button aw-button--ghost"
+              onClick={() => goToStep(Math.max(1, step - 1) as WizardStep)}
+              disabled={step === 1}
+            >
+              <span aria-hidden="true">←</span> Back
             </button>
-          ) : (
-            <button type="submit" className="aw-button aw-button--primary" disabled={assignmentSubmitting}>
-              {assignmentSubmitting ? 'Publishing…' : 'Publish assignment'}
-            </button>
-          )}
+            {step < 6 ? (
+              <button type="button" className="aw-button aw-button--primary" onClick={() => continueFrom(step)}>
+                Next <span aria-hidden="true">→</span>
+              </button>
+            ) : (
+              <button type="submit" className="aw-button aw-button--primary" disabled={assignmentSubmitting}>
+                {assignmentSubmitting ? 'Publishing…' : 'Publish assignment'}
+              </button>
+            )}
+          </div>
         </div>
       </form>
 
