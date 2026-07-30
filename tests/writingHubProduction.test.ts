@@ -184,9 +184,10 @@ test('teacher dashboard stalled/improving indicators render', () => {
   });
 
   const html = renderToStaticMarkup(React.createElement(WritingMonitoringView, { month: '2026-03' }));
-  assert.ok(html.includes('Stalled Student'));
-  assert.ok(html.includes('Improving Student'));
-  assert.ok(html.includes('Needs support'));
+  assert.ok(html.includes('Students and general writing data'));
+  assert.ok(html.includes('Choose a class'));
+  assert.ok(html.includes('2</strong><small>Students'));
+  assert.ok(html.includes('Need support'));
   assert.ok(html.includes('Improving'));
 });
 
@@ -194,7 +195,7 @@ test('teacher dashboard loading/error/empty states render', () => {
   __resetWritingIntegrationStoreForTests();
   const loadingHtml = renderToStaticMarkup(React.createElement(WritingMonitoringView, { isLoading: true }));
   assert.ok(
-    loadingHtml.includes('background:#0a0f1a'),
+    loadingHtml.includes('writing-monitor--loading'),
     `Expected monitoring loading skeleton container. First 500 chars:\n${loadingHtml.slice(0, 500)}`
   );
 

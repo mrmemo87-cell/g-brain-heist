@@ -1,242 +1,502 @@
-.writing-monitor {
-  width: 100%;
-  min-width: 0;
-  overflow-x: clip;
-}
-
-.writing-teacher-surface,
-.writing-teacher-surface * {
+.writing-monitor,
+.writing-monitor * {
   box-sizing: border-box;
 }
 
-.writing-teacher-surface {
+.writing-monitor {
   width: 100%;
   min-width: 0;
-  padding: clamp(0.75rem, 2vw, 1.35rem) !important;
-  color: #172033 !important;
-  background: transparent !important;
+  padding: clamp(0.8rem, 2vw, 1.5rem);
+  overflow-x: clip;
+  color: #172033;
+  background: #f4f7fb;
   font-family: "IBM Plex Sans", Inter, system-ui, sans-serif;
 }
 
-.writing-teacher-hero {
-  padding: clamp(1.25rem, 3vw, 2rem);
-  border: 1px solid #dfe7f3;
-  border-radius: 24px;
-  background:
-    radial-gradient(circle at 92% 12%, rgba(45, 212, 191, 0.2), transparent 30%),
-    linear-gradient(135deg, #f8fbff, #f0f4ff);
+.writing-monitor button,
+.writing-monitor input,
+.writing-monitor select,
+.writing-monitor textarea {
+  font: inherit;
 }
 
-.writing-teacher-eyebrow {
+.writing-monitor button:focus-visible,
+.writing-monitor input:focus-visible,
+.writing-monitor select:focus-visible,
+.writing-monitor textarea:focus-visible {
+  outline: 3px solid rgba(49, 93, 215, 0.26);
+  outline-offset: 2px;
+}
+
+.writing-monitor__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.writing-monitor__hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: clamp(1.3rem, 3vw, 2.2rem);
+  border: 1px solid #d9e4f2;
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 91% 12%, rgba(45, 212, 191, 0.24), transparent 30%),
+    radial-gradient(circle at 5% 90%, rgba(99, 102, 241, 0.14), transparent 34%),
+    linear-gradient(135deg, #ffffff, #edf3ff);
+  box-shadow: 0 18px 45px rgba(41, 63, 103, 0.09);
+}
+
+.writing-monitor__eyebrow {
   display: block;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.38rem;
   color: #315dd7;
   font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.11em;
+  font-weight: 850;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-.writing-teacher-hero h1 {
-  color: #12203a !important;
-  font-size: clamp(1.65rem, 4vw, 2.45rem) !important;
-  line-height: 1.08;
+.writing-monitor__hero h1 {
+  margin: 0;
+  color: #12203a;
+  font-size: clamp(1.8rem, 4vw, 2.75rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
 }
 
-.writing-teacher-hero > div > p,
-.writing-analytics__hero > p {
+.writing-monitor__hero p {
   max-width: 720px;
-  color: #61708a !important;
+  margin: 0.65rem 0 0;
+  color: #5f6f88;
+  font-size: 0.94rem;
   line-height: 1.55;
-}
-
-.writing-teacher-card {
-  border: 1px solid #dfe6f1 !important;
-  border-radius: 22px !important;
-  color: #172033 !important;
-  background: #fff !important;
-  box-shadow: 0 12px 34px rgba(32, 51, 86, 0.07);
-}
-
-.writing-teacher-section-heading span {
-  display: block;
-  margin-bottom: 0.35rem;
-  color: #315dd7;
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.writing-teacher-section-heading h2,
-.writing-teacher-section-heading p {
-  margin: 0 !important;
-}
-
-.writing-teacher-section-heading h2 {
-  color: #15213a !important;
-  font-size: 1.2rem !important;
-}
-
-.writing-teacher-section-heading p {
-  margin-top: 0.3rem !important;
-  color: #6d7b92 !important;
-  font-size: 0.84rem;
-}
-
-.writing-teacher-metric {
-  min-height: 118px;
-  padding: 15px !important;
-  border: 1px solid #dfe6f1 !important;
-  border-radius: 16px !important;
-  background: rgba(255, 255, 255, 0.92) !important;
-  box-shadow: 0 8px 22px rgba(32, 51, 86, 0.05);
-}
-
-.writing-teacher-metric > div:first-child {
-  color: #72809a !important;
-}
-
-.writing-teacher-metric > div:nth-child(2) {
-  color: #24375b !important;
-}
-
-.writing-teacher-metric > div:last-child {
-  color: #64748b !important;
-}
-
-.writing-teacher-metric.is-attention {
-  border-top: 4px solid #fb7185 !important;
-}
-
-.writing-teacher-metric.is-positive {
-  border-top: 4px solid #2dd4bf !important;
-}
-
-.writing-teacher-metric.is-ready {
-  border-top: 4px solid #fbbf24 !important;
-}
-
-.writing-teacher-metric.is-calm {
-  border-top: 4px solid #60a5fa !important;
 }
 
 .writing-monitor__sync {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
-  gap: 6px;
-  margin-top: 8px;
-  color: #67e8f9;
-  font-size: 0.72rem;
+  gap: 0.5rem;
+  padding: 0.62rem 0.85rem;
+  border: 1px solid #cfe5df;
+  border-radius: 999px;
+  color: #267464;
+  background: rgba(255, 255, 255, 0.78);
+  font-size: 0.76rem;
   font-weight: 750;
+  white-space: nowrap;
 }
 
-.writing-monitor__queues {
-  padding: 0.4rem !important;
-  border: 1px solid #dbe5f3 !important;
-  border-radius: 16px !important;
-  background: #fff !important;
+.writing-monitor__sync > span {
+  width: 0.48rem;
+  height: 0.48rem;
+  border-radius: 50%;
+  background: #14b8a6;
+  box-shadow: 0 0 0 5px rgba(20, 184, 166, 0.12);
 }
 
-.writing-monitor__queues button {
-  min-height: 40px;
-  padding: 0.55rem 0.85rem !important;
-  border: 0 !important;
-  border-radius: 11px !important;
-  color: #536176 !important;
-  background: transparent !important;
+.writing-monitor__sync-warning {
+  margin-bottom: 0.85rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid #f1d08a;
+  border-radius: 12px;
+  color: #805b0c;
+  background: #fff9e9;
+  font-size: 0.82rem;
 }
 
-.writing-monitor__queues button.is-active {
-  color: #fff !important;
-  background: linear-gradient(135deg, #315dd7, #4f46e5) !important;
-  box-shadow: 0 8px 18px rgba(49, 93, 215, 0.22);
+.writing-monitor__path {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin: 1rem 0;
+  padding: 0.65rem;
+  border: 1px solid #dce5f1;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(32, 51, 86, 0.05);
 }
 
-.writing-monitor__filters input,
-.writing-monitor__filters select {
-  min-height: 46px;
-  border: 1px solid #cfd9e8 !important;
-  border-radius: 12px !important;
-  color: #172033 !important;
-  background: #f9fbfe !important;
-}
-
-.writing-monitor__filters summary {
-  color: #315dd7 !important;
-  font-weight: 750;
-}
-
-.writing-monitor__student-card {
-  position: relative;
-  padding: 1rem !important;
-  border: 1px solid #dfe6f1 !important;
-  border-radius: 18px !important;
-  color: #172033 !important;
-  background: #fff !important;
-  box-shadow: 0 10px 28px rgba(32, 51, 86, 0.06);
-  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
-}
-
-.writing-monitor__student-card:hover {
-  border-color: #9bb2ff !important;
-  box-shadow: 0 14px 32px rgba(49, 93, 215, 0.11);
-  transform: translateY(-1px);
-}
-
-.writing-monitor__student-context {
-  color: #64748b !important;
-}
-
-.writing-monitor__student-metrics > div {
-  border-color: #e1e8f2;
-  background: #f8faff;
-}
-
-.writing-monitor__student-metrics small {
-  color: #72809a;
-}
-
-.writing-monitor__student-metrics strong {
-  color: #17233d;
-}
-
-.writing-monitor__status-reason {
-  padding: 0.65rem 0.75rem;
-  border-radius: 10px;
-  color: #536176 !important;
+.writing-monitor__path > div {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.58rem 0.65rem;
+  border-radius: 12px;
+  color: #8692a5;
   background: #f7f9fc;
 }
 
-.writing-teacher-button {
-  border: 1px solid #9bb2ff !important;
-  color: #fff !important;
-  background: linear-gradient(135deg, #315dd7, #4f46e5) !important;
-  font-weight: 750;
+.writing-monitor__path > div > span {
+  display: grid;
+  flex: 0 0 auto;
+  width: 1.75rem;
+  height: 1.75rem;
+  place-items: center;
+  border: 1px solid #cfd9e7;
+  border-radius: 50%;
+  color: #718098;
+  background: #fff;
+  font-size: 0.7rem;
+  font-weight: 850;
+}
+
+.writing-monitor__path > div > strong {
+  overflow: hidden;
+  font-size: 0.76rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.writing-monitor__path > div.is-complete {
+  color: #274fbb;
+  background: #eef3ff;
+}
+
+.writing-monitor__path > div.is-complete > span {
+  border-color: #4f75dc;
+  color: #fff;
+  background: #315dd7;
+}
+
+.writing-monitor__section {
+  margin-top: 1rem;
+  padding: clamp(1rem, 2vw, 1.4rem);
+  border: 1px solid #dce5f1;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(32, 51, 86, 0.065);
+}
+
+.writing-monitor__section--accent {
+  border-color: #cddafd;
+  box-shadow: 0 14px 36px rgba(49, 93, 215, 0.08);
+}
+
+.writing-monitor__section--reader {
+  border-color: #cbd8ee;
+  background: linear-gradient(180deg, #fbfdff, #f4f7fc);
+}
+
+.writing-monitor__section-heading {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.writing-monitor__section-heading h2 {
+  margin: 0;
+  color: #14213a;
+  font-size: clamp(1.05rem, 2vw, 1.32rem);
+  line-height: 1.2;
+}
+
+.writing-monitor__section-heading p {
+  margin: 0.3rem 0 0;
+  color: #6a7890;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.writing-monitor__collapse {
+  display: grid;
+  width: 2.35rem;
+  height: 2.35rem;
+  place-items: center;
+  border: 1px solid #cbd7e8;
+  border-radius: 11px;
+  color: #315dd7;
+  background: #f6f9ff;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.writing-monitor__collapse:hover {
+  border-color: #8fa8ea;
+  background: #eef3ff;
+  transform: translateY(-1px);
+}
+
+.writing-monitor__heading-actions,
+.writing-monitor__student-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.writing-monitor__text-button {
+  border: 0;
+  color: #315dd7;
+  background: transparent;
+  font-size: 0.78rem;
+  font-weight: 800;
   cursor: pointer;
 }
 
-.writing-monitor__sync::before {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #2dd4bf;
-  box-shadow: 0 0 12px rgba(45, 212, 191, 0.8);
-  content: "";
+.writing-monitor__metrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.writing-monitor__metrics > article {
+  min-width: 0;
+  min-height: 118px;
+  padding: 0.9rem;
+  border: 1px solid #e0e7f1;
+  border-top: 4px solid #7ca5ed;
+  border-radius: 15px;
+  background: #fbfcff;
+}
+
+.writing-monitor__metrics > article.is-attention {
+  border-top-color: #fb7185;
+  background: #fffafb;
+}
+
+.writing-monitor__metrics > article.is-positive {
+  border-top-color: #2dd4bf;
+  background: #f8fffd;
+}
+
+.writing-monitor__metrics span,
+.writing-monitor__metrics small {
+  display: block;
+  color: #72809a;
+  font-size: 0.68rem;
+  font-weight: 750;
+}
+
+.writing-monitor__metrics span {
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.writing-monitor__metrics strong {
+  display: block;
+  margin: 0.42rem 0 0.3rem;
+  color: #1d3158;
+  font-size: 1.9rem;
+}
+
+.writing-monitor__class-grid,
+.writing-monitor__student-grid,
+.writing-monitor__genre-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.writing-monitor__class-card,
+.writing-monitor__student-card,
+.writing-monitor__genre-card {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #dce5f1;
+  color: #172033;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 170ms ease, box-shadow 170ms ease, transform 170ms ease;
+}
+
+.writing-monitor__class-card:hover,
+.writing-monitor__student-card:hover,
+.writing-monitor__genre-card:hover {
+  border-color: #8fa8ea;
+  box-shadow: 0 13px 28px rgba(49, 93, 215, 0.11);
+  transform: translateY(-2px);
+}
+
+.writing-monitor__class-card.is-selected,
+.writing-monitor__student-card.is-selected,
+.writing-monitor__genre-card.is-selected {
+  border-color: #315dd7;
+  box-shadow: 0 0 0 3px rgba(49, 93, 215, 0.11);
+}
+
+.writing-monitor__class-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.7rem 0.8rem;
+  padding: 1rem;
+  border-radius: 18px;
+}
+
+.writing-monitor__class-icon,
+.writing-monitor__genre-icon {
+  display: grid;
+  width: 2.65rem;
+  height: 2.65rem;
+  place-items: center;
+  border-radius: 13px;
+  background: #eef3ff;
+  font-size: 1.25rem;
+}
+
+.writing-monitor__card-copy strong,
+.writing-monitor__card-copy small {
+  display: block;
+}
+
+.writing-monitor__card-copy strong {
+  color: #162541;
+  font-size: 0.96rem;
+}
+
+.writing-monitor__card-copy small {
+  margin-top: 0.2rem;
+  color: #738198;
+  font-size: 0.72rem;
+}
+
+.writing-monitor__mini-metrics {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.writing-monitor__mini-metrics > span {
+  padding: 0.55rem 0.6rem;
+  border: 1px solid #e5ebf3;
+  border-radius: 10px;
+  background: #f8faff;
+}
+
+.writing-monitor__mini-metrics strong,
+.writing-monitor__mini-metrics small {
+  display: block;
+}
+
+.writing-monitor__mini-metrics strong {
+  color: #24375b;
+  font-size: 0.9rem;
+}
+
+.writing-monitor__mini-metrics small {
+  margin-top: 0.12rem;
+  color: #7a879b;
+  font-size: 0.62rem;
+}
+
+.writing-monitor__attention,
+.writing-monitor__on-track {
+  align-self: center;
+  color: #b4233f;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.writing-monitor__on-track {
+  color: #14806e;
+}
+
+.writing-monitor__open-label {
+  justify-self: end;
+  align-self: center;
+  color: #315dd7;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.writing-monitor__search input {
+  width: min(260px, 32vw);
+  min-height: 42px;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid #ccd7e7;
+  border-radius: 11px;
+  color: #172033;
+  background: #f9fbfe;
+  outline: none;
+}
+
+.writing-monitor__search input:focus {
+  border-color: #5b7ee0;
+  box-shadow: 0 0 0 3px rgba(49, 93, 215, 0.12);
+}
+
+.writing-monitor__student-card {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+  border-radius: 18px;
+}
+
+.writing-monitor__student-topline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.writing-monitor__student-topline > span:first-child > strong,
+.writing-monitor__student-topline > span:first-child > small {
+  display: block;
+}
+
+.writing-monitor__student-topline > span:first-child > strong {
+  color: #15213a;
+  font-size: 1rem;
+}
+
+.writing-monitor__student-topline > span:first-child > small {
+  margin-top: 0.22rem;
+  color: #738198;
+  font-size: 0.7rem;
+}
+
+.writing-monitor__status {
+  flex: 0 0 auto;
+  padding: 0.3rem 0.52rem;
+  border: 1px solid #d8e0ec;
+  border-radius: 999px;
+  color: #66748b;
+  background: #f6f8fb;
+  font-size: 0.66rem;
+  font-weight: 850;
+}
+
+.writing-monitor__status.is-attention {
+  border-color: #fecdd3;
+  color: #be123c;
+  background: #fff1f2;
+}
+
+.writing-monitor__status.is-positive {
+  border-color: #bcebdd;
+  color: #117360;
+  background: #effcf8;
 }
 
 .writing-monitor__student-metrics {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  gap: 0.45rem;
 }
 
-.writing-monitor__student-metrics > div {
+.writing-monitor__student-metrics > span {
   min-width: 0;
-  padding: 9px 10px;
-  border: 1px solid #26334a;
+  padding: 0.55rem;
+  border: 1px solid #e4eaf3;
   border-radius: 9px;
-  background: rgba(15, 23, 42, 0.75);
+  background: #f8faff;
 }
 
 .writing-monitor__student-metrics small,
@@ -246,123 +506,828 @@
 
 .writing-monitor__student-metrics small {
   overflow: hidden;
-  color: #94a3b8;
-  font-size: 0.63rem;
+  color: #7b8799;
+  font-size: 0.59rem;
   text-overflow: ellipsis;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
 .writing-monitor__student-metrics strong {
-  margin-top: 4px;
+  margin-top: 0.22rem;
+  color: #233759;
+  font-size: 0.8rem;
   overflow-wrap: anywhere;
-  color: #f8fafc;
-  font-size: 0.9rem;
 }
 
-.writing-monitor__mode-control {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(190px, 0.7fr);
-  align-items: center;
-  gap: 10px;
-  margin-top: 6px;
-}
-
-.writing-monitor__mode-control span {
-  color: #94a3b8;
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.writing-monitor__mode-control select {
-  width: 100%;
-  min-height: 38px;
-  border: 1px solid #334155;
-  border-radius: 8px;
-  padding: 7px 9px;
-  color: #f8fafc;
-  background: #0b1223;
-}
-
-.writing-monitor__integrity {
-  display: grid;
-  gap: 4px;
-  padding: 12px 14px;
-  border: 1px solid #155e75;
-  border-radius: 11px;
-  color: #cffafe;
-  background: rgba(8, 145, 178, 0.1);
-}
-
-.writing-monitor__integrity span {
-  color: #a5b4c8;
-  font-size: 0.78rem;
+.writing-monitor__student-focus {
+  padding: 0.65rem 0.72rem;
+  border-radius: 10px;
+  color: #5d6c83;
+  background: #f7f9fc;
+  font-size: 0.74rem;
   line-height: 1.45;
 }
 
-.writing-monitor__integrity--review_recommended {
-  border-color: #9a3412;
-  color: #fed7aa;
-  background: rgba(154, 52, 18, 0.14);
+.writing-monitor__student-focus strong {
+  display: block;
+  margin-bottom: 0.18rem;
+  color: #354862;
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-@media (max-width: 700px) {
+.writing-monitor__student-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 0.7fr)) minmax(220px, 1.2fr);
+  gap: 0.7rem;
+  margin-top: 1rem;
+}
+
+.writing-monitor__student-summary > div,
+.writing-monitor__student-summary > label {
+  min-width: 0;
+  padding: 0.8rem;
+  border: 1px solid #e0e7f1;
+  border-radius: 13px;
+  background: #f9fbfe;
+}
+
+.writing-monitor__student-summary span,
+.writing-monitor__student-summary small,
+.writing-monitor__student-summary strong {
+  display: block;
+}
+
+.writing-monitor__student-summary span {
+  color: #718098;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.writing-monitor__student-summary strong {
+  margin: 0.32rem 0 0.15rem;
+  color: #1c3155;
+  font-size: 1.25rem;
+}
+
+.writing-monitor__student-summary small {
+  color: #7b879a;
+  font-size: 0.65rem;
+}
+
+.writing-monitor__student-summary select {
+  width: 100%;
+  min-height: 38px;
+  margin: 0.32rem 0;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #cad6e8;
+  border-radius: 9px;
+  color: #253754;
+  background: #fff;
+  font-size: 0.72rem;
+}
+
+.writing-monitor__genre-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  border-radius: 16px;
+}
+
+.writing-monitor__genre-card.is-empty {
+  border-style: dashed;
+  background: #fbfcfe;
+}
+
+.writing-monitor__genre-card > span:nth-child(2) > strong,
+.writing-monitor__genre-card > span:nth-child(2) > small {
+  display: block;
+}
+
+.writing-monitor__genre-card > span:nth-child(2) > strong {
+  color: #172641;
+  font-size: 0.9rem;
+}
+
+.writing-monitor__genre-card > span:nth-child(2) > small {
+  margin-top: 0.2rem;
+  color: #77849a;
+  font-size: 0.65rem;
+  line-height: 1.35;
+}
+
+.writing-monitor__genre-count {
+  min-width: 4rem;
+  padding: 0.45rem 0.5rem;
+  border-radius: 10px;
+  background: #eef3ff;
+  text-align: center;
+}
+
+.writing-monitor__genre-count strong,
+.writing-monitor__genre-count small {
+  display: block;
+}
+
+.writing-monitor__genre-count strong {
+  color: #315dd7;
+  font-size: 1rem;
+}
+
+.writing-monitor__genre-count small {
+  color: #6077ad;
+  font-size: 0.58rem;
+}
+
+.writing-monitor__genre-score {
+  grid-column: 2 / -1;
+  color: #6c7a91;
+  font-size: 0.67rem;
+  font-weight: 750;
+}
+
+.writing-monitor__primary-button,
+.writing-monitor__secondary-button {
+  min-height: 40px;
+  padding: 0.58rem 0.8rem;
+  border: 1px solid #315dd7;
+  border-radius: 10px;
+  color: #fff;
+  background: linear-gradient(135deg, #315dd7, #4f46e5);
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.writing-monitor__secondary-button {
+  border-color: #c9d5e7;
+  color: #35465f;
+  background: #fff;
+}
+
+.writing-monitor__inline-loading,
+.writing-monitor__inline-error,
+.writing-monitor__empty {
+  margin-top: 1rem;
+  padding: 1.15rem;
+  border: 1px dashed #ccd7e6;
+  border-radius: 14px;
+  color: #69778d;
+  background: #f9fbfd;
+  text-align: center;
+  font-size: 0.82rem;
+}
+
+.writing-monitor__inline-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+}
+
+.writing-monitor__inline-loading > span {
+  width: 0.85rem;
+  height: 0.85rem;
+  border: 2px solid #c7d4ee;
+  border-top-color: #315dd7;
+  border-radius: 50%;
+  animation: writing-monitor-spin 750ms linear infinite;
+}
+
+.writing-monitor__inline-error {
+  border-color: #fecdd3;
+  color: #ad2740;
+  background: #fff6f7;
+}
+
+.writing-monitor__page-count {
+  padding: 0.42rem 0.7rem;
+  border: 1px solid #cbd8ec;
+  border-radius: 999px;
+  color: #3f5f9d;
+  background: #f5f8ff;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.writing-monitor__empty--genre {
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+}
+
+.writing-monitor__empty--genre > span {
+  font-size: 2rem;
+}
+
+.writing-monitor__empty--genre strong {
+  color: #2a3d5b;
+}
+
+.writing-monitor__empty--genre p {
+  max-width: 520px;
+  margin: 0;
+}
+
+.writing-monitor__book-controls {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.writing-monitor__book-controls--top {
+  margin: 1rem 0 0.8rem;
+}
+
+.writing-monitor__book-controls--bottom {
+  margin-top: 0.8rem;
+}
+
+.writing-monitor__book-controls > button {
+  min-height: 42px;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #c9d5e5;
+  border-radius: 10px;
+  color: #334863;
+  background: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.writing-monitor__book-controls > button:disabled {
+  color: #a8b1bf;
+  background: #f2f4f7;
+  cursor: not-allowed;
+}
+
+.writing-monitor__book-controls--bottom > span {
+  color: #76849a;
+  font-size: 0.68rem;
+  text-align: center;
+}
+
+.writing-monitor__book-dots {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  overflow-x: auto;
+}
+
+.writing-monitor__book-dots > button {
+  flex: 0 0 auto;
+  width: 0.55rem;
+  height: 0.55rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #c5cfdd;
+  cursor: pointer;
+}
+
+.writing-monitor__book-dots > button.is-active {
+  width: 1.4rem;
+  border-radius: 999px;
+  background: #315dd7;
+}
+
+.writing-monitor__book {
+  perspective: 1800px;
+}
+
+.writing-monitor__book-spread {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-height: 560px;
+  border: 1px solid #cbd5e4;
+  border-radius: 15px;
+  overflow: hidden;
+  background: #d7dce5;
+  box-shadow: 0 22px 46px rgba(31, 49, 80, 0.17);
+  transform-style: preserve-3d;
+}
+
+.writing-monitor__book-spread::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  z-index: 3;
+  width: 18px;
+  background: linear-gradient(90deg, rgba(36, 48, 70, 0.13), rgba(255, 255, 255, 0.62), rgba(36, 48, 70, 0.12));
+  content: "";
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.writing-monitor__book.is-turning-forward .writing-monitor__book-spread {
+  animation: writing-monitor-turn-forward 420ms ease both;
+}
+
+.writing-monitor__book.is-turning-backward .writing-monitor__book-spread {
+  animation: writing-monitor-turn-backward 420ms ease both;
+}
+
+.writing-monitor__book-page {
+  position: relative;
+  min-width: 0;
+  max-height: 70vh;
+  padding: clamp(1.1rem, 2.6vw, 2rem);
+  overflow-y: auto;
+  color: #1f2937;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.96)),
+    repeating-linear-gradient(0deg, transparent 0 27px, #e9edf3 27px 28px);
+}
+
+.writing-monitor__book-page--submission {
+  border-right: 1px solid #d7dee8;
+  box-shadow: inset -12px 0 22px rgba(42, 54, 75, 0.06);
+}
+
+.writing-monitor__book-page--feedback {
+  box-shadow: inset 12px 0 22px rgba(42, 54, 75, 0.05);
+}
+
+.writing-monitor__book-page > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e0e5ed;
+  color: #65738a;
+  font-size: 0.68rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.writing-monitor__book-page > header > strong {
+  color: #315dd7;
+}
+
+.writing-monitor__book-page-number {
+  margin: 1rem 0;
+  color: #8591a3;
+  font-family: Georgia, serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.writing-monitor__book-page h3 {
+  margin: 1.1rem 0 0.45rem;
+  color: #243653;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.writing-monitor__prompt {
+  margin: 0;
+  padding: 0.8rem;
+  border-left: 3px solid #8ba6ed;
+  color: #4b5d76;
+  background: #f4f7fd;
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.writing-monitor__submission-text {
+  color: #252d39;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(0.95rem, 1.5vw, 1.08rem);
+  line-height: 1.78;
+  white-space: pre-wrap;
+}
+
+.writing-monitor__feedback-copy {
+  margin: 0;
+  color: #43536b;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.writing-monitor__book-page > footer {
+  margin-top: 1.4rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid #e3e7ed;
+  color: #8a94a4;
+  font-size: 0.62rem;
+}
+
+.writing-monitor__rubric {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.writing-monitor__rubric > div > span {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: #42536d;
+  font-size: 0.68rem;
+}
+
+.writing-monitor__rubric > div > span b {
+  color: #315dd7;
+}
+
+.writing-monitor__rubric > div > div {
+  height: 0.42rem;
+  margin-top: 0.25rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e4e9f1;
+}
+
+.writing-monitor__rubric > div > div > i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #5b7fe2, #2dd4bf);
+}
+
+.writing-monitor__rubric > div > small {
+  display: block;
+  margin-top: 0.25rem;
+  color: #748197;
+  font-size: 0.65rem;
+  line-height: 1.4;
+}
+
+.writing-monitor__tags {
+  display: flex;
+  gap: 0.38rem;
+  flex-wrap: wrap;
+}
+
+.writing-monitor__tags > span {
+  padding: 0.34rem 0.5rem;
+  border: 1px solid #fecdd3;
+  border-radius: 999px;
+  color: #aa2940;
+  background: #fff4f5;
+  font-size: 0.65rem;
+  font-weight: 750;
+}
+
+.writing-monitor__tags > span.is-neutral {
+  border-color: #d8e0eb;
+  color: #67758b;
+  background: #f6f8fb;
+}
+
+.writing-monitor__corrections {
+  margin-top: 1rem;
+  padding: 0.7rem;
+  border: 1px solid #dbe3ee;
+  border-radius: 11px;
+  background: #f9fbfe;
+}
+
+.writing-monitor__corrections summary {
+  color: #315dd7;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.writing-monitor__corrections p {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0.65rem 0 0;
+  padding-top: 0.65rem;
+  border-top: 1px solid #e1e7ef;
+  color: #66758a;
+  font-size: 0.68rem;
+}
+
+.writing-monitor__corrections del {
+  color: #bd3f54;
+}
+
+.writing-monitor__corrections ins {
+  color: #137664;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.writing-monitor__corrections small {
+  line-height: 1.45;
+}
+
+.writing-monitor__modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(28, 40, 63, 0.5);
+  backdrop-filter: blur(6px);
+}
+
+.writing-monitor__feedback-modal {
+  display: grid;
+  gap: 0.85rem;
+  width: min(660px, 100%);
+  padding: 1.2rem;
+  border: 1px solid #d5dfed;
+  border-radius: 20px;
+  color: #172033;
+  background: #fff;
+  box-shadow: 0 28px 70px rgba(23, 38, 64, 0.25);
+}
+
+.writing-monitor__feedback-modal > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.writing-monitor__feedback-modal h2 {
+  margin: 0;
+  color: #15213a;
+}
+
+.writing-monitor__feedback-modal p {
+  margin: 0.35rem 0 0;
+  color: #69778d;
+  font-size: 0.8rem;
+}
+
+.writing-monitor__feedback-modal > header > button {
+  display: grid;
+  width: 2.3rem;
+  height: 2.3rem;
+  place-items: center;
+  border: 1px solid #d5deeb;
+  border-radius: 50%;
+  color: #4d5d74;
+  background: #f7f9fc;
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+
+.writing-monitor__feedback-modal > label {
+  color: #3b4c65;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.writing-monitor__feedback-modal textarea {
+  min-height: 210px;
+  padding: 0.8rem;
+  border: 1px solid #cbd6e6;
+  border-radius: 12px;
+  color: #1f2d43;
+  background: #fbfcfe;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.writing-monitor__feedback-modal > footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.writing-monitor__feedback-status {
+  color: #28695d;
+  font-size: 0.72rem;
+}
+
+.writing-monitor__state {
+  padding: 1.25rem;
+  border: 1px solid #dce5f1;
+  border-radius: 16px;
+  color: #637189;
+  background: #fff;
+  text-align: center;
+}
+
+.writing-monitor__state.is-error {
+  border-color: #fecdd3;
+  color: #ad2740;
+  background: #fff6f7;
+}
+
+.writing-monitor--loading {
+  display: grid;
+  gap: 1rem;
+  min-height: 480px;
+  background: #f4f7fb;
+}
+
+.writing-monitor__skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.writing-monitor__skeleton {
+  min-height: 120px;
+  border-radius: 16px;
+  background: linear-gradient(90deg, #e8edf5 25%, #f6f8fb 50%, #e8edf5 75%);
+  background-size: 200% 100%;
+  animation: writing-monitor-shimmer 1.35s infinite;
+}
+
+.writing-monitor__skeleton--hero {
+  min-height: 190px;
+  border-radius: 24px;
+}
+
+.writing-monitor__skeleton--panel {
+  min-height: 260px;
+}
+
+@keyframes writing-monitor-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes writing-monitor-shimmer {
+  to { background-position: -200% 0; }
+}
+
+@keyframes writing-monitor-turn-forward {
+  0% { opacity: 0.55; transform: rotateY(-5deg) translateX(8px); }
+  100% { opacity: 1; transform: rotateY(0) translateX(0); }
+}
+
+@keyframes writing-monitor-turn-backward {
+  0% { opacity: 0.55; transform: rotateY(5deg) translateX(-8px); }
+  100% { opacity: 1; transform: rotateY(0) translateX(0); }
+}
+
+@media (max-width: 980px) {
+  .writing-monitor__metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .writing-monitor__student-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
   .writing-monitor {
-    gap: 12px !important;
-    padding: 10px !important;
-    padding-bottom: 110px !important;
+    padding: 0.7rem;
+    padding-bottom: 7rem;
   }
 
-  .writing-monitor h1 {
-    font-size: 1.55rem !important;
+  .writing-monitor__hero {
+    display: grid;
+    align-items: start;
+    padding: 1.15rem;
+    border-radius: 19px;
   }
 
-  .writing-monitor__summary {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 8px !important;
+  .writing-monitor__sync {
+    justify-self: start;
   }
 
-  .writing-monitor__summary > div {
-    min-height: 118px;
-    padding: 12px !important;
+  .writing-monitor__path {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .writing-monitor__summary > div > div:nth-child(2) {
-    font-size: 1.8rem !important;
+  .writing-monitor__section {
+    padding: 0.85rem;
+    border-radius: 17px;
   }
 
-  .writing-monitor__student-card {
-    padding: 12px !important;
+  .writing-monitor__section-heading {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .writing-monitor__heading-actions {
+    grid-column: 1 / -1;
+    justify-content: stretch;
+  }
+
+  .writing-monitor__heading-actions > *,
+  .writing-monitor__student-actions,
+  .writing-monitor__student-actions > button {
+    width: 100%;
+  }
+
+  .writing-monitor__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .writing-monitor__metrics > article {
+    min-height: 105px;
+  }
+
+  .writing-monitor__class-grid,
+  .writing-monitor__student-grid,
+  .writing-monitor__genre-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .writing-monitor__search,
+  .writing-monitor__search input {
+    width: 100%;
+  }
+
+  .writing-monitor__student-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .writing-monitor__book-controls {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .writing-monitor__book-dots {
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+
+  .writing-monitor__book-controls--bottom > span {
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+
+  .writing-monitor__book-spread {
+    grid-template-columns: 1fr;
+  }
+
+  .writing-monitor__book-spread::after {
+    display: none;
+  }
+
+  .writing-monitor__book-page {
+    max-height: none;
+  }
+
+  .writing-monitor__book-page--submission {
+    border-right: 0;
+    border-bottom: 8px solid #d7dce5;
+    box-shadow: none;
+  }
+
+  .writing-monitor__book-page--feedback {
+    box-shadow: none;
+  }
+
+  .writing-monitor__feedback-modal {
+    align-self: end;
+    border-radius: 20px 20px 0 0;
+  }
+}
+
+@media (max-width: 430px) {
+  .writing-monitor__path > div {
+    padding: 0.48rem;
+  }
+
+  .writing-monitor__metrics {
+    gap: 0.5rem;
   }
 
   .writing-monitor__student-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .writing-monitor__modal-backdrop {
-    place-items: end center !important;
-    padding: 0 !important;
-  }
-
-  .writing-monitor__modal {
-    width: 100% !important;
-    max-height: 92dvh !important;
-    border-radius: 18px 18px 0 0 !important;
-    padding: 15px !important;
-  }
-
-  .writing-monitor__mode-control {
+  .writing-monitor__student-summary {
     grid-template-columns: 1fr;
+  }
+
+  .writing-monitor__genre-card {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .writing-monitor__genre-count {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .writing-monitor__genre-score {
+    grid-column: 2;
   }
 }
 
-@media (max-width: 390px) {
-  .writing-monitor__summary {
-    grid-template-columns: 1fr 1fr !important;
-  }
-
-  .writing-monitor__student-metrics small {
-    white-space: normal;
+@media (prefers-reduced-motion: reduce) {
+  .writing-monitor *,
+  .writing-monitor *::before,
+  .writing-monitor *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
