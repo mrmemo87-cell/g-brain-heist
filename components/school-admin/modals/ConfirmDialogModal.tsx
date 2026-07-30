@@ -7,12 +7,25 @@ const ConfirmDialogModal: React.FC = () => {
     confirmBusy, confirmDialog, confirmReason, setConfirmBusy, setConfirmDialog, setConfirmReason,
   } = useSchoolAdmin();
 
+  const close = React.useCallback(() => {
+    if (confirmBusy) return;
+    setConfirmDialog(null);
+    setConfirmReason('');
+  }, [confirmBusy, setConfirmDialog, setConfirmReason]);
+
+  React.useEffect(() => {
+    if (!confirmDialog) return;
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') close(); };
+    document.addEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  }, [confirmDialog, close]);
+
   return (
     <>
     {confirmDialog && ReactDOM.createPortal(
-      <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] p-4">
+      <div className="school-admin-modal-overlay fixed inset-0 flex items-center justify-center z-[9999] p-4" onMouseDown={(event) => { if (event.target === event.currentTarget) close(); }}>
         <div
-          className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-700"
+          className="school-admin-modal rounded-xl p-6 max-w-md w-full"
           role="dialog"
           aria-modal="true"
           aria-labelledby="confirm-dialog-title"
@@ -41,11 +54,7 @@ const ConfirmDialogModal: React.FC = () => {
           )}
           <div className="flex items-center justify-end gap-3">
             <button
-              onClick={() => {
-                if (confirmBusy) return;
-                setConfirmDialog(null);
-                setConfirmReason('');
-              }}
+              onClick={close}
               disabled={confirmBusy}
               className="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 rounded-lg transition-colors"
             >

@@ -150,6 +150,8 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
   const [settingsAllowStudent, setSettingsAllowStudent] = useState(true);
   const [settingsAllowTeacher, setSettingsAllowTeacher] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
+  const [settingsLogoFile, setSettingsLogoFile] = useState<File | null>(null);
+  const [settingsLogoPreview, setSettingsLogoPreview] = useState('');
 
   // Cambridge Tests Reports State
   const [quizScores, setQuizScores] = useState<any[]>([]);
@@ -714,14 +716,27 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     if (!school) return;
 
     setSavingSettings(true);
+    let logoUrl = school.logo_url;
+    if (settingsLogoFile) {
+      const upload = await SchoolAdminService.uploadSchoolLogo(school.id, settingsLogoFile);
+      if (!upload.success || !upload.url) {
+        setSavingSettings(false);
+        addToast(upload.error || 'Failed to upload school logo', 'error');
+        return;
+      }
+      logoUrl = upload.url;
+    }
     const result = await SchoolAdminService.updateSchoolSettings(school.id, {
       name: settingsName,
+      logo_url: logoUrl,
       allow_student_signup: settingsAllowStudent,
       allow_teacher_signup: settingsAllowTeacher,
     });
     setSavingSettings(false);
 
     if (result.success) {
+      setSettingsLogoFile(null);
+      setSettingsLogoPreview('');
       addToast('Settings saved successfully', 'success');
       await refreshSchool(school.id);
     } else {
@@ -1339,6 +1354,8 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       setSettingsAllowStudent,
       setSettingsAllowTeacher,
       setSettingsName,
+      setSettingsLogoFile,
+      setSettingsLogoPreview,
       setShowMemberActionModal,
       setShowSchoolVisibility,
       setStudentPage,
@@ -1351,6 +1368,8 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       settingsAllowStudent,
       settingsAllowTeacher,
       settingsName,
+      settingsLogoFile,
+      settingsLogoPreview,
       showMemberActionModal,
       showSchoolVisibility,
       sortedMembers,
@@ -1393,9 +1412,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
                 />
               </div>
             ) : (
-              <div className="school-admin-crest" aria-hidden="true">
-                {school.name.trim().charAt(0).toUpperCase() || 'S'}
-              </div>
+              <img src="/logo.png" alt="Brains Heist" className="school-admin-app-logo" />
             )}
             <div className="school-admin-identity-copy">
               <p className="school-admin-eyebrow">School administration</p>
@@ -1429,7 +1446,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
             className={activeTab === tab ? 'is-active' : ''}
           >
             {tab === 'dashboard' && 'Overview'}
-            {tab === 'members' && `Students & Staff (${membersTotal})`}
+            {tab === 'members' && 'Students & Staff'}
             {tab === 'classes' && 'Classes & Registration'}
             {tab === 'subjects' && 'Curriculum & Subjects'}
             {tab === 'admissions' && 'Admissions'}
@@ -1455,7 +1472,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
 
       {/* ─── IELTS Academy Hub ────────────────────────────────────── */}
       {activeTab === 'ielts' && (
-        <div className="space-y-5">
+        <div className="school-admin-themed-tab space-y-5">
 
           {/* Banner */}
           <div className="relative overflow-hidden rounded-2xl border border-teal-500/20 bg-gradient-to-br from-slate-900 via-blue-950 to-teal-950 p-6 shadow-2xl">

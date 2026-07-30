@@ -4,7 +4,7 @@ import InvitesTab from './InvitesTab';
 
 const SettingsTab: React.FC = () => {
   const {
-    handleSaveSettings, savingSettings, school, setSettingsAllowStudent, setSettingsAllowTeacher, setSettingsName, settingsAllowStudent, settingsAllowTeacher, settingsName, students, teachers,
+    handleSaveSettings, savingSettings, school, setSettingsAllowStudent, setSettingsAllowTeacher, setSettingsName, settingsAllowStudent, settingsAllowTeacher, settingsName, settingsLogoPreview, setSettingsLogoFile, setSettingsLogoPreview,
   } = useSchoolAdmin();
 
   return (
@@ -15,6 +15,19 @@ const SettingsTab: React.FC = () => {
         <h3 className="text-lg font-semibold mb-4">School Settings</h3>
 
         <div className="space-y-4">
+          <div className="school-logo-setting">
+            <img src={settingsLogoPreview || school.logo_url || '/logo.png'} alt="Current school logo" />
+            <div>
+              <label htmlFor="school-logo" className="block text-sm font-medium">School logo</label>
+              <p>Shown in this portal, teacher and student dashboards, and school reports.</p>
+              <input id="school-logo" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => {
+                const file = event.target.files?.[0] || null;
+                setSettingsLogoFile(file);
+                setSettingsLogoPreview(file ? URL.createObjectURL(file) : '');
+              }} />
+              <small>PNG, JPG or WebP; maximum 2 MB.</small>
+            </div>
+          </div>
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-1">School Name</label>
             <input

@@ -16,6 +16,15 @@ const MemberActionModal: React.FC = () => {
     setNameMessage('');
   }, [selectedMember?.user_id, selectedMember?.full_name]);
 
+  React.useEffect(() => {
+    if (!showMemberActionModal) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !actionLoading && !studentSaving && !suspendLoading) setShowMemberActionModal(false);
+    };
+    document.addEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  }, [showMemberActionModal, actionLoading, studentSaving, suspendLoading, setShowMemberActionModal]);
+
   const reviewRealName = async (approved: boolean) => {
     if (!selectedMember) return;
     setNameSaving(true);
@@ -33,9 +42,11 @@ const MemberActionModal: React.FC = () => {
   return (
     <>
     {showMemberActionModal && selectedMember && ReactDOM.createPortal(
-      <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] p-4">
+      <div className="school-admin-modal-overlay fixed inset-0 flex items-center justify-center z-[9999] p-4" onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !actionLoading && !studentSaving && !suspendLoading) setShowMemberActionModal(false);
+      }}>
         <div
-          className="member-management-modal bg-gray-800 rounded-2xl p-6 max-w-2xl w-full border border-gray-700 max-h-[90vh] overflow-y-auto"
+          className="school-admin-modal member-management-modal rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
           role="dialog"
           aria-modal="true"
           aria-labelledby="member-action-title"
