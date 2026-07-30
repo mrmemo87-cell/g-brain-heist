@@ -71,7 +71,7 @@ export const buildProfessionalWritingReportHtml = (
     organisation: null,
     language: null,
   };
-  const schoolName = report.institution?.school_name || 'Brain Heist School';
+  const schoolName = report.institution?.school_name || 'Brains Heist';
   const schoolLogoUrl = report.institution?.school_logo_url?.trim();
   const safeSchoolLogoUrl = schoolLogoUrl && /^https:\/\//i.test(schoolLogoUrl)
     ? schoolLogoUrl
@@ -227,7 +227,7 @@ export const buildProfessionalWritingReportHtml = (
 
     <section class="panel" style="margin-top:9px"><h2><i class="dot"></i>Teacher comment</h2><p class="comment">${escapeHtml(teacherComment.slice(0, 600))}</p></section>
     <section class="signoff"><div>${escapeHtml(teacherName)} · Teacher</div><div>Date / signature</div></section>
-    <footer><span>Brain Heist Writing Hub</span><span>Confidential student learning record</span></footer>
+    <footer><span>${escapeHtml(schoolName)} Writing Hub</span><span>Confidential student learning record</span></footer>
   </div>
   <div class="actions">
     <button onclick="window.print()">Print / Save PDF</button>

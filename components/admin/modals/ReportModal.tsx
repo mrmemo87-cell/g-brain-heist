@@ -1,11 +1,17 @@
 import React from 'react';
 import { useAdmin } from '../AdminContext';
+import { useSchoolBranding } from '../../../src/hooks/useSchoolBranding';
 
 const ReportModal: React.FC = () => {
   const {
     actionPlans, analyzeSkillPerformance, formatTime, getEncouragement, getGrade, reportStudent, 
-    setShowReportModal, showReportModal,
+    setShowReportModal, showReportModal, profile,
   } = useAdmin();
+  const { schoolName, schoolLogoUrl } = useSchoolBranding({
+    schoolId: reportStudent?.school_id || profile?.school_id,
+    schoolName: reportStudent?.school_name || profile?.school_name,
+    schoolLogoUrl: reportStudent?.school_logo_url || profile?.school_logo_url,
+  });
 
   return (
     <>
@@ -26,9 +32,9 @@ const ReportModal: React.FC = () => {
               <div className="p-6 border-b-4 border-purple-600 no-print-hide">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
-                    <img src="/logo.png" alt="Brains Heist" style={{ width: '48px', height: '48px' }} />
+                    <img src={schoolLogoUrl} alt={`${schoolName} logo`} style={{ width: '48px', height: '48px', objectFit: 'contain' }} />
                     <div>
-                      <h1 className="text-2xl font-bold text-purple-800">Brains Heist</h1>
+                      <h1 className="text-2xl font-bold text-purple-800">{schoolName}</h1>
                       <p className="text-sm text-gray-500">Student Performance Report</p>
                     </div>
                   </div>
@@ -117,7 +123,7 @@ const ReportModal: React.FC = () => {
 
               {/* Footer */}
               <div className="p-4 border-t flex justify-between items-center text-xs text-gray-400">
-                <span>Brains Heist Learning Platform</span>
+                <span>{schoolName}</span>
                 <span>Report ID: {reportStudent.id?.substring(0, 8) || 'N/A'}</span>
                 <div className="flex gap-3">
                   <button onClick={() => window.print()} className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">🖨️ Print</button>

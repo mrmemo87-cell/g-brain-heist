@@ -1514,6 +1514,9 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
         actionPlanItems: [],
         fallbackPlan: pct < 80 ? { title: 'Focus on Practice', tips: ['Review the questions you got wrong', 'Re-read the relevant material', 'Try similar practice questions'] } : undefined,
         personalizedNote,
+        schoolName: profile.school_name || undefined,
+        schoolLogoUrl: profile.school_logo_url,
+        schoolId: profile.school_id,
       };
 
       setStudentReportData(reportData);

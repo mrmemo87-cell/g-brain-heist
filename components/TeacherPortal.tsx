@@ -1688,6 +1688,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       totalTestsTaken: tests.length,
       bestScore: sorted[0] || null,
       worstScore: sorted[sorted.length - 1] || null,
+      schoolName: profile.school_name || teacher?.school_name || undefined,
+      schoolLogoUrl: profile.school_logo_url,
+      schoolId: profile.school_id,
     };
 
     setStudentOverviewData(overviewData);
@@ -6718,6 +6721,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           }).filter(item => item.tips.length > 0),
           fallbackPlan: weakAreas.length === 0 ? fallbackPlan : undefined,
           personalizedNote,
+          schoolName: profile.school_name || teacher?.school_name || undefined,
+          schoolLogoUrl: profile.school_logo_url,
+          schoolId: profile.school_id,
         };
         
         return <ProfessionalCambridgeReport data={reportData} onClose={() => setShowCambridgeReport(false)} isTeacherView={true} />;
@@ -7061,9 +7067,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               <div className="p-6 border-b-4 border-blue-600">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
-                    <img src="/logo.png" alt="Brains Heist" className="w-12 h-12 object-contain" />
+                    <img src={profile.school_logo_url || '/logo.png'} alt={`${profile.school_name || teacher?.school_name || 'Brains Heist'} logo`} className="w-12 h-12 object-contain" />
                     <div>
-                      <h1 className="text-2xl font-bold text-blue-800">Brains Heist</h1>
+                      <h1 className="text-2xl font-bold text-blue-800">{profile.school_name || teacher?.school_name || 'Brains Heist'}</h1>
                       <p className="text-sm text-gray-500">Test Reflection & Answer Review</p>
                     </div>
                   </div>

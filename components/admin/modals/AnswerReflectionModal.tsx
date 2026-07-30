@@ -2,12 +2,18 @@ import React from 'react';
 import { useAdmin } from '../AdminContext';
 import { buildBiologyAnswerKeyFromSavedMetadata, isBiologyCambridgeQuiz, parseSavedAnswersPayload } from '../../biologyReviewAnswerKey';
 import { getPrimaryCambridgeAnswer, isCambridgeAnswerCorrect, parseCambridgeResponses } from '../../cambridgeListeningReview';
+import { useSchoolBranding } from '../../../src/hooks/useSchoolBranding';
 
 const AnswerReflectionModal: React.FC = () => {
   const {
     correctAnswers, getScienceAnswerKey, reportStudent, setShowAnswerReflection, 
-    showAnswerReflection, testSections,
+    showAnswerReflection, testSections, profile,
   } = useAdmin();
+  const { schoolName, schoolLogoUrl } = useSchoolBranding({
+    schoolId: reportStudent?.school_id || profile?.school_id,
+    schoolName: reportStudent?.school_name || profile?.school_name,
+    schoolLogoUrl: reportStudent?.school_logo_url || profile?.school_logo_url,
+  });
 
   return (
     <>
@@ -65,9 +71,9 @@ const AnswerReflectionModal: React.FC = () => {
               <div className="p-6 border-b-4 border-blue-600 no-print-hide">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
-                    <img src="/logo.png" alt="Brains Heist" style={{ width: '48px', height: '48px' }} />
+                    <img src={schoolLogoUrl} alt={`${schoolName} logo`} style={{ width: '48px', height: '48px', objectFit: 'contain' }} />
                     <div>
-                      <h1 className="text-2xl font-bold text-blue-800">Brains Heist</h1>
+                      <h1 className="text-2xl font-bold text-blue-800">{schoolName}</h1>
                       <p className="text-sm text-gray-500">Test Reflection & Answer Review</p>
                     </div>
                   </div>
