@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { TeacherAssignmentSummary, TeacherAssignmentReportRow, Subject } from '../types';
 import * as GameService from '../services/gameService';
 import { brainsAlert } from '../src/utils/brainsAlert';
+import './CollectiveAssignmentReport.css';
 
 // localStorage key prefix for persisted custom orders
 const CUSTOM_ORDER_STORAGE_KEY = 'brains_collective_report_custom_order';
@@ -115,13 +116,17 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
 
     return assignments.filter((assignment) => {
       if (subjectFilter !== 'all' && assignment.subject_name !== subjectFilter) return false;
+      if (batchFilter !== 'all') {
+        const assignmentClass = assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || 'Unspecified';
+        if (assignmentClass !== batchFilter) return false;
+      }
       if (assignmentFilter !== 'all' && assignment.id !== assignmentFilter) return false;
       const created = new Date(assignment.assigned_at).getTime();
       if (from !== null && created < from) return false;
       if (to !== null && created > to) return false;
       return true;
     });
-  }, [assignments, subjectFilter, assignmentFilter, dateFrom, dateTo]);
+  }, [assignments, subjectFilter, batchFilter, assignmentFilter, dateFrom, dateTo]);
 
   // ── Unique subjects for filter dropdown ──────────────────────────────────
   const uniqueSubjects = useMemo(() => {
@@ -178,9 +183,22 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
 
   // ── Unique batches for filter ────────────────────────────────────────────
   const uniqueBatches = useMemo(() => {
-    const b = new Set(studentRows.map((r) => r.batch));
+    const b = new Set(assignments.map((assignment) => assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || 'Unspecified'));
     return Array.from(b).sort();
-  }, [studentRows]);
+  }, [assignments]);
+
+  const assignmentsForSelection = useMemo(() => assignments.filter((assignment) => {
+    if (subjectFilter !== 'all' && assignment.subject_name !== subjectFilter) return false;
+    if (batchFilter === 'all') return true;
+    const assignmentClass = assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || 'Unspecified';
+    return assignmentClass === batchFilter;
+  }), [assignments, batchFilter, subjectFilter]);
+
+  useEffect(() => {
+    if (assignmentFilter !== 'all' && !assignmentsForSelection.some((assignment) => assignment.id === assignmentFilter)) {
+      setAssignmentFilter('all');
+    }
+  }, [assignmentFilter, assignmentsForSelection]);
 
   // ── Load saved custom order from localStorage ─────────────────────────
   useEffect(() => {
@@ -225,7 +243,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
     let rows = studentRows;
 
     // Batch filter
-    if (batchFilter !== 'all') {
+    if (batchFilter !== 'all' && batchFilter !== 'Selected students') {
       rows = rows.filter((r) => r.batch === batchFilter);
     }
 
@@ -495,9 +513,9 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="collective-report-root space-y-6">
       {/* Back button */}
-      <button onClick={onBack} className="teacher-back-link mb-2">
+      <button onClick={onBack} className="collective-report-no-print teacher-back-link mb-2">
         <span>←</span> Back to Reports
       </button>
 
@@ -514,7 +532,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="collective-report-no-print flex flex-wrap gap-2">
             {/* Toggle score display */}
             <div className="inline-flex rounded-lg border border-slate-300 overflow-hidden text-sm">
               <button
@@ -559,6 +577,9 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
             >
               📥 Export CSV
             </button>
+            <button type="button" onClick={() => window.print()} disabled={displayRows.length === 0} className="teacher-btn teacher-btn-primary text-sm">
+              🖨 Print / Save PDF
+            </button>
           </div>
         </div>
       </div>
@@ -592,7 +613,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
       )}
 
       {/* Filters bar */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="collective-report-no-print teacher-card flex flex-wrap items-end gap-3">
         {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
           <input
@@ -622,7 +643,9 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
         )}
 
         {/* Class filter */}
-        {uniqueBatches.length > 1 && (
+        {uniqueBatches.length > 0 && (
+          <label className="grid gap-1 text-xs font-bold text-slate-500">
+            Class
           <select
             aria-label="Filter by class"
             value={batchFilter}
@@ -631,11 +654,14 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
           >
             <option value="all">All Classes</option>
             {uniqueBatches.map((b) => (
-              <option key={b} value={b}>Class {b}</option>
+              <option key={b} value={b}>{b === 'Selected students' ? b : `Class ${b}`}</option>
             ))}
           </select>
+          </label>
         )}
 
+        <label className="grid gap-1 text-xs font-bold text-slate-500">
+          Assignment
         <select
           aria-label="Filter by assignment"
           value={assignmentFilter}
@@ -643,10 +669,11 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
           className="max-w-[220px] rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none"
         >
           <option value="all">All Assignments</option>
-          {assignments.map((assignment) => (
+          {assignmentsForSelection.map((assignment) => (
             <option key={assignment.id} value={assignment.id}>{assignment.title || assignment.topic_name}</option>
           ))}
         </select>
+        </label>
 
         <label className="flex items-center gap-2 text-xs text-slate-500">
           From
