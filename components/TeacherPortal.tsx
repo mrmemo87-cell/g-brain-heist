@@ -603,6 +603,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     return Array.from(subjects).sort();
   }, [assignedClasses]);
 
+  // A class may appear more than once when a teacher has multiple subject
+  // assignments. Keep the Cambridge class picker based on the current class
+  // assignments, rather than only the historical class labels on submissions.
+  const assignedCambridgeClassCodes = useMemo(() => (
+    [...new Set(assignedClasses.map((cls) => cls.class_code).filter(Boolean))].sort()
+  ), [assignedClasses]);
+
   // Get unique subjects from assignments for folder tabs
   const assignmentSubjects = useMemo(() => {
     const subjects = new Set<string>();
@@ -1307,7 +1314,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   // Get unique quiz names and classes for filters
   const uniqueCambridgeQuizNames = [...new Set(cambridgeScores.map(s => s.quiz_name))];
-  const uniqueCambridgeClasses = [...new Set(cambridgeScores.map(s => s.student_class || 'Unknown'))].sort();
+  const uniqueCambridgeClasses = [...new Set([
+    ...assignedCambridgeClassCodes,
+    ...cambridgeScores.map(s => s.student_class || 'Unknown'),
+  ])].sort();
   const uniqueCambridgeStudents = useMemo(() => {
     if (cambridgeClassFilter === 'all') return [];
     const students = cambridgeScores
@@ -5854,7 +5864,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           <div className="px-3 pb-3">
             {teacherHasClassAssignments && (
               <p className="text-xs text-slate-500 mb-2">
-                ✓ Showing only students from your {assignedClasses.length} assigned class{assignedClasses.length !== 1 ? 'es' : ''}
+                ✓ Showing only students from your {assignedCambridgeClassCodes.length} assigned class{assignedCambridgeClassCodes.length !== 1 ? 'es' : ''}
               </p>
             )}
             <select
