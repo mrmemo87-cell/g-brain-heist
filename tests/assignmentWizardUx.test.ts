@@ -12,7 +12,8 @@ test('assignment creation uses a six-step, single-decision wizard', () => {
   }
   assert.match(wizard, /aria-label="Assignment creation progress"/);
   assert.match(wizard, /aria-current=\{current \? 'step'/);
-  assert.match(wizard, /🚀 Publish Assignment/);
+  assert.match(wizard, /Publish assignment/);
+  assert.match(wizard, /I have reviewed this assignment/);
 });
 
 test('question bank filters and deduplicates slash variants in the UI', () => {
@@ -26,9 +27,17 @@ test('question bank filters and deduplicates slash variants in the UI', () => {
 
 test('wizard clearly discards drafts and protects accidental exits', () => {
   assert.match(wizard, /beforeunload/);
-  assert.match(wizard, /Your progress will be lost and cannot be recovered/);
+  assert.match(wizard, /selected audience, questions, title, and due date will be lost/);
+  assert.match(wizard, /brainsConfirm/);
   assert.doesNotMatch(wizard, /localStorage\.setItem/);
   assert.doesNotMatch(wizard, /Draft restored/);
+});
+
+test('assignment title and final review are required before publish', () => {
+  assert.match(wizard, /required aria-required="true"/);
+  assert.match(wizard, /if \(!assignmentTitle\.trim\(\)\)/);
+  assert.match(wizard, /disabled=\{assignmentSubmitting \|\| !reviewConfirmed\}/);
+  assert.match(portal, /title: assignmentTitle\.trim\(\)/);
 });
 
 test('existing assignment publish handler remains the only creation path', () => {
