@@ -7,7 +7,7 @@
   min-height: calc(100vh - 5rem);
   border-radius: 1.5rem;
   background: linear-gradient(180deg, #f8fafc, #eef2f7);
-  padding: clamp(.85rem, 2vw, 1.5rem) clamp(.75rem, 2vw, 1.4rem) 7rem;
+  padding: clamp(.85rem, 2vw, 1.5rem) clamp(.75rem, 2vw, 1.4rem) 16rem;
   color: var(--aw-ink);
 }
 
@@ -65,6 +65,35 @@
   grid-template-columns: repeat(6, 1fr);
   max-width: 70rem;
   margin: 0 auto 1.5rem;
+}
+
+.aw-wizard-anchor {
+  scroll-margin-top: calc(var(--teacher-top-nav-height, 72px) + .75rem);
+}
+
+.aw-step-question {
+  max-width: 70rem;
+  margin: -0.35rem auto 1.35rem;
+  text-align: center;
+}
+
+.aw-step-question > span {
+  color: var(--aw-primary);
+  font-size: .7rem;
+  font-weight: 850;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.aw-step-question h2 {
+  margin: .35rem 0 .25rem;
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+}
+
+.aw-step-question p {
+  margin: 0;
+  color: var(--aw-muted);
+  font-size: .9rem;
 }
 
 .aw-progress::before {
@@ -131,7 +160,7 @@
 
 .aw-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 19rem;
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
   gap: 1.25rem;
   max-width: 88rem;
@@ -293,13 +322,23 @@
   top: calc(var(--teacher-top-nav-height, 72px) + .75rem);
   z-index: 8;
   display: grid;
-  grid-template-columns: minmax(15rem, 2fr) repeat(6, minmax(7.2rem, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: .6rem;
   border: 1px solid var(--aw-line);
   border-radius: 1rem;
   background: rgba(248, 250, 252, .98);
   padding: .9rem;
   box-shadow: 0 10px 24px rgba(15, 23, 42, .07);
+  overflow: hidden;
+}
+
+.aw-toolbar > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.aw-search--wide {
+  grid-column: span 2;
 }
 
 .aw-toolbar--simple {
@@ -582,10 +621,9 @@
 }
 
 .aw-summary {
-  position: sticky;
-  top: calc(var(--teacher-top-nav-height, 72px) + 1rem);
   border-radius: 1.15rem;
-  padding: 1.25rem;
+  padding: 1rem;
+  box-shadow: none;
 }
 
 .aw-summary h3 {
@@ -651,20 +689,33 @@
   cursor: not-allowed;
 }
 
-.aw-floating-nav {
+.aw-floating-dock {
   position: fixed;
   right: max(1rem, env(safe-area-inset-right));
   bottom: max(1rem, env(safe-area-inset-bottom));
   z-index: 60;
+  width: min(20rem, calc(100vw - 2rem));
+  overflow: hidden;
+  border: 1px solid var(--aw-line);
+  border-radius: 1.15rem;
+  background: rgba(255, 255, 255, .97);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, .18);
+  backdrop-filter: blur(14px);
+}
+
+.aw-floating-dock .aw-summary {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.aw-floating-nav {
   display: grid;
   grid-template-columns: repeat(2, minmax(8rem, 1fr));
   gap: .65rem;
-  border: 1px solid var(--aw-line);
-  border-radius: 1rem;
-  background: rgba(255, 255, 255, .96);
+  border-top: 1px solid var(--aw-line);
+  background: #f8fafc;
   padding: .65rem;
-  box-shadow: 0 18px 45px rgba(15, 23, 42, .18);
-  backdrop-filter: blur(14px);
 }
 
 .aw-review {
@@ -808,41 +859,14 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .aw-search--wide {
-    grid-column: 1 / -1;
-  }
-
-  .aw-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .aw-summary {
-    position: sticky;
-    top: auto;
-    bottom: .5rem;
-    z-index: 20;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: center;
-    gap: .6rem;
-  }
-
-  .aw-summary__eyebrow,
-  .aw-summary__stats,
-  .aw-summary__audience {
-    display: none;
-  }
-
-  .aw-summary h3 {
-    margin: 0;
-  }
+  .aw-search--wide { grid-column: span 2; }
 }
 
 @media (max-width: 760px) {
   .aw-shell {
     min-height: 100vh;
     border-radius: 0;
-    padding: .65rem .65rem 8.5rem;
+    padding: .65rem .65rem 15rem;
   }
 
   .aw-header {
@@ -897,6 +921,10 @@
     grid-template-columns: 1fr;
   }
 
+  .aw-search--wide {
+    grid-column: auto;
+  }
+
   .aw-question-actions {
     flex-wrap: wrap;
   }
@@ -913,10 +941,32 @@
     align-items: flex-start;
   }
 
-  .aw-floating-nav {
+  .aw-floating-dock {
     right: .65rem;
     bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
     left: .65rem;
+    width: auto;
+  }
+
+  .aw-floating-dock .aw-summary {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: .6rem;
+    padding: .75rem;
+  }
+
+  .aw-floating-dock .aw-summary__eyebrow,
+  .aw-floating-dock .aw-summary__stats,
+  .aw-floating-dock .aw-summary__audience {
+    display: none;
+  }
+
+  .aw-floating-dock .aw-summary h3 {
+    margin: 0;
+  }
+
+  .aw-floating-nav {
     grid-template-columns: repeat(2, 1fr);
   }
 }
