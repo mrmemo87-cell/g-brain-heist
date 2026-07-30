@@ -45,7 +45,7 @@ test('question bank uses formal official and teacher-owned pools', () => {
   assert.match(questionBank, />My Pool</);
   assert.match(questionBank, /Curriculum workspace/);
   assert.doesNotMatch(questionBank, /Mission|Loadout|Quest-ready|🎮/i);
-  assert.match(questionBank, /question\.teacher_id\)/);
+  assert.match(questionBank, /isBrainsHeistPoolQuestion/);
   assert.match(questionBank, /Protected app pool/);
   assert.match(questionBank, /Rename topic/);
   assert.match(questionBank, /Delete topic/);

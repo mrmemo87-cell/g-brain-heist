@@ -880,7 +880,9 @@ export interface QuestionOption {
 
 export interface TeacherQuestion {
   id: string;
-  teacher_id: string;
+  teacher_id: string | null;
+  /** Ownership resolved by get_all_active_questions for the signed-in teacher. */
+  is_mine?: boolean;
 
   // Content
   subject: Subject;
