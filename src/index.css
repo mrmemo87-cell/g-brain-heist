@@ -1969,6 +1969,10 @@ button {
 .school-admin-content > :not(.admission-hub-admin-theme) th { background:#eef2f6 !important; color:#42526a !important; }
 .school-admin-content > :not(.admission-hub-admin-theme) td { border-color:#e2e8f0 !important; }
 
+/* Keep high-contrast billing copy white when it sits on intentionally dark
+   surfaces; the legacy light-theme adapter above otherwise recolours it. */
+.school-admin-content .billing-tab-ui .billing-on-dark { color:#fff !important; }
+
 /* Billing and IELTS use the same light surfaces as every other admin tool. */
 .school-admin-ielts-tab [class*="bg-gradient-to"],
 .school-admin-ielts-tab [class*="bg-gray-"],
