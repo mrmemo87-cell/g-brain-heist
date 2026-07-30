@@ -40,6 +40,22 @@ test('assignment title and final review are required before publish', () => {
   assert.match(portal, /title: assignmentTitle\.trim\(\)/);
 });
 
+test('question-bank assignments resume at audience and keep their subject consistent', () => {
+  assert.match(wizard, /initialStep = 1/);
+  assert.match(wizard, /lockedSubject = null/);
+  assert.match(wizard, /You already added \{lockedSubject\} questions from the Question Bank/);
+  assert.match(wizard, /Unavailable — \{lockedSubject\} questions selected/);
+  assert.match(portal, /initialStep=\{assignmentLockedSubject \? 2 : 1\}/);
+  assert.match(portal, /setAssignmentLockedSubject\(subject\)/);
+});
+
+test('assignment due dates must be in the future in the UI and publish handler', () => {
+  assert.match(wizard, /const isPastDueDate/);
+  assert.match(wizard, /Students cannot receive an assignment that is already overdue/);
+  assert.match(wizard, /min=\{localDateTimeValue\(\)\}/);
+  assert.match(portal, /dueDate\.getTime\(\) <= Date\.now\(\)/);
+});
+
 test('existing assignment publish handler remains the only creation path', () => {
   assert.match(portal, /onSubmit=\{handleCreateAssignment\}/);
   assert.match(portal, /GameService\.create_assignment/);
