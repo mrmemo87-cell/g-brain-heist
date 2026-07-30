@@ -5520,6 +5520,8 @@ export const update_question = async (
     questionId: string,
     updates: Partial<CreateQuestionRequest>
 ): Promise<TeacherQuestion> => {
+    const teacher = await get_teacher_profile();
+    if (!teacher) throw new Error('User is not a teacher');
     const resolvedSubjectId = updates.subject ? resolveSubjectIdentifier(updates.subject, updates.subject_id) : updates.subject_id;
     const shouldNormalizeTopic =
         Object.prototype.hasOwnProperty.call(updates, 'topic') || Object.prototype.hasOwnProperty.call(updates, 'topic_name');
@@ -5550,6 +5552,7 @@ export const update_question = async (
         .from('questions')
         .update(payload)
         .eq('id', questionId)
+        .eq('teacher_id', teacher.id)
         .select()
         .single();
 
@@ -5562,10 +5565,13 @@ export const update_question = async (
  * Delete a question
  */
 export const delete_question = async (questionId: string): Promise<void> => {
+    const teacher = await get_teacher_profile();
+    if (!teacher) throw new Error('User is not a teacher');
     const { error } = await supabase
         .from('questions')
         .delete()
-        .eq('id', questionId);
+        .eq('id', questionId)
+        .eq('teacher_id', teacher.id);
 
     if (error) throw error;
 };
@@ -5748,6 +5754,9 @@ export const create_assignment = async (
     if (!payload.question_ids?.length) {
         throw new Error('Select at least one question for the assignment');
     }
+    if (!payload.title?.trim()) {
+        throw new Error('Assignment title is required');
+    }
 
     // Validate mode-specific requirements
     const mode = payload.assignment_mode || 'batch';
@@ -5767,7 +5776,7 @@ export const create_assignment = async (
         p_question_ids: payload.question_ids,
         p_assigned_at: payload.assigned_at ?? nowIso(),
         p_due_at: payload.due_at ?? null,
-        p_title: payload.title ?? null,
+        p_title: payload.title.trim(),
         p_instructions: payload.instructions ?? null,
         p_difficulty: payload.difficulty ?? null,
         p_assignment_mode: mode,
