@@ -1970,18 +1970,18 @@ button {
 .school-admin-content > :not(.admission-hub-admin-theme) td { border-color:#e2e8f0 !important; }
 
 /* Billing and IELTS use the same light surfaces as every other admin tool. */
-.school-admin-themed-tab [class*="bg-gradient-to"],
-.school-admin-themed-tab [class*="bg-gray-"],
-.school-admin-themed-tab [class*="bg-slate-"],
-.school-admin-themed-tab [class*="bg-cyan-900"],
-.school-admin-themed-tab [class*="bg-emerald-900"] { background:#fff !important; }
-.school-admin-themed-tab [class*="text-gray-"],
-.school-admin-themed-tab [class*="text-slate-"] { color:#334155 !important; }
-.school-admin-themed-tab button[class*="bg-cyan-"],
-.school-admin-themed-tab button[class*="bg-emerald-"],
-.school-admin-themed-tab a[class*="bg-emerald-"] { background:var(--school-blue) !important; color:#fff !important; }
-.school-admin-themed-tab [role="tab"][aria-selected="true"] { background:var(--school-blue) !important; color:#fff !important; }
-.school-admin-themed-tab [role="tab"][aria-selected="true"] * { color:#fff !important; }
+.school-admin-ielts-tab [class*="bg-gradient-to"],
+.school-admin-ielts-tab [class*="bg-gray-"],
+.school-admin-ielts-tab [class*="bg-slate-"],
+.school-admin-ielts-tab [class*="bg-cyan-900"],
+.school-admin-ielts-tab [class*="bg-emerald-900"] { background:#fff !important; }
+.school-admin-ielts-tab [class*="text-gray-"],
+.school-admin-ielts-tab [class*="text-slate-"] { color:#334155 !important; }
+.school-admin-ielts-tab button[class*="bg-cyan-"],
+.school-admin-ielts-tab button[class*="bg-emerald-"],
+.school-admin-ielts-tab a[class*="bg-emerald-"] { background:var(--school-blue) !important; color:#fff !important; }
+.school-admin-ielts-tab [role="tab"][aria-selected="true"] { background:var(--school-blue) !important; color:#fff !important; }
+.school-admin-ielts-tab [role="tab"][aria-selected="true"] * { color:#fff !important; }
 
 .school-logo-setting { display:grid; grid-template-columns:5rem 1fr; gap:1rem; align-items:start; padding:1rem; border:1px solid #dce3ea; border-radius:.75rem; background:#f8fafc; }
 .school-logo-setting img { width:5rem; height:5rem; padding:.3rem; border:1px solid #dce3ea; border-radius:.75rem; background:#fff; object-fit:contain; }
