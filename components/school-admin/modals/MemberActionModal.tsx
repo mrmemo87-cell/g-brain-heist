@@ -5,7 +5,7 @@ import { verifyStudentFullName } from '../../../services/schoolAdminService';
 
 const MemberActionModal: React.FC = () => {
   const {
-    actionLoading, forceChangeAvatar, forceChangeLoading, forceChangeReason, forceChangeUsername, handleBanMember, handleClearProfileChange, handleForceProfileChange, handleRemoveMember, handleSuspendStudent, handleUnbanMember, handleUnsuspendStudent, handleUpdateRole, loadStudentModStatus, modTargetStatus, selectedMember, setForceChangeAvatar, setForceChangeReason, setForceChangeUsername, setModTargetId, setModTargetStatus, setSelectedMember, setShowMemberActionModal, setSuspendDuration, setSuspendReason, showMemberActionModal, students, suspendDuration, suspendLoading, suspendReason,
+    actionLoading, classes, handleEnrollStudent, selectedClassId, selectedGrade, setSelectedClassId, setSelectedGrade, setSelectedStudentId, studentSaving, forceChangeAvatar, forceChangeLoading, forceChangeReason, forceChangeUsername, handleBanMember, handleClearProfileChange, handleForceProfileChange, handleRemoveMember, handleSuspendStudent, handleUnbanMember, handleUnsuspendStudent, handleUpdateRole, loadStudentModStatus, modTargetStatus, selectedMember, setForceChangeAvatar, setForceChangeReason, setForceChangeUsername, setModTargetId, setModTargetStatus, setSelectedMember, setShowMemberActionModal, setSuspendDuration, setSuspendReason, showMemberActionModal, students, suspendDuration, suspendLoading, suspendReason,
   } = useSchoolAdmin();
   const [verifiedName, setVerifiedName] = React.useState('');
   const [nameSaving, setNameSaving] = React.useState(false);
@@ -35,7 +35,7 @@ const MemberActionModal: React.FC = () => {
     {showMemberActionModal && selectedMember && ReactDOM.createPortal(
       <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] p-4">
         <div
-          className="bg-gray-800 rounded-xl p-6 max-w-lg w-full border border-gray-700 max-h-[90vh] overflow-y-auto"
+          className="member-management-modal bg-gray-800 rounded-2xl p-6 max-w-2xl w-full border border-gray-700 max-h-[90vh] overflow-y-auto"
           role="dialog"
           aria-modal="true"
           aria-labelledby="member-action-title"
@@ -51,6 +51,12 @@ const MemberActionModal: React.FC = () => {
               <h3 id="member-action-title" className="text-xl font-bold">{selectedMember.username}</h3>
               <p id="member-action-description" className="text-gray-400 text-sm">{selectedMember.email}</p>
             </div>
+          </div>
+
+          <div className="member-record-strip">
+            <span><small>Role</small><strong>{selectedMember.role.replace('_', ' ')}</strong></span>
+            <span><small>Date joined</small><strong>{selectedMember.joined_at ? new Date(selectedMember.joined_at).toLocaleDateString() : 'Not recorded'}</strong></span>
+            <span><small>Record status</small><strong>{selectedMember.is_banned ? 'Restricted' : 'Active'}</strong></span>
           </div>
 
           <div className="space-y-3">
@@ -78,6 +84,17 @@ const MemberActionModal: React.FC = () => {
                   <button onClick={() => reviewRealName(true)} disabled={nameSaving || verifiedName.trim().length < 5 || !verifiedName.trim().includes(' ')} className="px-3 py-2 rounded-lg bg-green-600 hover:bg-green-500 disabled:opacity-50">{nameSaving ? 'Saving…' : 'Confirm name'}</button>
                 </div>
                 {nameMessage && <p className="mt-2 text-xs text-cyan-300">{nameMessage}</p>}
+              </div>
+            )}
+
+            {selectedMember.role === 'student' && (
+              <div className="bg-gray-700/50 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-gray-200 mb-2">Academic placement</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <input type="number" value={selectedGrade} onChange={e => setSelectedGrade(e.target.value ? Number(e.target.value) : '')} placeholder="Year group" aria-label="Year group" />
+                  <select value={selectedClassId} onChange={e => setSelectedClassId(e.target.value)} aria-label="Class"><option value="">Not assigned to a class</option>{classes.filter((item: any) => item.is_active).map((item: any) => <option key={item.id} value={item.id}>{item.class_code} — {item.class_name}</option>)}</select>
+                </div>
+                <button className="mt-3 w-full px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg font-medium" disabled={studentSaving} onClick={() => handleEnrollStudent(selectedMember.user_id, selectedClassId, selectedGrade)}>{studentSaving ? 'Saving…' : 'Save academic placement'}</button>
               </div>
             )}
 
