@@ -22,12 +22,8 @@ import type { SchoolRole } from '../types';
 import SchoolAdminContext from './school-admin/SchoolAdminContext';
 import DashboardTab from './school-admin/tabs/DashboardTab';
 import MembersTab from './school-admin/tabs/MembersTab';
-import ClassesTab from './school-admin/tabs/ClassesTab';
-import RosterTab from './school-admin/tabs/RosterTab';
+import OrganisationTab from './school-admin/tabs/OrganisationTab';
 import SubjectsTab from './school-admin/tabs/SubjectsTab';
-import TeachersTab from './school-admin/tabs/TeachersTab';
-import StudentsTab from './school-admin/tabs/StudentsTab';
-import InvitesTab from './school-admin/tabs/InvitesTab';
 import BillingTab from './school-admin/tabs/BillingTab';
 import SettingsTab from './school-admin/tabs/SettingsTab';
 import CambridgeTab from './school-admin/tabs/CambridgeTab';
@@ -47,7 +43,7 @@ interface SchoolAdminPortalProps {
   addToast: (message: string, type: ToastMessage['type']) => void;
 }
 
-type AdminTab = 'dashboard' | 'members' | 'classes' | 'roster' | 'subjects' | 'teachers' | 'students' | 'invites' | 'settings' | 'billing' | 'cambridge' | 'ielts' | 'admissions' | 'ielts-exams' | 'ielts-practice' | 'ielts-results' | 'ielts-analytics' | 'ielts-settings';
+type AdminTab = 'dashboard' | 'members' | 'classes' | 'subjects' | 'settings' | 'billing' | 'cambridge' | 'ielts' | 'admissions' | 'ielts-exams' | 'ielts-practice' | 'ielts-results' | 'ielts-analytics' | 'ielts-settings';
 type IeltsSubTab = 'ielts-exams' | 'ielts-practice' | 'ielts-results' | 'ielts-analytics' | 'ielts-settings';
 type IeltsToolNavItem = { id: IeltsSubTab; icon: string; label: string; hint: string; route?: never } | { id: string; icon: string; label: string; hint: string; route: string };
 
@@ -67,6 +63,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
   const [school, setSchool] = useState<SchoolInfo | null>(null);
   const [stats, setStats] = useState<SchoolStats | null>(null);
   const [members, setMembers] = useState<SchoolMember[]>([]);
+  const [schoolAdmins, setSchoolAdmins] = useState<SchoolMember[]>([]);
 
   // Billing / Plan state
   const [planDetails, setPlanDetails] = useState<SchoolPlanDetails | null>(null);
@@ -219,12 +216,13 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
   const loadAdminTools = useCallback(async (schoolId: string) => {
     setClassesLoading(true);
     try {
-      const [classList, teacherList, assignmentsList, studentList, subjectList] = await Promise.all([
+      const [classList, teacherList, assignmentsList, studentList, subjectList, adminList] = await Promise.all([
         SchoolAdminService.listSchoolClasses(schoolId),
         SchoolAdminService.listSchoolTeachers(schoolId),
         SchoolAdminService.listTeacherAssignments(schoolId),
         SchoolAdminService.listSchoolMembers(schoolId, { role: 'student', limit: 10000 }).then((res) => res.members),
         SchoolAdminService.listSchoolSubjects(schoolId),
+        SchoolAdminService.listSchoolMembers(schoolId, { role: 'school_admin', limit: 100 }).then((res) => res.members),
       ]);
 
       setClasses(classList);
@@ -232,6 +230,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       setTeacherAssignments(assignmentsList);
       setStudents(studentList);
       setDbSubjects(subjectList);
+      setSchoolAdmins(adminList);
 
       const classIds = classList.map((cls) => cls.id);
       const studentRows = await SchoolAdminService.listClassStudents(classIds, schoolId);
@@ -801,22 +800,22 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     await loadAdminTools(school.id);
   };
 
-  const handleEnrollStudent = async () => {
+  const handleEnrollStudent = async (studentId = selectedStudentId, classId = selectedClassId, grade = selectedGrade) => {
     if (!school) return;
-    if (!selectedStudentId || !selectedClassId) {
+    if (!studentId || !classId) {
       addToast('Select a student and class', 'error');
       return;
     }
 
-    const enrolledStudentId = selectedStudentId;
-    const enrolledClassId = selectedClassId;
+    const enrolledStudentId = studentId;
+    const enrolledClassId = classId;
 
     // Use the new RPC with optional grade
     setStudentSaving(true);
     const result = await SchoolAdminService.moveStudentToClassViaRPC(
-      selectedStudentId,
-      selectedClassId,
-      selectedGrade ? Number(selectedGrade) : undefined
+      studentId,
+      classId,
+      grade ? Number(grade) : undefined
     );
     setStudentSaving(false);
 
@@ -1286,6 +1285,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       quizScoresLoading,
       savingSettings,
       school,
+      schoolAdmins,
       schoolVisibility,
       schoolVisibilityLoading,
       schoolVisibilitySubjectFilter,
@@ -1416,7 +1416,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       <aside className="school-admin-sidebar" aria-label="School administration sections">
         <p className="school-admin-nav-label">Administration</p>
       <div className="school-admin-tabs" role="tablist" aria-label="School admin navigation">
-        {(['dashboard', 'members', 'classes', 'roster', 'subjects', 'teachers', 'students', 'invites', 'admissions', 'cambridge', 'ielts', 'billing', 'settings'] as AdminTab[]).map((tab) => (
+        {(['dashboard', 'members', 'classes', 'subjects', 'admissions', 'cambridge', 'ielts', 'billing', 'settings'] as AdminTab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -1427,12 +1427,8 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
           >
             {tab === 'dashboard' && 'Overview'}
             {tab === 'members' && `School community (${membersTotal})`}
-            {tab === 'classes' && 'Classes & year groups'}
-            {tab === 'roster' && 'Whole-school register'}
+            {tab === 'classes' && 'Organisation & register'}
             {tab === 'subjects' && 'Curriculum subjects'}
-            {tab === 'teachers' && 'Teaching staff'}
-            {tab === 'students' && 'Pupil enrolment'}
-            {tab === 'invites' && 'Joining & access'}
             {tab === 'admissions' && 'Admissions hub'}
             {tab === 'billing' && 'Plan & billing'}
             {tab === 'settings' && 'School settings'}
@@ -1447,12 +1443,8 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       <main className="school-admin-content">
       {activeTab === 'dashboard' && stats && <DashboardTab />}
       {activeTab === 'members' && <MembersTab />}
-      {activeTab === 'classes' && <ClassesTab />}
-      {activeTab === 'roster' && school && <RosterTab />}
+      {activeTab === 'classes' && <OrganisationTab />}
       {activeTab === 'subjects' && <SubjectsTab />}
-      {activeTab === 'teachers' && <TeachersTab />}
-      {activeTab === 'students' && <StudentsTab />}
-      {activeTab === 'invites' && <InvitesTab />}
       {activeTab === 'billing' && <BillingTab />}
       {activeTab === 'settings' && <SettingsTab />}
       {activeTab === 'cambridge' && <CambridgeTab />}

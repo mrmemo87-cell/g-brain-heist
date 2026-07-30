@@ -2,72 +2,51 @@ import React from 'react';
 import { useSchoolAdmin } from '../SchoolAdminContext';
 
 const DashboardTab: React.FC = () => {
-  const {
-    classes, members, school, setActiveTab, stats, students, teachers,
-  } = useSchoolAdmin();
-
-  const summaryCards = [
-    { label: 'Pupils on roll', value: stats.students, note: 'Current enrolment', accent: 'border-blue-700' },
-    { label: 'Teaching staff', value: stats.teachers, note: 'Staff accounts', accent: 'border-emerald-700' },
-    { label: 'Administrators', value: stats.admins, note: 'Authorised users', accent: 'border-amber-600' },
-    { label: 'School community', value: stats.total, note: 'All active records', accent: 'border-slate-600' },
+  const { classes, dbSubjects, setActiveTab, stats, studentAssignments, students, teacherAssignments, teachers, school } = useSchoolAdmin();
+  const activeClasses = classes.filter((item: any) => item.is_active);
+  const placedStudents = students.filter((student: any) => studentAssignments[student.user_id]);
+  const assignedTeachers = new Set(teacherAssignments.filter((item: any) => item.is_active !== false).map((item: any) => item.teacher_id));
+  const mappedSubjects = new Set(teacherAssignments.map((item: any) => (item.subject || '').trim().toLowerCase()).filter(Boolean));
+  const metrics = [
+    { label: 'Students on roll', value: stats.students, note: 'Current enrolment', tone: 'blue' },
+    { label: 'Teaching staff', value: stats.teachers, note: 'Staff accounts', tone: 'emerald' },
+    { label: 'Administrators', value: stats.admins, note: 'Authorised users', tone: 'amber' },
+    { label: 'School community', value: stats.total, note: 'All active records', tone: 'slate' },
+  ];
+  const mapItems = [
+    { label: 'Classes', value: activeClasses.length, detail: `${classes.length - activeClasses.length} archived`, assigned: activeClasses.length, total: Math.max(classes.length, 1) },
+    { label: 'Students', value: students.length, detail: `${students.length - placedStudents.length} not assigned`, assigned: placedStudents.length, total: Math.max(students.length, 1) },
+    { label: 'Teachers', value: teachers.length, detail: `${teachers.length - assignedTeachers.size} not assigned`, assigned: assignedTeachers.size, total: Math.max(teachers.length, 1) },
+    { label: 'Subjects', value: dbSubjects.length, detail: `${dbSubjects.filter((subject: any) => !mappedSubjects.has(subject.subject_name?.toLowerCase())).length} not assigned`, assigned: dbSubjects.filter((subject: any) => mappedSubjects.has(subject.subject_name?.toLowerCase())).length, total: Math.max(dbSubjects.length, 1) },
   ];
 
-  return (
-    <div className="space-y-6">
-      <section className="rounded-2xl border border-gray-200 bg-white p-6">
-        <p className="text-xs font-bold uppercase tracking-widest text-blue-800">Executive overview</p>
-        <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900">Good day, school administrator</h2>
-            <p className="mt-1 text-sm text-slate-500">A clear operational summary for {school?.name}. Select a record area to review or update it.</p>
-          </div>
-          <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800">School records available</span>
-        </div>
-      </section>
+  return <div className="space-y-6">
+    <section className="admin-hero">
+      <div><p className="school-admin-eyebrow">Executive overview</p><h2>Everything at {school?.name}, in one view.</h2><p>Your live operational picture, from enrolment to curriculum coverage.</p></div>
+      <span className="admin-live-pill"><i /> Records synced</span>
+    </section>
 
-      <section aria-label="School population summary" className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {summaryCards.map((card) => (
-          <div key={card.label} className={`rounded-xl border border-gray-200 border-t-4 ${card.accent} bg-white p-5`}>
-            <div className="text-3xl font-bold text-slate-900">{card.value}</div>
-            <div className="mt-2 text-sm font-bold text-slate-700">{card.label}</div>
-            <div className="mt-1 text-xs text-slate-500">{card.note}</div>
-          </div>
-        ))}
-      </section>
+    <section aria-label="School population summary" className="admin-metric-grid">
+      {metrics.map((metric) => <article key={metric.label} className={`admin-metric admin-metric-${metric.tone}`}>
+        <div className="admin-metric-value">{metric.value}</div><div><strong>{metric.label}</strong><span>{metric.note}</span></div>
+      </article>)}
+    </section>
 
-      <section className="rounded-2xl border border-gray-200 bg-white p-6">
-        <div className="mb-4">
-          <h3 className="text-lg font-bold text-slate-900">Priority record areas</h3>
-          <p className="text-sm text-slate-500">Common administration tasks are grouped by the school record they affect.</p>
-        </div>
-        <div className="grid gap-3 md:grid-cols-3">
-          <button onClick={() => setActiveTab('students')} className="rounded-xl border border-gray-200 bg-slate-50 p-4 text-left hover:border-blue-400 hover:bg-blue-50">
-            <strong className="block text-sm text-slate-900">Pupil enrolment</strong><span className="mt-1 block text-xs text-slate-500">Place pupils in the correct year group and class.</span>
-          </button>
-          <button onClick={() => setActiveTab('teachers')} className="rounded-xl border border-gray-200 bg-slate-50 p-4 text-left hover:border-blue-400 hover:bg-blue-50">
-            <strong className="block text-sm text-slate-900">Teaching assignments</strong><span className="mt-1 block text-xs text-slate-500">Link staff to classes and curriculum subjects.</span>
-          </button>
-          <button onClick={() => setActiveTab('invites')} className="rounded-xl border border-gray-200 bg-slate-50 p-4 text-left hover:border-blue-400 hover:bg-blue-50">
-            <strong className="block text-sm text-slate-900">Joining and access</strong><span className="mt-1 block text-xs text-slate-500">Issue controlled access for new staff and pupils.</span>
-          </button>
-        </div>
-      </section>
+    <section className="school-map-card">
+      <div className="school-map-heading"><div><p className="school-admin-eyebrow">School map</p><h3>Operational coverage</h3><p>See where records are connected and where attention is needed.</p></div><button onClick={() => setActiveTab('classes')}>Open organisation →</button></div>
+      <div className="school-map-flow">
+        {mapItems.map((item, index) => <React.Fragment key={item.label}>
+          <article className="school-map-node"><div className="school-map-orbit"><span>{item.value}</span></div><strong>{item.label}</strong><small className={item.detail.startsWith('0 ') ? 'is-clear' : ''}>{item.detail}</small><div className="coverage-track"><i style={{ width: `${Math.round(item.assigned / item.total * 100)}%` }} /></div></article>
+          {index < mapItems.length - 1 && <div className="school-map-connector" aria-hidden="true">→</div>}
+        </React.Fragment>)}
+      </div>
+    </section>
 
-      <section className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-xl border border-gray-200 bg-white p-5">
-          <h3 className="text-sm font-bold text-slate-900">Register position</h3>
-          <p className="mt-2 text-sm text-slate-600">{students.length} pupil records and {teachers.length} teaching staff records are currently available to this workspace.</p>
-          <button onClick={() => setActiveTab('roster')} className="mt-4 text-sm font-bold text-blue-800 hover:underline">Open whole-school register →</button>
-        </div>
-        <div className="rounded-xl border border-gray-200 bg-white p-5">
-          <h3 className="text-sm font-bold text-slate-900">Data stewardship</h3>
-          <p className="mt-2 text-sm text-slate-600">Review roles before granting access. Use school settings to control who may join, and keep class placements current.</p>
-          <button onClick={() => setActiveTab('settings')} className="mt-4 text-sm font-bold text-blue-800 hover:underline">Review school controls →</button>
-        </div>
-      </section>
-    </div>
-  );
+    <section className="admin-action-grid">
+      <button onClick={() => setActiveTab('members')}><span>01</span><strong>Community management</strong><small>Review administrators, teachers and students.</small></button>
+      <button onClick={() => setActiveTab('classes')}><span>02</span><strong>Organisation & register</strong><small>Manage classes, year groups and placements.</small></button>
+      <button onClick={() => setActiveTab('settings')}><span>03</span><strong>Access controls</strong><small>Manage the school code and joining policy.</small></button>
+    </section>
+  </div>;
 };
-
 export default DashboardTab;
