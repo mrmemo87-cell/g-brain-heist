@@ -38,6 +38,9 @@ const WritingAnalyticsDashboard = React.lazy(() => import('../src/pages/writing/
 const WritingExportCenter = React.lazy(() => import('../src/pages/writing/WritingExportCenter'));
 const ClanTerritoryManager = React.lazy(() => import('../src/features/clanTerritory/ClanTerritoryManager'));
 import { normalizePart2CommunicativeAchievement, sanitizeCommunicativeAchievementText } from '../src/lib/writingCommunicativeAchievement';
+import { useSchoolBranding } from '../src/hooks/useSchoolBranding';
+import { createSchoolBrand } from '../src/lib/schoolBranding';
+import { SchoolBrand } from '../src/components/SchoolBrand';
 
 interface TeacherPortalProps {
   profile: Profile;
@@ -122,6 +125,8 @@ const splitGrammarAndPunctuation = (items: { wrong: string; correct: string; exp
 };
 
 const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, isSchoolAdmin, onOpenSchoolAdmin, onOpenAdmissions, initialView = 'dashboard' }) => {
+  const resolvedBranding = useSchoolBranding({ schoolId: profile.school_id, schoolName: profile.school_name, schoolLogoUrl: profile.school_logo_url });
+  const schoolBrand = createSchoolBrand({ schoolId: profile.school_id, ...resolvedBranding });
   const initialWritingSection: WritingHubSection =
     initialView === 'writing-analytics' ? 'analytics' :
       initialView === 'writing-export-center' ? 'reports' :
@@ -8325,12 +8330,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 <span>🎓</span> Educator Workspace
               </div>
               <h1 className="teacher-header-title">
-                <img
-                  src="/logo.png"
-                  alt="Brains Heist"
-                  className="h-9 w-9 rounded-md object-contain inline-block mr-2 align-[-0.3rem]"
-                />
-                <span className="hidden sm:inline">Brains Heist Teacher Portal</span>
+                <SchoolBrand brand={schoolBrand} showName={false} imageClassName="h-9 w-9 rounded-md object-contain inline-block mr-2" />
+                <span className="hidden sm:inline">{schoolBrand.name} Teacher Portal</span>
                 <span className="sm:hidden">Teacher Portal</span>
               </h1>
 

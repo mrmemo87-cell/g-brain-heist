@@ -27,7 +27,7 @@ test('mobile reports and Cambridge results use cards instead of wide tables', ()
 test('phone headers stay compact and respect device safe areas', () => {
   assert.match(teacherPortal, /teacher-mobile-plan-badge/);
   assert.match(teacherPortal, /max\(env\(safe-area-inset-top/);
-  assert.match(sharedHeader, />\s*BH\s*</);
+  assert.match(sharedHeader, /\{schoolBrand\.name\}/);
   assert.match(sharedHeader, /env\(safe-area-inset-top/);
   assert.match(teacherTheme, /\.teacher-topbar\s*\{[\s\S]*background: #07101f !important;[\s\S]*opacity: 1;/);
   assert.match(teacherTheme, /\.teacher-mobile-plan-badge\s*\{\s*display: none !important;/);
