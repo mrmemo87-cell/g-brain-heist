@@ -70,9 +70,12 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
   const [includeSummary, setIncludeSummary] = useState(true);
   const [includeGradeMatrix, setIncludeGradeMatrix] = useState(true);
   const [includeAssignmentBreakdown, setIncludeAssignmentBreakdown] = useState(true);
+  const [builderOpen, setBuilderOpen] = useState(false);
+  const [builderStep, setBuilderStep] = useState<1 | 2 | 3>(1);
+  const [exportOpen, setExportOpen] = useState(false);
 
   // Sorting
-  const [sortColumn, setSortColumn] = useState<SortColumn>('name');
+  const [sortColumn, setSortColumn] = useState<SortColumn>('average');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
   // Custom ordering (list of studentIds in the teacher's preferred order)
@@ -84,9 +87,6 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
   const dragOverRowIndex = useRef<number | null>(null);
   const [dragActiveIdx, setDragActiveIdx] = useState<number | null>(null);
   const [dropTargetIdx, setDropTargetIdx] = useState<number | null>(null);
-
-  // Display mode
-  const [showScore, setShowScore] = useState<'accuracy' | 'score'>('accuracy');
 
   // ── Fetch all data on mount ──────────────────────────────────────────────
   useEffect(() => {
@@ -117,6 +117,13 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
 
     return () => { cancelled = true; };
   }, [assignments]);
+
+  useEffect(() => {
+    if (!builderOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setBuilderOpen(false); };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [builderOpen]);
 
   // ── Filtered assignments ─────────────────────────────────────────────────
   const filteredAssignments = useMemo(() => {
@@ -473,19 +480,19 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
 
     const headers = [
       'Student',
-      'Batch',
-      ...filteredAssignments.map((a) => a.title || a.topic_name),
-      'Average Accuracy (%)',
+      'Class',
+      ...filteredAssignments.flatMap((a) => [`${a.title || a.topic_name} Accuracy (%)`, `${a.title || a.topic_name} Raw Score`]),
+      'Average Attainment (%)',
       'Completed',
     ];
 
     const csvRows = displayRows.map((row) => [
       escape(row.studentName),
       escape(row.batch),
-      ...filteredAssignments.map((a) => {
+      ...filteredAssignments.flatMap((a) => {
         const s = row.scores[a.id];
-        if (!s) return escape('—');
-        return showScore === 'accuracy' ? escape(`${s.accuracy}%`) : escape(s.score);
+        if (!s) return [escape('Not submitted'), escape('Not submitted')];
+        return [escape(`${s.accuracy}%`), escape(s.score)];
       }),
       escape(row.completedCount ? row.averageAccuracy : '—'),
       escape(`${row.completedCount}/${filteredAssignments.length}`),
@@ -499,7 +506,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
     a.download = `collective-report-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
-  }, [displayRows, filteredAssignments, showScore]);
+  }, [displayRows, filteredAssignments]);
 
   // ── Accuracy colour helper ───────────────────────────────────────────────
   const accuracyColor = (v: number) => {
@@ -518,15 +525,32 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
   const summaryStats = useMemo(() => {
     if (displayRows.length === 0) return null;
     const evidenceRows = displayRows.filter((row) => row.completedCount > 0);
-    const avgAcc = evidenceRows.length
-      ? Math.round(evidenceRows.reduce((sum, row) => sum + row.averageAccuracy, 0) / evidenceRows.length)
-      : 0;
+    const evidence = evidenceRows.flatMap((row) => filteredAssignments.map((assignment) => row.scores[assignment.id]).filter((score): score is NonNullable<typeof score> => Boolean(score)));
+    const correct = evidence.reduce((total, score) => total + score.correct, 0);
+    const attempted = evidence.reduce((total, score) => total + score.correct + score.incorrect, 0);
+    const avgAcc = attempted ? Math.round((correct / attempted) * 100) : 0;
     const totalCompleted = displayRows.reduce((s, r) => s + r.completedCount, 0);
     const totalPossible = displayRows.length * filteredAssignments.length;
     const completionRate = totalPossible > 0 ? Math.round((totalCompleted / totalPossible) * 100) : 0;
-    const topStudent = [...evidenceRows].sort((a, b) => b.averageAccuracy - a.averageAccuracy)[0];
-    return { avgAcc, totalCompleted, totalPossible, completionRate, topStudent };
+    const needsAttention = displayRows.filter((row) => row.completedCount < filteredAssignments.length || (row.completedCount > 0 && row.averageAccuracy < 60)).length;
+    return { avgAcc, totalCompleted, totalPossible, completionRate, needsAttention };
   }, [displayRows, filteredAssignments]);
+
+  const visibleScope = useMemo(() => {
+    const subjects = [...new Set(filteredAssignments.map((assignment) => assignment.subject_name))];
+    const classes = [...new Set(displayRows.map((row) => row.batch))];
+    const dates = filteredAssignments.map((assignment) => new Date(assignment.assigned_at)).filter((date) => !Number.isNaN(date.getTime())).sort((a, b) => a.getTime() - b.getTime());
+    const formatter = new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+    const dateLabel = dates.length ? dates.length === 1 ? formatter.format(dates[0]) : `${formatter.format(dates[0])}–${formatter.format(dates[dates.length - 1])}` : 'No assignment dates';
+    return { subjects: subjects.join(', ') || 'All subjects', classes: classes.map((batch) => `Class ${batch}`).join(', ') || 'All classes', dateLabel };
+  }, [displayRows, filteredAssignments]);
+
+  const getStudentStatus = (row: StudentRow) => {
+    if (row.completedCount < filteredAssignments.length) return { label: 'Incomplete', className: 'is-incomplete' };
+    if (row.averageAccuracy < 60) return { label: 'Support', className: 'is-support' };
+    if (row.averageAccuracy < 80) return { label: 'Review', className: 'is-review' };
+    return { label: 'On track', className: 'is-on-track' };
+  };
 
   const assignmentStats = useMemo(() => filteredAssignments.map((assignment) => {
     const completed = displayRows
@@ -584,9 +608,9 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
           <section className="collective-print-section">
             <div className="collective-print-section__heading"><span>01</span><div><h2>Executive summary</h2><p>A concise view of achievement and completion in the selected evidence.</p></div></div>
             <div className="collective-print-kpis">
-              <div><small>Average grade</small><strong>{summaryStats.totalCompleted ? `${summaryStats.avgAcc}%` : '—'}</strong><span>{summaryStats.totalCompleted ? (summaryStats.avgAcc >= 80 ? 'Strong attainment' : summaryStats.avgAcc >= 60 ? 'Developing securely' : 'Support recommended') : 'No graded evidence yet'}</span></div>
+              <div><small>Average attainment</small><strong>{summaryStats.totalCompleted ? `${summaryStats.avgAcc}%` : '—'}</strong><span>Question-weighted accuracy</span></div>
               <div><small>Completion</small><strong>{summaryStats.completionRate}%</strong><span>{summaryStats.totalCompleted} of {summaryStats.totalPossible} submissions</span></div>
-              <div><small>Highest current average</small><strong>{summaryStats.topStudent ? `${summaryStats.topStudent.averageAccuracy}%` : '—'}</strong><span>{summaryStats.topStudent?.studentName ?? 'No graded evidence yet'}</span></div>
+              <div><small>Needs attention</small><strong>{summaryStats.needsAttention}</strong><span>Low attainment or missing work</span></div>
             </div>
           </section>
         ) : null}
@@ -615,7 +639,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
           <section className="collective-print-section">
             <div className="collective-print-section__heading"><span>03</span><div><h2>Assignment performance</h2><p>Use this view to identify which selected tasks need reteaching or follow-up.</p></div></div>
             <table className="collective-print-table collective-print-table--summary">
-              <thead><tr><th>Assignment</th><th>Subject</th><th>Class / audience</th><th>Assigned</th><th>Average grade</th><th>Completed</th></tr></thead>
+              <thead><tr><th>Assignment</th><th>Subject</th><th>Class / audience</th><th>Assigned</th><th>Average attainment</th><th>Completed</th></tr></thead>
               <tbody>{assignmentStats.map(({ assignment, average, completed, expected }) => <tr key={assignment.id}><td><strong>{assignment.title || assignment.topic_name}</strong></td><td>{assignment.subject_name}</td><td>{assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || '—'}</td><td>{new Date(assignment.assigned_at).toLocaleDateString()}</td><td><strong>{average === null ? '—' : `${average}%`}</strong></td><td>{completed}/{expected}</td></tr>)}</tbody>
             </table>
           </section>
@@ -628,76 +652,31 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-              📊 Collective Assignment Report
+              Collective performance
             </h2>
             <p className="text-slate-500 mt-1">
-              Overview of all student scores across {filteredAssignments.length} assignment{filteredAssignments.length !== 1 ? 's' : ''}
-              {displayRows.length > 0 && ` · ${displayRows.length} student${displayRows.length !== 1 ? 's' : ''}`}
+              {visibleScope.subjects} · {visibleScope.classes} · {visibleScope.dateLabel}<br />
+              <span className="text-xs">{filteredAssignments.length} assignment{filteredAssignments.length !== 1 ? 's' : ''} · {displayRows.length} student{displayRows.length !== 1 ? 's' : ''}</span>
             </p>
           </div>
 
-          <div className="collective-report-no-print flex flex-wrap gap-2">
-            {/* Toggle score display */}
-            <div className="inline-flex rounded-lg border border-slate-300 overflow-hidden text-sm">
-              <button
-                onClick={() => setShowScore('accuracy')}
-                className={`px-3 py-1.5 font-medium transition-colors ${
-                  showScore === 'accuracy'
-                    ? 'bg-cyan-600 text-white'
-                    : 'bg-white text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                Accuracy %
-              </button>
-              <button
-                onClick={() => setShowScore('score')}
-                className={`px-3 py-1.5 font-medium transition-colors ${
-                  showScore === 'score'
-                    ? 'bg-cyan-600 text-white'
-                    : 'bg-white text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                Score
-              </button>
+          <div className="collective-report-no-print collective-header-actions">
+            <div className="collective-export-menu">
+              <button type="button" className="teacher-btn teacher-btn-secondary text-sm" onClick={() => setExportOpen((open) => !open)} aria-expanded={exportOpen}>Export <span aria-hidden="true">⌄</span></button>
+              {exportOpen ? <div role="menu"><button type="button" role="menuitem" onClick={() => { handleExportCSV(); setExportOpen(false); }}>Download CSV</button><button type="button" role="menuitem" onClick={() => { window.print(); setExportOpen(false); }}>Print or save PDF</button></div> : null}
             </div>
-
-            {/* Custom arrangement toggle */}
-            <button
-              onClick={toggleCustomMode}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${
-                isCustomMode
-                  ? 'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-200'
-                  : 'bg-white text-slate-600 border-slate-300 hover:border-purple-400 hover:bg-purple-50'
-              }`}
-              title={isCustomMode ? 'Exit custom arrangement mode' : 'Arrange students in a custom order (drag & drop)'}
-            >
-              {isCustomMode ? '✋ Custom Order ON' : '↕️ Custom Order'}
-            </button>
-
-            <button
-              onClick={handleExportCSV}
-              disabled={displayRows.length === 0}
-              className={`teacher-btn ${displayRows.length === 0 ? 'opacity-50 cursor-not-allowed' : 'teacher-btn-secondary'} text-sm`}
-            >
-              📥 Export CSV
-            </button>
-            <button type="button" onClick={() => window.print()} disabled={displayRows.length === 0} className="teacher-btn teacher-btn-primary text-sm">
-              🖨 Print / Save PDF
-            </button>
+            <button type="button" onClick={() => { setBuilderStep(1); setBuilderOpen(true); }} disabled={!displayRows.length} className="teacher-btn teacher-btn-primary text-sm">Create report</button>
           </div>
         </div>
       </div>
 
-      <section className="collective-report-builder collective-report-no-print" aria-labelledby="collective-builder-title">
+      {builderOpen ? <div className="collective-builder-overlay collective-report-no-print" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setBuilderOpen(false); }}><section className="collective-report-builder" role="dialog" aria-modal="true" aria-labelledby="collective-builder-title">
         <header>
-          <div><span>Report builder</span><h3 id="collective-builder-title">Choose exactly what the school receives</h3><p>Select assignments, students, and report sections before printing or saving as PDF.</p></div>
-          <div className="collective-builder-status"><strong>{selectedAssignmentIds.length}</strong><span>assignments</span><strong>{selectedStudentIds.length}</strong><span>students</span></div>
+          <div><span>Create report · Step {builderStep} of 3</span><h3 id="collective-builder-title">{builderStep === 1 ? 'Choose report scope' : builderStep === 2 ? 'Choose report contents' : 'Review and export'}</h3><p>{builderStep === 1 ? 'Select the evidence and students to include.' : builderStep === 2 ? 'Keep only the sections your audience needs.' : 'Confirm the report details before printing or saving as PDF.'}</p></div>
+          <button type="button" className="collective-builder-close" onClick={() => setBuilderOpen(false)} aria-label="Close report builder">×</button>
         </header>
-        <div className="collective-builder-grid">
-          <label className="collective-builder-field"><span>Report title</span><input value={reportTitle} onChange={(event) => setReportTitle(event.target.value)} maxLength={90} /></label>
-          <label className="collective-builder-field"><span>Teacher context <small>optional</small></span><input value={reportNote} onChange={(event) => setReportNote(event.target.value)} placeholder="Term, cohort, intervention focus, or audience…" maxLength={180} /></label>
-        </div>
-        <div className="collective-builder-selectors">
+        <div className="collective-builder-progress" aria-label={`Step ${builderStep} of 3`}><i className={builderStep >= 1 ? 'active' : ''}/><i className={builderStep >= 2 ? 'active' : ''}/><i className={builderStep >= 3 ? 'active' : ''}/></div>
+        {builderStep === 1 ? <div className="collective-builder-selectors">
           <details open>
             <summary><span><strong>Assignments</strong><small>{selectedAssignmentIds.length} of {assignments.length} selected</small></span><span>Choose evidence</span></summary>
             <div className="collective-builder-actions"><button type="button" onClick={() => setSelectedAssignmentIds(assignments.map((assignment) => assignment.id))}>Select all</button><button type="button" onClick={() => setSelectedAssignmentIds([])}>Clear</button></div>
@@ -709,16 +688,17 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
             <div className="collective-builder-list">{studentRows.map((student) => <label key={student.studentId}><input type="checkbox" checked={selectedStudentIds.includes(student.studentId)} onChange={() => { setStudentSelectionReady(true); setSelectedStudentIds((current) => current.includes(student.studentId) ? current.filter((id) => id !== student.studentId) : [...current, student.studentId]); }} /><span><strong>{student.studentName}</strong><small>Class {student.batch} · {student.completedCount} selected submission{student.completedCount === 1 ? '' : 's'}</small></span></label>)}</div>
             {!studentRows.length ? <p className="collective-builder-empty">No students are currently assigned to this teacher’s classes.</p> : null}
           </details>
-        </div>
-        <fieldset className="collective-builder-sections"><legend>Include in the report</legend><label><input type="checkbox" checked={includeSummary} onChange={(event) => setIncludeSummary(event.target.checked)} /> Executive summary</label><label><input type="checkbox" checked={includeGradeMatrix} onChange={(event) => setIncludeGradeMatrix(event.target.checked)} /> Student grade record</label><label><input type="checkbox" checked={includeAssignmentBreakdown} onChange={(event) => setIncludeAssignmentBreakdown(event.target.checked)} /> Assignment performance</label></fieldset>
-        <div className="collective-builder-footer"><p><strong>Ready to print:</strong> {displayRows.length} student{displayRows.length === 1 ? '' : 's'} × {filteredAssignments.length} assignment{filteredAssignments.length === 1 ? '' : 's'}.</p><button type="button" onClick={() => window.print()} disabled={!displayRows.length || !filteredAssignments.length || (!includeSummary && !includeGradeMatrix && !includeAssignmentBreakdown)}>Preview / Print professional report</button></div>
-      </section>
+        </div> : null}
+        {builderStep === 2 ? <div className="collective-builder-body"><fieldset className="collective-builder-sections"><legend>Include in the report</legend><label><input type="checkbox" checked={includeSummary} onChange={(event) => setIncludeSummary(event.target.checked)} /> <span><strong>Executive summary</strong><small>Headline attainment and completion</small></span></label><label><input type="checkbox" checked={includeGradeMatrix} onChange={(event) => setIncludeGradeMatrix(event.target.checked)} /> <span><strong>Student results</strong><small>Individual grades and completion</small></span></label><label><input type="checkbox" checked={includeAssignmentBreakdown} onChange={(event) => setIncludeAssignmentBreakdown(event.target.checked)} /> <span><strong>Assignment summary</strong><small>Performance by selected task</small></span></label></fieldset><label className="collective-order-field"><span>Student order</span><select value={isCustomMode ? 'custom' : sortColumn === 'average' && sortDirection === 'asc' ? 'attention' : 'name'} onChange={(event) => { if (event.target.value === 'custom') { if (!isCustomMode) toggleCustomMode(); } else { setIsCustomMode(false); setSortColumn(event.target.value === 'attention' ? 'average' : 'name'); setSortDirection('asc'); } }}><option value="name">Name A–Z</option><option value="attention">Lowest attainment first</option><option value="custom">Custom order</option></select><small>Custom order enables drag controls in the results table.</small></label></div> : null}
+        {builderStep === 3 ? <div className="collective-builder-body"><div className="collective-builder-grid"><label className="collective-builder-field"><span>Report title</span><input value={reportTitle} onChange={(event) => setReportTitle(event.target.value)} maxLength={90} /></label><label className="collective-builder-field"><span>Teacher context <small>optional</small></span><input value={reportNote} onChange={(event) => setReportNote(event.target.value)} placeholder="Term, cohort, intervention focus, or audience…" maxLength={180} /></label></div><div className="collective-review-card"><strong>{reportTitle || 'Student Achievement Report'}</strong><span>{displayRows.length} students · {filteredAssignments.length} assignments</span><span>{[includeSummary, includeGradeMatrix, includeAssignmentBreakdown].filter(Boolean).length} report sections selected</span></div></div> : null}
+        <div className="collective-builder-footer"><button type="button" className="secondary" onClick={() => builderStep === 1 ? setBuilderOpen(false) : setBuilderStep((builderStep - 1) as 1 | 2)}> {builderStep === 1 ? 'Cancel' : 'Back'}</button>{builderStep < 3 ? <button type="button" onClick={() => setBuilderStep((builderStep + 1) as 2 | 3)} disabled={builderStep === 1 && (!displayRows.length || !filteredAssignments.length)}>Continue</button> : <button type="button" onClick={() => window.print()} disabled={!displayRows.length || !filteredAssignments.length || (!includeSummary && !includeGradeMatrix && !includeAssignmentBreakdown)}>Print or save PDF</button>}</div>
+      </section></div> : null}
 
       {/* Summary cards */}
       {summaryStats && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="collective-kpi-grid">
           <div className="teacher-card text-center py-4">
-            <div className="text-sm text-slate-500 mb-1">Average Accuracy</div>
+            <div className="text-sm text-slate-500 mb-1">Average attainment <span title="Question-weighted accuracy across completed submissions" aria-label="Question-weighted accuracy across completed submissions">ⓘ</span></div>
             <div className={`text-2xl font-bold ${!summaryStats.totalCompleted ? 'text-slate-400' : summaryStats.avgAcc >= 70 ? 'text-green-600' : summaryStats.avgAcc >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
               {summaryStats.totalCompleted ? `${summaryStats.avgAcc}%` : '—'}
             </div>
@@ -729,15 +709,9 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
             <div className="text-xs text-slate-400">{summaryStats.totalCompleted}/{summaryStats.totalPossible}</div>
           </div>
           <div className="teacher-card text-center py-4">
-            <div className="text-sm text-slate-500 mb-1">Students</div>
-            <div className="text-2xl font-bold text-indigo-600">{displayRows.length}</div>
-          </div>
-          <div className="teacher-card text-center py-4">
-            <div className="text-sm text-slate-500 mb-1">Top Student</div>
-            <div className="text-lg font-bold text-emerald-600 truncate px-2">
-              {summaryStats.topStudent?.studentName ?? '—'}
-            </div>
-            <div className="text-xs text-slate-400">{summaryStats.topStudent ? `${summaryStats.topStudent.averageAccuracy}% avg` : 'No graded evidence'}</div>
+            <div className="text-sm text-slate-500 mb-1">Needs attention</div>
+            <div className="text-2xl font-bold text-rose-600">{summaryStats.needsAttention}</div>
+            <div className="text-xs text-slate-400">Low attainment or missing work</div>
           </div>
         </div>
       )}
@@ -815,6 +789,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
           </button>
         )}
       </div>
+      {(subjectFilter !== 'all' || batchFilter !== 'all' || dateFrom || dateTo || searchTerm) ? <div className="collective-filter-chips collective-report-no-print" aria-label="Active filters">{searchTerm ? <button onClick={() => setSearchTerm('')}>Search: {searchTerm} ×</button> : null}{subjectFilter !== 'all' ? <button onClick={() => setSubjectFilter('all')}>{subjectFilter} ×</button> : null}{batchFilter !== 'all' ? <button onClick={() => setBatchFilter('all')}>Class {batchFilter} ×</button> : null}{(dateFrom || dateTo) ? <button onClick={() => { setDateFrom(''); setDateTo(''); }}>Assignment date ×</button> : null}</div> : null}
 
       {/* Custom order info banner */}
       {isCustomMode && (
@@ -835,6 +810,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
       )}
 
       {/* Main table */}
+      <div className="collective-status-legend collective-report-no-print" aria-label="Student status guide"><span><i className="is-on-track" />On track (80%+)</span><span><i className="is-review" />Review (60–79%)</span><span><i className="is-support" />Support (below 60%)</span><span><i className="is-incomplete" />Incomplete submission</span></div>
       {displayRows.length === 0 ? (
         <div className="teacher-card p-10 text-center">
           <div className="text-5xl mb-3">📭</div>
@@ -867,7 +843,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
                     className="py-3 px-4 text-slate-700 font-semibold cursor-pointer hover:bg-slate-200 transition-colors select-none whitespace-nowrap"
                     onClick={() => handleSort('batch')}
                   >
-                    Batch {sortIndicator('batch')}
+                    Class {sortIndicator('batch')}
                   </th>
 
                   {/* One column per assignment */}
@@ -886,6 +862,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
                     </th>
                   ))}
 
+                  <th className="py-3 px-4 text-slate-700 font-semibold text-center whitespace-nowrap">Completion</th>
                   {/* Average column */}
                   <th
                     className="py-3 px-4 text-slate-700 font-semibold cursor-pointer hover:bg-slate-200 transition-colors select-none text-center whitespace-nowrap bg-slate-200/60"
@@ -896,7 +873,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
 
                   {/* Completion count */}
                   <th className="py-3 px-4 text-slate-700 font-semibold text-center whitespace-nowrap">
-                    Done
+                    Status
                   </th>
                 </tr>
               </thead>
@@ -962,11 +939,11 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
                       if (!s) {
                         return (
                           <td key={a.id} className="py-3 px-3 text-center">
-                            <span className="text-slate-300 text-xs">—</span>
+                          <span className="text-slate-400 text-xs" title="Not submitted" aria-label="Not submitted">Not submitted</span>
                           </td>
                         );
                       }
-                      const val = showScore === 'accuracy' ? `${s.accuracy}%` : s.score;
+                      const val = `${s.accuracy}%`;
                       return (
                         <td key={a.id} className="py-3 px-3 text-center">
                           <span
@@ -979,6 +956,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
                       );
                     })}
 
+                    <td className="py-3 px-4 text-center text-slate-600 text-xs font-semibold">{row.completedCount}/{filteredAssignments.length}</td>
                     {/* Average */}
                     <td className="py-3 px-4 text-center bg-slate-50/50">
                       <span className={`inline-block px-2 py-0.5 rounded-md text-xs font-bold ${row.completedCount ? accuracyColor(row.averageAccuracy) : 'text-slate-400 bg-slate-100'}`}>
@@ -986,9 +964,9 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
                       </span>
                     </td>
 
-                    {/* Completed count */}
+                    {/* Student status */}
                     <td className="py-3 px-4 text-center text-slate-600 text-xs">
-                      {row.completedCount}/{filteredAssignments.length}
+                      <span className={`collective-status ${getStudentStatus(row).className}`}>{getStudentStatus(row).label}</span>
                     </td>
                   </tr>
                 ))}
@@ -999,7 +977,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
           {/* Footer */}
           <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
             <span>
-              Showing {displayRows.length} student{displayRows.length !== 1 ? 's' : ''} × {filteredAssignments.length} assignment{filteredAssignments.length !== 1 ? 's' : ''}
+              Showing {displayRows.length} student{displayRows.length !== 1 ? 's' : ''} · Completion is shown beside each average ({summaryStats?.totalCompleted ?? 0}/{summaryStats?.totalPossible ?? 0})
             </span>
             <span>
               {isCustomMode

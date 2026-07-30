@@ -41,7 +41,7 @@ test('collective reports select assignments and students and can print a profess
   assert.match(report, /selectedStudentIds/);
   assert.match(report, /students\.forEach/);
   assert.match(report, /collective-print-report/);
-  assert.match(report, /Preview \/ Print professional report/);
-  assert.match(report, /Print \/ Save PDF/);
+  assert.match(report, /Create report/);
+  assert.match(report, /Print or save PDF/);
   assert.match(report, /window\.print\(\)/);
 });
