@@ -355,6 +355,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [assignmentBatches, setAssignmentBatches] = useState<string[]>([]);
   const questionBankSubjectRef = useRef(false);
   const [assignmentSubject, setAssignmentSubject] = useState<Subject>('Maths');
+  const [assignmentLockedSubject, setAssignmentLockedSubject] = useState<Subject | null>(null);
   const [assignmentTopicMode, setAssignmentTopicMode] = useState<'general' | 'custom'>('general');
   const [assignmentTopicName, setAssignmentTopicName] = useState('');
   const [assignmentTitle, setAssignmentTitle] = useState('');
@@ -498,7 +499,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const subjectFilterOptions = useMemo(() => {
     const subjects = new Set<Subject>();
     questions.forEach((q) => subjects.add(q.subject));
-    return Array.from(subjects).sort();
+    return Array.from(subjects).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
   }, [questions]);
 
   const topicFilterOptions = useMemo(() => {
@@ -506,7 +507,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     questions
       .filter((q) => questionSubjectFilter === 'all' || q.subject === questionSubjectFilter)
       .forEach((q) => topics.add(getQuestionTopicLabel(q)));
-    return Array.from(topics).sort();
+    return Array.from(topics).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
   }, [questions, questionSubjectFilter]);
 
   const filteredQuestions = useMemo(() => {
@@ -581,7 +582,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       .sort((a, b) => {
         if (a.topic === 'General') return 1;
         if (b.topic === 'General') return -1;
-        return a.topic.localeCompare(b.topic);
+        return a.topic.localeCompare(b.topic, undefined, { sensitivity: 'base', numeric: true });
       });
   }, [assignmentFilteredQuestionPool]);
 
@@ -605,7 +606,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       if (cls.subject) subjects.add(cls.subject);
     });
     // Sort alphabetically
-    return Array.from(subjects).sort();
+    return Array.from(subjects).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
   }, [assignedClasses]);
 
   // A class may appear more than once when a teacher has multiple subject
@@ -621,7 +622,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     assignments.forEach(a => {
       if (a.subject_name) subjects.add(a.subject_name);
     });
-    return Array.from(subjects).sort();
+    return Array.from(subjects).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
   }, [assignments]);
 
   // Filtered assignments based on search, subject, and status filters
@@ -656,7 +657,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       questions
         .filter((question) => question.teacher_id === teacher.id && question.subject === subject)
         .map((question) => getQuestionTopicLabel(question)),
-    )].sort();
+    )].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
   }, [questions, subject, teacher]);
   
   const filteredStudents = useMemo(() => {
@@ -3267,6 +3268,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const resetAssignmentDraft = useCallback(() => {
     localStorage.removeItem('brains_heist_teacher_assignment_draft_v2');
     questionBankSubjectRef.current = false;
+    setAssignmentLockedSubject(null);
     setAssignmentQuestionIds([]);
     setAssignmentTitle('');
     setAssignmentDescription('');
@@ -3298,6 +3300,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
     // Pre-select the questions and set subject/topic from the selected set
     questionBankSubjectRef.current = true; // Prevent the subject-change useEffect from clearing these IDs
+    setAssignmentLockedSubject(subject);
     setAssignmentQuestionIds(questionIds);
     setAssignmentSubject(subject);
     if (topic && topic !== 'General') {
@@ -3350,6 +3353,14 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     if (assignmentMode === 'custom' && selectedStudentIds.length === 0) {
       brainsAlert('Please select at least one student for this assignment.', 'info');
       return;
+    }
+
+    if (assignmentDueAt) {
+      const dueDate = new Date(assignmentDueAt);
+      if (Number.isNaN(dueDate.getTime()) || dueDate.getTime() <= Date.now()) {
+        brainsAlert('Choose a due date and time in the future. Students cannot receive an assignment that is already overdue.', 'error');
+        return;
+      }
     }
 
     const toIso = (value: string): string | undefined => {
@@ -3525,7 +3536,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       return;
     }
 
-    const header = 'Student,Batch,Score,Correct,Incorrect,Accuracy (%),Completed At';
+    const header = 'Student,Class,Score,Correct,Incorrect,Accuracy (%),Completed At';
     const rows = assignmentReport.map((row) => (
       [
         row.student_name,
@@ -5330,6 +5341,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         )}
       >
         <AssignmentWizard
+          initialStep={assignmentLockedSubject ? 2 : 1}
+          lockedSubject={assignmentLockedSubject}
           assignmentMode={assignmentMode}
           setAssignmentMode={setAssignmentMode}
           assignmentBatches={assignmentBatches}
