@@ -107,7 +107,8 @@ export const QuestionSelectionModal: React.FC<QuestionSelectionModalProps> = ({
   const topics = useMemo(
     () => [...new Set(poolQuestions
       .filter((question) => subjectFilter === "all" || normalizeClanWarSubject(question.subject) === subjectFilter)
-      .map(questionTopic))].sort(),
+      .map(questionTopic))]
+      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base", numeric: true })),
     [poolQuestions, subjectFilter],
   );
   const filteredQuestions = useMemo(() => {
