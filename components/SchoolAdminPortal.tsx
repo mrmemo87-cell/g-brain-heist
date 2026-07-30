@@ -38,6 +38,7 @@ import IeltsAnalyticsTab from './school-admin/tabs/IeltsAnalyticsTab';
 import IeltsSettingsTab from './school-admin/tabs/IeltsSettingsTab';
 import MemberActionModal from './school-admin/modals/MemberActionModal';
 import ConfirmDialogModal from './school-admin/modals/ConfirmDialogModal';
+import AdmissionHub from './AdmissionHub';
 
 interface SchoolAdminPortalProps {
   onComplete: () => void;
@@ -46,7 +47,7 @@ interface SchoolAdminPortalProps {
   addToast: (message: string, type: ToastMessage['type']) => void;
 }
 
-type AdminTab = 'dashboard' | 'members' | 'classes' | 'roster' | 'subjects' | 'teachers' | 'students' | 'invites' | 'settings' | 'billing' | 'cambridge' | 'ielts' | 'ielts-exams' | 'ielts-practice' | 'ielts-results' | 'ielts-analytics' | 'ielts-settings';
+type AdminTab = 'dashboard' | 'members' | 'classes' | 'roster' | 'subjects' | 'teachers' | 'students' | 'invites' | 'settings' | 'billing' | 'cambridge' | 'ielts' | 'admissions' | 'ielts-exams' | 'ielts-practice' | 'ielts-results' | 'ielts-analytics' | 'ielts-settings';
 type IeltsSubTab = 'ielts-exams' | 'ielts-practice' | 'ielts-results' | 'ielts-analytics' | 'ielts-settings';
 type IeltsToolNavItem = { id: IeltsSubTab; icon: string; label: string; hint: string; route?: never } | { id: string; icon: string; label: string; hint: string; route: string };
 
@@ -1377,89 +1378,73 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
 
   return (
     <SchoolAdminContext.Provider value={contextValue}>
-    <div className="school-admin-portal min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-slate-900 text-white p-4 pb-24" data-testid="school-admin-portal">
-      {/* Premium Header - Fixed and Clean */}
-      <div className="school-admin-header mb-6">
+    <div className="school-admin-portal min-h-screen" data-testid="school-admin-portal">
+      <header className="school-admin-header">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-3">
             {school.logo_url ? (
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-lg blur-sm opacity-40" />
                 <img 
                   src={school.logo_url} 
                   alt={school.name} 
-                  className="relative h-12 w-12 rounded-lg object-cover border-2 border-purple-400/50 shadow-lg" 
+                  className="relative h-12 w-12 rounded-xl object-cover"
                 />
               </div>
             ) : (
-              <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-purple-600 to-cyan-600 flex items-center justify-center text-xl shadow-lg">
-                🏫
-              </div>
+              <div className="school-admin-crest">S</div>
             )}
             <div>
-              <h1 className="text-2xl font-bold text-white drop-shadow-md">
+              <p className="school-admin-eyebrow">School administration</p>
+              <h1 className="text-2xl font-bold">
                 {school.name}
               </h1>
-              <span className="px-2 py-0.5 bg-gradient-to-r from-purple-600 to-purple-500 text-white text-xs font-semibold rounded-full shadow-lg inline-block">
-                ⭐ SCHOOL ADMIN
-              </span>
+              <span className="school-admin-session">Authorised administrator workspace</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => onNavigate('admissions')}
-              className="px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-cyan-500/20"
-            >
-              🎓 Admissions Hub
-            </button>
-            <button
               onClick={onLogout}
-              className="px-4 py-2 bg-gray-700 hover:bg-red-600 text-gray-300 hover:text-white rounded-lg text-sm font-medium transition-all"
+              className="school-admin-signout"
             >
               Sign Out
             </button>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Premium Tab Navigation */}
-      <div className="school-admin-tabs flex flex-wrap gap-2 mb-8 pb-2" role="tablist" aria-label="School admin navigation">
-        {(['dashboard', 'members', 'classes', 'roster', 'subjects', 'teachers', 'students', 'invites', 'billing', 'settings', 'cambridge', 'ielts'] as AdminTab[]).map((tab) => (
+      <div className="school-admin-layout">
+      <aside className="school-admin-sidebar" aria-label="School administration sections">
+        <p className="school-admin-nav-label">Administration</p>
+      <div className="school-admin-tabs" role="tablist" aria-label="School admin navigation">
+        {(['dashboard', 'members', 'classes', 'roster', 'subjects', 'teachers', 'students', 'invites', 'admissions', 'cambridge', 'ielts', 'billing', 'settings'] as AdminTab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             role="tab"
             data-testid={`school-admin-tab-${tab}`}
             aria-selected={activeTab === tab}
-            className={`px-4 py-2 sm:px-5 sm:py-3 rounded-xl font-medium transition-all text-sm sm:text-base border ${
-              activeTab === tab
-                ? tab === 'ielts'
-                  ? 'bg-gradient-to-r from-teal-600 to-blue-700 text-white border-transparent shadow-lg shadow-teal-500/30'
-                  : 'bg-gradient-to-r from-purple-600 to-cyan-600 text-white border-transparent shadow-lg shadow-purple-500/25'
-                : tab === 'ielts'
-                ? 'bg-teal-950/50 text-teal-300 border-teal-700/40 hover:bg-teal-900/60 hover:text-teal-100 hover:border-teal-600/60'
-                : 'bg-gray-800/50 text-gray-400 hover:bg-gray-700/50 border-gray-700/50 hover:text-white hover:border-gray-600'
-            }`}
+            className={activeTab === tab ? 'is-active' : ''}
           >
-            {tab === 'dashboard' && '📊 Dashboard'}
-            {tab === 'members' && `👥 Members (${membersTotal})`}
-            {tab === 'classes' && '🏫 Classes'}
-            {tab === 'roster' && '📋 Roster'}
-            {tab === 'subjects' && '📚 Subjects'}
-            {tab === 'teachers' && '🧑‍🏫 Teachers'}
-            {tab === 'students' && '🎒 Students'}
-            {tab === 'invites' && '🔑 Invites'}
-            {tab === 'billing' && '💳 Plan & Billing'}
-            {tab === 'settings' && '⚙️ Settings'}
-            {tab === 'cambridge' && '📚 Cambridge'}
-            {tab === 'ielts' && '🎓 IELTS'}
+            {tab === 'dashboard' && 'Overview'}
+            {tab === 'members' && `School community (${membersTotal})`}
+            {tab === 'classes' && 'Classes & year groups'}
+            {tab === 'roster' && 'Whole-school register'}
+            {tab === 'subjects' && 'Curriculum subjects'}
+            {tab === 'teachers' && 'Teaching staff'}
+            {tab === 'students' && 'Pupil enrolment'}
+            {tab === 'invites' && 'Joining & access'}
+            {tab === 'admissions' && 'Admissions hub'}
+            {tab === 'billing' && 'Plan & billing'}
+            {tab === 'settings' && 'School settings'}
+            {tab === 'cambridge' && 'Cambridge assessments'}
+            {tab === 'ielts' && 'IELTS programme'}
           </button>
         ))}
       </div>
+      <div className="school-admin-security-note"><strong>Secure school record</strong><span>Changes are limited to authorised administrators.</span></div>
+      </aside>
 
-      {/* Dashboard Tab */}
-
-      {/* Tab Content */}
+      <main className="school-admin-content">
       {activeTab === 'dashboard' && stats && <DashboardTab />}
       {activeTab === 'members' && <MembersTab />}
       {activeTab === 'classes' && <ClassesTab />}
@@ -1471,6 +1456,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       {activeTab === 'billing' && <BillingTab />}
       {activeTab === 'settings' && <SettingsTab />}
       {activeTab === 'cambridge' && <CambridgeTab />}
+      {activeTab === 'admissions' && <AdmissionHub onComplete={() => setActiveTab('dashboard')} addToast={addToast} />}
 
       {/* ─── IELTS Academy Hub ────────────────────────────────────── */}
       {activeTab === 'ielts' && (
@@ -1567,6 +1553,9 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
 
         </div>
       )}
+
+      </main>
+      </div>
 
 
       {/* Modals */}
