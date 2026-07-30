@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const hub = readFileSync('components/AdmissionHub.tsx', 'utf8');
+const styles = readFileSync('src/index.css', 'utf8');
 const rpcs = readFileSync('ADM_RPCS.sql', 'utf8');
 const reportMigration = readFileSync('supabase/migrations/20260629133000_admission_placement_intelligence_v1.sql', 'utf8');
 const lockdownSql = readFileSync('supabase/migrations/20260629143000_admission_official_bank_lockdown.sql', 'utf8');
@@ -14,6 +15,16 @@ test('school admin flow uses non-technical admission wording', () => {
   assert.match(hub, /Track status/);
   assert.match(hub, /View results/);
   assert.match(hub, /We’ll prepare and activate the test for candidate-specific links\./);
+});
+
+test('Admission Hub owns a stable light admin theme boundary', () => {
+  assert.match(hub, /admission-hub-admin-theme mx-auto max-w-6xl/);
+  assert.match(hub, /const inputClass = '[^']*bg-white[^']*text-slate-900/);
+  assert.match(hub, /const btnPrimary = '[^']*bg-\[#1e4b82\][^']*text-white/);
+  assert.doesNotMatch(hub, /bg-slate-(?:800|900)/);
+  assert.doesNotMatch(hub, /from-cyan-950|to-indigo-950/);
+  assert.match(styles, /\.school-admin-content > :not\(\.admission-hub-admin-theme\) \.text-white/);
+  assert.doesNotMatch(styles, /\.school-admin-content \.text-white/);
 });
 
 test('candidate token is not shown in normal candidate rows', () => {
