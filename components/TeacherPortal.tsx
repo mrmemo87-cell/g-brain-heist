@@ -4256,6 +4256,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             onClick={() => {
               setQuestionType('multiple_choice');
               setQuestionText('');
+              setCorrectAnswer('');
               setOptions([
                 { text: '', image_url: undefined },
                 { text: '', image_url: undefined },
@@ -4274,6 +4275,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             onClick={() => {
               setQuestionType('true_false');
               setQuestionText('');
+              setCorrectAnswer('True');
               setOptions([
                 { text: 'True', image_url: undefined },
                 { text: 'False', image_url: undefined }
@@ -4405,7 +4407,11 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             <label className="teacher-label">Question type</label>
             <select
               value={questionType}
-              onChange={(e) => setQuestionType(e.target.value as any)}
+              onChange={(e) => {
+                const nextQuestionType = e.target.value as typeof questionType;
+                setQuestionType(nextQuestionType);
+                setCorrectAnswer(nextQuestionType === 'true_false' ? 'True' : '');
+              }}
               className="teacher-select"
               required
             >
@@ -4649,20 +4655,37 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </div>
           )}
 
-          {/* Correct Answer - Hidden for MCQ since we use checkboxes now */}
-          {questionType !== 'multiple_choice' && (
+          {/* True/False Answer */}
+          {questionType === 'true_false' && (
             <div className="teacher-form-group">
-              <label className="teacher-label">
+              <fieldset>
+                <legend className="teacher-label">
                 Correct Answer
-              </label>
-              <input
-                type="text"
-                value={correctAnswer}
-                onChange={(e) => setCorrectAnswer(e.target.value)}
-                className="teacher-input"
-                placeholder="Enter correct answer"
-                required
-              />
+                </legend>
+                <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Correct answer">
+                  {(['True', 'False'] as const).map((answer) => (
+                    <label
+                      key={answer}
+                      className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border p-3 font-semibold transition-all ${
+                        correctAnswer.toLowerCase() === answer.toLowerCase()
+                          ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                          : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/50'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="true-false-correct-answer"
+                        value={answer}
+                        checked={correctAnswer.toLowerCase() === answer.toLowerCase()}
+                        onChange={() => setCorrectAnswer(answer)}
+                        className="h-5 w-5 border-slate-300 text-emerald-500 focus:ring-emerald-500"
+                        required
+                      />
+                      {answer}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
             </div>
           )}
 
