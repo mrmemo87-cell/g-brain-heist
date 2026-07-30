@@ -344,6 +344,7 @@
 .teacher-sidebar {
   position: sticky;
   top: 88px;
+  z-index: 5;
   min-width: 0;
 }
 
@@ -368,6 +369,23 @@
   font-size: 0.75rem;
   font-weight: 800;
   cursor: pointer;
+  transition: border-color .18s ease, background .18s ease, color .18s ease, box-shadow .18s ease;
+}
+
+.teacher-sidebar-toggle:hover {
+  border-color: #7dd3fc;
+  background: #f0f9ff;
+  color: #0369a1;
+}
+
+.teacher-sidebar-toggle:focus-visible {
+  outline: 3px solid rgba(14, 165, 233, .3);
+  outline-offset: 2px;
+}
+
+.teacher-sidebar-toggle__icon {
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .teacher-sidebar.is-collapsed .teacher-sidebar-toggle span:last-child {
@@ -426,6 +444,7 @@
   font-weight: 750;
   opacity: 0;
   pointer-events: none;
+  white-space: nowrap;
   transition: opacity .14s ease, transform .14s ease;
 }
 
@@ -437,6 +456,15 @@
 
 .teacher-nav-grid--sidebar {
   grid-template-columns: 1fr;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .teacher-workspace-shell,
+  .teacher-sidebar-toggle,
+  .teacher-sidebar.is-collapsed .teacher-nav-btn::after,
+  .teacher-sidebar.is-collapsed .teacher-nav-icon {
+    transition: none;
+  }
 }
 
 .teacher-topic-picker {
