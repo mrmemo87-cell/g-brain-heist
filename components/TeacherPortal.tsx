@@ -70,6 +70,17 @@ const getDefaultPointsForDifficulty = (diff: QuestionDifficulty): number => {
 
 // Maximum XP a teacher can assign to a question
 const MAX_QUESTION_XP = 30;
+const TEACHER_SIDEBAR_STORAGE_KEY = 'brains-heist:teacher-sidebar-collapsed';
+const TEACHER_SIDEBAR_COMPACT_QUERY = '(max-width: 1279px)';
+
+const getInitialSidebarCollapsed = () => {
+  if (typeof window === 'undefined') return false;
+
+  const savedPreference = window.localStorage.getItem(TEACHER_SIDEBAR_STORAGE_KEY);
+  if (savedPreference !== null) return savedPreference === 'true';
+
+  return window.matchMedia(TEACHER_SIDEBAR_COMPACT_QUERY).matches;
+};
 
 const getQuestionTopicLabel = (question: TeacherQuestion) => question.topic_name || question.topic || 'General';
 
@@ -146,7 +157,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [topNavMenuOpen, setTopNavMenuOpen] = useState(false);
   const [mobileWorkspaceMenuOpen, setMobileWorkspaceMenuOpen] = useState(false);
-  const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(false);
+  const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(getInitialSidebarCollapsed);
   const topNavRef = useRef<HTMLElement | null>(null);
   const topNavMenuRef = useRef<HTMLDivElement | null>(null);
   const [topNavHeight, setTopNavHeight] = useState(0);
@@ -157,6 +168,26 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showHelp, setShowHelp] = useState(false);
+
+  useEffect(() => {
+    const compactViewport = window.matchMedia(TEACHER_SIDEBAR_COMPACT_QUERY);
+    const adaptSidebarToViewport = (event: MediaQueryListEvent) => {
+      if (window.localStorage.getItem(TEACHER_SIDEBAR_STORAGE_KEY) === null) {
+        setDesktopSidebarCollapsed(event.matches);
+      }
+    };
+
+    compactViewport.addEventListener('change', adaptSidebarToViewport);
+    return () => compactViewport.removeEventListener('change', adaptSidebarToViewport);
+  }, []);
+
+  const toggleDesktopSidebar = () => {
+    setDesktopSidebarCollapsed((collapsed) => {
+      const nextCollapsed = !collapsed;
+      window.localStorage.setItem(TEACHER_SIDEBAR_STORAGE_KEY, String(nextCollapsed));
+      return nextCollapsed;
+    });
+  };
 
   // Question form state
   const [questionText, setQuestionText] = useState('');
@@ -8269,14 +8300,16 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               <button
                 type="button"
                 className="teacher-sidebar-toggle"
-                onClick={() => setDesktopSidebarCollapsed((collapsed) => !collapsed)}
+                onClick={toggleDesktopSidebar}
                 aria-label={desktopSidebarCollapsed ? 'Expand side navigation' : 'Collapse side navigation'}
+                aria-expanded={!desktopSidebarCollapsed}
+                aria-controls="teacher-primary-navigation"
                 title={desktopSidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'}
               >
-                <span aria-hidden="true">{desktopSidebarCollapsed ? '→' : '←'}</span>
+                <span className="teacher-sidebar-toggle__icon" aria-hidden="true">{desktopSidebarCollapsed ? '›' : '‹'}</span>
                 <span>{desktopSidebarCollapsed ? 'Expand' : 'Collapse'}</span>
               </button>
-              <div className="teacher-nav-grid teacher-nav-grid--sidebar">
+              <div id="teacher-primary-navigation" className="teacher-nav-grid teacher-nav-grid--sidebar">
                 {navTabs.map((tab) => {
                   const { isPilot, quota: tq, pilotExhausted, locked } = getNavTabState(tab);
                   return (
@@ -8287,6 +8320,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                       className={`teacher-nav-btn ${primarySection === tab.id ? 'active' : ''} ${locked ? 'teacher-nav-locked' : ''} ${tab.highlight ? 'teacher-nav-btn--highlight' : ''}`}
                       title={desktopSidebarCollapsed ? tab.label : undefined}
                       aria-label={tab.label}
+                      aria-current={primarySection === tab.id ? 'page' : undefined}
                       data-label={tab.label}
                     >
                       <span className="teacher-nav-icon">{tab.icon}</span>
