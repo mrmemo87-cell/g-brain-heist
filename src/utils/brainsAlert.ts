@@ -145,3 +145,150 @@ export function brainsAlert(message: string, type: AlertType = 'info'): void {
     btn.focus();
   });
 }
+
+interface BrainsConfirmOptions {
+  title?: string;
+  message: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  destructive?: boolean;
+}
+
+export function brainsConfirm({
+  title = 'Please confirm',
+  message,
+  confirmLabel = 'Continue',
+  cancelLabel = 'Cancel',
+  destructive = false,
+}: BrainsConfirmOptions): Promise<boolean> {
+  return new Promise((resolve) => {
+    const backdrop = document.createElement('div');
+    backdrop.setAttribute('role', 'presentation');
+    Object.assign(backdrop.style, {
+      position: 'fixed',
+      inset: '0',
+      zIndex: '99999',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '20px',
+      background: 'rgba(2, 8, 23, 0.72)',
+      backdropFilter: 'blur(8px)',
+      opacity: '0',
+      transition: 'opacity 0.18s ease',
+    } as CSSStyleDeclaration);
+
+    const card = document.createElement('section');
+    card.setAttribute('role', 'alertdialog');
+    card.setAttribute('aria-modal', 'true');
+    Object.assign(card.style, {
+      width: 'min(440px, 100%)',
+      border: '1px solid #cbd5e1',
+      borderRadius: '20px',
+      background: '#ffffff',
+      boxShadow: '0 28px 80px rgba(15, 23, 42, 0.28)',
+      padding: '26px',
+      color: '#0f172a',
+      fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
+      transform: 'translateY(10px) scale(0.98)',
+      transition: 'transform 0.18s ease',
+    } as CSSStyleDeclaration);
+
+    const brand = document.createElement('div');
+    brand.textContent = 'BH · Teacher workspace';
+    Object.assign(brand.style, {
+      color: '#0369a1',
+      fontSize: '12px',
+      fontWeight: '800',
+      letterSpacing: '0.12em',
+      textTransform: 'uppercase',
+      marginBottom: '12px',
+    } as CSSStyleDeclaration);
+
+    const heading = document.createElement('h2');
+    heading.textContent = title;
+    Object.assign(heading.style, {
+      margin: '0 0 10px',
+      fontSize: '22px',
+      lineHeight: '1.25',
+    } as CSSStyleDeclaration);
+
+    const body = document.createElement('p');
+    body.textContent = message;
+    Object.assign(body.style, {
+      margin: '0',
+      color: '#475569',
+      fontSize: '15px',
+      lineHeight: '1.6',
+      whiteSpace: 'pre-wrap',
+    } as CSSStyleDeclaration);
+
+    const actions = document.createElement('div');
+    Object.assign(actions.style, {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      flexWrap: 'wrap',
+      gap: '10px',
+      marginTop: '24px',
+    } as CSSStyleDeclaration);
+
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.textContent = cancelLabel;
+    Object.assign(cancel.style, {
+      border: '1px solid #cbd5e1',
+      borderRadius: '10px',
+      background: '#f8fafc',
+      color: '#334155',
+      padding: '10px 18px',
+      fontWeight: '700',
+      cursor: 'pointer',
+    } as CSSStyleDeclaration);
+
+    const confirm = document.createElement('button');
+    confirm.type = 'button';
+    confirm.textContent = confirmLabel;
+    Object.assign(confirm.style, {
+      border: 'none',
+      borderRadius: '10px',
+      background: destructive ? '#dc2626' : 'linear-gradient(135deg, #0284c7, #4f46e5)',
+      color: '#ffffff',
+      padding: '10px 18px',
+      fontWeight: '800',
+      cursor: 'pointer',
+      boxShadow: destructive ? '0 8px 20px rgba(220,38,38,0.2)' : '0 8px 20px rgba(37,99,235,0.2)',
+    } as CSSStyleDeclaration);
+
+    let settled = false;
+    const finish = (value: boolean) => {
+      if (settled) return;
+      settled = true;
+      document.removeEventListener('keydown', onKeyDown);
+      backdrop.style.opacity = '0';
+      card.style.transform = 'translateY(10px) scale(0.98)';
+      window.setTimeout(() => backdrop.remove(), 180);
+      resolve(value);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') finish(false);
+      if (event.key === 'Enter') finish(true);
+    };
+
+    cancel.addEventListener('click', () => finish(false));
+    confirm.addEventListener('click', () => finish(true));
+    backdrop.addEventListener('mousedown', (event) => {
+      if (event.target === backdrop) finish(false);
+    });
+    document.addEventListener('keydown', onKeyDown);
+
+    actions.append(cancel, confirm);
+    card.append(brand, heading, body, actions);
+    backdrop.append(card);
+    document.body.append(backdrop);
+    window.requestAnimationFrame(() => {
+      backdrop.style.opacity = '1';
+      card.style.transform = 'translateY(0) scale(1)';
+      cancel.focus();
+    });
+  });
+}
