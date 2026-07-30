@@ -11,7 +11,8 @@ const teacherTheme = readFileSync('src/styles/teacher-theme.css', 'utf8');
 test('teacher navigation uses the requested labels and order', () => {
   assert.match(portal, /label: 'My Classes'/);
   assert.match(portal, /label: 'Assignments'[\s\S]*label: 'Reports'[\s\S]*label: 'Question Bank'/);
-  assert.match(portal, /label: 'Quest Builder'[\s\S]*label: 'Clan Wars'/);
+  assert.doesNotMatch(portal, /label: 'Quest Builder'/);
+  assert.match(portal, /label: 'Cambridge Tests'[\s\S]*label: 'Clan Wars'/);
   assert.doesNotMatch(portal, /label: 'My Students'/);
   assert.match(portal, /<th>Subject<\/th>\s*<th>Title<\/th>\s*<th>Topic<\/th>/);
 });
@@ -32,8 +33,9 @@ test('assignment wizard follows the subject-first light workflow', () => {
   assert.match(wizard, /Leave assignment setup\?/);
   assert.doesNotMatch(wizard, /Preview selection/);
   assert.match(wizardStyles, /background: linear-gradient\(180deg, #f8fafc, #eef2f7\)/);
-  assert.match(wizardStyles, /\.aw-floating-nav/);
-  assert.match(wizardStyles, /\.aw-floating-dock/);
+  assert.match(wizardStyles, /\.aw-step-footer/);
+  assert.match(wizardStyles, /\.aw-step-nav/);
+  assert.doesNotMatch(wizard, /Live summary/i);
   assert.match(wizard, /scrollIntoView\(\{ behavior: 'smooth', block: 'start' \}\)/);
   assert.doesNotMatch(wizard, /window\.scrollTo/);
 });
@@ -53,5 +55,7 @@ test('desktop navigation can collapse to create more workspace', () => {
   assert.match(portal, /desktopSidebarCollapsed/);
   assert.match(portal, /aria-label=\{desktopSidebarCollapsed \? 'Expand side navigation' : 'Collapse side navigation'\}/);
   assert.match(teacherTheme, /\.teacher-workspace-shell\.is-sidebar-collapsed/);
-  assert.match(teacherTheme, /\.teacher-sidebar\.is-collapsed \.teacher-nav-label/);
+  assert.match(teacherTheme, /\.teacher-sidebar\.is-collapsed \.teacher-nav-text/);
+  assert.match(teacherTheme, /content: attr\(data-label\)/);
+  assert.match(portal, /data-label=\{tab\.label\}/);
 });
