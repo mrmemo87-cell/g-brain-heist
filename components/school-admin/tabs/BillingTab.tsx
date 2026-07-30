@@ -15,7 +15,7 @@ const BillingTab: React.FC = () => {
   } = useSchoolAdmin();
 
   return (
-    <BillingTabUI
+    <div className="school-admin-themed-tab"><BillingTabUI
       planDetails={planDetails}
       loading={billingLoading}
       billingAction={billingAction}
@@ -53,7 +53,7 @@ const BillingTab: React.FC = () => {
           setBillingAction(null);
         }
       }}
-    />
+    /></div>
   );
 };
 

@@ -571,6 +571,7 @@ export async function updateSchoolSettings(
   schoolId: string,
   settings: {
     name?: string;
+    logo_url?: string | null;
     allow_student_signup?: boolean;
     allow_teacher_signup?: boolean;
     ielts_extra_practice_enabled?: boolean;
@@ -582,7 +583,7 @@ export async function updateSchoolSettings(
       const { data, error } = await supabase.rpc('update_school_info', {
         p_school_id: schoolId,
         p_name: settings.name,
-        p_logo_url: null,
+        p_logo_url: settings.logo_url ?? null,
         p_allowed_domains: null,
       });
 
@@ -614,6 +615,18 @@ export async function updateSchoolSettings(
     console.error('Exception updating school settings:', err);
     return { success: false, error: 'An unexpected error occurred' };
   }
+}
+
+/** Upload a school-owned logo and return its public URL. */
+export async function uploadSchoolLogo(schoolId: string, file: File): Promise<{ success: boolean; url?: string; error?: string }> {
+  if (!file.type.startsWith('image/')) return { success: false, error: 'Please choose an image file.' };
+  if (file.size > 2 * 1024 * 1024) return { success: false, error: 'The logo must be smaller than 2 MB.' };
+  const extension = (file.name.split('.').pop() || 'png').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const path = `${schoolId}/logo-${Date.now()}.${extension || 'png'}`;
+  const { error } = await supabase.storage.from('school-logos').upload(path, file, { upsert: true, contentType: file.type });
+  if (error) return { success: false, error: error.message };
+  const { data } = supabase.storage.from('school-logos').getPublicUrl(path);
+  return { success: true, url: data.publicUrl };
 }
 
 // ============================================
