@@ -20,6 +20,12 @@ type PoolKey = 'brains-heist' | 'mine';
 interface TopicGroup { key: string; subject: Subject; topic: string; questions: TeacherQuestion[] }
 const getTopic = (question: TeacherQuestion) => question.topic_name || question.topic || 'General';
 const formatQuestionType = (value: TeacherQuestion['question_type']) => value.replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
+const normalizeSubject = (value: string) => {
+  const normalized = value.trim().toLocaleLowerCase().replace(/\s+/g, ' ');
+  if (['math', 'maths', 'mathematics'].includes(normalized)) return 'maths';
+  if (normalized === 'english language') return 'english';
+  return normalized;
+};
 const makeTopicGroups = (questions: TeacherQuestion[]) => {
   const groups = new Map<string, TopicGroup>();
   questions.forEach((question) => {
@@ -45,9 +51,9 @@ export default function QuestionBank({
   const [topicName, setTopicName] = useState('');
 
   const permittedQuestions = useMemo(() => {
-    if (restrictedSubjects === undefined) return questions;
-    if (!restrictedSubjects.length) return [];
-    return questions.filter((question) => restrictedSubjects.includes(question.subject));
+    if (!restrictedSubjects?.length) return questions;
+    const permitted = new Set(restrictedSubjects.map(normalizeSubject));
+    return questions.filter((question) => permitted.has(normalizeSubject(question.subject)));
   }, [questions, restrictedSubjects]);
 
   const pools = useMemo(() => ({
