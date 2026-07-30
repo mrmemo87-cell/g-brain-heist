@@ -21,7 +21,7 @@ export default function QuestionPreviewModal({ question, onClose, onEdit }: Ques
         <header>
           <div>
             <span>Question preview</span>
-            <h2 id="question-preview-title">{question.question_text}</h2>
+            <h2 id="question-preview-title">{topic}</h2>
           </div>
           <button type="button" onClick={onClose} aria-label="Close question preview">×</button>
         </header>
@@ -33,6 +33,10 @@ export default function QuestionPreviewModal({ question, onClose, onEdit }: Ques
           <div><dt>Points</dt><dd>{question.points || 0}</dd></div>
           <div><dt>Time</dt><dd>{question.time_limit || 60} sec</dd></div>
         </dl>
+        <section className="question-preview__prompt">
+          <span>Question prompt</span>
+          <p>{question.question_text}</p>
+        </section>
         {question.image_url ? <img className="question-preview__image" src={question.image_url} alt="Question visual" /> : null}
         {question.options?.length ? (
           <section className="question-preview__section">
