@@ -8,6 +8,7 @@
 .question-preview__meta div{padding:12px;border:1px solid #e2e8f0;border-radius:12px;background:#f8fafc}
 .question-preview__meta dt,.question-preview__answer span{color:#64748b;font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
 .question-preview__meta dd{margin:4px 0 0;font-weight:700;text-transform:capitalize}
+.question-preview__prompt{margin:0 28px 18px;border:1px solid #c7d2fe;border-radius:14px;background:linear-gradient(135deg,#f8fbff,#eef2ff);padding:16px 18px}.question-preview__prompt span{color:#4f46e5;font-size:.68rem;font-weight:850;letter-spacing:.1em;text-transform:uppercase}.question-preview__prompt p{margin:7px 0 0;color:#0f172a;font-size:1.05rem;font-weight:750;line-height:1.55}
 .question-preview__image{display:block;max-width:calc(100% - 56px);max-height:260px;margin:0 auto 22px;border-radius:14px}
 .question-preview__section,.question-preview__answer{margin:0 28px 22px}
 .question-preview__section h3{margin:0 0 12px;font-size:1rem}.question-preview__section>p{margin:0;color:#475569;line-height:1.65}
@@ -19,4 +20,4 @@
 .question-preview__tags{display:flex;flex-wrap:wrap;gap:7px;margin:0 28px 22px}.question-preview__tags span{padding:5px 9px;border-radius:999px;background:#eef2ff;color:#4338ca;font-size:.75rem;font-weight:700}
 .question-preview__card>footer{display:flex;justify-content:flex-end;gap:10px;padding:18px 28px;border-top:1px solid #e7edf5;background:#f8fafc}
 .question-preview__card>footer button{padding:10px 16px;border-radius:10px;font-weight:800;cursor:pointer}.question-preview__card>footer .is-secondary{border:1px solid #cbd5e1;background:#fff;color:#334155}.question-preview__card>footer .is-primary{border:0;background:linear-gradient(135deg,#0284c7,#4f46e5);color:#fff}
-@media(max-width:600px){.question-preview{padding:10px}.question-preview__card>header,.question-preview__meta{padding:18px}.question-preview__meta{grid-template-columns:repeat(2,minmax(0,1fr))}.question-preview__section,.question-preview__answer{margin-right:18px;margin-left:18px}.question-preview__card>footer{padding:14px 18px}}
+@media(max-width:600px){.question-preview{padding:10px}.question-preview__card>header,.question-preview__meta{padding:18px}.question-preview__meta{grid-template-columns:repeat(2,minmax(0,1fr))}.question-preview__prompt,.question-preview__section,.question-preview__answer{margin-right:18px;margin-left:18px}.question-preview__card>footer{padding:14px 18px}}
