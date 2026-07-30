@@ -78,6 +78,7 @@ import {
     recordQuestionAttempt,
     createAssignment as rpcCreateAssignment,
     getAssignmentsForTeacher as rpcGetAssignmentsForTeacher,
+    deleteTeacherAssignment as rpcDeleteTeacherAssignment,
     getTeacherAssignmentSuccessSummary as rpcGetTeacherAssignmentSuccessSummary,
     getStudentsForAssignment as rpcGetStudentsForAssignment,
     getStudentActiveAssignment as rpcGetStudentActiveAssignment,
@@ -5804,6 +5805,14 @@ export const get_teacher_assignments = async (teacherId?: string): Promise<Teach
     if (error) throw new Error(error.message || 'Failed to load assignments');
 
     return (data as TeacherAssignmentSummary[]) || [];
+};
+
+export const delete_teacher_assignment = async (assignmentId: string): Promise<void> => {
+    if (!assignmentId) throw new Error('Assignment ID is required');
+
+    const { data, error } = await rpcDeleteTeacherAssignment(assignmentId);
+    if (error) throw new Error(error.message || 'Failed to delete assignment');
+    if (data !== true) throw new Error('Assignment could not be deleted');
 };
 
 export type TeacherAssignmentSuccessSummary = {
