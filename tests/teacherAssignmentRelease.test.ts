@@ -34,14 +34,16 @@ test('question previews share the complete light-theme component', () => {
 
 test('collective reports select assignments and students and can print a professional PDF', () => {
   const classFilter = report.indexOf('aria-label="Filter by class"');
-  const assignmentSelector = report.indexOf('<strong>Assignments</strong>');
-  const studentSelector = report.indexOf('<strong>Students</strong>');
+  const assignmentSelector = report.indexOf('<strong>Assignments to include</strong>');
+  const studentSelector = report.indexOf('<strong>Students to include</strong>');
   assert.ok(classFilter > -1 && assignmentSelector > -1 && studentSelector > assignmentSelector);
   assert.match(report, /selectedAssignmentIds/);
   assert.match(report, /selectedStudentIds/);
   assert.match(report, /students\.forEach/);
   assert.match(report, /collective-print-report/);
   assert.match(report, /Create report/);
-  assert.match(report, /Print or save PDF/);
-  assert.match(report, /window\.print\(\)/);
+  assert.match(report, /Print report/);
+  assert.match(report, /frame\.contentWindow\?\.print\(\)/);
+  assert.match(report, /createPortal/);
+  assert.match(report, /Not submitted/);
 });
