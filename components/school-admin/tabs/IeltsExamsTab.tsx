@@ -11,7 +11,7 @@ const IeltsExamsTab: React.FC = () => {
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-blue-300">IELTS Academy</p>
             <h3 className="mt-2 text-2xl font-bold text-white">IELTS Exams</h3>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-blue-100/80">
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-700">
               Create and monitor controlled IELTS mock exams for {school?.name ?? 'this school'} using the secure Exam Mode manager.
               Exam content, assignments, timers, autosaves, and emergency controls remain school-scoped.
             </p>
