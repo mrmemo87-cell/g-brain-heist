@@ -15,15 +15,16 @@ test('teacher account settings hide student-only progression fields', () => {
 
 test('teacher dashboard shortcuts navigate to their destinations', () => {
   assert.match(teacherPortal, /onClick=\{\(\) => setView\('students'\)\}/);
-  assert.match(teacherPortal, /Given Assignments/);
-  assert.match(teacherPortal, /aria-label="Open Student Submissions"/);
+  assert.match(teacherPortal, /aria-label="Open Assignments"/);
+  assert.match(teacherPortal, /aria-label="Open Reports"/);
   assert.match(teacherPortal, /Assignment Success/);
   assert.doesNotMatch(teacherPortal, /Review student progress, craft assignments/);
 });
 
 test('teacher portal exposes assigned students and assignment metadata', () => {
   assert.match(teacherPortal, /const renderStudents/);
-  assert.match(teacherPortal, /Only students in classes assigned to you are shown here/);
+  assert.match(teacherPortal, />🏫 My Classes</);
+  assert.match(teacherPortal, /Every assigned class, subject, and student in one organised view/);
   assert.match(teacherPortal, />Created<\/dt>/);
   assert.match(teacherPortal, />Questions<\/dt>/);
   assert.match(teacherPortal, />Students<\/dt>/);
