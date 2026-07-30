@@ -34,7 +34,9 @@ test('assignment reports explain score and support ordering and filters', () => 
   assert.match(teacherPortal, /Assignment order/);
   assert.match(teacherPortal, /Needs review first/);
   assert.match(teacherPortal, /Total XP points earned from correct answers/);
-  assert.match(collectiveReport, /Filter by assignment/);
+  assert.match(collectiveReport, /Choose exactly what the school receives/);
+  assert.match(collectiveReport, /selectedAssignmentIds/);
+  assert.match(collectiveReport, /selectedStudentIds/);
   assert.match(collectiveReport, /Created from/);
   assert.match(collectiveReport, /Created to/);
   assert.match(collectiveReport, /All Classes/);

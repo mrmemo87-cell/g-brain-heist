@@ -1,16 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import * as GameService from "../../../../services/gameService";
 import { supabase } from "../../../../services/supabaseClient";
+import { brainsAlert } from "../../../utils/brainsAlert";
 
 interface Question {
   id: string;
   question_text: string;
   subject: string;
   topic?: string;
+  topic_name?: string;
   difficulty: string;
   correct_answer: string;
-  options?: string[];
+  options?: unknown[];
   question_type?: string;
+  teacher_id?: string | null;
+  explanation?: string | null;
+  image_url?: string | null;
 }
 
 interface QuestionSelectionModalProps {
@@ -18,6 +24,25 @@ interface QuestionSelectionModalProps {
   onCancel: () => void;
   restrictedSubjects?: string[];
 }
+
+type PoolFilter = "all" | "brains-heist" | "mine";
+
+const normalizeSubject = (value: string) => {
+  const normalized = value.trim().toLocaleLowerCase().replace(/\s+/g, " ");
+  if (["math", "maths", "mathematics"].includes(normalized)) return "maths";
+  if (normalized === "english language") return "english";
+  return normalized;
+};
+
+const questionTopic = (question: Question) => question.topic_name || question.topic || "General";
+const optionText = (option: unknown) => {
+  if (typeof option === "string") return option;
+  if (option && typeof option === "object") {
+    const value = option as Record<string, unknown>;
+    return String(value.text || value.label || value.value || "");
+  }
+  return String(option || "");
+};
 
 export const QuestionSelectionModal: React.FC<QuestionSelectionModalProps> = ({
   onConfirm,
@@ -27,326 +52,147 @@ export const QuestionSelectionModal: React.FC<QuestionSelectionModalProps> = ({
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [subjectFilter, setSubjectFilter] = useState<string>("all");
-  const [topicFilter, setTopicFilter] = useState<string>("all");
-  const [subjects, setSubjects] = useState<string[]>([]);
-  const [topics, setTopics] = useState<string[]>([]);
+  const [teacherId, setTeacherId] = useState<string | null>(null);
+  const [poolFilter, setPoolFilter] = useState<PoolFilter>("all");
+  const [subjectFilter, setSubjectFilter] = useState("all");
+  const [topicFilter, setTopicFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [previewQuestion, setPreviewQuestion] = useState<Question | null>(null);
+  const restrictedSubjectKey = restrictedSubjects?.map(normalizeSubject).sort().join("|") || "";
 
   useEffect(() => {
-    fetchQuestions();
-  }, []);
-
-  const fetchQuestions = async () => {
-    try {
-      setLoading(true);
-      console.log("🔍 Fetching questions from questions table...");
-      
-      const { data, error } = await supabase
-        .from("questions")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      console.log("📊 Raw query result:", { 
-        data: data?.slice(0, 3), // Show first 3 for debugging
-        error, 
-        totalCount: data?.length,
-        hasData: !!data,
-        errorCode: error?.code,
-        errorMessage: error?.message,
-        errorDetails: error?.details
-      });
-
-      if (error) {
-        console.error("❌ Supabase error:", error);
-        throw error;
-      }
-
-      if (!data || data.length === 0) {
-        console.warn("⚠️ No questions returned from database. Check:");
-        console.warn("  1. RLS policies on teacher_questions table");
-        console.warn("  2. User is authenticated");
-        console.warn("  3. Questions exist in the database");
-        
-        // Check auth status
-        const { data: { user } } = await supabase.auth.getUser();
-        console.log("🔐 Current user:", user?.id, user?.email);
-      }
-
-      // Filter questions by restricted subjects if provided
-      let filteredData = data || [];
-      
-      // If restrictedSubjects is defined (even if empty), apply filtering
-      // Empty array = teacher has no assignments = show nothing
-      if (restrictedSubjects !== undefined) {
-        if (restrictedSubjects.length === 0) {
-          console.log(`⚠️ No assigned subjects - showing empty question list`);
-          filteredData = [];
-        } else {
-          filteredData = filteredData.filter((q: Question) => 
-            restrictedSubjects.some(s => s.toLowerCase() === q.subject?.toLowerCase())
-          );
-          console.log(`🔒 Filtered to ${filteredData.length} questions for subjects:`, restrictedSubjects);
+    let cancelled = false;
+    const fetchQuestions = async () => {
+      try {
+        setLoading(true);
+        const [{ data: auth }, available] = await Promise.all([
+          supabase.auth.getUser(),
+          (async () => {
+            const pageSize = 500;
+            const unique = new Map<string, Question>();
+            for (let offset = 0; ; offset += pageSize) {
+              const page = await GameService.get_all_questions({ limit: pageSize, offset });
+              (page as Question[]).forEach((question) => unique.set(question.id, question));
+              if (page.length < pageSize) break;
+            }
+            return [...unique.values()];
+          })(),
+        ]);
+        if (cancelled) return;
+        const permitted = restrictedSubjects?.length
+          ? new Set(restrictedSubjects.map(normalizeSubject))
+          : null;
+        setTeacherId(auth.user?.id || null);
+        setQuestions((available as Question[]).filter((question) =>
+          !permitted || permitted.has(normalizeSubject(question.subject || "")),
+        ));
+      } catch (error) {
+        console.error("Failed to load Clan Wars questions:", error);
+        if (!cancelled) {
+          setQuestions([]);
+          brainsAlert("We could not load the question pools. Please close this window and try again.", "error");
         }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-      
-      setQuestions(filteredData);
-      
-      // Extract unique subjects (only from filtered questions)
-      let uniqueSubjects = [...new Set(filteredData.map((q: Question) => q.subject).filter(Boolean))] as string[];
-      
-      // If restricted, ensure only those subjects appear
-      if (restrictedSubjects && restrictedSubjects.length > 0) {
-        uniqueSubjects = uniqueSubjects.filter(s => 
-          restrictedSubjects.some(rs => rs.toLowerCase() === s.toLowerCase())
-        );
-      }
-      setSubjects(uniqueSubjects);
-      
-      // Extract unique topics from filtered questions
-      const uniqueTopics = [...new Set(filteredData.map((q: Question) => q.topic).filter(Boolean))] as string[];
-      setTopics(uniqueTopics);
-      
-      console.log(`✅ Loaded ${filteredData.length} questions (filtered from ${data?.length || 0} total)`);
-      console.log(`📚 Subjects:`, uniqueSubjects);
-      console.log(`🏷️ Topics:`, uniqueTopics);
-    } catch (error) {
-      console.error("❌ Failed to fetch questions:", error);
-      alert(`Failed to load questions: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+    void fetchQuestions();
+    return () => { cancelled = true; };
+  }, [restrictedSubjectKey]);
+
+  const poolQuestions = useMemo(() => questions.filter((question) => {
+    if (poolFilter === "brains-heist") return !question.teacher_id;
+    if (poolFilter === "mine") return Boolean(teacherId) && question.teacher_id === teacherId;
+    return !question.teacher_id || (Boolean(teacherId) && question.teacher_id === teacherId);
+  }), [poolFilter, questions, teacherId]);
+
+  const subjects = useMemo(
+    () => [...new Set(poolQuestions.map((question) => question.subject).filter(Boolean))].sort(),
+    [poolQuestions],
+  );
+  const topics = useMemo(
+    () => [...new Set(poolQuestions
+      .filter((question) => subjectFilter === "all" || question.subject === subjectFilter)
+      .map(questionTopic))].sort(),
+    [poolQuestions, subjectFilter],
+  );
+  const filteredQuestions = useMemo(() => {
+    const query = search.trim().toLocaleLowerCase();
+    return poolQuestions.filter((question) => {
+      if (subjectFilter !== "all" && question.subject !== subjectFilter) return false;
+      if (topicFilter !== "all" && questionTopic(question) !== topicFilter) return false;
+      return !query || [question.question_text, question.subject, questionTopic(question), question.difficulty]
+        .join(" ").toLocaleLowerCase().includes(query);
+    });
+  }, [poolQuestions, search, subjectFilter, topicFilter]);
+
+  useEffect(() => {
+    if (subjectFilter !== "all" && !subjects.includes(subjectFilter)) setSubjectFilter("all");
+  }, [subjectFilter, subjects]);
+
+  useEffect(() => {
+    if (topicFilter !== "all" && !topics.includes(topicFilter)) setTopicFilter("all");
+  }, [topicFilter, topics]);
 
   const toggleQuestion = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
-
-  const handleSelectAll = () => {
-    const allFilteredIds = new Set(filteredQuestions.map((q) => q.id));
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      allFilteredIds.forEach((id) => next.add(id));
-      return next;
-    });
-  };
-
-  const handleClearAll = () => {
-    const allFilteredIds = new Set(filteredQuestions.map((q) => q.id));
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      allFilteredIds.forEach((id) => next.delete(id));
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   };
 
   const handleConfirm = () => {
-    const selected = questions.filter((q) => selectedIds.has(q.id));
-    if (selected.length === 0) {
-      alert("Please select at least one question.");
+    const selected = questions.filter((question) => selectedIds.has(question.id));
+    if (!selected.length) {
+      brainsAlert("Select at least one question before starting the battle.", "info");
       return;
     }
     onConfirm(selected);
   };
 
-  // Update topics when subject changes
-  useEffect(() => {
-    if (subjectFilter === "all") {
-      const allTopics = [...new Set(questions.map((q) => q.topic).filter(Boolean))] as string[];
-      setTopics(allTopics);
-    } else {
-      const filteredTopics = [...new Set(
-        questions.filter((q) => q.subject === subjectFilter).map((q) => q.topic).filter(Boolean)
-      )] as string[];
-      setTopics(filteredTopics);
-    }
-    setTopicFilter("all");
-  }, [subjectFilter, questions]);
-
-  const filteredQuestions = questions.filter((q) => {
-    if (subjectFilter !== "all" && q.subject !== subjectFilter) return false;
-    if (topicFilter !== "all" && q.topic !== topicFilter) return false;
-    return true;
-  });
-
   const modalContent = (
-    <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
-      <div className="bg-slate-900 rounded-2xl border border-slate-700 max-w-4xl w-full max-h-[90vh] flex flex-col">
-        <div className="p-6 border-b border-slate-800">
-          <h2 className="text-3xl font-black text-white">Select Battle Questions</h2>
-          <p className="text-slate-400 mt-1">
-            Choose questions from your library. Students will answer these during combat.
-          </p>
+    <div className="fixed inset-0 z-[9500] flex items-center justify-center bg-slate-950/85 p-3 backdrop-blur-md sm:p-6">
+      <section className="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-3xl border border-slate-700 bg-slate-950 text-white shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="battle-question-title">
+        <header className="flex items-start justify-between gap-4 border-b border-slate-800 bg-gradient-to-r from-slate-950 to-slate-900 p-5 sm:p-7">
+          <div><span className="text-xs font-black uppercase tracking-[.18em] text-cyan-300">Clan Wars setup</span><h2 id="battle-question-title" className="mt-2 text-2xl font-black sm:text-3xl">Select battle questions</h2><p className="mt-1 text-sm text-slate-400">Choose a pool, narrow the list, and preview any question before adding it.</p></div>
+          <button type="button" onClick={onCancel} className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-slate-700 bg-slate-900 text-xl text-slate-300 hover:border-slate-500 hover:text-white" aria-label="Close question selection">×</button>
+        </header>
+
+        <div className="grid gap-3 border-b border-slate-800 bg-slate-900/65 p-4 sm:grid-cols-2 lg:grid-cols-5 sm:p-6">
+          <label className="grid gap-1 text-xs font-bold text-slate-400"><span>Question pool</span><select value={poolFilter} onChange={(event) => setPoolFilter(event.target.value as PoolFilter)} className="min-h-11 rounded-xl border border-slate-700 bg-slate-950 px-3 text-white"><option value="all">All available pools</option><option value="brains-heist">Brains Heist Pool</option><option value="mine">My Pool</option></select></label>
+          <label className="grid gap-1 text-xs font-bold text-slate-400"><span>Subject</span><select value={subjectFilter} onChange={(event) => setSubjectFilter(event.target.value)} className="min-h-11 rounded-xl border border-slate-700 bg-slate-950 px-3 text-white"><option value="all">All subjects</option>{subjects.map((subject) => <option key={subject} value={subject}>{subject}</option>)}</select></label>
+          <label className="grid gap-1 text-xs font-bold text-slate-400"><span>Topic</span><select value={topicFilter} onChange={(event) => setTopicFilter(event.target.value)} className="min-h-11 rounded-xl border border-slate-700 bg-slate-950 px-3 text-white"><option value="all">All topics</option>{topics.map((topic) => <option key={topic} value={topic}>{topic}</option>)}</select></label>
+          <label className="grid gap-1 text-xs font-bold text-slate-400 lg:col-span-2"><span>Search questions</span><input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search by question, topic, or difficulty…" className="min-h-11 rounded-xl border border-slate-700 bg-slate-950 px-3 text-white placeholder:text-slate-600" /></label>
         </div>
 
-        <div className="p-6 border-b border-slate-800">
-          <div className="flex gap-4 items-center mb-4">
-            <div className="flex-1">
-              <label className="block text-xs text-slate-400 font-semibold mb-1">Subject</label>
-              <select
-                value={subjectFilter}
-                onChange={(e) => setSubjectFilter(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white"
-              >
-                <option value="all">All Subjects</option>
-                {subjects.map((subj) => (
-                  <option key={subj} value={subj}>
-                    {subj}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex-1">
-              <label className="block text-xs text-slate-400 font-semibold mb-1">Topic</label>
-              <select
-                value={topicFilter}
-                onChange={(e) => setTopicFilter(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white"
-                disabled={topics.length === 0}
-              >
-                <option value="all">All Topics</option>
-                {topics.map((topic) => (
-                  <option key={topic} value={topic}>
-                    {topic}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="text-right">
-              <label className="block text-xs text-slate-400 font-semibold mb-1">Selected</label>
-              <div className="text-2xl font-bold text-white">{selectedIds.size}</div>
-            </div>
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="text-xs text-slate-500">
-              Showing {filteredQuestions.length} of {questions.length} questions
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={handleSelectAll}
-                disabled={filteredQuestions.length === 0}
-                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:text-slate-500 text-white text-xs font-semibold rounded-lg transition-colors"
-              >
-                Select All ({filteredQuestions.length})
-              </button>
-              <button
-                onClick={handleClearAll}
-                disabled={filteredQuestions.length === 0 || selectedIds.size === 0}
-                className="px-3 py-1 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-600 text-white text-xs font-semibold rounded-lg transition-colors"
-              >
-                Clear All
-              </button>
-            </div>
-          </div>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 px-5 py-3 text-xs text-slate-400">
+          <span>Showing <strong className="text-white">{filteredQuestions.length}</strong> questions · <strong className="text-cyan-300">{selectedIds.size}</strong> selected</span>
+          <div className="flex gap-2"><button type="button" onClick={() => setSelectedIds((current) => new Set([...current, ...filteredQuestions.map((question) => question.id)]))} disabled={!filteredQuestions.length} className="rounded-lg bg-blue-600 px-3 py-2 font-bold text-white disabled:opacity-40">Select all shown</button><button type="button" onClick={() => setSelectedIds(new Set())} disabled={!selectedIds.size} className="rounded-lg border border-slate-700 px-3 py-2 font-bold text-slate-300 disabled:opacity-40">Clear</button></div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
-          {loading ? (
-            <div className="text-center text-slate-400 py-12">
-              <div className="animate-spin w-8 h-8 border-4 border-slate-600 border-t-white rounded-full mx-auto mb-4" />
-              Loading questions...
-            </div>
-          ) : filteredQuestions.length === 0 ? (
-            <div className="text-center text-slate-400 py-12">
-              <p className="text-xl mb-2">No questions found</p>
-              <p className="text-sm">Create questions in your library first.</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {filteredQuestions.map((q) => {
-                const isSelected = selectedIds.has(q.id);
-                return (
-                  <div
-                    key={q.id}
-                    onClick={() => toggleQuestion(q.id)}
-                    className={`border rounded-xl p-4 cursor-pointer transition-all ${
-                      isSelected
-                        ? "bg-blue-900/30 border-blue-500"
-                        : "bg-slate-800/50 border-slate-700 hover:border-slate-600"
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => {}}
-                        className="mt-1 w-5 h-5 rounded"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          {(q.topic || q.subject) && (
-                            <span className="px-2 py-1 bg-slate-700 text-slate-300 text-xs rounded">
-                              {q.topic || q.subject}
-                            </span>
-                          )}
-                          {q.question_type && (
-                            <span className="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded uppercase">
-                              {q.question_type.replace('_', ' ')}
-                            </span>
-                          )}
-                          {q.difficulty && (
-                            <span
-                              className={`px-2 py-1 text-xs rounded uppercase ${
-                                q.difficulty === "hard"
-                                  ? "bg-red-900/50 text-red-300"
-                                  : q.difficulty === "medium"
-                                  ? "bg-yellow-900/50 text-yellow-300"
-                                  : "bg-green-900/50 text-green-300"
-                              }`}
-                            >
-                              {q.difficulty}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-white font-medium">{q.question_text}</p>
-                        {q.options && q.options.length > 0 ? (
-                          <div className="mt-2 text-sm text-slate-400">
-                            <span className="text-green-400">✓</span> {q.correct_answer}
-                            <span className="ml-2 text-slate-500">({q.options.length} options)</span>
-                          </div>
-                        ) : (
-                          <div className="mt-2 text-sm text-slate-400">
-                            <span className="text-green-400">✓</span> {q.correct_answer}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+          {loading ? <div className="grid min-h-60 place-items-center text-slate-400"><span>Loading your question pools…</span></div> : filteredQuestions.length ? (
+            <div className="grid gap-3 md:grid-cols-2">
+              {filteredQuestions.map((question) => {
+                const selected = selectedIds.has(question.id);
+                return <article key={question.id} className={`rounded-2xl border p-4 transition ${selected ? "border-cyan-400 bg-cyan-950/35 shadow-lg shadow-cyan-950/20" : "border-slate-700 bg-slate-900/65 hover:border-slate-500"}`}>
+                  <div className="flex items-start gap-3"><button type="button" onClick={() => toggleQuestion(question.id)} aria-pressed={selected} className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md border text-xs font-black ${selected ? "border-cyan-300 bg-cyan-400 text-slate-950" : "border-slate-600 bg-slate-950 text-transparent"}`}>✓</button><div className="min-w-0 flex-1"><div className="mb-2 flex flex-wrap gap-1.5"><span className="rounded-md bg-slate-800 px-2 py-1 text-[10px] font-bold text-slate-300">{question.teacher_id ? "MY POOL" : "BRAINS HEIST"}</span><span className="rounded-md bg-blue-950 px-2 py-1 text-[10px] font-bold text-blue-300">{questionTopic(question)}</span><span className="rounded-md bg-slate-800 px-2 py-1 text-[10px] font-bold uppercase text-slate-400">{question.difficulty}</span></div><p className="line-clamp-3 text-sm font-semibold leading-6 text-white">{question.question_text}</p></div></div>
+                  <footer className="mt-4 flex items-center justify-between border-t border-slate-800 pt-3"><span className="text-xs text-slate-500">{question.subject} · {(question.question_type || "question").replace(/_/g, " ")}</span><button type="button" onClick={() => setPreviewQuestion(question)} className="rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-xs font-bold text-white hover:border-cyan-400">Preview</button></footer>
+                </article>;
               })}
             </div>
-          )}
+          ) : <div className="grid min-h-60 place-items-center text-center"><div><p className="text-lg font-bold text-white">No questions match these filters</p><p className="mt-1 text-sm text-slate-400">Try All available pools or a broader subject and topic.</p></div></div>}
         </div>
 
-        <div className="p-6 border-t border-slate-800 flex gap-3">
-          <button
-            onClick={onCancel}
-            className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-semibold"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleConfirm}
-            disabled={selectedIds.size === 0}
-            className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-500 disabled:bg-slate-700 disabled:cursor-not-allowed text-white rounded-lg font-bold"
-          >
-            Start Battle with {selectedIds.size} Question{selectedIds.size !== 1 ? "s" : ""}
-          </button>
-        </div>
-      </div>
+        <footer className="flex gap-3 border-t border-slate-800 bg-slate-900/75 p-4 sm:p-6"><button type="button" onClick={onCancel} className="rounded-xl border border-slate-700 px-5 py-3 font-bold text-slate-300 hover:bg-slate-800">Cancel</button><button type="button" onClick={handleConfirm} disabled={!selectedIds.size} className="flex-1 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-3 font-black text-white shadow-lg shadow-blue-950/30 disabled:cursor-not-allowed disabled:opacity-40">Use {selectedIds.size} question{selectedIds.size === 1 ? "" : "s"} in battle</button></footer>
+      </section>
+
+      {previewQuestion ? <div className="absolute inset-0 z-10 grid place-items-center bg-slate-950/80 p-4 backdrop-blur-sm" onMouseDown={(event) => event.target === event.currentTarget && setPreviewQuestion(null)}><article className="max-h-[84vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-cyan-500/30 bg-slate-900 p-6 shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="battle-preview-title"><header className="flex items-start justify-between gap-4"><div><span className="text-xs font-black uppercase tracking-widest text-cyan-300">Question preview</span><h3 id="battle-preview-title" className="mt-2 text-xl font-black">{questionTopic(previewQuestion)}</h3></div><button type="button" onClick={() => setPreviewQuestion(null)} className="grid h-10 w-10 place-items-center rounded-xl border border-slate-700" aria-label="Close preview">×</button></header>{previewQuestion.image_url ? <img src={previewQuestion.image_url} alt="" className="mt-5 max-h-64 w-full rounded-xl bg-white object-contain" /> : null}<p className="mt-5 text-lg font-semibold leading-7">{previewQuestion.question_text}</p>{previewQuestion.options?.length ? <ol className="mt-4 grid gap-2">{previewQuestion.options.map((option, index) => <li key={`${index}-${optionText(option)}`} className="rounded-xl border border-slate-700 bg-slate-950/55 px-4 py-3"><span className="mr-2 font-black text-cyan-300">{String.fromCharCode(65 + index)}.</span>{optionText(option)}</li>)}</ol> : null}<div className="mt-5 rounded-xl border border-emerald-700/50 bg-emerald-950/35 p-4"><span className="text-xs font-black uppercase tracking-wider text-emerald-300">Correct answer</span><p className="mt-1 text-emerald-50">{previewQuestion.correct_answer}</p></div>{previewQuestion.explanation ? <div className="mt-3 rounded-xl border border-slate-700 p-4"><span className="text-xs font-black uppercase tracking-wider text-slate-400">Explanation</span><p className="mt-1 text-sm text-slate-200">{previewQuestion.explanation}</p></div> : null}<button type="button" onClick={() => { toggleQuestion(previewQuestion.id); setPreviewQuestion(null); }} className="mt-5 w-full rounded-xl bg-blue-600 px-4 py-3 font-black">{selectedIds.has(previewQuestion.id) ? "Remove from battle" : "Add to battle"}</button></article></div> : null}
     </div>
   );
 
-  if (typeof document === "undefined") {
-    return modalContent;
-  }
-
+  if (typeof document === "undefined") return modalContent;
   return createPortal(modalContent, document.body);
 };

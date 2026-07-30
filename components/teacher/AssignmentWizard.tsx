@@ -63,6 +63,13 @@ const normalizeQuestionText = (value: string) =>
     .trim()
     .toLocaleLowerCase();
 
+const normalizeSubject = (value: string) => {
+  const normalized = value.trim().toLocaleLowerCase().replace(/\s+/g, ' ');
+  if (['math', 'maths', 'mathematics'].includes(normalized)) return 'maths';
+  if (normalized === 'english language') return 'english';
+  return normalized;
+};
+
 const difficultyScore: Record<QuestionDifficulty, number> = { easy: 1, medium: 2, hard: 3 };
 const difficultyFromScore = (score: number): QuestionDifficulty =>
   score < 1.67 ? 'easy' : score < 2.34 ? 'medium' : 'hard';
@@ -156,7 +163,7 @@ export default function AssignmentWizard({
   }, [assignmentSubject, questions]);
 
   const subjectQuestions = useMemo(
-    () => uniqueQuestions.filter((question) => question.subject === assignmentSubject),
+    () => uniqueQuestions.filter((question) => normalizeSubject(question.subject) === normalizeSubject(assignmentSubject)),
     [assignmentSubject, uniqueQuestions],
   );
 
@@ -319,24 +326,6 @@ export default function AssignmentWizard({
     }
     await onSubmit(event);
   };
-
-  const summary = (
-    <aside className="aw-summary" aria-label="Assignment summary">
-      <div className="aw-summary__eyebrow">Live summary</div>
-      <h3>{selectedQuestions.length} selected question{selectedQuestions.length === 1 ? '' : 's'}</h3>
-      <dl className="aw-summary__stats">
-        <div><dt>Time</dt><dd>{estimatedMinutes} min</dd></div>
-        <div><dt>Difficulty</dt><dd className="capitalize">{averageDifficulty}</dd></div>
-        <div><dt>Total XP</dt><dd>{totalXp}</dd></div>
-        <div><dt>Students</dt><dd>{audienceStudents.length}</dd></div>
-      </dl>
-      <p className="aw-summary__audience">
-        {assignmentMode === 'batch'
-          ? selectedClasses.map((item) => item.class_code).join(', ') || 'No class selected'
-          : audienceStudents.length ? 'Individual students' : 'No students selected'}
-      </p>
-    </aside>
-  );
 
   return (
     <div className="aw-shell">
@@ -571,9 +560,12 @@ export default function AssignmentWizard({
           )}
 
         </section>
-        <div className="aw-floating-dock">
-          {summary}
-          <div className="aw-floating-nav" aria-label="Wizard navigation">
+        <footer className="aw-step-footer" aria-label="Wizard navigation">
+          <p>
+            <strong>Step {step} of {STEPS.length}</strong>
+            <span>{step < 6 ? 'Your choices stay in this wizard until you publish or leave.' : 'Publishing sends this assignment to the selected students.'}</span>
+          </p>
+          <div className="aw-step-nav">
             <button
               type="button"
               className="aw-button aw-button--ghost"
@@ -592,7 +584,7 @@ export default function AssignmentWizard({
               </button>
             )}
           </div>
-        </div>
+        </footer>
       </form>
 
       {previewQuestion ? <QuestionPreviewModal question={previewQuestion} onClose={() => setPreviewQuestion(null)} /> : null}

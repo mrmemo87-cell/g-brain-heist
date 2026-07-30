@@ -40,6 +40,8 @@ export function brainsAlert(message: string, type: AlertType = 'info'): void {
 
   // Card
   const card = document.createElement('div');
+  card.setAttribute('role', 'alertdialog');
+  card.setAttribute('aria-modal', 'true');
   Object.assign(card.style, {
     background: 'linear-gradient(135deg, #0d1117 0%, #161b22 100%)',
     border: `1.5px solid ${BORDER[type]}`,
@@ -113,7 +115,14 @@ export function brainsAlert(message: string, type: AlertType = 'info'): void {
   });
 
   // Dismiss logic
+  let dismissed = false;
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' || e.key === 'Enter') dismiss();
+  };
   const dismiss = () => {
+    if (dismissed) return;
+    dismissed = true;
+    document.removeEventListener('keydown', onKey);
     backdrop.style.opacity = '0';
     card.style.transform = 'scale(0.92)';
     setTimeout(() => backdrop.remove(), 200);
@@ -123,12 +132,7 @@ export function brainsAlert(message: string, type: AlertType = 'info'): void {
   backdrop.addEventListener('click', (e) => {
     if (e.target === backdrop) dismiss();
   });
-  document.addEventListener('keydown', function onKey(e: KeyboardEvent) {
-    if (e.key === 'Escape' || e.key === 'Enter') {
-      document.removeEventListener('keydown', onKey);
-      dismiss();
-    }
-  });
+  document.addEventListener('keydown', onKey);
 
   // Assemble
   card.appendChild(logo);
@@ -183,26 +187,39 @@ export function brainsConfirm({
     card.setAttribute('aria-modal', 'true');
     Object.assign(card.style, {
       width: 'min(440px, 100%)',
-      border: '1px solid #cbd5e1',
+      border: `1.5px solid ${destructive ? 'rgba(255,60,60,0.55)' : 'rgba(0,212,255,0.5)'}`,
       borderRadius: '20px',
-      background: '#ffffff',
-      boxShadow: '0 28px 80px rgba(15, 23, 42, 0.28)',
+      background: 'linear-gradient(135deg, #0d1117 0%, #161b22 100%)',
+      boxShadow: destructive ? '0 0 28px rgba(255,60,60,0.34)' : '0 0 28px rgba(0,212,255,0.34)',
       padding: '26px',
-      color: '#0f172a',
+      color: '#f8fafc',
       fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
       transform: 'translateY(10px) scale(0.98)',
       transition: 'transform 0.18s ease',
     } as CSSStyleDeclaration);
 
+    const logo = document.createElement('img');
+    logo.src = '/logo.png';
+    logo.alt = '';
+    Object.assign(logo.style, {
+      display: 'block',
+      width: '52px',
+      height: '52px',
+      objectFit: 'contain',
+      margin: '0 auto 8px',
+      filter: 'drop-shadow(0 0 14px rgba(0,212,255,0.5))',
+    } as CSSStyleDeclaration);
+
     const brand = document.createElement('div');
-    brand.textContent = 'BH · Teacher workspace';
+    brand.textContent = 'Brains Heist';
     Object.assign(brand.style, {
-      color: '#0369a1',
+      color: '#6ee7f0',
       fontSize: '12px',
       fontWeight: '800',
       letterSpacing: '0.12em',
       textTransform: 'uppercase',
-      marginBottom: '12px',
+      marginBottom: '14px',
+      textAlign: 'center',
     } as CSSStyleDeclaration);
 
     const heading = document.createElement('h2');
@@ -211,22 +228,24 @@ export function brainsConfirm({
       margin: '0 0 10px',
       fontSize: '22px',
       lineHeight: '1.25',
+      textAlign: 'center',
     } as CSSStyleDeclaration);
 
     const body = document.createElement('p');
     body.textContent = message;
     Object.assign(body.style, {
       margin: '0',
-      color: '#475569',
+      color: '#dbe7f5',
       fontSize: '15px',
       lineHeight: '1.6',
       whiteSpace: 'pre-wrap',
+      textAlign: 'center',
     } as CSSStyleDeclaration);
 
     const actions = document.createElement('div');
     Object.assign(actions.style, {
       display: 'flex',
-      justifyContent: 'flex-end',
+      justifyContent: 'center',
       flexWrap: 'wrap',
       gap: '10px',
       marginTop: '24px',
@@ -236,10 +255,10 @@ export function brainsConfirm({
     cancel.type = 'button';
     cancel.textContent = cancelLabel;
     Object.assign(cancel.style, {
-      border: '1px solid #cbd5e1',
+      border: '1px solid #475569',
       borderRadius: '10px',
-      background: '#f8fafc',
-      color: '#334155',
+      background: '#1e293b',
+      color: '#e2e8f0',
       padding: '10px 18px',
       fontWeight: '700',
       cursor: 'pointer',
@@ -251,12 +270,12 @@ export function brainsConfirm({
     Object.assign(confirm.style, {
       border: 'none',
       borderRadius: '10px',
-      background: destructive ? '#dc2626' : 'linear-gradient(135deg, #0284c7, #4f46e5)',
-      color: '#ffffff',
+      background: destructive ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #00d4ff, #00ffb4)',
+      color: destructive ? '#ffffff' : '#0d1117',
       padding: '10px 18px',
       fontWeight: '800',
       cursor: 'pointer',
-      boxShadow: destructive ? '0 8px 20px rgba(220,38,38,0.2)' : '0 8px 20px rgba(37,99,235,0.2)',
+      boxShadow: destructive ? '0 0 16px rgba(239,68,68,0.35)' : '0 0 16px rgba(0,212,255,0.35)',
     } as CSSStyleDeclaration);
 
     let settled = false;
@@ -282,7 +301,7 @@ export function brainsConfirm({
     document.addEventListener('keydown', onKeyDown);
 
     actions.append(cancel, confirm);
-    card.append(brand, heading, body, actions);
+    card.append(logo, brand, heading, body, actions);
     backdrop.append(card);
     document.body.append(backdrop);
     window.requestAnimationFrame(() => {

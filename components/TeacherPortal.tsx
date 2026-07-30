@@ -54,8 +54,8 @@ interface TeacherPortalProps {
 let _cachedPlanDetails: SchoolPlanDetails | null = null;
 let _cachedTeacherTier: AccountTier | null = null;
 
-export type PortalView = 'dashboard' | 'students' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'writing-hub' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'clan-wars' | 'geometry-diagrams' | 'cambridge-reports' | 'quest-builder' | 'join-school';
-type TeacherNavSection = 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'writing-hub' | 'cambridge' | 'quests' | 'clan-wars' | 'join-school';
+export type PortalView = 'dashboard' | 'students' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'writing-hub' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'clan-wars' | 'geometry-diagrams' | 'cambridge-reports' | 'join-school';
+type TeacherNavSection = 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'writing-hub' | 'cambridge' | 'clan-wars' | 'join-school';
 type WritingHubSection = 'monitor' | 'analytics' | 'reports';
 
 // XP points based on difficulty: Easy=10, Medium=15, Hard=20
@@ -128,7 +128,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const initCalledRef = useRef(false);
   const questionsLoadRef = useRef<Promise<void> | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [backfillingQuestMissions, setBackfillingQuestMissions] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
   const [editingQuestion, setEditingQuestion] = useState<TeacherQuestion | null>(null);
   const [isProPlan, setIsProPlan] = useState(() => isPro(_cachedTeacherTier));
@@ -362,14 +361,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [cambridgeReleasedOnly, setCambridgeReleasedOnly] = useState(false);
   const [cambridgeSort, setCambridgeSort] = useState('newest');
 
-  // Quest Builder State
-  const [myQuests, setMyQuests] = useState<GameService.QuestMissionRow[]>([]);
-  const [myQuestsLoading, setMyQuestsLoading] = useState(false);
-  const [questBuilderTitle, setQuestBuilderTitle] = useState('');
-  const [questBuilderDifficulty, setQuestBuilderDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
-  const [questBuilderDescription, setQuestBuilderDescription] = useState('');
-  const [questBuilderQuestionIds, setQuestBuilderQuestionIds] = useState<string[]>([]);
-  const [questBuilderSaving, setQuestBuilderSaving] = useState(false);
   const [cambridgeFiltersOpen, setCambridgeFiltersOpen] = useState(false);
   const [cambridgeTestSearch, setCambridgeTestSearch] = useState('');
   const [cambridgeSelectedIds, setCambridgeSelectedIds] = useState<string[]>([]);
@@ -640,7 +631,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     if (view === 'writing-hub' || view === 'writing-monitoring' || view === 'writing-analytics' || view === 'writing-export-center') return 'writing-hub';
     if (view === 'clan-wars') return 'clan-wars';
     if (view === 'cambridge-reports') return 'cambridge';
-    if (view === 'quest-builder') return 'quests';
     return 'reports'; // catches 'reports', 'report-detail', 'report-analysis', 'collective-report'
   }, [view]);
 
@@ -693,11 +683,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       case 'cambridge':
         setView('cambridge-reports');
         loadCambridgeScores();
-        break;
-      case 'quests':
-        void loadQuestionsOnDemand();
-        setView('quest-builder');
-        loadMyQuests();
         break;
       case 'clan-wars':
         setView('clan-wars');
@@ -919,18 +904,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   };
 
   // Load Cambridge test scores for teacher's school (school-isolated)
-  const loadMyQuests = async () => {
-    setMyQuestsLoading(true);
-    try {
-      const quests = await GameService.teacher_get_my_quests();
-      setMyQuests(quests);
-    } catch (err) {
-      console.error('Failed to load teacher quests:', err);
-    } finally {
-      setMyQuestsLoading(false);
-    }
-  };
-
   const loadCambridgeScores = async () => {
     setCambridgeLoading(true);
     try {
@@ -2610,7 +2583,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       ? `This will AI proofread ${writingSubmissions.length} submissions and RELEASE marks to students. Continue?`
       : `This will AI proofread ${writingSubmissions.length} submissions and save as DRAFTS (not visible to students). Continue?`;
 
-    if (!confirm(confirmMsg)) return;
+    const confirmed = await brainsConfirm({
+      title: releaseToStudent ? 'Proofread and release marks?' : 'Proofread and save drafts?',
+      message: confirmMsg,
+      confirmLabel: releaseToStudent ? 'Proofread and release' : 'Proofread and save',
+      cancelLabel: 'Cancel',
+    });
+    if (!confirmed) return;
 
     setBulkProofreadLoading(true);
     setBulkProofreadProgress({ current: 0, total: writingSubmissions.length, currentStudent: '' });
@@ -2846,7 +2825,16 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const loadQuestionsOnDemand = () => {
     if (questionsLoadRef.current) return questionsLoadRef.current;
 
-    const request = GameService.get_all_questions()
+    const request = (async () => {
+      const pageSize = 500;
+      const unique = new Map<string, TeacherQuestion>();
+      for (let offset = 0; ; offset += pageSize) {
+        const page = await GameService.get_all_questions({ limit: pageSize, offset });
+        page.forEach((question) => unique.set(question.id, question));
+        if (page.length < pageSize) break;
+      }
+      return [...unique.values()];
+    })()
       .then(setQuestions)
       .catch((error) => {
         console.error('Error loading global question bank:', error);
@@ -3009,9 +2997,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       setCustomTopicName('');
       setEditingQuestion(null);
 
-      // Reload questions from global bank
-      const allQuestions = await GameService.get_all_questions();
-      setQuestions(allQuestions);
+      // Reload the complete authorized library, not only the RPC's first page.
+      await loadQuestionsOnDemand();
 
       setView('question-bank');
     } catch (error) {
@@ -3628,7 +3615,6 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       let successCount = 0;
       let errorCount = 0;
       const errors: string[] = [];
-      const uploadedQuestions: TeacherQuestion[] = [];
 
       for (let i = 0; i < dataRows.length; i++) {
         const row = dataRows[i];
@@ -3699,8 +3685,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             is_public: true
           };
 
-          const createdQuestion = await GameService.create_question(questionData);
-          uploadedQuestions.push(createdQuestion);
+          await GameService.create_question(questionData);
           successCount++;
           setUploadProgress({ current: i + 1, total: dataRows.length });
         } catch (err) {
@@ -3713,74 +3698,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       const allQuestions = await GameService.get_all_questions();
       setQuestions(allQuestions);
 
-      // Auto-create live quest missions from successfully uploaded questions
-      // Group by subject + topic_name so each CSV set becomes a playable mission bucket.
-      let createdMissionCount = 0;
-      let skippedMissionCount = 0;
-      if (uploadedQuestions.length > 0) {
-        const grouped = uploadedQuestions.reduce<Map<string, TeacherQuestion[]>>((acc, q) => {
-          const subject = q.subject || 'General';
-          const topic = q.topic_name || q.topic || 'General';
-          const key = `${subject}|||${topic}`;
-          const list = acc.get(key) || [];
-          list.push(q);
-          acc.set(key, list);
-          return acc;
-        }, new Map());
-
-        const myQuests = await GameService.teacher_get_my_quests().catch(() => [] as typeof allQuestions);
-        const existingTitles = new Set(myQuests.map((m) => `${m.title}|||${m.subject}`));
-
-        const MAX_QUEST_QUESTIONS = 20;
-
-        for (const [key, groupQuestions] of grouped.entries()) {
-          const [subject, topic] = key.split('|||');
-          const groupDifficulty = groupQuestions[0]?.difficulty || 'medium';
-          const chunks: TeacherQuestion[][] = [];
-          const chunkCount = Math.ceil(groupQuestions.length / MAX_QUEST_QUESTIONS);
-          const baseChunkSize = Math.floor(groupQuestions.length / chunkCount);
-          const remainder = groupQuestions.length % chunkCount;
-          let cursor = 0;
-
-          for (let i = 0; i < chunkCount; i++) {
-            const size = baseChunkSize + (i < remainder ? 1 : 0);
-            chunks.push(groupQuestions.slice(cursor, cursor + size));
-            cursor += size;
-          }
-
-          for (let i = 0; i < chunks.length; i++) {
-            const chunk = chunks[i];
-            const missionTitle =
-              chunks.length > 1
-                ? `CSV Upload: ${subject} • ${topic} (Part ${i + 1})`
-                : `CSV Upload: ${subject} • ${topic}`;
-            const titleKey = `${missionTitle}|||${subject}`;
-
-            // Idempotency guard: if this deterministic mission title already exists for this teacher,
-            // skip creating a duplicate mission on repeated CSV imports.
-            if (existingTitles.has(titleKey)) {
-              skippedMissionCount++;
-              continue;
-            }
-
-            const missionId = await GameService.teacher_create_quest_mission({
-              title: missionTitle,
-              subject,
-              questionIds: chunk.map((q) => q.id),
-              difficulty: groupDifficulty,
-              description: `Auto-generated from CSV upload (${subject} / ${topic}).`,
-            });
-
-            // Auto-publish so students can launch these via normal live mission flow.
-            await GameService.teacher_toggle_quest_active(missionId, true);
-            existingTitles.add(titleKey);
-            createdMissionCount++;
-          }
-        }
-      }
-
       // Show results
-      const message = `CSV Upload Complete\n\nCreated questions: ${successCount}\nSkipped/failed rows: ${errorCount}\nCreated missions: ${createdMissionCount}\nSkipped missions (already exist): ${skippedMissionCount}\nPublished missions: ${createdMissionCount}${errors.length > 0 ? '\n\nRow issues:\n' + errors.slice(0, 5).join('\n') + (errors.length > 5 ? `\n... and ${errors.length - 5} more` : '') : ''}`;
+      const message = `CSV Upload Complete\n\nCreated questions: ${successCount}\nSkipped/failed rows: ${errorCount}${errors.length > 0 ? '\n\nRow issues:\n' + errors.slice(0, 5).join('\n') + (errors.length > 5 ? `\n... and ${errors.length - 5} more` : '') : ''}`;
       const alertTone = successCount === 0 ? 'error' : (errorCount > 0 ? 'info' : 'success');
       brainsAlert(message, alertTone);
       
@@ -3794,223 +3713,6 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       // Reset file input
       e.target.value = '';
     }
-  };
-
-  const handleBackfillQuestMissions = async () => {
-    setBackfillingQuestMissions(true);
-    try {
-      const result = await GameService.teacher_backfill_quest_missions_from_questions();
-      const hasChanges = result.created_missions > 0 || result.published_missions > 0;
-      brainsAlert(
-        `Quest mission backfill complete\n\n` +
-        `Groups scanned: ${result.groups_scanned}\n` +
-        `Created missions: ${result.created_missions}\n` +
-        `Skipped missions: ${result.skipped_missions}\n` +
-        `Published missions: ${result.published_missions}`,
-        hasChanges ? 'success' : 'info'
-      );
-      await loadMyQuests();
-    } catch (err: any) {
-      brainsAlert(err?.message || 'Failed to backfill quest missions.', 'error');
-    } finally {
-      setBackfillingQuestMissions(false);
-    }
-  };
-
-  // ── Quest Builder ──────────────────────────────────────────────────────────
-  const renderQuestBuilder = () => {
-    const myQ = questions.filter(q => q.teacher_id === teacher?.id);
-
-    const handleToggleQuestQuestion = (id: string) => {
-      setQuestBuilderQuestionIds(prev =>
-        prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-      );
-    };
-
-    const handleSaveQuest = async () => {
-      if (!questBuilderTitle.trim()) { brainsAlert('Please enter a quest title.', 'info'); return; }
-      if (questBuilderQuestionIds.length < 1) { brainsAlert('Select at least 1 question.', 'info'); return; }
-      if (questBuilderQuestionIds.length > 20) { brainsAlert('Maximum 20 questions per quest.', 'info'); return; }
-      setQuestBuilderSaving(true);
-      try {
-        await GameService.teacher_create_quest_mission({
-          title: questBuilderTitle.trim(),
-          subject: questions.find(q => q.id === questBuilderQuestionIds[0])?.subject ?? 'General',
-          questionIds: questBuilderQuestionIds,
-          difficulty: questBuilderDifficulty,
-          description: questBuilderDescription.trim() || undefined,
-        });
-        brainsAlert('Quest mission created! Students will see it once you publish it.', 'success');
-        setQuestBuilderTitle('');
-        setQuestBuilderDescription('');
-        setQuestBuilderQuestionIds([]);
-        setQuestBuilderDifficulty('medium');
-        await loadMyQuests();
-      } catch (err: any) {
-        brainsAlert(err?.message ?? 'Failed to create quest.', 'error');
-      } finally {
-        setQuestBuilderSaving(false);
-      }
-    };
-
-    return (
-      <div className="space-y-8">
-        <div className="teacher-section-header">
-          <h2 className="teacher-section-title">
-            <span>🗺️</span> Quest Builder
-          </h2>
-          <p className="teacher-section-subtitle">
-            Build V2 route-based quest missions from your question bank. Students play them in the full Quest Mode 2.0 experience.
-          </p>
-        </div>
-
-        {/* Create new quest */}
-        <div className="card-glass p-6 space-y-4 border border-violet-500/30">
-          <h3 className="text-white font-heading text-lg">Create New Quest Mission</h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs text-slate-400 mb-1 uppercase tracking-wider">Quest Title *</label>
-              <input
-                type="text"
-                className="w-full bg-slate-800/70 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-violet-400"
-                placeholder="e.g. Algebra Spire Route"
-                value={questBuilderTitle}
-                onChange={e => setQuestBuilderTitle(e.target.value)}
-                maxLength={80}
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-slate-400 mb-1 uppercase tracking-wider">Difficulty</label>
-              <select
-                className="w-full bg-slate-800/70 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-violet-400"
-                value={questBuilderDifficulty}
-                onChange={e => setQuestBuilderDifficulty(e.target.value as 'easy' | 'medium' | 'hard')}
-              >
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs text-slate-400 mb-1 uppercase tracking-wider">Description (optional)</label>
-            <textarea
-              className="w-full bg-slate-800/70 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-violet-400 resize-none"
-              rows={2}
-              placeholder="Brief description shown on the mission card"
-              value={questBuilderDescription}
-              onChange={e => setQuestBuilderDescription(e.target.value)}
-              maxLength={200}
-            />
-          </div>
-
-          {/* Question picker */}
-          <div>
-            <label className="block text-xs text-slate-400 mb-2 uppercase tracking-wider">
-              Select Questions ({questBuilderQuestionIds.length} selected)
-            </label>
-            {myQ.length === 0 ? (
-              <p className="text-slate-400 text-sm">You have no questions yet. Create some in the Question Bank first.</p>
-            ) : (
-              <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-                {myQ.map(q => {
-                  const picked = questBuilderQuestionIds.includes(q.id);
-                  return (
-                    <button
-                      key={q.id}
-                      type="button"
-                      onClick={() => handleToggleQuestQuestion(q.id)}
-                      className={`w-full text-left p-3 rounded-lg border text-sm transition-colors ${
-                        picked
-                          ? 'bg-violet-600/30 border-violet-400 text-white'
-                          : 'bg-slate-800/50 border-slate-700 text-slate-300 hover:border-slate-500'
-                      }`}
-                    >
-                      <div className="flex items-start gap-2">
-                        <span className="mt-0.5 text-violet-400">{picked ? '✓' : '○'}</span>
-                        <div className="flex-1 min-w-0">
-                          <p className="truncate">{q.question_text}</p>
-                          <p className="text-xs text-slate-500 mt-0.5">{q.subject} · {q.difficulty} · {q.topic_name || q.topic || 'General'}</p>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          <p className="text-xs text-slate-500">
-            The route is auto-generated: Start node → your questions (last one becomes the Elite Station) → reward node → Final Chest.
-          </p>
-
-          <button
-            onClick={handleSaveQuest}
-            disabled={questBuilderSaving || !questBuilderTitle.trim() || questBuilderQuestionIds.length === 0}
-            className="px-6 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-sm transition-colors"
-          >
-            {questBuilderSaving ? 'Creating...' : 'Create Quest Mission'}
-          </button>
-        </div>
-
-        {/* My existing quests */}
-        <div>
-          <h3 className="text-white font-heading text-lg mb-3">My Quest Missions</h3>
-          {myQuestsLoading ? (
-            <p className="text-slate-400 text-sm animate-pulse">Loading...</p>
-          ) : myQuests.length === 0 ? (
-            <p className="text-slate-400 text-sm">No quest missions yet. Create one above.</p>
-          ) : (
-            <div className="space-y-3">
-              {myQuests.map(q => (
-                <div key={q.id} className="card-glass p-4 flex items-center gap-4 border border-slate-700/50">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white font-semibold truncate">{q.title}</p>
-                    <p className="text-xs text-slate-400">{q.subject} · {q.difficulty} · {(q.route_template?.length ?? 0)} nodes</p>
-                  </div>
-                  <span className={`text-xs px-2 py-1 rounded-full border ${
-                    q.is_active
-                      ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300'
-                      : 'bg-slate-700/40 border-slate-600 text-slate-400'
-                  }`}>
-                    {q.is_active ? 'Published' : 'Draft'}
-                  </span>
-                  <button
-                    onClick={async () => {
-                      try {
-                        await GameService.teacher_toggle_quest_active(q.id, !q.is_active);
-                        await loadMyQuests();
-                      } catch (err: any) {
-                        brainsAlert(err?.message ?? 'Failed to update quest.', 'error');
-                      }
-                    }}
-                    className="text-xs px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white transition-colors"
-                  >
-                    {q.is_active ? 'Unpublish' : 'Publish'}
-                  </button>
-                  <button
-                    onClick={async () => {
-                      if (!confirm(`Delete "${q.title}"? This cannot be undone.`)) return;
-                      try {
-                        await GameService.teacher_delete_quest(q.id);
-                        await loadMyQuests();
-                      } catch (err: any) {
-                        brainsAlert(err?.message ?? 'Failed to delete quest.', 'error');
-                      }
-                    }}
-                    className="text-xs px-3 py-1.5 rounded-lg bg-red-900/40 hover:bg-red-800/60 border border-red-700/50 text-red-300 transition-colors"
-                  >
-                    Delete
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    );
   };
 
   // Render Dashboard
@@ -4663,7 +4365,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           {/* Topic Selection */}
           <div className="teacher-form-group">
             <label className="teacher-label">My Pool topic</label>
-            <div className="flex flex-col md:flex-row gap-4">
+            <div className={`teacher-topic-picker ${topicMode === 'custom' && !teacherOwnedTopics.includes(customTopicName) ? 'is-creating' : ''}`}>
               <select
                 value={topicMode === 'general' ? 'General' : (teacherOwnedTopics.includes(customTopicName) ? customTopicName : '__new__')}
                 onChange={(e) => {
@@ -4689,7 +4391,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   type="text"
                   value={customTopicName}
                   onChange={(e) => setCustomTopicName(e.target.value)}
-                  className="teacher-input flex-1"
+                  className="teacher-input teacher-topic-picker__new"
                   placeholder="Name the new topic"
                   required
                 />
@@ -5107,23 +4809,6 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               </div>
             </div>
           )}
-        </div>
-
-        {/* Backfill Existing Uploaded Questions */}
-        <div className="mt-6 bg-indigo-50 border border-indigo-200 rounded-xl p-6">
-          <h4 className="font-bold text-indigo-700 mb-2 flex items-center gap-2">
-            <span>🛠️</span> Backfill Older Uploaded Questions
-          </h4>
-          <p className="text-sm text-slate-600 mb-4">
-            If you uploaded questions before auto-mission creation existed, run this once to create missing live quest missions from your existing question bank.
-          </p>
-          <button
-            onClick={handleBackfillQuestMissions}
-            disabled={backfillingQuestMissions || uploading}
-            className="teacher-btn teacher-btn-primary w-full py-3"
-          >
-            {backfillingQuestMissions ? 'Backfilling missions…' : 'Generate Missing Quest Missions'}
-          </button>
         </div>
 
         {/* Tips */}
@@ -8166,8 +7851,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           { id: 'writing-hub' as const, label: 'Writing Hub', icon: '✍️', description: 'Monitor, analyse, and export writing progress', proOnly: true },
         ]
       : []),
-    { id: 'cambridge', label: 'Cambridge Tests', icon: '✍️', description: 'Writing & Test Results', proOnly: true },
-    { id: 'quests', label: 'Quest Builder', icon: '🗺️', description: 'Create V2 Quest Missions', proOnly: true },
+    { id: 'cambridge', label: 'Cambridge Tests', icon: '🧾', description: 'Writing & Test Results', proOnly: true },
     { id: 'clan-wars', label: 'Clan Wars', icon: '⚔️', description: 'Host official class battles' },
   ];
 
@@ -8517,6 +8201,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                       disabled={locked}
                       className={`teacher-nav-btn ${primarySection === tab.id ? 'active' : ''} ${locked ? 'teacher-nav-locked' : ''} ${tab.highlight ? 'teacher-nav-btn--highlight' : ''}`}
                       title={desktopSidebarCollapsed ? tab.label : undefined}
+                      aria-label={tab.label}
+                      data-label={tab.label}
                     >
                       <span className="teacher-nav-icon">{tab.icon}</span>
                       <div className="teacher-nav-text">
@@ -8550,7 +8236,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               onCreateQuestion={openMyPoolQuestionForm}
               onRenameTopic={(topicQuestions, nextTopic) => { void handleRenameTopic(topicQuestions, nextTopic); }}
               onDeleteTopic={(topicQuestions) => { void handleDeleteTopic(topicQuestions); }}
-              restrictedSubjects={profile.school_id ? (teacherHasClassAssignments ? teacherAssignedSubjects : []) : undefined}
+              restrictedSubjects={profile.school_id && teacherAssignedSubjects.length ? teacherAssignedSubjects : undefined}
             />
           )}
           {view === 'csv-upload' && renderCSVUpload()}
@@ -8618,12 +8304,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           {view === 'collective-report' && (
             <CollectiveAssignmentReport
               assignments={assignments}
+              students={availableStudents}
               onBack={() => setView('reports')}
               onViewAssignment={(a) => handleOpenReport(a)}
             />
           )}
           {view === 'cambridge-reports' && renderCambridgeReports()}
-          {view === 'quest-builder' && renderQuestBuilder()}
           {view === 'join-school' && (
             <JoinSchoolCard onJoined={() => window.location.reload()} initialRole="teacher" />
           )}
