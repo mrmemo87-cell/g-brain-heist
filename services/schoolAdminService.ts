@@ -619,8 +619,8 @@ export async function updateSchoolSettings(
 
 /** Upload a school-owned logo and return its public URL. */
 export async function uploadSchoolLogo(schoolId: string, file: File): Promise<{ success: boolean; url?: string; error?: string }> {
-  if (!file.type.startsWith('image/')) return { success: false, error: 'Please choose an image file.' };
-  if (file.size > 2 * 1024 * 1024) return { success: false, error: 'The logo must be smaller than 2 MB.' };
+  if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) return { success: false, error: 'Please choose a PNG, JPG or WebP image.' };
+  if (file.size > 2 * 1024 * 1024) return { success: false, error: 'The logo must be 2 MB or smaller.' };
   const extension = (file.name.split('.').pop() || 'png').toLowerCase().replace(/[^a-z0-9]/g, '');
   const path = `${schoolId}/logo-${Date.now()}.${extension || 'png'}`;
   const { error } = await supabase.storage.from('school-logos').upload(path, file, { upsert: true, contentType: file.type });

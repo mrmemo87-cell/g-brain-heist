@@ -4,7 +4,7 @@ import InvitesTab from './InvitesTab';
 
 const SettingsTab: React.FC = () => {
   const {
-    handleSaveSettings, savingSettings, school, setSettingsAllowStudent, setSettingsAllowTeacher, setSettingsName, settingsAllowStudent, settingsAllowTeacher, settingsName, settingsLogoPreview, setSettingsLogoFile, setSettingsLogoPreview,
+    handleSaveSettings, savingSettings, school, setSettingsAllowStudent, setSettingsAllowTeacher, setSettingsName, settingsAllowStudent, settingsAllowTeacher, settingsName, settingsLogoFile, settingsLogoPreview, settingsLogoStatus, setSettingsLogoFile, setSettingsLogoPreview, setSettingsLogoStatus,
   } = useSchoolAdmin();
 
   return (
@@ -20,12 +20,35 @@ const SettingsTab: React.FC = () => {
             <div>
               <label htmlFor="school-logo" className="block text-sm font-medium text-slate-900">School logo</label>
               <p>Shown in this portal, teacher and student dashboards, and school reports.</p>
-              <input id="school-logo" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => {
+              <input id="school-logo" type="file" accept="image/png,image/jpeg,image/webp" disabled={savingSettings} onChange={(event) => {
                 const file = event.target.files?.[0] || null;
+                if (file && !['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+                  setSettingsLogoFile(null);
+                  setSettingsLogoPreview('');
+                  setSettingsLogoStatus({ type: 'error', message: 'Logo not selected. Choose a PNG, JPG or WebP image.' });
+                  event.target.value = '';
+                  return;
+                }
+                if (file && file.size > 2 * 1024 * 1024) {
+                  setSettingsLogoFile(null);
+                  setSettingsLogoPreview('');
+                  setSettingsLogoStatus({ type: 'error', message: 'Logo not selected. The image must be 2 MB or smaller.' });
+                  event.target.value = '';
+                  return;
+                }
                 setSettingsLogoFile(file);
                 setSettingsLogoPreview(file ? URL.createObjectURL(file) : '');
+                setSettingsLogoStatus(file
+                  ? { type: 'info', message: `${file.name} is ready. Select “Upload logo & save settings” to apply it everywhere.` }
+                  : null);
               }} />
               <small>PNG, JPG or WebP; maximum 2 MB.</small>
+              {settingsLogoStatus && (
+                <div className={`school-logo-status school-logo-status--${settingsLogoStatus.type}`} role={settingsLogoStatus.type === 'error' ? 'alert' : 'status'} aria-live="polite">
+                  <span aria-hidden="true">{settingsLogoStatus.type === 'success' ? '✓' : settingsLogoStatus.type === 'error' ? '!' : '↑'}</span>
+                  <span>{settingsLogoStatus.message}</span>
+                </div>
+              )}
             </div>
           </div>
           <div>
@@ -80,7 +103,7 @@ const SettingsTab: React.FC = () => {
               disabled={savingSettings}
               className="px-6 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors font-medium"
             >
-              {savingSettings ? 'Saving...' : 'Save Settings'}
+              {savingSettings ? (settingsLogoFile ? 'Uploading logo…' : 'Saving…') : (settingsLogoFile ? 'Upload logo & save settings' : 'Save settings')}
             </button>
           </div>
         </div>

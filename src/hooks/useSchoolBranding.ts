@@ -29,5 +29,17 @@ export const useSchoolBranding = (fallback: SchoolBranding) => {
     return () => { active = false; };
   }, [fallback.schoolId, fallback.schoolName, fallback.schoolLogoUrl]);
 
+  useEffect(() => {
+    const handleBrandingUpdate = (event: Event) => {
+      const updated = (event as CustomEvent<SchoolBrandInput>).detail;
+      if (!fallback.schoolId || updated?.schoolId !== fallback.schoolId) return;
+      canonicalBrandCache.set(fallback.schoolId, updated);
+      const brand = createSchoolBrand(updated, fallback);
+      setBranding({ schoolName: brand.name, schoolLogoUrl: brand.logoUrl });
+    };
+    window.addEventListener('school-branding-updated', handleBrandingUpdate);
+    return () => window.removeEventListener('school-branding-updated', handleBrandingUpdate);
+  }, [fallback.schoolId, fallback.schoolName, fallback.schoolLogoUrl]);
+
   return branding;
 };
