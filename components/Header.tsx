@@ -13,6 +13,9 @@ import AvatarWithFrame from './AvatarWithFrame';
 import { isFlickerThemeActive } from '../src/lib/cosmetics';
 import { fetchSchoolPlanDetails, type SchoolPlanDetails, type SchoolPlan } from '../services/tierService';
 import { visualAssets, neonIcon } from './visualAssets';
+import { useSchoolBranding } from '../src/hooks/useSchoolBranding';
+import { createSchoolBrand } from '../src/lib/schoolBranding';
+import { SchoolBrand } from '../src/components/SchoolBrand';
 
 /** Returns the streak badge PNG for the highest achieved tier, or null. */
 const getStreakBadge = (streak: number): string | null => {
@@ -122,6 +125,8 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [planDetails, setPlanDetails] = useState<SchoolPlanDetails | null>(null);
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
+  const resolvedBranding = useSchoolBranding({ schoolId: profile.school_id, schoolName: profile.school_name, schoolLogoUrl: profile.school_logo_url });
+  const schoolBrand = createSchoolBrand({ schoolId: profile.school_id, ...resolvedBranding });
 
   // Fetch school plan on mount
   useEffect(() => {
@@ -379,19 +384,16 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
           <div className="md:hidden">
             <div className="flex items-center justify-between">
               <div className="flex min-w-0 items-center gap-2">
-                <img 
-                  src="/logo.png" 
-                  alt="Brains Heist Logo" 
-                  className="w-8 h-8 flex-shrink-0 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)] cursor-pointer"
-                  onClick={handleBrandClick}
-                />
+                <button type="button" onClick={handleBrandClick} aria-label={`Go to ${schoolBrand.name} dashboard`}>
+                  <SchoolBrand brand={schoolBrand} showName={false} imageClassName="w-8 h-8 flex-shrink-0 object-contain" />
+                </button>
                 <button
                   type="button"
                   onClick={handleBrandClick}
                   className="font-heading flex-shrink-0 text-lg font-black tracking-wider text-cyan-300 select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70"
                   aria-label="Go to dashboard"
                 >
-                  BH
+                  {schoolBrand.name}
                 </button>
               </div>
               {/* Plan Badge - Mobile */}
@@ -581,33 +583,17 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
               {/* Left: Brand + Username */}
               <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                 <div className="relative group flex items-center gap-1.5 lg:gap-2 flex-shrink-0">
-                  <img 
-                    src="/logo.png" 
-                    alt="Brains Heist Logo" 
-                    className="w-8 h-8 lg:w-10 lg:h-10 drop-shadow-[0_0_10px_rgba(59,130,246,0.6)] cursor-pointer hover:scale-110 transition-transform"
-                    onClick={handleBrandClick}
-                  />
+                  <button type="button" onClick={handleBrandClick} aria-label={`Go to ${schoolBrand.name} dashboard`}>
+                    <SchoolBrand brand={schoolBrand} showName={false} imageClassName="w-8 h-8 lg:w-10 lg:h-10 object-contain" />
+                  </button>
                   <button
                     type="button"
                     onClick={handleBrandClick}
                     className="font-heading text-xl lg:text-2xl xl:text-3xl font-black tracking-wider select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 rounded"
                     aria-label="Go to dashboard"
                   >
-                    <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]" 
-                          style={{ 
-                            backgroundImage: 'linear-gradient(90deg, #22d3ee 0%, #3b82f6 25%, #8b5cf6 50%, #3b82f6 75%, #22d3ee 100%)',
-                            animation: 'shimmer 3s linear infinite'
-                          }}>
-                      BRAINS
-                    </span>
-                    {' '}
-                    <span className="bg-gradient-to-r from-pink-500 via-red-500 to-orange-500 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]"
-                          style={{ 
-                            backgroundImage: 'linear-gradient(90deg, #ec4899 0%, #ef4444 25%, #f97316 50%, #ef4444 75%, #ec4899 100%)',
-                            animation: 'shimmer 3s linear infinite',
-                            animationDelay: '1.5s'
-                          }}>
-                      HEIST
+                    <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-500 bg-clip-text text-transparent">
+                      {schoolBrand.name}
                     </span>
                   </button>
                   <div className="absolute -bottom-1 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-500 via-pink-500 to-cyan-500 opacity-50 blur-sm"></div>

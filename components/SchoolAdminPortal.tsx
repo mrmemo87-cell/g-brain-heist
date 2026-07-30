@@ -35,6 +35,8 @@ import IeltsSettingsTab from './school-admin/tabs/IeltsSettingsTab';
 import MemberActionModal from './school-admin/modals/MemberActionModal';
 import ConfirmDialogModal from './school-admin/modals/ConfirmDialogModal';
 import AdmissionHub from './AdmissionHub';
+import { SchoolBrand } from '../src/components/SchoolBrand';
+import { createSchoolBrand } from '../src/lib/schoolBranding';
 
 interface SchoolAdminPortalProps {
   onComplete: () => void;
@@ -1403,17 +1405,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       <header className="school-admin-header">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="school-admin-identity flex items-center gap-3">
-            {school.logo_url ? (
-              <div className="relative">
-                <img 
-                  src={school.logo_url} 
-                  alt={school.name} 
-                  className="relative h-12 w-12 rounded-xl object-cover"
-                />
-              </div>
-            ) : (
-              <img src="/logo.png" alt="Brains Heist" className="school-admin-app-logo" />
-            )}
+            <SchoolBrand brand={createSchoolBrand({ schoolId: school.id, schoolName: school.name, schoolLogoUrl: school.logo_url })} showName={false} imageClassName="relative h-12 w-12 rounded-xl object-contain" />
             <div className="school-admin-identity-copy">
               <p className="school-admin-eyebrow">School administration</p>
               <h1 className="text-2xl font-bold">

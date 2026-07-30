@@ -1,18 +1,17 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../services/supabaseClient';
+import { createSchoolBrand, type SchoolBrandInput } from '../lib/schoolBranding';
 
-export interface SchoolBranding {
-  schoolId?: string | null;
-  schoolName?: string | null;
-  schoolLogoUrl?: string | null;
-}
+export interface SchoolBranding extends SchoolBrandInput {}
+
+const canonicalBrandCache = new Map<string, SchoolBrandInput>();
 
 /** Resolves the current schools row instead of relying on a stale profile. */
 export const useSchoolBranding = (fallback: SchoolBranding) => {
-  const fallbackBrand = () => ({
-    schoolName: fallback.schoolName?.trim() || 'Brains Heist',
-    schoolLogoUrl: fallback.schoolLogoUrl?.trim() || '/logo.png',
-  });
+  const fallbackBrand = () => {
+    const brand = createSchoolBrand(fallback.schoolId ? canonicalBrandCache.get(fallback.schoolId) : null, fallback);
+    return { schoolName: brand.name, schoolLogoUrl: brand.logoUrl };
+  };
   const [branding, setBranding] = useState(fallbackBrand);
 
   useEffect(() => {
@@ -22,10 +21,10 @@ export const useSchoolBranding = (fallback: SchoolBranding) => {
     void supabase.from('schools').select('name, logo_url').eq('id', fallback.schoolId).maybeSingle()
       .then(({ data, error }) => {
         if (!active || error || !data) return;
-        setBranding({
-          schoolName: data.name?.trim() || fallback.schoolName?.trim() || 'Brains Heist',
-          schoolLogoUrl: data.logo_url?.trim() || fallback.schoolLogoUrl?.trim() || '/logo.png',
-        });
+        const canonical = { schoolId: fallback.schoolId, schoolName: data.name, schoolLogoUrl: data.logo_url };
+        canonicalBrandCache.set(fallback.schoolId!, canonical);
+        const brand = createSchoolBrand(canonical, fallback);
+        setBranding({ schoolName: brand.name, schoolLogoUrl: brand.logoUrl });
       });
     return () => { active = false; };
   }, [fallback.schoolId, fallback.schoolName, fallback.schoolLogoUrl]);
