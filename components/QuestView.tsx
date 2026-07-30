@@ -1295,7 +1295,6 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       setAssignmentSubmissionState('submitted');
       setLastCompletedAssignment(activeAssignment);
       setActiveAssignment(null);
-      await refreshAssignment?.();
     } catch (error) {
       console.error('Failed to submit assignment result:', error);
       const message = error instanceof Error ? error.message : 'Submission failed. Please retry now.';
@@ -1310,7 +1309,6 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     score.correct,
     questionScores,
     assignmentStartTime,
-    refreshAssignment,
   ]);
 
   useEffect(() => {
@@ -2807,8 +2805,15 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                 <>
                   <p className="text-sm font-semibold uppercase tracking-wide">Submission complete ✅</p>
                   <p className="mt-2 text-sm text-emerald-100/90">
-                    Your assignment has been submitted successfully. You can safely continue.
+                    Your assignment has been submitted successfully. Select OK when you are ready to continue.
                   </p>
+                  <button
+                    type="button"
+                    onClick={resetCompletedMission}
+                    className="mt-4 w-full rounded-lg bg-emerald-500/25 px-4 py-3 text-sm font-bold uppercase tracking-wide text-emerald-50 transition hover:bg-emerald-500/35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300 sm:w-auto"
+                  >
+                    OK
+                  </button>
                 </>
               )}
             </div>
@@ -2823,7 +2828,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             >
               📤 Share Results
             </button>
-            <button
+            {!(mode === 'assignment' && assignmentSubmissionState === 'submitted') && <button
               disabled={isAssignmentSubmissionBlocking || !isAssignmentSubmissionResolved}
               onClick={() => {
                 if (isTrainingRun) {
@@ -2883,11 +2888,15 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               }`}
             >
               {isAssignmentFinalizing ? 'Finalizing…' : isAssignmentSubmissionFailed ? 'Resolve submission first' : '🎯 Next Quest'}
-            </button>
+            </button>}
             <button
               onClick={onComplete}
-              disabled={isAssignmentSubmissionBlocking}
-              className="px-8 py-4 rounded-lg font-bold text-lg bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 hover:scale-105 active:scale-95 transition-all shadow-lg"
+              disabled={isAssignmentRun}
+              className={`px-8 py-4 rounded-lg font-bold text-lg transition-all shadow-lg ${
+                isAssignmentRun
+                  ? 'cursor-not-allowed bg-gray-700 text-gray-400 opacity-60'
+                  : 'bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 hover:scale-105 active:scale-95'
+              }`}
             >
               ← Back to Dashboard
             </button>
