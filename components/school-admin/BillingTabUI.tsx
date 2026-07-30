@@ -112,7 +112,7 @@ const BillingTab: React.FC<BillingTabProps> = ({
       {!isPaid && (
         <>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h3 className="text-xl font-bold text-white">
+            <h3 className="billing-on-dark text-xl font-bold text-white">
               {isNone ? 'Or subscribe now' : trialExpired ? 'Choose a plan to restore access' : 'Upgrade to a paid plan'}
             </h3>
             <div className="inline-flex w-full rounded-xl border border-slate-200 bg-white p-1 shadow-sm sm:w-auto" aria-label="Billing interval">
@@ -158,7 +158,7 @@ const BillingTab: React.FC<BillingTabProps> = ({
                     ))}
                   </div>
                   <div className="flex-1" />
-                  <button onClick={() => onSubscribe(p)} disabled={billingAction !== null} className={`mt-5 w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 ${focusRing} ${isPopular ? 'bg-emerald-400 text-emerald-950 hover:bg-emerald-300' : 'bg-[#1e4b82] text-white hover:bg-[#173d6c]'}`}>
+                  <button onClick={() => onSubscribe(p)} disabled={billingAction !== null} className={`mt-5 w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 ${focusRing} ${isPopular ? 'bg-emerald-400 text-emerald-950 hover:bg-emerald-300' : 'billing-on-dark bg-[#1e4b82] text-white hover:bg-[#173d6c]'}`}>
                     {billingAction === p.id ? 'Redirecting…' : 'Subscribe'}
                   </button>
                 </article>

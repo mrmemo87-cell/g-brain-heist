@@ -1153,7 +1153,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   return (
     <div className="admission-hub-admin-theme mx-auto max-w-6xl space-y-6 overflow-x-hidden pb-12 text-slate-900">
       {/* Header */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <BackButton onClick={onComplete} label="Back" />
         <div className="flex-1">
           <h1 className="text-2xl font-heading text-slate-950 flex items-center gap-2">
