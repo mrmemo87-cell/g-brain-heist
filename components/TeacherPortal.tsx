@@ -617,7 +617,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     if (!studentSearchTerm.trim()) return availableStudents;
     const search = studentSearchTerm.toLowerCase();
     return availableStudents.filter(s => 
-      s.username.toLowerCase().includes(search) ||
       s.display_name.toLowerCase().includes(search) ||
       s.batch?.toLowerCase().includes(search)
     );
@@ -3375,7 +3374,14 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     try {
       setReportLoading(true);
       setSelectedReportAssignment(assignment);
-      const rows = await GameService.get_teacher_assignment_report(assignment.id);
+      const reportRows = await GameService.get_teacher_assignment_report(assignment.id);
+      // Assignment submissions retain the game username for gameplay history.
+      // Teacher-facing documents must instead use the official roster identity.
+      const officialNames = new Map(availableStudents.map((student) => [student.id, student.display_name]));
+      const rows = reportRows.map((row) => ({
+        ...row,
+        student_name: officialNames.get(row.student_id) || 'Student name unavailable',
+      }));
       setAssignmentReport(rows);
       setAssignments((current) => current.map((item) => (
         item.id === assignment.id
@@ -4873,7 +4879,6 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         subjects: [...value.subjects].sort(),
         students: value.students.filter((student) => !search || [
           student.display_name,
-          student.username,
           student.batch,
         ].join(' ').toLocaleLowerCase().includes(search)),
       }))
@@ -4927,8 +4932,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                       <li key={student.id} className="flex items-center gap-3 px-5 py-3">
                         <img src={student.avatar_url || '/default-avatar.png'} alt="" className="h-10 w-10 rounded-full object-cover bg-slate-100" />
                         <div className="min-w-0">
-                          <div className="font-semibold text-slate-800">{student.display_name || student.username}</div>
-                          <div className="truncate text-xs text-slate-500">@{student.username} · Grade {student.grade || '—'}</div>
+                          <div className="font-semibold text-slate-800">{student.display_name}</div>
+                          <div className="truncate text-xs text-slate-500">Grade {student.grade || '—'}</div>
                         </div>
                       </li>
                     ))}

@@ -159,7 +159,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
     students.forEach((student) => {
       studentMap.set(student.id, {
         studentId: student.id,
-        studentName: student.display_name || student.username,
+        studentName: student.display_name,
         batch: student.batch || '—',
         scores: {},
         averageAccuracy: 0,

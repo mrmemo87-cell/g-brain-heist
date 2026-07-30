@@ -1051,6 +1051,7 @@ export interface CreateAssignmentRequest {
 
 export interface StudentForAssignment {
   id: string;
+  /** Official student name for teacher-facing school documents. */
   username: string;
   display_name: string;
   grade: number;
