@@ -64,12 +64,13 @@ test('teacher monitor and analytics use the same premium workspace language and 
 
   assert.match(monitoring, /writing-teacher-surface/);
   assert.match(monitoring, /Class and grade come from the live school roster/);
-  assert.match(monitoring, /Class not linked/);
+  assert.match(monitoring, /Class information unavailable/);
+  assert.doesNotMatch(monitoring, /Class not linked/);
   assert.doesNotMatch(monitoring, /\?\? 'Unassigned'/);
   assert.match(analytics, /writing-teacher-surface/);
   assert.match(analytics, /getClassLabel/);
   assert.doesNotMatch(analytics, /\?\? 'Unassigned'/);
-  assert.match(monitoringCss, /\.writing-teacher-hero/);
+  assert.match(monitoringCss, /\.writing-monitor__hero/);
   assert.match(analyticsCss, /\.writing-analytics__section/);
 });
 
@@ -96,9 +97,29 @@ test('ship-ready migration uses real per-genre, month, class, rubric, and prompt
 test('teacher feedback actions save securely and copy intentionally', () => {
   const source = readProjectFile('src/pages/writing/WritingMonitoringView.tsx');
   assert.match(source, /saveTeacherReportScoped/);
-  assert.match(source, /saveFeedbackDraft/);
+  assert.match(source, /saveFeedback/);
   assert.match(source, /navigator\.clipboard\.writeText/);
   assert.doesNotMatch(source, /Practice assignment will be connected in the next phase/);
+});
+
+test('writing monitor follows the class-to-book drill-down in a collapsible light workspace', () => {
+  const monitoring = readProjectFile('src/pages/writing/WritingMonitoringView.tsx');
+  const css = readProjectFile('src/pages/writing/WritingMonitoringView.css');
+
+  assert.match(monitoring, /Students and general writing data/);
+  assert.match(monitoring, /Choose a class/);
+  assert.match(monitoring, /Students in \$\{selectedClass\.name\}/);
+  assert.match(monitoring, /Writing genres/);
+  assert.match(monitoring, /submission book/);
+  assert.match(monitoring, /Previous submission/);
+  assert.match(monitoring, /Next submission/);
+  assert.match(monitoring, /aria-expanded=\{!collapsed\}/);
+  assert.match(monitoring, /SUPPORTED_GENRES/);
+  assert.match(monitoring, /getTeacherAttemptListScoped/);
+  assert.match(css, /\.writing-monitor__book-spread/);
+  assert.match(css, /\.writing-monitor__collapse/);
+  assert.match(css, /background: #f4f7fb/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
 });
 
 test('teacher quick reports open professional print previews instead of raw text downloads', () => {
