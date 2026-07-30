@@ -88,6 +88,13 @@ export const getAssignmentsForTeacher = (
   return execute('rpc_get_assignments_for_teacher', payload, client);
 };
 
+export const deleteTeacherAssignment = (
+  assignmentId: string,
+  client?: RpcClient
+): RpcResult<boolean> => {
+  return execute('rpc_delete_teacher_assignment', { p_assignment_id: assignmentId }, client);
+};
+
 export const getTeacherAssignmentSuccessSummary = (
   client?: RpcClient
 ): RpcResult<unknown> => {

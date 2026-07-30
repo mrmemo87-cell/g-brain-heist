@@ -311,6 +311,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   // Assignment state
   const [assignments, setAssignments] = useState<TeacherAssignmentSummary[]>([]);
+  const [deletingAssignmentId, setDeletingAssignmentId] = useState<string | null>(null);
   const [assignmentSuccess, setAssignmentSuccess] = useState<GameService.TeacherAssignmentSuccessSummary | null>(null);
   const [assignmentMode, setAssignmentMode] = useState<'batch' | 'custom'>('batch');
   const [assignmentBatches, setAssignmentBatches] = useState<string[]>([]);
@@ -4949,6 +4950,48 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     );
   };
 
+  const handleDeleteAssignment = async (assignment: TeacherAssignmentSummary) => {
+    if (!teacher || assignment.teacher_id !== teacher.id || deletingAssignmentId) {
+      brainsAlert('You can only delete assignments that you created.', 'error');
+      return;
+    }
+
+    const assignmentName = assignment.title || assignment.topic_name;
+    const firstConfirmation = await brainsConfirm({
+      title: `Delete “${assignmentName}”?`,
+      message: 'This will permanently delete the assignment for every assigned student.',
+      confirmLabel: 'Continue to final warning',
+      cancelLabel: 'Keep assignment',
+      destructive: true,
+    });
+    if (!firstConfirmation) return;
+
+    const finalConfirmation = await brainsConfirm({
+      title: 'Final confirmation: this cannot be restored',
+      message: 'Deleting this assignment is permanent. The assignment and all related student submissions, answers, results, and grades will be lost and cannot be recovered.',
+      confirmLabel: 'Permanently delete all data',
+      cancelLabel: 'Cancel deletion',
+      destructive: true,
+    });
+    if (!finalConfirmation) return;
+
+    setDeletingAssignmentId(assignment.id);
+    try {
+      await GameService.delete_teacher_assignment(assignment.id);
+      setAssignments((current) => current.filter((item) => item.id !== assignment.id));
+      if (selectedReportAssignment?.id === assignment.id) {
+        setSelectedReportAssignment(null);
+        setAssignmentReport([]);
+      }
+      brainsAlert('Assignment and all related data were permanently deleted.', 'success');
+    } catch (error) {
+      console.error('Error deleting assignment:', error);
+      brainsAlert(error instanceof Error ? error.message : 'Unable to delete assignment. Please try again.', 'error');
+    } finally {
+      setDeletingAssignmentId(null);
+    }
+  };
+
   const renderAssignments = () => (
     <div className="space-y-6">
       {/* Header with Title and Create Button */}
@@ -5120,9 +5163,20 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                                 <div><dt className="text-xs font-semibold uppercase text-slate-400">Completed</dt><dd>{assignment.completed_count}/{assignment.student_count}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-slate-400">Due</dt><dd>{assignment.due_at ? new Date(assignment.due_at).toLocaleDateString() : 'None'}</dd></div>
                               </dl>
-                              <button onClick={() => handleOpenReport(assignment)} className="teacher-btn teacher-btn-secondary mt-4 w-full">
-                                View report
-                              </button>
+                              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                                <button onClick={() => handleOpenReport(assignment)} className="teacher-btn teacher-btn-secondary w-full">
+                                  View report
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => void handleDeleteAssignment(assignment)}
+                                  disabled={deletingAssignmentId !== null}
+                                  className="teacher-btn w-full border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                                  aria-label={`Delete ${assignment.title || assignment.topic_name}`}
+                                >
+                                  {deletingAssignmentId === assignment.id ? 'Deleting…' : 'Delete assignment'}
+                                </button>
+                              </div>
                             </article>
                           );
             })}
