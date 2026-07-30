@@ -15,7 +15,7 @@ const QuestionBank = React.lazy(() => import('./teacher/QuestionBank'));
 const AssignmentWizard = React.lazy(() => import('./teacher/AssignmentWizard'));
 import JoinSchoolCard from './JoinSchoolCard';
 import '../src/styles/teacher-theme.css';
-import { brainsAlert } from '../src/utils/brainsAlert';
+import { brainsAlert, brainsConfirm } from '../src/utils/brainsAlert';
 import { chemistryAnswerKeys, chemistryQuestionRanges } from './chemistryAnswerKeys';
 import { buildBiologyAnswerKeyFromSavedMetadata, isBiologyCambridgeQuiz } from './biologyReviewAnswerKey';
 import { getQuestionsForQuiz, type QuestionData } from './cambridgeQuestionData';
@@ -613,19 +613,14 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     });
   }, [assignments, assignmentSearchTerm, assignmentSubjectFilter, assignmentStatusFilter]);
 
-  const assignmentsByGroup = useMemo(() => {
-    const groups = new Map<string, { inProgress: TeacherAssignmentSummary[]; completed: TeacherAssignmentSummary[] }>();
-    filteredAssignments.forEach((assignment) => {
-      const groupName = assignment.assignment_mode === 'custom'
-        ? 'Selected students'
-        : assignment.batch || 'Class not specified';
-      const group = groups.get(groupName) || { inProgress: [], completed: [] };
-      const isComplete = assignment.student_count > 0 && assignment.completed_count >= assignment.student_count;
-      group[isComplete ? 'completed' : 'inProgress'].push(assignment);
-      groups.set(groupName, group);
-    });
-    return [...groups.entries()].sort(([left], [right]) => left.localeCompare(right));
-  }, [filteredAssignments]);
+  const teacherOwnedTopics = useMemo(() => {
+    if (!teacher) return [];
+    return [...new Set(
+      questions
+        .filter((question) => question.teacher_id === teacher.id && question.subject === subject)
+        .map((question) => getQuestionTopicLabel(question)),
+    )].sort();
+  }, [questions, subject, teacher]);
   
   const filteredStudents = useMemo(() => {
     if (!studentSearchTerm.trim()) return availableStudents;
@@ -649,7 +644,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     return 'reports'; // catches 'reports', 'report-detail', 'report-analysis', 'collective-report'
   }, [view]);
 
-  const changeSection = (section: TeacherNavSection) => {
+  const changeSection = async (section: TeacherNavSection) => {
     setMobileWorkspaceMenuOpen(false);
     if (view === 'create-assignment') {
       const hasProgress = Boolean(
@@ -661,8 +656,15 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         assignmentBatches.length ||
         selectedStudentIds.length,
       );
-      if (hasProgress && !window.confirm('Leave this assignment? Your progress will be lost and cannot be recovered.')) {
-        return;
+      if (hasProgress) {
+        const confirmed = await brainsConfirm({
+          title: 'Leave assignment setup?',
+          message: 'This assignment has not been published. Your selected audience, questions, title, and due date will be lost.',
+          confirmLabel: 'Leave and discard',
+          cancelLabel: 'Keep editing',
+          destructive: true,
+        });
+        if (!confirmed) return;
       }
     }
     switch (section) {
@@ -2973,10 +2975,14 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         correct_answer: correctAnswer,
         explanation,
         points,
-        is_public: true // Default to public for now
+        is_public: false,
       };
 
       if (editingQuestion) {
+        if (!teacher || editingQuestion.teacher_id !== teacher.id) {
+          brainsAlert('Brains Heist Pool questions are protected and cannot be edited.', 'error');
+          return;
+        }
         // Update existing question
         await GameService.update_question(editingQuestion.id, questionData);
         brainsAlert('Question updated successfully.', 'success');
@@ -3015,7 +3021,19 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   };
 
   const handleDeleteQuestion = async (questionId: string) => {
-    if (!confirm('Are you sure you want to delete this question?')) return;
+    const question = questions.find((item) => item.id === questionId);
+    if (!question || !teacher || question.teacher_id !== teacher.id) {
+      brainsAlert('Only questions in My Pool can be deleted.', 'error');
+      return;
+    }
+    const confirmed = await brainsConfirm({
+      title: 'Delete this question?',
+      message: 'This removes the question from My Pool. Existing assignment records will not be rewritten.',
+      confirmLabel: 'Delete question',
+      cancelLabel: 'Keep question',
+      destructive: true,
+    });
+    if (!confirmed) return;
 
     try {
       await GameService.delete_question(questionId);
@@ -3052,6 +3070,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   };
 
   const handleEditQuestion = (question: TeacherQuestion) => {
+    if (!teacher || question.teacher_id !== teacher.id) {
+      brainsAlert('Brains Heist Pool questions are protected and cannot be edited.', 'error');
+      return;
+    }
     // Set editing mode
     setEditingQuestion(question);
     
@@ -3078,6 +3100,49 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
     // Switch to create view
     setView('create-question');
+  };
+
+  const openMyPoolQuestionForm = (preferredSubject?: Subject, preferredTopic?: string) => {
+    setEditingQuestion(null);
+    if (preferredSubject) setSubject(preferredSubject);
+    if (preferredTopic && preferredTopic !== 'General') {
+      setTopicMode('custom');
+      setCustomTopicName(preferredTopic);
+    } else {
+      setTopicMode('general');
+      setCustomTopicName('');
+    }
+    setView('create-question');
+  };
+
+  const handleRenameTopic = async (topicQuestions: TeacherQuestion[], nextTopic: string) => {
+    const owned = topicQuestions.filter((question) => teacher && question.teacher_id === teacher.id);
+    if (!owned.length || owned.length !== topicQuestions.length) {
+      brainsAlert('Only topics in My Pool can be renamed.', 'error');
+      return;
+    }
+    await Promise.all(owned.map((question) => GameService.update_question(question.id, { topic: nextTopic, topic_name: nextTopic })));
+    setQuestions(await GameService.get_all_questions());
+    brainsAlert(`Topic renamed to “${nextTopic}”.`, 'success');
+  };
+
+  const handleDeleteTopic = async (topicQuestions: TeacherQuestion[]) => {
+    const owned = topicQuestions.filter((question) => teacher && question.teacher_id === teacher.id);
+    if (!owned.length || owned.length !== topicQuestions.length) {
+      brainsAlert('Only topics in My Pool can be deleted.', 'error');
+      return;
+    }
+    const confirmed = await brainsConfirm({
+      title: 'Delete this topic?',
+      message: `This will permanently delete ${owned.length} question${owned.length === 1 ? '' : 's'} from My Pool.`,
+      confirmLabel: 'Delete topic',
+      cancelLabel: 'Keep topic',
+      destructive: true,
+    });
+    if (!confirmed) return;
+    await Promise.all(owned.map((question) => GameService.delete_question(question.id)));
+    setQuestions(await GameService.get_all_questions());
+    brainsAlert('Topic deleted from My Pool.', 'success');
   };
 
   const handleDuplicateQuestion = (question: TeacherQuestion) => {
@@ -3193,6 +3258,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const handleCreateAssignment = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!assignmentTitle.trim()) {
+      brainsAlert('Assignment title is required.', 'info');
+      return;
+    }
+
     if (teacherAssignedSubjects.length > 0 && !teacherAssignedSubjects.includes(assignmentSubject)) {
       brainsAlert('You can only create assignments for subjects assigned to you by the school admin.', 'error');
       return;
@@ -3256,7 +3326,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               question_ids: assignmentQuestionIds,
               assigned_at: toIso(assignmentAssignedAt) ?? new Date().toISOString(),
               due_at: toIso(assignmentDueAt),
-              title: assignmentTitle || undefined,
+              title: assignmentTitle.trim(),
               description: assignmentDescription || undefined,
               instructions: assignmentInstructions || undefined,
               difficulty: assignmentDifficulty,
@@ -3287,7 +3357,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           question_ids: assignmentQuestionIds,
           assigned_at: toIso(assignmentAssignedAt) ?? new Date().toISOString(),
           due_at: toIso(assignmentDueAt),
-          title: assignmentTitle || undefined,
+          title: assignmentTitle.trim(),
           description: assignmentDescription || undefined,
           instructions: assignmentInstructions || undefined,
           difficulty: assignmentDifficulty,
@@ -4592,28 +4662,40 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
           {/* Topic Selection */}
           <div className="teacher-form-group">
-            <label className="teacher-label">Topic</label>
+            <label className="teacher-label">My Pool topic</label>
             <div className="flex flex-col md:flex-row gap-4">
               <select
-                value={topicMode}
-                onChange={(e) => setTopicMode(e.target.value as 'general' | 'custom')}
+                value={topicMode === 'general' ? 'General' : (teacherOwnedTopics.includes(customTopicName) ? customTopicName : '__new__')}
+                onChange={(e) => {
+                  if (e.target.value === 'General') {
+                    setTopicMode('general');
+                    setCustomTopicName('');
+                  } else if (e.target.value === '__new__') {
+                    setTopicMode('custom');
+                    setCustomTopicName('');
+                  } else {
+                    setTopicMode('custom');
+                    setCustomTopicName(e.target.value);
+                  }
+                }}
                 className="teacher-select"
               >
-                <option value="general">General</option>
-                <option value="custom">Custom</option>
+                <option value="General">General</option>
+                {teacherOwnedTopics.filter((topic) => topic !== 'General').map((topic) => <option key={topic} value={topic}>{topic}</option>)}
+                <option value="__new__">＋ Create a new topic</option>
               </select>
-              {topicMode === 'custom' && (
+              {topicMode === 'custom' && !teacherOwnedTopics.includes(customTopicName) && (
                 <input
                   type="text"
                   value={customTopicName}
                   onChange={(e) => setCustomTopicName(e.target.value)}
                   className="teacher-input flex-1"
-                  placeholder="Enter topic name"
+                  placeholder="Name the new topic"
                   required
                 />
               )}
             </div>
-            <p className="text-xs text-slate-500 mt-2">Topic helps group assignments and question reports.</p>
+            <p className="text-xs text-slate-500 mt-2">Choose one of your topics or create a new one. The topic is added to My Pool when this question is saved.</p>
           </div>
 
           {/* Question Type */}
@@ -5170,7 +5252,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       {/* Folder Organization: Filters & Search */}
       {assignments.length > 0 && (
         <div className="teacher-card p-4">
-          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+          <div className="grid gap-4 xl:grid-cols-[minmax(240px,1fr)_minmax(0,1.5fr)_minmax(0,1fr)]">
             {/* Search Bar */}
             <div className="flex-1 w-full lg:w-auto">
               <div className="relative">
@@ -5185,8 +5267,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               </div>
             </div>
 
-            {/* Subject Folder Tabs */}
-            <div className="flex flex-wrap gap-2">
+            <fieldset className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <legend className="px-1 text-xs font-bold uppercase tracking-wider text-slate-500">Subject</legend>
+              <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setAssignmentSubjectFilter('all')}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
@@ -5210,10 +5293,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   📂 {subject}
                 </button>
               ))}
-            </div>
+              </div>
+            </fieldset>
 
-            {/* Status Filter */}
-            <div className="flex gap-2">
+            <fieldset className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <legend className="px-1 text-xs font-bold uppercase tracking-wider text-slate-500">Progress</legend>
+              <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setAssignmentStatusFilter('all')}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
@@ -5244,7 +5329,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               >
                 ✅ Completed
               </button>
-            </div>
+              </div>
+            </fieldset>
           </div>
 
           {/* Results Summary */}
@@ -5290,29 +5376,14 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           </button>
         </div>
       ) : (
-        <div className="space-y-6">
-          {assignmentsByGroup.map(([groupName, progressGroups]) => (
-            <section key={groupName} className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-              <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-5 py-4">
-                <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-blue-600">Assignment group</span>
-                  <h3 className="mt-1 text-lg font-bold text-slate-800">{groupName}</h3>
-                </div>
-                <div className="flex gap-2 text-xs font-semibold">
-                  <span className="rounded-full bg-amber-100 px-3 py-1 text-amber-800">{progressGroups.inProgress.length} in progress</span>
-                  <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-800">{progressGroups.completed.length} completed</span>
-                </div>
-              </header>
-              <div className="space-y-5 p-4">
-                {([
-                  ['In progress', progressGroups.inProgress, 'amber'],
-                  ['Completed', progressGroups.completed, 'emerald'],
-                ] as const).map(([progressLabel, progressAssignments, tone]) => (
-                  progressAssignments.length ? (
-                    <section key={progressLabel}>
-                      <h4 className={`mb-3 text-sm font-bold ${tone === 'amber' ? 'text-amber-800' : 'text-emerald-800'}`}>{progressLabel}</h4>
-                      <div className="grid gap-3 xl:grid-cols-2">
-                        {progressAssignments.map((assignment) => {
+        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+          <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-5 py-4">
+            <div><span className="text-xs font-bold uppercase tracking-wider text-blue-600">All assignments</span><h3 className="mt-1 text-lg font-bold text-slate-800">Assignment workspace</h3></div>
+            <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{filteredAssignments.length} shown</span>
+          </header>
+          <div className="grid gap-3 p-4 xl:grid-cols-2">
+            {filteredAssignments.map((assignment) => {
+                          const completed = assignment.student_count > 0 && assignment.completed_count >= assignment.student_count;
                           const completionPercent = assignment.student_count > 0
                             ? Math.round((assignment.completed_count / assignment.student_count) * 100)
                             : 0;
@@ -5323,12 +5394,14 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                                   <span className="text-xs font-bold text-blue-600">{assignment.subject_name} · {assignment.topic_name}</span>
                                   <h5 className="mt-1 text-lg font-bold text-slate-800">{assignment.title || assignment.topic_name}</h5>
                                 </div>
-                                <strong className="text-lg text-slate-700">{completionPercent}%</strong>
+                                <span className={`rounded-full px-3 py-1 text-xs font-bold ${completed ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>{completed ? 'Completed' : `${completionPercent}% complete`}</span>
                               </div>
                               <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100" aria-label={`${completionPercent}% completed`}>
-                                <span className={`block h-full rounded-full ${tone === 'amber' ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${completionPercent}%` }} />
+                                <span className={`block h-full rounded-full ${completed ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${completionPercent}%` }} />
                               </div>
-                              <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+                              <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Class</dt><dd>{assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || '—'}</dd></div>
+                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Created</dt><dd>{new Date(assignment.assigned_at).toLocaleDateString()}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-slate-400">Questions</dt><dd>{assignment.question_count}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-slate-400">Students</dt><dd>{assignment.student_count}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-slate-400">Completed</dt><dd>{assignment.completed_count}/{assignment.student_count}</dd></div>
@@ -5339,15 +5412,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                               </button>
                             </article>
                           );
-                        })}
-                      </div>
-                    </section>
-                  ) : null
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
+            })}
+          </div>
+        </section>
       )}
     </div>
   );
@@ -8480,10 +8547,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               onUseSet={handleUseQuestionSet}
               onEditQuestion={handleEditQuestion}
               onDeleteQuestion={handleDeleteQuestion}
-              onCreateQuestion={() => {
-                setEditingQuestion(null);
-                setView('create-question');
-              }}
+              onCreateQuestion={openMyPoolQuestionForm}
+              onRenameTopic={(topicQuestions, nextTopic) => { void handleRenameTopic(topicQuestions, nextTopic); }}
+              onDeleteTopic={(topicQuestions) => { void handleDeleteTopic(topicQuestions); }}
               restrictedSubjects={profile.school_id ? (teacherHasClassAssignments ? teacherAssignedSubjects : []) : undefined}
             />
           )}
