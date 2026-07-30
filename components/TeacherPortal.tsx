@@ -7922,7 +7922,10 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
   );
 
   return (
-    <div className="teacher-portal">
+    <div
+      className="teacher-portal"
+      style={{ '--teacher-top-nav-height': `${topNavHeight || 76}px` } as React.CSSProperties}
+    >
       {/* Top Navigation Bar */}
       <header
         ref={topNavRef}
