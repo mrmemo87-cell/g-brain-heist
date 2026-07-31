@@ -264,7 +264,6 @@
 
 .aw-choice small,
 .aw-class-card small,
-.aw-class-card > span:last-child,
 .aw-student-card small,
 .aw-due-card small {
   color: var(--aw-muted);
@@ -279,18 +278,87 @@
   margin-top: 1.25rem;
 }
 
+.aw-class-grid {
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: .75rem;
+}
+
 .aw-class-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: .3rem;
-  min-height: 8.5rem;
-  padding: 1.2rem;
+  display: grid;
+  grid-template-columns: 2.8rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .8rem;
+  min-height: 4.8rem;
+  padding: .8rem;
   text-align: left;
 }
 
 .aw-class-card strong {
-  font-size: 1.5rem;
+  font-size: 1rem;
+}
+
+.aw-class-icon {
+  display: grid;
+  width: 2.8rem;
+  height: 2.8rem;
+  place-items: center;
+  border-radius: 50%;
+  background: #eff6ff;
+  font-size: 1.2rem;
+}
+
+.aw-class-card__details {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.aw-subject:disabled,
+.aw-subject.is-disabled {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  color: #94a3b8;
+  box-shadow: none;
+  cursor: not-allowed;
+  filter: saturate(.25);
+}
+
+.aw-subject:disabled:hover,
+.aw-subject.is-disabled:hover {
+  transform: none;
+  border-color: #e2e8f0;
+  box-shadow: none;
+}
+
+.aw-subject.is-disabled span {
+  color: #94a3b8;
+}
+
+.aw-subject small {
+  color: #64748b;
+  font-size: .7rem;
+  line-height: 1.35;
+}
+
+.aw-subject-lock {
+  display: grid;
+  gap: .3rem;
+  border: 1px solid #bfdbfe;
+  border-radius: 1rem;
+  background: #eff6ff;
+  padding: 1rem 1.1rem;
+  color: #1e3a8a;
+}
+
+.aw-subject-lock span {
+  color: #475569;
+  font-size: .82rem;
+}
+
+.aw-field-error {
+  color: #b91c1c;
+  font-size: .78rem;
+  font-weight: 750;
 }
 
 .aw-check,

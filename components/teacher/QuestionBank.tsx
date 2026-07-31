@@ -41,11 +41,11 @@ const makeTopicGroups = (questions: TeacherQuestion[]) => {
 
 export default function QuestionBank({
   questions, teacher, onUseSet, onEditQuestion, onDeleteQuestion, onCreateQuestion,
-  onRenameTopic, onDeleteTopic, useActionLabel = 'Use questions', restrictedSubjects,
+  onRenameTopic, onDeleteTopic, useActionLabel = 'Add to a new assignment', restrictedSubjects,
 }: QuestionBankProps) {
   const [activePool, setActivePool] = useState<PoolKey>('brains-heist');
   const [searchTerm, setSearchTerm] = useState('');
-  const [subjectFilter, setSubjectFilter] = useState('all');
+  const [subjectFilter, setSubjectFilter] = useState('');
   const [selectedTopic, setSelectedTopic] = useState<TopicGroup | null>(null);
   const [previewQuestion, setPreviewQuestion] = useState<TeacherQuestion | null>(null);
   const [renaming, setRenaming] = useState(false);
@@ -63,20 +63,25 @@ export default function QuestionBank({
   }), [permittedQuestions, teacher]);
 
   const poolQuestions = pools[activePool];
-  const subjects = useMemo(() => [...new Set(poolQuestions.map((question) => question.subject))].sort(), [poolQuestions]);
+  const subjects = useMemo(
+    () => [...new Set(poolQuestions.map((question) => question.subject))]
+      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true })),
+    [poolQuestions],
+  );
+  const effectiveSubject = subjects.includes(subjectFilter as Subject) ? subjectFilter : subjects[0] || '';
   const visibleQuestions = useMemo(() => {
     const search = searchTerm.trim().toLowerCase();
     return poolQuestions.filter((question) => {
-      if (subjectFilter !== 'all' && question.subject !== subjectFilter) return false;
+      if (!effectiveSubject || question.subject !== effectiveSubject) return false;
       return !search || [question.question_text, question.correct_answer, question.subject, getTopic(question), ...(question.tags || [])].join(' ').toLowerCase().includes(search);
     });
-  }, [poolQuestions, searchTerm, subjectFilter]);
+  }, [effectiveSubject, poolQuestions, searchTerm]);
   const topicGroups = useMemo(() => makeTopicGroups(visibleQuestions), [visibleQuestions]);
   const selectedPoolTitle = activePool === 'brains-heist' ? 'Brains Heist Pool' : 'My Pool';
 
   const choosePool = (pool: PoolKey) => {
     setActivePool(pool);
-    setSubjectFilter('all');
+    setSubjectFilter('');
     setSelectedTopic(null);
   };
 
@@ -103,7 +108,7 @@ export default function QuestionBank({
 
       <div className="qb-toolbar">
         <label><span className="sr-only">Search questions</span><input type="search" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder={`Search ${selectedPoolTitle.toLowerCase()}…`} /></label>
-        <label><span>Subject</span><select value={subjectFilter} onChange={(event) => setSubjectFilter(event.target.value)}><option value="all">All assigned subjects</option>{subjects.map((subject) => <option key={subject} value={subject}>{subject}</option>)}</select></label>
+        <label><span>Subject</span><select value={effectiveSubject} onChange={(event) => setSubjectFilter(event.target.value)} disabled={!subjects.length}>{subjects.length ? subjects.map((subject) => <option key={subject} value={subject}>{subject}</option>) : <option value="">No subjects available</option>}</select></label>
       </div>
 
       <div className="qb-results-heading">
@@ -133,7 +138,10 @@ export default function QuestionBank({
           <article className="qb-modal__card">
             <header>
               <div><span>{selectedTopic.subject} · {activePool === 'brains-heist' ? 'Brains Heist Pool' : 'My Pool'}</span><h2 id="qb-topic-title">{selectedTopic.topic}</h2><p>{selectedTopic.questions.length} question{selectedTopic.questions.length === 1 ? '' : 's'}</p></div>
-              <button type="button" onClick={() => setSelectedTopic(null)} aria-label="Close topic">×</button>
+              <div className="qb-modal__header-actions">
+                <button type="button" className="qb-modal__assign" onClick={() => onUseSet(selectedTopic.questions.map((question) => question.id), selectedTopic.subject, selectedTopic.topic)}>{useActionLabel === 'Host' ? 'Use questions' : useActionLabel}</button>
+                <button type="button" className="qb-modal__close" onClick={() => setSelectedTopic(null)} aria-label="Close topic">×</button>
+              </div>
             </header>
             {activePool === 'mine' && renaming ? (
               <div className="qb-topic-editor"><label>Topic name<input value={topicName} onChange={(event) => setTopicName(event.target.value)} /></label><button type="button" onClick={() => { if (topicName.trim()) onRenameTopic?.(selectedTopic.questions, topicName.trim()); setRenaming(false); setSelectedTopic(null); }}>Save name</button><button type="button" onClick={() => setRenaming(false)}>Cancel</button></div>
@@ -148,7 +156,6 @@ export default function QuestionBank({
               ))}
             </div>
             <footer>
-              <button type="button" className="is-secondary" onClick={() => onUseSet(selectedTopic.questions.map((question) => question.id), selectedTopic.subject, selectedTopic.topic)}>{useActionLabel === 'Host' ? 'Use questions' : useActionLabel}</button>
               {activePool === 'mine' && onCreateQuestion ? <button type="button" onClick={() => onCreateQuestion(selectedTopic.subject, selectedTopic.topic)}>Add question to topic</button> : null}
               {activePool === 'mine' && onRenameTopic ? <button type="button" className="is-secondary" onClick={() => setRenaming(true)}>Rename topic</button> : null}
               {activePool === 'mine' && onDeleteTopic ? <button type="button" className="is-danger" onClick={() => onDeleteTopic(selectedTopic.questions)}>Delete topic</button> : null}

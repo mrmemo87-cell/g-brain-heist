@@ -355,6 +355,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [assignmentBatches, setAssignmentBatches] = useState<string[]>([]);
   const questionBankSubjectRef = useRef(false);
   const [assignmentSubject, setAssignmentSubject] = useState<Subject>('Maths');
+  const [assignmentLockedSubject, setAssignmentLockedSubject] = useState<Subject | null>(null);
   const [assignmentTopicMode, setAssignmentTopicMode] = useState<'general' | 'custom'>('general');
   const [assignmentTopicName, setAssignmentTopicName] = useState('');
   const [assignmentTitle, setAssignmentTitle] = useState('');
@@ -498,7 +499,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const subjectFilterOptions = useMemo(() => {
     const subjects = new Set<Subject>();
     questions.forEach((q) => subjects.add(q.subject));
-    return Array.from(subjects).sort();
+    return Array.from(subjects).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
   }, [questions]);
 
   const topicFilterOptions = useMemo(() => {
@@ -506,7 +507,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     questions
       .filter((q) => questionSubjectFilter === 'all' || q.subject === questionSubjectFilter)
       .forEach((q) => topics.add(getQuestionTopicLabel(q)));
-    return Array.from(topics).sort();
+    return Array.from(topics).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
   }, [questions, questionSubjectFilter]);
 
   const filteredQuestions = useMemo(() => {
@@ -581,7 +582,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       .sort((a, b) => {
         if (a.topic === 'General') return 1;
         if (b.topic === 'General') return -1;
-        return a.topic.localeCompare(b.topic);
+        return a.topic.localeCompare(b.topic, undefined, { sensitivity: 'base', numeric: true });
       });
   }, [assignmentFilteredQuestionPool]);
 
@@ -605,7 +606,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       if (cls.subject) subjects.add(cls.subject);
     });
     // Sort alphabetically
-    return Array.from(subjects).sort();
+    return Array.from(subjects).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
   }, [assignedClasses]);
 
   // A class may appear more than once when a teacher has multiple subject
@@ -621,7 +622,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     assignments.forEach(a => {
       if (a.subject_name) subjects.add(a.subject_name);
     });
-    return Array.from(subjects).sort();
+    return Array.from(subjects).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
   }, [assignments]);
 
   // Filtered assignments based on search, subject, and status filters
@@ -656,7 +657,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       questions
         .filter((question) => question.teacher_id === teacher.id && question.subject === subject)
         .map((question) => getQuestionTopicLabel(question)),
-    )].sort();
+    )].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
   }, [questions, subject, teacher]);
   
   const filteredStudents = useMemo(() => {
@@ -3267,6 +3268,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const resetAssignmentDraft = useCallback(() => {
     localStorage.removeItem('brains_heist_teacher_assignment_draft_v2');
     questionBankSubjectRef.current = false;
+    setAssignmentLockedSubject(null);
     setAssignmentQuestionIds([]);
     setAssignmentTitle('');
     setAssignmentDescription('');
@@ -3298,6 +3300,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
     // Pre-select the questions and set subject/topic from the selected set
     questionBankSubjectRef.current = true; // Prevent the subject-change useEffect from clearing these IDs
+    setAssignmentLockedSubject(subject);
     setAssignmentQuestionIds(questionIds);
     setAssignmentSubject(subject);
     if (topic && topic !== 'General') {
@@ -3350,6 +3353,14 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     if (assignmentMode === 'custom' && selectedStudentIds.length === 0) {
       brainsAlert('Please select at least one student for this assignment.', 'info');
       return;
+    }
+
+    if (assignmentDueAt) {
+      const dueDate = new Date(assignmentDueAt);
+      if (Number.isNaN(dueDate.getTime()) || dueDate.getTime() <= Date.now()) {
+        brainsAlert('Choose a due date and time in the future. Students cannot receive an assignment that is already overdue.', 'error');
+        return;
+      }
     }
 
     const toIso = (value: string): string | undefined => {
@@ -3525,7 +3536,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       return;
     }
 
-    const header = 'Student,Batch,Score,Correct,Incorrect,Accuracy (%),Completed At';
+    const header = 'Student,Class,Score,Correct,Incorrect,Accuracy (%),Completed At';
     const rows = assignmentReport.map((row) => (
       [
         row.student_name,
@@ -3545,6 +3556,38 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     a.download = `${selectedReportAssignment.topic_name || 'assignment'}-report.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
+  };
+
+  const handlePrintStudentAnalysis = () => {
+    if (!selectedReportAssignment || !selectedAnalysisStudent) return;
+    const escapeHtml = (value: unknown) => String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+    const assignmentTitle = selectedReportAssignment.title || selectedReportAssignment.topic_name;
+    const answerRows = studentAnswers.length
+      ? studentAnswers.map((answer, index) => `
+        <article class="answer ${answer.is_correct ? 'correct' : 'incorrect'}">
+          <div class="answer-head"><strong>Question ${index + 1}</strong><span>${answer.is_correct ? 'Correct' : 'Needs review'} · ${Math.round(answer.time_taken_ms / 1000)}s</span></div>
+          <p class="prompt">${escapeHtml(answer.question_text)}</p>
+          <div class="responses"><div><small>Student answer</small><b>${escapeHtml(answer.student_answer || 'No answer')}</b></div><div><small>Correct answer</small><b>${escapeHtml(answer.correct_answer)}</b></div></div>
+          ${answer.explanation ? `<p class="explanation"><strong>Teacher explanation:</strong> ${escapeHtml(answer.explanation)}</p>` : ''}
+        </article>`).join('')
+      : '<div class="empty">Question-by-question evidence is not available for this submission.</div>';
+    const documentHtml = `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(assignmentTitle)} — ${escapeHtml(selectedAnalysisStudent.student_name)}</title><style>
+      *{box-sizing:border-box}body{margin:0;background:#eef3fb;color:#14213d;font:14px/1.5 Inter,Arial,sans-serif}.page{width:210mm;min-height:297mm;margin:0 auto;background:#fff;padding:0 14mm 14mm}.hero{margin:0 -14mm 9mm;padding:11mm 14mm 9mm;background:linear-gradient(135deg,#071b3d,#2444d8 68%,#2dd4bf);color:#fff;text-align:center}.brand{font-size:9px;font-weight:900;letter-spacing:.18em;color:#a5f3fc}.hero h1{margin:5mm 0 1mm;font-size:25px;line-height:1.15}.hero p{margin:0;color:#dbeafe}.student{display:grid;grid-template-columns:1.4fr repeat(4,1fr);gap:3mm;margin-bottom:7mm}.student>div{border:1px solid #d9e2f0;border-radius:3mm;background:#f8fafc;padding:3.5mm}.student small,.responses small{display:block;color:#64748b;font-size:8px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.student b{display:block;margin-top:1mm;font-size:15px}.student .score{background:#eef2ff;color:#2545c7}.section-title{display:flex;align-items:center;gap:3mm;margin:7mm 0 3mm}.section-title span{width:8mm;height:8mm;border-radius:2mm;background:#e0e7ff;color:#2948c9;display:grid;place-items:center;font-weight:900}.section-title h2{margin:0;font-size:18px}.answer{break-inside:avoid;margin-bottom:3mm;border:1px solid #d9e2f0;border-left:1.5mm solid #22c55e;border-radius:3mm;padding:4mm}.answer.incorrect{border-left-color:#fb7185;background:#fff8f8}.answer.correct{background:#f7fef9}.answer-head{display:flex;justify-content:space-between;gap:4mm}.answer-head span{color:#64748b;font-size:11px}.prompt{margin:3mm 0;font-weight:700}.responses{display:grid;grid-template-columns:1fr 1fr;gap:3mm}.responses>div{border-radius:2mm;background:#f1f5f9;padding:3mm}.responses b{display:block;margin-top:1mm}.explanation{margin:3mm 0 0;border-radius:2mm;background:#eff6ff;padding:3mm;color:#1e3a8a}.empty{border:1px dashed #cbd5e1;border-radius:3mm;padding:8mm;text-align:center;color:#64748b}.footer{margin-top:8mm;border-top:1px solid #d9e2f0;padding-top:3mm;display:flex;justify-content:space-between;color:#64748b;font-size:9px}@page{size:A4;margin:0}@media print{body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{margin:0}}
+    </style></head><body><main class="page"><header class="hero"><div class="brand">BRAIN HEIST · SCHOOL PERFORMANCE REPORT</div><h1>${escapeHtml(assignmentTitle)}</h1><p>Individual student performance and answer evidence</p></header><section class="student"><div><small>Student</small><b>${escapeHtml(selectedAnalysisStudent.student_name)}</b></div><div><small>Class</small><b>${escapeHtml(selectedAnalysisStudent.batch || '—')}</b></div><div class="score"><small>Accuracy</small><b>${selectedAnalysisStudent.accuracy}%</b></div><div><small>Correct</small><b>${selectedAnalysisStudent.correct}</b></div><div><small>Needs review</small><b>${selectedAnalysisStudent.incorrect}</b></div></section><div class="section-title"><span>01</span><h2>Question-by-question analysis</h2></div>${answerRows}<footer class="footer"><span>Brain Heist · Evidence-led school reporting</span><span>Generated ${escapeHtml(new Date().toLocaleString())}</span></footer></main><script>window.addEventListener('load',()=>window.print())<\/script></body></html>`;
+    const blob = new Blob([documentHtml], { type: 'text/html;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const printWindow = window.open(url, '_blank');
+    if (!printWindow) {
+      window.URL.revokeObjectURL(url);
+      brainsAlert('Your browser blocked the print preview. Allow pop-ups for Brain Heist and try again.', 'info');
+      return;
+    }
+    window.setTimeout(() => window.URL.revokeObjectURL(url), 60_000);
   };
 
   // Download CSV template
@@ -5330,6 +5373,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         )}
       >
         <AssignmentWizard
+          initialStep={assignmentLockedSubject ? 2 : 1}
+          lockedSubject={assignmentLockedSubject}
           assignmentMode={assignmentMode}
           setAssignmentMode={setAssignmentMode}
           assignmentBatches={assignmentBatches}
@@ -5492,7 +5537,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           <div className="teacher-card">
             <h2 className="text-2xl font-bold text-slate-800 mb-2">{selectedReportAssignment.title || selectedReportAssignment.topic_name}</h2>
             <p className="text-slate-600">
-              {selectedReportAssignment.subject_name} · Topic {selectedReportAssignment.topic_name} · Batch {selectedReportAssignment.batch}
+              {selectedReportAssignment.subject_name} · Topic {selectedReportAssignment.topic_name} · Class {selectedReportAssignment.assignment_mode === 'custom' ? 'Selected students' : selectedReportAssignment.batch || '—'}
             </p>
             <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-5">
               <div><dt className="text-xs font-semibold uppercase text-slate-400">Created</dt><dd>{new Date(selectedReportAssignment.assigned_at).toLocaleDateString()}</dd></div>
@@ -5503,32 +5548,20 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </dl>
           </div>
 
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold text-slate-800">Student Performance</h3>
-            <button
-              onClick={handleExportReport}
-              disabled={assignmentReport.length === 0}
-              className={`teacher-btn ${assignmentReport.length === 0 ? 'opacity-50 cursor-not-allowed' : 'teacher-btn-secondary'}`}
-            >
-              Export CSV
-            </button>
-          </div>
-
           {assignmentReport.length === 0 ? (
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-10 text-center text-slate-500">No students have completed this assignment yet.</div>
           ) : (
             <>
               {/* Question Analysis Summary */}
-              {questionAnalysis.length > 0 && (
-                <div className="mb-6">
+              <div className="mb-6">
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                     <h4 className="text-lg font-bold text-slate-800">📊 Question Analysis</h4>
-                    <div className="inline-flex rounded-lg border border-slate-300 p-1 text-xs" aria-label="Question order">
+                    {questionAnalysis.length > 0 ? <div className="inline-flex rounded-lg border border-slate-300 p-1 text-xs" aria-label="Question order">
                       <button type="button" onClick={() => setAnswerOrder('assignment')} className={`rounded-md px-3 py-1.5 font-semibold ${answerOrder === 'assignment' ? 'bg-cyan-600 text-white' : 'text-slate-600'}`}>Assignment order</button>
                       <button type="button" onClick={() => setAnswerOrder('review')} className={`rounded-md px-3 py-1.5 font-semibold ${answerOrder === 'review' ? 'bg-cyan-600 text-white' : 'text-slate-600'}`}>Needs review first</button>
-                    </div>
+                    </div> : null}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {questionAnalysis.length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {(answerOrder === 'assignment' ? questionAnalysis : [...questionAnalysis].sort((a, b) => a.accuracy_percent - b.accuracy_percent)).map((qa, idx) => (
                       <div 
                         key={qa.question_id} 
@@ -5565,9 +5598,18 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                         )}
                       </div>
                     ))}
-                  </div>
-                </div>
-              )}
+                  </div> : <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-500">Question-level analysis is not available for these submissions yet.</div>}
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5">
+                <div><h3 className="text-xl font-bold text-slate-800">Student Performance</h3><p className="mt-1 text-sm text-slate-500">Open a student to review every answer and the evidence behind their result.</p></div>
+                <button
+                  onClick={handleExportReport}
+                  className="teacher-btn teacher-btn-secondary"
+                >
+                  Export CSV
+                </button>
+              </div>
 
               {/* Student Performance Table */}
               <div className="overflow-x-auto bg-white border border-slate-200 rounded-xl">
@@ -5575,7 +5617,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   <thead className="bg-slate-100 border-b border-slate-200">
                     <tr>
                       <th className="py-3 px-4 text-slate-700 font-semibold">Student</th>
-                      <th className="py-3 px-4 text-slate-700 font-semibold">Batch</th>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">Class</th>
                       <th className="py-3 px-4 text-slate-700 font-semibold">
                         <span className="inline-flex items-center gap-1">Score <span title="Total XP points earned from correct answers. Each question can carry different points." aria-label="Score explanation" className="cursor-help text-cyan-600">ⓘ</span></span>
                       </th>
@@ -5638,6 +5680,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         <div className="space-y-6">
           {/* Student Header */}
           <div className="teacher-card">
+            <div className="mb-6 border-b border-slate-200 pb-5 text-center">
+              <span className="text-xs font-bold uppercase tracking-[.14em] text-blue-600">Assignment performance report</span>
+              <h1 className="mt-2 text-2xl font-bold text-slate-900">{selectedReportAssignment?.title || selectedReportAssignment?.topic_name || 'Assignment'}</h1>
+              <p className="mt-1 text-sm text-slate-500">{selectedReportAssignment?.subject_name} · {selectedReportAssignment?.topic_name}</p>
+              <button type="button" onClick={handlePrintStudentAnalysis} className="teacher-btn teacher-btn-primary mt-4">🖨 Print report</button>
+            </div>
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
@@ -5645,7 +5693,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   {selectedAnalysisStudent.student_name}
                 </h2>
                 <p className="text-slate-600 mt-1">
-                  Batch: {selectedAnalysisStudent.batch ?? '—'} · 
+                  Class: {selectedAnalysisStudent.batch ?? '—'} ·
                   Completed: {new Date(selectedAnalysisStudent.completed_at).toLocaleString()}
                 </p>
               </div>
