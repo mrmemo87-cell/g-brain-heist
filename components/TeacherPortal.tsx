@@ -3558,6 +3558,38 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     window.URL.revokeObjectURL(url);
   };
 
+  const handlePrintStudentAnalysis = () => {
+    if (!selectedReportAssignment || !selectedAnalysisStudent) return;
+    const escapeHtml = (value: unknown) => String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+    const assignmentTitle = selectedReportAssignment.title || selectedReportAssignment.topic_name;
+    const answerRows = studentAnswers.length
+      ? studentAnswers.map((answer, index) => `
+        <article class="answer ${answer.is_correct ? 'correct' : 'incorrect'}">
+          <div class="answer-head"><strong>Question ${index + 1}</strong><span>${answer.is_correct ? 'Correct' : 'Needs review'} · ${Math.round(answer.time_taken_ms / 1000)}s</span></div>
+          <p class="prompt">${escapeHtml(answer.question_text)}</p>
+          <div class="responses"><div><small>Student answer</small><b>${escapeHtml(answer.student_answer || 'No answer')}</b></div><div><small>Correct answer</small><b>${escapeHtml(answer.correct_answer)}</b></div></div>
+          ${answer.explanation ? `<p class="explanation"><strong>Teacher explanation:</strong> ${escapeHtml(answer.explanation)}</p>` : ''}
+        </article>`).join('')
+      : '<div class="empty">Question-by-question evidence is not available for this submission.</div>';
+    const documentHtml = `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(assignmentTitle)} — ${escapeHtml(selectedAnalysisStudent.student_name)}</title><style>
+      *{box-sizing:border-box}body{margin:0;background:#eef3fb;color:#14213d;font:14px/1.5 Inter,Arial,sans-serif}.page{width:210mm;min-height:297mm;margin:0 auto;background:#fff;padding:0 14mm 14mm}.hero{margin:0 -14mm 9mm;padding:11mm 14mm 9mm;background:linear-gradient(135deg,#071b3d,#2444d8 68%,#2dd4bf);color:#fff;text-align:center}.brand{font-size:9px;font-weight:900;letter-spacing:.18em;color:#a5f3fc}.hero h1{margin:5mm 0 1mm;font-size:25px;line-height:1.15}.hero p{margin:0;color:#dbeafe}.student{display:grid;grid-template-columns:1.4fr repeat(4,1fr);gap:3mm;margin-bottom:7mm}.student>div{border:1px solid #d9e2f0;border-radius:3mm;background:#f8fafc;padding:3.5mm}.student small,.responses small{display:block;color:#64748b;font-size:8px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.student b{display:block;margin-top:1mm;font-size:15px}.student .score{background:#eef2ff;color:#2545c7}.section-title{display:flex;align-items:center;gap:3mm;margin:7mm 0 3mm}.section-title span{width:8mm;height:8mm;border-radius:2mm;background:#e0e7ff;color:#2948c9;display:grid;place-items:center;font-weight:900}.section-title h2{margin:0;font-size:18px}.answer{break-inside:avoid;margin-bottom:3mm;border:1px solid #d9e2f0;border-left:1.5mm solid #22c55e;border-radius:3mm;padding:4mm}.answer.incorrect{border-left-color:#fb7185;background:#fff8f8}.answer.correct{background:#f7fef9}.answer-head{display:flex;justify-content:space-between;gap:4mm}.answer-head span{color:#64748b;font-size:11px}.prompt{margin:3mm 0;font-weight:700}.responses{display:grid;grid-template-columns:1fr 1fr;gap:3mm}.responses>div{border-radius:2mm;background:#f1f5f9;padding:3mm}.responses b{display:block;margin-top:1mm}.explanation{margin:3mm 0 0;border-radius:2mm;background:#eff6ff;padding:3mm;color:#1e3a8a}.empty{border:1px dashed #cbd5e1;border-radius:3mm;padding:8mm;text-align:center;color:#64748b}.footer{margin-top:8mm;border-top:1px solid #d9e2f0;padding-top:3mm;display:flex;justify-content:space-between;color:#64748b;font-size:9px}@page{size:A4;margin:0}@media print{body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{margin:0}}
+    </style></head><body><main class="page"><header class="hero"><div class="brand">BRAIN HEIST · SCHOOL PERFORMANCE REPORT</div><h1>${escapeHtml(assignmentTitle)}</h1><p>Individual student performance and answer evidence</p></header><section class="student"><div><small>Student</small><b>${escapeHtml(selectedAnalysisStudent.student_name)}</b></div><div><small>Class</small><b>${escapeHtml(selectedAnalysisStudent.batch || '—')}</b></div><div class="score"><small>Accuracy</small><b>${selectedAnalysisStudent.accuracy}%</b></div><div><small>Correct</small><b>${selectedAnalysisStudent.correct}</b></div><div><small>Needs review</small><b>${selectedAnalysisStudent.incorrect}</b></div></section><div class="section-title"><span>01</span><h2>Question-by-question analysis</h2></div>${answerRows}<footer class="footer"><span>Brain Heist · Evidence-led school reporting</span><span>Generated ${escapeHtml(new Date().toLocaleString())}</span></footer></main><script>window.addEventListener('load',()=>window.print())<\/script></body></html>`;
+    const blob = new Blob([documentHtml], { type: 'text/html;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const printWindow = window.open(url, '_blank');
+    if (!printWindow) {
+      window.URL.revokeObjectURL(url);
+      brainsAlert('Your browser blocked the print preview. Allow pop-ups for Brain Heist and try again.', 'info');
+      return;
+    }
+    window.setTimeout(() => window.URL.revokeObjectURL(url), 60_000);
+  };
+
   // Download CSV template
   const downloadCSVTemplate = () => {
     const template = `subject,topic,difficulty,question_type,question_text,option1,option2,option3,option4,correct_answer,explanation,points
