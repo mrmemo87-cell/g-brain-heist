@@ -89,7 +89,7 @@ const StudentDashboardNavigation: React.FC<StudentDashboardNavigationProps> = ({
             onClick={() => onNavigate(destination.id)}
             aria-current={destination.id === activeDestination ? 'page' : undefined}
           >
-            <span className="relative text-xl" aria-hidden>
+            <span className="student-dashboard-bottom-icon" aria-hidden>
               {destination.icon}
               {badge > 0 && <span className="student-dashboard-bottom-badge">{Math.min(badge, 9)}{badge > 9 ? '+' : ''}</span>}
             </span>
