@@ -14,6 +14,7 @@ type StudentDashboardNavigationProps = {
   avatarUrl?: string | null;
   assignmentCount: number;
   clanBadgeCount: number;
+  activeDestination: StudentDashboardDestination;
   onNavigate: (destination: StudentDashboardDestination) => void;
 };
 
@@ -42,6 +43,7 @@ const StudentDashboardNavigation: React.FC<StudentDashboardNavigationProps> = ({
   avatarUrl,
   assignmentCount,
   clanBadgeCount,
+  activeDestination,
   onNavigate,
 }) => (
   <>
@@ -63,9 +65,9 @@ const StudentDashboardNavigation: React.FC<StudentDashboardNavigationProps> = ({
             <button
               key={destination.id}
               type="button"
-              className={`student-dashboard-nav-link ${destination.id === 'home' ? 'is-active' : ''}`}
+              className={`student-dashboard-nav-link ${destination.id === activeDestination ? 'is-active' : ''}`}
               onClick={() => onNavigate(destination.id)}
-              aria-current={destination.id === 'home' ? 'page' : undefined}
+              aria-current={destination.id === activeDestination ? 'page' : undefined}
             >
               <span className="student-dashboard-nav-icon" aria-hidden>{destination.icon}</span>
               <span className="student-dashboard-nav-label">{destination.label}</span>
@@ -83,9 +85,9 @@ const StudentDashboardNavigation: React.FC<StudentDashboardNavigationProps> = ({
           <button
             key={destination.id}
             type="button"
-            className={`student-dashboard-bottom-link ${destination.id === 'home' ? 'is-active' : ''}`}
+            className={`student-dashboard-bottom-link ${destination.id === activeDestination ? 'is-active' : ''}`}
             onClick={() => onNavigate(destination.id)}
-            aria-current={destination.id === 'home' ? 'page' : undefined}
+            aria-current={destination.id === activeDestination ? 'page' : undefined}
           >
             <span className="relative text-xl" aria-hidden>
               {destination.icon}

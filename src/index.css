@@ -261,8 +261,7 @@ body.lite-mode [class*="border-gray-7"] {
 }
 
 @media (min-width: 1280px) {
-  .student-dashboard-shell { grid-template-columns: 14rem minmax(0, 1fr) 17rem; }
-  .student-dashboard-context { position: sticky; top: 7.5rem; display: grid; align-self: start; }
+  .student-dashboard-shell { grid-template-columns: 14rem minmax(0, 1fr); }
 }
 
 .dashboard-aurora {

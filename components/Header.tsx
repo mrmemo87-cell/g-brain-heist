@@ -375,7 +375,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
   return (
     <>
       <header
-        className="sticky top-0 z-40 border-b border-slate-800/60 bg-slate-950/95 backdrop-blur"
+        className="relative z-40 border-b border-slate-800/60 bg-slate-950/95 backdrop-blur"
         style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
         <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-2 px-3 py-2 sm:px-4 lg:px-6">
