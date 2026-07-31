@@ -6,6 +6,7 @@ const portal = readFileSync('components/TeacherPortal.tsx', 'utf8');
 const bank = readFileSync('components/teacher/QuestionBank.tsx', 'utf8');
 const report = readFileSync('components/CollectiveAssignmentReport.tsx', 'utf8');
 const preview = readFileSync('components/teacher/QuestionPreviewModal.tsx', 'utf8');
+const reportStyles = readFileSync('components/CollectiveAssignmentReport.css', 'utf8');
 const gameService = readFileSync('services/gameService.ts', 'utf8');
 
 test('assignment workspace is one dated group with subject and progress categories', () => {
@@ -30,6 +31,15 @@ test('question previews share the complete light-theme component', () => {
   assert.match(preview, /Question preview/);
   assert.match(preview, /Teacher explanation/);
   assert.match(preview, /Correct answer/);
+  assert.ok(preview.indexOf('question-preview__meta') < preview.indexOf('question-preview__prompt'));
+  assert.ok(preview.indexOf('question-preview__prompt') < preview.indexOf('Answer choices'));
+});
+
+test('question-bank topics start assignments from one explicit subject', () => {
+  assert.match(bank, /Add to a new assignment/);
+  assert.match(bank, /qb-modal__header-actions/);
+  assert.doesNotMatch(bank, /All assigned subjects/);
+  assert.match(bank, /question\.subject !== effectiveSubject/);
 });
 
 test('collective reports select assignments and students and can print a professional PDF', () => {
@@ -46,4 +56,6 @@ test('collective reports select assignments and students and can print a profess
   assert.match(report, /frame\.contentWindow\?\.print\(\)/);
   assert.match(report, /createPortal/);
   assert.match(report, /Not submitted/);
+  assert.match(reportStyles, /print-color-adjust:exact/);
+  assert.match(reportStyles, /collective-grade--strong/);
 });
