@@ -22,6 +22,7 @@ import type { SchoolRole } from '../types';
 import SchoolAdminContext from './school-admin/SchoolAdminContext';
 import DashboardTab from './school-admin/tabs/DashboardTab';
 import MembersTab from './school-admin/tabs/MembersTab';
+import TeachersTab from './school-admin/tabs/TeachersTab';
 import OrganisationTab from './school-admin/tabs/OrganisationTab';
 import SubjectsTab from './school-admin/tabs/SubjectsTab';
 import BillingTab from './school-admin/tabs/BillingTab';
@@ -45,7 +46,7 @@ interface SchoolAdminPortalProps {
   addToast: (message: string, type: ToastMessage['type']) => void;
 }
 
-type AdminTab = 'dashboard' | 'members' | 'classes' | 'subjects' | 'settings' | 'billing' | 'cambridge' | 'ielts' | 'admissions' | 'ielts-exams' | 'ielts-practice' | 'ielts-results' | 'ielts-analytics' | 'ielts-settings';
+type AdminTab = 'dashboard' | 'members' | 'teachers' | 'classes' | 'subjects' | 'settings' | 'billing' | 'cambridge' | 'ielts' | 'admissions' | 'ielts-exams' | 'ielts-practice' | 'ielts-results' | 'ielts-analytics' | 'ielts-settings';
 type IeltsSubTab = 'ielts-exams' | 'ielts-practice' | 'ielts-results' | 'ielts-analytics' | 'ielts-settings';
 type IeltsToolNavItem = { id: IeltsSubTab; icon: string; label: string; hint: string; route?: never } | { id: string; icon: string; label: string; hint: string; route: string };
 
@@ -1451,7 +1452,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       <aside className="school-admin-sidebar" aria-label="School administration sections">
         <p className="school-admin-nav-label">Administration</p>
       <nav className="school-admin-tabs" aria-label="School admin navigation">
-        {(['dashboard', 'members', 'classes', 'subjects', 'admissions', 'cambridge', 'ielts', 'billing', 'settings'] as AdminTab[]).map((tab) => (
+        {(['dashboard', 'members', 'teachers', 'classes', 'subjects', 'admissions', 'cambridge', 'ielts', 'billing', 'settings'] as AdminTab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -1461,6 +1462,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
           >
             {tab === 'dashboard' && 'Overview'}
             {tab === 'members' && 'Students & Staff'}
+            {tab === 'teachers' && 'Teacher Assignments'}
             {tab === 'classes' && 'Classes & Registration'}
             {tab === 'subjects' && 'Curriculum & Subjects'}
             {tab === 'admissions' && 'Admissions'}
@@ -1477,6 +1479,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       <main className="school-admin-content">
       {activeTab === 'dashboard' && stats && <DashboardTab />}
       {activeTab === 'members' && <MembersTab />}
+      {activeTab === 'teachers' && <TeachersTab />}
       {activeTab === 'classes' && <OrganisationTab />}
       {activeTab === 'subjects' && <SubjectsTab />}
       {activeTab === 'billing' && <BillingTab />}
