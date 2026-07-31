@@ -235,9 +235,12 @@ body.lite-mode [class*="border-gray-7"] {
   padding: 0.45rem 0.35rem calc(0.45rem + env(safe-area-inset-bottom, 0px));
   box-shadow: 0 -12px 36px rgba(2, 6, 23, 0.55);
   backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
-.student-dashboard-bottom-link { display: flex; min-height: 3.25rem; flex-direction: column; align-items: center; justify-content: center; gap: 0.12rem; border-radius: 0.75rem; font-size: 0.66rem; font-weight: 800; color: rgb(148 163 184); }
+.student-dashboard-bottom-link { display: flex; min-height: 3.25rem; flex-direction: column; align-items: center; justify-content: center; gap: 0.12rem; border-radius: 0.75rem; font-size: 0.66rem; font-weight: 800; color: rgb(148 163 184); -webkit-tap-highlight-color: transparent; }
+.student-dashboard-bottom-icon { position: relative; display: grid; height: 2rem; width: 2rem; place-items: center; border-radius: 0.7rem; font-size: 1.25rem; line-height: 1; transition: background-color 160ms ease, box-shadow 160ms ease, filter 160ms ease, transform 160ms ease; }
 .student-dashboard-bottom-link.is-active { color: rgb(103 232 249); }
+.student-dashboard-bottom-link.is-active .student-dashboard-bottom-icon { background: rgba(34, 211, 238, 0.18); box-shadow: inset 0 0 0 1px rgba(103, 232, 249, 0.55), 0 0 16px rgba(34, 211, 238, 0.28); filter: saturate(1.25) brightness(1.12); transform: translateY(-1px) scale(1.06); }
 .student-dashboard-bottom-badge { position: absolute; right: -0.55rem; top: -0.35rem; min-width: 1rem; border-radius: 9999px; background: rgb(225 29 72); padding: 0.05rem 0.24rem; font-size: 0.55rem; color: white; }
 
 @media (min-width: 768px) {
