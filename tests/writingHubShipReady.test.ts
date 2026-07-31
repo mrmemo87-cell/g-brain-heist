@@ -5,10 +5,12 @@ import { readFileSync } from 'node:fs';
 const readProjectFile = (relativePath: string): string =>
   readFileSync(relativePath, 'utf8');
 
-test('student Writing Hub exposes the complete four-step journey and cinematic feedback', () => {
+test('student Writing Hub exposes the dashboard-first three-step journey and cinematic feedback', () => {
   const source = readProjectFile('src/pages/writing/WritingHub.tsx');
   const activeSimpleLoop = source.slice(source.indexOf('const WritingHubSimpleLoop'));
-  assert.match(activeSimpleLoop, /\['Prompt', 'Write', 'Feedback', 'Revise'\]/);
+  assert.match(activeSimpleLoop, /\['Understand the question', 'Write your response', 'Show the feedback'\]/);
+  assert.match(activeSimpleLoop, /Your writing analysis/);
+  assert.match(activeSimpleLoop, /Clear all text/);
   assert.match(activeSimpleLoop, /Play Cinematic Feedback/);
   assert.match(activeSimpleLoop, /Replay Cinematic Feedback/);
   assert.match(activeSimpleLoop, /playSavedCinematicFeedback/);
