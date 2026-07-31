@@ -310,8 +310,8 @@ const pillStyle = {
 };
 
 const computeWordCountRange = (targetWords: number): { min: number; max: number } => ({
-  min: Math.max(1, Math.floor(targetWords * 0.9)),
-  max: Math.ceil(targetWords * 1.1),
+  min: targetWords === 110 ? 100 : Math.max(1, Math.floor(targetWords * 0.9)),
+  max: targetWords === 110 ? 120 : Math.ceil(targetWords * 1.1),
 });
 
 const simplifyStudentLanguage = (text: string): string => {
@@ -701,6 +701,53 @@ const buildFallbackHighlightRanges = (text: string, ai: WritingAiFeedbackAssist 
     }
   }
   return ranges;
+};
+
+// Keep correction spotlights as precise as the correction itself. AI providers can
+// anchor an entire sentence even when the only change is one capital or comma.
+const narrowCorrectionRanges = (
+  text: string,
+  ranges: TextAnchorRange[],
+  ai: WritingAiFeedbackAssist | null
+): TextAnchorRange[] => {
+  const corrections = [
+    ...(ai?.grammar_fixes ?? []).map((fix) => ({ original: fix.original, better: fix.better_version })),
+    ...(ai?.punctuation_fixes ?? []).map((fix) => ({ original: fix.original, better: fix.better_version })),
+  ].filter((fix) => fix.original?.trim() && fix.better?.trim());
+
+  return ranges.map((range) => {
+    if (range.polarity !== 'weak') return range;
+    const anchored = text.slice(range.start, range.end);
+    const fix = corrections.find((candidate) =>
+      anchored.includes(candidate.original) || candidate.original.includes(anchored)
+    );
+    if (!fix) return range;
+    const original = fix.original;
+    const better = fix.better;
+    let prefix = 0;
+    while (prefix < original.length && prefix < better.length && original[prefix] === better[prefix]) prefix += 1;
+    let suffix = 0;
+    while (
+      suffix < original.length - prefix
+      && suffix < better.length - prefix
+      && original[original.length - 1 - suffix] === better[better.length - 1 - suffix]
+    ) suffix += 1;
+    const originalStart = text.indexOf(original, Math.max(0, range.start - 1));
+    if (originalStart < 0) return range;
+    // For an insertion (for example a missing comma), spotlight the adjacent
+    // character rather than misleadingly colouring the whole sentence.
+    const changedLength = original.length - prefix - suffix;
+    const localStart = Math.min(original.length - 1, prefix);
+    const localEnd = changedLength > 0
+      ? original.length - suffix
+      : Math.min(original.length, localStart + 1);
+    return {
+      ...range,
+      start: originalStart + Math.max(0, localStart),
+      end: originalStart + Math.max(localStart + 1, localEnd),
+      sourceExactText: original,
+    };
+  });
 };
 
 interface ReviewHighlightSpanProps {
@@ -4847,7 +4894,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   const cinematicTracePathRef = useRef<SVGPathElement | null>(null);
   const managedPromptLoadKeyRef = useRef('');
   const pastedCharactersToIgnoreRef = useRef(0);
-  const targetWordCount = grade <= 7 ? 80 : grade <= 9 ? 120 : 160;
+  const targetWordCount = 110;
   const wordCount = countWords(draft);
   const wordTone = useMemo(() => getWordCounterTone(wordCount, targetWordCount), [wordCount, targetWordCount]);
   const isVeryShortDraft = wordCount > 0 && wordCount < Math.max(10, Math.floor(targetWordCount * 0.2));
@@ -4863,6 +4910,13 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     () => listStudentWritingHistoryByGenre(studentId),
     [studentId, hydrationStatus, assessment?.total_score, aiFeedback]
   );
+  const archivedEntries = useMemo(
+    () => (writingHistoryByGenre.data ?? []).flatMap((item) => item.entries),
+    [writingHistoryByGenre]
+  );
+  const latestArchivedScore = archivedEntries
+    .filter((entry) => entry.total_score != null)
+    .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))[0]?.total_score;
 
   useEffect(() => {
     setActiveGenre(genre);
@@ -5004,6 +5058,15 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     setLatestIntegritySignals(null);
     setCompositionTelemetry(createWritingCompositionTelemetry(integrityMode, lastAttemptId));
     setNotice('Retry this prompt: write an improved version, then submit.');
+    setTimeout(() => responseFieldRef.current?.focus(), 0);
+  };
+
+  const clearAllText = () => {
+    setDraft('');
+    setError('');
+    setNotice('Your response has been cleared.');
+    setCompositionTelemetry(createWritingCompositionTelemetry(integrityMode, lastAttemptId));
+    if (typeof window !== 'undefined') window.localStorage.removeItem(draftStorageKey);
     setTimeout(() => responseFieldRef.current?.focus(), 0);
   };
 
@@ -5206,11 +5269,12 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     [activeCinematicText, activeCinematicFeedback]
   );
   const cinematicRanges = useMemo(
-    () => buildBalancedReviewSequence(
+    () => buildBalancedReviewSequence(narrowCorrectionRanges(
+      activeCinematicText,
       cinematicTrust.mode === 'trusted' && !hasConflictingAnchorOverlap(trustedRanges) ? trustedRanges : fallbackRanges,
-      8
-    ),
-    [cinematicTrust.mode, trustedRanges, fallbackRanges]
+      activeCinematicFeedback
+    ), 8),
+    [activeCinematicText, activeCinematicFeedback, cinematicTrust.mode, trustedRanges, fallbackRanges]
   );
   const improvementGuidance = useMemo(
     () => [
@@ -5519,9 +5583,9 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       <section data-testid="writing-hub-student-view" className="writing-studio__hero">
         <div>
           <span className="writing-studio__eyebrow">AI writing coach</span>
-          <h2 data-testid="writing-hub-title">Your Writing Studio</h2>
+          <h2 data-testid="writing-hub-title">Writing Hub</h2>
           <span className="writing-studio__legacy-label">Your Writing Space</span>
-          <p>One clear loop: understand the task, write, watch your feedback, then improve.</p>
+          <p>Your progress, saved work, and next writing task in one clear place.</p>
         </div>
         <div className="writing-studio__save-state" data-state={persistenceStatus.state} aria-live="polite">
           <span aria-hidden="true" />
@@ -5538,12 +5602,10 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                     : 'Ready'}
         </div>
         <ol className="writing-studio__steps" aria-label="Writing journey">
-          {['Prompt', 'Write', 'Feedback', 'Revise'].map((label, index) => {
+          {['Understand the question', 'Write your response', 'Show the feedback'].map((label, index) => {
             const activeStep = assessment
               ? 3
-              : lastRetryKind === 'same_prompt' && attemptNumber > 1
-                ? 4
-                : draft.trim()
+              : draft.trim()
                   ? 2
                   : 1;
             return (
@@ -5555,6 +5617,27 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
         </ol>
         {notice && <p className="writing-studio__notice" aria-live="polite">{notice}</p>}
         {error && <p className="writing-studio__error" role="alert">{error}</p>}
+      </section>
+
+      <section className="writing-studio__card writing-studio__dashboard" aria-labelledby="writing-progress-title">
+        <div className="writing-studio__section-heading">
+          <div>
+            <span>Your dashboard</span>
+            <h3 id="writing-progress-title">Your writing analysis</h3>
+          </div>
+          <span className="writing-studio__dashboard-badge">{archivedEntries.length} saved</span>
+        </div>
+        <div className="writing-studio__dashboard-grid">
+          <div><strong>{assessment?.total_score ?? latestArchivedScore ?? '—'}<small>/20</small></strong><span>Latest score</span></div>
+          <div><strong>{writingHistoryByGenre.data?.filter((item) => item.entries.length > 0).length ?? 0}</strong><span>Genres practised</span></div>
+          <div><strong>{assessment?.weakness_tags.length ?? archivedEntries[0]?.weakness_tags.length ?? 0}</strong><span>Current focus areas</span></div>
+        </div>
+        <p className="writing-studio__dashboard-focus">
+          <strong>Focus next:</strong>{' '}
+          {(assessment?.weakness_tags.length || archivedEntries[0]?.weakness_tags.length)
+            ? (assessment?.weakness_tags ?? archivedEntries[0]?.weakness_tags ?? []).slice(0, 4).map((tag) => tag.replaceAll('_', ' ')).join(' · ')
+            : 'Complete a response to unlock your personalised analysis.'}
+        </p>
       </section>
 
       <section data-testid="writing-hub-today-section" className="writing-studio__card writing-studio__prompt-card">
@@ -5569,7 +5652,6 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
           <strong>{toGenreLabel(activeGenre)}</strong>
-          <span style={{ color: '#0369a1' }}>🎯 {toWordCountLabel(targetWordCount)}</span>
           <span style={{ color: '#334155' }}>
             🕘 {!studentHistoryReady
               ? 'Checking saved submissions…'
@@ -5607,21 +5689,19 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
           </div>
           <span style={{ color: wordTone.accent }}>{wordCount} / {toWordCountLabel(targetWordCount)}</span>
         </div>
-        <div className={`writing-studio__integrity-mode writing-studio__integrity-mode--${integrityMode}`}>
+        {integrityMode !== 'practice' && <div className={`writing-studio__integrity-mode writing-studio__integrity-mode--${integrityMode}`}>
           <div>
             <strong>{toWritingIntegrityModeLabel(integrityMode)}</strong>
             <span>
-              {integrityMode === 'practice'
-                ? 'Use support responsibly. Pasting is recorded so your teacher can understand the writing process.'
-                : integrityMode === 'independent'
+              {integrityMode === 'independent'
                   ? 'Write in this editor using your own words. Pasting is disabled.'
                   : 'Your teacher is supervising this assessment. Pasting and leaving the page are recorded.'}
             </span>
           </div>
           <span className="writing-studio__integrity-badge">
-            {integrityMode === 'practice' ? 'Support allowed' : 'Original writing'}
+            Original writing
           </span>
-        </div>
+        </div>}
         <textarea
           ref={responseFieldRef}
           value={draft}
@@ -5671,11 +5751,11 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
           </button>
           <button
             type="button"
-            onClick={beginRetrySamePrompt}
+            onClick={clearAllText}
             disabled={busy}
             className="writing-studio__secondary-button"
           >
-            Retry this prompt
+            Clear all text
           </button>
           <button
             type="button"
@@ -5830,10 +5910,10 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                         />
                       </div>
                     )}
-                    <p style={{ margin: 0 }}><strong>Prompt:</strong> {compactSnippet(entry.prompt_text, 120)}</p>
-                    <p style={{ margin: 0 }}><strong>Writing:</strong> {compactSnippet(entry.student_submission, 140)}</p>
+                    <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}><strong>Prompt:</strong> {entry.prompt_text}</p>
                     <p style={{ margin: 0 }}><strong>Feedback:</strong> {entry.has_feedback
-                      ? compactSnippet(entry.feedback_summary || entry.feedback_next_move || 'Feedback was saved and is ready to review.', 150)
+                      ? [entry.feedback_summary, entry.feedback_next_move].filter(Boolean).join(' ')
+                        || 'Feedback was saved and is ready to review.'
                       : 'Feedback not saved for this entry yet.'}
                     </p>
                     <p style={{ margin: 0, color: '#475569', fontSize: 13 }}>
@@ -5914,7 +5994,11 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                 <p><b className="cinematic-feedback__legend-dot is-strong" /> Green preserves a strong choice. <b className="cinematic-feedback__legend-dot is-growth" /> Coral reveals your next upgrade.</p>
               </div>
               <div className="cinematic-feedback__header-actions">
-                <div className="cinematic-feedback__score-orbit" aria-label={`Automated formative estimate ${activeCinematicAssessment?.total_score ?? 0} out of 20`}>
+                <div
+                  className="cinematic-feedback__score-orbit"
+                  style={{ background: `radial-gradient(circle at center, #fff 56%, transparent 58%), conic-gradient(#0891b2 ${Math.max(0, Math.min(100, ((activeCinematicAssessment?.total_score ?? 0) / 20) * 100))}%, #dbe7f3 0)` }}
+                  aria-label={`Automated formative estimate ${activeCinematicAssessment?.total_score ?? 0} out of 20`}
+                >
                   <strong>{activeCinematicAssessment?.total_score ?? '—'}</strong>
                   <span>/20</span>
                 </div>
@@ -5948,14 +6032,12 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                       </span>
                       <h3>{issueTypeLabel}</h3>
                       <div className="cinematic-feedback__coaching-block">
-                        <span>What happened</span>
-                        <blockquote>{normalizedReviewIssue.originalSentence}</blockquote>
+                        <span>What to change</span>
                         <p>{whatToImproveText}</p>
                       </div>
                       {betterVersionText && activeCinematicRange.polarity === 'weak' && (
                         <div className="cinematic-feedback__upgrade">
                           <span>Watch it transform</span>
-                          <del>{normalizedReviewIssue.originalSentence}</del>
                           <p>{betterVersionText}</p>
                         </div>
                       )}
