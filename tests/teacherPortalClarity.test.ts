@@ -51,4 +51,8 @@ test('assignment reports explain score and support ordering and filters', () => 
   assert.match(collectiveReport, /Created from/);
   assert.match(collectiveReport, /Created to/);
   assert.match(collectiveReport, /All Classes/);
+  assert.match(teacherPortal, /Student,Class,Score,Correct,Incorrect/);
+  assert.ok(teacherPortal.indexOf('📊 Question Analysis') < teacherPortal.indexOf('Student Performance'));
+  assert.match(teacherPortal, /handlePrintStudentAnalysis/);
+  assert.match(teacherPortal, /Assignment performance report/);
 });
