@@ -675,9 +675,13 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
                     <tr key={row.studentId}>
                       <td><strong>{row.studentName}</strong></td>
                       <td>{row.batch}</td>
-                      {filteredAssignments.map((assignment) => <td key={assignment.id}>{row.scores[assignment.id] ? `${row.scores[assignment.id]!.accuracy}%` : <span className="collective-not-submitted">Not submitted</span>}</td>)}
+                      {filteredAssignments.map((assignment) => {
+                        const score = row.scores[assignment.id];
+                        const band = !score ? '' : score.accuracy >= 80 ? 'collective-grade--strong' : score.accuracy >= 60 ? 'collective-grade--developing' : 'collective-grade--support';
+                        return <td key={assignment.id} className={band}>{score ? `${score.accuracy}%` : <span className="collective-not-submitted">Not submitted</span>}</td>;
+                      })}
                       <td>{row.completedCount}/{filteredAssignments.length}</td>
-                      <td><strong>{row.completedCount ? `${row.averageAccuracy}%` : 'Not assessed'}</strong></td>
+                      <td className={row.completedCount ? row.averageAccuracy >= 80 ? 'collective-grade--strong' : row.averageAccuracy >= 60 ? 'collective-grade--developing' : 'collective-grade--support' : ''}><strong>{row.completedCount ? `${row.averageAccuracy}%` : 'Not assessed'}</strong></td>
                       <td>{getStudentStatus(row).label}</td>
                     </tr>
                   ))}
@@ -903,7 +907,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
                       key={a.id}
                       className="py-2 px-3 text-slate-700 font-semibold cursor-pointer hover:bg-slate-200 transition-colors select-none text-center min-w-[110px]"
                       onClick={() => handleSort({ assignmentId: a.id })}
-                      title={`${a.subject_name} — ${a.title || a.topic_name}\nBatch: ${a.batch ?? 'All'}\nClick to sort`}
+                      title={`${a.subject_name} — ${a.title || a.topic_name}\nClass: ${a.batch ?? 'All'}\nClick to sort`}
                     >
                       <div className="flex flex-col items-center gap-0.5">
                         <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">{a.subject_name}</span>
@@ -981,7 +985,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
                       {isCustomMode && <span className="text-purple-400 text-xs mr-2 font-mono">{i + 1}.</span>}
                       {row.studentName}
                     </td>
-                    {/* Batch */}
+                    {/* Class */}
                     <td className="py-3 px-4 text-slate-600 whitespace-nowrap">{row.batch}</td>
 
                     {/* Scores */}
