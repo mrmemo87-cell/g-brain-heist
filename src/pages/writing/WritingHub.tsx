@@ -5643,7 +5643,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
         {error && <p className="writing-studio__error" role="alert">{error}</p>}
       </section>
 
-      <section className="writing-studio__card writing-studio__dashboard" aria-labelledby="writing-progress-title">
+      {!wizardOpen && <section className="writing-studio__card writing-studio__dashboard" aria-labelledby="writing-progress-title">
         <div className="writing-studio__section-heading">
           <div><span>Your dashboard</span><h3 id="writing-progress-title">Your writing analysis</h3></div>
           <span className="writing-studio__dashboard-badge">{archivedEntries.length} saved</span>
@@ -5668,7 +5668,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
             Start a new writing task
           </button>
         </div>
-      </section>
+      </section>}
 
       {wizardOpen && <>
 
@@ -5909,14 +5909,14 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
 
       </>}
 
-      {!studentHistoryReady && (
+      {!wizardOpen && !studentHistoryReady && (
         <section className="writing-studio__card writing-studio__archive" aria-live="polite">
           <h3 style={{ margin: 0 }}>Writing archive</h3>
           <p style={{ margin: 0, color: '#475569' }}>Loading your saved writing and feedback…</p>
         </section>
       )}
 
-      {studentHistoryReady && writingHistoryByGenre.ok && (
+      {!wizardOpen && studentHistoryReady && writingHistoryByGenre.ok && (
         <section className="writing-studio__card writing-studio__archive">
           <h3 style={{ margin: 0 }}>Writing archive</h3>
           <p style={{ margin: 0, color: '#475569' }}>All previous writing by genre with saved feedback.</p>
