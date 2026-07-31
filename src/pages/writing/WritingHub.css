@@ -1107,3 +1107,49 @@
 @media (max-width: 620px) {
   .writing-studio__dashboard-grid { grid-template-columns: 1fr; }
 }
+
+.writing-studio__dashboard-grid--detailed {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.writing-studio__focus-panel {
+  padding: 14px;
+  border: 1px solid #bae6fd;
+  border-radius: 12px;
+  background: #f0f9ff;
+  color: #334155;
+}
+
+.writing-studio__focus-panel ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.writing-studio__focus-panel li {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #fff;
+  color: #075985;
+  font-size: .78rem;
+  font-weight: 750;
+  text-transform: capitalize;
+}
+
+.writing-studio__focus-panel p,
+.writing-studio__dashboard-actions p { margin: 8px 0 0; }
+
+.writing-studio__dashboard-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+@media (max-width: 760px) {
+  .writing-studio__dashboard-grid--detailed { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .writing-studio__dashboard-actions { align-items: stretch; flex-direction: column; }
+}

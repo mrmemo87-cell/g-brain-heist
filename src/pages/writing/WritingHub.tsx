@@ -590,14 +590,23 @@ const buildAnchorRanges = (text: string, ai: WritingAiFeedbackAssist | null): Te
     if (typeof item.start_char !== 'number' || typeof item.end_char !== 'number') return;
     if (!Number.isInteger(item.start_char) || !Number.isInteger(item.end_char)) return;
     if (item.start_char < 0 || item.end_char <= item.start_char || item.end_char > text.length) return;
+    const exactText = item.exact_text?.trim() || '';
+    let verifiedStart = item.start_char;
+    let verifiedEnd = item.end_char;
+    if (exactText && text.slice(verifiedStart, verifiedEnd) !== exactText) {
+      const exactStart = text.indexOf(exactText);
+      if (exactStart < 0) return;
+      verifiedStart = exactStart;
+      verifiedEnd = exactStart + exactText.length;
+    }
     const basePolarity = item.polarity === 'strong' ? 'strong' : 'weak';
     ranges.push({
-      start: item.start_char,
-      end: item.end_char,
+      start: verifiedStart,
+      end: verifiedEnd,
       polarity: classifyPolarity(item.category, basePolarity),
       reason: item.category ?? `highlight-${idx + 1}`,
       sourceCategory: item.category,
-      sourceExactText: item.exact_text?.trim() || undefined,
+      sourceExactText: exactText || undefined,
     });
   });
   return ranges;
@@ -646,13 +655,19 @@ const buildFallbackHighlightRanges = (text: string, ai: WritingAiFeedbackAssist 
   const findBestUnclaimedOccurrence = (needle: string): { start: number; end: number } | null => {
     const search = needle.toLowerCase();
     if (!search) return null;
-    let fromIndex = 0;
-    while (fromIndex < lowerText.length) {
-      const start = lowerText.indexOf(search, fromIndex);
-      if (start < 0) return null;
-      const end = start + search.length;
-      if (!isOverlappingClaim(start, end)) return { start, end };
-      fromIndex = start + 1;
+    const isWordCharacter = (value: string | undefined) => Boolean(value && /[\p{L}\p{N}_]/u.test(value));
+    const isWholeToken = (start: number, end: number) =>
+      !isWordCharacter(text[start - 1]) && !isWordCharacter(text[end]);
+    for (const haystack of [text, lowerText]) {
+      const query = haystack === text ? needle : search;
+      let fromIndex = 0;
+      while (fromIndex < haystack.length) {
+        const start = haystack.indexOf(query, fromIndex);
+        if (start < 0) break;
+        const end = start + query.length;
+        if (!isOverlappingClaim(start, end) && (query.length > 3 || isWholeToken(start, end))) return { start, end };
+        fromIndex = start + 1;
+      }
     }
     return null;
   };
@@ -663,7 +678,7 @@ const buildFallbackHighlightRanges = (text: string, ai: WritingAiFeedbackAssist 
     sourceCategory?: string
   ) => {
     const clean = snippet.trim();
-    if (!clean || clean.length < 6) return;
+    if (!clean) return;
     const match = findBestUnclaimedOccurrence(clean);
     if (!match) return;
     claimedRanges.push(match);
@@ -677,8 +692,10 @@ const buildFallbackHighlightRanges = (text: string, ai: WritingAiFeedbackAssist 
     });
   };
 
-  (ai.grammar_fixes ?? []).slice(0, 4).forEach((item) => addSnippet(item.original, 'weak', 'grammar_fix', 'grammar'));
-  (ai.punctuation_fixes ?? []).slice(0, 4).forEach((item) => addSnippet(item.original, 'weak', 'punctuation_fix', 'punctuation'));
+  (ai.grammar_fixes ?? []).forEach((item) => addSnippet(item.original, 'weak', 'grammar_fix', 'grammar'));
+  (ai.punctuation_fixes ?? []).forEach((item) => addSnippet(item.original, 'weak', 'punctuation_fix', 'punctuation'));
+  (ai.natural_phrase_upgrades ?? []).forEach((item) => addSnippet(item.original, 'weak', 'phrase_upgrade', 'phrase'));
+  (ai.style_tone_feedback ?? []).forEach((item) => addSnippet(item.evidence, 'weak', 'style_fix', 'style'));
   [...(ai.what_is_working ?? []), ...(ai.strengths ?? [])]
     .slice(0, 4)
     .forEach((item) => {
@@ -686,20 +703,7 @@ const buildFallbackHighlightRanges = (text: string, ai: WritingAiFeedbackAssist 
       addSnippet(quoted, 'strong', 'strength', 'strength');
     });
 
-  if (!ranges.some((item) => item.polarity === 'strong')) {
-    const firstSentenceEnd = text.indexOf('.') > 0 ? text.indexOf('.') + 1 : Math.min(text.length, 90);
-    ranges.push({ start: 0, end: firstSentenceEnd, polarity: 'strong', reason: 'opening_strength', sourceCategory: 'strength' });
-  }
-  if (!ranges.some((item) => item.polarity === 'weak')) {
-    const midpoint = Math.max(0, Math.floor(text.length * 0.4));
-    const fallbackStart = text.lastIndexOf(' ', midpoint);
-    const fallbackEndWord = text.indexOf(' ', Math.min(text.length - 1, midpoint + 40));
-    const start = fallbackStart > 0 ? fallbackStart : Math.max(0, midpoint - 20);
-    const end = fallbackEndWord > start ? fallbackEndWord : Math.min(text.length, start + 45);
-    if (end - start >= 8) {
-      ranges.push({ start, end, polarity: 'weak', reason: 'revision_focus', sourceCategory: 'fallback' });
-    }
-  }
+
   return ranges;
 };
 
@@ -784,8 +788,8 @@ const ReviewHighlightSpan: React.FC<ReviewHighlightSpanProps> = ({
     color: isQuiet
       ? 'inherit'
       : isActive
-      ? (strong ? 'var(--hub-highlight-strong-active, #d9f99d)' : 'var(--hub-highlight-weak-active, #fecaca)')
-      : (strong ? 'var(--hub-highlight-strong-idle, rgba(187,247,208,0.9))' : 'var(--hub-highlight-weak-idle, rgba(254,202,202,0.9))'),
+      ? (strong ? '#14532d' : '#7f1d1d')
+      : (strong ? '#166534' : '#991b1b'),
     boxShadow: isActive ? (strong ? '0 0 0 1px rgba(74, 222, 128, 0.5)' : '0 0 0 1px rgba(248, 113, 113, 0.5)') : 'none',
     textShadow: 'none',
     borderRadius: 4,
@@ -4873,6 +4877,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   const [cinematicDone, setCinematicDone] = useState(false);
   const [showFullEssayContext, setShowFullEssayContext] = useState(false);
   const [showPromptChooser, setShowPromptChooser] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(false);
   const [revisionCycleId, setRevisionCycleId] = useState<string>(() => createRevisionCycleId());
   const [attemptNumber, setAttemptNumber] = useState<number>(1);
   const [lastAttemptId, setLastAttemptId] = useState<string | null>(null);
@@ -4914,9 +4919,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     () => (writingHistoryByGenre.data ?? []).flatMap((item) => item.entries),
     [writingHistoryByGenre]
   );
-  const latestArchivedScore = archivedEntries
-    .filter((entry) => entry.total_score != null)
-    .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))[0]?.total_score;
+
 
   useEffect(() => {
     setActiveGenre(genre);
@@ -4929,6 +4932,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     setShowCinematicFeedback(false);
     setCinematicReplaySource(null);
     setShowPromptChooser(false);
+    setWizardOpen(false);
     setShowFullEssayContext(false);
     setCinematicIndex(null);
     setCinematicDone(false);
@@ -5268,14 +5272,20 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     () => evaluateAnchorTrust(activeCinematicText, activeCinematicFeedback),
     [activeCinematicText, activeCinematicFeedback]
   );
-  const cinematicRanges = useMemo(
-    () => buildBalancedReviewSequence(narrowCorrectionRanges(
-      activeCinematicText,
-      cinematicTrust.mode === 'trusted' && !hasConflictingAnchorOverlap(trustedRanges) ? trustedRanges : fallbackRanges,
-      activeCinematicFeedback
-    ), 8),
-    [activeCinematicText, activeCinematicFeedback, cinematicTrust.mode, trustedRanges, fallbackRanges]
-  );
+  const cinematicRanges = useMemo(() => {
+    const trustedBase = cinematicTrust.mode === 'trusted' && !hasConflictingAnchorOverlap(trustedRanges)
+      ? trustedRanges
+      : [];
+    // Correction lists power the word-by-word view, so include every one in the
+    // cinematic replay too instead of relying only on the provider's highlights.
+    const completeRanges = [...fallbackRanges, ...trustedBase].filter((range, index, all) =>
+      all.findIndex((candidate) => candidate.start === range.start && candidate.end === range.end && candidate.polarity === range.polarity) === index
+    );
+    return buildBalancedReviewSequence(
+      narrowCorrectionRanges(activeCinematicText, completeRanges, activeCinematicFeedback),
+      completeRanges.length
+    );
+  }, [activeCinematicText, activeCinematicFeedback, cinematicTrust.mode, trustedRanges, fallbackRanges]);
   const improvementGuidance = useMemo(
     () => [
       activeCinematicFeedback?.next_move,
@@ -5578,6 +5588,20 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     { key: 'communicative_achievement', label: 'Communicative achievement', value: assessment.subscores.communicative_achievement },
   ] : [];
 
+  const sortedArchivedEntries = [...archivedEntries].sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
+  const dashboardFocusAreas = Array.from(new Set([
+    ...(assessment?.weakness_tags ?? []),
+    ...sortedArchivedEntries.flatMap((entry) => entry.weakness_tags),
+  ])).filter(Boolean);
+  const scoredHistory = sortedArchivedEntries.filter((entry) => entry.total_score != null);
+  const currentDashboardScore = assessment?.total_score ?? scoredHistory[0]?.total_score ?? null;
+  const priorDashboardScore = scoredHistory[assessment ? 0 : 1]?.total_score ?? null;
+  const scoreChange = currentDashboardScore != null && priorDashboardScore != null
+    ? currentDashboardScore - priorDashboardScore
+    : null;
+  const totalGrammarIssues = sortedArchivedEntries.reduce((sum, entry) => sum + entry.grammar_issue_count, 0);
+  const totalPunctuationIssues = sortedArchivedEntries.reduce((sum, entry) => sum + entry.punctuation_issue_count, 0);
+
   return (
     <div className="writing-studio">
       <section data-testid="writing-hub-student-view" className="writing-studio__hero">
@@ -5601,7 +5625,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                     ? 'Saved securely'
                     : 'Ready'}
         </div>
-        <ol className="writing-studio__steps" aria-label="Writing journey">
+        {wizardOpen && <ol className="writing-studio__steps" aria-label="Writing journey">
           {['Understand the question', 'Write your response', 'Show the feedback'].map((label, index) => {
             const activeStep = assessment
               ? 3
@@ -5614,31 +5638,39 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
               </li>
             );
           })}
-        </ol>
-        {notice && <p className="writing-studio__notice" aria-live="polite">{notice}</p>}
+        </ol>}
+        {wizardOpen && notice && <p className="writing-studio__notice" aria-live="polite">{notice}</p>}
         {error && <p className="writing-studio__error" role="alert">{error}</p>}
       </section>
 
       <section className="writing-studio__card writing-studio__dashboard" aria-labelledby="writing-progress-title">
         <div className="writing-studio__section-heading">
-          <div>
-            <span>Your dashboard</span>
-            <h3 id="writing-progress-title">Your writing analysis</h3>
-          </div>
+          <div><span>Your dashboard</span><h3 id="writing-progress-title">Your writing analysis</h3></div>
           <span className="writing-studio__dashboard-badge">{archivedEntries.length} saved</span>
         </div>
-        <div className="writing-studio__dashboard-grid">
-          <div><strong>{assessment?.total_score ?? latestArchivedScore ?? '—'}<small>/20</small></strong><span>Latest score</span></div>
-          <div><strong>{writingHistoryByGenre.data?.filter((item) => item.entries.length > 0).length ?? 0}</strong><span>Genres practised</span></div>
-          <div><strong>{assessment?.weakness_tags.length ?? archivedEntries[0]?.weakness_tags.length ?? 0}</strong><span>Current focus areas</span></div>
+        <div className="writing-studio__dashboard-grid writing-studio__dashboard-grid--detailed">
+          <div><strong>{currentDashboardScore ?? '—'}<small>/20</small></strong><span>Latest score</span></div>
+          <div><strong>{scoreChange == null ? '—' : `${scoreChange > 0 ? '+' : ''}${scoreChange}`}</strong><span>Progress since last score</span></div>
+          <div><strong>{archivedEntries.length}</strong><span>Completed submissions</span></div>
+          <div><strong>{writingHistoryByGenre.data?.filter((item) => item.entries.length > 0).length ?? 0}<small>/{SUPPORTED_GENRES.length}</small></strong><span>Genres practised</span></div>
+          <div><strong>{dashboardFocusAreas.length}</strong><span>Current focus areas</span></div>
+          <div><strong>{totalGrammarIssues + totalPunctuationIssues}</strong><span>Language fixes identified</span></div>
         </div>
-        <p className="writing-studio__dashboard-focus">
-          <strong>Focus next:</strong>{' '}
-          {(assessment?.weakness_tags.length || archivedEntries[0]?.weakness_tags.length)
-            ? (assessment?.weakness_tags ?? archivedEntries[0]?.weakness_tags ?? []).slice(0, 4).map((tag) => tag.replaceAll('_', ' ')).join(' · ')
-            : 'Complete a response to unlock your personalised analysis.'}
-        </p>
+        <div className="writing-studio__focus-panel">
+          <strong>All focus areas</strong>
+          {dashboardFocusAreas.length > 0 ? (
+            <ul>{dashboardFocusAreas.map((tag) => <li key={tag}>{tag.replaceAll('_', ' ')}</li>)}</ul>
+          ) : <p>Complete a response to unlock your personalised focus areas.</p>}
+        </div>
+        <div className="writing-studio__dashboard-actions">
+          <p>{scoreChange != null && scoreChange > 0 ? `You improved by ${scoreChange} points on your latest scored task.` : 'Your saved work, scores, focus areas, and feedback history stay available below.'}</p>
+          <button type="button" className="writing-studio__primary-button" onClick={() => setWizardOpen(true)}>
+            Start a new writing task
+          </button>
+        </div>
       </section>
+
+      {wizardOpen && <>
 
       <section data-testid="writing-hub-today-section" className="writing-studio__card writing-studio__prompt-card">
         <div className="writing-studio__section-heading">
@@ -5763,7 +5795,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
             disabled={busy}
             className="writing-studio__secondary-button"
           >
-            New prompt
+            Change rpompt
           </button>
         </div>
       </section>
@@ -5874,6 +5906,8 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
           </p>
         </section>
       )}
+
+      </>}
 
       {!studentHistoryReady && (
         <section className="writing-studio__card writing-studio__archive" aria-live="polite">
