@@ -185,6 +185,86 @@ body.lite-mode [class*="border-gray-7"] {
   filter: drop-shadow(0 0 4px var(--plasma-pink));
 }
 
+/* Student dashboard: a feed-first shell with stable desktop and mobile navigation. */
+.student-dashboard-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+  padding-bottom: 5.5rem;
+}
+
+.student-dashboard-rail { display: none; }
+
+.student-dashboard-identity,
+.student-dashboard-nav-link {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 0.875rem;
+  padding: 0.7rem;
+  text-align: left;
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.student-dashboard-identity:hover,
+.student-dashboard-nav-link:hover { background: rgba(30, 41, 59, 0.78); }
+.student-dashboard-nav-link:active { transform: scale(0.98); }
+.student-dashboard-nav-link.is-active { background: rgba(8, 145, 178, 0.18); color: rgb(165 243 252); }
+.student-dashboard-avatar { display: grid; height: 2.5rem; width: 2.5rem; flex: none; place-items: center; overflow: hidden; border-radius: 9999px; border: 1px solid rgba(34, 211, 238, 0.45); background: rgb(30 41 59); font-weight: 900; color: white; }
+.student-dashboard-avatar img { height: 100%; width: 100%; object-fit: cover; }
+.student-dashboard-rail-links { margin-top: 0.75rem; display: grid; gap: 0.25rem; }
+.student-dashboard-nav-icon { display: grid; height: 2rem; width: 2rem; flex: none; place-items: center; font-size: 1.15rem; }
+.student-dashboard-nav-label { min-width: 0; flex: 1; font-size: 0.875rem; font-weight: 750; color: rgb(226 232 240); }
+.student-dashboard-nav-badge { border-radius: 9999px; background: rgb(225 29 72); padding: 0.1rem 0.42rem; font-size: 0.68rem; font-weight: 900; color: white; }
+
+.student-dashboard-feed { min-width: 0; display: grid; align-content: start; gap: 1rem; }
+.student-dashboard-context { display: none; min-width: 0; align-content: start; gap: 1rem; }
+.student-feed-card { overflow: hidden; border: 1px solid rgba(71, 85, 105, 0.65); border-radius: 1.25rem; background: rgba(2, 6, 23, 0.78); box-shadow: 0 18px 45px rgba(2, 6, 23, 0.28); }
+
+.student-dashboard-bottom-nav {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 45;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border-top: 1px solid rgba(71, 85, 105, 0.8);
+  background: rgba(2, 6, 23, 0.96);
+  padding: 0.45rem 0.35rem calc(0.45rem + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -12px 36px rgba(2, 6, 23, 0.55);
+  backdrop-filter: blur(18px);
+}
+.student-dashboard-bottom-link { display: flex; min-height: 3.25rem; flex-direction: column; align-items: center; justify-content: center; gap: 0.12rem; border-radius: 0.75rem; font-size: 0.66rem; font-weight: 800; color: rgb(148 163 184); }
+.student-dashboard-bottom-link.is-active { color: rgb(103 232 249); }
+.student-dashboard-bottom-badge { position: absolute; right: -0.55rem; top: -0.35rem; min-width: 1rem; border-radius: 9999px; background: rgb(225 29 72); padding: 0.05rem 0.24rem; font-size: 0.55rem; color: white; }
+
+@media (min-width: 768px) {
+  .student-dashboard-shell { grid-template-columns: 5rem minmax(0, 1fr); padding-bottom: 0; }
+  .student-dashboard-rail { position: sticky; top: 7.5rem; display: block; align-self: start; }
+  .student-dashboard-identity { justify-content: center; padding-inline: 0.25rem; }
+  .student-dashboard-identity > span:last-child,
+  .student-dashboard-nav-label { display: none; }
+  .student-dashboard-nav-link { position: relative; justify-content: center; padding-inline: 0.25rem; }
+  .student-dashboard-nav-badge { position: absolute; right: 0; top: 0.25rem; }
+  .student-dashboard-bottom-nav { display: none; }
+}
+
+@media (min-width: 1024px) {
+  .student-dashboard-shell { grid-template-columns: 14rem minmax(0, 1fr); gap: 1.5rem; }
+  .student-dashboard-identity { justify-content: flex-start; padding-inline: 0.7rem; }
+  .student-dashboard-identity > span:last-child,
+  .student-dashboard-nav-label { display: block; }
+  .student-dashboard-nav-link { justify-content: flex-start; padding-inline: 0.7rem; }
+  .student-dashboard-nav-badge { position: static; }
+}
+
+@media (min-width: 1280px) {
+  .student-dashboard-shell { grid-template-columns: 14rem minmax(0, 1fr) 17rem; }
+  .student-dashboard-context { position: sticky; top: 7.5rem; display: grid; align-self: start; }
+}
+
 .dashboard-aurora {
   background-image:
     radial-gradient(circle at 16% 18%, rgba(44, 246, 200, 0.16), transparent 34%),
