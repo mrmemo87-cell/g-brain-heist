@@ -10,6 +10,7 @@ import { useLightMode } from './src/contexts/LightModeContext';
 import PlayerProfileCard from './components/PlayerProfileCard';
 import TaskList from './components/TaskList';
 import MainActions from './components/MainActions';
+import StudentDashboardNavigation, { type StudentDashboardDestination } from './components/StudentDashboardNavigation';
 import JoinSchoolCard from './components/JoinSchoolCard';
 import NewsFeed from './components/NewsFeed';
 import CapTracker from './components/CapTracker';
@@ -146,6 +147,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [activeAssignment, setActiveAssignment] = useState<StudentAssignmentTask | null>(null);
   const [criticalLoading, setCriticalLoading] = useState(true);
   const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'rivalry' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts' | 'writing' | 'lockdown' | 'cambridge' | 'school_admin' | 'admissions'>('dashboard');
+  const [studentDashboardTab, setStudentDashboardTab] = useState<StudentDashboardDestination>('home');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [levelUpData, setLevelUpData] = useState<{ newLevel: number; rewards: any } | null>(null);
@@ -2139,133 +2141,144 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               );
             }
 
+            const dashboardNavigate = (destination: StudentDashboardDestination) => {
+              setStudentDashboardTab(destination);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+
+            const nextActionLabel = activeAssignment ? 'Start assignment' : 'Continue learning';
+            const nextActionTitle = activeAssignment?.title || 'Choose your next mission';
+            const taskCompletionLabel = tasks.length ? `${completedTasks} of ${tasks.length} daily tasks complete` : 'Your next mission is ready';
+
             return (
-              <main className="mt-6 space-y-6">
-                {/* Join School Card - place directly under header for student dashboard visibility */}
+              <main className="mt-4 sm:mt-6">
                 {profile && !hasSchool && (
-                  <div className="pt-3 sm:pt-4">
-                    <JoinSchoolCard onJoined={handleJoinSchoolSuccess} />
-                  </div>
+                  <div className="mb-4 sm:mb-6"><JoinSchoolCard onJoined={handleJoinSchoolSuccess} /></div>
                 )}
-                <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-                  {/* Left Column */}
-                  <div className="space-y-6 lg:col-span-4">
-                    {renderProfileSlot()}
-                  </div>
 
-                  {/* Middle Column */}
-                  <div className="space-y-6 lg:col-span-5">
-                    {profile ? (
+                <div className="student-dashboard-shell">
+                  <StudentDashboardNavigation
+                    username={profile?.username || 'Agent'}
+                    level={profile?.xp_status?.level || profile?.level || 1}
+                    avatarUrl={profile?.avatar_url}
+                    assignmentCount={activeAssignment ? 1 : 0}
+                    clanBadgeCount={pendingClanRequests + unreadClanChatMessages}
+                    activeDestination={studentDashboardTab}
+                    onNavigate={dashboardNavigate}
+                  />
+
+                  <section className="student-dashboard-feed" aria-label={`${studentDashboardTab} dashboard tab`}>
+                    <header className="px-1">
+                      <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">Student dashboard</p>
+                      <h1 className="mt-1 font-heading text-2xl capitalize text-white sm:text-3xl">{studentDashboardTab === 'home' ? `Welcome back, ${profile?.username || 'Agent'}.` : studentDashboardTab}</h1>
+                      <p className="mt-1 text-sm text-slate-400">
+                        {studentDashboardTab === 'home' && 'Pick up where you left off or handle what is due next.'}
+                        {studentDashboardTab === 'learn' && 'Choose a learning mode or mission.'}
+                        {studentDashboardTab === 'tasks' && 'Review assignments and complete your daily objectives.'}
+                        {studentDashboardTab === 'clan' && 'Connect with your clan and join team activities.'}
+                        {studentDashboardTab === 'leaderboard' && 'See how you rank against other agents.'}
+                        {studentDashboardTab === 'more' && 'Profile, limits, updates, and additional information.'}
+                      </p>
+                    </header>
+
+                    {studentDashboardTab === 'home' && (
                       <>
-                        <MainActions
-                          onStartQuest={handleQuestAction}
-                          onStartPvp={() => handleViewChange('pvp')}
-                          onOpenRaid={!isStudent ? () => handleViewChange('raids') : undefined}
-                          onVisitShop={() => handleViewChange('shop')}
-                          onGoToClan={() => handleViewChange('clan')}
-                          onOpenRivalry={() => handleViewChange('rivalry')}
-                          onVisitInventory={() => handleViewChange('inventory')}
-                          onViewLeaderboard={() => handleViewChange('leaderboard')}
-                          onViewAchievements={() => handleViewChange('achievements')}
-                          onOpenRaidAdmin={isAdminUser ? () => handleViewChange('raid_admin') : undefined}
-                          onOpenTournament={() => handleViewChange('tournament')}
-                          onOpenAdminPortal={isAdminUser ? () => handleViewChange('admin') : undefined}
-                          onOpenSchoolAdmin={isUserSchoolAdmin && hasSchool ? () => handleViewChange('school_admin') : undefined}
-                          onOpenAdmissions={isUserSchoolAdmin && hasSchool ? () => handleViewChange('admissions') : undefined}
-                          onOpenTournamentAdmin={isAdminUser ? () => handleViewChange('tournament_admin') : undefined}
-                          onOpenCompetitionPlay={!isStudent && profile?.grade && !profile?.is_banned && hasSchool ? () => handleViewChange('phase1_play') : undefined}
-                          onOpenCompetitionLeaderboard={hasSchool ? () => handleViewChange('phase1_leaderboard') : undefined}
-                          onOpenCompetitionAdmin={isAdminUser && hasSchool ? () => handleViewChange('phase1_admin') : undefined}
-                          onOpenIeltsPrep={hasSchool ? () => { window.location.href = '/ielts'; } : undefined}
-                          onOpenCambridgeTests={hasSchool ? () => handleViewChange('cambridge') : undefined}
-                          onOpenLockdown={() => handleViewChange('lockdown')}
-                          onJoinSchool={undefined}
-                          profile={profile}
-                          isIndividual={!hasSchool}
-                          hasPendingAssignment={Boolean(activeAssignment)}
-                          clanBadgeCount={pendingClanRequests + unreadClanChatMessages}
-                          schoolName={profile?.school_name}
-                          schoolLogoUrl={profile?.school_logo_url}
-                          isPro={isProUser}
-                          isPilot={isPilotPlan}
-                          onUpgrade={(featureLabel) => {
-                            setUpgradeFeatureLabel(featureLabel);
-                            setShowUpgradeModal(true);
-                          }}
-                        />
+                        <article className="student-feed-card relative p-5 sm:p-6" data-testid="dashboard-start-quest">
+                          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_90%_10%,rgba(34,211,238,0.18),transparent_38%),linear-gradient(135deg,rgba(8,47,73,0.36),transparent_65%)]" aria-hidden />
+                          <div className="relative">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <span className="rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs font-black uppercase tracking-wider text-cyan-100">Up next</span>
+                              <span className="text-xs font-semibold text-slate-400">{activeAssignment ? 'Teacher assigned' : 'Recommended for you'}</span>
+                            </div>
+                            <h2 className="mt-4 font-heading text-2xl text-white sm:text-3xl">{nextActionTitle}</h2>
+                            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-300">
+                              {activeAssignment
+                                ? `${activeAssignment.subject_name || 'General'} · ${activeAssignment.due_at ? `Due ${new Date(activeAssignment.due_at).toLocaleString()}` : 'No deadline'}`
+                                : 'Build momentum with a focused learning mission matched to your progress.'}
+                            </p>
+                            <button type="button" onClick={handleQuestAction} className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-cyan-300 px-5 py-2.5 font-black text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200">
+                              {nextActionLabel} <span className="ml-2" aria-hidden>→</span>
+                            </button>
+                          </div>
+                        </article>
+
+                        <section className="grid grid-cols-2 gap-3 sm:grid-cols-3" aria-label="Progress summary">
+                          <div className="student-feed-card p-4"><p className="text-xs font-bold uppercase tracking-wider text-slate-400">Daily progress</p><p className="mt-2 text-2xl font-black text-white">{studyProgress}%</p><p className="mt-1 text-xs text-slate-400">{taskCompletionLabel}</p></div>
+                          <div className="student-feed-card p-4"><p className="text-xs font-bold uppercase tracking-wider text-slate-400">Streak</p><p className="mt-2 text-2xl font-black text-orange-200">🔥 {profile?.streak || 0}</p><p className="mt-1 text-xs text-slate-400">Keep your rhythm going</p></div>
+                          <div className="student-feed-card col-span-2 p-4 sm:col-span-1"><p className="text-xs font-bold uppercase tracking-wider text-slate-400">Action points</p><p className="mt-2 text-2xl font-black text-emerald-200">{profile?.ap_now || 0}/{profile?.ap_max || 0}</p><p className="mt-1 text-xs text-slate-400">Ready for missions</p></div>
+                        </section>
+
                         {isStudent && (
-                          <button
-                            type="button"
-                            onMouseEnter={preloadWritingHub}
-                            onFocus={preloadWritingHub}
-                            onClick={() => handleViewChange('writing')}
-                            aria-label="Open Writing Hub"
-                            className="group relative w-full overflow-hidden rounded-3xl border border-cyan-300/30 bg-slate-950/80 p-0 text-left shadow-2xl shadow-indigo-950/40 transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-200/60 hover:shadow-cyan-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 active:scale-[0.99]"
-                          >
-                            <span
-                              aria-hidden
-                              className="pointer-events-none absolute inset-0 opacity-90 transition-opacity duration-500 group-hover:opacity-100"
-                              style={{
-                                background:
-                                  'radial-gradient(circle at 16% 18%, rgba(34, 211, 238, 0.24), transparent 30%), radial-gradient(circle at 82% 20%, rgba(168, 85, 247, 0.26), transparent 32%), linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(30, 41, 92, 0.9) 52%, rgba(88, 28, 135, 0.82))',
-                              }}
-                            />
-                            <span
-                              aria-hidden
-                              className="absolute -right-12 -top-16 h-40 w-40 rounded-full border border-cyan-200/20 bg-cyan-300/10 blur-sm transition-transform duration-500 group-hover:scale-110"
-                            />
-                            <span
-                              aria-hidden
-                              className="absolute bottom-0 left-0 h-px w-full bg-gradient-to-r from-transparent via-cyan-200/80 to-transparent"
-                            />
-
-                            <span className="relative flex min-h-[12rem] flex-col gap-4 p-5 sm:min-h-[13rem] sm:p-6">
-                              <span className="flex items-start justify-between gap-4">
-                                <span className="min-w-0">
-                                  <span className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.22em] text-cyan-100 shadow-sm shadow-cyan-300/20">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 shadow-[0_0_12px_rgba(110,231,183,0.9)]" aria-hidden />
-                                    Student mission
-                                  </span>
-                                  <span className="mt-3 block font-heading text-3xl leading-none text-white drop-shadow-[0_0_18px_rgba(125,211,252,0.32)] sm:text-4xl">
-                                    Writing Hub
-                                  </span>
-                                  <span className="mt-2 block max-w-sm text-sm font-medium leading-5 text-cyan-50/80">
-                                    Draft, repair, and level up your writing with daily AI-coached missions.
-                                  </span>
-                                </span>
-
-                                <span className="relative grid h-20 w-20 shrink-0 place-items-center rounded-2xl border border-white/15 bg-white/10 shadow-2xl shadow-cyan-500/20 transition-transform duration-500 group-hover:rotate-3 group-hover:scale-105">
-                                  <span className="absolute inset-2 rounded-xl bg-gradient-to-br from-cyan-300/25 via-indigo-400/20 to-fuchsia-400/25 blur-md" aria-hidden />
-                                  <span className="relative text-5xl drop-shadow-[0_0_18px_rgba(255,255,255,0.45)]" aria-hidden>✍️</span>
-                                </span>
-                              </span>
-
-                              <span className="mt-auto flex flex-wrap items-center gap-2">
-                                <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-bold text-cyan-50">Daily draft</span>
-                                <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-bold text-cyan-50">AI coach</span>
-                                <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-bold text-cyan-50">Score growth</span>
-                                <span className="ml-auto inline-flex items-center gap-2 rounded-2xl border border-cyan-200/40 bg-cyan-200/15 px-4 py-2 text-sm font-black text-white shadow-lg shadow-cyan-500/10 transition-colors group-hover:bg-cyan-200/25">
-                                  Open Hub
-                                  <span className="transition-transform group-hover:translate-x-1" aria-hidden>→</span>
-                                </span>
-                              </span>
-                            </span>
-                          </button>
+                          <article className="student-feed-card p-5">
+                            <div className="flex items-start gap-4">
+                              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-purple-400/15 text-2xl" aria-hidden>✍️</span>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-xs font-black uppercase tracking-wider text-purple-200">Recommended practice</p>
+                                <h2 className="mt-1 font-heading text-xl text-white">Strengthen your writing</h2>
+                                <p className="mt-1 text-sm leading-6 text-slate-400">Draft, repair, and improve with a guided AI-coached mission.</p>
+                                <button type="button" onMouseEnter={preloadWritingHub} onFocus={preloadWritingHub} onClick={() => handleViewChange('writing')} className="mt-3 min-h-11 rounded-xl border border-purple-300/30 bg-purple-300/10 px-4 py-2 text-sm font-black text-purple-100 hover:bg-purple-300/20">Open Writing Hub</button>
+                              </div>
+                            </div>
+                          </article>
                         )}
                       </>
-                    ) : (
-                      <SectionPlaceholder title="Mission Console" lines={4} />
                     )}
-                    {(!profile || isStudentRole) && renderTasksSection()}
-                  </div>
 
-                  {/* Right Column */}
-                  <div className="space-y-6 lg:col-span-3">
-                    {(!profile || isStudentRole) && renderAssignmentSection()}
-                    {(!profile || isStudentRole) && renderCapsSection()}
-                    {renderNewsSection()}
-                  </div>
-                </section>
+                    {studentDashboardTab === 'tasks' && (
+                      <div className="grid gap-4">
+                        {renderAssignmentSection()}
+                        {renderTasksSection()}
+                      </div>
+                    )}
+
+                    {studentDashboardTab === 'learn' && (
+                      <MainActions
+                        onStartQuest={handleQuestAction} onStartPvp={() => handleViewChange('pvp')}
+                        onOpenRaid={!isStudent ? () => handleViewChange('raids') : undefined} onVisitShop={() => handleViewChange('shop')}
+                        onGoToClan={() => handleViewChange('clan')} onOpenRivalry={() => handleViewChange('rivalry')}
+                        onVisitInventory={() => handleViewChange('inventory')} onViewLeaderboard={() => handleViewChange('leaderboard')}
+                        onViewAchievements={() => handleViewChange('achievements')} onOpenTournament={() => handleViewChange('tournament')}
+                        onOpenIeltsPrep={hasSchool ? () => { window.location.href = '/ielts'; } : undefined}
+                        onOpenCambridgeTests={hasSchool ? () => handleViewChange('cambridge') : undefined} onOpenLockdown={() => handleViewChange('lockdown')}
+                        profile={profile!} isIndividual={!hasSchool} hasPendingAssignment={Boolean(activeAssignment)}
+                        clanBadgeCount={pendingClanRequests + unreadClanChatMessages} schoolName={profile?.school_name} schoolLogoUrl={profile?.school_logo_url}
+                        isPro={isProUser} isPilot={isPilotPlan} onUpgrade={(featureLabel) => { setUpgradeFeatureLabel(featureLabel); setShowUpgradeModal(true); }}
+                      />
+                    )}
+
+                    {studentDashboardTab === 'clan' && (
+                      <article className="student-feed-card p-6 text-center">
+                        <div className="text-5xl" aria-hidden>🛡️</div>
+                        <h2 className="mt-3 font-heading text-2xl text-white">{profile?.clan_name || 'Your clan headquarters'}</h2>
+                        <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-400">Open the dedicated clan area for chat, requests, team progress, and rivalry activity.</p>
+                        <button type="button" onClick={() => {
+                          if (!isProUser && hasSchool) { setUpgradeFeatureLabel('Clan'); setShowUpgradeModal(true); }
+                          else handleViewChange('clan');
+                        }} className="mt-5 min-h-11 rounded-xl bg-amber-300 px-5 py-2.5 font-black text-slate-950 hover:bg-amber-200">Open Clan</button>
+                      </article>
+                    )}
+
+                    {studentDashboardTab === 'leaderboard' && (
+                      <article className="student-feed-card p-6 text-center">
+                        <div className="text-5xl" aria-hidden>🏆</div>
+                        <h2 className="mt-3 font-heading text-2xl text-white">Rankings</h2>
+                        <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-400">Compare your progress with other agents and see the current standings.</p>
+                        <button type="button" onClick={() => {
+                          if (!isProUser && hasSchool) { setUpgradeFeatureLabel('Leaderboard'); setShowUpgradeModal(true); }
+                          else handleViewChange('leaderboard');
+                        }} className="mt-5 min-h-11 rounded-xl bg-cyan-300 px-5 py-2.5 font-black text-slate-950 hover:bg-cyan-200">View Leaderboard</button>
+                      </article>
+                    )}
+
+                    {studentDashboardTab === 'more' && (
+                      <div className="grid gap-4">
+                        {renderProfileSlot()}
+                        {renderCapsSection()}
+                        {renderNewsSection()}
+                      </div>
+                    )}
+                  </section>
+                </div>
               </main>
             );
     }
