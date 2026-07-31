@@ -332,53 +332,23 @@ const MainActions: React.FC<MainActionsProps> = ({
             : day === 5 ? { src: visualAssets.engagement.fridayBattle, alt: 'Friday School Battle', border: 'border-red-400/20' }
             : { src: visualAssets.engagement.dailyReward, alt: 'Daily Reward', border: 'border-emerald-400/20' };
           return (
-            <div className={`rounded-2xl border ${banner.border} bg-slate-900/60 p-2`}>
+            <div className={`mx-auto w-full max-w-2xl rounded-2xl border ${banner.border} bg-slate-900/60 p-2`}>
               <VisualFallbackImage
                 src={banner.src}
                 alt={banner.alt}
                 className="w-full overflow-hidden rounded-xl"
-                imgClassName="block w-full h-auto object-contain"
-                fallback={<div className="h-16 rounded-xl bg-gradient-to-r from-emerald-500/10 to-cyan-500/10" />}
+                imgClassName="block h-24 w-full object-contain sm:h-32"
+                fallback={<div className="h-24 rounded-xl bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 sm:h-32" />}
               />
             </div>
           );
         })()}
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900/70 shadow-inner shadow-slate-900/60">
-              <span aria-hidden className="text-3xl">🚀</span>
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h2 className="font-heading text-lg font-bold text-white sm:text-xl">Mission Console</h2>
-                <span className="rounded-full border border-cyan-300/40 bg-cyan-500/10 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-cyan-100">
-                  🎯 Ready
-                </span>
-              </div>
-              <p className="text-sm text-slate-400">Pick your next move. Everything fits comfortably on phones.</p>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-slate-800 bg-slate-900/70 px-3 py-1 shadow-inner shadow-slate-900/40">
-              <img
-                src={displaySchoolLogo}
-                alt={`${displaySchoolName} logo`}
-                className="h-8 w-8 flex-shrink-0 rounded-full object-cover bg-slate-800"
-                onError={(e) => { (e.target as HTMLImageElement).src = defaultSchoolIcon; }}
-              />
-              <div className="flex min-w-0 items-center gap-1 text-xs font-semibold uppercase tracking-wide text-slate-100">
-                <span aria-hidden>✨</span>
-                <span className="truncate">{displaySchoolName}</span>
-              </div>
-            </div>
-            {hasPendingAssignment && (
-              <span className="inline-flex items-center justify-center gap-1.5 rounded-full border border-amber-400/70 bg-amber-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-100 shadow shadow-amber-400/20">
-                <img src={neonIcon('assignment')} alt="" className="h-4 w-4 object-contain" />
-                Assignment Required
-              </span>
-            )}
-          </div>
-        </div>
+        {hasPendingAssignment && (
+          <span className="inline-flex self-start items-center justify-center gap-1.5 rounded-full border border-amber-400/70 bg-amber-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-100 shadow shadow-amber-400/20">
+            <img src={neonIcon('assignment')} alt="" className="h-4 w-4 object-contain" />
+            Assignment Required
+          </span>
+        )}
 
         {/* ── Social: invite friends (always visible, phone-first) ── */}
         <div className="rounded-2xl border border-purple-500/30 bg-gradient-to-r from-purple-900/35 via-fuchsia-900/25 to-pink-900/25 p-4">
