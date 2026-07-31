@@ -5537,7 +5537,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           <div className="teacher-card">
             <h2 className="text-2xl font-bold text-slate-800 mb-2">{selectedReportAssignment.title || selectedReportAssignment.topic_name}</h2>
             <p className="text-slate-600">
-              {selectedReportAssignment.subject_name} · Topic {selectedReportAssignment.topic_name} · Batch {selectedReportAssignment.batch}
+              {selectedReportAssignment.subject_name} · Topic {selectedReportAssignment.topic_name} · Class {selectedReportAssignment.assignment_mode === 'custom' ? 'Selected students' : selectedReportAssignment.batch || '—'}
             </p>
             <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-5">
               <div><dt className="text-xs font-semibold uppercase text-slate-400">Created</dt><dd>{new Date(selectedReportAssignment.assigned_at).toLocaleDateString()}</dd></div>
@@ -5548,32 +5548,20 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </dl>
           </div>
 
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold text-slate-800">Student Performance</h3>
-            <button
-              onClick={handleExportReport}
-              disabled={assignmentReport.length === 0}
-              className={`teacher-btn ${assignmentReport.length === 0 ? 'opacity-50 cursor-not-allowed' : 'teacher-btn-secondary'}`}
-            >
-              Export CSV
-            </button>
-          </div>
-
           {assignmentReport.length === 0 ? (
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-10 text-center text-slate-500">No students have completed this assignment yet.</div>
           ) : (
             <>
               {/* Question Analysis Summary */}
-              {questionAnalysis.length > 0 && (
-                <div className="mb-6">
+              <div className="mb-6">
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                     <h4 className="text-lg font-bold text-slate-800">📊 Question Analysis</h4>
-                    <div className="inline-flex rounded-lg border border-slate-300 p-1 text-xs" aria-label="Question order">
+                    {questionAnalysis.length > 0 ? <div className="inline-flex rounded-lg border border-slate-300 p-1 text-xs" aria-label="Question order">
                       <button type="button" onClick={() => setAnswerOrder('assignment')} className={`rounded-md px-3 py-1.5 font-semibold ${answerOrder === 'assignment' ? 'bg-cyan-600 text-white' : 'text-slate-600'}`}>Assignment order</button>
                       <button type="button" onClick={() => setAnswerOrder('review')} className={`rounded-md px-3 py-1.5 font-semibold ${answerOrder === 'review' ? 'bg-cyan-600 text-white' : 'text-slate-600'}`}>Needs review first</button>
-                    </div>
+                    </div> : null}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {questionAnalysis.length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {(answerOrder === 'assignment' ? questionAnalysis : [...questionAnalysis].sort((a, b) => a.accuracy_percent - b.accuracy_percent)).map((qa, idx) => (
                       <div 
                         key={qa.question_id} 
@@ -5610,9 +5598,18 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                         )}
                       </div>
                     ))}
-                  </div>
-                </div>
-              )}
+                  </div> : <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-500">Question-level analysis is not available for these submissions yet.</div>}
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5">
+                <div><h3 className="text-xl font-bold text-slate-800">Student Performance</h3><p className="mt-1 text-sm text-slate-500">Open a student to review every answer and the evidence behind their result.</p></div>
+                <button
+                  onClick={handleExportReport}
+                  className="teacher-btn teacher-btn-secondary"
+                >
+                  Export CSV
+                </button>
+              </div>
 
               {/* Student Performance Table */}
               <div className="overflow-x-auto bg-white border border-slate-200 rounded-xl">
@@ -5620,7 +5617,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   <thead className="bg-slate-100 border-b border-slate-200">
                     <tr>
                       <th className="py-3 px-4 text-slate-700 font-semibold">Student</th>
-                      <th className="py-3 px-4 text-slate-700 font-semibold">Batch</th>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">Class</th>
                       <th className="py-3 px-4 text-slate-700 font-semibold">
                         <span className="inline-flex items-center gap-1">Score <span title="Total XP points earned from correct answers. Each question can carry different points." aria-label="Score explanation" className="cursor-help text-cyan-600">ⓘ</span></span>
                       </th>
@@ -5683,6 +5680,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         <div className="space-y-6">
           {/* Student Header */}
           <div className="teacher-card">
+            <div className="mb-6 border-b border-slate-200 pb-5 text-center">
+              <span className="text-xs font-bold uppercase tracking-[.14em] text-blue-600">Assignment performance report</span>
+              <h1 className="mt-2 text-2xl font-bold text-slate-900">{selectedReportAssignment?.title || selectedReportAssignment?.topic_name || 'Assignment'}</h1>
+              <p className="mt-1 text-sm text-slate-500">{selectedReportAssignment?.subject_name} · {selectedReportAssignment?.topic_name}</p>
+              <button type="button" onClick={handlePrintStudentAnalysis} className="teacher-btn teacher-btn-primary mt-4">🖨 Print report</button>
+            </div>
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
@@ -5690,7 +5693,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   {selectedAnalysisStudent.student_name}
                 </h2>
                 <p className="text-slate-600 mt-1">
-                  Batch: {selectedAnalysisStudent.batch ?? '—'} · 
+                  Class: {selectedAnalysisStudent.batch ?? '—'} ·
                   Completed: {new Date(selectedAnalysisStudent.completed_at).toLocaleString()}
                 </p>
               </div>
