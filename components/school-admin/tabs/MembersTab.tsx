@@ -3,7 +3,7 @@ import { useSchoolAdmin } from '../SchoolAdminContext';
 import type { SchoolRole } from '../../../types';
 
 const MembersTab: React.FC = () => {
-  const { actionLoading, bulkMemberAction, handleBulkMemberAction, loadStudentModStatus, memberPage, memberPageSize, memberRoleFilter, memberSearch, memberTotalPages, members, schoolAdmins, selectedMemberIds, setBulkMemberAction, setMemberPage, setMemberPageSize, setMemberRoleFilter, setMemberSearch, setModTargetId, setModTargetStatus, setSelectedMember, setShowMemberActionModal, toggleMemberSelection, toggleSelectAllMembers } = useSchoolAdmin();
+  const { actionLoading, bulkMemberAction, handleBulkMemberAction, loadStudentModStatus, memberPage, memberPageSize, memberRoleFilter, memberSearch, memberTotalPages, members, schoolAdmins, selectedMemberIds, setActiveTab, setBulkMemberAction, setMemberPage, setMemberPageSize, setMemberRoleFilter, setMemberSearch, setModTargetId, setModTargetStatus, setSelectedMember, setShowMemberActionModal, toggleMemberSelection, toggleSelectAllMembers } = useSchoolAdmin();
   const activePeopleTab: 'teacher' | 'student' = memberRoleFilter === 'student' ? 'student' : 'teacher';
   const administrators = Array.isArray(schoolAdmins) ? schoolAdmins : [];
   const communityMembers = Array.isArray(members) ? members : [];
@@ -30,6 +30,11 @@ const MembersTab: React.FC = () => {
       <button className={activePeopleTab === 'teacher' ? 'is-active' : ''} onClick={() => selectRole('teacher')}><strong>Teachers</strong><span>Teaching and pastoral staff</span></button>
       <button className={activePeopleTab === 'student' ? 'is-active' : ''} onClick={() => selectRole('student')}><strong>Students</strong><span>Enrolment and class records</span></button>
     </div>
+
+    {activePeopleTab === 'teacher' && <section className="teacher-assignment-callout" aria-label="Teacher class and subject assignments">
+      <div><strong>Assign teaching responsibilities</strong><span>Connect a teacher to a subject and class, or review existing assignments.</span></div>
+      <button onClick={() => setActiveTab('teachers')}>Assign teachers →</button>
+    </section>}
 
     <section className="community-directory">
       <div className="community-toolbar"><input aria-label={`Search ${activePeopleTab}s`} placeholder={`Search ${activePeopleTab}s by name, username or email`} value={memberSearch} onChange={e => setMemberSearch(e.target.value)} /><label>Show <select value={memberPageSize} onChange={e => setMemberPageSize(Number(e.target.value))}><option value={10}>10</option><option value={25}>25</option><option value={50}>50</option></select></label></div>
