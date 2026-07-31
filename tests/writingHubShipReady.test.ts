@@ -11,6 +11,9 @@ test('student Writing Hub exposes the dashboard-first three-step journey and cin
   assert.match(activeSimpleLoop, /\['Understand the question', 'Write your response', 'Show the feedback'\]/);
   assert.match(activeSimpleLoop, /Your writing analysis/);
   assert.match(activeSimpleLoop, /Start a new writing task/);
+  assert.match(activeSimpleLoop, /!wizardOpen && <section className="writing-studio__card writing-studio__dashboard"/);
+  assert.match(activeSimpleLoop, /!wizardOpen && !studentHistoryReady/);
+  assert.match(activeSimpleLoop, /!wizardOpen && studentHistoryReady && writingHistoryByGenre\.ok/);
   assert.match(activeSimpleLoop, /wizardOpen && <>/);
   assert.match(activeSimpleLoop, /All focus areas/);
   assert.match(activeSimpleLoop, /Progress since last score/);
