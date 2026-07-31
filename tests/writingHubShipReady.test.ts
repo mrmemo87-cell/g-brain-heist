@@ -10,6 +10,11 @@ test('student Writing Hub exposes the dashboard-first three-step journey and cin
   const activeSimpleLoop = source.slice(source.indexOf('const WritingHubSimpleLoop'));
   assert.match(activeSimpleLoop, /\['Understand the question', 'Write your response', 'Show the feedback'\]/);
   assert.match(activeSimpleLoop, /Your writing analysis/);
+  assert.match(activeSimpleLoop, /Start a new writing task/);
+  assert.match(activeSimpleLoop, /wizardOpen && <>/);
+  assert.match(activeSimpleLoop, /All focus areas/);
+  assert.match(activeSimpleLoop, /Progress since last score/);
+  assert.match(activeSimpleLoop, /Change rpompt/);
   assert.match(activeSimpleLoop, /Clear all text/);
   assert.match(activeSimpleLoop, /Play Cinematic Feedback/);
   assert.match(activeSimpleLoop, /Replay Cinematic Feedback/);
@@ -42,6 +47,10 @@ test('cinematic feedback has responsive, accessible, reduced-motion styling', ()
   assert.match(source, /Watch it transform/);
   assert.match(source, /Start my revision/);
   assert.match(source, /spotlightMode/);
+  assert.match(source, /completeRanges = \[\.\.\.fallbackRanges, \.\.\.trustedBase\]/);
+  assert.match(source, /ai\.natural_phrase_upgrades/);
+  assert.match(source, /strong \? '#14532d'/);
+  assert.match(source, /text\.slice\(verifiedStart, verifiedEnd\) !== exactText/);
   assert.match(css, /@media \(max-width: 760px\)/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
 });
