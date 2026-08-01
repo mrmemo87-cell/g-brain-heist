@@ -10,7 +10,7 @@ import { useLightMode } from './src/contexts/LightModeContext';
 import PlayerProfileCard from './components/PlayerProfileCard';
 import TaskList from './components/TaskList';
 import MainActions from './components/MainActions';
-import StudentDashboardNavigation, { type StudentDashboardDestination } from './components/StudentDashboardNavigation';
+import StudentDashboardNavigation, { StudentDashboardBottomNavigation, type StudentDashboardDestination } from './components/StudentDashboardNavigation';
 import JoinSchoolCard from './components/JoinSchoolCard';
 import NewsFeed from './components/NewsFeed';
 import CapTracker from './components/CapTracker';
@@ -2081,8 +2081,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             
             // Student Dashboard - full gameplay experience
             const pendingTasks = tasks.filter((task) => !task.claimed && task.progress < task.target).length;
-            const completedTasks = tasks.filter((task) => task.progress >= task.target).length;
-            const studyProgress = tasks.length ? Math.round((completedTasks / tasks.length) * 100) : 0;
 
             // ── Suspension overlay ──
             const bannedUntil = profile?.banned_until ? new Date(profile.banned_until) : null;
@@ -2142,13 +2140,17 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             }
 
             const dashboardNavigate = (destination: StudentDashboardDestination) => {
+              if (destination === 'clan') {
+                if (!isProUser && hasSchool) { setUpgradeFeatureLabel('Clan'); setShowUpgradeModal(true); return; }
+                handleViewChange('clan');
+                return;
+              }
               setStudentDashboardTab(destination);
               window.scrollTo({ top: 0, behavior: 'smooth' });
             };
 
             const nextActionLabel = activeAssignment ? 'Start assignment' : 'Continue learning';
             const nextActionTitle = activeAssignment?.title || 'Choose your next mission';
-            const taskCompletionLabel = tasks.length ? `${completedTasks} of ${tasks.length} daily tasks complete` : 'Your next mission is ready';
 
             return (
               <main className="mt-4 sm:mt-6">
@@ -2170,10 +2172,12 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                   <section className="student-dashboard-feed" aria-label={`${studentDashboardTab} dashboard tab`}>
                     <header className="px-1">
                       <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">Student dashboard</p>
-                      <h1 className="mt-1 font-heading text-2xl capitalize text-white sm:text-3xl">{studentDashboardTab === 'home' ? `Welcome back, ${profile?.username || 'Agent'}.` : studentDashboardTab}</h1>
+                      <h1 className="mt-1 font-heading text-2xl capitalize text-white sm:text-3xl">{studentDashboardTab}</h1>
                       <p className="mt-1 text-sm text-slate-400">
                         {studentDashboardTab === 'home' && 'Pick up where you left off or handle what is due next.'}
                         {studentDashboardTab === 'learn' && 'Choose a learning mode or mission.'}
+                        {studentDashboardTab === 'game' && 'Choose a game console.'}
+                        {studentDashboardTab === 'tournaments' && 'Enter competitive events.'}
                         {studentDashboardTab === 'tasks' && 'Review assignments and complete your daily objectives.'}
                         {studentDashboardTab === 'clan' && 'Connect with your clan and join team activities.'}
                         {studentDashboardTab === 'leaderboard' && 'See how you rank against other agents.'}
@@ -2183,6 +2187,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
                     {studentDashboardTab === 'home' && (
                       <>
+                        {renderProfileSlot()}
                         <article className="student-feed-card relative p-5 sm:p-6" data-testid="dashboard-start-quest">
                           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_90%_10%,rgba(34,211,238,0.18),transparent_38%),linear-gradient(135deg,rgba(8,47,73,0.36),transparent_65%)]" aria-hidden />
                           <div className="relative">
@@ -2202,25 +2207,13 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                           </div>
                         </article>
 
-                        <section className="grid grid-cols-2 gap-3 sm:grid-cols-3" aria-label="Progress summary">
-                          <div className="student-feed-card p-4"><p className="text-xs font-bold uppercase tracking-wider text-slate-400">Daily progress</p><p className="mt-2 text-2xl font-black text-white">{studyProgress}%</p><p className="mt-1 text-xs text-slate-400">{taskCompletionLabel}</p></div>
+                        <section className="grid grid-cols-2 gap-3" aria-label="Player stats">
                           <div className="student-feed-card p-4"><p className="text-xs font-bold uppercase tracking-wider text-slate-400">Streak</p><p className="mt-2 text-2xl font-black text-orange-200">🔥 {profile?.streak || 0}</p><p className="mt-1 text-xs text-slate-400">Keep your rhythm going</p></div>
-                          <div className="student-feed-card col-span-2 p-4 sm:col-span-1"><p className="text-xs font-bold uppercase tracking-wider text-slate-400">Action points</p><p className="mt-2 text-2xl font-black text-emerald-200">{profile?.ap_now || 0}/{profile?.ap_max || 0}</p><p className="mt-1 text-xs text-slate-400">Ready for missions</p></div>
+                          <div className="student-feed-card p-4"><p className="text-xs font-bold uppercase tracking-wider text-slate-400">Action points</p><p className="mt-2 text-2xl font-black text-emerald-200">{profile?.ap_now || 0}/{profile?.ap_max || 0}</p><p className="mt-1 text-xs text-slate-400">Ready for missions</p></div>
                         </section>
-
-                        {isStudent && (
-                          <article className="student-feed-card p-5">
-                            <div className="flex items-start gap-4">
-                              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-purple-400/15 text-2xl" aria-hidden>✍️</span>
-                              <div className="min-w-0 flex-1">
-                                <p className="text-xs font-black uppercase tracking-wider text-purple-200">Recommended practice</p>
-                                <h2 className="mt-1 font-heading text-xl text-white">Strengthen your writing</h2>
-                                <p className="mt-1 text-sm leading-6 text-slate-400">Draft, repair, and improve with a guided AI-coached mission.</p>
-                                <button type="button" onMouseEnter={preloadWritingHub} onFocus={preloadWritingHub} onClick={() => handleViewChange('writing')} className="mt-3 min-h-11 rounded-xl border border-purple-300/30 bg-purple-300/10 px-4 py-2 text-sm font-black text-purple-100 hover:bg-purple-300/20">Open Writing Hub</button>
-                              </div>
-                            </div>
-                          </article>
-                        )}
+                        {renderCapsSection()}
+                        <article className="student-feed-card p-5"><h2 className="font-heading text-xl text-white">Invite Friends</h2><p className="mt-1 text-sm text-slate-400">Bring a friend into Brains Heist and learn together.</p><button type="button" onClick={() => void navigator.share?.({ title: 'Brains Heist', text: 'Join me on Brains Heist!', url: window.location.origin })} className="mt-3 min-h-11 rounded-xl bg-purple-400 px-4 py-2 font-black text-slate-950">Share invite</button></article>
+                        {renderNewsSection()}
                       </>
                     )}
 
@@ -2232,6 +2225,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                     )}
 
                     {studentDashboardTab === 'learn' && (
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        {isStudent && <article className="student-feed-card p-5"><div className="text-3xl" aria-hidden>✍️</div><h2 className="mt-2 font-heading text-xl text-white">Writing Hub</h2><p className="mt-1 text-sm text-slate-400">Draft, repair, and improve with guided AI coaching.</p><button type="button" onMouseEnter={preloadWritingHub} onFocus={preloadWritingHub} onClick={() => handleViewChange('writing')} className="mt-3 min-h-11 rounded-xl bg-purple-300 px-4 py-2 font-black text-slate-950">Open Writing Hub</button></article>}
+                        <article className="student-feed-card p-5"><div className="text-3xl" aria-hidden>🎯</div><h2 className="mt-2 font-heading text-xl text-white">IELTS Prep</h2><p className="mt-1 text-sm text-slate-400">Focused preparation for every IELTS skill.</p><button type="button" disabled={!hasSchool} onClick={() => { window.location.href = '/ielts'; }} className="mt-3 min-h-11 rounded-xl bg-cyan-300 px-4 py-2 font-black text-slate-950 disabled:opacity-50">{hasSchool ? 'Open IELTS Prep' : 'School only'}</button></article>
+                        <article className="student-feed-card p-5"><div className="text-3xl" aria-hidden>🧪</div><h2 className="mt-2 font-heading text-xl text-white">Cambridge Tests</h2><p className="mt-1 text-sm text-slate-400">Practice Cambridge reading, grammar, and science tests.</p><button type="button" disabled={!hasSchool} onClick={() => handleViewChange('cambridge')} className="mt-3 min-h-11 rounded-xl bg-blue-300 px-4 py-2 font-black text-slate-950 disabled:opacity-50">{hasSchool ? 'Open Cambridge Tests' : 'School only'}</button></article>
+                      </div>
+                    )}
+
+                    {studentDashboardTab === 'game' && (
                       <MainActions
                         onStartQuest={handleQuestAction} onStartPvp={() => handleViewChange('pvp')}
                         onOpenRaid={!isStudent ? () => handleViewChange('raids') : undefined} onVisitShop={() => handleViewChange('shop')}
@@ -2244,6 +2245,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                         clanBadgeCount={pendingClanRequests + unreadClanChatMessages} schoolName={profile?.school_name} schoolLogoUrl={profile?.school_logo_url}
                         isPro={isProUser} isPilot={isPilotPlan} onUpgrade={(featureLabel) => { setUpgradeFeatureLabel(featureLabel); setShowUpgradeModal(true); }}
                       />
+                    )}
+
+                    {studentDashboardTab === 'tournaments' && (
+                      <article className="student-feed-card p-6 text-center"><img src="/mission-console-images/tournament.webp" alt="" className="mx-auto h-40 w-40 object-contain" /><h2 className="font-heading text-2xl text-white">Tournaments</h2><p className="mt-2 text-sm text-slate-400">Compete in live events and climb the tournament standings.</p><button type="button" onClick={() => handleViewChange('tournament')} className="mt-5 min-h-11 rounded-xl bg-amber-300 px-5 py-2.5 font-black text-slate-950">Open Tournaments</button></article>
                     )}
 
                     {studentDashboardTab === 'clan' && (
@@ -2271,10 +2276,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                     )}
 
                     {studentDashboardTab === 'more' && (
-                      <div className="grid gap-4">
-                        {renderProfileSlot()}
-                        {renderCapsSection()}
-                        {renderNewsSection()}
+                      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                        {(['tasks', 'tournaments', 'leaderboard'] as StudentDashboardDestination[]).map((destination) => <button key={destination} type="button" onClick={() => dashboardNavigate(destination)} className="student-feed-card min-h-28 p-5 text-left font-heading text-lg capitalize text-white transition hover:border-cyan-300/50">{destination}</button>)}
                       </div>
                     )}
                   </section>
@@ -2424,6 +2427,18 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         <div className={cinematicViewClass}>
           {renderView()}
         </div>
+        {profile && isPlayerMode && !isTeacherRole && !isSchoolAdminRole && view !== 'dashboard' && ['leaderboard', 'shop', 'inventory', 'pvp', 'lockdown', 'tournament', 'achievements', 'cambridge', 'clan'].includes(view) && (
+          <StudentDashboardBottomNavigation
+            assignmentCount={activeAssignment ? 1 : 0}
+            clanBadgeCount={pendingClanRequests + unreadClanChatMessages}
+            activeDestination={view === 'clan' ? 'clan' : view === 'tournament' ? 'tournaments' : view === 'leaderboard' ? 'leaderboard' : 'game'}
+            onNavigate={(destination) => {
+              if (destination === 'clan') { handleViewChange('clan'); return; }
+              setStudentDashboardTab(destination);
+              handleViewChange('dashboard');
+            }}
+          />
+        )}
         {profile && view === 'dashboard' && isPlayerMode && !isTeacherRole && !isSchoolAdminRole && (
           <DashboardTourOverlay
             profile={profile}
