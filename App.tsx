@@ -1441,6 +1441,27 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     handleViewChange('quest');
   };
 
+  const handleShareInvite = async () => {
+    const shareData = {
+      title: 'Brains Heist',
+      text: 'Join me on Brains Heist and learn together!',
+      url: window.location.origin,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        return;
+      }
+
+      await navigator.clipboard.writeText(shareData.url);
+      addToast('Invite link copied. Send it to a friend when you are ready.', 'success');
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      addToast('The invite could not be shared. Please try again.', 'error');
+    }
+  };
+
   const handleGrantReward = (
     deltas: { xp?: number; coins?: number; gemstones?: number; ap?: number },
     finalValues?: { xp: number; coins: number; level: number; gemstones: number; xp_status?: XpStatus }
@@ -2149,8 +2170,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             };
 
-            const nextActionLabel = activeAssignment ? 'Start assignment' : 'Continue learning';
-            const nextActionTitle = activeAssignment?.title || 'Choose your next mission';
+            const nextActionLabel = activeAssignment ? 'Start assignment' : 'Start today’s practice';
+            const nextActionTitle = activeAssignment?.title || 'Daily skill practice';
 
             return (
               <main className="mt-4 sm:mt-6">
@@ -2173,31 +2194,35 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                     {studentDashboardTab === 'home' && (
                       <>
                         {renderProfileSlot()}
-                        <article className="student-feed-card relative p-5 sm:p-6" data-testid="dashboard-start-quest">
+                        <article className="student-feed-card student-next-mission relative p-5 sm:p-6" data-testid="dashboard-start-quest">
                           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_90%_10%,rgba(34,211,238,0.18),transparent_38%),linear-gradient(135deg,rgba(8,47,73,0.36),transparent_65%)]" aria-hidden />
                           <div className="relative">
                             <div className="flex flex-wrap items-center justify-between gap-2">
                               <span className="rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs font-black uppercase tracking-wider text-cyan-100">Up next</span>
-                              <span className="text-xs font-semibold text-slate-400">{activeAssignment ? 'Teacher assigned' : 'Recommended for you'}</span>
+                              <span className="text-xs font-semibold text-slate-300">{activeAssignment ? 'Teacher assigned' : 'Matched to your progress'}</span>
                             </div>
                             <h2 className="mt-4 font-heading text-2xl text-white sm:text-3xl">{nextActionTitle}</h2>
                             <p className="mt-2 max-w-xl text-sm leading-6 text-slate-300">
                               {activeAssignment
                                 ? `${activeAssignment.subject_name || 'General'} · ${activeAssignment.due_at ? `Due ${new Date(activeAssignment.due_at).toLocaleString()}` : 'No deadline'}`
-                                : 'Build momentum with a focused learning mission matched to your progress.'}
+                                : 'A short adaptive mission based on your current level. Finish it to keep your streak moving.'}
                             </p>
-                            <button type="button" onClick={handleQuestAction} className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-cyan-300 px-5 py-2.5 font-black text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200">
+                            <button type="button" onClick={handleQuestAction} className="student-primary-button mt-5">
                               {nextActionLabel} <span className="ml-2" aria-hidden>→</span>
                             </button>
                           </div>
                         </article>
 
-                        <section className="grid grid-cols-2 gap-3" aria-label="Player stats">
-                          <div className="student-feed-card p-4"><p className="text-xs font-bold uppercase tracking-wider text-slate-400">Streak</p><p className="mt-2 text-2xl font-black text-orange-200">🔥 {profile?.streak || 0}</p><p className="mt-1 text-xs text-slate-400">Keep your rhythm going</p></div>
-                          <div className="student-feed-card p-4"><p className="text-xs font-bold uppercase tracking-wider text-slate-400">Action points</p><p className="mt-2 text-2xl font-black text-emerald-200">{profile?.ap_now || 0}/{profile?.ap_max || 0}</p><p className="mt-1 text-xs text-slate-400">Ready for missions</p></div>
+                        <section className="student-quick-stats" aria-label="Player stats">
+                          <div className="student-feed-card student-quick-stat"><span className="student-quick-stat__icon" aria-hidden>🔥</span><span><strong>Streak</strong><b>{profile?.streak || 0} days</b><small>Keep your rhythm going</small></span></div>
+                          <div className="student-feed-card student-quick-stat"><span className="student-quick-stat__icon" aria-hidden>⚡</span><span><strong>Action points</strong><b>{profile?.ap_now || 0}/{profile?.ap_max || 0}</b><small>Ready for missions</small></span></div>
                         </section>
                         {renderCapsSection()}
-                        <article className="student-feed-card p-5"><h2 className="font-heading text-xl text-white">Invite Friends</h2><p className="mt-1 text-sm text-slate-400">Bring a friend into Brains Heist and learn together.</p><button type="button" onClick={() => void navigator.share?.({ title: 'Brains Heist', text: 'Join me on Brains Heist!', url: window.location.origin })} className="mt-3 min-h-11 rounded-xl bg-purple-400 px-4 py-2 font-black text-slate-950">Share invite</button></article>
+                        <article className="student-feed-card student-invite-card">
+                          <span className="student-invite-card__icon" aria-hidden>👥</span>
+                          <div className="student-invite-card__copy"><h2>Invite a friend</h2><p>Share a secure link and learn together.</p></div>
+                          <button type="button" onClick={() => void handleShareInvite()} className="student-secondary-button">Share link</button>
+                        </article>
                         {renderNewsSection()}
                       </>
                     )}
@@ -2210,10 +2235,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                     )}
 
                     {studentDashboardTab === 'learn' && (
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        {isStudent && <article className="student-feed-card p-5"><div className="text-3xl" aria-hidden>✍️</div><h2 className="mt-2 font-heading text-xl text-white">Writing Hub</h2><p className="mt-1 text-sm text-slate-400">Draft, repair, and improve with guided AI coaching.</p><button type="button" onMouseEnter={preloadWritingHub} onFocus={preloadWritingHub} onClick={() => handleViewChange('writing')} className="mt-3 min-h-11 rounded-xl bg-purple-300 px-4 py-2 font-black text-slate-950">Open Writing Hub</button></article>}
-                        <article className="student-feed-card p-5"><div className="text-3xl" aria-hidden>🎯</div><h2 className="mt-2 font-heading text-xl text-white">IELTS Prep</h2><p className="mt-1 text-sm text-slate-400">Focused preparation for every IELTS skill.</p><button type="button" disabled={!hasSchool} onClick={() => { window.location.href = '/ielts'; }} className="mt-3 min-h-11 rounded-xl bg-cyan-300 px-4 py-2 font-black text-slate-950 disabled:opacity-50">{hasSchool ? 'Open IELTS Prep' : 'School only'}</button></article>
-                        <article className="student-feed-card p-5"><div className="text-3xl" aria-hidden>🧪</div><h2 className="mt-2 font-heading text-xl text-white">Cambridge Tests</h2><p className="mt-1 text-sm text-slate-400">Practice Cambridge reading, grammar, and science tests.</p><button type="button" disabled={!hasSchool} onClick={() => handleViewChange('cambridge')} className="mt-3 min-h-11 rounded-xl bg-blue-300 px-4 py-2 font-black text-slate-950 disabled:opacity-50">{hasSchool ? 'Open Cambridge Tests' : 'School only'}</button></article>
+                      <div className="student-learning-grid">
+                        {isStudent && <article className="student-feed-card student-learning-card"><div className="student-learning-card__icon" aria-hidden>✍️</div><div className="student-learning-card__copy"><span className="student-learning-card__eyebrow">Writing coach</span><h2>Writing Hub</h2><p>Draft, repair, and improve with guided AI coaching.</p></div><button type="button" onMouseEnter={preloadWritingHub} onFocus={preloadWritingHub} onClick={() => handleViewChange('writing')} className="student-primary-button">Open Writing Hub <span aria-hidden>→</span></button></article>}
+                        <article className="student-feed-card student-learning-card"><div className="student-learning-card__icon" aria-hidden>🎯</div><div className="student-learning-card__copy"><span className="student-learning-card__eyebrow">Exam preparation</span><h2>IELTS Prep</h2><p>Focused preparation across reading, writing, listening, and speaking.</p></div><button type="button" disabled={!hasSchool} onClick={() => { window.location.href = '/ielts'; }} className="student-primary-button">{hasSchool ? 'Open IELTS Prep' : 'School access required'} <span aria-hidden>→</span></button></article>
+                        <article className="student-feed-card student-learning-card"><div className="student-learning-card__icon" aria-hidden>🧪</div><div className="student-learning-card__copy"><span className="student-learning-card__eyebrow">Subject practice</span><h2>Cambridge Tests</h2><p>Practice Cambridge reading, grammar, and science tests.</p></div><button type="button" disabled={!hasSchool} onClick={() => handleViewChange('cambridge')} className="student-primary-button">{hasSchool ? 'Open Cambridge Tests' : 'School access required'} <span aria-hidden>→</span></button></article>
                       </div>
                     )}
 
@@ -2261,8 +2286,12 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                     )}
 
                     {studentDashboardTab === 'more' && (
-                      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                        {(['tasks', 'tournaments', 'leaderboard'] as StudentDashboardDestination[]).map((destination) => <button key={destination} type="button" onClick={() => dashboardNavigate(destination)} className="student-feed-card min-h-28 p-5 text-left font-heading text-lg capitalize text-white transition hover:border-cyan-300/50">{destination}</button>)}
+                      <div className="student-more-grid">
+                        {([
+                          { id: 'tasks', icon: '✅', label: 'Tasks', description: pendingTasks > 0 ? `${pendingTasks} task${pendingTasks === 1 ? '' : 's'} waiting for you` : 'Review assignments and completed work' },
+                          { id: 'tournaments', icon: '🏅', label: 'Tournaments', description: 'View live events and competition standings' },
+                          { id: 'leaderboard', icon: '🏆', label: 'Rankings', description: 'See your position in your school community' },
+                        ] as Array<{ id: StudentDashboardDestination; icon: string; label: string; description: string }>).map((item) => <button key={item.id} type="button" onClick={() => dashboardNavigate(item.id)} className="student-feed-card student-more-card"><span className="student-more-card__icon" aria-hidden>{item.icon}</span><span className="student-more-card__copy"><strong>{item.label}</strong><small>{item.description}</small></span><span className="student-more-card__arrow" aria-hidden>→</span></button>)}
                       </div>
                     )}
                   </section>

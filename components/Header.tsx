@@ -381,40 +381,30 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
         <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-2 px-3 py-2 sm:px-4 lg:px-6">
           
           {/* Mobile Layout (< 768px) */}
-          <div className="md:hidden">
-            <div className="flex items-center justify-between">
-              <div className="flex min-w-0 items-center gap-2">
+          <div className="student-mobile-header md:hidden">
+            <div className="student-mobile-header__primary">
+              <div className="student-mobile-header__brand">
                 <button type="button" onClick={handleBrandClick} aria-label={`Go to ${schoolBrand.name} dashboard`}>
                   <SchoolBrand brand={schoolBrand} showName={false} imageClassName="w-8 h-8 flex-shrink-0 object-contain" />
                 </button>
                 <button
                   type="button"
                   onClick={handleBrandClick}
-                  className="font-heading flex-shrink-0 text-lg font-black tracking-wider text-cyan-300 select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70"
+                  className="student-mobile-header__name font-heading select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70"
                   aria-label="Go to dashboard"
                 >
                   {schoolBrand.name}
                 </button>
               </div>
-              {/* Plan Badge - Mobile */}
-              {badgeInfo && badgeInfo.label !== 'FREE' && (
-                <div className="plan-badge-mobile flex-shrink-0 mx-1">
-                  <div className={`plan-badge plan-badge--${badgeInfo.color}`}>
-                    <span className="plan-badge__label">{badgeInfo.label}</span>
-                    {badgeInfo.countdown && (
-                      <span className="plan-badge__countdown">{badgeInfo.countdown}</span>
-                    )}
-                  </div>
-                </div>
-              )}
-              <div className="relative flex items-center gap-2" ref={mobileMenuRef}>
+              <div className="student-mobile-header__actions" ref={mobileMenuRef}>
                 <button
                   type="button"
                   onClick={() => setMobileMenuOpen((prev) => !prev)}
-                  className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-900/60 text-xl text-slate-200 shadow-sm shadow-slate-950/40 transition hover:border-emerald-500/60 hover:text-white"
-                  aria-label="Open quick menu"
+                  className="student-mobile-header__menu"
+                  aria-label="Open account menu"
+                  aria-expanded={mobileMenuOpen}
                 >
-                  ☰
+                  ⋯
                   {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[11px] font-bold text-white">
                       {unreadCount > 9 ? '9+' : unreadCount}
@@ -427,7 +417,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                     setShowSettingsModal(true);
                     setMobileMenuOpen(false);
                   }}
-                  className="relative rounded-full"
+                  className="student-mobile-header__avatar"
                   aria-label="Open settings"
                 >
                   <AvatarWithFrame
@@ -523,16 +513,26 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
             </div>
 
             {profile.role !== 'teacher' && (
-              <div className="mt-2 flex flex-wrap items-center justify-center gap-1.5">
+              <div className="student-mobile-hud" aria-label="Player resources">
+                {badgeInfo && badgeInfo.label !== 'FREE' && (
+                  <div className="plan-badge-mobile flex-shrink-0">
+                    <div className={`plan-badge plan-badge--${badgeInfo.color}`}>
+                      <span className="plan-badge__label">{badgeInfo.label}</span>
+                      {badgeInfo.countdown && (
+                        <span className="plan-badge__countdown">{badgeInfo.countdown}</span>
+                      )}
+                    </div>
+                  </div>
+                )}
                 {/* Coins */}
-                <div className="flex items-center gap-1.5 rounded-xl border border-yellow-500/40 bg-yellow-500/10 px-2.5 py-1.5">
+                <div className="student-mobile-hud__chip border-yellow-500/40 bg-yellow-500/10">
                   <CoinAnimation width={18} height={18} />
                   <span id="coin-hud" className="font-mono text-xs font-bold text-white">
                     {(profile.coins ?? 0).toLocaleString()}
                   </span>
                 </div>
                 {/* Gemstones */}
-                <div className="flex items-center gap-1.5 rounded-xl border border-rose-500/50 bg-rose-500/10 px-2.5 py-1.5">
+                <div className="student-mobile-hud__chip border-rose-500/50 bg-rose-500/10">
                   <div className="h-4 w-4">
                     <GemIcon />
                   </div>
@@ -541,7 +541,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                   </span>
                 </div>
                 {/* XP */}
-                <div className="flex items-center gap-1.5 rounded-xl border border-cyan-400/40 bg-cyan-500/10 px-2.5 py-1.5">
+                <div className="student-mobile-hud__chip border-cyan-400/40 bg-cyan-500/10">
                   <div className="h-4 w-4 text-cyan-300">
                     <XPIcon />
                   </div>
@@ -550,7 +550,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                   </span>
                 </div>
                 {/* AP */}
-                <div className="flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1.5">
+                <div className="student-mobile-hud__chip border-emerald-500/40 bg-emerald-500/10">
                   <div className="h-4 w-4 text-emerald-300">
                     <APIcon />
                   </div>
@@ -559,7 +559,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                   </span>
                 </div>
                 {/* Streak */}
-                <div className={`flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 ${
+                <div className={`student-mobile-hud__chip ${
                   profile.streak >= 7 ? 'border-orange-500/50 bg-orange-500/15' : 'border-slate-700 bg-slate-800/40'
                 }`}>
                   {getStreakBadge(profile.streak) ? (

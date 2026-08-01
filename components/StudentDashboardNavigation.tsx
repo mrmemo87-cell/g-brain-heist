@@ -1,6 +1,5 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { useSmartCollapsedNavigation } from '../src/hooks/useSmartCollapsedNavigation';
 
 export type StudentDashboardDestination =
   | 'home'
@@ -54,9 +53,8 @@ const StudentDashboardNavigation: React.FC<StudentDashboardNavigationProps> = ({
   activeDestination,
   onNavigate,
 }) => {
-  const isBottomNavigationCollapsed = useSmartCollapsedNavigation(activeDestination);
   const bottomNavigation = (
-    <nav className={`student-dashboard-bottom-nav ${isBottomNavigationCollapsed ? 'is-collapsed' : ''}`} aria-label="Student dashboard mobile navigation">
+    <nav className="student-dashboard-bottom-nav" aria-label="Student dashboard mobile navigation">
       {mobileDestinations.map((destination) => {
         const badge = badgeFor(destination.id, assignmentCount, clanBadgeCount);
         return (
@@ -120,9 +118,8 @@ const StudentDashboardNavigation: React.FC<StudentDashboardNavigationProps> = ({
 export const StudentDashboardBottomNavigation: React.FC<Pick<StudentDashboardNavigationProps,
   'assignmentCount' | 'clanBadgeCount' | 'activeDestination' | 'onNavigate'
 >> = ({ assignmentCount, clanBadgeCount, activeDestination, onNavigate }) => {
-  const isCollapsed = useSmartCollapsedNavigation(activeDestination);
   return createPortal(
-  <nav className={`student-dashboard-bottom-nav ${isCollapsed ? 'is-collapsed' : ''}`} aria-label="Student dashboard navigation">
+  <nav className="student-dashboard-bottom-nav" aria-label="Student dashboard navigation">
     {mobileDestinations.map((destination) => {
       const badge = badgeFor(destination.id, assignmentCount, clanBadgeCount);
       return <button key={destination.id} type="button" className={`student-dashboard-bottom-link ${destination.id === activeDestination ? 'is-active' : ''}`} onClick={() => onNavigate(destination.id)} aria-label={destination.label} aria-current={destination.id === activeDestination ? 'page' : undefined}>
