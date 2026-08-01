@@ -5554,55 +5554,6 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-10 text-center text-slate-500">No students have completed this assignment yet.</div>
           ) : (
             <>
-              {/* Question Analysis Summary */}
-              <div className="mb-6">
-                  <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-                    <h4 className="text-lg font-bold text-slate-800">📊 Question Analysis</h4>
-                    {questionAnalysis.length > 0 ? <div className="inline-flex rounded-lg border border-slate-300 p-1 text-xs" aria-label="Question order">
-                      <button type="button" onClick={() => setAnswerOrder('assignment')} className={`rounded-md px-3 py-1.5 font-semibold ${answerOrder === 'assignment' ? 'bg-cyan-600 text-white' : 'text-slate-600'}`}>Assignment order</button>
-                      <button type="button" onClick={() => setAnswerOrder('review')} className={`rounded-md px-3 py-1.5 font-semibold ${answerOrder === 'review' ? 'bg-cyan-600 text-white' : 'text-slate-600'}`}>Needs review first</button>
-                    </div> : null}
-                  </div>
-                  {questionAnalysis.length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {(answerOrder === 'assignment' ? questionAnalysis : [...questionAnalysis].sort((a, b) => a.accuracy_percent - b.accuracy_percent)).map((qa, idx) => (
-                      <div 
-                        key={qa.question_id} 
-                        className={`p-4 rounded-xl border ${
-                          qa.accuracy_percent < 50 
-                            ? 'border-red-300 bg-red-50' 
-                            : qa.accuracy_percent < 70 
-                              ? 'border-amber-300 bg-amber-50' 
-                              : 'border-green-300 bg-green-50'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <span className="text-xs font-bold text-slate-500">Q{qa.order_index ?? idx + 1}</span>
-                          <span className={`text-lg font-bold ${
-                            qa.accuracy_percent < 50 ? 'text-red-600' : qa.accuracy_percent < 70 ? 'text-amber-600' : 'text-green-600'
-                          }`}>
-                            {qa.accuracy_percent}%
-                          </span>
-                        </div>
-                        <p className="text-sm text-slate-700 line-clamp-2 mb-2">{qa.question_text}</p>
-                        <div className="flex items-center justify-between text-xs text-slate-500">
-                          <span>✅ {qa.correct_count} / ❌ {qa.incorrect_count}</span>
-                          <span>⏱️ {Math.round(qa.avg_time_ms / 1000)}s avg</span>
-                        </div>
-                        {qa.common_wrong_answers && qa.common_wrong_answers.length > 0 && (
-                          <div className="mt-2 pt-2 border-t border-slate-200">
-                            <span className="text-xs font-semibold text-red-600">Common mistakes:</span>
-                            <ul className="text-xs text-slate-600 mt-1">
-                              {qa.common_wrong_answers.slice(0, 2).map((w, wi) => (
-                                <li key={wi}>"{w.answer}" ({w.count}x)</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div> : <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-500">Question-level analysis is not available for these submissions yet.</div>}
-              </div>
-
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5">
                 <div><h3 className="text-xl font-bold text-slate-800">Student Performance</h3><p className="mt-1 text-sm text-slate-500">Open a student to review every answer and the evidence behind their result.</p></div>
                 <button
@@ -5657,6 +5608,71 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   </tbody>
                 </table>
               </div>
+
+              {/* Question Analysis follows the complete student roster and stays closed by default. */}
+              <details className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-4 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset [&::-webkit-details-marker]:hidden">
+                  <span>
+                    <span className="block text-lg font-bold text-slate-800">📊 Question Analysis</span>
+                    <span className="mt-1 block text-sm text-slate-500">Review accuracy, response time, and common mistakes for every question.</span>
+                  </span>
+                  <span className="flex flex-none items-center gap-2 text-sm font-semibold text-cyan-700">
+                    {questionAnalysis.length > 0 ? `${questionAnalysis.length} questions` : 'No data yet'}
+                    <span aria-hidden="true" className="text-lg transition-transform group-open:rotate-180">⌄</span>
+                  </span>
+                </summary>
+                <div className="border-t border-slate-200 p-4 sm:p-5">
+                  {questionAnalysis.length > 0 ? (
+                    <>
+                      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                        <p className="text-sm font-semibold text-slate-600">Choose how questions are arranged</p>
+                        <div className="inline-flex rounded-lg border border-slate-300 p-1 text-xs" aria-label="Question order">
+                          <button type="button" onClick={() => setAnswerOrder('assignment')} className={`rounded-md px-3 py-1.5 font-semibold ${answerOrder === 'assignment' ? 'bg-cyan-600 text-white' : 'text-slate-600'}`}>Assignment order</button>
+                          <button type="button" onClick={() => setAnswerOrder('review')} className={`rounded-md px-3 py-1.5 font-semibold ${answerOrder === 'review' ? 'bg-cyan-600 text-white' : 'text-slate-600'}`}>Needs review first</button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {(answerOrder === 'assignment' ? questionAnalysis : [...questionAnalysis].sort((a, b) => a.accuracy_percent - b.accuracy_percent)).map((qa, idx) => (
+                          <div
+                            key={qa.question_id}
+                            className={`rounded-xl border p-4 ${
+                              qa.accuracy_percent < 50
+                                ? 'border-red-300 bg-red-50'
+                                : qa.accuracy_percent < 70
+                                  ? 'border-amber-300 bg-amber-50'
+                                  : 'border-green-300 bg-green-50'
+                            }`}
+                          >
+                            <div className="mb-2 flex items-start justify-between">
+                              <span className="text-xs font-bold text-slate-500">Q{qa.order_index ?? idx + 1}</span>
+                              <span className={`text-lg font-bold ${qa.accuracy_percent < 50 ? 'text-red-600' : qa.accuracy_percent < 70 ? 'text-amber-600' : 'text-green-600'}`}>
+                                {qa.accuracy_percent}%
+                              </span>
+                            </div>
+                            <p className="mb-2 line-clamp-2 text-sm text-slate-700">{qa.question_text}</p>
+                            <div className="flex items-center justify-between text-xs text-slate-500">
+                              <span>✅ {qa.correct_count} / ❌ {qa.incorrect_count}</span>
+                              <span>⏱️ {Math.round(qa.avg_time_ms / 1000)}s avg</span>
+                            </div>
+                            {qa.common_wrong_answers && qa.common_wrong_answers.length > 0 && (
+                              <div className="mt-2 border-t border-slate-200 pt-2">
+                                <span className="text-xs font-semibold text-red-600">Common mistakes:</span>
+                                <ul className="mt-1 text-xs text-slate-600">
+                                  {qa.common_wrong_answers.slice(0, 2).map((w, wi) => (
+                                    <li key={wi}>"{w.answer}" ({w.count}x)</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-500">Question-level analysis is not available for these submissions yet.</div>
+                  )}
+                </div>
+              </details>
             </>
           )}
         </div>
