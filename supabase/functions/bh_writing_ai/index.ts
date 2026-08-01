@@ -27,9 +27,9 @@ type AiResult = {
     | "mostly_correct_but_needs_polish";
   what_is_working?: string[];
   what_is_missing?: string[];
-  grammar_fixes?: Array<{ original: string; issue: string; better_version: string }>;
-  punctuation_fixes?: Array<{ original: string; issue: string; better_version: string }>;
-  natural_phrase_upgrades?: Array<{ original: string; better_version: string; why_it_helps: string }>;
+  grammar_fixes?: Array<{ original: string; issue: string; better_version: string; start_char?: number; end_char?: number; weakness_tag?: string }>;
+  punctuation_fixes?: Array<{ original: string; issue: string; better_version: string; start_char?: number; end_char?: number; weakness_tag?: string }>;
+  natural_phrase_upgrades?: Array<{ original: string; better_version: string; why_it_helps: string; start_char?: number; end_char?: number; weakness_tag?: string }>;
   style_tone_feedback?: Array<{ evidence: string; issue: string; suggestion: string }>;
   next_move?: string;
   example_revision_start?: string;
@@ -199,7 +199,7 @@ const normalizeAiResult = (mode: Mode, raw: unknown, studentResponse = ""): AiRe
 
     const normalizeFixes = (
       input: unknown,
-    ): Array<{ original: string; issue: string; better_version: string }> => {
+    ): Array<{ original: string; issue: string; better_version: string; start_char?: number; end_char?: number; weakness_tag?: string }> => {
       if (!Array.isArray(input)) return [];
       return input
         .map((item) => {
@@ -209,12 +209,15 @@ const normalizeAiResult = (mode: Mode, raw: unknown, studentResponse = ""): AiRe
             original: typeof obj.original === "string" ? obj.original.trim() : "",
             issue: typeof obj.issue === "string" ? obj.issue.trim() : "",
             better_version: typeof obj.better_version === "string" ? obj.better_version.trim() : "",
+            start_char: typeof obj.start_char === "number" && Number.isInteger(obj.start_char) ? obj.start_char : undefined,
+            end_char: typeof obj.end_char === "number" && Number.isInteger(obj.end_char) ? obj.end_char : undefined,
+            weakness_tag: typeof obj.weakness_tag === "string" ? obj.weakness_tag : undefined,
           };
         })
-        .filter((item): item is { original: string; issue: string; better_version: string } =>
+        .filter((item): item is { original: string; issue: string; better_version: string; start_char?: number; end_char?: number; weakness_tag?: string } =>
           Boolean(item && item.original && item.issue && item.better_version)
         )
-        .slice(0, 5);
+        .slice(0, 20);
     };
 
     const grammarIssuePattern =
@@ -236,14 +239,14 @@ const normalizeAiResult = (mode: Mode, raw: unknown, studentResponse = ""): AiRe
       );
 
       return {
-        grammar: [...keptGrammar, ...movedToGrammar].slice(0, 3),
-        punctuation: [...keptPunctuation, ...movedToPunctuation].slice(0, 3),
+        grammar: [...keptGrammar, ...movedToGrammar].slice(0, 20),
+        punctuation: [...keptPunctuation, ...movedToPunctuation].slice(0, 20),
       };
     };
 
     const normalizePhraseUpgrades = (
       input: unknown,
-    ): Array<{ original: string; better_version: string; why_it_helps: string }> => {
+    ): Array<{ original: string; better_version: string; why_it_helps: string; start_char?: number; end_char?: number; weakness_tag?: string }> => {
       if (!Array.isArray(input)) return [];
       return input
         .map((item) => {
@@ -253,12 +256,15 @@ const normalizeAiResult = (mode: Mode, raw: unknown, studentResponse = ""): AiRe
             original: typeof obj.original === "string" ? obj.original.trim() : "",
             better_version: typeof obj.better_version === "string" ? obj.better_version.trim() : "",
             why_it_helps: typeof obj.why_it_helps === "string" ? obj.why_it_helps.trim() : "",
+            start_char: typeof obj.start_char === "number" && Number.isInteger(obj.start_char) ? obj.start_char : undefined,
+            end_char: typeof obj.end_char === "number" && Number.isInteger(obj.end_char) ? obj.end_char : undefined,
+            weakness_tag: typeof obj.weakness_tag === "string" ? obj.weakness_tag : undefined,
           };
         })
-        .filter((item): item is { original: string; better_version: string; why_it_helps: string } =>
+        .filter((item): item is { original: string; better_version: string; why_it_helps: string; start_char?: number; end_char?: number; weakness_tag?: string } =>
           Boolean(item && item.original && item.better_version && item.why_it_helps)
         )
-        .slice(0, 5);
+        .slice(0, 20);
     };
 
     const normalizeStyleTone = (
@@ -300,8 +306,13 @@ const normalizeAiResult = (mode: Mode, raw: unknown, studentResponse = ""): AiRe
     const wordSet = (text: string) => new Set(
       comparable(text).split(/[^\p{L}\p{N}]+/u).filter((word) => word.length >= 3),
     );
-    const hasGroundedRewrite = (original: string, betterVersion: string, kind: "grammar" | "punctuation" | "phrase") => {
-      if (exactOccurrenceCount(original) !== 1 || comparable(original) === comparable(betterVersion)) return false;
+    const hasGroundedRewrite = (fix: { original: string; better_version: string; start_char?: number; end_char?: number }, kind: "grammar" | "punctuation" | "phrase") => {
+      const { original, better_version: betterVersion } = fix;
+      const hasExactPosition = Number.isInteger(fix.start_char)
+        && fix.start_char! >= 0
+        && fix.end_char === fix.start_char! + original.length
+        && studentResponse.slice(fix.start_char, fix.end_char) === original;
+      if ((!hasExactPosition && exactOccurrenceCount(original) !== 1) || comparable(original) === comparable(betterVersion)) return false;
       if (kind === "punctuation") {
         const lettersAndNumbers = (text: string) => text.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
         return lettersAndNumbers(original) === lettersAndNumbers(betterVersion);
@@ -314,10 +325,10 @@ const normalizeAiResult = (mode: Mode, raw: unknown, studentResponse = ""): AiRe
       return overlap >= (kind === "grammar" ? 0.35 : 0.45);
     };
     repartitionedFixes.grammar = repartitionedFixes.grammar.filter((fix) =>
-      hasGroundedRewrite(fix.original, fix.better_version, "grammar")
+      hasGroundedRewrite(fix, "grammar")
     );
     repartitionedFixes.punctuation = repartitionedFixes.punctuation.filter((fix) =>
-      hasGroundedRewrite(fix.original, fix.better_version, "punctuation")
+      hasGroundedRewrite(fix, "punctuation")
     );
     const allowedWeaknessTags = new Set([
       "missed_content_point",
@@ -413,7 +424,7 @@ const normalizeAiResult = (mode: Mode, raw: unknown, studentResponse = ""): AiRe
       grammar_fixes: repartitionedFixes.grammar,
       punctuation_fixes: repartitionedFixes.punctuation,
       natural_phrase_upgrades: normalizePhraseUpgrades(value.natural_phrase_upgrades).filter((fix) =>
-        hasGroundedRewrite(fix.original, fix.better_version, "phrase")
+        hasGroundedRewrite(fix, "phrase")
       ),
       style_tone_feedback: normalizeStyleTone(value.style_tone_feedback),
       next_move: typeof value.next_move === "string" ? value.next_move : "",
@@ -473,9 +484,9 @@ const buildUserPrompt = (payload: Payload): string => {
       '- alignment: exactly one of on_task | partly_on_task | partially_on_task | off_topic | too_short | underdeveloped | mostly_correct_but_needs_polish',
       '- what_is_working: 2 evidence-based wins that reference exact student wording when useful',
       '- what_is_missing: 2 evidence-based missing content points that matter most for task completion',
-      '- grammar_fixes: up to 3 objects with keys original, issue, better_version',
-      '- punctuation_fixes: up to 3 objects with keys original, issue, better_version',
-      '- natural_phrase_upgrades: up to 3 objects with keys original, better_version, why_it_helps',
+      '- grammar_fixes: every confidently detected grammar or spelling mistake with keys original, issue, better_version, start_char, end_char, weakness_tag',
+      '- punctuation_fixes: every confidently detected punctuation or capitalization mistake with keys original, issue, better_version, start_char, end_char, weakness_tag',
+      '- natural_phrase_upgrades: every high-value unnatural phrase with keys original, better_version, why_it_helps, start_char, end_char, weakness_tag',
       '- style_tone_feedback: up to 2 objects with keys evidence, issue, suggestion',
       '- next_move: one best next revision move',
       '- example_revision_start: one concrete improved sentence/starter when useful',
@@ -492,9 +503,12 @@ const buildUserPrompt = (payload: Payload): string => {
       "- Never use third-person framing like 'the student', 'the response', or 'the story'.",
       "- Use direct evidence from the student response. Quote short snippets where useful.",
       "- Never invent evidence or errors that are not present.",
+      "- Review the complete response sentence by sentence. Do not stop after finding the first few mistakes.",
+      "- Do not repeat one mistake in multiple correction lists; return one record under the most accurate category.",
+      "- Give every correction record the single most accurate canonical weakness_tag from the allowed weakness_tags list so repeated patterns can be counted.",
       "- Every original/evidence value must be copied verbatim from exactly one place in the student response.",
       "- Every better_version must correct only its own original value, preserve the student's meaning, and must never be borrowed from a neighbouring sentence.",
-      "- For insertions or one-character errors, keep original long enough to identify the complete phrase (for example, use 'to he city', not only 'to').",
+      "- For insertions or one-character errors, include enough verbatim surrounding words to identify one unique location; never return only a common neighbouring token.",
       "- Do not return a correction when its evidence is repeated and cannot be uniquely identified.",
       "- Separate content/task issues from language issues and style/tone issues.",
       "- Prioritize the most important truth first. If task alignment is weak, say that clearly before language polish.",

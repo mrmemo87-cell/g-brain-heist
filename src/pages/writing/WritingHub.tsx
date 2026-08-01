@@ -83,9 +83,9 @@ interface WritingAiFeedbackAssist {
   alignment?: 'on_task' | 'partially_on_task' | 'off_topic' | 'too_short' | 'underdeveloped' | 'mostly_correct_but_needs_polish';
   what_is_working?: string[];
   what_is_missing?: string[];
-  grammar_fixes?: Array<{ original: string; issue: string; better_version: string }>;
-  punctuation_fixes?: Array<{ original: string; issue: string; better_version: string }>;
-  natural_phrase_upgrades?: Array<{ original: string; better_version: string; why_it_helps: string }>;
+  grammar_fixes?: Array<{ original: string; issue: string; better_version: string; start_char?: number; end_char?: number; weakness_tag?: string }>;
+  punctuation_fixes?: Array<{ original: string; issue: string; better_version: string; start_char?: number; end_char?: number; weakness_tag?: string }>;
+  natural_phrase_upgrades?: Array<{ original: string; better_version: string; why_it_helps: string; start_char?: number; end_char?: number; weakness_tag?: string }>;
   style_tone_feedback?: Array<{ evidence: string; issue: string; suggestion: string }>;
   next_move?: string;
   example_revision_start?: string;
@@ -148,6 +148,8 @@ interface ValidatedWritingFix {
   explanation: string;
   start: number;
   end: number;
+  providerStart?: number;
+  providerEnd?: number;
 }
 
 interface RepairQueueItem {
@@ -704,9 +706,9 @@ export const buildValidatedWritingFixes = (
 ): ValidatedWritingFix[] => {
   if (!text || !ai) return [];
   const candidates: Array<Omit<ValidatedWritingFix, 'id' | 'start' | 'end'>> = [
-    ...(ai.grammar_fixes ?? []).map((item) => ({ kind: 'grammar' as const, original: item.original, betterVersion: item.better_version, explanation: item.issue })),
-    ...(ai.punctuation_fixes ?? []).map((item) => ({ kind: 'punctuation' as const, original: item.original, betterVersion: item.better_version, explanation: item.issue })),
-    ...(ai.natural_phrase_upgrades ?? []).map((item) => ({ kind: 'phrase' as const, original: item.original, betterVersion: item.better_version, explanation: item.why_it_helps })),
+    ...(ai.grammar_fixes ?? []).map((item) => ({ kind: 'grammar' as const, original: item.original, betterVersion: item.better_version, explanation: item.issue, providerStart: item.start_char, providerEnd: item.end_char })),
+    ...(ai.punctuation_fixes ?? []).map((item) => ({ kind: 'punctuation' as const, original: item.original, betterVersion: item.better_version, explanation: item.issue, providerStart: item.start_char, providerEnd: item.end_char })),
+    ...(ai.natural_phrase_upgrades ?? []).map((item) => ({ kind: 'phrase' as const, original: item.original, betterVersion: item.better_version, explanation: item.why_it_helps, providerStart: item.start_char, providerEnd: item.end_char })),
     ...(ai.style_tone_feedback ?? []).map((item) => ({ kind: 'style' as const, original: item.evidence, betterVersion: item.suggestion, explanation: item.issue })),
   ];
   const seen = new Set<string>();
@@ -715,9 +717,14 @@ export const buildValidatedWritingFixes = (
     const betterVersion = candidate.betterVersion?.trim() ?? '';
     const explanation = candidate.explanation?.trim() ?? '';
     if (!original || !betterVersion || !explanation) return [];
+    const hasTrustedPosition = Number.isInteger(candidate.providerStart)
+      && candidate.providerStart! >= 0
+      && candidate.providerEnd === candidate.providerStart! + original.length
+      && text.slice(candidate.providerStart, candidate.providerEnd) === original;
     const occurrences = findAllExactOccurrences(text, original);
-    if (occurrences.length !== 1 || !isGroundedRewrite(original, betterVersion, candidate.kind)) return [];
-    const key = `${candidate.kind}:${occurrences[0]}:${original.length}:${normalizeComparisonText(betterVersion)}`;
+    const start = hasTrustedPosition ? candidate.providerStart! : occurrences.length === 1 ? occurrences[0]! : -1;
+    if (start < 0 || !isGroundedRewrite(original, betterVersion, candidate.kind)) return [];
+    const key = `${candidate.kind}:${start}:${original.length}:${normalizeComparisonText(betterVersion)}`;
     if (seen.has(key)) return [];
     seen.add(key);
     return [{
@@ -725,9 +732,9 @@ export const buildValidatedWritingFixes = (
       original,
       betterVersion,
       explanation,
-      id: `${candidate.kind}-${occurrences[0]}-${index}`,
-      start: occurrences[0],
-      end: occurrences[0] + original.length,
+      id: `${candidate.kind}-${start}-${index}`,
+      start,
+      end: start + original.length,
     }];
   });
 };
@@ -1268,12 +1275,12 @@ const explainConcreteChange = (issue: GuidedReviewIssue): string => {
   ) suffix += 1;
   const removed = original.slice(prefix, original.length - suffix);
   const added = better.slice(prefix, better.length - suffix);
-  if (!removed && added) return `Add "${added}" so "${original}" becomes "${better}".`;
-  if (removed && !added) return `Remove "${removed}" so "${original}" becomes "${better}".`;
+  if (!removed && added) return `Add "${added}" at the highlighted position.`;
+  if (removed && !added) return `Remove "${removed}" from the highlighted wording.`;
   if (removed && added && removed.toLocaleLowerCase() === added.toLocaleLowerCase()) {
     return `Change "${removed}" to "${added}" because it begins a new sentence.`;
   }
-  return `Change "${removed}" to "${added}" so "${original}" becomes "${better}".`;
+  return `Replace "${removed}" with "${added}" in the highlighted wording.`;
 };
 
 const containsMeaningfulTokenOverlap = (source: string, target: string): boolean => {
@@ -5640,7 +5647,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     original: item.original,
     betterVersion: item.betterVersion,
     explanation: item.explanation,
-  })).slice(0, 8);
+  }));
   const rubricScores = assessment ? [
     { key: 'content', label: 'Content', value: assessment.subscores.content },
     { key: 'language', label: 'Language', value: assessment.subscores.language },
@@ -6015,7 +6022,10 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                     </p>
                     {entry.weakness_tags.length > 0 && (
                       <p style={{ margin: 0, color: '#475569', fontSize: 13 }}>
-                        <strong>Focus memory:</strong> {entry.weakness_tags.map((tag) => tag.replaceAll('_', ' ')).join(' · ')}
+                        <strong>Focus memory:</strong> {entry.weakness_tags.map((tag) => {
+                          const count = entry.weakness_tag_counts[tag] ?? 1;
+                          return `${tag.replaceAll('_', ' ')}${count > 1 ? ` ×${count}` : ''}`;
+                        }).join(' · ')}
                       </p>
                     )}
                     {entry.has_feedback && entry.assessment && entry.student_submission.trim() && (

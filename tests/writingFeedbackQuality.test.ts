@@ -105,3 +105,59 @@ test('cinematic narrowing uses the correction bound to its evidence, never anoth
   assert.strictEqual(text.slice(grammar!.start, grammar!.end), 'entrance to he city');
   assert.strictEqual(grammar!.sourceFix?.betterVersion, 'entrance to the city');
 });
+
+test('quality rules generalize across unrelated students, wording, and correction positions', () => {
+  const cases = [
+    {
+      text: 'Every morning, Lina walk to school with her younger sister.',
+      original: 'Lina walk to school',
+      better: 'Lina walks to school',
+      kind: 'grammar' as const,
+    },
+    {
+      text: 'Our science experiment was success because everyone followed the steps.',
+      original: 'was success',
+      better: 'was successful',
+      kind: 'grammar' as const,
+    },
+    {
+      text: 'The audience listened carefully however they did not ask questions.',
+      original: 'carefully however',
+      better: 'carefully; however,',
+      kind: 'punctuation' as const,
+    },
+    {
+      text: 'I recommend the library because it gives students a quiet place to study.',
+      original: 'it gives students a quiet place to study',
+      better: 'it provides students with a quiet place to study',
+      kind: 'phrase' as const,
+    },
+  ];
+
+  cases.forEach((item) => {
+    const feedback = item.kind === 'punctuation'
+      ? { punctuation_fixes: [{ original: item.original, issue: 'Correct the punctuation between the clauses.', better_version: item.better }] }
+      : item.kind === 'phrase'
+        ? { natural_phrase_upgrades: [{ original: item.original, why_it_helps: 'This wording is more natural and precise.', better_version: item.better }] }
+        : { grammar_fixes: [{ original: item.original, issue: 'Correct the grammatical form in this phrase.', better_version: item.better }] };
+    const fixes = buildValidatedWritingFixes(item.text, feedback);
+    assert.strictEqual(fixes.length, 1, item.text);
+    assert.strictEqual(item.text.slice(fixes[0]!.start, fixes[0]!.end), item.original);
+    assert.strictEqual(fixes[0]!.betterVersion, item.better);
+  });
+});
+
+test('repeated identical mistakes are all retained when each has verified offsets', () => {
+  const text = 'She walk to school, and later she walk home.';
+  const firstStart = text.indexOf('walk');
+  const secondStart = text.lastIndexOf('walk');
+  const fixes = buildValidatedWritingFixes(text, {
+    grammar_fixes: [
+      { original: 'walk', issue: 'Use third-person singular agreement.', better_version: 'walks', start_char: firstStart, end_char: firstStart + 4 },
+      { original: 'walk', issue: 'Use third-person singular agreement.', better_version: 'walks', start_char: secondStart, end_char: secondStart + 4 },
+    ],
+  });
+
+  assert.deepStrictEqual(fixes.map((fix) => fix.start), [firstStart, secondStart]);
+  assert.ok(fixes.every((fix) => text.slice(fix.start, fix.end) === 'walk'));
+});
