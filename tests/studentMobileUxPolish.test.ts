@@ -13,9 +13,12 @@ const styles = readFileSync('src/index.css', 'utf8');
 test('student mobile header protects long school names and fixed-size actions', () => {
   assert.match(header, /student-mobile-header__brand/);
   assert.match(header, /student-mobile-header__name/);
-  assert.match(header, /student-mobile-header__avatar/);
+  assert.match(header, /student-mobile-header__notifications/);
+  assert.match(header, /aria-label=\{unreadCount > 0 \? `Open notifications/);
+  assert.doesNotMatch(header, /student-mobile-header__avatar/);
   assert.match(styles, /\.student-mobile-header__name[^}]*text-overflow:\s*ellipsis/s);
-  assert.match(styles, /\.student-mobile-header__avatar[^}]*flex:\s*none/s);
+  assert.match(styles, /\.student-mobile-header__notifications[^}]*flex:\s*none/s);
+  assert.match(styles, /\.student-mobile-header__notification-count[^}]*position:\s*absolute/s);
 });
 
 test('student bottom navigation stays labelled and content clears the safe area', () => {

@@ -2519,9 +2519,10 @@ button {
 .student-mobile-header__actions { position: relative; display: flex; flex: none; align-items: center; gap: 0.45rem; }
 .student-mobile-header__menu { position: relative; display: grid; height: 2.5rem; width: 2.5rem; flex: none; place-items: center; border: 1px solid rgb(51 65 85); border-radius: 0.8rem; background: rgba(15, 23, 42, 0.72); font-size: 1.45rem; font-weight: 900; line-height: 1; color: rgb(226 232 240); box-shadow: 0 5px 16px rgba(2, 6, 23, 0.36); }
 .student-mobile-header__menu:focus-visible,
-.student-mobile-header__avatar:focus-visible { outline: 2px solid rgb(103 232 249); outline-offset: 2px; }
-.student-mobile-header__avatar { display: grid; height: 2.5rem; width: 2.5rem; flex: none; place-items: center; overflow: visible; border-radius: 999px; }
-.student-mobile-header__avatar > * { flex: none; }
+.student-mobile-header__notifications:focus-visible { outline: 2px solid rgb(103 232 249); outline-offset: 2px; }
+.student-mobile-header__notifications { position: relative; display: grid; height: 2.5rem; width: 2.5rem; flex: none; place-items: center; border: 1px solid rgba(34,211,238,0.55); border-radius: 0.8rem; background: linear-gradient(145deg,rgba(8,145,178,0.18),rgba(126,34,206,0.16)); color: rgb(240 249 255); font-size: 1.05rem; box-shadow: 0 5px 16px rgba(2,6,23,0.36),0 0 14px rgba(34,211,238,0.12); }
+.student-mobile-header__notifications:hover { border-color: rgba(103,232,249,0.85); background: linear-gradient(145deg,rgba(8,145,178,0.27),rgba(126,34,206,0.22)); }
+.student-mobile-header__notification-count { position: absolute; top: -0.3rem; right: -0.3rem; display: grid; min-width: 1.15rem; min-height: 1.15rem; place-items: center; border: 2px solid rgb(2 6 23); border-radius: 999px; padding: 0 0.2rem; background: rgb(239 68 68); color: white; font-size: 0.62rem; font-weight: 800; line-height: 1; }
 .student-mobile-hud { display: flex; min-width: 0; align-items: center; gap: 0.4rem; overflow-x: auto; padding: 0.45rem 0 0.1rem; scrollbar-width: none; }
 .student-mobile-hud::-webkit-scrollbar { display: none; }
 .student-mobile-hud__chip { display: flex; min-height: 2.05rem; flex: none; align-items: center; gap: 0.35rem; border-width: 1px; border-radius: 0.75rem; padding: 0.35rem 0.55rem; }
