@@ -1,6 +1,7 @@
 import React from 'react';
 import { useSchoolAdmin } from '../SchoolAdminContext';
 import * as SchoolAdminService from '../../../services/schoolAdminService';
+import { friendlySchoolAdminError } from '../../../src/lib/schoolAdminPresentation';
 
 const ClassesTab: React.FC = () => {
   const {
@@ -9,9 +10,9 @@ const ClassesTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h3 className="mb-4 text-lg font-semibold text-slate-900">{classForm.id ? 'Edit Class' : 'Create Class'}</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <section className="admin-form-card">
+        <div className="admin-card-heading"><div><h3>{classForm.id ? 'Edit class' : 'Create class'}</h3><p>Use a unique code and place the class in its correct grade.</p></div></div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-6">
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-1">Class Code</label>
             <input
@@ -43,7 +44,7 @@ const ClassesTab: React.FC = () => {
             />
           </div>
         </div>
-        <div className="flex items-center gap-4 mt-4">
+        <div className="flex items-center gap-4 px-6 pb-6">
           <label className="flex items-center gap-2 text-sm text-gray-300">
             <input
               type="checkbox"
@@ -69,11 +70,11 @@ const ClassesTab: React.FC = () => {
             </button>
           )}
         </div>
-      </div>
+      </section>
 
-      <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-        <div className="p-4 border-b border-gray-700 flex items-center justify-between">
-          <h4 className="text-sm font-semibold text-gray-300">Classes in School</h4>
+      <section className="admin-table-card">
+        <div className="admin-card-heading">
+          <div><h3>Classes in school</h3><p>{classes.length} class records arranged by grade and code.</p></div>
           {classesLoading && <span className="text-xs text-gray-500">Refreshing...</span>}
         </div>
         <div className="overflow-x-auto">
@@ -124,7 +125,7 @@ const ClassesTab: React.FC = () => {
                                 addToast('Class archived successfully', 'success');
                                 await loadAdminTools(school.id);
                               } else {
-                                addToast(`Failed to archive: ${result.error}`, 'error');
+                                addToast(friendlySchoolAdminError(result.error, 'The class could not be archived. Please try again.'), 'error');
                               }
                             },
                           });
@@ -143,7 +144,7 @@ const ClassesTab: React.FC = () => {
         {classes.length === 0 && (
           <div className="p-8 text-center text-gray-400">No classes created yet.</div>
         )}
-      </div>
+      </section>
     </div>
   );
 };

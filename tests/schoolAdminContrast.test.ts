@@ -12,6 +12,7 @@ test('billing calls to action retain white text on dark surfaces', () => {
   assert.match(styles, /\.school-admin-content \.billing-tab-ui \.billing-on-dark \{ color:#fff !important; \}/);
 });
 
-test('Admission Hub heading has its own light surface', () => {
-  assert.match(admission, /flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm/);
+test('Admission Hub heading uses the shared school-admin light surface', () => {
+  assert.match(admission, /className="admin-section-heading"/);
+  assert.match(styles, /\.admission-hub-admin-theme/);
 });

@@ -8,13 +8,13 @@ const SettingsTab: React.FC = () => {
   } = useSchoolAdmin();
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="space-y-6">
       <section className="admin-section-heading"><div><p className="school-admin-eyebrow">Joining & access</p><h2>School identity and access</h2><p>The school code is the single controlled route for teachers and students joining this workspace.</p></div></section>
       <InvitesTab />
-      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h3 className="mb-4 text-lg font-semibold text-slate-900">School Settings</h3>
+      <section className="admin-form-card">
+        <div className="admin-card-heading"><div><h3>School settings</h3><p>Keep the school identity and registration rules accurate across every portal.</p></div></div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 p-6">
           <div className="school-logo-setting">
             <img src={settingsLogoPreview || school.logo_url || '/logo.png'} alt="Current school logo" />
             <div>
@@ -107,21 +107,7 @@ const SettingsTab: React.FC = () => {
             </button>
           </div>
         </div>
-      </div>
-
-      {/* Danger Zone */}
-      <div className="bg-gray-800 rounded-xl p-6 border border-red-500/30">
-        <h3 className="text-lg font-semibold mb-2 text-red-400">Danger Zone</h3>
-        <p className="text-sm text-gray-400 mb-4">
-          These actions are irreversible. Please be careful.
-        </p>
-        <button
-          disabled
-          className="px-4 py-2 bg-red-600/50 text-red-200 rounded-lg cursor-not-allowed opacity-50"
-        >
-          Delete School (Coming Soon)
-        </button>
-      </div>
+      </section>
     </div>
   );
 };

@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { useSchoolAdmin } from '../SchoolAdminContext';
 import { verifyStudentFullName } from '../../../services/schoolAdminService';
+import type { SchoolRole } from '../../../types';
 
 const MemberActionModal: React.FC = () => {
   const {
@@ -10,6 +11,7 @@ const MemberActionModal: React.FC = () => {
   const [verifiedName, setVerifiedName] = React.useState('');
   const [nameSaving, setNameSaving] = React.useState(false);
   const [nameMessage, setNameMessage] = React.useState('');
+  const isProtectedAdmin = selectedMember?.role === 'school_admin';
 
   React.useEffect(() => {
     setVerifiedName(selectedMember?.full_name || '');
@@ -71,6 +73,7 @@ const MemberActionModal: React.FC = () => {
           </div>
 
           <div className="space-y-3">
+            {isProtectedAdmin && <div className="admin-protected-notice" role="status"><span aria-hidden="true">◆</span><div><strong>Protected school administrator</strong><p>This account cannot be banned, suspended, removed, or assigned a different role from this portal.</p></div></div>}
             {selectedMember.role === 'student' && (
               <div className="bg-gray-700/50 rounded-lg p-4">
                 <div className="flex items-center justify-between gap-3 mb-2">
@@ -110,7 +113,7 @@ const MemberActionModal: React.FC = () => {
             )}
 
             {/* Role Change */}
-            <div className="bg-gray-700/50 rounded-lg p-4">
+            {!isProtectedAdmin && <div className="bg-gray-700/50 rounded-lg p-4">
               <h4 className="text-sm font-medium text-gray-400 mb-2">Change Role</h4>
               <div className="flex gap-2">
                 {(['student', 'teacher', 'school_admin'] as SchoolRole[]).map((role) => (
@@ -128,10 +131,10 @@ const MemberActionModal: React.FC = () => {
                   </button>
                 ))}
               </div>
-            </div>
+            </div>}
 
             {/* Ban/Unban */}
-            <div className="bg-gray-700/50 rounded-lg p-4">
+            {!isProtectedAdmin && <div className="bg-gray-700/50 rounded-lg p-4">
               <h4 className="text-sm font-medium text-gray-400 mb-2">Account Status</h4>
               {selectedMember.is_banned ? (
                 <button
@@ -150,7 +153,7 @@ const MemberActionModal: React.FC = () => {
                   {actionLoading ? 'Processing...' : 'Ban User'}
                 </button>
               )}
-            </div>
+            </div>}
 
             {/* Suspension Controls — students only */}
             {selectedMember.role === 'student' && !selectedMember.is_banned && (
@@ -285,13 +288,13 @@ const MemberActionModal: React.FC = () => {
             )}
 
             {/* Remove from School */}
-            <button
+            {!isProtectedAdmin && <button
               onClick={handleRemoveMember}
               disabled={actionLoading}
               className="w-full px-4 py-2 bg-red-600 hover:bg-red-500 disabled:opacity-50 rounded-lg transition-colors"
             >
               {actionLoading ? 'Processing...' : 'Remove from School'}
-            </button>
+            </button>}
           </div>
 
           <button

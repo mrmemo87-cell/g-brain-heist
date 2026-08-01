@@ -7,10 +7,11 @@ const CambridgeTab: React.FC = () => {
   } = useSchoolAdmin();
 
   return (
-    <div className="space-y-6">
-      <div className="bg-gray-800 rounded-xl p-6 border border-cyan-600/50">
+    <div className="school-admin-themed-tab space-y-6">
+      <section className="admin-section-heading"><div><p className="school-admin-eyebrow">Assessments</p><h2>Cambridge Assessments</h2><p>Review school-wide results, manage test availability and authorise retakes.</p></div></section>
+      <section className="admin-table-card p-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-2xl font-bold text-cyan-300">📚 Cambridge Test Reports</h3>
+          <h3 className="text-xl font-bold text-slate-900">Cambridge test reports</h3>
           <button
             onClick={() => {
               setShowSchoolVisibility(!showSchoolVisibility);
@@ -323,7 +324,7 @@ const CambridgeTab: React.FC = () => {
             <p className="text-sm">Click "Load/Refresh Reports" to check for new submissions</p>
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 };

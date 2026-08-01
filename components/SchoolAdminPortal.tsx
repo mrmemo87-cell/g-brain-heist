@@ -38,6 +38,7 @@ import ConfirmDialogModal from './school-admin/modals/ConfirmDialogModal';
 import AdmissionHub from './AdmissionHub';
 import { SchoolBrand } from '../src/components/SchoolBrand';
 import { createSchoolBrand } from '../src/lib/schoolBranding';
+import { friendlySchoolAdminError } from '../src/lib/schoolAdminPresentation';
 
 interface SchoolAdminPortalProps {
   onComplete: () => void;
@@ -469,26 +470,38 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
   // Member actions
   const handleUpdateRole = async (newRole: SchoolRole) => {
     if (!school || !selectedMember) return;
-    
-    setActionLoading(true);
-    const result = await SchoolAdminService.updateMemberRole(
-      school.id,
-      selectedMember.user_id,
-      newRole
-    );
-    setActionLoading(false);
-
-    if (result.success) {
-      addToast(`Updated ${selectedMember.username}'s role to ${newRole}`, 'success');
-      await loadMembers(school.id);
-      setShowMemberActionModal(false);
-    } else {
-      addToast(result.error || 'Failed to update role', 'error');
+    if (selectedMember.role === 'school_admin') {
+      addToast('The school administrator role is protected and cannot be changed here.', 'error');
+      return;
     }
+    setConfirmReason('');
+    setConfirmDialog({
+      title: 'Change this member’s role?',
+      description: `Change ${selectedMember.username} from ${selectedMember.role.replace('_', ' ')} to ${newRole.replace('_', ' ')}? Their portal access will change immediately.`,
+      confirmLabel: 'Change role',
+      cancelLabel: 'Keep current role',
+      isDestructive: true,
+      onConfirm: async () => {
+        setActionLoading(true);
+        const result = await SchoolAdminService.updateMemberRole(school.id, selectedMember.user_id, newRole);
+        setActionLoading(false);
+        if (result.success) {
+          addToast(`Updated ${selectedMember.username}'s role to ${newRole.replace('_', ' ')}`, 'success');
+          await loadMembers(school.id);
+          setShowMemberActionModal(false);
+        } else {
+          addToast(friendlySchoolAdminError(result.error, 'The member role could not be changed. Please try again.'), 'error');
+        }
+      },
+    });
   };
 
   const handleRemoveMember = async () => {
     if (!school || !selectedMember) return;
+    if (selectedMember.role === 'school_admin') {
+      addToast('The school administrator cannot be removed from the school.', 'error');
+      return;
+    }
     setConfirmReason('');
     setConfirmDialog({
       title: 'Remove member',
@@ -506,7 +519,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
           await refreshSchool(school.id);
           setShowMemberActionModal(false);
         } else {
-          addToast(result.error || 'Failed to remove member', 'error');
+          addToast(friendlySchoolAdminError(result.error, 'The member could not be removed. Please try again.'), 'error');
         }
       },
     });
@@ -514,6 +527,10 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
 
   const handleBanMember = async () => {
     if (!school || !selectedMember) return;
+    if (selectedMember.role === 'school_admin') {
+      addToast('The school administrator account cannot be banned.', 'error');
+      return;
+    }
     setConfirmReason('');
     setConfirmDialog({
       title: 'Ban member',
@@ -532,7 +549,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
           await refreshSchool(school.id);
           setShowMemberActionModal(false);
         } else {
-          addToast(result.error || 'Failed to ban member', 'error');
+          addToast(friendlySchoolAdminError(result.error, 'The member could not be banned. Please try again.'), 'error');
         }
       },
     });
@@ -540,6 +557,10 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
 
   const handleUnbanMember = async () => {
     if (!school || !selectedMember) return;
+    if (selectedMember.role === 'school_admin') {
+      addToast('The school administrator account is protected.', 'error');
+      return;
+    }
     
     setActionLoading(true);
     const result = await SchoolAdminService.unbanMember(school.id, selectedMember.user_id);
@@ -551,7 +572,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       await refreshSchool(school.id);
       setShowMemberActionModal(false);
     } else {
-      addToast(result.error || 'Failed to unban member', 'error');
+      addToast(friendlySchoolAdminError(result.error, 'The member restriction could not be lifted. Please try again.'), 'error');
     }
   };
 
@@ -588,46 +609,48 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
 
   const handleSuspendStudent = useCallback(async () => {
     if (!modTargetStatus) return;
-    setSuspendLoading(true);
-    try {
-      const result = await SchoolAdminService.suspendStudent(
-        modTargetStatus.user_id,
-        suspendDuration,
-        suspendReason || undefined
-      );
-      if (result.success) {
-        addToast(`Suspended ${modTargetStatus.username} for ${suspendDuration}h`, 'success');
-        setSuspendReason('');
-        await loadStudentModStatus(modTargetStatus.user_id);
-        await loadModerationLog();
-        if (school) await loadMembers(school.id);
-      } else {
-        addToast(result.error || 'Failed to suspend student', 'error');
-      }
-    } finally {
-      setSuspendLoading(false);
-    }
+    setConfirmDialog({
+      title: 'Suspend this student?',
+      description: `Suspend ${modTargetStatus.username} for ${suspendDuration} hours? They will temporarily lose access to the school workspace.`,
+      confirmLabel: 'Suspend student',
+      cancelLabel: 'Cancel',
+      isDestructive: true,
+      onConfirm: async () => {
+        setSuspendLoading(true);
+        try {
+          const result = await SchoolAdminService.suspendStudent(modTargetStatus.user_id, suspendDuration, suspendReason || undefined);
+          if (result.success) {
+            addToast(`Suspended ${modTargetStatus.username} for ${suspendDuration}h`, 'success');
+            setSuspendReason('');
+            await loadStudentModStatus(modTargetStatus.user_id);
+            await loadModerationLog();
+            if (school) await loadMembers(school.id);
+          } else addToast(friendlySchoolAdminError(result.error, 'The student could not be suspended. Please try again.'), 'error');
+        } finally { setSuspendLoading(false); }
+      },
+    });
   }, [modTargetStatus, suspendDuration, suspendReason, addToast, loadStudentModStatus, loadModerationLog, school]);
 
   const handleUnsuspendStudent = useCallback(async () => {
     if (!modTargetStatus) return;
-    setSuspendLoading(true);
-    try {
-      const result = await SchoolAdminService.unsuspendStudent(
-        modTargetStatus.user_id,
-        'Early lift by school admin'
-      );
-      if (result.success) {
-        addToast(`Unsuspended ${modTargetStatus.username}`, 'success');
-        await loadStudentModStatus(modTargetStatus.user_id);
-        await loadModerationLog();
-        if (school) await loadMembers(school.id);
-      } else {
-        addToast(result.error || 'Failed to unsuspend student', 'error');
-      }
-    } finally {
-      setSuspendLoading(false);
-    }
+    setConfirmDialog({
+      title: 'Lift this suspension?',
+      description: `${modTargetStatus.username} will regain access immediately.`,
+      confirmLabel: 'Lift suspension',
+      cancelLabel: 'Keep suspended',
+      onConfirm: async () => {
+        setSuspendLoading(true);
+        try {
+          const result = await SchoolAdminService.unsuspendStudent(modTargetStatus.user_id, 'Early lift by school admin');
+          if (result.success) {
+            addToast(`Unsuspended ${modTargetStatus.username}`, 'success');
+            await loadStudentModStatus(modTargetStatus.user_id);
+            await loadModerationLog();
+            if (school) await loadMembers(school.id);
+          } else addToast(friendlySchoolAdminError(result.error, 'The suspension could not be lifted. Please try again.'), 'error');
+        } finally { setSuspendLoading(false); }
+      },
+    });
   }, [modTargetStatus, addToast, loadStudentModStatus, loadModerationLog, school]);
 
   const handleForceProfileChange = useCallback(async () => {
@@ -704,7 +727,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
           addToast(`New invite code: ${result.code}`, 'success');
           await refreshSchool(school.id);
         } else {
-          addToast(result.error || 'Failed to rotate invite code', 'error');
+          addToast(friendlySchoolAdminError(result.error, 'The invite code could not be changed. Please try again.'), 'error');
         }
       },
     });
@@ -728,7 +751,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       const upload = await SchoolAdminService.uploadSchoolLogo(school.id, settingsLogoFile);
       if (!upload.success || !upload.url) {
         setSavingSettings(false);
-        const message = upload.error || 'Failed to upload school logo';
+        const message = friendlySchoolAdminError(upload.error, 'The school logo could not be uploaded. Please try again.');
         setSettingsLogoStatus({ type: 'error', message: `Logo not updated. ${message}` });
         addToast(message, 'error');
         return;
@@ -761,7 +784,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       addToast(settingsLogoFile ? 'School logo updated successfully' : 'Settings saved successfully', 'success');
       await refreshSchool(school.id);
     } else {
-      const message = result.error || 'Failed to save settings';
+      const message = friendlySchoolAdminError(result.error, 'The school settings could not be saved. Please try again.');
       setSettingsLogoStatus({ type: 'error', message: `Changes were not applied. ${message}` });
       addToast(message, 'error');
     }
@@ -797,7 +820,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       setClassForm({ id: '', class_code: '', class_name: '', grade_level: '', is_active: true });
       await loadAdminTools(school.id);
     } else {
-      addToast(result.error || 'Failed to save class', 'error');
+      addToast(friendlySchoolAdminError(result.error, 'The class could not be saved. Check the details and try again.'), 'error');
     }
   };
 
@@ -824,12 +847,12 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       assignmentClassId,
       assignmentTeacherId,
       assignmentSubjectInput.trim(),
-      assignmentActive
+      true
     );
     setAssignmentSaving(false);
 
     if (!result.success) {
-      addToast(result.error || 'Failed to assign teacher', 'error');
+      addToast(friendlySchoolAdminError(result.error, 'The teacher assignment could not be saved. Check the selections and try again.'), 'error');
       return;
     }
 
@@ -860,7 +883,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     setStudentSaving(false);
 
     if (!result.success) {
-      addToast(result.error || 'Failed to enroll student', 'error');
+      addToast(friendlySchoolAdminError(result.error, 'The student could not be placed in this class. Please try again.'), 'error');
       return;
     }
 
@@ -926,7 +949,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     );
 
     if (!result.success) {
-      addToast(result.error || 'Failed to create subject', 'error');
+      addToast(friendlySchoolAdminError(result.error, 'The subject could not be created. Check the name and code and try again.'), 'error');
       return false;
     }
 
@@ -964,7 +987,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       onConfirm: async () => {
         const result = await SchoolAdminService.deleteSchoolSubject(subjectId, school.id);
         if (!result.success) {
-          addToast(result.error || 'Failed to delete subject', 'error');
+          addToast(friendlySchoolAdminError(result.error, 'The subject could not be deleted. Please try again.'), 'error');
           return;
         }
         addToast(`Subject "${subjectName}" deleted`, 'success');
@@ -997,7 +1020,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     setEditingSubjectSaving(false);
 
     if (!result.success) {
-      addToast(result.error || 'Failed to update subject', 'error');
+      addToast(friendlySchoolAdminError(result.error, 'The subject could not be updated. Check the details and try again.'), 'error');
       return;
     }
 
@@ -1079,7 +1102,11 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
 
   const handleBulkMemberAction = async () => {
     if (!school || selectedMemberIds.size === 0 || !bulkMemberAction) return;
-    const selectedMembers = members.filter((member) => selectedMemberIds.has(member.user_id));
+    const selectedMembers = members.filter((member) => selectedMemberIds.has(member.user_id) && member.role !== 'school_admin');
+    if (!selectedMembers.length) {
+      addToast('School administrator accounts are protected from bulk actions.', 'error');
+      return;
+    }
     const namesPreview = selectedMembers.slice(0, 3).map((m) => m.username).join(', ');
     const moreCount = selectedMembers.length > 3 ? ` +${selectedMembers.length - 3} more` : '';
 
@@ -1414,6 +1441,8 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       suspendLoading,
       suspendReason,
       teachers,
+      teacherAssignments,
+      friendlySchoolAdminError,
       toggleMemberSelection,
       toggleMemberSort,
       toggleSchoolTestVisibility,
@@ -1492,30 +1521,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
         <div className="school-admin-themed-tab school-admin-ielts-tab space-y-5">
 
           {/* Banner */}
-          <div className="relative overflow-hidden rounded-2xl border border-teal-500/20 bg-gradient-to-br from-slate-900 via-blue-950 to-teal-950 p-6 shadow-2xl">
-            <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-teal-500/8 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-12 -left-12 h-44 w-44 rounded-full bg-blue-500/8 blur-3xl" />
-            <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-blue-600 text-2xl shadow-lg shadow-teal-500/30">
-                  🎓
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-teal-400">School IELTS Suite</p>
-                  <h2 className="mt-0.5 text-xl font-bold text-white">IELTS Academy</h2>
-                  <p className="mt-0.5 text-xs text-slate-400">{school?.name ?? 'Your school'} — exams, practice, results &amp; analytics</p>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2 sm:flex-col sm:items-end sm:gap-1.5">
-                <span className="inline-flex items-center gap-1 rounded-full bg-teal-500/15 px-3 py-1 text-[11px] font-semibold text-teal-300 ring-1 ring-teal-500/25">
-                  ✅ IELTS Enabled
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/15 px-3 py-1 text-[11px] font-semibold text-blue-300 ring-1 ring-blue-500/25">
-                  🔒 Secure Exam Mode
-                </span>
-              </div>
-            </div>
-          </div>
+          <section className="admin-section-heading"><div><p className="school-admin-eyebrow">School IELTS suite</p><h2>IELTS Programme</h2><p>{school?.name ?? 'Your school'} — exams, practice, results and analytics.</p></div><span className="admin-live-pill"><i /> IELTS enabled</span></section>
 
           {/* Sub-tab Segmented Control */}
           <div
