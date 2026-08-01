@@ -3,16 +3,32 @@ import { useSchoolAdmin } from '../SchoolAdminContext';
 import type { SchoolRole } from '../../../types';
 
 const MembersTab: React.FC = () => {
-  const { actionLoading, bulkMemberAction, handleBulkMemberAction, loadStudentModStatus, memberPage, memberPageSize, memberRoleFilter, memberSearch, memberTotalPages, members, schoolAdmins, selectedMemberIds, setActiveTab, setBulkMemberAction, setMemberPage, setMemberPageSize, setMemberRoleFilter, setMemberSearch, setModTargetId, setModTargetStatus, setSelectedMember, setShowMemberActionModal, toggleMemberSelection, toggleSelectAllMembers } = useSchoolAdmin();
+  const { actionLoading, bulkMemberAction, classes, handleBulkMemberAction, loadStudentModStatus, memberPage, memberPageSize, memberRoleFilter, memberSearch, memberTotalPages, members, schoolAdmins, selectedMemberIds, setActiveTab, setBulkMemberAction, setMemberPage, setMemberPageSize, setMemberRoleFilter, setMemberSearch, setModTargetId, setModTargetStatus, setSelectedClassId, setSelectedGrade, setSelectedMember, setSelectedStudentId, setShowMemberActionModal, studentAssignments, toggleMemberSelection, toggleSelectAllMembers } = useSchoolAdmin();
   const activePeopleTab: 'teacher' | 'student' = memberRoleFilter === 'student' ? 'student' : 'teacher';
   const administrators = Array.isArray(schoolAdmins) ? schoolAdmins : [];
   const communityMembers = Array.isArray(members) ? members : [];
   const visiblePeople = communityMembers.filter((member: any) => member.role === activePeopleTab);
 
   const openMember = (member: any) => {
-    setSelectedMember(member); setShowMemberActionModal(true);
-    if (member.role === 'student') { setModTargetId(member.user_id); loadStudentModStatus(member.user_id); }
-    else setModTargetStatus(null);
+    setSelectedMember(member);
+    if (member.role === 'student') {
+      const normaliseClassCode = (value: unknown) => String(value || '').toUpperCase().replace(/\s+/g, '');
+      const assignedClassId = studentAssignments[member.user_id]
+        || classes.find((schoolClass: any) => normaliseClassCode(schoolClass.class_code) === normaliseClassCode(member.batch))?.id
+        || '';
+      const assignedClass = classes.find((schoolClass: any) => schoolClass.id === assignedClassId);
+      setSelectedStudentId(member.user_id);
+      setSelectedClassId(assignedClassId);
+      setSelectedGrade(member.grade ?? assignedClass?.grade_level ?? '');
+      setModTargetId(member.user_id);
+      loadStudentModStatus(member.user_id);
+    } else {
+      setSelectedStudentId('');
+      setSelectedClassId('');
+      setSelectedGrade('');
+      setModTargetStatus(null);
+    }
+    setShowMemberActionModal(true);
   };
   const selectRole = (role: SchoolRole) => { setMemberRoleFilter(role); setMemberPage(1); };
 

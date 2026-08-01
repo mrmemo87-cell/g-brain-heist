@@ -6,6 +6,7 @@ const read = (file: string) => readFileSync(file, 'utf8');
 const dashboard = read('components/school-admin/tabs/DashboardTab.tsx');
 const teachers = read('components/school-admin/tabs/TeachersTab.tsx');
 const members = read('components/school-admin/modals/MemberActionModal.tsx');
+const memberDirectory = read('components/school-admin/tabs/MembersTab.tsx');
 const portal = read('components/SchoolAdminPortal.tsx');
 const admission = read('components/AdmissionHub.tsx');
 const settings = read('components/school-admin/tabs/SettingsTab.tsx');
@@ -46,6 +47,15 @@ test('school administrator is protected and destructive actions use branded conf
   assert.match(portal, /Change this member’s role\?/);
   assert.match(portal, /Suspend this student\?/);
   assert.match(admission, /school-admin-confirm-modal is-destructive/);
+});
+
+test('member management opens at the top and preloads existing academic placement', () => {
+  assert.match(members, /modal\.scrollTop = 0/);
+  assert.match(members, /focus\(\{ preventScroll: true \}\)/);
+  assert.doesNotMatch(members, /autoFocus/);
+  assert.match(memberDirectory, /studentAssignments\[member\.user_id\]/);
+  assert.match(memberDirectory, /normaliseClassCode\(schoolClass\.class_code\).*normaliseClassCode\(member\.batch\)/s);
+  assert.match(memberDirectory, /setSelectedGrade\(member\.grade \?\? assignedClass\?\.grade_level \?\? ''\)/);
 });
 
 test('admissions and settings removals match the school-admin brief', () => {
