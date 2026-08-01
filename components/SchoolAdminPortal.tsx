@@ -45,6 +45,7 @@ interface SchoolAdminPortalProps {
   onLogout: () => void;
   onNavigate: (view: string) => void;
   addToast: (message: string, type: ToastMessage['type']) => void;
+  onOpenTeacherPortal?: () => void;
 }
 
 type AdminTab = 'dashboard' | 'members' | 'teachers' | 'classes' | 'subjects' | 'settings' | 'billing' | 'cambridge' | 'ielts' | 'admissions' | 'ielts-exams' | 'ielts-practice' | 'ielts-results' | 'ielts-analytics' | 'ielts-settings';
@@ -60,7 +61,7 @@ const IELTS_TOOL_NAV_ITEMS: IeltsToolNavItem[] = [
   { id: 'ielts-settings', icon: '⚙️', label: 'Settings', hint: 'Config & features' },
 ];
 
-const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLogout, onNavigate, addToast }) => {
+const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLogout, onNavigate, addToast, onOpenTeacherPortal }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
   const [activeIeltsSubTab, setActiveIeltsSubTab] = useState<IeltsSubTab>('ielts-exams');
   const [loading, setLoading] = useState(true);
@@ -68,6 +69,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
   const [stats, setStats] = useState<SchoolStats | null>(null);
   const [members, setMembers] = useState<SchoolMember[]>([]);
   const [schoolAdmins, setSchoolAdmins] = useState<SchoolMember[]>([]);
+  const [currentCapabilities, setCurrentCapabilities] = useState<SchoolAdminService.SchoolCapabilities | null>(null);
 
   // Billing / Plan state
   const [planDetails, setPlanDetails] = useState<SchoolPlanDetails | null>(null);
@@ -206,6 +208,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       setSettingsAllowTeacher(schoolData.school.allow_teacher_signup);
 
       setStats(schoolData.stats);
+      setCurrentCapabilities(await SchoolAdminService.getMySchoolCapabilities(schoolData.school.id));
 
       // Load members
       await loadMembers(schoolData.school.id);
@@ -470,24 +473,36 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
   // Member actions
   const handleUpdateRole = async (newRole: SchoolRole) => {
     if (!school || !selectedMember) return;
-    if (selectedMember.role === 'school_admin') {
-      addToast('The school administrator role is protected and cannot be changed here.', 'error');
+    if (selectedMember.is_owner) {
+      addToast('The school owner is protected. Transfer ownership before changing this account.', 'error');
       return;
     }
+    if ((selectedMember.role === 'school_admin' || newRole === 'school_admin') && !currentCapabilities?.is_owner) {
+      addToast('Only the school owner can promote or demote delegated administrators.', 'error');
+      return;
+    }
+    const activeAssignmentCount = teacherAssignments.filter((item) => item.active !== false && item.teacher_user_id === selectedMember.user_id).length;
+    const keepTeaching = newRole === 'teacher' || (newRole === 'school_admin' && selectedMember.can_teach);
+    const accessLabel = newRole === 'school_admin'
+      ? (keepTeaching ? 'Delegated Admin + Teacher' : 'Delegated Admin')
+      : newRole === 'teacher' ? 'Teacher' : 'Student';
     setConfirmReason('');
     setConfirmDialog({
       title: 'Change this member’s role?',
-      description: `Change ${selectedMember.username} from ${selectedMember.role.replace('_', ' ')} to ${newRole.replace('_', ' ')}? Their portal access will change immediately.`,
+      description: `Change ${selectedMember.username} to ${accessLabel}? ${keepTeaching && activeAssignmentCount ? `Their ${activeAssignmentCount} active teaching assignment${activeAssignmentCount === 1 ? '' : 's'} will be retained.` : activeAssignmentCount ? `They have ${activeAssignmentCount} active teaching assignment${activeAssignmentCount === 1 ? '' : 's'}; the change will be blocked until those assignments are resolved.` : 'Their portal access will update immediately.'}`,
       confirmLabel: 'Change role',
       cancelLabel: 'Keep current role',
       isDestructive: true,
       onConfirm: async () => {
         setActionLoading(true);
-        const result = await SchoolAdminService.updateMemberRole(school.id, selectedMember.user_id, newRole);
+        const result = await SchoolAdminService.updateMemberRole(school.id, selectedMember.user_id, newRole, {
+          keepTeaching,
+          reason: `Changed by school owner from ${selectedMember.role} to ${newRole}`,
+        });
         setActionLoading(false);
         if (result.success) {
-          addToast(`Updated ${selectedMember.username}'s role to ${newRole.replace('_', ' ')}`, 'success');
-          await loadMembers(school.id);
+          addToast(`Updated ${selectedMember.username}'s access to ${accessLabel}`, 'success');
+          await Promise.all([loadMembers(school.id), loadAdminTools(school.id)]);
           setShowMemberActionModal(false);
         } else {
           addToast(friendlySchoolAdminError(result.error, 'The member role could not be changed. Please try again.'), 'error');
@@ -1353,6 +1368,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       savingSettings,
       school,
       schoolAdmins,
+      currentCapabilities,
       schoolVisibility,
       schoolVisibilityLoading,
       schoolVisibilitySubjectFilter,
@@ -1467,6 +1483,9 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {currentCapabilities?.can_teach && onOpenTeacherPortal && (
+              <button type="button" onClick={onOpenTeacherPortal} className="school-admin-workspace-switch">Teacher workspace</button>
+            )}
             <button
               onClick={onLogout}
               className="school-admin-signout"

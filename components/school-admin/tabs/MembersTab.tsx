@@ -38,7 +38,7 @@ const MembersTab: React.FC = () => {
     <section className="community-admins">
       <div className="community-section-title"><div><span className="community-icon">A</span><div><h3>School administrators</h3><p>Authorised users with whole-school control</p></div></div><strong>{administrators.length || '—'}</strong></div>
       <div className="community-admin-list">
-        {administrators.length ? administrators.map((member: any) => <button key={member.user_id} onClick={() => openMember(member)} className="community-admin-card"><img src={member.avatar_url || '/avatars/default.png'} alt=""/><span><strong>{member.full_name || member.username}</strong><small>@{member.username} · School administrator</small></span><i>View protected account →</i></button>) : <p className="community-empty">No administrator profiles are available.</p>}
+        {administrators.length ? administrators.map((member: any) => <button key={member.user_id} onClick={() => openMember(member)} className="community-admin-card"><img src={member.avatar_url || '/avatars/default.png'} alt=""/><span><strong>{member.full_name || member.username}</strong><small>@{member.username} · {member.is_owner ? 'School owner' : `Delegated administrator${member.can_teach ? ' + Teacher' : ''}`}</small></span><i>{member.is_owner ? 'View protected owner →' : 'Manage access →'}</i></button>) : <p className="community-empty">No administrator profiles are available.</p>}
       </div>
     </section>
 
