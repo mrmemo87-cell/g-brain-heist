@@ -50,7 +50,6 @@ interface TeacherPortalProps {
   onLockdown?: () => void;
   isSchoolAdmin?: boolean;
   onOpenSchoolAdmin?: () => void;
-  onOpenAdmissions?: () => void;
   initialView?: PortalView;
 }
 
@@ -125,7 +124,7 @@ const splitGrammarAndPunctuation = (items: { wrong: string; correct: string; exp
   return { grammar, punctuation };
 };
 
-const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, isSchoolAdmin, onOpenSchoolAdmin, onOpenAdmissions, initialView = 'dashboard' }) => {
+const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, isSchoolAdmin, onOpenSchoolAdmin, initialView = 'dashboard' }) => {
   const resolvedBranding = useSchoolBranding({ schoolId: profile.school_id, schoolName: profile.school_name, schoolLogoUrl: profile.school_logo_url });
   const schoolBrand = createSchoolBrand({ schoolId: profile.school_id, ...resolvedBranding });
   const initialWritingSection: WritingHubSection =
@@ -8317,19 +8316,6 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   >
                     <span className="text-lg">🏫</span>
                     School Admin Portal
-                  </button>
-                )}
-                {isSchoolAdmin && onOpenAdmissions && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onOpenAdmissions();
-                      setTopNavMenuOpen(false);
-                    }}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-indigo-200 transition hover:bg-indigo-500/20"
-                  >
-                    <span className="text-lg">📝</span>
-                    Admissions
                   </button>
                 )}
                 {onLogout && (
