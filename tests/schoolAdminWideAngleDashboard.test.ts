@@ -64,3 +64,14 @@ test('admissions and settings removals match the school-admin brief', () => {
   assert.doesNotMatch(admission, /Advanced \/ Support Tools/);
   assert.doesNotMatch(settings, /Danger Zone/);
 });
+
+test('admissions uses formal light modals, fitted delete actions, and explicit workflow steps', () => {
+  assert.match(admission, /school-admin-modal school-admin-detail-modal/);
+  assert.match(admission, /school-admin-detail-header/);
+  assert.match(admission, /school-admin-detail-body/);
+  assert.match(admission, /school-admin-modal-close/);
+  assert.match(admission, /school-admin-icon-button school-admin-icon-button--danger/);
+  assert.match(admission, /admission-delete-column/);
+  assert.match(admission, /aria-label="Admission workflow steps"/);
+  assert.match(admission, /Step \{i \+ 1\}/);
+});
