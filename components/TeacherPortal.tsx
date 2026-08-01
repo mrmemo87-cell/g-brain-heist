@@ -41,6 +41,7 @@ import { normalizePart2CommunicativeAchievement, sanitizeCommunicativeAchievemen
 import { useSchoolBranding } from '../src/hooks/useSchoolBranding';
 import { createSchoolBrand } from '../src/lib/schoolBranding';
 import { SchoolBrand } from '../src/components/SchoolBrand';
+import { useSmartCollapsedNavigation } from '../src/hooks/useSmartCollapsedNavigation';
 
 interface TeacherPortalProps {
   profile: Profile;
@@ -679,6 +680,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     if (view === 'cambridge-reports') return 'cambridge';
     return 'reports'; // catches 'reports', 'report-detail', 'report-analysis', 'collective-report'
   }, [view]);
+  const isMobileNavigationCollapsed = useSmartCollapsedNavigation(view, '(max-width: 1023px)');
 
   const changeSection = async (section: TeacherNavSection) => {
     setMobileWorkspaceMenuOpen(false);
@@ -8575,7 +8577,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           </div>
         </div>
 
-        <nav className="teacher-mobile-bottom-nav" aria-label="Teacher workspace">
+        <nav className="teacher-mobile-bottom-nav" data-collapsed={isMobileNavigationCollapsed} aria-label="Teacher workspace">
           {mobilePrimaryTabs.map((tab) => {
             const { locked } = getNavTabState(tab);
             return (
@@ -8586,6 +8588,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 disabled={locked}
                 className={primarySection === tab.id ? 'is-active' : ''}
                 aria-current={primarySection === tab.id ? 'page' : undefined}
+                aria-label={tab.label}
               >
                 <span aria-hidden="true">{tab.icon}</span>
                 <small>{tab.label === 'My Classes' ? 'Classes' : tab.label}</small>
@@ -8597,6 +8600,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             onClick={() => setMobileWorkspaceMenuOpen(true)}
             className={!mobilePrimaryTabs.some((tab) => tab.id === primarySection) ? 'is-active' : ''}
             aria-expanded={mobileWorkspaceMenuOpen}
+            aria-label="More"
           >
             <span aria-hidden="true">•••</span>
             <small>More</small>

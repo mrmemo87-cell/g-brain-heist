@@ -26,7 +26,7 @@ test('School Admin Portal exposes Phase 1 IELTS tabs without removing Cambridge'
     for (const tab of ['ielts-exams', 'ielts-practice', 'ielts-results', 'ielts-student-progress', 'ielts-analytics']) {
         assert.match(portal, new RegExp(`'${tab}'`), `School Admin Portal should include ${tab}`);
     }
-    assert.match(portal, /tab === 'cambridge' && '📚 Cambridge'/, 'existing Cambridge tab label must remain present');
+    assert.match(portal, /tab === 'cambridge' && 'Cambridge Assessments'/, 'school-friendly Cambridge navigation label must remain present');
     assert.match(portal, /<CambridgeTab \/>/, 'existing Cambridge tab content must remain wired');
     assert.match(portal, /<IeltsExamsTab \/>/, 'IELTS Exams tab content must be wired');
     assert.match(portal, /<IeltsPracticeTab \/>/, 'IELTS Practice placeholder tab must be wired');

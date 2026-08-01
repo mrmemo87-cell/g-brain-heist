@@ -1,13 +1,13 @@
-import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment as _Fragment, jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import gsap from 'gsap';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
-import { Observer } from 'gsap/Observer';
-import { getCurrentWeeklyPlan, getStudentGenrePathStatuses, getWritingHydrationStatus, getWritingPersistenceStatus, getMonthlyWritingReport, requestWritingAiAssist, persistInitialWritingRichFeedback, retryWritingHydration, subscribeToWritingPersistenceStatus, subscribeToWritingHydrationStatus, getStudentWritingState, getStudentWritingHubSnapshot, listStudentWritingHistoryByGenre, getSmartWritingPromptForStudent, listWritingPrompts, getTodayWritingTask, getWeeklyWritingReview, submitDailyWritingPractice, submitInitialWritingAssessment, } from '../../lib/brains_heist/writingIntegrationService.js';
+import { getCurrentWeeklyPlan, getStudentGenrePathStatuses, getWritingHydrationStatus, getWritingPersistenceStatus, getMonthlyWritingReport, requestWritingAiAssist, persistInitialWritingRichFeedback, ensureWritingHydrationForStudent, retryWritingHydration, subscribeToWritingPersistenceStatus, subscribeToWritingHydrationStatus, getStudentWritingState, getStudentWritingHubSnapshot, listStudentWritingHistoryByGenre, getSmartWritingPromptForStudent, getTodayWritingTask, getWeeklyWritingReview, submitDailyWritingPractice, submitInitialWritingAssessment, getStudentWritingIntegrityMode, } from '../../lib/brains_heist/writingIntegrationService.js';
 import { FALLBACK_PROMPT_BY_GENRE, WEAKNESS_TAG_TO_MISSION_CATEGORY } from '../../lib/brains_heist/writingPromptProgression.js';
+import { createWritingCompositionTelemetry, finalizeWritingCompositionTelemetry, recordWritingFocusLoss, recordWritingInput, recordWritingPaste, recordWritingVisibilityHidden, toWritingIntegrityModeLabel, toWritingIntegrityReviewLabel, } from '../../lib/brains_heist/writingIntegrity.js';
 import { quest_get_missions } from '../../../services/gameService.js';
-gsap.registerPlugin(DrawSVGPlugin, Observer);
+gsap.registerPlugin(DrawSVGPlugin);
 const toAlignmentLabel = (alignment) => {
     const labels = {
         on_task: 'On task',
@@ -128,8 +128,8 @@ const pillStyle = {
     fontWeight: 700,
 };
 const computeWordCountRange = (targetWords) => ({
-    min: Math.max(1, Math.floor(targetWords * 0.9)),
-    max: Math.ceil(targetWords * 1.1),
+    min: targetWords === 110 ? 100 : Math.max(1, Math.floor(targetWords * 0.9)),
+    max: targetWords === 110 ? 120 : Math.ceil(targetWords * 1.1),
 });
 const simplifyStudentLanguage = (text) => {
     const replacements = [
@@ -407,14 +407,24 @@ const buildAnchorRanges = (text, ai) => {
             return;
         if (item.start_char < 0 || item.end_char <= item.start_char || item.end_char > text.length)
             return;
+        const exactText = item.exact_text?.trim() || '';
+        let verifiedStart = item.start_char;
+        let verifiedEnd = item.end_char;
+        if (exactText && text.slice(verifiedStart, verifiedEnd) !== exactText) {
+            const exactStart = text.indexOf(exactText);
+            if (exactStart < 0)
+                return;
+            verifiedStart = exactStart;
+            verifiedEnd = exactStart + exactText.length;
+        }
         const basePolarity = item.polarity === 'strong' ? 'strong' : 'weak';
         ranges.push({
-            start: item.start_char,
-            end: item.end_char,
+            start: verifiedStart,
+            end: verifiedEnd,
             polarity: classifyPolarity(item.category, basePolarity),
             reason: item.category ?? `highlight-${idx + 1}`,
             sourceCategory: item.category,
-            sourceExactText: item.exact_text?.trim() || undefined,
+            sourceExactText: exactText || undefined,
         });
     });
     return ranges;
@@ -465,21 +475,26 @@ const buildFallbackHighlightRanges = (text, ai) => {
         const search = needle.toLowerCase();
         if (!search)
             return null;
-        let fromIndex = 0;
-        while (fromIndex < lowerText.length) {
-            const start = lowerText.indexOf(search, fromIndex);
-            if (start < 0)
-                return null;
-            const end = start + search.length;
-            if (!isOverlappingClaim(start, end))
-                return { start, end };
-            fromIndex = start + 1;
+        const isWordCharacter = (value) => Boolean(value && /[\p{L}\p{N}_]/u.test(value));
+        const isWholeToken = (start, end) => !isWordCharacter(text[start - 1]) && !isWordCharacter(text[end]);
+        for (const haystack of [text, lowerText]) {
+            const query = haystack === text ? needle : search;
+            let fromIndex = 0;
+            while (fromIndex < haystack.length) {
+                const start = haystack.indexOf(query, fromIndex);
+                if (start < 0)
+                    break;
+                const end = start + query.length;
+                if (!isOverlappingClaim(start, end) && (query.length > 3 || isWholeToken(start, end)))
+                    return { start, end };
+                fromIndex = start + 1;
+            }
         }
         return null;
     };
     const addSnippet = (snippet, polarity, reason, sourceCategory) => {
         const clean = snippet.trim();
-        if (!clean || clean.length < 6)
+        if (!clean)
             return;
         const match = findBestUnclaimedOccurrence(clean);
         if (!match)
@@ -494,42 +509,79 @@ const buildFallbackHighlightRanges = (text, ai) => {
             sourceExactText: clean,
         });
     };
-    (ai.grammar_fixes ?? []).slice(0, 4).forEach((item) => addSnippet(item.original, 'weak', 'grammar_fix', 'grammar'));
-    (ai.punctuation_fixes ?? []).slice(0, 4).forEach((item) => addSnippet(item.original, 'weak', 'punctuation_fix', 'punctuation'));
+    (ai.grammar_fixes ?? []).forEach((item) => addSnippet(item.original, 'weak', 'grammar_fix', 'grammar'));
+    (ai.punctuation_fixes ?? []).forEach((item) => addSnippet(item.original, 'weak', 'punctuation_fix', 'punctuation'));
+    (ai.natural_phrase_upgrades ?? []).forEach((item) => addSnippet(item.original, 'weak', 'phrase_upgrade', 'phrase'));
+    (ai.style_tone_feedback ?? []).forEach((item) => addSnippet(item.evidence, 'weak', 'style_fix', 'style'));
     [...(ai.what_is_working ?? []), ...(ai.strengths ?? [])]
         .slice(0, 4)
         .forEach((item) => {
         const quoted = extractQuotedSnippet(item) ?? '';
         addSnippet(quoted, 'strong', 'strength', 'strength');
     });
-    if (!ranges.some((item) => item.polarity === 'strong')) {
-        const firstSentenceEnd = text.indexOf('.') > 0 ? text.indexOf('.') + 1 : Math.min(text.length, 90);
-        ranges.push({ start: 0, end: firstSentenceEnd, polarity: 'strong', reason: 'opening_strength', sourceCategory: 'strength' });
-    }
-    if (!ranges.some((item) => item.polarity === 'weak')) {
-        const midpoint = Math.max(0, Math.floor(text.length * 0.4));
-        const fallbackStart = text.lastIndexOf(' ', midpoint);
-        const fallbackEndWord = text.indexOf(' ', Math.min(text.length - 1, midpoint + 40));
-        const start = fallbackStart > 0 ? fallbackStart : Math.max(0, midpoint - 20);
-        const end = fallbackEndWord > start ? fallbackEndWord : Math.min(text.length, start + 45);
-        if (end - start >= 8) {
-            ranges.push({ start, end, polarity: 'weak', reason: 'revision_focus', sourceCategory: 'fallback' });
-        }
-    }
     return ranges;
 };
-const ReviewHighlightSpan = ({ index, range, segment, isActive, onMount }) => {
+// Keep correction spotlights as precise as the correction itself. AI providers can
+// anchor an entire sentence even when the only change is one capital or comma.
+const narrowCorrectionRanges = (text, ranges, ai) => {
+    const corrections = [
+        ...(ai?.grammar_fixes ?? []).map((fix) => ({ original: fix.original, better: fix.better_version })),
+        ...(ai?.punctuation_fixes ?? []).map((fix) => ({ original: fix.original, better: fix.better_version })),
+    ].filter((fix) => fix.original?.trim() && fix.better?.trim());
+    return ranges.map((range) => {
+        if (range.polarity !== 'weak')
+            return range;
+        const anchored = text.slice(range.start, range.end);
+        const fix = corrections.find((candidate) => anchored.includes(candidate.original) || candidate.original.includes(anchored));
+        if (!fix)
+            return range;
+        const original = fix.original;
+        const better = fix.better;
+        let prefix = 0;
+        while (prefix < original.length && prefix < better.length && original[prefix] === better[prefix])
+            prefix += 1;
+        let suffix = 0;
+        while (suffix < original.length - prefix
+            && suffix < better.length - prefix
+            && original[original.length - 1 - suffix] === better[better.length - 1 - suffix])
+            suffix += 1;
+        const originalStart = text.indexOf(original, Math.max(0, range.start - 1));
+        if (originalStart < 0)
+            return range;
+        // For an insertion (for example a missing comma), spotlight the adjacent
+        // character rather than misleadingly colouring the whole sentence.
+        const changedLength = original.length - prefix - suffix;
+        const localStart = Math.min(original.length - 1, prefix);
+        const localEnd = changedLength > 0
+            ? original.length - suffix
+            : Math.min(original.length, localStart + 1);
+        return {
+            ...range,
+            start: originalStart + Math.max(0, localStart),
+            end: originalStart + Math.max(localStart + 1, localEnd),
+            sourceExactText: original,
+        };
+    });
+};
+const ReviewHighlightSpan = ({ index, range, segment, isActive, spotlightMode = false, onMount, }) => {
     const strong = range.polarity === 'strong';
+    const isQuiet = spotlightMode && !isActive;
     const highlightStyle = {
-        background: isActive
-            ? (strong ? 'rgba(74, 222, 128, 0.35)' : 'rgba(248, 113, 113, 0.34)')
-            : (strong ? 'rgba(74, 222, 128, 0.18)' : 'rgba(248, 113, 113, 0.16)'),
-        borderBottom: isActive
-            ? (strong ? '2px solid rgba(74, 222, 128, 0.9)' : '2px solid rgba(248, 113, 113, 0.9)')
-            : (strong ? '2px solid rgba(74, 222, 128, 0.45)' : '2px solid rgba(248, 113, 113, 0.42)'),
-        color: isActive
-            ? (strong ? 'var(--hub-highlight-strong-active, #d9f99d)' : 'var(--hub-highlight-weak-active, #fecaca)')
-            : (strong ? 'var(--hub-highlight-strong-idle, rgba(187,247,208,0.9))' : 'var(--hub-highlight-weak-idle, rgba(254,202,202,0.9))'),
+        background: isQuiet
+            ? 'transparent'
+            : isActive
+                ? (strong ? 'rgba(74, 222, 128, 0.35)' : 'rgba(248, 113, 113, 0.34)')
+                : (strong ? 'rgba(74, 222, 128, 0.18)' : 'rgba(248, 113, 113, 0.16)'),
+        borderBottom: isQuiet
+            ? '2px solid transparent'
+            : isActive
+                ? (strong ? '2px solid rgba(74, 222, 128, 0.9)' : '2px solid rgba(248, 113, 113, 0.9)')
+                : (strong ? '2px solid rgba(74, 222, 128, 0.45)' : '2px solid rgba(248, 113, 113, 0.42)'),
+        color: isQuiet
+            ? 'inherit'
+            : isActive
+                ? (strong ? '#14532d' : '#7f1d1d')
+                : (strong ? '#166534' : '#991b1b'),
         boxShadow: isActive ? (strong ? '0 0 0 1px rgba(74, 222, 128, 0.5)' : '0 0 0 1px rgba(248, 113, 113, 0.5)') : 'none',
         textShadow: 'none',
         borderRadius: 4,
@@ -538,7 +590,7 @@ const ReviewHighlightSpan = ({ index, range, segment, isActive, onMount }) => {
     };
     return (_jsxs("span", { ref: (element) => onMount?.(index, element), "data-review-highlight-index": index, className: `review-highlight ${strong ? 'review-highlight--strong' : 'review-highlight--weak'} ${isActive ? 'review-highlight--active' : 'review-highlight--inactive'}`, title: range.reason, style: highlightStyle, children: [_jsx("span", { className: "review-highlight__ink-base", "aria-hidden": "true" }), _jsx("span", { className: "review-highlight__text", children: segment })] }));
 };
-const renderAnnotatedText = (text, ranges, activeIndex = null, onHighlightMount) => {
+const renderAnnotatedText = (text, ranges, activeIndex = null, onHighlightMount, spotlightMode = false) => {
     if (!text)
         return text;
     const normalizedRanges = [...ranges]
@@ -559,7 +611,7 @@ const renderAnnotatedText = (text, ranges, activeIndex = null, onHighlightMount)
         if (cursor < range.start)
             nodes.push(_jsx("span", { children: text.slice(cursor, range.start) }, `plain-${idx}`));
         const segment = text.slice(range.start, range.end);
-        nodes.push(_jsx(ReviewHighlightSpan, { index: idx, range: range, segment: segment, isActive: idx === activeIndex, onMount: onHighlightMount }));
+        nodes.push(_jsx(ReviewHighlightSpan, { index: idx, range: range, segment: segment, isActive: idx === activeIndex, spotlightMode: spotlightMode, onMount: onHighlightMount }));
         cursor = range.end;
     });
     if (cursor < text.length)
@@ -2175,7 +2227,7 @@ const WritingHubLegacy = ({ studentId, studentName, grade, genre, month = new Da
             cancelled = true;
         };
     }, [rankedWeaknessTags.join('|'), nonCriticalReady]);
-    const loadRichFeedback = async (submissionText, promptForFeedback, weaknessesForFeedback, source) => {
+    const loadRichFeedback = async (submissionText, promptForFeedback, weaknessesForFeedback, source, attemptId) => {
         setIsAnalyzingRichFeedback(true);
         const aiFeedback = await requestWritingAiAssist({
             mode: 'feedback',
@@ -2201,6 +2253,7 @@ const WritingHubLegacy = ({ studentId, studentName, grade, genre, month = new Da
                 const persistResult = persistInitialWritingRichFeedback({
                     student_id: studentId,
                     genre: activeGenre,
+                    attempt_id: attemptId,
                     rich_feedback: ai,
                 });
                 if (!persistResult.ok) {
@@ -2272,7 +2325,7 @@ const WritingHubLegacy = ({ studentId, studentName, grade, genre, month = new Da
         setReviewScanComplete(false);
         setReviewActiveIndex(null);
         try {
-            const aiResult = await loadRichFeedback(safeInitialResponse, promptForSubmission, latestWeaknesses, 'initial');
+            const aiResult = await loadRichFeedback(safeInitialResponse, promptForSubmission, latestWeaknesses, 'initial', result.data?.attempt_id);
             if (aiResult.ok) {
                 setAiReviewViewMode('full');
                 setShowAiReviewModal(false);
@@ -3252,6 +3305,7 @@ const buildWritingDraftStorageKey = (studentId, genre, promptText) => `writing_h
 const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
     const [activeGenre, setActiveGenre] = useState(genre);
     const [promptText, setPromptText] = useState(defaultPromptByGenre[genre]);
+    const [promptId, setPromptId] = useState(null);
     const [draft, setDraft] = useState('');
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
@@ -3260,42 +3314,54 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
     const [aiFeedback, setAiFeedback] = useState(null);
     const [submittedText, setSubmittedText] = useState('');
     const [showCinematicFeedback, setShowCinematicFeedback] = useState(false);
+    const [cinematicReplaySource, setCinematicReplaySource] = useState(null);
     const [cinematicIndex, setCinematicIndex] = useState(null);
     const [cinematicDone, setCinematicDone] = useState(false);
     const [showFullEssayContext, setShowFullEssayContext] = useState(false);
     const [showPromptChooser, setShowPromptChooser] = useState(false);
+    const [wizardOpen, setWizardOpen] = useState(true);
     const [revisionCycleId, setRevisionCycleId] = useState(() => createRevisionCycleId());
     const [attemptNumber, setAttemptNumber] = useState(1);
     const [lastAttemptId, setLastAttemptId] = useState(null);
     const [lastRetryKind, setLastRetryKind] = useState('new_prompt');
+    const [integrityMode, setIntegrityMode] = useState('practice');
+    const [compositionTelemetry, setCompositionTelemetry] = useState(() => createWritingCompositionTelemetry('practice'));
+    const [latestIntegritySignals, setLatestIntegritySignals] = useState(null);
+    const [revisionOriginText, setRevisionOriginText] = useState('');
     const [promptHistoryCount, setPromptHistoryCount] = useState(0);
+    const [availablePromptCount, setAvailablePromptCount] = useState(1);
+    const [hydratedForStudentId, setHydratedForStudentId] = useState(null);
+    const [hydrationStatus, setHydrationStatus] = useState(getWritingHydrationStatus());
+    const [persistenceStatus, setPersistenceStatus] = useState(getWritingPersistenceStatus());
     const responseFieldRef = useRef(null);
     const cinematicTextPanelRef = useRef(null);
     const cinematicRangeRefs = useRef({});
     const cinematicTracePathRef = useRef(null);
-    const observerCleanupRef = useRef(null);
-    const targetWordCount = grade <= 7 ? 80 : grade <= 9 ? 120 : 160;
+    const managedPromptLoadKeyRef = useRef('');
+    const pastedCharactersToIgnoreRef = useRef(0);
+    const targetWordCount = 110;
     const wordCount = countWords(draft);
     const wordTone = useMemo(() => getWordCounterTone(wordCount, targetWordCount), [wordCount, targetWordCount]);
     const isVeryShortDraft = wordCount > 0 && wordCount < Math.max(10, Math.floor(targetWordCount * 0.2));
-    const availablePromptCount = useMemo(() => {
-        const promptRes = listWritingPrompts({ genre: activeGenre, grade, is_active: true });
-        if (!promptRes.ok || !promptRes.data)
-            return 1;
-        return Math.max(1, promptRes.data.length);
-    }, [activeGenre, grade]);
     const hasPromptRotation = availablePromptCount > 1;
+    const studentHistoryReady = hydratedForStudentId === studentId
+        && hydrationStatus !== 'idle'
+        && hydrationStatus !== 'loading';
     const draftStorageKey = useMemo(() => buildWritingDraftStorageKey(studentId, activeGenre, promptText), [studentId, activeGenre, promptText]);
-    const writingHistoryByGenre = listStudentWritingHistoryByGenre(studentId);
+    const writingHistoryByGenre = useMemo(() => listStudentWritingHistoryByGenre(studentId), [studentId, hydrationStatus, assessment?.total_score, aiFeedback]);
+    const archivedEntries = useMemo(() => (writingHistoryByGenre.data ?? []).flatMap((item) => item.entries), [writingHistoryByGenre]);
     useEffect(() => {
         setActiveGenre(genre);
         setPromptText(defaultPromptByGenre[genre]);
+        setPromptId(null);
         setDraft('');
         setAssessment(null);
         setAiFeedback(null);
         setSubmittedText('');
         setShowCinematicFeedback(false);
+        setCinematicReplaySource(null);
         setShowPromptChooser(false);
+        setWizardOpen(false);
         setShowFullEssayContext(false);
         setCinematicIndex(null);
         setCinematicDone(false);
@@ -3303,7 +3369,43 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
         setAttemptNumber(1);
         setLastAttemptId(null);
         setLastRetryKind('new_prompt');
+        setLatestIntegritySignals(null);
+        setRevisionOriginText('');
+        setCompositionTelemetry(createWritingCompositionTelemetry(integrityMode));
     }, [genre]);
+    useEffect(() => {
+        let cancelled = false;
+        void getStudentWritingIntegrityMode().then((result) => {
+            if (cancelled || !result.ok || !result.data)
+                return;
+            setIntegrityMode(result.data.mode);
+            setCompositionTelemetry(createWritingCompositionTelemetry(result.data.mode));
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [studentId]);
+    useEffect(() => {
+        const unsubscribeHydration = subscribeToWritingHydrationStatus(setHydrationStatus);
+        const unsubscribePersistence = subscribeToWritingPersistenceStatus(setPersistenceStatus);
+        return () => {
+            unsubscribeHydration();
+            unsubscribePersistence();
+        };
+    }, []);
+    useEffect(() => {
+        let cancelled = false;
+        managedPromptLoadKeyRef.current = '';
+        setPromptHistoryCount(0);
+        setHydratedForStudentId(null);
+        void ensureWritingHydrationForStudent(studentId).finally(() => {
+            if (!cancelled)
+                setHydratedForStudentId(studentId);
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [studentId]);
     useEffect(() => {
         if (typeof window === 'undefined')
             return;
@@ -3330,7 +3432,7 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
         }
         const activeGenreHistory = historyResult.data.find((item) => item.genre === activeGenre);
         setPromptHistoryCount(activeGenreHistory?.entries.length ?? 0);
-    }, [studentId, activeGenre, assessment?.total_score]);
+    }, [studentId, activeGenre, assessment?.total_score, hydrationStatus]);
     useEffect(() => {
         if (typeof window === 'undefined')
             return;
@@ -3363,17 +3465,41 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
         window.addEventListener('beforeunload', handleBeforeUnload);
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [draft]);
+    useEffect(() => {
+        if (typeof document === 'undefined')
+            return;
+        const handleVisibility = () => {
+            if (document.visibilityState !== 'hidden' || !draft.trim())
+                return;
+            setCompositionTelemetry((current) => recordWritingVisibilityHidden(current));
+        };
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => document.removeEventListener('visibilitychange', handleVisibility);
+    }, [draft]);
     const beginRetrySamePrompt = () => {
+        setRevisionOriginText(submittedText || draft);
         setLastRetryKind('same_prompt');
         setDraft('');
         setAssessment(null);
         setAiFeedback(null);
         setSubmittedText('');
         setShowCinematicFeedback(false);
+        setCinematicReplaySource(null);
         setCinematicDone(false);
         setCinematicIndex(null);
         setShowFullEssayContext(false);
+        setLatestIntegritySignals(null);
+        setCompositionTelemetry(createWritingCompositionTelemetry(integrityMode, lastAttemptId));
         setNotice('Retry this prompt: write an improved version, then submit.');
+        setTimeout(() => responseFieldRef.current?.focus(), 0);
+    };
+    const clearAllText = () => {
+        setDraft('');
+        setError('');
+        setNotice('Your response has been cleared.');
+        setCompositionTelemetry(createWritingCompositionTelemetry(integrityMode, lastAttemptId));
+        if (typeof window !== 'undefined')
+            window.localStorage.removeItem(draftStorageKey);
         setTimeout(() => responseFieldRef.current?.focus(), 0);
     };
     const loadFreshPrompt = async (genreOverride) => {
@@ -3389,21 +3515,34 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
             const stateRes = getStudentWritingState(studentId, nextGenre);
             const weaknessTags = stateRes.ok && stateRes.data?.latest_assessment ? stateRes.data.latest_assessment.weakness_tags.slice(0, 4) : [];
             const previousPrompt = promptText;
+            const previousPromptId = promptId;
             const nextPrompt = await getSmartWritingPromptForStudent({
                 student_id: studentId,
                 grade,
                 genre: nextGenre,
+                current_prompt_id: promptId ?? undefined,
                 current_prompt_text: promptText,
                 weakness_tags: weaknessTags,
                 use_ai_polish: true,
             });
             let resolvedPrompt = defaultPromptByGenre[nextGenre];
+            let resolvedPromptId = null;
             if (nextPrompt.ok && nextPrompt.data?.prompt_text?.trim()) {
                 resolvedPrompt = nextPrompt.data.prompt_text.trim();
+                resolvedPromptId = nextPrompt.data.prompt_id;
+                setPromptId(resolvedPromptId);
+                setAvailablePromptCount(Math.max(1, nextPrompt.data.pool_size ?? availablePromptCount));
             }
-            if (normalizePromptForComparison(resolvedPrompt) === normalizePromptForComparison(previousPrompt)) {
+            else {
+                setPromptId(null);
+            }
+            const samePromptIdentity = Boolean(previousPromptId
+                && resolvedPromptId
+                && previousPromptId === resolvedPromptId);
+            const samePromptText = normalizePromptForComparison(resolvedPrompt) === normalizePromptForComparison(previousPrompt);
+            if (samePromptIdentity || samePromptText) {
                 setNotice(hasPromptRotation
-                    ? 'Prompt pool returned the same task. You can still retry this prompt now, and we will rotate on the next request.'
+                    ? 'This is still the same task, so it has not been labelled as a new prompt. Choose New prompt again or retry it.'
                     : `Only one active ${toGenreLabel(nextGenre).toLowerCase()} prompt is enabled, so New prompt keeps the same task.`);
             }
             else {
@@ -3415,12 +3554,16 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
             setAiFeedback(null);
             setSubmittedText('');
             setShowCinematicFeedback(false);
+            setCinematicReplaySource(null);
             setCinematicIndex(null);
             setCinematicDone(false);
             setRevisionCycleId(createRevisionCycleId());
             setAttemptNumber(1);
             setLastAttemptId(null);
             setLastRetryKind('new_prompt');
+            setRevisionOriginText('');
+            setLatestIntegritySignals(null);
+            setCompositionTelemetry(createWritingCompositionTelemetry(integrityMode));
             setShowPromptChooser(false);
             setTimeout(() => responseFieldRef.current?.focus(), 0);
         }
@@ -3432,6 +3575,15 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
             setBusy(false);
         }
     };
+    useEffect(() => {
+        if (!studentHistoryReady)
+            return;
+        const loadKey = `${studentId}:${activeGenre}`;
+        if (managedPromptLoadKeyRef.current === loadKey)
+            return;
+        managedPromptLoadKeyRef.current = loadKey;
+        void loadFreshPrompt(activeGenre);
+    }, [studentId, activeGenre, studentHistoryReady]);
     const submitAttempt = async (retryKind) => {
         if (!draft.trim()) {
             setError('Please write your response before submitting.');
@@ -3442,18 +3594,21 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
         setNotice('Checking your writing…');
         const currentCycleId = retryKind === 'new_prompt' ? createRevisionCycleId() : revisionCycleId;
         const currentAttemptNumber = retryKind === 'new_prompt' ? 1 : attemptNumber;
+        const finalizedIntegritySignals = finalizeWritingCompositionTelemetry(compositionTelemetry, draft, retryKind === 'same_prompt' ? revisionOriginText : '');
         const result = submitInitialWritingAssessment({
             student_id: studentId,
             student_name: studentName,
             grade,
             genre: activeGenre,
             prompt_text: promptText,
+            prompt_id: promptId,
             target_word_count: targetWordCount,
             student_response: draft,
             revision_cycle_id: currentCycleId,
             attempt_number: currentAttemptNumber,
             retry_kind: retryKind,
             parent_attempt_id: retryKind === 'same_prompt' ? lastAttemptId : null,
+            integrity_signals: finalizedIntegritySignals,
         });
         if (!result.ok || !result.data) {
             setError(result.error ?? 'Submission failed. Please retry.');
@@ -3466,6 +3621,7 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
         setRevisionCycleId(currentCycleId);
         setAttemptNumber(currentAttemptNumber + 1);
         setLastRetryKind(retryKind);
+        setLatestIntegritySignals(finalizedIntegritySignals);
         if (typeof window !== 'undefined') {
             window.localStorage.removeItem(draftStorageKey);
         }
@@ -3485,9 +3641,14 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
                     persistInitialWritingRichFeedback({
                         student_id: studentId,
                         genre: activeGenre,
+                        attempt_id: result.data.attempt_id,
                         rich_feedback: parsedFeedback,
                         created_at: new Date().toISOString(),
                     });
+                    setCinematicReplaySource(null);
+                    setCinematicIndex(null);
+                    setCinematicDone(false);
+                    setShowCinematicFeedback(true);
                 }
             }
             else {
@@ -3502,27 +3663,59 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
             setNotice('Feedback is ready below. Revise and submit again when you are ready.');
         }
     };
-    const trustedRanges = useMemo(() => buildAnchorRanges(submittedText, aiFeedback), [submittedText, aiFeedback]);
-    const fallbackRanges = useMemo(() => buildFallbackHighlightRanges(submittedText, aiFeedback), [submittedText, aiFeedback]);
-    const cinematicTrust = useMemo(() => evaluateAnchorTrust(submittedText, aiFeedback), [submittedText, aiFeedback]);
-    const cinematicRanges = useMemo(() => buildBalancedReviewSequence(cinematicTrust.mode === 'trusted' && !hasConflictingAnchorOverlap(trustedRanges) ? trustedRanges : fallbackRanges, 8), [cinematicTrust.mode, trustedRanges, fallbackRanges]);
+    const playSavedCinematicFeedback = (entry) => {
+        if (!entry.student_submission.trim() || !entry.assessment || !entry.rich_feedback || typeof entry.rich_feedback !== 'object') {
+            setError('This older submission does not have enough saved feedback for a cinematic replay.');
+            return;
+        }
+        setError('');
+        setCinematicReplaySource({
+            attemptId: entry.id,
+            submittedText: entry.student_submission,
+            assessment: entry.assessment,
+            feedback: entry.rich_feedback,
+        });
+        setCinematicIndex(null);
+        setCinematicDone(false);
+        setShowCinematicFeedback(true);
+    };
+    const activeCinematicText = cinematicReplaySource?.submittedText ?? submittedText;
+    const activeCinematicFeedback = cinematicReplaySource?.feedback ?? aiFeedback;
+    const activeCinematicAssessment = cinematicReplaySource?.assessment ?? assessment;
+    const trustedRanges = useMemo(() => buildAnchorRanges(activeCinematicText, activeCinematicFeedback), [activeCinematicText, activeCinematicFeedback]);
+    const fallbackRanges = useMemo(() => buildFallbackHighlightRanges(activeCinematicText, activeCinematicFeedback), [activeCinematicText, activeCinematicFeedback]);
+    const cinematicTrust = useMemo(() => evaluateAnchorTrust(activeCinematicText, activeCinematicFeedback), [activeCinematicText, activeCinematicFeedback]);
+    const cinematicRanges = useMemo(() => {
+        const trustedBase = cinematicTrust.mode === 'trusted' && !hasConflictingAnchorOverlap(trustedRanges)
+            ? trustedRanges
+            : [];
+        // Correction lists power the word-by-word view, so include every one in the
+        // cinematic replay too instead of relying only on the provider's highlights.
+        const completeRanges = [...fallbackRanges, ...trustedBase].filter((range, index, all) => all.findIndex((candidate) => candidate.start === range.start && candidate.end === range.end && candidate.polarity === range.polarity) === index);
+        return buildBalancedReviewSequence(narrowCorrectionRanges(activeCinematicText, completeRanges, activeCinematicFeedback), completeRanges.length);
+    }, [activeCinematicText, activeCinematicFeedback, cinematicTrust.mode, trustedRanges, fallbackRanges]);
     const improvementGuidance = useMemo(() => [
-        aiFeedback?.next_move,
-        ...(aiFeedback?.next_steps ?? []),
-    ].filter(Boolean).join(' ') || 'Focus on the mistake tags, then rewrite for clearer task coverage and language control.', [aiFeedback]);
+        activeCinematicFeedback?.next_move,
+        ...(activeCinematicFeedback?.next_steps ?? []),
+    ].filter(Boolean).join(' ') || 'Focus on the mistake tags, then rewrite for clearer task coverage and language control.', [activeCinematicFeedback]);
     const cinematicModeLabel = cinematicTrust.mode === 'trusted'
         ? 'Precision review mode'
         : cinematicTrust.mode === 'stale_feedback'
             ? 'Guided review mode'
             : 'Guided review mode';
+    const cinematicProgress = cinematicDone
+        ? 100
+        : cinematicRanges.length > 0
+            ? Math.round((((cinematicIndex ?? 0) + 1) / (cinematicRanges.length + 1)) * 100)
+            : 100;
     const activeCinematicRange = cinematicIndex != null ? cinematicRanges[cinematicIndex] ?? null : null;
-    const activeCinematicDetail = useMemo(() => describeHighlight(activeCinematicRange, submittedText, aiFeedback), [activeCinematicRange, submittedText, aiFeedback]);
+    const activeCinematicDetail = useMemo(() => describeHighlight(activeCinematicRange, activeCinematicText, activeCinematicFeedback), [activeCinematicRange, activeCinematicText, activeCinematicFeedback]);
     const activeSnippet = useMemo(() => {
         if (!activeCinematicRange)
             return '';
-        return submittedText.slice(activeCinematicRange.start, activeCinematicRange.end).trim() || activeCinematicRange.sourceExactText?.trim() || '';
-    }, [activeCinematicRange, submittedText]);
-    const activeLessonFix = useMemo(() => pickLessonFixForRange(activeCinematicRange, activeSnippet, aiFeedback), [activeCinematicRange, activeSnippet, aiFeedback]);
+        return activeCinematicText.slice(activeCinematicRange.start, activeCinematicRange.end).trim() || activeCinematicRange.sourceExactText?.trim() || '';
+    }, [activeCinematicRange, activeCinematicText]);
+    const activeLessonFix = useMemo(() => pickLessonFixForRange(activeCinematicRange, activeSnippet, activeCinematicFeedback), [activeCinematicRange, activeSnippet, activeCinematicFeedback]);
     const activeReviewIssue = useMemo(() => {
         const originalSentence = activeSnippet || activeCinematicRange?.sourceExactText || 'No snippet available.';
         const candidateImproved = activeLessonFix?.betterVersion || activeCinematicDetail.correction || '';
@@ -3590,11 +3783,11 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
         });
     }, [issueConsistency, normalizedReviewIssue.id, normalizedReviewIssue.evidenceSpan]);
     const rubricRows = useMemo(() => [
-        { key: 'content', label: 'Content', value: assessment?.subscores.content ?? null },
-        { key: 'organisation', label: 'Organization', value: assessment?.subscores.organisation ?? null },
-        { key: 'language', label: 'Language', value: assessment?.subscores.language ?? null },
-        { key: 'communicative_achievement', label: 'Communicative Achievement', value: assessment?.subscores.communicative_achievement ?? null },
-    ], [assessment]);
+        { key: 'content', label: 'Content', value: activeCinematicAssessment?.subscores.content ?? null },
+        { key: 'organisation', label: 'Organization', value: activeCinematicAssessment?.subscores.organisation ?? null },
+        { key: 'language', label: 'Language', value: activeCinematicAssessment?.subscores.language ?? null },
+        { key: 'communicative_achievement', label: 'Communicative Achievement', value: activeCinematicAssessment?.subscores.communicative_achievement ?? null },
+    ], [activeCinematicAssessment]);
     const handleRangeMount = (index, element) => {
         const refs = cinematicRangeRefs.current ?? {};
         refs[index] = element;
@@ -3617,46 +3810,49 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
         const panel = document.querySelector('.simple-cinematic-panel');
         if (!panel)
             return;
+        const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+        if (prefersReducedMotion) {
+            setCinematicIndex(cinematicRanges.length > 0 ? 0 : null);
+            setCinematicDone(cinematicRanges.length === 0);
+            return;
+        }
         const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
         tl.fromTo(panel, { opacity: 0, scale: 0.97, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: 0.5 });
         tl.fromTo(panel.querySelector('.cinematic-text-panel'), { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4 }, '-=0.2');
         tl.fromTo('.cinematic-detail-card', { opacity: 0, x: -12 }, { opacity: 1, x: 0, duration: 0.35 }, '-=0.15');
-        tl.fromTo('.cinematic-rubric-section', { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.35 }, '-=0.1');
         tl.fromTo('.cinematic-nav-bar', { opacity: 0 }, { opacity: 1, duration: 0.25 }, '-=0.1');
-        tl.add(() => {
-            const bars = document.querySelectorAll('.rubric-bar-fill');
-            bars.forEach((bar) => {
-                const target = bar.style.width || '0%';
-                gsap.fromTo(bar, { width: '0%' }, { width: target, duration: 0.8, ease: 'power2.out', delay: 0.05 });
-            });
-        }, '-=0.15');
         if (cinematicRanges.length === 0) {
             setCinematicDone(true);
             setCinematicIndex(null);
-            return;
         }
-        let cancelled = false;
-        const timers = [];
-        let elapsed = 600;
-        cinematicRanges.forEach((range, idx) => {
-            const segment = submittedText.slice(range.start, range.end);
-            const delay = getHighlightAnimationDurationMs(segment.length) + 80;
-            timers.push(window.setTimeout(() => {
-                if (!cancelled)
-                    setCinematicIndex(idx);
-            }, elapsed));
-            elapsed += delay;
-        });
-        timers.push(window.setTimeout(() => {
-            if (!cancelled)
-                setCinematicDone(true);
-        }, elapsed + 200));
+        else {
+            setCinematicDone(false);
+            setCinematicIndex(0);
+        }
         return () => {
-            cancelled = true;
             tl.kill();
-            timers.forEach((timer) => window.clearTimeout(timer));
         };
-    }, [showCinematicFeedback, cinematicRanges, submittedText]);
+    }, [showCinematicFeedback, cinematicRanges, activeCinematicText]);
+    useEffect(() => {
+        if (!showCinematicFeedback || !cinematicDone)
+            return;
+        const finale = document.querySelector('.cinematic-feedback__finale');
+        if (!finale)
+            return;
+        const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+        if (prefersReducedMotion)
+            return;
+        const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+        tl.fromTo(finale, { opacity: 0, y: 16, scale: 0.985 }, { opacity: 1, y: 0, scale: 1, duration: 0.42 });
+        tl.fromTo(finale.querySelectorAll('.cinematic-feedback__rubric > div'), { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.28, stagger: 0.07 }, '-=0.18');
+        tl.add(() => {
+            finale.querySelectorAll('.rubric-bar-fill').forEach((bar) => {
+                const target = bar.style.width || '0%';
+                gsap.fromTo(bar, { width: '0%' }, { width: target, duration: 0.65, ease: 'power2.out' });
+            });
+        }, '-=0.15');
+        return () => { tl.kill(); };
+    }, [showCinematicFeedback, cinematicDone]);
     useEffect(() => {
         if (!showCinematicFeedback || cinematicIndex == null)
             return;
@@ -3690,7 +3886,7 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
         }
         scrollLineIntoComfortZone(panel, lineRects[0] ?? null);
         return () => { stepTl.kill(); };
-    }, [showCinematicFeedback, cinematicIndex, submittedText, activeCinematicRange?.polarity]);
+    }, [showCinematicFeedback, cinematicIndex, activeCinematicText, activeCinematicRange?.polarity]);
     useEffect(() => {
         if (typeof document === 'undefined' || !showCinematicFeedback)
             return;
@@ -3705,49 +3901,32 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
         };
     }, [showCinematicFeedback]);
     useEffect(() => {
-        observerCleanupRef.current?.();
-        observerCleanupRef.current = null;
+        if (typeof window === 'undefined' || !showCinematicFeedback)
+            return;
+        const onDismiss = (event) => {
+            if (event.key === 'Escape')
+                setShowCinematicFeedback(false);
+        };
+        window.addEventListener('keydown', onDismiss);
+        return () => window.removeEventListener('keydown', onDismiss);
+    }, [showCinematicFeedback]);
+    useEffect(() => {
         if (!showCinematicFeedback || cinematicRanges.length === 0)
             return;
-        const panel = cinematicTextPanelRef.current;
-        if (!panel || typeof window === 'undefined')
+        if (typeof window === 'undefined')
             return;
-        const observer = Observer.create({
-            target: panel,
-            wheelSpeed: -1,
-            tolerance: 8,
-            preventDefault: false,
-            type: 'wheel,touch,pointer',
-            onUp: () => setCinematicIndex((prev) => Math.max(0, (prev ?? 0) - 1)),
-            onDown: () => setCinematicIndex((prev) => Math.min(cinematicRanges.length - 1, (prev ?? 0) + 1)),
-        });
         const onKeyDown = (event) => {
-            if (event.key === 'ArrowRight')
+            if (event.key === 'ArrowRight') {
                 setCinematicIndex((prev) => Math.min(cinematicRanges.length - 1, (prev ?? 0) + 1));
+            }
             if (event.key === 'ArrowLeft')
                 setCinematicIndex((prev) => Math.max(0, (prev ?? 0) - 1));
         };
         window.addEventListener('keydown', onKeyDown);
-        observerCleanupRef.current = () => {
-            observer.kill();
+        return () => {
             window.removeEventListener('keydown', onKeyDown);
         };
-        return observerCleanupRef.current;
     }, [showCinematicFeedback, cinematicRanges.length]);
-    const handlePasteCapture = (event) => {
-        const target = event?.target;
-        const isTextInput = target instanceof HTMLTextAreaElement
-            || (target instanceof HTMLInputElement && ['text', 'search', 'email', 'url', 'tel', 'password', ''].includes(target.type || 'text'))
-            || Boolean(target?.isContentEditable);
-        if (!isTextInput)
-            return;
-        event.preventDefault();
-        setNotice('Pasting is disabled in Writing Hub. Please type your own response.');
-    };
-    const handleCopyCapture = (event) => {
-        event.preventDefault();
-        setNotice('Copying is disabled on this page.');
-    };
     const strengths = (aiFeedback?.what_is_working ?? aiFeedback?.strengths ?? []).filter(Boolean).slice(0, 4);
     const improvements = (aiFeedback?.what_is_missing ?? aiFeedback?.weaknesses ?? []).filter(Boolean).slice(0, 4);
     const quickFixes = [
@@ -3782,27 +3961,92 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
         { key: 'organization', label: 'Organization', value: assessment.subscores.organisation },
         { key: 'communicative_achievement', label: 'Communicative achievement', value: assessment.subscores.communicative_achievement },
     ] : [];
-    return (_jsxs("div", { style: { padding: 16, width: '100%', maxWidth: 980, margin: '0 auto', display: 'grid', gap: 14, color: '#0f172a', background: '#f8fafc' }, onPasteCapture: handlePasteCapture, onCopyCapture: handleCopyCapture, children: [_jsxs("section", { "data-testid": "writing-hub-student-view", style: { borderRadius: 12, border: '1px solid #dbeafe', background: '#ffffff', padding: 16 }, children: [_jsx("h2", { "data-testid": "writing-hub-title", style: { margin: 0, fontSize: 22 }, children: "Your Writing Space" }), _jsx("p", { style: { margin: '6px 0 0', color: '#475569' }, children: "Simple writing flow: write \u2192 submit \u2192 read feedback \u2192 revise." }), notice && _jsx("p", { style: { margin: '10px 0 0', color: '#1d4ed8' }, children: notice }), error && _jsx("p", { style: { margin: '10px 0 0', color: '#b91c1c' }, children: error })] }), _jsxs("section", { "data-testid": "writing-hub-today-section", style: { borderRadius: 12, border: '1px solid #dbeafe', background: '#ffffff', padding: 16, display: 'grid', gap: 10 }, children: [_jsx("h3", { style: { margin: 0, fontSize: 16 }, children: "Today" }), _jsxs("div", { style: { display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }, children: [_jsx("strong", { children: toGenreLabel(activeGenre) }), _jsxs("span", { style: { color: '#0369a1' }, children: ["\uD83C\uDFAF ", toWordCountLabel(targetWordCount)] }), _jsxs("span", { style: { color: '#334155' }, children: ["\uD83D\uDD58 Prompt history: ", promptHistoryCount] })] }), _jsx("div", { style: { display: 'flex', flexWrap: 'wrap', gap: 8 }, children: SUPPORTED_GENRES.map((item) => (_jsx("button", { type: "button", onClick: () => void loadFreshPrompt(item), disabled: busy, style: {
-                                borderRadius: 8,
-                                border: item === activeGenre ? '1px solid #2563eb' : '1px solid #cbd5e1',
-                                background: item === activeGenre ? '#eff6ff' : '#ffffff',
-                                color: '#0f172a',
-                                padding: '6px 10px',
-                                cursor: 'pointer',
-                            }, children: toGenreLabel(item) }, item))) }), _jsx("p", { style: { margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.6 }, children: promptText })] }), _jsxs("section", { "data-testid": "writing-hub-response-section", style: { borderRadius: 12, border: '1px solid #dbeafe', background: '#ffffff', padding: 16, display: 'grid', gap: 10 }, children: [_jsxs("div", { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' }, children: [_jsx("strong", { children: "Your Response" }), _jsxs("span", { style: { color: wordTone.accent }, children: [wordCount, " / ", toWordCountLabel(targetWordCount)] })] }), _jsx("textarea", { ref: responseFieldRef, value: draft, onChange: (e) => setDraft(e.target.value), placeholder: "Write your response here.", style: { minHeight: 220, borderRadius: 8, border: '1px solid #cbd5e1', padding: 12, fontSize: 15, lineHeight: 1.6, color: '#0f172a', background: '#ffffff' } }), _jsxs("div", { style: { display: 'flex', gap: 8, flexWrap: 'wrap' }, children: [_jsx("button", { type: "button", onClick: () => void submitAttempt(lastRetryKind), disabled: busy || !draft.trim(), style: { borderRadius: 8, border: '1px solid #2563eb', background: '#2563eb', color: '#ffffff', padding: '10px 14px', cursor: 'pointer' }, children: busy ? 'Analyzing…' : 'Submit for Feedback' }), _jsx("button", { type: "button", onClick: beginRetrySamePrompt, disabled: busy, style: { borderRadius: 8, border: '1px solid #cbd5e1', background: '#ffffff', color: '#0f172a', padding: '10px 14px', cursor: 'pointer' }, children: "Retry this prompt" }), _jsx("button", { type: "button", onClick: () => void loadFreshPrompt(activeGenre), disabled: busy, style: { borderRadius: 8, border: '1px solid #cbd5e1', background: '#ffffff', color: '#0f172a', padding: '10px 14px', cursor: 'pointer' }, children: "New prompt" })] })] }), assessment && (_jsxs("section", { style: { borderRadius: 12, border: '1px solid #dbeafe', background: '#ffffff', padding: 16, display: 'grid', gap: 12 }, children: [_jsx("h3", { style: { margin: 0 }, children: "Detailed feedback" }), _jsxs("p", { style: { margin: 0 }, children: [_jsx("strong", { children: "Score:" }), " ", assessment.total_score, "/20"] }), _jsx("div", { style: { display: 'grid', gap: 10, marginTop: 2 }, children: rubricScores.map((item) => {
-                            const safeScore = Math.max(0, Math.min(5, Number(item.value ?? 0)));
-                            const progress = `${Math.round((safeScore / 5) * 100)}%`;
-                            const barColor = safeScore >= 4 ? '#16a34a' : safeScore >= 3 ? '#ca8a04' : '#dc2626';
-                            return (_jsxs("div", { style: { display: 'grid', gap: 6 }, children: [_jsxs("div", { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 14 }, children: [_jsx("strong", { children: item.label }), _jsx("span", { style: { color: '#475569' }, children: item.value != null ? `${item.value}/5` : '—/5' })] }), _jsx("div", { style: { width: '100%', height: 9, borderRadius: 999, background: '#e2e8f0', overflow: 'hidden' }, children: _jsx("div", { style: { width: progress, height: '100%', borderRadius: 999, background: barColor, transition: 'width 0.45s ease' } }) })] }, item.key));
-                        }) }), _jsxs("p", { style: { margin: 0 }, children: [_jsx("strong", { children: "Task alignment:" }), " ", toAlignmentLabel(aiFeedback?.alignment)] }), aiFeedback?.task_understanding && _jsx("p", { style: { margin: 0 }, children: aiFeedback.task_understanding }), strengths.length > 0 && (_jsxs("div", { children: [_jsx("p", { style: { margin: '0 0 6px' }, children: _jsx("strong", { children: "\u2705 What works well" }) }), _jsx("ul", { style: { margin: 0, paddingLeft: 22 }, children: strengths.map((item, idx) => _jsx("li", { children: simplifyStudentLanguage(item) }, `s-${idx}`)) })] })), improvements.length > 0 && (_jsxs("div", { children: [_jsx("p", { style: { margin: '2px 0 8px' }, children: _jsx("strong", { children: "\u27A1\uFE0F What to improve next" }) }), _jsx("ul", { style: { margin: 0, paddingLeft: 22, display: 'grid', gap: 8 }, children: improvements.map((item, idx) => (_jsx("li", { style: { lineHeight: 1.55 }, children: simplifyStudentLanguage(item) }, `w-${idx}`))) })] })), quickFixes.length > 0 && (_jsxs("div", { children: [_jsx("p", { style: { margin: '2px 0 8px' }, children: _jsx("strong", { children: "\u270F\uFE0F Quick fixes" }) }), _jsx("ul", { style: { margin: 0, paddingLeft: 22, display: 'grid', gap: 12 }, children: quickFixes.map((item, idx) => (_jsxs("li", { style: { lineHeight: 1.6 }, children: [_jsx("div", { style: { marginBottom: 4 }, children: _jsx("strong", { children: item.type }) }), _jsxs("div", { children: [item.original, " \u2192 ", _jsx("strong", { children: item.betterVersion })] }), item.explanation && (_jsx("div", { style: { color: '#475569', marginTop: 4 }, children: simplifyStudentLanguage(item.explanation) }))] }, `g-${idx}`))) })] })), _jsxs("p", { style: { margin: 0 }, children: [_jsx("strong", { children: "Next action:" }), " ", aiFeedback?.next_move || (aiFeedback?.next_steps ?? [])[0] || 'Revise one weak sentence and submit again.'] })] })), writingHistoryByGenre.ok && (_jsxs("section", { style: { borderRadius: 12, border: '1px solid #dbeafe', background: '#ffffff', padding: 16, display: 'grid', gap: 10 }, children: [_jsx("h3", { style: { margin: 0 }, children: "Writing archive" }), _jsx("p", { style: { margin: 0, color: '#475569' }, children: "All previous writing by genre with saved feedback." }), writingHistoryByGenre.data?.map((genreHistory) => (_jsxs("details", { style: { borderRadius: 8, border: '1px solid #e2e8f0', padding: 10 }, children: [_jsxs("summary", { style: { cursor: 'pointer', fontWeight: 700 }, children: [toGenreLabel(genreHistory.genre), " \u00B7 ", genreHistory.entries.length, " saved ", genreHistory.entries.length === 1 ? 'entry' : 'entries'] }), _jsx("div", { style: { marginTop: 8, display: 'grid', gap: 8 }, children: genreHistory.entries.length === 0 ? (_jsx("p", { style: { margin: 0, color: '#64748b' }, children: "No saved writing for this genre yet." })) : genreHistory.entries.map((entry) => (_jsxs("div", { style: { borderRadius: 8, border: '1px solid #e2e8f0', padding: 10, display: 'grid', gap: 4 }, children: [_jsxs("p", { style: { margin: 0 }, children: [_jsx("strong", { children: toAttemptTypeLabel(entry.attempt_type) }), " \u00B7 ", formatHistoryDate(entry.created_at), " \u00B7 Score ", entry.total_score ?? '--', "/20"] }), entry.total_score != null && (_jsx("div", { style: { height: 8, width: '100%', borderRadius: 999, background: '#e2e8f0', overflow: 'hidden', marginBottom: 4 }, children: _jsx("div", { style: {
+    const sortedArchivedEntries = [...archivedEntries].sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
+    const dashboardFocusAreas = Array.from(new Set([
+        ...(assessment?.weakness_tags ?? []),
+        ...sortedArchivedEntries.flatMap((entry) => entry.weakness_tags),
+    ])).filter(Boolean);
+    const scoredHistory = sortedArchivedEntries.filter((entry) => entry.total_score != null);
+    const currentDashboardScore = assessment?.total_score ?? scoredHistory[0]?.total_score ?? null;
+    const priorDashboardScore = scoredHistory[assessment ? 0 : 1]?.total_score ?? null;
+    const scoreChange = currentDashboardScore != null && priorDashboardScore != null
+        ? currentDashboardScore - priorDashboardScore
+        : null;
+    const totalGrammarIssues = sortedArchivedEntries.reduce((sum, entry) => sum + entry.grammar_issue_count, 0);
+    const totalPunctuationIssues = sortedArchivedEntries.reduce((sum, entry) => sum + entry.punctuation_issue_count, 0);
+    return (_jsxs("div", { className: "writing-studio", children: [_jsxs("section", { "data-testid": "writing-hub-student-view", className: "writing-studio__hero", children: [_jsxs("div", { children: [_jsx("span", { className: "writing-studio__eyebrow", children: "AI writing coach" }), _jsx("h2", { "data-testid": "writing-hub-title", children: "Writing Hub" }), _jsx("span", { className: "writing-studio__legacy-label", children: "Your Writing Space" }), _jsx("p", { children: "Your progress, saved work, and next writing task in one clear place." })] }), _jsxs("div", { className: "writing-studio__save-state", "data-state": persistenceStatus.state, "aria-live": "polite", children: [_jsx("span", { "aria-hidden": "true" }), hydrationStatus === 'loading'
+                                ? 'Loading your work…'
+                                : hydrationStatus === 'degraded'
+                                    ? 'Working offline — reconnect to sync'
+                                    : persistenceStatus.state === 'saving'
+                                        ? 'Saving securely…'
+                                        : persistenceStatus.state === 'failed'
+                                            ? 'Save failed — keep this page open'
+                                            : persistenceStatus.state === 'saved'
+                                                ? 'Saved securely'
+                                                : 'Ready'] }), wizardOpen && _jsx("ol", { className: "writing-studio__steps", "aria-label": "Writing journey", children: ['Understand the question', 'Write your response', 'Show the feedback'].map((label, index) => {
+                            const activeStep = assessment
+                                ? 3
+                                : draft.trim()
+                                    ? 2
+                                    : 1;
+                            return (_jsxs("li", { className: index + 1 <= activeStep ? 'is-active' : '', children: [_jsx("span", { children: index + 1 }), label] }, label));
+                        }) }), wizardOpen && notice && _jsx("p", { className: "writing-studio__notice", "aria-live": "polite", children: notice }), error && _jsx("p", { className: "writing-studio__error", role: "alert", children: error })] }), !wizardOpen && _jsxs("section", { className: "writing-studio__card writing-studio__dashboard", "aria-labelledby": "writing-progress-title", children: [_jsxs("div", { className: "writing-studio__section-heading", children: [_jsxs("div", { children: [_jsx("span", { children: "Your dashboard" }), _jsx("h3", { id: "writing-progress-title", children: "Your writing analysis" })] }), _jsxs("span", { className: "writing-studio__dashboard-badge", children: [archivedEntries.length, " saved"] })] }), _jsxs("div", { className: "writing-studio__dashboard-grid writing-studio__dashboard-grid--detailed", children: [_jsxs("div", { children: [_jsxs("strong", { children: [currentDashboardScore ?? '—', _jsx("small", { children: "/20" })] }), _jsx("span", { children: "Latest score" })] }), _jsxs("div", { children: [_jsx("strong", { children: scoreChange == null ? '—' : `${scoreChange > 0 ? '+' : ''}${scoreChange}` }), _jsx("span", { children: "Progress since last score" })] }), _jsxs("div", { children: [_jsx("strong", { children: archivedEntries.length }), _jsx("span", { children: "Completed submissions" })] }), _jsxs("div", { children: [_jsxs("strong", { children: [writingHistoryByGenre.data?.filter((item) => item.entries.length > 0).length ?? 0, _jsxs("small", { children: ["/", SUPPORTED_GENRES.length] })] }), _jsx("span", { children: "Genres practised" })] }), _jsxs("div", { children: [_jsx("strong", { children: dashboardFocusAreas.length }), _jsx("span", { children: "Current focus areas" })] }), _jsxs("div", { children: [_jsx("strong", { children: totalGrammarIssues + totalPunctuationIssues }), _jsx("span", { children: "Language fixes identified" })] })] }), _jsxs("div", { className: "writing-studio__focus-panel", children: [_jsx("strong", { children: "All focus areas" }), dashboardFocusAreas.length > 0 ? (_jsx("ul", { children: dashboardFocusAreas.map((tag) => _jsx("li", { children: tag.replaceAll('_', ' ') }, tag)) })) : _jsx("p", { children: "Complete a response to unlock your personalised focus areas." })] }), _jsxs("div", { className: "writing-studio__dashboard-actions", children: [_jsx("p", { children: scoreChange != null && scoreChange > 0 ? `You improved by ${scoreChange} points on your latest scored task.` : 'Your saved work, scores, focus areas, and feedback history stay available below.' }), _jsx("button", { type: "button", className: "writing-studio__primary-button", onClick: () => setWizardOpen(true), children: "Start a new writing task" })] })] }), wizardOpen && _jsxs(_Fragment, { children: [_jsxs("section", { "data-testid": "writing-hub-today-section", className: "writing-studio__card writing-studio__prompt-card", children: [_jsxs("div", { className: "writing-studio__section-heading", children: [_jsxs("div", { children: [_jsx("span", { children: "Step 1 \u00B7 Today" }), _jsx("h3", { children: "Understand your task" })] }), _jsx("button", { type: "button", className: "writing-studio__secondary-button", onClick: () => setShowPromptChooser((value) => !value), disabled: busy, children: showPromptChooser ? 'Hide genres' : 'Change genre' })] }), _jsxs("div", { style: { display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }, children: [_jsx("strong", { children: toGenreLabel(activeGenre) }), _jsxs("span", { style: { color: '#334155' }, children: ["\uD83D\uDD58 ", !studentHistoryReady
+                                                ? 'Checking saved submissions…'
+                                                : `${promptHistoryCount} previous ${promptHistoryCount === 1 ? 'submission' : 'submissions'}`] })] }), showPromptChooser && _jsx("div", { className: "writing-studio__genre-grid", children: SUPPORTED_GENRES.map((item) => (_jsx("button", { type: "button", onClick: () => void loadFreshPrompt(item), disabled: busy, style: {
+                                        borderRadius: 8,
+                                        border: item === activeGenre ? '1px solid #2563eb' : '1px solid #cbd5e1',
+                                        background: item === activeGenre ? '#eff6ff' : '#ffffff',
+                                        color: '#0f172a',
+                                        padding: '6px 10px',
+                                        cursor: 'pointer',
+                                    }, children: toGenreLabel(item) }, item))) }), _jsx("div", { className: "writing-studio__prompt-copy", children: promptText })] }), _jsxs("section", { "data-testid": "writing-hub-response-section", className: "writing-studio__card writing-studio__response-card", children: [_jsxs("div", { className: "writing-studio__section-heading", children: [_jsxs("div", { children: [_jsx("span", { children: "Step 2" }), _jsx("h3", { children: "Your Response" })] }), _jsxs("span", { style: { color: wordTone.accent }, children: [wordCount, " / ", toWordCountLabel(targetWordCount)] })] }), integrityMode !== 'practice' && _jsxs("div", { className: `writing-studio__integrity-mode writing-studio__integrity-mode--${integrityMode}`, children: [_jsxs("div", { children: [_jsx("strong", { children: toWritingIntegrityModeLabel(integrityMode) }), _jsx("span", { children: integrityMode === 'independent'
+                                                    ? 'Write in this editor using your own words. Pasting is disabled.'
+                                                    : 'Your teacher is supervising this assessment. Pasting and leaving the page are recorded.' })] }), _jsx("span", { className: "writing-studio__integrity-badge", children: "Original writing" })] }), _jsx("textarea", { ref: responseFieldRef, value: draft, onChange: (event) => {
+                                    const nextValue = event.target.value;
+                                    const ignoredPasteCharacters = pastedCharactersToIgnoreRef.current;
+                                    pastedCharactersToIgnoreRef.current = 0;
+                                    setCompositionTelemetry((current) => recordWritingInput(current, draft, nextValue, new Date(), ignoredPasteCharacters ?? 0));
+                                    setDraft(nextValue);
+                                }, onPaste: (event) => {
+                                    const pastedText = event.clipboardData.getData('text');
+                                    const shouldBlock = integrityMode !== 'practice';
+                                    setCompositionTelemetry((current) => recordWritingPaste(current, pastedText.length, shouldBlock));
+                                    if (shouldBlock) {
+                                        event.preventDefault();
+                                        setError(`${toWritingIntegrityModeLabel(integrityMode)} requires writing directly in the editor. Pasting is disabled.`);
+                                        return;
+                                    }
+                                    pastedCharactersToIgnoreRef.current = pastedText.length;
+                                    setNotice('Paste recorded as part of your writing process. Your score remains a formative estimate.');
+                                }, onBlur: () => {
+                                    if (!draft.trim())
+                                        return;
+                                    setCompositionTelemetry((current) => recordWritingFocusLoss(current));
+                                }, placeholder: "Write your response here.", className: "writing-studio__editor", "aria-describedby": "writing-editor-help" }), _jsx("p", { id: "writing-editor-help", className: "writing-studio__editor-help", children: "Your draft saves securely while you work. Accessibility accommodations can be arranged by your teacher." }), isVeryShortDraft && _jsx("p", { className: "writing-studio__gentle-warning", children: "Add a little more detail before submitting so your feedback can be useful." }), _jsxs("div", { style: { display: 'flex', gap: 8, flexWrap: 'wrap' }, children: [_jsx("button", { type: "button", onClick: () => void submitAttempt(lastRetryKind), disabled: busy || !draft.trim(), className: "writing-studio__primary-button", children: busy ? 'Analyzing…' : 'Submit for Feedback' }), _jsx("button", { type: "button", onClick: clearAllText, disabled: busy, className: "writing-studio__secondary-button", children: "Clear all text" }), _jsx("button", { type: "button", onClick: () => void loadFreshPrompt(activeGenre), disabled: busy, className: "writing-studio__secondary-button", children: "Change rpompt" })] })] }), assessment && (_jsxs("section", { className: "writing-studio__card writing-studio__feedback-card feedback-result-card", children: [_jsxs("div", { className: "writing-studio__section-heading", children: [_jsxs("div", { children: [_jsx("span", { children: "Step 3" }), _jsx("h3", { children: "Your formative feedback" })] }), _jsxs("div", { children: [_jsx("span", { className: "writing-studio__score-label", children: "Automated estimate" }), _jsxs("div", { className: "writing-studio__score", children: [assessment.total_score, _jsx("small", { children: "/20" })] })] })] }), latestIntegritySignals && (_jsxs("div", { className: `writing-studio__integrity-result writing-studio__integrity-result--${latestIntegritySignals.review_status}`, children: [_jsx("strong", { children: toWritingIntegrityReviewLabel(latestIntegritySignals.review_status) }), _jsx("span", { children: latestIntegritySignals.review_status === 'review_recommended'
+                                            ? 'Your teacher can review the writing-process evidence before using this result.'
+                                            : latestIntegritySignals.review_status === 'practice_mode'
+                                                ? 'This result supports learning; it does not verify who wrote the response.'
+                                                : 'No concern was observed by the writing-process checks. Your teacher remains the final judge.' })] })), cinematicRanges.length > 0 && (_jsxs("button", { type: "button", className: "writing-studio__cinematic-button", onClick: () => {
+                                    setCinematicReplaySource(null);
+                                    setCinematicIndex(null);
+                                    setCinematicDone(false);
+                                    setShowCinematicFeedback(true);
+                                }, children: [_jsx("span", { "aria-hidden": "true", children: "\u25B6" }), "Play Cinematic Feedback"] })), _jsx("div", { style: { display: 'grid', gap: 10, marginTop: 2 }, children: rubricScores.map((item) => {
+                                    const safeScore = Math.max(0, Math.min(5, Number(item.value ?? 0)));
+                                    const progress = `${Math.round((safeScore / 5) * 100)}%`;
+                                    const barColor = safeScore >= 4 ? '#16a34a' : safeScore >= 3 ? '#ca8a04' : '#dc2626';
+                                    return (_jsxs("div", { style: { display: 'grid', gap: 6 }, children: [_jsxs("div", { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 14 }, children: [_jsx("strong", { children: item.label }), _jsx("span", { style: { color: '#475569' }, children: item.value != null ? `${item.value}/5` : '—/5' })] }), _jsx("div", { style: { width: '100%', height: 9, borderRadius: 999, background: '#e2e8f0', overflow: 'hidden' }, children: _jsx("div", { style: { width: progress, height: '100%', borderRadius: 999, background: barColor, transition: 'width 0.45s ease' } }) })] }, item.key));
+                                }) }), _jsxs("p", { style: { margin: 0 }, children: [_jsx("strong", { children: "Task alignment:" }), " ", toAlignmentLabel(aiFeedback?.alignment)] }), aiFeedback?.task_understanding && _jsx("p", { style: { margin: 0 }, children: aiFeedback.task_understanding }), strengths.length > 0 && (_jsxs("div", { children: [_jsx("p", { style: { margin: '0 0 6px' }, children: _jsx("strong", { children: "\u2705 What works well" }) }), _jsx("ul", { style: { margin: 0, paddingLeft: 22 }, children: strengths.map((item, idx) => _jsx("li", { children: simplifyStudentLanguage(item) }, `s-${idx}`)) })] })), improvements.length > 0 && (_jsxs("div", { children: [_jsx("p", { style: { margin: '2px 0 8px' }, children: _jsx("strong", { children: "\u27A1\uFE0F What to improve next" }) }), _jsx("ul", { style: { margin: 0, paddingLeft: 22, display: 'grid', gap: 8 }, children: improvements.map((item, idx) => (_jsx("li", { style: { lineHeight: 1.55 }, children: simplifyStudentLanguage(item) }, `w-${idx}`))) })] })), quickFixes.length > 0 && (_jsxs("div", { children: [_jsx("p", { style: { margin: '2px 0 8px' }, children: _jsx("strong", { children: "\u270F\uFE0F Quick fixes" }) }), _jsx("ul", { style: { margin: 0, paddingLeft: 22, display: 'grid', gap: 12 }, children: quickFixes.map((item, idx) => (_jsxs("li", { style: { lineHeight: 1.6 }, children: [_jsx("div", { style: { marginBottom: 4 }, children: _jsx("strong", { children: item.type }) }), _jsxs("div", { children: [item.original, " \u2192 ", _jsx("strong", { children: item.betterVersion })] }), item.explanation && (_jsx("div", { style: { color: '#475569', marginTop: 4 }, children: simplifyStudentLanguage(item.explanation) }))] }, `g-${idx}`))) })] })), _jsxs("p", { style: { margin: 0 }, children: [_jsx("strong", { children: "Next action:" }), " ", aiFeedback?.next_move || (aiFeedback?.next_steps ?? [])[0] || 'Revise one weak sentence and submit again.'] })] }))] }), !wizardOpen && !studentHistoryReady && (_jsxs("section", { className: "writing-studio__card writing-studio__archive", "aria-live": "polite", children: [_jsx("h3", { style: { margin: 0 }, children: "Writing archive" }), _jsx("p", { style: { margin: 0, color: '#475569' }, children: "Loading your saved writing and feedback\u2026" })] })), !wizardOpen && studentHistoryReady && writingHistoryByGenre.ok && (_jsxs("section", { className: "writing-studio__card writing-studio__archive", children: [_jsx("h3", { style: { margin: 0 }, children: "Writing archive" }), _jsx("p", { style: { margin: 0, color: '#475569' }, children: "All previous writing by genre with saved feedback." }), writingHistoryByGenre.data?.map((genreHistory) => (_jsxs("details", { style: { borderRadius: 8, border: '1px solid #e2e8f0', padding: 10 }, children: [_jsxs("summary", { style: { cursor: 'pointer', fontWeight: 700 }, children: [toGenreLabel(genreHistory.genre), " \u00B7 ", genreHistory.entries.length, " saved ", genreHistory.entries.length === 1 ? 'entry' : 'entries'] }), _jsx("div", { style: { marginTop: 8, display: 'grid', gap: 8 }, children: genreHistory.entries.length === 0 ? (_jsx("p", { style: { margin: 0, color: '#64748b' }, children: "No saved writing for this genre yet." })) : genreHistory.entries.map((entry) => (_jsxs("div", { style: { borderRadius: 8, border: '1px solid #e2e8f0', padding: 10, display: 'grid', gap: 4 }, children: [_jsxs("p", { style: { margin: 0 }, children: [_jsx("strong", { children: toAttemptTypeLabel(entry.attempt_type) }), " \u00B7 ", formatHistoryDate(entry.created_at), " \u00B7 Score ", entry.total_score ?? '--', "/20"] }), entry.total_score != null && (_jsx("div", { style: { height: 8, width: '100%', borderRadius: 999, background: '#e2e8f0', overflow: 'hidden', marginBottom: 4 }, children: _jsx("div", { style: {
                                                     width: `${Math.max(0, Math.min(100, (entry.total_score / 20) * 100))}%`,
                                                     height: '100%',
                                                     borderRadius: 999,
                                                     background: entry.total_score >= 16 ? '#22c55e' : entry.total_score >= 12 ? '#eab308' : '#ef4444',
                                                     transition: 'width 0.35s ease',
-                                                } }) })), _jsxs("p", { style: { margin: 0 }, children: [_jsx("strong", { children: "Prompt:" }), " ", compactSnippet(entry.prompt_text, 120)] }), _jsxs("p", { style: { margin: 0 }, children: [_jsx("strong", { children: "Writing:" }), " ", compactSnippet(entry.student_submission, 140)] }), _jsxs("p", { style: { margin: 0 }, children: [_jsx("strong", { children: "Feedback:" }), " ", entry.has_feedback
-                                                    ? compactSnippet(entry.feedback_summary || entry.feedback_next_move || 'Feedback was saved and is ready to review.', 150)
-                                                    : 'Feedback not saved for this entry yet.'] }), _jsxs("p", { style: { margin: 0, color: '#475569', fontSize: 13 }, children: [_jsx("strong", { children: "Issues:" }), " Grammar ", entry.grammar_issue_count, " \u00B7 Punctuation ", entry.punctuation_issue_count] }), _jsx("div", { style: { display: 'grid', gap: 6, marginTop: 2 }, children: [
+                                                } }) })), _jsxs("p", { style: { margin: 0, whiteSpace: 'pre-wrap' }, children: [_jsx("strong", { children: "Prompt:" }), " ", entry.prompt_text] }), _jsxs("p", { style: { margin: 0 }, children: [_jsx("strong", { children: "Feedback:" }), " ", entry.has_feedback
+                                                    ? [entry.feedback_summary, entry.feedback_next_move].filter(Boolean).join(' ')
+                                                        || 'Feedback was saved and is ready to review.'
+                                                    : 'Feedback not saved for this entry yet.'] }), _jsxs("p", { style: { margin: 0, color: '#475569', fontSize: 13 }, children: [_jsx("strong", { children: "Issues:" }), " Grammar ", entry.grammar_issue_count, " \u00B7 Punctuation ", entry.punctuation_issue_count] }), entry.weakness_tags.length > 0 && (_jsxs("p", { style: { margin: 0, color: '#475569', fontSize: 13 }, children: [_jsx("strong", { children: "Focus memory:" }), " ", entry.weakness_tags.map((tag) => tag.replaceAll('_', ' ')).join(' · ')] })), entry.has_feedback && entry.assessment && entry.student_submission.trim() && (_jsxs("button", { type: "button", className: "writing-studio__cinematic-button", onClick: () => playSavedCinematicFeedback(entry), children: [_jsx("span", { "aria-hidden": "true", children: "\u25B6" }), "Replay Cinematic Feedback"] })), _jsx("div", { style: { display: 'grid', gap: 6, marginTop: 2 }, children: [
                                                 { label: 'Content', value: entry.rubric_scores.content },
                                                 { label: 'Organization', value: entry.rubric_scores.organisation },
                                                 { label: 'Language', value: entry.rubric_scores.language },
@@ -3812,7 +4056,35 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
                                                 const pct = Math.round((score / 5) * 100);
                                                 const color = score >= 4 ? '#16a34a' : score >= 3 ? '#ca8a04' : '#dc2626';
                                                 return (_jsxs("div", { style: { display: 'grid', gap: 4 }, children: [_jsxs("div", { style: { display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#334155' }, children: [_jsx("span", { children: _jsx("strong", { children: item.label }) }), _jsx("span", { children: item.value != null ? `${item.value}/5` : '—/5' })] }), _jsx("div", { style: { height: 7, borderRadius: 999, background: '#e2e8f0', overflow: 'hidden' }, children: _jsx("div", { style: { width: `${pct}%`, height: '100%', borderRadius: 999, background: color } }) })] }, `${entry.id}-${item.label}`));
-                                            }) }), entry.feedback_quick_fixes.length > 0 && (_jsxs("details", { style: { marginTop: 4 }, children: [_jsx("summary", { style: { cursor: 'pointer', fontWeight: 600 }, children: "Word-by-word corrections" }), _jsx("ul", { style: { margin: '6px 0 0', paddingLeft: 18, display: 'grid', gap: 6 }, children: entry.feedback_quick_fixes.map((fix, fixIdx) => (_jsxs("li", { style: { fontSize: 13, color: '#334155' }, children: [_jsxs("strong", { children: [fix.type || 'Language', ":"] }), " ", fix.original || '—', " \u2192 ", _jsx("strong", { children: fix.better || '—' }), fix.explanation ? ` (${fix.explanation})` : ''] }, `${entry.id}-fix-${fixIdx}`))) })] })), entry.feedback_quick_fixes.length === 0 && (_jsx("p", { style: { margin: 0, fontSize: 12, color: '#64748b' }, children: "Detailed word-level corrections are not available for this submission yet. Re-submit to generate full AI corrections." }))] }, entry.id))) })] }, `simple-history-${genreHistory.genre}`)))] }))] }));
+                                            }) }), entry.feedback_quick_fixes.length > 0 && (_jsxs("details", { style: { marginTop: 4 }, children: [_jsx("summary", { style: { cursor: 'pointer', fontWeight: 600 }, children: "Word-by-word corrections" }), _jsx("ul", { style: { margin: '6px 0 0', paddingLeft: 18, display: 'grid', gap: 6 }, children: entry.feedback_quick_fixes.map((fix, fixIdx) => (_jsxs("li", { style: { fontSize: 13, color: '#334155' }, children: [_jsxs("strong", { children: [fix.type || 'Language', ":"] }), " ", fix.original || '—', " \u2192 ", _jsx("strong", { children: fix.better || '—' }), fix.explanation ? ` (${fix.explanation})` : ''] }, `${entry.id}-fix-${fixIdx}`))) })] })), entry.feedback_quick_fixes.length === 0 && (_jsx("p", { style: { margin: 0, fontSize: 12, color: '#64748b' }, children: "Detailed word-level corrections are not available for this submission yet. Re-submit to generate full AI corrections." }))] }, entry.id))) })] }, `simple-history-${genreHistory.genre}`)))] })), showCinematicFeedback && typeof document !== 'undefined' && createPortal(_jsxs("div", { className: "cinematic-feedback", role: "dialog", "aria-modal": "true", "aria-labelledby": "cinematic-feedback-title", children: [_jsx("div", { className: "cinematic-feedback__backdrop" }), _jsxs("section", { className: "simple-cinematic-panel", children: [_jsxs("header", { className: "cinematic-feedback__header", children: [_jsxs("div", { children: [_jsxs("span", { children: [cinematicModeLabel, " \u00B7 live writing replay"] }), _jsx("h2", { id: "cinematic-feedback-title", children: "Your writing, illuminated" }), _jsx("span", { className: "sr-only", children: "Green shows what is working. Red shows your clearest next improvement." }), _jsxs("p", { children: [_jsx("b", { className: "cinematic-feedback__legend-dot is-strong" }), " Green preserves a strong choice. ", _jsx("b", { className: "cinematic-feedback__legend-dot is-growth" }), " Coral reveals your next upgrade."] })] }), _jsxs("div", { className: "cinematic-feedback__header-actions", children: [_jsxs("div", { className: "cinematic-feedback__score-orbit", style: { background: `radial-gradient(circle at center, #fff 56%, transparent 58%), conic-gradient(#0891b2 ${Math.max(0, Math.min(100, ((activeCinematicAssessment?.total_score ?? 0) / 20) * 100))}%, #dbe7f3 0)` }, "aria-label": `Automated formative estimate ${activeCinematicAssessment?.total_score ?? 0} out of 20`, children: [_jsx("strong", { children: activeCinematicAssessment?.total_score ?? '—' }), _jsx("span", { children: "/20" })] }), _jsx("button", { type: "button", className: "cinematic-feedback__close", onClick: () => setShowCinematicFeedback(false), "aria-label": "Close cinematic feedback", children: "\u00D7" })] })] }), _jsx("div", { className: "cinematic-feedback__progress", "aria-label": `Feedback replay ${cinematicProgress} percent complete`, children: _jsx("i", { style: { width: `${cinematicProgress}%` } }) }), !cinematicDone ? (_jsxs("div", { className: "cinematic-feedback__grid", children: [_jsxs("div", { className: "cinematic-text-panel", ref: cinematicTextPanelRef, tabIndex: 0, "aria-label": "Your submitted writing with one focused feedback insight", children: [_jsxs("div", { className: "cinematic-feedback__scene-label", children: [_jsx("span", { children: activeCinematicRange?.polarity === 'strong' ? 'Strength spotlight' : 'Revision spotlight' }), _jsxs("strong", { children: ["Insight ", (cinematicIndex ?? 0) + 1, " of ", cinematicRanges.length] })] }), _jsx("svg", { className: "cinematic-feedback__trace", "aria-hidden": "true", children: _jsx("path", { ref: cinematicTracePathRef, fill: "none", strokeWidth: "3", strokeLinecap: "round" }) }), _jsx("div", { className: "cinematic-feedback__essay", children: renderAnnotatedText(activeCinematicText, cinematicRanges, cinematicIndex, handleRangeMount, true) })] }), _jsx("aside", { "aria-live": "polite", className: `cinematic-detail-card cinematic-feedback__detail cinematic-feedback__detail--${activeCinematicRange?.polarity ?? 'neutral'}`, children: activeCinematicRange ? (_jsxs(_Fragment, { children: [_jsx("span", { className: "cinematic-feedback__detail-label", children: activeCinematicRange.polarity === 'strong' ? '✓ Keep this choice' : '✦ Your next upgrade' }), _jsx("h3", { children: issueTypeLabel }), _jsxs("div", { className: "cinematic-feedback__coaching-block", children: [_jsx("span", { children: "What to change" }), _jsx("p", { children: whatToImproveText })] }), betterVersionText && activeCinematicRange.polarity === 'weak' && (_jsxs("div", { className: "cinematic-feedback__upgrade", children: [_jsx("span", { children: "Watch it transform" }), _jsx("p", { children: betterVersionText })] })), _jsxs("p", { className: "cinematic-feedback__why", children: [_jsx("strong", { children: "Writer\u2019s rule:" }), " ", whyItMattersText] })] })) : (_jsxs(_Fragment, { children: [_jsx("span", { className: "cinematic-feedback__detail-label", children: "Review starting" }), _jsx("h3", { children: "Your strongest next move" }), _jsx("p", { children: "We will reveal one useful writing decision at a time." })] })) })] })) : (_jsxs("section", { className: "cinematic-feedback__finale", "aria-label": "Feedback review complete", children: [_jsxs("div", { className: "cinematic-feedback__finale-copy", children: [_jsx("span", { className: "cinematic-feedback__detail-label", children: "Review complete" }), _jsx("h3", { children: "Your revision mission is ready" }), _jsx("p", { children: improvementGuidance }), _jsxs("div", { children: [_jsx("strong", { children: "Keep" }), _jsx("span", { children: "the green choices that already help your reader" })] }), _jsxs("div", { children: [_jsx("strong", { children: "Upgrade" }), _jsx("span", { children: "one coral passage using the stronger version as a guide" })] }), _jsxs("div", { children: [_jsx("strong", { children: "Resubmit" }), _jsx("span", { children: "your own improved draft to measure real progress" })] })] }), _jsx("section", { className: "cinematic-rubric-section cinematic-feedback__rubric", "aria-label": "Rubric scores", children: rubricRows.map((row) => {
+                                            const score = Math.max(0, Math.min(5, Number(row.value ?? 0)));
+                                            return (_jsxs("div", { children: [_jsx("span", { children: row.label }), _jsx("div", { children: _jsx("i", { className: "rubric-bar-fill", style: { width: `${(score / 5) * 100}%` } }) }), _jsxs("strong", { children: [row.value ?? '—', "/5"] })] }, row.key));
+                                        }) })] })), _jsxs("footer", { className: "cinematic-nav-bar cinematic-feedback__footer", children: [_jsx("div", { children: cinematicDone
+                                            ? 'Review complete'
+                                            : cinematicRanges.length
+                                                ? `Insight ${Math.min((cinematicIndex ?? 0) + 1, cinematicRanges.length)} of ${cinematicRanges.length}`
+                                                : 'Review complete' }), _jsxs("div", { className: "cinematic-feedback__controls", children: [_jsx("button", { type: "button", className: "is-secondary", onClick: () => {
+                                                    if (cinematicDone) {
+                                                        setCinematicDone(false);
+                                                        setCinematicIndex(Math.max(0, cinematicRanges.length - 1));
+                                                        return;
+                                                    }
+                                                    setCinematicIndex((current) => Math.max(0, (current ?? 1) - 1));
+                                                }, disabled: !cinematicDone && (cinematicIndex == null || cinematicIndex <= 0), children: "Previous" }), !cinematicDone ? (_jsx("button", { type: "button", className: "is-primary", onClick: () => {
+                                                    if (cinematicRanges.length === 0 || cinematicIndex === cinematicRanges.length - 1) {
+                                                        setCinematicDone(true);
+                                                        return;
+                                                    }
+                                                    setCinematicIndex((current) => Math.min(cinematicRanges.length - 1, (current ?? 0) + 1));
+                                                }, children: cinematicIndex === cinematicRanges.length - 1 ? 'See my revision mission' : 'Continue' })) : (_jsx("button", { type: "button", className: "is-primary", "aria-label": cinematicReplaySource ? 'Close feedback replay' : 'Improve my draft', onClick: () => {
+                                                    setShowCinematicFeedback(false);
+                                                    if (cinematicReplaySource) {
+                                                        setCinematicReplaySource(null);
+                                                    }
+                                                    else {
+                                                        beginRetrySamePrompt();
+                                                    }
+                                                }, children: cinematicReplaySource ? 'Close replay' : 'Start my revision' }))] })] })] })] }), document.body)] }));
 };
 export const WritingHub = (props) => {
     return _jsx(WritingHubSimpleLoop, { ...props });
