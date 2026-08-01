@@ -1323,11 +1323,11 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
             <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
               <span className="text-lg">🚀</span> Admission overview
             </h3>
-            <div className="flex items-center justify-between gap-1">
+            <ol className="admission-step-flow" aria-label="Admission workflow steps">
               {PIPELINE_STEPS.map((step, i) => {
                 const done = pipelineProgress[step.key as keyof typeof pipelineProgress];
                 return (
-                  <React.Fragment key={step.key}>
+                  <li key={step.key} className="admission-step-item">
                     <button
                       onClick={() => setActiveTab(step.key as AdmTab)}
                       className={`flex-1 rounded-xl p-3 text-center transition-all cursor-pointer border ${
@@ -1336,18 +1336,17 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                           : 'border-slate-200 bg-slate-50 hover:bg-slate-100/40'
                       }`}
                     >
+                      <span className="admission-step-number">Step {i + 1}</span>
                       <div className={`text-2xl mb-1 ${done ? 'grayscale-0' : 'grayscale opacity-50'}`}>{step.icon}</div>
                       <div className={`text-xs font-semibold ${done ? 'text-emerald-700' : 'text-slate-600'}`}>{step.label}</div>
                       <div className="text-[10px] text-slate-500 mt-0.5">{step.desc}</div>
                       {done && <div className="text-emerald-400 text-xs mt-1">✓</div>}
                     </button>
-                    {i < PIPELINE_STEPS.length - 1 && (
-                      <div className={`w-6 h-0.5 shrink-0 ${done ? 'bg-emerald-500/50' : 'bg-slate-100'}`} />
-                    )}
-                  </React.Fragment>
+                    {i < PIPELINE_STEPS.length - 1 && <span className={`admission-step-connector ${done ? 'is-complete' : ''}`} aria-hidden="true" />}
+                  </li>
                 );
               })}
-            </div>
+            </ol>
           </div>
 
           {/* Stats Grid */}
@@ -1897,7 +1896,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                     <th className="pb-2 pr-4">Status</th>
                     <th className="pb-2 pr-4">Send Test</th>
                     <th className="pb-2 pr-4">View details</th>
-                    <th className="pb-2 w-8"></th>
+                    <th className="admission-delete-column" aria-label="Actions"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800">
@@ -1980,8 +1979,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                         <td className="py-3">
                           <button onClick={() => setCandidateFileId(c.id)} className="text-xs px-2 py-1 rounded bg-amber-600/20 text-amber-700 hover:bg-amber-600/40 transition" title="View candidate details">View candidate</button>
                         </td>
-                        <td className="py-3">
-                          <button onClick={() => handleDeleteCandidate(c.id)} className="text-xs px-1.5 py-1 rounded bg-red-600/20 text-red-700 hover:bg-red-600/40 transition" title="Delete candidate">🗑</button>
+                        <td className="admission-delete-column">
+                          <button onClick={() => handleDeleteCandidate(c.id)} className="school-admin-icon-button school-admin-icon-button--danger" title="Delete candidate" aria-label={`Delete ${c.full_name}`}>🗑</button>
                         </td>
                       </tr>
                     );
@@ -2166,18 +2165,20 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
       {/*  ━━━ REPORT MODAL ━━━  */}
       {showReport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4" onClick={() => { setShowReport(false); setReportData(null); }}>
-          <div className="school-admin-modal w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl bg-white border border-slate-200 p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="school-admin-modal-overlay fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 sm:p-8" onClick={() => { setShowReport(false); setReportData(null); }}>
+          <div className="school-admin-modal school-admin-detail-modal w-full max-w-2xl" role="dialog" aria-modal="true" aria-label="Admission assessment report" onClick={e => e.stopPropagation()}>
             {reportLoading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="h-8 w-8 rounded-full border-2 border-cyan-400/70 border-t-transparent animate-spin" />
               </div>
             ) : reportData ? (
               <div className="space-y-6">
-                <header className="flex items-center gap-3 border-b border-slate-700 pb-4">
+                <header className="school-admin-detail-header">
                   <img src={reportSchoolLogoUrl} alt={`${reportSchoolName} logo`} className="h-12 w-12 rounded-lg bg-white object-contain p-1" />
-                  <div><h2 className="text-lg font-bold text-white">{reportSchoolName}</h2><p className="text-xs text-gray-400">Admission Assessment Report</p></div>
+                  <div><h2 className="text-lg font-bold text-slate-900">{reportSchoolName}</h2><p className="text-xs text-slate-500">Admission Assessment Report</p></div>
+                  <button type="button" className="school-admin-modal-close" onClick={() => { setShowReport(false); setReportData(null); }} aria-label="Close admission report">✕</button>
                 </header>
+                <div className="school-admin-detail-body space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-xl font-heading text-slate-900">{reportData.candidate_name}</h3>
@@ -2460,6 +2461,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 <button onClick={() => { setShowReport(false); setReportData(null); setShowAnswers(false); }} className={`${btnPrimary} w-full`}>
                   Close Report
                 </button>
+                </div>
               </div>
             ) : (
               <div className="text-center text-slate-600 py-8">No report data</div>
@@ -2478,19 +2480,22 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
         });
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4" onClick={() => setCandidateFileId(null)}>
-            <div className="school-admin-modal w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl bg-white border border-slate-200 p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="school-admin-modal-overlay fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 sm:p-8" onClick={() => setCandidateFileId(null)}>
+            <div className="school-admin-modal school-admin-detail-modal w-full max-w-2xl" role="dialog" aria-modal="true" aria-labelledby="candidate-file-title" onClick={e => e.stopPropagation()}>
               {/* Header */}
-              <div className="flex items-center gap-3 mb-5">
+              <div className="school-admin-detail-header">
                 <span className="text-3xl">📁</span>
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900">{cand.full_name}</h2>
+                  <p className="school-admin-eyebrow">Candidate file</p>
+                  <h2 id="candidate-file-title" className="text-xl font-bold text-slate-900">{cand.full_name}</h2>
                   <p className="text-xs text-slate-600">
                     Candidate details · Registered {new Date(cand.created_at).toLocaleDateString()}
                   </p>
                 </div>
-                <button onClick={() => setCandidateFileId(null)} className="ml-auto text-slate-600 hover:text-slate-900 text-xl">✕</button>
+                <button onClick={() => setCandidateFileId(null)} className="school-admin-modal-close" aria-label="Close candidate file">✕</button>
               </div>
+
+              <div className="school-admin-detail-body">
 
               {/* Personal Info */}
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 mb-4">
@@ -2634,6 +2639,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
               <button onClick={() => setCandidateFileId(null)} className={`${btnPrimary} w-full mt-5`}>
                 Close File
               </button>
+              </div>
             </div>
           </div>
         );
