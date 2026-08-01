@@ -155,20 +155,26 @@ const NewsFeed: React.FC<{ news: NewsEvent[] }> = ({ news }) => {
   };
 
   return (
-    <div className="card-glass p-4 h-full">
-      <h3 className="font-heading text-lg text-gray-300 mb-4">Activity Feed</h3>
-      <ul className="space-y-3 max-h-[500px] lg:max-h-[calc(100%-2rem)] overflow-y-auto pr-2">
+    <section className="student-activity-feed" aria-labelledby="student-activity-title">
+      <div className="student-activity-feed__heading">
+        <div>
+          <p>Community</p>
+          <h3 id="student-activity-title">Activity feed</h3>
+        </div>
+        <span>{localNews.length} update{localNews.length === 1 ? '' : 's'}</span>
+      </div>
+      <ul className="student-activity-feed__list">
         {localNews.map(event => {
           const { icon, color } = getEventIconAndColor(event.kind);
           return (
-            <li key={event.id} className="bg-black/20 rounded-lg p-3 relative overflow-hidden">
-              <div className="absolute left-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: color, filter: `blur(2px)` }}></div>
-              <div className="flex items-start space-x-3">
-                <div className="flex-shrink-0 pt-1 pl-2">{icon}</div>
-                <div className="flex-grow">
-                    <p className="text-sm text-gray-300 leading-tight">{formatEventText(event)}</p>
-                    <p className="text-xs" style={{color: 'var(--mist-400)'}}>{event.created_at}</p>
-                    <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+            <li key={event.id} className="student-activity-item">
+              <div className="student-activity-item__accent" style={{ backgroundColor: color }}></div>
+              <div className="student-activity-item__layout">
+                <div className="student-activity-item__icon">{icon || <span aria-hidden>•</span>}</div>
+                <div className="student-activity-item__content">
+                    <p>{formatEventText(event)}</p>
+                    <time>{event.created_at}</time>
+                    <div className="student-activity-item__reactions" aria-label="React to this update">
                       {EMOJIS.map(emoji => {
                         const count = event.reactions[emoji] || 0;
                         const isActive = event.my_reaction === emoji;
@@ -176,18 +182,19 @@ const NewsFeed: React.FC<{ news: NewsEvent[] }> = ({ news }) => {
                         return (
                           <button
                             key={emoji}
+                            type="button"
                             onClick={() => handleReactionClick(event.id, emoji)}
-                            className={`flex items-center gap-1 px-2 py-1 rounded-full transition-all duration-200 border min-w-[3rem] ${
+                            aria-label={`${isActive ? 'Remove' : 'Add'} ${emoji} reaction${count > 0 ? `, ${count} total` : ''}`}
+                            aria-pressed={isActive}
+                            className={`student-reaction-button ${
                               isActive
-                                ? 'bg-blue-500/30 border-blue-400'
-                                : 'bg-black/30 hover:bg-black/50 border-gray-600 hover:border-gray-500'
+                                ? 'is-active'
+                                : ''
                             }`}
                           >
-                            <span className="text-sm leading-none">{emoji}</span>
+                            <span aria-hidden>{emoji}</span>
                             <span
-                              className={`font-mono text-xs font-bold leading-none ${isPopping ? 'animate-pop' : ''} ${
-                                isActive ? 'text-white' : count > 0 ? 'text-gray-200' : 'text-gray-400'
-                              }`}
+                              className={`${isPopping ? 'animate-pop' : ''}`}
                             >
                               {count}
                             </span>
@@ -201,7 +208,7 @@ const NewsFeed: React.FC<{ news: NewsEvent[] }> = ({ news }) => {
           );
         })}
       </ul>
-    </div>
+    </section>
   );
 };
 

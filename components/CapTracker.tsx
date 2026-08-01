@@ -12,26 +12,26 @@ interface ProgressBarProps {
 }
 
 const ProgressBar: React.FC<ProgressBarProps> = ({ label, remaining, total, color, glowClass }) => {
-    const used = total - remaining;
-    const percent = total > 0 ? (used / total) * 100 : 0;
+    const safeRemaining = Math.max(0, remaining);
+    const used = Math.max(0, total - safeRemaining);
+    const percent = total > 0 ? Math.min(100, (used / total) * 100) : 0;
     const atCap = remaining <= 0;
 
     return (
-        <div>
-            <div className="flex justify-between items-end mb-1">
-                <span className="text-sm font-medium">{label}</span>
-                <span className="text-xs font-mono" style={{ color: atCap ? 'var(--danger)' : 'var(--mist-400)' }}>
-                  {remaining.toLocaleString()} remaining · {used.toLocaleString()} / {total.toLocaleString()} used
+        <div className="student-cap-row">
+            <div className="student-cap-row__heading">
+                <span className="student-cap-row__label">{label}</span>
+                <span className="student-cap-row__remaining" style={{ color: atCap ? 'var(--danger)' : undefined }}>
+                  {atCap ? 'Limit reached' : `${safeRemaining.toLocaleString()} remaining`}
                 </span>
             </div>
-            <div className="w-full bg-black/30 rounded-full h-2">
-                <div className={`h-2 rounded-full ${glowClass}`} style={{ width: `${percent}%`, backgroundColor: color }}></div>
+            <div className="student-cap-row__usage">
+              <span>{used.toLocaleString()} used</span>
+              <span>{total.toLocaleString()} total</span>
             </div>
-            {atCap && (
-              <p className="mt-1 text-[11px] text-rose-300">
-                Cap reached — additional rewards in this bucket will not count until reset.
-              </p>
-            )}
+            <div className="student-cap-row__track" role="progressbar" aria-label={`${label}: ${used} of ${total} used`} aria-valuemin={0} aria-valuemax={total} aria-valuenow={used}>
+                <div className={`student-cap-row__fill ${glowClass}`} style={{ width: `${percent}%`, backgroundColor: color }}></div>
+            </div>
         </div>
     );
 };
@@ -43,23 +43,27 @@ interface CapTrackerProps {
 
 const CapTracker: React.FC<CapTrackerProps> = ({ caps, profile }) => {
   const bmActive = profile ? isBrainsMasterActive(profile) : false;
+  const totalRemaining = caps.xp_daily_remaining + caps.coins_daily_remaining + caps.xp_weekly_remaining + caps.coins_weekly_remaining;
   return (
-    <div className="card-glass p-4">
-      <h3 className="font-heading text-lg text-gray-300 mb-4 text-center">
-        Resource Caps
+    <details className="student-cap-card">
+      <summary className="student-cap-card__summary">
+        <span className="student-cap-card__icon" aria-hidden>◫</span>
+        <span className="student-cap-card__copy">
+          <strong>Resource limits</strong>
+          <small>{totalRemaining > 0 ? 'Your daily and weekly allowances' : 'Allowances refresh automatically'}</small>
+        </span>
         {bmActive && (
-          <span className="ml-2 text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30">
-            ⚡ {BM_CAP_BOOST_FACTOR}× Brains Master
-          </span>
+          <span className="student-cap-card__boost">⚡ {BM_CAP_BOOST_FACTOR}×</span>
         )}
-      </h3>
-      <div className="space-y-4">
+        <span className="student-cap-card__chevron" aria-hidden>⌄</span>
+      </summary>
+      <div className="student-cap-card__body">
         <ProgressBar label="Daily XP" remaining={caps.xp_daily_remaining} total={caps.daily_xp_cap} color="var(--ion-blue)" glowClass="progress-bar-glow-ion"/>
         <ProgressBar label="Daily Coins" remaining={caps.coins_daily_remaining} total={caps.daily_coins_cap} color="var(--amber-warn)" glowClass="progress-bar-glow-warn"/>
         <ProgressBar label="Weekly XP" remaining={caps.xp_weekly_remaining} total={caps.weekly_xp_cap} color="var(--ion-blue)" glowClass="progress-bar-glow-ion"/>
         <ProgressBar label="Weekly Coins" remaining={caps.coins_weekly_remaining} total={caps.weekly_coins_cap} color="var(--amber-warn)" glowClass="progress-bar-glow-warn"/>
       </div>
-    </div>
+    </details>
   );
 };
 
