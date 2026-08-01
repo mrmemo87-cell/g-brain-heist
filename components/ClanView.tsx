@@ -30,6 +30,7 @@ interface ClanViewProps {
   onPendingCountChange?: (count: number) => void;
   onChatUnreadCountChange?: (count: number) => void;
   initialChatUnreadCount?: number;
+  embedded?: boolean;
 }
 
 const ConfirmationModal: React.FC<{ title: string, message: string, confirmText: string, onConfirm: () => void, onCancel: () => void }> = 
@@ -199,7 +200,7 @@ const getClanUpgradeConditions = (clan: Clan | null, isPrivileged: boolean): { c
 };
 
 
-const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfile, addToast, onPendingCountChange, onChatUnreadCountChange, initialChatUnreadCount = 0 }) => {
+const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfile, addToast, onPendingCountChange, onChatUnreadCountChange, initialChatUnreadCount = 0, embedded = false }) => {
   const [stage, setStage] = useState<ClanViewStage>('loading');
   const [clan, setClan] = useState<Clan | null>(null);
   const [activeTab, setActiveTab] = useState<ClanTab>('home');
@@ -1809,7 +1810,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
 
   return (
     <div className="mt-6">
-      <BackButton onClick={onComplete} />
+      {!embedded && <BackButton onClick={onComplete} />}
       {renderContent()}
       
       {/* Modals - rendered outside stage content so they work in all stages */}
