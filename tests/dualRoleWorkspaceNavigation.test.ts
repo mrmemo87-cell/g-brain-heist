@@ -29,6 +29,6 @@ test('admissions is rendered only inside the school administration shell', () =>
   assert.doesNotMatch(app, /lazyRetry\(\(\) => import\('\.\/components\/AdmissionHub'\)/);
   assert.doesNotMatch(app, /case 'admissions':/);
   assert.doesNotMatch(app, /handleViewChange\('admissions'\)/);
-  assert.match(schoolAdminPortal, /tab === 'admissions' && 'Admissions'/);
+  assert.match(schoolAdminPortal, /id: 'admissions'[\s\S]*?label: 'Admissions'/);
   assert.match(schoolAdminPortal, /activeTab === 'admissions' && <AdmissionHub/);
 });

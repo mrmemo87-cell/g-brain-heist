@@ -679,9 +679,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     if (view === 'cambridge-reports') return 'cambridge';
     return 'reports'; // catches 'reports', 'report-detail', 'report-analysis', 'collective-report'
   }, [view]);
-  const isMobileNavigationCollapsed = useSmartCollapsedNavigation(view, '(max-width: 1023px)');
+  const {
+    isCollapsed: isMobileNavigationHidden,
+    revealNavigation: revealMobileNavigation,
+  } = useSmartCollapsedNavigation(view, '(max-width: 1023px)');
 
   const changeSection = async (section: TeacherNavSection) => {
+    revealMobileNavigation();
     setMobileWorkspaceMenuOpen(false);
     if (view === 'create-assignment') {
       const hasProgress = Boolean(
@@ -8579,7 +8583,15 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           </div>
         </div>
 
-        <nav className="teacher-mobile-bottom-nav" data-collapsed={isMobileNavigationCollapsed} aria-label="Teacher workspace">
+        <nav className="teacher-mobile-bottom-nav" data-hidden={isMobileNavigationHidden} aria-label="Teacher workspace">
+          <button
+            type="button"
+            className="smart-mobile-nav-reveal"
+            onClick={revealMobileNavigation}
+            aria-label="Show teacher navigation"
+          >
+            <span aria-hidden="true" />
+          </button>
           {mobilePrimaryTabs.map((tab) => {
             const { locked } = getNavTabState(tab);
             return (
@@ -8599,7 +8611,10 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           })}
           <button
             type="button"
-            onClick={() => setMobileWorkspaceMenuOpen(true)}
+            onClick={() => {
+              revealMobileNavigation();
+              setMobileWorkspaceMenuOpen(true);
+            }}
             className={!mobilePrimaryTabs.some((tab) => tab.id === primarySection) ? 'is-active' : ''}
             aria-expanded={mobileWorkspaceMenuOpen}
             aria-label="More"

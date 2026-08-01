@@ -62,5 +62,5 @@ test('getSafeIssueExplanation replaces banned placeholder copy', () => {
     evidenceSpan: '30:42',
   });
   assert.notStrictEqual(issue.diagnosis, 'This sentence needs a small grammar fix.');
-  assert.match(issue.diagnosis, /Adjust this sentence for grammar accuracy/i);
+  assert.strictEqual(issue.diagnosis, 'Replace "in" with "at" in the highlighted wording.');
 });

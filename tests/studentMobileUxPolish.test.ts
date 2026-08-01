@@ -21,10 +21,13 @@ test('student mobile header protects long school names and fixed-size actions', 
   assert.match(styles, /\.student-mobile-header__notification-count[^}]*position:\s*absolute/s);
 });
 
-test('student bottom navigation stays labelled and content clears the safe area', () => {
-  assert.doesNotMatch(navigation, /useSmartCollapsedNavigation/);
+test('student bottom navigation uses smart slide-away behavior and clears the safe area', () => {
+  assert.match(navigation, /useSmartCollapsedNavigation/);
+  assert.match(navigation, /data-hidden=\{isNavigationHidden\}/);
+  assert.match(navigation, /className="smart-mobile-nav-reveal"/);
   assert.match(navigation, /student-dashboard-bottom-label/);
   assert.match(styles, /padding-bottom:\s*calc\(7rem \+ env\(safe-area-inset-bottom/);
+  assert.match(styles, /\.student-dashboard-bottom-nav\[data-hidden='true'\][^{]*\{[^}]*translate3d/s);
 });
 
 test('student desktop navigation stays visible and follows the teacher collapse pattern', () => {
