@@ -69,7 +69,6 @@ const RaidAdminView = lazyRetry(() => import('./src/features/raids/RaidAdminView
 const ClanTerritoryManager = lazyRetry(() => import('./src/features/clanTerritory/ClanTerritoryManager'), 'ClanTerritoryManager');
 const CambridgeTestsHub = lazyRetry(() => import('./components/CambridgeTestsHub'), 'CambridgeTestsHub');
 const SchoolAdminPortal = lazyRetry(() => import('./components/SchoolAdminPortal'), 'SchoolAdminPortal');
-const AdmissionHub = lazyRetry(() => import('./components/AdmissionHub'), 'AdmissionHub');
 
 const GRADE_TO_BATCH: Record<Grade, Batch[]> = {
   6: ['6A', '6B', '6C', 'N/A'],
@@ -147,7 +146,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [news, setNews] = useState<NewsEvent[]>(() => readCache<NewsEvent[]>(CACHE_KEYS.news) ?? []);
   const [activeAssignment, setActiveAssignment] = useState<StudentAssignmentTask | null>(null);
   const [criticalLoading, setCriticalLoading] = useState(true);
-  const [view, setView] = useState<'workspace_chooser' | 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'rivalry' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts' | 'writing' | 'lockdown' | 'cambridge' | 'school_admin' | 'admissions'>('dashboard');
+  const [view, setView] = useState<'workspace_chooser' | 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'rivalry' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts' | 'writing' | 'lockdown' | 'cambridge' | 'school_admin'>('dashboard');
   const [studentDashboardTab, setStudentDashboardTab] = useState<StudentDashboardDestination>('home');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
@@ -224,7 +223,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const isProUser = isProTier(accountTier);
   const isTeacherRole = schoolCapabilities?.can_teach ?? profile?.role === 'teacher';
   const isSchoolAdminRole = isUserSchoolAdmin;
-  const isFullScreenView = view === 'workspace_chooser' || view === 'school_admin' || view === 'teacher' || view === 'admin' || view === 'admissions' || (view === 'dashboard' && isTeacherRole) || (view === 'dashboard' && isSchoolAdminRole);
+  const isFullScreenView = view === 'workspace_chooser' || view === 'school_admin' || view === 'teacher' || view === 'admin' || (view === 'dashboard' && isTeacherRole) || (view === 'dashboard' && isSchoolAdminRole);
 
   const SkeletonBlock: React.FC<{ className?: string }> = ({ className }) => (
     <div className={`skeleton-bone rounded-xl bg-white/10 ${className ?? ''}`} />
@@ -360,7 +359,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     }
     // School admin is a formal account — only allow admin/school views
     if (isSchoolAdminRole) {
-      const allowedSchoolAdminViews = ['school_admin', 'admissions', 'cambridge', 'ielts'];
+      const allowedSchoolAdminViews = ['school_admin', 'cambridge', 'ielts'];
       // Teachers who are also school admins can still access their teacher portal
       if (isTeacherRole) allowedSchoolAdminViews.push('teacher', 'workspace_chooser');
       // Superadmins can access the admin portal from school admin
@@ -378,7 +377,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       setView('dashboard');
       return;
     }
-    if (!hasSchool && ['phase1_play', 'phase1_leaderboard', 'phase1_admin', 'school_admin', 'admissions'].includes(nextView)) {
+    if (!hasSchool && ['phase1_play', 'phase1_leaderboard', 'phase1_admin', 'school_admin'].includes(nextView)) {
       addToast('Join a school to access school-based features.', 'info');
       return;
     }
@@ -1159,7 +1158,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       view === 'teacher' ||
       view === 'admin' ||
       view === 'school_admin' ||
-      view === 'admissions' ||
       (view === 'dashboard' && (isTeacherRole || isSchoolAdminRole));
 
     // Keep portal-style views free from parent transforms.
@@ -1978,7 +1976,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                 onLockdown={() => handleViewChange('lockdown')}
                 isSchoolAdmin={isUserSchoolAdmin}
                 onOpenSchoolAdmin={isUserSchoolAdmin && hasSchool ? () => handleViewChange('school_admin') : undefined}
-                onOpenAdmissions={isUserSchoolAdmin && hasSchool ? () => handleViewChange('admissions') : undefined}
               />
             );
         case 'admin':
@@ -2094,13 +2091,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               onOpenTeacherPortal={schoolCapabilities?.can_teach ? () => handleViewChange('teacher') : undefined}
             />
           );
-        case 'admissions':
-          return renderLazy(
-            <AdmissionHub
-              onComplete={handleViewComplete}
-              addToast={addToast}
-            />
-          );
         case 'dashboard':
         default:
             // School admin goes directly to SchoolAdminPortal — formal account, no game
@@ -2125,7 +2115,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                         onLockdown={() => handleViewChange('lockdown')}
                         isSchoolAdmin={isUserSchoolAdmin}
                         onOpenSchoolAdmin={isUserSchoolAdmin && hasSchool ? () => handleViewChange('school_admin') : undefined}
-                        onOpenAdmissions={isUserSchoolAdmin && hasSchool ? () => handleViewChange('admissions') : undefined}
                     />
                 );
             }
