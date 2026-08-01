@@ -77,7 +77,7 @@ test('game mission cards stay compact and keep lockdown last', () => {
   assert.ok(inventoryPosition >= 0);
   assert.ok(achievementsPosition > inventoryPosition);
   assert.ok(lockdownPosition > achievementsPosition);
-  assert.match(mainActions, /relative flex flex-col gap-0/);
-  assert.match(mainActions, /grid grid-cols-2 gap-0 sm:grid-cols-3/g);
-  assert.match(mainActions, /Lockdown Mode[\s\S]*col-span-2 w-1\/2 justify-self-center/);
+  assert.match(mainActions, /relative grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4/);
+  assert.equal((mainActions.match(/grid grid-cols-2/g) || []).length, 1);
+  assert.match(mainActions, /Lockdown Mode[\s\S]*col-span-2 w-\[calc\(50%-0\.375rem\)\] justify-self-center/);
 });
