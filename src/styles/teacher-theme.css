@@ -3646,6 +3646,7 @@
     padding: 0.35rem;
     box-shadow: 0 18px 45px rgba(2, 6, 23, 0.5);
     backdrop-filter: blur(18px);
+    transition: min-height 220ms ease-out, padding 220ms ease-out, box-shadow 220ms ease-out;
   }
 
   .teacher-mobile-bottom-nav button {
@@ -3659,6 +3660,7 @@
     border-radius: 14px;
     background: transparent;
     color: #94a3b8;
+    transition: min-height 220ms ease-out, background-color 180ms ease-out, box-shadow 180ms ease-out;
   }
 
   .teacher-mobile-bottom-nav button > span {
@@ -3673,6 +3675,25 @@
     font-weight: 750;
     text-overflow: ellipsis;
     white-space: nowrap;
+    max-height: 1rem;
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 180ms ease-out, transform 220ms ease-out, max-height 220ms ease-out;
+  }
+
+  .teacher-mobile-bottom-nav[data-collapsed='true'] {
+    min-height: 52px;
+    padding-block: 0.2rem;
+    box-shadow: 0 10px 24px rgba(2, 6, 23, 0.38);
+  }
+
+  .teacher-mobile-bottom-nav[data-collapsed='true'] button { min-height: 44px; }
+
+  .teacher-mobile-bottom-nav[data-collapsed='true'] button > small {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(0.35rem);
+    pointer-events: none;
   }
 
   .teacher-mobile-bottom-nav button.is-active {
@@ -3693,6 +3714,12 @@
   .cambridge-results-scroll {
     overflow: visible;
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .teacher-mobile-bottom-nav,
+  .teacher-mobile-bottom-nav button,
+  .teacher-mobile-bottom-nav button > small { transition-duration: 1ms; }
 }
 
 @media (max-width: 767px) {

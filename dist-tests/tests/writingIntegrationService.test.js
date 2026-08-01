@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { __getWritingIntegrationStoreForTests, __resetWritingIntegrationStoreForTests, archiveWritingPrompt, createWritingPrompt, editWritingPrompt, exportAdminCalibrationReport, getWritingPersistenceDiagnostics, getWritingAnalyticsDashboard, exportStudentMonthlyWritingReport, exportTeacherWeeklyClassSummary, getNextRotatedPromptForStudent, listAdminReviewSignals, getCurrentWeeklyPlan, getMonthlyWritingReport, getStudentWritingState, getSmartWritingPromptForStudent, getTodayWritingTask, getWeeklyWritingReview, listWritingPrompts, setWritingPromptActiveStatus, seedWritingPilotReadinessDemoData, runWritingPilotVerificationChecklist, saveAdminReviewSignal, setCalibrationFollowUpFlag, setPromptQualityFlag, submitDailyWritingPractice, submitInitialWritingAssessment, retryWritingHydration, } from '../src/lib/brains_heist/writingIntegrationService.js';
+import { __getWritingIntegrationStoreForTests, __resetWritingIntegrationStoreForTests, archiveWritingPrompt, createWritingPrompt, editWritingPrompt, exportAdminCalibrationReport, getWritingPersistenceDiagnostics, getWritingAnalyticsDashboard, exportStudentMonthlyWritingReport, exportTeacherWeeklyClassSummary, getNextRotatedPromptForStudent, listAdminReviewSignals, getCurrentWeeklyPlan, getMonthlyWritingReport, getStudentWritingState, getSmartWritingPromptForStudent, getTodayWritingTask, getWeeklyWritingReview, listStudentWritingHistoryByGenre, listWritingPrompts, persistInitialWritingRichFeedback, setWritingPromptActiveStatus, seedWritingPilotReadinessDemoData, runWritingPilotVerificationChecklist, saveAdminReviewSignal, setCalibrationFollowUpFlag, setPromptQualityFlag, submitDailyWritingPractice, submitInitialWritingAssessment, retryWritingHydration, } from '../src/lib/brains_heist/writingIntegrationService.js';
 import { WRITING_PILOT_GUARDRAILS } from '../src/lib/brains_heist/writingAdminConfig.js';
 import { parseAdminDrilldownFilters, serializeAdminDrilldownFilters } from '../src/lib/brains_heist/writingAdminFilters.js';
 const prompt = `Write a response that includes:
@@ -229,6 +229,146 @@ test('email starter prompt is assigned until student completes it', async () => 
     });
     assert.strictEqual(secondSelection.ok, true);
     assert.notStrictEqual(secondSelection.data.prompt_text, '');
+});
+test('smart prompt selection changes task identity after a submitted essay', async () => {
+    __resetWritingIntegrationStoreForTests();
+    const firstSelection = await getSmartWritingPromptForStudent({
+        student_id: 'rotation-smart-1',
+        grade: 8,
+        genre: 'essay',
+    });
+    assert.strictEqual(firstSelection.ok, true);
+    assert.ok((firstSelection.data.pool_size ?? 0) > 1);
+    submitInitialWritingAssessment({
+        student_id: 'rotation-smart-1',
+        grade: 8,
+        genre: 'essay',
+        prompt_id: firstSelection.data.prompt_id,
+        prompt_text: firstSelection.data.prompt_text,
+        target_word_count: firstSelection.data.target_word_count,
+        student_response: 'Schools should consider this question carefully. One benefit is stronger community participation, while one challenge is finding enough time. I recommend a flexible programme because it gives students meaningful experience without creating unnecessary pressure.',
+    });
+    const secondSelection = await getSmartWritingPromptForStudent({
+        student_id: 'rotation-smart-1',
+        grade: 8,
+        genre: 'essay',
+        current_prompt_id: firstSelection.data.prompt_id ?? undefined,
+        current_prompt_text: firstSelection.data.prompt_text,
+    });
+    assert.strictEqual(secondSelection.ok, true);
+    assert.notStrictEqual(secondSelection.data.prompt_id, firstSelection.data.prompt_id);
+    assert.notStrictEqual(secondSelection.data.base_prompt_text, firstSelection.data.base_prompt_text);
+});
+test('rich feedback persists complete weakness memory and remains replayable in history', () => {
+    __resetWritingIntegrationStoreForTests();
+    const submitted = submitInitialWritingAssessment({
+        student_id: 'feedback-memory-1',
+        grade: 8,
+        genre: 'essay',
+        prompt_text: prompt,
+        target_word_count: 120,
+        student_response: 'There is many reason for this event. It was importent for everyone and the class should do more activity like this',
+        attempted_at: '2026-07-27T10:00:00.000Z',
+    });
+    assert.strictEqual(submitted.ok, true);
+    const saved = persistInitialWritingRichFeedback({
+        student_id: 'feedback-memory-1',
+        genre: 'essay',
+        attempt_id: submitted.data.attempt_id,
+        rich_feedback: {
+            task_understanding: 'You addressed the event and gave a recommendation.',
+            next_move: 'Correct agreement and punctuation before adding detail.',
+            weakness_tags: ['agreement_error', 'spelling_error'],
+            grammar_fixes: [
+                {
+                    issue: 'subject-verb agreement',
+                    original: 'There is many reason',
+                    better_version: 'There are many reasons',
+                },
+                {
+                    issue: 'spelling',
+                    original: 'It was importent',
+                    better_version: 'It was important',
+                },
+            ],
+            punctuation_fixes: [
+                {
+                    original: 'activity like this',
+                    better_version: 'activity like this.',
+                },
+            ],
+            natural_phrase_upgrades: [
+                {
+                    original: 'do more activity',
+                    better_version: 'organise more activities',
+                    why_it_helps: 'This is more precise.',
+                },
+            ],
+        },
+    });
+    assert.strictEqual(saved.ok, true);
+    const state = getStudentWritingState('feedback-memory-1', 'essay');
+    assert.strictEqual(state.ok, true);
+    const weaknessTags = state.data.latest_assessment.weakness_tags;
+    assert.ok(weaknessTags.includes('agreement_error'));
+    assert.ok(weaknessTags.includes('spelling_error'));
+    assert.ok(weaknessTags.includes('punctuation_error'));
+    assert.ok(weaknessTags.includes('weak_word_choice'));
+    const tagCounts = state.data.repeated_error_memory.byStudent['feedback-memory-1'].tagCounts;
+    assert.strictEqual(tagCounts.agreement_error, 1);
+    assert.strictEqual(tagCounts.spelling_error, 1);
+    assert.strictEqual(tagCounts.punctuation_error, 1);
+    assert.strictEqual(tagCounts.weak_word_choice, 1);
+    assert.ok(state.data.active_daily_tasks.some((task) => task.target_tags.some((tag) => weaknessTags.includes(tag))));
+    const history = listStudentWritingHistoryByGenre('feedback-memory-1');
+    assert.strictEqual(history.ok, true);
+    const essayEntry = history.data.find((group) => group.genre === 'essay').entries[0];
+    assert.strictEqual(essayEntry.has_feedback, true);
+    assert.strictEqual(essayEntry.grammar_issue_count, 2);
+    assert.strictEqual(essayEntry.punctuation_issue_count, 1);
+    assert.ok(essayEntry.weakness_tags.includes('agreement_error'));
+    assert.ok(essayEntry.rich_feedback);
+});
+test('existing saved feedback is backfilled into weakness memory on student load', () => {
+    __resetWritingIntegrationStoreForTests();
+    submitInitialWritingAssessment({
+        student_id: 'feedback-backfill-1',
+        grade: 8,
+        genre: 'essay',
+        prompt_text: prompt,
+        target_word_count: 120,
+        student_response: 'There is many reason for this event and it was importent',
+    });
+    // Complete the normal hydration cycle before simulating an older persisted
+    // attempt whose rich feedback predates canonical weakness tagging.
+    getStudentWritingState('feedback-backfill-1', 'essay');
+    const store = __getWritingIntegrationStoreForTests();
+    store.attempts[0].rich_feedback = {
+        grammar_fixes: [
+            {
+                issue: 'subject-verb agreement',
+                original: 'There is many reason',
+                better_version: 'There are many reasons',
+            },
+            {
+                issue: 'spelling',
+                original: 'importent',
+                better_version: 'important',
+            },
+        ],
+        punctuation_fixes: [
+            {
+                original: 'it was importent',
+                better_version: 'it was important.',
+            },
+        ],
+    };
+    const state = getStudentWritingState('feedback-backfill-1', 'essay');
+    assert.strictEqual(state.ok, true);
+    assert.ok(state.data.latest_assessment.weakness_tags.includes('agreement_error'));
+    assert.ok(state.data.latest_assessment.weakness_tags.includes('spelling_error'));
+    assert.ok(state.data.latest_assessment.weakness_tags.includes('punctuation_error'));
+    assert.strictEqual(state.data.repeated_error_memory.byStudent['feedback-backfill-1'].tagCounts.agreement_error, 1);
 });
 test('student/teacher/admin exports produce html and pdf-ready payloads', () => {
     __resetWritingIntegrationStoreForTests();

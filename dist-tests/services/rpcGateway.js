@@ -47,6 +47,12 @@ export const createAssignment = (payload, client) => {
 export const getAssignmentsForTeacher = (payload, client) => {
     return execute('rpc_get_assignments_for_teacher', payload, client);
 };
+export const deleteTeacherAssignment = (assignmentId, client) => {
+    return execute('rpc_delete_teacher_assignment', { p_assignment_id: assignmentId }, client);
+};
+export const getTeacherAssignmentSuccessSummary = (client) => {
+    return execute('rpc_teacher_assignment_success_summary', {}, client);
+};
 export const getStudentsForAssignment = (payload, client) => {
     return execute('rpc_get_students_for_assignment', payload, client);
 };

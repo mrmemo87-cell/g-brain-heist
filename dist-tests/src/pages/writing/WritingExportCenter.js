@@ -1,226 +1,209 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { useEffect, useMemo, useState } from 'react';
-import { exportAdminCalibrationReport, exportStudentMonthlyWritingReport, getTeacherAttemptListScoped, getTeacherAttemptReportScoped, getTeacherExportRowsScoped, getTeacherGeneralReportScoped, getTeacherSavedReportsScoped, getTeacherWritingReport, saveTeacherReportScoped, } from '../../lib/brains_heist/writingIntegrationService.js';
+import { Fragment as _Fragment, jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import React, { useEffect, useMemo, useState } from 'react';
+import { exportAdminCalibrationReport, exportStudentMonthlyWritingReport, getTeacherAttemptListScoped, getTeacherExportRowsScoped, getTeacherSavedReportsScoped, getTeacherWritingReport, saveTeacherReportScoped, } from '../../lib/brains_heist/writingIntegrationService.js';
+import { humanizeWritingTag, openProfessionalWritingReport, } from '../../lib/brains_heist/writingReportDocument.js';
 const EMPTY_DRAFT = {
-    mode: 'student',
     status: 'draft',
-    title: '',
-    overall_performance: '',
     strengths: '',
-    recurring_weaknesses: '',
-    trend_progress: '',
-    teacher_recommendations: '',
-    prompt: '',
-    submission_text: '',
-    evaluation_breakdown: '',
-    precise_issues: '',
-    suggested_next_action: '',
-    comparison_to_previous: '',
+    growth_targets: '',
+    next_steps: '',
     teacher_comment: '',
 };
-const renderExport = (doc) => (_jsxs("article", { style: { border: '1px solid #334155', borderRadius: 10, padding: 12, background: '#0f172a', display: 'grid', gap: 8 }, children: [_jsx("h3", { style: { margin: 0 }, children: doc.title }), _jsxs("div", { style: { fontSize: 12, opacity: 0.85 }, children: ["Generated: ", doc.generated_at] }), _jsx("div", { dangerouslySetInnerHTML: { __html: doc.html } }), _jsxs("details", { children: [_jsx("summary", { children: "PDF-ready structure" }), _jsx("pre", { style: { whiteSpace: 'pre-wrap', fontSize: 12 }, children: JSON.stringify(doc.pdf_ready, null, 2) })] })] }));
-const renderTeacherSummary = (report) => (_jsxs("article", { style: { border: '1px solid #334155', borderRadius: 10, padding: 12, background: '#0f172a', display: 'grid', gap: 8 }, children: [_jsx("h3", { style: { margin: 0 }, children: "Teacher Writing Report" }), _jsxs("div", { style: { fontSize: 12, opacity: 0.85 }, children: ["Generated: ", report.generated_at] }), _jsxs("section", { children: [_jsx("strong", { children: report.student.student_name }), " \u00B7 Grade ", report.student.grade ?? '—', " \u00B7 ", report.student.class_name] }), _jsxs("section", { children: [_jsx("strong", { children: "Reporting period:" }), " ", report.period, " \u00B7 ", _jsx("strong", { children: "Genre:" }), " ", report.genre] }), _jsxs("section", { children: [_jsx("strong", { children: "Overall performance" }), _jsxs("div", { children: ["Latest score: ", report.overall_summary.latest_score ?? '—'] }), _jsxs("div", { children: ["Trend delta: ", report.overall_summary.score_trend_delta ?? '—'] }), _jsxs("div", { children: ["Completion: ", report.overall_summary.completed_tasks, "/", report.overall_summary.total_tasks, " (", report.overall_summary.completion_rate_percent, "%)"] })] }), _jsxs("section", { children: [_jsx("strong", { children: "Main strengths" }), _jsx("ul", { children: (report.strengths.length ? report.strengths : ['No strengths captured yet.']).map((item) => _jsx("li", { children: item }, item)) })] }), _jsxs("section", { children: [_jsx("strong", { children: "Priority weak areas" }), _jsx("ul", { children: (report.priority_weak_areas.length ? report.priority_weak_areas : ['No priority weaknesses captured yet.']).map((item) => _jsx("li", { children: item }, item)) })] }), _jsxs("section", { children: [_jsx("strong", { children: "Teacher actions" }), _jsx("ul", { children: (report.teacher_actions.length ? report.teacher_actions : ['No actions generated yet.']).map((item) => _jsx("li", { children: item }, item)) })] })] }));
 const parseList = (value) => value
-    .split(/\n|,/)
+    .split(/\n/)
     .map((item) => item.trim())
     .filter(Boolean);
-const isUuid = (value) => Boolean(value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.trim()));
-const formatScore = (score) => {
-    if (score == null || Number.isNaN(score))
-        return '—';
-    return `${score}/20`;
+const formatScore = (score) => score == null || Number.isNaN(Number(score)) ? 'Not scored' : `${Number(score)}/20`;
+const formatPeriod = (month) => {
+    const [year, monthNumber] = month.split('-').map(Number);
+    if (!year || !monthNumber)
+        return month;
+    return new Date(year, monthNumber - 1, 1).toLocaleDateString(undefined, {
+        month: 'long',
+        year: 'numeric',
+    });
 };
+const formatDate = (value) => {
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime()))
+        return 'Date unavailable';
+    return parsed.toLocaleDateString(undefined, {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+    });
+};
+const getInitials = (name) => name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('') || 'ST';
+const isUuid = (value) => Boolean(value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.trim()));
+const renderExport = (doc) => (_jsxs("article", { className: "writing-export-document", children: [_jsx("h3", { children: doc.title }), _jsx("div", { dangerouslySetInnerHTML: { __html: doc.html } })] }));
+const rubricItems = (report) => [
+    { label: 'Content', score: report.rubric_scores?.content ?? null },
+    { label: 'Purpose & audience', score: report.rubric_scores?.communicative_achievement ?? null },
+    { label: 'Organisation', score: report.rubric_scores?.organisation ?? null },
+    { label: 'Language', score: report.rubric_scores?.language ?? null },
+];
+const WritingEvidenceList = ({ attempts, selectedAttemptId, onSelect, }) => (_jsxs("div", { className: "writing-reports__attempt-list", children: [attempts.map((attempt) => {
+            const score = Number(attempt.assessment?.['total_score']);
+            const isSelected = selectedAttemptId === attempt.attempt_id;
+            return (_jsxs("button", { type: "button", className: `writing-reports__attempt-card${isSelected ? ' is-selected' : ''}`, onClick: () => onSelect(attempt.attempt_id), "aria-pressed": isSelected, children: [_jsx("span", { className: "writing-reports__attempt-icon", children: "\uD83D\uDCDD" }), _jsxs("span", { children: [_jsx("strong", { children: attempt.attempt_type === 'initial_assessment' ? 'Baseline writing' : 'Writing submission' }), _jsxs("small", { children: [formatDate(attempt.created_at), " \u00B7 ", attempt.genre || 'Writing'] })] }), _jsx("b", { children: formatScore(Number.isFinite(score) ? score : null) })] }, attempt.attempt_id));
+        }), attempts.length === 0 && (_jsx("div", { className: "writing-reports__empty-inline", children: "No writing evidence has been submitted for this student yet." }))] }));
 export const WritingExportCenter = ({ mode, studentId, month = new Date().toISOString().slice(0, 7), isLoading = false, errorMessage, }) => {
-    const [teacherSummaryReport, setTeacherSummaryReport] = useState(null);
     const [teacherRows, setTeacherRows] = useState(null);
-    const [teacherReportError, setTeacherReportError] = useState('');
-    const [teacherLoading, setTeacherLoading] = useState(false);
     const [selectedStudentId, setSelectedStudentId] = useState('');
-    const [searchQuery, setSearchQuery] = useState('');
+    const [teacherSummaryReport, setTeacherSummaryReport] = useState(null);
     const [attempts, setAttempts] = useState([]);
     const [selectedAttemptId, setSelectedAttemptId] = useState('');
-    const [attemptReport, setAttemptReport] = useState(null);
-    const [generalReport, setGeneralReport] = useState(null);
     const [savedReports, setSavedReports] = useState([]);
-    const [editor, setEditor] = useState(EMPTY_DRAFT);
+    const [draft, setDraft] = useState(EMPTY_DRAFT);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [teacherLoading, setTeacherLoading] = useState(false);
+    const [teacherReportError, setTeacherReportError] = useState('');
     const [editorMessage, setEditorMessage] = useState('');
-    const [showAttemptSubmissionText, setShowAttemptSubmissionText] = useState(false);
-    const visibleRows = useMemo(() => (teacherRows ?? []).filter((row) => !searchQuery || row.student_name.toLowerCase().includes(searchQuery.toLowerCase()) || row.student_id.toLowerCase().includes(searchQuery.toLowerCase())), [teacherRows, searchQuery]);
-    const selectedAttempt = attempts.find((item) => item.attempt_id === selectedAttemptId) ?? null;
-    const escapeCsvField = (value) => {
-        const escaped = value.replace(/"/g, '""');
-        return /[",\n]/.test(escaped) ? `"${escaped}"` : escaped;
-    };
+    const [showSubmission, setShowSubmission] = useState(false);
+    const visibleRows = useMemo(() => {
+        const query = searchQuery.trim().toLowerCase();
+        if (!query)
+            return teacherRows ?? [];
+        return (teacherRows ?? []).filter((row) => `${row.student_name} ${row.grade}`.toLowerCase().includes(query));
+    }, [teacherRows, searchQuery]);
+    const selectedAttempt = useMemo(() => attempts.find((attempt) => attempt.attempt_id === selectedAttemptId) ?? null, [attempts, selectedAttemptId]);
+    const editedReport = useMemo(() => {
+        if (!teacherSummaryReport)
+            return null;
+        const strengths = parseList(draft.strengths);
+        const growthTargets = parseList(draft.growth_targets);
+        const nextSteps = parseList(draft.next_steps);
+        return {
+            ...teacherSummaryReport,
+            strengths: strengths.length ? strengths : teacherSummaryReport.strengths,
+            priority_weak_areas: growthTargets.length
+                ? growthTargets
+                : teacherSummaryReport.priority_weak_areas,
+            teacher_actions: nextSteps.length ? nextSteps : teacherSummaryReport.teacher_actions,
+            student_friendly_summary: {
+                ...teacherSummaryReport.student_friendly_summary,
+                next_steps: nextSteps.length
+                    ? nextSteps
+                    : teacherSummaryReport.student_friendly_summary.next_steps,
+            },
+        };
+    }, [teacherSummaryReport, draft.strengths, draft.growth_targets, draft.next_steps]);
     const exportCsv = () => {
         if (!teacherRows || typeof window === 'undefined')
             return;
-        const header = 'student_name,student_id,grade,completion_rate,latest_score';
-        const lines = teacherRows.map((row) => {
-            const completion = `${Math.round(row.completion_rate * 100)}%`;
-            return [
-                escapeCsvField(row.student_name),
-                escapeCsvField(row.student_id),
-                escapeCsvField(String(row.grade)),
-                escapeCsvField(completion),
-                escapeCsvField(row.latest_score == null ? '' : String(row.latest_score)),
-            ].join(',');
-        });
+        const escapeField = (value) => {
+            const escaped = value.replace(/"/g, '""');
+            return /[",\n]/.test(escaped) ? `"${escaped}"` : escaped;
+        };
+        const header = 'student_name,student_id,grade,practice_completion,latest_formative_score';
+        const lines = teacherRows.map((row) => [
+            escapeField(row.student_name),
+            escapeField(row.student_id),
+            escapeField(String(row.grade)),
+            escapeField(`${Math.round(row.completion_rate * 100)}%`),
+            escapeField(row.latest_score == null ? '' : String(row.latest_score)),
+        ].join(','));
         const blob = new Blob([[header, ...lines].join('\n')], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `writing-export-${month}.csv`;
+        link.download = `writing-class-summary-${month}.csv`;
         link.click();
         URL.revokeObjectURL(link.href);
     };
-    const exportEditorAsText = () => {
-        if (typeof window === 'undefined')
+    const openReport = (audience) => {
+        if (!editedReport)
             return;
-        const content = [
-            `Mode: ${editor.mode}`,
-            `Status: ${editor.status}`,
-            `Title: ${editor.title}`,
-            `Overall performance: ${editor.overall_performance}`,
-            `Strengths: ${editor.strengths}`,
-            `Recurring weaknesses: ${editor.recurring_weaknesses}`,
-            `Trend/progress: ${editor.trend_progress}`,
-            `Teacher recommendations: ${editor.teacher_recommendations}`,
-            `Prompt: ${editor.prompt}`,
-            `Submission text:\n${editor.submission_text}`,
-            `Evaluation breakdown: ${editor.evaluation_breakdown}`,
-            `Precise issues: ${editor.precise_issues}`,
-            `Suggested next action: ${editor.suggested_next_action}`,
-            `Comparison to previous: ${editor.comparison_to_previous}`,
-            `Teacher comment: ${editor.teacher_comment}`,
-        ].join('\n\n');
-        const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `teacher-writing-report-${selectedStudentId || 'student'}-${selectedAttemptId || 'student'}.txt`;
-        link.click();
-        URL.revokeObjectURL(link.href);
-    };
-    const loadSavedReports = (targetStudentId, targetAttemptId, targetMode) => {
-        void getTeacherSavedReportsScoped({ student_id: targetStudentId, attempt_id: targetAttemptId, mode: targetMode }).then((result) => {
-            if (!result.ok || !result.data)
-                return;
-            setSavedReports(result.data);
+        const opened = openProfessionalWritingReport(editedReport, {
+            audience,
+            teacherComment: draft.teacher_comment,
+            reportStatus: draft.status,
         });
+        if (!opened)
+            setEditorMessage('Your browser blocked the report preview. Allow pop-ups and try again.');
     };
-    const hydrateEditorFromGeneral = (payload) => {
-        const report = payload['report'] ?? {};
-        const summary = report['overall_summary'] ?? {};
-        setEditor((prev) => ({
-            ...prev,
-            mode: 'student',
-            title: 'Student-level Writing Report',
-            overall_performance: `Latest score: ${summary['latest_score'] ?? '—'}, trend delta: ${summary['score_trend_delta'] ?? '—'}, completion: ${summary['completion_rate_percent'] ?? '—'}%`,
-            strengths: (report['strengths'] ?? []).join('\n'),
-            recurring_weaknesses: (report['repeated_error_patterns'] ?? []).join('\n'),
-            trend_progress: String((report['student_friendly_summary']?.['progress_summary'] ?? '')),
-            teacher_recommendations: (report['teacher_actions'] ?? []).join('\n'),
-        }));
-    };
-    const hydrateEditorFromAttempt = (payload) => {
-        const attempt = payload['attempt'] ?? {};
-        const previousAttempt = payload['previous_attempt'] ?? {};
-        setEditor((prev) => ({
-            ...prev,
-            mode: 'attempt',
-            title: 'Attempt-level Writing Report',
-            prompt: String(attempt['prompt_text'] ?? ''),
-            submission_text: String(attempt['student_submission'] ?? ''),
-            evaluation_breakdown: JSON.stringify(attempt['assessment'] ?? {}, null, 2),
-            precise_issues: (payload['precise_issues'] ?? []).join('\n'),
-            suggested_next_action: String(payload['suggested_next_action'] ?? ''),
-            comparison_to_previous: previousAttempt && Object.keys(previousAttempt).length > 0
-                ? `Previous score: ${String(previousAttempt['assessment']?.['total_score'] ?? '—')}`
-                : 'No previous attempt found for comparison.',
-        }));
-    };
-    const saveEditorReport = (status) => {
-        if (!selectedStudentId)
+    const saveReport = (status) => {
+        if (!selectedStudentId || !editedReport)
             return;
-        setEditorMessage('Saving report…');
+        setEditorMessage(status === 'final' ? 'Finalizing report…' : 'Saving draft…');
         void saveTeacherReportScoped({
-            report_id: editor.id,
+            report_id: draft.id,
             student_id: selectedStudentId,
-            attempt_id: editor.mode === 'attempt' ? selectedAttemptId || undefined : undefined,
-            mode: editor.mode,
+            mode: 'student',
             month,
-            genre: selectedAttempt?.genre ?? undefined,
+            genre: editedReport.genre,
             status,
-            teacher_comment: editor.teacher_comment,
+            teacher_comment: draft.teacher_comment,
             report_payload: {
-                title: editor.title,
-                overall_performance: editor.overall_performance,
-                strengths: parseList(editor.strengths),
-                recurring_weaknesses: parseList(editor.recurring_weaknesses),
-                trend_progress: editor.trend_progress,
-                teacher_recommendations: parseList(editor.teacher_recommendations),
-                prompt: editor.prompt,
-                submission_text: editor.submission_text,
-                evaluation_breakdown: editor.evaluation_breakdown,
-                precise_issues: parseList(editor.precise_issues),
-                suggested_next_action: editor.suggested_next_action,
-                comparison_to_previous: editor.comparison_to_previous,
+                title: 'Writing Progress Report',
+                strengths: editedReport.strengths,
+                recurring_weaknesses: editedReport.priority_weak_areas,
+                teacher_recommendations: editedReport.teacher_actions,
             },
         }).then((result) => {
             if (!result.ok || !result.data) {
-                setEditorMessage(result.error ?? 'Unable to save report.');
+                setEditorMessage(result.error ?? 'The report could not be saved. Please try again.');
                 return;
             }
-            const saved = result.data;
-            setEditor((prev) => ({ ...prev, id: saved.id, status: saved.status }));
-            setEditorMessage(`Saved ${saved.status} report at ${saved.updated_at}.`);
-            loadSavedReports(selectedStudentId, editor.mode === 'attempt' ? selectedAttemptId : undefined, editor.mode);
+            setDraft((current) => ({
+                ...current,
+                id: result.data?.id,
+                status: result.data?.status ?? status,
+            }));
+            setEditorMessage(status === 'final' ? 'Report finalized and ready to share.' : 'Draft saved.');
+            void getTeacherSavedReportsScoped({ student_id: selectedStudentId }).then((savedResult) => {
+                if (savedResult.ok && savedResult.data)
+                    setSavedReports(savedResult.data);
+            });
         });
+    };
+    const loadSavedReport = (saved) => {
+        const payload = saved.report_payload ?? {};
+        setDraft({
+            id: saved.id,
+            status: saved.status,
+            strengths: (payload['strengths'] ?? []).join('\n'),
+            growth_targets: (payload['recurring_weaknesses'] ?? []).join('\n'),
+            next_steps: (payload['teacher_recommendations'] ?? []).join('\n'),
+            teacher_comment: saved.teacher_comment ?? '',
+        });
+        setEditorMessage(`${saved.status === 'final' ? 'Final' : 'Draft'} report from ${formatDate(saved.updated_at)} loaded.`);
     };
     useEffect(() => {
         let cancelled = false;
-        if (mode !== 'teacher') {
-            setTeacherSummaryReport(null);
-            setTeacherRows(null);
-            setTeacherReportError('');
-            setTeacherLoading(false);
-            setSelectedStudentId('');
-            setAttempts([]);
-            setSelectedAttemptId('');
-            setAttemptReport(null);
-            setGeneralReport(null);
-            setSavedReports([]);
-            setEditor(EMPTY_DRAFT);
+        if (mode !== 'teacher')
             return;
-        }
         setTeacherLoading(true);
         setTeacherReportError('');
-        const task = studentId
+        const request = studentId
             ? getTeacherWritingReport({ student_id: studentId, month, include_snippet: false })
             : getTeacherExportRowsScoped(month);
-        void task
+        void request
             .then((result) => {
             if (cancelled)
                 return;
             if (!result.ok || !result.data) {
-                setTeacherSummaryReport(null);
-                setTeacherRows(null);
-                setTeacherReportError(result.error ?? 'Unable to generate teacher report.');
+                setTeacherReportError('Writing reports could not be loaded. Please refresh and try again.');
                 return;
             }
             if (studentId) {
-                setTeacherSummaryReport(result.data);
                 setTeacherRows(null);
+                setTeacherSummaryReport(result.data);
                 setSelectedStudentId(studentId);
             }
             else {
                 const rows = result.data;
                 setTeacherRows(rows);
-                setTeacherSummaryReport(null);
-                setSelectedStudentId(rows[0]?.student_id ?? '');
+                setSelectedStudentId((current) => current || rows[0]?.student_id || '');
             }
         })
-            .catch((err) => {
+            .catch(() => {
             if (!cancelled)
-                setTeacherReportError(err instanceof Error ? err.message : 'Unable to generate teacher report.');
+                setTeacherReportError('Writing reports could not be loaded. Please refresh and try again.');
         })
             .finally(() => {
             if (!cancelled)
@@ -234,40 +217,40 @@ export const WritingExportCenter = ({ mode, studentId, month = new Date().toISOS
         if (mode !== 'teacher' || !selectedStudentId)
             return;
         if (!isUuid(selectedStudentId)) {
-            setTeacherReportError(`Selected student reference "${selectedStudentId}" is not a valid UUID yet. Please refresh writing data or run migration 20260417183000.`);
+            setTeacherReportError('This student record needs refreshing. Ask your school administrator to check the student profile.');
             return;
         }
         let cancelled = false;
         setTeacherLoading(true);
-        setEditor(EMPTY_DRAFT);
+        setTeacherReportError('');
         setEditorMessage('');
+        setShowSubmission(false);
+        setDraft(EMPTY_DRAFT);
         void Promise.all([
             getTeacherWritingReport({ student_id: selectedStudentId, month, include_snippet: true }),
-            getTeacherAttemptListScoped({ student_id: selectedStudentId, limit: 80 }),
-            getTeacherGeneralReportScoped({ student_id: selectedStudentId, month }),
+            getTeacherAttemptListScoped({ student_id: selectedStudentId, limit: 30 }),
             getTeacherSavedReportsScoped({ student_id: selectedStudentId }),
-        ]).then(([summaryRes, attemptsRes, generalRes, savedRes]) => {
+        ]).then(([summaryResult, attemptsResult, savedResult]) => {
             if (cancelled)
                 return;
-            if (summaryRes.ok && summaryRes.data)
-                setTeacherSummaryReport(summaryRes.data);
-            if (attemptsRes.ok && attemptsRes.data) {
-                setAttempts(attemptsRes.data);
-                setSelectedAttemptId(attemptsRes.data[0]?.attempt_id ?? '');
+            if (!summaryResult.ok || !summaryResult.data) {
+                setTeacherSummaryReport(null);
+                setTeacherReportError('This student does not have enough writing data for a report yet.');
+                return;
             }
-            else {
-                setAttempts([]);
-                setSelectedAttemptId('');
-            }
-            if (generalRes.ok && generalRes.data) {
-                setGeneralReport(generalRes.data);
-                hydrateEditorFromGeneral(generalRes.data);
-            }
-            else {
-                setGeneralReport(null);
-            }
-            if (savedRes.ok && savedRes.data)
-                setSavedReports(savedRes.data);
+            const report = summaryResult.data;
+            setTeacherSummaryReport(report);
+            setDraft({
+                status: 'draft',
+                strengths: report.strengths.join('\n'),
+                growth_targets: report.priority_weak_areas.map(humanizeWritingTag).join('\n'),
+                next_steps: report.teacher_actions.join('\n'),
+                teacher_comment: '',
+            });
+            const attemptRows = attemptsResult.ok && attemptsResult.data ? attemptsResult.data : [];
+            setAttempts(attemptRows);
+            setSelectedAttemptId(attemptRows[0]?.attempt_id ?? '');
+            setSavedReports(savedResult.ok && savedResult.data ? savedResult.data : []);
         }).finally(() => {
             if (!cancelled)
                 setTeacherLoading(false);
@@ -276,126 +259,51 @@ export const WritingExportCenter = ({ mode, studentId, month = new Date().toISOS
             cancelled = true;
         };
     }, [mode, selectedStudentId, month]);
-    useEffect(() => {
-        if (mode !== 'teacher' || !selectedStudentId || !selectedAttemptId) {
-            setAttemptReport(null);
-            setShowAttemptSubmissionText(false);
-            return;
-        }
-        if (!isUuid(selectedStudentId))
-            return;
-        let cancelled = false;
-        setTeacherLoading(true);
-        void Promise.all([
-            getTeacherAttemptReportScoped({ student_id: selectedStudentId, attempt_id: selectedAttemptId }),
-            getTeacherSavedReportsScoped({ student_id: selectedStudentId, attempt_id: selectedAttemptId, mode: 'attempt' }),
-        ]).then(([attemptRes, savedRes]) => {
-            if (cancelled)
-                return;
-            if (attemptRes.ok && attemptRes.data) {
-                setAttemptReport(attemptRes.data);
-            }
-            else {
-                setAttemptReport(null);
-            }
-            if (savedRes.ok && savedRes.data?.length) {
-                const savedData = savedRes.data;
-                setSavedReports((prev) => {
-                    const byId = new Map(prev.map((item) => [item.id, item]));
-                    savedData.forEach((item) => byId.set(item.id, item));
-                    return [...byId.values()].sort((a, b) => b.updated_at.localeCompare(a.updated_at));
-                });
-            }
-        }).finally(() => {
-            if (!cancelled)
-                setTeacherLoading(false);
-        });
-        return () => {
-            cancelled = true;
-        };
-    }, [mode, selectedStudentId, selectedAttemptId]);
-    if (isLoading)
-        return _jsx("div", { style: { padding: 12, color: '#e5e7eb' }, children: "Loading exports\u2026" });
-    if (errorMessage)
-        return _jsxs("div", { style: { padding: 12, color: '#fca5a5' }, children: ["Unable to load exports: ", errorMessage] });
+    if (isLoading) {
+        return _jsx("div", { className: "writing-reports__state", children: "Loading Writing Reports\u2026" });
+    }
+    if (errorMessage) {
+        return _jsx("div", { className: "writing-reports__state writing-reports__state--error", children: "Writing Reports could not be opened. Please try again." });
+    }
     if (mode === 'teacher') {
-        if (teacherLoading && !teacherRows && !teacherSummaryReport)
-            return _jsx("div", { style: { padding: 12, color: '#e5e7eb' }, children: "Generating teacher report\u2026" });
-        if (teacherReportError)
-            return _jsxs("div", { style: { padding: 12, color: '#fca5a5' }, children: ["No export data available: ", teacherReportError] });
-        if (studentId && !teacherSummaryReport)
-            return _jsx("div", { style: { padding: 12, color: '#e5e7eb' }, children: "No export data available." });
-        if (!studentId && !teacherRows)
-            return _jsx("div", { style: { padding: 12, color: '#e5e7eb' }, children: "No export data available." });
-        return (_jsxs("div", { style: { padding: 12, color: '#e5e7eb', display: 'grid', gap: 12 }, children: [_jsx("h2", { style: { margin: 0 }, children: "Quick Reports" }), _jsx("p", { style: { margin: 0, color: '#94a3b8' }, children: "Generate clean reports without advanced setup." }), _jsx("section", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }, children: [
-                        ['Student Progress Summary', 'Fast snapshot of score, completion, and growth areas.', false],
-                        ['Parent-Ready Report', 'Plain language strengths, growth targets, and next steps.', false],
-                        ['Class Snapshot', 'Class-level completion and performance overview.', true],
-                    ].map(([title, desc, isReady]) => (_jsxs("article", { style: { border: '1px solid #334155', borderRadius: 10, padding: 12, background: 'linear-gradient(180deg, #0f172a, #0b1327)' }, children: [_jsx("div", { style: { fontWeight: 700 }, children: title }), _jsx("div", { style: { fontSize: 12, color: '#cbd5e1', margin: '6px 0 10px' }, children: desc }), _jsx("button", { type: "button", onClick: () => {
-                                    if (isReady)
-                                        exportCsv();
-                                }, disabled: !isReady, style: { borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 10px' }, children: isReady ? 'Export CSV' : 'Use Advanced Tools' })] }, title))) }), _jsxs("details", { children: [_jsx("summary", { style: { cursor: 'pointer', color: '#93c5fd', fontWeight: 700 }, children: "Open Advanced Report Tools" }), !studentId && teacherRows ? (_jsxs("div", { style: { position: 'sticky', top: 0, zIndex: 3, background: '#020617', border: '1px solid #1e293b', borderRadius: 10, padding: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }, children: [_jsx("input", { value: searchQuery, onChange: (event) => setSearchQuery(event.target.value), placeholder: "Search student", style: { flex: '1 1 220px', background: '#020617', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '8px 10px' } }), _jsx("button", { type: "button", onClick: exportCsv, style: { borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '8px 10px' }, children: "Export CSV" })] })) : null, _jsxs("div", { style: { display: 'grid', gridTemplateColumns: studentId ? 'minmax(0, 1fr)' : 'minmax(0, 2fr) minmax(280px, 1fr)', gap: 10 }, children: [!studentId && teacherRows ? (_jsxs("article", { style: { border: '1px solid #334155', borderRadius: 12, padding: 14, background: 'linear-gradient(180deg, #0f172a, #0b1327)', overflowX: 'auto' }, children: [_jsx("h3", { style: { margin: 0 }, children: "Teacher Writing Class Summary" }), _jsxs("div", { style: { fontSize: 12, opacity: 0.85, marginBottom: 8 }, children: ["Month: ", month] }), _jsxs("table", { style: { width: '100%', borderCollapse: 'collapse', fontSize: 13 }, children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { align: "left", children: "Student" }), _jsx("th", { align: "left", children: "Grade" }), _jsx("th", { align: "left", children: "Completion" }), _jsx("th", { align: "left", children: "Latest score" }), _jsx("th", { align: "left", children: "Actions" })] }) }), _jsx("tbody", { children: visibleRows.map((row) => (_jsxs("tr", { style: { borderTop: '1px solid #1e293b' }, children: [_jsx("td", { children: row.student_name }), _jsx("td", { children: row.grade }), _jsxs("td", { children: [Math.round(row.completion_rate * 100), "%"] }), _jsx("td", { children: formatScore(row.latest_score) }), _jsx("td", { children: _jsx("button", { type: "button", onClick: () => setSelectedStudentId(row.student_id), style: { borderRadius: 6, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '4px 8px' }, children: "Open student" }) })] }, row.student_id))) })] })] })) : null, _jsxs("aside", { id: "selected-student-report", style: { border: '1px solid #334155', borderRadius: 12, padding: 14, background: 'linear-gradient(180deg, #0f172a, #0b1327)', display: 'grid', gap: 10 }, children: [_jsx("strong", { children: "Selected student workspace" }), !selectedStudentId ? _jsx("div", { children: "Select a student row to load details." }) : null, selectedStudentId && !isUuid(selectedStudentId) ? (_jsxs("div", { style: { border: '1px solid #7f1d1d', background: '#3a1212', color: '#fecaca', borderRadius: 8, padding: 10 }, children: ["This student id is not UUID-shaped (`", selectedStudentId, "`), so secure teacher RPCs will fail with 400 until data is normalized."] })) : null, teacherSummaryReport ? renderTeacherSummary(teacherSummaryReport) : null, selectedStudentId ? (_jsxs("section", { style: { border: '1px solid #334155', borderRadius: 8, padding: 10, display: 'grid', gap: 8 }, children: [_jsx("strong", { children: "Attempts (full text available)" }), attempts.length === 0 ? _jsx("div", { children: "No attempts available." }) : null, _jsx("div", { style: { display: 'grid', gap: 6, maxHeight: 220, overflow: 'auto' }, children: attempts.map((item) => (_jsxs("button", { type: "button", onClick: () => setSelectedAttemptId(item.attempt_id), style: {
-                                                            textAlign: 'left',
-                                                            borderRadius: 8,
-                                                            border: selectedAttemptId === item.attempt_id ? '1px solid #60a5fa' : '1px solid #334155',
-                                                            background: '#111827',
-                                                            color: '#f8fafc',
-                                                            padding: '8px 10px',
-                                                            cursor: 'pointer',
-                                                        }, children: [_jsxs("div", { children: [_jsx("strong", { children: item.attempt_type ?? 'attempt' }), " \u00B7 ", new Date(item.created_at).toLocaleString()] }), _jsxs("div", { style: { fontSize: 12, opacity: 0.85 }, children: ["Score: ", formatScore(Number(item.assessment?.['total_score'] ?? NaN)), " \u00B7 Retry mode: ", item.retry_kind === 'same_prompt' ? 'Retry prompt' : item.retry_kind === 'new_prompt' ? 'New prompt' : item.retry_kind ?? '—'] })] }, item.attempt_id))) })] })) : null, selectedAttempt ? (_jsxs("section", { style: { border: '1px solid #334155', borderRadius: 8, padding: 10, display: 'grid', gap: 8 }, children: [_jsx("strong", { children: "Attempt detail" }), _jsxs("div", { children: [_jsx("strong", { children: "Prompt:" }), " ", selectedAttempt.prompt_text || 'No prompt text available.'] }), _jsxs("div", { style: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 8 }, children: [_jsxs("article", { style: { border: '1px solid #1f2937', borderRadius: 8, padding: 8, background: '#020617' }, children: [_jsx("div", { style: { marginBottom: 6 }, children: _jsx("strong", { children: "Full student submission" }) }), !showAttemptSubmissionText ? (_jsxs("div", { style: { display: 'grid', gap: 6 }, children: [_jsx("div", { style: { fontSize: 12, color: '#cbd5e1' }, children: "Detailed writing text is protected by default." }), _jsx("button", { type: "button", onClick: () => setShowAttemptSubmissionText(true), style: { width: 'fit-content', borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#f8fafc', padding: '6px 9px' }, children: "View Full Submission" }), _jsx("small", { style: { color: '#94a3b8' }, children: "Viewing full submission is a sensitive action and may be logged." })] })) : (_jsx("pre", { style: { margin: 0, whiteSpace: 'pre-wrap', maxHeight: 240, overflow: 'auto' }, children: selectedAttempt.student_submission || 'No submission text found.' }))] }), _jsxs("article", { style: { border: '1px solid #1f2937', borderRadius: 8, padding: 8, background: '#020617' }, children: [_jsx("div", { style: { marginBottom: 6 }, children: _jsx("strong", { children: "AI evaluation / assessment" }) }), _jsx("pre", { style: { margin: 0, whiteSpace: 'pre-wrap', maxHeight: 240, overflow: 'auto' }, children: JSON.stringify(selectedAttempt.assessment ?? {}, null, 2) })] })] }), attemptReport ? (_jsxs("details", { children: [_jsx("summary", { children: "Attempt-level comparison and precise issues" }), _jsx("pre", { style: { marginTop: 8, whiteSpace: 'pre-wrap', maxHeight: 260, overflow: 'auto' }, children: JSON.stringify(attemptReport, null, 2) })] })) : null] })) : null, selectedStudentId ? (_jsxs("section", { style: { border: '1px solid #334155', borderRadius: 8, padding: 10, display: 'grid', gap: 8 }, children: [_jsx("strong", { children: "Editable report builder (student-level + attempt-level)" }), teacherLoading && _jsx("small", { style: { color: '#94a3b8' }, children: "Loading reports\u2026" }), _jsxs("div", { style: { display: 'flex', gap: 8, flexWrap: 'wrap' }, children: [_jsx("button", { type: "button", disabled: !generalReport || teacherLoading, onClick: () => generalReport && hydrateEditorFromGeneral(generalReport), title: !generalReport && !teacherLoading ? 'No student report available' : '', style: {
-                                                                borderRadius: 8,
-                                                                border: '1px solid #334155',
-                                                                background: generalReport && !teacherLoading ? '#1e293b' : '#0f172a',
-                                                                color: generalReport && !teacherLoading ? '#fff' : '#64748b',
-                                                                padding: '6px 8px',
-                                                                cursor: generalReport && !teacherLoading ? 'pointer' : 'not-allowed',
-                                                                opacity: generalReport && !teacherLoading ? 1 : 0.5
-                                                            }, children: "Generate student report template" }), _jsx("button", { type: "button", disabled: !attemptReport || teacherLoading, onClick: () => attemptReport && hydrateEditorFromAttempt(attemptReport), title: !attemptReport && !teacherLoading ? 'Select an attempt first' : '', style: {
-                                                                borderRadius: 8,
-                                                                border: '1px solid #334155',
-                                                                background: attemptReport && !teacherLoading ? '#1e293b' : '#0f172a',
-                                                                color: attemptReport && !teacherLoading ? '#fff' : '#64748b',
-                                                                padding: '6px 8px',
-                                                                cursor: attemptReport && !teacherLoading ? 'pointer' : 'not-allowed',
-                                                                opacity: attemptReport && !teacherLoading ? 1 : 0.5
-                                                            }, children: "Generate attempt report template" }), _jsx("button", { type: "button", onClick: exportEditorAsText, style: { borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#fff', padding: '6px 8px' }, children: "Export edited report" })] }), _jsxs("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }, children: [_jsxs("label", { style: { display: 'grid', gap: 4 }, children: ["Mode", _jsxs("select", { value: editor.mode, onChange: (event) => setEditor((prev) => ({ ...prev, mode: event.target.value })), style: { background: '#020617', border: '1px solid #334155', color: '#fff', borderRadius: 8, padding: '8px 10px' }, children: [_jsx("option", { value: "student", children: "Student-level report" }), _jsx("option", { value: "attempt", children: "Attempt-level report" })] })] }), _jsxs("label", { style: { display: 'grid', gap: 4 }, children: ["Status", _jsxs("select", { value: editor.status, onChange: (event) => setEditor((prev) => ({ ...prev, status: event.target.value })), style: { background: '#020617', border: '1px solid #334155', color: '#fff', borderRadius: 8, padding: '8px 10px' }, children: [_jsx("option", { value: "draft", children: "Draft" }), _jsx("option", { value: "final", children: "Final" })] })] })] }), [
-                                                    ['title', 'Title'],
-                                                    ['overall_performance', 'Overall performance'],
-                                                    ['strengths', 'Strengths (newline/comma-separated)'],
-                                                    ['recurring_weaknesses', 'Recurring weaknesses (newline/comma-separated)'],
-                                                    ['trend_progress', 'Trend/progress'],
-                                                    ['teacher_recommendations', 'Teacher recommendations (newline/comma-separated)'],
-                                                    ['prompt', 'Prompt'],
-                                                    ['submission_text', 'Full submission text'],
-                                                    ['evaluation_breakdown', 'Evaluation breakdown (text/JSON)'],
-                                                    ['precise_issues', 'Precise issues observed (newline/comma-separated)'],
-                                                    ['suggested_next_action', 'Suggested next action'],
-                                                    ['comparison_to_previous', 'Comparison to previous attempt'],
-                                                    ['teacher_comment', 'Teacher comment'],
-                                                ].map(([key, label]) => (_jsxs("label", { style: { display: 'grid', gap: 4 }, children: [label, _jsx("textarea", { value: editor[key] ?? '', onChange: (event) => setEditor((prev) => ({ ...prev, [key]: event.target.value })), rows: key === 'submission_text' || key === 'evaluation_breakdown' ? 8 : 3, style: { background: '#020617', border: '1px solid #334155', color: '#fff', borderRadius: 8, padding: '8px 10px', fontFamily: key === 'evaluation_breakdown' ? 'monospace' : 'inherit' } })] }, key))), _jsxs("div", { style: { display: 'flex', gap: 8, flexWrap: 'wrap' }, children: [_jsx("button", { type: "button", onClick: () => saveEditorReport('draft'), style: { borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#fff', padding: '6px 8px' }, children: "Save draft" }), _jsx("button", { type: "button", onClick: () => saveEditorReport('final'), style: { borderRadius: 8, border: '1px solid #334155', background: '#14532d', color: '#bbf7d0', padding: '6px 8px' }, children: "Save final" })] }), editorMessage ? _jsx("small", { children: editorMessage }) : null, _jsxs("details", { children: [_jsxs("summary", { children: ["Saved teacher reports (", savedReports.length, ")"] }), _jsxs("div", { style: { display: 'grid', gap: 6, marginTop: 8 }, children: [savedReports.map((item) => (_jsxs("button", { type: "button", onClick: () => {
-                                                                        const payload = item.report_payload ?? {};
-                                                                        setEditor({
-                                                                            id: item.id,
-                                                                            mode: item.report_mode,
-                                                                            status: item.status,
-                                                                            title: String(payload['title'] ?? ''),
-                                                                            overall_performance: String(payload['overall_performance'] ?? ''),
-                                                                            strengths: (payload['strengths'] ?? []).join('\n'),
-                                                                            recurring_weaknesses: (payload['recurring_weaknesses'] ?? []).join('\n'),
-                                                                            trend_progress: String(payload['trend_progress'] ?? ''),
-                                                                            teacher_recommendations: (payload['teacher_recommendations'] ?? []).join('\n'),
-                                                                            prompt: String(payload['prompt'] ?? ''),
-                                                                            submission_text: String(payload['submission_text'] ?? ''),
-                                                                            evaluation_breakdown: String(payload['evaluation_breakdown'] ?? ''),
-                                                                            precise_issues: (payload['precise_issues'] ?? []).join('\n'),
-                                                                            suggested_next_action: String(payload['suggested_next_action'] ?? ''),
-                                                                            comparison_to_previous: String(payload['comparison_to_previous'] ?? ''),
-                                                                            teacher_comment: item.teacher_comment ?? '',
-                                                                        });
-                                                                        if (item.attempt_id)
-                                                                            setSelectedAttemptId(item.attempt_id);
-                                                                        setEditorMessage(`Loaded saved report ${item.id}.`);
-                                                                    }, style: { textAlign: 'left', borderRadius: 8, border: '1px solid #334155', background: '#111827', color: '#f8fafc', padding: '8px 10px' }, children: [_jsxs("div", { children: [_jsx("strong", { children: item.report_mode === 'student' ? 'Student-level' : 'Attempt-level' }), " \u00B7 ", item.status] }), _jsx("div", { style: { fontSize: 12, opacity: 0.85 }, children: item.updated_at })] }, item.id))), savedReports.length === 0 ? _jsx("div", { children: "No saved reports yet." }) : null] })] })] })) : null] })] })] })] }));
+        const summary = teacherSummaryReport?.overall_summary;
+        const reportedSubmissions = summary?.submission_count ?? 0;
+        const submissions = Math.max(reportedSubmissions, summary?.latest_score != null ? 1 : 0);
+        const practiceCompleted = summary?.practice_completed_count ?? summary?.completed_tasks ?? 0;
+        const practiceAssigned = summary?.practice_assigned_count ?? summary?.total_tasks ?? 0;
+        const scoreTrend = summary?.score_trend_delta;
+        const trendLabel = submissions < 2
+            ? 'Baseline only'
+            : scoreTrend == null
+                ? 'No comparable trend'
+                : scoreTrend > 0
+                    ? `Improved by ${scoreTrend}`
+                    : scoreTrend < 0
+                        ? `Down by ${Math.abs(scoreTrend)}`
+                        : 'Holding steady';
+        const reportStage = submissions === 0
+            ? { label: 'No writing yet', tone: 'empty', copy: 'Ask the student to complete their first writing task.' }
+            : submissions === 1
+                ? { label: 'Baseline ready', tone: 'baseline', copy: 'This is a starting point. A trend appears after another comparable submission.' }
+                : { label: 'Progress report ready', tone: 'ready', copy: 'There is enough evidence to discuss progress and agree on next steps.' };
+        const integrityLabel = teacherSummaryReport?.integrity?.review_status === 'review_recommended'
+            ? 'Review the writing process before sharing this score.'
+            : teacherSummaryReport?.integrity?.review_status === 'no_concerns_observed'
+                ? 'No writing-process concerns were observed.'
+                : 'Practice mode: the score supports learning but does not verify authorship.';
+        return (_jsxs("main", { className: "writing-reports", children: [_jsxs("header", { className: "writing-reports__header", children: [_jsxs("div", { children: [_jsx("span", { className: "writing-reports__eyebrow", children: "Writing Hub \u00B7 Reports" }), _jsx("h2", { children: "Turn writing evidence into a clear conversation" }), _jsx("p", { children: "Choose a student, check the learning story, add your professional comment, then print a school-ready report." })] }), _jsxs("div", { className: "writing-reports__period", children: [_jsx("span", { children: "Reporting period" }), _jsx("strong", { children: formatPeriod(month) })] })] }), _jsxs("ol", { className: "writing-reports__steps", "aria-label": "Report workflow", children: [_jsxs("li", { className: selectedStudentId ? 'is-complete' : 'is-current', children: [_jsx("b", { children: "1" }), _jsxs("span", { children: [_jsx("strong", { children: "Choose" }), _jsx("small", { children: "Select a student" })] })] }), _jsxs("li", { className: teacherSummaryReport ? 'is-complete' : selectedStudentId ? 'is-current' : '', children: [_jsx("b", { children: "2" }), _jsxs("span", { children: [_jsx("strong", { children: "Review" }), _jsx("small", { children: "Understand the evidence" })] })] }), _jsxs("li", { className: teacherSummaryReport ? 'is-current' : '', children: [_jsx("b", { children: "3" }), _jsxs("span", { children: [_jsx("strong", { children: "Share" }), _jsx("small", { children: "Comment and print" })] })] })] }), teacherRows && (_jsxs("section", { className: "writing-reports__picker", "aria-labelledby": "writing-student-picker-title", children: [_jsxs("div", { className: "writing-reports__section-heading", children: [_jsxs("div", { children: [_jsx("span", { children: "Step 1" }), _jsx("h3", { id: "writing-student-picker-title", children: "Choose a student" })] }), _jsx("button", { type: "button", className: "writing-reports__button writing-reports__button--quiet", onClick: exportCsv, children: "Export class summary" })] }), _jsxs("label", { className: "writing-reports__search", children: [_jsx("span", { children: "Search by student name or grade" }), _jsx("input", { value: searchQuery, onChange: (event) => setSearchQuery(event.target.value), placeholder: "Start typing a student name\u2026" })] }), _jsxs("div", { className: "writing-reports__student-list", children: [visibleRows.map((row) => (_jsxs("button", { type: "button", className: `writing-reports__student-card${row.student_id === selectedStudentId ? ' is-selected' : ''}`, onClick: () => setSelectedStudentId(row.student_id), "aria-pressed": row.student_id === selectedStudentId, children: [_jsx("span", { className: "writing-reports__avatar", children: getInitials(row.student_name) }), _jsxs("span", { children: [_jsx("strong", { children: row.student_name }), _jsxs("small", { children: ["Grade ", row.grade, " \u00B7 ", formatScore(row.latest_score)] })] }), _jsx("i", { "aria-hidden": "true", children: "\u2192" })] }, row.student_id))), visibleRows.length === 0 && _jsx("div", { className: "writing-reports__empty-inline", children: "No students match that search." })] })] })), teacherReportError && (_jsx("div", { className: "writing-reports__state writing-reports__state--error", role: "alert", children: teacherReportError })), teacherLoading && selectedStudentId && (_jsx("div", { className: "writing-reports__state", "aria-live": "polite", children: "Building the student\u2019s writing story\u2026" })), teacherSummaryReport && !teacherLoading && (_jsxs(_Fragment, { children: [_jsxs("section", { className: "writing-reports__overview", "aria-labelledby": "writing-report-overview-title", children: [_jsxs("div", { className: "writing-reports__student-hero", children: [_jsx("span", { className: "writing-reports__avatar writing-reports__avatar--large", children: getInitials(teacherSummaryReport.student.student_name) }), _jsxs("div", { children: [_jsx("span", { children: "Student writing story" }), _jsx("h3", { id: "writing-report-overview-title", children: teacherSummaryReport.student.student_name }), _jsxs("p", { children: ["Grade ", teacherSummaryReport.student.grade ?? '—', " \u00B7 ", teacherSummaryReport.student.class_name, ' · ', teacherSummaryReport.genre] })] }), _jsx("span", { className: `writing-reports__readiness writing-reports__readiness--${reportStage.tone}`, children: reportStage.label })] }), _jsxs("div", { className: "writing-reports__guidance", children: [_jsx("strong", { children: "What this report means" }), _jsx("span", { children: reportStage.copy })] }), _jsxs("div", { className: "writing-reports__metrics", children: [_jsxs("article", { children: [_jsx("span", { children: "Formative estimate" }), _jsx("strong", { children: formatScore(summary?.latest_score) }), _jsx("small", { children: "Use with teacher judgement" })] }), _jsxs("article", { children: [_jsx("span", { children: "Writing evidence" }), _jsx("strong", { children: submissions }), _jsx("small", { children: submissions === 1 ? 'submission' : 'submissions' })] }), _jsxs("article", { children: [_jsx("span", { children: "Practice plan" }), _jsx("strong", { children: practiceAssigned ? `${practiceCompleted}/${practiceAssigned}` : 'Not assigned' }), _jsx("small", { children: practiceAssigned ? 'tasks completed' : 'No practice tasks yet' })] }), _jsxs("article", { children: [_jsx("span", { children: "Progress trend" }), _jsx("strong", { children: trendLabel }), _jsx("small", { children: submissions < 2 ? 'Needs another submission' : 'Compared with the baseline' })] })] }), _jsxs("div", { className: "writing-reports__learning-grid", children: [_jsxs("article", { className: "writing-reports__learning-card writing-reports__learning-card--strength", children: [_jsx("span", { children: "\u2713" }), _jsxs("div", { children: [_jsx("h4", { children: "What the student is doing well" }), _jsx("ul", { children: (editedReport?.strengths.length ? editedReport.strengths : ['Strengths will appear after a complete writing submission.'])
+                                                                .slice(0, 3)
+                                                                .map((item) => _jsx("li", { children: item }, item)) })] })] }), _jsxs("article", { className: "writing-reports__learning-card writing-reports__learning-card--growth", children: [_jsx("span", { children: "\u2191" }), _jsxs("div", { children: [_jsx("h4", { children: "Best focus for the next lesson" }), _jsx("ul", { children: (editedReport?.priority_weak_areas.length
+                                                                ? editedReport.priority_weak_areas.map(humanizeWritingTag)
+                                                                : ['A focused growth target will appear when enough evidence is available.'])
+                                                                .slice(0, 3)
+                                                                .map((item) => _jsx("li", { children: item }, item)) })] })] })] }), _jsxs("section", { className: "writing-reports__rubric", "aria-labelledby": "writing-rubric-title", children: [_jsxs("div", { children: [_jsx("span", { children: "Assessment snapshot" }), _jsx("h4", { id: "writing-rubric-title", children: "How the formative estimate was built" })] }), _jsx("div", { className: "writing-reports__rubric-grid", children: rubricItems(teacherSummaryReport).map((item) => {
+                                                const score = item.score == null ? 0 : Math.max(0, Math.min(5, item.score));
+                                                return (_jsxs("div", { children: [_jsxs("span", { children: [_jsx("b", { children: item.label }), _jsx("strong", { children: item.score == null ? '—' : `${score}/5` })] }), _jsx("i", { children: _jsx("em", { style: { width: `${(score / 5) * 100}%` } }) })] }, item.label));
+                                            }) })] }), _jsxs("div", { className: "writing-reports__integrity", children: [_jsx("span", { "aria-hidden": "true", children: "\uD83D\uDEE1\uFE0F" }), _jsxs("div", { children: [_jsx("strong", { children: "Writing-process context" }), _jsx("p", { children: integrityLabel })] })] })] }), _jsxs("section", { className: "writing-reports__personalize", "aria-labelledby": "writing-personalize-title", children: [_jsxs("div", { className: "writing-reports__section-heading", children: [_jsxs("div", { children: [_jsx("span", { children: "Step 3" }), _jsx("h3", { id: "writing-personalize-title", children: "Make the report personal" }), _jsx("p", { children: "We prepared the learning points. Adjust only what you want families to see." })] }), _jsx("span", { className: `writing-reports__status writing-reports__status--${draft.status}`, children: draft.status === 'final' ? 'Final report' : 'Draft' })] }), _jsxs("div", { className: "writing-reports__editor-grid", children: [_jsxs("label", { children: [_jsx("span", { children: "Strengths" }), _jsx("small", { children: "One clear point per line" }), _jsx("textarea", { rows: 4, value: draft.strengths, onChange: (event) => setDraft((current) => ({ ...current, strengths: event.target.value })) })] }), _jsxs("label", { children: [_jsx("span", { children: "Next growth targets" }), _jsx("small", { children: "Use language a parent will understand" }), _jsx("textarea", { rows: 4, value: draft.growth_targets, onChange: (event) => setDraft((current) => ({ ...current, growth_targets: event.target.value })) })] }), _jsxs("label", { children: [_jsx("span", { children: "Recommended next steps" }), _jsx("small", { children: "Practical actions for school and home" }), _jsx("textarea", { rows: 4, value: draft.next_steps, onChange: (event) => setDraft((current) => ({ ...current, next_steps: event.target.value })) })] }), _jsxs("label", { children: [_jsx("span", { children: "Your professional comment" }), _jsx("small", { children: "This appears above your name in the printed report" }), _jsx("textarea", { maxLength: 600, rows: 4, value: draft.teacher_comment, onChange: (event) => setDraft((current) => ({ ...current, teacher_comment: event.target.value })), placeholder: "Add a short, encouraging comment\u2026" })] })] }), _jsxs("div", { className: "writing-reports__actions", children: [_jsx("button", { type: "button", className: "writing-reports__button writing-reports__button--primary", onClick: () => openReport('parent'), children: "Preview family report" }), _jsx("button", { type: "button", className: "writing-reports__button", onClick: () => openReport('teacher'), children: "Preview teacher report" }), _jsx("button", { type: "button", className: "writing-reports__button writing-reports__button--quiet", onClick: () => saveReport('draft'), children: "Save draft" }), _jsx("button", { type: "button", className: "writing-reports__button writing-reports__button--final", onClick: () => saveReport('final'), children: "Finalize report" })] }), _jsx("p", { className: "writing-reports__message", "aria-live": "polite", children: editorMessage })] }), _jsxs("details", { className: "writing-reports__evidence", children: [_jsxs("summary", { children: [_jsxs("span", { children: [_jsx("b", { children: "View writing evidence" }), _jsx("small", { children: "Submissions, prompts and rubric scores" })] }), _jsx("i", { "aria-hidden": "true", children: "\u2304" })] }), _jsxs("div", { className: "writing-reports__evidence-body", children: [_jsx(WritingEvidenceList, { attempts: attempts, selectedAttemptId: selectedAttemptId, onSelect: (attemptId) => {
+                                                setSelectedAttemptId(attemptId);
+                                                setShowSubmission(false);
+                                            } }), selectedAttempt && (_jsxs("article", { className: "writing-reports__attempt-detail", children: [_jsx("span", { children: "Selected evidence" }), _jsx("h4", { children: selectedAttempt.prompt_text || 'Writing prompt unavailable' }), _jsx("div", { className: "writing-reports__attempt-rubric", children: Object.entries(selectedAttempt.assessment?.['subscores'] ?? {}).map(([key, value]) => (_jsxs("span", { children: [_jsx("b", { children: humanizeWritingTag(key) }), String(value), "/5"] }, key))) }), !showSubmission ? (_jsx("button", { type: "button", className: "writing-reports__button writing-reports__button--quiet", onClick: () => setShowSubmission(true), children: "Read student submission" })) : (_jsxs("div", { className: "writing-reports__submission", children: [_jsx("strong", { children: "Student submission" }), _jsx("p", { children: selectedAttempt.student_submission || 'No submission text is available.' })] }))] }))] })] }), savedReports.length > 0 && (_jsxs("details", { className: "writing-reports__evidence", children: [_jsxs("summary", { children: [_jsxs("span", { children: [_jsx("b", { children: "Saved reports" }), _jsxs("small", { children: [savedReports.length, " saved version", savedReports.length === 1 ? '' : 's'] })] }), _jsx("i", { "aria-hidden": "true", children: "\u2304" })] }), _jsx("div", { className: "writing-reports__saved-list", children: savedReports.map((saved) => (_jsxs("button", { type: "button", onClick: () => loadSavedReport(saved), children: [_jsxs("span", { children: [_jsx("strong", { children: saved.status === 'final' ? 'Final report' : 'Draft report' }), _jsx("small", { children: formatDate(saved.updated_at) })] }), _jsx("i", { "aria-hidden": "true", children: "Open" })] }, saved.id))) })] }))] }))] }));
     }
     const result = mode === 'student'
         ? studentId
@@ -405,8 +313,8 @@ export const WritingExportCenter = ({ mode, studentId, month = new Date().toISOS
             ? exportAdminCalibrationReport(studentId, month)
             : { ok: false, error: 'studentId is required for admin exports.' };
     if (!result.ok || !result.data) {
-        return _jsxs("div", { style: { padding: 12, color: '#e5e7eb' }, children: ["No export data available: ", result.error ?? 'Unknown error'] });
+        return _jsx("div", { className: "writing-reports__state", children: "No export data is available yet." });
     }
-    return (_jsxs("div", { style: { padding: 12, color: '#e5e7eb', display: 'grid', gap: 10 }, children: [_jsx("h2", { style: { margin: 0 }, children: "Writing Export Center" }), renderExport(result.data)] }));
+    return (_jsxs("div", { className: "writing-export-center", children: [_jsx("h2", { children: "Writing Export Center" }), renderExport(result.data)] }));
 };
 export default WritingExportCenter;
