@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { buildValidatedWritingFixes } from '../src/pages/writing/WritingHub.js';
+import { buildValidatedCinematicRanges, buildValidatedWritingFixes } from '../src/pages/writing/WritingHub.js';
 
 const submission = [
   'Ahmed immediately realize that they have drifted away and took a wrong entrance to he city.',
@@ -70,4 +70,38 @@ test('feedback quality gate keeps punctuation-only transformations', () => {
 
   assert.strictEqual(fixes.length, 1);
   assert.strictEqual(fixes[0]?.kind, 'punctuation');
+});
+
+test('cinematic narrowing uses the correction bound to its evidence, never another raw fix', () => {
+  const text = 'The van was out of sight. we looked around for it but to no avail. Then we took a wrong entrance to he city.';
+  const ranges = buildValidatedCinematicRanges(text, {
+    punctuation_fixes: [
+      {
+        original: 'The van was out of sight. we looked around for it but to no avail.',
+        issue: 'This sentence needs a punctuation fix.',
+        better_version: 'The van was out of sight. We looked around for it but to no avail.',
+      },
+      {
+        original: 'we looked around for it',
+        issue: 'Incorrect neighbouring rewrite.',
+        better_version: 'Ahmed took the wheel of the van.',
+      },
+    ],
+    grammar_fixes: [
+      {
+        original: 'entrance to he city',
+        issue: 'Add the missing letter in the article.',
+        better_version: 'entrance to the city',
+      },
+      { original: 'to', issue: 'Ambiguous raw fix.', better_version: 'the' },
+    ],
+  });
+
+  assert.strictEqual(ranges.length, 2);
+  const punctuation = ranges.find((range) => range.sourceFix?.kind === 'punctuation');
+  const grammar = ranges.find((range) => range.sourceFix?.kind === 'grammar');
+  assert.strictEqual(text.slice(punctuation!.start, punctuation!.end), 'w');
+  assert.strictEqual(punctuation!.sourceFix?.original, 'The van was out of sight. we looked around for it but to no avail.');
+  assert.strictEqual(text.slice(grammar!.start, grammar!.end), 'entrance to he city');
+  assert.strictEqual(grammar!.sourceFix?.betterVersion, 'entrance to the city');
 });

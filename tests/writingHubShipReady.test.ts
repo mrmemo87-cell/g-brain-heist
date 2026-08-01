@@ -50,7 +50,9 @@ test('cinematic feedback has responsive, accessible, reduced-motion styling', ()
   assert.match(source, /Watch it transform/);
   assert.match(source, /Start my revision/);
   assert.match(source, /spotlightMode/);
-  assert.match(source, /completeRanges = \[\.\.\.fallbackRanges, \.\.\.trustedBase\]/);
+  assert.match(source, /const completeRanges = \[\.\.\.fallbackRanges\]/);
+  assert.match(source, /trustedBase\.forEach/);
+  assert.match(source, /if \(!overlapsValidatedIssue\) completeRanges\.push\(range\)/);
   assert.match(source, /ai\.natural_phrase_upgrades/);
   assert.match(source, /strong \? '#14532d'/);
   assert.match(source, /text\.slice\(verifiedStart, verifiedEnd\) !== exactText/);
