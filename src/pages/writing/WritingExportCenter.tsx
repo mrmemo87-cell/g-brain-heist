@@ -32,6 +32,10 @@ interface TeacherExportRow {
   grade: number;
   completion_rate: number;
   latest_score: number | null;
+  class_id?: string | null;
+  class_name?: string;
+  submission_count?: number;
+  all_time_submission_count?: number;
 }
 
 interface TeacherReportDraft {
@@ -44,6 +48,7 @@ interface TeacherReportDraft {
 }
 
 type InputChangeEvent = { target: { value: string } };
+type SelectChangeEvent = { target: { value: string } };
 
 const EMPTY_DRAFT: TeacherReportDraft = {
   status: 'draft',
@@ -152,6 +157,8 @@ export const WritingExportCenter = ({
   errorMessage,
 }: WritingExportCenterProps): React.ReactElement => {
   const [teacherRows, setTeacherRows] = useState<TeacherExportRow[] | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState(month);
+  const [selectedClassId, setSelectedClassId] = useState('all');
   const [selectedStudentId, setSelectedStudentId] = useState('');
   const [teacherSummaryReport, setTeacherSummaryReport] = useState<TeacherWritingReport | null>(null);
   const [attempts, setAttempts] = useState<TeacherWritingAttemptRecord[]>([]);
@@ -164,13 +171,24 @@ export const WritingExportCenter = ({
   const [editorMessage, setEditorMessage] = useState('');
   const [showSubmission, setShowSubmission] = useState(false);
 
+  const classOptions = useMemo(() => {
+    const classes = new Map<string, string>();
+    for (const row of teacherRows ?? []) {
+      if (!row.class_id) continue;
+      classes.set(row.class_id, row.class_name?.trim() || `Grade ${row.grade}`);
+    }
+    return [...classes.entries()]
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [teacherRows]);
+
   const visibleRows = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return teacherRows ?? [];
-    return (teacherRows ?? []).filter((row) =>
-      `${row.student_name} ${row.grade}`.toLowerCase().includes(query)
-    );
-  }, [teacherRows, searchQuery]);
+    return (teacherRows ?? []).filter((row) => {
+      if (selectedClassId !== 'all' && row.class_id !== selectedClassId) return false;
+      return !query || `${row.student_name} ${row.grade} ${row.class_name ?? ''}`.toLowerCase().includes(query);
+    });
+  }, [teacherRows, searchQuery, selectedClassId]);
 
   const selectedAttempt = useMemo(
     () => attempts.find((attempt) => attempt.attempt_id === selectedAttemptId) ?? null,
@@ -204,18 +222,21 @@ export const WritingExportCenter = ({
       const escaped = value.replace(/"/g, '""');
       return /[",\n]/.test(escaped) ? `"${escaped}"` : escaped;
     };
-    const header = 'student_name,student_id,grade,practice_completion,latest_formative_score';
-    const lines = teacherRows.map((row) => [
+    const header = 'student_name,student_id,class,grade,reporting_month,month_submissions,all_time_submissions,latest_formative_score';
+    const lines = visibleRows.map((row) => [
       escapeField(row.student_name),
       escapeField(row.student_id),
+      escapeField(row.class_name ?? ''),
       escapeField(String(row.grade)),
-      escapeField(`${Math.round(row.completion_rate * 100)}%`),
+      escapeField(selectedMonth),
+      escapeField(String(row.submission_count ?? 0)),
+      escapeField(String(row.all_time_submission_count ?? 0)),
       escapeField(row.latest_score == null ? '' : String(row.latest_score)),
     ].join(','));
     const blob = new Blob([[header, ...lines].join('\n')], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `writing-class-summary-${month}.csv`;
+    link.download = `writing-evidence-${selectedMonth}.csv`;
     link.click();
     URL.revokeObjectURL(link.href);
   };
@@ -237,7 +258,7 @@ export const WritingExportCenter = ({
       report_id: draft.id,
       student_id: selectedStudentId,
       mode: 'student',
-      month,
+      month: selectedMonth,
       genre: editedReport.genre as SupportedGenre,
       status,
       teacher_comment: draft.teacher_comment,
@@ -284,8 +305,8 @@ export const WritingExportCenter = ({
     setTeacherReportError('');
 
     const request = studentId
-      ? getTeacherWritingReport({ student_id: studentId, month, include_snippet: false })
-      : getTeacherExportRowsScoped(month);
+      ? getTeacherWritingReport({ student_id: studentId, month: selectedMonth, include_snippet: false })
+      : getTeacherExportRowsScoped(selectedMonth);
 
     void request
       .then((result) => {
@@ -301,7 +322,7 @@ export const WritingExportCenter = ({
         } else {
           const rows = result.data as TeacherExportRow[];
           setTeacherRows(rows);
-          setSelectedStudentId((current) => current || rows[0]?.student_id || '');
+          setSelectedStudentId((current) => rows.some((row) => row.student_id === current) ? current : rows[0]?.student_id || '');
         }
       })
       .catch(() => {
@@ -314,7 +335,7 @@ export const WritingExportCenter = ({
     return () => {
       cancelled = true;
     };
-  }, [mode, studentId, month]);
+  }, [mode, selectedMonth, studentId]);
 
   useEffect(() => {
     if (mode !== 'teacher' || !selectedStudentId) return;
@@ -331,7 +352,7 @@ export const WritingExportCenter = ({
     setDraft(EMPTY_DRAFT);
 
     void Promise.all([
-      getTeacherWritingReport({ student_id: selectedStudentId, month, include_snippet: true }),
+      getTeacherWritingReport({ student_id: selectedStudentId, month: selectedMonth, include_snippet: true }),
       getTeacherAttemptListScoped({ student_id: selectedStudentId, limit: 30 }),
       getTeacherSavedReportsScoped({ student_id: selectedStudentId }),
     ]).then(([summaryResult, attemptsResult, savedResult]) => {
@@ -342,7 +363,21 @@ export const WritingExportCenter = ({
         return;
       }
 
-      const report = summaryResult.data;
+      const selectedRow = teacherRows?.find((row) => row.student_id === selectedStudentId);
+      const report: TeacherWritingReport = {
+        ...summaryResult.data,
+        period: selectedMonth,
+        student: {
+          ...summaryResult.data.student,
+          class_id: selectedRow?.class_id ?? summaryResult.data.student.class_id,
+          class_name: selectedRow?.class_name ?? summaryResult.data.student.class_name,
+        },
+        overall_summary: {
+          ...summaryResult.data.overall_summary,
+          submission_count: selectedRow?.submission_count ?? summaryResult.data.overall_summary.submission_count,
+          all_time_submission_count: selectedRow?.all_time_submission_count ?? summaryResult.data.overall_summary.all_time_submission_count,
+        },
+      };
       setTeacherSummaryReport(report);
       setDraft({
         status: 'draft',
@@ -352,7 +387,9 @@ export const WritingExportCenter = ({
         teacher_comment: '',
       });
 
-      const attemptRows = attemptsResult.ok && attemptsResult.data ? attemptsResult.data : [];
+      const attemptRows = attemptsResult.ok && attemptsResult.data
+        ? attemptsResult.data.filter((attempt) => attempt.created_at.slice(0, 7) === selectedMonth)
+        : [];
       setAttempts(attemptRows);
       setSelectedAttemptId(attemptRows[0]?.attempt_id ?? '');
       setSavedReports(savedResult.ok && savedResult.data ? savedResult.data : []);
@@ -363,7 +400,15 @@ export const WritingExportCenter = ({
     return () => {
       cancelled = true;
     };
-  }, [mode, selectedStudentId, month]);
+  }, [mode, selectedMonth, selectedStudentId, teacherRows]);
+
+  useEffect(() => {
+    if (!teacherRows || selectedClassId === 'all') return;
+    const classRows = teacherRows.filter((row) => row.class_id === selectedClassId);
+    if (!classRows.some((row) => row.student_id === selectedStudentId)) {
+      setSelectedStudentId(classRows[0]?.student_id ?? '');
+    }
+  }, [selectedClassId, selectedStudentId, teacherRows]);
 
   if (isLoading) {
     return <div className="writing-reports__state">Loading Writing Reports…</div>;
@@ -375,11 +420,12 @@ export const WritingExportCenter = ({
   if (mode === 'teacher') {
     const summary = teacherSummaryReport?.overall_summary;
     const reportedSubmissions = summary?.submission_count ?? 0;
-    const submissions = Math.max(reportedSubmissions, summary?.latest_score != null ? 1 : 0);
-    const practiceCompleted = summary?.practice_completed_count ?? summary?.completed_tasks ?? 0;
-    const practiceAssigned = summary?.practice_assigned_count ?? summary?.total_tasks ?? 0;
+    const submissions = reportedSubmissions;
+    const allTimeSubmissions = summary?.all_time_submission_count
+      ?? teacherRows?.find((row) => row.student_id === selectedStudentId)?.all_time_submission_count
+      ?? submissions;
     const scoreTrend = summary?.score_trend_delta;
-    const trendLabel = submissions < 2
+    const trendLabel = allTimeSubmissions < 2
       ? 'Baseline only'
       : scoreTrend == null
         ? 'No comparable trend'
@@ -397,7 +443,7 @@ export const WritingExportCenter = ({
       ? 'Review the writing process before sharing this score.'
       : teacherSummaryReport?.integrity?.review_status === 'no_concerns_observed'
         ? 'No writing-process concerns were observed.'
-        : 'Practice mode: the score supports learning but does not verify authorship.';
+        : 'Automated scores are formative evidence. Teacher judgement remains final.';
 
     return (
       <main className="writing-reports">
@@ -409,9 +455,35 @@ export const WritingExportCenter = ({
           </div>
           <div className="writing-reports__period">
             <span>Reporting period</span>
-            <strong>{formatPeriod(month)}</strong>
+            <strong>{formatPeriod(selectedMonth)}</strong>
           </div>
         </header>
+
+        {teacherRows ? (
+          <section className="writing-reports__scope" aria-label="Report scope">
+            <div>
+              <span>Prepare the evidence set</span>
+              <h3>Choose a month, class, and student</h3>
+              <p>Every preview, saved report, and CSV below uses this reporting scope.</p>
+            </div>
+            <label>
+              <span>Reporting month</span>
+              <input
+                type="month"
+                value={selectedMonth}
+                max={new Date().toISOString().slice(0, 7)}
+                onChange={(event: InputChangeEvent) => setSelectedMonth(event.target.value || month)}
+              />
+            </label>
+            <label>
+              <span>Class</span>
+              <select value={selectedClassId} onChange={(event: SelectChangeEvent) => setSelectedClassId(event.target.value)}>
+                <option value="all">All English classes</option>
+                {classOptions.map((classOption) => <option key={classOption.id} value={classOption.id}>{classOption.name}</option>)}
+              </select>
+            </label>
+          </section>
+        ) : null}
 
         <ol className="writing-reports__steps" aria-label="Report workflow">
           <li className={selectedStudentId ? 'is-complete' : 'is-current'}><b>1</b><span><strong>Choose</strong><small>Select a student</small></span></li>
@@ -423,15 +495,15 @@ export const WritingExportCenter = ({
           <section className="writing-reports__picker" aria-labelledby="writing-student-picker-title">
             <div className="writing-reports__section-heading">
               <div>
-                <span>Step 1</span>
-                <h3 id="writing-student-picker-title">Choose a student</h3>
+                <span>Step 1 · {formatPeriod(selectedMonth)}</span>
+                <h3 id="writing-student-picker-title">Choose a student{selectedClassId === 'all' ? '' : ` from ${classOptions.find((item) => item.id === selectedClassId)?.name ?? 'this class'}`}</h3>
               </div>
               <button type="button" className="writing-reports__button writing-reports__button--quiet" onClick={exportCsv}>
                 Export class summary
               </button>
             </div>
             <label className="writing-reports__search">
-              <span>Search by student name or grade</span>
+              <span>Search by student name, class, or grade</span>
               <input
                 value={searchQuery}
                 onChange={(event: InputChangeEvent) => setSearchQuery(event.target.value)}
@@ -450,7 +522,8 @@ export const WritingExportCenter = ({
                   <span className="writing-reports__avatar">{getInitials(row.student_name)}</span>
                   <span>
                     <strong>{row.student_name}</strong>
-                    <small>Grade {row.grade} · {formatScore(row.latest_score)}</small>
+                    <small>{row.class_name || `Grade ${row.grade}`} · Grade {row.grade}</small>
+                    <small>{row.submission_count ?? 0} in {formatPeriod(selectedMonth)} · {row.all_time_submission_count ?? 0} all time · {formatScore(row.latest_score)}</small>
                   </span>
                   <i aria-hidden="true">→</i>
                 </button>
@@ -500,19 +573,19 @@ export const WritingExportCenter = ({
                   <small>Use with teacher judgement</small>
                 </article>
                 <article>
-                  <span>Writing evidence</span>
+                  <span>{formatPeriod(selectedMonth)} evidence</span>
                   <strong>{submissions}</strong>
                   <small>{submissions === 1 ? 'submission' : 'submissions'}</small>
                 </article>
                 <article>
-                  <span>Practice plan</span>
-                  <strong>{practiceAssigned ? `${practiceCompleted}/${practiceAssigned}` : 'Not assigned'}</strong>
-                  <small>{practiceAssigned ? 'tasks completed' : 'No practice tasks yet'}</small>
+                  <span>All-time evidence</span>
+                  <strong>{allTimeSubmissions}</strong>
+                  <small>saved writing submissions</small>
                 </article>
                 <article>
                   <span>Progress trend</span>
                   <strong>{trendLabel}</strong>
-                  <small>{submissions < 2 ? 'Needs another submission' : 'Compared with the baseline'}</small>
+                  <small>{allTimeSubmissions < 2 ? 'Needs another submission' : 'Compared with the baseline'}</small>
                 </article>
               </div>
 

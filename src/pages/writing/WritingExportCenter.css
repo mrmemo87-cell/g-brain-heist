@@ -13,8 +13,67 @@
 
 .writing-reports button,
 .writing-reports input,
+.writing-reports select,
 .writing-reports textarea {
   font: inherit;
+}
+
+.writing-reports__scope {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(180px, 0.45fr) minmax(210px, 0.55fr);
+  align-items: end;
+  gap: 0.9rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #d9e3f0;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(31, 49, 80, 0.06);
+}
+
+.writing-reports__scope h3,
+.writing-reports__scope p {
+  margin: 0;
+}
+
+.writing-reports__scope > div > span {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: #315dd7;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.writing-reports__scope h3 {
+  color: #172844;
+  font-size: 1rem;
+}
+
+.writing-reports__scope p {
+  margin-top: 0.25rem;
+  color: #6c7890;
+  font-size: 0.75rem;
+}
+
+.writing-reports__scope label {
+  display: grid;
+  gap: 0.35rem;
+  color: #52617a;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.writing-reports__scope input,
+.writing-reports__scope select {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 0.75rem;
+  border: 1px solid #cbd7e7;
+  border-radius: 11px;
+  color: #172844;
+  background: #f9fbfe;
 }
 
 .writing-reports__header {
@@ -843,6 +902,9 @@
 }
 
 @media (max-width: 760px) {
+  .writing-reports__scope {
+    grid-template-columns: 1fr;
+  }
   .writing-reports {
     padding: 0.55rem;
   }

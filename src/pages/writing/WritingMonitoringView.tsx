@@ -5,14 +5,12 @@ import {
   getTeacherWritingReport,
   getWritingMonitoringOverview,
   saveTeacherReportScoped,
-  setTeacherWritingIntegrityMode,
   type TeacherWritingAttemptRecord,
   type TeacherWritingReport,
   type WritingMonitoringOverview,
 } from '../../lib/brains_heist/writingIntegrationService.js';
 import { parseAdminDrilldownFilters } from '../../lib/brains_heist/writingAdminFilters.js';
 import { openProfessionalWritingReport } from '../../lib/brains_heist/writingReportDocument.js';
-import type { WritingIntegrityMode } from '../../lib/brains_heist/writingIntegrity.js';
 
 interface WritingMonitoringViewProps {
   month?: string;
@@ -29,7 +27,6 @@ type CollapseKey = 'overview' | 'classes' | 'students' | 'genres' | 'reader';
 type SupportedMonitorGenre = 'email' | 'article' | 'review' | 'story' | 'essay' | 'report' | 'paragraph';
 type FlipDirection = 'forward' | 'backward';
 type InputChangeEvent = { target: { value: string } };
-type SelectChangeEvent = { target: { value: string } };
 
 interface ClassGroup {
   key: string;
@@ -37,8 +34,8 @@ interface ClassGroup {
   gradeLabel: string;
   rows: MonitoringRow[];
   submissions: number;
+  allTimeSubmissions: number;
   attentionCount: number;
-  averageScore: number | null;
 }
 
 interface WritingCorrection {
@@ -126,6 +123,9 @@ const formatMonitoringPeriod = (month: string): string => {
 const getSubmissionCount = (row: MonitoringRow): number =>
   row.submission_count ?? row.attempts_count ?? 0;
 
+const getAllTimeSubmissionCount = (row: MonitoringRow): number =>
+  row.all_time_submission_count ?? row.attempts_count ?? getSubmissionCount(row);
+
 const getClassKey = (row: MonitoringRow): string => {
   if (row.class_id?.trim()) return `id:${row.class_id.trim()}`;
   if (row.class_name?.trim()) return `name:${row.class_name.trim().toLowerCase()}`;
@@ -133,7 +133,7 @@ const getClassKey = (row: MonitoringRow): string => {
 };
 
 const getClassName = (row: MonitoringRow): string =>
-  row.class_name?.trim() || `Grade ${row.current_grade} · Class information unavailable`;
+  row.class_name?.trim() || `Grade ${row.current_grade}`;
 
 const getStatus = (row: MonitoringRow): { label: string; tone: 'attention' | 'positive' | 'neutral' } => {
   if (row.status === 'needs_review' || row.status === 'needs_support' || row.stalled) {
@@ -143,16 +143,6 @@ const getStatus = (row: MonitoringRow): { label: string; tone: 'attention' | 'po
   if (row.status === 'plan_ready') return { label: 'Plan ready', tone: 'neutral' };
   if (row.status === 'not_started') return { label: 'Not started', tone: 'neutral' };
   return { label: 'On track', tone: 'positive' };
-};
-
-const getTrendLabel = (row: MonitoringRow): string => {
-  if (getSubmissionCount(row) < 2) return 'Baseline';
-  const deltas = Object.values(row.subscale_trend);
-  const positives = deltas.filter((value) => value > 0).length;
-  const negatives = deltas.filter((value) => value < 0).length;
-  if (positives >= 2 && positives > negatives) return 'Improving';
-  if (negatives >= 2 && negatives > positives) return 'Declining';
-  return 'Stable';
 };
 
 const extractAttemptScore = (attempt: TeacherWritingAttemptRecord): number | null => {
@@ -284,7 +274,6 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [feedbackDraft, setFeedbackDraft] = useState('');
   const [feedbackStatus, setFeedbackStatus] = useState('');
-  const [modeUpdateStatus, setModeUpdateStatus] = useState('');
   const studentRequestRef = useRef(0);
 
   const filters = parseAdminDrilldownFilters(filterQuery);
@@ -310,28 +299,46 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
       if (current) current.push(row);
       else groups.set(key, [row]);
     }
-    return [...groups.entries()]
+    const rowGroups = [...groups.entries()]
       .map(([key, rows]) => {
-        const scores = rows
-          .map((row) => row.latest_score)
-          .filter((score): score is number => typeof score === 'number' && Number.isFinite(score));
         const grades = [...new Set(rows.map((row) => row.current_grade))].sort((a, b) => a - b);
+        const rosterClass = overview?.class_rows?.find((item) =>
+          (rows[0]?.class_id && item.class_id === rows[0].class_id)
+          || item.class_name === rows[0]?.class_name
+        );
         return {
           key,
-          name: getClassName(rows[0]),
-          gradeLabel: grades.map((grade) => `Grade ${grade}`).join(' · '),
+          name: rosterClass?.class_name || getClassName(rows[0]),
+          gradeLabel: grades.length > 0
+            ? grades.map((grade) => `Grade ${grade}`).join(' · ')
+            : rosterClass?.current_grade != null ? `Grade ${rosterClass.current_grade}` : 'Grade not recorded',
           rows: [...rows].sort((a, b) =>
             toDisplayLabel(a.student_name, a.student_id).localeCompare(toDisplayLabel(b.student_name, b.student_id))
           ),
-          submissions: rows.reduce((sum, row) => sum + getSubmissionCount(row), 0),
+          submissions: rosterClass?.submission_count ?? rows.reduce((sum, row) => sum + getSubmissionCount(row), 0),
+          allTimeSubmissions: rosterClass?.all_time_submission_count
+            ?? rows.reduce((sum, row) => sum + getAllTimeSubmissionCount(row), 0),
           attentionCount: rows.filter((row) => getStatus(row).tone === 'attention').length,
-          averageScore: scores.length > 0
-            ? Math.round((scores.reduce((sum, score) => sum + score, 0) / scores.length) * 10) / 10
-            : null,
         };
-      })
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [filteredRows]);
+      });
+
+    if (!filters.status && !filters.weakness_tag) {
+      for (const rosterClass of overview?.class_rows ?? []) {
+        if (filters.grade && rosterClass.current_grade !== filters.grade) continue;
+        if (rowGroups.some((group) => group.key === `id:${rosterClass.class_id}`)) continue;
+        rowGroups.push({
+          key: `id:${rosterClass.class_id}`,
+          name: rosterClass.class_name,
+          gradeLabel: rosterClass.current_grade == null ? 'Grade not recorded' : `Grade ${rosterClass.current_grade}`,
+          rows: [],
+          submissions: rosterClass.submission_count,
+          allTimeSubmissions: rosterClass.all_time_submission_count,
+          attentionCount: 0,
+        });
+      }
+    }
+    return rowGroups.sort((a, b) => a.name.localeCompare(b.name));
+  }, [filteredRows, filters.grade, filters.status, filters.weakness_tag, overview?.class_rows]);
 
   const selectedClass = classGroups.find((group) => group.key === selectedClassKey) ?? null;
   const visibleStudents = useMemo(() => {
@@ -369,6 +376,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
   const activeAttempt = genreAttempts[attemptIndex] ?? null;
 
   const totalSubmissions = filteredRows.reduce((sum, row) => sum + getSubmissionCount(row), 0);
+  const allTimeSubmissions = filteredRows.reduce((sum, row) => sum + getAllTimeSubmissionCount(row), 0);
   const attentionCount = filteredRows.filter((row) => getStatus(row).tone === 'attention').length;
   const improvingCount = filteredRows.filter((row) => row.improving).length;
 
@@ -581,21 +589,6 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
     }
   };
 
-  const updateClassIntegrityMode = async (mode: WritingIntegrityMode): Promise<void> => {
-    if (!selectedRow?.class_id) {
-      setModeUpdateStatus('Class information is unavailable for this student.');
-      return;
-    }
-    setModeUpdateStatus('Updating class writing mode…');
-    const result = await setTeacherWritingIntegrityMode({ class_id: selectedRow.class_id, mode });
-    setModeUpdateStatus(
-      result.ok
-        ? `${result.data?.class_name ?? selectedRow.class_name ?? 'Class'} is now in ${mode} mode.`
-        : result.error ?? 'Unable to update the class writing mode.'
-    );
-    if (result.ok) void refreshOverview();
-  };
-
   if (isLoading) {
     return (
       <div className="writing-monitor writing-monitor--loading" aria-label="Loading writing monitor">
@@ -613,8 +606,8 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
   }
   if (loadError && !overview) return <div className="writing-monitor__state is-error">{loadError}</div>;
   if (!overview) return <div className="writing-monitor__state">No writing monitoring data available yet.</div>;
-  if (overview.student_rows.length === 0) {
-    return <div className="writing-monitor__state">No students with writing records yet.</div>;
+  if (overview.student_rows.length === 0 && (overview.class_rows?.length ?? 0) === 0) {
+    return <div className="writing-monitor__state">No English classes are assigned to this teacher yet.</div>;
   }
 
   const readerWeaknesses = activeAttempt ? extractAttemptWeaknesses(activeAttempt) : [];
@@ -671,9 +664,10 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
         />
         {!collapsed.has('overview') ? (
           <div className="writing-monitor__metrics">
-            <article><span>Total students</span><strong>{filteredRows.length}</strong><small>With writing records</small></article>
+            <article><span>Total students</span><strong>{filteredRows.length}</strong><small>From your English rosters</small></article>
             <article><span>Classes</span><strong>{classGroups.length}</strong><small>From your live roster</small></article>
             <article><span>Submissions</span><strong>{totalSubmissions}</strong><small>Across all genres · {monitoringPeriod}</small></article>
+            <article><span>All-time submissions</span><strong>{allTimeSubmissions}</strong><small>All students · all saved writing</small></article>
             <article className="is-attention"><span>Need support</span><strong>{attentionCount}</strong><small>Review these students first</small></article>
             <article className="is-positive"><span>Improving</span><strong>{improvingCount}</strong><small>Recent progress detected</small></article>
           </div>
@@ -712,7 +706,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
                   <span className="writing-monitor__mini-metrics">
                     <span><strong>{group.rows.length}</strong><small>Students</small></span>
                     <span><strong>{group.submissions}</strong><small>Submissions · {monitoringPeriod}</small></span>
-                    <span><strong>{formatScoreLabel(group.averageScore)}</strong><small>Average</small></span>
+                    <span><strong>{group.allTimeSubmissions}</strong><small>All-time submissions</small></span>
                   </span>
                   <span className={group.attentionCount > 0 ? 'writing-monitor__attention' : 'writing-monitor__on-track'}>
                     {group.attentionCount > 0 ? `${group.attentionCount} need support` : 'No priority alerts'}
@@ -770,11 +764,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
                       <span className="writing-monitor__student-metrics">
                         <span><small>Latest score</small><strong>{formatScoreLabel(row.latest_score)}</strong></span>
                         <span><small>Submissions · {monitoringPeriod}</small><strong>{getSubmissionCount(row)}</strong></span>
-                        <span><small>Trend</small><strong>{getTrendLabel(row)}</strong></span>
-                        <span>
-                          <small>Practice</small>
-                          <strong>{row.practice_completed_count ?? 0}/{row.practice_assigned_count ?? 0}</strong>
-                        </span>
+                        <span><small>All-time submissions</small><strong>{getAllTimeSubmissionCount(row)}</strong></span>
                       </span>
                       <span className="writing-monitor__student-focus">
                         <strong>Current focus</strong>
@@ -827,24 +817,10 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
                   <small>All-time saved writing evidence</small>
                 </div>
                 <div>
-                  <span>Practice progress</span>
-                  <strong>{selectedRow.practice_completed_count ?? 0}/{selectedRow.practice_assigned_count ?? 0}</strong>
-                  <small>Personalized activities</small>
+                  <span>Reporting period</span>
+                  <strong>{getSubmissionCount(selectedRow)}</strong>
+                  <small>Submissions in {monitoringPeriod}</small>
                 </div>
-                <label>
-                  <span>Class writing mode</span>
-                  <select
-                    value={selectedRow.integrity_mode ?? 'practice'}
-                    onChange={(event: SelectChangeEvent) =>
-                      void updateClassIntegrityMode(event.target.value as WritingIntegrityMode)}
-                    disabled={!selectedRow.class_id}
-                  >
-                    <option value="practice">Practice · support allowed</option>
-                    <option value="independent">Independent · paste blocked</option>
-                    <option value="supervised">Supervised assessment</option>
-                  </select>
-                  <small>{modeUpdateStatus || 'Applies to this class.'}</small>
-                </label>
               </div>
 
               {attemptsLoading ? (

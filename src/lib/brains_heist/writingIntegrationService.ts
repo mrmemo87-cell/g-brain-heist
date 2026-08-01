@@ -1362,6 +1362,15 @@ interface MonthlyReviewFlowOutputShape {
 }
 
 export interface WritingMonitoringOverview {
+  period?: string;
+  class_rows?: Array<{
+    class_id: string;
+    class_name: string;
+    current_grade: number | null;
+    student_count: number;
+    submission_count: number;
+    all_time_submission_count: number;
+  }>;
   student_rows: Array<{
     student_name: string;
     student_id: string;
@@ -1389,6 +1398,8 @@ export interface WritingMonitoringOverview {
     class_id?: string | null;
     class_name?: string;
     submission_count?: number;
+    all_time_submission_count?: number;
+    focus_area_counts?: Array<{ tag: string; count: number }>;
     baseline_submission_count?: number;
     practice_assigned_count?: number;
     practice_completed_count?: number;
@@ -2023,7 +2034,17 @@ export const exportTeacherWeeklyClassSummary = (
 
 export const getTeacherExportRowsScoped = async (
   month = new Date().toISOString().slice(0, 7)
-): Promise<ServiceResponse<Array<{ student_id: string; student_name: string; grade: number; completion_rate: number; latest_score: number | null }>>> => {
+): Promise<ServiceResponse<Array<{
+  student_id: string;
+  student_name: string;
+  grade: number;
+  class_id?: string | null;
+  class_name?: string;
+  completion_rate: number;
+  latest_score: number | null;
+  submission_count?: number;
+  all_time_submission_count?: number;
+}>>> => {
   if (typeof process !== 'undefined' && process.env?.['NODE_ENV'] === 'test') {
     const overview = getWritingMonitoringOverview(month);
     if (!overview.ok || !overview.data) return badRequest(overview.error ?? 'No export rows available.');
@@ -2032,8 +2053,12 @@ export const getTeacherExportRowsScoped = async (
         student_id: row.student_id,
         student_name: row.student_name,
         grade: row.current_grade,
+        class_id: row.class_id,
+        class_name: row.class_name,
         completion_rate: row.completion_rate,
         latest_score: row.latest_score,
+        submission_count: row.submission_count ?? row.attempts_count,
+        all_time_submission_count: row.all_time_submission_count ?? row.attempts_count,
       }))
     );
   }
@@ -2043,7 +2068,17 @@ export const getTeacherExportRowsScoped = async (
       p_month: month,
     });
     if (error || !data) return badRequest(error?.message ?? 'Unable to load scoped teacher export rows.');
-    return ok(data as Array<{ student_id: string; student_name: string; grade: number; completion_rate: number; latest_score: number | null }>);
+    return ok(data as Array<{
+      student_id: string;
+      student_name: string;
+      grade: number;
+      class_id?: string | null;
+      class_name?: string;
+      completion_rate: number;
+      latest_score: number | null;
+      submission_count?: number;
+      all_time_submission_count?: number;
+    }>);
   } catch (error) {
     return badRequest(error instanceof Error ? error.message : 'Unable to load scoped teacher export rows.');
   }
@@ -3015,6 +3050,7 @@ export interface TeacherWritingReport {
     completed_tasks: number;
     total_tasks: number;
     submission_count?: number;
+    all_time_submission_count?: number;
     baseline_submission_count?: number;
     practice_assigned_count?: number;
     practice_completed_count?: number;

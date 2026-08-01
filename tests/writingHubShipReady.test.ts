@@ -84,6 +84,32 @@ test('teacher monitoring rows are enriched from the authorized live class roster
   assert.doesNotMatch(sql, /coalesce\([^)]*'Unassigned'/);
 });
 
+test('teacher writing intelligence uses one secure English-roster contract across monitor, analytics, and reports', () => {
+  const sql = readProjectFile('supabase/migrations/20260801133000_writing_teacher_roster_intelligence.sql');
+  const monitoring = readProjectFile('src/pages/writing/WritingMonitoringView.tsx');
+  const analytics = readProjectFile('src/pages/writing/WritingAnalyticsDashboard.tsx');
+  const reports = readProjectFile('src/pages/writing/WritingExportCenter.tsx');
+  const monitoringCss = readProjectFile('src/pages/writing/WritingMonitoringView.css');
+
+  assert.match(sql, /bh_writing_authorized_english_classes/);
+  assert.match(sql, /lower\(trim\(coalesce\(cta\.subject, c\.subject, ''\)\)\) like 'english%'/);
+  assert.match(sql, /'class_rows'/);
+  assert.match(sql, /'all_time_submission_count'/);
+  assert.match(sql, /'focus_area_counts'/);
+  assert.match(sql, /set search_path = ''/);
+  assert.doesNotMatch(sql, /a\.attempt_key/);
+  assert.doesNotMatch(sql, /Class information unavailable/);
+
+  assert.match(monitoring, /All-time submissions/);
+  assert.doesNotMatch(monitoring, /Class writing mode/);
+  assert.match(analytics, /Class and student focus analysis/);
+  assert.match(analytics, /getTeachingAction/);
+  assert.match(reports, /Choose a month, class, and student/);
+  assert.match(reports, /type="month"/);
+  assert.match(monitoringCss, /max-height: none/);
+  assert.match(monitoringCss, /overflow: visible/);
+});
+
 test('teacher monitor and analytics use the same premium workspace language and roster context', () => {
   const monitoring = readProjectFile('src/pages/writing/WritingMonitoringView.tsx');
   const analytics = readProjectFile('src/pages/writing/WritingAnalyticsDashboard.tsx');
@@ -92,7 +118,7 @@ test('teacher monitor and analytics use the same premium workspace language and 
 
   assert.match(monitoring, /writing-teacher-surface/);
   assert.match(monitoring, /Class and grade come from the live school roster/);
-  assert.match(monitoring, /Class information unavailable/);
+  assert.doesNotMatch(monitoring, /Class information unavailable/);
   assert.doesNotMatch(monitoring, /Class not linked/);
   assert.doesNotMatch(monitoring, /\?\? 'Unassigned'/);
   assert.match(analytics, /writing-teacher-surface/);
@@ -175,13 +201,13 @@ test('premium Writing Hub keeps authorship context, score meaning, and teacher r
   assert.match(hub, /getStudentWritingIntegrityMode/);
   assert.match(hub, /recordWritingPaste/);
   assert.match(monitoring, /Writing Command Center/);
-  assert.match(monitoring, /practice_completed_count/);
+  assert.doesNotMatch(monitoring, /Class writing mode/);
   assert.match(monitoring, /Across all genres · \{monitoringPeriod\}/);
   assert.match(monitoring, /All-time saved writing evidence/);
   assert.match(monitoring, /openProfessionalWritingReport/);
   assert.match(exports, /Preview family report/);
   assert.doesNotMatch(exports, /text\/plain/);
-  assert.match(exports, /Practice mode: the score supports learning but does not verify authorship/);
+  assert.match(exports, /Automated scores are formative evidence\. Teacher judgement remains final/);
   assert.match(report, /Confidential student learning record/);
   assert.match(report, /@page\{size:A4 portrait;margin:9mm\}/);
   assert.match(sql, /'submission_count'/);
