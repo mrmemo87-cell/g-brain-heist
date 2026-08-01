@@ -39,6 +39,17 @@ test('writing prompt rotation migration deduplicates identities and remembers re
   assert.match(sql, /pool_size/);
 });
 
+test('writing weakness occurrence migration counts repeated tags within authorized student scope', () => {
+  const sql = readProjectFile('supabase/migrations/20260801120000_writing_weakness_occurrence_counts.sql');
+  assert.match(sql, /rpc_bh_writing_teacher_monitoring/);
+  assert.match(sql, /feedback_weakness_tag_counts/);
+  assert.match(sql, /sum\(occurrence_count\)/);
+  assert.match(sql, /student_weakness_counts/);
+  assert.match(sql, /security definer/);
+  assert.match(sql, /auth\.uid\(\)/);
+  assert.match(sql, /revoke all/);
+});
+
 test('cinematic feedback has responsive, accessible, reduced-motion styling', () => {
   const css = readProjectFile('src/pages/writing/WritingHub.css');
   const source = readProjectFile('src/pages/writing/WritingHub.tsx');
@@ -48,9 +59,12 @@ test('cinematic feedback has responsive, accessible, reduced-motion styling', ()
   assert.match(css, /\.cinematic-feedback__finale/);
   assert.match(source, /Insight \{/);
   assert.match(source, /Watch it transform/);
+  assert.doesNotMatch(source, /so \"\$\{original\}\" becomes \"\$\{better\}\"/);
   assert.match(source, /Start my revision/);
   assert.match(source, /spotlightMode/);
-  assert.match(source, /completeRanges = \[\.\.\.fallbackRanges, \.\.\.trustedBase\]/);
+  assert.match(source, /const completeRanges = \[\.\.\.fallbackRanges\]/);
+  assert.match(source, /trustedBase\.forEach/);
+  assert.match(source, /if \(!overlapsValidatedIssue\) completeRanges\.push\(range\)/);
   assert.match(source, /ai\.natural_phrase_upgrades/);
   assert.match(source, /strong \? '#14532d'/);
   assert.match(source, /text\.slice\(verifiedStart, verifiedEnd\) !== exactText/);

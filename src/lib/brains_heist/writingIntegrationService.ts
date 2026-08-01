@@ -71,6 +71,7 @@ export interface WritingAttempt {
   assessment: WritingAssessmentResult;
   rich_feedback?: unknown;
   feedback_weakness_tags?: WeaknessTag[];
+  feedback_weakness_tag_counts?: Partial<Record<WeaknessTag, number>>;
   rich_feedback_source_submission_type?: 'initial';
   rich_feedback_created_at?: string;
   integrity_signals?: WritingCompositionTelemetry;
@@ -588,31 +589,57 @@ const containsLikelySpellingCorrection = (original: string, better: string): boo
   );
 };
 
-const inferFeedbackWeaknessTags = (feedback: Record<string, unknown>): WeaknessTag[] => {
-  const tags = new Set<WeaknessTag>();
+const inferFeedbackWeaknessTagCounts = (feedback: Record<string, unknown>): Partial<Record<WeaknessTag, number>> => {
+  const counts = new Map<WeaknessTag, number>();
+  const increment = (tag: WeaknessTag, amount = 1) => {
+    if (amount <= 0) return;
+    counts.set(tag, (counts.get(tag) ?? 0) + amount);
+  };
   const explicitTags = Array.isArray(feedback['weakness_tags']) ? feedback['weakness_tags'] : [];
-  explicitTags.forEach((tag) => {
-    if (typeof tag === 'string' && WRITING_WEAKNESS_TAG_SET.has(tag)) tags.add(tag as WeaknessTag);
-  });
 
   readObjectArray(feedback['grammar_fixes']).forEach((fix) => {
     const issue = typeof fix['issue'] === 'string' ? fix['issue'].toLowerCase() : '';
     const original = typeof fix['original'] === 'string' ? fix['original'] : '';
     const better = typeof fix['better_version'] === 'string' ? fix['better_version'] : '';
+    const explicitFixTag = typeof fix['weakness_tag'] === 'string' && WRITING_WEAKNESS_TAG_SET.has(fix['weakness_tag'])
+      ? fix['weakness_tag'] as WeaknessTag
+      : null;
+    if (explicitFixTag) {
+      increment(explicitFixTag);
+      return;
+    }
     const combined = `${issue} ${original} ${better}`;
-    if (/agreement|subject.?verb|\bthere is\b.*\bthere are\b|\bthere are\b.*\bthere is\b|\bhas\b.*\bhave\b|\bhave\b.*\bhas\b/i.test(combined)) tags.add('agreement_error');
-    if (/tense|past tense|present tense|verb time/i.test(combined)) tags.add('tense_error');
-    if (/\barticle\b|\ba\b.*\ban\b|\ban\b.*\ba\b|\bthe\b/i.test(issue)) tags.add('article_error');
-    if (/preposition/i.test(issue)) tags.add('preposition_error');
-    if (/fragment|incomplete sentence/i.test(issue)) tags.add('fragment');
-    if (/run.?on|sentence boundary/i.test(issue)) tags.add('run_on');
-    if (/spelling|misspell|typo/i.test(issue) || containsLikelySpellingCorrection(original, better)) tags.add('spelling_error');
+    if (/agreement|subject.?verb|\bthere is\b.*\bthere are\b|\bthere are\b.*\bthere is\b|\bhas\b.*\bhave\b|\bhave\b.*\bhas\b/i.test(combined)) increment('agreement_error');
+    else if (/tense|past tense|present tense|verb time/i.test(combined)) increment('tense_error');
+    else if (/\barticle\b|\ba\b.*\ban\b|\ban\b.*\ba\b|\bthe\b/i.test(issue)) increment('article_error');
+    else if (/preposition/i.test(issue)) increment('preposition_error');
+    else if (/fragment|incomplete sentence/i.test(issue)) increment('fragment');
+    else if (/run.?on|sentence boundary/i.test(issue)) increment('run_on');
+    else if (/spelling|misspell|typo/i.test(issue) || containsLikelySpellingCorrection(original, better)) increment('spelling_error');
   });
-  if (readObjectArray(feedback['punctuation_fixes']).length > 0) tags.add('punctuation_error');
-  if (readObjectArray(feedback['natural_phrase_upgrades']).length > 0) tags.add('weak_word_choice');
-  if (readObjectArray(feedback['style_tone_feedback']).length > 0) tags.add('weak_register_control');
-  return [...tags];
+  readObjectArray(feedback['punctuation_fixes']).forEach((fix) => {
+    const tag = typeof fix['weakness_tag'] === 'string' && WRITING_WEAKNESS_TAG_SET.has(fix['weakness_tag'])
+      ? fix['weakness_tag'] as WeaknessTag
+      : 'punctuation_error';
+    increment(tag);
+  });
+  readObjectArray(feedback['natural_phrase_upgrades']).forEach((fix) => {
+    const tag = typeof fix['weakness_tag'] === 'string' && WRITING_WEAKNESS_TAG_SET.has(fix['weakness_tag'])
+      ? fix['weakness_tag'] as WeaknessTag
+      : 'weak_word_choice';
+    increment(tag);
+  });
+  increment('weak_register_control', readObjectArray(feedback['style_tone_feedback']).length);
+  explicitTags.forEach((tag) => {
+    if (typeof tag === 'string' && WRITING_WEAKNESS_TAG_SET.has(tag) && !counts.has(tag as WeaknessTag)) {
+      increment(tag as WeaknessTag);
+    }
+  });
+  return Object.fromEntries([...counts.entries()].filter(([, count]) => count > 0));
 };
+
+const inferFeedbackWeaknessTags = (feedback: Record<string, unknown>): WeaknessTag[] =>
+  Object.keys(inferFeedbackWeaknessTagCounts(feedback)) as WeaknessTag[];
 
 const rebuildRepeatedErrorMemoryForGenre = (
   studentId: string,
@@ -637,15 +664,21 @@ const synchronizeSavedFeedbackWeaknessMemory = (
     .filter((attempt) => attempt.student_id === studentId && attempt.genre === genre)
     .forEach((attempt) => {
       if (!attempt.rich_feedback || typeof attempt.rich_feedback !== 'object' || Array.isArray(attempt.rich_feedback)) return;
-      const feedbackTags = inferFeedbackWeaknessTags(attempt.rich_feedback as Record<string, unknown>);
+      const feedback = attempt.rich_feedback as Record<string, unknown>;
+      const feedbackTagCounts = inferFeedbackWeaknessTagCounts(feedback);
+      const feedbackTags = Object.keys(feedbackTagCounts) as WeaknessTag[];
       const mergedTags = [...new Set([...attempt.assessment.weakness_tags, ...feedbackTags])];
       const storedFeedbackTags = attempt.feedback_weakness_tags ?? [];
+      const storedFeedbackTagCounts = attempt.feedback_weakness_tag_counts ?? {};
       if (
         mergedTags.length === attempt.assessment.weakness_tags.length
         && feedbackTags.length === storedFeedbackTags.length
         && feedbackTags.every((tag) => storedFeedbackTags.includes(tag))
+        && feedbackTags.every((tag) => storedFeedbackTagCounts[tag] === feedbackTagCounts[tag])
       ) return;
       attempt.feedback_weakness_tags = feedbackTags;
+      attempt.feedback_weakness_tag_counts = feedbackTagCounts;
+      feedback['weakness_tag_counts'] = feedbackTagCounts;
       attempt.assessment = {
         ...attempt.assessment,
         weakness_tags: mergedTags,
@@ -871,6 +904,7 @@ export interface StudentWritingHistoryEntry {
   rich_feedback: unknown | null;
   integrity_signals: WritingCompositionTelemetry | null;
   weakness_tags: WeaknessTag[];
+  weakness_tag_counts: Partial<Record<WeaknessTag, number>>;
   has_feedback: boolean;
   feedback_summary: string | null;
   feedback_next_move: string | null;
@@ -969,6 +1003,7 @@ export const listStudentWritingHistoryByGenre = (studentId: string): ServiceResp
       rich_feedback: feedback,
       integrity_signals: attempt.integrity_signals ?? null,
       weakness_tags: attempt.assessment?.weakness_tags ?? [],
+      weakness_tag_counts: attempt.feedback_weakness_tag_counts ?? {},
       has_feedback: Boolean(feedback),
       feedback_summary: summary,
       feedback_next_move: nextMove,
@@ -1080,8 +1115,11 @@ export const persistInitialWritingRichFeedback = (input: {
     delete richFeedbackClone['repair_steps'];
   }
   targetAttempt.rich_feedback = richFeedbackClone;
+  const feedbackWeaknessTagCounts = inferFeedbackWeaknessTagCounts(richFeedbackClone);
   const feedbackWeaknessTags = inferFeedbackWeaknessTags(richFeedbackClone);
   targetAttempt.feedback_weakness_tags = feedbackWeaknessTags;
+  targetAttempt.feedback_weakness_tag_counts = feedbackWeaknessTagCounts;
+  richFeedbackClone['weakness_tag_counts'] = feedbackWeaknessTagCounts;
   targetAttempt.assessment = {
     ...targetAttempt.assessment,
     weakness_tags: [...new Set([
@@ -1473,6 +1511,11 @@ export interface WritingAnalyticsDashboard {
     improving_count: number;
   };
   most_common_weakness_tags: Array<{ tag: string; count: number }>;
+  student_weakness_counts: Array<{
+    student_id: string;
+    student_name: string;
+    tags: Array<{ tag: string; count: number }>;
+  }>;
   average_score_by_grade: Array<{ grade: number; average_score: number }>;
   average_score_by_genre: Array<{ genre: string; average_score: number }>;
   subscale_improvement_over_time: Array<{
@@ -2072,6 +2115,7 @@ export const getWritingAnalyticsDashboard = (
   if (students.length === 0) return badRequest('no writing analytics data available for the selected filters.');
 
   const weaknessCounter = new Map<string, number>();
+  const studentWeaknessCounts: WritingAnalyticsDashboard['student_weakness_counts'] = [];
   const gradeScores = new Map<number, number[]>();
   const genreScores = new Map<string, number[]>();
   const subscaleImprovement: WritingAnalyticsDashboard['subscale_improvement_over_time'] = [];
@@ -2085,12 +2129,28 @@ export const getWritingAnalyticsDashboard = (
   for (const state of students) {
     const latest = state.latest_assessment;
     if (latest) {
-      latest.weakness_tags.forEach((tag) => weaknessCounter.set(tag, (weaknessCounter.get(tag) ?? 0) + 1));
       gradeScores.set(state.grade, [...(gradeScores.get(state.grade) ?? []), latest.total_score]);
       genreScores.set(state.current_genre, [...(genreScores.get(state.current_genre) ?? []), latest.total_score]);
     }
 
     const attempts = store.attempts.filter((item) => item.student_id === state.student_id);
+    const perStudentCounts = new Map<string, number>();
+    attempts.forEach((attempt) => {
+      const counts = attempt.feedback_weakness_tag_counts ?? Object.fromEntries(
+        (attempt.assessment?.weakness_tags ?? []).map((tag) => [tag, 1])
+      );
+      Object.entries(counts).forEach(([tag, count]) => {
+        const safeCount = Math.max(0, Number(count ?? 0));
+        if (!safeCount) return;
+        perStudentCounts.set(tag, (perStudentCounts.get(tag) ?? 0) + safeCount);
+        weaknessCounter.set(tag, (weaknessCounter.get(tag) ?? 0) + safeCount);
+      });
+    });
+    studentWeaknessCounts.push({
+      student_id: state.student_id,
+      student_name: store.profiles.get(state.student_id)?.student_name?.trim() || 'Student',
+      tags: [...perStudentCounts.entries()].sort((a, b) => b[1] - a[1]).map(([tag, count]) => ({ tag, count })),
+    });
     if (attempts.length >= 2) {
       const first = attempts[0].assessment.subscores;
       const last = attempts[attempts.length - 1].assessment.subscores;
@@ -2163,6 +2223,7 @@ export const getWritingAnalyticsDashboard = (
       .sort((a, b) => b[1] - a[1])
       .slice(0, 8)
       .map(([tag, count]) => ({ tag, count })),
+    student_weakness_counts: studentWeaknessCounts.filter((student) => student.tags.length > 0),
     average_score_by_grade: [...gradeScores.entries()].map(([grade, scores]) => ({
       grade,
       average_score: Number((scores.reduce((acc, item) => acc + item, 0) / scores.length).toFixed(2)),
@@ -3273,13 +3334,24 @@ export const getTeacherAnalyticsDashboardScoped = async (
   if (isNodeTestRuntime()) return getWritingAnalyticsDashboard({ grade: filters?.grade, genre: filters?.genre });
   try {
     const { supabase } = await import('../../../services/supabaseClient.js');
-    const { data, error } = await supabase.rpc('rpc_bh_writing_teacher_analytics', {
-      p_month: month,
-      p_grade: filters?.grade ?? null,
-      p_genre: filters?.genre ?? null,
-    });
+    const params = { p_month: month, p_grade: filters?.grade ?? null, p_genre: filters?.genre ?? null };
+    const [{ data, error }, weaknessResult] = await Promise.all([
+      supabase.rpc('rpc_bh_writing_teacher_analytics', params),
+      supabase.rpc('rpc_bh_writing_teacher_weakness_counts', params),
+    ]);
     if (error || !data) return badRequest(error?.message ?? 'Unable to load scoped teacher analytics.');
-    return ok(data as WritingAnalyticsDashboard);
+    const analytics = data as WritingAnalyticsDashboard;
+    if (!weaknessResult.error && weaknessResult.data) {
+      const weaknessData = weaknessResult.data as {
+        most_common_weakness_tags?: WritingAnalyticsDashboard['most_common_weakness_tags'];
+        student_weakness_counts?: WritingAnalyticsDashboard['student_weakness_counts'];
+      };
+      analytics.most_common_weakness_tags = weaknessData.most_common_weakness_tags ?? analytics.most_common_weakness_tags;
+      analytics.student_weakness_counts = weaknessData.student_weakness_counts ?? [];
+    } else {
+      analytics.student_weakness_counts = analytics.student_weakness_counts ?? [];
+    }
+    return ok(analytics);
   } catch (error) {
     return badRequest(error instanceof Error ? error.message : 'Unable to load scoped teacher analytics.');
   }

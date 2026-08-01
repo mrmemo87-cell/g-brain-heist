@@ -83,9 +83,9 @@ interface WritingAiFeedbackAssist {
   alignment?: 'on_task' | 'partially_on_task' | 'off_topic' | 'too_short' | 'underdeveloped' | 'mostly_correct_but_needs_polish';
   what_is_working?: string[];
   what_is_missing?: string[];
-  grammar_fixes?: Array<{ original: string; issue: string; better_version: string }>;
-  punctuation_fixes?: Array<{ original: string; issue: string; better_version: string }>;
-  natural_phrase_upgrades?: Array<{ original: string; better_version: string; why_it_helps: string }>;
+  grammar_fixes?: Array<{ original: string; issue: string; better_version: string; start_char?: number; end_char?: number; weakness_tag?: string }>;
+  punctuation_fixes?: Array<{ original: string; issue: string; better_version: string; start_char?: number; end_char?: number; weakness_tag?: string }>;
+  natural_phrase_upgrades?: Array<{ original: string; better_version: string; why_it_helps: string; start_char?: number; end_char?: number; weakness_tag?: string }>;
   style_tone_feedback?: Array<{ evidence: string; issue: string; suggestion: string }>;
   next_move?: string;
   example_revision_start?: string;
@@ -133,6 +133,23 @@ interface TextAnchorRange {
   reason?: string;
   sourceCategory?: string;
   sourceExactText?: string;
+  evidenceStart?: number;
+  evidenceEnd?: number;
+  sourceFix?: ValidatedWritingFix;
+}
+
+type WritingFixKind = 'grammar' | 'punctuation' | 'phrase' | 'style';
+
+interface ValidatedWritingFix {
+  id: string;
+  kind: WritingFixKind;
+  original: string;
+  betterVersion: string;
+  explanation: string;
+  start: number;
+  end: number;
+  providerStart?: number;
+  providerEnd?: number;
 }
 
 interface RepairQueueItem {
@@ -645,62 +662,111 @@ const hasConflictingAnchorOverlap = (ranges: TextAnchorRange[]): boolean => {
   return false;
 };
 
+const findAllExactOccurrences = (text: string, needle: string): number[] => {
+  const occurrences: number[] = [];
+  let cursor = 0;
+  while (cursor <= text.length - needle.length) {
+    const index = text.indexOf(needle, cursor);
+    if (index < 0) break;
+    occurrences.push(index);
+    cursor = index + Math.max(1, needle.length);
+  }
+  return occurrences;
+};
+
+const meaningfulWords = (value: string): Set<string> => new Set(
+  normalizeComparisonText(value)
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter((word) => word.length >= 3)
+);
+
+const isGroundedRewrite = (original: string, betterVersion: string, kind: WritingFixKind): boolean => {
+  if (kind === 'punctuation') {
+    const withoutConventions = (value: string) => value.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
+    return original !== betterVersion && withoutConventions(original) === withoutConventions(betterVersion);
+  }
+  if (!isMeaningfullyDifferent(original, betterVersion)) return false;
+  const originalWords = meaningfulWords(original);
+  if (originalWords.size === 0) return true;
+  const betterWords = meaningfulWords(betterVersion);
+  const overlap = [...originalWords].filter((word) => betterWords.has(word)).length;
+  // Grammar corrections may legitimately replace the only word in a short span.
+  if (kind === 'grammar' && originalWords.size <= 2) return true;
+  return overlap / originalWords.size >= (kind === 'grammar' ? 0.35 : 0.45);
+};
+
+/**
+ * Converts provider collections into issue records that are safe to show as
+ * precise corrections. Ambiguous, ungrounded, unchanged, or unrelated rewrites
+ * are deliberately omitted rather than presented to a student with certainty.
+ */
+export const buildValidatedWritingFixes = (
+  text: string,
+  ai: WritingAiFeedbackAssist | null
+): ValidatedWritingFix[] => {
+  if (!text || !ai) return [];
+  const candidates: Array<Omit<ValidatedWritingFix, 'id' | 'start' | 'end'>> = [
+    ...(ai.grammar_fixes ?? []).map((item) => ({ kind: 'grammar' as const, original: item.original, betterVersion: item.better_version, explanation: item.issue, providerStart: item.start_char, providerEnd: item.end_char })),
+    ...(ai.punctuation_fixes ?? []).map((item) => ({ kind: 'punctuation' as const, original: item.original, betterVersion: item.better_version, explanation: item.issue, providerStart: item.start_char, providerEnd: item.end_char })),
+    ...(ai.natural_phrase_upgrades ?? []).map((item) => ({ kind: 'phrase' as const, original: item.original, betterVersion: item.better_version, explanation: item.why_it_helps, providerStart: item.start_char, providerEnd: item.end_char })),
+    ...(ai.style_tone_feedback ?? []).map((item) => ({ kind: 'style' as const, original: item.evidence, betterVersion: item.suggestion, explanation: item.issue })),
+  ];
+  const seen = new Set<string>();
+  return candidates.flatMap((candidate, index) => {
+    const original = candidate.original?.trim() ?? '';
+    const betterVersion = candidate.betterVersion?.trim() ?? '';
+    const explanation = candidate.explanation?.trim() ?? '';
+    if (!original || !betterVersion || !explanation) return [];
+    const hasTrustedPosition = Number.isInteger(candidate.providerStart)
+      && candidate.providerStart! >= 0
+      && candidate.providerEnd === candidate.providerStart! + original.length
+      && text.slice(candidate.providerStart, candidate.providerEnd) === original;
+    const occurrences = findAllExactOccurrences(text, original);
+    const start = hasTrustedPosition ? candidate.providerStart! : occurrences.length === 1 ? occurrences[0]! : -1;
+    if (start < 0 || !isGroundedRewrite(original, betterVersion, candidate.kind)) return [];
+    const key = `${candidate.kind}:${start}:${original.length}:${normalizeComparisonText(betterVersion)}`;
+    if (seen.has(key)) return [];
+    seen.add(key);
+    return [{
+      ...candidate,
+      original,
+      betterVersion,
+      explanation,
+      id: `${candidate.kind}-${start}-${index}`,
+      start,
+      end: start + original.length,
+    }];
+  });
+};
+
 const buildFallbackHighlightRanges = (text: string, ai: WritingAiFeedbackAssist | null): TextAnchorRange[] => {
   if (!text || !ai) return [];
-  const lowerText = text.toLowerCase();
-  const ranges: TextAnchorRange[] = [];
-  const claimedRanges: Array<{ start: number; end: number }> = [];
-  const isOverlappingClaim = (start: number, end: number) =>
-    claimedRanges.some((claimed) => start < claimed.end && end > claimed.start);
-  const findBestUnclaimedOccurrence = (needle: string): { start: number; end: number } | null => {
-    const search = needle.toLowerCase();
-    if (!search) return null;
-    const isWordCharacter = (value: string | undefined) => Boolean(value && /[\p{L}\p{N}_]/u.test(value));
-    const isWholeToken = (start: number, end: number) =>
-      !isWordCharacter(text[start - 1]) && !isWordCharacter(text[end]);
-    for (const haystack of [text, lowerText]) {
-      const query = haystack === text ? needle : search;
-      let fromIndex = 0;
-      while (fromIndex < haystack.length) {
-        const start = haystack.indexOf(query, fromIndex);
-        if (start < 0) break;
-        const end = start + query.length;
-        if (!isOverlappingClaim(start, end) && (query.length > 3 || isWholeToken(start, end))) return { start, end };
-        fromIndex = start + 1;
-      }
-    }
-    return null;
-  };
-  const addSnippet = (
-    snippet: string,
-    polarity: 'strong' | 'weak',
-    reason: string,
-    sourceCategory?: string
-  ) => {
+  const ranges: TextAnchorRange[] = buildValidatedWritingFixes(text, ai).map((fix) => ({
+    start: fix.start,
+    end: fix.end,
+    evidenceStart: fix.start,
+    evidenceEnd: fix.end,
+    polarity: 'weak',
+    reason: `${fix.kind}_fix`,
+    sourceCategory: fix.kind,
+    sourceExactText: fix.original,
+    sourceFix: fix,
+  }));
+  const claimedRanges = ranges.map(({ start, end }) => ({ start, end }));
+  const addStrength = (snippet: string) => {
     const clean = snippet.trim();
-    if (!clean) return;
-    const match = findBestUnclaimedOccurrence(clean);
-    if (!match) return;
-    claimedRanges.push(match);
-    ranges.push({
-      start: match.start,
-      end: match.end,
-      polarity,
-      reason,
-      sourceCategory,
-      sourceExactText: clean,
-    });
+    const occurrences = findAllExactOccurrences(text, clean);
+    if (!clean || occurrences.length !== 1) return;
+    const start = occurrences[0];
+    const end = start + clean.length;
+    if (claimedRanges.some((claimed) => start < claimed.end && end > claimed.start)) return;
+    ranges.push({ start, end, evidenceStart: start, evidenceEnd: end, polarity: 'strong', reason: 'strength', sourceCategory: 'strength', sourceExactText: clean });
   };
-
-  (ai.grammar_fixes ?? []).forEach((item) => addSnippet(item.original, 'weak', 'grammar_fix', 'grammar'));
-  (ai.punctuation_fixes ?? []).forEach((item) => addSnippet(item.original, 'weak', 'punctuation_fix', 'punctuation'));
-  (ai.natural_phrase_upgrades ?? []).forEach((item) => addSnippet(item.original, 'weak', 'phrase_upgrade', 'phrase'));
-  (ai.style_tone_feedback ?? []).forEach((item) => addSnippet(item.evidence, 'weak', 'style_fix', 'style'));
   [...(ai.what_is_working ?? []), ...(ai.strengths ?? [])]
     .slice(0, 4)
     .forEach((item) => {
       const quoted = extractQuotedSnippet(item) ?? '';
-      addSnippet(quoted, 'strong', 'strength', 'strength');
+      addStrength(quoted);
     });
 
 
@@ -711,23 +777,13 @@ const buildFallbackHighlightRanges = (text: string, ai: WritingAiFeedbackAssist 
 // anchor an entire sentence even when the only change is one capital or comma.
 const narrowCorrectionRanges = (
   text: string,
-  ranges: TextAnchorRange[],
-  ai: WritingAiFeedbackAssist | null
+  ranges: TextAnchorRange[]
 ): TextAnchorRange[] => {
-  const corrections = [
-    ...(ai?.grammar_fixes ?? []).map((fix) => ({ original: fix.original, better: fix.better_version })),
-    ...(ai?.punctuation_fixes ?? []).map((fix) => ({ original: fix.original, better: fix.better_version })),
-  ].filter((fix) => fix.original?.trim() && fix.better?.trim());
-
   return ranges.map((range) => {
-    if (range.polarity !== 'weak') return range;
-    const anchored = text.slice(range.start, range.end);
-    const fix = corrections.find((candidate) =>
-      anchored.includes(candidate.original) || candidate.original.includes(anchored)
-    );
-    if (!fix) return range;
+    const fix = range.sourceFix;
+    if (range.polarity !== 'weak' || !fix || (fix.kind !== 'grammar' && fix.kind !== 'punctuation')) return range;
     const original = fix.original;
-    const better = fix.better;
+    const better = fix.betterVersion;
     let prefix = 0;
     while (prefix < original.length && prefix < better.length && original[prefix] === better[prefix]) prefix += 1;
     let suffix = 0;
@@ -738,21 +794,37 @@ const narrowCorrectionRanges = (
     ) suffix += 1;
     const originalStart = text.indexOf(original, Math.max(0, range.start - 1));
     if (originalStart < 0) return range;
-    // For an insertion (for example a missing comma), spotlight the adjacent
-    // character rather than misleadingly colouring the whole sentence.
     const changedLength = original.length - prefix - suffix;
+    // There is no submitted character at an insertion point. Highlighting an
+    // adjacent character falsely labels that character as wrong, so retain the
+    // complete grounded evidence phrase for insertion corrections.
+    if (changedLength === 0) {
+      return {
+        ...range,
+        start: originalStart,
+        end: originalStart + original.length,
+        sourceExactText: original,
+        evidenceStart: originalStart,
+        evidenceEnd: originalStart + original.length,
+      };
+    }
     const localStart = Math.min(original.length - 1, prefix);
-    const localEnd = changedLength > 0
-      ? original.length - suffix
-      : Math.min(original.length, localStart + 1);
+    const localEnd = original.length - suffix;
     return {
       ...range,
       start: originalStart + Math.max(0, localStart),
       end: originalStart + Math.max(localStart + 1, localEnd),
       sourceExactText: original,
+      evidenceStart: originalStart,
+      evidenceEnd: originalStart + original.length,
     };
   });
 };
+
+export const buildValidatedCinematicRanges = (
+  text: string,
+  ai: WritingAiFeedbackAssist | null
+): TextAnchorRange[] => narrowCorrectionRanges(text, buildFallbackHighlightRanges(text, ai));
 
 interface ReviewHighlightSpanProps {
   index: number;
@@ -1183,9 +1255,33 @@ type GuidedReviewIssue = {
 const bannedFeedbackPatterns = [
   /^this sentence has a grammar mistake\.?$/i,
   /^this sentence needs a small grammar fix\.?$/i,
+  /^this sentence needs a punctuation fix\.?$/i,
+  /^this sentence has a punctuation mistake\.?$/i,
   /^this is better\.?$/i,
   /^this is unclear\.?$/i,
 ];
+
+const explainConcreteChange = (issue: GuidedReviewIssue): string => {
+  const original = issue.originalSentence;
+  const better = issue.improvedSentence ?? '';
+  if (!better) return `Review this exact wording: "${original}".`;
+  let prefix = 0;
+  while (prefix < original.length && prefix < better.length && original[prefix] === better[prefix]) prefix += 1;
+  let suffix = 0;
+  while (
+    suffix < original.length - prefix
+    && suffix < better.length - prefix
+    && original[original.length - 1 - suffix] === better[better.length - 1 - suffix]
+  ) suffix += 1;
+  const removed = original.slice(prefix, original.length - suffix);
+  const added = better.slice(prefix, better.length - suffix);
+  if (!removed && added) return `Add "${added}" at the highlighted position.`;
+  if (removed && !added) return `Remove "${removed}" from the highlighted wording.`;
+  if (removed && added && removed.toLocaleLowerCase() === added.toLocaleLowerCase()) {
+    return `Change "${removed}" to "${added}" because it begins a new sentence.`;
+  }
+  return `Replace "${removed}" with "${added}" in the highlighted wording.`;
+};
 
 const containsMeaningfulTokenOverlap = (source: string, target: string): boolean => {
   const sourceTokens = new Set(
@@ -1209,7 +1305,10 @@ const validateIssueConsistency = (issue: GuidedReviewIssue): { valid: boolean; r
   if (!containsMeaningfulTokenOverlap(issue.originalSentence, consistencyFields)) {
     return { valid: false, reason: 'explanation_not_grounded_in_sentence' };
   }
-  if (issue.improvedSentence && !isMeaningfullyDifferent(issue.originalSentence, issue.improvedSentence)) {
+  const hasMeaningfulRewrite = issue.kind === 'punctuation'
+    ? issue.improvedSentence !== issue.originalSentence
+    : !issue.improvedSentence || isMeaningfullyDifferent(issue.originalSentence, issue.improvedSentence);
+  if (!hasMeaningfulRewrite) {
     return { valid: false, reason: 'non_meaningful_rewrite' };
   }
   return { valid: true };
@@ -1234,8 +1333,8 @@ const getSafeIssueExplanation = (issue: GuidedReviewIssue): GuidedReviewIssue =>
   const diagnosis = issue.diagnosis.trim();
   const hasBannedCopy = bannedFeedbackPatterns.some((pattern) => pattern.test(diagnosis));
   if (!hasBannedCopy) return issue;
-  const fallbackDiagnosis = issue.kind === 'grammar'
-    ? `Adjust this sentence for grammar accuracy: "${issue.originalSentence}".`
+  const fallbackDiagnosis = issue.kind === 'grammar' || issue.kind === 'punctuation'
+    ? explainConcreteChange(issue)
     : issue.kind === 'support'
       ? `Develop this idea with one specific reason or example: "${issue.originalSentence}".`
       : `Clarify what you mean in this sentence: "${issue.originalSentence}".`;
@@ -1247,48 +1346,20 @@ const getSafeIssueExplanation = (issue: GuidedReviewIssue): GuidedReviewIssue =>
 
 const pickLessonFixForRange = (
   range: TextAnchorRange | null,
-  snippet: string,
   ai: WritingAiFeedbackAssist | null
 ): { kind: 'grammar' | 'punctuation' | 'phrase'; original: string; betterVersion: string; why: string } | null => {
   if (!range || !ai) return null;
-  const needle = normalizeComparisonText(snippet || range.sourceExactText || '');
-  if (!needle) return null;
-  const sourceHint = normalizeComparisonText(range.sourceCategory ?? range.reason ?? '');
-  const preferGrammar = sourceHint.includes('grammar');
-  const preferPunctuation = sourceHint.includes('punct');
-  const preferPhrase = sourceHint.includes('phrase') || sourceHint.includes('style');
-
-  const score = (original: string) => {
-    const normalized = normalizeComparisonText(original);
-    if (!normalized) return 0;
-    if (normalized === needle) return 100;
-    if (needle.includes(normalized)) return Math.min(95, 45 + normalized.length);
-    if (normalized.includes(needle)) return Math.min(88, 40 + needle.length);
-    return 0;
-  };
-
-  const grammar = (ai.grammar_fixes ?? []).map((item) => ({ ...item, kind: 'grammar' as const, why: item.issue }));
-  const punctuation = (ai.punctuation_fixes ?? []).map((item) => ({ ...item, kind: 'punctuation' as const, why: item.issue }));
-  const phrase = (ai.natural_phrase_upgrades ?? []).map((item) => ({ ...item, kind: 'phrase' as const, better_version: item.better_version, why: item.why_it_helps }));
-  const candidates = [...grammar, ...punctuation, ...phrase]
-    .map((item) => ({ item, points: score(item.original) }))
-    .filter((entry) => entry.points > 0)
-    .sort((a, b) => b.points - a.points);
-  const best = candidates[0]?.item;
-  if (!best) return null;
-  if (preferGrammar && best.kind !== 'grammar') {
-    const fallback = grammar.find((entry) => score(entry.original) > 0);
-    if (fallback) return { kind: 'grammar', original: fallback.original, betterVersion: fallback.better_version, why: fallback.why };
+  if (range.sourceFix) {
+    return {
+      kind: range.sourceFix.kind === 'style' ? 'phrase' : range.sourceFix.kind,
+      original: range.sourceFix.original,
+      betterVersion: range.sourceFix.betterVersion,
+      why: range.sourceFix.explanation,
+    };
   }
-  if (preferPunctuation && best.kind !== 'punctuation') {
-    const fallback = punctuation.find((entry) => score(entry.original) > 0);
-    if (fallback) return { kind: 'punctuation', original: fallback.original, betterVersion: fallback.better_version, why: fallback.why };
-  }
-  if (preferPhrase && best.kind !== 'phrase') {
-    const fallback = phrase.find((entry) => score(entry.original) > 0);
-    if (fallback) return { kind: 'phrase', original: fallback.original, betterVersion: fallback.better_version, why: fallback.why };
-  }
-  return { kind: best.kind, original: best.original, betterVersion: best.better_version, why: best.why };
+  // Precise correction cards must be bound to the issue that created their
+  // range. Never guess a correction from a narrowed or provider-only span.
+  return null;
 };
 
 const renderPhraseComparison = (
@@ -5265,7 +5336,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     [activeCinematicText, activeCinematicFeedback]
   );
   const fallbackRanges = useMemo(
-    () => buildFallbackHighlightRanges(activeCinematicText, activeCinematicFeedback),
+    () => buildValidatedCinematicRanges(activeCinematicText, activeCinematicFeedback),
     [activeCinematicText, activeCinematicFeedback]
   );
   const cinematicTrust = useMemo(
@@ -5274,15 +5345,20 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   );
   const cinematicRanges = useMemo(() => {
     const trustedBase = cinematicTrust.mode === 'trusted' && !hasConflictingAnchorOverlap(trustedRanges)
-      ? trustedRanges
+      // Provider-only weak highlights do not carry an atomic correction binding.
+      // Keep verified strengths, but require weak insights to come from the
+      // locally validated correction records below.
+      ? trustedRanges.filter((range) => range.polarity === 'strong')
       : [];
     // Correction lists power the word-by-word view, so include every one in the
     // cinematic replay too instead of relying only on the provider's highlights.
-    const completeRanges = [...fallbackRanges, ...trustedBase].filter((range, index, all) =>
-      all.findIndex((candidate) => candidate.start === range.start && candidate.end === range.end && candidate.polarity === range.polarity) === index
-    );
+    const completeRanges = [...fallbackRanges];
+    trustedBase.forEach((range) => {
+      const overlapsValidatedIssue = completeRanges.some((existing) => range.start < existing.end && range.end > existing.start);
+      if (!overlapsValidatedIssue) completeRanges.push(range);
+    });
     return buildBalancedReviewSequence(
-      narrowCorrectionRanges(activeCinematicText, completeRanges, activeCinematicFeedback),
+      completeRanges,
       completeRanges.length
     );
   }, [activeCinematicText, activeCinematicFeedback, cinematicTrust.mode, trustedRanges, fallbackRanges]);
@@ -5311,18 +5387,16 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   );
   const activeSnippet = useMemo(() => {
     if (!activeCinematicRange) return '';
-    return activeCinematicText.slice(activeCinematicRange.start, activeCinematicRange.end).trim() || activeCinematicRange.sourceExactText?.trim() || '';
+    const evidenceStart = activeCinematicRange.evidenceStart ?? activeCinematicRange.start;
+    const evidenceEnd = activeCinematicRange.evidenceEnd ?? activeCinematicRange.end;
+    return activeCinematicText.slice(evidenceStart, evidenceEnd).trim() || activeCinematicRange.sourceExactText?.trim() || '';
   }, [activeCinematicRange, activeCinematicText]);
   const activeLessonFix = useMemo(
-    () => pickLessonFixForRange(activeCinematicRange, activeSnippet, activeCinematicFeedback),
+    () => pickLessonFixForRange(activeCinematicRange, activeCinematicFeedback),
     [activeCinematicRange, activeSnippet, activeCinematicFeedback]
   );
   const activeReviewIssue = useMemo((): GuidedReviewIssue => {
     const originalSentence = activeSnippet || activeCinematicRange?.sourceExactText || 'No snippet available.';
-    const candidateImproved = activeLessonFix?.betterVersion || activeCinematicDetail.correction || '';
-    const improvedSentence = candidateImproved && isMeaningfullyDifferent(originalSentence, candidateImproved)
-      ? candidateImproved
-      : null;
     const kind: GuidedIssueKind = activeCinematicRange?.polarity === 'strong'
       ? 'strength'
       : activeLessonFix?.kind === 'grammar'
@@ -5334,6 +5408,13 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
               ? 'support'
               : 'clarity'
             : 'clarity';
+    const candidateImproved = activeLessonFix?.betterVersion || activeCinematicDetail.correction || '';
+    const hasValidChange = kind === 'punctuation'
+      ? candidateImproved !== originalSentence
+      : isMeaningfullyDifferent(originalSentence, candidateImproved);
+    const improvedSentence = candidateImproved && hasValidChange
+      ? candidateImproved
+      : null;
     const label =
       kind === 'grammar' ? 'Grammar issue' :
         kind === 'punctuation' ? 'Punctuation issue' :
@@ -5555,32 +5636,18 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
 
   const strengths = (aiFeedback?.what_is_working ?? aiFeedback?.strengths ?? []).filter(Boolean).slice(0, 4);
   const improvements = (aiFeedback?.what_is_missing ?? aiFeedback?.weaknesses ?? []).filter(Boolean).slice(0, 4);
-  const quickFixes = [
-    ...(aiFeedback?.grammar_fixes ?? []).map((item) => ({
-      type: 'Grammar',
-      original: item.original,
-      betterVersion: item.better_version,
-      explanation: null as string | null,
-    })),
-    ...(aiFeedback?.punctuation_fixes ?? []).map((item) => ({
-      type: 'Punctuation',
-      original: item.original,
-      betterVersion: item.better_version,
-      explanation: null as string | null,
-    })),
-    ...(aiFeedback?.natural_phrase_upgrades ?? []).map((item) => ({
-      type: 'Better phrasing',
-      original: item.original,
-      betterVersion: item.better_version,
-      explanation: item.why_it_helps ?? null,
-    })),
-    ...(aiFeedback?.style_tone_feedback ?? []).map((item) => ({
-      type: 'Style & tone',
-      original: item.evidence,
-      betterVersion: item.suggestion,
-      explanation: item.issue ?? null,
-    })),
-  ].filter((item) => item.original?.trim() && item.betterVersion?.trim()).slice(0, 8);
+  const quickFixes = buildValidatedWritingFixes(submittedText, aiFeedback).map((item) => ({
+    type: item.kind === 'grammar'
+      ? 'Grammar'
+      : item.kind === 'punctuation'
+        ? 'Punctuation'
+        : item.kind === 'style'
+          ? 'Style & tone'
+          : 'Better phrasing',
+    original: item.original,
+    betterVersion: item.betterVersion,
+    explanation: item.explanation,
+  }));
   const rubricScores = assessment ? [
     { key: 'content', label: 'Content', value: assessment.subscores.content },
     { key: 'language', label: 'Language', value: assessment.subscores.language },
@@ -5955,7 +6022,10 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                     </p>
                     {entry.weakness_tags.length > 0 && (
                       <p style={{ margin: 0, color: '#475569', fontSize: 13 }}>
-                        <strong>Focus memory:</strong> {entry.weakness_tags.map((tag) => tag.replaceAll('_', ' ')).join(' · ')}
+                        <strong>Focus memory:</strong> {entry.weakness_tags.map((tag) => {
+                          const count = entry.weakness_tag_counts[tag] ?? 1;
+                          return `${tag.replaceAll('_', ' ')}${count > 1 ? ` ×${count}` : ''}`;
+                        }).join(' · ')}
                       </p>
                     )}
                     {entry.has_feedback && entry.assessment && entry.student_submission.trim() && (

@@ -288,7 +288,7 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
               <div className="writing-analytics__priority-row" key={item.tag} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'rgba(30, 41, 59, 0.3)', borderRadius: 8, border: '1px solid #1e293b' }}>
                 <div>
                   <div style={{ fontWeight: 600, color: '#e2e8f0' }}>{toTeacherWeaknessLabel(item.tag)}</div>
-                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{item.count} students</div>
+                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{item.count} recorded {item.count === 1 ? 'occurrence' : 'occurrences'}</div>
                 </div>
                 <button
                   onClick={(event: React.MouseEvent<HTMLButtonElement>) => navigateTo(buildPath(monitoringBasePath, { weakness_tag: item.tag, grade: gradeFilter, genre: genreFilter }), event)}
@@ -298,6 +298,29 @@ export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps>
                 </button>
               </div>
             ))}
+          </div>
+        </section>
+      )}
+
+      {data?.student_weakness_counts?.some((student) => student.tags.some((tag) => tag.count > 1)) && (
+        <section className="writing-analytics__section writing-teacher-card" data-analytics-card="true" style={{ border: '1px solid #1e293b', borderRadius: 12, padding: 16, background: 'rgba(15, 23, 42, 0.5)' }}>
+          <h2 style={{ margin: '0 0 6px', fontSize: 18, fontWeight: 800, color: '#f8fafc' }}>Repeated patterns by student</h2>
+          <p style={{ margin: '0 0 12px', color: '#94a3b8', fontSize: 13 }}>Counts include repeated validated mistakes within a submission and across saved attempts.</p>
+          <div style={{ display: 'grid', gap: 8 }}>
+            {data.student_weakness_counts
+              .filter((student) => student.tags.some((tag) => tag.count > 1))
+              .map((student) => (
+                <div key={student.student_id} style={{ border: '1px solid #1e293b', borderRadius: 8, padding: '10px 12px' }}>
+                  <strong style={{ color: '#e2e8f0' }}>{student.student_name}</strong>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 7 }}>
+                    {student.tags.filter((tag) => tag.count > 1).map((tag) => (
+                      <span key={tag.tag} style={{ borderRadius: 999, background: '#1e293b', color: '#cbd5e1', padding: '4px 8px', fontSize: 12 }}>
+                        {toTeacherWeaknessLabel(tag.tag)} ×{tag.count}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
           </div>
         </section>
       )}

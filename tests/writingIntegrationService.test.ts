@@ -365,6 +365,11 @@ test('rich feedback persists complete weakness memory and remains replayable in 
           original: 'It was importent',
           better_version: 'It was important',
         },
+        {
+          issue: 'subject-verb agreement',
+          original: 'class should do more activity',
+          better_version: 'class should do more activities',
+        },
       ],
       punctuation_fixes: [
         {
@@ -403,10 +408,19 @@ test('rich feedback persists complete weakness memory and remains replayable in 
   assert.strictEqual(history.ok, true);
   const essayEntry = history.data!.find((group) => group.genre === 'essay')!.entries[0]!;
   assert.strictEqual(essayEntry.has_feedback, true);
-  assert.strictEqual(essayEntry.grammar_issue_count, 2);
+  assert.strictEqual(essayEntry.grammar_issue_count, 3);
   assert.strictEqual(essayEntry.punctuation_issue_count, 1);
   assert.ok(essayEntry.weakness_tags.includes('agreement_error'));
+  assert.strictEqual(essayEntry.weakness_tag_counts.agreement_error, 2);
+  assert.strictEqual(essayEntry.weakness_tag_counts.spelling_error, 1);
+  assert.strictEqual(essayEntry.weakness_tag_counts.punctuation_error, 1);
   assert.ok(essayEntry.rich_feedback);
+
+  const analytics = getWritingAnalyticsDashboard();
+  assert.strictEqual(analytics.ok, true);
+  const studentCounts = analytics.data!.student_weakness_counts.find((student) => student.student_id === 'feedback-memory-1');
+  assert.strictEqual(studentCounts?.tags.find((tag) => tag.tag === 'agreement_error')?.count, 2);
+  assert.strictEqual(analytics.data!.most_common_weakness_tags.find((tag) => tag.tag === 'agreement_error')?.count, 2);
 });
 
 test('existing saved feedback is backfilled into weakness memory on student load', () => {
