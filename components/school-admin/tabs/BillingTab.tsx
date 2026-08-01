@@ -15,7 +15,7 @@ const BillingTab: React.FC = () => {
   } = useSchoolAdmin();
 
   return (
-    <div className="school-admin-themed-tab"><BillingTabUI
+    <div className="school-admin-themed-tab space-y-6"><section className="admin-section-heading"><div><p className="school-admin-eyebrow">Subscription</p><h2>Plan &amp; Billing</h2><p>Review your school plan, billing cycle and available platform capacity.</p></div></section><BillingTabUI
       planDetails={planDetails}
       loading={billingLoading}
       billingAction={billingAction}

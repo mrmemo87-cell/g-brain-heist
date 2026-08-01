@@ -6,54 +6,100 @@ const DashboardTab: React.FC = () => {
   const classes = Array.isArray(context.classes) ? context.classes : [];
   const subjects = Array.isArray(context.dbSubjects) ? context.dbSubjects : [];
   const students = Array.isArray(context.students) ? context.students : [];
-  const teacherAssignments = Array.isArray(context.teacherAssignments) ? context.teacherAssignments : [];
   const teachers = Array.isArray(context.teachers) ? context.teachers : [];
+  const schoolAdmins = Array.isArray(context.schoolAdmins) ? context.schoolAdmins : [];
+  const teacherAssignments = Array.isArray(context.teacherAssignments) ? context.teacherAssignments : [];
   const studentAssignments = context.studentAssignments ?? {};
-  const { setActiveTab, stats, school } = context;
-  const activeClasses = classes.filter((item: any) => item.is_active);
-  const placedStudents = students.filter((student: any) => studentAssignments[student.user_id]);
-  const assignedTeachers = new Set(teacherAssignments.filter((item: any) => item.active !== false).map((item: any) => item.teacher_user_id));
-  const mappedSubjects = new Set(teacherAssignments.map((item: any) => (item.subject || '').trim().toLowerCase()).filter(Boolean));
+  const { setActiveTab, school } = context;
+
+  const activeClasses = classes.filter((item: any) => item.is_active !== false);
+  const activeClassIds = new Set(activeClasses.map((item: any) => item.id));
+  const activeAssignments = teacherAssignments.filter((item: any) => item.active !== false && activeClassIds.has(item.class_id));
+  const assignedTeacherIds = new Set(activeAssignments.map((item: any) => item.teacher_user_id));
+  const assignedSubjectNames = new Set(activeAssignments.map((item: any) => String(item.subject || '').trim().toLowerCase()).filter(Boolean));
+  const placedStudents = students.filter((student: any) => activeClassIds.has(studentAssignments[student.user_id]));
+
   const metrics = [
-    { label: 'Students on roll', value: stats.students, note: 'Current enrolment', tone: 'blue' },
-    { label: 'Teaching staff', value: stats.teachers, note: 'Staff accounts', tone: 'emerald' },
-    { label: 'Administrators', value: stats.admins, note: 'Authorised users', tone: 'amber' },
-    { label: 'Students & staff', value: stats.total, note: 'All active accounts', tone: 'slate' },
+    { label: 'Classes', value: activeClasses.length, note: `${classes.length} total records`, tab: 'classes' },
+    { label: 'Subjects', value: subjects.length, note: `${assignedSubjectNames.size} currently taught`, tab: 'subjects' },
+    { label: 'Students', value: students.length, note: `${placedStudents.length} placed in classes`, tab: 'members' },
+    { label: 'Teachers', value: teachers.length, note: `${assignedTeacherIds.size} with assignments`, tab: 'teachers' },
+    { label: 'Admins', value: schoolAdmins.length, note: 'Whole-school access', tab: 'members' },
   ];
-  const mapItems = [
-    { label: 'Classes', value: activeClasses.length, detail: `${activeClasses.length} active of ${classes.length} total`, assigned: activeClasses.length, total: Math.max(classes.length, 1) },
-    { label: 'Students', value: students.length, detail: `${placedStudents.length} of ${students.length} placed in a class`, assigned: placedStudents.length, total: Math.max(students.length, 1) },
-    { label: 'Teachers', value: teachers.length, detail: `${assignedTeachers.size} of ${teachers.length} linked to a class`, assigned: assignedTeachers.size, total: Math.max(teachers.length, 1) },
-    { label: 'Subjects', value: subjects.length, detail: `${mappedSubjects.size} of ${subjects.length} used in teaching assignments`, assigned: mappedSubjects.size, total: Math.max(subjects.length, 1) },
-  ];
+
+  const grades = Array.from(new Set(activeClasses.map((item: any) => item.grade_level ?? 'Unassigned')))
+    .sort((a: any, b: any) => {
+      if (a === 'Unassigned') return 1;
+      if (b === 'Unassigned') return -1;
+      return Number(a) - Number(b);
+    });
+
+  const classRows = activeClasses
+    .slice()
+    .sort((a: any, b: any) => String(a.class_code).localeCompare(String(b.class_code), undefined, { numeric: true }))
+    .map((schoolClass: any) => {
+      const assignments = activeAssignments.filter((item: any) => item.class_id === schoolClass.id);
+      const classStudents = students.filter((student: any) => studentAssignments[student.user_id] === schoolClass.id);
+      return {
+        ...schoolClass,
+        studentCount: classStudents.length,
+        teacherCount: new Set(assignments.map((item: any) => item.teacher_user_id)).size,
+        subjects: Array.from(new Set(assignments.map((item: any) => String(item.subject || '').trim()).filter(Boolean))).sort(),
+      };
+    });
+
+  const unassignedStudents = students.length - placedStudents.length;
+  const unassignedTeachers = teachers.filter((teacher: any) => !assignedTeacherIds.has(teacher.user_id)).length;
+  const unusedSubjects = subjects.filter((subject: any) => !assignedSubjectNames.has(String(subject.name || '').trim().toLowerCase())).length;
 
   return <div className="space-y-6">
     <section className="admin-hero">
-      <div><p className="school-admin-eyebrow">School overview</p><h2>{school?.name}</h2><p>Review enrolment, staffing and curriculum coverage, and address incomplete setup.</p></div>
+      <div><p className="school-admin-eyebrow">School overview</p><h2>{school?.name}</h2><p>A whole-school view of classes, curriculum, staffing, enrolment and coverage.</p></div>
       <span className="admin-live-pill"><i /> Records synced</span>
     </section>
 
-    <section aria-label="School population summary" className="admin-metric-grid">
-      {metrics.map((metric) => <article key={metric.label} className={`admin-metric admin-metric-${metric.tone}`}>
+    <section aria-label="Whole-school totals" className="admin-metric-grid admin-metric-grid-five">
+      {metrics.map((metric) => <button key={metric.label} type="button" className="admin-metric" onClick={() => setActiveTab(metric.tab)}>
         <div className="admin-metric-value">{metric.value}</div><div><strong>{metric.label}</strong><span>{metric.note}</span></div>
-      </article>)}
+      </button>)}
     </section>
 
-    <section className="school-map-card">
-      <div className="school-map-heading"><div><p className="school-admin-eyebrow">Setup readiness</p><h3>Operational coverage</h3><p>See where school records are connected and where attention is needed.</p></div><button onClick={() => setActiveTab('classes')}>Review classes</button></div>
-      <div className="school-map-flow">
-        {mapItems.map((item, index) => <React.Fragment key={item.label}>
-          <article className="school-map-node"><div className="school-map-orbit"><span>{item.value}</span></div><strong>{item.label}</strong><small className={item.detail.startsWith('0 ') ? 'is-clear' : ''}>{item.detail}</small><div className="coverage-track"><i style={{ width: `${Math.round(item.assigned / item.total * 100)}%` }} /></div></article>
-          {index < mapItems.length - 1 && <div className="school-map-connector" aria-hidden="true">→</div>}
-        </React.Fragment>)}
-      </div>
+    <section className="admin-insight-grid" aria-label="Administration priorities">
+      <article><span>Student placement</span><strong>{placedStudents.length}/{students.length}</strong><small>{unassignedStudents ? `${unassignedStudents} still need a class` : 'Every student is placed'}</small></article>
+      <article><span>Teacher coverage</span><strong>{assignedTeacherIds.size}/{teachers.length}</strong><small>{unassignedTeachers ? `${unassignedTeachers} without a class-subject assignment` : 'Every teacher is assigned'}</small></article>
+      <article><span>Curriculum coverage</span><strong>{assignedSubjectNames.size}/{subjects.length}</strong><small>{unusedSubjects ? `${unusedSubjects} subjects not yet assigned` : 'All subjects are represented'}</small></article>
+      <article><span>Teaching assignments</span><strong>{activeAssignments.length}</strong><small>Active class-subject-teacher links</small></article>
+    </section>
+
+    <section className="admin-table-card school-wide-angle" aria-labelledby="school-structure-title">
+      <div className="admin-card-heading"><div><h3 id="school-structure-title">Grades, classes and teaching coverage</h3><p>Each grade is grouped with its classes, student population, assigned teachers and taught subjects.</p></div></div>
+      {grades.length ? <div className="school-grade-groups">
+        {grades.map((grade: any) => {
+          const rows = classRows.filter((row: any) => (row.grade_level ?? 'Unassigned') === grade);
+          const gradeStudents = rows.reduce((total: number, row: any) => total + row.studentCount, 0);
+          const gradeTeachers = new Set(activeAssignments.filter((item: any) => rows.some((row: any) => row.id === item.class_id)).map((item: any) => item.teacher_user_id)).size;
+          return <section key={String(grade)} className="school-grade-group">
+            <header><div><p className="school-admin-eyebrow">{grade === 'Unassigned' ? 'Grade not set' : `Grade ${grade}`}</p><h4>{rows.length} {rows.length === 1 ? 'class' : 'classes'}</h4></div><div className="school-grade-totals"><span><strong>{gradeStudents}</strong> students</span><span><strong>{gradeTeachers}</strong> teachers</span></div></header>
+            <div className="admin-table-scroll"><table>
+              <thead><tr><th>Class</th><th>Students</th><th>Teachers</th><th>Subjects</th><th>Coverage</th></tr></thead>
+              <tbody>{rows.map((row: any) => <tr key={row.id}>
+                <td><strong>{row.class_code}</strong><span className="admin-table-subline">{row.class_name}</span></td>
+                <td>{row.studentCount}</td><td>{row.teacherCount}</td>
+                <td>{row.subjects.length ? <div className="admin-chip-list">{row.subjects.map((subject: string) => <span key={subject}>{subject}</span>)}</div> : <span className="admin-muted">No subjects assigned</span>}</td>
+                <td><span className={`admin-coverage-badge ${row.studentCount && row.teacherCount && row.subjects.length ? 'is-covered' : 'needs-attention'}`}>{row.studentCount && row.teacherCount && row.subjects.length ? 'Covered' : 'Needs attention'}</span></td>
+              </tr>)}</tbody>
+            </table></div>
+          </section>;
+        })}
+      </div> : <div className="admin-empty-state"><h3>No active classes yet</h3><p>Create classes to start building the whole-school overview.</p></div>}
     </section>
 
     <section className="admin-action-grid">
-      <button onClick={() => setActiveTab('members')}><span>01</span><strong>Students &amp; staff</strong><small>Review administrators, teachers and students.</small></button>
-      <button onClick={() => setActiveTab('classes')}><span>02</span><strong>Classes &amp; registration</strong><small>Manage classes, year groups and placements.</small></button>
-      <button onClick={() => setActiveTab('settings')}><span>03</span><strong>Access controls</strong><small>Manage the school code and joining policy.</small></button>
+      <button onClick={() => setActiveTab('classes')}><span>01</span><strong>Classes &amp; registration</strong><small>Manage grades, classes and student placement.</small></button>
+      <button onClick={() => setActiveTab('teachers')}><span>02</span><strong>Teacher assignments</strong><small>Connect every class, subject and teacher.</small></button>
+      <button onClick={() => setActiveTab('members')}><span>03</span><strong>Students &amp; staff</strong><small>Review people, access and account records.</small></button>
     </section>
   </div>;
 };
+
 export default DashboardTab;

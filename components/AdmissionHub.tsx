@@ -89,7 +89,7 @@ const WIZARD_DIFFICULTY_META: Record<WizardDifficulty, { label: string; descript
   easy: { label: 'Easy', description: 'Mostly easy questions for a lighter first screen.', duration: 35, pass: 50, mix: { easy: 0.7, medium: 0.3, hard: 0 } },
   balanced: { label: 'Balanced', description: 'Recommended mix for most admission tests.', duration: 45, pass: 60, mix: { easy: 0.4, medium: 0.5, hard: 0.1 } },
   advanced: { label: 'Advanced', description: 'More medium and hard questions for selective entry.', duration: 60, pass: 70, mix: { easy: 0.2, medium: 0.5, hard: 0.3 } },
-  custom: { label: 'Custom', description: 'Use Advanced setup to fine-tune question types and distribution.', duration: 45, pass: 60, mix: { easy: 0.4, medium: 0.5, hard: 0.1 } },
+  custom: { label: 'Custom', description: 'Fine-tune question types and distribution.', duration: 45, pass: 60, mix: { easy: 0.4, medium: 0.5, hard: 0.1 } },
 };
 
 const ENGLISH_WIZARD_TYPE_MIX: Record<string, number> = {
@@ -277,7 +277,7 @@ export const friendlyAdmissionError = (message?: string, fallback = 'We could no
 
 // ── Pipeline Steps ──
 
-const MAIN_TABS: AdmTab[] = ['create', 'overview', 'candidates', 'results'];
+const MAIN_TABS: AdmTab[] = ['overview', 'create', 'candidates', 'results'];
 const ADMISSION_PACKAGE_SUBJECTS = [
   { key: 'english', label: 'English', required: true },
   { key: 'math', label: 'Maths', required: true },
@@ -390,7 +390,7 @@ const isFinalAdmissionAttempt = (attempt?: AdmAttempt) => !!attempt && ['submitt
 // ── Main Component ──
 
 const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => {
-  const [activeTab, setActiveTab] = useState<AdmTab>('create');
+  const [activeTab, setActiveTab] = useState<AdmTab>('overview');
   const [loading, setLoading] = useState(true);
   const [schoolId, setSchoolId] = useState<string | null>(null);
   const [schoolName, setSchoolName] = useState<string>('');
@@ -513,7 +513,16 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   const [candidateFileId, setCandidateFileId] = useState<string | null>(null);
   const [showOtherGradeFormsForCandidate, setShowOtherGradeFormsForCandidate] = useState<Record<string, boolean>>({});
   const overviewCardsRef = useRef<HTMLDivElement | null>(null);
-  const [showAdvancedTools, setShowAdvancedTools] = useState(false);
+  const [admissionConfirm, setAdmissionConfirm] = useState<{
+    title: string;
+    description: string;
+    confirmLabel: string;
+    requiresReason?: boolean;
+    reasonPlaceholder?: string;
+    onConfirm: (reason?: string) => Promise<void>;
+  } | null>(null);
+  const [admissionConfirmBusy, setAdmissionConfirmBusy] = useState(false);
+  const [admissionConfirmReason, setAdmissionConfirmReason] = useState('');
 
   // ── Bootstrap ──
 
@@ -822,28 +831,32 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   };
 
   // Delete handlers
-  const handleDeleteBlueprint = async (id: string) => {
-    if (!confirm('Delete this blueprint? Any generated forms from it will remain.')) return;
-    try { await AdmService.deleteBlueprint(id); addToast('Blueprint deleted', 'success'); await loadAll(); }
-    catch (err: any) { console.warn('Admission setup delete failed', err); addToast(friendlyAdmissionError(err.message, 'Test setup could not be deleted.'), 'error'); }
+  const handleDeleteBlueprint = (id: string) => {
+    setAdmissionConfirm({ title: 'Delete this test setup?', description: 'Generated forms will remain, but this blueprint will no longer be available for future tests.', confirmLabel: 'Delete setup', onConfirm: async () => {
+      try { await AdmService.deleteBlueprint(id); addToast('Blueprint deleted', 'success'); await loadAll(); }
+      catch (err: any) { console.warn('Admission setup delete failed', err); addToast(friendlyAdmissionError(err.message, 'Test setup could not be deleted.'), 'error'); }
+    } });
   };
 
-  const handleDeleteForm = async (id: string) => {
-    if (!confirm('Delete this test form and all its questions? Existing attempts will also be affected.')) return;
-    try { await AdmService.deleteTestForm(id); addToast('Form deleted', 'success'); await loadAll(); }
-    catch (err: any) { console.warn('Admission test delete failed', err); addToast(friendlyAdmissionError(err.message, 'Test could not be deleted.'), 'error'); }
+  const handleDeleteForm = (id: string) => {
+    setAdmissionConfirm({ title: 'Delete this admission test?', description: 'The form and its questions will be deleted. Existing candidate attempts may also be affected.', confirmLabel: 'Delete test', onConfirm: async () => {
+      try { await AdmService.deleteTestForm(id); addToast('Form deleted', 'success'); await loadAll(); }
+      catch (err: any) { console.warn('Admission test delete failed', err); addToast(friendlyAdmissionError(err.message, 'Test could not be deleted.'), 'error'); }
+    } });
   };
 
-  const handleDeleteCandidate = async (id: string) => {
-    if (!confirm('Delete this candidate and ALL their test data (attempts, answers, placements)? This cannot be undone.')) return;
-    try { await AdmService.deleteCandidate(id); addToast('Candidate deleted', 'success'); await loadAll(); }
-    catch (err: any) { console.warn('Admission candidate delete failed', err); addToast(friendlyAdmissionError(err.message, 'Candidate could not be deleted.'), 'error'); }
+  const handleDeleteCandidate = (id: string) => {
+    setAdmissionConfirm({ title: 'Delete this candidate?', description: 'This permanently removes the candidate, attempts, answers and placement records. This cannot be undone.', confirmLabel: 'Delete candidate', onConfirm: async () => {
+      try { await AdmService.deleteCandidate(id); addToast('Candidate deleted', 'success'); await loadAll(); }
+      catch (err: any) { console.warn('Admission candidate delete failed', err); addToast(friendlyAdmissionError(err.message, 'Candidate could not be deleted.'), 'error'); }
+    } });
   };
 
-  const handleDeleteAttempt = async (id: string) => {
-    if (!confirm('Delete this test attempt and its answers? This cannot be undone.')) return;
-    try { await AdmService.deleteAttempt(id); addToast('Attempt deleted', 'success'); await loadAll(); }
-    catch (err: any) { console.warn('Admission attempt delete failed', err); addToast(friendlyAdmissionError(err.message, 'Attempt history could not be deleted.'), 'error'); }
+  const handleDeleteAttempt = (id: string) => {
+    setAdmissionConfirm({ title: 'Delete this test attempt?', description: 'The attempt and all submitted answers will be permanently removed. This cannot be undone.', confirmLabel: 'Delete attempt', onConfirm: async () => {
+      try { await AdmService.deleteAttempt(id); addToast('Attempt deleted', 'success'); await loadAll(); }
+      catch (err: any) { console.warn('Admission attempt delete failed', err); addToast(friendlyAdmissionError(err.message, 'Attempt history could not be deleted.'), 'error'); }
+    } });
   };
 
   const handleCreateCandidate = async () => {
@@ -1010,17 +1023,25 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
 
   const handleResetAttemptForRetake = async (attemptId: string) => {
-    const reason = window.prompt('Allow this candidate to retake? This keeps the old attempt history and creates an audit log. Enter a short reason:', 'Accidental interruption — allow retake');
-    if (!reason) return;
-    if (!window.confirm('Reset this attempt for retake? The existing attempt will be kept as expired history.')) return;
-    try {
-      const res = await AdmService.resetAttemptForRetake(attemptId, reason);
-      if (res.success) { addToast('Attempt reset for retake. Share the same candidate link again.', 'success'); await loadAll(); }
-      else addToast(friendlyAdmissionError(res.error, 'Attempt could not be reset.'), 'error');
-    } catch (err: any) {
-      console.warn('Admission attempt reset failed', err);
-      addToast(friendlyAdmissionError(err.message, 'Attempt could not be reset.'), 'error');
-    }
+    setAdmissionConfirmReason('Accidental interruption — allow retake');
+    setAdmissionConfirm({
+      title: 'Allow this candidate to retake?',
+      description: 'This keeps the old attempt history and creates an audit log. The previous attempt remains as expired history.',
+      confirmLabel: 'Allow retake',
+      requiresReason: true,
+      reasonPlaceholder: 'Enter a short reason',
+      onConfirm: async (reason) => {
+        if (!reason) return;
+        try {
+          const res = await AdmService.resetAttemptForRetake(attemptId, reason);
+          if (res.success) { addToast('Attempt reset for retake. Share the same candidate link again.', 'success'); await loadAll(); }
+          else addToast(friendlyAdmissionError(res.error, 'Attempt could not be reset.'), 'error');
+        } catch (err: any) {
+          console.warn('Admission attempt reset failed', err);
+          addToast(friendlyAdmissionError(err.message, 'Attempt could not be reset.'), 'error');
+        }
+      },
+    });
   };
 
   const handleRecordPlacement = async (attemptId: string, band: PlacementBand) => {
@@ -1032,8 +1053,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   // ── Tab config ──
 
   const tabs: { key: AdmTab; label: string; icon: string }[] = [
-    { key: 'create', label: 'Create Admission Test', icon: '✨' },
     { key: 'overview', label: 'Overview', icon: '📊' },
+    { key: 'create', label: 'Create Admission Test', icon: '✨' },
     { key: 'pools', label: 'Official Question Bank', icon: '🔒' },
     { key: 'blueprints', label: 'Advanced: Blueprints', icon: '📐' },
     { key: 'forms', label: 'Advanced: Test Forms', icon: '📋' },
@@ -1153,13 +1174,11 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   return (
     <div className="admission-hub-admin-theme mx-auto max-w-6xl space-y-6 overflow-x-hidden pb-12 text-slate-900">
       {/* Header */}
-      <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <BackButton onClick={onComplete} label="Back" />
+      <div className="admin-section-heading">
         <div className="flex-1">
-          <h1 className="text-2xl font-heading text-slate-950 flex items-center gap-2">
-            <span className="text-3xl">🎓</span> Admission Hub
-          </h1>
-          <p className="text-xs text-slate-600 mt-0.5">Create admission tests, send links, track progress, view results, and check activity notes.</p>
+          <p className="school-admin-eyebrow">Admissions</p>
+          <h2>Admission Hub</h2>
+          <p>Create admission tests, send candidate-specific links, track progress and review results.</p>
         </div>
         <button
           onClick={() => loadAll()}
@@ -1173,7 +1192,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
       {/* Tabs */}
       <div className="flex flex-wrap gap-2 pb-2" role="tablist">
-        {tabs.filter(t => showAdvancedTools || MAIN_TABS.includes(t.key)).map((t) => (
+        {tabs.filter(t => MAIN_TABS.includes(t.key)).map((t) => (
           <button
             key={t.key}
             onClick={() => setActiveTab(t.key)}
@@ -1188,7 +1207,6 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
             <span>{t.icon}</span> {t.label}
           </button>
         ))}
-        <button type="button" onClick={() => setShowAdvancedTools(v => !v)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-white text-slate-600 border border-slate-200 hover:text-slate-900 hover:border-cyan-300">Advanced / Support Tools</button>
       </div>
 
       {/* Loading overlay */}
@@ -1209,7 +1227,6 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 <h2 className="mt-1 text-2xl font-heading text-slate-900">Create an admission test</h2>
                 <p className="mt-2 max-w-2xl text-sm text-slate-700">Choose the grade, subject, length, and difficulty. The Hub will create the technical setup and test form behind the scenes.</p>
               </div>
-              <button onClick={() => setActiveTab('blueprints')} className={btnSecondary}>Advanced setup</button>
             </div>
             <div className="mt-5 grid grid-cols-5 gap-2">
               {['Basics', 'Style', 'Questions', 'Review', 'Share'].map((label, i) => {
@@ -1243,9 +1260,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
             <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
               <h3 className="font-semibold text-slate-900">Step 2: Test style</h3>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                {(Object.keys(WIZARD_DIFFICULTY_META) as WizardDifficulty[]).map(key => <button key={key} onClick={() => setWizardDifficulty(key)} className={`rounded-xl border p-3 text-left ${wizardDifficulty === key ? 'border-cyan-400 bg-cyan-50' : 'border-slate-200 bg-slate-50 hover:border-slate-300'}`}><div className="font-semibold text-slate-900">{WIZARD_DIFFICULTY_META[key].label}</div><div className="mt-1 text-xs text-slate-600">{WIZARD_DIFFICULTY_META[key].description}</div></button>)}
+                {(Object.keys(WIZARD_DIFFICULTY_META) as WizardDifficulty[]).filter(key => key !== 'custom').map(key => <button key={key} onClick={() => setWizardDifficulty(key)} className={`rounded-xl border p-3 text-left ${wizardDifficulty === key ? 'border-cyan-400 bg-cyan-50' : 'border-slate-200 bg-slate-50 hover:border-slate-300'}`}><div className="font-semibold text-slate-900">{WIZARD_DIFFICULTY_META[key].label}</div><div className="mt-1 text-xs text-slate-600">{WIZARD_DIFFICULTY_META[key].description}</div></button>)}
               </div>
-              {wizardDifficulty === 'custom' && <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-800">Custom distributions are available in Advanced setup. This wizard will use the balanced mix unless you switch to Advanced setup.</div>}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div><label className="block text-xs font-semibold text-slate-700 mb-1">Number of questions</label><input type="number" min={1} className={inputClass} value={wizardQuestionCount} onChange={e => setWizardQuestionCount(+e.target.value)} /></div>
                 <div><label className="block text-xs font-semibold text-slate-700 mb-1">Duration (minutes)</label><input type="number" min={5} className={inputClass} value={wizardDuration} onChange={e => setWizardDuration(+e.target.value)} /></div>
@@ -1292,7 +1308,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   <div className="rounded-lg bg-slate-50 p-3"><div className="text-xs text-slate-600">Form code</div><div className="font-mono text-lg text-cyan-700">{wizardResult.formCode}</div></div>
                   <div className="rounded-lg bg-slate-50 p-3"><div className="text-xs text-slate-600">Status</div><div>{statusPill(wizardResult.form?.status || 'published')}</div></div>
                 </div>
-                <div className="flex flex-wrap gap-2"><button onClick={() => { navigator.clipboard.writeText(wizardResult.formCode); addToast('Form code copied', 'success'); }} className={btnPrimary}>Copy form code</button><button onClick={() => setActiveTab('candidates')} className={btnSecondary}>Go to Candidates</button><button onClick={() => setActiveTab('results')} className={btnSecondary}>Go to Results</button><button onClick={() => setActiveTab('forms')} className={btnSecondary}>Manage in Advanced Test Forms</button><button onClick={resetWizardForNewTest} className={btnSecondary}>Start another admission test</button></div>
+                <div className="flex flex-wrap gap-2"><button onClick={() => { navigator.clipboard.writeText(wizardResult.formCode); addToast('Form code copied', 'success'); }} className={btnPrimary}>Copy form code</button><button onClick={() => setActiveTab('candidates')} className={btnSecondary}>Go to Candidates</button><button onClick={() => setActiveTab('results')} className={btnSecondary}>Go to Results</button><button onClick={resetWizardForNewTest} className={btnSecondary}>Start another admission test</button></div>
               </> : <p className="text-sm text-slate-700">Generate an admission test first, then sharing options will appear here.</p>}
             </div>
           )}
@@ -1372,30 +1388,6 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
               </div>
             </div>
           )}
-
-          {/* Quick Action Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button onClick={() => setActiveTab('candidates')} className="group rounded-xl border border-purple-200 bg-slate-50 p-5 hover:bg-purple-50 hover:border-purple-500/50 transition-all text-left">
-              <span className="text-3xl block mb-2 group-hover:scale-110 transition-transform">➕</span>
-              <div className="text-sm font-semibold text-slate-900">Register Candidates</div>
-              <div className="text-xs text-slate-600 mt-1">Add one or bulk import from CSV</div>
-              {candidates.length > 0 && <div className="text-xs text-purple-400 mt-2">{candidates.filter(c => c.status === 'registered').length} awaiting test</div>}
-            </button>
-            <button onClick={() => setActiveTab('forms')} className="group rounded-xl border border-indigo-200 bg-slate-50 p-5 hover:bg-indigo-900/20 hover:border-indigo-500/50 transition-all text-left">
-              <span className="text-3xl block mb-2 group-hover:scale-110 transition-transform">📋</span>
-              <div className="text-sm font-semibold text-slate-900">Manage Tests</div>
-              <div className="text-xs text-slate-600 mt-1">Generate, publish, or close test forms</div>
-              {forms.filter(f => f.status === 'published').length > 0 && <div className="text-xs text-indigo-400 mt-2">{forms.filter(f => f.status === 'published').length} active</div>}
-            </button>
-            <button onClick={() => setActiveTab('results')} className="group rounded-xl border border-amber-200 bg-slate-50 p-5 hover:bg-amber-900/20 hover:border-amber-500/50 transition-all text-left">
-              <span className="text-3xl block mb-2 group-hover:scale-110 transition-transform">🏆</span>
-              <div className="text-sm font-semibold text-slate-900">View Results</div>
-              <div className="text-xs text-slate-600 mt-1">Review scores, AI analysis & placements</div>
-              {attempts.filter(a => a.status === 'scored' && !placements.find(p => p.attempt_id === a.id)).length > 0 && (
-                <div className="text-xs text-amber-400 mt-2 animate-pulse">{attempts.filter(a => a.status === 'scored' && !placements.find(p => p.attempt_id === a.id)).length} need placement</div>
-              )}
-            </button>
-          </div>
 
           {/* Recent Activity */}
           {attempts.length > 0 && (
@@ -2175,7 +2167,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       {/*  ━━━ REPORT MODAL ━━━  */}
       {showReport && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4" onClick={() => { setShowReport(false); setReportData(null); }}>
-          <div className="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl bg-white border border-slate-200 p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="school-admin-modal w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl bg-white border border-slate-200 p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
             {reportLoading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="h-8 w-8 rounded-full border-2 border-cyan-400/70 border-t-transparent animate-spin" />
@@ -2487,7 +2479,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4" onClick={() => setCandidateFileId(null)}>
-            <div className="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl bg-white border border-slate-200 p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="school-admin-modal w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl bg-white border border-slate-200 p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
               {/* Header */}
               <div className="flex items-center gap-3 mb-5">
                 <span className="text-3xl">📁</span>
@@ -2646,6 +2638,15 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
           </div>
         );
       })()}
+
+      {admissionConfirm && <div className="school-admin-modal-overlay fixed inset-0 z-[9999] flex items-center justify-center p-4" onMouseDown={(event) => { if (event.target === event.currentTarget && !admissionConfirmBusy) { setAdmissionConfirm(null); setAdmissionConfirmReason(''); } }}>
+        <div className="school-admin-modal school-admin-confirm-modal is-destructive w-full max-w-md rounded-xl" role="dialog" aria-modal="true" aria-labelledby="admission-confirm-title" aria-describedby="admission-confirm-description">
+          <div className="school-admin-confirm-heading"><span aria-hidden="true">!</span><div><p className="school-admin-eyebrow">Please confirm</p><h3 id="admission-confirm-title">{admissionConfirm.title}</h3></div></div>
+          <p id="admission-confirm-description" className="school-admin-confirm-description">{admissionConfirm.description}</p>
+          {admissionConfirm.requiresReason && <div className="mb-4"><label htmlFor="admission-confirm-reason" className="mb-1 block text-sm font-medium text-slate-700">Reason</label><input id="admission-confirm-reason" value={admissionConfirmReason} onChange={(event) => setAdmissionConfirmReason(event.target.value)} placeholder={admissionConfirm.reasonPlaceholder} /></div>}
+          <div className="school-admin-confirm-actions"><button className="admin-button-ghost" disabled={admissionConfirmBusy} onClick={() => { setAdmissionConfirm(null); setAdmissionConfirmReason(''); }}>Cancel</button><button className="admin-button-danger school-admin-confirm-submit" disabled={admissionConfirmBusy || (admissionConfirm.requiresReason && !admissionConfirmReason.trim())} onClick={async () => { setAdmissionConfirmBusy(true); try { await admissionConfirm.onConfirm(admissionConfirmReason.trim() || undefined); setAdmissionConfirm(null); setAdmissionConfirmReason(''); } finally { setAdmissionConfirmBusy(false); } }}>{admissionConfirmBusy ? 'Processing…' : admissionConfirm.confirmLabel}</button></div>
+        </div>
+      </div>}
     </div>
   );
 };

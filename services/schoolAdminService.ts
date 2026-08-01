@@ -74,6 +74,7 @@ export interface ClassTeacherAssignment {
   teacher_user_id: string;
   subject: string;
   active: boolean;
+  assigned_at: string | null;
 }
 
 export interface ClassStudentAssignment {
@@ -767,6 +768,7 @@ export async function listTeacherAssignments(schoolId: string): Promise<ClassTea
       teacher_user_id: row.teacher_user_id,
       subject: row.subject,
       active: !!row.active,
+      assigned_at: row.assigned_at ?? row.created_at ?? null,
     }));
   } catch (err) {
     console.error('Exception fetching teacher assignments:', err);

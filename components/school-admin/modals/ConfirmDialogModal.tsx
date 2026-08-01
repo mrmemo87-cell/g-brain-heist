@@ -25,21 +25,17 @@ const ConfirmDialogModal: React.FC = () => {
     {confirmDialog && ReactDOM.createPortal(
       <div className="school-admin-modal-overlay fixed inset-0 flex items-center justify-center z-[9999] p-4" onMouseDown={(event) => { if (event.target === event.currentTarget) close(); }}>
         <div
-          className="school-admin-modal rounded-xl p-6 max-w-md w-full"
+          className={`school-admin-modal school-admin-confirm-modal rounded-xl max-w-md w-full ${confirmDialog.isDestructive ? 'is-destructive' : 'is-information'}`}
           role="dialog"
           aria-modal="true"
           aria-labelledby="confirm-dialog-title"
           aria-describedby="confirm-dialog-description"
         >
-          <h3 id="confirm-dialog-title" className="text-xl font-bold mb-2">
-            {confirmDialog.title}
-          </h3>
-          <p id="confirm-dialog-description" className="text-sm text-gray-400 mb-4">
-            {confirmDialog.description}
-          </p>
+          <div className="school-admin-confirm-heading"><span aria-hidden="true">{confirmDialog.isDestructive ? '!' : 'i'}</span><div><p className="school-admin-eyebrow">{confirmDialog.isDestructive ? 'Please confirm' : 'Confirm action'}</p><h3 id="confirm-dialog-title">{confirmDialog.title}</h3></div></div>
+          <p id="confirm-dialog-description" className="school-admin-confirm-description">{confirmDialog.description}</p>
           {confirmDialog.requiresReason && (
             <div className="mb-4">
-              <label htmlFor="confirm-reason" className="block text-sm font-medium text-gray-300 mb-1">
+              <label htmlFor="confirm-reason" className="block text-sm font-medium text-slate-700 mb-1">
                 Reason (optional)
               </label>
               <input
@@ -47,16 +43,16 @@ const ConfirmDialogModal: React.FC = () => {
                 type="text"
                 value={confirmReason}
                 onChange={(e) => setConfirmReason(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                className="w-full px-3 py-2 rounded-lg"
                 placeholder="Add a reason for this action"
               />
             </div>
           )}
-          <div className="flex items-center justify-end gap-3">
+          <div className="school-admin-confirm-actions">
             <button
               onClick={close}
               disabled={confirmBusy}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 rounded-lg transition-colors"
+              className="admin-button-ghost"
             >
               {confirmDialog.cancelLabel || 'Cancel'}
             </button>
@@ -72,11 +68,7 @@ const ConfirmDialogModal: React.FC = () => {
                   setConfirmReason('');
                 }
               }}
-              className={`px-4 py-2 rounded-lg transition-colors disabled:opacity-50 ${
-                confirmDialog.isDestructive
-                  ? 'bg-red-600 hover:bg-red-500 text-white'
-                  : 'bg-cyan-600 hover:bg-cyan-500 text-white'
-              }`}
+              className={confirmDialog.isDestructive ? 'admin-button-danger school-admin-confirm-submit' : 'admin-button-primary'}
             >
               {confirmBusy ? 'Processing…' : (confirmDialog.confirmLabel || 'Confirm')}
             </button>

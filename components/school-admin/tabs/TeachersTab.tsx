@@ -1,227 +1,104 @@
 import React from 'react';
 import { useSchoolAdmin } from '../SchoolAdminContext';
 import * as SchoolAdminService from '../../../services/schoolAdminService';
+import { formatAdminDate, friendlySchoolAdminError } from '../../../src/lib/schoolAdminPresentation';
+
+type AssignmentSort = 'class' | 'subject' | 'teacher' | 'assigned_at';
 
 const TeachersTab: React.FC = () => {
   const {
-    addToast, assignmentActive, assignmentClassId, assignmentFilterClassId, assignmentFilterTeacherId, assignmentPage, assignmentPageSize, assignmentSaving, assignmentSubjectInput, assignmentTeacherId, assignmentTotalPages, classById, classes, dbSubjects, filteredTeacherAssignments, handleAssignTeacher, loadAdminTools, pagedTeacherAssignments, school, setAssignmentActive, setAssignmentClassId, setAssignmentFilterClassId, setAssignmentFilterTeacherId, setAssignmentPage, setAssignmentPageSize, setAssignmentSubjectInput, setAssignmentTeacherId, setConfirmDialog, setConfirmReason, teachers,
+    addToast, assignmentClassId, assignmentPage, assignmentPageSize, assignmentSaving,
+    assignmentSubjectInput, assignmentTeacherId, classById, classes, dbSubjects,
+    handleAssignTeacher, loadAdminTools, school, schoolAdmins, setAssignmentClassId,
+    setAssignmentPage, setAssignmentPageSize, setAssignmentSubjectInput,
+    setAssignmentTeacherId, setConfirmDialog, setConfirmReason, teacherAssignments, teachers,
   } = useSchoolAdmin();
+  const [filterClassId, setFilterClassId] = React.useState('');
+  const [filterSubject, setFilterSubject] = React.useState('');
+  const [filterTeacherId, setFilterTeacherId] = React.useState('');
+  const [sortKey, setSortKey] = React.useState<AssignmentSort>('class');
+  const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('asc');
 
-  return (
-    <div className="space-y-6">
-      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h3 className="text-lg font-semibold mb-4">Assign Teacher to Class + Subject</h3>
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">Class</label>
-            <select
-              value={assignmentClassId}
-              onChange={(e) => setAssignmentClassId(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
-            >
-              <option value="">Select class</option>
-              {classes.map((cls) => (
-                <option key={cls.id} value={cls.id}>
-                  {cls.class_code} — {cls.class_name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">Teacher</label>
-            <select
-              value={assignmentTeacherId}
-              onChange={(e) => setAssignmentTeacherId(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
-            >
-              <option value="">Select teacher</option>
-              {teachers.map((teacher) => (
-                <option key={teacher.user_id} value={teacher.user_id}>
-                  {teacher.username}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="lg:col-span-2">
-            <label className="block text-sm font-medium text-gray-400 mb-1">Subject</label>
-            <select
-              value={assignmentSubjectInput}
-              onChange={(e) => setAssignmentSubjectInput(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
-            >
-              <option value="">Select subject</option>
-              {dbSubjects.map((subject) => (
-                <option key={subject.id} value={subject.name}>
-                  {subject.name} {subject.code && `(${subject.code})`}
-                </option>
-              ))}
-            </select>
-            {dbSubjects.length === 0 && (
-              <p className="text-xs text-yellow-500 mt-1">
-                ⚠️ No subjects available. Go to the Subjects tab to add some.
-              </p>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center gap-4 mt-4">
-          <label className="flex items-center gap-2 text-sm text-gray-300">
-            <input
-              type="checkbox"
-              checked={assignmentActive}
-              onChange={(e) => setAssignmentActive(e.target.checked)}
-              className="rounded border-gray-600 bg-gray-700 text-cyan-500 focus:ring-cyan-500"
-            />
-            Active assignment
-          </label>
-          <button
-            onClick={handleAssignTeacher}
-            disabled={assignmentSaving || !assignmentClassId || !assignmentTeacherId || !assignmentSubjectInput}
-            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 rounded-lg transition-colors font-medium"
-          >
-            {assignmentSaving ? 'Assigning...' : 'Assign Teacher'}
-          </button>
-        </div>
-        {teachers.length === 0 && (
-          <p className="text-xs text-gray-500 mt-3">No teachers found for this school yet.</p>
-        )}
-      </div>
+  const protectedAdminIds = React.useMemo(() => new Set((schoolAdmins || []).map((member: any) => member.user_id)), [schoolAdmins]);
+  const availableTeachers = React.useMemo(() => (teachers || []).filter((teacher: any) => !protectedAdminIds.has(teacher.user_id)), [teachers, protectedAdminIds]);
+  const subjectOptions = React.useMemo(() => Array.from(new Set([
+    ...(dbSubjects || []).map((subject: any) => subject.name),
+    ...(teacherAssignments || []).map((assignment: any) => assignment.subject),
+  ].filter(Boolean))).sort((a, b) => String(a).localeCompare(String(b))), [dbSubjects, teacherAssignments]);
 
-      <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-        <div className="p-4 border-b border-gray-700 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <h4 className="text-sm font-semibold text-gray-300">Current Assignments</h4>
-          <div className="flex flex-wrap gap-3">
-            <select
-              value={assignmentPageSize}
-              onChange={(e) => setAssignmentPageSize(Number(e.target.value))}
-              className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white"
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-            </select>
-            <select
-              value={assignmentFilterClassId}
-              onChange={(e) => setAssignmentFilterClassId(e.target.value)}
-              className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white"
-            >
-              <option value="">All classes</option>
-              {classes.map((cls) => (
-                <option key={cls.id} value={cls.id}>
-                  {cls.class_code}
-                </option>
-              ))}
-            </select>
-            <select
-              value={assignmentFilterTeacherId}
-              onChange={(e) => setAssignmentFilterTeacherId(e.target.value)}
-              className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white"
-            >
-              <option value="">All teachers</option>
-              {teachers.map((teacher) => (
-                <option key={teacher.user_id} value={teacher.user_id}>
-                  {teacher.username}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-750 border-b border-gray-700">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Class</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Teacher</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Subject</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Status</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-400">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-700">
-              {pagedTeacherAssignments.map((assignment) => {
-                const cls = classById[assignment.class_id];
-                const teacher = teachers.find((t) => t.user_id === assignment.teacher_user_id);
-                return (
-                  <tr key={assignment.id} className="hover:bg-gray-750">
-                    <td className="px-4 py-3 text-sm text-gray-200">
-                      {cls ? `${cls.class_code} — ${cls.class_name}` : <span className="text-yellow-400 italic text-xs">Unknown class</span>}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-200">
-                      {teacher ? (
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{teacher.username}</span>
-                          {teacher.verified && <span className="text-cyan-400 text-xs">✓</span>}
-                        </div>
-                      ) : (
-                        <span className="text-yellow-400 italic text-xs">Unknown teacher</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-300">{assignment.subject}</td>
-                    <td className="px-4 py-3 text-sm">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${assignment.active ? 'bg-green-500/20 text-green-300' : 'bg-gray-600/40 text-gray-300'}`}>
-                        {assignment.active ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => {
-                          setConfirmReason('');
-                          setConfirmDialog({
-                            title: 'Delete assignment',
-                            description: `Remove ${teacher?.username || 'this teacher'} from teaching ${assignment.subject} in ${cls?.class_code || 'this class'}?`,
-                            confirmLabel: 'Delete',
-                            cancelLabel: 'Cancel',
-                            isDestructive: true,
-                            onConfirm: async () => {
-                              const result = await SchoolAdminService.deleteTeacherAssignment(assignment.id, school?.id);
-                              if (result.success) {
-                                addToast('Assignment deleted successfully', 'success');
-                                if (school) await loadAdminTools(school.id);
-                              } else {
-                                addToast(`Failed to delete: ${result.error}`, 'error');
-                              }
-                            },
-                          });
-                        }}
-                        className="text-red-400 hover:text-red-300 text-sm font-medium"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-        {filteredTeacherAssignments.length > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-gray-700 text-sm text-gray-400">
-            <span>
-              Page {assignmentPage} of {assignmentTotalPages}
-            </span>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setAssignmentPage((prev) => Math.max(1, prev - 1))}
-                disabled={assignmentPage === 1}
-                className="px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => setAssignmentPage((prev) => Math.min(assignmentTotalPages, prev + 1))}
-                disabled={assignmentPage >= assignmentTotalPages}
-                className="px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
-        {filteredTeacherAssignments.length === 0 && (
-          <div className="p-8 text-center text-gray-400">No assignments found.</div>
-        )}
+  const sortedAssignments = React.useMemo(() => {
+    const rows = (teacherAssignments || []).filter((assignment: any) => {
+      if (filterClassId && assignment.class_id !== filterClassId) return false;
+      if (filterSubject && assignment.subject !== filterSubject) return false;
+      if (filterTeacherId && assignment.teacher_user_id !== filterTeacherId) return false;
+      return true;
+    });
+    const direction = sortDirection === 'asc' ? 1 : -1;
+    return rows.slice().sort((left: any, right: any) => {
+      const leftClass = classById[left.class_id];
+      const rightClass = classById[right.class_id];
+      const leftTeacher = teachers.find((teacher: any) => teacher.user_id === left.teacher_user_id);
+      const rightTeacher = teachers.find((teacher: any) => teacher.user_id === right.teacher_user_id);
+      const values: Record<AssignmentSort, [string, string]> = {
+        class: [leftClass?.class_code || '', rightClass?.class_code || ''],
+        subject: [left.subject || '', right.subject || ''],
+        teacher: [leftTeacher?.username || '', rightTeacher?.username || ''],
+        assigned_at: [left.assigned_at || '', right.assigned_at || ''],
+      };
+      return values[sortKey][0].localeCompare(values[sortKey][1], undefined, { numeric: true }) * direction;
+    });
+  }, [classById, filterClassId, filterSubject, filterTeacherId, sortDirection, sortKey, teacherAssignments, teachers]);
+
+  React.useEffect(() => { setAssignmentPage(1); }, [filterClassId, filterSubject, filterTeacherId, assignmentPageSize, setAssignmentPage]);
+  const totalPages = Math.max(1, Math.ceil(sortedAssignments.length / assignmentPageSize));
+  React.useEffect(() => { setAssignmentPage((page: number) => Math.min(page, totalPages)); }, [setAssignmentPage, totalPages]);
+  const pagedAssignments = sortedAssignments.slice((assignmentPage - 1) * assignmentPageSize, assignmentPage * assignmentPageSize);
+
+  const changeSort = (next: AssignmentSort) => {
+    if (sortKey === next) setSortDirection((current) => current === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(next); setSortDirection('asc'); }
+  };
+  const sortLabel = (label: string, key: AssignmentSort) => `${label}${sortKey === key ? (sortDirection === 'asc' ? ' ↑' : ' ↓') : ''}`;
+
+  return <div className="space-y-6">
+    <section className="admin-section-heading"><div><p className="school-admin-eyebrow">Administration</p><h2>Teacher Assignments</h2><p>Connect each class to a curriculum subject and the teacher responsible for it.</p></div></section>
+
+    <section className="admin-form-card" aria-labelledby="assign-teacher-title">
+      <div className="admin-card-heading"><div><h3 id="assign-teacher-title">Assign teacher to class and subject</h3><p>Select in operational order: class, subject, then teacher.</p></div></div>
+      <div className="admin-form-grid admin-form-grid-three">
+        <label className="admin-field"><span>Class <i>Required</i></span><select value={assignmentClassId} onChange={(event) => setAssignmentClassId(event.target.value)}><option value="">Select class</option>{classes.map((schoolClass: any) => <option key={schoolClass.id} value={schoolClass.id}>{schoolClass.class_code} — {schoolClass.class_name}</option>)}</select></label>
+        <label className="admin-field"><span>Subject <i>Required</i></span><select value={assignmentSubjectInput} onChange={(event) => setAssignmentSubjectInput(event.target.value)}><option value="">Select subject</option>{dbSubjects.map((subject: any) => <option key={subject.id} value={subject.name}>{subject.name}{subject.code ? ` (${subject.code})` : ''}</option>)}</select></label>
+        <label className="admin-field"><span>Teacher <i>Required</i></span><select value={assignmentTeacherId} onChange={(event) => setAssignmentTeacherId(event.target.value)}><option value="">Select teacher</option>{availableTeachers.map((teacher: any) => <option key={teacher.user_id} value={teacher.user_id}>{teacher.username}</option>)}</select></label>
       </div>
-    </div>
-  );
+      {!dbSubjects.length && <div className="admin-inline-warning" role="status"><strong>No subjects available</strong><span>Add curriculum subjects before creating a teaching assignment.</span></div>}
+      {!availableTeachers.length && <div className="admin-inline-warning" role="status"><strong>No teachers available</strong><span>Only active teacher accounts appear here; school administrators are excluded.</span></div>}
+      <div className="admin-form-actions"><button className="admin-button-primary" onClick={handleAssignTeacher} disabled={assignmentSaving || !assignmentClassId || !assignmentTeacherId || !assignmentSubjectInput}>{assignmentSaving ? 'Assigning…' : 'Assign teacher'}</button></div>
+    </section>
+
+    <section className="admin-table-card" aria-labelledby="current-assignments-title">
+      <div className="admin-card-heading admin-assignment-heading"><div><h3 id="current-assignments-title">Current assignments</h3><p>{sortedAssignments.length} assignments match the current filters.</p></div><div className="admin-assignment-filters">
+        <select aria-label="Filter assignments by class" value={filterClassId} onChange={(event) => setFilterClassId(event.target.value)}><option value="">All classes</option>{classes.map((schoolClass: any) => <option key={schoolClass.id} value={schoolClass.id}>{schoolClass.class_code}</option>)}</select>
+        <select aria-label="Filter assignments by subject" value={filterSubject} onChange={(event) => setFilterSubject(event.target.value)}><option value="">All subjects</option>{subjectOptions.map((subject) => <option key={String(subject)} value={String(subject)}>{String(subject)}</option>)}</select>
+        <select aria-label="Filter assignments by teacher" value={filterTeacherId} onChange={(event) => setFilterTeacherId(event.target.value)}><option value="">All teachers</option>{availableTeachers.map((teacher: any) => <option key={teacher.user_id} value={teacher.user_id}>{teacher.username}</option>)}</select>
+        <select aria-label="Assignments per page" value={assignmentPageSize} onChange={(event) => setAssignmentPageSize(Number(event.target.value))}><option value={5}>5 rows</option><option value={10}>10 rows</option><option value={20}>20 rows</option></select>
+      </div></div>
+      {pagedAssignments.length ? <div className="admin-table-scroll"><table>
+        <thead><tr><th><button className="admin-sort-button" onClick={() => changeSort('class')}>{sortLabel('Class', 'class')}</button></th><th><button className="admin-sort-button" onClick={() => changeSort('subject')}>{sortLabel('Subject', 'subject')}</button></th><th><button className="admin-sort-button" onClick={() => changeSort('teacher')}>{sortLabel('Teacher', 'teacher')}</button></th><th><button className="admin-sort-button" onClick={() => changeSort('assigned_at')}>{sortLabel('Date assigned', 'assigned_at')}</button></th><th className="admin-actions-column">Actions</th></tr></thead>
+        <tbody>{pagedAssignments.map((assignment: any) => {
+          const schoolClass = classById[assignment.class_id];
+          const teacher = teachers.find((item: any) => item.user_id === assignment.teacher_user_id);
+          return <tr key={assignment.id}><td><strong>{schoolClass?.class_code || 'Unknown class'}</strong><span className="admin-table-subline">{schoolClass?.class_name || 'Class record unavailable'}</span></td><td>{assignment.subject}</td><td><strong>{teacher?.username || 'Unknown teacher'}</strong>{teacher?.email && <span className="admin-table-subline">{teacher.email}</span>}</td><td>{formatAdminDate(assignment.assigned_at)}</td><td className="admin-row-actions"><button className="admin-button-danger admin-button-small" onClick={() => {
+            setConfirmReason(''); setConfirmDialog({ title: 'Delete teaching assignment?', description: `Remove ${teacher?.username || 'this teacher'} from ${assignment.subject} in ${schoolClass?.class_code || 'this class'}? The class and user accounts will remain unchanged.`, confirmLabel: 'Delete assignment', cancelLabel: 'Keep assignment', isDestructive: true, onConfirm: async () => {
+              const result = await SchoolAdminService.deleteTeacherAssignment(assignment.id, school?.id);
+              if (result.success) { addToast('Teaching assignment deleted', 'success'); if (school) await loadAdminTools(school.id); }
+              else addToast(friendlySchoolAdminError(result.error, 'The teaching assignment could not be deleted. Please try again.'), 'error');
+            } });
+          }}>Delete</button></td></tr>;
+        })}</tbody>
+      </table></div> : <div className="admin-empty-state"><h3>No assignments found</h3><p>Adjust the filters or create a new class-subject-teacher assignment.</p></div>}
+      {sortedAssignments.length > 0 && <footer className="community-pagination"><span>Page {assignmentPage} of {totalPages}</span><div><button disabled={assignmentPage === 1} onClick={() => setAssignmentPage((page: number) => Math.max(1, page - 1))}>Previous</button><button disabled={assignmentPage >= totalPages} onClick={() => setAssignmentPage((page: number) => Math.min(totalPages, page + 1))}>Next</button></div></footer>}
+    </section>
+  </div>;
 };
 
 export default TeachersTab;
