@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { ToastMessage } from '../types';
 import * as SchoolAdminService from '../services/schoolAdminService';
 import { supabase } from '../services/supabaseClient';
@@ -39,6 +40,7 @@ import AdmissionHub from './AdmissionHub';
 import { SchoolBrand } from '../src/components/SchoolBrand';
 import { createSchoolBrand } from '../src/lib/schoolBranding';
 import { friendlySchoolAdminError } from '../src/lib/schoolAdminPresentation';
+import { useSmartCollapsedNavigation } from '../src/hooks/useSmartCollapsedNavigation';
 
 interface SchoolAdminPortalProps {
   onComplete: () => void;
@@ -48,9 +50,26 @@ interface SchoolAdminPortalProps {
   onOpenTeacherPortal?: () => void;
 }
 
-type AdminTab = 'dashboard' | 'members' | 'teachers' | 'classes' | 'subjects' | 'settings' | 'billing' | 'cambridge' | 'ielts' | 'admissions' | 'ielts-exams' | 'ielts-practice' | 'ielts-results' | 'ielts-analytics' | 'ielts-settings';
 type IeltsSubTab = 'ielts-exams' | 'ielts-practice' | 'ielts-results' | 'ielts-analytics' | 'ielts-settings';
+type MainAdminTab = 'dashboard' | 'members' | 'teachers' | 'classes' | 'subjects' | 'settings' | 'billing' | 'cambridge' | 'ielts' | 'admissions';
+type AdminTab = MainAdminTab | IeltsSubTab;
 type IeltsToolNavItem = { id: IeltsSubTab; icon: string; label: string; hint: string; route?: never } | { id: string; icon: string; label: string; hint: string; route: string };
+
+const SCHOOL_ADMIN_NAV_ITEMS: Array<{ id: MainAdminTab; icon: string; label: string; mobileLabel: string; description: string }> = [
+  { id: 'dashboard', icon: '🏠', label: 'Overview', mobileLabel: 'Overview', description: 'School status and priorities' },
+  { id: 'members', icon: '👥', label: 'Students & Staff', mobileLabel: 'People', description: 'Members, roles and access' },
+  { id: 'teachers', icon: '🎓', label: 'Teacher Assignments', mobileLabel: 'Teachers', description: 'Teaching responsibilities' },
+  { id: 'classes', icon: '🏫', label: 'Classes & Registration', mobileLabel: 'Classes', description: 'Classes and registration' },
+  { id: 'subjects', icon: '📚', label: 'Curriculum & Subjects', mobileLabel: 'Subjects', description: 'Subjects and curriculum' },
+  { id: 'admissions', icon: '📝', label: 'Admissions', mobileLabel: 'Admissions', description: 'Admission tests and candidates' },
+  { id: 'cambridge', icon: '🧾', label: 'Cambridge Assessments', mobileLabel: 'Cambridge', description: 'Cambridge assessments' },
+  { id: 'ielts', icon: '🌐', label: 'IELTS Programme', mobileLabel: 'IELTS', description: 'IELTS programme' },
+  { id: 'billing', icon: '💳', label: 'Plan & Billing', mobileLabel: 'Billing', description: 'Plan and billing' },
+  { id: 'settings', icon: '⚙️', label: 'School Settings', mobileLabel: 'Settings', description: 'School configuration' },
+];
+
+const SCHOOL_ADMIN_PRIMARY_TAB_IDS = new Set<MainAdminTab>(['dashboard', 'members', 'classes', 'admissions']);
+const SCHOOL_ADMIN_PRIMARY_NAV_ITEMS = SCHOOL_ADMIN_NAV_ITEMS.filter(({ id }) => SCHOOL_ADMIN_PRIMARY_TAB_IDS.has(id));
 
 const IELTS_TOOL_NAV_ITEMS: IeltsToolNavItem[] = [
   { id: 'ielts-exams', icon: '🧪', label: 'Exams', hint: 'Secure mock exams' },
@@ -64,12 +83,34 @@ const IELTS_TOOL_NAV_ITEMS: IeltsToolNavItem[] = [
 const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLogout, onNavigate, addToast, onOpenTeacherPortal }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
   const [activeIeltsSubTab, setActiveIeltsSubTab] = useState<IeltsSubTab>('ielts-exams');
+  const [mobileAdminMenuOpen, setMobileAdminMenuOpen] = useState(false);
+  const {
+    isCollapsed: isMobileAdminNavigationHidden,
+    revealNavigation: revealMobileAdminNavigation,
+  } = useSmartCollapsedNavigation(activeTab, '(max-width: 768px)');
   const [loading, setLoading] = useState(true);
   const [school, setSchool] = useState<SchoolInfo | null>(null);
   const [stats, setStats] = useState<SchoolStats | null>(null);
   const [members, setMembers] = useState<SchoolMember[]>([]);
   const [schoolAdmins, setSchoolAdmins] = useState<SchoolMember[]>([]);
   const [currentCapabilities, setCurrentCapabilities] = useState<SchoolAdminService.SchoolCapabilities | null>(null);
+
+  const selectAdminTab = useCallback((tab: MainAdminTab) => {
+    revealMobileAdminNavigation();
+    setMobileAdminMenuOpen(false);
+    setActiveTab(tab);
+  }, [revealMobileAdminNavigation]);
+
+  useEffect(() => {
+    if (!mobileAdminMenuOpen) return;
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileAdminMenuOpen(false);
+    };
+
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [mobileAdminMenuOpen]);
 
   // Billing / Plan state
   const [planDetails, setPlanDetails] = useState<SchoolPlanDetails | null>(null);
@@ -1500,24 +1541,15 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       <aside className="school-admin-sidebar" aria-label="School administration sections">
         <p className="school-admin-nav-label">Administration</p>
       <nav className="school-admin-tabs" aria-label="School admin navigation">
-        {(['dashboard', 'members', 'teachers', 'classes', 'subjects', 'admissions', 'cambridge', 'ielts', 'billing', 'settings'] as AdminTab[]).map((tab) => (
+        {SCHOOL_ADMIN_NAV_ITEMS.map((tab) => (
           <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            data-testid={`school-admin-tab-${tab}`}
-            aria-current={activeTab === tab ? 'page' : undefined}
-            className={activeTab === tab ? 'is-active' : ''}
+            key={tab.id}
+            onClick={() => selectAdminTab(tab.id)}
+            data-testid={`school-admin-tab-${tab.id}`}
+            aria-current={activeTab === tab.id ? 'page' : undefined}
+            className={activeTab === tab.id ? 'is-active' : ''}
           >
-            {tab === 'dashboard' && 'Overview'}
-            {tab === 'members' && 'Students & Staff'}
-            {tab === 'teachers' && 'Teacher Assignments'}
-            {tab === 'classes' && 'Classes & Registration'}
-            {tab === 'subjects' && 'Curriculum & Subjects'}
-            {tab === 'admissions' && 'Admissions'}
-            {tab === 'billing' && 'Plan & Billing'}
-            {tab === 'settings' && 'School Settings'}
-            {tab === 'cambridge' && 'Cambridge Assessments'}
-            {tab === 'ielts' && 'IELTS Programme'}
+            {tab.label}
           </button>
         ))}
       </nav>
@@ -1611,6 +1643,84 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       </main>
       </div>
 
+      <nav
+        className="school-admin-mobile-bottom-nav"
+        data-hidden={isMobileAdminNavigationHidden}
+        aria-label="School administration mobile navigation"
+      >
+        <button
+          type="button"
+          className="smart-mobile-nav-reveal"
+          onClick={revealMobileAdminNavigation}
+          aria-label="Show school administration navigation"
+        >
+          <span aria-hidden="true" />
+        </button>
+        {SCHOOL_ADMIN_PRIMARY_NAV_ITEMS.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => selectAdminTab(tab.id)}
+            className={activeTab === tab.id ? 'is-active' : ''}
+            aria-current={activeTab === tab.id ? 'page' : undefined}
+            aria-label={tab.label}
+          >
+            <span aria-hidden="true">{tab.icon}</span>
+            <small>{tab.mobileLabel}</small>
+          </button>
+        ))}
+        <button
+          type="button"
+          onClick={() => {
+            revealMobileAdminNavigation();
+            setMobileAdminMenuOpen(true);
+          }}
+          className={!SCHOOL_ADMIN_PRIMARY_TAB_IDS.has(activeTab as MainAdminTab) ? 'is-active' : ''}
+          aria-expanded={mobileAdminMenuOpen}
+          aria-label="More school administration sections"
+        >
+          <span aria-hidden="true">•••</span>
+          <small>More</small>
+        </button>
+      </nav>
+
+      {mobileAdminMenuOpen && typeof document !== 'undefined' && createPortal(
+        <div className="school-admin-mobile-menu-layer" role="dialog" aria-modal="true" aria-labelledby="school-admin-mobile-menu-title">
+          <button
+            type="button"
+            className="school-admin-mobile-menu-backdrop"
+            onClick={() => setMobileAdminMenuOpen(false)}
+            aria-label="Close school administration menu"
+          />
+          <section className="school-admin-mobile-menu-sheet">
+            <div className="school-admin-mobile-menu-heading">
+              <div>
+                <p>School administration</p>
+                <h2 id="school-admin-mobile-menu-title">All sections</h2>
+              </div>
+              <button type="button" onClick={() => setMobileAdminMenuOpen(false)} aria-label="Close school administration menu">×</button>
+            </div>
+            <div className="school-admin-mobile-menu-grid">
+              {SCHOOL_ADMIN_NAV_ITEMS.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => selectAdminTab(tab.id)}
+                  className={activeTab === tab.id ? 'is-active' : ''}
+                  aria-current={activeTab === tab.id ? 'page' : undefined}
+                >
+                  <span className="school-admin-mobile-menu-icon" aria-hidden="true">{tab.icon}</span>
+                  <span>
+                    <strong>{tab.label}</strong>
+                    <small>{tab.description}</small>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
+        </div>,
+        document.body,
+      )}
 
       {/* Modals */}
       <MemberActionModal />

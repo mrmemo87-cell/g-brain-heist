@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const TOP_EXPANDED_THRESHOLD = 40;
 const COLLAPSE_DISTANCE = 60;
@@ -18,13 +18,17 @@ export const useSmartCollapsedNavigation = (
   const [isCollapsed, setIsCollapsed] = useState(false);
   const isCollapsedRef = useRef(false);
 
-  useEffect(() => {
-    const updateCollapsedState = (nextCollapsed: boolean) => {
-      if (isCollapsedRef.current === nextCollapsed) return;
-      isCollapsedRef.current = nextCollapsed;
-      setIsCollapsed(nextCollapsed);
-    };
+  const updateCollapsedState = useCallback((nextCollapsed: boolean) => {
+    if (isCollapsedRef.current === nextCollapsed) return;
+    isCollapsedRef.current = nextCollapsed;
+    setIsCollapsed(nextCollapsed);
+  }, []);
 
+  const revealNavigation = useCallback(() => {
+    updateCollapsedState(false);
+  }, [updateCollapsedState]);
+
+  useEffect(() => {
     updateCollapsedState(false);
 
     const mediaQuery = window.matchMedia(mobileMediaQuery);
@@ -91,7 +95,7 @@ export const useSmartCollapsedNavigation = (
       mediaQuery.removeEventListener('change', onBreakpointChange);
       if (animationFrame !== null) window.cancelAnimationFrame(animationFrame);
     };
-  }, [mobileMediaQuery, routeKey]);
+  }, [mobileMediaQuery, routeKey, updateCollapsedState]);
 
-  return isCollapsed;
+  return { isCollapsed, revealNavigation };
 };

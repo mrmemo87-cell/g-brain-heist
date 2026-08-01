@@ -3646,7 +3646,14 @@
     padding: 0.35rem;
     box-shadow: 0 18px 45px rgba(2, 6, 23, 0.5);
     backdrop-filter: blur(18px);
-    transition: min-height 220ms ease-out, padding 220ms ease-out, box-shadow 220ms ease-out;
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    transform-origin: bottom center;
+    will-change: transform, opacity;
+    transition:
+      transform 440ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 280ms ease-out,
+      box-shadow 320ms ease-out;
   }
 
   .teacher-mobile-bottom-nav button {
@@ -3681,19 +3688,48 @@
     transition: opacity 180ms ease-out, transform 220ms ease-out, max-height 220ms ease-out;
   }
 
-  .teacher-mobile-bottom-nav[data-collapsed='true'] {
-    min-height: 52px;
-    padding-block: 0.2rem;
-    box-shadow: 0 10px 24px rgba(2, 6, 23, 0.38);
+  .teacher-mobile-bottom-nav[data-hidden='true'] {
+    opacity: 0.82;
+    transform: translate3d(0, calc(100% - 0.95rem), 0);
+    box-shadow: 0 8px 20px rgba(2, 6, 23, 0.3);
   }
 
-  .teacher-mobile-bottom-nav[data-collapsed='true'] button { min-height: 44px; }
-
-  .teacher-mobile-bottom-nav[data-collapsed='true'] button > small {
-    max-height: 0;
-    opacity: 0;
-    transform: translateY(0.35rem);
+  .teacher-mobile-bottom-nav[data-hidden='true'] > button:not(.smart-mobile-nav-reveal) {
     pointer-events: none;
+  }
+
+  .teacher-mobile-bottom-nav[data-hidden='true']:focus-within {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  .teacher-mobile-bottom-nav > .smart-mobile-nav-reveal {
+    position: absolute;
+    top: 0.14rem;
+    left: 50%;
+    z-index: 3;
+    display: none;
+    width: 3rem;
+    min-width: 3rem;
+    min-height: 0.68rem;
+    height: 0.68rem;
+    padding: 0;
+    border-radius: 999px;
+    background: transparent;
+    transform: translateX(-50%);
+    touch-action: manipulation;
+  }
+
+  .teacher-mobile-bottom-nav[data-hidden='true'] > .smart-mobile-nav-reveal {
+    display: grid;
+  }
+
+  .teacher-mobile-bottom-nav > .smart-mobile-nav-reveal > span {
+    width: 2.2rem;
+    height: 0.24rem;
+    border-radius: 999px;
+    background: rgba(224, 242, 254, 0.78);
+    box-shadow: 0 0 12px rgba(34, 211, 238, 0.34);
   }
 
   .teacher-mobile-bottom-nav button.is-active {
@@ -3720,6 +3756,10 @@
   .teacher-mobile-bottom-nav,
   .teacher-mobile-bottom-nav button,
   .teacher-mobile-bottom-nav button > small { transition-duration: 1ms; }
+
+  .teacher-mobile-bottom-nav[data-hidden='true'] {
+    transform: translate3d(0, calc(100% - 0.95rem), 0);
+  }
 }
 
 @media (max-width: 767px) {

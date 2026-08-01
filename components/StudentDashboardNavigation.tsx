@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useSmartCollapsedNavigation } from '../src/hooks/useSmartCollapsedNavigation';
 
 export type StudentDashboardDestination =
   | 'home'
@@ -55,6 +56,63 @@ const badgeFor = (
   return 0;
 };
 
+type StudentMobileBottomNavigationProps = Pick<StudentDashboardNavigationProps,
+  'assignmentCount' | 'clanBadgeCount' | 'activeDestination' | 'onNavigate'
+>;
+
+const StudentMobileBottomNavigation: React.FC<StudentMobileBottomNavigationProps> = ({
+  assignmentCount,
+  clanBadgeCount,
+  activeDestination,
+  onNavigate,
+}) => {
+  const {
+    isCollapsed: isNavigationHidden,
+    revealNavigation,
+  } = useSmartCollapsedNavigation(activeDestination);
+
+  const navigate = (destination: StudentDashboardDestination) => {
+    revealNavigation();
+    onNavigate(destination);
+  };
+
+  return (
+    <nav
+      className="student-dashboard-bottom-nav"
+      data-hidden={isNavigationHidden}
+      aria-label="Student dashboard mobile navigation"
+    >
+      <button
+        type="button"
+        className="smart-mobile-nav-reveal"
+        onClick={revealNavigation}
+        aria-label="Show student navigation"
+      >
+        <span aria-hidden="true" />
+      </button>
+      {mobileDestinations.map((destination) => {
+        const badge = badgeFor(destination.id, assignmentCount, clanBadgeCount);
+        return (
+          <button
+            key={destination.id}
+            type="button"
+            className={`student-dashboard-bottom-link ${destination.id === activeDestination ? 'is-active' : ''}`}
+            onClick={() => navigate(destination.id)}
+            aria-label={destination.label}
+            aria-current={destination.id === activeDestination ? 'page' : undefined}
+          >
+            <span className="student-dashboard-bottom-icon" aria-hidden>
+              {destination.icon}
+              {badge > 0 && <span className="student-dashboard-bottom-badge">{Math.min(badge, 9)}{badge > 9 ? '+' : ''}</span>}
+            </span>
+            <span className="student-dashboard-bottom-label">{destination.label}</span>
+          </button>
+        );
+      })}
+    </nav>
+  );
+};
+
 const StudentDashboardNavigation: React.FC<StudentDashboardNavigationProps> = ({
   username,
   level,
@@ -87,27 +145,12 @@ const StudentDashboardNavigation: React.FC<StudentDashboardNavigationProps> = ({
   };
 
   const bottomNavigation = (
-    <nav className="student-dashboard-bottom-nav" aria-label="Student dashboard mobile navigation">
-      {mobileDestinations.map((destination) => {
-        const badge = badgeFor(destination.id, assignmentCount, clanBadgeCount);
-        return (
-          <button
-            key={destination.id}
-            type="button"
-            className={`student-dashboard-bottom-link ${destination.id === activeDestination ? 'is-active' : ''}`}
-            onClick={() => onNavigate(destination.id)}
-            aria-label={destination.label}
-            aria-current={destination.id === activeDestination ? 'page' : undefined}
-          >
-            <span className="student-dashboard-bottom-icon" aria-hidden>
-              {destination.icon}
-              {badge > 0 && <span className="student-dashboard-bottom-badge">{Math.min(badge, 9)}{badge > 9 ? '+' : ''}</span>}
-            </span>
-            <span className="student-dashboard-bottom-label">{destination.label}</span>
-          </button>
-        );
-      })}
-    </nav>
+    <StudentMobileBottomNavigation
+      assignmentCount={assignmentCount}
+      clanBadgeCount={clanBadgeCount}
+      activeDestination={activeDestination}
+      onNavigate={onNavigate}
+    />
   );
 
   return (
@@ -167,17 +210,16 @@ const StudentDashboardNavigation: React.FC<StudentDashboardNavigationProps> = ({
 export const StudentDashboardBottomNavigation: React.FC<Pick<StudentDashboardNavigationProps,
   'assignmentCount' | 'clanBadgeCount' | 'activeDestination' | 'onNavigate'
 >> = ({ assignmentCount, clanBadgeCount, activeDestination, onNavigate }) => {
+  if (typeof document === 'undefined') return null;
+
   return createPortal(
-  <nav className="student-dashboard-bottom-nav" aria-label="Student dashboard navigation">
-    {mobileDestinations.map((destination) => {
-      const badge = badgeFor(destination.id, assignmentCount, clanBadgeCount);
-      return <button key={destination.id} type="button" className={`student-dashboard-bottom-link ${destination.id === activeDestination ? 'is-active' : ''}`} onClick={() => onNavigate(destination.id)} aria-label={destination.label} aria-current={destination.id === activeDestination ? 'page' : undefined}>
-        <span className="student-dashboard-bottom-icon" aria-hidden>{destination.icon}{badge > 0 && <span className="student-dashboard-bottom-badge">{Math.min(badge, 9)}{badge > 9 ? '+' : ''}</span>}</span>
-        <span className="student-dashboard-bottom-label">{destination.label}</span>
-      </button>;
-    })}
-  </nav>,
-  document.body,
+    <StudentMobileBottomNavigation
+      assignmentCount={assignmentCount}
+      clanBadgeCount={clanBadgeCount}
+      activeDestination={activeDestination}
+      onNavigate={onNavigate}
+    />,
+    document.body,
   );
 };
 
