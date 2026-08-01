@@ -19,7 +19,7 @@ const CambridgeTab: React.FC = () => {
                 loadSchoolVisibility();
               }
             }}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+            className={`cambridge-white-action px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
               showSchoolVisibility
                 ? 'bg-purple-600 text-white hover:bg-purple-700'
                 : 'bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400 text-white'
@@ -197,14 +197,14 @@ const CambridgeTab: React.FC = () => {
           <button
             onClick={fetchQuizScores}
             disabled={quizScoresLoading}
-            className="bg-cyan-600 hover:bg-cyan-500 text-white font-medium px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+            className="cambridge-white-action bg-cyan-600 hover:bg-cyan-500 text-white font-medium px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
           >
             {quizScoresLoading ? '⏳ Loading...' : '🔄 Load/Refresh Reports'}
           </button>
           {quizScores.length > 0 && (
             <button
               onClick={exportCSV}
-              className="bg-green-600 hover:bg-green-500 text-white font-medium px-4 py-2 rounded-lg transition-colors"
+              className="cambridge-white-action bg-green-600 hover:bg-green-500 text-white font-medium px-4 py-2 rounded-lg transition-colors"
             >
               📥 Export CSV
             </button>

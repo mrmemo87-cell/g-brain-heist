@@ -1737,7 +1737,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
       {/*  ━━━ CANDIDATES TAB ━━━  */}
       {activeTab === 'candidates' && !loading && (
-        <div className="space-y-6">
+        <section className="admission-light-panel admission-candidates-panel space-y-6">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <h2 className="text-lg font-semibold text-slate-900">Candidates</h2>
             <div className="flex items-center gap-2">
@@ -1887,8 +1887,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
               <p className="text-slate-500 text-xs mt-1">Click "+ Add One" or "Bulk Import" to get started.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            <div className="admission-candidate-directory overflow-x-auto">
+              <table className="admission-candidate-table w-full text-sm">
                 <thead>
                   <tr className="text-left text-xs text-slate-600 border-b border-slate-200">
                     <th className="pb-2 pr-4">Name</th>
@@ -1911,7 +1911,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                     const attemptedFormIds = new Set(attempts.filter(a => a.candidate_id === c.id).map(a => a.form_id));
                     const historyForms = forms.filter(f => attemptedFormIds.has(f.id) && !matchingForms.some(pf => pf.id === f.id));
                     return (
-                      <tr key={c.id} className="text-slate-700 hover:bg-slate-100 transition">
+                      <tr key={c.id} className="admission-candidate-row text-slate-700 hover:bg-slate-100 transition">
                         <td className="py-3 pr-4">
                           <div className="font-medium text-slate-900">{c.full_name}</div>
                           <div className="text-[10px] text-slate-500 mt-0.5">Candidate-specific links are private</div>
@@ -1990,12 +1990,12 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
               </table>
             </div>
           )}
-        </div>
+        </section>
       )}
 
       {/*  ━━━ RESULTS TAB ━━━  */}
       {activeTab === 'results' && !loading && (
-        <div className="space-y-6">
+        <section className="admission-light-panel admission-results-panel space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-slate-900">Test Results</h2>
             {attempts.filter(a => a.status === 'scored').length > 0 && (
@@ -2110,7 +2110,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
               })()}
             </div>
           )}
-        </div>
+        </section>
       )}
 
       {/*  ━━━ AUDIT TAB ━━━  */}

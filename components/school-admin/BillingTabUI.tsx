@@ -17,7 +17,7 @@ interface BillingTabProps {
   onSubscribe: (plan: PlanInfo) => void;
 }
 
-const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2';
+const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4b82] focus-visible:ring-offset-2';
 
 const BillingTab: React.FC<BillingTabProps> = ({
   planDetails,
@@ -36,7 +36,7 @@ const BillingTab: React.FC<BillingTabProps> = ({
 
   if (loading || !planDetails) {
     return (
-      <div className="flex items-center justify-center py-12 text-slate-200" role="status" aria-live="polite">
+      <div className="billing-loading flex items-center justify-center rounded-xl border border-slate-200 bg-white py-12 text-slate-600" role="status" aria-live="polite">
         <svg className="mr-2 h-5 w-5 animate-spin" viewBox="0 0 24 24" aria-hidden="true">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
           <path className="opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -67,7 +67,7 @@ const BillingTab: React.FC<BillingTabProps> = ({
         : 'border-slate-200 bg-white';
 
   return (
-    <div className="billing-tab-ui max-w-5xl space-y-6" aria-busy={billingAction !== null}>
+    <div className="billing-tab-ui max-w-none space-y-6" aria-busy={billingAction !== null}>
       <section className={`rounded-xl border p-5 shadow-sm sm:p-6 ${statusClasses}`} aria-label="Current plan">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
@@ -111,10 +111,14 @@ const BillingTab: React.FC<BillingTabProps> = ({
 
       {!isPaid && (
         <>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h3 className="billing-on-dark text-xl font-bold text-white">
+          <div className="billing-plan-heading flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+            <p className="school-admin-eyebrow">Choose your capacity</p>
+            <h3 className="text-xl font-bold text-slate-900">
               {isNone ? 'Or subscribe now' : trialExpired ? 'Choose a plan to restore access' : 'Upgrade to a paid plan'}
             </h3>
+            <p className="mt-1 text-sm text-slate-600">Every plan includes the complete school administration suite. Choose capacity based on active learners.</p>
+            </div>
             <div className="inline-flex w-full rounded-xl border border-slate-200 bg-white p-1 shadow-sm sm:w-auto" aria-label="Billing interval">
               {(['monthly', 'yearly'] as const).map((interval) => {
                 const selected = billingInterval === interval;
@@ -138,27 +142,27 @@ const BillingTab: React.FC<BillingTabProps> = ({
             {PAID_PLANS.map((p) => {
               const price = billingInterval === 'yearly' ? p.yearly : p.monthly;
               const isPopular = p.popular;
-              const featureRowClasses = isPopular ? 'border border-white/10 bg-white/10' : 'border border-slate-100 bg-slate-50';
+              const featureRowClasses = isPopular ? 'border border-blue-100 bg-white' : 'border border-slate-100 bg-slate-50';
               return (
-                <article key={p.id} className={`relative flex min-w-0 flex-col rounded-2xl border p-5 shadow-sm transition-shadow hover:shadow-md ${isPopular ? 'border-emerald-400 bg-[#0d2929] ring-1 ring-emerald-400/40' : 'border-slate-200 bg-white'}`}>
-                  {isPopular && <div className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-emerald-400 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-950">Most Popular</div>}
-                  <h4 className={`text-lg font-bold ${isPopular ? 'text-emerald-300' : 'text-slate-900'}`}>{p.label}</h4>
-                  <div className={`mt-1 break-words text-2xl font-bold ${isPopular ? 'text-white' : 'text-slate-900'}`}>
-                    ${price.toLocaleString()}<span className={`text-sm font-normal ${isPopular ? 'text-slate-300' : 'text-slate-500'}`}>/{billingInterval === 'yearly' ? 'yr' : 'mo'}</span>
+                <article key={p.id} className={`billing-plan-card relative flex min-w-0 flex-col rounded-2xl border p-5 shadow-sm transition-shadow hover:shadow-md ${isPopular ? 'is-popular border-[#1e4b82] bg-blue-50 ring-1 ring-[#1e4b82]/20' : 'border-slate-200 bg-white'}`}>
+                  {isPopular && <div className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#1e4b82] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white">Recommended</div>}
+                  <h4 className="text-lg font-bold text-slate-900">{p.label}</h4>
+                  <div className="mt-1 break-words text-2xl font-bold text-slate-900">
+                    ${price.toLocaleString()}<span className="text-sm font-normal text-slate-500">/{billingInterval === 'yearly' ? 'yr' : 'mo'}</span>
                   </div>
                   <div className="min-h-5">
-                    {billingInterval === 'yearly' && <p className={`text-xs ${isPopular ? 'text-emerald-200' : 'text-emerald-700'}`}>${Math.round(p.yearly / 12).toLocaleString()}/mo billed annually</p>}
+                    {billingInterval === 'yearly' && <p className="text-xs text-slate-600">${Math.round(p.yearly / 12).toLocaleString()}/mo billed annually</p>}
                   </div>
                   <div className="mt-3 space-y-2 text-xs">
                     {([['📚 Cambridge', p.seats.cambridge], ['🎧 IELTS', p.seats.ielts], ['🎮 Game', p.seats.game]] as const).map(([label, seats]) => (
                       <div key={label} className={`flex items-center justify-between gap-2 rounded-lg px-2.5 py-2 ${featureRowClasses}`}>
-                        <span className={isPopular ? 'text-slate-200' : 'text-slate-600'}>{label}</span>
-                        <span className={`text-right font-semibold ${isPopular ? 'text-white' : 'text-slate-900'}`}>up to {seats}</span>
+                        <span className="text-slate-600">{label}</span>
+                        <span className="text-right font-semibold text-slate-900">up to {seats}</span>
                       </div>
                     ))}
                   </div>
                   <div className="flex-1" />
-                  <button onClick={() => onSubscribe(p)} disabled={billingAction !== null} className={`mt-5 w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 ${focusRing} ${isPopular ? 'bg-emerald-400 text-emerald-950 hover:bg-emerald-300' : 'billing-on-dark bg-[#1e4b82] text-white hover:bg-[#173d6c]'}`}>
+                  <button onClick={() => onSubscribe(p)} disabled={billingAction !== null} className={`mt-5 w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 ${focusRing} ${isPopular ? 'bg-[#173d6c] hover:bg-[#102f57]' : 'bg-[#1e4b82] hover:bg-[#173d6c]'}`}>
                     {billingAction === p.id ? 'Redirecting…' : 'Subscribe'}
                   </button>
                 </article>
@@ -168,7 +172,7 @@ const BillingTab: React.FC<BillingTabProps> = ({
 
           <section className="rounded-xl border border-slate-200 bg-white p-5 text-center shadow-sm">
             <p className="text-sm text-slate-600"><span className="font-semibold text-slate-900">🏢 Enterprise</span> — Unlimited seats · Multi-campus · Custom pricing</p>
-            <a href="mailto:sales@brainsheist.com?subject=Enterprise%20Plan%20Inquiry" className={`mt-1 inline-block text-sm font-semibold text-emerald-700 transition-colors hover:text-emerald-600 ${focusRing}`}>Contact sales@brainsheist.com →</a>
+            <a href="mailto:sales@brainsheist.com?subject=Enterprise%20Plan%20Inquiry" className={`mt-1 inline-block text-sm font-semibold text-[#1e4b82] transition-colors hover:text-[#173d6c] ${focusRing}`}>Contact sales@brainsheist.com →</a>
           </section>
         </>
       )}
@@ -185,14 +189,14 @@ const BillingTab: React.FC<BillingTabProps> = ({
         </section>
       )}
 
-      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 pt-2 text-xs text-slate-300">
+      <div className="billing-trust-row flex flex-wrap items-center justify-center gap-x-4 gap-y-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-600">
         <span>🔒 Secure payment via Paddle</span><span>↩️ Cancel anytime</span><span>⚡ Instant activation</span><span>👥 Covers all teachers & students</span>
       </div>
-      <div className="flex flex-wrap items-center justify-center gap-3 pt-1.5 text-[11px] text-slate-400">
+      <div className="flex flex-wrap items-center justify-center gap-3 pt-1.5 text-[11px] text-slate-500">
         {['Pricing', 'Terms', 'Privacy', 'Refunds', 'Contact'].map((label, index) => (
           <React.Fragment key={label}>
             {index > 0 && <span aria-hidden="true">·</span>}
-            <a href={`/${label.toLowerCase() === 'refunds' ? 'refund' : label.toLowerCase()}.html`} target="_blank" rel="noopener noreferrer" className={`transition-colors hover:text-white ${focusRing}`}>{label}</a>
+            <a href={`/${label.toLowerCase() === 'refunds' ? 'refund' : label.toLowerCase()}.html`} target="_blank" rel="noopener noreferrer" className={`transition-colors hover:text-[#1e4b82] ${focusRing}`}>{label}</a>
           </React.Fragment>
         ))}
       </div>

@@ -11,6 +11,7 @@ const MemberActionModal: React.FC = () => {
   const [verifiedName, setVerifiedName] = React.useState('');
   const [nameSaving, setNameSaving] = React.useState(false);
   const [nameMessage, setNameMessage] = React.useState('');
+  const modalRef = React.useRef<HTMLDivElement>(null);
   const isProtectedAdmin = selectedMember?.role === 'school_admin';
 
   React.useEffect(() => {
@@ -26,6 +27,14 @@ const MemberActionModal: React.FC = () => {
     document.addEventListener('keydown', closeOnEscape);
     return () => document.removeEventListener('keydown', closeOnEscape);
   }, [showMemberActionModal, actionLoading, studentSaving, suspendLoading, setShowMemberActionModal]);
+
+  React.useLayoutEffect(() => {
+    if (!showMemberActionModal) return;
+    const modal = modalRef.current;
+    if (!modal) return;
+    modal.scrollTop = 0;
+    modal.focus({ preventScroll: true });
+  }, [showMemberActionModal, selectedMember?.user_id]);
 
   const reviewRealName = async (approved: boolean) => {
     if (!selectedMember) return;
@@ -48,23 +57,27 @@ const MemberActionModal: React.FC = () => {
         if (event.target === event.currentTarget && !actionLoading && !studentSaving && !suspendLoading) setShowMemberActionModal(false);
       }}>
         <div
-          className="school-admin-modal member-management-modal rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+          ref={modalRef}
+          tabIndex={-1}
+          className="school-admin-modal member-management-modal rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto bg-white text-slate-900"
           role="dialog"
           aria-modal="true"
           aria-labelledby="member-action-title"
           aria-describedby="member-action-description"
         >
-          <div className="flex items-center gap-4 mb-4">
+          <header className="member-management-header">
             <img
               src={selectedMember.avatar_url || '/avatars/default.png'}
               alt={selectedMember.username}
-              className="w-12 h-12 rounded-full bg-gray-700"
+              className="w-12 h-12 rounded-full bg-slate-100"
             />
             <div>
               <h3 id="member-action-title" className="text-xl font-bold">{selectedMember.username}</h3>
-              <p id="member-action-description" className="text-gray-400 text-sm">{selectedMember.email}</p>
+              <p id="member-action-description" className="text-slate-600 text-sm">{selectedMember.email}</p>
             </div>
-          </div>
+          </header>
+
+          <div className="member-management-body">
 
           <div className="member-record-strip">
             <span><small>Role</small><strong>{selectedMember.role.replace('_', ' ')}</strong></span>
@@ -75,9 +88,9 @@ const MemberActionModal: React.FC = () => {
           <div className="space-y-3">
             {isProtectedAdmin && <div className="admin-protected-notice" role="status"><span aria-hidden="true">◆</span><div><strong>Protected school administrator</strong><p>This account cannot be banned, suspended, removed, or assigned a different role from this portal.</p></div></div>}
             {selectedMember.role === 'student' && (
-              <div className="bg-gray-700/50 rounded-lg p-4">
+              <div className="member-action-section">
                 <div className="flex items-center justify-between gap-3 mb-2">
-                  <h4 className="text-sm font-medium text-gray-200">School exam identity</h4>
+                  <h4 className="text-sm font-semibold text-slate-800">School exam identity</h4>
                   <span className={`text-xs px-2 py-1 rounded-full ${
                     selectedMember.full_name_status === 'verified' ? 'bg-green-500/20 text-green-300' :
                     selectedMember.full_name_status === 'rejected' ? 'bg-red-500/20 text-red-300' :
@@ -102,8 +115,8 @@ const MemberActionModal: React.FC = () => {
             )}
 
             {selectedMember.role === 'student' && (
-              <div className="bg-gray-700/50 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-200 mb-2">Academic placement</h4>
+              <div className="member-action-section">
+                <h4 className="text-sm font-semibold text-slate-800 mb-2">Academic placement</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <input type="number" value={selectedGrade} onChange={e => setSelectedGrade(e.target.value ? Number(e.target.value) : '')} placeholder="Year group" aria-label="Year group" />
                   <select value={selectedClassId} onChange={e => setSelectedClassId(e.target.value)} aria-label="Class"><option value="">Not assigned to a class</option>{(Array.isArray(classes) ? classes : []).filter((item: any) => item.is_active).map((item: any) => <option key={item.id} value={item.id}>{item.class_code} — {item.class_name}</option>)}</select>
@@ -113,8 +126,8 @@ const MemberActionModal: React.FC = () => {
             )}
 
             {/* Role Change */}
-            {!isProtectedAdmin && <div className="bg-gray-700/50 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-gray-400 mb-2">Change Role</h4>
+            {!isProtectedAdmin && <div className="member-action-section">
+              <h4 className="text-sm font-semibold text-slate-800 mb-2">Change Role</h4>
               <div className="flex gap-2">
                 {(['student', 'teacher', 'school_admin'] as SchoolRole[]).map((role) => (
                   <button
@@ -134,8 +147,8 @@ const MemberActionModal: React.FC = () => {
             </div>}
 
             {/* Ban/Unban */}
-            {!isProtectedAdmin && <div className="bg-gray-700/50 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-gray-400 mb-2">Account Status</h4>
+            {!isProtectedAdmin && <div className="member-action-section">
+              <h4 className="text-sm font-semibold text-slate-800 mb-2">Account Status</h4>
               {selectedMember.is_banned ? (
                 <button
                   onClick={handleUnbanMember}
@@ -157,7 +170,7 @@ const MemberActionModal: React.FC = () => {
 
             {/* Suspension Controls — students only */}
             {selectedMember.role === 'student' && !selectedMember.is_banned && (
-              <div className="bg-gray-700/50 rounded-lg p-4">
+              <div className="member-action-section">
                 <h4 className="text-sm font-medium text-amber-400 mb-2">⏱️ Time-Limited Suspension</h4>
                 {modTargetStatus && modTargetStatus.mod_status === 'suspended' ? (
                   <div className="space-y-2">
@@ -215,7 +228,7 @@ const MemberActionModal: React.FC = () => {
 
             {/* Force Profile Change — students only */}
             {selectedMember.role === 'student' && !selectedMember.is_banned && (
-              <div className="bg-gray-700/50 rounded-lg p-4">
+              <div className="member-action-section">
                 <h4 className="text-sm font-medium text-yellow-400 mb-2">✏️ Force Profile Change</h4>
                 {modTargetStatus?.required_changes ? (
                   <div className="space-y-2">
@@ -308,11 +321,11 @@ const MemberActionModal: React.FC = () => {
               setForceChangeAvatar(false);
               setForceChangeReason('');
             }}
-            className="w-full mt-4 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
-            autoFocus
+            className="member-management-close"
           >
             Close
           </button>
+          </div>
         </div>
       </div>,
       document.body
