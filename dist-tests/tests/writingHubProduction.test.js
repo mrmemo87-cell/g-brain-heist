@@ -156,15 +156,16 @@ test('teacher dashboard stalled/improving indicators render', () => {
         attempted_at: '2026-03-03T10:00:00.000Z',
     });
     const html = renderToStaticMarkup(React.createElement(WritingMonitoringView, { month: '2026-03' }));
-    assert.ok(html.includes('Stalled Student'));
-    assert.ok(html.includes('Improving Student'));
-    assert.ok(html.includes('Needs support'));
+    assert.ok(html.includes('Students and general writing data'));
+    assert.ok(html.includes('Choose a class'));
+    assert.ok(html.includes('2</strong><small>Students'));
+    assert.ok(html.includes('Need support'));
     assert.ok(html.includes('Improving'));
 });
 test('teacher dashboard loading/error/empty states render', () => {
     __resetWritingIntegrationStoreForTests();
     const loadingHtml = renderToStaticMarkup(React.createElement(WritingMonitoringView, { isLoading: true }));
-    assert.ok(loadingHtml.includes('background:#0a0f1a'), `Expected monitoring loading skeleton container. First 500 chars:\n${loadingHtml.slice(0, 500)}`);
+    assert.ok(loadingHtml.includes('writing-monitor--loading'), `Expected monitoring loading skeleton container. First 500 chars:\n${loadingHtml.slice(0, 500)}`);
     const errorHtml = renderToStaticMarkup(React.createElement(WritingMonitoringView, { errorMessage: 'network unavailable' }));
     assert.ok(errorHtml.includes('Unable to load writing monitor'));
     const emptyHtml = renderToStaticMarkup(React.createElement(WritingMonitoringView, { month: '2026-03' }));
@@ -270,20 +271,20 @@ test('writing export center renders student/teacher/admin exports', () => {
         submitted_at: '2026-03-02T10:00:00.000Z',
     });
     const studentHtml = renderToStaticMarkup(React.createElement(WritingExportCenter, { mode: 'student', studentId: 'exp-ui-1', month: '2026-03' }));
-    assert.ok(studentHtml.includes('No export data available'));
+    assert.ok(studentHtml.includes('No export data is available yet'));
     const teacherHtml = renderToStaticMarkup(React.createElement(WritingExportCenter, { mode: 'teacher', month: '2026-03' }));
-    assert.ok(teacherHtml.includes('No export data available'), `Expected teacher export static render to show missing-data fallback before async fetch. First 500 chars:\n${teacherHtml.slice(0, 500)}`);
+    assert.ok(teacherHtml.includes('Turn writing evidence into a clear conversation'), `Expected teacher export static render to show the teacher-first report workflow. First 500 chars:\n${teacherHtml.slice(0, 500)}`);
     const adminHtml = renderToStaticMarkup(React.createElement(WritingExportCenter, { mode: 'admin', studentId: 'exp-ui-1', month: '2026-03' }));
     assert.ok(adminHtml.includes('Admin Calibration Export'));
 });
 test('writing export center loading/error/missing-data states', () => {
     __resetWritingIntegrationStoreForTests();
     const loadingHtml = renderToStaticMarkup(React.createElement(WritingExportCenter, { mode: 'teacher', isLoading: true }));
-    assert.ok(loadingHtml.includes('Loading exports'));
+    assert.ok(loadingHtml.includes('Loading Writing Reports'));
     const errorHtml = renderToStaticMarkup(React.createElement(WritingExportCenter, { mode: 'teacher', errorMessage: 'network timeout' }));
-    assert.ok(errorHtml.includes('Unable to load exports'));
+    assert.ok(errorHtml.includes('Writing Reports could not be opened'));
     const missingHtml = renderToStaticMarkup(React.createElement(WritingExportCenter, { mode: 'student', month: '2026-03' }));
-    assert.ok(missingHtml.includes('No export data available'));
+    assert.ok(missingHtml.includes('No export data is available yet'));
 });
 test('writing analytics dashboard renders aggregated views with drill-down links', () => {
     __resetWritingIntegrationStoreForTests();

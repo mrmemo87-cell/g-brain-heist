@@ -6,7 +6,7 @@ import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './banMessage.js';
 import { notificationService } from './notificationService.js';
 import { fetchMyXpStatus } from './xpStatus.js';
 import { audioService } from './audioService.js';
-import { regenerateUserAp, notifyApFull, performHackAttempt, checkAchievements as rpcCheckAchievements, createTeacherProfile as rpcCreateTeacherProfile, recordQuestionAttempt, createAssignment as rpcCreateAssignment, getAssignmentsForTeacher as rpcGetAssignmentsForTeacher, getStudentsForAssignment as rpcGetStudentsForAssignment, getStudentActiveAssignment as rpcGetStudentActiveAssignment, getStudentPendingAssignments as rpcGetStudentPendingAssignments, submitAssignmentResult as rpcSubmitAssignmentResult, teacherAssignmentReport as rpcTeacherAssignmentReport, submitAssignmentAnswer as rpcSubmitAssignmentAnswer, getAssignmentStudentAnswers as rpcGetAssignmentStudentAnswers, getAssignmentQuestionAnalysis as rpcGetAssignmentQuestionAnalysis, getStudentCompletedAssignments as rpcGetStudentCompletedAssignments, checkAssignmentAchievements as rpcCheckAssignmentAchievements, getMyAssignmentAnswers as rpcGetMyAssignmentAnswers } from './rpcGateway.js';
+import { regenerateUserAp, notifyApFull, performHackAttempt, checkAchievements as rpcCheckAchievements, createTeacherProfile as rpcCreateTeacherProfile, recordQuestionAttempt, createAssignment as rpcCreateAssignment, getAssignmentsForTeacher as rpcGetAssignmentsForTeacher, deleteTeacherAssignment as rpcDeleteTeacherAssignment, getTeacherAssignmentSuccessSummary as rpcGetTeacherAssignmentSuccessSummary, getStudentsForAssignment as rpcGetStudentsForAssignment, getStudentActiveAssignment as rpcGetStudentActiveAssignment, getStudentPendingAssignments as rpcGetStudentPendingAssignments, submitAssignmentResult as rpcSubmitAssignmentResult, teacherAssignmentReport as rpcTeacherAssignmentReport, submitAssignmentAnswer as rpcSubmitAssignmentAnswer, getAssignmentStudentAnswers as rpcGetAssignmentStudentAnswers, getAssignmentQuestionAnalysis as rpcGetAssignmentQuestionAnalysis, getStudentCompletedAssignments as rpcGetStudentCompletedAssignments, checkAssignmentAchievements as rpcCheckAssignmentAchievements, getMyAssignmentAnswers as rpcGetMyAssignmentAnswers } from './rpcGateway.js';
 const MOCK_DELAY = 500;
 const formatLocalDateKey = (date) => {
     const year = date.getFullYear();
@@ -1094,6 +1094,45 @@ export const whoamiTeacher = async () => {
     }
     // Update last_seen
     supabase.from('users').update({ last_seen: new Date().toISOString() }).eq('id', user.id).then(() => { });
+    return profile;
+};
+/**
+ * Minimal dashboard bootstrap for existing accounts.
+ * Returns only the persisted profile and school display fields; all game
+ * hydration (AP regeneration, clan, inventory, cosmetics and XP status)
+ * happens after the first interactive render.
+ */
+export const whoamiFast = async () => {
+    const user = await getCurrentUser();
+    const { data: profile, error: profileError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+    if (profileError || !profile) {
+        throw profileError || new Error('Profile not found');
+    }
+    profile.gemstones = typeof profile.gemstones === 'number' ? profile.gemstones : 0;
+    profile.is_admin = typeof profile.is_admin === 'boolean' ? profile.is_admin : profile.role === 'admin';
+    profile.is_banned = isBannedFlag(profile.is_banned);
+    if (profile.is_banned) {
+        storeBanMessage(BAN_MESSAGE);
+        await supabase.auth.signOut();
+        throw new Error(BAN_MESSAGE);
+    }
+    if (profile.school_id) {
+        const { data: schoolData } = await supabase
+            .from('schools')
+            .select('name, logo_url')
+            .eq('id', profile.school_id)
+            .maybeSingle();
+        if (schoolData) {
+            profile.school_name = schoolData.name;
+            profile.school_logo_url = schoolData.logo_url;
+        }
+    }
+    // Presence must never delay the dashboard.
+    void supabase.from('users').update({ last_seen: new Date().toISOString() }).eq('id', user.id);
     return profile;
 };
 export const whoami = async () => {
@@ -4449,6 +4488,9 @@ export const get_question = async (questionId) => {
  * Update a question
  */
 export const update_question = async (questionId, updates) => {
+    const teacher = await get_teacher_profile();
+    if (!teacher)
+        throw new Error('User is not a teacher');
     const resolvedSubjectId = updates.subject ? resolveSubjectIdentifier(updates.subject, updates.subject_id) : updates.subject_id;
     const shouldNormalizeTopic = Object.prototype.hasOwnProperty.call(updates, 'topic') || Object.prototype.hasOwnProperty.call(updates, 'topic_name');
     const normalizedTopic = shouldNormalizeTopic ? normalizeTopicName(updates.topic, updates.topic_name) : undefined;
@@ -4473,6 +4515,7 @@ export const update_question = async (questionId, updates) => {
         .from('questions')
         .update(payload)
         .eq('id', questionId)
+        .eq('teacher_id', teacher.id)
         .select()
         .single();
     if (error)
@@ -4483,10 +4526,14 @@ export const update_question = async (questionId, updates) => {
  * Delete a question
  */
 export const delete_question = async (questionId) => {
+    const teacher = await get_teacher_profile();
+    if (!teacher)
+        throw new Error('User is not a teacher');
     const { error } = await supabase
         .from('questions')
         .delete()
-        .eq('id', questionId);
+        .eq('id', questionId)
+        .eq('teacher_id', teacher.id);
     if (error)
         throw error;
 };
@@ -4634,6 +4681,9 @@ export const create_assignment = async (payload) => {
     if (!payload.question_ids?.length) {
         throw new Error('Select at least one question for the assignment');
     }
+    if (!payload.title?.trim()) {
+        throw new Error('Assignment title is required');
+    }
     // Validate mode-specific requirements
     const mode = payload.assignment_mode || 'batch';
     if (mode === 'batch' && !payload.batch) {
@@ -4651,7 +4701,7 @@ export const create_assignment = async (payload) => {
         p_question_ids: payload.question_ids,
         p_assigned_at: payload.assigned_at ?? nowIso(),
         p_due_at: payload.due_at ?? null,
-        p_title: payload.title ?? null,
+        p_title: payload.title.trim(),
         p_instructions: payload.instructions ?? null,
         p_difficulty: payload.difficulty ?? null,
         p_assignment_mode: mode,
@@ -4677,6 +4727,27 @@ export const get_teacher_assignments = async (teacherId) => {
     if (error)
         throw new Error(error.message || 'Failed to load assignments');
     return data || [];
+};
+export const delete_teacher_assignment = async (assignmentId) => {
+    if (!assignmentId)
+        throw new Error('Assignment ID is required');
+    const { data, error } = await rpcDeleteTeacherAssignment(assignmentId);
+    if (error)
+        throw new Error(error.message || 'Failed to delete assignment');
+    if (data !== true)
+        throw new Error('Assignment could not be deleted');
+};
+export const get_teacher_assignment_success_summary = async () => {
+    const { data, error } = await rpcGetTeacherAssignmentSuccessSummary();
+    if (error)
+        throw new Error(error.message || 'Failed to load assignment success');
+    const row = (Array.isArray(data) ? data[0] : data);
+    return {
+        submission_count: Number(row?.submission_count || 0),
+        answered_question_count: Number(row?.answered_question_count || 0),
+        correct_answer_count: Number(row?.correct_answer_count || 0),
+        success_rate: Number(row?.success_rate || 0),
+    };
 };
 export const get_students_for_assignment = async (teacherId) => {
     let resolvedTeacherId = teacherId;

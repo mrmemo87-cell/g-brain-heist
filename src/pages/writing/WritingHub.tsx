@@ -4877,7 +4877,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   const [cinematicDone, setCinematicDone] = useState(false);
   const [showFullEssayContext, setShowFullEssayContext] = useState(false);
   const [showPromptChooser, setShowPromptChooser] = useState(false);
-  const [wizardOpen, setWizardOpen] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(true);
   const [revisionCycleId, setRevisionCycleId] = useState<string>(() => createRevisionCycleId());
   const [attemptNumber, setAttemptNumber] = useState<number>(1);
   const [lastAttemptId, setLastAttemptId] = useState<string | null>(null);
