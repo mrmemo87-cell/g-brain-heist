@@ -4,6 +4,8 @@ import { createPortal } from 'react-dom';
 export type StudentDashboardDestination =
   | 'home'
   | 'learn'
+  | 'game'
+  | 'tournaments'
   | 'tasks'
   | 'clan'
   | 'leaderboard'
@@ -22,11 +24,15 @@ type StudentDashboardNavigationProps = {
 const destinations: Array<{ id: StudentDashboardDestination; icon: string; label: string }> = [
   { id: 'home', icon: '🏠', label: 'Home' },
   { id: 'learn', icon: '📚', label: 'Learn' },
+  { id: 'game', icon: '🎮', label: 'Game' },
+  { id: 'tournaments', icon: '🏅', label: 'Tournaments' },
   { id: 'tasks', icon: '✅', label: 'Tasks' },
   { id: 'clan', icon: '🛡️', label: 'Clan' },
   { id: 'leaderboard', icon: '🏆', label: 'Rankings' },
   { id: 'more', icon: '☰', label: 'More' },
 ];
+
+const mobileDestinations = destinations.filter(({ id }) => ['home', 'learn', 'game', 'clan', 'more'].includes(id));
 
 const badgeFor = (
   destination: StudentDashboardDestination,
@@ -49,7 +55,7 @@ const StudentDashboardNavigation: React.FC<StudentDashboardNavigationProps> = ({
 }) => {
   const bottomNavigation = (
     <nav className="student-dashboard-bottom-nav" aria-label="Student dashboard mobile navigation">
-      {destinations.slice(0, 4).concat(destinations.slice(-1)).map((destination) => {
+      {mobileDestinations.map((destination) => {
         const badge = badgeFor(destination.id, assignmentCount, clanBadgeCount);
         return (
           <button
@@ -107,5 +113,20 @@ const StudentDashboardNavigation: React.FC<StudentDashboardNavigationProps> = ({
     </>
   );
 };
+
+export const StudentDashboardBottomNavigation: React.FC<Pick<StudentDashboardNavigationProps,
+  'assignmentCount' | 'clanBadgeCount' | 'activeDestination' | 'onNavigate'
+>> = ({ assignmentCount, clanBadgeCount, activeDestination, onNavigate }) => createPortal(
+  <nav className="student-dashboard-bottom-nav" aria-label="Student dashboard navigation">
+    {mobileDestinations.map((destination) => {
+      const badge = badgeFor(destination.id, assignmentCount, clanBadgeCount);
+      return <button key={destination.id} type="button" className={`student-dashboard-bottom-link ${destination.id === activeDestination ? 'is-active' : ''}`} onClick={() => onNavigate(destination.id)}>
+        <span className="student-dashboard-bottom-icon" aria-hidden>{destination.icon}{badge > 0 && <span className="student-dashboard-bottom-badge">{Math.min(badge, 9)}{badge > 9 ? '+' : ''}</span>}</span>
+        <span>{destination.label}</span>
+      </button>;
+    })}
+  </nav>,
+  document.body,
+);
 
 export default React.memo(StudentDashboardNavigation);

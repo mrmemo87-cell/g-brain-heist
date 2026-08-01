@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { fetchPilotQuotas, getQuotaForFeature, QUOTA_LABELS, FEATURE_TO_QUOTA, type PilotQuotaStatus, type PilotQuota } from '../services/tierService';
-import VisualFallbackImage from './VisualFallbackImage';
 import { visualAssets, neonIcon } from './visualAssets';
 
 // Default school icon as SVG data URL
@@ -66,7 +65,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   label,
   hideLabel = false,
   ariaLabel,
-  containerBare = false,
+  containerBare: requestedContainerBare = false,
   circleIcon = false,
   color,
   glowClass,
@@ -78,6 +77,9 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   quotaInfo,
   quotaLabel,
 }) => {
+  // Keep every console in a clear, consistently sized premium card.
+  const containerBare = false;
+  void requestedContainerBare;
   const quotaExhausted = quotaInfo?.exhausted === true;
   const isLocked = locked || quotaExhausted;
   const accent = `rgba(${color}, 1)`;
@@ -235,8 +237,6 @@ const MainActions: React.FC<MainActionsProps> = ({
   onUpgrade,
 }) => {
   const [pilotQuotas, setPilotQuotas] = useState<PilotQuotaStatus | null>(null);
-  const [showMore, setShowMore] = useState(false);
-  const [shareStatus, setShareStatus] = useState<'idle' | 'copied' | 'shared' | 'error'>('idle');
 
   // Fetch pilot quotas on mount (only if on pilot plan)
   useEffect(() => {
@@ -276,42 +276,7 @@ const MainActions: React.FC<MainActionsProps> = ({
   };
   const displaySchoolName = schoolName || 'My School';
   const displaySchoolLogo = schoolLogoUrl || defaultSchoolIcon;
-  const missionIconClass = 'h-[10.5rem] w-[10.5rem] object-contain drop-shadow-[0_0_26px_rgba(255,255,255,0.45)] brightness-110 contrast-110 saturate-125';
-  const inviteText = 'Join me on Brains Heist — the gamified learning platform! 🧠⚡';
-  const inviteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://brainsheist.com';
-  const inviteMessage = `${inviteText} ${inviteUrl}`;
-
-  const resetShareStatusSoon = () => {
-    window.setTimeout(() => setShareStatus('idle'), 2200);
-  };
-
-  const handleShareInvite = async () => {
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: 'Brains Heist',
-          text: inviteText,
-          url: inviteUrl,
-        });
-        setShareStatus('shared');
-        resetShareStatusSoon();
-        return;
-      }
-
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(inviteMessage);
-        setShareStatus('copied');
-        resetShareStatusSoon();
-        return;
-      }
-
-      setShareStatus('error');
-      resetShareStatusSoon();
-    } catch {
-      // User cancelled share sheet or browser blocked clipboard; do not throw.
-      setShareStatus('idle');
-    }
-  };
+  const missionIconClass = 'h-28 w-28 object-contain drop-shadow-[0_0_22px_rgba(255,255,255,0.35)] brightness-110 contrast-110 saturate-125 sm:h-32 sm:w-32';
   
   return (
     <section className="dashboard-panel relative overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-950/60 p-4 shadow-2xl shadow-slate-950/50 backdrop-blur sm:p-6">
@@ -324,59 +289,6 @@ const MainActions: React.FC<MainActionsProps> = ({
         }}
       />
       <div className="relative flex flex-col gap-5">
-        {/* ── Day-of-week engagement banner ── */}
-        {(() => {
-          const day = new Date().getDay();
-          const banner = day === 1 ? { src: visualAssets.engagement.mondayBoost, alt: 'Monday Boost', border: 'border-amber-400/20' }
-            : day === 3 ? { src: visualAssets.engagement.midweekChallenge, alt: 'Midweek Challenge', border: 'border-purple-400/20' }
-            : day === 5 ? { src: visualAssets.engagement.fridayBattle, alt: 'Friday School Battle', border: 'border-red-400/20' }
-            : { src: visualAssets.engagement.dailyReward, alt: 'Daily Reward', border: 'border-emerald-400/20' };
-          return (
-            <div className={`mx-auto w-full max-w-2xl rounded-2xl border ${banner.border} bg-slate-900/60 p-2`}>
-              <VisualFallbackImage
-                src={banner.src}
-                alt={banner.alt}
-                className="w-full overflow-hidden rounded-xl"
-                imgClassName="block h-24 w-full object-contain sm:h-32"
-                fallback={<div className="h-24 rounded-xl bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 sm:h-32" />}
-              />
-            </div>
-          );
-        })()}
-        {hasPendingAssignment && (
-          <span className="inline-flex self-start items-center justify-center gap-1.5 rounded-full border border-amber-400/70 bg-amber-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-100 shadow shadow-amber-400/20">
-            <img src={neonIcon('assignment')} alt="" className="h-4 w-4 object-contain" />
-            Assignment Required
-          </span>
-        )}
-
-        {/* ── Social: invite friends (always visible, phone-first) ── */}
-        <div className="rounded-2xl border border-purple-500/30 bg-gradient-to-r from-purple-900/35 via-fuchsia-900/25 to-pink-900/25 p-4">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <img
-              src={visualAssets.social.inviteFriend}
-              alt="Invite a friend"
-              className="h-16 w-16 rounded-xl object-contain flex-shrink-0 sm:h-20 sm:w-20"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-            />
-            <div className="min-w-0 flex-1">
-              <p className="font-heading text-lg text-white mb-1">Invite Friends</p>
-              <p className="text-xs text-gray-300 mb-3">Share in WhatsApp, iMessage, or any app from your phone.</p>
-              <button
-                type="button"
-                onClick={() => { void handleShareInvite(); }}
-                className="inline-flex items-center justify-center rounded-lg border border-purple-300/50 bg-purple-500/30 px-4 py-2 text-sm font-semibold text-purple-100 transition hover:bg-purple-500/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-300/70"
-              >
-                <img src={neonIcon('invite_friend')} alt="" className="inline h-4 w-4 mr-1.5 align-text-bottom" />
-                {shareStatus === 'copied' ? 'Copied Invite' : shareStatus === 'shared' ? 'Invite Shared' : 'Share Invite'}
-              </button>
-              {shareStatus === 'error' && (
-                <p className="mt-2 text-[11px] text-amber-200">Sharing not supported on this browser.</p>
-              )}
-            </div>
-          </div>
-        </div>
-
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
             {/* ── Primary actions (always visible) ── */}
             {onOpenCompetitionPlay && (
@@ -516,16 +428,6 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
           </div>
 
-          {/* ── "More" collapsible section ── */}
-          <button
-            type="button"
-            onClick={() => setShowMore((v) => !v)}
-            className="group flex w-full items-center justify-center gap-2 rounded-xl border border-slate-800/60 bg-slate-900/40 px-4 py-2.5 text-sm font-semibold text-slate-300 transition-colors hover:border-slate-700 hover:bg-slate-800/50 hover:text-white"
-          >
-            {showMore ? '▲ Less' : '▼ More features'}
-          </button>
-
-          {showMore && (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
             <ActionButton
               onClick={locked ? handleLocked('Inventory') : handlePilotClick('Inventory', onVisitInventory)}
@@ -544,22 +446,6 @@ const MainActions: React.FC<MainActionsProps> = ({
               quotaLabel={ql('Inventory')}
             />
             <ActionButton
-              onClick={locked ? handleLocked('Tournaments') : handlePilotClick('Tournament', onOpenTournament)}
-              icon={<img src="/mission-console-images/tournament.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
-              iconBare
-              label="Tournament"
-              circleIcon
-              hideLabel
-              className="min-h-[18rem]"
-              containerBare
-              ariaLabel="Tournament"
-              color="255, 140, 0"
-              glowClass="glow-warn"
-              locked={locked}
-              quotaInfo={q('Tournament')}
-              quotaLabel={ql('Tournament')}
-            />
-            <ActionButton
               onClick={locked ? handleLocked('Achievements') : handlePilotClick('Achievements', onViewAchievements)}
               icon={<img src="/mission-console-images/achievements.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
@@ -575,41 +461,6 @@ const MainActions: React.FC<MainActionsProps> = ({
               quotaInfo={q('Achievements')}
               quotaLabel={ql('Achievements')}
             />
-            <ActionButton
-              onClick={isIndividual ? undefined : (locked ? handleLocked('IELTS Prep') : handlePilotClick('IELTS Prep', onOpenIeltsPrep))}
-              icon={<img src="/mission-console-images/ielts-prep.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
-              iconBare
-              label="IELTS Prep"
-              circleIcon
-              hideLabel
-              containerBare
-              ariaLabel="IELTS Prep"
-              subtitle={isIndividual ? '🏫 School Only' : undefined}
-              color="0, 191, 255"
-              glowClass="glow-ion"
-              className={`min-h-[18rem]${isIndividual ? ' opacity-50 pointer-events-none' : ''}`}
-              locked={locked || isIndividual}
-              quotaInfo={q('IELTS Prep')}
-              quotaLabel={ql('IELTS Prep')}
-            />
-            <ActionButton
-              onClick={isIndividual ? undefined : (locked ? handleLocked('Cambridge Tests') : handlePilotClick('Cambridge Tests', onOpenCambridgeTests))}
-              icon={<img src="/mission-console-images/cambridge-tests.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
-              iconBare
-              label="Cambridge Tests"
-              circleIcon
-              hideLabel
-              containerBare
-              ariaLabel="Cambridge Tests"
-              subtitle={isIndividual ? '🏫 School Only' : 'Practice reading & grammar'}
-              color="102, 126, 234"
-              glowClass="glow-ion"
-              className={`min-h-[18rem]${isIndividual ? ' opacity-50 pointer-events-none' : ''}`}
-              locked={locked || isIndividual}
-              quotaInfo={q('Cambridge Tests')}
-              quotaLabel={ql('Cambridge Tests')}
-            />
-
             {/* ── Admin / staff actions ── */}
             {onOpenAdminPortal && (
               <ActionButton
@@ -692,7 +543,6 @@ const MainActions: React.FC<MainActionsProps> = ({
               />
             )}
           </div>
-          )}
         </div>
       </section>
     );
