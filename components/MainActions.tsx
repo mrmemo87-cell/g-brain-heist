@@ -276,7 +276,8 @@ const MainActions: React.FC<MainActionsProps> = ({
   };
   const displaySchoolName = schoolName || 'My School';
   const displaySchoolLogo = schoolLogoUrl || defaultSchoolIcon;
-  const missionIconClass = 'h-28 w-28 object-contain drop-shadow-[0_0_22px_rgba(255,255,255,0.35)] brightness-110 contrast-110 saturate-125 sm:h-32 sm:w-32';
+  const missionCardClass = 'min-h-[10rem] sm:min-h-[11rem]';
+  const missionIconClass = 'h-24 w-24 object-contain drop-shadow-[0_0_22px_rgba(255,255,255,0.35)] brightness-110 contrast-110 saturate-125 sm:h-28 sm:w-28';
   
   return (
     <section className="dashboard-panel relative overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-950/60 p-4 shadow-2xl shadow-slate-950/50 backdrop-blur sm:p-6">
@@ -345,7 +346,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               label="Launch Attack"
               circleIcon
               hideLabel
-              className="min-h-[18rem]"
+              className={missionCardClass}
               containerBare
               color="255, 45, 145"
               glowClass="glow-plasma animate-pulse-glow"
@@ -362,22 +363,6 @@ const MainActions: React.FC<MainActionsProps> = ({
                 glowClass="glow-purple"
               />
             )}
-            {onOpenLockdown && (
-              <ActionButton
-                onClick={handlePilotClick('Lockdown Mode', onOpenLockdown)}
-                icon={<img src="/mission-console-images/lockdown.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
-                iconBare
-                label="Lockdown Mode"
-                circleIcon
-                hideLabel
-                className="col-span-2 min-h-[18rem]"
-                containerBare
-                color="255, 69, 58"
-                glowClass="glow-plasma"
-                quotaInfo={q('Lockdown Mode')}
-                quotaLabel={ql('Lockdown Mode')}
-              />
-            )}
             <ActionButton
               onClick={locked ? handleLocked('Visit Shop') : handlePilotClick('Visit Shop', onVisitShop)}
               icon={<img src="/mission-console-images/shop.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
@@ -385,7 +370,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               label="Visit Shop"
               circleIcon
               hideLabel
-              className="min-h-[18rem]"
+              className={missionCardClass}
               containerBare
               color="22, 226, 161"
               glowClass="glow-success"
@@ -400,7 +385,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               label="Leaderboard"
               circleIcon
               hideLabel
-              className="min-h-[18rem]"
+              className={missionCardClass}
               containerBare
               ariaLabel="Leaderboard"
               color="255, 215, 0"
@@ -416,7 +401,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               label="Clan"
               circleIcon
               hideLabel
-              className="min-h-[18rem]"
+              className={missionCardClass}
               containerBare
               ariaLabel="Clan"
               color="255, 176, 32"
@@ -436,7 +421,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               label="Inventory"
               circleIcon
               hideLabel
-              className="min-h-[18rem]"
+              className={missionCardClass}
               containerBare
               ariaLabel="Inventory"
               color="158, 93, 255"
@@ -452,7 +437,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               label="Achievements"
               circleIcon
               hideLabel
-              className="min-h-[18rem]"
+              className={missionCardClass}
               containerBare
               ariaLabel="Achievements"
               color="255, 100, 200"
@@ -461,6 +446,22 @@ const MainActions: React.FC<MainActionsProps> = ({
               quotaInfo={q('Achievements')}
               quotaLabel={ql('Achievements')}
             />
+            {onOpenLockdown && (
+              <ActionButton
+                onClick={handlePilotClick('Lockdown Mode', onOpenLockdown)}
+                icon={<img src="/mission-console-images/lockdown.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
+                iconBare
+                label="Lockdown Mode"
+                circleIcon
+                hideLabel
+                className={`${missionCardClass} col-span-2 w-[calc(50%-0.375rem)] justify-self-center sm:col-span-1 sm:col-start-2 sm:w-full`}
+                containerBare
+                color="255, 69, 58"
+                glowClass="glow-plasma"
+                quotaInfo={q('Lockdown Mode')}
+                quotaLabel={ql('Lockdown Mode')}
+              />
+            )}
             {/* ── Admin / staff actions ── */}
             {onOpenAdminPortal && (
               <ActionButton
