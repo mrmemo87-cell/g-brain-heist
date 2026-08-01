@@ -7,7 +7,7 @@ export const deriveAdmissionSubject = (subject, formCode, contentVersion) => {
         return 'english';
     if (raw.includes('science') || code.startsWith('SCI'))
         return 'science';
-    if (raw.includes('chem'))
+    if (raw.includes('sci_') || raw.includes('biology') || raw.includes('physics') || raw.includes('chem'))
         return 'science';
     return 'unknown';
 };
@@ -24,7 +24,7 @@ export function calculateDiagnosticBreakdown(answers = []) {
         const skill = cleanSkill(answer);
         const difficulty = answer.difficulty || null;
         const key = `${subject}::${skill}::${difficulty || 'all'}`;
-        const existing = grouped.get(key) || { key, label: `${subject} · ${skill}${difficulty ? ` · ${difficulty}` : ''}`, subject, skill, difficulty, score: 0, maxScore: 0, percentage: 0, total: 0 };
+        const existing = grouped.get(key) || { key, label: `${title(subject)} · ${skill}`, subject, skill, difficulty, score: 0, maxScore: 0, percentage: 0, total: 0 };
         existing.score += Number(answer.marks_awarded ?? (answer.is_correct ? 1 : 0));
         existing.maxScore += Number(answer.marks_possible ?? 1);
         existing.total += 1;
@@ -34,7 +34,7 @@ export function calculateDiagnosticBreakdown(answers = []) {
     return [...grouped.values()].sort((a, b) => a.subject.localeCompare(b.subject) || a.skill.localeCompare(b.skill) || String(a.difficulty).localeCompare(String(b.difficulty)));
 }
 export function calculateSubjectReadiness(answers, subject) {
-    const rows = answers.filter(a => normalizeSubject(a.subject) === subject);
+    const rows = answers.filter(a => normalizeSubject(a.subject, a.form_code, a.content_version) === subject);
     if (rows.length === 0)
         return null;
     const score = rows.reduce((sum, a) => sum + Number(a.marks_awarded ?? (a.is_correct ? 1 : 0)), 0);
@@ -42,13 +42,25 @@ export function calculateSubjectReadiness(answers, subject) {
     return pct(score, max);
 }
 export function calculatePlacementRecommendation(profile = {}, answers = [], fallbackPercentage = null) {
-    const english = calculateSubjectReadiness(answers, 'english');
-    const math = calculateSubjectReadiness(answers, 'math');
-    const e = english ?? fallbackPercentage;
-    const m = math ?? fallbackPercentage;
+    let english = calculateSubjectReadiness(answers, 'english');
+    let math = calculateSubjectReadiness(answers, 'math');
+    let science = calculateSubjectReadiness(answers, 'science');
+    const subjects = [...new Set(answers.map(a => normalizeSubject(a.subject, a.form_code, a.content_version)).filter(s => s !== 'unknown'))];
+    const currentSubject = subjects.length === 1 ? subjects[0] : (subjects.length > 1 ? 'unknown' : 'unknown');
+    const isPackageReport = subjects.length > 1;
+    if (!isPackageReport && currentSubject !== 'unknown' && fallbackPercentage != null) {
+        if (currentSubject === 'english')
+            english = fallbackPercentage;
+        if (currentSubject === 'math')
+            math = fallbackPercentage;
+        if (currentSubject === 'science')
+            science = fallbackPercentage;
+    }
+    const e = english;
+    const m = math;
     const breakdown = calculateDiagnosticBreakdown(answers);
-    const strengths = breakdown.filter(r => r.percentage >= 70).slice(0, 4).map(r => `${title(r.subject)} ${r.skill}`);
-    const weakAreas = breakdown.filter(r => r.percentage < 50).slice(0, 4).map(r => `${title(r.subject)} ${r.skill}`);
+    const strengths = breakdown.filter(r => r.percentage >= 70).slice(0, 4).map(r => `${title(r.subject)} · ${r.skill}`);
+    const weakAreas = breakdown.filter(r => r.percentage < 50).slice(0, 4).map(r => `${title(r.subject)} · ${r.skill}`);
     const gradeGap = profile.applied_grade && profile.current_grade ? profile.applied_grade - profile.current_grade : 0;
     const ageGap = expectedAgeGap(profile.age_years ?? ageFromDob(profile.date_of_birth), profile.applied_grade);
     const mismatch = Math.abs(gradeGap || 0) >= 2 || Math.abs(ageGap || 0) >= 2;
@@ -74,23 +86,34 @@ export function calculatePlacementRecommendation(profile = {}, answers = [], fal
     if (mismatch && label === 'Ready for target grade')
         label = 'Interview recommended';
     const interviewFlag = mismatch || label === 'Interview recommended';
-    const reasons = buildReasons(e, m, mismatch, profile, strengths, weakAreas);
-    return { label, interviewFlag, nextAction: nextAction(label, interviewFlag), reasons, englishPercentage: english, mathsPercentage: math, strengths, weakAreas };
+    const reasons = buildReasons(e, m, science, currentSubject, isPackageReport, mismatch, profile, strengths, weakAreas);
+    return { label, interviewFlag, nextAction: nextAction(label, interviewFlag), reasons, englishPercentage: english, mathsPercentage: math, sciencePercentage: science, currentSubject, isPackageReport, strengths, weakAreas };
 }
-function buildReasons(e, m, mismatch, profile, strengths, weakAreas) {
+function buildReasons(e, m, s, currentSubject, isPackageReport, mismatch, profile, strengths, weakAreas) {
     const reasons = [];
-    if (e != null)
-        reasons.push(`English readiness is ${e}%.`);
-    else
-        reasons.push('English readiness is not available yet.');
-    if (m != null)
-        reasons.push(`Maths readiness is ${m}%.`);
-    else
-        reasons.push('Maths readiness is not available yet.');
+    const readiness = { english: e, math: m, science: s };
+    if (!isPackageReport && currentSubject in readiness) {
+        const value = readiness[currentSubject];
+        reasons.push(`${title(currentSubject)} readiness is ${value ?? 'not available yet'}${value != null ? '%' : ''}.`);
+    }
+    else {
+        if (e != null)
+            reasons.push(`English readiness is ${e}%.`);
+        else
+            reasons.push('English readiness is not available yet.');
+        if (m != null)
+            reasons.push(`Maths readiness is ${m}%.`);
+        else
+            reasons.push('Maths readiness is not available yet.');
+        if (s != null)
+            reasons.push(`Science readiness is ${s}%.`);
+    }
     if (weakAreas.length)
         reasons.push(`Needs attention in ${weakAreas.slice(0, 2).join(' and ')}.`);
-    else if (strengths.length)
-        reasons.push(`Strongest evidence: ${strengths.slice(0, 2).join(' and ')}.`);
+    else if (strengths.length) {
+        const uniqueStrengths = [...new Set(strengths)].slice(0, 2);
+        reasons.push(`Strongest evidence: ${uniqueStrengths.join(' and ')}.`);
+    }
     if (mismatch)
         reasons.push(`Age or current grade does not closely match the applied grade${profile.applied_grade ? ` (${profile.applied_grade})` : ''}.`);
     return reasons.slice(0, 4);

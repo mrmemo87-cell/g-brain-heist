@@ -18,6 +18,11 @@ const ensureNoError = (result, context) => {
     }
 };
 const isStatementTimeoutError = (result) => Boolean(result.error?.message?.toLowerCase().includes('statement timeout'));
+const isMissingAttemptKeyError = (result) => {
+    const message = result.error?.message?.toLowerCase() ?? '';
+    return message.includes('attempt_key')
+        && (message.includes('does not exist') || message.includes('schema cache') || message.includes('column'));
+};
 const withStudentBinding = (row, studentId) => {
     if (typeof row['student_id'] === 'string') {
         return { ...row, student_id: studentId };
@@ -102,6 +107,7 @@ export const loadWritingStoreSnapshot = async (options = {}) => {
         }
     }
     return {
+        ownerStudentId: activeStudentId,
         profiles: profileRows.map((row) => [row.student_id, row.profile]),
         usernamesById,
         states: stateRows.flatMap((row) => {
@@ -194,7 +200,7 @@ export const persistWritingStoreSnapshot = async (snapshot) => {
         .filter(([student_id]) => student_id === activeStudentId)
         .map(([, payload]) => [activeStudentId, payload]));
     await Promise.all([
-        replaceTableByKey('bh_writing_attempts', bindStudentRows(snapshot.attempts), 'student_id'),
+        upsertWritingAttempts(bindStudentRows(snapshot.attempts)),
         replaceTableByKey('bh_writing_weekly_plans', bindStudentRows(snapshot.weeklyPlans), 'student_id'),
         replaceTableByKey('bh_writing_daily_tasks', bindStudentRows(snapshot.dailyTasks), 'student_id'),
         replaceTableByKey('bh_writing_daily_submissions', bindStudentRows(snapshot.dailySubmissions), 'student_id'),
@@ -224,6 +230,32 @@ const replaceTableByKey = async (table, rows, key) => {
         return;
     const insertRes = await supabase.from(table).insert(rows.map((payload) => ({ payload: safe(payload) })));
     ensureNoError(insertRes, `insert ${table} failed`);
+};
+const upsertWritingAttempts = async (rows) => {
+    if (!rows.length)
+        return;
+    const payloadRows = rows
+        .filter((payload) => Boolean(readKey(payload, 'id')))
+        .map((payload) => ({
+        attempt_key: readKey(payload, 'id'),
+        payload: safe(payload),
+    }));
+    if (!payloadRows.length)
+        return;
+    const upsertRes = await supabase
+        .from('bh_writing_attempts')
+        .upsert(payloadRows, { onConflict: 'attempt_key', ignoreDuplicates: false });
+    if (isMissingAttemptKeyError(upsertRes)) {
+        const attemptIds = payloadRows
+            .map((row) => readKey(row.payload, 'id'))
+            .filter((value) => Boolean(value));
+        const deleteRes = await supabase.from('bh_writing_attempts').delete().in('payload->>id', attemptIds);
+        ensureNoError(deleteRes, 'replace legacy writing attempts failed');
+        const insertRes = await supabase.from('bh_writing_attempts').insert(payloadRows.map((row) => ({ payload: row.payload })));
+        ensureNoError(insertRes, 'insert legacy writing attempts failed');
+        return;
+    }
+    ensureNoError(upsertRes, 'upsert writing attempts failed');
 };
 const replaceFollowups = async (map) => {
     const rows = Object.entries(map).map(([student_id, payload]) => ({ student_id, payload: safe(payload), updated_at: payload.updated_at }));

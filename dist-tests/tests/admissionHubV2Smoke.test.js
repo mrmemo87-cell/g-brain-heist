@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 const hub = readFileSync('components/AdmissionHub.tsx', 'utf8');
 const candidateTest = readFileSync('public/admission-tests/admission-test.html', 'utf8');
+const partialAttemptUi = readFileSync('components/admissionReportPartialAttempt.ts', 'utf8');
 test('Admission Hub V2 exposes activity notes from candidate details without token fragments', () => {
     assert.match(hub, /View candidate/);
     assert.match(hub, /Candidate profile/);
@@ -69,8 +70,8 @@ test('admin report uses friendly activity labels and auto-submit summary copy', 
 });
 test('report polish covers subject labels partial attempts objective grading and form labels', () => {
     assert.match(hub, /admissionSubjectLabel\(t\.subject\)/);
-    assert.match(hub, /Answered \{reportData\.answered_count\} of \{reportData\.total_questions\} questions/);
-    assert.match(hub, /This result is based on a partial attempt\./);
+    assert.match(partialAttemptUi, /Answered \$\{metrics\.answeredCount\} of \$\{metrics\.totalQuestions\} questions/);
+    assert.match(partialAttemptUi, /This result is based on a partial attempt\./);
     assert.match(hub, /isObjectiveAutoScoredAdmissionReport\(reportData\)/);
     assert.match(hub, /buildAdmissionReportFormLabel/);
     assert.match(hub, /Code \{reportData\.form_code/);
@@ -85,4 +86,22 @@ test('activity and submit SQL keep school isolation and dedupe repeated auto-sub
     assert.match(migration, /auth\.uid\(\)/);
     assert.match(migration, /Test auto-submitted after repeated page exits\./);
     assert.doesNotMatch(migration, /submitted normally/i);
+});
+test('subject-aware report polish covers form codes readiness cards and client auto-submit guard', () => {
+    const service = readFileSync('services/admissionService.ts', 'utf8');
+    const placement = readFileSync('src/lib/admissionPlacementIntelligence.ts', 'utf8');
+    const candidateHtml = readFileSync('public/admission-tests/admission-test.html', 'utf8');
+    const migration = readFileSync('supabase/migrations/20260706153000_admission_subject_aware_reports.sql', 'utf8');
+    assert.match(service, /raw\.form_code/);
+    assert.match(service, /form_subject/);
+    assert.match(service, /buildAdmissionReportFormLabel/);
+    assert.match(placement, /Science readiness is/);
+    assert.match(placement, /title\(r\.subject\)} ·/);
+    assert.match(hub, /Science readiness/);
+    assert.match(hub, /rec\.isPackageReport \? cards : cards\.filter/);
+    assert.match(candidateHtml, /STATE\.submitInProgress = true;\s*if \(autoReason\) STATE\.autoSubmitting = true;/);
+    assert.match(candidateHtml, /\['tab_hidden','tab_visible'\]\.includes\(eventType\)/);
+    assert.match(migration, /'form_code', v_form\.form_code/);
+    assert.match(migration, /WHEN v_form\.form_code ILIKE 'SCI%'/);
+    assert.match(migration, /ignored_after_final/);
 });
