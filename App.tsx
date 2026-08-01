@@ -2170,21 +2170,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                   />
 
                   <section className="student-dashboard-feed" aria-label={`${studentDashboardTab} dashboard tab`}>
-                    <header className="px-1">
-                      <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">Student dashboard</p>
-                      <h1 className="mt-1 font-heading text-2xl capitalize text-white sm:text-3xl">{studentDashboardTab}</h1>
-                      <p className="mt-1 text-sm text-slate-400">
-                        {studentDashboardTab === 'home' && 'Pick up where you left off or handle what is due next.'}
-                        {studentDashboardTab === 'learn' && 'Choose a learning mode or mission.'}
-                        {studentDashboardTab === 'game' && 'Choose a game console.'}
-                        {studentDashboardTab === 'tournaments' && 'Enter competitive events.'}
-                        {studentDashboardTab === 'tasks' && 'Review assignments and complete your daily objectives.'}
-                        {studentDashboardTab === 'clan' && 'Connect with your clan and join team activities.'}
-                        {studentDashboardTab === 'leaderboard' && 'See how you rank against other agents.'}
-                        {studentDashboardTab === 'more' && 'Profile, limits, updates, and additional information.'}
-                      </p>
-                    </header>
-
                     {studentDashboardTab === 'home' && (
                       <>
                         {renderProfileSlot()}
