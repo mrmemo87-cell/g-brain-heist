@@ -12,9 +12,12 @@ const admission = read('components/AdmissionHub.tsx');
 const settings = read('components/school-admin/tabs/SettingsTab.tsx');
 const service = read('services/schoolAdminService.ts');
 const migration = read('supabase/migrations/20260801120000_school_admin_assignment_dates.sql');
+const capabilitiesMigration = read('supabase/migrations/20260801173000_school_membership_capabilities.sql');
+const app = read('App.tsx');
+const workspaceChooser = read('components/SchoolWorkspaceChooser.tsx');
 
 test('overview exposes the requested whole-school totals and grade-class coverage', () => {
-  const labels = ['Classes', 'Subjects', 'Students', 'Teachers', 'Admins'];
+  const labels = ['Classes', 'Subjects', 'Students', 'Teaching staff', 'Admins'];
   let previous = -1;
   labels.forEach((label) => {
     const position = dashboard.indexOf(`label: '${label}'`);
@@ -41,12 +44,34 @@ test('teacher assignment flow is class-subject-teacher with subject filtering an
 });
 
 test('school administrator is protected and destructive actions use branded confirmations', () => {
-  assert.match(members, /Protected school administrator/);
+  assert.match(members, /Protected school owner/);
   assert.match(members, /isProtectedAdmin/);
-  assert.match(portal, /selectedMember\.role === 'school_admin'/);
+  assert.match(portal, /selectedMember\.is_owner/);
   assert.match(portal, /Change this member’s role\?/);
   assert.match(portal, /Suspend this student\?/);
   assert.match(admission, /school-admin-confirm-modal is-destructive/);
+});
+
+test('school membership capabilities are canonical, audited and assignment-safe', () => {
+  assert.match(capabilitiesMigration, /add column if not exists is_owner/);
+  assert.match(capabilitiesMigration, /add column if not exists can_teach/);
+  assert.match(capabilitiesMigration, /school_members_one_owner_per_school_idx/);
+  assert.match(capabilitiesMigration, /school_member_role_audit/);
+  assert.match(capabilitiesMigration, /school_admin_transition_member_role/);
+  assert.match(capabilitiesMigration, /ACTIVE_ASSIGNMENTS_REQUIRE_RESOLUTION/);
+  assert.match(capabilitiesMigration, /Only the school owner can promote or demote delegated administrators/);
+  assert.match(capabilitiesMigration, /school_admin_list_teachers[\s\S]*sm\.can_teach/);
+  assert.match(capabilitiesMigration, /public\.update_member_role[\s\S]*school_admin_transition_member_role/);
+});
+
+test('dual-role staff can choose and switch workspaces without signing out', () => {
+  assert.match(app, /workspace_chooser/);
+  assert.match(app, /school_workspace:/);
+  assert.match(app, /getMySchoolCapabilities/);
+  assert.match(app, /onOpenTeacherPortal/);
+  assert.match(workspaceChooser, /School Administration/);
+  assert.match(workspaceChooser, /Teacher Portal/);
+  assert.match(workspaceChooser, /switch again at any time without signing out/);
 });
 
 test('member management opens at the top and preloads existing academic placement', () => {

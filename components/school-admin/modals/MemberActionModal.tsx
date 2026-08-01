@@ -6,13 +6,16 @@ import type { SchoolRole } from '../../../types';
 
 const MemberActionModal: React.FC = () => {
   const {
-    actionLoading, classes, handleEnrollStudent, selectedClassId, selectedGrade, setSelectedClassId, setSelectedGrade, setSelectedStudentId, studentSaving, forceChangeAvatar, forceChangeLoading, forceChangeReason, forceChangeUsername, handleBanMember, handleClearProfileChange, handleForceProfileChange, handleRemoveMember, handleSuspendStudent, handleUnbanMember, handleUnsuspendStudent, handleUpdateRole, loadStudentModStatus, modTargetStatus, selectedMember, setForceChangeAvatar, setForceChangeReason, setForceChangeUsername, setModTargetId, setModTargetStatus, setSelectedMember, setShowMemberActionModal, setSuspendDuration, setSuspendReason, showMemberActionModal, students, suspendDuration, suspendLoading, suspendReason,
+    actionLoading, classes, currentCapabilities, handleEnrollStudent, selectedClassId, selectedGrade, setSelectedClassId, setSelectedGrade, setSelectedStudentId, studentSaving, forceChangeAvatar, forceChangeLoading, forceChangeReason, forceChangeUsername, handleBanMember, handleClearProfileChange, handleForceProfileChange, handleRemoveMember, handleSuspendStudent, handleUnbanMember, handleUnsuspendStudent, handleUpdateRole, loadStudentModStatus, modTargetStatus, selectedMember, setForceChangeAvatar, setForceChangeReason, setForceChangeUsername, setModTargetId, setModTargetStatus, setSelectedMember, setShowMemberActionModal, setSuspendDuration, setSuspendReason, showMemberActionModal, students, suspendDuration, suspendLoading, suspendReason,
   } = useSchoolAdmin();
   const [verifiedName, setVerifiedName] = React.useState('');
   const [nameSaving, setNameSaving] = React.useState(false);
   const [nameMessage, setNameMessage] = React.useState('');
   const modalRef = React.useRef<HTMLDivElement>(null);
-  const isProtectedAdmin = selectedMember?.role === 'school_admin';
+  const isProtectedAdmin = Boolean(selectedMember?.is_owner);
+  const isAdministrator = selectedMember?.role === 'school_admin';
+  const canChangeRole = !isProtectedAdmin && (!isAdministrator || currentCapabilities?.is_owner);
+  const accessLabel = isProtectedAdmin ? 'School owner' : isAdministrator ? `Delegated admin${selectedMember?.can_teach ? ' + Teacher' : ''}` : selectedMember?.role.replace('_', ' ');
 
   React.useEffect(() => {
     setVerifiedName(selectedMember?.full_name || '');
@@ -80,13 +83,14 @@ const MemberActionModal: React.FC = () => {
           <div className="member-management-body">
 
           <div className="member-record-strip">
-            <span><small>Role</small><strong>{selectedMember.role.replace('_', ' ')}</strong></span>
+            <span><small>Access</small><strong>{accessLabel}</strong></span>
             <span><small>Date joined</small><strong>{selectedMember.joined_at ? new Date(selectedMember.joined_at).toLocaleDateString() : 'Not recorded'}</strong></span>
             <span><small>Record status</small><strong>{selectedMember.is_banned ? 'Restricted' : 'Active'}</strong></span>
           </div>
 
           <div className="space-y-3">
-            {isProtectedAdmin && <div className="admin-protected-notice" role="status"><span aria-hidden="true">◆</span><div><strong>Protected school administrator</strong><p>This account cannot be banned, suspended, removed, or assigned a different role from this portal.</p></div></div>}
+            {isProtectedAdmin && <div className="admin-protected-notice" role="status"><span aria-hidden="true">◆</span><div><strong>Protected school owner</strong><p>Transfer ownership through a dedicated workflow before changing or removing this account.</p></div></div>}
+            {isAdministrator && !isProtectedAdmin && <div className="admin-protected-notice" role="status"><span aria-hidden="true">◇</span><div><strong>Delegated administrator{selectedMember.can_teach ? ' + Teacher' : ''}</strong><p>{currentCapabilities?.is_owner ? 'You can return this account to Teacher or Student. Active teaching assignments are always checked first.' : 'Only the school owner can change this administrator’s access.'}</p></div></div>}
             {selectedMember.role === 'student' && (
               <div className="member-action-section">
                 <div className="flex items-center justify-between gap-3 mb-2">
@@ -126,7 +130,7 @@ const MemberActionModal: React.FC = () => {
             )}
 
             {/* Role Change */}
-            {!isProtectedAdmin && <div className="member-action-section">
+            {canChangeRole && <div className="member-action-section">
               <h4 className="text-sm font-semibold text-slate-800 mb-2">Change Role</h4>
               <div className="flex gap-2">
                 {(['student', 'teacher', 'school_admin'] as SchoolRole[]).map((role) => (
@@ -147,7 +151,7 @@ const MemberActionModal: React.FC = () => {
             </div>}
 
             {/* Ban/Unban */}
-            {!isProtectedAdmin && <div className="member-action-section">
+            {!isAdministrator && <div className="member-action-section">
               <h4 className="text-sm font-semibold text-slate-800 mb-2">Account Status</h4>
               {selectedMember.is_banned ? (
                 <button
@@ -301,7 +305,7 @@ const MemberActionModal: React.FC = () => {
             )}
 
             {/* Remove from School */}
-            {!isProtectedAdmin && <button
+            {!isAdministrator && <button
               onClick={handleRemoveMember}
               disabled={actionLoading}
               className="w-full px-4 py-2 bg-red-600 hover:bg-red-500 disabled:opacity-50 rounded-lg transition-colors"

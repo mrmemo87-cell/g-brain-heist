@@ -31,6 +31,16 @@ export interface SchoolMember {
   banned_until: string | null;
   required_changes: Record<string, any> | null;
   joined_at: string;
+  is_owner: boolean;
+  can_teach: boolean;
+}
+
+export interface SchoolCapabilities {
+  school_id: string;
+  role: SchoolRole;
+  is_owner: boolean;
+  can_administer: boolean;
+  can_teach: boolean;
 }
 
 export interface SchoolInfo {
@@ -65,6 +75,9 @@ export interface SchoolTeacher {
   email: string;
   subject_specializations: string[];
   verified: boolean;
+  role_in_school: SchoolRole;
+  is_owner: boolean;
+  can_teach: boolean;
 }
 
 export interface ClassTeacherAssignment {
@@ -142,38 +155,27 @@ function getSettingBool(settings: Record<string, any> | null | undefined, key: s
  */
 export async function isSchoolAdmin(): Promise<boolean> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return false;
-
-    // First check: user.role = 'school_admin' (highest priority - for teachers assigned as admins)
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .maybeSingle();
-
-    if (!userError && userData?.role === 'school_admin') {
-      console.log('[isSchoolAdmin] User has school_admin role in users table');
-      return true;
-    }
-
-    // Second check: school_members.role_in_school = 'school_admin'
-    const { data: membership, error: memberError } = await supabase
-      .from('school_members')
-      .select('role_in_school')
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .maybeSingle();
-
-    if (!memberError && membership?.role_in_school === 'school_admin') {
-      console.log('[isSchoolAdmin] User has school_admin role in school_members table');
-      return true;
-    }
-
-    return false;
+    return Boolean((await getMySchoolCapabilities())?.can_administer);
   } catch (err) {
     console.error('Exception checking school admin status:', err);
     return false;
+  }
+}
+
+export async function getMySchoolCapabilities(schoolId?: string | null): Promise<SchoolCapabilities | null> {
+  try {
+    const { data, error } = await supabase.rpc('school_admin_get_my_capabilities', { p_school_id: schoolId || null });
+    if (error || !data?.success) return null;
+    return {
+      school_id: data.school_id,
+      role: data.role as SchoolRole,
+      is_owner: Boolean(data.is_owner),
+      can_administer: Boolean(data.can_administer),
+      can_teach: Boolean(data.can_teach),
+    };
+  } catch (error) {
+    console.error('Exception loading school capabilities:', error);
+    return null;
   }
 }
 
@@ -182,51 +184,10 @@ export async function isSchoolAdmin(): Promise<boolean> {
  */
 export async function getCurrentSchool(): Promise<SchoolAdminOverview | null> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
-
-    let schoolId: string | null = null;
-    let roleInSchool: SchoolRole = 'student';
-
-    // Try school_members table first (canonical)
-    const { data: membership, error: membershipError } = await supabase
-      .from('school_members')
-      .select('school_id, role_in_school')
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .maybeSingle();
-
-    if (!membershipError && membership?.school_id) {
-      schoolId = membership.school_id;
-      roleInSchool = membership.role_in_school as SchoolRole;
-    } else {
-      // Fallback: check users table directly
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('school_id, role')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (userError || !userData?.school_id) {
-        console.error('Error fetching school from users:', userError);
-        return null;
-      }
-
-      schoolId = userData.school_id;
-      // Map users.role to SchoolRole
-      if (userData.role === 'school_admin') {
-        roleInSchool = 'school_admin';
-      } else if (userData.role === 'teacher') {
-        roleInSchool = 'teacher';
-      } else {
-        roleInSchool = 'student';
-      }
-    }
-
-    if (!schoolId) {
-      console.error('No school_id found for user');
-      return null;
-    }
+    const capabilities = await getMySchoolCapabilities();
+    if (!capabilities) return null;
+    const schoolId = capabilities.school_id;
+    const roleInSchool = capabilities.role;
 
     // Prefer admin RPC (returns school + stats). Requires SCHOOL_ADMIN_FUNCTIONS.sql deployed.
     const { data: details, error: detailsError } = await supabase.rpc('get_school_details', {
@@ -370,13 +331,18 @@ export async function listSchoolMembers(
       return { members: [], total: 0 };
     }
 
-    const { data: namesData } = await supabase.rpc('school_admin_get_member_names');
+    const [{ data: namesData }, { data: capabilityData }] = await Promise.all([
+      supabase.rpc('school_admin_get_member_names'),
+      supabase.rpc('school_admin_list_member_capabilities', { p_school_id: schoolId }),
+    ]);
     const namesById = new Map(
       ((namesData?.success ? namesData.members : []) || []).map((row: any) => [row.user_id, row])
     );
+    const capabilitiesById = new Map(((capabilityData || []) as any[]).map((row: any) => [row.user_id, row]));
     const membersRaw = (data.members || []) as any[];
     const mapped: SchoolMember[] = membersRaw.map((row) => {
       const identity = namesById.get(row.user_id) as any;
+      const capability = capabilitiesById.get(row.user_id) as any;
       return ({
       user_id: row.user_id,
       username: row.username,
@@ -394,6 +360,8 @@ export async function listSchoolMembers(
       banned_until: row.banned_until ?? null,
       required_changes: row.required_changes ?? null,
       joined_at: row.joined_at,
+      is_owner: Boolean(capability?.is_owner),
+      can_teach: Boolean(capability?.can_teach ?? row.role_in_school === 'teacher'),
     });
     });
 
@@ -424,13 +392,16 @@ export async function verifyStudentFullName(
 export async function updateMemberRole(
   schoolId: string,
   targetUserId: string,
-  newRole: SchoolRole
-): Promise<{ success: boolean; error?: string }> {
+  newRole: SchoolRole,
+  options?: { keepTeaching?: boolean; reason?: string }
+): Promise<{ success: boolean; error?: string; assignmentCount?: number }> {
   try {
-    const { data, error } = await supabase.rpc('update_member_role', {
+    const { data, error } = await supabase.rpc('school_admin_transition_member_role', {
       p_school_id: schoolId,
       p_member_user_id: targetUserId,
       p_new_role: newRole,
+      p_keep_teaching: options?.keepTeaching ?? newRole === 'teacher',
+      p_reason: options?.reason || null,
     });
 
     if (error) {
@@ -439,7 +410,7 @@ export async function updateMemberRole(
     }
 
     if (!data?.success) {
-      return { success: false, error: data?.error || 'Failed to update role' };
+      return { success: false, error: data?.error || 'Failed to update role', assignmentCount: data?.assignment_count };
     }
 
     return { success: true };
@@ -742,6 +713,9 @@ export async function listSchoolTeachers(schoolId: string): Promise<SchoolTeache
       email: row.email,
       subject_specializations: Array.isArray(row.subject_specializations) ? row.subject_specializations : [],
       verified: !!row.verified,
+      role_in_school: row.role_in_school as SchoolRole,
+      is_owner: Boolean(row.is_owner),
+      can_teach: Boolean(row.can_teach),
     }));
   } catch (err) {
     console.error('Exception fetching teachers:', err);
