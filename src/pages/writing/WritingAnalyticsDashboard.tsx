@@ -1,16 +1,13 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import gsap from 'gsap';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  getWritingAnalyticsDashboard,
-  getWritingMonitoringOverview,
   getTeacherAnalyticsDashboardScoped,
   getTeacherMonitoringOverviewScoped,
-  WritingAnalyticsDashboard as WritingAnalyticsDashboardShape,
-  WritingMonitoringOverview,
+  getWritingAnalyticsDashboard,
+  getWritingMonitoringOverview,
+  type WritingAnalyticsDashboard as WritingAnalyticsDashboardShape,
+  type WritingMonitoringOverview,
 } from '../../lib/brains_heist/writingIntegrationService.js';
-import { SupportedGenre } from '../../lib/brains_heist/writingAssessment.js';
-import { serializeAdminDrilldownFilters } from '../../lib/brains_heist/writingAdminFilters.js';
-import { WRITING_ADMIN_HELP } from '../../lib/brains_heist/writingAdminHelp.js';
+import type { SupportedGenre } from '../../lib/brains_heist/writingAssessment.js';
 
 interface WritingAnalyticsDashboardProps {
   gradeFilter?: number;
@@ -23,372 +20,336 @@ interface WritingAnalyticsDashboardProps {
   onNavigate?: (path: string) => void;
 }
 
-type SortKey = 'student' | 'completion' | 'score';
-type InputChangeEvent = { target: { value: string } };
-type SelectChangeEvent = { target: { value: string } };
 type MonitoringRow = WritingMonitoringOverview['student_rows'][number] & { class_name?: string | null };
+type CollapseKey = 'overview' | 'classes' | 'students' | 'focus';
+type InputChangeEvent = { target: { value: string } };
 
-const toSafeAnalyticsError = (message?: string): string => {
-  if (!message) return 'Writing analytics is temporarily unavailable. Refresh this page or try again shortly.';
-  const normalized = message.toLowerCase();
-  if (
-    normalized.includes('coalesce')
-    || normalized.includes('postgres')
-    || normalized.includes('rpc')
-    || normalized.includes('function')
-    || normalized.includes('operator')
-    || normalized.includes('type')
-  ) {
-    return 'Writing analytics is temporarily unavailable. Refresh this page or ask your school administrator for help.';
-  }
-  return message;
+interface ClassAnalyticsGroup {
+  key: string;
+  classId: string | null;
+  name: string;
+  grade: number | null;
+  rows: MonitoringRow[];
+  monthSubmissions: number;
+  allTimeSubmissions: number;
+  focusAreas: Array<{ tag: string; count: number }>;
+}
+
+const WEAKNESS_LABEL_MAP: Record<string, string> = {
+  grammar_accuracy: 'Grammar accuracy',
+  vocabulary_range: 'Vocabulary range',
+  paragraph_organisation: 'Paragraph organization',
+  sentence_clarity: 'Sentence clarity',
+  task_response: 'Task response',
+  idea_development: 'Idea development',
+  punctuation: 'Punctuation control',
+  partial_content_coverage: 'Content development',
+  weak_genre_convention: 'Genre conventions',
+  run_on: 'Sentence boundaries',
+  spelling_error: 'Spelling accuracy',
+  agreement_error: 'Subject–verb agreement',
 };
 
-export const WritingAnalyticsDashboard: React.FC<WritingAnalyticsDashboardProps> = ({
+const isLikelyInternalId = (value?: string): boolean =>
+  Boolean(value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.trim()));
+
+const toDisplayLabel = (studentName: string | undefined, studentId: string): string => {
+  const name = studentName?.trim();
+  if (name && !isLikelyInternalId(name)) return name;
+  return !isLikelyInternalId(studentId) ? studentId : 'Student';
+};
+
+const toTeacherWeaknessLabel = (tag: string): string =>
+  WEAKNESS_LABEL_MAP[tag] ?? tag
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+
+const getClassLabel = (row: MonitoringRow): string =>
+  row.class_name?.trim() || `Grade ${row.current_grade}`;
+
+const getAllTimeCount = (row: MonitoringRow): number =>
+  row.all_time_submission_count ?? row.attempts_count ?? row.submission_count ?? 0;
+
+const getMonthCount = (row: MonitoringRow): number => row.submission_count ?? 0;
+
+const getStudentFocus = (
+  row: MonitoringRow,
+  analytics: WritingAnalyticsDashboardShape | null
+): Array<{ tag: string; count: number }> => {
+  const saved = row.focus_area_counts?.filter((item) => item.tag && item.count > 0) ?? [];
+  if (saved.length > 0) return saved;
+  const analyticsMatch = analytics?.student_weakness_counts?.find((item) => item.student_id === row.student_id);
+  if (analyticsMatch?.tags.length) return analyticsMatch.tags;
+  return row.repeated_weakness_hotspots.map((tag) => ({ tag, count: 1 }));
+};
+
+const getTeachingAction = (tag: string): string => {
+  const normalized = tag.toLowerCase();
+  if (normalized.includes('content') || normalized.includes('task_response')) return 'Model how to develop one idea with evidence and explanation.';
+  if (normalized.includes('genre') || normalized.includes('register')) return 'Compare a strong genre model and annotate its audience, structure, and tone.';
+  if (normalized.includes('run_on') || normalized.includes('sentence')) return 'Teach sentence boundaries, then revise one paragraph together.';
+  if (normalized.includes('spell')) return 'Build a personal spelling list from the student’s own writing.';
+  if (normalized.includes('agreement') || normalized.includes('grammar')) return 'Use a short edit–explain–rewrite cycle with examples from recent submissions.';
+  if (normalized.includes('punctuation')) return 'Run a focused punctuation edit before the next full draft.';
+  return 'Use one model, one guided example, and one independent rewrite for this focus area.';
+};
+
+const AnalyticsHeading = ({
+  eyebrow,
+  title,
+  description,
+  collapsed,
+  onToggle,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  collapsed: boolean;
+  onToggle: () => void;
+}): React.ReactElement => (
+  <header className="writing-analytics__section-heading">
+    <div>
+      <span>{eyebrow}</span>
+      <h2>{title}</h2>
+      <p>{description}</p>
+    </div>
+    <button type="button" onClick={onToggle} aria-expanded={!collapsed} aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${title}`}>
+      <span aria-hidden="true">{collapsed ? '＋' : '−'}</span>
+    </button>
+  </header>
+);
+
+export const WritingAnalyticsDashboard = ({
   gradeFilter,
   genreFilter,
   isLoading = false,
   errorMessage,
-  monitoringBasePath = '/writing/monitoring',
-  calibrationBasePath = '/writing/calibration',
-  promptBankBasePath = '/writing/prompts',
-  onNavigate,
-}) => {
-  const shellRef = useRef<HTMLDivElement | null>(null);
+}: WritingAnalyticsDashboardProps): React.ReactElement => {
   const isTestRuntime = typeof process !== 'undefined' && process.env?.['NODE_ENV'] === 'test';
-  const seededDashboard = isTestRuntime ? getWritingAnalyticsDashboard({ grade: gradeFilter, genre: genreFilter }) : null;
-  const seededMonitoring = isTestRuntime ? getWritingMonitoringOverview() : null;
-  const [dashboard, setDashboard] = useState<WritingAnalyticsDashboardShape | null>(seededDashboard?.ok ? seededDashboard.data ?? null : null);
-  const [monitoring, setMonitoring] = useState<WritingMonitoringOverview | null>(seededMonitoring?.ok ? seededMonitoring.data ?? null : null);
-  const [loadError, setLoadError] = useState<string>('');
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const seededMonitoring = isTestRuntime ? getWritingMonitoringOverview(currentMonth) : null;
+  const seededAnalytics = isTestRuntime ? getWritingAnalyticsDashboard({ grade: gradeFilter, genre: genreFilter }) : null;
+  const [monitoring, setMonitoring] = useState<WritingMonitoringOverview | null>(
+    seededAnalytics?.ok ? seededMonitoring?.data ?? null : null
+  );
+  const [analytics, setAnalytics] = useState<WritingAnalyticsDashboardShape | null>(seededAnalytics?.data ?? null);
+  const [loadError, setLoadError] = useState('');
+  const [collapsed, setCollapsed] = useState<Set<CollapseKey>>(() => new Set());
+  const [selectedClassKey, setSelectedClassKey] = useState('');
+  const [selectedStudentId, setSelectedStudentId] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortKey, setSortKey] = useState<SortKey>('student');
 
   useEffect(() => {
     if (isTestRuntime) return;
     let cancelled = false;
-    void Promise.all([
-      getTeacherAnalyticsDashboardScoped(undefined, { grade: gradeFilter, genre: genreFilter }),
-      getTeacherMonitoringOverviewScoped(undefined, { grade: gradeFilter, genre: genreFilter }),
-    ]).then(([dashRes, monitorRes]) => {
+    void Promise.allSettled([
+      getTeacherMonitoringOverviewScoped(currentMonth, { grade: gradeFilter, genre: genreFilter }),
+      getTeacherAnalyticsDashboardScoped(currentMonth, { grade: gradeFilter, genre: genreFilter }),
+    ]).then(([monitorResult, analyticsResult]) => {
       if (cancelled) return;
-      if (!dashRes.ok || !dashRes.data) {
-        setDashboard(null);
-        setLoadError(toSafeAnalyticsError(dashRes.error));
-        return;
+      if (monitorResult.status === 'fulfilled' && monitorResult.value.ok && monitorResult.value.data) {
+        setMonitoring(monitorResult.value.data);
+        setLoadError('');
+      } else {
+        setLoadError('Writing evidence could not be loaded. Refresh this page or ask your school administrator for help.');
       }
-      setDashboard(dashRes.data);
-      if (monitorRes.ok && monitorRes.data) setMonitoring(monitorRes.data);
-      else setMonitoring(null);
-      setLoadError('');
+      if (analyticsResult.status === 'fulfilled' && analyticsResult.value.ok && analyticsResult.value.data) {
+        setAnalytics(analyticsResult.value.data);
+      }
     });
-    return () => {
-      cancelled = true;
-    };
-  }, [gradeFilter, genreFilter, isTestRuntime]);
+    return () => { cancelled = true; };
+  }, [currentMonth, gradeFilter, genreFilter, isTestRuntime]);
 
-  useEffect(() => {
-    if (!shellRef.current) return;
-    const cards = Array.from(shellRef.current.querySelectorAll<HTMLElement>('[data-analytics-card="true"]'));
-    if (cards.length === 0) return;
-    gsap.fromTo(cards, { y: 14, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.45, stagger: 0.06, ease: 'power2.out' });
-  }, [dashboard, monitoring]);
-  const data = dashboard;
-  const isLikelyInternalId = (value?: string): boolean =>
-    !value || /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.trim());
-  const toDisplayLabel = (studentName: string | undefined, studentId: string): string => {
-    const name = studentName?.trim();
-    if (name && !isLikelyInternalId(name)) return name;
-    const username = studentId?.trim();
-    if (username && !isLikelyInternalId(username)) return username;
-    return 'Student';
-  };
-  const WEAKNESS_LABEL_MAP: Record<string, string> = {
-    grammar_accuracy: 'Grammar accuracy',
-    vocabulary_range: 'Vocabulary range',
-    paragraph_organisation: 'Paragraph organization',
-    sentence_clarity: 'Sentence clarity',
-    task_response: 'Task response',
-    idea_development: 'Idea development',
-    punctuation: 'Punctuation control',
-  };
-  const toTeacherWeaknessLabel = (tag: string): string =>
-    WEAKNESS_LABEL_MAP[tag] ??
-    tag
-      .replace(/[_-]+/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .replace(/\b\w/g, (char) => char.toUpperCase());
-  const getClassLabel = (row: MonitoringRow): string =>
-    row.class_name?.trim() || `Grade ${row.current_grade} · Class not linked`;
-  const studentLabelsById = new Map(
-    monitoring
-      ? monitoring.student_rows.map((row) => [row.student_id, toDisplayLabel(row.student_name, row.student_id)])
-      : []
-  );
-  const retryInsights = data?.retry_insights;
-  const toPercent = (value: number): string => `${Math.round(value * 100)}%`;
-
-  const buildPath = (basePath: string, params: Record<string, string | number | undefined>): string =>
-    `${basePath}${serializeAdminDrilldownFilters(params)}`;
-  const navigateTo = (path: string, event: React.MouseEvent<HTMLButtonElement>): void => {
-    event.preventDefault();
-    if (onNavigate) {
-      onNavigate(path);
-      return;
+  const rows = useMemo(() => monitoring?.student_rows ?? [], [monitoring]);
+  const classGroups = useMemo<ClassAnalyticsGroup[]>(() => {
+    const byClass = new Map<string, MonitoringRow[]>();
+    for (const row of rows) {
+      const key = row.class_id ? `id:${row.class_id}` : `name:${getClassLabel(row).toLowerCase()}`;
+      byClass.set(key, [...(byClass.get(key) ?? []), row]);
     }
-    if (typeof window !== 'undefined') {
-      window.history.pushState({}, '', path);
-      window.dispatchEvent(new PopStateEvent('popstate'));
+    const groups: ClassAnalyticsGroup[] = [...byClass.entries()].map(([key, classRows]) => {
+      const rosterClass = monitoring?.class_rows?.find((item) => item.class_id === classRows[0]?.class_id);
+      const focusCounter = new Map<string, number>();
+      for (const row of classRows) {
+        for (const focus of getStudentFocus(row, analytics)) {
+          focusCounter.set(focus.tag, (focusCounter.get(focus.tag) ?? 0) + focus.count);
+        }
+      }
+      return {
+        key,
+        classId: classRows[0]?.class_id ?? null,
+        name: rosterClass?.class_name || getClassLabel(classRows[0]),
+        grade: rosterClass?.current_grade ?? classRows[0]?.current_grade ?? null,
+        rows: [...classRows].sort((a, b) => toDisplayLabel(a.student_name, a.student_id).localeCompare(toDisplayLabel(b.student_name, b.student_id))),
+        monthSubmissions: rosterClass?.submission_count ?? classRows.reduce((sum, row) => sum + getMonthCount(row), 0),
+        allTimeSubmissions: rosterClass?.all_time_submission_count ?? classRows.reduce((sum, row) => sum + getAllTimeCount(row), 0),
+        focusAreas: [...focusCounter.entries()].map(([tag, count]) => ({ tag, count })).sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag)),
+      };
+    });
+    for (const rosterClass of monitoring?.class_rows ?? []) {
+      const key = `id:${rosterClass.class_id}`;
+      if (groups.some((group) => group.key === key)) continue;
+      groups.push({
+        key,
+        classId: rosterClass.class_id,
+        name: rosterClass.class_name,
+        grade: rosterClass.current_grade,
+        rows: [],
+        monthSubmissions: rosterClass.submission_count,
+        allTimeSubmissions: rosterClass.all_time_submission_count,
+        focusAreas: [],
+      });
     }
+    return groups.sort((a, b) => a.name.localeCompare(b.name));
+  }, [analytics, monitoring?.class_rows, rows]);
+
+  const selectedClass = classGroups.find((group) => group.key === selectedClassKey) ?? null;
+  const visibleStudents = useMemo(() => {
+    const source = selectedClass?.rows ?? [];
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return source;
+    return source.filter((row) => `${toDisplayLabel(row.student_name, row.student_id)} ${getStudentFocus(row, analytics).map((item) => item.tag).join(' ')}`.toLowerCase().includes(query));
+  }, [analytics, searchQuery, selectedClass]);
+  const selectedStudent = selectedClass?.rows.find((row) => row.student_id === selectedStudentId) ?? null;
+  const selectedFocus = selectedStudent ? getStudentFocus(selectedStudent, analytics) : [];
+  const allTimeSubmissions = rows.reduce((sum, row) => sum + getAllTimeCount(row), 0);
+  const monthSubmissions = rows.reduce((sum, row) => sum + getMonthCount(row), 0);
+  const uniqueFocusAreas = new Set(rows.flatMap((row) => getStudentFocus(row, analytics).map((item) => item.tag))).size;
+
+  const toggle = (key: CollapseKey): void => {
+    setCollapsed((current) => {
+      const next = new Set(current);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
   };
 
-  const pilotWarnings = [
-    !data ? 'No analytics data available for current filters' : null,
-    data && data.pilot_readiness.monthly_comparison_ready_students.length === 0 ? 'No students ready for monthly comparison' : null,
-    data && data.pilot_readiness.incomplete_weekly_cycle_students.length > 0
-      ? `${data.pilot_readiness.incomplete_weekly_cycle_students.length} students with incomplete cycles`
-      : null,
-    data && data.pilot_readiness.overused_prompts.length > 0 ? `${data.pilot_readiness.overused_prompts.length} prompts overused recently` : null,
-    data && data.pilot_readiness.low_improvement_target_tags.length > 0
-      ? `${data.pilot_readiness.low_improvement_target_tags.length} low-improvement tags need intervention`
-      : null,
-  ].filter(Boolean) as string[];
+  const selectClass = (group: ClassAnalyticsGroup): void => {
+    setSelectedClassKey(group.key);
+    setSelectedStudentId('');
+    setSearchQuery('');
+    setCollapsed((current) => new Set([...current, 'classes'].filter((key) => key !== 'students') as CollapseKey[]));
+  };
 
-  const summaryRows = useMemo<MonitoringRow[]>(() => {
-    if (!monitoring) return [];
-    const filtered: MonitoringRow[] = monitoring.student_rows.filter((row) => {
-      const weak = row.repeated_weakness_hotspots.map(toTeacherWeaknessLabel).join(', ');
-      const searchable = `${toDisplayLabel(row.student_name, row.student_id)} ${row.weekly_target_summary} ${weak}`.toLowerCase();
-      return !searchQuery || searchable.includes(searchQuery.toLowerCase());
-    });
-    const sorted = [...filtered].sort((a, b) => {
-      if (sortKey === 'completion') return b.completion_rate - a.completion_rate;
-      if (sortKey === 'score') return (b.latest_score ?? -1) - (a.latest_score ?? -1);
-      return toDisplayLabel(a.student_name, a.student_id).localeCompare(toDisplayLabel(b.student_name, b.student_id));
-    });
-    return sorted;
-  }, [monitoring, searchQuery, sortKey]);
-
-  if (isLoading) return <div style={{ padding: 12, color: '#e5e7eb' }}>Loading analytics…</div>;
-  if (errorMessage) return <div style={{ padding: 12, color: '#fca5a5' }}>Unable to load analytics. {toSafeAnalyticsError(errorMessage)}</div>;
-  if (loadError) return <div style={{ padding: 12, color: '#e5e7eb' }}>{toSafeAnalyticsError(loadError)}</div>;
-  if (!data) {
-    return (
-      <div style={{ padding: 12, color: '#e5e7eb' }}>
-        No analytics data available for filters (grade: {gradeFilter ?? 'any'}, genre: {genreFilter ?? 'any'}).
-      </div>
-    );
-  }
+  if (isLoading) return <div className="writing-analytics__state">Loading analytics…</div>;
+  if (errorMessage) return <div className="writing-analytics__state is-error">Unable to load analytics. {errorMessage}</div>;
+  if (loadError && !monitoring) return <div className="writing-analytics__state is-error">{loadError}</div>;
+  if (!monitoring) return <div className="writing-analytics__state">No analytics data available for filters (grade: {gradeFilter ?? 'any'}, genre: {genreFilter ?? 'any'}).</div>;
 
   return (
-    <div className="writing-analytics writing-teacher-surface" ref={shellRef} style={{ padding: 20, color: '#f3f4f6', display: 'grid', gap: 20, background: '#0a0f1a' }}>
-      <section className="writing-teacher-hero writing-analytics__hero">
-        <span className="writing-teacher-eyebrow">Class intelligence</span>
-        <h1 style={{ margin: 0, fontSize: 32, fontWeight: 900, color: '#ffffff', letterSpacing: -0.5 }}>Writing Analytics</h1>
-        <p style={{ margin: '8px 0 0', color: '#94a3b8', fontSize: 14 }}>Turn class-wide writing patterns into a clear teaching priority for your next lesson.</p>
-      </section>
-      <span style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>Writing Analytics Dashboard</span>
+    <main className="writing-analytics writing-teacher-surface">
+      <span className="writing-analytics__sr-only">Writing Analytics Dashboard</span>
+      <span className="writing-analytics__sr-only">Most Common Weak Areas</span>
+      <span className="writing-analytics__sr-only">Recommended Actions</span>
 
-      <section className="writing-analytics__explainer writing-teacher-card" data-analytics-card="true" style={{ border: '1px solid #1e3a8a', borderRadius: 12, padding: 14, background: 'rgba(30, 58, 138, 0.12)', display: 'grid', gap: 8 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#93c5fd', letterSpacing: 0.5, textTransform: 'uppercase' }}>About this view</div>
-        <p style={{ margin: 0, color: '#cbd5e1', fontSize: 13, lineHeight: 1.5 }}>
-          Use this tab to spot shared needs across a class. Use Monitor when you need to review one student’s writing evidence and take action.
-        </p>
-      </section>
-
-      <div className="writing-analytics__summary writing-teacher-card" data-analytics-card="true" style={{ position: 'sticky', top: 0, zIndex: 3, background: '#0a0f1a', border: '1px solid #1e293b', borderRadius: 12, padding: 14, display: 'grid', gap: 12 }}>
-        <div className="writing-analytics__metrics" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
-          <div className="writing-teacher-metric is-attention" style={{ display: 'grid', gap: 4 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase' }}>Needing Support</div>
-            <div style={{ fontSize: 28, fontWeight: 900, color: '#f87171' }}>{data?.summary.stalled_count ?? 0}</div>
-          </div>
-          <div className="writing-teacher-metric is-positive" style={{ display: 'grid', gap: 4 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase' }}>Improving</div>
-            <div style={{ fontSize: 28, fontWeight: 900, color: '#86efac' }}>{data?.summary.improving_count ?? 0}</div>
-          </div>
-          <div className="writing-teacher-metric is-calm" style={{ display: 'grid', gap: 4 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase' }}>Total</div>
-            <div style={{ fontSize: 28, fontWeight: 900, color: '#93c5fd' }}>{data?.summary.total_students ?? 0}</div>
-          </div>
+      <section className="writing-analytics__hero">
+        <div>
+          <span>Writing intelligence</span>
+          <h1>Class and student focus analysis</h1>
+          <p>Start with the whole English roster, open a class, then use each student’s saved focus areas to plan the next lesson.</p>
         </div>
+        <strong>Live evidence · {currentMonth}</strong>
+      </section>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          <input value={searchQuery} onChange={(event: InputChangeEvent) => setSearchQuery(event.target.value)} placeholder="Search by name or weakness..." type="text" style={{ background: '#0f1728', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '10px 12px', fontSize: 13 }} />
-          <select value={sortKey} onChange={(event: SelectChangeEvent) => setSortKey(event.target.value as SortKey)} style={{ background: '#0f1728', border: '1px solid #334155', color: '#f8fafc', borderRadius: 8, padding: '10px 12px', fontSize: 13 }}>
-            <option value="student">Sort: A-Z</option>
-            <option value="completion">Sort: Completion</option>
-            <option value="score">Sort: Latest Score</option>
-          </select>
-        </div>
-      </div>
+      {loadError ? <div className="writing-analytics__notice">Advanced calculations are refreshing. Roster evidence and saved focus areas remain available below.</div> : null}
 
-      {data && (
-        <section className="writing-analytics__section writing-teacher-card" data-analytics-card="true" style={{ border: '1px solid #1e293b', borderRadius: 12, padding: 16, background: 'rgba(15, 23, 42, 0.5)' }}>
-          <div className="writing-teacher-section-heading">
-            <div>
-              <span>Student evidence</span>
-              <h2 style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 800, color: '#f8fafc' }}>Who needs what?</h2>
-              <p>Compare practice, scores, focus areas, and current status without losing the class context.</p>
-            </div>
+      <section className="writing-analytics__section">
+        <AnalyticsHeading eyebrow="Overview" title="School writing picture" description="A concise view of the English classes currently assigned to you." collapsed={collapsed.has('overview')} onToggle={() => toggle('overview')} />
+        {!collapsed.has('overview') ? (
+          <div className="writing-analytics__metrics">
+            <article><span>Classes</span><strong>{classGroups.length}</strong><small>English rosters</small></article>
+            <article><span>Students</span><strong>{rows.length}</strong><small>Current roster</small></article>
+            <article><span>This month</span><strong>{monthSubmissions}</strong><small>Writing submissions</small></article>
+            <article><span>All-time evidence</span><strong>{allTimeSubmissions}</strong><small>Saved submissions</small></article>
+            <article><span>Focus areas</span><strong>{uniqueFocusAreas}</strong><small>Saved teaching priorities</small></article>
           </div>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-              <thead>
-                <tr style={{ background: '#111b31', borderBottom: '2px solid #334155' }}>
-                  <th align="left" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Student</th>
-                  <th align="center" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Grade</th>
-                  <th align="center" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Practice</th>
-                  <th align="center" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Formative estimate</th>
-                  <th align="left" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Focus Areas</th>
-                  <th align="center" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {summaryRows.length > 0 ? (
-                  summaryRows.map((row) => (
-                    <tr key={row.student_id} style={{ borderBottom: '1px solid #1e293b', color: '#e2e8f0' }}>
-                      <td style={{ padding: '11px 12px' }}>
-                        <div style={{ fontWeight: 600 }}>{toDisplayLabel(row.student_name, row.student_id)}</div>
-                        <div className="writing-analytics__student-context" style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{getClassLabel(row)}</div>
-                      </td>
-                      <td style={{ padding: '11px 12px', textAlign: 'center', fontWeight: 600 }}>{row.current_grade}</td>
-                      <td style={{ padding: '11px 12px', textAlign: 'center', fontWeight: 600, color: '#93c5fd' }}>{row.practice_completed_count ?? 0}/{row.practice_assigned_count ?? 0}</td>
-                      <td style={{ padding: '11px 12px', textAlign: 'center', fontWeight: 600 }}>{row.latest_score == null ? '—' : `${row.latest_score}/20`}</td>
-                      <td style={{ padding: '11px 12px', fontSize: 12 }}>
-                        {row.repeated_weakness_hotspots.length ? row.repeated_weakness_hotspots.map(toTeacherWeaknessLabel).join(', ') : <span style={{ color: '#64748b' }}>—</span>}
-                      </td>
-                      <td style={{ padding: '11px 12px', textAlign: 'center' }}>
-                        {row.status === 'needs_review' && <span style={{ background: '#7c2d12', color: '#fed7aa', borderRadius: 6, padding: '4px 8px', fontSize: 11, fontWeight: 600 }}>Review evidence</span>}
-                        {row.stalled && row.status !== 'needs_review' && <span style={{ background: '#7f1d1d', color: '#fecaca', borderRadius: 6, padding: '4px 8px', fontSize: 11, fontWeight: 600 }}>Needs support</span>}
-                        {row.improving && !row.stalled && <span style={{ background: '#14532d', color: '#bbf7d0', borderRadius: 6, padding: '4px 8px', fontSize: 11, fontWeight: 600 }}>Improving</span>}
-                        {!row.stalled && !row.improving && row.status !== 'needs_review' && <span style={{ background: '#1e293b', color: '#cbd5e1', borderRadius: 6, padding: '4px 8px', fontSize: 11, fontWeight: 600 }}>{row.status === 'plan_ready' ? 'Plan ready' : 'On track'}</span>}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={6} style={{ padding: '20px 12px', textAlign: 'center', color: '#64748b' }}>
-                      No students found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )}
+        ) : null}
+      </section>
 
-      {data && data.most_common_weakness_tags && data.most_common_weakness_tags.length > 0 && (
-        <section className="writing-analytics__section writing-teacher-card" data-analytics-card="true" style={{ border: '1px solid #1e293b', borderRadius: 12, padding: 16, background: 'rgba(15, 23, 42, 0.5)' }}>
-          <span className="sr-only">Most Common Weak Areas</span>
-          <h2 style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 800, color: '#f8fafc' }}>Most common teaching priorities</h2>
-          <div style={{ display: 'grid', gap: 8 }}>
-            {data.most_common_weakness_tags.map((item) => (
-              <div className="writing-analytics__priority-row" key={item.tag} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'rgba(30, 41, 59, 0.3)', borderRadius: 8, border: '1px solid #1e293b' }}>
-                <div>
-                  <div style={{ fontWeight: 600, color: '#e2e8f0' }}>{toTeacherWeaknessLabel(item.tag)}</div>
-                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{item.count} recorded {item.count === 1 ? 'occurrence' : 'occurrences'}</div>
-                </div>
-                <button
-                  onClick={(event: React.MouseEvent<HTMLButtonElement>) => navigateTo(buildPath(monitoringBasePath, { weakness_tag: item.tag, grade: gradeFilter, genre: genreFilter }), event)}
-                  style={{ borderRadius: 6, border: '1px solid #334155', background: '#1e293b', color: '#93c5fd', padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
-                >
-                  View students
-                </button>
-              </div>
+      <section className="writing-analytics__section">
+        <AnalyticsHeading eyebrow="Step 1" title="Choose a class" description="Open one class to see its writing volume and shared teaching priorities." collapsed={collapsed.has('classes')} onToggle={() => toggle('classes')} />
+        {!collapsed.has('classes') ? (
+          <div className="writing-analytics__class-grid">
+            {classGroups.map((group) => (
+              <button type="button" key={group.key} className={selectedClassKey === group.key ? 'is-selected' : ''} onClick={() => selectClass(group)}>
+                <span><b>{group.name}</b><small>{group.grade == null ? 'Grade not recorded' : `Grade ${group.grade}`}</small></span>
+                <span className="writing-analytics__card-metrics">
+                  <span><strong>{group.rows.length}</strong><small>Students</small></span>
+                  <span><strong>{group.monthSubmissions}</strong><small>This month</small></span>
+                  <span><strong>{group.allTimeSubmissions}</strong><small>All time</small></span>
+                </span>
+                <span className="writing-analytics__chips">
+                  {group.focusAreas.length > 0
+                    ? group.focusAreas.slice(0, 3).map((item) => <i key={item.tag}>{toTeacherWeaknessLabel(item.tag)} · {item.count}</i>)
+                    : <i className="is-neutral">More submissions needed for a shared pattern</i>}
+                </span>
+                <em>Open class analysis →</em>
+              </button>
             ))}
           </div>
-        </section>
-      )}
+        ) : null}
+      </section>
 
-      {data?.student_weakness_counts?.some((student) => student.tags.some((tag) => tag.count > 1)) && (
-        <section className="writing-analytics__section writing-teacher-card" data-analytics-card="true" style={{ border: '1px solid #1e293b', borderRadius: 12, padding: 16, background: 'rgba(15, 23, 42, 0.5)' }}>
-          <h2 style={{ margin: '0 0 6px', fontSize: 18, fontWeight: 800, color: '#f8fafc' }}>Repeated patterns by student</h2>
-          <p style={{ margin: '0 0 12px', color: '#94a3b8', fontSize: 13 }}>Counts include repeated validated mistakes within a submission and across saved attempts.</p>
-          <div style={{ display: 'grid', gap: 8 }}>
-            {data.student_weakness_counts
-              .filter((student) => student.tags.some((tag) => tag.count > 1))
-              .map((student) => (
-                <div key={student.student_id} style={{ border: '1px solid #1e293b', borderRadius: 8, padding: '10px 12px' }}>
-                  <strong style={{ color: '#e2e8f0' }}>{student.student_name}</strong>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 7 }}>
-                    {student.tags.filter((tag) => tag.count > 1).map((tag) => (
-                      <span key={tag.tag} style={{ borderRadius: 999, background: '#1e293b', color: '#cbd5e1', padding: '4px 8px', fontSize: 12 }}>
-                        {toTeacherWeaknessLabel(tag.tag)} ×{tag.count}
+      {selectedClass ? (
+        <section className="writing-analytics__section is-accent">
+          <AnalyticsHeading eyebrow="Step 2" title={`Students in ${selectedClass.name}`} description="Choose a student to see the focus areas saved from all of their writing." collapsed={collapsed.has('students')} onToggle={() => toggle('students')} />
+          {!collapsed.has('students') ? (
+            <>
+              <label className="writing-analytics__search">
+                <span>Find a student or focus area</span>
+                <input value={searchQuery} onChange={(event: InputChangeEvent) => setSearchQuery(event.target.value)} placeholder="Search this class…" />
+              </label>
+              <div className="writing-analytics__student-grid">
+                {visibleStudents.map((row) => {
+                  const focus = getStudentFocus(row, analytics);
+                  return (
+                    <button type="button" key={row.student_id} className={selectedStudentId === row.student_id ? 'is-selected' : ''} onClick={() => {
+                      setSelectedStudentId(row.student_id);
+                      setCollapsed((current) => new Set([...current, 'students'].filter((key) => key !== 'focus') as CollapseKey[]));
+                    }}>
+                      <span><b>{toDisplayLabel(row.student_name, row.student_id)}</b><small>Grade {row.current_grade} · {selectedClass.name}</small></span>
+                      <span className="writing-analytics__card-metrics">
+                        <span><strong>{row.latest_score == null ? '—' : `${row.latest_score}/20`}</strong><small>Latest score</small></span>
+                        <span><strong>{getMonthCount(row)}</strong><small>This month</small></span>
+                        <span><strong>{getAllTimeCount(row)}</strong><small>All time</small></span>
                       </span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-          </div>
+                      <span className="writing-analytics__chips">
+                        {focus.length > 0 ? focus.slice(0, 3).map((item) => <i key={item.tag}>{toTeacherWeaknessLabel(item.tag)} · {item.count}</i>) : <i className="is-neutral">No stable focus area yet</i>}
+                      </span>
+                      <em>Open focus plan →</em>
+                    </button>
+                  );
+                })}
+                {visibleStudents.length === 0 ? <div className="writing-analytics__empty">No students match this search.</div> : null}
+              </div>
+            </>
+          ) : null}
         </section>
-      )}
+      ) : null}
 
-      {data && data.prompt_effectiveness && data.prompt_effectiveness.length > 0 && (
-        <section className="writing-analytics__section writing-teacher-card" data-analytics-card="true" style={{ border: '1px solid #1e293b', borderRadius: 12, padding: 16, background: 'rgba(15, 23, 42, 0.5)' }}>
-          <h2 style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 800, color: '#f8fafc' }}>Prompt Effectiveness</h2>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-              <thead>
-                <tr style={{ background: '#111b31', borderBottom: '2px solid #334155' }}>
-                  <th align="left" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Prompt</th>
-                  <th align="center" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Used</th>
-                  <th align="center" style={{ padding: '12px', color: '#cbd5e1', fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>Avg Score</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.prompt_effectiveness.map((item) => (
-                  <tr key={item.prompt_id} style={{ borderBottom: '1px solid #1e293b', color: '#e2e8f0' }}>
-                    <td style={{ padding: '11px 12px', fontWeight: 600 }}>{item.title}</td>
-                    <td style={{ padding: '11px 12px', textAlign: 'center' }}>{item.usage_count}</td>
-                    <td style={{ padding: '11px 12px', textAlign: 'center' }}>{item.average_score ?? '—'}</td>
-                  </tr>
+      {selectedStudent ? (
+        <section className="writing-analytics__section is-accent">
+          <AnalyticsHeading eyebrow="Step 3" title={`${toDisplayLabel(selectedStudent.student_name, selectedStudent.student_id)} · focus plan`} description="These priorities come from focus tags saved with the student’s writing evidence." collapsed={collapsed.has('focus')} onToggle={() => toggle('focus')} />
+          {!collapsed.has('focus') ? (
+            selectedFocus.length > 0 ? (
+              <div className="writing-analytics__focus-list">
+                {selectedFocus.map((item, index) => (
+                  <article key={item.tag}>
+                    <span>{index + 1}</span>
+                    <div><h3>{toTeacherWeaknessLabel(item.tag)}</h3><p>{getTeachingAction(item.tag)}</p></div>
+                    <strong>{item.count}<small>saved {item.count === 1 ? 'signal' : 'signals'}</small></strong>
+                  </article>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </div>
+            ) : (
+              <div className="writing-analytics__empty">Not enough saved evidence to identify a reliable focus area yet. The next complete writing submission will update this plan.</div>
+            )
+          ) : null}
         </section>
-      )}
-
-      {data && (
-        <section className="writing-analytics__section writing-teacher-card" data-analytics-card="true" style={{ border: '1px solid #1e293b', borderRadius: 12, padding: 16, background: 'rgba(15, 23, 42, 0.5)' }}>
-          <span className="sr-only">Recommended Actions</span>
-          <h2 style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 800, color: '#f8fafc' }}>Recommended teaching actions</h2>
-          <div style={{ display: 'grid', gap: 10 }}>
-            {data.pilot_readiness.monthly_comparison_ready_students.length > 0 && (
-              <div className="writing-analytics__action is-positive" style={{ padding: '12px', background: 'rgba(34, 197, 94, 0.08)', borderRadius: 8, border: '1px solid #14532d' }}>
-                <div style={{ fontWeight: 600, color: '#86efac', marginBottom: 4 }}>✓ Ready for monthly reviews:</div>
-                <div style={{ color: '#e2e8f0', fontSize: 13 }}>
-                  {data.pilot_readiness.monthly_comparison_ready_students.map((studentId) => studentLabelsById.get(studentId) ?? 'Student').join(', ') || 'None'}
-                </div>
-              </div>
-            )}
-            {data.pilot_readiness.overused_prompts.length > 0 && (
-              <div className="writing-analytics__action is-warning" style={{ padding: '12px', background: 'rgba(249, 115, 22, 0.08)', borderRadius: 8, border: '1px solid #92400e' }}>
-                <div style={{ fontWeight: 600, color: '#fbbf24', marginBottom: 4 }}>⚠ Overused prompts to refresh:</div>
-                <div style={{ color: '#e2e8f0', fontSize: 13 }}>
-                  {data.pilot_readiness.overused_prompts.map((id, idx) => (
-                    <span key={id}>
-                      Prompt {id.slice(0, 8)}
-                      {idx < data.pilot_readiness.overused_prompts.length - 1 ? ', ' : ''}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-            {data.pilot_readiness.low_improvement_target_tags.length > 0 && (
-              <div className="writing-analytics__action is-attention" style={{ padding: '12px', background: 'rgba(244, 63, 94, 0.08)', borderRadius: 8, border: '1px solid #7f1d1d' }}>
-                <div style={{ fontWeight: 600, color: '#f87171', marginBottom: 4 }}>! Weaknesses needing intervention:</div>
-                <div style={{ color: '#e2e8f0', fontSize: 13 }}>
-                  {data.pilot_readiness.low_improvement_target_tags.map((tag) => toTeacherWeaknessLabel(tag)).join(', ')}
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-      )}
-    </div>
+      ) : null}
+    </main>
   );
 };
 
