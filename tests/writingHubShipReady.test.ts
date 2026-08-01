@@ -176,6 +176,8 @@ test('premium Writing Hub keeps authorship context, score meaning, and teacher r
   assert.match(hub, /recordWritingPaste/);
   assert.match(monitoring, /Writing Command Center/);
   assert.match(monitoring, /practice_completed_count/);
+  assert.match(monitoring, /Across all genres · \{monitoringPeriod\}/);
+  assert.match(monitoring, /All-time saved writing evidence/);
   assert.match(monitoring, /openProfessionalWritingReport/);
   assert.match(exports, /Preview family report/);
   assert.doesNotMatch(exports, /text\/plain/);
