@@ -180,7 +180,7 @@ const getUserRole = async (
   return fallback ?? "student";
 };
 
-const normalizeAiResult = (mode: Mode, raw: unknown): AiResult | null => {
+const normalizeAiResult = (mode: Mode, raw: unknown, studentResponse = ""): AiResult | null => {
   if (!raw || typeof raw !== "object") return null;
   const value = raw as Record<string, unknown>;
 
@@ -284,6 +284,41 @@ const normalizeAiResult = (mode: Mode, raw: unknown): AiResult | null => {
     const normalizedGrammarFixes = normalizeFixes(value.grammar_fixes);
     const normalizedPunctuationFixes = normalizeFixes(value.punctuation_fixes);
     const repartitionedFixes = repartitionFixes(normalizedGrammarFixes, normalizedPunctuationFixes);
+    const exactOccurrenceCount = (needle: string): number => {
+      if (!needle) return 0;
+      let count = 0;
+      let cursor = 0;
+      while (cursor <= studentResponse.length - needle.length) {
+        const index = studentResponse.indexOf(needle, cursor);
+        if (index < 0) break;
+        count += 1;
+        cursor = index + Math.max(1, needle.length);
+      }
+      return count;
+    };
+    const comparable = (text: string) => text.trim().replace(/\s+/g, " ").toLocaleLowerCase();
+    const wordSet = (text: string) => new Set(
+      comparable(text).split(/[^\p{L}\p{N}]+/u).filter((word) => word.length >= 3),
+    );
+    const hasGroundedRewrite = (original: string, betterVersion: string, kind: "grammar" | "punctuation" | "phrase") => {
+      if (exactOccurrenceCount(original) !== 1 || comparable(original) === comparable(betterVersion)) return false;
+      if (kind === "punctuation") {
+        const lettersAndNumbers = (text: string) => text.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
+        return lettersAndNumbers(original) === lettersAndNumbers(betterVersion);
+      }
+      const originalWords = wordSet(original);
+      if (kind === "grammar" && originalWords.size <= 2) return true;
+      if (originalWords.size === 0) return true;
+      const betterWords = wordSet(betterVersion);
+      const overlap = [...originalWords].filter((word) => betterWords.has(word)).length / originalWords.size;
+      return overlap >= (kind === "grammar" ? 0.35 : 0.45);
+    };
+    repartitionedFixes.grammar = repartitionedFixes.grammar.filter((fix) =>
+      hasGroundedRewrite(fix.original, fix.better_version, "grammar")
+    );
+    repartitionedFixes.punctuation = repartitionedFixes.punctuation.filter((fix) =>
+      hasGroundedRewrite(fix.original, fix.better_version, "punctuation")
+    );
     const allowedWeaknessTags = new Set([
       "missed_content_point",
       "partial_content_coverage",
@@ -377,7 +412,9 @@ const normalizeAiResult = (mode: Mode, raw: unknown): AiResult | null => {
       what_is_missing: Array.isArray(value.what_is_missing) ? value.what_is_missing.map(String) : [],
       grammar_fixes: repartitionedFixes.grammar,
       punctuation_fixes: repartitionedFixes.punctuation,
-      natural_phrase_upgrades: normalizePhraseUpgrades(value.natural_phrase_upgrades),
+      natural_phrase_upgrades: normalizePhraseUpgrades(value.natural_phrase_upgrades).filter((fix) =>
+        hasGroundedRewrite(fix.original, fix.better_version, "phrase")
+      ),
       style_tone_feedback: normalizeStyleTone(value.style_tone_feedback),
       next_move: typeof value.next_move === "string" ? value.next_move : "",
       example_revision_start:
@@ -455,6 +492,10 @@ const buildUserPrompt = (payload: Payload): string => {
       "- Never use third-person framing like 'the student', 'the response', or 'the story'.",
       "- Use direct evidence from the student response. Quote short snippets where useful.",
       "- Never invent evidence or errors that are not present.",
+      "- Every original/evidence value must be copied verbatim from exactly one place in the student response.",
+      "- Every better_version must correct only its own original value, preserve the student's meaning, and must never be borrowed from a neighbouring sentence.",
+      "- For insertions or one-character errors, keep original long enough to identify the complete phrase (for example, use 'to he city', not only 'to').",
+      "- Do not return a correction when its evidence is repeated and cannot be uniquely identified.",
       "- Separate content/task issues from language issues and style/tone issues.",
       "- Prioritize the most important truth first. If task alignment is weak, say that clearly before language polish.",
       "- Alignment workflow: decide task coverage first, then decide quality/development.",
@@ -589,7 +630,7 @@ serve(async (req) => {
     }
 
     const parsed = JSON.parse(content);
-    const normalized = normalizeAiResult(payload!.mode, parsed);
+    const normalized = normalizeAiResult(payload!.mode, parsed, payload!.studentResponse ?? "");
     if (!normalized) {
       return json(502, { error: "Model response schema invalid" });
     }
