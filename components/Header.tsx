@@ -405,31 +405,25 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                   aria-expanded={mobileMenuOpen}
                 >
                   ⋯
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[11px] font-bold text-white">
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </span>
-                  )}
                 </button>
                 <button
                   type="button"
                   onClick={() => {
-                    setShowSettingsModal(true);
+                    setShowNotifications(true);
                     setMobileMenuOpen(false);
+                    setUnreadCount(0);
                   }}
-                  className="student-mobile-header__avatar"
-                  aria-label="Open settings"
+                  className="student-mobile-header__notifications"
+                  aria-label={unreadCount > 0 ? `Open notifications, ${unreadCount} unread` : 'Open notifications'}
+                  aria-haspopup="dialog"
+                  aria-expanded={showNotifications}
                 >
-                  <AvatarWithFrame
-                    src={profile.avatar_url || avatarPresets[0]}
-                    alt={profile.username || 'Player avatar'}
-                    size="sm"
-                    hasNeonFrame={hasNeonFrame}
-                    hasFlickerTheme={hasFlickerTheme}
-                    hasGlitchEffect={hasGlitchEffect}
-                    imgClassName="h-10 w-10"
-                    fallbackFrameClassName="border border-pink-500/70"
-                  />
+                  <span aria-hidden="true">🔔</span>
+                  {unreadCount > 0 && (
+                    <span className="student-mobile-header__notification-count">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
                 </button>
 
                 {mobileMenuOpen && (
@@ -440,26 +434,6 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                       aria-hidden
                     />
                     <div className="relative w-64 max-w-full rounded-2xl border border-slate-800/70 bg-slate-950/95 p-2 shadow-2xl shadow-slate-950/60">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowNotifications(true);
-                          setMobileMenuOpen(false);
-                          // Clear badge immediately when opening
-                          setUnreadCount(0);
-                        }}
-                        className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm text-slate-200 transition hover:bg-slate-800/60"
-                      >
-                        <span className="flex items-center gap-2">
-                          <span className="text-lg">🔔</span>
-                          Notifications
-                        </span>
-                        {unreadCount > 0 && (
-                          <span className="rounded-full bg-red-500 px-1.5 py-0.5 text-[11px] font-bold text-white">
-                            {unreadCount > 9 ? '9+' : unreadCount}
-                          </span>
-                        )}
-                      </button>
                       <button
                         type="button"
                         onClick={() => {
