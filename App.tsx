@@ -2161,9 +2161,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             }
 
             const dashboardNavigate = (destination: StudentDashboardDestination) => {
-              if (destination === 'clan') {
-                if (!isProUser && hasSchool) { setUpgradeFeatureLabel('Clan'); setShowUpgradeModal(true); return; }
-                handleViewChange('clan');
+              if (destination === 'clan' || destination === 'leaderboard') {
+                if (!isProUser && hasSchool) {
+                  setUpgradeFeatureLabel(destination === 'clan' ? 'Clan' : 'Leaderboard');
+                  setShowUpgradeModal(true);
+                  return;
+                }
+              }
+              if (destination === studentDashboardTab) {
                 return;
               }
               setStudentDashboardTab(destination);
@@ -2246,8 +2251,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                       <MainActions
                         onStartQuest={handleQuestAction} onStartPvp={() => handleViewChange('pvp')}
                         onOpenRaid={!isStudent ? () => handleViewChange('raids') : undefined} onVisitShop={() => handleViewChange('shop')}
-                        onGoToClan={() => handleViewChange('clan')} onOpenRivalry={() => handleViewChange('rivalry')}
-                        onVisitInventory={() => handleViewChange('inventory')} onViewLeaderboard={() => handleViewChange('leaderboard')}
+                        onGoToClan={() => dashboardNavigate('clan')} onOpenRivalry={() => handleViewChange('rivalry')}
+                        onVisitInventory={() => handleViewChange('inventory')} onViewLeaderboard={() => dashboardNavigate('leaderboard')}
                         onViewAchievements={() => handleViewChange('achievements')} onOpenTournament={() => handleViewChange('tournament')}
                         onOpenIeltsPrep={hasSchool ? () => { window.location.href = '/ielts'; } : undefined}
                         onOpenCambridgeTests={hasSchool ? () => handleViewChange('cambridge') : undefined} onOpenLockdown={() => handleViewChange('lockdown')}
@@ -2262,27 +2267,25 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                     )}
 
                     {studentDashboardTab === 'clan' && (
-                      <article className="student-feed-card p-6 text-center">
-                        <div className="text-5xl" aria-hidden>🛡️</div>
-                        <h2 className="mt-3 font-heading text-2xl text-white">{profile?.clan_name || 'Your clan headquarters'}</h2>
-                        <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-400">Open the dedicated clan area for chat, requests, team progress, and rivalry activity.</p>
-                        <button type="button" onClick={() => {
-                          if (!isProUser && hasSchool) { setUpgradeFeatureLabel('Clan'); setShowUpgradeModal(true); }
-                          else handleViewChange('clan');
-                        }} className="mt-5 min-h-11 rounded-xl bg-amber-300 px-5 py-2.5 font-black text-slate-950 hover:bg-amber-200">Open Clan</button>
-                      </article>
+                      <ClanView
+                        embedded
+                        profile={profile!}
+                        onComplete={() => setStudentDashboardTab('home')}
+                        onUpdateProfile={setProfile}
+                        addToast={addToast}
+                        onPendingCountChange={setPendingClanRequests}
+                        onChatUnreadCountChange={setUnreadClanChatMessages}
+                        initialChatUnreadCount={unreadClanChatMessages}
+                      />
                     )}
 
                     {studentDashboardTab === 'leaderboard' && (
-                      <article className="student-feed-card p-6 text-center">
-                        <div className="text-5xl" aria-hidden>🏆</div>
-                        <h2 className="mt-3 font-heading text-2xl text-white">Rankings</h2>
-                        <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-400">Compare your progress with other agents and see the current standings.</p>
-                        <button type="button" onClick={() => {
-                          if (!isProUser && hasSchool) { setUpgradeFeatureLabel('Leaderboard'); setShowUpgradeModal(true); }
-                          else handleViewChange('leaderboard');
-                        }} className="mt-5 min-h-11 rounded-xl bg-cyan-300 px-5 py-2.5 font-black text-slate-950 hover:bg-cyan-200">View Leaderboard</button>
-                      </article>
+                      <LeaderboardView
+                        embedded
+                        onComplete={() => setStudentDashboardTab('home')}
+                        currentUserId={profile!.id}
+                        schoolId={profile?.school_id}
+                      />
                     )}
 
                     {studentDashboardTab === 'more' && (
@@ -2290,7 +2293,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                         {([
                           { id: 'tasks', icon: '✅', label: 'Tasks', description: pendingTasks > 0 ? `${pendingTasks} task${pendingTasks === 1 ? '' : 's'} waiting for you` : 'Review assignments and completed work' },
                           { id: 'tournaments', icon: '🏅', label: 'Tournaments', description: 'View live events and competition standings' },
-                          { id: 'leaderboard', icon: '🏆', label: 'Rankings', description: 'See your position in your school community' },
+                          { id: 'leaderboard', icon: '🏆', label: 'Leaderboard', description: 'See your position in your school community' },
                         ] as Array<{ id: StudentDashboardDestination; icon: string; label: string; description: string }>).map((item) => <button key={item.id} type="button" onClick={() => dashboardNavigate(item.id)} className="student-feed-card student-more-card"><span className="student-more-card__icon" aria-hidden>{item.icon}</span><span className="student-more-card__copy"><strong>{item.label}</strong><small>{item.description}</small></span><span className="student-more-card__arrow" aria-hidden>→</span></button>)}
                       </div>
                     )}
