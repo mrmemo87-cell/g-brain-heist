@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 export type StudentDashboardDestination =
@@ -28,11 +28,22 @@ const destinations: Array<{ id: StudentDashboardDestination; icon: string; label
   { id: 'tournaments', icon: '🏅', label: 'Tournaments' },
   { id: 'tasks', icon: '✅', label: 'Tasks' },
   { id: 'clan', icon: '🛡️', label: 'Clan' },
-  { id: 'leaderboard', icon: '🏆', label: 'Rankings' },
+  { id: 'leaderboard', icon: '🏆', label: 'Leaderboard' },
   { id: 'more', icon: '☰', label: 'More' },
 ];
 
 const mobileDestinations = destinations.filter(({ id }) => ['home', 'learn', 'game', 'clan', 'more'].includes(id));
+const STUDENT_SIDEBAR_STORAGE_KEY = 'brains-heist:student-sidebar-collapsed';
+const STUDENT_SIDEBAR_COMPACT_QUERY = '(max-width: 1023px)';
+
+const getInitialSidebarCollapsed = () => {
+  if (typeof window === 'undefined') return false;
+
+  const savedPreference = window.localStorage.getItem(STUDENT_SIDEBAR_STORAGE_KEY);
+  if (savedPreference !== null) return savedPreference === 'true';
+
+  return window.matchMedia(STUDENT_SIDEBAR_COMPACT_QUERY).matches;
+};
 
 const badgeFor = (
   destination: StudentDashboardDestination,
@@ -53,6 +64,28 @@ const StudentDashboardNavigation: React.FC<StudentDashboardNavigationProps> = ({
   activeDestination,
   onNavigate,
 }) => {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(getInitialSidebarCollapsed);
+
+  useEffect(() => {
+    const compactViewport = window.matchMedia(STUDENT_SIDEBAR_COMPACT_QUERY);
+    const adaptSidebarToViewport = (event: MediaQueryListEvent) => {
+      if (window.localStorage.getItem(STUDENT_SIDEBAR_STORAGE_KEY) === null) {
+        setSidebarCollapsed(event.matches);
+      }
+    };
+
+    compactViewport.addEventListener('change', adaptSidebarToViewport);
+    return () => compactViewport.removeEventListener('change', adaptSidebarToViewport);
+  }, []);
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed((collapsed) => {
+      const nextCollapsed = !collapsed;
+      window.localStorage.setItem(STUDENT_SIDEBAR_STORAGE_KEY, String(nextCollapsed));
+      return nextCollapsed;
+    });
+  };
+
   const bottomNavigation = (
     <nav className="student-dashboard-bottom-nav" aria-label="Student dashboard mobile navigation">
       {mobileDestinations.map((destination) => {
@@ -79,8 +112,21 @@ const StudentDashboardNavigation: React.FC<StudentDashboardNavigationProps> = ({
 
   return (
     <>
-      <aside className="student-dashboard-rail" aria-label="Student dashboard navigation">
-        <button type="button" className="student-dashboard-identity" onClick={() => onNavigate('more')}>
+      <aside className={`student-dashboard-rail ${sidebarCollapsed ? 'is-collapsed' : ''}`} aria-label="Student dashboard navigation">
+        <button
+          type="button"
+          className="student-dashboard-sidebar-toggle"
+          onClick={toggleSidebar}
+          aria-label={sidebarCollapsed ? 'Expand side navigation' : 'Collapse side navigation'}
+          aria-expanded={!sidebarCollapsed}
+          aria-controls="student-primary-navigation"
+          title={sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'}
+        >
+          <span className="student-dashboard-sidebar-toggle__icon" aria-hidden>{sidebarCollapsed ? '›' : '‹'}</span>
+          <span>{sidebarCollapsed ? 'Expand' : 'Collapse'}</span>
+        </button>
+
+        <button type="button" className="student-dashboard-identity" onClick={() => onNavigate('more')} title={sidebarCollapsed ? username : undefined}>
           <span className="student-dashboard-avatar" aria-hidden>
             {avatarUrl ? <img src={avatarUrl} alt="" /> : username.slice(0, 1).toUpperCase()}
           </span>
@@ -90,7 +136,7 @@ const StudentDashboardNavigation: React.FC<StudentDashboardNavigationProps> = ({
           </span>
         </button>
 
-        <nav className="student-dashboard-rail-links">
+        <nav id="student-primary-navigation" className="student-dashboard-rail-links">
           {destinations.map((destination) => {
             const badge = badgeFor(destination.id, assignmentCount, clanBadgeCount);
             return (
@@ -100,6 +146,9 @@ const StudentDashboardNavigation: React.FC<StudentDashboardNavigationProps> = ({
                 className={`student-dashboard-nav-link ${destination.id === activeDestination ? 'is-active' : ''}`}
                 onClick={() => onNavigate(destination.id)}
                 aria-current={destination.id === activeDestination ? 'page' : undefined}
+                aria-label={destination.label}
+                title={sidebarCollapsed ? destination.label : undefined}
+                data-label={destination.label}
               >
                 <span className="student-dashboard-nav-icon" aria-hidden>{destination.icon}</span>
                 <span className="student-dashboard-nav-label">{destination.label}</span>

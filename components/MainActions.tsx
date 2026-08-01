@@ -289,8 +289,8 @@ const MainActions: React.FC<MainActionsProps> = ({
             'radial-gradient(circle at 15% 25%, rgba(16, 185, 129, 0.08), transparent 30%), radial-gradient(circle at 85% 15%, rgba(14, 165, 233, 0.08), transparent 28%), radial-gradient(closest-side at 50% 120%, rgba(255, 255, 255, 0.04), transparent)',
         }}
       />
-      <div className="relative flex flex-col gap-5">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+      <div className="relative flex flex-col gap-0">
+        <div className="grid grid-cols-2 gap-0 sm:grid-cols-3">
             {/* ── Primary actions (always visible) ── */}
             {onOpenCompetitionPlay && (
               <ActionButton
@@ -413,7 +413,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+          <div className="grid grid-cols-2 gap-0 sm:grid-cols-3">
             <ActionButton
               onClick={locked ? handleLocked('Inventory') : handlePilotClick('Inventory', onVisitInventory)}
               icon={<img src="/mission-console-images/inventory.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
@@ -454,7 +454,7 @@ const MainActions: React.FC<MainActionsProps> = ({
                 label="Lockdown Mode"
                 circleIcon
                 hideLabel
-                className={`${missionCardClass} col-span-2 w-[calc(50%-0.375rem)] justify-self-center sm:col-span-1 sm:col-start-2 sm:w-full`}
+                className={`${missionCardClass} col-span-2 w-1/2 justify-self-center sm:col-span-1 sm:col-start-2 sm:w-full`}
                 containerBare
                 color="255, 69, 58"
                 glowClass="glow-plasma"
