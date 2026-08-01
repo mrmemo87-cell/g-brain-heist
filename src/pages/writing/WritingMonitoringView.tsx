@@ -116,6 +116,13 @@ const formatDate = (value?: string): string => {
   return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
+const formatMonitoringPeriod = (month: string): string => {
+  const match = /^(\d{4})-(\d{2})$/.exec(month);
+  if (!match) return month;
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, 1));
+  return date.toLocaleDateString(undefined, { month: 'long', year: 'numeric', timeZone: 'UTC' });
+};
+
 const getSubmissionCount = (row: MonitoringRow): number =>
   row.submission_count ?? row.attempts_count ?? 0;
 
@@ -613,6 +620,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
   const readerWeaknesses = activeAttempt ? extractAttemptWeaknesses(activeAttempt) : [];
   const readerCorrections = activeAttempt ? extractCorrections(activeAttempt) : [];
   const readerRubric = activeAttempt ? getRubricRows(activeAttempt) : [];
+  const monitoringPeriod = formatMonitoringPeriod(month);
 
   return (
     <main className="writing-monitor writing-teacher-surface">
@@ -665,7 +673,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
           <div className="writing-monitor__metrics">
             <article><span>Total students</span><strong>{filteredRows.length}</strong><small>With writing records</small></article>
             <article><span>Classes</span><strong>{classGroups.length}</strong><small>From your live roster</small></article>
-            <article><span>Submissions</span><strong>{totalSubmissions}</strong><small>Across all genres</small></article>
+            <article><span>Submissions</span><strong>{totalSubmissions}</strong><small>Across all genres · {monitoringPeriod}</small></article>
             <article className="is-attention"><span>Need support</span><strong>{attentionCount}</strong><small>Review these students first</small></article>
             <article className="is-positive"><span>Improving</span><strong>{improvingCount}</strong><small>Recent progress detected</small></article>
           </div>
@@ -703,7 +711,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
                   </span>
                   <span className="writing-monitor__mini-metrics">
                     <span><strong>{group.rows.length}</strong><small>Students</small></span>
-                    <span><strong>{group.submissions}</strong><small>Submissions</small></span>
+                    <span><strong>{group.submissions}</strong><small>Submissions · {monitoringPeriod}</small></span>
                     <span><strong>{formatScoreLabel(group.averageScore)}</strong><small>Average</small></span>
                   </span>
                   <span className={group.attentionCount > 0 ? 'writing-monitor__attention' : 'writing-monitor__on-track'}>
@@ -761,7 +769,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
                       </span>
                       <span className="writing-monitor__student-metrics">
                         <span><small>Latest score</small><strong>{formatScoreLabel(row.latest_score)}</strong></span>
-                        <span><small>Submissions</small><strong>{getSubmissionCount(row)}</strong></span>
+                        <span><small>Submissions · {monitoringPeriod}</small><strong>{getSubmissionCount(row)}</strong></span>
                         <span><small>Trend</small><strong>{getTrendLabel(row)}</strong></span>
                         <span>
                           <small>Practice</small>
@@ -816,7 +824,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
                 <div>
                   <span>Total submissions</span>
                   <strong>{attemptsLoading ? '…' : attemptRows.length}</strong>
-                  <small>Saved writing evidence</small>
+                  <small>All-time saved writing evidence</small>
                 </div>
                 <div>
                   <span>Practice progress</span>
