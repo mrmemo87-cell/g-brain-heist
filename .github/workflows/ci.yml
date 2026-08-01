@@ -27,6 +27,9 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Supabase migration security guard
+        run: npm run security:migrations
+
       - name: Build
         run: npm run build
 
