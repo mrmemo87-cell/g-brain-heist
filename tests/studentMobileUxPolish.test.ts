@@ -24,6 +24,25 @@ test('student bottom navigation stays labelled and content clears the safe area'
   assert.match(styles, /padding-bottom:\s*calc\(7rem \+ env\(safe-area-inset-bottom/);
 });
 
+test('student desktop navigation stays visible and follows the teacher collapse pattern', () => {
+  assert.match(navigation, /STUDENT_SIDEBAR_STORAGE_KEY/);
+  assert.match(navigation, /student-dashboard-sidebar-toggle/);
+  assert.match(navigation, /sidebarCollapsed \? 'is-collapsed' : ''/);
+  assert.match(navigation, /label: 'Leaderboard'/);
+  assert.doesNotMatch(navigation, /label: 'Rankings'/);
+  assert.match(styles, /\.student-dashboard-shell[^}]*grid-template-columns:\s*auto minmax\(0, 1fr\)/s);
+  assert.match(styles, /\.student-dashboard-rail\.is-collapsed[^}]*width:\s*5rem/s);
+});
+
+test('clan and leaderboard render directly inside the persistent dashboard shell', () => {
+  assert.match(app, /studentDashboardTab === 'clan'[\s\S]*?<ClanView[\s\S]*?embedded/);
+  assert.match(app, /studentDashboardTab === 'leaderboard'[\s\S]*?<LeaderboardView[\s\S]*?embedded/);
+  assert.match(app, /onGoToClan=\{\(\) => dashboardNavigate\('clan'\)\}/);
+  assert.match(app, /onViewLeaderboard=\{\(\) => dashboardNavigate\('leaderboard'\)\}/);
+  assert.match(app, /label: 'Leaderboard'/);
+  assert.doesNotMatch(app, />View Leaderboard<\/button>/);
+});
+
 test('student learning tools share one visible primary action system', () => {
   assert.match(app, /student-learning-grid/);
   assert.match(app, /student-learning-card/g);
@@ -58,5 +77,7 @@ test('game mission cards stay compact and keep lockdown last', () => {
   assert.ok(inventoryPosition >= 0);
   assert.ok(achievementsPosition > inventoryPosition);
   assert.ok(lockdownPosition > achievementsPosition);
-  assert.match(mainActions, /Lockdown Mode[\s\S]*col-span-2 w-\[calc\(50%-0\.375rem\)\] justify-self-center/);
+  assert.match(mainActions, /relative flex flex-col gap-0/);
+  assert.match(mainActions, /grid grid-cols-2 gap-0 sm:grid-cols-3/g);
+  assert.match(mainActions, /Lockdown Mode[\s\S]*col-span-2 w-1\/2 justify-self-center/);
 });
