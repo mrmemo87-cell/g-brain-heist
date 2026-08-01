@@ -45,6 +45,7 @@ interface LeaderboardViewProps {
   onComplete: () => void;
   currentUserId: string;
   schoolId?: string | null;
+  embedded?: boolean;
 }
 
 const rankPlayers = (entries: PlayerLeaderboardEntry[]): RankedPlayerEntry[] =>
@@ -67,7 +68,7 @@ const rankClans = (entries: ClanLeaderboardEntry[]): RankedClanEntry[] =>
     })
     .map((entry, index) => ({ ...entry, rank: index + 1 }));
 
-const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUserId, schoolId }) => {
+const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUserId, schoolId, embedded = false }) => {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'score' | 'xp' | 'pvp' | 'clans'>('score');
   const [scoreLeaderboard, setScoreLeaderboard] = useState<RankedPlayerEntry[]>([]);
@@ -483,7 +484,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
   if (!schoolId && scoreLeaderboard.length === 0 && !loading) {
     return (
       <div className="mt-6 max-w-2xl mx-auto text-center">
-        <BackButton onClick={onComplete} />
+        {!embedded && <BackButton onClick={onComplete} />}
         <div className="card-glass p-6">
           <h2 className="font-heading text-2xl text-white">No players found</h2>
           <p className="mt-2 text-sm text-gray-400">
@@ -504,7 +505,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
 
   return (
     <div ref={rootRef} className="mt-6 max-w-4xl mx-auto">
-      <BackButton onClick={onComplete} />
+      {!embedded && <BackButton onClick={onComplete} />}
       <h2 data-lb-title className="font-heading text-3xl text-center mb-6 flex items-center justify-center gap-3" style={{ color: 'var(--amber-warn)' }}>
         <img data-lb-title-icon src={neonIcon('leaderboard')} alt="" className="w-8 h-8 object-contain" />
         Leaderboards
