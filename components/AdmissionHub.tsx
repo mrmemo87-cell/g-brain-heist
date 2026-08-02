@@ -1028,6 +1028,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
           studentName: reportData.candidate_name,
           subject: reportData.formSubject || reportData.subject || reportData.answers?.[0]?.subject || undefined,
           schoolId,
+          visibilityScope: 'admin_only',
           sourceType: 'admission_attempt',
           sourceId: reportAttemptId || undefined,
         },

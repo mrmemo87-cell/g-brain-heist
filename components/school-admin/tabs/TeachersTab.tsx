@@ -70,7 +70,7 @@ const TeachersTab: React.FC = () => {
     }).join('');
     try {
       openSchoolDocumentPreview({
-        meta: { documentId: createSchoolDocumentId('class'), templateVersion: 'teacher-allocation-v1', title: 'Teacher Allocation Register', subtitle: `${sortedAssignments.length} current assignments`, schoolName: school.name, schoolLogoUrl: school.logo_url, audience: 'internal', status: 'final', confidentiality: 'confidential', generatedAt: new Date().toISOString(), schoolId: school.id, sourceType: 'teacher_allocations', sourceId: 'current' },
+        meta: { documentId: createSchoolDocumentId('teacher-allocation'), templateVersion: 'teacher-allocation-v1', title: 'Teacher Allocation Register', subtitle: `${sortedAssignments.length} current assignments`, schoolName: school.name, schoolLogoUrl: school.logo_url, audience: 'internal', status: 'final', confidentiality: 'confidential', generatedAt: new Date().toISOString(), schoolId: school.id, visibilityScope: 'school_staff', sourceType: 'teacher_allocations', sourceId: 'current' },
         bodyHtml: `<table><thead><tr><th>No.</th><th>Class</th><th>Class name</th><th>Subject</th><th>Teacher</th><th>Assigned</th></tr></thead><tbody>${rows || '<tr><td colspan="6">No teaching assignments match the current filters.</td></tr>'}</tbody></table><div class="document-signatures"><div class="document-signature">Prepared by · Name / signature / date</div><div class="document-signature">Approved by · Name / signature / date</div></div>`,
         orientation: 'landscape', inkSaver: true, fileName: schoolDocumentFileName(school.name, 'Teacher_Allocation_Register'),
       });

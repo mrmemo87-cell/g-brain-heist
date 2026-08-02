@@ -215,6 +215,7 @@ const IeltsExamManager: React.FC = () => {
           confidentiality: 'confidential',
           generatedAt: new Date().toISOString(),
           schoolId: activeExam.school_id,
+          visibilityScope: 'admin_only',
           sourceType: 'ielts_exam_event',
           sourceId: activeExam.id,
         },

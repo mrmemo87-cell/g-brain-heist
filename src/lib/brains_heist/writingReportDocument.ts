@@ -231,7 +231,7 @@ export const buildProfessionalWritingReportHtml = (
 
     <section class="panel" style="margin-top:9px"><h2><i class="dot"></i>Teacher comment</h2><p class="comment">${escapeHtml(teacherComment.slice(0, 600))}</p></section>
     <section class="signoff"><div>${escapeHtml(teacherName)} · Teacher</div><div>Date / signature</div></section>
-    <footer><span>${escapeHtml(schoolName)} Writing Hub · Template writing-report-v2</span><span>${escapeHtml(documentId)} · Confidential student learning record</span></footer>
+    <footer><span>${escapeHtml(schoolName)} Writing Hub · Writing progress report</span><span>Document reference: ${escapeHtml(documentId)} · Confidential student learning record</span></footer>
   </div>
   <div class="actions">
     <button class="secondary" onclick="document.body.classList.toggle('ink-saver')">Ink saver</button>

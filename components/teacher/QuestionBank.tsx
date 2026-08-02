@@ -111,7 +111,7 @@ export default function QuestionBank({
     try {
       openSchoolDocumentPreview({
         meta: {
-          documentId: createSchoolDocumentId('question'),
+          documentId: createSchoolDocumentId(includeAnswers ? 'answer' : 'question'),
           templateVersion: includeAnswers ? 'teacher-answer-key-v1' : 'student-question-paper-v1',
           title: includeAnswers ? `${group.topic} — Answer Key` : `${group.topic} — Question Paper`,
           subtitle: `${group.questions.length} question${group.questions.length === 1 ? '' : 's'} · ${group.subject}`,

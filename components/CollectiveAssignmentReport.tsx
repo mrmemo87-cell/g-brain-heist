@@ -730,7 +730,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
             </table>
           </section>
         ) : null}
-        <footer className="collective-print-footer"><span>{reportModel.school.name} · Confidential — For authorised school use only</span><span><span data-collective-report-id>{reportModel.reportId}</span> · Generated <span data-collective-generated-at>{generatedAt}</span> · Generated using Brains Heist · Page <span className="collective-page-number" /></span></footer>
+        <footer className="collective-print-footer"><span>{reportModel.school.name} · Confidential — For authorised school use only</span><span>Document reference: <span data-collective-report-id>{reportModel.reportId}</span> · Generated <span data-collective-generated-at>{generatedAt}</span></span></footer>
       </article>
 
       {/* Header */}

@@ -5,6 +5,7 @@ export type SchoolDocumentStatus = 'draft' | 'final';
 export type SchoolDocumentConfidentiality = 'school-use' | 'confidential' | 'family-copy';
 export type SchoolDocumentOrientation = 'portrait' | 'landscape';
 export type SchoolDocumentPaper = 'A4' | 'Letter';
+export type SchoolDocumentVisibilityScope = 'private' | 'class_staff' | 'school_staff' | 'student_family' | 'admin_only';
 
 export interface SchoolDocumentMeta {
   documentId: string;
@@ -27,6 +28,9 @@ export interface SchoolDocumentMeta {
   studentUserId?: string | null;
   sourceType?: string;
   sourceId?: string;
+  classId?: string | null;
+  visibilityScope?: SchoolDocumentVisibilityScope;
+  documentTypeLabel?: string;
 }
 
 export interface SchoolDocumentOptions {
@@ -57,21 +61,84 @@ const DOCUMENT_PREFIXES: Record<string, string> = {
   assignment: 'ASN',
   cambridge: 'CAM',
   class: 'CLS',
-  ielts: 'IELTS',
-  question: 'QPB',
+  ielts: 'IEL',
+  question: 'QST',
+  answer: 'ANS',
+  geometry: 'GEO',
+  attendance: 'ATT',
+  'teacher-allocation': 'TAL',
+  clan: 'CLN',
   roster: 'RST',
   writing: 'WRT',
 };
 
+const DOCUMENT_TYPE_LABELS: Record<string, string> = {
+  'admission-family-v1': 'Admission assessment summary',
+  'admission-internal-v1': 'Admission committee report',
+  'admin-class-register-v1': 'Attendance register',
+  'admin-class-roster-v1': 'Class roster',
+  'class-register-v1': 'Attendance register',
+  'class-roster-v1': 'Class roster',
+  'class-achievement-v1': 'Class achievement report',
+  'cambridge-performance-v2': 'Cambridge performance report',
+  'cambridge-student-overview-v2': 'Cambridge student overview',
+  'assignment-student-v2': 'Student learning report',
+  'cambridge-answer-reflection-v1': 'Cambridge answer reflection',
+  'geometry-diagram-sheet-v1': 'Geometry diagram sheet',
+  'teacher-allocation-v1': 'Teacher allocation register',
+  'teacher-answer-key-v1': 'Teacher answer key',
+  'student-question-paper-v1': 'Student question paper',
+  'clan-wars-operations-v1': 'Clan Wars operations pack',
+  'ielts-exam-operations-v1': 'IELTS exam operations pack',
+  'ielts-session-evidence-v1': 'IELTS teacher evidence',
+  'ielts-session-summary-v1': 'IELTS session summary',
+  'ielts-productive-review-v1': 'IELTS productive-skill review',
+  'writing-report-v2': 'Writing progress report',
+};
+
+export const schoolDocumentTypeLabel = (templateVersion: string, title?: string) => {
+  const known = DOCUMENT_TYPE_LABELS[templateVersion.toLowerCase()];
+  if (known) return known;
+  if (title?.trim()) return title.trim();
+  const cleaned = templateVersion.replace(/-v\d+$/i, '').replace(/[-_]+/g, ' ').trim();
+  return cleaned ? cleaned.replace(/\b\w/g, (letter) => letter.toUpperCase()) : 'School document';
+};
+
+const prefixForKind = (kind: string) => {
+  const normalized = kind.toLowerCase();
+  if (normalized.includes('answer')) return 'ANS';
+  if (normalized.includes('question')) return 'QST';
+  if (normalized.includes('geometry')) return 'GEO';
+  if (normalized.includes('allocation')) return 'TAL';
+  if (normalized.includes('attendance') || normalized.includes('register')) return 'ATT';
+  if (normalized.includes('roster')) return 'RST';
+  if (normalized.includes('admission')) return 'ADM';
+  if (normalized.includes('assignment')) return 'ASN';
+  if (normalized.includes('cambridge')) return 'CAM';
+  if (normalized.includes('ielts')) return 'IEL';
+  if (normalized.includes('writing')) return 'WRT';
+  if (normalized.includes('clan')) return 'CLN';
+  if (normalized.includes('class')) return 'CLS';
+  return DOCUMENT_PREFIXES[normalized] || 'DOC';
+};
+
+const CROCKFORD = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 const randomDocumentSuffix = () => {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase();
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    const bytes = crypto.getRandomValues(new Uint8Array(8));
+    let value = bytes.reduce((accumulator, byte) => (accumulator << 8n) | BigInt(byte), 0n) & ((1n << 60n) - 1n);
+    let result = '';
+    for (let index = 0; index < 12; index += 1) {
+      result = CROCKFORD[Number(value & 31n)] + result;
+      value >>= 5n;
+    }
+    return result;
   }
-  return Math.random().toString(36).slice(2, 10).toUpperCase();
+  return Array.from({ length: 12 }, () => CROCKFORD[Math.floor(Math.random() * CROCKFORD.length)]).join('');
 };
 
 export const createSchoolDocumentId = (kind: keyof typeof DOCUMENT_PREFIXES | string) => {
-  const prefix = DOCUMENT_PREFIXES[kind] || kind.replace(/[^a-z0-9]/gi, '').slice(0, 6).toUpperCase() || 'DOC';
+  const prefix = prefixForKind(kind);
   const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
   return `${prefix}-${date}-${randomDocumentSuffix()}`;
 };
@@ -124,7 +191,7 @@ const documentCss = `
   .school-document__badges{display:flex;gap:2mm;justify-content:flex-end;flex-wrap:wrap}.school-document__badge{border:1px solid var(--doc-line);border-radius:999px;background:var(--doc-soft);padding:1.5mm 3mm;font-size:8px;font-weight:800}.school-document__badge--draft{border-color:#efc66a;background:#fff8e6;color:#7b4b00}.school-document__badge--confidential{border-color:#f3b4ad;background:#fff2f0;color:#8f2118}
   .school-document__meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2.5mm;margin:5mm 0 7mm}.school-document__meta-item{border:1px solid var(--doc-line);border-radius:2mm;background:var(--doc-soft);padding:2.5mm 3mm}.school-document__meta-item span{display:block;color:var(--doc-muted);font-size:7.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}.school-document__meta-item strong{display:block;margin-top:.8mm;font-size:10px;overflow-wrap:anywhere}
   .school-document__body h2{margin:7mm 0 2.5mm;padding-bottom:1.5mm;border-bottom:1px solid var(--doc-line);font-size:15px;color:var(--doc-accent-dark);break-after:avoid}.school-document__body h3{margin:4mm 0 2mm;font-size:12px;break-after:avoid}.school-document__body p{margin:0 0 3mm}.school-document__body ul,.school-document__body ol{margin:2mm 0 4mm;padding-left:6mm}.school-document__body li{margin-bottom:1mm}.school-document__body .document-callout{border-left:1.2mm solid var(--doc-accent);border-radius:1.5mm;background:#eef4ff;padding:3mm 4mm;margin:3mm 0}.school-document__body .document-callout--warning{border-color:#e0a100;background:#fff8e5}.school-document__body .document-callout--private{border-color:#b42318;background:#fff3f2}.school-document__body .document-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3mm}.school-document__body .document-card{border:1px solid var(--doc-line);border-radius:2mm;padding:3.5mm;break-inside:avoid}.school-document__body .document-card strong{display:block;margin-bottom:1mm}.school-document__body table{width:100%;border-collapse:collapse;margin:2mm 0 5mm;font-size:8.5px}.school-document__body thead{display:table-header-group}.school-document__body tr{break-inside:avoid}.school-document__body th{background:var(--doc-accent-dark);color:#fff;text-align:left;font-size:7.5px;text-transform:uppercase;letter-spacing:.04em}.school-document__body th,.school-document__body td{border:1px solid var(--doc-line);padding:2mm;vertical-align:top}.school-document__body tbody tr:nth-child(even){background:var(--doc-soft)}.school-document__body .document-page-break{break-before:page}.school-document__body .document-appendix{break-before:page}.school-document__body .document-signatures{display:grid;grid-template-columns:1fr 1fr;gap:12mm;margin-top:12mm}.school-document__body .document-signature{border-top:1px solid var(--doc-ink);padding-top:2mm;color:var(--doc-muted);font-size:8px}
-  .school-document__page-footer{position:absolute;inset:auto 15mm 7mm;border-top:1px solid var(--doc-line);padding-top:2.5mm;display:flex;justify-content:space-between;gap:8mm;color:var(--doc-muted);font-size:7.5px}.school-document__page-footer span:last-child{text-align:right}.school-document__page-number::after{content:counter(page)}
+  .school-document__page-footer{position:absolute;inset:auto 15mm 7mm;border-top:1px solid var(--doc-line);padding-top:2.5mm;display:flex;justify-content:space-between;gap:8mm;color:var(--doc-muted);font-size:7.5px}.school-document__page-footer span:last-child{text-align:right}
   .school-document__draft-watermark{display:none}.school-document[data-status="draft"] .school-document__draft-watermark{display:block;position:fixed;z-index:0;inset:42% 0 auto;transform:rotate(-26deg);text-align:center;font-size:80px;font-weight:900;letter-spacing:.18em;color:rgba(154,103,0,.08);pointer-events:none}
   body.ink-saver{--doc-accent:#1f2937;--doc-accent-dark:#111827;--doc-soft:#fff}.ink-saver .school-document__body tbody tr:nth-child(even){background:#fff}.ink-saver .school-document__body th{background:#fff;color:#111;border-width:1.5px}.ink-saver .school-document__badge,.ink-saver .school-document__meta-item,.ink-saver .document-callout{background:#fff}
   @media(max-width:900px){body{padding:68px 0 0}.school-document__toolbar{align-items:flex-start}.school-document__toolbar>div:first-child{display:none}.school-document__toolbar-actions{justify-content:flex-start}.school-document{width:100%!important;min-height:0!important;box-shadow:none;padding-left:16px;padding-right:16px}.school-document__meta{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -182,10 +249,10 @@ export const renderSchoolDocumentHtml = ({ meta, bodyHtml, orientation = 'portra
       </header>
       <section class="school-document__hero"><div><p class="school-document__eyebrow">${escapeSchoolDocumentHtml(AUDIENCE_LABELS[meta.audience])}</p><h1>${escapeSchoolDocumentHtml(meta.title)}</h1>${meta.subtitle ? `<p class="school-document__subtitle">${escapeSchoolDocumentHtml(meta.subtitle)}</p>` : ''}</div><div class="school-document__badges"><span class="school-document__badge${meta.status === 'draft' ? ' school-document__badge--draft' : ''}">${meta.status === 'draft' ? 'Draft' : 'Final'}</span><span class="school-document__badge${confidentialClass}">${escapeSchoolDocumentHtml(confidentialityLabel)}</span></div></section>
       <section class="school-document__meta">
-        ${renderMetaItem('Student', meta.studentName)}${renderMetaItem('Class', meta.className)}${renderMetaItem('Subject', meta.subject)}${renderMetaItem('Academic year', meta.academicYear)}${renderMetaItem('Term / period', meta.term)}${renderMetaItem('Generated by', meta.generatedBy)}${renderMetaItem('Generated', generatedLabel)}${renderMetaItem('Template', meta.templateVersion)}
+        ${renderMetaItem('Student', meta.studentName)}${renderMetaItem('Class', meta.className)}${renderMetaItem('Subject', meta.subject)}${renderMetaItem('Academic year', meta.academicYear)}${renderMetaItem('Term / period', meta.term)}${renderMetaItem('Generated by', meta.generatedBy)}${renderMetaItem('Generated', generatedLabel)}${renderMetaItem('Document type', meta.documentTypeLabel || schoolDocumentTypeLabel(meta.templateVersion, meta.title))}
       </section>
       <article class="school-document__body">${bodyHtml}</article>
-      <footer class="school-document__page-footer"><span>${escapeSchoolDocumentHtml(safeSchoolName)} · ${escapeSchoolDocumentHtml(confidentialityLabel)}</span><span>${escapeSchoolDocumentHtml(meta.documentId)} · Page <span class="school-document__page-number"></span></span></footer>
+      <footer class="school-document__page-footer"><span>${escapeSchoolDocumentHtml(safeSchoolName)} · ${escapeSchoolDocumentHtml(confidentialityLabel)}</span><span>Document reference: ${escapeSchoolDocumentHtml(meta.documentId)}</span></footer>
     </main><script>${previewScript}<\/script></body></html>`;
 };
 
@@ -207,6 +274,8 @@ export const registerSchoolDocumentRecord = async (options: SchoolDocumentOption
         source_type: options.meta.sourceType ?? null,
         source_id: options.meta.sourceId ?? null,
         student_user_id: options.meta.studentUserId ?? null,
+        class_id: options.meta.classId ?? null,
+        visibility_scope: options.meta.visibilityScope ?? 'private',
         generated_at: options.meta.generatedAt,
         finalized_at: options.meta.status === 'final' ? options.meta.generatedAt : null,
         payload: canPersistPayload
