@@ -3,6 +3,7 @@ import { useSchoolAdmin } from '../SchoolAdminContext';
 import * as SchoolAdminService from '../../../services/schoolAdminService';
 import { formatAdminDate, friendlySchoolAdminError } from '../../../src/lib/schoolAdminPresentation';
 import { createSchoolDocumentId, escapeSchoolDocumentHtml, openSchoolDocumentPreview, schoolDocumentFileName } from '../../../src/lib/schoolDocument';
+import { formatAssignableTeacherLabel, getAssignableTeachers } from '../../../src/lib/schoolAdminTeacherAssignments';
 
 type AssignmentSort = 'class' | 'subject' | 'teacher' | 'assigned_at';
 
@@ -10,7 +11,7 @@ const TeachersTab: React.FC = () => {
   const {
     addToast, assignmentClassId, assignmentPage, assignmentPageSize, assignmentSaving,
     assignmentSubjectInput, assignmentTeacherId, classById, classes, dbSubjects,
-    handleAssignTeacher, loadAdminTools, school, schoolAdmins, setAssignmentClassId,
+    handleAssignTeacher, loadAdminTools, school, setAssignmentClassId,
     setAssignmentPage, setAssignmentPageSize, setAssignmentSubjectInput,
     setAssignmentTeacherId, setConfirmDialog, setConfirmReason, teacherAssignments, teachers,
   } = useSchoolAdmin();
@@ -20,8 +21,7 @@ const TeachersTab: React.FC = () => {
   const [sortKey, setSortKey] = React.useState<AssignmentSort>('class');
   const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('asc');
 
-  const protectedAdminIds = React.useMemo(() => new Set((schoolAdmins || []).map((member: any) => member.user_id)), [schoolAdmins]);
-  const availableTeachers = React.useMemo(() => (teachers || []).filter((teacher: any) => !protectedAdminIds.has(teacher.user_id)), [teachers, protectedAdminIds]);
+  const availableTeachers = React.useMemo(() => getAssignableTeachers(teachers || []), [teachers]);
   const subjectOptions = React.useMemo(() => Array.from(new Set([
     ...(dbSubjects || []).map((subject: any) => subject.name),
     ...(teacherAssignments || []).map((assignment: any) => assignment.subject),
@@ -85,10 +85,10 @@ const TeachersTab: React.FC = () => {
       <div className="admin-form-grid admin-form-grid-three">
         <label className="admin-field"><span>Class <i>Required</i></span><select value={assignmentClassId} onChange={(event) => setAssignmentClassId(event.target.value)}><option value="">Select class</option>{classes.map((schoolClass: any) => <option key={schoolClass.id} value={schoolClass.id}>{schoolClass.class_code} — {schoolClass.class_name}</option>)}</select></label>
         <label className="admin-field"><span>Subject <i>Required</i></span><select value={assignmentSubjectInput} onChange={(event) => setAssignmentSubjectInput(event.target.value)}><option value="">Select subject</option>{dbSubjects.map((subject: any) => <option key={subject.id} value={subject.name}>{subject.name}{subject.code ? ` (${subject.code})` : ''}</option>)}</select></label>
-        <label className="admin-field"><span>Teacher <i>Required</i></span><select value={assignmentTeacherId} onChange={(event) => setAssignmentTeacherId(event.target.value)}><option value="">Select teacher</option>{availableTeachers.map((teacher: any) => <option key={teacher.user_id} value={teacher.user_id}>{teacher.username}</option>)}</select></label>
+        <label className="admin-field"><span>Teacher <i>Required</i></span><select value={assignmentTeacherId} onChange={(event) => setAssignmentTeacherId(event.target.value)}><option value="">Select teacher</option>{availableTeachers.map((teacher: any) => <option key={teacher.user_id} value={teacher.user_id}>{formatAssignableTeacherLabel(teacher)}</option>)}</select></label>
       </div>
       {!dbSubjects.length && <div className="admin-inline-warning" role="status"><strong>No subjects available</strong><span>Add curriculum subjects before creating a teaching assignment.</span></div>}
-      {!availableTeachers.length && <div className="admin-inline-warning" role="status"><strong>No teachers available</strong><span>Only active teacher accounts appear here; school administrators are excluded.</span></div>}
+      {!availableTeachers.length && <div className="admin-inline-warning" role="status"><strong>No teachers available</strong><span>Only active members with teaching access appear here.</span></div>}
       <div className="admin-form-actions"><button className="admin-button-primary" onClick={handleAssignTeacher} disabled={assignmentSaving || !assignmentClassId || !assignmentTeacherId || !assignmentSubjectInput}>{assignmentSaving ? 'Assigning…' : 'Assign teacher'}</button></div>
     </section>
 
@@ -96,7 +96,7 @@ const TeachersTab: React.FC = () => {
       <div className="admin-card-heading admin-assignment-heading"><div><h3 id="current-assignments-title">Current assignments</h3><p>{sortedAssignments.length} assignments match the current filters.</p></div><div className="admin-assignment-filters">
         <select aria-label="Filter assignments by class" value={filterClassId} onChange={(event) => setFilterClassId(event.target.value)}><option value="">All classes</option>{classes.map((schoolClass: any) => <option key={schoolClass.id} value={schoolClass.id}>{schoolClass.class_code}</option>)}</select>
         <select aria-label="Filter assignments by subject" value={filterSubject} onChange={(event) => setFilterSubject(event.target.value)}><option value="">All subjects</option>{subjectOptions.map((subject) => <option key={String(subject)} value={String(subject)}>{String(subject)}</option>)}</select>
-        <select aria-label="Filter assignments by teacher" value={filterTeacherId} onChange={(event) => setFilterTeacherId(event.target.value)}><option value="">All teachers</option>{availableTeachers.map((teacher: any) => <option key={teacher.user_id} value={teacher.user_id}>{teacher.username}</option>)}</select>
+        <select aria-label="Filter assignments by teacher" value={filterTeacherId} onChange={(event) => setFilterTeacherId(event.target.value)}><option value="">All teachers</option>{availableTeachers.map((teacher: any) => <option key={teacher.user_id} value={teacher.user_id}>{formatAssignableTeacherLabel(teacher)}</option>)}</select>
         <select aria-label="Assignments per page" value={assignmentPageSize} onChange={(event) => setAssignmentPageSize(Number(event.target.value))}><option value={5}>5 rows</option><option value={10}>10 rows</option><option value={20}>20 rows</option></select>
       </div></div>
       {pagedAssignments.length ? <div className="admin-table-scroll"><table>
