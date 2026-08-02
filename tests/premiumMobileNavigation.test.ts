@@ -9,23 +9,28 @@ const studentNavigation = readFileSync('components/StudentDashboardNavigation.ts
 const schoolAdminPortal = readFileSync('components/SchoolAdminPortal.tsx', 'utf8');
 const globalStyles = readFileSync('src/index.css', 'utf8');
 
-test('smart mobile navigation reacts only to intentional scroll direction changes', () => {
+test('smart mobile navigation tracks scroll for two thirds before a velocity-matched settle', () => {
   assert.match(hook, /TOP_EXPANDED_THRESHOLD = 40/);
-  assert.match(hook, /COLLAPSE_DISTANCE = 60/);
-  assert.match(hook, /EXPAND_DISTANCE = 35/);
-  assert.match(hook, /MIN_SCROLL_DELTA = 5/);
+  assert.match(hook, /DIRECT_SCROLL_PORTION = 2 \/ 3/);
+  assert.match(hook, /velocityMatchedDuration/);
+  assert.match(hook, /easeOutCubic/);
+  assert.match(hook, /--smart-nav-translate-y/);
+  assert.match(hook, /--smart-nav-opacity/);
   assert.match(hook, /requestAnimationFrame\(update\)/);
   assert.match(hook, /\{ passive: true \}/);
-  assert.match(hook, /return \{ isCollapsed, revealNavigation \}/);
+  assert.doesNotMatch(hook, /useState/);
+  assert.match(hook, /return \{ navigationRef, revealNavigation \}/);
 });
 
 test('teacher and student bottom navigation share the premium reveal pattern', () => {
-  assert.match(teacherPortal, /data-hidden=\{isMobileNavigationHidden\}/);
+  assert.match(teacherPortal, /ref=\{mobileNavigationRef\}/);
   assert.match(teacherPortal, /aria-label="Show teacher navigation"/);
-  assert.match(studentNavigation, /data-hidden=\{isNavigationHidden\}/);
+  assert.match(studentNavigation, /ref=\{navigationRef\}/);
   assert.match(studentNavigation, /aria-label="Show student navigation"/);
-  assert.match(teacherStyles, /\.teacher-mobile-bottom-nav\[data-hidden='true'\][^{]*\{[^}]*translate3d/s);
-  assert.match(globalStyles, /\.student-dashboard-bottom-nav\[data-hidden='true'\][^{]*\{[^}]*translate3d/s);
+  assert.match(teacherStyles, /\.teacher-mobile-bottom-nav[\s\S]*var\(--smart-nav-translate-y/);
+  assert.match(globalStyles, /\.student-dashboard-bottom-nav[\s\S]*var\(--smart-nav-translate-y/);
+  assert.match(teacherStyles, /data-reveal-visible='true'/);
+  assert.match(globalStyles, /data-reveal-visible='true'/);
 });
 
 test('school admin mobile navigation keeps primary sections visible and every section in More', () => {
@@ -33,8 +38,8 @@ test('school admin mobile navigation keeps primary sections visible and every se
   assert.match(schoolAdminPortal, /SCHOOL_ADMIN_NAV_ITEMS\.map/);
   assert.match(schoolAdminPortal, /className="school-admin-mobile-bottom-nav"/);
   assert.match(schoolAdminPortal, /className="school-admin-mobile-menu-sheet"/);
-  assert.match(schoolAdminPortal, /data-hidden=\{isMobileAdminNavigationHidden\}/);
+  assert.match(schoolAdminPortal, /ref=\{mobileAdminNavigationRef\}/);
   assert.match(schoolAdminPortal, /aria-label="Show school administration navigation"/);
-  assert.match(globalStyles, /\.school-admin-mobile-bottom-nav\[data-hidden='true'\][^{]*\{[^}]*translate3d/s);
+  assert.match(globalStyles, /\.school-admin-mobile-bottom-nav[\s\S]*var\(--smart-nav-translate-y/);
   assert.match(globalStyles, /\.school-admin-sidebar \{ display:none; \}/);
 });
