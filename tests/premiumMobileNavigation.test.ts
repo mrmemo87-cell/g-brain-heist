@@ -14,9 +14,11 @@ test('smart mobile navigation tracks scroll for two thirds before a velocity-mat
   assert.match(hook, /DIRECT_SCROLL_PORTION = 2 \/ 3/);
   assert.match(hook, /velocityMatchedDuration/);
   assert.match(hook, /easeOutCubic/);
+  assert.match(hook, /SCROLL_SETTLE_DELAY = 140/);
+  assert.match(hook, /settleInterruptedGesture/);
   assert.match(hook, /--smart-nav-translate-y/);
   assert.match(hook, /--smart-nav-opacity/);
-  assert.match(hook, /requestAnimationFrame\(update\)/);
+  assert.match(hook, /update\(timestamp\);\s*scheduleScrollSettle\(\)/);
   assert.match(hook, /\{ passive: true \}/);
   assert.doesNotMatch(hook, /useState/);
   assert.match(hook, /return \{ navigationRef, revealNavigation \}/);

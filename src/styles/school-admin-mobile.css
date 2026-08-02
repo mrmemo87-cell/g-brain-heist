@@ -1,0 +1,184 @@
+/* A purpose-built mobile directory avoids squeezing the desktop data table. */
+.school-admin-portal .community-mobile-list {
+  display: none;
+}
+
+.school-admin-portal .community-toolbar input {
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .school-admin-portal.school-admin-portal {
+    padding-bottom: calc(7.75rem + env(safe-area-inset-bottom, 0px));
+    scroll-padding-bottom: calc(7.75rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (max-width: 700px) {
+  .school-admin-portal .community-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .school-admin-portal .community-toolbar input {
+    width: 100%;
+    max-width: none;
+  }
+
+  .school-admin-portal .community-toolbar label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .school-admin-portal .community-toolbar label select {
+    width: 5.5rem;
+  }
+
+  .school-admin-portal .community-bulk {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .school-admin-portal .community-bulk > label {
+    grid-column: 1 / -1;
+  }
+
+  .school-admin-portal .community-bulk select {
+    width: 100%;
+    min-width: 0;
+    margin-left: 0;
+  }
+
+  .school-admin-portal .community-table-desktop {
+    display: none;
+  }
+
+  .school-admin-portal .community-mobile-list {
+    display: grid;
+    gap: 0.65rem;
+    padding: 0.75rem;
+    background: #f8fafc;
+  }
+
+  .school-admin-portal .community-mobile-card {
+    min-width: 0;
+    padding: 0.85rem;
+    border: 1px solid #dbe4ee;
+    border-radius: 0.8rem;
+    background: #fff;
+    box-shadow: 0 5px 16px rgba(23, 36, 59, 0.045);
+  }
+
+  .school-admin-portal .community-mobile-card__heading {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .school-admin-portal .community-mobile-card__heading > img {
+    width: 2.65rem;
+    height: 2.65rem;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .school-admin-portal .community-mobile-card__heading > span:not(.role-chip) {
+    min-width: 0;
+  }
+
+  .school-admin-portal .community-mobile-card__heading strong,
+  .school-admin-portal .community-mobile-card__heading small {
+    display: block;
+    overflow-wrap: anywhere;
+  }
+
+  .school-admin-portal .community-mobile-card__heading strong {
+    color: #17243b;
+    font-size: 0.82rem;
+  }
+
+  .school-admin-portal .community-mobile-card__heading small {
+    margin-top: 0.08rem;
+    color: #526176;
+    font-size: 0.65rem;
+    line-height: 1.3;
+  }
+
+  .school-admin-portal .community-mobile-select {
+    display: grid;
+    place-items: center;
+  }
+
+  .school-admin-portal .community-mobile-select input {
+    width: 1.2rem;
+    min-height: 1.2rem;
+    height: 1.2rem;
+    margin: 0;
+    padding: 0;
+  }
+
+  .school-admin-portal .community-mobile-card .role-chip {
+    align-self: start;
+    font-size: 0.63rem;
+  }
+
+  .school-admin-portal .community-mobile-card__details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+    margin: 0.75rem 0;
+    padding: 0.7rem;
+    border-radius: 0.65rem;
+    background: #f3f6f9;
+  }
+
+  .school-admin-portal .community-mobile-card__details > div:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .school-admin-portal .community-mobile-card__details dt {
+    color: #8491a3;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .school-admin-portal .community-mobile-card__details dd {
+    margin: 0.18rem 0 0;
+    color: #334155;
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+
+  .school-admin-portal .community-mobile-manage {
+    width: 100%;
+    min-height: 2.6rem;
+    border: 1px solid #bfd0e3;
+    border-radius: 0.55rem;
+    color: #163f73;
+    background: #f8fbff;
+    font-size: 0.72rem;
+    font-weight: 800;
+  }
+
+  .school-admin-portal .community-pagination {
+    align-items: stretch;
+    flex-direction: column;
+    padding-bottom: 1rem;
+  }
+
+  .school-admin-portal .community-pagination div {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .school-admin-portal .community-pagination button {
+    width: 100%;
+    min-height: 2.6rem;
+  }
+}

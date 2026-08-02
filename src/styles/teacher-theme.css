@@ -3611,7 +3611,8 @@
 
 @media (max-width: 1023px) {
   .teacher-portal-container {
-    padding: 1rem 0.85rem calc(6rem + env(safe-area-inset-bottom, 0px));
+    padding: 1rem 0.85rem calc(7.5rem + env(safe-area-inset-bottom, 0px));
+    scroll-padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px));
   }
 
   .teacher-workspace-shell {
@@ -3795,7 +3796,7 @@
   }
 
   .teacher-portal-container {
-    padding: 0.8rem 0.65rem calc(5.8rem + env(safe-area-inset-bottom, 0px));
+    padding: 0.8rem 0.65rem calc(7.5rem + env(safe-area-inset-bottom, 0px));
   }
 
   .teacher-writing-hub__header {

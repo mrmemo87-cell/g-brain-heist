@@ -7,6 +7,7 @@ const NAVIGATION_PEEK_HEIGHT = 15;
 const MIN_SETTLE_DURATION = 120;
 const MAX_SETTLE_DURATION = 420;
 const DEFAULT_SETTLE_DURATION = 280;
+const SCROLL_SETTLE_DELAY = 140;
 
 const clamp = (value: number, minimum: number, maximum: number) =>
   Math.min(maximum, Math.max(minimum, value));
@@ -113,6 +114,24 @@ export const useSmartCollapsedNavigation = (
     let lastScrollY = Math.max(0, window.scrollY);
     let lastUpdateTime = performance.now();
     let scrollFrame: number | null = null;
+    let scrollSettleTimer: number | null = null;
+
+    const settleInterruptedGesture = () => {
+      scrollSettleTimer = null;
+      if (!mediaQuery.matches || window.scrollY < TOP_EXPANDED_THRESHOLD) {
+        animateTo(0);
+        return;
+      }
+
+      const progress = progressRef.current ?? 0;
+      if (progress <= 0.001 || progress >= 0.999) return;
+      animateTo(progress >= DIRECT_SCROLL_PORTION ? 1 : 0);
+    };
+
+    const scheduleScrollSettle = () => {
+      if (scrollSettleTimer !== null) window.clearTimeout(scrollSettleTimer);
+      scrollSettleTimer = window.setTimeout(settleInterruptedGesture, SCROLL_SETTLE_DELAY);
+    };
 
     const update = (timestamp: number) => {
       scrollFrame = null;
@@ -152,7 +171,12 @@ export const useSmartCollapsedNavigation = (
     };
 
     const onScroll = () => {
-      if (scrollFrame === null) scrollFrame = window.requestAnimationFrame(update);
+      if (scrollFrame === null) {
+        scrollFrame = window.requestAnimationFrame(timestamp => {
+          update(timestamp);
+          scheduleScrollSettle();
+        });
+      }
     };
 
     const onBreakpointChange = () => {
@@ -174,6 +198,7 @@ export const useSmartCollapsedNavigation = (
       window.removeEventListener('resize', onResize);
       mediaQuery.removeEventListener('change', onBreakpointChange);
       if (scrollFrame !== null) window.cancelAnimationFrame(scrollFrame);
+      if (scrollSettleTimer !== null) window.clearTimeout(scrollSettleTimer);
       stopSettle();
     };
   }, [animateTo, applyProgress, mobileMediaQuery, routeKey, stopSettle]);

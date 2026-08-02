@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import '../src/styles/school-admin-mobile.css';
 import { ToastMessage } from '../types';
 import * as SchoolAdminService from '../services/schoolAdminService';
 import { supabase } from '../services/supabaseClient';
@@ -101,6 +102,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     revealMobileAdminNavigation();
     setMobileAdminMenuOpen(false);
     setActiveTab(tab);
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }));
   }, [revealMobileAdminNavigation]);
 
   useEffect(() => {

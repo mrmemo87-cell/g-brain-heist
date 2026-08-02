@@ -757,6 +757,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       default:
         setView('dashboard');
     }
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }));
   };
 
   useEffect(() => {
@@ -3904,7 +3905,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       const classAssignments = assignments.filter((assignment) => assignment.batch === classCode);
       const totalAssigned = classAssignments.reduce((sum, assignment) => sum + (assignment.student_count || 0), 0);
       const totalCompleted = classAssignments.reduce((sum, assignment) => sum + (assignment.completed_count || 0), 0);
-      const completionRate = totalAssigned > 0 ? Math.round((totalCompleted / totalAssigned) * 100) : 0;
+      const completionRate = totalAssigned > 0 ? Math.round((totalCompleted / totalAssigned) * 100) : null;
 
       const classCambridgeScores = cambridgeScores.filter((score) => (score.student_class || 'Unknown') === classCode);
       const averageScore = classCambridgeScores.length > 0
@@ -3918,9 +3919,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         completionRate,
         averageScore,
       };
-    }).sort((a, b) => a.completionRate - b.completionRate);
+    }).sort((a, b) => (a.completionRate ?? Number.POSITIVE_INFINITY) - (b.completionRate ?? Number.POSITIVE_INFINITY));
 
-    const lowCompletionClasses = classHealthRows.filter((row) => row.completionRate > 0 && row.completionRate < 60);
+    const lowCompletionClasses = classHealthRows.filter((row) => row.completionRate !== null && row.completionRate > 0 && row.completionRate < 60);
 
     const studentRiskMap = new Map<string, { name: string; batch: string; reasons: string[]; riskScore: number }>();
     const markRisk = (studentId: string, name: string, batch: string, reason: string, weight: number) => {
@@ -4308,9 +4309,11 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                       <td data-label="Students" style={{ textAlign: 'center' }}>{row.studentCount}</td>
                       <td data-label="In progress" style={{ textAlign: 'center' }}>{row.assignmentsInProgress}</td>
                       <td data-label="Completion" style={{ textAlign: 'center' }}>
-                        <span className={`teacher-badge ${row.completionRate >= 75 ? 'success' : row.completionRate >= 50 ? 'warning' : 'danger'}`}>
-                          {row.completionRate}%
-                        </span>
+                        {row.completionRate === null
+                          ? <span className="teacher-badge neutral">No data</span>
+                          : <span className={`teacher-badge ${row.completionRate >= 75 ? 'success' : row.completionRate >= 50 ? 'warning' : 'danger'}`}>
+                              {row.completionRate}%
+                            </span>}
                       </td>
                       <td data-label="Average score" style={{ textAlign: 'center' }}>{row.averageScore !== null ? `${row.averageScore}%` : '—'}</td>
                     </tr>
@@ -8745,7 +8748,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 aria-label={tab.label}
               >
                 <span aria-hidden="true">{tab.icon}</span>
-                <small>{tab.label === 'My Classes' ? 'Classes' : tab.label}</small>
+                <small>{tab.id === 'dashboard' ? 'Home' : tab.id === 'students' ? 'Classes' : tab.id === 'assignments' ? 'Tasks' : tab.label}</small>
               </button>
             );
           })}
