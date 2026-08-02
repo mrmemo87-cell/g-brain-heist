@@ -41,6 +41,9 @@ test('teacher assignment flow is class-subject-teacher with subject filtering an
   assert.doesNotMatch(teachers, /Active assignment/);
   assert.match(service, /assigned_at: row\.assigned_at/);
   assert.match(migration, /'assigned_at'/);
+  assert.match(teachers, /getAssignableTeachers\(teachers \|\| \[\]\)/);
+  assert.doesNotMatch(teachers, /protectedAdminIds/);
+  assert.doesNotMatch(teachers, /school administrators are excluded/);
 });
 
 test('school administrator is protected and destructive actions use branded confirmations', () => {
