@@ -29,6 +29,7 @@ import SubjectsTab from './school-admin/tabs/SubjectsTab';
 import BillingTab from './school-admin/tabs/BillingTab';
 import SettingsTab from './school-admin/tabs/SettingsTab';
 import CambridgeTab from './school-admin/tabs/CambridgeTab';
+import DocumentsTab from './school-admin/tabs/DocumentsTab';
 import IeltsExamsTab from './school-admin/tabs/IeltsExamsTab';
 import IeltsPracticeTab from './school-admin/tabs/IeltsPracticeTab';
 import IeltsResultsTab from './school-admin/tabs/IeltsResultsTab';
@@ -51,7 +52,7 @@ interface SchoolAdminPortalProps {
 }
 
 type IeltsSubTab = 'ielts-exams' | 'ielts-practice' | 'ielts-results' | 'ielts-analytics' | 'ielts-settings';
-type MainAdminTab = 'dashboard' | 'members' | 'teachers' | 'classes' | 'subjects' | 'settings' | 'billing' | 'cambridge' | 'ielts' | 'admissions';
+type MainAdminTab = 'dashboard' | 'members' | 'teachers' | 'classes' | 'subjects' | 'documents' | 'settings' | 'billing' | 'cambridge' | 'ielts' | 'admissions';
 type AdminTab = MainAdminTab | IeltsSubTab;
 type IeltsToolNavItem = { id: IeltsSubTab; icon: string; label: string; hint: string; route?: never } | { id: string; icon: string; label: string; hint: string; route: string };
 
@@ -61,6 +62,7 @@ const SCHOOL_ADMIN_NAV_ITEMS: Array<{ id: MainAdminTab; icon: string; label: str
   { id: 'teachers', icon: '🎓', label: 'Teacher Assignments', mobileLabel: 'Teachers', description: 'Teaching responsibilities' },
   { id: 'classes', icon: '🏫', label: 'Classes & Registration', mobileLabel: 'Classes', description: 'Classes and registration' },
   { id: 'subjects', icon: '📚', label: 'Curriculum & Subjects', mobileLabel: 'Subjects', description: 'Subjects and curriculum' },
+  { id: 'documents', icon: '🗂️', label: 'Document Center', mobileLabel: 'Documents', description: 'Reports, printing and access' },
   { id: 'admissions', icon: '📝', label: 'Admissions', mobileLabel: 'Admissions', description: 'Admission tests and candidates' },
   { id: 'cambridge', icon: '🧾', label: 'Cambridge Assessments', mobileLabel: 'Cambridge', description: 'Cambridge assessments' },
   { id: 'ielts', icon: '🌐', label: 'IELTS Programme', mobileLabel: 'IELTS', description: 'IELTS programme' },
@@ -1562,6 +1564,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       {activeTab === 'teachers' && <TeachersTab />}
       {activeTab === 'classes' && <OrganisationTab />}
       {activeTab === 'subjects' && <SubjectsTab />}
+      {activeTab === 'documents' && <DocumentsTab />}
       {activeTab === 'billing' && <BillingTab />}
       {activeTab === 'settings' && <SettingsTab />}
       {activeTab === 'cambridge' && <CambridgeTab />}

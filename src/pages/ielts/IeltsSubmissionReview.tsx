@@ -241,6 +241,7 @@ const IeltsSubmissionReview: React.FC = () => {
         studentName: detail.student_name || 'Student',
         schoolId,
         studentUserId: detail.student_id,
+        visibilityScope: isStudentCopy && locked ? 'student_family' : 'private',
         sourceType: `ielts_${skill}_review`,
         sourceId: attemptId,
       },

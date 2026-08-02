@@ -3622,6 +3622,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           studentName: selectedAnalysisStudent.student_name,
           schoolId: profile.school_id,
           studentUserId: selectedAnalysisStudent.student_id,
+          visibilityScope: audience === 'family' ? 'student_family' : 'private',
           sourceType: 'teacher_assignment',
           sourceId: selectedReportAssignment.id,
         },
@@ -5107,7 +5108,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       try {
         openSchoolDocumentPreview({
           meta: {
-            documentId: createSchoolDocumentId(mode === 'register' ? 'roster' : 'class'),
+            documentId: createSchoolDocumentId(mode === 'register' ? 'attendance' : 'roster'),
             templateVersion: mode === 'register' ? 'class-register-v1' : 'class-roster-v1',
             title: mode === 'register' ? 'Class Attendance Register' : 'Class Roster',
             subtitle: groups.length === 1 ? `Class ${groups[0]?.classCode || ''}` : `${groups.length} assigned classes`,
@@ -8636,7 +8637,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           {view === 'assignments' && renderAssignments()}
           {view === 'create-assignment' && renderCreateAssignment()}
           {view === 'reports' && renderReports()}
-          {view === 'documents' && profile.school_id && <SchoolDocumentCenter schoolId={profile.school_id} />}
+          {view === 'documents' && profile.school_id && <SchoolDocumentCenter schoolId={profile.school_id} mode="teacher" />}
           {view === 'writing-hub' && canAccessWritingInsights && (
             <section className="teacher-writing-hub" aria-labelledby="writing-hub-title">
               <div className="teacher-writing-hub__header">

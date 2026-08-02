@@ -456,7 +456,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete, 
       const dataUrl = stage.toDataURL({ pixelRatio: 4 });
       openSchoolDocumentPreview({
         meta: {
-          documentId: createSchoolDocumentId('question'),
+          documentId: createSchoolDocumentId('geometry'),
           templateVersion: 'geometry-diagram-sheet-v1',
           title: title || 'Geometry Diagram',
           subtitle: `${subject} · ${topic} · ${difficulty}`,
