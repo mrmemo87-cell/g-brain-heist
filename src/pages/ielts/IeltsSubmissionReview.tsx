@@ -13,6 +13,13 @@ import {
   type IeltsReviewSkill,
 } from '../../../services/ieltsTeacherReviewService';
 import { supabase } from '../../../services/supabaseClient';
+import { useSchoolBranding } from '../../hooks/useSchoolBranding';
+import {
+  createSchoolDocumentId,
+  escapeSchoolDocumentHtml,
+  openSchoolDocumentPreview,
+  schoolDocumentFileName,
+} from '../../lib/schoolDocument';
 
 const rubricLabels: Record<string, string> = {
   task_achievement: 'Task achievement',
@@ -74,6 +81,26 @@ const IeltsSubmissionReview: React.FC = () => {
   const [audioLoadError, setAudioLoadError] = useState<string | null>(null);
   const [aiDraft, setAiDraft] = useState<Record<string, unknown> | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [schoolId, setSchoolId] = useState<string | null>(null);
+  const [reviewerName, setReviewerName] = useState('IELTS teacher');
+  const { schoolName, schoolLogoUrl } = useSchoolBranding({ schoolId });
+
+  useEffect(() => {
+    let active = true;
+    void supabase.auth.getUser().then(async ({ data: authData }) => {
+      if (!active || !authData.user) return;
+      const { data: profile } = await supabase
+        .from('users')
+        .select('school_id, username, full_name')
+        .eq('id', authData.user.id)
+        .maybeSingle();
+      if (!active) return;
+      setSchoolId((profile as { school_id?: string | null } | null)?.school_id ?? null);
+      const typedProfile = profile as { username?: string | null; full_name?: string | null } | null;
+      setReviewerName(typedProfile?.full_name || typedProfile?.username || authData.user.email || 'IELTS teacher');
+    });
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     if (!detail) return;
@@ -159,6 +186,68 @@ const IeltsSubmissionReview: React.FC = () => {
 
   const locked = detail?.review_status === 'finalized';
   const title = skill === 'writing' ? 'Writing Review' : 'Speaking Review';
+
+  const printReview = (copy: 'student' | 'examiner') => {
+    if (!detail) return;
+    const isStudentCopy = copy === 'student';
+    if (isStudentCopy && !locked) return;
+    const generatedAt = new Date().toISOString();
+    const documentId = createSchoolDocumentId('ielts');
+    const rubricRows = rubricKeys.map((key) => `
+      <tr><td>${escapeSchoolDocumentHtml(rubricLabels[key] ?? key)}</td><td><strong>${escapeSchoolDocumentHtml(rubric[key] ?? 'Not scored')}</strong></td></tr>
+    `).join('');
+    const evidence = skill === 'writing'
+      ? `<h2 class="document-page-break">Writing evidence appendix</h2>
+         <p><strong>Task:</strong> ${escapeSchoolDocumentHtml(detail.task_title || detail.prompt || 'IELTS writing task')}</p>
+         <p><strong>Word count:</strong> ${escapeSchoolDocumentHtml(detail.word_count ?? 'Not recorded')}</p>
+         <div class="document-card" style="white-space:pre-wrap">${escapeSchoolDocumentHtml(detail.student_answer || 'No answer text available.')}</div>`
+      : `<h2 class="document-page-break">Speaking evidence record</h2>
+         <p><strong>Task:</strong> ${escapeSchoolDocumentHtml(detail.task_title || detail.prompt || 'IELTS speaking task')}</p>
+         <p><strong>Recording duration:</strong> ${escapeSchoolDocumentHtml(detail.duration_seconds ? `${detail.duration_seconds} seconds` : 'Not recorded')}</p>
+         <p class="document-callout">The audio remains in the secure school system. This printed record does not embed or expose a recording link.</p>
+         <div class="document-card" style="white-space:pre-wrap">${escapeSchoolDocumentHtml(detail.transcript || 'No transcript available.')}</div>`;
+    const bodyHtml = `
+      ${isStudentCopy ? '<p class="document-callout"><strong>Final school feedback copy.</strong> This is a Brains Heist practice report and is not an official IELTS Test Report Form or an endorsement by IELTS.</p>' : `<p class="document-callout document-callout--private"><strong>Confidential examiner copy.</strong> Contains assessment evidence and private working notes. Do not distribute to students or families.</p>`}
+      <div class="document-grid">
+        <div class="document-card"><strong>Overall practice band</strong><span style="font-size:28px;font-weight:900">${escapeSchoolDocumentHtml(overallBand ?? '—')}</span></div>
+        <div class="document-card"><strong>Review status</strong>${escapeSchoolDocumentHtml(locked ? 'Finalized' : 'Draft / in review')}</div>
+      </div>
+      <h2>Rubric profile</h2>
+      <table><thead><tr><th>Criterion</th><th>Band</th></tr></thead><tbody>${rubricRows}</tbody></table>
+      <div class="document-grid">
+        <div class="document-card"><strong>Strengths</strong><div style="white-space:pre-wrap">${escapeSchoolDocumentHtml(strengths || 'No strengths recorded.')}</div></div>
+        <div class="document-card"><strong>Priority improvements</strong><div style="white-space:pre-wrap">${escapeSchoolDocumentHtml(improvements || 'No improvements recorded.')}</div></div>
+        <div class="document-card"><strong>Next steps</strong><div style="white-space:pre-wrap">${escapeSchoolDocumentHtml(nextSteps || 'No next steps recorded.')}</div></div>
+        <div class="document-card"><strong>Teacher feedback</strong><div style="white-space:pre-wrap">${escapeSchoolDocumentHtml(teacherFeedback || 'No additional feedback recorded.')}</div></div>
+      </div>
+      ${isStudentCopy ? '' : `<h2>Private examiner notes</h2><div class="document-card" style="white-space:pre-wrap">${escapeSchoolDocumentHtml(privateNotes || 'No private notes recorded.')}</div>${evidence}`}
+      <div class="document-signatures"><div class="document-signature">Reviewer signature / date</div><div class="document-signature">Quality assurance / date</div></div>
+    `;
+
+    void openSchoolDocumentPreview({
+      meta: {
+        documentId,
+        templateVersion: 'ielts-productive-review-v1',
+        title: `${title} — ${isStudentCopy ? 'Student feedback' : 'Examiner record'}`,
+        subtitle: detail.task_title || 'IELTS practice productive-skill review',
+        schoolName,
+        schoolLogoUrl,
+        audience: isStudentCopy ? 'student' : 'teacher',
+        status: locked ? 'final' : 'draft',
+        confidentiality: isStudentCopy ? 'family-copy' : 'confidential',
+        generatedAt,
+        generatedBy: reviewerName,
+        className: detail.class_name || undefined,
+        studentName: detail.student_name || 'Student',
+        schoolId,
+        studentUserId: detail.student_id,
+        sourceType: `ielts_${skill}_review`,
+        sourceId: attemptId,
+      },
+      bodyHtml,
+      fileName: schoolDocumentFileName(schoolName, detail.student_name, title, isStudentCopy ? 'Student_Copy' : 'Examiner_Record'),
+    });
+  };
 
   return (
     <main style={{ minHeight: '100vh', background: '#f8fafc', padding: '2rem' }}>
@@ -267,6 +356,13 @@ const IeltsSubmissionReview: React.FC = () => {
               <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                 <button disabled={locked || submitMutation.isPending} onClick={() => submitMutation.mutate(false)} style={{ flex: 1, minWidth: '8rem', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: 'white', cursor: locked ? 'not-allowed' : 'pointer' }}>Save draft</button>
                 <button disabled={locked || submitMutation.isPending || overallBand === null} onClick={() => submitMutation.mutate(true)} style={{ flex: 1, minWidth: '8rem', padding: '0.75rem', borderRadius: '0.5rem', border: 'none', background: locked ? '#94a3b8' : '#2563eb', color: 'white', cursor: locked ? 'not-allowed' : 'pointer' }}>Finalize review</button>
+              </div>
+              <div style={{ borderTop: '1px solid #e2e8f0', marginTop: '1rem', paddingTop: '1rem' }}>
+                <div style={{ color: '#334155', fontWeight: 700, marginBottom: '0.55rem' }}>Print-ready documents</div>
+                <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+                  <button type="button" onClick={() => printReview('examiner')} style={{ flex: 1, minWidth: '10rem', padding: '0.7rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer' }}>Examiner record</button>
+                  <button type="button" disabled={!locked} title={locked ? 'Print the finalized student feedback copy' : 'Finalize the review before releasing a student copy'} onClick={() => printReview('student')} style={{ flex: 1, minWidth: '10rem', padding: '0.7rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: locked ? '#eff6ff' : '#f1f5f9', color: locked ? '#1d4ed8' : '#94a3b8', cursor: locked ? 'pointer' : 'not-allowed' }}>Student feedback copy</button>
+                </div>
               </div>
             </aside>
           </div>

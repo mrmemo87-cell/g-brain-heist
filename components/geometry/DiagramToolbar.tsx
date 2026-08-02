@@ -11,6 +11,7 @@ interface ToolbarProps {
   onClear: () => void;
   onDeleteSelected?: () => void;
   onExportImage?: () => void;
+  onPrintImage?: () => void;
   hasSelection?: boolean;
 }
 
@@ -36,6 +37,7 @@ const DiagramToolbar: React.FC<ToolbarProps> = ({
   onClear,
   onDeleteSelected,
   onExportImage,
+  onPrintImage,
   hasSelection = false
 }) => {
   return (
@@ -138,12 +140,13 @@ const DiagramToolbar: React.FC<ToolbarProps> = ({
           <button
             onClick={onExportImage}
             className="w-full px-3 py-2 rounded-lg text-sm font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 hover:bg-emerald-500/30 transition-all"
-            title="Export diagram as PNG image"
+            title="Export diagram as a high-resolution PNG image"
           >
-            📷 Export as Image
+            Export high-resolution PNG
           </button>
+          {onPrintImage ? <button type="button" onClick={onPrintImage} className="mt-2 w-full px-3 py-2 rounded-lg text-sm font-medium bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 hover:bg-cyan-500/30 transition-all">Print diagram sheet</button> : null}
           <p className="text-[10px] text-gray-500 mt-1 text-center">
-            Use in regular questions
+            Page-safe classroom output
           </p>
         </div>
       )}

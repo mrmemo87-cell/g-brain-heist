@@ -12,13 +12,18 @@ import {
 } from './geometryService';
 import BackButton from '../BackButton';
 import { brainsAlert } from '../../src/utils/brainsAlert';
+import { createSchoolDocumentId, escapeSchoolDocumentHtml, openSchoolDocumentPreview, schoolDocumentFileName } from '../../src/lib/schoolDocument';
 
 interface DiagramBuilderProps {
   teacherId: string;
   onComplete: () => void;
+  schoolName?: string;
+  schoolLogoUrl?: string | null;
+  teacherName?: string;
+  schoolId?: string | null;
 }
 
-const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }) => {
+const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete, schoolName = 'Brains Heist', schoolLogoUrl, teacherName = 'Teacher', schoolId }) => {
   const stageRef = useRef<unknown>(null);
   
   // Tool state
@@ -414,7 +419,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
     }
     
     try {
-      const dataUrl = stage.toDataURL({ pixelRatio: 2 });
+      const dataUrl = stage.toDataURL({ pixelRatio: 4 });
       
       // Create download link
       const link = document.createElement('a');
@@ -444,6 +449,36 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
     }
   };
 
+  const handlePrintImage = () => {
+    const stage = stageRef.current as { toDataURL?: (config: { pixelRatio: number }) => string } | null;
+    if (!stage?.toDataURL) { brainsAlert('Cannot print — canvas not ready.', 'error'); return; }
+    try {
+      const dataUrl = stage.toDataURL({ pixelRatio: 4 });
+      openSchoolDocumentPreview({
+        meta: {
+          documentId: createSchoolDocumentId('question'),
+          templateVersion: 'geometry-diagram-sheet-v1',
+          title: title || 'Geometry Diagram',
+          subtitle: `${subject} · ${topic} · ${difficulty}`,
+          schoolName,
+          schoolLogoUrl,
+          audience: 'student',
+          status: 'final',
+          confidentiality: 'school-use',
+          generatedAt: new Date().toISOString(),
+          generatedBy: teacherName,
+          subject,
+        },
+        bodyHtml: `<div class="document-grid"><div class="document-card"><strong>Student name</strong><p>________________________________</p></div><div class="document-card"><strong>Class / date</strong><p>________________________________</p></div></div><figure style="margin:8mm 0;text-align:center"><img src="${escapeSchoolDocumentHtml(dataUrl)}" alt="${escapeSchoolDocumentHtml(title || 'Geometry diagram')}" style="max-width:100%;max-height:150mm;object-fit:contain"><figcaption style="margin-top:4mm;color:#64748b">Show all working clearly.</figcaption></figure><div style="height:45mm;border:1px solid #cbd5e1;border-radius:3mm;padding:3mm"><strong>Working and answer</strong></div>`,
+        orientation: 'portrait',
+        inkSaver: true,
+        fileName: schoolDocumentFileName(schoolName, title || 'Geometry_Diagram'),
+      });
+    } catch (error) {
+      brainsAlert(error instanceof Error ? error.message : 'Unable to open the diagram document.', 'error');
+    }
+  };
+
   // Render editor view
   const renderEditor = () => (
     <div className="flex gap-4">
@@ -459,6 +494,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
           onClear={handleClear}
           onDeleteSelected={handleDeleteSelected}
           onExportImage={handleExportImage}
+          onPrintImage={handlePrintImage}
           hasSelection={selectedShapeIds.length > 0}
         />
       </div>

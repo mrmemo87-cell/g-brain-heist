@@ -17,6 +17,7 @@ import {
   openProfessionalWritingReport,
 } from '../../lib/brains_heist/writingReportDocument.js';
 import type { SupportedGenre } from '../../lib/brains_heist/writingAssessment.js';
+import { safeCsvCell } from '../../lib/schoolDocument.js';
 
 interface WritingExportCenterProps {
   mode: 'student' | 'teacher' | 'admin';
@@ -218,20 +219,16 @@ export const WritingExportCenter = ({
 
   const exportCsv = (): void => {
     if (!teacherRows || typeof window === 'undefined') return;
-    const escapeField = (value: string): string => {
-      const escaped = value.replace(/"/g, '""');
-      return /[",\n]/.test(escaped) ? `"${escaped}"` : escaped;
-    };
-    const header = 'student_name,student_id,class,grade,reporting_month,month_submissions,all_time_submissions,latest_formative_score';
+    const header = ['student_name', 'student_id', 'class', 'grade', 'reporting_month', 'month_submissions', 'all_time_submissions', 'latest_formative_score'].map(safeCsvCell).join(',');
     const lines = visibleRows.map((row) => [
-      escapeField(row.student_name),
-      escapeField(row.student_id),
-      escapeField(row.class_name ?? ''),
-      escapeField(String(row.grade)),
-      escapeField(selectedMonth),
-      escapeField(String(row.submission_count ?? 0)),
-      escapeField(String(row.all_time_submission_count ?? 0)),
-      escapeField(row.latest_score == null ? '' : String(row.latest_score)),
+      safeCsvCell(row.student_name),
+      safeCsvCell(row.student_id),
+      safeCsvCell(row.class_name ?? ''),
+      safeCsvCell(String(row.grade)),
+      safeCsvCell(selectedMonth),
+      safeCsvCell(String(row.submission_count ?? 0)),
+      safeCsvCell(String(row.all_time_submission_count ?? 0)),
+      safeCsvCell(row.latest_score == null ? '' : String(row.latest_score)),
     ].join(','));
     const blob = new Blob([[header, ...lines].join('\n')], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');

@@ -26,13 +26,13 @@ const ReportModal: React.FC = () => {
         const encouragement = getEncouragement(grade);
 
         return (
-          <div className="fixed inset-0 z-[70] flex items-start justify-center bg-black/90 p-4 overflow-y-auto no-print" role="dialog" aria-modal="true" aria-label="Student Performance Report">
+          <div className="fixed inset-0 z-[70] flex items-start justify-center bg-black/90 p-4 overflow-y-auto print-modal-overlay" role="dialog" aria-modal="true" aria-label="Student Performance Report">
             <div className="bg-white rounded-2xl max-w-4xl w-full my-8 print-content font-sans">
               {/* Report Header */}
               <div className="p-6 border-b-4 border-purple-600 no-print-hide">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
-                    <img src={schoolLogoUrl} alt={`${schoolName} logo`} style={{ width: '48px', height: '48px', objectFit: 'contain' }} />
+                    {schoolLogoUrl ? <img src={schoolLogoUrl} alt={`${schoolName} logo`} style={{ width: '48px', height: '48px', objectFit: 'contain' }} /> : null}
                     <div>
                       <h1 className="text-2xl font-bold text-purple-800">{schoolName}</h1>
                       <p className="text-sm text-gray-500">Student Performance Report</p>

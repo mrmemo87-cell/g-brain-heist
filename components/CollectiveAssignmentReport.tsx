@@ -5,6 +5,7 @@ import * as GameService from '../services/gameService';
 import { brainsAlert } from '../src/utils/brainsAlert';
 import './CollectiveAssignmentReport.css';
 import { useSchoolBranding } from '../src/hooks/useSchoolBranding';
+import { createSchoolDocumentId, registerSchoolDocumentRecord, schoolDocumentFileName } from '../src/lib/schoolDocument';
 
 // localStorage key prefix for persisted custom orders
 const CUSTOM_ORDER_STORAGE_KEY = 'brains_collective_report_custom_order';
@@ -589,15 +590,14 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
     };
   }), [displayRows, filteredAssignments]);
 
-  const generatedAt = useMemo(
-    () => new Intl.DateTimeFormat(undefined, { dateStyle: 'long', timeStyle: 'short' }).format(new Date()),
-    [],
-  );
+  const formatGeneratedAt = () => new Intl.DateTimeFormat(undefined, { dateStyle: 'long', timeStyle: 'short' }).format(new Date());
+  const generatedAt = useMemo(formatGeneratedAt, []);
+  const previewReportId = useMemo(() => createSchoolDocumentId('class'), []);
 
   const reportModel: CollectiveReportData = useMemo(() => {
     const averages = displayRows.filter(row => row.completedCount > 0).map(row => row.averageAccuracy);
     return {
-      reportId: `CAR-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`,
+      reportId: previewReportId,
       school: { id: school.id || '', name: schoolName, ...(schoolLogoUrl ? { logoUrl: schoolLogoUrl } : {}) },
       report: { title: reportTitle.trim() || 'Class Achievement Report', academicYear, term: term || undefined, dateFrom, dateTo, generatedAt, generatedBy: teacherName },
       context: { className: [...new Set(displayRows.map(row => row.batch))].join(', '), subjects: [...new Set(filteredAssignments.map(a => a.subject_name))], assignmentCount: filteredAssignments.length, studentCount: displayRows.length },
@@ -605,7 +605,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
       students: displayRows.map(row => ({ id: row.studentId, name: row.studentName, className: row.batch, results: filteredAssignments.map(a => ({ assignmentId: a.id, percentage: row.scores[a.id]?.accuracy ?? null, status: row.scores[a.id] ? 'submitted' : 'not_submitted' })), completedCount: row.completedCount, assignmentCount: filteredAssignments.length, average: row.completedCount ? row.averageAccuracy : null, status: getStudentStatus(row).label })),
       summary: { classAverage: summaryStats?.totalCompleted ? summaryStats.avgAcc : null, completionRate: summaryStats?.completionRate ?? 0, supportCount: summaryStats?.needsAttention ?? 0, highestAverage: averages.length ? Math.max(...averages) : null, lowestAverage: averages.length ? Math.min(...averages) : null },
     };
-  }, [academicYear, dateFrom, dateTo, displayRows, filteredAssignments, generatedAt, reportTitle, school.id, schoolLogoUrl, schoolName, summaryStats, teacherName, term]);
+  }, [academicYear, dateFrom, dateTo, displayRows, filteredAssignments, generatedAt, previewReportId, reportTitle, school.id, schoolLogoUrl, schoolName, summaryStats, teacherName, term]);
 
   const printReport = useCallback(() => {
     if (!printDocumentRef.current || !reportModel.students.length || !reportModel.assignments.length) return;
@@ -615,11 +615,42 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
     document.body.appendChild(frame);
     const printDoc = frame.contentDocument;
     if (!printDoc) { frame.remove(); return; }
+    const finalReportId = createSchoolDocumentId('class');
+    const finalGeneratedAt = formatGeneratedAt();
+    const printable = printDocumentRef.current.cloneNode(true) as HTMLElement;
+    printable.querySelectorAll<HTMLElement>('[data-collective-report-id]').forEach((element) => { element.textContent = finalReportId; });
+    printable.querySelectorAll<HTMLElement>('[data-collective-generated-at]').forEach((element) => { element.textContent = finalGeneratedAt; });
+    void registerSchoolDocumentRecord({
+      meta: {
+        documentId: finalReportId,
+        templateVersion: 'class-achievement-v1',
+        title: reportModel.report.title,
+        subtitle: `${reportModel.context.assignmentCount} assignments · ${reportModel.context.studentCount} students`,
+        schoolName: reportModel.school.name,
+        schoolLogoUrl: reportModel.school.logoUrl,
+        audience: 'teacher',
+        status: 'final',
+        confidentiality: 'school-use',
+        generatedAt: new Date().toISOString(),
+        generatedBy: teacherName,
+        academicYear: reportModel.report.academicYear,
+        term: reportModel.report.term,
+        subject: reportModel.context.subjects.join(', '),
+        className: reportModel.context.className,
+        schoolId: reportModel.school.id,
+        sourceType: 'collective_assignment_report',
+        sourceId: reportModel.assignments.map((assignment) => assignment.id).join(','),
+      },
+      bodyHtml: printable.outerHTML,
+      orientation: reportModel.assignments.length > 5 ? 'landscape' : 'portrait',
+      fileName: schoolDocumentFileName(reportModel.school.name, reportModel.report.title, finalReportId),
+      persistPayload: false,
+    });
     printDoc.open();
-    printDoc.write(`<!doctype html><html><head>${document.head.innerHTML}</head><body>${printDocumentRef.current.outerHTML}</body></html>`);
+    printDoc.write(`<!doctype html><html><head>${document.head.innerHTML}</head><body>${printable.outerHTML}</body></html>`);
     printDoc.close();
     frame.onload = () => { frame.contentWindow?.focus(); frame.contentWindow?.print(); window.setTimeout(() => frame.remove(), 1000); };
-  }, [reportModel]);
+  }, [reportModel, teacherName]);
 
   // ── Render ───────────────────────────────────────────────────────────────
 
@@ -644,7 +675,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
       <article ref={printDocumentRef} className={`collective-print-report ${filteredAssignments.length > 5 ? 'is-landscape' : 'is-portrait'}`} aria-label="Class Achievement Report print document">
         <header className="collective-print-header">
           <div className="collective-print-brand">{reportModel.school.logoUrl ? <img src={reportModel.school.logoUrl} alt="" /> : null}<div><b>{reportModel.school.name}</b><small>School Report</small></div></div>
-          <div className="collective-print-document"><small>Class Achievement Report</small><strong>{reportModel.report.title}</strong><span>Generated {generatedAt}</span></div>
+          <div className="collective-print-document"><small>Class Achievement Report</small><strong>{reportModel.report.title}</strong><span>Generated <span data-collective-generated-at>{generatedAt}</span></span></div>
         </header>
         <section className="collective-print-details"><span><b>Class:</b> {reportModel.context.className || '—'}</span><span><b>Subject:</b> {reportModel.context.subjects.join(', ') || '—'}</span><span><b>Teacher:</b> {teacherName}</span><span><b>Academic year:</b> {academicYear || '—'}</span>{term ? <span><b>Term:</b> {term}</span> : null}<span><b>Reporting period:</b> {dateFrom || 'All dates'} – {dateTo || 'Present'}</span></section>
         <section className="collective-print-scope">
@@ -699,7 +730,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
             </table>
           </section>
         ) : null}
-        <footer className="collective-print-footer"><span>{reportModel.school.name} · Confidential — For authorised school use only</span><span>{reportModel.reportId} · Generated {generatedAt} · Generated using Brain Heist · Page <span className="collective-page-number" /></span></footer>
+        <footer className="collective-print-footer"><span>{reportModel.school.name} · Confidential — For authorised school use only</span><span><span data-collective-report-id>{reportModel.reportId}</span> · Generated <span data-collective-generated-at>{generatedAt}</span> · Generated using Brains Heist · Page <span className="collective-page-number" /></span></footer>
       </article>
 
       {/* Header */}
