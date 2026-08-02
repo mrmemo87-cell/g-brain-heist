@@ -2008,6 +2008,13 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
             width: 100%;
             background: white !important;
           }
+          .print-modal-overlay {
+            position: static !important;
+            display: block !important;
+            overflow: visible !important;
+            background: white !important;
+            padding: 0 !important;
+          }
           .no-print {
             display: none !important;
           }

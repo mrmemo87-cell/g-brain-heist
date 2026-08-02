@@ -2,6 +2,7 @@ import React from 'react';
 import { useSchoolAdmin } from '../SchoolAdminContext';
 import * as SchoolAdminService from '../../../services/schoolAdminService';
 import { formatAdminDate, friendlySchoolAdminError } from '../../../src/lib/schoolAdminPresentation';
+import { createSchoolDocumentId, escapeSchoolDocumentHtml, openSchoolDocumentPreview, schoolDocumentFileName } from '../../../src/lib/schoolDocument';
 
 type AssignmentSort = 'class' | 'subject' | 'teacher' | 'assigned_at';
 
@@ -60,8 +61,24 @@ const TeachersTab: React.FC = () => {
   };
   const sortLabel = (label: string, key: AssignmentSort) => `${label}${sortKey === key ? (sortDirection === 'asc' ? ' ↑' : ' ↓') : ''}`;
 
+  const printTeacherAllocations = () => {
+    if (!school) return;
+    const rows = sortedAssignments.map((assignment: any, index: number) => {
+      const schoolClass = classById[assignment.class_id];
+      const teacher = teachers.find((item: any) => item.user_id === assignment.teacher_user_id);
+      return `<tr><td>${index + 1}</td><td>${escapeSchoolDocumentHtml(schoolClass?.class_code || 'Unknown')}</td><td>${escapeSchoolDocumentHtml(schoolClass?.class_name || '—')}</td><td>${escapeSchoolDocumentHtml(assignment.subject)}</td><td>${escapeSchoolDocumentHtml(teacher?.username || 'Unknown teacher')}</td><td>${escapeSchoolDocumentHtml(formatAdminDate(assignment.assigned_at))}</td></tr>`;
+    }).join('');
+    try {
+      openSchoolDocumentPreview({
+        meta: { documentId: createSchoolDocumentId('class'), templateVersion: 'teacher-allocation-v1', title: 'Teacher Allocation Register', subtitle: `${sortedAssignments.length} current assignments`, schoolName: school.name, schoolLogoUrl: school.logo_url, audience: 'internal', status: 'final', confidentiality: 'confidential', generatedAt: new Date().toISOString(), schoolId: school.id, sourceType: 'teacher_allocations', sourceId: 'current' },
+        bodyHtml: `<table><thead><tr><th>No.</th><th>Class</th><th>Class name</th><th>Subject</th><th>Teacher</th><th>Assigned</th></tr></thead><tbody>${rows || '<tr><td colspan="6">No teaching assignments match the current filters.</td></tr>'}</tbody></table><div class="document-signatures"><div class="document-signature">Prepared by · Name / signature / date</div><div class="document-signature">Approved by · Name / signature / date</div></div>`,
+        orientation: 'landscape', inkSaver: true, fileName: schoolDocumentFileName(school.name, 'Teacher_Allocation_Register'),
+      });
+    } catch (error) { addToast(error instanceof Error ? error.message : 'Unable to open the allocation register.', 'error'); }
+  };
+
   return <div className="space-y-6">
-    <section className="admin-section-heading"><div><p className="school-admin-eyebrow">Administration</p><h2>Teacher Assignments</h2><p>Connect each class to a curriculum subject and the teacher responsible for it.</p></div></section>
+    <section className="admin-section-heading"><div><p className="school-admin-eyebrow">Administration</p><h2>Teacher Assignments</h2><p>Connect each class to a curriculum subject and the teacher responsible for it.</p></div><button type="button" className="admin-button-secondary" onClick={printTeacherAllocations}>Print allocation register</button></section>
 
     <section className="admin-form-card" aria-labelledby="assign-teacher-title">
       <div className="admin-card-heading"><div><h3 id="assign-teacher-title">Assign teacher to class and subject</h3><p>Select in operational order: class, subject, then teacher.</p></div></div>

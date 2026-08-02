@@ -36,12 +36,21 @@ import { notificationService } from '../services/notificationService';
 const WritingMonitoringView = React.lazy(() => import('../src/pages/writing/WritingMonitoringView'));
 const WritingAnalyticsDashboard = React.lazy(() => import('../src/pages/writing/WritingAnalyticsDashboard'));
 const WritingExportCenter = React.lazy(() => import('../src/pages/writing/WritingExportCenter'));
+const SchoolDocumentCenter = React.lazy(() => import('../src/components/SchoolDocumentCenter'));
 const ClanTerritoryManager = React.lazy(() => import('../src/features/clanTerritory/ClanTerritoryManager'));
 import { normalizePart2CommunicativeAchievement, sanitizeCommunicativeAchievementText } from '../src/lib/writingCommunicativeAchievement';
 import { useSchoolBranding } from '../src/hooks/useSchoolBranding';
 import { createSchoolBrand } from '../src/lib/schoolBranding';
 import { SchoolBrand } from '../src/components/SchoolBrand';
 import { useSmartCollapsedNavigation } from '../src/hooks/useSmartCollapsedNavigation';
+import {
+  createSchoolDocumentId,
+  escapeSchoolDocumentHtml,
+  openSchoolDocumentPreview,
+  safeCsvCell,
+  schoolDocumentFileName,
+  type SchoolDocumentAudience,
+} from '../src/lib/schoolDocument';
 
 interface TeacherPortalProps {
   profile: Profile;
@@ -57,8 +66,8 @@ interface TeacherPortalProps {
 let _cachedPlanDetails: SchoolPlanDetails | null = null;
 let _cachedTeacherTier: AccountTier | null = null;
 
-export type PortalView = 'dashboard' | 'students' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'writing-hub' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'clan-wars' | 'geometry-diagrams' | 'cambridge-reports' | 'join-school';
-type TeacherNavSection = 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'writing-hub' | 'cambridge' | 'clan-wars' | 'join-school';
+export type PortalView = 'dashboard' | 'students' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'documents' | 'writing-hub' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'clan-wars' | 'geometry-diagrams' | 'cambridge-reports' | 'join-school';
+type TeacherNavSection = 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'documents' | 'writing-hub' | 'cambridge' | 'clan-wars' | 'join-school';
 type WritingHubSection = 'monitor' | 'analytics' | 'reports';
 
 // XP points based on difficulty: Easy=10, Medium=15, Hard=20
@@ -671,6 +680,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const primarySection = useMemo<TeacherNavSection>(() => {
     if (view === 'dashboard') return 'dashboard';
     if (view === 'students') return 'students';
+    if (view === 'documents') return 'documents';
     if (view === 'join-school') return 'join-school';
     if (view === 'question-bank' || view === 'create-question' || view === 'csv-upload') return 'questions';
     if (view === 'assignments' || view === 'create-assignment') return 'assignments';
@@ -727,6 +737,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         setSelectedReportAssignment(null);
         setAssignmentReport([]);
         setView('reports');
+        break;
+      case 'documents':
+        setView('documents');
         break;
       case 'writing-hub':
         setView('writing-hub');
@@ -3541,7 +3554,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       return;
     }
 
-    const header = 'Student,Class,Score,Correct,Incorrect,Accuracy (%),Completed At';
+    const csvHeader = 'Student,Class,Score,Correct,Incorrect,Accuracy (%),Completed At';
+    const header = csvHeader.split(',').map(safeCsvCell).join(',');
     const rows = assignmentReport.map((row) => (
       [
         row.student_name,
@@ -3551,7 +3565,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         row.incorrect,
         row.accuracy,
         new Date(row.completed_at).toLocaleString(),
-      ].join(',')
+      ].map(safeCsvCell).join(',')
     ));
     const csv = [header, ...rows].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -3563,36 +3577,61 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     window.URL.revokeObjectURL(url);
   };
 
-  const handlePrintStudentAnalysis = () => {
+  const handlePrintStudentAnalysis = (audience: SchoolDocumentAudience = 'teacher') => {
     if (!selectedReportAssignment || !selectedAnalysisStudent) return;
-    const escapeHtml = (value: unknown) => String(value ?? '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
     const assignmentTitle = selectedReportAssignment.title || selectedReportAssignment.topic_name;
-    const answerRows = studentAnswers.length
+    const answerRows = audience === 'teacher' && studentAnswers.length
       ? studentAnswers.map((answer, index) => `
-        <article class="answer ${answer.is_correct ? 'correct' : 'incorrect'}">
-          <div class="answer-head"><strong>Question ${index + 1}</strong><span>${answer.is_correct ? 'Correct' : 'Needs review'} · ${Math.round(answer.time_taken_ms / 1000)}s</span></div>
-          <p class="prompt">${escapeHtml(answer.question_text)}</p>
-          <div class="responses"><div><small>Student answer</small><b>${escapeHtml(answer.student_answer || 'No answer')}</b></div><div><small>Correct answer</small><b>${escapeHtml(answer.correct_answer)}</b></div></div>
-          ${answer.explanation ? `<p class="explanation"><strong>Teacher explanation:</strong> ${escapeHtml(answer.explanation)}</p>` : ''}
+        <article class="document-card">
+          <strong>Question ${index + 1} · ${answer.is_correct ? 'Correct' : 'Needs review'} · ${Math.round(answer.time_taken_ms / 1000)}s</strong>
+          <p>${escapeSchoolDocumentHtml(answer.question_text)}</p>
+          <div class="document-grid"><div><strong>Student answer</strong><p>${escapeSchoolDocumentHtml(answer.student_answer || 'No answer')}</p></div><div><strong>Correct answer</strong><p>${escapeSchoolDocumentHtml(answer.correct_answer)}</p></div></div>
+          ${answer.explanation ? `<div class="document-callout"><strong>Teacher explanation</strong><p>${escapeSchoolDocumentHtml(answer.explanation)}</p></div>` : ''}
         </article>`).join('')
-      : '<div class="empty">Question-by-question evidence is not available for this submission.</div>';
-    const documentHtml = `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(assignmentTitle)} — ${escapeHtml(selectedAnalysisStudent.student_name)}</title><style>
-      *{box-sizing:border-box}body{margin:0;background:#eef3fb;color:#14213d;font:14px/1.5 Inter,Arial,sans-serif}.page{width:210mm;min-height:297mm;margin:0 auto;background:#fff;padding:0 14mm 14mm}.hero{margin:0 -14mm 9mm;padding:11mm 14mm 9mm;background:linear-gradient(135deg,#071b3d,#2444d8 68%,#2dd4bf);color:#fff;text-align:center}.brand{font-size:9px;font-weight:900;letter-spacing:.18em;color:#a5f3fc}.hero h1{margin:5mm 0 1mm;font-size:25px;line-height:1.15}.hero p{margin:0;color:#dbeafe}.student{display:grid;grid-template-columns:1.4fr repeat(4,1fr);gap:3mm;margin-bottom:7mm}.student>div{border:1px solid #d9e2f0;border-radius:3mm;background:#f8fafc;padding:3.5mm}.student small,.responses small{display:block;color:#64748b;font-size:8px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.student b{display:block;margin-top:1mm;font-size:15px}.student .score{background:#eef2ff;color:#2545c7}.section-title{display:flex;align-items:center;gap:3mm;margin:7mm 0 3mm}.section-title span{width:8mm;height:8mm;border-radius:2mm;background:#e0e7ff;color:#2948c9;display:grid;place-items:center;font-weight:900}.section-title h2{margin:0;font-size:18px}.answer{break-inside:avoid;margin-bottom:3mm;border:1px solid #d9e2f0;border-left:1.5mm solid #22c55e;border-radius:3mm;padding:4mm}.answer.incorrect{border-left-color:#fb7185;background:#fff8f8}.answer.correct{background:#f7fef9}.answer-head{display:flex;justify-content:space-between;gap:4mm}.answer-head span{color:#64748b;font-size:11px}.prompt{margin:3mm 0;font-weight:700}.responses{display:grid;grid-template-columns:1fr 1fr;gap:3mm}.responses>div{border-radius:2mm;background:#f1f5f9;padding:3mm}.responses b{display:block;margin-top:1mm}.explanation{margin:3mm 0 0;border-radius:2mm;background:#eff6ff;padding:3mm;color:#1e3a8a}.empty{border:1px dashed #cbd5e1;border-radius:3mm;padding:8mm;text-align:center;color:#64748b}.footer{margin-top:8mm;border-top:1px solid #d9e2f0;padding-top:3mm;display:flex;justify-content:space-between;color:#64748b;font-size:9px}@page{size:A4;margin:0}@media print{body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{margin:0}}
-    </style></head><body><main class="page"><header class="hero"><div class="brand">BRAIN HEIST · SCHOOL PERFORMANCE REPORT</div><h1>${escapeHtml(assignmentTitle)}</h1><p>Individual student performance and answer evidence</p></header><section class="student"><div><small>Student</small><b>${escapeHtml(selectedAnalysisStudent.student_name)}</b></div><div><small>Class</small><b>${escapeHtml(selectedAnalysisStudent.batch || '—')}</b></div><div class="score"><small>Accuracy</small><b>${selectedAnalysisStudent.accuracy}%</b></div><div><small>Correct</small><b>${selectedAnalysisStudent.correct}</b></div><div><small>Needs review</small><b>${selectedAnalysisStudent.incorrect}</b></div></section><div class="section-title"><span>01</span><h2>Question-by-question analysis</h2></div>${answerRows}<footer class="footer"><span>Brain Heist · Evidence-led school reporting</span><span>Generated ${escapeHtml(new Date().toLocaleString())}</span></footer></main><script>window.addEventListener('load',()=>window.print())<\/script></body></html>`;
-    const blob = new Blob([documentHtml], { type: 'text/html;charset=utf-8' });
-    const url = window.URL.createObjectURL(blob);
-    const printWindow = window.open(url, '_blank');
-    if (!printWindow) {
-      window.URL.revokeObjectURL(url);
-      brainsAlert('Your browser blocked the print preview. Allow pop-ups for Brain Heist and try again.', 'info');
-      return;
+      : '';
+    const supportMessage = selectedAnalysisStudent.accuracy >= 80
+      ? 'The student demonstrated secure understanding. Continue with suitable extension and application tasks.'
+      : selectedAnalysisStudent.accuracy >= 60
+        ? 'The student is developing securely. Revisit the questions marked for review before the next assessment.'
+        : 'The student would benefit from targeted reteaching and a short follow-up check before moving on.';
+    const bodyHtml = `
+      <h2>Performance summary</h2>
+      <div class="document-grid">
+        <div class="document-card"><strong>Accuracy</strong><p>${selectedAnalysisStudent.accuracy}%</p></div>
+        <div class="document-card"><strong>Response summary</strong><p>${selectedAnalysisStudent.correct} correct · ${selectedAnalysisStudent.incorrect} need review</p></div>
+      </div>
+      <div class="document-callout"><strong>Recommended next step</strong><p>${escapeSchoolDocumentHtml(supportMessage)}</p></div>
+      ${audience === 'teacher' ? `<section class="document-appendix"><h2>Teacher evidence appendix</h2>${answerRows || '<p>Question-by-question evidence is not available for this submission.</p>'}</section>` : ''}
+      ${audience === 'family' ? '<p>This family copy provides a concise learning summary. Detailed answer evidence remains available to authorised school staff.</p>' : ''}`;
+    try {
+      openSchoolDocumentPreview({
+        meta: {
+          documentId: createSchoolDocumentId('assignment'),
+          templateVersion: 'assignment-student-v2',
+          title: assignmentTitle,
+          subtitle: audience === 'family' ? 'Student learning summary' : 'Individual performance and answer evidence',
+          schoolName: resolvedBranding.schoolName,
+          schoolLogoUrl: resolvedBranding.schoolLogoUrl,
+          audience,
+          status: 'final',
+          confidentiality: audience === 'family' ? 'family-copy' : 'confidential',
+          generatedAt: new Date().toISOString(),
+          generatedBy: profile.full_name || profile.username || 'Teacher',
+          subject: selectedReportAssignment.subject_name,
+          className: selectedAnalysisStudent.batch || undefined,
+          studentName: selectedAnalysisStudent.student_name,
+          schoolId: profile.school_id,
+          studentUserId: selectedAnalysisStudent.student_id,
+          sourceType: 'teacher_assignment',
+          sourceId: selectedReportAssignment.id,
+        },
+        bodyHtml,
+        orientation: 'portrait',
+        fileName: schoolDocumentFileName(resolvedBranding.schoolName, selectedAnalysisStudent.student_name, assignmentTitle, audience, new Date().toISOString().slice(0, 10)),
+      });
+    } catch (error) {
+      brainsAlert(error instanceof Error ? error.message : 'Unable to open the document preview.', 'info');
     }
-    window.setTimeout(() => window.URL.revokeObjectURL(url), 60_000);
   };
 
   // Download CSV template
@@ -5053,12 +5092,57 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         group.subjects.some((subjectName) => subjectName.toLocaleLowerCase().includes(search)))
       .sort((left, right) => left.classCode.localeCompare(right.classCode));
 
+    const printClassDocuments = (groups: typeof classGroups, mode: 'roster' | 'register') => {
+      if (!groups.length) return;
+      const today = new Date().toISOString().slice(0, 10);
+      const bodyHtml = groups.map((group, groupIndex) => `
+        <section class="${groupIndex > 0 ? 'document-page-break' : ''}">
+          <h2>Class ${escapeSchoolDocumentHtml(group.classCode)}</h2>
+          <p><strong>Subjects:</strong> ${escapeSchoolDocumentHtml(group.subjects.join(', ') || 'Not linked')}</p>
+          <table>
+            <thead><tr><th style="width:8%">No.</th><th>Official student name</th><th style="width:14%">Grade</th>${mode === 'register' ? '<th>Present</th><th>Absent</th><th>Late</th><th style="width:24%">Notes</th>' : '<th style="width:35%">Teacher notes</th>'}</tr></thead>
+            <tbody>${group.students.length ? group.students.map((student, index) => `<tr><td>${index + 1}</td><td>${escapeSchoolDocumentHtml(student.display_name)}</td><td>${escapeSchoolDocumentHtml(student.grade || '—')}</td>${mode === 'register' ? '<td>□</td><td>□</td><td>□</td><td></td>' : '<td></td>'}</tr>`).join('') : `<tr><td colspan="${mode === 'register' ? 7 : 4}">No students are currently enrolled in this class.</td></tr>`}</tbody>
+          </table>
+        </section>`).join('');
+      try {
+        openSchoolDocumentPreview({
+          meta: {
+            documentId: createSchoolDocumentId(mode === 'register' ? 'roster' : 'class'),
+            templateVersion: mode === 'register' ? 'class-register-v1' : 'class-roster-v1',
+            title: mode === 'register' ? 'Class Attendance Register' : 'Class Roster',
+            subtitle: groups.length === 1 ? `Class ${groups[0]?.classCode || ''}` : `${groups.length} assigned classes`,
+            schoolName: resolvedBranding.schoolName,
+            schoolLogoUrl: resolvedBranding.schoolLogoUrl,
+            audience: 'teacher',
+            status: 'final',
+            confidentiality: 'confidential',
+            generatedAt: new Date().toISOString(),
+            generatedBy: profile.full_name || profile.username || 'Teacher',
+            className: groups.length === 1 ? groups[0]?.classCode : undefined,
+            schoolId: profile.school_id,
+            sourceType: mode === 'register' ? 'class_register' : 'class_roster',
+            sourceId: groups.length === 1 ? groups[0]?.classCode : 'all-assigned-classes',
+          },
+          bodyHtml,
+          orientation: 'portrait',
+          inkSaver: true,
+          fileName: schoolDocumentFileName(resolvedBranding.schoolName, mode === 'register' ? 'Attendance_Register' : 'Class_Roster', groups.length === 1 ? groups[0]?.classCode : 'All_Classes', today),
+        });
+      } catch (error) {
+        brainsAlert(error instanceof Error ? error.message : 'Unable to open the class document.', 'info');
+      }
+    };
+
     return (
       <div className="space-y-6">
         <div className="teacher-section-header">
           <div>
             <h2>🏫 My Classes</h2>
             <p className="text-sm text-slate-500 mt-1">Every assigned class, subject, and student in one organised view.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className="teacher-btn teacher-btn-secondary" onClick={() => printClassDocuments(classGroups, 'roster')} disabled={!classGroups.length}>Print all rosters</button>
+            <button type="button" className="teacher-btn teacher-btn-primary" onClick={() => printClassDocuments(classGroups, 'register')} disabled={!classGroups.length}>Attendance register</button>
           </div>
         </div>
 
@@ -5083,7 +5167,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
                     <div className="flex items-center justify-between gap-3">
                       <h3 className="font-bold text-slate-800">Class {group.classCode}</h3>
-                      <span className="text-sm text-slate-500">{group.students.length} student{group.students.length === 1 ? '' : 's'}</span>
+                      <div className="flex items-center gap-2"><span className="text-sm text-slate-500">{group.students.length} student{group.students.length === 1 ? '' : 's'}</span><button type="button" className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100" onClick={() => printClassDocuments([group], 'roster')}>Print</button></div>
                     </div>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {group.subjects.length
@@ -5705,7 +5789,10 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               <span className="text-xs font-bold uppercase tracking-[.14em] text-blue-600">Assignment performance report</span>
               <h1 className="mt-2 text-2xl font-bold text-slate-900">{selectedReportAssignment?.title || selectedReportAssignment?.topic_name || 'Assignment'}</h1>
               <p className="mt-1 text-sm text-slate-500">{selectedReportAssignment?.subject_name} · {selectedReportAssignment?.topic_name}</p>
-              <button type="button" onClick={handlePrintStudentAnalysis} className="teacher-btn teacher-btn-primary mt-4">🖨 Print report</button>
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
+                <button type="button" onClick={() => handlePrintStudentAnalysis('family')} className="teacher-btn teacher-btn-secondary">Family report</button>
+                <button type="button" onClick={() => handlePrintStudentAnalysis('teacher')} className="teacher-btn teacher-btn-primary">Teacher report + evidence</button>
+              </div>
             </div>
             <div className="flex items-center justify-between">
               <div>
@@ -7133,6 +7220,47 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             ALLOWED_ATTR: ['style', 'src', 'alt', 'class', 'aria-label'],
           });
         };
+
+        const printCambridgeAnswerReview = () => {
+          const rows = summary.details.map((detail) => {
+            const question = questionMap.get(detail.q);
+            const prompt = question?.prompt
+              ? DOMPurify.sanitize(fixChemHtml(question.prompt), {
+                ALLOWED_TAGS: ['sup', 'sub', 'span', 'br', 'div', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
+                ALLOWED_ATTR: ['style', 'class', 'aria-label'],
+              })
+              : 'Question prompt unavailable for this older submission.';
+            return `<tr><td>${detail.q}</td><td>${prompt}</td><td>${escapeSchoolDocumentHtml(detail.studentAns)}</td><td>${escapeSchoolDocumentHtml(detail.correctAns)}</td><td>${escapeSchoolDocumentHtml(detail.status === 'wrong' ? 'Needs review' : detail.status.charAt(0).toUpperCase() + detail.status.slice(1))}</td></tr>`;
+          }).join('');
+          try {
+            openSchoolDocumentPreview({
+              meta: {
+                documentId: createSchoolDocumentId('cambridge'),
+                templateVersion: 'cambridge-answer-reflection-v1',
+                title: 'Cambridge Answer Reflection',
+                subtitle: selectedCambridgeStudent.quiz_name,
+                schoolName: resolvedBranding.schoolName,
+                schoolLogoUrl: resolvedBranding.schoolLogoUrl,
+                audience: 'teacher',
+                status: 'final',
+                confidentiality: 'confidential',
+                generatedAt: new Date().toISOString(),
+                generatedBy: profile.full_name || profile.username || 'Teacher',
+                className: selectedCambridgeStudent.student_class || undefined,
+                studentName: selectedCambridgeStudent.student_name,
+                schoolId: profile.school_id,
+                sourceType: 'cambridge_attempt',
+                sourceId: selectedCambridgeStudent.id || undefined,
+              },
+              bodyHtml: `<h2>Attempt summary</h2><div class="document-grid"><div class="document-card"><strong>Score</strong><p>${selectedCambridgeStudent.score}/${selectedCambridgeStudent.total_questions} (${selectedCambridgeStudent.percentage}%)</p></div><div class="document-card"><strong>Responses</strong><p>${summary.correctCount} correct · ${summary.wrongCount} incorrect · ${summary.unansweredCount} unanswered</p></div></div><div class="document-callout document-callout--private"><strong>Teacher evidence appendix</strong><p>This document contains answer-level evidence and is not the default family report.</p></div><h2>Question-by-question review</h2><table><thead><tr><th>No.</th><th>Question</th><th>Student answer</th><th>Correct answer</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>`,
+              orientation: 'landscape',
+              inkSaver: true,
+              fileName: schoolDocumentFileName(resolvedBranding.schoolName, selectedCambridgeStudent.student_name, selectedCambridgeStudent.quiz_name, 'Answer_Reflection'),
+            });
+          } catch (error) {
+            brainsAlert(error instanceof Error ? error.message : 'Unable to open the answer reflection document.', 'info');
+          }
+        };
         
         return createPortal(
           <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-2 sm:p-4 overflow-y-auto" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -7423,7 +7551,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 <span style={{ fontFamily: "'Courier New', Courier, monospace" }}>Serial: {generateSerialNumber(selectedCambridgeStudent.id || '', selectedCambridgeStudent.student_name || '', selectedCambridgeStudent.submitted_at || '')}</span>
                 <span>Confidential — For Student & Teacher Use Only</span>
                 <div className="flex gap-3">
-                  <button onClick={() => window.print()} className="px-4 py-2 bg-green-100 text-black rounded-lg font-semibold hover:bg-green-200">🖨️ Print</button>
+                  <button onClick={printCambridgeAnswerReview} className="px-4 py-2 bg-green-100 text-black rounded-lg font-semibold hover:bg-green-200">Print teacher appendix</button>
                   <button onClick={() => setShowCambridgeAnswers(false)} className="px-4 py-2 bg-red-100 text-red-700 rounded-lg font-semibold hover:bg-red-200 transition-all" title="Close (Press Esc)">✕ Close</button>
                 </div>
               </div>
@@ -8115,6 +8243,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     ...(!profile.school_id ? [{ id: 'join-school' as const, label: 'Join Your School', icon: '🏫', description: 'Use your invite code to unlock school features', highlight: true }] : []),
     { id: 'assignments', label: 'Assignments', icon: '📋', description: 'Assign Work to Students', proOnly: true },
     { id: 'reports', label: 'Reports', icon: '📊', description: 'Student Performance', proOnly: true },
+    ...(profile.school_id ? [{ id: 'documents' as const, label: 'Document Center', icon: '🗃️', description: 'Print History & Reprints', proOnly: true }] : []),
     { id: 'questions', label: 'Question Bank', icon: '📚', description: 'Create & Manage Questions', proOnly: true },
     ...(canAccessWritingInsights
       ? [
@@ -8150,6 +8279,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       questions: 'Question Bank',
       assignments: 'New Assignment',
       reports: 'Performance Reports',
+      documents: 'Performance Reports',
       'writing-hub': 'Performance Reports',
       'clan-wars': 'Lockdown Mode',
       cambridge: 'Cambridge Marking',
@@ -8496,12 +8626,17 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               onRenameTopic={(topicQuestions, nextTopic) => { void handleRenameTopic(topicQuestions, nextTopic); }}
               onDeleteTopic={(topicQuestions) => { void handleDeleteTopic(topicQuestions); }}
               restrictedSubjects={profile.school_id && teacherAssignedSubjects.length ? teacherAssignedSubjects : undefined}
+              schoolName={resolvedBranding.schoolName}
+              schoolLogoUrl={resolvedBranding.schoolLogoUrl}
+              teacherName={profile.full_name || profile.username || 'Teacher'}
+              schoolId={profile.school_id}
             />
           )}
           {view === 'csv-upload' && renderCSVUpload()}
           {view === 'assignments' && renderAssignments()}
           {view === 'create-assignment' && renderCreateAssignment()}
           {view === 'reports' && renderReports()}
+          {view === 'documents' && profile.school_id && <SchoolDocumentCenter schoolId={profile.school_id} />}
           {view === 'writing-hub' && canAccessWritingInsights && (
             <section className="teacher-writing-hub" aria-labelledby="writing-hub-title">
               <div className="teacher-writing-hub__header">
@@ -8578,6 +8713,10 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             <DiagramBuilder
               teacherId={teacher!.id}
               onComplete={() => setView('dashboard')}
+              schoolName={resolvedBranding.schoolName}
+              schoolLogoUrl={resolvedBranding.schoolLogoUrl}
+              teacherName={profile.full_name || profile.username || 'Teacher'}
+              schoolId={profile.school_id}
             />
           )}
           </div>

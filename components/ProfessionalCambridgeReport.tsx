@@ -1,6 +1,7 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useSchoolBranding } from '../src/hooks/useSchoolBranding';
+import { createSchoolDocumentId, registerSchoolDocumentRecord, schoolDocumentFileName } from '../src/lib/schoolDocument';
 
 // ─── Serial Number Generator ─────────────────────────────────────────────────
 function generateSerialNumber(recordId: string, studentName: string, submittedAt: string): string {
@@ -127,6 +128,12 @@ function getGradeColors(percentage: number) {
 
 // ─── Shared Print Styles ─────────────────────────────────────────────────────
 const PRINT_STYLES = `
+  .pro-report.ink-saver, .pro-report.ink-saver * { color: #111827 !important; box-shadow: none !important; }
+  .pro-report.ink-saver .rpt-header, .pro-report.ink-saver .rpt-student-bar,
+  .pro-report.ink-saver .stat-card, .pro-report.ink-saver .encouragement-banner,
+  .pro-report.ink-saver .score-table th { background: #fff !important; border-color: #6b7280 !important; }
+  .pro-report.ink-saver .skill-fill, .pro-report.ink-saver .grade-badge { background: #6b7280 !important; }
+  .pro-report.ink-saver .watermark { display: none !important; }
   @media print {
     @page {
       size: A4 landscape;
@@ -195,12 +202,22 @@ const PRINT_STYLES = `
       max-height: none !important;
       overflow: visible !important;
     }
+    .pro-report table thead {
+      display: table-header-group !important;
+    }
+    .pro-report table tr,
+    .pro-report .stat-card,
+    .pro-report .encouragement-banner {
+      break-inside: avoid !important;
+      page-break-inside: avoid !important;
+    }
     .pro-report .rpt-body {
-      padding: 10px 16px !important;
+      padding: 10px 16px 28px !important;
       gap: 12px !important;
     }
     .pro-report .rpt-footer {
       padding: 6px 16px !important;
+      break-inside: avoid !important;
     }
   }
 `;
@@ -254,8 +271,41 @@ const ProfessionalCambridgeReport: React.FC<ProfessionalCambridgeReportProps> = 
     minute: '2-digit',
   });
 
-  const handlePrint = () => window.print();
+  const [inkSaver, setInkSaver] = useState(false);
   const { schoolName, schoolLogoUrl } = useSchoolBranding({ schoolId: data.schoolId, schoolName: data.schoolName, schoolLogoUrl: data.schoolLogoUrl });
+  const handlePrint = async () => {
+    const documentId = createSchoolDocumentId('cambridge');
+    await registerSchoolDocumentRecord({
+      meta: {
+        documentId,
+        templateVersion: 'cambridge-performance-v2',
+        title: 'Cambridge Assessment Performance Report',
+        subtitle: data.quizName,
+        schoolName,
+        schoolLogoUrl,
+        audience: isTeacherView ? 'teacher' : 'family',
+        status: 'final',
+        confidentiality: isTeacherView ? 'confidential' : 'family-copy',
+        generatedAt: new Date().toISOString(),
+        studentName: data.studentName,
+        className: data.studentClass,
+        schoolId: data.schoolId,
+        sourceType: 'cambridge_assessment_report',
+        sourceId: data.id,
+      },
+      bodyHtml: document.querySelector('.pro-report')?.outerHTML || '',
+      orientation: 'landscape',
+      fileName: schoolDocumentFileName(schoolName, data.studentName, data.quizName, documentId),
+      inkSaver,
+      persistPayload: false,
+    });
+    await document.fonts?.ready;
+    await Promise.all(Array.from(document.images).map((image) => image.complete ? Promise.resolve() : new Promise<void>((resolve) => {
+      image.addEventListener('load', () => resolve(), { once: true });
+      image.addEventListener('error', () => resolve(), { once: true });
+    })));
+    window.print();
+  };
 
   return createPortal(
     <div
@@ -265,7 +315,7 @@ const ProfessionalCambridgeReport: React.FC<ProfessionalCambridgeReportProps> = 
       <style>{PRINT_STYLES}</style>
 
       <div
-        className="pro-report bg-white rounded-xl max-w-5xl w-full shadow-2xl print:rounded-none print:shadow-none print:max-w-none relative overflow-hidden"
+        className={`pro-report ${inkSaver ? 'ink-saver' : ''} bg-white rounded-xl max-w-5xl w-full shadow-2xl print:rounded-none print:shadow-none print:max-w-none relative overflow-hidden`}
         style={REPORT_FONT}
       >
         {/* Watermark */}
@@ -503,16 +553,17 @@ const ProfessionalCambridgeReport: React.FC<ProfessionalCambridgeReportProps> = 
         }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
             <div style={{ fontSize: '9px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontWeight: 700, color: '#1e293b' }}>Serial:</span>
+              <span style={{ fontWeight: 700, color: '#1e293b' }}>Document reference:</span>
               <span style={{ fontFamily: "'Courier New', Courier, monospace", fontWeight: 600, color: '#4f46e5', letterSpacing: '0.5px' }}>{serial}</span>
               <span style={{ color: '#cbd5e1' }}>|</span>
-              <span>This serial number can be used to verify and reprint this report at any time.</span>
+              <span>Use this reference when discussing the report with the school.</span>
             </div>
             <div style={{ fontSize: '8px', color: '#94a3b8' }}>
               Generated: {printDate} • {schoolName} • Confidential
             </div>
           </div>
           <div className="no-print" style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={() => setInkSaver((current) => !current)} aria-pressed={inkSaver} style={{ padding: '6px 12px', background: inkSaver ? '#e5e7eb' : '#fff', color: '#334155', border: '1px solid #cbd5e1', borderRadius: '8px', fontWeight: 600, fontSize: '12px', cursor: 'pointer' }}>Ink saver</button>
             <button
               onClick={handlePrint}
               style={{
@@ -591,8 +642,41 @@ const StudentOverviewReport: React.FC<StudentOverviewReportProps> = ({
     minute: '2-digit',
   });
 
-  const handlePrint = () => window.print();
+  const [inkSaver, setInkSaver] = useState(false);
   const { schoolName, schoolLogoUrl } = useSchoolBranding({ schoolId: data.schoolId, schoolName: data.schoolName, schoolLogoUrl: data.schoolLogoUrl });
+  const handlePrint = async () => {
+    const documentId = createSchoolDocumentId('cambridge');
+    await registerSchoolDocumentRecord({
+      meta: {
+        documentId,
+        templateVersion: 'cambridge-student-overview-v2',
+        title: 'Student Performance Overview Report',
+        subtitle: `${data.totalTestsTaken} Cambridge assessment${data.totalTestsTaken === 1 ? '' : 's'}`,
+        schoolName,
+        schoolLogoUrl,
+        audience: 'teacher',
+        status: 'final',
+        confidentiality: 'confidential',
+        generatedAt: new Date().toISOString(),
+        studentName: data.studentName,
+        className: data.studentClass,
+        schoolId: data.schoolId,
+        sourceType: 'cambridge_student_overview',
+        sourceId: serial,
+      },
+      bodyHtml: document.querySelector('.pro-report')?.outerHTML || '',
+      orientation: 'landscape',
+      fileName: schoolDocumentFileName(schoolName, data.studentName, 'Cambridge_Overview', documentId),
+      inkSaver,
+      persistPayload: false,
+    });
+    await document.fonts?.ready;
+    await Promise.all(Array.from(document.images).map((image) => image.complete ? Promise.resolve() : new Promise<void>((resolve) => {
+      image.addEventListener('load', () => resolve(), { once: true });
+      image.addEventListener('error', () => resolve(), { once: true });
+    })));
+    window.print();
+  };
 
   // Score distribution
   const scoreDistribution = useMemo(() => {
@@ -644,7 +728,7 @@ const StudentOverviewReport: React.FC<StudentOverviewReportProps> = ({
       <style>{PRINT_STYLES}</style>
 
       <div
-        className="pro-report bg-white rounded-xl max-w-5xl w-full shadow-2xl print:rounded-none print:shadow-none print:max-w-none relative overflow-hidden"
+        className={`pro-report ${inkSaver ? 'ink-saver' : ''} bg-white rounded-xl max-w-5xl w-full shadow-2xl print:rounded-none print:shadow-none print:max-w-none relative overflow-hidden`}
         style={REPORT_FONT}
       >
         {/* Watermark */}
@@ -958,16 +1042,17 @@ const StudentOverviewReport: React.FC<StudentOverviewReportProps> = ({
         }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
             <div style={{ fontSize: '9px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontWeight: 700, color: '#1e293b' }}>Serial:</span>
+              <span style={{ fontWeight: 700, color: '#1e293b' }}>Document reference:</span>
               <span style={{ fontFamily: "'Courier New', Courier, monospace", fontWeight: 600, color: '#4f46e5', letterSpacing: '0.5px' }}>{serial}</span>
               <span style={{ color: '#cbd5e1' }}>|</span>
-              <span>This serial number can be used to verify and reprint this report at any time.</span>
+              <span>Use this reference when discussing the report with the school.</span>
             </div>
             <div style={{ fontSize: '8px', color: '#94a3b8' }}>
               Generated: {printDate} • {schoolName} • Confidential
             </div>
           </div>
           <div className="no-print" style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={() => setInkSaver((current) => !current)} aria-pressed={inkSaver} style={{ padding: '6px 12px', background: inkSaver ? '#e5e7eb' : '#fff', color: '#334155', border: '1px solid #cbd5e1', borderRadius: '8px', fontWeight: 600, fontSize: '12px', cursor: 'pointer' }}>Ink saver</button>
             <button
               onClick={handlePrint}
               style={{

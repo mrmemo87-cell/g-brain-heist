@@ -13,6 +13,8 @@ import {
 } from '../../../services/ieltsExamModeService';
 import { validateRenderableExamPayload } from '../../../services/ieltsExamPayloadParser';
 import { resolveIeltsExamLifecycleMeta } from '../../../services/ieltsExamModeUx';
+import { useSchoolBranding } from '../../hooks/useSchoolBranding';
+import { createSchoolDocumentId, escapeSchoolDocumentHtml, openSchoolDocumentPreview, schoolDocumentFileName } from '../../lib/schoolDocument';
 
 type BusyAction = 'idle' | 'loading' | 'creating_exam' | 'creating_form' | 'assigning';
 
@@ -181,6 +183,7 @@ const IeltsExamManager: React.FC = () => {
   }, [selectedExamId]);
 
   const activeExam = detail?.exam ?? exams.find((exam) => exam.id === selectedExamId) ?? null;
+  const { schoolName, schoolLogoUrl } = useSchoolBranding({ schoolId: activeExam?.school_id });
   const activeForm = detail?.forms.find((form) => form.id === selectedFormId) ?? detail?.forms.find((form) => form.is_active) ?? null;
   const students = useMemo(() => uniqueStudents(detail?.students ?? []), [detail?.students]);
   const filteredStudents = useMemo(() => {
@@ -190,6 +193,40 @@ const IeltsExamManager: React.FC = () => {
 
   const studentLink = activeExam ? `${window.location.origin}/ielts/exam/${activeExam.id}` : '';
   const monitorLink = activeExam ? `${window.location.origin}/ielts/exam/${activeExam.id}/monitor` : '';
+
+  const printExamOperationsPack = () => {
+    if (!activeExam || !detail) return;
+    const studentById = new Map(students.map((student) => [student.student_id, student]));
+    const roster = detail.assignments.map((assignment, index) => {
+      const student = studentById.get(assignment.student_id);
+      return `<tr><td>${index + 1}</td><td>${escapeSchoolDocumentHtml(student?.username || assignment.username || 'Student')}</td><td>${escapeSchoolDocumentHtml(student?.class_name || assignment.class_name || '—')}</td><td>${escapeSchoolDocumentHtml(student?.grade ?? '—')}</td><td></td><td>□</td><td>□</td><td></td></tr>`;
+    }).join('');
+    try {
+      openSchoolDocumentPreview({
+        meta: {
+          documentId: createSchoolDocumentId('ielts'),
+          templateVersion: 'ielts-exam-operations-v1',
+          title: 'IELTS Mock Exam Operations Pack',
+          subtitle: activeExam.title,
+          schoolName,
+          schoolLogoUrl,
+          audience: 'internal',
+          status: activeExam.status === 'draft' ? 'draft' : 'final',
+          confidentiality: 'confidential',
+          generatedAt: new Date().toISOString(),
+          schoolId: activeExam.school_id,
+          sourceType: 'ielts_exam_event',
+          sourceId: activeExam.id,
+        },
+        bodyHtml: `<h2>Exam arrangements</h2><div class="document-grid"><div class="document-card"><strong>Schedule</strong><p>${escapeSchoolDocumentHtml(formatDateTime(activeExam.starts_at))} – ${escapeSchoolDocumentHtml(formatDateTime(activeExam.ends_at))}</p></div><div class="document-card"><strong>Duration and form</strong><p>${activeExam.duration_minutes} minutes · ${escapeSchoolDocumentHtml(activeForm?.form_code || 'No active form')}</p></div></div><h2>Attendance and identity register</h2><table><thead><tr><th>No.</th><th>Student</th><th>Class</th><th>Grade</th><th>Seat</th><th>Present</th><th>ID checked</th><th>Signature / notes</th></tr></thead><tbody>${roster || '<tr><td colspan="8">No students are assigned to this exam.</td></tr>'}</tbody></table><section class="document-page-break"><h2>Invigilator checklist</h2><ul><li>Confirm the active form and protected answer key are not visible to candidates.</li><li>Verify candidate identity and seat allocation before admitting each student.</li><li>Record late arrivals, technical interruptions and approved extra time.</li><li>Use the live monitor for emergency pause, resume and incident handling.</li></ul><h2>Incident log</h2><table><thead><tr><th>Time</th><th>Student / seat</th><th>Incident</th><th>Action taken</th><th>Invigilator initials</th></tr></thead><tbody>${Array.from({ length: 8 }, () => '<tr><td style="height:12mm"></td><td></td><td></td><td></td><td></td></tr>').join('')}</tbody></table><div class="document-signatures"><div class="document-signature">Lead invigilator · Name / signature</div><div class="document-signature">School administrator · Name / signature</div></div></section>`,
+        orientation: 'landscape',
+        inkSaver: true,
+        fileName: schoolDocumentFileName(schoolName, activeExam.title, 'Operations_Pack'),
+      });
+    } catch (printError) {
+      setError(printError instanceof Error ? printError.message : 'Unable to open the exam operations document.');
+    }
+  };
 
   const validateSchedule = () => {
     const startMs = Date.parse(startsAt);
@@ -439,6 +476,7 @@ const IeltsExamManager: React.FC = () => {
           ) : (
             <>
               <Panel title="Step 4 Launch & Monitor" subtitle={`${activeExam.title} · ${formatDateTime(activeExam.starts_at)} → ${formatDateTime(activeExam.ends_at)} · ${activeExam.duration_minutes} minutes`}>
+                <button type="button" onClick={printExamOperationsPack} className="mb-3 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">Print attendance & invigilation pack</button>
                 <div className="grid gap-3 md:grid-cols-2">
                   <LinkBox label="Student link" value={studentLink} />
                   <LinkBox label="Monitor link" value={monitorLink} />

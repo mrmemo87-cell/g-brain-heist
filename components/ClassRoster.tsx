@@ -2,11 +2,14 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import * as SchoolAdminService from '../services/schoolAdminService';
 import type { ClassRosterStudent, ClassWithRosterInfo, ClassStatistics } from '../services/schoolAdminService';
+import { createSchoolDocumentId, escapeSchoolDocumentHtml, openSchoolDocumentPreview, schoolDocumentFileName } from '../src/lib/schoolDocument';
 
 interface ClassRosterProps {
   schoolId: string;
   addToast: (message: string, type: 'success' | 'error' | 'warning' | 'info') => void;
   onRefresh?: () => void;
+  schoolName?: string;
+  schoolLogoUrl?: string | null;
 }
 
 interface ExpandedClass {
@@ -16,7 +19,7 @@ interface ExpandedClass {
   stats: ClassStatistics | null;
 }
 
-const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh }) => {
+const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh, schoolName = 'Brains Heist', schoolLogoUrl }) => {
   const [classes, setClasses] = useState<ClassWithRosterInfo[]>([]);
   const [expandedClasses, setExpandedClasses] = useState<Record<string, ExpandedClass>>({});
   const [unassignedStudents, setUnassignedStudents] = useState<ClassRosterStudent[]>([]);
@@ -292,6 +295,17 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
     );
   }, [classes, searchQuery]);
 
+  const printClassRoster = (classInfo: ClassWithRosterInfo, roster: ExpandedClass, register: boolean) => {
+    const rows = roster.students.map((student, index) => `<tr><td>${index + 1}</td><td>${escapeSchoolDocumentHtml(student.username)}</td><td>${escapeSchoolDocumentHtml(student.grade || '—')}</td>${register ? '<td>□</td><td>□</td><td>□</td><td></td>' : '<td></td>'}</tr>`).join('');
+    try {
+      openSchoolDocumentPreview({
+        meta: { documentId: createSchoolDocumentId('roster'), templateVersion: register ? 'admin-class-register-v1' : 'admin-class-roster-v1', title: register ? 'Class Attendance Register' : 'Official Class Roster', subtitle: `${classInfo.class_code} · ${classInfo.class_name}`, schoolName, schoolLogoUrl, audience: 'internal', status: 'final', confidentiality: 'confidential', generatedAt: new Date().toISOString(), schoolId, sourceType: register ? 'class_register' : 'class_roster', sourceId: classInfo.class_id, className: classInfo.class_code },
+        bodyHtml: `<p><strong>Grade:</strong> ${escapeSchoolDocumentHtml(classInfo.grade_level || '—')} · <strong>Enrolled:</strong> ${roster.students.length}</p><table><thead><tr><th>No.</th><th>Official student name</th><th>Grade</th>${register ? '<th>Present</th><th>Absent</th><th>Late</th><th>Notes</th>' : '<th>Administrative notes</th>'}</tr></thead><tbody>${rows || `<tr><td colspan="${register ? 7 : 4}">No students are enrolled in this class.</td></tr>`}</tbody></table>`,
+        orientation: 'portrait', inkSaver: true, fileName: schoolDocumentFileName(schoolName, classInfo.class_code, register ? 'Attendance_Register' : 'Class_Roster'),
+      });
+    } catch (error) { addToast(error instanceof Error ? error.message : 'Unable to open the class document.', 'error'); }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -512,6 +526,8 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
                       
                       {/* Action Buttons */}
                       <div className="p-3 bg-gray-800 border-b border-gray-700 flex gap-2 flex-wrap">
+                        <button type="button" onClick={(event) => { event.stopPropagation(); printClassRoster(classInfo, expanded, false); }} className="px-3 py-1.5 bg-cyan-700 hover:bg-cyan-600 rounded text-sm transition-colors">Print roster</button>
+                        <button type="button" onClick={(event) => { event.stopPropagation(); printClassRoster(classInfo, expanded, true); }} className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 rounded text-sm transition-colors">Attendance register</button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();

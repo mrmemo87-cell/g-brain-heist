@@ -20,6 +20,8 @@ import {
   normalizeClanTerritoryClassCodes,
 } from "./clanTerritoryEligibility";
 import { brainsAlert } from "../../utils/brainsAlert";
+import { useSchoolBranding } from "../../hooks/useSchoolBranding";
+import { createSchoolDocumentId, escapeSchoolDocumentHtml, openSchoolDocumentPreview, schoolDocumentFileName } from "../../lib/schoolDocument";
 type ArenaMode = "official" | "open";
 
 interface ClanTerritoryManagerProps {
@@ -177,6 +179,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const autoStartTriggeredRef = useRef(false);
 
   const [lockdownLimits, setLockdownLimits] = useState<LockdownLimits>(FREE_LOCKDOWN_LIMITS);
+  const { schoolName, schoolLogoUrl } = useSchoolBranding({ schoolId: userSchoolId });
   // Territory maps are part of the core classroom experience, not a plan gate.
   const isMapLocked = (_mapId: string) => false;
   const effectiveDurationMax = lockdownLimits.max_duration_minutes ?? 20;
@@ -1087,6 +1090,75 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     }
   };
 
+  const printBattleOperationsPack = () => {
+    if (!roomId) return;
+    const generatedAt = new Date().toISOString();
+    const documentId = createSchoolDocumentId('clan');
+    const players = Object.values(gameState.players).sort((left, right) => right.battleScore - left.battleScore || left.name.localeCompare(right.name));
+    const clanRows = Object.values(gameState.clans)
+      .map((clan) => {
+        const members = players.filter((player) => player.clanId === clan.id);
+        const controlledZones = Object.values(gameState.zones).filter((zone) => {
+          const ranked = Object.entries(zone.influence).sort((left, right) => right[1] - left[1]);
+          return ranked[0]?.[0] === clan.id && (ranked[0]?.[1] ?? 0) > 0;
+        }).length;
+        return { clan, members, controlledZones, score: members.reduce((sum, member) => sum + member.battleScore, 0) };
+      })
+      .sort((left, right) => right.controlledZones - left.controlledZones || right.score - left.score);
+    const playerRows = players.map((player, index) => {
+      const accuracy = player.questionsAnswered ? Math.round((player.questionsCorrect / player.questionsAnswered) * 100) : 0;
+      return `<tr><td>${index + 1}</td><td>${escapeSchoolDocumentHtml(player.name)}</td><td>${escapeSchoolDocumentHtml(player.clanName)}</td><td>${player.questionsAnswered}</td><td>${player.questionsCorrect}</td><td>${accuracy}%</td><td>${player.battleScore}</td><td></td></tr>`;
+    }).join('') || '<tr><td colspan="8">No students have joined yet. Use this table as a manual attendance register.</td></tr>';
+    const clanSummaryRows = clanRows.map(({ clan, members, controlledZones, score }, index) => `<tr><td>${index + 1}</td><td>${escapeSchoolDocumentHtml(clan.name)}</td><td>${members.length}</td><td>${controlledZones}</td><td>${score}</td><td></td></tr>`).join('') || '<tr><td colspan="6">No clans have joined yet.</td></tr>';
+    const bodyHtml = `
+      <p class="document-callout${gameState.phase === 'ENDED' ? '' : ' document-callout--warning'}"><strong>${gameState.phase === 'ENDED' ? 'Final battle record.' : 'Live working document.'}</strong> ${gameState.phase === 'ENDED' ? 'Results reflect the completed session.' : 'Scores may change; print a fresh final copy after ending the battle.'}</p>
+      <div class="document-grid">
+        <div class="document-card"><strong>Room code</strong><span style="font:900 24px/1.2 'Courier New',monospace">${escapeSchoolDocumentHtml(roomId)}</span></div>
+        <div class="document-card"><strong>Session</strong>${escapeSchoolDocumentHtml(gameState.phase)} · ${durationMinutes} minutes<br>${escapeSchoolDocumentHtml(MAP_CATALOG.find((entry) => entry.id === selectedMap)?.label || selectedMap)}</div>
+        <div class="document-card"><strong>Classes</strong>${escapeSchoolDocumentHtml(selectedBatches.join(', ') || 'Not recorded')}</div>
+        <div class="document-card"><strong>Questions</strong>${selectedQuestions.length} selected · ${players.length} participants</div>
+      </div>
+      <h2>Clan result sheet</h2>
+      <table><thead><tr><th>Place</th><th>Clan</th><th>Players</th><th>Territories</th><th>Battle score</th><th>Teacher check</th></tr></thead><tbody>${clanSummaryRows}</tbody></table>
+      <h2>Participation and result register</h2>
+      <table><thead><tr><th>#</th><th>Student</th><th>Clan</th><th>Answered</th><th>Correct</th><th>Accuracy</th><th>Score</th><th>Present / note</th></tr></thead><tbody>${playerRows}</tbody></table>
+      <div class="document-page-break"></div>
+      <h2>Teacher operations checklist</h2>
+      <table><tbody>
+        <tr><td style="width:9mm">☐</td><td>Room code and joining instructions displayed only to the intended class.</td></tr>
+        <tr><td>☐</td><td>Student identities and class eligibility checked before starting.</td></tr>
+        <tr><td>☐</td><td>Audio, display, timer and selected question set checked.</td></tr>
+        <tr><td>☐</td><td>Fair-play expectations and support arrangements explained.</td></tr>
+        <tr><td>☐</td><td>Final results reviewed before any recognition or family sharing.</td></tr>
+      </tbody></table>
+      <h2>Incident and adjustment log</h2>
+      <table><thead><tr><th style="width:28mm">Time</th><th>Student / clan</th><th>Observation or incident</th><th>Action taken</th></tr></thead><tbody>${Array.from({ length: 7 }, () => '<tr><td style="height:14mm"></td><td></td><td></td><td></td></tr>').join('')}</tbody></table>
+      <div class="document-signatures"><div class="document-signature">Host teacher / date</div><div class="document-signature">Additional staff / date</div></div>
+    `;
+    openSchoolDocumentPreview({
+      meta: {
+        documentId,
+        templateVersion: 'clan-wars-operations-v1',
+        title: 'Clan Wars Operations & Results Pack',
+        subtitle: gameState.phase === 'ENDED' ? 'Final classroom battle record' : 'Attendance, live operations and result sheet',
+        schoolName,
+        schoolLogoUrl,
+        audience: 'teacher',
+        status: gameState.phase === 'ENDED' ? 'final' : 'draft',
+        confidentiality: 'confidential',
+        generatedAt,
+        generatedBy: teacherName || playerName,
+        className: selectedBatches.join(', ') || undefined,
+        schoolId: userSchoolId,
+        sourceType: 'clan_wars_room',
+        sourceId: roomId,
+      },
+      bodyHtml,
+      orientation: 'landscape',
+      fileName: schoolDocumentFileName(schoolName, 'Clan_Wars', roomId, documentId),
+    });
+  };
+
   // --- RENDER ---
 
   if (mode === 'configure') {
@@ -1553,14 +1625,17 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                 </div>
               )}
             </div>
-            <button
-              onClick={() => {
-                void handleTeacherExit();
-              }}
-              className="text-gray-400 hover:text-white font-heading shrink-0 self-start sm:self-center"
-            >
-              Exit
-            </button>
+            <div className="flex shrink-0 items-center gap-2 self-start sm:self-center">
+              <button type="button" onClick={printBattleOperationsPack} className="rounded-lg border border-cyan-400/60 bg-cyan-500/15 px-3 py-2 text-sm font-bold text-cyan-100 hover:bg-cyan-500/25">Print operations pack</button>
+              <button
+                onClick={() => {
+                  void handleTeacherExit();
+                }}
+                className="text-gray-400 hover:text-white font-heading"
+              >
+                Exit
+              </button>
+            </div>
           </div>
           <div className="flex-1 overflow-y-auto">
             <ClanTerritoryTeacherView

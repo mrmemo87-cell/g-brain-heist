@@ -18,6 +18,12 @@ import { supabase } from '@/services/supabaseClient';
 import { logIeltsViolation } from '@/services/ieltsViolationService';
 import { ExamGuard } from '../../utils/examGuard';
 import { useSchoolBranding } from '../../hooks/useSchoolBranding';
+import {
+  createSchoolDocumentId,
+  escapeSchoolDocumentHtml,
+  openSchoolDocumentPreview,
+  schoolDocumentFileName,
+} from '../../lib/schoolDocument';
 
 const stepLabels = ['Reading', 'Listening', 'Writing', 'Review & Submit'];
 const MAX_EXAM_GUARD_VIOLATIONS = 3;
@@ -274,6 +280,42 @@ const IeltsSession: React.FC = () => {
     const writingFeedback = analytics.writingFeedback;
     const summaryText = analytics.summaryText;
 
+    const printIeltsReport = (includeEvidence: boolean) => {
+      const bandCards = [
+        ['Reading', session.band_reading],
+        ['Listening', session.band_listening],
+        ['Writing', session.band_writing],
+        ['Overall', session.band_overall],
+      ].map(([label, value]) => `<div class="document-card"><strong>${label}</strong><p>${escapeSchoolDocumentHtml(value ?? 'Not available')}</p></div>`).join('');
+      const renderBreakdown = (title: string, report: typeof readingAnalytics | typeof listeningAnalytics) => report ? `<section class="document-appendix"><h2>${title} answer evidence</h2><p>${report.correct}/${report.total} correct</p><table><thead><tr><th>Question</th><th>Response</th><th>Result</th><th>Expected answer</th><th>Explanation</th></tr></thead><tbody>${report.breakdown.map((row) => `<tr><td>${escapeSchoolDocumentHtml(row.questionId)}</td><td>${escapeSchoolDocumentHtml(row.studentAnswer ?? '—')}</td><td>${row.isCorrect ? 'Correct' : 'Needs review'}</td><td>${escapeSchoolDocumentHtml(row.correctAnswer ?? '—')}</td><td>${escapeSchoolDocumentHtml(row.explanation ?? '—')}</td></tr>`).join('')}</tbody></table></section>` : '';
+      const strengths = writingFeedback?.strengths?.length ? `<ul>${writingFeedback.strengths.map((item) => `<li>${escapeSchoolDocumentHtml(item)}</li>`).join('')}</ul>` : '<p>No reviewed writing strengths are available yet.</p>';
+      const priorities = writingFeedback?.weaknesses?.length ? `<ul>${writingFeedback.weaknesses.map((item) => `<li>${escapeSchoolDocumentHtml(item)}</li>`).join('')}</ul>` : '<p>No reviewed writing priorities are available yet.</p>';
+      try {
+        openSchoolDocumentPreview({
+          meta: {
+            documentId: createSchoolDocumentId('ielts'),
+            templateVersion: includeEvidence ? 'ielts-session-evidence-v1' : 'ielts-session-summary-v1',
+            title: 'IELTS Session Report',
+            subtitle: `${getModuleLabel(session)} · Reference ${session.reference_code}`,
+            schoolName,
+            schoolLogoUrl,
+            audience: includeEvidence ? 'teacher' : 'student',
+            status: 'final',
+            confidentiality: includeEvidence ? 'confidential' : 'school-use',
+            generatedAt: new Date().toISOString(),
+            schoolId,
+            sourceType: 'ielts_session',
+            sourceId: session.id,
+          },
+          bodyHtml: `<h2>Band profile</h2><div class="document-grid">${bandCards}</div>${summaryText ? `<h2>Session summary</h2><p>${escapeSchoolDocumentHtml(summaryText)}</p>` : ''}${writingFeedback ? `<h2>Writing development</h2><div class="document-grid"><div class="document-card"><strong>Strengths</strong>${strengths}</div><div class="document-card"><strong>Priorities</strong>${priorities}</div></div>` : ''}<div class="document-callout"><strong>Important context</strong><p>This is a Brains Heist practice report and is not an official IELTS Test Report Form or an endorsement by IELTS organisations.</p></div>${includeEvidence ? `${renderBreakdown('Reading', readingAnalytics)}${renderBreakdown('Listening', listeningAnalytics)}` : '<p>Detailed answer evidence remains available to authorised school staff.</p>'}`,
+          orientation: includeEvidence ? 'landscape' : 'portrait',
+          fileName: schoolDocumentFileName(schoolName, 'IELTS', session.reference_code, includeEvidence ? 'Evidence' : 'Report'),
+        });
+      } catch (error) {
+        setValidationMessage(error instanceof Error ? error.message : 'Unable to open the IELTS document.');
+      }
+    };
+
     return (
       <div className="space-y-8">
         <header className="rounded-2xl border border-slate-200 bg-white p-6">
@@ -434,10 +476,17 @@ const IeltsSession: React.FC = () => {
         <div className="flex flex-wrap gap-3">
           <button
             type="button"
-            onClick={() => window.print()}
+            onClick={() => printIeltsReport(false)}
             className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700"
           >
-            Print report
+            Student report
+          </button>
+          <button
+            type="button"
+            onClick={() => printIeltsReport(true)}
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700"
+          >
+            Teacher evidence copy
           </button>
           <button
             type="button"

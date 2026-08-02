@@ -10,6 +10,8 @@ const RosterTab: React.FC = () => {
   return (
     <ClassRoster
       schoolId={school.id}
+      schoolName={school.name}
+      schoolLogoUrl={school.logo_url}
       addToast={addToast}
       onRefresh={() => loadAdminTools(school.id)}
     />

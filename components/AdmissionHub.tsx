@@ -19,6 +19,12 @@ import { supabase } from '../services/supabaseClient';
 import { buildAdmissionWizardBlueprintName, buildAdmissionWizardDefaultName, getAdmissionWizardSubjectLabel } from '../src/lib/admissionWizardNaming';
 import { AdmissionReportPartialAttemptNotice, resolveAdmissionReportPartialAttempt, resolveAdmissionReportVisiblePartialAttempt } from './admissionReportPartialAttempt';
 import { useSchoolBranding } from '../src/hooks/useSchoolBranding';
+import {
+  createSchoolDocumentId,
+  escapeSchoolDocumentHtml,
+  openSchoolDocumentPreview,
+  schoolDocumentFileName,
+} from '../src/lib/schoolDocument';
 
 // ── Types ──
 
@@ -971,6 +977,66 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       setShowReport(false);
     } finally {
       setReportLoading(false);
+    }
+  };
+
+  const printAdmissionReport = (audience: 'family' | 'internal') => {
+    if (!reportData) return;
+    const list = (items: string[] | undefined, fallback: string) => `<ul>${items?.length ? items.map((item) => `<li>${escapeSchoolDocumentHtml(item)}</li>`).join('') : `<li>${escapeSchoolDocumentHtml(fallback)}</li>`}</ul>`;
+    const recommendation = reportData.placement_recommendation;
+    const profile = reportData.candidate_profile;
+    const diagnosticRows = (reportData.diagnostic_breakdown ?? []).map((row) => `<tr><td>${escapeSchoolDocumentHtml(row.label)}</td><td>${escapeSchoolDocumentHtml(row.score)}/${escapeSchoolDocumentHtml(row.maxScore)}</td><td>${escapeSchoolDocumentHtml(row.percentage)}%</td></tr>`).join('');
+    const answerRows = (reportData.answers ?? []).map((answer, index) => {
+      const response = typeof answer.response === 'object' ? JSON.stringify(answer.response) : answer.response || '(no answer)';
+      const correctAnswer = typeof answer.correct_answer === 'object' ? JSON.stringify(answer.correct_answer) : answer.correct_answer ?? '—';
+      return `<tr><td>${index + 1}</td><td>${escapeSchoolDocumentHtml(answer.stem)}</td><td>${escapeSchoolDocumentHtml(response)}</td><td>${escapeSchoolDocumentHtml(correctAnswer)}</td><td>${answer.marks_awarded}/${answer.marks_possible}</td></tr>`;
+    }).join('');
+    const privateSection = audience === 'internal' ? `
+      <section class="document-page-break"><h2>Confidential candidate profile</h2>
+        <div class="document-grid">
+          <div class="document-card"><strong>Applying for</strong><p>Grade ${escapeSchoolDocumentHtml(profile?.applied_grade ?? '—')}</p></div>
+          <div class="document-card"><strong>Current grade</strong><p>${escapeSchoolDocumentHtml(profile?.current_grade ?? '—')}</p></div>
+          <div class="document-card"><strong>Previous curriculum</strong><p>${escapeSchoolDocumentHtml(profile?.previous_curriculum ?? '—')}</p></div>
+          <div class="document-card"><strong>Language context</strong><p>School: ${escapeSchoolDocumentHtml(profile?.previous_school_language ?? '—')} · Home: ${escapeSchoolDocumentHtml(profile?.home_language ?? '—')}</p></div>
+        </div>
+        <h2>Internal activity review</h2><div class="document-callout document-callout--private"><strong>Context, not an automatic misconduct finding</strong>${list(reportData.activity_notes, 'No activity concerns were recorded.')}</div>
+        <section class="document-appendix"><h2>Answer evidence appendix</h2>${reportData.answer_details_available === false ? `<p>${escapeSchoolDocumentHtml(reportData.answer_detail_message || 'Detailed answers are unavailable.')}</p>` : `<table><thead><tr><th>No.</th><th>Question</th><th>Candidate response</th><th>Expected answer</th><th>Marks</th></tr></thead><tbody>${answerRows}</tbody></table>`}</section>
+      </section>` : '';
+    const bodyHtml = `
+      ${reportData.partial_attempt ? `<div class="document-callout document-callout--warning"><strong>Partial attempt</strong><p>${escapeSchoolDocumentHtml(reportData.answered_count ?? reportData.answers.length)} of ${escapeSchoolDocumentHtml(reportData.total_questions ?? reportData.max_score)} questions were answered. Interpret the result with care.</p></div>` : ''}
+      <h2>Assessment outcome</h2>
+      <div class="document-grid"><div class="document-card"><strong>Overall result</strong><p>${reportData.total_score}/${reportData.max_score} · ${reportData.percentage}% · Band ${escapeSchoolDocumentHtml(reportData.band)}</p></div><div class="document-card"><strong>Placement recommendation</strong><p>${escapeSchoolDocumentHtml(recommendation?.label || 'School review required')}</p></div></div>
+      ${recommendation ? `<div class="document-callout"><strong>Rationale</strong>${list(recommendation.reasons, 'The school will review the available assessment evidence.')}<p><strong>Next action:</strong> ${escapeSchoolDocumentHtml(recommendation.nextAction)}</p></div>` : ''}
+      ${diagnosticRows ? `<h2>Diagnostic profile</h2><table><thead><tr><th>Area</th><th>Score</th><th>Attainment</th></tr></thead><tbody>${diagnosticRows}</tbody></table>` : ''}
+      <div class="document-grid"><div class="document-card"><strong>Demonstrated strengths</strong>${list(reportData.strengths, 'More completed evidence is needed to identify secure strengths.')}</div><div class="document-card"><strong>Priority growth areas</strong>${list(reportData.weaknesses, 'No major growth area was identified from this attempt.')}</div></div>
+      ${reportData.ai_summary ? `<h2>Assessment summary</h2><p>${escapeSchoolDocumentHtml(reportData.ai_summary)}</p>` : ''}
+      ${audience === 'family' ? '<div class="document-callout"><strong>What happens next</strong><p>The admissions team will consider this assessment together with the candidate’s wider application. This report is not, by itself, a final admission decision.</p></div><div class="document-signatures"><div class="document-signature">Admissions representative · Name / signature / date</div><div class="document-signature">Parent or guardian · Name / signature / date</div></div>' : privateSection}`;
+    try {
+      openSchoolDocumentPreview({
+        meta: {
+          documentId: createSchoolDocumentId('admission'),
+          templateVersion: audience === 'family' ? 'admission-family-v1' : 'admission-internal-v1',
+          title: audience === 'family' ? 'Admission Assessment Summary' : 'Admission Committee Report',
+          subtitle: reportData.form_label || AdmService.buildAdmissionReportFormLabel(reportData.form_code, profile?.applied_grade, reportData.answers?.[0]?.subject),
+          schoolName: reportSchoolName,
+          schoolLogoUrl: reportSchoolLogoUrl,
+          audience,
+          status: reportData.partial_attempt ? 'draft' : 'final',
+          confidentiality: audience === 'family' ? 'family-copy' : 'confidential',
+          generatedAt: new Date().toISOString(),
+          generatedBy: 'School Administration',
+          studentName: reportData.candidate_name,
+          subject: reportData.formSubject || reportData.subject || reportData.answers?.[0]?.subject || undefined,
+          schoolId,
+          sourceType: 'admission_attempt',
+          sourceId: reportAttemptId || undefined,
+        },
+        bodyHtml,
+        orientation: audience === 'internal' ? 'landscape' : 'portrait',
+        fileName: schoolDocumentFileName(reportSchoolName, reportData.candidate_name, audience === 'family' ? 'Admission_Summary' : 'Admission_Committee_Report', new Date().toISOString().slice(0, 10)),
+      });
+    } catch (error) {
+      addToast(error instanceof Error ? error.message : 'Unable to open the admission document.', 'error');
     }
   };
 
@@ -2174,9 +2240,9 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
             ) : reportData ? (
               <div className="space-y-6">
                 <header className="school-admin-detail-header">
-                  <img src={reportSchoolLogoUrl} alt={`${reportSchoolName} logo`} className="h-12 w-12 rounded-lg bg-white object-contain p-1" />
+                  {reportSchoolLogoUrl ? <img src={reportSchoolLogoUrl} alt={`${reportSchoolName} logo`} className="h-12 w-12 rounded-lg bg-white object-contain p-1" /> : <span className="grid h-12 w-12 place-items-center rounded-lg bg-[#1e4b82] text-xs font-bold text-white">{reportSchoolName.split(/\s+/).map(part => part[0]).join('').slice(0, 3).toUpperCase()}</span>}
                   <div><h2 className="text-lg font-bold text-slate-900">{reportSchoolName}</h2><p className="text-xs text-slate-500">Admission Assessment Report</p></div>
-                  <button type="button" className="school-admin-modal-close" onClick={() => { setShowReport(false); setReportData(null); }} aria-label="Close admission report">✕</button>
+                  <div className="ml-auto flex flex-wrap items-center gap-2"><button type="button" className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700" onClick={() => printAdmissionReport('family')}>Family copy</button><button type="button" className="rounded-lg bg-[#1e4b82] px-3 py-2 text-xs font-semibold text-white" onClick={() => printAdmissionReport('internal')}>Committee copy</button><button type="button" className="school-admin-modal-close" onClick={() => { setShowReport(false); setReportData(null); }} aria-label="Close admission report">✕</button></div>
                 </header>
                 <div className="school-admin-detail-body space-y-6">
                 <div className="flex items-center justify-between">

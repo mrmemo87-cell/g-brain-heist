@@ -3039,6 +3039,7 @@ export interface TeacherWritingReport {
   };
   genre: string;
   institution?: {
+    school_id?: string | null;
     school_name: string;
     school_logo_url?: string | null;
     teacher_name: string;
