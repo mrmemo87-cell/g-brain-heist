@@ -68,6 +68,7 @@ import { fetchNeonFrameOwners, fetchFlickerThemeOwners, fetchGlitchEffectOwners 
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './banMessage.js';
 import { notificationService } from './notificationService.js';
 import { fetchMyXpStatus } from './xpStatus.js';
+import { normalizeTeacherRoster, type TeacherRosterRow } from '../src/lib/teacherRoster.js';
 import { audioService } from './audioService.js';
 import {
     regenerateUserAp,
@@ -5850,7 +5851,7 @@ export const get_students_for_assignment = async (teacherId?: string): Promise<S
         throw new Error(error.message || 'Failed to load students');
     }
 
-    const result = (data as StudentForAssignment[]) || [];
+    const result = normalizeTeacherRoster((data as TeacherRosterRow[]) || []);
     console.log('get_students_for_assignment result:', result);
     return result;
 };
