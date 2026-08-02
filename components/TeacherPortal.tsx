@@ -680,7 +680,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     return 'reports'; // catches 'reports', 'report-detail', 'report-analysis', 'collective-report'
   }, [view]);
   const {
-    isCollapsed: isMobileNavigationHidden,
+    navigationRef: mobileNavigationRef,
     revealNavigation: revealMobileNavigation,
   } = useSmartCollapsedNavigation(view, '(max-width: 1023px)');
 
@@ -8583,7 +8583,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           </div>
         </div>
 
-        <nav className="teacher-mobile-bottom-nav" data-hidden={isMobileNavigationHidden} aria-label="Teacher workspace">
+        <nav ref={mobileNavigationRef} className="teacher-mobile-bottom-nav" onFocus={revealMobileNavigation} aria-label="Teacher workspace">
           <button
             type="button"
             className="smart-mobile-nav-reveal"

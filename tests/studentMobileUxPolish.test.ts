@@ -23,11 +23,12 @@ test('student mobile header protects long school names and fixed-size actions', 
 
 test('student bottom navigation uses smart slide-away behavior and clears the safe area', () => {
   assert.match(navigation, /useSmartCollapsedNavigation/);
-  assert.match(navigation, /data-hidden=\{isNavigationHidden\}/);
+  assert.match(navigation, /ref=\{navigationRef\}/);
+  assert.match(navigation, /onFocus=\{revealNavigation\}/);
   assert.match(navigation, /className="smart-mobile-nav-reveal"/);
   assert.match(navigation, /student-dashboard-bottom-label/);
   assert.match(styles, /padding-bottom:\s*calc\(7rem \+ env\(safe-area-inset-bottom/);
-  assert.match(styles, /\.student-dashboard-bottom-nav\[data-hidden='true'\][^{]*\{[^}]*translate3d/s);
+  assert.match(styles, /\.student-dashboard-bottom-nav[\s\S]*var\(--smart-nav-translate-y/);
 });
 
 test('student desktop navigation stays visible and follows the teacher collapse pattern', () => {

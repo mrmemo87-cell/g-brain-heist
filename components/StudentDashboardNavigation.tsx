@@ -67,7 +67,7 @@ const StudentMobileBottomNavigation: React.FC<StudentMobileBottomNavigationProps
   onNavigate,
 }) => {
   const {
-    isCollapsed: isNavigationHidden,
+    navigationRef,
     revealNavigation,
   } = useSmartCollapsedNavigation(activeDestination);
 
@@ -78,8 +78,9 @@ const StudentMobileBottomNavigation: React.FC<StudentMobileBottomNavigationProps
 
   return (
     <nav
+      ref={navigationRef}
       className="student-dashboard-bottom-nav"
-      data-hidden={isNavigationHidden}
+      onFocus={revealNavigation}
       aria-label="Student dashboard mobile navigation"
     >
       <button

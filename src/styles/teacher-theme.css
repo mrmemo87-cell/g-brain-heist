@@ -3646,14 +3646,11 @@
     padding: 0.35rem;
     box-shadow: 0 18px 45px rgba(2, 6, 23, 0.5);
     backdrop-filter: blur(18px);
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
+    opacity: var(--smart-nav-opacity, 1);
+    transform: translate3d(0, var(--smart-nav-translate-y, 0px), 0);
     transform-origin: bottom center;
     will-change: transform, opacity;
-    transition:
-      transform 440ms cubic-bezier(0.22, 1, 0.36, 1),
-      opacity 280ms ease-out,
-      box-shadow 320ms ease-out;
+    transition: box-shadow 320ms ease-out;
   }
 
   .teacher-mobile-bottom-nav button {
@@ -3689,18 +3686,11 @@
   }
 
   .teacher-mobile-bottom-nav[data-hidden='true'] {
-    opacity: 0.82;
-    transform: translate3d(0, calc(100% - 0.95rem), 0);
     box-shadow: 0 8px 20px rgba(2, 6, 23, 0.3);
   }
 
   .teacher-mobile-bottom-nav[data-hidden='true'] > button:not(.smart-mobile-nav-reveal) {
     pointer-events: none;
-  }
-
-  .teacher-mobile-bottom-nav[data-hidden='true']:focus-within {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
   }
 
   .teacher-mobile-bottom-nav > .smart-mobile-nav-reveal {
@@ -3720,7 +3710,7 @@
     touch-action: manipulation;
   }
 
-  .teacher-mobile-bottom-nav[data-hidden='true'] > .smart-mobile-nav-reveal {
+  .teacher-mobile-bottom-nav[data-reveal-visible='true'] > .smart-mobile-nav-reveal {
     display: grid;
   }
 
@@ -3756,10 +3746,6 @@
   .teacher-mobile-bottom-nav,
   .teacher-mobile-bottom-nav button,
   .teacher-mobile-bottom-nav button > small { transition-duration: 1ms; }
-
-  .teacher-mobile-bottom-nav[data-hidden='true'] {
-    transform: translate3d(0, calc(100% - 0.95rem), 0);
-  }
 }
 
 @media (max-width: 767px) {

@@ -85,7 +85,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
   const [activeIeltsSubTab, setActiveIeltsSubTab] = useState<IeltsSubTab>('ielts-exams');
   const [mobileAdminMenuOpen, setMobileAdminMenuOpen] = useState(false);
   const {
-    isCollapsed: isMobileAdminNavigationHidden,
+    navigationRef: mobileAdminNavigationRef,
     revealNavigation: revealMobileAdminNavigation,
   } = useSmartCollapsedNavigation(activeTab, '(max-width: 768px)');
   const [loading, setLoading] = useState(true);
@@ -1644,8 +1644,9 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       </div>
 
       <nav
+        ref={mobileAdminNavigationRef}
         className="school-admin-mobile-bottom-nav"
-        data-hidden={isMobileAdminNavigationHidden}
+        onFocus={revealMobileAdminNavigation}
         aria-label="School administration mobile navigation"
       >
         <button
