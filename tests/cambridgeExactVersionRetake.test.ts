@@ -26,8 +26,9 @@ test('Cambridge retakes lock and archive only the selected canonical attempt ver
 test('ambiguous legacy attempts fail closed instead of guessing student identity', () => {
   assert.match(migration, /v_score\.student_id is null/);
   assert.match(migration, /CAMBRIDGE_IDENTITY_REVIEW_REQUIRED/);
-  assert.match(tab, /disabled=\{\s*!hasCanonicalAttemptIdentity\s*\}/);
   assert.match(tab, /Identity review required/);
+  assert.match(tab, /Select verified student…/);
+  assert.match(tab, /disabled=\{!identitySelections\[score\.id\]\}/);
 });
 
 test('retake authorization retains database and RPC security boundaries', () => {
