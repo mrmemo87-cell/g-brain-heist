@@ -52,10 +52,12 @@ interface SchoolAdminPortalProps {
   onOpenTeacherPortal?: () => void;
 }
 
-type IeltsSubTab = 'ielts-exams' | 'ielts-practice' | 'ielts-results' | 'ielts-analytics' | 'ielts-settings';
+type IeltsSubTab = 'ielts-exams' | 'ielts-practice' | 'ielts-results' | 'ielts-student-progress' | 'ielts-analytics' | 'ielts-settings';
 type MainAdminTab = 'dashboard' | 'members' | 'teachers' | 'classes' | 'subjects' | 'documents' | 'settings' | 'billing' | 'cambridge' | 'ielts' | 'admissions';
 type AdminTab = MainAdminTab | IeltsSubTab;
-type IeltsToolNavItem = { id: IeltsSubTab; icon: string; label: string; hint: string; route?: never } | { id: string; icon: string; label: string; hint: string; route: string };
+type IeltsToolNavItem = { id: IeltsSubTab; icon: string; label: string; hint: string };
+
+const IeltsJourneyDashboard = React.lazy(() => import('../src/pages/ielts/IeltsJourneyDashboard'));
 
 const SCHOOL_ADMIN_NAV_ITEMS: Array<{ id: MainAdminTab; icon: string; label: string; mobileLabel: string; description: string }> = [
   { id: 'dashboard', icon: '🏠', label: 'Overview', mobileLabel: 'Overview', description: 'School status and priorities' },
@@ -78,7 +80,7 @@ const IELTS_TOOL_NAV_ITEMS: IeltsToolNavItem[] = [
   { id: 'ielts-exams', icon: '🧪', label: 'Exams', hint: 'Secure mock exams' },
   { id: 'ielts-practice', icon: '📝', label: 'Assignment Overview', hint: 'Assign & monitor' },
   { id: 'ielts-results', icon: '📈', label: 'Results', hint: 'Student scores' },
-  { id: 'ielts-student-progress', icon: '📊', label: 'Student Progress', hint: 'Journey dashboard', route: '/ielts/journey' },
+  { id: 'ielts-student-progress', icon: '📊', label: 'Student Progress', hint: 'Journey dashboard' },
   { id: 'ielts-analytics', icon: '📉', label: 'Analytics', hint: 'School insights' },
   { id: 'ielts-settings', icon: '⚙️', label: 'Settings', hint: 'Config & features' },
 ];
@@ -1585,33 +1587,13 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
             role="tablist"
             aria-label="IELTS sections"
           >
-            {IELTS_TOOL_NAV_ITEMS.map(({ id, icon, label, hint, route }) => {
-              const isActive = !route && activeIeltsSubTab === id;
+            {IELTS_TOOL_NAV_ITEMS.map(({ id, icon, label, hint }) => {
+              const isActive = activeIeltsSubTab === id;
               const className = `flex flex-1 flex-col items-center gap-0.5 rounded-xl px-3 py-2.5 transition-all ${
                 isActive
                   ? 'bg-gradient-to-br from-teal-600 to-blue-700 text-white shadow-lg shadow-teal-500/20'
-                  : route
-                    ? 'border border-emerald-400/30 bg-emerald-500/10 text-emerald-100 hover:border-emerald-300 hover:bg-emerald-500/20'
-                    : 'text-gray-400 hover:bg-gray-800/60 hover:text-white'
+                  : 'text-gray-400 hover:bg-gray-800/60 hover:text-white'
               }`;
-
-              if (route) {
-                return (
-                  <a
-                    key={id}
-                    role="tab"
-                    data-testid={`school-admin-tab-${id}`}
-                    aria-selected="false"
-                    href={route}
-                    className={className}
-                    aria-label={`${label} — open ${route}`}
-                  >
-                    <span className="text-base leading-none">{icon}</span>
-                    <span className="text-[13px] font-semibold">{label}</span>
-                    <span className="hidden text-[10px] leading-none text-emerald-100/70 sm:block">{hint}</span>
-                  </a>
-                );
-              }
 
               return (
                 <button
@@ -1638,6 +1620,11 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
             {activeIeltsSubTab === 'ielts-exams'     && <IeltsExamsTab />}
             {activeIeltsSubTab === 'ielts-practice'  && <IeltsPracticeTab />}
             {activeIeltsSubTab === 'ielts-results'   && <IeltsResultsTab />}
+            {activeIeltsSubTab === 'ielts-student-progress' && (
+              <React.Suspense fallback={<div className="p-6 text-sm text-gray-400">Loading student IELTS progress…</div>}>
+                <IeltsJourneyDashboard embedded />
+              </React.Suspense>
+            )}
             {activeIeltsSubTab === 'ielts-analytics' && <IeltsAnalyticsTab />}
             {activeIeltsSubTab === 'ielts-settings'  && <IeltsSettingsTab />}
           </div>
