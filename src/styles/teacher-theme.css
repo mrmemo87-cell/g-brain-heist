@@ -348,6 +348,7 @@
   max-height: calc(100vh - 104px);
   max-height: calc(100dvh - 104px);
   min-width: 0;
+  overflow-x: clip;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-color: #cbd5e1 transparent;

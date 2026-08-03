@@ -35,7 +35,8 @@ const destinations: Array<{ id: StudentDashboardDestination; icon: string; label
 
 const mobileDestinations = destinations.filter(({ id }) => ['home', 'learn', 'game', 'clan', 'more'].includes(id));
 const STUDENT_SIDEBAR_STORAGE_KEY = 'brains-heist:student-sidebar-collapsed';
-const STUDENT_SIDEBAR_COMPACT_QUERY = '(max-width: 1023px)';
+const STUDENT_MOBILE_NAV_QUERY = '(max-width: 1024px)';
+const STUDENT_SIDEBAR_COMPACT_QUERY = '(min-width: 1025px) and (max-width: 1279px)';
 
 const getInitialSidebarCollapsed = () => {
   if (typeof window === 'undefined') return false;
@@ -69,7 +70,7 @@ const StudentMobileBottomNavigation: React.FC<StudentMobileBottomNavigationProps
   const {
     navigationRef,
     revealNavigation,
-  } = useSmartCollapsedNavigation(activeDestination);
+  } = useSmartCollapsedNavigation(activeDestination, STUDENT_MOBILE_NAV_QUERY);
 
   const navigate = (destination: StudentDashboardDestination) => {
     revealNavigation();

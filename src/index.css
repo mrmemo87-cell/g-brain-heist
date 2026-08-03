@@ -196,16 +196,31 @@ body.lite-mode [class*="border-gray-7"] {
 
 .student-dashboard-rail {
   display: none;
+  max-height: calc(100vh - 8.5rem);
+  max-height: calc(100dvh - 8.5rem);
   min-width: 0;
+  overflow-x: clip;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   border: 1px solid rgba(71, 85, 105, 0.72);
   border-radius: 1.25rem;
   background: linear-gradient(155deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.93));
   padding: 0.65rem;
   box-shadow: 0 18px 45px rgba(2, 6, 23, 0.28);
+  scrollbar-color: rgba(100, 116, 139, 0.9) transparent;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
   transition: width 220ms ease;
 }
 
+.student-dashboard-rail::-webkit-scrollbar { width: 6px; }
+.student-dashboard-rail::-webkit-scrollbar-track { background: transparent; }
+.student-dashboard-rail::-webkit-scrollbar-thumb { border-radius: 999px; background: rgba(100, 116, 139, 0.9); }
+
 .student-dashboard-sidebar-toggle {
+  position: sticky;
+  top: 0;
+  z-index: 6;
   display: flex;
   width: 100%;
   min-height: 2.55rem;
@@ -403,7 +418,7 @@ body.lite-mode [class*="border-gray-7"] {
   .student-next-mission .student-primary-button { width: 100%; }
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1025px) {
   .student-dashboard-shell { grid-template-columns: auto minmax(0, 1fr); padding-bottom: 0; }
   .student-dashboard-rail { position: sticky; top: 7.5rem; display: block; width: 5rem; align-self: start; }
   .student-dashboard-identity { justify-content: center; padding-inline: 0.25rem; }
@@ -438,7 +453,7 @@ body.lite-mode [class*="border-gray-7"] {
   .student-dashboard-nav-link:focus-visible::after { transform: translate(0, -50%); opacity: 1; }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1025px) {
   .student-dashboard-shell { gap: 1.5rem; }
   .student-dashboard-rail { width: 14rem; }
   .student-dashboard-rail.is-collapsed { width: 5rem; }
