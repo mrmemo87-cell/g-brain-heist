@@ -225,7 +225,7 @@ const CambridgeTab: React.FC = () => {
                   <option value="all">All Tests ({quizScores.length})</option>
                   {uniqueQuizReports.map((test: any) => (
                     <option key={test.key} value={test.key}>
-                      {test.label} ({quizScores.filter((score: any) => `${score.test_id || score.quiz_name || 'unknown'}::${score.quiz_version || 'legacy-v1'}` === test.key).length})
+                      {test.label} ({test.count})
                     </option>
                   ))}
                 </select>
