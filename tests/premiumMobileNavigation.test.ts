@@ -25,8 +25,12 @@ test('smart mobile navigation tracks scroll for two thirds before a velocity-mat
 });
 
 test('teacher and student bottom navigation share the premium reveal pattern', () => {
+  assert.match(teacherPortal, /TEACHER_MOBILE_NAV_QUERY = '\(max-width: 1024px\)'/);
+  assert.match(teacherPortal, /useSmartCollapsedNavigation\(view, TEACHER_MOBILE_NAV_QUERY\)/);
   assert.match(teacherPortal, /ref=\{mobileNavigationRef\}/);
   assert.match(teacherPortal, /aria-label="Show teacher navigation"/);
+  assert.match(studentNavigation, /STUDENT_MOBILE_NAV_QUERY = '\(max-width: 1024px\)'/);
+  assert.match(studentNavigation, /useSmartCollapsedNavigation\(activeDestination, STUDENT_MOBILE_NAV_QUERY\)/);
   assert.match(studentNavigation, /ref=\{navigationRef\}/);
   assert.match(studentNavigation, /aria-label="Show student navigation"/);
   assert.match(teacherStyles, /\.teacher-mobile-bottom-nav[\s\S]*var\(--smart-nav-translate-y/);

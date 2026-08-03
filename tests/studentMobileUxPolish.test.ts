@@ -33,12 +33,19 @@ test('student bottom navigation uses smart slide-away behavior and clears the sa
 
 test('student desktop navigation stays visible and follows the teacher collapse pattern', () => {
   assert.match(navigation, /STUDENT_SIDEBAR_STORAGE_KEY/);
+  assert.match(navigation, /STUDENT_MOBILE_NAV_QUERY = '\(max-width: 1024px\)'/);
+  assert.match(navigation, /STUDENT_SIDEBAR_COMPACT_QUERY = '\(min-width: 1025px\) and \(max-width: 1279px\)'/);
+  assert.match(navigation, /useSmartCollapsedNavigation\(activeDestination, STUDENT_MOBILE_NAV_QUERY\)/);
   assert.match(navigation, /student-dashboard-sidebar-toggle/);
   assert.match(navigation, /sidebarCollapsed \? 'is-collapsed' : ''/);
   assert.match(navigation, /label: 'Leaderboard'/);
   assert.doesNotMatch(navigation, /label: 'Rankings'/);
   assert.match(styles, /\.student-dashboard-shell[^}]*grid-template-columns:\s*auto minmax\(0, 1fr\)/s);
   assert.match(styles, /\.student-dashboard-rail\.is-collapsed[^}]*width:\s*5rem/s);
+  assert.match(styles, /\.student-dashboard-rail\s*\{[^}]*max-height:\s*calc\(100dvh - 8\.5rem\);[^}]*overflow-y:\s*auto;[^}]*overscroll-behavior:\s*contain;/s);
+  assert.match(styles, /\.student-dashboard-sidebar-toggle\s*\{[^}]*position:\s*sticky;[^}]*top:\s*0;[^}]*z-index:\s*6;/s);
+  assert.match(styles, /@media \(min-width: 1025px\)[\s\S]*?\.student-dashboard-bottom-nav\s*\{\s*display:\s*none;/);
+  assert.doesNotMatch(styles, /@media \(min-width: 768px\)[\s\S]*?\.student-dashboard-bottom-nav\s*\{\s*display:\s*none;/);
 });
 
 test('clan and leaderboard render directly inside the persistent dashboard shell', () => {

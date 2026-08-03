@@ -84,6 +84,7 @@ const getDefaultPointsForDifficulty = (diff: QuestionDifficulty): number => {
 const MAX_QUESTION_XP = 30;
 const TEACHER_SIDEBAR_STORAGE_KEY = 'brains-heist:teacher-sidebar-collapsed';
 const TEACHER_SIDEBAR_COMPACT_QUERY = '(max-width: 1279px)';
+const TEACHER_MOBILE_NAV_QUERY = '(max-width: 1024px)';
 
 const getInitialSidebarCollapsed = () => {
   if (typeof window === 'undefined') return false;
@@ -692,7 +693,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const {
     navigationRef: mobileNavigationRef,
     revealNavigation: revealMobileNavigation,
-  } = useSmartCollapsedNavigation(view, '(max-width: 1023px)');
+  } = useSmartCollapsedNavigation(view, TEACHER_MOBILE_NAV_QUERY);
 
   const changeSection = async (section: TeacherNavSection) => {
     revealMobileNavigation();
