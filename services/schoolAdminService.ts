@@ -1199,13 +1199,13 @@ export async function setMemberRoleViaRPC(
 export async function moveStudentToClassViaRPC(
   studentId: string,
   classId: string,
-  grade?: number
-): Promise<{ success: boolean; error?: string }> {
+  fromClassId: string | null = null
+): Promise<{ success: boolean; error?: string; message?: string; grade?: string | number | null; batch?: string | null }> {
   try {
-    const { data, error } = await supabase.rpc('school_admin_move_student_to_class', {
+    const { data, error } = await supabase.rpc('move_student_between_classes', {
       p_student_id: studentId,
-      p_class_id: classId,
-      p_grade: grade || null,
+      p_from_class_id: fromClassId,
+      p_to_class_id: classId,
     });
 
     if (error) {
@@ -1214,7 +1214,7 @@ export async function moveStudentToClassViaRPC(
     }
 
     if (data && typeof data === 'object' && 'success' in data) {
-      return data as { success: boolean; error?: string };
+      return data as { success: boolean; error?: string; message?: string; grade?: string | number | null; batch?: string | null };
     }
 
     return { success: true };

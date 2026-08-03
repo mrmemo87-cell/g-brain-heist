@@ -82,8 +82,8 @@ test('member management opens at the top and preloads existing academic placemen
   assert.match(members, /focus\(\{ preventScroll: true \}\)/);
   assert.doesNotMatch(members, /autoFocus/);
   assert.match(memberDirectory, /studentAssignments\[member\.user_id\]/);
-  assert.match(memberDirectory, /normaliseClassCode\(schoolClass\.class_code\).*normaliseClassCode\(member\.batch\)/s);
-  assert.match(memberDirectory, /setSelectedGrade\(member\.grade \?\? assignedClass\?\.grade_level \?\? ''\)/);
+  assert.doesNotMatch(memberDirectory, /normaliseClassCode|schoolClass\.class_code.*member\.batch/s);
+  assert.match(memberDirectory, /setSelectedGrade\(assignedClass\?\.grade_level \?\? member\.grade \?\? ''\)/);
 });
 
 test('admissions and settings removals match the school-admin brief', () => {
