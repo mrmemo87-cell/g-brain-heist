@@ -4,6 +4,10 @@ import {
   normalizeCambridgeRetakeResult,
   type CambridgeRetakeResult,
 } from '../src/lib/cambridgeRetakeResult';
+import {
+  normalizeCambridgeIdentityLinkResult,
+  type CambridgeIdentityLinkResult,
+} from '../src/lib/cambridgeIdentityLinkResult';
 
 // ============================================
 // School Admin Service — Patch J (RPC-backed)
@@ -884,6 +888,35 @@ export async function allowQuizRetake(
 
 /** @deprecated Use allowQuizRetake. Kept for callers outside the current portal bundle. */
 export const deleteQuizSubmission = allowQuizRetake;
+
+/**
+ * Link one legacy Cambridge submission to a verified student in the same school.
+ * The database records the administrator, reason, and historical identity snapshot.
+ */
+export async function linkCambridgeAttemptStudent(
+  scoreId: string,
+  studentId: string,
+  reason: string,
+): Promise<CambridgeIdentityLinkResult> {
+  try {
+    const { data, error } = await supabase.rpc('school_admin_link_cambridge_attempt_student', {
+      p_score_id: scoreId,
+      p_student_id: studentId,
+      p_reason: reason.trim(),
+    });
+
+    if (error) {
+      console.error('Error linking Cambridge attempt identity:', error);
+      return { success: false, error: error.message };
+    }
+
+    const result = typeof data === 'string' ? JSON.parse(data) : data;
+    return normalizeCambridgeIdentityLinkResult(result);
+  } catch (err) {
+    console.error('Exception linking Cambridge attempt identity:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
 
 // ============================================
 // Teacher Class Access Functions
