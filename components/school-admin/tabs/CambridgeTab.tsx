@@ -250,8 +250,8 @@ const CambridgeTab: React.FC = () => {
 
             {/* Results Table */}
             <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full">
+              <div className="admin-table-scroll" role="region" aria-label="Cambridge results table" tabIndex={0}>
+                <table className="min-w-[900px] w-full">
                   <thead className="bg-gray-800 border-b border-gray-700">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Student</th>

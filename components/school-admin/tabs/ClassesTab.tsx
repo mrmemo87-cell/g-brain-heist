@@ -77,8 +77,8 @@ const ClassesTab: React.FC = () => {
           <div><h3>Classes in school</h3><p>{classes.length} class records arranged by grade and code.</p></div>
           {classesLoading && <span className="text-xs text-gray-500">Refreshing...</span>}
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        <div className="admin-table-scroll" role="region" aria-label="Classes table" tabIndex={0}>
+          <table className="min-w-[640px] w-full">
             <thead className="bg-gray-750 border-b border-gray-700">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Code</th>

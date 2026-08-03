@@ -1953,7 +1953,12 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
               <p className="text-slate-500 text-xs mt-1">Click "+ Add One" or "Bulk Import" to get started.</p>
             </div>
           ) : (
-            <div className="admission-candidate-directory overflow-x-auto">
+            <div
+              className="admission-candidate-directory admin-table-scroll"
+              role="region"
+              aria-label="Candidates table"
+              tabIndex={0}
+            >
               <table className="admission-candidate-table w-full text-sm">
                 <thead>
                   <tr className="text-left text-xs text-slate-600 border-b border-slate-200">
