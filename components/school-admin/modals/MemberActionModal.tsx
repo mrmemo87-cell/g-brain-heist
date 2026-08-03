@@ -122,10 +122,11 @@ const MemberActionModal: React.FC = () => {
               <div className="member-action-section">
                 <h4 className="text-sm font-semibold text-slate-800 mb-2">Academic placement</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <input type="number" value={selectedGrade} onChange={e => setSelectedGrade(e.target.value ? Number(e.target.value) : '')} placeholder="Year group" aria-label="Year group" />
-                  <select value={selectedClassId} onChange={e => setSelectedClassId(e.target.value)} aria-label="Class"><option value="">Not assigned to a class</option>{(Array.isArray(classes) ? classes : []).filter((item: any) => item.is_active).map((item: any) => <option key={item.id} value={item.id}>{item.class_code} — {item.class_name}</option>)}</select>
+                  <input value={selectedGrade ? `Year ${selectedGrade}` : 'Choose a class'} readOnly aria-label="Year group (set by class)" />
+                  <select value={selectedClassId} onChange={e => { const classId = e.target.value; const selectedClass = (Array.isArray(classes) ? classes : []).find((item: any) => item.id === classId); setSelectedClassId(classId); setSelectedGrade(selectedClass?.grade_level ?? ''); }} aria-label="Class"><option value="">Choose a class</option>{(Array.isArray(classes) ? classes : []).filter((item: any) => item.is_active).map((item: any) => <option key={item.id} value={item.id}>{item.class_code} — {item.class_name} · Year {item.grade_level ?? 'not set'}</option>)}</select>
                 </div>
-                <button className="mt-3 w-full px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg font-medium" disabled={studentSaving} onClick={() => handleEnrollStudent(selectedMember.user_id, selectedClassId, selectedGrade)}>{studentSaving ? 'Saving…' : 'Save academic placement'}</button>
+                <p className="mt-2 text-xs text-slate-500">The selected class sets the student’s current year group and class code.</p>
+                <button className="mt-3 w-full px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg font-medium" disabled={studentSaving || !selectedClassId} onClick={() => handleEnrollStudent(selectedMember.user_id, selectedClassId)}>{studentSaving ? 'Saving…' : 'Save academic placement'}</button>
               </div>
             )}
 
