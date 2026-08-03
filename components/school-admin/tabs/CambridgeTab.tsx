@@ -3,8 +3,17 @@ import { useSchoolAdmin } from '../SchoolAdminContext';
 
 const CambridgeTab: React.FC = () => {
   const {
-    allowQuizRetake, bulkSetSchoolVisibility, classFilter, exportCSV, fetchQuizScores, filteredQuizScores, filteredSchoolVisibility, loadSchoolVisibility, quizFilter, quizScores, quizScoresLoading, school, schoolVisibility, schoolVisibilityLoading, schoolVisibilitySubjectFilter, schoolVisibilitySubjects, selectedSchoolTests, setClassFilter, setConfirmDialog, setQuizFilter, setSchoolVisibilitySubjectFilter, setSelectedSchoolTests, setShowSchoolVisibility, showSchoolVisibility, students, teachers, toggleSchoolTestVisibility, uniqueClasses, uniqueQuizReports,
+    allowQuizRetake, bulkSetSchoolVisibility, classFilter, exportCSV, fetchQuizScores, filteredQuizScores, filteredSchoolVisibility, linkCambridgeAttemptStudent, loadSchoolVisibility, quizFilter, quizScores, quizScoresLoading, school, schoolVisibility, schoolVisibilityLoading, schoolVisibilitySubjectFilter, schoolVisibilitySubjects, selectedSchoolTests, setClassFilter, setConfirmDialog, setQuizFilter, setSchoolVisibilitySubjectFilter, setSelectedSchoolTests, setShowSchoolVisibility, showSchoolVisibility, students, teachers, toggleSchoolTestVisibility, uniqueClasses, uniqueQuizReports,
   } = useSchoolAdmin();
+  const [identitySelections, setIdentitySelections] = React.useState<Record<string, string>>({});
+
+  const verifiedStudents = React.useMemo(
+    () => students
+      .filter((student: any) => student.full_name_status === 'verified' && student.full_name)
+      .sort((left: any, right: any) =>
+        (left.full_name || left.username).localeCompare(right.full_name || right.username)),
+    [students],
+  );
 
   return (
     <div className="school-admin-themed-tab space-y-6">
@@ -297,14 +306,46 @@ const CambridgeTab: React.FC = () => {
                             {score.submitted_at ? new Date(score.submitted_at).toLocaleDateString() : 'N/A'}
                           </td>
                           <td className="px-4 py-3 text-sm text-center">
-                            <button
-                              onClick={() => allowQuizRetake(score)}
-                              disabled={!hasCanonicalAttemptIdentity}
-                              className="text-amber-300 hover:text-amber-200 transition-colors font-medium text-xs disabled:text-slate-500 disabled:cursor-not-allowed"
-                              title={hasCanonicalAttemptIdentity ? 'Preserve this exact attempt version and allow a retake' : 'Identity review is required before this legacy attempt can be retaken'}
-                            >
-                              {hasCanonicalAttemptIdentity ? '↻ Allow Retake' : 'Identity review required'}
-                            </button>
+                            {hasCanonicalAttemptIdentity ? (
+                              <button
+                                onClick={() => allowQuizRetake(score)}
+                                className="text-amber-300 hover:text-amber-200 transition-colors font-medium text-xs"
+                                title="Preserve this exact attempt version and allow a retake"
+                              >
+                                ↻ Allow Retake
+                              </button>
+                            ) : (
+                              <div className="flex min-w-[220px] flex-col items-stretch gap-2 text-left">
+                                <label htmlFor={`cambridge-identity-${score.id}`} className="text-[11px] font-semibold text-amber-200">
+                                  Identity review required
+                                </label>
+                                <select
+                                  id={`cambridge-identity-${score.id}`}
+                                  value={identitySelections[score.id] || ''}
+                                  onChange={(event) => setIdentitySelections((current) => ({
+                                    ...current,
+                                    [score.id]: event.target.value,
+                                  }))}
+                                  className="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1.5 text-xs text-white focus:border-cyan-400 focus:outline-none"
+                                  aria-label={`Choose the verified student for ${score.student_name || 'legacy Cambridge attempt'}`}
+                                >
+                                  <option value="">Select verified student…</option>
+                                  {verifiedStudents.map((student: any) => (
+                                    <option key={student.user_id} value={student.user_id}>
+                                      {student.full_name} · {student.batch || student.username}
+                                    </option>
+                                  ))}
+                                </select>
+                                <button
+                                  type="button"
+                                  disabled={!identitySelections[score.id]}
+                                  onClick={() => linkCambridgeAttemptStudent(score, identitySelections[score.id])}
+                                  className="rounded-lg border border-amber-400/60 bg-amber-500/15 px-2 py-1.5 text-xs font-semibold text-amber-200 transition-colors hover:bg-amber-500/25 disabled:cursor-not-allowed disabled:opacity-40"
+                                >
+                                  Link identity
+                                </button>
+                              </div>
+                            )}
                           </td>
                         </tr>;
                       })
