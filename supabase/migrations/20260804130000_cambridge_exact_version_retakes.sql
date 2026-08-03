@@ -31,8 +31,20 @@ begin
     return jsonb_build_object('success', false, 'error', 'Submission is required');
   end if;
 
-  if v_reason is not null and char_length(v_reason) > 500 then
-    return jsonb_build_object('success', false, 'error', 'Reason must be 500 characters or fewer');
+  if v_reason is null then
+    return jsonb_build_object(
+      'success', false,
+      'error', 'A reason is required to authorize a retake',
+      'code', 'CAMBRIDGE_REASON_REQUIRED'
+    );
+  end if;
+
+  if char_length(v_reason) > 500 then
+    return jsonb_build_object(
+      'success', false,
+      'error', 'Reason must be 500 characters or fewer',
+      'code', 'CAMBRIDGE_REASON_TOO_LONG'
+    );
   end if;
 
   select qs.*
@@ -146,7 +158,11 @@ begin
     and quiz_version = v_score.quiz_version;
 
   if not found then
-    raise exception 'The selected Cambridge attempt changed while the retake was being authorized';
+    -- Raising rolls back the history insert before the exception handler
+    -- converts this otherwise unreachable race into a structured response.
+    raise exception using
+      errcode = 'P4C01',
+      message = 'The selected Cambridge attempt changed while the retake was being authorized';
   end if;
 
   return jsonb_build_object(
@@ -160,6 +176,12 @@ begin
     'message', 'Retake allowed. The exact test version was preserved in history.'
   );
 exception
+  when sqlstate 'P4C01' then
+    return jsonb_build_object(
+      'success', false,
+      'error', 'The selected Cambridge attempt changed while the retake was being authorized',
+      'code', 'CAMBRIDGE_ATTEMPT_CONFLICT'
+    );
   when unique_violation then
     return jsonb_build_object('success', false, 'error', 'Retake was already allowed for this submission');
 end;
