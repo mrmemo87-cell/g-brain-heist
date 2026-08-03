@@ -925,7 +925,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     await loadAdminTools(school.id);
   };
 
-  const handleEnrollStudent = async (studentId = selectedStudentId, classId = selectedClassId, grade = selectedGrade) => {
+  const handleEnrollStudent = async (studentId = selectedStudentId, classId = selectedClassId) => {
     if (!school) return;
     if (!studentId || !classId) {
       addToast('Select a student and class', 'error');
@@ -935,12 +935,12 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     const enrolledStudentId = studentId;
     const enrolledClassId = classId;
 
-    // Use the new RPC with optional grade
+    const previousClassId = studentAssignments[studentId] || null;
     setStudentSaving(true);
     const result = await SchoolAdminService.moveStudentToClassViaRPC(
       studentId,
       classId,
-      grade ? Number(grade) : undefined
+      previousClassId
     );
     setStudentSaving(false);
 
@@ -949,23 +949,32 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       return;
     }
 
-    addToast('Student enrolled successfully', 'success');
-    
-    // Immediately update local state to reflect the assignment
+    const destinationClass = classes.find((schoolClass) => schoolClass.id === enrolledClassId);
+    const authoritativeGrade = result.grade ?? destinationClass?.grade_level ?? null;
+    const authoritativeBatch = result.batch ?? destinationClass?.class_code ?? null;
+
+    addToast(result.message || 'Academic placement saved', 'success');
+
     setStudentAssignments((prev) => ({
       ...prev,
       [enrolledStudentId]: enrolledClassId,
     }));
-    
-    // Reset form
+    setStudents((prev) => prev.map((student) => student.user_id === enrolledStudentId
+      ? { ...student, grade: authoritativeGrade as number | null, batch: authoritativeBatch }
+      : student));
+    setMembers((prev) => prev.map((member) => member.user_id === enrolledStudentId
+      ? { ...member, grade: authoritativeGrade as number | null, batch: authoritativeBatch }
+      : member));
+    setSelectedMember((prev) => prev?.user_id === enrolledStudentId
+      ? { ...prev, grade: authoritativeGrade as number | null, batch: authoritativeBatch }
+      : prev);
+
     setSelectedStudentId('');
     setSelectedGrade('');
     setSelectedClassId('');
-    
-    // Wait longer for DB replication, then refresh with race condition protection
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Refresh data but preserve optimistic update if DB hasn't caught up yet
+
+    // The RPC commits placement and profile mirrors atomically. Reload immediately
+    // so the directory and roster share the same authoritative current class.
     setClassesLoading(true);
     try {
       const classIds = classes.map((cls) => cls.id);
@@ -975,20 +984,16 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
         assignmentMap[row.student_id] = row.class_id;
       });
       
-      // Only update with fresh data if it contains our new assignment
-      // Otherwise keep the optimistic update to avoid race condition flicker
       if (assignmentMap[enrolledStudentId]) {
         setStudentAssignments(assignmentMap);
       } else {
-        // Database hasn't replicated yet, keep optimistic update
         setStudentAssignments((prev) => ({
           ...assignmentMap,
-          [enrolledStudentId]: enrolledClassId, // Preserve optimistic update
+          [enrolledStudentId]: enrolledClassId,
         }));
       }
     } catch (err) {
       console.error('Error refreshing student assignments:', err);
-      // Keep optimistic update on error
     } finally {
       setClassesLoading(false);
     }
