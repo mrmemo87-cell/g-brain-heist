@@ -421,6 +421,52 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     });
   };
 
+  const linkCambridgeAttemptStudent = async (score: any, studentId: string) => {
+    const student = students.find((candidate) => candidate.user_id === studentId);
+    if (!student) {
+      addToast('Select an active student before linking this attempt', 'error');
+      return;
+    }
+
+    const studentLabel = student.full_name || student.username;
+    const historicalLabel = score.student_name || 'Unknown student';
+    const testLabel = getCambridgeReportLabel(score);
+    setConfirmReason('');
+    setConfirmDialog({
+      title: 'Confirm Cambridge student identity',
+      description: `Link the historical submission for ${historicalLabel} (${testLabel}) to ${studentLabel}? The original submission name and class will remain in the audit record. This link cannot be reassigned from the portal.`,
+      confirmLabel: 'Link student identity',
+      isDestructive: true,
+      requiresReason: true,
+      reasonRequired: true,
+      onConfirm: async (reason) => {
+        const trimmedReason = reason?.trim();
+        if (!trimmedReason) {
+          addToast('A reason is required to link a historical attempt', 'error');
+          return;
+        }
+
+        const result = await SchoolAdminService.linkCambridgeAttemptStudent(
+          score.id,
+          student.user_id,
+          trimmedReason,
+        );
+
+        if (!result.success) {
+          addToast(`Identity was not linked: ${result.error || 'Unknown error'}`, 'error');
+          return;
+        }
+
+        const refreshed = await fetchQuizScores();
+        if (refreshed) {
+          addToast(`Linked ${testLabel} to ${result.student_name || studentLabel}`, 'success');
+        } else {
+          addToast('Identity linked, but reports could not be refreshed. Your existing report list was preserved.', 'warning');
+        }
+      },
+    });
+  };
+
   const exportCSV = () => {
     const filtered = filteredQuizScores;
     if (filtered.length === 0) {
@@ -1433,6 +1479,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       loadAdminTools,
       loadModerationLog,
       loadSchoolVisibility,
+      linkCambridgeAttemptStudent,
       loadStudentModStatus,
       loading,
       memberPage,
