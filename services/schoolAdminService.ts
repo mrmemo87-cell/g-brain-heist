@@ -858,7 +858,7 @@ export async function listClassStudents(classIds: string[], schoolId?: string): 
 export async function allowQuizRetake(
   scoreId: string,
   reason?: string,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; code?: string; history_id?: string; test_id?: string; quiz_version?: string; attempt_number?: number }> {
   try {
     const { data, error } = await supabase.rpc('allow_cambridge_retake', {
       p_score_id: scoreId,
@@ -872,10 +872,16 @@ export async function allowQuizRetake(
 
     const result = typeof data === 'string' ? JSON.parse(data) : data;
     if (result && result.success === false) {
-      return { success: false, error: result.error || 'Failed to allow retake' };
+      return {
+        success: false,
+        error: result.error || 'Failed to allow retake',
+        code: result.code,
+      };
     }
 
-    return { success: true };
+    return result && typeof result === 'object'
+      ? result
+      : { success: true };
   } catch (err) {
     console.error('Exception allowing Cambridge retake:', err);
     return { success: false, error: 'An unexpected error occurred' };
