@@ -345,7 +345,27 @@
   position: sticky;
   top: 88px;
   z-index: 5;
+  max-height: calc(100vh - 104px);
+  max-height: calc(100dvh - 104px);
   min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.teacher-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.teacher-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.teacher-sidebar::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #cbd5e1;
 }
 
 .teacher-nav-container--sidebar {
@@ -355,6 +375,9 @@
 }
 
 .teacher-sidebar-toggle {
+  position: sticky;
+  top: 0;
+  z-index: 6;
   display: flex;
   width: 100%;
   min-height: 2.55rem;
@@ -658,18 +681,6 @@
 }
 
 @media (max-width: 1024px) {
-  .teacher-workspace-shell {
-    grid-template-columns: 1fr;
-  }
-
-  .teacher-sidebar {
-    position: static;
-  }
-
-  .teacher-nav-grid--sidebar {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .teacher-dashboard-grid {
     grid-template-columns: 1fr;
   }
@@ -2866,7 +2877,7 @@
 }
 
 /* Fix action grid at tablet size — 2 cols max */
-@media (min-width: 640px) and (max-width: 1023px) {
+@media (min-width: 640px) and (max-width: 1024px) {
   .teacher-actions-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
@@ -2975,7 +2986,7 @@
 }
 
 /* Tablet: stack sidebar above content */
-@media (max-width: 1023px) {
+@media (max-width: 1024px) {
   .cambridge-reports-body {
     flex-direction: column;
     height: calc(100vh - 300px);
@@ -3609,7 +3620,7 @@
   font-weight: 800;
 }
 
-@media (max-width: 1023px) {
+@media (max-width: 1024px) {
   .teacher-portal-container {
     padding: 1rem 0.85rem calc(7.5rem + env(safe-area-inset-bottom, 0px));
     scroll-padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px));
@@ -4169,7 +4180,7 @@
   }
 }
 
-@media (min-width: 768px) and (max-width: 1023px) {
+@media (min-width: 768px) and (max-width: 1024px) {
   .teacher-portal-container {
     padding-right: 1.25rem;
     padding-left: 1.25rem;
