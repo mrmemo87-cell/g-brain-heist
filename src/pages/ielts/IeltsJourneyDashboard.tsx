@@ -104,7 +104,11 @@ type LoadState = 'loading' | 'ready' | 'error';
 type DashboardMode = 'student' | 'admin';
 type SnapshotModalState = 'idle' | 'loading' | 'ready' | 'error';
 
-const IeltsJourneyDashboard: React.FC = () => {
+interface IeltsJourneyDashboardProps {
+  embedded?: boolean;
+}
+
+const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded = false }) => {
   const navigate = useNavigate();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [journey, setJourney] = useState<IeltsStudentJourney | null>(null);
@@ -246,22 +250,24 @@ const IeltsJourneyDashboard: React.FC = () => {
   }, [loadState]);
 
   return (
-    <div ref={rootRef} style={{ minHeight: '100vh', background: '#f8fafc', color: '#0f172a', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-      <div style={{ maxWidth: '860px', margin: '0 auto', padding: '1.25rem 1rem 4rem', display: 'grid', gap: '1rem' }}>
+    <div ref={rootRef} style={{ minHeight: embedded ? 'auto' : '100vh', background: '#f8fafc', color: '#0f172a', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      <div style={{ maxWidth: embedded ? '100%' : '860px', margin: '0 auto', padding: embedded ? '1rem' : '1.25rem 1rem 4rem', display: 'grid', gap: '1rem' }}>
 
         {/* Back button */}
-        <button
-          type="button"
-          onClick={() => navigate('/ielts')}
-          style={{ background: 'none', border: 'none', color: '#0891b2', fontWeight: 700, textAlign: 'left', cursor: 'pointer', padding: '0.25rem 0', fontSize: '0.875rem' }}
-        >
-          ← Back to IELTS Home
-        </button>
+        {!embedded && (
+          <button
+            type="button"
+            onClick={() => navigate('/ielts')}
+            style={{ background: 'none', border: 'none', color: '#0891b2', fontWeight: 700, textAlign: 'left', cursor: 'pointer', padding: '0.25rem 0', fontSize: '0.875rem' }}
+          >
+            ← Back to IELTS Home
+          </button>
+        )}
 
         {/* Page header */}
         <header data-anim="header" style={{ padding: '0.25rem 0' }}>
-          <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>My IELTS Journey</h1>
-          <p style={{ margin: '0.35rem 0 0', color: '#64748b', fontSize: '0.82rem' }}>Track assignments, results, and reviewed feedback.</p>
+          <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{embedded ? 'Student IELTS Progress' : 'My IELTS Journey'}</h1>
+          <p style={{ margin: '0.35rem 0 0', color: '#64748b', fontSize: '0.82rem' }}>{embedded ? 'Review school-scoped assignments, results, readiness, and feedback.' : 'Track assignments, results, and reviewed feedback.'}</p>
         </header>
 
         {/* Loading */}

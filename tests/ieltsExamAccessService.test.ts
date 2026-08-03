@@ -61,7 +61,9 @@ test('School Admin Portal exposes Phase 1 IELTS tabs without removing Cambridge'
   assert.match(portal, /<IeltsPracticeTab \/>/, 'IELTS Practice placeholder tab must be wired');
   assert.match(portal, /<IeltsResultsTab \/>/, 'IELTS Results placeholder tab must be wired');
   assert.match(portal, /<IeltsAnalyticsTab \/>/, 'IELTS Analytics placeholder tab must be wired');
-  assert.match(portal, /label: 'Student Progress'[\s\S]*route: '\/ielts\/journey'/, 'IELTS school admin nav must include a direct Student Progress link to /ielts/journey');
+  assert.match(portal, /id: 'ielts-student-progress'[\s\S]*label: 'Student Progress'/, 'IELTS school admin nav must include Student Progress');
+  assert.match(portal, /activeIeltsSubTab === 'ielts-student-progress'[\s\S]*<IeltsJourneyDashboard embedded \/>/, 'Student Progress must render inside the School Admin Portal shell');
+  assert.doesNotMatch(portal, /label: 'Student Progress'[^\n]*route: '\/ielts\/journey'/, 'Student Progress must not leave the School Admin Portal shell');
   assert.match(portal, /label: 'Assignment Overview'/, 'IELTS school admin nav should label assignment monitoring as Assignment Overview');
 });
 

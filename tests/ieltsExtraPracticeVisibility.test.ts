@@ -35,13 +35,18 @@ test('direct student extra practice route access blocked when disabled', () => {
 
 test('school_admin/admin can still access IELTS operations tools and can control toggle', () => {
   const home = read('src/pages/ielts/IeltsHome.tsx');
+  const accessService = read('services/ieltsExtraPracticeAccessService.ts');
   assert.match(home, /isIeltsAdminLandingRole = isPlatformAdmin \|\| normalizedRole === 'school_admin' \|\| normalizedRole === 'admin' \|\| normalizedRole === 'superadmin'/);
   assert.match(home, /Allow students to use Extra Practice/);
   assert.match(home, /When off, students only see assigned IELTS practice and their journey\./);
+  assert.match(home, /updateSchoolSettings\(extraPracticeSchoolId,[\s\S]*ielts_extra_practice_enabled: nextEnabled/);
+  assert.match(home, /role="switch"[\s\S]*aria-checked=\{extraPracticeEnabled\}[\s\S]*toggleSchoolExtraPractice/);
+  assert.doesNotMatch(accessService, /if \(isAdmin\) return \{ role, isAdmin: true, enabled: true \}/, 'school admins must read the same stored setting students use');
+  assert.match(accessService, /return \{ role, isAdmin, enabled, schoolId \}/);
 });
 
 
-test('IELTS admin control center exposes Student Progress only through admin landing cards', () => {
+test('IELTS admin control center labels Student Progress clearly', () => {
   const home = read('src/pages/ielts/IeltsHome.tsx');
   const adminBranch = home.slice(home.indexOf('if (isIeltsAdminLandingRole) {'), home.indexOf('// GSAP entrance animation for student view'));
   const studentBranch = home.slice(home.indexOf('// GSAP entrance animation for student view'));

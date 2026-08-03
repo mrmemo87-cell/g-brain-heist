@@ -18,6 +18,7 @@ import { resolveIeltsExtraPracticeAccess } from '../../../services/ieltsExtraPra
 import { canAccessIeltsReviewQueue, normalizeIeltsRole } from '../../../services/ieltsReviewAccess';
 import { trackIeltsFunnelEvent } from '../../../services/ieltsFunnelAnalytics';
 import { fetchIeltsDashboardSummary, type IeltsDashboardSummary } from '../../../services/ieltsDashboardService';
+import { updateSchoolSettings } from '../../../services/schoolAdminService';
 import IeltsAnimatedHero from '../../components/ielts/IeltsAnimatedHero';
 import IeltsPrimeDashboard from '../../components/ielts/IeltsPrimeDashboard';
 
@@ -41,6 +42,9 @@ const IeltsHome: React.FC = () => {
   const [hasSchoolMembership, setHasSchoolMembership] = useState(false);
   const [profileContextLoaded, setProfileContextLoaded] = useState(false);
   const [extraPracticeEnabled, setExtraPracticeEnabled] = useState(true);
+  const [extraPracticeSchoolId, setExtraPracticeSchoolId] = useState<string | null>(null);
+  const [extraPracticeSaving, setExtraPracticeSaving] = useState(false);
+  const [extraPracticeError, setExtraPracticeError] = useState<string | null>(null);
   const [dashboardSummary, setDashboardSummary] = useState<IeltsDashboardSummary | null>(null);
   const [dashboardLoading, setDashboardLoading] = useState(false);
   const [dashboardLoaded, setDashboardLoaded] = useState(false);
@@ -223,9 +227,26 @@ const IeltsHome: React.FC = () => {
       }
       const access = await resolveIeltsExtraPracticeAccess();
       setExtraPracticeEnabled(access.enabled);
+      setExtraPracticeSchoolId(access.schoolId);
     };
     void loadExtraPracticeSetting();
   }, [isAuthenticated]);
+
+  const toggleSchoolExtraPractice = async () => {
+    if (!extraPracticeSchoolId || extraPracticeSaving) return;
+    const nextEnabled = !extraPracticeEnabled;
+    setExtraPracticeSaving(true);
+    setExtraPracticeError(null);
+    const result = await updateSchoolSettings(extraPracticeSchoolId, {
+      ielts_extra_practice_enabled: nextEnabled,
+    });
+    if (result.success) {
+      setExtraPracticeEnabled(nextEnabled);
+    } else {
+      setExtraPracticeError(result.error || 'Unable to update Extra Practice access.');
+    }
+    setExtraPracticeSaving(false);
+  };
 
   useEffect(() => {
     const loadTasks = async () => {
@@ -429,10 +450,21 @@ const IeltsHome: React.FC = () => {
                 <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b', lineHeight: 1.5 }}>When off, students only see assigned IELTS practice and their journey.</p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
-                <button type="button" style={{ width: '3.5rem', height: '1.5rem', background: extraPracticeEnabled ? '#059669' : '#cbd5e1', border: 'none', borderRadius: '9999px', cursor: 'pointer', transition: 'background 0.2s' }} title={extraPracticeEnabled ? 'Disable extra practice' : 'Enable extra practice'} />
-                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: extraPracticeEnabled ? '#059669' : '#94a3b8', minWidth: '3rem' }}>{extraPracticeEnabled ? 'Enabled' : 'Disabled'}</span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={extraPracticeEnabled}
+                  aria-label="Allow students to use Extra Practice"
+                  aria-busy={extraPracticeSaving}
+                  onClick={() => void toggleSchoolExtraPractice()}
+                  disabled={!extraPracticeSchoolId || extraPracticeSaving}
+                  style={{ width: '3.5rem', height: '1.5rem', background: extraPracticeEnabled ? '#059669' : '#cbd5e1', border: 'none', borderRadius: '9999px', cursor: extraPracticeSchoolId && !extraPracticeSaving ? 'pointer' : 'not-allowed', opacity: extraPracticeSaving ? 0.7 : 1, transition: 'background 0.2s' }}
+                  title={!extraPracticeSchoolId ? 'No school is linked to this account' : extraPracticeEnabled ? 'Disable extra practice' : 'Enable extra practice'}
+                />
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: extraPracticeEnabled ? '#059669' : '#94a3b8', minWidth: '4.5rem' }}>{extraPracticeSaving ? 'Updating…' : extraPracticeEnabled ? 'Enabled' : 'Disabled'}</span>
               </div>
             </div>
+            {extraPracticeError && <p role="alert" style={{ margin: '0.75rem 0 0', color: '#b91c1c', fontSize: '0.8rem', fontWeight: 700 }}>{extraPracticeError}</p>}
           </div>
         </div>
       </div>
