@@ -17,11 +17,12 @@ const StudentsTab: React.FC = () => {
               value={selectedStudentId}
               onChange={(e) => {
                 const studentId = e.target.value;
+                const assignedClassId = studentAssignments[studentId] || '';
+                const assignedClass = classes.find((schoolClass) => schoolClass.id === assignedClassId);
                 setSelectedStudentId(studentId);
-                // Auto-fill grade from student's current grade
                 const student = students.find(s => s.user_id === studentId);
-                setSelectedGrade(student?.grade ? Number(student.grade) : '');
-                setSelectedClassId(studentAssignments[studentId] || '');
+                setSelectedGrade(assignedClass?.grade_level ?? student?.grade ?? '');
+                setSelectedClassId(assignedClassId);
               }}
               className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
             >
@@ -34,49 +35,32 @@ const StudentsTab: React.FC = () => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">Grade</label>
-            <select
-              value={selectedGrade || ''}
-              onChange={(e) => {
-                const gradeValue = e.target.value.trim();
-                const grade = gradeValue ? Number(gradeValue) : '';
-                setSelectedGrade(grade);
-                // Reset class selection when grade changes
-                setSelectedClassId('');
-              }}
+            <label className="block text-sm font-medium text-gray-400 mb-1">Year group</label>
+            <input
+              value={selectedGrade ? `Year ${selectedGrade}` : 'Set by selected class'}
+              readOnly
+              aria-label="Year group (set by class)"
               className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
-            >
-              <option value="">Select grade</option>
-              {[6, 7, 8, 9, 10, 11, 12].map((grade) => (
-                <option key={grade} value={String(grade)}>
-                  Grade {grade}
-                </option>
-              ))}
-            </select>
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-1">Class</label>
             <select
               value={selectedClassId}
-              onChange={(e) => setSelectedClassId(e.target.value)}
+              onChange={(e) => {
+                const classId = e.target.value;
+                const selectedClass = classes.find((schoolClass) => schoolClass.id === classId);
+                setSelectedClassId(classId);
+                setSelectedGrade(selectedClass?.grade_level ?? '');
+              }}
               className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
             >
               <option value="">Select class</option>
               {classes
-                .filter((cls) => {
-                  // Show all classes if no grade selected
-                  if (!selectedGrade && selectedGrade !== 0) return true;
-
-                  // Convert both to numbers for comparison (handles string/number mismatch)
-                  const selectedGradeNum = Number(selectedGrade);
-                  const classGradeNum = Number(cls.grade_level);
-
-                  // Use loose equality to compare numbers
-                  return classGradeNum == selectedGradeNum;
-                })
+                .filter((cls) => cls.is_active)
                 .map((cls) => (
                   <option key={cls.id} value={cls.id}>
-                    {cls.class_code} — {cls.class_name}
+                    {cls.class_code} — {cls.class_name} · Year {cls.grade_level ?? 'not set'}
                   </option>
                 ))}
             </select>
@@ -84,7 +68,7 @@ const StudentsTab: React.FC = () => {
           <div className="flex items-end">
             <button
               onClick={handleEnrollStudent}
-              disabled={studentSaving}
+              disabled={studentSaving || !selectedStudentId || !selectedClassId}
               className="w-full px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 rounded-lg transition-colors font-medium"
             >
               {studentSaving ? 'Saving...' : 'Save Enrollment'}
