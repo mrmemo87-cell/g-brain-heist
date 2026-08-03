@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const read = (file: string) => readFileSync(file, 'utf8');
 const migration = read('supabase/migrations/20260804120000_school_student_placement_integrity.sql');
+const auditIndexes = read('supabase/migrations/20260804123000_school_student_placement_audit_indexes.sql');
 const service = read('services/schoolAdminService.ts');
 const portal = read('components/SchoolAdminPortal.tsx');
 const memberModal = read('components/school-admin/modals/MemberActionModal.tsx');
@@ -21,6 +22,9 @@ test('placement history is append-only to clients and school-admin scoped', () =
   assert.match(migration, /grant select on table public\.school_student_placement_audit to authenticated/i);
   assert.match(migration, /using \(public\.can_administer_school\(school_id\)\)/i);
   assert.match(migration, /actor_user_id uuid references public\.users/i);
+  assert.match(auditIndexes, /\(student_user_id, created_at desc\)/i);
+  assert.match(auditIndexes, /\(actor_user_id, created_at desc\)[\s\S]*where actor_user_id is not null/i);
+  assert.match(auditIndexes, /\(to_class_id, created_at desc\)[\s\S]*where to_class_id is not null/i);
 });
 
 test('existing duplicate placements reconcile deterministically before uniqueness is enforced', () => {
