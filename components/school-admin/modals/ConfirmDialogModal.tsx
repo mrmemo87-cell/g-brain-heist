@@ -36,7 +36,7 @@ const ConfirmDialogModal: React.FC = () => {
           {confirmDialog.requiresReason && (
             <div className="mb-4">
               <label htmlFor="confirm-reason" className="block text-sm font-medium text-slate-700 mb-1">
-                Reason (optional)
+                Reason {confirmDialog.reasonRequired ? '(required)' : '(optional)'}
               </label>
               <input
                 id="confirm-reason"
@@ -57,7 +57,7 @@ const ConfirmDialogModal: React.FC = () => {
               {confirmDialog.cancelLabel || 'Cancel'}
             </button>
             <button
-              disabled={confirmBusy}
+              disabled={confirmBusy || (confirmDialog.reasonRequired && !confirmReason.trim())}
               onClick={async () => {
                 setConfirmBusy(true);
                 try {

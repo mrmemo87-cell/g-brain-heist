@@ -3,7 +3,7 @@ import { useSchoolAdmin } from '../SchoolAdminContext';
 
 const CambridgeTab: React.FC = () => {
   const {
-    allowQuizRetake, bulkSetSchoolVisibility, classFilter, exportCSV, fetchQuizScores, filteredQuizScores, filteredSchoolVisibility, loadSchoolVisibility, quizFilter, quizScores, quizScoresLoading, school, schoolVisibility, schoolVisibilityLoading, schoolVisibilitySubjectFilter, schoolVisibilitySubjects, selectedSchoolTests, setClassFilter, setConfirmDialog, setQuizFilter, setSchoolVisibilitySubjectFilter, setSelectedSchoolTests, setShowSchoolVisibility, showSchoolVisibility, students, teachers, toggleSchoolTestVisibility, uniqueClasses, uniqueQuizNames,
+    allowQuizRetake, bulkSetSchoolVisibility, classFilter, exportCSV, fetchQuizScores, filteredQuizScores, filteredSchoolVisibility, loadSchoolVisibility, quizFilter, quizScores, quizScoresLoading, school, schoolVisibility, schoolVisibilityLoading, schoolVisibilitySubjectFilter, schoolVisibilitySubjects, selectedSchoolTests, setClassFilter, setConfirmDialog, setQuizFilter, setSchoolVisibilitySubjectFilter, setSelectedSchoolTests, setShowSchoolVisibility, showSchoolVisibility, students, teachers, toggleSchoolTestVisibility, uniqueClasses, uniqueQuizReports,
   } = useSchoolAdmin();
 
   return (
@@ -223,9 +223,9 @@ const CambridgeTab: React.FC = () => {
                   className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
                 >
                   <option value="all">All Tests ({quizScores.length})</option>
-                  {uniqueQuizNames.map(name => (
-                    <option key={name} value={name}>
-                      {name} ({quizScores.filter(s => s.quiz_name === name).length})
+                  {uniqueQuizReports.map((test: any) => (
+                    <option key={test.key} value={test.key}>
+                      {test.label} ({test.count})
                     </option>
                   ))}
                 </select>
@@ -272,11 +272,12 @@ const CambridgeTab: React.FC = () => {
                         </td>
                       </tr>
                     ) : (
-                      filteredQuizScores.map((score) => (
-                        <tr key={score.id} className="hover:bg-gray-800/50 transition-colors">
+                      filteredQuizScores.map((score) => {
+                        const hasCanonicalAttemptIdentity = Boolean(score.student_id && score.test_id && score.quiz_version);
+                        return <tr key={score.id} className="hover:bg-gray-800/50 transition-colors">
                           <td className="px-4 py-3 text-sm text-white">{score.student_name || 'Unknown'}</td>
                           <td className="px-4 py-3 text-sm text-gray-300">{score.student_class || 'Unknown'}</td>
-                          <td className="px-4 py-3 text-sm text-gray-300 max-w-xs truncate">{score.quiz_name || 'Unknown'}</td>
+                          <td className="px-4 py-3 text-sm text-gray-300 max-w-xs"><span className="block truncate">{score.quiz_name || 'Unknown'}</span><span className="block text-xs text-slate-500">{score.quiz_version || 'legacy-v1'} · Attempt {score.attempt_number || 1} · {score.attempt_status || 'submitted'}</span></td>
                           <td className="px-4 py-3 text-sm text-center font-semibold text-cyan-300">
                             {score.score}/{score.total_questions}
                           </td>
@@ -297,15 +298,16 @@ const CambridgeTab: React.FC = () => {
                           </td>
                           <td className="px-4 py-3 text-sm text-center">
                             <button
-                              onClick={() => allowQuizRetake(score.id, score.student_name)}
-                              className="text-amber-300 hover:text-amber-200 transition-colors font-medium text-xs"
-                              title="Preserve this attempt and allow a retake"
+                              onClick={() => allowQuizRetake(score)}
+                              disabled={!hasCanonicalAttemptIdentity}
+                              className="text-amber-300 hover:text-amber-200 transition-colors font-medium text-xs disabled:text-slate-500 disabled:cursor-not-allowed"
+                              title={hasCanonicalAttemptIdentity ? 'Preserve this exact attempt version and allow a retake' : 'Identity review is required before this legacy attempt can be retaken'}
                             >
-                              ↻ Allow Retake
+                              {hasCanonicalAttemptIdentity ? '↻ Allow Retake' : 'Identity review required'}
                             </button>
                           </td>
-                        </tr>
-                      ))
+                        </tr>;
+                      })
                     )}
                   </tbody>
                 </table>

@@ -85,6 +85,12 @@ const IELTS_TOOL_NAV_ITEMS: IeltsToolNavItem[] = [
   { id: 'ielts-settings', icon: '⚙️', label: 'Settings', hint: 'Config & features' },
 ];
 
+const getCambridgeReportKey = (score: any) =>
+  `${score.test_id || score.quiz_name || 'unknown'}::${score.quiz_version || 'legacy-v1'}`;
+
+const getCambridgeReportLabel = (score: any) =>
+  `${score.quiz_name || 'Unknown test'} · ${score.quiz_version || 'legacy-v1'}`;
+
 const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLogout, onNavigate, addToast, onOpenTeacherPortal }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
   const [activeIeltsSubTab, setActiveIeltsSubTab] = useState<IeltsSubTab>('ielts-exams');
@@ -193,6 +199,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     cancelLabel?: string;
     isDestructive?: boolean;
     requiresReason?: boolean;
+    reasonRequired?: boolean;
     onConfirm: (reason?: string) => Promise<void> | void;
   } | null>(null);
   const [confirmReason, setConfirmReason] = useState('');
@@ -350,7 +357,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
   }, [school?.id, loadAdminTools]);
 
   // Cambridge Tests functions
-  const fetchQuizScores = async () => {
+  const fetchQuizScores = async (): Promise<boolean> => {
     setQuizScoresLoading(true);
     try {
       const { data, error } = await supabase.rpc('get_school_cambridge_scores', { p_limit: 500 });
@@ -358,29 +365,41 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       if (error) {
         console.error('Failed to fetch Cambridge scores:', error);
         addToast('Failed to load Cambridge test scores', 'error');
-        setQuizScores([]);
-        return;
+        return false;
       }
 
       setQuizScores(data || []);
+      return true;
     } catch (error) {
       console.error('Exception fetching quiz scores:', error);
       addToast('Failed to fetch Cambridge test scores', 'error');
+      return false;
     } finally {
       setQuizScoresLoading(false);
     }
   };
 
-  const allowQuizRetake = async (scoreId: string, studentName: string) => {
+  const allowQuizRetake = async (score: any) => {
+    const studentName = score.student_name || 'this student';
+    const testLabel = getCambridgeReportLabel(score);
+    setConfirmReason('');
     setConfirmDialog({
       title: 'Allow Cambridge Retake',
-      description: `Allow ${studentName} to take this test again? Their original attempt will be preserved in the audit history and removed from active results.`,
+      description: `Allow ${studentName} to retake ${testLabel}, attempt ${score.attempt_number || 1}? This exact version will be preserved in audit history and removed from active results.`,
       confirmLabel: 'Allow Retake',
-      onConfirm: async () => {
+      requiresReason: true,
+      reasonRequired: true,
+      onConfirm: async (reason) => {
+        const trimmedReason = reason?.trim();
+        if (!trimmedReason) {
+          addToast('A reason is required to allow a retake', 'error');
+          return;
+        }
+
         try {
           const result = await SchoolAdminService.allowQuizRetake(
-            scoreId,
-            'School administrator authorized a retake',
+            score.id,
+            trimmedReason,
           );
 
           if (!result.success) {
@@ -388,8 +407,12 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
             return;
           }
 
-          setQuizScores(prev => prev.filter(score => score.id !== scoreId));
-          addToast(`Retake allowed for ${studentName}; the original attempt was preserved`, 'success');
+          const refreshed = await fetchQuizScores();
+          if (refreshed) {
+            addToast(`Retake allowed for ${studentName}; ${testLabel} was preserved`, 'success');
+          } else {
+            addToast('Retake allowed, but the reports could not be refreshed. Your existing report list was preserved.', 'warning');
+          }
         } catch (error: any) {
           console.error('Failed to allow retake:', error);
           addToast(`Failed to allow retake: ${error.message}`, 'error');
@@ -405,11 +428,15 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       return;
     }
 
-    const headers = ['Student Name', 'Class', 'Quiz Name', 'Score', 'Total', 'Percentage', 'Time (seconds)', 'Submitted At'];
+    const headers = ['Student Name', 'Class', 'Quiz Name', 'Test ID', 'Version', 'Attempt', 'Status', 'Score', 'Total', 'Percentage', 'Time (seconds)', 'Submitted At'];
     const rows = filtered.map(s => [
       s.student_name || '',
       s.student_class || '',
       s.quiz_name || '',
+      s.test_id || '',
+      s.quiz_version || 'legacy-v1',
+      s.attempt_number || 1,
+      s.attempt_status || 'submitted',
       s.score || 0,
       s.total_questions || 0,
       s.percentage || 0,
@@ -432,12 +459,21 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
   };
 
   const filteredQuizScores = quizScores.filter(s => {
-    if (quizFilter !== 'all' && s.quiz_name !== quizFilter) return false;
+    if (quizFilter !== 'all' && getCambridgeReportKey(s) !== quizFilter) return false;
     if (classFilter !== 'all' && (s.student_class || 'Unknown') !== classFilter) return false;
     return true;
   });
 
-  const uniqueQuizNames = Array.from(new Set(quizScores.map(s => s.quiz_name).filter(Boolean)));
+  const quizReportsByKey = new Map<string, { key: string; label: string; count: number }>();
+  quizScores.forEach((score) => {
+    const key = getCambridgeReportKey(score);
+    const existing = quizReportsByKey.get(key);
+    quizReportsByKey.set(key, existing
+      ? { ...existing, count: existing.count + 1 }
+      : { key, label: getCambridgeReportLabel(score), count: 1 });
+  });
+  const uniqueQuizReports = Array.from(quizReportsByKey.values())
+    .sort((left, right) => left.label.localeCompare(right.label));
   const uniqueClasses = Array.from(new Set(quizScores.map(s => s.student_class || 'Unknown')));
 
   // School-level Cambridge visibility functions
@@ -1516,7 +1552,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       toggleSchoolTestVisibility,
       toggleSelectAllMembers,
       uniqueClasses,
-      uniqueQuizNames,
+      uniqueQuizReports,
   };
 
   return (

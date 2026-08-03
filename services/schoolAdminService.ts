@@ -1,5 +1,9 @@
 import { supabase } from './supabaseClient';
 import type { SchoolRole } from '../types';
+import {
+  normalizeCambridgeRetakeResult,
+  type CambridgeRetakeResult,
+} from '../src/lib/cambridgeRetakeResult';
 
 // ============================================
 // School Admin Service — Patch J (RPC-backed)
@@ -858,7 +862,7 @@ export async function listClassStudents(classIds: string[], schoolId?: string): 
 export async function allowQuizRetake(
   scoreId: string,
   reason?: string,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<CambridgeRetakeResult> {
   try {
     const { data, error } = await supabase.rpc('allow_cambridge_retake', {
       p_score_id: scoreId,
@@ -871,11 +875,7 @@ export async function allowQuizRetake(
     }
 
     const result = typeof data === 'string' ? JSON.parse(data) : data;
-    if (result && result.success === false) {
-      return { success: false, error: result.error || 'Failed to allow retake' };
-    }
-
-    return { success: true };
+    return normalizeCambridgeRetakeResult(result);
   } catch (err) {
     console.error('Exception allowing Cambridge retake:', err);
     return { success: false, error: 'An unexpected error occurred' };
