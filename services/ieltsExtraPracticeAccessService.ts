@@ -6,11 +6,12 @@ export interface IeltsExtraPracticeAccess {
   role: string;
   isAdmin: boolean;
   enabled: boolean;
+  schoolId: string | null;
 }
 
 export async function resolveIeltsExtraPracticeAccess(): Promise<IeltsExtraPracticeAccess> {
   const { data: auth } = await supabase.auth.getUser();
-  if (!auth?.user) return { role: 'student', isAdmin: false, enabled: false };
+  if (!auth?.user) return { role: 'student', isAdmin: false, enabled: false, schoolId: null };
 
   const { data: profile } = await supabase
     .from('users')
@@ -20,13 +21,11 @@ export async function resolveIeltsExtraPracticeAccess(): Promise<IeltsExtraPract
 
   const role = ((profile as { role?: string | null } | null)?.role || 'student').trim().toLowerCase();
   const isAdmin = ADMIN_ROLES.has(role);
-
-  if (isAdmin) return { role, isAdmin: true, enabled: true };
-
   const schoolId = (profile as { school_id?: string | null } | null)?.school_id;
   // Independent IELTS learners are not attached to a school; allow the
   // public funnel/free-task flow to work without weakening school settings.
-  if (!schoolId) return { role, isAdmin: false, enabled: true };
+  // Platform administrators without a school also retain operations access.
+  if (!schoolId) return { role, isAdmin, enabled: true, schoolId: null };
 
   const { data: school } = await supabase
     .from('schools')
@@ -37,5 +36,5 @@ export async function resolveIeltsExtraPracticeAccess(): Promise<IeltsExtraPract
   const raw = (school as { settings?: Record<string, unknown> | null } | null)?.settings?.['ielts_extra_practice_enabled'];
   const enabled = typeof raw === 'boolean' ? raw : false;
 
-  return { role, isAdmin: false, enabled };
+  return { role, isAdmin, enabled, schoolId };
 }
