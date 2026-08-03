@@ -160,8 +160,8 @@ const IeltsResultsTab: React.FC = () => {
         )}
 
         {rows.length > 0 && (
-          <div className="mt-5 overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-800 text-left text-sm">
+          <div className="admin-table-scroll mt-5" role="region" aria-label="IELTS results table" tabIndex={0}>
+            <table className="min-w-[920px] divide-y divide-gray-800 text-left text-sm">
               <thead className="text-xs uppercase tracking-wide text-gray-400">
                 <tr>
                   <th className="px-3 py-3">Student</th>
