@@ -33,16 +33,21 @@ test('direct student extra practice route access blocked when disabled', () => {
   }
 });
 
-test('school_admin/admin can still access IELTS operations tools and can control toggle', () => {
+test('school administrators use the persistent IELTS shell and its single settings control', () => {
   const home = read('src/pages/ielts/IeltsHome.tsx');
+  const settingsTab = read('components/school-admin/tabs/IeltsSettingsTab.tsx');
   const accessService = read('services/ieltsExtraPracticeAccessService.ts');
-  assert.match(home, /isIeltsAdminLandingRole = isPlatformAdmin \|\| normalizedRole === 'school_admin' \|\| normalizedRole === 'admin' \|\| normalizedRole === 'superadmin'/);
-  assert.match(home, /Allow students to use Extra Practice/);
-  assert.match(home, /When off, students only see assigned IELTS practice and their journey\./);
-  assert.match(home, /updateSchoolSettings\(extraPracticeSchoolId,[\s\S]*ielts_extra_practice_enabled: nextEnabled/);
-  assert.match(home, /role="switch"[\s\S]*aria-checked=\{extraPracticeEnabled\}[\s\S]*toggleSchoolExtraPractice/);
+  assert.match(home, /isIeltsAdminLandingRole = isPlatformAdmin \|\| canAdministerSchool/);
+  assert.match(home, /resolveMySchoolCapabilities\(\)/, 'school administration decisions must use active membership capabilities');
+  assert.doesNotMatch(home, /normalizedRole === 'school_admin'/, 'legacy profile role must not grant school administration access');
+  assert.match(home, /navigate\(schoolAdminIeltsUrl\('ielts-exams'\), \{ replace: true \}\)/, 'school administrators should enter IELTS through the persistent school shell');
+  assert.match(settingsTab, /Extra Practice Access/);
+  assert.match(settingsTab, /updateIeltsExtraPracticeAccess\(checked\)/, 'the school setting must be written through the typed authoritative RPC');
+  assert.match(settingsTab, /type="checkbox"[\s\S]*role="switch"[\s\S]*aria-label="Allow students to use Extra Practice"[\s\S]*checked=\{extraPracticeEnabled === true\}/);
+  assert.doesNotMatch(home, /toggleSchoolExtraPractice|updateSchoolSettings/, 'IELTS Home must not host a competing school setting control');
   assert.doesNotMatch(accessService, /if \(isAdmin\) return \{ role, isAdmin: true, enabled: true \}/, 'school admins must read the same stored setting students use');
-  assert.match(accessService, /return \{ role, isAdmin, enabled, schoolId \}/);
+  assert.match(accessService, /rpc_ielts_extra_practice_access/, 'all roles must read one server-authoritative access result');
+  assert.doesNotMatch(accessService, /\.from\(['"](?:users|schools)['"]\)/, 'client must not reconstruct school authority from direct table reads');
 });
 
 
@@ -63,8 +68,17 @@ test('IELTS admin control center labels Student Progress clearly', () => {
 test('IELTS Home review queue card is role-gated by the same helper as route guard', () => {
   const home = read('src/pages/ielts/IeltsHome.tsx');
 
-  assert.match(home, /const canOpenReviewQueue = canAccessIeltsReviewQueue\(\{ role: userRole, is_admin: isPlatformAdmin \}\);/);
+  assert.match(home, /const canOpenReviewQueue = canAccessIeltsReviewQueue\(\{[\s\S]*can_administer_school: canAdministerSchool,[\s\S]*\}\);/);
   assert.match(home, /\{canOpenReviewQueue && \(/, 'home should only render review queue card for authorized users');
+});
+
+test('authenticated IELTS dashboard fails closed when Extra Practice is disabled or unresolved', () => {
+  const home = read('src/pages/ielts/IeltsHome.tsx');
+
+  assert.match(home, /extraPracticeAccessError \|\| extraPracticeEnabled === false/, 'dashboard must render an explicit restricted state');
+  assert.match(home, /We have kept unverified practice content closed/, 'unverified practice must stay closed');
+  assert.match(home, /Assigned school work remains available while you retry/, 'assigned work should remain available');
+  assert.match(home, /setExtraPracticeRetry/, 'verification failures must offer a retry');
 });
 
 test('assigned IELTS practice bypasses extra-practice lock while non-diagnostic free routes stay guarded', () => {

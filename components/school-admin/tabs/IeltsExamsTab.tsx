@@ -1,7 +1,13 @@
 import React from 'react';
 import { useSchoolAdmin } from '../SchoolAdminContext';
+import IeltsExamModeAdminGuard from '../../ielts/IeltsExamModeAdminGuard';
+import IeltsExamManager from '../../../src/pages/ielts/IeltsExamManager';
 
-const IeltsExamsTab: React.FC = () => {
+interface IeltsExamsTabProps {
+  onOpenMonitor?: (examEventId: string) => void;
+}
+
+const IeltsExamsTab: React.FC<IeltsExamsTabProps> = ({ onOpenMonitor }) => {
   const { school } = useSchoolAdmin();
 
   return (
@@ -11,27 +17,20 @@ const IeltsExamsTab: React.FC = () => {
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-blue-300">IELTS Academy</p>
             <h3 className="mt-2 text-2xl font-bold text-white">IELTS Exams</h3>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-700">
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300">
               Create and monitor controlled IELTS mock exams for {school?.name ?? 'this school'} using the secure Exam Mode manager.
-              Exam content, assignments, timers, autosaves, and emergency controls remain school-scoped.
+              Exam content, assignments, timers, autosaves, and emergency controls are limited to authorised staff at this school.
             </p>
           </div>
-          <a
-            href="/ielts/exams/manage"
-            className="inline-flex items-center justify-center rounded-xl bg-blue-500 px-5 py-3 font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:bg-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-300"
-          >
-            Open IELTS Exam Manager
-          </a>
+          <span className="inline-flex items-center justify-center rounded-xl bg-blue-500/15 px-5 py-3 font-semibold text-blue-100 ring-1 ring-blue-400/30">
+            Secure exam workspace
+          </span>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-gray-700/60 bg-gray-900/70 p-5 text-sm text-gray-300">
-        <h4 className="text-lg font-semibold text-white">Available now</h4>
-        <p className="mt-2">
-          This tab connects school admins to the existing secure IELTS Exam Mode. Use it to create exams, attach protected forms,
-          assign students, and open live monitoring without exposing answer keys in the school portal.
-        </p>
-      </div>
+      <IeltsExamModeAdminGuard>
+        <IeltsExamManager embedded onOpenMonitor={onOpenMonitor} />
+      </IeltsExamModeAdminGuard>
     </div>
   );
 };

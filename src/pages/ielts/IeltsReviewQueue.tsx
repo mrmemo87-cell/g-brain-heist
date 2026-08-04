@@ -2,10 +2,16 @@ import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { rpcIeltsReviewQueue, type IeltsReviewQueueItem, type IeltsReviewSkill } from '../../../services/ieltsTeacherReviewService';
+import { friendlyIeltsAdminError } from '../../lib/schoolAdminPresentation';
 
 const badgeColor = (status: string) => status === 'finalized' ? '#16a34a' : status === 'in_review' ? '#f59e0b' : '#64748b';
 
-const IeltsReviewQueue: React.FC = () => {
+interface IeltsReviewQueueProps {
+  embedded?: boolean;
+  onOpenReview?: (review: { skill: IeltsReviewSkill; attemptId: string }) => void;
+}
+
+const IeltsReviewQueue: React.FC<IeltsReviewQueueProps> = ({ embedded = false, onOpenReview }) => {
   const navigate = useNavigate();
   const [skill, setSkill] = useState<IeltsReviewSkill | ''>('writing');
   const [reviewStatus, setReviewStatus] = useState('pending');
@@ -18,16 +24,22 @@ const IeltsReviewQueue: React.FC = () => {
     queryFn: () => rpcIeltsReviewQueue(filters),
   });
 
-  const openReview = (row: IeltsReviewQueueItem) => navigate(`/ielts/reviews/${row.skill}/${encodeURIComponent(row.attempt_id)}`);
+  const openReview = (row: IeltsReviewQueueItem) => {
+    if (onOpenReview) {
+      onOpenReview({ skill: row.skill, attemptId: row.attempt_id });
+      return;
+    }
+    navigate(`/ielts/reviews/${row.skill}/${encodeURIComponent(row.attempt_id)}`);
+  };
 
   return (
-    <main style={{ minHeight: '100vh', background: '#f8fafc', padding: '2rem' }}>
+    <main data-testid={embedded ? 'embedded-ielts-review-queue' : 'ielts-review-queue'} style={{ minHeight: embedded ? undefined : '100vh', background: '#f8fafc', padding: '2rem' }}>
       <section style={{ maxWidth: '72rem', margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem' }}>
           <div>
             <h1 style={{ margin: 0, color: '#0f172a', fontSize: '2rem' }}>IELTS Review Queue</h1>
             <p style={{ margin: '0.35rem 0 0', color: '#64748b' }}>Human teacher review for writing and speaking submissions.</p>
-            <p style={{ margin: '0.35rem 0 0', color: '#475569', fontSize: '0.875rem' }}>Route: <code>/ielts/reviews</code> · Defaults show pending writing submissions.</p>
+            <p style={{ margin: '0.35rem 0 0', color: '#475569', fontSize: '0.875rem' }}>Pending writing submissions are shown first.</p>
           </div>
           <button onClick={() => void refetch()} style={{ border: '1px solid #cbd5e1', borderRadius: '0.5rem', background: 'white', padding: '0.65rem 1rem', cursor: 'pointer' }}>Refresh</button>
         </div>
@@ -56,7 +68,7 @@ const IeltsReviewQueue: React.FC = () => {
           </label>
         </div>
 
-        {error ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: '1rem', borderRadius: '0.75rem', marginBottom: '1rem' }}>{error instanceof Error ? error.message : 'Unable to load review queue.'}</div> : null}
+        {error ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: '1rem', borderRadius: '0.75rem', marginBottom: '1rem' }}>{friendlyIeltsAdminError(error, 'Unable to load the review queue. Please try again.')}</div> : null}
         {isLoading ? <div style={{ color: '#475569' }}>Loading reviewable submissions…</div> : null}
 
         <div style={{ display: 'grid', gap: '0.75rem' }}>

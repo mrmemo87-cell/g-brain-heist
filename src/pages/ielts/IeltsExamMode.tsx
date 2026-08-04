@@ -21,6 +21,7 @@ import {
   type RenderableExamQuestion,
 } from '../../../services/ieltsExamPayloadParser';
 import {
+  canStartIeltsExamAttempt,
   formatIeltsCountdown,
   getIeltsStudentExamSyncMessage,
   isIeltsTeacherSubmittedStatus,
@@ -519,7 +520,16 @@ const IeltsExamMode: React.FC = () => {
   const isPaused = syncState === 'paused';
   const startCountdownSeconds = startsAtMs === null ? 0 : Math.max(0, Math.floor((startsAtMs - serverNowMs) / 1000));
   const lifecycleMeta = resolveIeltsExamLifecycleMeta(eventStatus ?? whoami?.status, whoami?.starts_at, whoami?.ends_at, serverNowMs);
-  const canStart = Boolean(whoami?.allowed && whoami.assignment_id && !attempt && !isSubmitted && !isBeforeStart && !isAfterExamWindow && !isPaused);
+  const canStart = canStartIeltsExamAttempt({
+    allowed: whoami?.allowed,
+    assignmentId: whoami?.assignment_id,
+    eventStatus,
+    hasAttempt: Boolean(attempt),
+    isSubmitted,
+    isBeforeStart,
+    isAfterExamWindow,
+    isPaused,
+  });
   const inProgress = Boolean(attempt && !isSubmitted);
 
   if (loadState === 'loading') {
@@ -535,8 +545,10 @@ const IeltsExamMode: React.FC = () => {
       <ExamFrame>
         <StateCard
           eyebrow={lifecycleMeta.label}
-          title="Starts in"
-          body={`${formatIeltsCountdown(startCountdownSeconds)} until the exam opens in your local time.`}
+          title={eventStatus === 'scheduled' ? 'Scheduled start in' : 'Starts in'}
+          body={eventStatus === 'scheduled'
+            ? `${formatIeltsCountdown(startCountdownSeconds)} until the scheduled start. Your invigilator must also launch the exam before you can begin.`
+            : `${formatIeltsCountdown(startCountdownSeconds)} until the exam opens in your local time.`}
           secondaryText={`Local start: ${formatLocalDateTime(whoami?.starts_at)} · Local end: ${formatLocalDateTime(whoami?.ends_at)}`}
           actionLabel="Check again"
           onAction={() => void loadWhoami()}

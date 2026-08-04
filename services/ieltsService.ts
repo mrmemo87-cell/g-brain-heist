@@ -245,7 +245,7 @@ export interface IeltsPublicTaskPreview {
 
 export interface IeltsPracticeAccessResult {
   allowed: boolean;
-  reason: 'not_authenticated' | 'not_found' | 'prime_required' | 'allowed' | 'error';
+  reason: 'not_authenticated' | 'not_found' | 'prime_required' | 'extra_practice_disabled' | 'allowed' | 'error';
   required_tier: string | null;
 }
 

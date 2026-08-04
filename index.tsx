@@ -56,6 +56,7 @@ const IeltsExamManager = lazyRetry(() => import('./src/pages/ielts/IeltsExamMana
 const IeltsReviewQueue = lazyRetry(() => import('./src/pages/ielts/IeltsReviewQueue'), 'IeltsReviewQueue');
 const IeltsSubmissionReview = lazyRetry(() => import('./src/pages/ielts/IeltsSubmissionReview'), 'IeltsSubmissionReview');
 const IeltsReviewResult = lazyRetry(() => import('./src/pages/ielts/IeltsReviewResult'), 'IeltsReviewResult');
+const SchoolAdminIeltsRoute = lazyRetry(() => import('./components/ielts/SchoolAdminIeltsRoute'), 'SchoolAdminIeltsRoute');
 const IeltsObjectiveResult = lazyRetry(() => import('./src/pages/ielts/IeltsObjectiveResult'), 'IeltsObjectiveResult');
 const IeltsReviewAdminGuard = lazyRetry(() => import('./components/ielts/IeltsReviewAdminGuard'), 'IeltsReviewAdminGuard');
 const IeltsExtraPracticeGuard = lazyRetry(() => import('./src/pages/ielts/IeltsExtraPracticeGuard'), 'IeltsExtraPracticeGuard');
@@ -785,7 +786,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/ielts/journey',
-    element: <ProtectedRoute element={<IeltsJourneyDashboard />} />,
+    element: <ProtectedRoute element={<SchoolAdminIeltsRoute ieltsTab="ielts-student-progress"><IeltsJourneyDashboard /></SchoolAdminIeltsRoute>} />,
   },
   {
     path: '/ielts/admin',
@@ -827,9 +828,9 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute
         element={(
-          <IeltsExamModeAdminGuard>
-            <IeltsExamManager />
-          </IeltsExamModeAdminGuard>
+          <SchoolAdminIeltsRoute ieltsTab="ielts-exams">
+            <IeltsExamModeAdminGuard><IeltsExamManager /></IeltsExamModeAdminGuard>
+          </SchoolAdminIeltsRoute>
         )}
       />
     ),
@@ -839,9 +840,9 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute
         element={(
-          <IeltsReviewAdminGuard>
-            <IeltsReviewQueue />
-          </IeltsReviewAdminGuard>
+          <SchoolAdminIeltsRoute ieltsTab="ielts-reviews">
+            <IeltsReviewAdminGuard><IeltsReviewQueue /></IeltsReviewAdminGuard>
+          </SchoolAdminIeltsRoute>
         )}
       />
     ),
@@ -851,9 +852,9 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute
         element={(
-          <IeltsReviewAdminGuard>
-            <IeltsSubmissionReview />
-          </IeltsReviewAdminGuard>
+          <SchoolAdminIeltsRoute ieltsTab="ielts-reviews" reviewFromRoute>
+            <IeltsReviewAdminGuard><IeltsSubmissionReview /></IeltsReviewAdminGuard>
+          </SchoolAdminIeltsRoute>
         )}
       />
     ),
@@ -871,9 +872,9 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute
         element={(
-          <IeltsExamModeAdminGuard>
-            <IeltsExamMonitor />
-          </IeltsExamModeAdminGuard>
+          <SchoolAdminIeltsRoute ieltsTab="ielts-exams" monitorFromRoute>
+            <IeltsExamModeAdminGuard><IeltsExamMonitor /></IeltsExamModeAdminGuard>
+          </SchoolAdminIeltsRoute>
         )}
       />
     ),

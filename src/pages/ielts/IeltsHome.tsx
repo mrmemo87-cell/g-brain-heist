@@ -16,15 +16,17 @@ import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/au
 import { supabase } from '../../../services/supabaseClient';
 import { resolveIeltsExtraPracticeAccess } from '../../../services/ieltsExtraPracticeAccessService';
 import { canAccessIeltsReviewQueue, normalizeIeltsRole } from '../../../services/ieltsReviewAccess';
+import { resolveMySchoolCapabilities } from '../../../services/schoolAdminService';
 import { trackIeltsFunnelEvent } from '../../../services/ieltsFunnelAnalytics';
 import { fetchIeltsDashboardSummary, type IeltsDashboardSummary } from '../../../services/ieltsDashboardService';
-import { updateSchoolSettings } from '../../../services/schoolAdminService';
+import { schoolAdminIeltsUrl } from '../../lib/schoolAdminIeltsNavigation';
 import IeltsAnimatedHero from '../../components/ielts/IeltsAnimatedHero';
 import IeltsPrimeDashboard from '../../components/ielts/IeltsPrimeDashboard';
 
 const IeltsHome: React.FC = () => {
   const navigate = useNavigate();
   const dashboardEventTrackedRef = useRef(false);
+  const authUserIdRef = useRef<string | null>(null);
   const primeRedirectUrl = '/ielts/apply-prime';
   const [musicEnabled, setMusicEnabled] = useState(false);
   const [readingSets, setReadingSets] = useState<IELTSReadingSet[]>([]);
@@ -36,23 +38,33 @@ const IeltsHome: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [userTier, setUserTier] = useState('free');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authUserId, setAuthUserId] = useState<string | null>(null);
   const [authResolved, setAuthResolved] = useState(false);
   const [userRole, setUserRole] = useState<string>('student');
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
+  const [canAdministerSchool, setCanAdministerSchool] = useState(false);
   const [hasSchoolMembership, setHasSchoolMembership] = useState(false);
   const [profileContextLoaded, setProfileContextLoaded] = useState(false);
-  const [extraPracticeEnabled, setExtraPracticeEnabled] = useState(true);
-  const [extraPracticeSchoolId, setExtraPracticeSchoolId] = useState<string | null>(null);
-  const [extraPracticeSaving, setExtraPracticeSaving] = useState(false);
-  const [extraPracticeError, setExtraPracticeError] = useState<string | null>(null);
+  const [profileContextError, setProfileContextError] = useState(false);
+  const [profileContextRetry, setProfileContextRetry] = useState(0);
+  const [extraPracticeEnabled, setExtraPracticeEnabled] = useState<boolean | null>(null);
+  const [extraPracticeAccessError, setExtraPracticeAccessError] = useState(false);
+  const [extraPracticeRetry, setExtraPracticeRetry] = useState(0);
   const [dashboardSummary, setDashboardSummary] = useState<IeltsDashboardSummary | null>(null);
   const [dashboardLoading, setDashboardLoading] = useState(false);
   const [dashboardLoaded, setDashboardLoaded] = useState(false);
   const isPrimeUser = isIeltsPrime({ tier: userTier });
   const canAccessRequiredTier = (requiredTier?: string | null) => !requiredTier || requiredTier === 'free' || isPrimeUser;
-  const normalizedRole = normalizeIeltsRole(userRole);
-  const isIeltsAdminLandingRole = isPlatformAdmin || normalizedRole === 'school_admin' || normalizedRole === 'admin' || normalizedRole === 'superadmin';
-  const canOpenReviewQueue = canAccessIeltsReviewQueue({ role: userRole, is_admin: isPlatformAdmin });
+  const isIeltsAdminLandingRole = isPlatformAdmin || canAdministerSchool;
+  const shouldUseSchoolAdminShell = profileContextLoaded
+    && canAdministerSchool
+    && !isPlatformAdmin
+    && !profileContextError;
+  const canOpenReviewQueue = canAccessIeltsReviewQueue({
+    role: userRole,
+    is_admin: isPlatformAdmin,
+    can_administer_school: canAdministerSchool,
+  });
 
   // Stop background music when entering IELTS section
   useEffect(() => {
@@ -101,15 +113,33 @@ const IeltsHome: React.FC = () => {
 
   useEffect(() => {
     let active = true;
+    const syncSession = (session: { user?: { id?: string | null } | null } | null) => {
+      if (!active) return;
+      const nextUserId = session?.user?.id ?? null;
+      if (authUserIdRef.current !== nextUserId) {
+        authUserIdRef.current = nextUserId;
+        setProfileContextLoaded(false);
+        setProfileContextError(false);
+        setUserRole('student');
+        setCanAdministerSchool(false);
+        setIsPlatformAdmin(false);
+        setHasSchoolMembership(false);
+        setDashboardSummary(null);
+        setDashboardLoaded(false);
+        setExtraPracticeEnabled(null);
+      }
+      setAuthUserId(nextUserId);
+      setIsAuthenticated(Boolean(nextUserId));
+      setAuthResolved(true);
+    };
+
     supabase.auth.getSession().then(({ data }) => {
       if (active) {
-        setIsAuthenticated(Boolean(data.session));
-        setAuthResolved(true);
+        syncSession(data.session);
       }
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAuthenticated(Boolean(session));
-      setAuthResolved(true);
+      syncSession(session);
     });
     return () => {
       active = false;
@@ -134,43 +164,92 @@ const IeltsHome: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [authUserId]);
 
   useEffect(() => {
-    const loadUserRole = async () => {
-      const { data: auth } = await supabase.auth.getUser();
-      if (!auth?.user) {
+    let active = true;
+
+    const loadProfileContext = async () => {
+      if (!authResolved) return;
+
+      setProfileContextLoaded(false);
+      setProfileContextError(false);
+      setCanAdministerSchool(false);
+      setHasSchoolMembership(false);
+
+      if (!isAuthenticated || !authUserId) {
+        setUserRole('student');
+        setIsPlatformAdmin(false);
         setProfileContextLoaded(true);
         return;
       }
-      const { data: profile } = await supabase
-        .from('users')
-        .select('role, is_admin, school_id')
-        .eq('id', auth.user.id)
-        .maybeSingle();
-      const typedProfile = profile as { role?: string | null; is_admin?: boolean | null; school_id?: string | null } | null;
-      if (typedProfile?.role) setUserRole(typedProfile.role);
-      setIsPlatformAdmin(Boolean(typedProfile?.is_admin));
-      setHasSchoolMembership(Boolean(typedProfile?.school_id));
+
+      const { data: auth, error: authError } = await supabase.auth.getUser();
+      if (!active) return;
+      if (authError || !auth?.user || auth.user.id !== authUserId) {
+        setProfileContextError(true);
+        setProfileContextLoaded(true);
+        return;
+      }
+
+      const [{ data: profile, error: profileError }, capabilityResolution] = await Promise.all([
+        supabase
+          .from('users')
+          .select('role, is_admin')
+          .eq('id', auth.user.id)
+          .maybeSingle(),
+        resolveMySchoolCapabilities(),
+      ]);
+      if (!active) return;
+
+      const typedProfile = profile as { role?: string | null; is_admin?: boolean | null } | null;
+      const resolvedRole = normalizeIeltsRole(typedProfile?.role);
+      const platformAdmin = !profileError && (
+        Boolean(typedProfile?.is_admin)
+        || resolvedRole === 'admin'
+        || resolvedRole === 'superadmin'
+      );
+      const schoolCapabilities = capabilityResolution.status === 'ready'
+        ? capabilityResolution.capabilities
+        : null;
+
+      setUserRole(typedProfile?.role || 'student');
+      setIsPlatformAdmin(platformAdmin);
+      setCanAdministerSchool(Boolean(schoolCapabilities?.can_administer));
+      setHasSchoolMembership(Boolean(schoolCapabilities));
+
+      if ((profileError && !schoolCapabilities?.can_administer) || (capabilityResolution.status === 'error' && !platformAdmin)) {
+        setProfileContextError(true);
+      }
       setProfileContextLoaded(true);
     };
 
-    void loadUserRole();
-  }, []);
+    void loadProfileContext().catch(() => {
+      if (!active) return;
+      setProfileContextError(true);
+      setProfileContextLoaded(true);
+    });
+    return () => { active = false; };
+  }, [authResolved, authUserId, isAuthenticated, profileContextRetry]);
 
   useEffect(() => {
-    if (!profileContextLoaded || isIeltsAdminLandingRole) return;
+    if (!profileContextLoaded || profileContextError || isIeltsAdminLandingRole) return;
     trackIeltsFunnelEvent('landing_view', {
       user_type: hasSchoolMembership ? 'school' : 'independent',
     });
-  }, [profileContextLoaded, isIeltsAdminLandingRole, hasSchoolMembership]);
+  }, [profileContextLoaded, profileContextError, isIeltsAdminLandingRole, hasSchoolMembership]);
+
+  useEffect(() => {
+    if (!shouldUseSchoolAdminShell) return;
+    navigate(schoolAdminIeltsUrl('ielts-exams'), { replace: true });
+  }, [navigate, shouldUseSchoolAdminShell]);
 
 
   useEffect(() => {
     let active = true;
     const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-    if (!profileContextLoaded || !isAuthenticated || isIeltsAdminLandingRole) {
+    if (!profileContextLoaded || profileContextError || !isAuthenticated || isIeltsAdminLandingRole) {
       setDashboardSummary(null);
       setDashboardLoading(false);
       setDashboardLoaded(false);
@@ -217,36 +296,34 @@ const IeltsHome: React.FC = () => {
 
     void loadDashboard();
     return () => { active = false; };
-  }, [profileContextLoaded, isAuthenticated, isIeltsAdminLandingRole, hasSchoolMembership]);
+  }, [profileContextLoaded, profileContextError, authUserId, isAuthenticated, isIeltsAdminLandingRole, hasSchoolMembership]);
 
   useEffect(() => {
+    let active = true;
     const loadExtraPracticeSetting = async () => {
       if (!isAuthenticated) {
-        setExtraPracticeEnabled(true);
+        if (active) {
+          setExtraPracticeEnabled(true);
+          setExtraPracticeAccessError(false);
+        }
         return;
       }
-      const access = await resolveIeltsExtraPracticeAccess();
-      setExtraPracticeEnabled(access.enabled);
-      setExtraPracticeSchoolId(access.schoolId);
+      setExtraPracticeEnabled(null);
+      setExtraPracticeAccessError(false);
+      try {
+        const access = await resolveIeltsExtraPracticeAccess();
+        if (!active) return;
+        setExtraPracticeEnabled(access.enabled);
+        setExtraPracticeAccessError(access.status === 'error');
+      } catch {
+        if (!active) return;
+        setExtraPracticeEnabled(false);
+        setExtraPracticeAccessError(true);
+      }
     };
     void loadExtraPracticeSetting();
-  }, [isAuthenticated]);
-
-  const toggleSchoolExtraPractice = async () => {
-    if (!extraPracticeSchoolId || extraPracticeSaving) return;
-    const nextEnabled = !extraPracticeEnabled;
-    setExtraPracticeSaving(true);
-    setExtraPracticeError(null);
-    const result = await updateSchoolSettings(extraPracticeSchoolId, {
-      ielts_extra_practice_enabled: nextEnabled,
-    });
-    if (result.success) {
-      setExtraPracticeEnabled(nextEnabled);
-    } else {
-      setExtraPracticeError(result.error || 'Unable to update Extra Practice access.');
-    }
-    setExtraPracticeSaving(false);
-  };
+    return () => { active = false; };
+  }, [authUserId, isAuthenticated, extraPracticeRetry]);
 
   useEffect(() => {
     const loadTasks = async () => {
@@ -346,12 +423,12 @@ const IeltsHome: React.FC = () => {
       }
     };
 
-    if (!isIeltsAdminLandingRole) {
+    if (profileContextLoaded && !profileContextError && !isIeltsAdminLandingRole) {
       void loadTasks();
       return;
     }
     setIsLoading(false);
-  }, [isAuthenticated, isIeltsAdminLandingRole]);
+  }, [authUserId, isAuthenticated, profileContextLoaded, profileContextError, isIeltsAdminLandingRole]);
 
   // GSAP is already installed in this project and powers the IELTS hero components.
 
@@ -364,9 +441,26 @@ const IeltsHome: React.FC = () => {
     openTask('/ielts/trial-test-2', false);
   };
 
-  const shouldShowDashboardLoading = !authResolved || (isAuthenticated && !isIeltsAdminLandingRole && (!profileContextLoaded || dashboardLoading || (!dashboardLoaded && !dashboardSummary)));
+  const shouldShowDashboardLoading = !authResolved || (isAuthenticated && !isIeltsAdminLandingRole && (
+    !profileContextLoaded
+    || extraPracticeEnabled === null
+    || dashboardLoading
+    || (!dashboardLoaded && !dashboardSummary)
+  ));
 
-  if (shouldShowDashboardLoading) {
+  if (isAuthenticated && profileContextLoaded && profileContextError) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg,#0f172a,#172554 48%,#4c1d95)', color: '#e0f2fe', display: 'grid', placeItems: 'center', padding: '1.5rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+        <div role="alert" style={{ width: 'min(100%, 520px)', background: 'rgba(15,23,42,0.82)', border: '1px solid rgba(248,113,113,0.42)', borderRadius: '1.25rem', padding: 'clamp(1.5rem,4vw,2.25rem)', textAlign: 'center', boxShadow: '0 24px 70px rgba(2,6,23,0.35)' }}>
+          <h1 style={{ margin: 0, color: '#fff', fontSize: 'clamp(1.45rem,5vw,2.15rem)' }}>Your IELTS access could not be verified.</h1>
+          <p style={{ margin: '0.75rem auto 0', color: '#cbd5e1', lineHeight: 1.6, maxWidth: 420 }}>No administrator or student workspace has been opened. Check your connection and try again.</p>
+          <button type="button" onClick={() => setProfileContextRetry((value) => value + 1)} style={{ marginTop: '1rem', border: 0, borderRadius: 999, background: '#fff', color: '#1e3a8a', padding: '.75rem 1rem', fontWeight: 900, cursor: 'pointer' }}>Try again</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (shouldShowDashboardLoading || shouldUseSchoolAdminShell) {
     return (
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg,#0f172a,#172554 48%,#4c1d95)', color: '#e0f2fe', display: 'grid', placeItems: 'center', padding: '1.5rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
         <div style={{ width: 'min(100%, 520px)', background: 'rgba(15,23,42,0.72)', border: '1px solid rgba(125,211,252,0.24)', borderRadius: '1.25rem', padding: 'clamp(1.5rem,4vw,2.25rem)', textAlign: 'center', boxShadow: '0 24px 70px rgba(2,6,23,0.35)' }}>
@@ -441,31 +535,6 @@ const IeltsHome: React.FC = () => {
             ))}
           </div>
 
-          {/* Admin Settings */}
-          <div style={{ marginTop: '2rem', padding: '1.5rem', background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '0.9rem' }}>
-            <h2 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>School Settings</h2>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
-              <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', fontWeight: 800, fontSize: '0.95rem', color: '#0f172a', marginBottom: '0.3rem' }}>Allow students to use Extra Practice</label>
-                <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b', lineHeight: 1.5 }}>When off, students only see assigned IELTS practice and their journey.</p>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={extraPracticeEnabled}
-                  aria-label="Allow students to use Extra Practice"
-                  aria-busy={extraPracticeSaving}
-                  onClick={() => void toggleSchoolExtraPractice()}
-                  disabled={!extraPracticeSchoolId || extraPracticeSaving}
-                  style={{ width: '3.5rem', height: '1.5rem', background: extraPracticeEnabled ? '#059669' : '#cbd5e1', border: 'none', borderRadius: '9999px', cursor: extraPracticeSchoolId && !extraPracticeSaving ? 'pointer' : 'not-allowed', opacity: extraPracticeSaving ? 0.7 : 1, transition: 'background 0.2s' }}
-                  title={!extraPracticeSchoolId ? 'No school is linked to this account' : extraPracticeEnabled ? 'Disable extra practice' : 'Enable extra practice'}
-                />
-                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: extraPracticeEnabled ? '#059669' : '#94a3b8', minWidth: '4.5rem' }}>{extraPracticeSaving ? 'Updating…' : extraPracticeEnabled ? 'Enabled' : 'Disabled'}</span>
-              </div>
-            </div>
-            {extraPracticeError && <p role="alert" style={{ margin: '0.75rem 0 0', color: '#b91c1c', fontSize: '0.8rem', fontWeight: 700 }}>{extraPracticeError}</p>}
-          </div>
         </div>
       </div>
     );
@@ -478,6 +547,73 @@ const IeltsHome: React.FC = () => {
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? 'Not available yet' : date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   };
+
+  if (
+    isAuthenticated
+    && !isIeltsAdminLandingRole
+    && (extraPracticeAccessError || extraPracticeEnabled === false)
+  ) {
+    const summary = dashboardSummary;
+    const accessTitle = extraPracticeAccessError
+      ? 'Extra Practice access could not be verified.'
+      : hasSchoolMembership
+        ? 'Extra Practice is managed by your school.'
+        : 'Extra Practice is not available for this account.';
+    const accessMessage = extraPracticeAccessError
+      ? hasSchoolMembership
+        ? 'We have kept unverified practice content closed. Assigned school work remains available while you retry.'
+        : 'We have kept unverified practice content closed. Check your connection and retry before opening optional practice.'
+      : hasSchoolMembership
+        ? 'Your administrator has paused optional practice. You can still complete assigned work and review your IELTS journey.'
+        : 'Optional practice is currently unavailable. Your saved IELTS information has not been changed.';
+    const restrictedShell: React.CSSProperties = {
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg,#eef7ff 0%,#f8fafc 42%,#f3e8ff 100%)',
+      color: '#0f172a',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      padding: 'clamp(1rem,3vw,2rem)',
+    };
+    const restrictedCard: React.CSSProperties = {
+      background: 'rgba(255,255,255,0.94)',
+      border: '1px solid rgba(148,163,184,0.32)',
+      borderRadius: '1.25rem',
+      padding: 'clamp(1.2rem,4vw,2rem)',
+      boxShadow: '0 18px 45px rgba(15,23,42,0.08)',
+    };
+
+    return (
+      <div style={restrictedShell}>
+        <main style={{ width: 'min(100%, 760px)', margin: '0 auto', display: 'grid', gap: '1rem' }}>
+          <section role={extraPracticeAccessError ? 'alert' : undefined} style={{ ...restrictedCard, borderColor: extraPracticeAccessError ? '#fecaca' : '#bae6fd' }}>
+            <p style={{ margin: '0 0 .4rem', color: extraPracticeAccessError ? '#b91c1c' : '#0369a1', fontSize: '.72rem', fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Brain Heist IELTS</p>
+            <h1 style={{ margin: 0, fontSize: 'clamp(1.5rem,5vw,2.35rem)', letterSpacing: '-.035em' }}>{accessTitle}</h1>
+            <p style={{ margin: '.75rem 0 0', color: '#475569', lineHeight: 1.65 }}>{accessMessage}</p>
+            {extraPracticeAccessError ? (
+              <button type="button" onClick={() => setExtraPracticeRetry((value) => value + 1)} style={{ marginTop: '1rem', border: 0, borderRadius: 999, background: '#1d4ed8', color: '#fff', padding: '.75rem 1rem', fontWeight: 900, cursor: 'pointer' }}>Try again</button>
+            ) : null}
+          </section>
+
+          <section style={restrictedCard} aria-labelledby="ielts-available-actions-heading">
+            <h2 id="ielts-available-actions-heading" style={{ margin: 0, fontSize: '1.1rem' }}>Available now</h2>
+            <p style={{ margin: '.45rem 0 0', color: '#64748b' }}>
+              {summary?.diagnostic.completed
+                ? `Your diagnostic result${summary.diagnostic.estimatedBand ? ` (estimated band ${summary.diagnostic.estimatedBand.toFixed(1)})` : ''} remains saved.`
+                : 'Your IELTS profile remains saved.'}
+            </p>
+            {hasSchoolMembership ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(210px,1fr))', gap: '.75rem', marginTop: '1rem' }}>
+                <button type="button" onClick={() => navigate('/ielts/practice/assigned')} style={{ border: '1px solid #c4b5fd', borderRadius: '.85rem', background: '#f5f3ff', color: '#5b21b6', padding: '.85rem', fontWeight: 900, cursor: 'pointer' }}>📌 Assigned Practice →</button>
+                <button type="button" onClick={() => navigate('/ielts/journey')} style={{ border: '1px solid #bae6fd', borderRadius: '.85rem', background: '#f0f9ff', color: '#075985', padding: '.85rem', fontWeight: 900, cursor: 'pointer' }}>🧭 My IELTS Journey →</button>
+              </div>
+            ) : null}
+          </section>
+
+          <button type="button" onClick={() => navigate('/')} style={{ padding: '.75rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '.75rem', color: '#475569', fontWeight: 800, cursor: 'pointer' }}>← Back to Brain Heist Game</button>
+        </main>
+      </div>
+    );
+  }
+
   if (isAuthenticated && dashboardSummary && !isIeltsAdminLandingRole) {
     const summary = dashboardSummary;
     const activePrime = summary.isPrimeActive;
@@ -544,6 +680,7 @@ const IeltsHome: React.FC = () => {
         <IeltsAnimatedHero onStartDiagnostic={startDiagnostic} authenticated={isAuthenticated} compact={isAuthenticated} />
 
         {error && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', borderRadius: '0.85rem', padding: '0.85rem', marginBottom: '1rem' }}>{error}</div>}
+        {extraPracticeAccessError && <div role="alert" style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', borderRadius: '0.85rem', padding: '0.85rem', marginBottom: '1rem' }}>Extra Practice access could not be verified. Assigned work and your IELTS journey remain available.</div>}
 
         {shouldShowSchoolTools && (
           <section style={{ ...card, marginBottom: '1.25rem' }}>

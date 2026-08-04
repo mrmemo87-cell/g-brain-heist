@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import '../src/styles/school-admin-mobile.css';
 import { ToastMessage } from '../types';
@@ -34,8 +34,9 @@ import DocumentsTab from './school-admin/tabs/DocumentsTab';
 import IeltsExamsTab from './school-admin/tabs/IeltsExamsTab';
 import IeltsPracticeTab from './school-admin/tabs/IeltsPracticeTab';
 import IeltsResultsTab from './school-admin/tabs/IeltsResultsTab';
-import IeltsAnalyticsTab from './school-admin/tabs/IeltsAnalyticsTab';
 import IeltsSettingsTab from './school-admin/tabs/IeltsSettingsTab';
+import IeltsReviewAdminGuard from './ielts/IeltsReviewAdminGuard';
+import IeltsExamModeAdminGuard from './ielts/IeltsExamModeAdminGuard';
 import MemberActionModal from './school-admin/modals/MemberActionModal';
 import ConfirmDialogModal from './school-admin/modals/ConfirmDialogModal';
 import AdmissionHub from './AdmissionHub';
@@ -43,6 +44,12 @@ import { SchoolBrand } from '../src/components/SchoolBrand';
 import { createSchoolBrand } from '../src/lib/schoolBranding';
 import { friendlySchoolAdminError } from '../src/lib/schoolAdminPresentation';
 import { useSmartCollapsedNavigation } from '../src/hooks/useSmartCollapsedNavigation';
+import {
+  buildSchoolAdminNavigationUrl,
+  parseSchoolAdminNavigation,
+  type SchoolAdminIeltsTab,
+  type SchoolAdminTab,
+} from '../src/lib/schoolAdminIeltsNavigation';
 
 interface SchoolAdminPortalProps {
   onComplete: () => void;
@@ -52,12 +59,15 @@ interface SchoolAdminPortalProps {
   onOpenTeacherPortal?: () => void;
 }
 
-type IeltsSubTab = 'ielts-exams' | 'ielts-practice' | 'ielts-results' | 'ielts-student-progress' | 'ielts-analytics' | 'ielts-settings';
-type MainAdminTab = 'dashboard' | 'members' | 'teachers' | 'classes' | 'subjects' | 'documents' | 'settings' | 'billing' | 'cambridge' | 'ielts' | 'admissions';
+type IeltsSubTab = SchoolAdminIeltsTab;
+type MainAdminTab = SchoolAdminTab;
 type AdminTab = MainAdminTab | IeltsSubTab;
 type IeltsToolNavItem = { id: IeltsSubTab; icon: string; label: string; hint: string };
 
 const IeltsJourneyDashboard = React.lazy(() => import('../src/pages/ielts/IeltsJourneyDashboard'));
+const IeltsReviewQueue = React.lazy(() => import('../src/pages/ielts/IeltsReviewQueue'));
+const IeltsSubmissionReview = React.lazy(() => import('../src/pages/ielts/IeltsSubmissionReview'));
+const IeltsExamMonitor = React.lazy(() => import('../src/pages/ielts/IeltsExamMonitor'));
 
 const SCHOOL_ADMIN_NAV_ITEMS: Array<{ id: MainAdminTab; icon: string; label: string; mobileLabel: string; description: string }> = [
   { id: 'dashboard', icon: '🏠', label: 'Overview', mobileLabel: 'Overview', description: 'School status and priorities' },
@@ -79,9 +89,9 @@ const SCHOOL_ADMIN_PRIMARY_NAV_ITEMS = SCHOOL_ADMIN_NAV_ITEMS.filter(({ id }) =>
 const IELTS_TOOL_NAV_ITEMS: IeltsToolNavItem[] = [
   { id: 'ielts-exams', icon: '🧪', label: 'Exams', hint: 'Secure mock exams' },
   { id: 'ielts-practice', icon: '📝', label: 'Assignment Overview', hint: 'Assign & monitor' },
+  { id: 'ielts-reviews', icon: '✍️', label: 'Reviews', hint: 'Writing & speaking' },
   { id: 'ielts-results', icon: '📈', label: 'Results', hint: 'Student scores' },
   { id: 'ielts-student-progress', icon: '📊', label: 'Student Progress', hint: 'Journey dashboard' },
-  { id: 'ielts-analytics', icon: '📉', label: 'Analytics', hint: 'School insights' },
   { id: 'ielts-settings', icon: '⚙️', label: 'Settings', hint: 'Config & features' },
 ];
 
@@ -92,8 +102,12 @@ const getCambridgeReportLabel = (score: any) =>
   `${score.quiz_name || 'Unknown test'} · ${score.quiz_version || 'legacy-v1'}`;
 
 const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLogout, onNavigate, addToast, onOpenTeacherPortal }) => {
-  const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
-  const [activeIeltsSubTab, setActiveIeltsSubTab] = useState<IeltsSubTab>('ielts-exams');
+  const initialNavigation = useMemo(() => parseSchoolAdminNavigation(window.location.search), []);
+  const [activeTab, setActiveTab] = useState<AdminTab>(initialNavigation.adminTab);
+  const [activeIeltsSubTab, setActiveIeltsSubTab] = useState<IeltsSubTab>(initialNavigation.ieltsTab);
+  const [activeIeltsReview, setActiveIeltsReview] = useState<{ skill: 'writing' | 'speaking'; attemptId: string } | null>(initialNavigation.review);
+  const [activeIeltsMonitorExamId, setActiveIeltsMonitorExamId] = useState<string | null>(initialNavigation.monitorExamId);
+  const ieltsTabRefs = useRef<Partial<Record<IeltsSubTab, HTMLButtonElement | null>>>({});
   const [mobileAdminMenuOpen, setMobileAdminMenuOpen] = useState(false);
   const {
     navigationRef: mobileAdminNavigationRef,
@@ -106,12 +120,83 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
   const [schoolAdmins, setSchoolAdmins] = useState<SchoolMember[]>([]);
   const [currentCapabilities, setCurrentCapabilities] = useState<SchoolAdminService.SchoolCapabilities | null>(null);
 
+  const writeNavigationState = useCallback((next: {
+    adminTab: MainAdminTab;
+    ieltsTab: IeltsSubTab;
+    review: { skill: 'writing' | 'speaking'; attemptId: string } | null;
+    monitorExamId: string | null;
+  }, mode: 'push' | 'replace' = 'push') => {
+    const nextUrl = buildSchoolAdminNavigationUrl(next, window.location.href);
+    const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (nextUrl !== currentUrl) {
+      window.history[mode === 'replace' ? 'replaceState' : 'pushState'](null, '', nextUrl);
+    }
+  }, []);
+
   const selectAdminTab = useCallback((tab: MainAdminTab) => {
     revealMobileAdminNavigation();
     setMobileAdminMenuOpen(false);
     setActiveTab(tab);
+    setActiveIeltsReview(null);
+    setActiveIeltsMonitorExamId(null);
+    writeNavigationState({ adminTab: tab, ieltsTab: activeIeltsSubTab, review: null, monitorExamId: null });
     window.requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }));
-  }, [revealMobileAdminNavigation]);
+  }, [activeIeltsSubTab, revealMobileAdminNavigation, writeNavigationState]);
+
+  const selectIeltsSubTab = useCallback((tab: IeltsSubTab) => {
+    setActiveIeltsReview(null);
+    setActiveIeltsMonitorExamId(null);
+    setActiveIeltsSubTab(tab);
+    writeNavigationState({ adminTab: 'ielts', ieltsTab: tab, review: null, monitorExamId: null });
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }));
+  }, [writeNavigationState]);
+
+  const selectIeltsReview = useCallback((
+    review: { skill: 'writing' | 'speaking'; attemptId: string } | null,
+    mode: 'push' | 'replace' = 'push',
+  ) => {
+    setActiveIeltsReview(review);
+    setActiveIeltsMonitorExamId(null);
+    writeNavigationState({ adminTab: 'ielts', ieltsTab: 'ielts-reviews', review, monitorExamId: null }, mode);
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }));
+  }, [writeNavigationState]);
+
+  const selectIeltsMonitor = useCallback((examEventId: string | null, mode: 'push' | 'replace' = 'push') => {
+    setActiveIeltsReview(null);
+    setActiveIeltsSubTab('ielts-exams');
+    setActiveIeltsMonitorExamId(examEventId);
+    writeNavigationState({ adminTab: 'ielts', ieltsTab: 'ielts-exams', review: null, monitorExamId: examEventId }, mode);
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }));
+  }, [writeNavigationState]);
+
+  const handleIeltsTabKeyDown = useCallback((event: React.KeyboardEvent<HTMLButtonElement>, currentTab: IeltsSubTab) => {
+    const currentIndex = IELTS_TOOL_NAV_ITEMS.findIndex(({ id }) => id === currentTab);
+    let nextIndex = currentIndex;
+    if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % IELTS_TOOL_NAV_ITEMS.length;
+    else if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + IELTS_TOOL_NAV_ITEMS.length) % IELTS_TOOL_NAV_ITEMS.length;
+    else if (event.key === 'Home') nextIndex = 0;
+    else if (event.key === 'End') nextIndex = IELTS_TOOL_NAV_ITEMS.length - 1;
+    else return;
+
+    event.preventDefault();
+    const nextTab = IELTS_TOOL_NAV_ITEMS[nextIndex].id;
+    selectIeltsSubTab(nextTab);
+    window.requestAnimationFrame(() => ieltsTabRefs.current[nextTab]?.focus());
+  }, [selectIeltsSubTab]);
+
+  useEffect(() => {
+    const restoreNavigation = () => {
+      const restored = parseSchoolAdminNavigation(window.location.search);
+      setActiveTab(restored.adminTab);
+      setActiveIeltsSubTab(restored.ieltsTab);
+      setActiveIeltsReview(restored.review);
+      setActiveIeltsMonitorExamId(restored.monitorExamId);
+      setMobileAdminMenuOpen(false);
+    };
+
+    window.addEventListener('popstate', restoreNavigation);
+    return () => window.removeEventListener('popstate', restoreNavigation);
+  }, []);
 
   useEffect(() => {
     if (!mobileAdminMenuOpen) return;
@@ -1660,24 +1745,25 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       {activeTab === 'billing' && <BillingTab />}
       {activeTab === 'settings' && <SettingsTab />}
       {activeTab === 'cambridge' && <CambridgeTab />}
-      {activeTab === 'admissions' && <AdmissionHub onComplete={() => setActiveTab('dashboard')} addToast={addToast} />}
+      {activeTab === 'admissions' && <AdmissionHub onComplete={() => selectAdminTab('dashboard')} addToast={addToast} />}
 
       {/* ─── IELTS Academy Hub ────────────────────────────────────── */}
       {activeTab === 'ielts' && (
         <div className="school-admin-themed-tab school-admin-ielts-tab space-y-5">
 
           {/* Banner */}
-          <section className="admin-section-heading"><div><p className="school-admin-eyebrow">School IELTS suite</p><h2>IELTS Programme</h2><p>{school?.name ?? 'Your school'} — exams, practice, results and analytics.</p></div><span className="admin-live-pill"><i /> IELTS enabled</span></section>
+          <section className="admin-section-heading"><div><p className="school-admin-eyebrow">School IELTS suite</p><h2>IELTS Programme</h2><p>{school?.name ?? 'Your school'} — exams, assignments, reviews, results and student progress.</p></div><span className="admin-live-pill"><i /> IELTS enabled</span></section>
 
           {/* Sub-tab Segmented Control */}
           <div
-            className="flex gap-1 rounded-2xl border border-gray-700/50 bg-gray-900/70 p-1.5 backdrop-blur-sm"
+            className="flex gap-1 overflow-x-auto rounded-2xl border border-gray-700/50 bg-gray-900/70 p-1.5 backdrop-blur-sm"
             role="tablist"
             aria-label="IELTS sections"
+            aria-orientation="horizontal"
           >
             {IELTS_TOOL_NAV_ITEMS.map(({ id, icon, label, hint }) => {
               const isActive = activeIeltsSubTab === id;
-              const className = `flex flex-1 flex-col items-center gap-0.5 rounded-xl px-3 py-2.5 transition-all ${
+              const className = `flex min-w-[8.5rem] flex-none flex-col items-center gap-0.5 rounded-xl px-3 py-2.5 transition-all xl:min-w-0 xl:flex-1 ${
                 isActive
                   ? 'bg-gradient-to-br from-teal-600 to-blue-700 text-white shadow-lg shadow-teal-500/20'
                   : 'text-gray-400 hover:bg-gray-800/60 hover:text-white'
@@ -1686,14 +1772,19 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
               return (
                 <button
                   key={id}
+                  ref={(element) => { ieltsTabRefs.current[id] = element; }}
                   type="button"
                   role="tab"
+                  id={`school-admin-ielts-tab-${id}`}
                   data-testid={`school-admin-tab-${id}`}
                   aria-selected={activeIeltsSubTab === id}
-                  onClick={() => setActiveIeltsSubTab(id as IeltsSubTab)}
+                  aria-controls={`school-admin-ielts-panel-${id}`}
+                  tabIndex={isActive ? 0 : -1}
+                  onClick={() => selectIeltsSubTab(id)}
+                  onKeyDown={(event) => handleIeltsTabKeyDown(event, id)}
                   className={className}
                 >
-                  <span className="text-base leading-none">{icon}</span>
+                  <span aria-hidden="true" className="text-base leading-none">{icon}</span>
                   <span className="text-[13px] font-semibold">{label}</span>
                   <span className={`hidden text-[10px] leading-none sm:block ${
                     activeIeltsSubTab === id ? 'text-teal-100/60' : 'text-gray-600'
@@ -1704,16 +1795,54 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
           </div>
 
           {/* Content */}
-          <div className="rounded-2xl ring-1 ring-teal-500/10">
-            {activeIeltsSubTab === 'ielts-exams'     && <IeltsExamsTab />}
-            {activeIeltsSubTab === 'ielts-practice'  && <IeltsPracticeTab />}
+          <div
+            id={`school-admin-ielts-panel-${activeIeltsSubTab}`}
+            role="tabpanel"
+            aria-labelledby={`school-admin-ielts-tab-${activeIeltsSubTab}`}
+            tabIndex={0}
+            className="rounded-2xl ring-1 ring-teal-500/10"
+          >
+            {activeIeltsSubTab === 'ielts-exams' && (
+              activeIeltsMonitorExamId ? (
+                <IeltsExamModeAdminGuard>
+                  <React.Suspense fallback={<div className="p-6 text-sm text-gray-400">Loading IELTS exam monitor…</div>}>
+                    <IeltsExamMonitor
+                      embedded
+                      examEventIdOverride={activeIeltsMonitorExamId}
+                      onBack={() => selectIeltsMonitor(null, 'replace')}
+                    />
+                  </React.Suspense>
+                </IeltsExamModeAdminGuard>
+              ) : (
+                <IeltsExamsTab onOpenMonitor={(examEventId) => selectIeltsMonitor(examEventId)} />
+              )
+            )}
+            {activeIeltsSubTab === 'ielts-practice'  && <IeltsPracticeTab onOpenReviews={() => selectIeltsSubTab('ielts-reviews')} />}
+            {activeIeltsSubTab === 'ielts-reviews' && (
+              <IeltsReviewAdminGuard>
+                <React.Suspense fallback={<div className="p-6 text-sm text-gray-400">Loading IELTS reviews…</div>}>
+                  {activeIeltsReview ? (
+                    <IeltsSubmissionReview
+                      embedded
+                      skillOverride={activeIeltsReview.skill}
+                      attemptIdOverride={activeIeltsReview.attemptId}
+                      onBack={() => selectIeltsReview(null, 'replace')}
+                    />
+                  ) : (
+                    <IeltsReviewQueue
+                      embedded
+                      onOpenReview={selectIeltsReview}
+                    />
+                  )}
+                </React.Suspense>
+              </IeltsReviewAdminGuard>
+            )}
             {activeIeltsSubTab === 'ielts-results'   && <IeltsResultsTab />}
             {activeIeltsSubTab === 'ielts-student-progress' && (
               <React.Suspense fallback={<div className="p-6 text-sm text-gray-400">Loading student IELTS progress…</div>}>
                 <IeltsJourneyDashboard embedded />
               </React.Suspense>
             )}
-            {activeIeltsSubTab === 'ielts-analytics' && <IeltsAnalyticsTab />}
             {activeIeltsSubTab === 'ielts-settings'  && <IeltsSettingsTab />}
           </div>
 

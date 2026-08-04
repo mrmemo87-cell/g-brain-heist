@@ -116,8 +116,13 @@ export interface IeltsExamControlResponse {
   exam_event_id?: string;
   attempt_id?: string;
   submission_id?: string;
+  previous_status?: string;
   status?: IeltsExamAttemptStatus;
+  active_form_id?: string;
+  assignment_count?: number;
+  starts_at?: string;
   ends_at?: string;
+  duration_minutes?: number;
   server_now?: string;
 }
 
@@ -265,6 +270,17 @@ export interface AttemptControlParams {
 export interface ExamControlParams {
   examEventId: string;
   reason?: string | null;
+}
+
+export interface LaunchExamParams extends ExamControlParams {
+  confirmation: 'LAUNCH';
+}
+
+export interface ScheduleExamParams {
+  examEventId: string;
+  startsAt: string;
+  endsAt: string;
+  durationMinutes: number;
 }
 
 type RpcError = { message?: string; details?: string; hint?: string; code?: string };
@@ -427,6 +443,33 @@ export const rpcIeltsExamMonitoring = async (
   }) as unknown as Awaited<RpcResult<IeltsExamMonitoringRow[]>>;
 
   return assertNoRpcError('rpc_ielts_exam_monitoring', data, error);
+};
+
+export const rpcIeltsScheduleExam = async (
+  params: ScheduleExamParams,
+  client?: IeltsExamRpcClient
+): Promise<IeltsExamControlResponse> => {
+  const { data, error } = await withClient(client).rpc('rpc_ielts_schedule_exam', {
+    p_exam_event_id: params.examEventId,
+    p_starts_at: params.startsAt,
+    p_ends_at: params.endsAt,
+    p_duration_minutes: params.durationMinutes,
+  }) as unknown as Awaited<RpcResult<IeltsExamControlResponse>>;
+
+  return assertNoRpcError('rpc_ielts_schedule_exam', data, error);
+};
+
+export const rpcIeltsLaunchExam = async (
+  params: LaunchExamParams,
+  client?: IeltsExamRpcClient
+): Promise<IeltsExamControlResponse> => {
+  const { data, error } = await withClient(client).rpc('rpc_ielts_launch_exam', {
+    p_exam_event_id: params.examEventId,
+    p_confirmation: params.confirmation,
+    p_reason: params.reason ?? null,
+  }) as unknown as Awaited<RpcResult<IeltsExamControlResponse>>;
+
+  return assertNoRpcError('rpc_ielts_launch_exam', data, error);
 };
 
 export const rpcIeltsPauseExam = async (

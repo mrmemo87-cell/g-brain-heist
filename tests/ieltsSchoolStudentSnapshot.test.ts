@@ -53,7 +53,9 @@ test('school admin results table opens the progress modal from student names onl
   assert.match(dashboard, /rpcIeltsSchoolStudentSnapshot\(student\.student_id\)/);
   assert.match(dashboard, /data-testid="ielts-open-student-progress"/);
   assert.match(dashboard, /IeltsSchoolStudentProgressModal/);
-  assert.match(dashboard, /Boolean\(typedProfile\?\.is_admin\) \|\| role === 'school_admin' \|\| role === 'admin' \|\| role === 'superadmin'/);
+  assert.match(dashboard, /resolveMySchoolCapabilities\(\)/, 'school administration mode must use the canonical active membership capability');
+  assert.match(dashboard, /Boolean\(typedProfile\?\.is_admin\)[\s\S]*role === 'admin'[\s\S]*role === 'superadmin'/, 'platform administration may still use the platform profile flags');
+  assert.doesNotMatch(dashboard, /role === 'school_admin'/, 'a stale profile role must not grant school administration mode');
 });
 
 

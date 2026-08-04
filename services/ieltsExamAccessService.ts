@@ -1,7 +1,6 @@
 import { supabase } from './supabaseClient.js';
 import { rpcIeltsListManageableExams, type IeltsExamRpcClient } from './ieltsExamModeService.js';
 
-type AuthUserResponse = Awaited<ReturnType<typeof supabase.auth.getUser>>;
 type SupabaseLike = IeltsExamRpcClient & {
   auth: Pick<typeof supabase.auth, 'getUser'>;
   from: typeof supabase.from;
@@ -10,14 +9,17 @@ type SupabaseLike = IeltsExamRpcClient & {
 export type IeltsExamModeAccessReason =
   | 'not_authenticated'
   | 'platform_admin'
-  | 'school_admin_role'
+  | 'platform_admin_role'
+  | 'school_admin_capability'
   | 'manageable_exam_scope'
+  | 'verification_error'
   | 'denied';
 
 export interface IeltsExamModeAccessInputs {
   isAuthenticated: boolean;
   isAdmin?: boolean | null;
   role?: string | null;
+  canAdministerSchool?: boolean;
   manageableExamCount?: number;
   manageableExamListSucceeded?: boolean;
 }
@@ -27,7 +29,7 @@ export interface IeltsExamModeAccessResult {
   reason: IeltsExamModeAccessReason;
 }
 
-const SCHOOL_SCOPED_EXAM_ROLES = new Set(['school_admin', 'admin', 'superadmin']);
+const PLATFORM_ADMIN_ROLES = new Set(['admin', 'superadmin']);
 
 const normalizeRole = (role?: string | null) => (role ?? '').trim().toLowerCase();
 
@@ -35,6 +37,7 @@ export const resolveIeltsExamModeAdminAccess = ({
   isAuthenticated,
   isAdmin = false,
   role = null,
+  canAdministerSchool = false,
   manageableExamCount = 0,
   manageableExamListSucceeded = false,
 }: IeltsExamModeAccessInputs): IeltsExamModeAccessResult => {
@@ -46,8 +49,12 @@ export const resolveIeltsExamModeAdminAccess = ({
     return { allowed: true, reason: 'platform_admin' };
   }
 
-  if (SCHOOL_SCOPED_EXAM_ROLES.has(normalizeRole(role))) {
-    return { allowed: true, reason: 'school_admin_role' };
+  if (PLATFORM_ADMIN_ROLES.has(normalizeRole(role))) {
+    return { allowed: true, reason: 'platform_admin_role' };
+  }
+
+  if (canAdministerSchool) {
+    return { allowed: true, reason: 'school_admin_capability' };
   }
 
   if (manageableExamListSucceeded && manageableExamCount > 0) {
@@ -57,22 +64,21 @@ export const resolveIeltsExamModeAdminAccess = ({
   return { allowed: false, reason: 'denied' };
 };
 
-const getAuthenticatedUser = async (client: SupabaseLike): Promise<AuthUserResponse['data']['user'] | null> => {
-  const { data, error } = await client.auth.getUser();
-  if (error || !data.user) return null;
-  return data.user;
-};
-
 export const checkIeltsExamModeAdminAccess = async (
   client: SupabaseLike = supabase as SupabaseLike
 ): Promise<IeltsExamModeAccessResult> => {
-  const user = await getAuthenticatedUser(client);
+  const { data: authData, error: authError } = await client.auth.getUser();
+  if (authError) {
+    return { allowed: false, reason: 'verification_error' };
+  }
+  const user = authData.user;
   if (!user) {
     return resolveIeltsExamModeAdminAccess({ isAuthenticated: false });
   }
 
   let role: string | null = null;
   let isAdmin = false;
+  let capabilityResolved = false;
 
   const { data: profile, error: profileError } = await client
     .from('users')
@@ -96,7 +102,36 @@ export const checkIeltsExamModeAdminAccess = async (
   }
 
   try {
+    const { data: capabilities, error: capabilitiesError } = await client.rpc(
+      'school_admin_get_my_capabilities',
+      { p_school_id: null },
+    ) as unknown as {
+      data: { success?: boolean; can_administer?: boolean } | null;
+      error: { message?: string } | null;
+    };
+
+    capabilityResolved = !capabilitiesError
+      && capabilities !== null
+      && typeof capabilities.success === 'boolean';
+    if (!capabilitiesError && capabilities?.success && capabilities.can_administer) {
+      return resolveIeltsExamModeAdminAccess({
+        isAuthenticated: true,
+        isAdmin,
+        role,
+        canAdministerSchool: true,
+      });
+    }
+  } catch {
+    capabilityResolved = false;
+    // Fall through to the school-scoped exam list. This keeps assigned-teacher
+    // access available when the capability RPC is unavailable.
+  }
+
+  try {
     const manageableExams = await rpcIeltsListManageableExams(client);
+    if (manageableExams.length === 0 && (profileError || !capabilityResolved)) {
+      return { allowed: false, reason: 'verification_error' };
+    }
     return resolveIeltsExamModeAdminAccess({
       isAuthenticated: true,
       isAdmin,
@@ -105,12 +140,6 @@ export const checkIeltsExamModeAdminAccess = async (
       manageableExamCount: manageableExams.length,
     });
   } catch {
-    return resolveIeltsExamModeAdminAccess({
-      isAuthenticated: true,
-      isAdmin,
-      role,
-      manageableExamListSucceeded: false,
-      manageableExamCount: 0,
-    });
+    return { allowed: false, reason: 'verification_error' };
   }
 };

@@ -5,7 +5,9 @@ import {
   rpcIeltsCreateExamEvent,
   rpcIeltsCreateExamForm,
   rpcIeltsGetExamAdminDetail,
+  rpcIeltsLaunchExam,
   rpcIeltsListManageableExams,
+  rpcIeltsScheduleExam,
   validateExamJsonText,
   type IeltsExamAdminDetail,
   type IeltsExamAdminStudent,
@@ -15,8 +17,9 @@ import { validateRenderableExamPayload } from '../../../services/ieltsExamPayloa
 import { resolveIeltsExamLifecycleMeta } from '../../../services/ieltsExamModeUx';
 import { useSchoolBranding } from '../../hooks/useSchoolBranding';
 import { createSchoolDocumentId, escapeSchoolDocumentHtml, openSchoolDocumentPreview, schoolDocumentFileName } from '../../lib/schoolDocument';
+import { friendlyIeltsAdminError } from '../../lib/schoolAdminPresentation';
 
-type BusyAction = 'idle' | 'loading' | 'creating_exam' | 'creating_form' | 'assigning';
+type BusyAction = 'idle' | 'loading' | 'creating_exam' | 'creating_form' | 'assigning' | 'scheduling' | 'launching';
 
 const emptyJson = '{\n  \n}';
 const defaultAnswerKey = '{\n  "reading": {},\n  "listening": {},\n  "writing": {}\n}';
@@ -100,7 +103,12 @@ const uniqueStudents = (students: IeltsExamAdminStudent[]) => {
   });
 };
 
-const IeltsExamManager: React.FC = () => {
+interface IeltsExamManagerProps {
+  embedded?: boolean;
+  onOpenMonitor?: (examEventId: string) => void;
+}
+
+const IeltsExamManager: React.FC<IeltsExamManagerProps> = ({ embedded = false, onOpenMonitor }) => {
   const [exams, setExams] = useState<IeltsManageableExam[]>([]);
   const [selectedExamId, setSelectedExamId] = useState<string | null>(null);
   const [detail, setDetail] = useState<IeltsExamAdminDetail | null>(null);
@@ -113,7 +121,12 @@ const IeltsExamManager: React.FC = () => {
   const [startsAt, setStartsAt] = useState(() => toLocalInputValue(new Date(Date.now() + 60 * 60_000)));
   const [endsAt, setEndsAt] = useState(() => toLocalInputValue(new Date(Date.now() + 3 * 60 * 60_000)));
   const [durationMinutes, setDurationMinutes] = useState(120);
-  const [status, setStatus] = useState('draft');
+  const [status, setStatus] = useState<'draft' | 'scheduled'>('draft');
+  const [launchConfirmed, setLaunchConfirmed] = useState(false);
+  const [launchReason, setLaunchReason] = useState('');
+  const [scheduleStartsAt, setScheduleStartsAt] = useState(() => toLocalInputValue(new Date(Date.now() + 60 * 60_000)));
+  const [scheduleEndsAt, setScheduleEndsAt] = useState(() => toLocalInputValue(new Date(Date.now() + 3 * 60 * 60_000)));
+  const [scheduleDurationMinutes, setScheduleDurationMinutes] = useState(120);
 
   const [formCode, setFormCode] = useState('FORM-A');
   const [readingJson, setReadingJson] = useState(readingTemplate);
@@ -138,6 +151,9 @@ const IeltsExamManager: React.FC = () => {
       if (nextId) {
         const nextDetail = await rpcIeltsGetExamAdminDetail(nextId);
         setDetail(nextDetail);
+        setScheduleStartsAt(toLocalInputValue(new Date(nextDetail.exam.starts_at)));
+        setScheduleEndsAt(toLocalInputValue(new Date(nextDetail.exam.ends_at)));
+        setScheduleDurationMinutes(nextDetail.exam.duration_minutes);
         const activeForm = nextDetail.forms.find((form) => form.is_active) ?? nextDetail.forms[0] ?? null;
         setSelectedFormId(activeForm?.id ?? null);
       } else {
@@ -145,7 +161,7 @@ const IeltsExamManager: React.FC = () => {
         setSelectedFormId(null);
       }
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Failed to load manageable IELTS exams.');
+      setError(friendlyIeltsAdminError(loadError, 'Unable to load IELTS exams. Please try again.'));
     } finally {
       setBusy('idle');
     }
@@ -161,18 +177,23 @@ const IeltsExamManager: React.FC = () => {
     if (!selectedExamId) return;
     const requestId = detailRequestIdRef.current + 1;
     detailRequestIdRef.current = requestId;
+    setLaunchConfirmed(false);
+    setLaunchReason('');
     setSelectedStudentIds(new Set());
     setSelectedClassId('');
     void rpcIeltsGetExamAdminDetail(selectedExamId)
       .then((nextDetail) => {
         if (detailRequestIdRef.current !== requestId) return;
         setDetail(nextDetail);
+        setScheduleStartsAt(toLocalInputValue(new Date(nextDetail.exam.starts_at)));
+        setScheduleEndsAt(toLocalInputValue(new Date(nextDetail.exam.ends_at)));
+        setScheduleDurationMinutes(nextDetail.exam.duration_minutes);
         const activeForm = nextDetail.forms.find((form) => form.is_active) ?? nextDetail.forms[0] ?? null;
         setSelectedFormId(activeForm?.id ?? null);
       })
       .catch((detailError) => {
         if (detailRequestIdRef.current !== requestId) return;
-        setError(detailError instanceof Error ? detailError.message : 'Failed to load exam detail.');
+        setError(friendlyIeltsAdminError(detailError, 'Unable to load the exam details. Please try again.'));
       });
 
     return () => {
@@ -225,7 +246,7 @@ const IeltsExamManager: React.FC = () => {
         fileName: schoolDocumentFileName(schoolName, activeExam.title, 'Operations_Pack'),
       });
     } catch (printError) {
-      setError(printError instanceof Error ? printError.message : 'Unable to open the exam operations document.');
+      setError(friendlyIeltsAdminError(printError, 'Unable to open the exam operations document. Please try again.'));
     }
   };
 
@@ -261,7 +282,7 @@ const IeltsExamManager: React.FC = () => {
       setMessage('Exam event created. Add an active form before assigning students.');
       await loadExams(created.id);
     } catch (createError) {
-      setError(createError instanceof Error ? createError.message : 'Failed to create exam event.');
+      setError(friendlyIeltsAdminError(createError, 'Unable to create the exam. Please try again.'));
     } finally {
       setBusy('idle');
     }
@@ -338,7 +359,7 @@ const IeltsExamManager: React.FC = () => {
       setMessage('Active exam form saved. You can now assign students.');
       await loadExams(activeExam.id);
     } catch (formError) {
-      setError(formError instanceof Error ? formError.message : 'Failed to create exam form.');
+      setError(friendlyIeltsAdminError(formError, 'Unable to save the exam form. Please try again.'));
     } finally {
       setBusy('idle');
     }
@@ -370,7 +391,7 @@ const IeltsExamManager: React.FC = () => {
       setMessage(`Assigned exam to class. Rows affected: ${result.assigned_count}.`);
       await loadExams(activeExam.id);
     } catch (assignError) {
-      setError(assignError instanceof Error ? assignError.message : 'Failed to assign class.');
+      setError(friendlyIeltsAdminError(assignError, 'Unable to assign the class. Please try again.'));
     } finally {
       setBusy('idle');
     }
@@ -399,14 +420,75 @@ const IeltsExamManager: React.FC = () => {
       setSelectedStudentIds(new Set());
       await loadExams(activeExam.id);
     } catch (assignError) {
-      setError(assignError instanceof Error ? assignError.message : 'Failed to assign students.');
+      setError(friendlyIeltsAdminError(assignError, 'Unable to assign the selected students. Please try again.'));
+    } finally {
+      setBusy('idle');
+    }
+  };
+
+  const handleLaunchExam = async () => {
+    if (!activeExam) {
+      setError('Select a scheduled exam before launch.');
+      return;
+    }
+    if (!launchConfirmed) {
+      setError('Confirm the launch before making this exam available to students.');
+      return;
+    }
+
+    setBusy('launching');
+    setError(null);
+    setMessage(null);
+    try {
+      const launched = await rpcIeltsLaunchExam({
+        examEventId: activeExam.id,
+        confirmation: 'LAUNCH',
+        reason: launchReason.trim() || null,
+      });
+      setLaunchConfirmed(false);
+      setLaunchReason('');
+      setMessage(`Exam launched for ${launched.assignment_count ?? detail?.assignments.length ?? 0} assigned students.`);
+      await loadExams(activeExam.id);
+    } catch (launchError) {
+      setError(friendlyIeltsAdminError(launchError, 'Unable to launch the exam. Check its schedule, form, and assignments, then try again.'));
+    } finally {
+      setBusy('idle');
+    }
+  };
+
+  const handleScheduleExam = async () => {
+    if (!activeExam) {
+      setError('Select a draft exam before scheduling.');
+      return;
+    }
+    const startMs = Date.parse(scheduleStartsAt);
+    const endMs = Date.parse(scheduleEndsAt);
+    if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs || scheduleDurationMinutes <= 0 || scheduleDurationMinutes * 60_000 > endMs - startMs) {
+      setError('Choose a valid schedule and ensure the duration fits inside the exam window.');
+      return;
+    }
+
+    setBusy('scheduling');
+    setError(null);
+    setMessage(null);
+    try {
+      await rpcIeltsScheduleExam({
+        examEventId: activeExam.id,
+        startsAt: toIsoFromLocal(scheduleStartsAt),
+        endsAt: toIsoFromLocal(scheduleEndsAt),
+        durationMinutes: scheduleDurationMinutes,
+      });
+      setMessage('Exam scheduled. It can be launched after the start time once the form and student assignments are ready.');
+      await loadExams(activeExam.id);
+    } catch (scheduleError) {
+      setError(friendlyIeltsAdminError(scheduleError, 'Unable to schedule the exam. Check the time window and try again.'));
     } finally {
       setBusy('idle');
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className={`${embedded ? 'rounded-2xl' : 'min-h-screen'} bg-slate-50 text-slate-900`} data-testid={embedded ? 'embedded-ielts-exam-manager' : 'ielts-exam-manager'}>
       <header className="border-b border-slate-200 bg-white px-4 py-5 shadow-sm">
         <div className="mx-auto max-w-7xl">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">IELTS Exam Admin</p>
@@ -417,7 +499,7 @@ const IeltsExamManager: React.FC = () => {
 
       <main className="mx-auto grid max-w-7xl gap-5 px-4 py-6 lg:grid-cols-[360px_1fr]">
         <aside className="space-y-5">
-          <Panel title="Manageable exams" subtitle="Pick an exam and continue through the pilot setup steps.">
+          <Panel title="Manageable exams" subtitle="Pick an exam and continue through the setup steps.">
             <button type="button" onClick={() => void loadExams()} disabled={busy !== 'idle'} className="mb-3 rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-50">
               Refresh list
             </button>
@@ -451,13 +533,9 @@ const IeltsExamManager: React.FC = () => {
               <TextInput label="Ends at" type="datetime-local" value={endsAt} onChange={setEndsAt} />
               <TextInput label="Duration minutes" type="number" value={String(durationMinutes)} onChange={(value) => setDurationMinutes(Number(value))} />
               <label className="block text-sm font-medium text-slate-700">Status
-                <select className="mt-1 w-full rounded-lg border border-slate-300 p-2 text-sm" value={status} onChange={(event) => setStatus(event.target.value)}>
+                <select className="mt-1 w-full rounded-lg border border-slate-300 p-2 text-sm" value={status} onChange={(event) => setStatus(event.target.value as 'draft' | 'scheduled')}>
                   <option value="draft">Draft</option>
                   <option value="scheduled">Scheduled</option>
-                  <option value="live">Live now</option>
-                  <option value="paused">Paused</option>
-                  <option value="ended">Ended</option>
-                  <option value="archived">Archived</option>
                 </select>
               </label>
               {validateSchedule() && <p className="rounded-lg bg-amber-50 p-2 text-sm text-amber-800">{validateSchedule()}</p>}
@@ -477,10 +555,53 @@ const IeltsExamManager: React.FC = () => {
           ) : (
             <>
               <Panel title="Step 4 Launch & Monitor" subtitle={`${activeExam.title} · ${formatDateTime(activeExam.starts_at)} → ${formatDateTime(activeExam.ends_at)} · ${activeExam.duration_minutes} minutes`}>
+                {activeExam.status === 'draft' ? (
+                  <div className="mb-4 space-y-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
+                    <p className="text-sm font-semibold text-blue-950">Schedule this draft</p>
+                    <div className="grid gap-3 md:grid-cols-3">
+                      <TextInput label="Starts at" type="datetime-local" value={scheduleStartsAt} onChange={setScheduleStartsAt} />
+                      <TextInput label="Ends at" type="datetime-local" value={scheduleEndsAt} onChange={setScheduleEndsAt} />
+                      <TextInput label="Duration minutes" type="number" value={String(scheduleDurationMinutes)} onChange={(value) => setScheduleDurationMinutes(Number(value))} />
+                    </div>
+                    <button type="button" onClick={() => void handleScheduleExam()} disabled={busy !== 'idle'} className="rounded-lg bg-blue-700 px-4 py-2 font-semibold text-white hover:bg-blue-800 disabled:bg-slate-400">
+                      {busy === 'scheduling' ? 'Scheduling…' : 'Save schedule'}
+                    </button>
+                  </div>
+                ) : null}
+                {activeExam.status === 'scheduled' ? (
+                  <div className="mb-4 space-y-3 rounded-xl border border-amber-300 bg-amber-50 p-4">
+                    <p className="text-sm font-semibold text-amber-950">Final launch confirmation</p>
+                    <p className="text-sm text-amber-900">Launching makes this exam available immediately. The server will verify that the start time has arrived, one active form exists, and students are assigned.</p>
+                    <label className="flex items-start gap-2 text-sm font-semibold text-amber-950">
+                      <input
+                        type="checkbox"
+                        checked={launchConfirmed}
+                        onChange={(event) => setLaunchConfirmed(event.target.checked)}
+                        className="mt-0.5"
+                      />
+                      <span>I have checked the schedule, active form, and assigned students.</span>
+                    </label>
+                    <label className="block text-sm font-medium text-amber-950">Launch note (optional)
+                      <input className="mt-1 w-full rounded-lg border border-amber-300 bg-white p-2 text-sm" maxLength={500} value={launchReason} onChange={(event) => setLaunchReason(event.target.value)} />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => void handleLaunchExam()}
+                      disabled={busy !== 'idle' || !launchConfirmed || !activeForm || (detail?.assignments.length ?? 0) === 0}
+                      className="rounded-lg bg-amber-700 px-4 py-2 font-semibold text-white hover:bg-amber-800 disabled:bg-slate-400"
+                    >
+                      {busy === 'launching' ? 'Launching…' : 'Confirm and launch now'}
+                    </button>
+                  </div>
+                ) : null}
                 <button type="button" onClick={printExamOperationsPack} className="mb-3 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">Print attendance & invigilation pack</button>
                 <div className="grid gap-3 md:grid-cols-2">
                   <LinkBox label="Student link" value={studentLink} />
-                  <LinkBox label="Monitor link" value={monitorLink} />
+                  <LinkBox
+                    label="Monitor"
+                    value={monitorLink}
+                    onOpen={onOpenMonitor && activeExam ? () => onOpenMonitor(activeExam.id) : undefined}
+                  />
                 </div>
                 <div className="mt-3 grid gap-3 text-sm md:grid-cols-4">
                   <LifecycleStat status={activeExam.status} startsAt={activeExam.starts_at} endsAt={activeExam.ends_at} />
@@ -554,7 +675,7 @@ const IeltsExamManager: React.FC = () => {
                 </div>
                 <div className="mt-4 rounded-xl bg-slate-50 p-3 text-sm text-slate-600">
                   {(detail?.assignments.length ?? 0) === 0
-                    ? 'No assigned students yet. Assign a class or selected students before pilot launch.'
+                    ? 'No assigned students yet. Assign a class or selected students before launch.'
                     : `Current assignments: ${detail?.assignments.length ?? 0}`}
                 </div>
               </Panel>
@@ -618,10 +739,16 @@ const JsonBox: React.FC<{ label: string; value: string; onChange: (value: string
   </label>
 );
 
-const LinkBox: React.FC<{ label: string; value: string }> = ({ label, value }) => (
+const LinkBox: React.FC<{ label: string; value: string; onOpen?: () => void }> = ({ label, value, onOpen }) => (
   <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
-    <a className="mt-1 block break-all text-sm font-semibold text-blue-700 underline" href={value}>{value}</a>
+    {onOpen ? (
+      <button type="button" onClick={onOpen} className="mt-2 rounded-lg bg-blue-700 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-800">
+        Open monitor
+      </button>
+    ) : (
+      <a className="mt-1 block break-all text-sm font-semibold text-blue-700 underline" href={value}>{value}</a>
+    )}
   </div>
 );
 
