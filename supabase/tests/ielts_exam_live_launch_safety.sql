@@ -239,6 +239,71 @@ select pg_temp.assert_true(
   )->>'status' = 'live',
   'confirmed launch must move a ready scheduled event to live'
 );
+select pg_temp.assert_true(
+  coalesce(current_setting('brainsheist.ielts_live_transition_exam_id', true), '') = ''
+  and coalesce(current_setting('brainsheist.ielts_live_transition_actor_id', true), '') = ''
+  and coalesce(current_setting('brainsheist.ielts_live_transition_action', true), '') = '',
+  'launch must consume and clear every transaction-local live-transition guard'
+);
+
+-- A privileged statement later in the same transaction cannot replay the
+-- consumed launch capability. The resume path is independently single-use.
+select pg_temp.assert_true(
+  public.rpc_ielts_pause_exam(
+    'e5000000-0000-4000-8000-000000000001',
+    'Verify launch guard consumption'
+  )->>'status' = 'paused',
+  'administrator should be able to pause the launch fixture'
+);
+reset role;
+select pg_temp.assert_raises(
+  $sql$update public.ielts_exam_events
+        set status = 'live'
+        where id = 'e5000000-0000-4000-8000-000000000001'$sql$,
+  'live_transition_requires_rpc',
+  'consumed launch guard must not authorize a later privileged live update'
+);
+set local role authenticated;
+select set_config('request.jwt.claim.role', 'authenticated', true);
+select set_config('request.jwt.claim.sub', 'e2000000-0000-4000-8000-000000000001', true);
+select pg_temp.assert_true(
+  public.rpc_ielts_resume_exam(
+    'e5000000-0000-4000-8000-000000000001',
+    'Verify resume guard consumption'
+  )->>'status' = 'live',
+  'administrator should be able to resume the paused launch fixture'
+);
+select pg_temp.assert_true(
+  coalesce(current_setting('brainsheist.ielts_live_transition_exam_id', true), '') = ''
+  and coalesce(current_setting('brainsheist.ielts_live_transition_actor_id', true), '') = ''
+  and coalesce(current_setting('brainsheist.ielts_live_transition_action', true), '') = '',
+  'resume must consume and clear every transaction-local live-transition guard'
+);
+select pg_temp.assert_true(
+  public.rpc_ielts_pause_exam(
+    'e5000000-0000-4000-8000-000000000001',
+    'Verify resumed guard cannot replay'
+  )->>'status' = 'paused',
+  'administrator should be able to pause after resume'
+);
+reset role;
+select pg_temp.assert_raises(
+  $sql$update public.ielts_exam_events
+        set status = 'live'
+        where id = 'e5000000-0000-4000-8000-000000000001'$sql$,
+  'live_transition_requires_rpc',
+  'consumed resume guard must not authorize a later privileged live update'
+);
+set local role authenticated;
+select set_config('request.jwt.claim.role', 'authenticated', true);
+select set_config('request.jwt.claim.sub', 'e2000000-0000-4000-8000-000000000001', true);
+select pg_temp.assert_true(
+  public.rpc_ielts_resume_exam(
+    'e5000000-0000-4000-8000-000000000001',
+    'Restore live fixture after guard replay checks'
+  )->>'status' = 'live',
+  'fixture should return to live after replay checks'
+);
 
 select set_config('request.jwt.claim.sub', 'e2000000-0000-4000-8000-000000000002', true);
 select pg_temp.assert_true(

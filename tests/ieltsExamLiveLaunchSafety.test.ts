@@ -240,6 +240,33 @@ test('IELTS launch and resume are guarded, audited, and explicitly granted only 
   );
 });
 
+test('live-transition capabilities are consumed immediately and the database harness is bounded', () => {
+  for (const functionName of ['rpc_ielts_launch_exam', 'rpc_ielts_resume_exam']) {
+    const body = readFunction(functionName);
+    const stateCheck = body.indexOf('if v_event.id is null then');
+    const auditInsert = body.indexOf('insert into public.ielts_exam_audit_log');
+
+    assert.notEqual(stateCheck, -1, `${functionName} must validate the guarded update`);
+    assert.notEqual(auditInsert, -1, `${functionName} must write an audit record`);
+    for (const key of ['exam_id', 'actor_id', 'action']) {
+      const reset = body.indexOf(
+        `set_config('brainsheist.ielts_live_transition_${key}', '', true)`,
+      );
+      assert.ok(
+        reset > stateCheck && reset < auditInsert,
+        `${functionName} must consume its ${key} guard immediately after the state update`,
+      );
+    }
+  }
+
+  const wrapper = fs.readFileSync(
+    path.join(process.cwd(), 'tests/ieltsExamLiveLaunchRlsIntegration.test.ts'),
+    'utf8',
+  );
+  assert.match(wrapper, /timeout:\s*120_000/);
+  assert.match(wrapper, /PGCONNECT_TIMEOUT:\s*'10'/);
+});
+
 test('student attempt start is live-only and preserves same-school resume behavior', () => {
   const startAttempt = readFunction('rpc_ielts_start_attempt');
 
@@ -349,6 +376,8 @@ test('adversarial lifecycle harness creates matching Auth identities and always 
     /insert into auth\.users[\s\S]*e2000000-0000-4000-8000-000000000001[\s\S]*e2000000-0000-4000-8000-000000000002[\s\S]*e2000000-0000-4000-8000-000000000003[\s\S]*e2000000-0000-4000-8000-000000000004/i,
     'every lifecycle fixture referenced by Auth foreign keys must have a matching identity',
   );
+  assert.match(harness, /only against a disposable\/staging database/i);
+  assert.match(harness, /never point the wrapper at production/i);
   assert.match(harness, /^begin;/m, 'adversarial lifecycle tests must start a transaction');
   assert.match(harness, /rollback;\s*$/i, 'adversarial lifecycle tests must never persist fixtures');
 });

@@ -50,7 +50,7 @@ const IeltsExamModeAdminGuard: React.FC<{ children: React.ReactNode }> = ({ chil
 
   if (state === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white text-gray-700">
+      <div role="status" aria-live="polite" className="min-h-screen flex items-center justify-center bg-white text-gray-700">
         <div className="text-lg font-semibold animate-pulse">Verifying IELTS Exam Mode access...</div>
       </div>
     );

@@ -66,6 +66,70 @@ test('IELTS Exam Mode access fails closed when authentication cannot be verified
   assert.deepEqual(result, { allowed: false, reason: 'verification_error' });
 });
 
+const authenticatedAccessClient = (
+  rpcHandler: (name: string, params?: Record<string, unknown>) => Promise<{ data: unknown; error: { message?: string } | null }>,
+) => ({
+  auth: {
+    getUser: async () => ({
+      data: { user: { id: 'user-1' } },
+      error: null,
+    }),
+  },
+  from: () => ({
+    select: () => ({
+      eq: () => ({
+        maybeSingle: async () => ({
+          data: { role: 'student', is_admin: false },
+          error: null,
+        }),
+      }),
+    }),
+  }),
+  rpc: rpcHandler,
+});
+
+test('IELTS Exam Mode access reuses canonical school capability resolution', async () => {
+  const calls: string[] = [];
+  const client = authenticatedAccessClient(async (name) => {
+    calls.push(name);
+    return {
+      data: {
+        success: true,
+        school_id: 'school-1',
+        role: 'school_admin',
+        is_owner: false,
+        can_administer: true,
+        can_teach: false,
+      },
+      error: null,
+    };
+  });
+
+  const result = await checkIeltsExamModeAdminAccess(client as never);
+
+  assert.deepEqual(result, { allowed: true, reason: 'school_admin_capability' });
+  assert.deepEqual(calls, ['school_admin_get_my_capabilities']);
+});
+
+test('IELTS Exam Mode access preserves manageable-exam fallback when capability resolution fails', async () => {
+  const calls: string[] = [];
+  const client = authenticatedAccessClient(async (name) => {
+    calls.push(name);
+    if (name === 'school_admin_get_my_capabilities') {
+      return { data: null, error: { message: 'capability unavailable' } };
+    }
+    return {
+      data: [{ id: 'exam-1' }],
+      error: null,
+    };
+  });
+
+  const result = await checkIeltsExamModeAdminAccess(client as never);
+
+  assert.deepEqual(result, { allowed: true, reason: 'manageable_exam_scope' });
+  assert.deepEqual(calls, ['school_admin_get_my_capabilities', 'rpc_ielts_list_manageable_exams']);
+});
+
 test('IELTS Exam Mode guard hides previously authorized content during every recheck', () => {
   const guard = fs.readFileSync(
     path.join(process.cwd(), 'components/ielts/IeltsExamModeAdminGuard.tsx'),
@@ -77,6 +141,13 @@ test('IELTS Exam Mode guard hides previously authorized content during every rec
   assert.match(guard, /requestId !== requestIdRef\.current/, 'stale authorization responses must be ignored');
   assert.match(guard, /requestIdRef\.current \+= 1;\s*subscription\.unsubscribe\(\)/, 'unmount must invalidate pending checks');
   assert.match(guard, /result\.reason === 'verification_error' \? 'error' : 'denied'/, 'verification failures must not masquerade as permission denials');
+  assert.match(guard, /role="status" aria-live="polite"/, 'exam access verification must be announced politely');
+
+  const reviewGuard = fs.readFileSync(
+    path.join(process.cwd(), 'components/ielts/IeltsReviewAdminGuard.tsx'),
+    'utf8',
+  );
+  assert.match(reviewGuard, /role="status" aria-live="polite"/, 'review access verification must be announced politely');
 });
 
 
@@ -93,18 +164,20 @@ test('School Admin Portal exposes Phase 1 IELTS tabs without removing Cambridge'
   assert.match(portal, /<IeltsExamsTab onOpenMonitor=/, 'IELTS Exams tab must keep monitoring inside the school administration shell');
   assert.match(portal, /<IeltsPracticeTab onOpenReviews=/, 'IELTS Practice tab must keep review navigation inside the portal');
   assert.match(portal, /<IeltsResultsTab \/>/, 'IELTS Results placeholder tab must be wired');
-  assert.doesNotMatch(portal, /<IeltsAnalyticsTab \/>/, 'unfinished IELTS Analytics must stay out of administrator navigation');
+  assert.doesNotMatch(portal, /\bIeltsAnalyticsTab\b/, 'unfinished IELTS Analytics must stay out of administrator navigation');
   assert.match(portal, /id: 'ielts-student-progress'[\s\S]*label: 'Student Progress'/, 'IELTS school admin nav must include Student Progress');
   assert.match(portal, /activeIeltsSubTab === 'ielts-student-progress'[\s\S]*<IeltsJourneyDashboard embedded \/>/, 'Student Progress must render inside the School Admin Portal shell');
   assert.doesNotMatch(portal, /label: 'Student Progress'[^\n]*route: '\/ielts\/journey'/, 'Student Progress must not leave the School Admin Portal shell');
   assert.match(portal, /label: 'Assignment Overview'/, 'IELTS school admin nav should label assignment monitoring as Assignment Overview');
+  const reviewSelector = portal.slice(portal.indexOf('const selectIeltsReview'), portal.indexOf('const selectIeltsMonitor'));
+  assert.match(reviewSelector, /setActiveIeltsSubTab\('ielts-reviews'\)/, 'opening a review must synchronize the selected IELTS tab');
 });
 
 test('IELTS Exams school admin tab embeds the guarded Exam Manager', () => {
   const tab = fs.readFileSync(path.join(process.cwd(), 'components/school-admin/tabs/IeltsExamsTab.tsx'), 'utf8');
   assert.match(tab, /<IeltsExamModeAdminGuard>/, 'IELTS Exams tab must keep the school-scoped guard');
   assert.match(tab, /<IeltsExamManager embedded\b/, 'IELTS Exams tab must keep the Exam Manager inside School Administration');
-  assert.doesNotMatch(tab, /href="\/ielts\/exams\/manage"/, 'IELTS Exams tab must not leave the School Administration shell');
+  assert.doesNotMatch(tab, /\/ielts\/exams\/manage/, 'IELTS Exams tab must not leave the School Administration shell');
 });
 
 test('Phase 1 IELTS passive tabs avoid unsafe global practice queries', () => {

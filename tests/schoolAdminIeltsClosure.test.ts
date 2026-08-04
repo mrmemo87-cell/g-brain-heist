@@ -27,6 +27,8 @@ test('school administrators keep IELTS exams, reviews, and progress inside the a
   assert.match(shellRoute, /resolution\.status === 'error'[\s\S]*setAdminAccess\('error'\)/, 'capability failures must keep the standalone route closed');
   assert.match(shellRoute, /Try again/, 'capability failures must be retryable');
   assert.match(shellRoute, /schoolAdminIeltsUrl\(ieltsTab, review, monitorExamId\)/, 'direct route restoration must use validated enum state');
+  assert.match(shellRoute, /isValidSchoolAdminIeltsReviewAttemptId\(attemptId\)/, 'direct review routes must bound the attempt identifier before redirecting');
+  assert.match(shellRoute, /isValidSchoolAdminIeltsRouteExamId\(routeExamId\)/, 'direct monitor routes must require the expected v4 exam identifier');
   assert.match(routes, /path:\s*'\/ielts\/exam\/:examEventId\/monitor'[\s\S]*?<SchoolAdminIeltsRoute ieltsTab="ielts-exams" monitorFromRoute>/, 'direct monitor routes must restore the administration shell');
 });
 

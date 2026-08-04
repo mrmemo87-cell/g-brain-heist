@@ -22,10 +22,12 @@ import { fetchIeltsDashboardSummary, type IeltsDashboardSummary } from '../../..
 import { schoolAdminIeltsUrl } from '../../lib/schoolAdminIeltsNavigation';
 import IeltsAnimatedHero from '../../components/ielts/IeltsAnimatedHero';
 import IeltsPrimeDashboard from '../../components/ielts/IeltsPrimeDashboard';
+import IeltsSchoolLearnerLinks from '../../components/ielts/IeltsSchoolLearnerLinks';
 
 const IeltsHome: React.FC = () => {
   const navigate = useNavigate();
   const dashboardEventTrackedRef = useRef(false);
+  const landingEventTrackedRef = useRef(false);
   const authUserIdRef = useRef<string | null>(null);
   const primeRedirectUrl = '/ielts/apply-prime';
   const [musicEnabled, setMusicEnabled] = useState(false);
@@ -118,6 +120,8 @@ const IeltsHome: React.FC = () => {
       const nextUserId = session?.user?.id ?? null;
       if (authUserIdRef.current !== nextUserId) {
         authUserIdRef.current = nextUserId;
+        dashboardEventTrackedRef.current = false;
+        landingEventTrackedRef.current = false;
         setProfileContextLoaded(false);
         setProfileContextError(false);
         setUserRole('student');
@@ -133,11 +137,17 @@ const IeltsHome: React.FC = () => {
       setAuthResolved(true);
     };
 
-    supabase.auth.getSession().then(({ data }) => {
-      if (active) {
-        syncSession(data.session);
-      }
-    });
+    supabase.auth.getSession()
+      .then(({ data }) => {
+        if (active) {
+          syncSession(data.session);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          syncSession(null);
+        }
+      });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       syncSession(session);
     });
@@ -234,6 +244,8 @@ const IeltsHome: React.FC = () => {
 
   useEffect(() => {
     if (!profileContextLoaded || profileContextError || isIeltsAdminLandingRole) return;
+    if (landingEventTrackedRef.current) return;
+    landingEventTrackedRef.current = true;
     trackIeltsFunnelEvent('landing_view', {
       user_type: hasSchoolMembership ? 'school' : 'independent',
     });
@@ -253,7 +265,6 @@ const IeltsHome: React.FC = () => {
       setDashboardSummary(null);
       setDashboardLoading(false);
       setDashboardLoaded(false);
-      dashboardEventTrackedRef.current = false;
       return () => { active = false; };
     }
 
@@ -443,7 +454,6 @@ const IeltsHome: React.FC = () => {
 
   const shouldShowDashboardLoading = !authResolved || (isAuthenticated && !isIeltsAdminLandingRole && (
     !profileContextLoaded
-    || extraPracticeEnabled === null
     || dashboardLoading
     || (!dashboardLoaded && !dashboardSummary)
   ));
@@ -467,7 +477,7 @@ const IeltsHome: React.FC = () => {
           <div style={{ fontSize: '2.25rem', marginBottom: '0.75rem' }}>🎧</div>
           <p style={{ margin: '0 0 0.45rem', color: '#67e8f9', fontSize: '0.72rem', fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase' }}>Brain Heist IELTS</p>
           <h1 style={{ margin: 0, color: '#fff', fontSize: 'clamp(1.45rem,5vw,2.25rem)', letterSpacing: '-0.04em' }}>Loading your IELTS dashboard…</h1>
-          <p style={{ margin: '0.75rem auto 0', color: '#cbd5e1', lineHeight: 1.6, maxWidth: 420 }}>We’re checking your diagnostic result and practice access.</p>
+          <p style={{ margin: '0.75rem auto 0', color: '#cbd5e1', lineHeight: 1.6, maxWidth: 420 }}>We’re checking your profile and diagnostic result.</p>
         </div>
       </div>
     );
@@ -548,72 +558,6 @@ const IeltsHome: React.FC = () => {
     return Number.isNaN(date.getTime()) ? 'Not available yet' : date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
-  if (
-    isAuthenticated
-    && !isIeltsAdminLandingRole
-    && (extraPracticeAccessError || extraPracticeEnabled === false)
-  ) {
-    const summary = dashboardSummary;
-    const accessTitle = extraPracticeAccessError
-      ? 'Extra Practice access could not be verified.'
-      : hasSchoolMembership
-        ? 'Extra Practice is managed by your school.'
-        : 'Extra Practice is not available for this account.';
-    const accessMessage = extraPracticeAccessError
-      ? hasSchoolMembership
-        ? 'We have kept unverified practice content closed. Assigned school work remains available while you retry.'
-        : 'We have kept unverified practice content closed. Check your connection and retry before opening optional practice.'
-      : hasSchoolMembership
-        ? 'Your administrator has paused optional practice. You can still complete assigned work and review your IELTS journey.'
-        : 'Optional practice is currently unavailable. Your saved IELTS information has not been changed.';
-    const restrictedShell: React.CSSProperties = {
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg,#eef7ff 0%,#f8fafc 42%,#f3e8ff 100%)',
-      color: '#0f172a',
-      fontFamily: 'system-ui, -apple-system, sans-serif',
-      padding: 'clamp(1rem,3vw,2rem)',
-    };
-    const restrictedCard: React.CSSProperties = {
-      background: 'rgba(255,255,255,0.94)',
-      border: '1px solid rgba(148,163,184,0.32)',
-      borderRadius: '1.25rem',
-      padding: 'clamp(1.2rem,4vw,2rem)',
-      boxShadow: '0 18px 45px rgba(15,23,42,0.08)',
-    };
-
-    return (
-      <div style={restrictedShell}>
-        <main style={{ width: 'min(100%, 760px)', margin: '0 auto', display: 'grid', gap: '1rem' }}>
-          <section role={extraPracticeAccessError ? 'alert' : undefined} style={{ ...restrictedCard, borderColor: extraPracticeAccessError ? '#fecaca' : '#bae6fd' }}>
-            <p style={{ margin: '0 0 .4rem', color: extraPracticeAccessError ? '#b91c1c' : '#0369a1', fontSize: '.72rem', fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Brain Heist IELTS</p>
-            <h1 style={{ margin: 0, fontSize: 'clamp(1.5rem,5vw,2.35rem)', letterSpacing: '-.035em' }}>{accessTitle}</h1>
-            <p style={{ margin: '.75rem 0 0', color: '#475569', lineHeight: 1.65 }}>{accessMessage}</p>
-            {extraPracticeAccessError ? (
-              <button type="button" onClick={() => setExtraPracticeRetry((value) => value + 1)} style={{ marginTop: '1rem', border: 0, borderRadius: 999, background: '#1d4ed8', color: '#fff', padding: '.75rem 1rem', fontWeight: 900, cursor: 'pointer' }}>Try again</button>
-            ) : null}
-          </section>
-
-          <section style={restrictedCard} aria-labelledby="ielts-available-actions-heading">
-            <h2 id="ielts-available-actions-heading" style={{ margin: 0, fontSize: '1.1rem' }}>Available now</h2>
-            <p style={{ margin: '.45rem 0 0', color: '#64748b' }}>
-              {summary?.diagnostic.completed
-                ? `Your diagnostic result${summary.diagnostic.estimatedBand ? ` (estimated band ${summary.diagnostic.estimatedBand.toFixed(1)})` : ''} remains saved.`
-                : 'Your IELTS profile remains saved.'}
-            </p>
-            {hasSchoolMembership ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(210px,1fr))', gap: '.75rem', marginTop: '1rem' }}>
-                <button type="button" onClick={() => navigate('/ielts/practice/assigned')} style={{ border: '1px solid #c4b5fd', borderRadius: '.85rem', background: '#f5f3ff', color: '#5b21b6', padding: '.85rem', fontWeight: 900, cursor: 'pointer' }}>📌 Assigned Practice →</button>
-                <button type="button" onClick={() => navigate('/ielts/journey')} style={{ border: '1px solid #bae6fd', borderRadius: '.85rem', background: '#f0f9ff', color: '#075985', padding: '.85rem', fontWeight: 900, cursor: 'pointer' }}>🧭 My IELTS Journey →</button>
-              </div>
-            ) : null}
-          </section>
-
-          <button type="button" onClick={() => navigate('/')} style={{ padding: '.75rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '.75rem', color: '#475569', fontWeight: 800, cursor: 'pointer' }}>← Back to Brain Heist Game</button>
-        </main>
-      </div>
-    );
-  }
-
   if (isAuthenticated && dashboardSummary && !isIeltsAdminLandingRole) {
     const summary = dashboardSummary;
     const activePrime = summary.isPrimeActive;
@@ -631,7 +575,7 @@ const IeltsHome: React.FC = () => {
       { skill: 'speaking' as const, label: 'Speaking', benefit: 'Practise fluent answers with clear response patterns.', progress: summary.skillProgress.speaking, overviewRoute: '/ielts/speaking' },
     ];
     if (!summary.diagnostic.completed) {
-      return <div style={shell}><main style={{ maxWidth: 1120, margin: '0 auto' }}><IeltsAnimatedHero onStartDiagnostic={startDiagnostic} compact authenticated /><section style={{ ...whiteCard, marginTop: '1rem' }}><h2 style={{ margin: '0 0 .5rem', color: '#0f172a' }}>Your diagnostic is ready.</h2><p style={{ margin: 0, color: '#475569', lineHeight: 1.65 }}>Start the free Listening diagnostic to unlock an estimated band snapshot, strengths, weaknesses, and your next IELTS practice path.</p></section></main></div>;
+      return <div style={shell}><main style={{ maxWidth: 1120, margin: '0 auto', display: 'grid', gap: '1rem' }}><IeltsAnimatedHero onStartDiagnostic={startDiagnostic} compact authenticated />{hasSchoolMembership && <IeltsSchoolLearnerLinks onNavigate={navigate} />}<section style={whiteCard}><h2 style={{ margin: '0 0 .5rem', color: '#0f172a' }}>Your diagnostic is ready.</h2><p style={{ margin: 0, color: '#475569', lineHeight: 1.65 }}>Start the free Listening diagnostic to unlock an estimated band snapshot, strengths, weaknesses, and your next IELTS practice path.</p></section></main></div>;
     }
     if (activePrime) {
       return (
@@ -645,14 +589,18 @@ const IeltsHome: React.FC = () => {
           onNavigate={navigate}
           onRedirectToPrime={redirectToPrime}
           formatDate={formatDate}
+          showSchoolLinks={hasSchoolMembership}
         />
       );
     }
-    return <div style={shell}><main style={{ maxWidth: 1120, margin: '0 auto', display: 'grid', gap: '1rem' }}><section style={{ ...whiteCard, background: 'linear-gradient(135deg,#0f172a,#172554 48%,#4c1d95)', color: '#fff', padding: 'clamp(1.3rem,4vw,2.2rem)' }}><div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}><div><span style={{ display: 'inline-flex', background: activePrime ? 'rgba(34,197,94,.16)' : 'rgba(251,191,36,.16)', border: '1px solid rgba(255,255,255,.22)', borderRadius: 999, padding: '.35rem .7rem', fontWeight: 900, color: activePrime ? '#bbf7d0' : '#fde68a' }}>{activePrime ? 'IELTS Prime Active' : lapsedPrime ? 'Prime access needs renewal' : 'Diagnostic complete'}</span><h1 style={{ margin: '.8rem 0 .35rem', fontSize: 'clamp(2rem,5vw,3.7rem)', letterSpacing: '-0.05em' }}>Welcome back, {summary.displayName || 'IELTS learner'}.</h1><p style={{ margin: 0, color: '#cbd5e1' }}>{activePrime ? 'Continue your premium IELTS practice dashboard.' : 'You’re closer than you think. Your result shows where to focus next.'}</p></div><button type="button" onClick={() => navigate(recommendedRoute)} style={{ alignSelf: 'center', background: '#fff', color: '#312e81', border: 0, borderRadius: 999, padding: '.9rem 1.15rem', fontWeight: 950, cursor: 'pointer' }}>Continue Learning →</button></div><div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '.75rem', marginTop: '1.1rem' }}>{[['Estimated Band', summary.diagnostic.estimatedBand ? `${summary.diagnostic.estimatedBand}.0` : 'Estimated after diagnostic'], ['Target Band', summary.targetBand ? `${summary.targetBand}.0` : 'Set when ready'], ['Plan', summary.subscription.plan || (activePrime ? 'Prime access active' : 'Free')], ['Status', summary.subscription.status || (activePrime ? 'active' : 'free')], ['Started', formatDate((summary.subscription as any).current_period_start)], ['Renewal', formatDate(summary.subscription.current_period_end)]].map(([k,v]) => <div key={k} style={{ background: 'rgba(15,23,42,.48)', border: '1px solid rgba(148,163,184,.22)', borderRadius: '.9rem', padding: '.85rem' }}><div style={{ color: '#94a3b8', fontSize: '.72rem', fontWeight: 900, textTransform: 'uppercase' }}>{k}</div><div style={{ color: '#fff', fontWeight: 950, marginTop: '.2rem' }}>{v}</div></div>)}</div></section><section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '1rem' }}><div style={whiteCard}><b>Diagnostic complete</b><p>Completed {formatDate(summary.diagnostic.completedAt)}</p></div><div style={whiteCard}><b>Tasks completed</b><p>{completedTotal} completed · {taskTotal || 'No'} available</p></div><div style={whiteCard}><b>Current focus skill</b><p>{recommendedSkill ? recommendedSkill[0].toUpperCase()+recommendedSkill.slice(1) : 'Reading'}</p></div><div style={whiteCard}><b>Recent activity</b><p>{formatDate(summary.recentActivity)}</p></div></section><section style={whiteCard}><h2 style={{ marginTop: 0 }}>{activePrime ? 'Skill tracks' : 'Your IELTS result and next step'}</h2>{!activePrime && <p style={{ color: '#475569' }}>IELTS Prime helps you turn this result into a guided practice plan. Prime sections are previewed below without hiding your diagnostic progress.</p>}<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(230px,1fr))', gap: '.8rem' }}>{skillCards.map((card) => { const locked = !activePrime && ['writing','speaking'].includes(card.skill); const disabled = !locked && !card.progress.nextUnfinishedTaskRoute; const statusLabel = locked ? 'Locked' : card.progress.buttonLabel; const destination = card.progress.nextUnfinishedTaskRoute || (card.progress.allTasksCompleted ? card.overviewRoute : null); return <div key={card.skill} style={{ border: card.progress.allTasksCompleted ? '1px solid rgba(34,197,94,0.34)' : '1px solid #e2e8f0', borderRadius: '1rem', padding: '1rem', background: locked ? '#f8fafc' : card.progress.allTasksCompleted ? 'linear-gradient(180deg,#ffffff,#f0fdf4)' : '#fff' }}><div style={{ display: 'flex', justifyContent: 'space-between' }}><h3 style={{ margin: 0 }}>{card.label}</h3><span style={{ color: locked ? '#9333ea' : card.progress.allTasksCompleted ? '#047857' : card.progress.totalAvailableTasks ? '#059669' : '#64748b', fontWeight: 900 }}>{locked ? 'Locked' : card.progress.totalAvailableTasks ? (card.progress.allTasksCompleted ? 'Completed' : 'Available') : 'Coming soon'}</span></div><p style={{ color: '#64748b', minHeight: 44 }}>{card.benefit}</p><p style={{ fontSize: '.82rem', color: '#475569' }}>{card.progress.completedTaskCount} / {card.progress.totalAvailableTasks} completed</p><button type="button" disabled={disabled} onClick={() => locked ? redirectToPrime() : destination && navigate(destination)} style={{ width: '100%', border: 0, borderRadius: '.7rem', padding: '.7rem', fontWeight: 900, cursor: disabled ? 'default' : 'pointer', background: locked ? '#ede9fe' : card.progress.allTasksCompleted ? '#dcfce7' : card.progress.totalAvailableTasks ? '#0f172a' : '#e2e8f0', color: locked ? '#6d28d9' : card.progress.allTasksCompleted ? '#166534' : card.progress.totalAvailableTasks ? '#fff' : '#64748b', opacity: disabled ? 0.82 : 1 }}>{locked ? 'Unlock with Prime' : statusLabel}</button></div>; })}</div></section>{!activePrime && <section style={{ ...whiteCard, borderColor: '#c4b5fd' }}><h2 style={{ marginTop: 0 }}>{lapsedPrime ? 'Renew IELTS Prime' : 'Unlock IELTS Prime'}</h2><p style={{ color: '#475569' }}>Writing feedback, Speaking practice, full progress tracking, and a band improvement plan are available with Prime. No fake promises — just a clearer practice system.</p><button type="button" onClick={redirectToPrime} style={{ background: 'linear-gradient(135deg,#7c3aed,#2563eb)', color: '#fff', border: 0, borderRadius: 999, padding: '.85rem 1.1rem', fontWeight: 950, cursor: 'pointer' }}>{lapsedPrime ? 'Renew IELTS Prime' : 'Improve My Band'}</button></section>}{activePrime && summary.subscription.management_url && <a href={summary.subscription.management_url} style={{ color: '#334155', fontWeight: 800 }}>Manage subscription</a>}<button onClick={() => navigate('/')} style={{ padding: '.75rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '.75rem', cursor: 'pointer' }}>← Back to Brain Heist Game</button></main></div>;
+    return <div style={shell}><main style={{ maxWidth: 1120, margin: '0 auto', display: 'grid', gap: '1rem' }}><section style={{ ...whiteCard, background: 'linear-gradient(135deg,#0f172a,#172554 48%,#4c1d95)', color: '#fff', padding: 'clamp(1.3rem,4vw,2.2rem)' }}><div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}><div><span style={{ display: 'inline-flex', background: activePrime ? 'rgba(34,197,94,.16)' : 'rgba(251,191,36,.16)', border: '1px solid rgba(255,255,255,.22)', borderRadius: 999, padding: '.35rem .7rem', fontWeight: 900, color: activePrime ? '#bbf7d0' : '#fde68a' }}>{activePrime ? 'IELTS Prime Active' : lapsedPrime ? 'Prime access needs renewal' : 'Diagnostic complete'}</span><h1 style={{ margin: '.8rem 0 .35rem', fontSize: 'clamp(2rem,5vw,3.7rem)', letterSpacing: '-0.05em' }}>Welcome back, {summary.displayName || 'IELTS learner'}.</h1><p style={{ margin: 0, color: '#cbd5e1' }}>{activePrime ? 'Continue your premium IELTS practice dashboard.' : 'You’re closer than you think. Your result shows where to focus next.'}</p></div><button type="button" onClick={() => navigate(recommendedRoute)} style={{ alignSelf: 'center', background: '#fff', color: '#312e81', border: 0, borderRadius: 999, padding: '.9rem 1.15rem', fontWeight: 950, cursor: 'pointer' }}>Continue Learning →</button></div><div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '.75rem', marginTop: '1.1rem' }}>{[['Estimated Band', summary.diagnostic.estimatedBand ? `${summary.diagnostic.estimatedBand}.0` : 'Estimated after diagnostic'], ['Target Band', summary.targetBand ? `${summary.targetBand}.0` : 'Set when ready'], ['Plan', summary.subscription.plan || (activePrime ? 'Prime access active' : 'Free')], ['Status', summary.subscription.status || (activePrime ? 'active' : 'free')], ['Started', formatDate((summary.subscription as any).current_period_start)], ['Renewal', formatDate(summary.subscription.current_period_end)]].map(([k,v]) => <div key={k} style={{ background: 'rgba(15,23,42,.48)', border: '1px solid rgba(148,163,184,.22)', borderRadius: '.9rem', padding: '.85rem' }}><div style={{ color: '#94a3b8', fontSize: '.72rem', fontWeight: 900, textTransform: 'uppercase' }}>{k}</div><div style={{ color: '#fff', fontWeight: 950, marginTop: '.2rem' }}>{v}</div></div>)}</div></section>{hasSchoolMembership && <IeltsSchoolLearnerLinks onNavigate={navigate} />}<section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '1rem' }}><div style={whiteCard}><b>Diagnostic complete</b><p>Completed {formatDate(summary.diagnostic.completedAt)}</p></div><div style={whiteCard}><b>Tasks completed</b><p>{completedTotal} completed · {taskTotal || 'No'} available</p></div><div style={whiteCard}><b>Current focus skill</b><p>{recommendedSkill ? recommendedSkill[0].toUpperCase()+recommendedSkill.slice(1) : 'Reading'}</p></div><div style={whiteCard}><b>Recent activity</b><p>{formatDate(summary.recentActivity)}</p></div></section><section style={whiteCard}><h2 style={{ marginTop: 0 }}>{activePrime ? 'Skill tracks' : 'Your IELTS result and next step'}</h2>{!activePrime && <p style={{ color: '#475569' }}>IELTS Prime helps you turn this result into a guided practice plan. Prime sections are previewed below without hiding your diagnostic progress.</p>}<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(230px,1fr))', gap: '.8rem' }}>{skillCards.map((card) => { const locked = !activePrime && ['writing','speaking'].includes(card.skill); const disabled = !locked && !card.progress.nextUnfinishedTaskRoute; const statusLabel = locked ? 'Locked' : card.progress.buttonLabel; const destination = card.progress.nextUnfinishedTaskRoute || (card.progress.allTasksCompleted ? card.overviewRoute : null); return <div key={card.skill} style={{ border: card.progress.allTasksCompleted ? '1px solid rgba(34,197,94,0.34)' : '1px solid #e2e8f0', borderRadius: '1rem', padding: '1rem', background: locked ? '#f8fafc' : card.progress.allTasksCompleted ? 'linear-gradient(180deg,#ffffff,#f0fdf4)' : '#fff' }}><div style={{ display: 'flex', justifyContent: 'space-between' }}><h3 style={{ margin: 0 }}>{card.label}</h3><span style={{ color: locked ? '#9333ea' : card.progress.allTasksCompleted ? '#047857' : card.progress.totalAvailableTasks ? '#059669' : '#64748b', fontWeight: 900 }}>{locked ? 'Locked' : card.progress.totalAvailableTasks ? (card.progress.allTasksCompleted ? 'Completed' : 'Available') : 'Coming soon'}</span></div><p style={{ color: '#64748b', minHeight: 44 }}>{card.benefit}</p><p style={{ fontSize: '.82rem', color: '#475569' }}>{card.progress.completedTaskCount} / {card.progress.totalAvailableTasks} completed</p><button type="button" disabled={disabled} onClick={() => locked ? redirectToPrime() : destination && navigate(destination)} style={{ width: '100%', border: 0, borderRadius: '.7rem', padding: '.7rem', fontWeight: 900, cursor: disabled ? 'default' : 'pointer', background: locked ? '#ede9fe' : card.progress.allTasksCompleted ? '#dcfce7' : card.progress.totalAvailableTasks ? '#0f172a' : '#e2e8f0', color: locked ? '#6d28d9' : card.progress.allTasksCompleted ? '#166534' : card.progress.totalAvailableTasks ? '#fff' : '#64748b', opacity: disabled ? 0.82 : 1 }}>{locked ? 'Unlock with Prime' : statusLabel}</button></div>; })}</div></section>{!activePrime && <section style={{ ...whiteCard, borderColor: '#c4b5fd' }}><h2 style={{ marginTop: 0 }}>{lapsedPrime ? 'Renew IELTS Prime' : 'Unlock IELTS Prime'}</h2><p style={{ color: '#475569' }}>Writing feedback, Speaking practice, full progress tracking, and a band improvement plan are available with Prime. No fake promises — just a clearer practice system.</p><button type="button" onClick={redirectToPrime} style={{ background: 'linear-gradient(135deg,#7c3aed,#2563eb)', color: '#fff', border: 0, borderRadius: 999, padding: '.85rem 1.1rem', fontWeight: 950, cursor: 'pointer' }}>{lapsedPrime ? 'Renew IELTS Prime' : 'Improve My Band'}</button></section>}{activePrime && summary.subscription.management_url && <a href={summary.subscription.management_url} style={{ color: '#334155', fontWeight: 800 }}>Manage subscription</a>}<button onClick={() => navigate('/')} style={{ padding: '.75rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '.75rem', cursor: 'pointer' }}>← Back to Brain Heist Game</button></main></div>;
   }
 
   const shouldShowSchoolTools = hasSchoolMembership || canOpenReviewQueue;
-  const showPracticeCatalog = extraPracticeEnabled && (isAuthenticated || hasSchoolMembership);
+  const showPracticeCatalog = extraPracticeEnabled === true && (isAuthenticated || hasSchoolMembership);
+  const practiceCatalogRestricted = isAuthenticated
+    && (extraPracticeAccessError || extraPracticeEnabled === false);
+  const practiceCatalogResolving = isAuthenticated && extraPracticeEnabled === null;
   const getItems = ['Objective score', 'Estimated band', 'Strengths', 'Weaknesses', 'Next practice path'];
   const steps = [
     { title: 'Take the free diagnostic', text: 'Complete a focused Listening baseline without paying first.', icon: '01' },
@@ -680,8 +628,6 @@ const IeltsHome: React.FC = () => {
         <IeltsAnimatedHero onStartDiagnostic={startDiagnostic} authenticated={isAuthenticated} compact={isAuthenticated} />
 
         {error && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', borderRadius: '0.85rem', padding: '0.85rem', marginBottom: '1rem' }}>{error}</div>}
-        {extraPracticeAccessError && <div role="alert" style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', borderRadius: '0.85rem', padding: '0.85rem', marginBottom: '1rem' }}>Extra Practice access could not be verified. Assigned work and your IELTS journey remain available.</div>}
-
         {shouldShowSchoolTools && (
           <section style={{ ...card, marginBottom: '1.25rem' }}>
             <h2 style={{ margin: '0 0 0.8rem', color: '#0f172a', fontSize: '1rem' }}>School tools</h2>
@@ -720,7 +666,30 @@ const IeltsHome: React.FC = () => {
           <button type="button" onClick={startDiagnostic} style={{ background: 'linear-gradient(135deg,#0ea5e9,#2563eb,#7c3aed)', color: '#fff', border: 'none', borderRadius: '9999px', padding: '1rem 1.45rem', fontWeight: 950, cursor: 'pointer', fontSize: '1rem' }}>Start Free IELTS Diagnostic →</button>
         </section>
 
-        {extraPracticeEnabled && (showPracticeCatalog && (
+        {practiceCatalogRestricted ? (
+          <section
+            role={extraPracticeAccessError ? 'alert' : undefined}
+            aria-labelledby="ielts-extra-practice-catalog-heading"
+            style={{ ...card, marginBottom: '1rem', borderColor: extraPracticeAccessError ? '#fecaca' : '#bae6fd' }}
+          >
+            <h2 id="ielts-extra-practice-catalog-heading" style={{ margin: 0, color: '#0f172a', fontSize: '1rem' }}>Extra practice catalog</h2>
+            <p style={{ margin: '.55rem 0 0', color: '#475569', lineHeight: 1.6 }}>
+              {extraPracticeAccessError
+                ? 'Extra Practice access could not be verified. Optional practice remains closed until you retry.'
+                : hasSchoolMembership
+                  ? 'Extra Practice is currently disabled by your school. Assigned work and your IELTS journey remain available.'
+                  : 'Extra Practice is not available for this account. Your IELTS dashboard and saved progress remain available.'}
+            </p>
+            {extraPracticeAccessError ? (
+              <button type="button" onClick={() => setExtraPracticeRetry((value) => value + 1)} style={{ marginTop: '.8rem', border: 0, borderRadius: 999, background: '#1d4ed8', color: '#fff', padding: '.7rem 1rem', fontWeight: 900, cursor: 'pointer' }}>Try again</button>
+            ) : null}
+          </section>
+        ) : practiceCatalogResolving ? (
+          <section role="status" aria-live="polite" style={{ ...card, marginBottom: '1rem' }}>
+            <h2 style={{ margin: 0, color: '#0f172a', fontSize: '1rem' }}>Extra practice catalog</h2>
+            <p style={{ margin: '.55rem 0 0', color: '#64748b' }}>Checking Extra Practice access…</p>
+          </section>
+        ) : showPracticeCatalog ? (
           <details style={{ ...card, marginBottom: '1rem' }}>
             <summary style={{ cursor: 'pointer', color: '#0f172a', fontWeight: 900 }}>Extra practice catalog</summary>
             {/* Free Trial Test Banner · Reading · Listening · Writing · Speaking */}
@@ -732,7 +701,7 @@ const IeltsHome: React.FC = () => {
               {speakingTasks.slice(0, 2).map((task, index) => <button key={task.id} onClick={() => openTask(`/ielts/speaking/${task.id}`, !canAccessRequiredTier(task.required_tier) || (!isPrimeUser && index > 0 && !task.required_tier))} style={{ padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid #fed7aa', background: '#fff7ed', color: '#9a3412', textAlign: 'left', cursor: 'pointer' }}>Speaking Part {task.part}</button>)}
             </div>}
           </details>
-        ))}
+        ) : null}
 
         <button onClick={() => navigate('/')} style={{ width: '100%', padding: '0.75rem', background: '#ffffff', color: '#475569', border: '1px solid #e2e8f0', borderRadius: '0.75rem', cursor: 'pointer', fontWeight: 700 }}>← Back to Brain Heist Game</button>
       </main>

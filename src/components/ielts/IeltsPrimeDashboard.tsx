@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { gsap } from 'gsap';
 import type { IeltsDashboardSummary, IeltsSkill, IeltsSkillProgress } from '../../../services/ieltsDashboardService';
+import IeltsSchoolLearnerLinks from './IeltsSchoolLearnerLinks';
 
 type SkillCardModel = {
   skill: IeltsSkill;
@@ -20,6 +21,7 @@ type Props = {
   onNavigate: (route: string) => void;
   onRedirectToPrime: () => void;
   formatDate: (value?: string | null) => string;
+  showSchoolLinks?: boolean;
 };
 
 const shell: React.CSSProperties = {
@@ -83,7 +85,7 @@ const IeltsPrimeBandRing: React.FC<{ band: number | null }> = ({ band }) => {
   );
 };
 
-const IeltsPrimeDashboard: React.FC<Props> = ({ summary, lapsedPrime, taskTotal, completedTotal, recommendedSkill, recommendedRoute, onNavigate, onRedirectToPrime, formatDate }) => {
+const IeltsPrimeDashboard: React.FC<Props> = ({ summary, lapsedPrime, taskTotal, completedTotal, recommendedSkill, recommendedRoute, onNavigate, onRedirectToPrime, formatDate, showSchoolLinks = false }) => {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const activePrime = summary.isPrimeActive;
   const taskPercent = taskTotal ? Math.round((completedTotal / taskTotal) * 100) : 0;
@@ -129,6 +131,8 @@ const IeltsPrimeDashboard: React.FC<Props> = ({ summary, lapsedPrime, taskTotal,
             <div><IeltsPrimeBandRing band={summary.diagnostic.estimatedBand} /><p style={{ margin: '.25rem auto 0', maxWidth: 230, color: '#e0e7ff', textAlign: 'center', lineHeight: 1.45, fontWeight: 750 }}>{summary.diagnostic.estimatedBand === null ? 'Band path ready when your baseline syncs.' : 'Starting point detected — not your limit.'}</p></div>
           </div>
         </section>
+
+        {showSchoolLinks && <IeltsSchoolLearnerLinks onNavigate={onNavigate} />}
 
         <section style={{ ...glassCard, display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '.75rem' }}>
           {[

@@ -1,13 +1,13 @@
-import { supabase } from './supabaseClient';
+import { supabase } from './supabaseClient.js';
 import type { SchoolRole } from '../types';
 import {
   normalizeCambridgeRetakeResult,
   type CambridgeRetakeResult,
-} from '../src/lib/cambridgeRetakeResult';
+} from '../src/lib/cambridgeRetakeResult.js';
 import {
   normalizeCambridgeIdentityLinkResult,
   type CambridgeIdentityLinkResult,
-} from '../src/lib/cambridgeIdentityLinkResult';
+} from '../src/lib/cambridgeIdentityLinkResult.js';
 
 // ============================================
 // School Admin Service — Patch J (RPC-backed)

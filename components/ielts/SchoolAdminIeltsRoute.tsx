@@ -3,6 +3,8 @@ import { Navigate, useParams } from 'react-router-dom';
 import { resolveMySchoolCapabilities } from '../../services/schoolAdminService';
 import { supabase } from '../../services/supabaseClient';
 import {
+  isValidSchoolAdminIeltsReviewAttemptId,
+  isValidSchoolAdminIeltsRouteExamId,
   schoolAdminIeltsUrl,
   type SchoolAdminIeltsTab,
   type SchoolAdminIeltsReviewSkill,
@@ -64,10 +66,13 @@ const SchoolAdminIeltsRoute: React.FC<SchoolAdminIeltsRouteProps> = ({ children,
   if (adminAccess === 'school_admin') {
     const skill = params.skill === 'speaking' ? 'speaking' : params.skill === 'writing' ? 'writing' : null;
     const attemptId = params.attemptId?.trim() ?? '';
-    const review = reviewFromRoute && skill && attemptId
+    const review = reviewFromRoute && skill && isValidSchoolAdminIeltsReviewAttemptId(attemptId)
       ? { skill: skill as SchoolAdminIeltsReviewSkill, attemptId }
       : null;
-    const monitorExamId = monitorFromRoute ? params.examEventId?.trim() || null : null;
+    const routeExamId = params.examEventId?.trim() ?? '';
+    const monitorExamId = monitorFromRoute && isValidSchoolAdminIeltsRouteExamId(routeExamId)
+      ? routeExamId
+      : null;
     return <Navigate replace to={schoolAdminIeltsUrl(ieltsTab, review, monitorExamId)} />;
   }
 

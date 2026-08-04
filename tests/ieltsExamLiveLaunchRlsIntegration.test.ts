@@ -18,7 +18,11 @@ test('disposable Postgres verifies adversarial IELTS exam lifecycle boundaries',
     '--file', sqlPath,
   ], {
     encoding: 'utf8',
-    env: process.env,
+    timeout: 120_000,
+    env: {
+      ...process.env,
+      PGCONNECT_TIMEOUT: '10',
+    },
   });
 
   assert.equal(result.error, undefined, result.error?.message);

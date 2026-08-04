@@ -24,16 +24,22 @@ const IeltsSettingsTab: React.FC = () => {
         if (access.status === 'error') {
           setExtraPracticeEnabled(null);
           setCanManage(false);
-          setLoadError('Unable to verify Extra Practice access. Refresh the page and try again.');
+          setLoadError(friendlyIeltsAdminError(
+            access.error || access.reason,
+            'Unable to verify Extra Practice access. Refresh the page and try again.',
+          ));
         } else {
           setExtraPracticeEnabled(access.enabled);
           setCanManage(access.canManage);
         }
-      } catch {
+      } catch (error) {
         if (!active) return;
         setExtraPracticeEnabled(null);
         setCanManage(false);
-        setLoadError('Unable to verify Extra Practice access. Refresh the page and try again.');
+        setLoadError(friendlyIeltsAdminError(
+          error,
+          'Unable to verify Extra Practice access. Refresh the page and try again.',
+        ));
       } finally {
         if (active) setLoading(false);
       }
@@ -58,7 +64,7 @@ const IeltsSettingsTab: React.FC = () => {
           'success'
         );
       } else {
-        throw new Error(result.reason || 'setting_update_failed');
+        throw new Error(result.error || result.reason || 'setting_update_failed');
       }
     } catch (error) {
       const message = friendlyIeltsAdminError(error, 'Unable to update Extra Practice access. Please try again.');

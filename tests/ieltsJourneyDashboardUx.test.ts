@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { resolveIeltsDashboardMode } from '../src/pages/ielts/ieltsDashboardMode.js';
 
 const dashboardPath = path.join(process.cwd(), 'src/pages/ielts/IeltsJourneyDashboard.tsx');
 assert.ok(fs.existsSync(dashboardPath), 'Expected IeltsJourneyDashboard.tsx to exist before reading test source');
@@ -15,6 +16,32 @@ try {
 test('uses valid assigned practice route and never links to nonexistent /ielts/assigned', () => {
   assert.match(page, /navigate\('\/ielts\/practice\/assigned'\)/);
   assert.doesNotMatch(page, /\/ielts\/assigned/);
+});
+
+test('dashboard mode uses only canonical platform or delegated administration capability', () => {
+  const noMembership = { status: 'ready', capabilities: null } as const;
+  const delegatedMembership = {
+    status: 'ready',
+    capabilities: {
+      school_id: 'school-1',
+      role: 'teacher',
+      is_owner: false,
+      can_administer: true,
+      can_teach: true,
+    },
+  } as const;
+  const capabilityError = { status: 'error', capabilities: null, message: 'unavailable' } as const;
+
+  assert.equal(resolveIeltsDashboardMode({ profile: { role: 'student' }, profileError: null, capabilityResolution: noMembership }), 'student');
+  assert.equal(resolveIeltsDashboardMode({ profile: { role: 'school_admin' }, profileError: null, capabilityResolution: noMembership }), 'student', 'a stale school_admin profile role must not grant access');
+  assert.equal(resolveIeltsDashboardMode({ profile: { role: 'admin' }, profileError: null, capabilityResolution: capabilityError }), 'admin', 'a verified platform admin remains authorized');
+  assert.equal(resolveIeltsDashboardMode({ profile: { role: 'teacher' }, profileError: null, capabilityResolution: delegatedMembership }), 'admin', 'an active delegated administrator is authorized');
+  assert.equal(resolveIeltsDashboardMode({ profile: { role: 'student' }, profileError: null, capabilityResolution: capabilityError }), 'error', 'unverified capability must fail closed');
+});
+
+test('tier lookup failure degrades only Prime access, not the whole dashboard', () => {
+  assert.match(page, /getUserTier\(\)\.catch\(\(\) => null\)/, 'tier rejection should resolve to the free-tier fallback');
+  assert.match(page, /setUserTier\(tierResult \|\| 'free'\)/, 'the dashboard should continue with free-tier access');
 });
 
 test('next action avoids fake completion phrasing', () => {

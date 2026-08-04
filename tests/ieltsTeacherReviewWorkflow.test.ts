@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { canAccessIeltsReviewQueue } from '../services/ieltsReviewAccess.js';
 
 const read = (relativePath: string) => fs.readFileSync(path.join(process.cwd(), relativePath), 'utf8');
 
@@ -137,13 +138,16 @@ test('IELTS AI review edge function enforces reviewer roles and draft-only seman
 
 test('IELTS review guard reuses shared access helper and blocks teacher/student roles', () => {
   const guard = read('components/ielts/IeltsReviewAdminGuard.tsx');
-  const access = read('services/ieltsReviewAccess.ts');
 
+  assert.equal(canAccessIeltsReviewQueue({ can_administer_school: true, role: 'teacher' }), true, 'an active delegated administrator may review');
+  assert.equal(canAccessIeltsReviewQueue({ is_admin: true, role: 'student' }), true, 'a platform admin may review');
+  assert.equal(canAccessIeltsReviewQueue({ role: 'superadmin' }), true, 'the canonical platform role may review');
+  assert.equal(canAccessIeltsReviewQueue({ role: 'school_admin' }), false, 'a stale profile role alone must not grant review access');
+  assert.equal(canAccessIeltsReviewQueue({ role: 'teacher' }), false, 'a teacher without delegated capability must not review');
+  assert.equal(canAccessIeltsReviewQueue({ role: 'student' }), false, 'a student must not review');
+  assert.equal(canAccessIeltsReviewQueue(null), false, 'missing identity context must fail closed');
   assert.match(guard, /canAccessIeltsReviewQueue\(\{[\s\S]*can_administer_school: canAdministerSchool/i, 'review guard must reuse centralized review access helper');
   assert.match(guard, /resolveMySchoolCapabilities\(\)/i, 'review guard must resolve active delegated school-administration capability');
   assert.match(guard, /capabilityResolution\.capabilities\?\.can_administer/i, 'delegated administrators must retain review access inside the school shell');
   assert.match(guard, /capabilityResolution\.status === 'error'[\s\S]*setState\('error'\)/i, 'capability failures must not fall through to review records');
-  assert.match(access, /Boolean\(profile\.can_administer_school\)[\s\S]*role === 'admin'[\s\S]*role === 'superadmin'/i, 'review helper must allow canonical delegated capability and platform administrators');
-  assert.doesNotMatch(access, /role === 'school_admin'/i, 'legacy school_admin profile roles must not grant review access');
-  assert.doesNotMatch(access, /role === 'teacher'/i, 'review helper must not allow teachers');
 });

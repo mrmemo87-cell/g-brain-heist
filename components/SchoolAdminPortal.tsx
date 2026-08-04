@@ -156,6 +156,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     mode: 'push' | 'replace' = 'push',
   ) => {
     setActiveIeltsReview(review);
+    setActiveIeltsSubTab('ielts-reviews');
     setActiveIeltsMonitorExamId(null);
     writeNavigationState({ adminTab: 'ielts', ieltsTab: 'ielts-reviews', review, monitorExamId: null }, mode);
     window.requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }));

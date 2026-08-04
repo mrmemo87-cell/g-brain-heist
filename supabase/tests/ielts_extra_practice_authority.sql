@@ -1,5 +1,10 @@
 \set ON_ERROR_STOP on
 
+-- Adversarial IELTS Extra Practice authority harness.
+-- This file is intentionally transaction-scoped and always rolls back. Run it
+-- only against a disposable/staging database with all repository migrations
+-- applied; never point the wrapper at production.
+
 begin;
 
 create or replace function pg_temp.assert_true(p_value boolean, p_message text)
@@ -278,6 +283,43 @@ select pg_temp.assert_true(
 select pg_temp.assert_true(
   not (public.rpc_ielts_extra_practice_access()->>'resolved')::boolean,
   'read RPC should mark missing profile unresolved'
+);
+
+-- Authenticated callers need EXECUTE for policy evaluation, but supplied row
+-- facts/context must not turn that helper into a protected-table oracle.
+select pg_temp.assert_true(
+  private.ielts_can_access_practice_content(
+    'ielts_reading_set',
+    '990000001',
+    true,
+    'free',
+    '{"is_staff":true}'::jsonb
+  ) = private.ielts_can_access_practice_content(
+    'ielts_reading_set',
+    '999999999',
+    true,
+    'free',
+    '{"is_staff":true}'::jsonb
+  ),
+  'caller-supplied context must not disclose whether protected content exists'
+);
+
+reset role;
+select pg_temp.assert_true(
+  has_function_privilege(
+    'authenticated',
+    'private.ielts_can_access_practice_content(text,text,boolean,text,jsonb)',
+    'EXECUTE'
+  )
+  and not has_function_privilege(
+    'anon',
+    'private.ielts_can_access_practice_content(text,text,boolean,text,jsonb)',
+    'EXECUTE'
+  )
+  and to_regprocedure(
+    'private.ielts_can_access_practice_content(text,text,jsonb)'
+  ) is null,
+  'only the non-probing cached-context helper signature may be exposed to authenticated RLS'
 );
 
 rollback;

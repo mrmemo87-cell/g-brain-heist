@@ -67,8 +67,10 @@ test('update service sends only the typed boolean and trusts the returned server
 });
 
 test('RPC errors, unresolved contexts and malformed payloads fail closed', async (t) => {
-  const scenarios: Array<{ name: string; data: unknown; error: { message: string } | null; reason: string }> = [
+  const scenarios: Array<{ name: string; data: unknown; error: { message: string } | null; reason: string; expectedError?: string }> = [
     { name: 'rpc error', data: null, error: { message: 'network unavailable' }, reason: 'rpc_error' },
+    { name: 'forbidden denial', data: null, error: { message: 'forbidden' }, reason: 'forbidden', expectedError: 'forbidden' },
+    { name: 'missing school denial', data: null, error: { message: 'RPC failed: school_not_found' }, reason: 'school_not_found', expectedError: 'RPC failed: school_not_found' },
     { name: 'malformed', data: { enabled: true }, error: null, reason: 'invalid_response' },
     {
       name: 'unresolved membership',
@@ -94,8 +96,25 @@ test('RPC errors, unresolved contexts and malformed payloads fail closed', async
       assert.equal(result.canManage, false);
       assert.equal(result.schoolId, null);
       assert.equal(result.reason, scenario.reason);
+      if (scenario.expectedError) assert.equal(result.error, scenario.expectedError);
     });
   }
+});
+
+test('thrown Extra Practice denial markers remain available to settings error presentation', async () => {
+  const client = fakeClient(async () => {
+    throw new Error('enabled_value_required');
+  });
+
+  const result = await updateIeltsExtraPracticeAccess(true, client);
+
+  assert.equal(result.status, 'error');
+  assert.equal(result.reason, 'enabled_value_required');
+  assert.equal(result.error, 'enabled_value_required');
+
+  const settings = read('components/school-admin/tabs/IeltsSettingsTab.tsx');
+  assert.match(settings, /result\.error \|\| result\.reason/, 'settings must present the server denial before a generic reason');
+  assert.match(settings, /access\.error \|\| access\.reason/, 'initial settings verification must preserve a specific server failure');
 });
 
 test('migration makes the school setting the fail-closed backend authority', () => {
@@ -140,6 +159,16 @@ test('assigned content, restrictive RLS and new-attempt writes share one predica
   ]) {
     assert.match(sql, new RegExp(`create policy ${policy}[\\s\\S]*?as restrictive[\\s\\S]*?for select to authenticated`, 'i'));
   }
+  assert.match(
+    sql,
+    /create policy ielts_reading_questions_extra_practice_gate[\s\S]*exists\s*\([\s\S]*from public\.ielts_reading_sets/i,
+    'reading questions must inherit the authoritative parent-set RLS decision',
+  );
+  assert.match(
+    sql,
+    /create policy ielts_listening_questions_extra_practice_gate[\s\S]*exists\s*\([\s\S]*from public\.ielts_listening_sets/i,
+    'listening questions must inherit the authoritative parent-set RLS decision',
+  );
 
   for (const attempt of ['reading', 'listening', 'writing', 'speaking']) {
     assert.match(sql, new RegExp(`create policy ielts_${attempt}_attempts_extra_practice_insert_gate[\\s\\S]*?as restrictive`, 'i'));
@@ -147,12 +176,70 @@ test('assigned content, restrictive RLS and new-attempt writes share one predica
       'an access-toggle transition must not strand an already-created attempt');
     assert.match(sql, new RegExp(`create trigger trg_ielts_${attempt}_attempt_identity[\\s\\S]*?before update`, 'i'));
   }
+  for (const [attempt, content] of [
+    ['reading', 'reading_sets'],
+    ['listening', 'listening_sets'],
+    ['writing', 'writing_tasks'],
+    ['speaking', 'speaking_tasks'],
+  ]) {
+    assert.match(
+      sql,
+      new RegExp(`create policy ielts_${attempt}_attempts_extra_practice_insert_gate[\\s\\S]*?exists\\s*\\([\\s\\S]*?from public\\.ielts_${content}`, 'i'),
+      `${attempt} attempts must inherit the content row's complete RLS gate`,
+    );
+  }
 
   assert.match(sql, /create or replace function private\.ielts_enforce_attempt_identity\(\)[\s\S]*to_jsonb\(new\)->'user_id'[\s\S]*to_jsonb\(new\)->v_content_key[\s\S]*attempt_identity_immutable/i,
     'existing attempts must keep immutable user and content identity');
 
   assert.match(sql, /rpc_ielts_practice_content_catalog\([\s\S]*security invoker/i,
     'assignment catalogue must no longer bypass RLS');
+});
+
+test('RLS resolves caller context through a statement InitPlan and catalog publication fails closed', () => {
+  const sql = read(migrationPath);
+  const accessHelper = sql.slice(
+    sql.indexOf('create or replace function private.ielts_can_access_practice_content'),
+    sql.indexOf('revoke all on schema private'),
+  );
+  const catalog = sql.slice(
+    sql.indexOf('create or replace function public.rpc_ielts_practice_content_catalog'),
+    sql.indexOf('revoke all on function public.rpc_ielts_practice_content_catalog'),
+  );
+
+  assert.match(accessHelper, /p_is_active boolean,[\s\S]*p_required_tier text,[\s\S]*p_access_context jsonb/i);
+  assert.match(accessHelper, /v_context\s*:=\s*coalesce\([\s\S]*p_access_context,[\s\S]*private\.ielts_extra_practice_access_context\(\)/i);
+  assert.ok(
+    (sql.match(/\(select private\.ielts_extra_practice_access_context\(\)\)/gi) ?? []).length >= 4,
+    'each root content policy should use one uncorrelated context InitPlan',
+  );
+  assert.doesNotMatch(
+    accessHelper,
+    /from public\.ielts_(reading_sets|listening_sets|writing_tasks|speaking_tasks)/i,
+    'a caller-supplied context must never be usable as a protected-content existence oracle',
+  );
+  assert.match(
+    sql,
+    /v_context\s*:=\s*private\.ielts_extra_practice_access_context\(\);[\s\S]*private\.ielts_can_access_practice_content\([\s\S]*v_context[\s\S]*\) then/i,
+    'the point-access RPC should resolve and reuse the same caller context',
+  );
+  assert.match(sql, /revoke all on function private\.ielts_can_access_practice_content\(text, text, boolean, text, jsonb\)/i);
+
+  for (const alias of ['r', 'l', 'w', 's']) {
+    assert.match(catalog, new RegExp(`where ${alias}\\.is_active is true`, 'i'));
+  }
+  assert.doesNotMatch(catalog, /coalesce\([^\n]*\.is_active,\s*true\)/i,
+    'NULL publication state must never be treated as active');
+});
+
+test('Extra Practice psql harness is staging-only and finitely bounded', () => {
+  const sqlHarness = read('supabase/tests/ielts_extra_practice_authority.sql');
+  const nodeHarness = read('tests/ieltsExtraPracticeRlsIntegration.test.ts');
+
+  assert.match(sqlHarness, /only against a disposable\/staging database/i);
+  assert.match(sqlHarness, /never point the wrapper at production/i);
+  assert.match(nodeHarness, /timeout:\s*120_000/);
+  assert.match(nodeHarness, /PGCONNECT_TIMEOUT:\s*'10'/);
 });
 
 test('RPC and school-table privileges are explicit and least-privilege', () => {

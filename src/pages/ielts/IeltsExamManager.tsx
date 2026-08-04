@@ -18,6 +18,7 @@ import { resolveIeltsExamLifecycleMeta } from '../../../services/ieltsExamModeUx
 import { useSchoolBranding } from '../../hooks/useSchoolBranding';
 import { createSchoolDocumentId, escapeSchoolDocumentHtml, openSchoolDocumentPreview, schoolDocumentFileName } from '../../lib/schoolDocument';
 import { friendlyIeltsAdminError } from '../../lib/schoolAdminPresentation';
+import { toIeltsLocalDateTimeInput, validateIeltsExamSchedule } from '../../lib/ieltsExamSchedule';
 
 type BusyAction = 'idle' | 'loading' | 'creating_exam' | 'creating_form' | 'assigning' | 'scheduling' | 'launching';
 
@@ -80,11 +81,6 @@ const speakingTemplate = JSON.stringify({
   ],
 }, null, 2);
 
-const toLocalInputValue = (date: Date) => {
-  const offsetMs = date.getTimezoneOffset() * 60_000;
-  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
-};
-
 const toIsoFromLocal = (value: string) => new Date(value).toISOString();
 
 const formatDateTime = (value?: string | null) => {
@@ -118,14 +114,14 @@ const IeltsExamManager: React.FC<IeltsExamManagerProps> = ({ embedded = false, o
 
   const [title, setTitle] = useState('IELTS Controlled Exam');
   const [description, setDescription] = useState('');
-  const [startsAt, setStartsAt] = useState(() => toLocalInputValue(new Date(Date.now() + 60 * 60_000)));
-  const [endsAt, setEndsAt] = useState(() => toLocalInputValue(new Date(Date.now() + 3 * 60 * 60_000)));
+  const [startsAt, setStartsAt] = useState(() => toIeltsLocalDateTimeInput(new Date(Date.now() + 60 * 60_000)) ?? '');
+  const [endsAt, setEndsAt] = useState(() => toIeltsLocalDateTimeInput(new Date(Date.now() + 3 * 60 * 60_000)) ?? '');
   const [durationMinutes, setDurationMinutes] = useState(120);
   const [status, setStatus] = useState<'draft' | 'scheduled'>('draft');
   const [launchConfirmed, setLaunchConfirmed] = useState(false);
   const [launchReason, setLaunchReason] = useState('');
-  const [scheduleStartsAt, setScheduleStartsAt] = useState(() => toLocalInputValue(new Date(Date.now() + 60 * 60_000)));
-  const [scheduleEndsAt, setScheduleEndsAt] = useState(() => toLocalInputValue(new Date(Date.now() + 3 * 60 * 60_000)));
+  const [scheduleStartsAt, setScheduleStartsAt] = useState(() => toIeltsLocalDateTimeInput(new Date(Date.now() + 60 * 60_000)) ?? '');
+  const [scheduleEndsAt, setScheduleEndsAt] = useState(() => toIeltsLocalDateTimeInput(new Date(Date.now() + 3 * 60 * 60_000)) ?? '');
   const [scheduleDurationMinutes, setScheduleDurationMinutes] = useState(120);
 
   const [formCode, setFormCode] = useState('FORM-A');
@@ -140,6 +136,19 @@ const IeltsExamManager: React.FC<IeltsExamManagerProps> = ({ embedded = false, o
   const [selectedStudentIds, setSelectedStudentIds] = useState<Set<string>>(() => new Set());
   const detailRequestIdRef = useRef(0);
 
+  const applyExamDetail = useCallback((nextDetail: IeltsExamAdminDetail) => {
+    setDetail(nextDetail);
+    setScheduleStartsAt(toIeltsLocalDateTimeInput(nextDetail.exam.starts_at) ?? '');
+    setScheduleEndsAt(toIeltsLocalDateTimeInput(nextDetail.exam.ends_at) ?? '');
+    setScheduleDurationMinutes(
+      Number.isFinite(nextDetail.exam.duration_minutes)
+        ? nextDetail.exam.duration_minutes
+        : 0,
+    );
+    const activeForm = nextDetail.forms.find((form) => form.is_active) ?? nextDetail.forms[0] ?? null;
+    setSelectedFormId(activeForm?.id ?? null);
+  }, []);
+
   const loadExams = useCallback(async (preferredExamId?: string) => {
     setBusy((current) => current === 'idle' ? 'loading' : current);
     setError(null);
@@ -150,12 +159,7 @@ const IeltsExamManager: React.FC<IeltsExamManagerProps> = ({ embedded = false, o
       setSelectedExamId(nextId);
       if (nextId) {
         const nextDetail = await rpcIeltsGetExamAdminDetail(nextId);
-        setDetail(nextDetail);
-        setScheduleStartsAt(toLocalInputValue(new Date(nextDetail.exam.starts_at)));
-        setScheduleEndsAt(toLocalInputValue(new Date(nextDetail.exam.ends_at)));
-        setScheduleDurationMinutes(nextDetail.exam.duration_minutes);
-        const activeForm = nextDetail.forms.find((form) => form.is_active) ?? nextDetail.forms[0] ?? null;
-        setSelectedFormId(activeForm?.id ?? null);
+        applyExamDetail(nextDetail);
       } else {
         setDetail(null);
         setSelectedFormId(null);
@@ -165,7 +169,7 @@ const IeltsExamManager: React.FC<IeltsExamManagerProps> = ({ embedded = false, o
     } finally {
       setBusy('idle');
     }
-  }, [selectedExamId]);
+  }, [applyExamDetail, selectedExamId]);
 
   useEffect(() => {
     void loadExams();
@@ -184,12 +188,7 @@ const IeltsExamManager: React.FC<IeltsExamManagerProps> = ({ embedded = false, o
     void rpcIeltsGetExamAdminDetail(selectedExamId)
       .then((nextDetail) => {
         if (detailRequestIdRef.current !== requestId) return;
-        setDetail(nextDetail);
-        setScheduleStartsAt(toLocalInputValue(new Date(nextDetail.exam.starts_at)));
-        setScheduleEndsAt(toLocalInputValue(new Date(nextDetail.exam.ends_at)));
-        setScheduleDurationMinutes(nextDetail.exam.duration_minutes);
-        const activeForm = nextDetail.forms.find((form) => form.is_active) ?? nextDetail.forms[0] ?? null;
-        setSelectedFormId(activeForm?.id ?? null);
+        applyExamDetail(nextDetail);
       })
       .catch((detailError) => {
         if (detailRequestIdRef.current !== requestId) return;
@@ -201,7 +200,7 @@ const IeltsExamManager: React.FC<IeltsExamManagerProps> = ({ embedded = false, o
         detailRequestIdRef.current += 1;
       }
     };
-  }, [selectedExamId]);
+  }, [applyExamDetail, selectedExamId]);
 
   const activeExam = detail?.exam ?? exams.find((exam) => exam.id === selectedExamId) ?? null;
   const { schoolName, schoolLogoUrl } = useSchoolBranding({ schoolId: activeExam?.school_id });
@@ -250,21 +249,11 @@ const IeltsExamManager: React.FC<IeltsExamManagerProps> = ({ embedded = false, o
     }
   };
 
-  const validateSchedule = () => {
-    const startMs = Date.parse(startsAt);
-    const endMs = Date.parse(endsAt);
-    if (!Number.isFinite(startMs) || !Number.isFinite(endMs)) return 'Start and end time are required.';
-    if (endMs <= startMs) return 'End time must be after start time.';
-    if (!durationMinutes || durationMinutes <= 0) return 'Duration must be greater than zero.';
-    const availableWindowMs = endMs - startMs;
-    if (durationMinutes * 60_000 > availableWindowMs) return 'Duration must fit within start and end times.';
-    return null;
-  };
+  const createScheduleError = validateIeltsExamSchedule({ startsAt, endsAt, durationMinutes });
 
   const handleCreateExam = async () => {
-    const scheduleError = validateSchedule();
-    if (scheduleError) {
-      setError(scheduleError);
+    if (createScheduleError) {
+      setError(createScheduleError);
       return;
     }
     setBusy('creating_exam');
@@ -461,10 +450,13 @@ const IeltsExamManager: React.FC<IeltsExamManagerProps> = ({ embedded = false, o
       setError('Select a draft exam before scheduling.');
       return;
     }
-    const startMs = Date.parse(scheduleStartsAt);
-    const endMs = Date.parse(scheduleEndsAt);
-    if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs || scheduleDurationMinutes <= 0 || scheduleDurationMinutes * 60_000 > endMs - startMs) {
-      setError('Choose a valid schedule and ensure the duration fits inside the exam window.');
+    const scheduleError = validateIeltsExamSchedule({
+      startsAt: scheduleStartsAt,
+      endsAt: scheduleEndsAt,
+      durationMinutes: scheduleDurationMinutes,
+    });
+    if (scheduleError) {
+      setError(scheduleError);
       return;
     }
 
@@ -538,7 +530,7 @@ const IeltsExamManager: React.FC<IeltsExamManagerProps> = ({ embedded = false, o
                   <option value="scheduled">Scheduled</option>
                 </select>
               </label>
-              {validateSchedule() && <p className="rounded-lg bg-amber-50 p-2 text-sm text-amber-800">{validateSchedule()}</p>}
+              {createScheduleError ? <p className="rounded-lg bg-amber-50 p-2 text-sm text-amber-800">{createScheduleError}</p> : null}
               <button type="button" onClick={() => void handleCreateExam()} disabled={busy !== 'idle'} className="w-full rounded-lg bg-blue-700 px-4 py-2 font-semibold text-white hover:bg-blue-800 disabled:bg-slate-400">
                 {busy === 'creating_exam' ? 'Creating…' : 'Create exam event'}
               </button>

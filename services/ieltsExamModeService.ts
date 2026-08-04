@@ -26,6 +26,14 @@ export type IeltsExamAttemptStatus =
   | 'not_in_progress'
   | string;
 
+export type IeltsExamEventStatus =
+  | 'draft'
+  | 'scheduled'
+  | 'live'
+  | 'paused'
+  | 'closed'
+  | 'cancelled';
+
 export interface IeltsExamPublicFormPayload {
   id?: string;
   form_code?: string;
@@ -52,7 +60,7 @@ export interface IeltsExamWhoamiResponse {
   attempt_id?: string | null;
   status?: IeltsExamAttemptStatus;
   attempt_status?: IeltsExamAttemptStatus;
-  event_status?: string | null;
+  event_status?: IeltsExamEventStatus | null;
   server_now?: string;
   starts_at?: string;
   ends_at?: string;
@@ -116,8 +124,8 @@ export interface IeltsExamControlResponse {
   exam_event_id?: string;
   attempt_id?: string;
   submission_id?: string;
-  previous_status?: string;
-  status?: IeltsExamAttemptStatus;
+  previous_status?: IeltsExamEventStatus;
+  status?: IeltsExamEventStatus;
   active_form_id?: string;
   assignment_count?: number;
   starts_at?: string;
@@ -126,12 +134,16 @@ export interface IeltsExamControlResponse {
   server_now?: string;
 }
 
+export interface IeltsExamAttemptControlResponse extends Omit<IeltsExamControlResponse, 'previous_status' | 'status'> {
+  status?: IeltsExamAttemptStatus;
+}
+
 export interface IeltsManageableExam {
   id: string;
   school_id: string | null;
   title: string;
   description: string | null;
-  status: string;
+  status: IeltsExamEventStatus;
   starts_at: string;
   ends_at: string;
   duration_minutes: number;
@@ -197,7 +209,7 @@ export interface CreateExamEventParams {
   startsAt: string;
   endsAt: string;
   durationMinutes: number;
-  status?: 'draft' | 'scheduled' | 'live' | 'paused' | 'closed' | 'cancelled' | string;
+  status?: IeltsExamEventStatus;
   schoolId?: string | null;
 }
 
@@ -499,12 +511,12 @@ export const rpcIeltsResumeExam = async (
 export const rpcIeltsExtendAttempt = async (
   params: ExtendAttemptParams,
   client?: IeltsExamRpcClient
-): Promise<IeltsExamControlResponse> => {
+): Promise<IeltsExamAttemptControlResponse> => {
   const { data, error } = await withClient(client).rpc('rpc_ielts_extend_attempt', {
     p_attempt_id: params.attemptId,
     p_extra_minutes: params.extraMinutes,
     p_reason: params.reason ?? null,
-  }) as unknown as Awaited<RpcResult<IeltsExamControlResponse>>;
+  }) as unknown as Awaited<RpcResult<IeltsExamAttemptControlResponse>>;
 
   return assertNoRpcError('rpc_ielts_extend_attempt', data, error);
 };
@@ -512,11 +524,11 @@ export const rpcIeltsExtendAttempt = async (
 export const rpcIeltsForceSubmitAttempt = async (
   params: AttemptControlParams,
   client?: IeltsExamRpcClient
-): Promise<IeltsExamControlResponse> => {
+): Promise<IeltsExamAttemptControlResponse> => {
   const { data, error } = await withClient(client).rpc('rpc_ielts_force_submit_attempt', {
     p_attempt_id: params.attemptId,
     p_reason: params.reason ?? null,
-  }) as unknown as Awaited<RpcResult<IeltsExamControlResponse>>;
+  }) as unknown as Awaited<RpcResult<IeltsExamAttemptControlResponse>>;
 
   return assertNoRpcError('rpc_ielts_force_submit_attempt', data, error);
 };
@@ -524,11 +536,11 @@ export const rpcIeltsForceSubmitAttempt = async (
 export const rpcIeltsVoidAttempt = async (
   params: AttemptControlParams,
   client?: IeltsExamRpcClient
-): Promise<IeltsExamControlResponse> => {
+): Promise<IeltsExamAttemptControlResponse> => {
   const { data, error } = await withClient(client).rpc('rpc_ielts_void_attempt', {
     p_attempt_id: params.attemptId,
     p_reason: params.reason ?? null,
-  }) as unknown as Awaited<RpcResult<IeltsExamControlResponse>>;
+  }) as unknown as Awaited<RpcResult<IeltsExamAttemptControlResponse>>;
 
   return assertNoRpcError('rpc_ielts_void_attempt', data, error);
 };

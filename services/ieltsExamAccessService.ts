@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient.js';
 import { rpcIeltsListManageableExams, type IeltsExamRpcClient } from './ieltsExamModeService.js';
+import { resolveMySchoolCapabilities, type SchoolCapabilitiesRpcClient } from './schoolAdminService.js';
 
 type SupabaseLike = IeltsExamRpcClient & {
   auth: Pick<typeof supabase.auth, 'getUser'>;
@@ -102,18 +103,12 @@ export const checkIeltsExamModeAdminAccess = async (
   }
 
   try {
-    const { data: capabilities, error: capabilitiesError } = await client.rpc(
-      'school_admin_get_my_capabilities',
-      { p_school_id: null },
-    ) as unknown as {
-      data: { success?: boolean; can_administer?: boolean } | null;
-      error: { message?: string } | null;
-    };
-
-    capabilityResolved = !capabilitiesError
-      && capabilities !== null
-      && typeof capabilities.success === 'boolean';
-    if (!capabilitiesError && capabilities?.success && capabilities.can_administer) {
+    const capabilityResolution = await resolveMySchoolCapabilities(
+      null,
+      client as unknown as SchoolCapabilitiesRpcClient,
+    );
+    capabilityResolved = capabilityResolution.status === 'ready';
+    if (capabilityResolution.capabilities?.can_administer) {
       return resolveIeltsExamModeAdminAccess({
         isAuthenticated: true,
         isAdmin,

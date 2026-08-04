@@ -286,7 +286,10 @@ $$;
 
 create or replace function private.ielts_can_access_practice_content(
   p_content_type text,
-  p_content_id text
+  p_content_id text,
+  p_is_active boolean,
+  p_required_tier text,
+  p_access_context jsonb
 )
 returns boolean
 language plpgsql
@@ -297,8 +300,6 @@ as $$
 declare
   v_user_id uuid := (select auth.uid());
   v_content_id bigint;
-  v_is_active boolean := false;
-  v_required_tier text;
   v_context jsonb;
 begin
   if v_user_id is null or p_content_id is null or p_content_id !~ '^[0-9]+$' then
@@ -311,42 +312,31 @@ begin
     return false;
   end;
 
-  if p_content_type = 'ielts_reading_set' then
-    select coalesce(r.is_active, false), coalesce(r.required_tier, 'free')
-    into v_is_active, v_required_tier
-    from public.ielts_reading_sets r
-    where r.id = v_content_id;
-  elsif p_content_type = 'ielts_listening_set' then
-    select coalesce(l.is_active, false), coalesce(l.required_tier, 'prime_prep_user')
-    into v_is_active, v_required_tier
-    from public.ielts_listening_sets l
-    where l.id = v_content_id;
-  elsif p_content_type = 'ielts_writing_task' then
-    select coalesce(w.is_active, false), coalesce(w.required_tier, 'free')
-    into v_is_active, v_required_tier
-    from public.ielts_writing_tasks w
-    where w.id = v_content_id;
-  elsif p_content_type = 'ielts_speaking_task' then
-    select coalesce(s.is_active, false), coalesce(s.required_tier, 'free')
-    into v_is_active, v_required_tier
-    from public.ielts_speaking_tasks s
-    where s.id = v_content_id;
-  else
+  if p_content_type not in (
+    'ielts_reading_set',
+    'ielts_listening_set',
+    'ielts_writing_task',
+    'ielts_speaking_task'
+  ) then
     return false;
   end if;
 
-  if not found then
-    return false;
-  end if;
-
-  v_context := private.ielts_extra_practice_access_context();
+  -- RLS policies pass an uncorrelated scalar subquery for this value. PostgreSQL
+  -- evaluates that as a statement InitPlan, so the caller/school context is
+  -- resolved once instead of repeating its membership/settings queries per row.
+  -- The helper intentionally consumes only values from the row already under
+  -- policy evaluation; direct callers cannot use forged JSON to probe a table.
+  v_context := coalesce(
+    p_access_context,
+    private.ielts_extra_practice_access_context()
+  );
 
   -- Staff retain content-management access, including inactive drafts.
   if coalesce((v_context->>'is_staff')::boolean, false) then
     return true;
   end if;
 
-  if not v_is_active then
+  if p_is_active is not true then
     return false;
   end if;
 
@@ -361,7 +351,7 @@ begin
     return false;
   end if;
 
-  if coalesce(v_required_tier, 'free') <> 'free'
+  if coalesce(p_required_tier, 'free') <> 'free'
      and not public.ielts_user_has_prime_access(v_user_id) then
     return false;
   end if;
@@ -375,10 +365,10 @@ grant usage on schema private to authenticated;
 
 revoke all on function private.ielts_extra_practice_access_context() from public, anon, authenticated, service_role;
 revoke all on function private.ielts_content_is_assigned_to_current_user(text, text) from public, anon, authenticated, service_role;
-revoke all on function private.ielts_can_access_practice_content(text, text) from public, anon, authenticated, service_role;
+revoke all on function private.ielts_can_access_practice_content(text, text, boolean, text, jsonb) from public, anon, authenticated, service_role;
 grant execute on function private.ielts_extra_practice_access_context() to authenticated;
 grant execute on function private.ielts_content_is_assigned_to_current_user(text, text) to authenticated;
-grant execute on function private.ielts_can_access_practice_content(text, text) to authenticated;
+grant execute on function private.ielts_can_access_practice_content(text, text, boolean, text, jsonb) to authenticated;
 
 create or replace function public.rpc_ielts_extra_practice_access()
 returns jsonb
@@ -501,12 +491,18 @@ begin
     return;
   end if;
 
-  if private.ielts_can_access_practice_content(v_content_type, p_task_id) then
+  v_context := private.ielts_extra_practice_access_context();
+  if private.ielts_can_access_practice_content(
+    v_content_type,
+    p_task_id,
+    true,
+    v_required_tier,
+    v_context
+  ) then
     return query select true, 'allowed'::text, v_required_tier;
     return;
   end if;
 
-  v_context := private.ielts_extra_practice_access_context();
   if coalesce((v_context->>'resolved')::boolean, false)
      and coalesce((v_context->>'enabled')::boolean, false)
      and coalesce(v_required_tier, 'free') <> 'free'
@@ -622,7 +618,13 @@ create policy ielts_reading_sets_extra_practice_gate
   on public.ielts_reading_sets
   as restrictive
   for select to authenticated
-  using (private.ielts_can_access_practice_content('ielts_reading_set', id::text));
+  using (private.ielts_can_access_practice_content(
+    'ielts_reading_set',
+    id::text,
+    is_active,
+    coalesce(required_tier, 'free'),
+    (select private.ielts_extra_practice_access_context())
+  ));
 
 drop policy if exists ielts_reading_questions_authenticated_baseline on public.ielts_reading_questions;
 create policy ielts_reading_questions_authenticated_baseline
@@ -634,7 +636,11 @@ create policy ielts_reading_questions_extra_practice_gate
   on public.ielts_reading_questions
   as restrictive
   for select to authenticated
-  using (private.ielts_can_access_practice_content('ielts_reading_set', set_id::text));
+  using (exists (
+    select 1
+    from public.ielts_reading_sets r
+    where r.id = ielts_reading_questions.set_id
+  ));
 
 drop policy if exists ielts_listening_sets_authenticated_baseline on public.ielts_listening_sets;
 create policy ielts_listening_sets_authenticated_baseline
@@ -646,7 +652,13 @@ create policy ielts_listening_sets_extra_practice_gate
   on public.ielts_listening_sets
   as restrictive
   for select to authenticated
-  using (private.ielts_can_access_practice_content('ielts_listening_set', id::text));
+  using (private.ielts_can_access_practice_content(
+    'ielts_listening_set',
+    id::text,
+    is_active,
+    coalesce(required_tier, 'prime_prep_user'),
+    (select private.ielts_extra_practice_access_context())
+  ));
 
 drop policy if exists ielts_listening_questions_authenticated_baseline on public.ielts_listening_questions;
 create policy ielts_listening_questions_authenticated_baseline
@@ -658,7 +670,11 @@ create policy ielts_listening_questions_extra_practice_gate
   on public.ielts_listening_questions
   as restrictive
   for select to authenticated
-  using (private.ielts_can_access_practice_content('ielts_listening_set', set_id::text));
+  using (exists (
+    select 1
+    from public.ielts_listening_sets l
+    where l.id = ielts_listening_questions.set_id
+  ));
 
 drop policy if exists ielts_writing_tasks_authenticated_baseline on public.ielts_writing_tasks;
 create policy ielts_writing_tasks_authenticated_baseline
@@ -670,7 +686,13 @@ create policy ielts_writing_tasks_extra_practice_gate
   on public.ielts_writing_tasks
   as restrictive
   for select to authenticated
-  using (private.ielts_can_access_practice_content('ielts_writing_task', id::text));
+  using (private.ielts_can_access_practice_content(
+    'ielts_writing_task',
+    id::text,
+    is_active,
+    coalesce(required_tier, 'free'),
+    (select private.ielts_extra_practice_access_context())
+  ));
 
 drop policy if exists ielts_speaking_tasks_authenticated_baseline on public.ielts_speaking_tasks;
 create policy ielts_speaking_tasks_authenticated_baseline
@@ -682,7 +704,13 @@ create policy ielts_speaking_tasks_extra_practice_gate
   on public.ielts_speaking_tasks
   as restrictive
   for select to authenticated
-  using (private.ielts_can_access_practice_content('ielts_speaking_task', id::text));
+  using (private.ielts_can_access_practice_content(
+    'ielts_speaking_task',
+    id::text,
+    is_active,
+    coalesce(required_tier, 'free'),
+    (select private.ielts_extra_practice_access_context())
+  ));
 
 -- Keep historical attempt SELECT policies unchanged. A caller must have access
 -- to content when an attempt starts, while an already-created attempt remains
@@ -718,7 +746,11 @@ create policy ielts_reading_attempts_extra_practice_insert_gate
   on public.ielts_reading_attempts
   as restrictive
   for insert to authenticated
-  with check (private.ielts_can_access_practice_content('ielts_reading_set', set_id::text));
+  with check (exists (
+    select 1
+    from public.ielts_reading_sets r
+    where r.id = ielts_reading_attempts.set_id
+  ));
 drop policy if exists ielts_reading_attempts_extra_practice_update_gate on public.ielts_reading_attempts;
 
 drop policy if exists ielts_listening_attempts_extra_practice_insert_gate on public.ielts_listening_attempts;
@@ -726,7 +758,11 @@ create policy ielts_listening_attempts_extra_practice_insert_gate
   on public.ielts_listening_attempts
   as restrictive
   for insert to authenticated
-  with check (private.ielts_can_access_practice_content('ielts_listening_set', set_id::text));
+  with check (exists (
+    select 1
+    from public.ielts_listening_sets l
+    where l.id = ielts_listening_attempts.set_id
+  ));
 drop policy if exists ielts_listening_attempts_extra_practice_update_gate on public.ielts_listening_attempts;
 
 drop policy if exists ielts_writing_attempts_extra_practice_insert_gate on public.ielts_writing_attempts;
@@ -734,7 +770,11 @@ create policy ielts_writing_attempts_extra_practice_insert_gate
   on public.ielts_writing_attempts
   as restrictive
   for insert to authenticated
-  with check (private.ielts_can_access_practice_content('ielts_writing_task', task_id::text));
+  with check (exists (
+    select 1
+    from public.ielts_writing_tasks w
+    where w.id = ielts_writing_attempts.task_id
+  ));
 drop policy if exists ielts_writing_attempts_extra_practice_update_gate on public.ielts_writing_attempts;
 
 drop policy if exists ielts_speaking_attempts_extra_practice_insert_gate on public.ielts_speaking_attempts;
@@ -742,7 +782,11 @@ create policy ielts_speaking_attempts_extra_practice_insert_gate
   on public.ielts_speaking_attempts
   as restrictive
   for insert to authenticated
-  with check (private.ielts_can_access_practice_content('ielts_speaking_task', task_id::text));
+  with check (exists (
+    select 1
+    from public.ielts_speaking_tasks s
+    where s.id = ielts_speaking_attempts.task_id
+  ));
 drop policy if exists ielts_speaking_attempts_extra_practice_update_gate on public.ielts_speaking_attempts;
 
 create or replace function private.ielts_enforce_attempt_identity()
@@ -908,7 +952,7 @@ as $$
       end::text as band,
       r.created_at
     from public.ielts_reading_sets r
-    where coalesce(r.is_active, true) = true
+    where r.is_active is true
 
     union all
 
@@ -927,7 +971,7 @@ as $$
       end::text,
       l.created_at
     from public.ielts_listening_sets l
-    where coalesce(l.is_active, true) = true
+    where l.is_active is true
       and nullif(trim(coalesce(l.audio_url, '')), '') is not null
       and exists (
         select 1
@@ -947,7 +991,7 @@ as $$
       nullif(w.bands_target, '')::text,
       w.created_at
     from public.ielts_writing_tasks w
-    where coalesce(w.is_active, true) = true
+    where w.is_active is true
 
     union all
 
@@ -961,7 +1005,7 @@ as $$
       null::text,
       s.created_at
     from public.ielts_speaking_tasks s
-    where coalesce(s.is_active, true) = true
+    where s.is_active is true
   )
   select
     c.content_type,

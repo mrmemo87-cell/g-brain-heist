@@ -26,6 +26,18 @@ export interface IeltsExtraPracticeRpcClient {
 
 const defaultClient = supabase as unknown as IeltsExtraPracticeRpcClient;
 
+const ACCESS_RPC_DENIAL_MARKERS = [
+  'enabled_value_required',
+  'school_not_found',
+  'not_authenticated',
+  'forbidden',
+] as const;
+
+const accessRpcErrorReason = (message?: string | null): string => {
+  const normalized = (message ?? '').trim().toLowerCase();
+  return ACCESS_RPC_DENIAL_MARKERS.find((marker) => normalized.includes(marker)) ?? 'rpc_error';
+};
+
 const failedAccess = (reason: string, error?: string): IeltsExtraPracticeAccess => ({
   status: 'error',
   role: 'student',
@@ -87,12 +99,16 @@ const callAccessRpc = async (
 ): Promise<IeltsExtraPracticeAccess> => {
   try {
     const { data, error } = await client.rpc(functionName, params);
-    if (error) return failedAccess('rpc_error', error.message || 'IELTS access request failed');
+    if (error) {
+      const message = error.message || 'IELTS access request failed';
+      return failedAccess(accessRpcErrorReason(message), message);
+    }
     return parseAccessPayload(data);
   } catch (error) {
+    const message = error instanceof Error ? error.message : 'IELTS access request failed';
     return failedAccess(
-      'rpc_error',
-      error instanceof Error ? error.message : 'IELTS access request failed'
+      accessRpcErrorReason(message),
+      message,
     );
   }
 };

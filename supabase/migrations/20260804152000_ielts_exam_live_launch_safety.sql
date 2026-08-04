@@ -480,6 +480,13 @@ begin
     raise exception 'invalid_launch_state';
   end if;
 
+  -- The trigger capability is single-use within this transaction. Clear every
+  -- dimension immediately after the guarded state change so later SQL in the
+  -- same transaction cannot replay it for another live transition.
+  perform set_config('brainsheist.ielts_live_transition_exam_id', '', true);
+  perform set_config('brainsheist.ielts_live_transition_actor_id', '', true);
+  perform set_config('brainsheist.ielts_live_transition_action', '', true);
+
   insert into public.ielts_exam_audit_log (
     actor_id,
     exam_event_id,
@@ -677,6 +684,10 @@ begin
   if v_event.id is null then
     raise exception 'invalid_resume_state';
   end if;
+
+  perform set_config('brainsheist.ielts_live_transition_exam_id', '', true);
+  perform set_config('brainsheist.ielts_live_transition_actor_id', '', true);
+  perform set_config('brainsheist.ielts_live_transition_action', '', true);
 
   insert into public.ielts_exam_audit_log (
     actor_id,

@@ -11,6 +11,7 @@ import IeltsMissionCard from './components/IeltsMissionCard';
 import IeltsNextActionCard from './components/IeltsNextActionCard';
 import IeltsSchoolStudentProgressModal from './components/IeltsSchoolStudentProgressModal';
 import { friendlyIeltsAdminError } from '../../lib/schoolAdminPresentation';
+import { resolveIeltsDashboardMode, type IeltsDashboardMode } from './ieltsDashboardMode';
 
 type SkillKey = 'reading' | 'listening' | 'writing' | 'speaking';
 const orderedSkills: SkillKey[] = ['reading', 'listening', 'writing', 'speaking'];
@@ -103,7 +104,6 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({ item, onNavigate }) => 
 };
 
 type LoadState = 'loading' | 'ready' | 'error';
-type DashboardMode = 'student' | 'admin';
 type SnapshotModalState = 'idle' | 'loading' | 'ready' | 'error';
 
 interface IeltsJourneyDashboardProps {
@@ -121,7 +121,7 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
   const [targetBandDraft, setTargetBandDraft] = useState('');
   const [targetBandError, setTargetBandError] = useState<string | null>(null);
   const [isSavingTargetBand, setIsSavingTargetBand] = useState(false);
-  const [mode, setMode] = useState<DashboardMode>('student');
+  const [mode, setMode] = useState<IeltsDashboardMode>('student');
   const [schoolResults, setSchoolResults] = useState<IeltsSchoolResultsResponse | null>(null);
   const [snapshotStudentId, setSnapshotStudentId] = useState<string | null>(null);
   const [snapshot, setSnapshot] = useState<IeltsSchoolStudentSnapshot | null>(null);
@@ -134,11 +134,14 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
       setLoadState('loading');
       setError(null);
       try {
-        const [{ data: auth }, tier] = await Promise.all([supabase.auth.getUser(), getUserTier()]);
+        const [{ data: auth }, tierResult] = await Promise.all([
+          supabase.auth.getUser(),
+          getUserTier().catch(() => null),
+        ]);
         if (!active) return;
-        setUserTier(tier || 'free');
+        setUserTier(tierResult || 'free');
         const userId = auth?.user?.id;
-        let isIeltsAdmin = false;
+        let dashboardMode: IeltsDashboardMode = 'student';
         if (userId) {
           const [{ data: profile, error: profileError }, capabilityResolution] = await Promise.all([
             supabase
@@ -150,21 +153,18 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
           ]);
           if (!active) return;
           const typedProfile = profile as { role?: string | null; is_admin?: boolean | null } | null;
-          const role = String(typedProfile?.role ?? '').trim().toLowerCase();
-          const isPlatformAdmin = !profileError && (
-            Boolean(typedProfile?.is_admin)
-            || role === 'admin'
-            || role === 'superadmin'
-          );
-          const canAdministerSchool = capabilityResolution.status === 'ready'
-            && Boolean(capabilityResolution.capabilities?.can_administer);
-          if ((profileError && !canAdministerSchool) || (capabilityResolution.status === 'error' && !isPlatformAdmin)) {
+          const modeResolution = resolveIeltsDashboardMode({
+            profile: typedProfile,
+            profileError,
+            capabilityResolution,
+          });
+          if (modeResolution === 'error') {
             throw new Error('School access could not be verified.');
           }
-          isIeltsAdmin = isPlatformAdmin || canAdministerSchool;
+          dashboardMode = modeResolution;
         }
 
-        if (isIeltsAdmin) {
+        if (dashboardMode === 'admin') {
           const results = await rpcIeltsSchoolResults({ limit: 100 });
           if (!active) return;
           setSchoolResults(results);
