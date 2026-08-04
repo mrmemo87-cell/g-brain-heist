@@ -6,9 +6,12 @@ import { supabase } from '../../../services/supabaseClient';
 import { rpcIeltsSchoolResults, type IeltsSchoolResultsResponse, type IeltsSchoolResultsStudentRow } from '../../../services/ieltsResultsService';
 import { rpcIeltsSchoolStudentSnapshot, type IeltsSchoolStudentSnapshot } from '../../../services/ieltsSchoolStudentSnapshotService';
 import { getUserTier, isIeltsPrime, updateIeltsTargetBand } from '../../../services/ieltsService';
+import { resolveMySchoolCapabilities } from '../../../services/schoolAdminService';
 import IeltsMissionCard from './components/IeltsMissionCard';
 import IeltsNextActionCard from './components/IeltsNextActionCard';
 import IeltsSchoolStudentProgressModal from './components/IeltsSchoolStudentProgressModal';
+import { friendlyIeltsAdminError } from '../../lib/schoolAdminPresentation';
+import { resolveIeltsDashboardMode, type IeltsDashboardMode } from './ieltsDashboardMode';
 
 type SkillKey = 'reading' | 'listening' | 'writing' | 'speaking';
 const orderedSkills: SkillKey[] = ['reading', 'listening', 'writing', 'speaking'];
@@ -101,7 +104,6 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({ item, onNavigate }) => 
 };
 
 type LoadState = 'loading' | 'ready' | 'error';
-type DashboardMode = 'student' | 'admin';
 type SnapshotModalState = 'idle' | 'loading' | 'ready' | 'error';
 
 interface IeltsJourneyDashboardProps {
@@ -119,7 +121,7 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
   const [targetBandDraft, setTargetBandDraft] = useState('');
   const [targetBandError, setTargetBandError] = useState<string | null>(null);
   const [isSavingTargetBand, setIsSavingTargetBand] = useState(false);
-  const [mode, setMode] = useState<DashboardMode>('student');
+  const [mode, setMode] = useState<IeltsDashboardMode>('student');
   const [schoolResults, setSchoolResults] = useState<IeltsSchoolResultsResponse | null>(null);
   const [snapshotStudentId, setSnapshotStudentId] = useState<string | null>(null);
   const [snapshot, setSnapshot] = useState<IeltsSchoolStudentSnapshot | null>(null);
@@ -127,43 +129,63 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
   const [snapshotError, setSnapshotError] = useState<string | null>(null);
 
   useEffect(() => {
+    let active = true;
     const run = async () => {
       setLoadState('loading');
       setError(null);
       try {
-        const [{ data: auth }, tier] = await Promise.all([supabase.auth.getUser(), getUserTier()]);
-        setUserTier(tier || 'free');
+        const [{ data: auth }, tierResult] = await Promise.all([
+          supabase.auth.getUser(),
+          getUserTier().catch(() => null),
+        ]);
+        if (!active) return;
+        setUserTier(tierResult || 'free');
         const userId = auth?.user?.id;
-        let isIeltsAdmin = false;
+        let dashboardMode: IeltsDashboardMode = 'student';
         if (userId) {
-          const { data: profile } = await supabase
-            .from('users')
-            .select('role, is_admin')
-            .eq('id', userId)
-            .maybeSingle();
+          const [{ data: profile, error: profileError }, capabilityResolution] = await Promise.all([
+            supabase
+              .from('users')
+              .select('role, is_admin')
+              .eq('id', userId)
+              .maybeSingle(),
+            resolveMySchoolCapabilities(),
+          ]);
+          if (!active) return;
           const typedProfile = profile as { role?: string | null; is_admin?: boolean | null } | null;
-          const role = String(typedProfile?.role ?? '').toLowerCase();
-          isIeltsAdmin = Boolean(typedProfile?.is_admin) || role === 'school_admin' || role === 'admin' || role === 'superadmin';
+          const modeResolution = resolveIeltsDashboardMode({
+            profile: typedProfile,
+            profileError,
+            capabilityResolution,
+          });
+          if (modeResolution === 'error') {
+            throw new Error('School access could not be verified.');
+          }
+          dashboardMode = modeResolution;
         }
 
-        if (isIeltsAdmin) {
+        if (dashboardMode === 'admin') {
           const results = await rpcIeltsSchoolResults({ limit: 100 });
+          if (!active) return;
           setSchoolResults(results);
           setMode('admin');
           setJourney(null);
         } else {
           const journeyData = await rpcIeltsStudentJourney();
+          if (!active) return;
           setJourney(journeyData);
           setMode('student');
           setSchoolResults(null);
         }
         setLoadState('ready');
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Unable to load your IELTS journey.');
+        if (!active) return;
+        setError(friendlyIeltsAdminError(e, 'Unable to load the IELTS journey. Please try again.'));
         setLoadState('error');
       }
     };
     void run();
+    return () => { active = false; };
   }, []);
 
   const openStudentSnapshot = async (student: IeltsSchoolResultsStudentRow) => {
@@ -176,7 +198,7 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
       setSnapshot(data);
       setSnapshotState('ready');
     } catch (e) {
-      setSnapshotError(e instanceof Error ? e.message : 'Unable to load this student snapshot.');
+      setSnapshotError(friendlyIeltsAdminError(e, 'Unable to load this student snapshot. Please try again.'));
       setSnapshotState('error');
     }
   };
@@ -231,7 +253,7 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
       setJourney({ ...journey, target_band: normalized });
       setIsEditingTargetBand(false);
     } catch (e) {
-      setTargetBandError(e instanceof Error ? e.message : 'Unable to save target band.');
+      setTargetBandError(friendlyIeltsAdminError(e, 'Unable to save the target band. Please try again.'));
     } finally {
       setIsSavingTargetBand(false);
     }
@@ -267,7 +289,7 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
         {/* Page header */}
         <header data-anim="header" style={{ padding: '0.25rem 0' }}>
           <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{embedded ? 'Student IELTS Progress' : 'My IELTS Journey'}</h1>
-          <p style={{ margin: '0.35rem 0 0', color: '#64748b', fontSize: '0.82rem' }}>{embedded ? 'Review school-scoped assignments, results, readiness, and feedback.' : 'Track assignments, results, and reviewed feedback.'}</p>
+          <p style={{ margin: '0.35rem 0 0', color: '#64748b', fontSize: '0.82rem' }}>{embedded ? 'Review assignments, results, readiness, and feedback for this school.' : 'Track assignments, results, and reviewed feedback.'}</p>
         </header>
 
         {/* Loading */}
@@ -290,7 +312,7 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
                 <div>
                   <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 900, color: '#0f172a' }}>School IELTS Results</h2>
-                  <p style={{ margin: '0.35rem 0 0', color: '#64748b', fontSize: '0.82rem' }}>Click a student name to open a secure school-scoped IELTS progress snapshot.</p>
+                  <p style={{ margin: '0.35rem 0 0', color: '#64748b', fontSize: '0.82rem' }}>Select a student name to open their authorised IELTS progress record.</p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <span style={{ background: '#ecfeff', color: '#0e7490', border: '1px solid #a5f3fc', borderRadius: '9999px', padding: '0.35rem 0.7rem', fontSize: '0.72rem', fontWeight: 900 }}>{schoolResults.summary.total_students} students</span>

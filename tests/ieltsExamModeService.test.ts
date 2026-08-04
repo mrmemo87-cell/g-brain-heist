@@ -23,11 +23,27 @@ import {
   validateExamJsonText,
   payloadContainsAnswerKey,
   sanitizePublicFormPayload,
+  type IeltsExamAttemptControlResponse,
+  type IeltsExamControlResponse,
   type IeltsExamRpcClient,
 } from '../services/ieltsExamModeService.js';
 
 const createClient = (handler: (name: string, params: Record<string, unknown>) => unknown): IeltsExamRpcClient => ({
   rpc: ((name: string, params: Record<string, unknown>) => Promise.resolve({ data: handler(name, params), error: null })) as unknown as IeltsExamRpcClient['rpc'],
+});
+
+test('IELTS event and attempt control responses use separate lifecycle status types', () => {
+  const eventControl: IeltsExamControlResponse = { status: 'live', previous_status: 'scheduled' };
+  const attemptControl: IeltsExamAttemptControlResponse = { status: 'submitted', attempt_id: 'attempt-1' };
+
+  assert.equal(eventControl.status, 'live');
+  assert.equal(attemptControl.status, 'submitted');
+
+  const service = fs.readFileSync(path.join(process.cwd(), 'services/ieltsExamModeService.ts'), 'utf8');
+  assert.match(service, /export type IeltsExamEventStatus =[\s\S]*'draft'[\s\S]*'scheduled'[\s\S]*'live'[\s\S]*'paused'/);
+  assert.match(service, /interface IeltsExamControlResponse[\s\S]*status\?: IeltsExamEventStatus/);
+  assert.match(service, /interface IeltsExamAttemptControlResponse[\s\S]*status\?: IeltsExamAttemptStatus/);
+  assert.match(service, /interface CreateExamEventParams[\s\S]*status\?: IeltsExamEventStatus/);
 });
 
 test('IELTS exam service strips answer_key from public form payloads defensively', async () => {

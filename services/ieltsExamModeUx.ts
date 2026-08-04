@@ -15,7 +15,7 @@ const LIFECYCLE_META: Record<IeltsExamLifecycleState, Omit<IeltsExamLifecycleMet
   },
   scheduled: {
     label: 'Scheduled',
-    description: 'Ready for students, but the start time has not arrived.',
+    description: 'Awaiting confirmed launch. Students cannot start yet.',
     badgeClass: 'bg-indigo-50 text-indigo-700 ring-indigo-200',
   },
   live_now: {
@@ -62,12 +62,18 @@ export const resolveIeltsExamLifecycleState = (
   if (normalized === 'paused') return 'paused';
   if (['ended', 'closed', 'complete', 'completed'].includes(normalized)) return 'ended';
   if (normalized === 'draft') return 'draft';
+  // Scheduled is an explicit waiting state. Reaching starts_at does not make an
+  // exam live; only the confirmed server-side launch transition may do that.
+  if (normalized === 'scheduled') {
+    const scheduledEndMs = parseTime(endsAt);
+    return scheduledEndMs !== null && nowMs >= scheduledEndMs ? 'ended' : 'scheduled';
+  }
 
   const startMs = parseTime(startsAt);
   const endMs = parseTime(endsAt);
   if (endMs !== null && nowMs >= endMs) return 'ended';
   if (startMs !== null && nowMs < startMs) return 'scheduled';
-  if (['live', 'live_now', 'started', 'in_progress', 'active', 'scheduled'].includes(normalized)) return 'live_now';
+  if (['live', 'live_now', 'started', 'in_progress', 'active'].includes(normalized)) return 'live_now';
   return normalized ? 'scheduled' : 'draft';
 };
 
@@ -102,6 +108,42 @@ export const getIeltsAttemptOperationalLabel = (status?: string | null, hasConne
 export type IeltsStudentExamSyncState = 'active' | 'paused' | 'teacher_submitted' | 'voided' | 'ended' | 'not_in_progress';
 
 const normalizeExamStatus = (status?: string | null): string => (status ?? '').toLowerCase().trim();
+
+export interface IeltsStudentStartEligibility {
+  allowed?: boolean | null;
+  assignmentId?: string | null;
+  eventStatus?: string | null;
+  hasAttempt: boolean;
+  isSubmitted: boolean;
+  isBeforeStart: boolean;
+  isAfterExamWindow: boolean;
+  isPaused: boolean;
+}
+
+/**
+ * Client-side defense in depth for the start button. The database remains the
+ * authority, but a stale or malformed bootstrap response must never present a
+ * scheduled exam as startable before the confirmed launch transition.
+ */
+export const canStartIeltsExamAttempt = ({
+  allowed,
+  assignmentId,
+  eventStatus,
+  hasAttempt,
+  isSubmitted,
+  isBeforeStart,
+  isAfterExamWindow,
+  isPaused,
+}: IeltsStudentStartEligibility): boolean => (
+  Boolean(allowed)
+  && Boolean(assignmentId)
+  && normalizeExamStatus(eventStatus) === 'live'
+  && !hasAttempt
+  && !isSubmitted
+  && !isBeforeStart
+  && !isAfterExamWindow
+  && !isPaused
+);
 
 export const isIeltsExamEventPaused = (eventStatus?: string | null, reason?: string | null): boolean => (
   normalizeExamStatus(eventStatus) === 'paused' || normalizeExamStatus(reason) === 'exam_paused'

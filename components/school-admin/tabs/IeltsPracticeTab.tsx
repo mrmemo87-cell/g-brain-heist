@@ -20,6 +20,7 @@ import {
   rpcIeltsPracticeContentCatalog,
   type IeltsPracticeContentCatalogItem,
 } from '../../../services/ieltsPracticeContentService';
+import { friendlyIeltsAdminError } from '../../../src/lib/schoolAdminPresentation';
 
 type DraftItem = IeltsPracticeAssignmentItemInput & {
   localId: string;
@@ -94,7 +95,11 @@ const displayStudentStatus = (assignment: IeltsPracticeAssignmentSummary, studen
   isStudentOverdue(assignment, student) ? 'overdue' : student.status
 );
 
-const IeltsPracticeTab: React.FC = () => {
+interface IeltsPracticeTabProps {
+  onOpenReviews: () => void;
+}
+
+const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews }) => {
   const { classes = [], students = [], studentAssignments = {}, school, addToast } = useSchoolAdmin();
   const [assignmentStatusFilter, setAssignmentStatusFilter] = useState<AssignmentStatusFilter>('active');
   const [assignments, setAssignments] = useState<IeltsPracticeAssignmentSummary[]>([]);
@@ -175,7 +180,7 @@ const IeltsPracticeTab: React.FC = () => {
         }
       }
     } catch (loadError) {
-      const message = loadError instanceof Error ? loadError.message : 'Unable to load IELTS practice assignments.';
+      const message = friendlyIeltsAdminError(loadError, 'Unable to load IELTS practice assignments. Please try again.');
       setError(message);
     } finally {
       setLoading(false);
@@ -193,7 +198,7 @@ const IeltsPracticeTab: React.FC = () => {
       const rows = await rpcIeltsPracticeContentCatalog({ skill: skill || null, search: search || null, limit: 50 });
       setContentCatalog(rows);
     } catch (catalogError) {
-      const message = catalogError instanceof Error ? catalogError.message : 'Unable to load IELTS practice content.';
+      const message = friendlyIeltsAdminError(catalogError, 'Unable to load IELTS practice content. Please try again.');
       setContentError(message);
     } finally {
       setContentLoading(false);
@@ -210,7 +215,7 @@ const IeltsPracticeTab: React.FC = () => {
       setAssignmentDetail(detail);
       setAssignments((current) => current.map((row) => (row.id === assignmentId ? { ...row, ...detail.assignment } : row)));
     } catch (detailError) {
-      const message = detailError instanceof Error ? detailError.message : 'Unable to load IELTS practice progress.';
+      const message = friendlyIeltsAdminError(detailError, 'Unable to load IELTS practice progress. Please try again.');
       setError(message);
       addToast?.(message, 'error');
     } finally {
@@ -352,7 +357,7 @@ const IeltsPracticeTab: React.FC = () => {
       resetForm();
       addToast?.('IELTS practice assignment created and assigned.', 'success');
     } catch (saveError) {
-      const message = saveError instanceof Error ? saveError.message : 'Unable to create IELTS practice assignment.';
+      const message = friendlyIeltsAdminError(saveError, 'Unable to create the IELTS practice assignment. Please try again.');
       setError(message);
       addToast?.(message, 'error');
     } finally {
@@ -397,7 +402,7 @@ const IeltsPracticeTab: React.FC = () => {
       cancelEditAssignment();
       addToast?.('IELTS practice assignment updated.', 'success');
     } catch (updateError) {
-      const message = updateError instanceof Error ? updateError.message : 'Unable to update IELTS practice assignment.';
+      const message = friendlyIeltsAdminError(updateError, 'Unable to update the IELTS practice assignment. Please try again.');
       setError(message);
       addToast?.(message, 'error');
     } finally {
@@ -414,7 +419,7 @@ const IeltsPracticeTab: React.FC = () => {
       setAssignmentDetail((current) => current?.assignment.id === assignmentId ? { ...current, assignment: { ...current.assignment, ...updated } } : current);
       addToast?.('IELTS practice assignment closed. Students can view it read-only.', 'success');
     } catch (closeError) {
-      const message = closeError instanceof Error ? closeError.message : 'Unable to close IELTS practice assignment.';
+      const message = friendlyIeltsAdminError(closeError, 'Unable to close the IELTS practice assignment. Please try again.');
       setError(message);
       addToast?.(message, 'error');
     } finally {
@@ -437,7 +442,7 @@ const IeltsPracticeTab: React.FC = () => {
       }
       addToast?.('IELTS practice assignment archived. Progress history was preserved.', 'success');
     } catch (archiveError) {
-      const message = archiveError instanceof Error ? archiveError.message : 'Unable to archive IELTS practice assignment.';
+      const message = friendlyIeltsAdminError(archiveError, 'Unable to archive the IELTS practice assignment. Please try again.');
       setError(message);
       addToast?.(message, 'error');
     } finally {
@@ -457,7 +462,7 @@ const IeltsPracticeTab: React.FC = () => {
       }
       addToast?.('IELTS practice assignment restored as closed. Progress history was preserved.', 'success');
     } catch (restoreError) {
-      const message = restoreError instanceof Error ? restoreError.message : 'Unable to restore IELTS practice assignment.';
+      const message = friendlyIeltsAdminError(restoreError, 'Unable to restore the IELTS practice assignment. Please try again.');
       setError(message);
       addToast?.(message, 'error');
     } finally {
@@ -471,22 +476,23 @@ const IeltsPracticeTab: React.FC = () => {
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-300">IELTS Academy</p>
         <h3 className="mt-2 text-2xl font-bold text-white">IELTS Practice</h3>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-emerald-50/80">
-          Create school-scoped IELTS practice assignments for {school?.name ?? 'your school'} with a safe content picker for active
+          Create IELTS practice assignments for students at {school?.name ?? 'your school'} with a guided content picker for active
           IELTS practice content. Manual content IDs remain available as an advanced fallback.
         </p>
       </div>
 
-      <a
-        href="/ielts/reviews"
+      <button
+        type="button"
+        onClick={onOpenReviews}
         className="flex flex-col gap-2 rounded-xl border border-cyan-400/40 bg-cyan-500/10 p-4 text-left text-cyan-50 transition hover:border-cyan-300 hover:bg-cyan-500/20 sm:flex-row sm:items-center sm:justify-between"
         aria-label="Review Writing & Speaking Submissions in the IELTS review queue"
       >
         <span>
           <span className="block text-base font-bold text-white">Review Writing &amp; Speaking Submissions</span>
-          <span className="mt-1 block text-sm text-cyan-100">Open IELTS Reviews at /ielts/reviews to grade pending writing and speaking submissions.</span>
+          <span className="mt-1 block text-sm text-cyan-100">Grade pending writing and speaking submissions without leaving School Administration.</span>
         </span>
         <span className="inline-flex items-center justify-center rounded-lg bg-cyan-400 px-4 py-2 text-sm font-bold text-slate-950">IELTS Reviews →</span>
-      </a>
+      </button>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_1.2fr]">
         <label className="rounded-xl border border-gray-700 bg-gray-900/80 p-4 text-sm text-gray-300">
@@ -503,17 +509,17 @@ const IeltsPracticeTab: React.FC = () => {
           <p className="text-gray-400">
             Assigning to {selectedClass?.class_name ?? 'a class'} will create student rows for matching school roster members.
           </p>
-          <p className="mt-2 text-xs text-gray-500">Portal context currently has {students.length} students loaded.</p>
+          <p className="mt-2 text-xs text-gray-500">{students.length} students are currently available for assignment.</p>
           {classId && selectedClassStudentCount === 0 && (
-            <p className="mt-2 rounded-lg border border-amber-400/40 bg-amber-500/10 p-2 text-xs font-semibold text-amber-100">No students in this class. Add students before running the pilot assignment.</p>
+            <p className="mt-2 rounded-lg border border-amber-400/40 bg-amber-500/10 p-2 text-xs font-semibold text-amber-100">No students in this class. Add students before creating the assignment.</p>
           )}
         </div>
         <div className="rounded-xl border border-gray-700 bg-gray-900/80 p-4 text-sm text-gray-300">
           <span className="mb-2 block font-semibold text-white">Completion tracking</span>
-          <p className="text-gray-400">View roster progress by assignment with simple status filters. No charts yet.</p>
+          <p className="text-gray-400">View student progress by assignment and focus the list with clear status filters.</p>
         </div>
-        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 text-sm text-gray-300" data-testid="ielts-practice-pilot-checklist">
-          <span className="mb-2 block font-semibold text-white">Pilot checklist</span>
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 text-sm text-gray-300" data-testid="ielts-practice-readiness-checklist">
+          <span className="mb-2 block font-semibold text-white">Assignment readiness</span>
           <ul className="space-y-1 text-xs text-gray-300">
             <li>✓ Assignments created: {assignments.length > 0 ? 'ready' : 'create one assignment'}</li>
             <li>✓ Content selected: {hasSelectedContent ? 'selected' : 'choose catalog content'}</li>
@@ -749,7 +755,7 @@ const IeltsPracticeTab: React.FC = () => {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h4 className="text-lg font-semibold text-white">Assignments</h4>
-              <p className="mt-1 text-sm text-gray-400">Completion counts come from school-scoped IELTS assignment RPCs.</p>
+              <p className="mt-1 text-sm text-gray-400">Completion counts include only assignments and students from this school.</p>
             </div>
             <div className="flex flex-wrap gap-2" role="tablist" aria-label="IELTS practice assignment status">
               {assignmentStatusFilters.map((filter) => (
@@ -831,7 +837,7 @@ const IeltsPracticeTab: React.FC = () => {
                     <div className="rounded-lg bg-gray-800 p-2"><strong className="block text-white">{assignment.excused_count ?? 0}</strong>Excused</div>
                   </div>
                   {(assignment.item_count ?? assignment.items?.length ?? 0) === 0 && (
-                    <p className="mt-3 rounded-lg border border-amber-400/40 bg-amber-500/10 p-2 text-xs font-semibold text-amber-100">Assignment has no items. Add content before using it in the pilot.</p>
+                    <p className="mt-3 rounded-lg border border-amber-400/40 bg-amber-500/10 p-2 text-xs font-semibold text-amber-100">Assignment has no items. Add content before making it available to students.</p>
                   )}
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-400">
                     <span>{assignment.item_count ?? assignment.items?.length ?? 0} items · Due {formatDateTime(assignment.due_at)}</span>

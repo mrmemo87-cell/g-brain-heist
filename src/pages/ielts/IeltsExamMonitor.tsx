@@ -10,6 +10,7 @@ import {
   type IeltsExamMonitoringRow,
 } from '../../../services/ieltsExamModeService';
 import { getIeltsAttemptOperationalLabel } from '../../../services/ieltsExamModeUx';
+import { friendlyIeltsAdminError } from '../../lib/schoolAdminPresentation';
 
 type MonitorFilter = 'all' | 'not_started' | 'in_progress' | 'submitted' | 'offline' | 'incidents';
 type ControlState = 'idle' | 'working';
@@ -76,8 +77,15 @@ const statusBadgeClass = (status: string | null | undefined): string => {
 
 const getDisplayName = (row: IeltsExamMonitoringRow) => row.name || row.username || 'Unnamed student';
 
-const IeltsExamMonitor: React.FC = () => {
-  const { examEventId } = useParams<{ examEventId: string }>();
+interface IeltsExamMonitorProps {
+  embedded?: boolean;
+  examEventIdOverride?: string | null;
+  onBack?: () => void;
+}
+
+const IeltsExamMonitor: React.FC<IeltsExamMonitorProps> = ({ embedded = false, examEventIdOverride = null, onBack }) => {
+  const { examEventId: routeExamEventId } = useParams<{ examEventId: string }>();
+  const examEventId = examEventIdOverride || routeExamEventId;
   const [rows, setRows] = useState<IeltsExamMonitoringRow[]>([]);
   const [filter, setFilter] = useState<MonitorFilter>('all');
   const [isLoading, setIsLoading] = useState(true);
@@ -96,7 +104,7 @@ const IeltsExamMonitor: React.FC = () => {
       setRows(data);
       setLastUpdatedAt(new Date());
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Failed to load IELTS exam monitoring.');
+      setError(friendlyIeltsAdminError(loadError, 'Unable to load IELTS exam monitoring. Please try again.'));
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -157,7 +165,7 @@ const IeltsExamMonitor: React.FC = () => {
       }
       await loadMonitoring('refresh');
     } catch (controlError) {
-      setError(controlError instanceof Error ? controlError.message : `Failed to ${action} exam.`);
+      setError(friendlyIeltsAdminError(controlError, `Unable to ${action} the exam. Please try again.`));
     } finally {
       setControlState('idle');
     }
@@ -185,7 +193,7 @@ const IeltsExamMonitor: React.FC = () => {
         await rpcIeltsExtendAttempt({ attemptId: row.attempt_id, extraMinutes, reason });
         await loadMonitoring('refresh');
       } catch (controlError) {
-        setError(controlError instanceof Error ? controlError.message : 'Failed to extend attempt.');
+        setError(friendlyIeltsAdminError(controlError, 'Unable to extend this attempt. Please try again.'));
       } finally {
         setControlState('idle');
       }
@@ -207,17 +215,22 @@ const IeltsExamMonitor: React.FC = () => {
       }
       await loadMonitoring('refresh');
     } catch (controlError) {
-      setError(controlError instanceof Error ? controlError.message : `Failed to ${action.replace('_', ' ')}.`);
+      setError(friendlyIeltsAdminError(controlError, `Unable to ${action.replace('_', ' ')} this attempt. Please try again.`));
     } finally {
       setControlState('idle');
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className={`${embedded ? 'rounded-2xl' : 'min-h-screen'} bg-slate-50 text-slate-900`} data-testid={embedded ? 'embedded-ielts-exam-monitor' : 'ielts-exam-monitor'}>
       <header className="border-b border-slate-200 bg-white px-4 py-5 shadow-sm">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
+            {onBack ? (
+              <button type="button" onClick={onBack} className="mb-3 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">
+                ← Back to exam setup
+              </button>
+            ) : null}
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">IELTS Exam Monitoring</p>
             <h1 className="text-2xl font-semibold text-slate-950">Controlled Exam Monitor</h1>
             <p className="mt-1 text-sm text-slate-600">Operational view for who has not started, who is active, who submitted, and who may have a connection issue.</p>
@@ -280,6 +293,7 @@ const IeltsExamMonitor: React.FC = () => {
                 <button
                   key={nextFilter}
                   type="button"
+                  aria-pressed={filter === nextFilter}
                   onClick={() => setFilter(nextFilter)}
                   className={`rounded-full px-3 py-1.5 text-sm font-semibold ${filter === nextFilter ? 'bg-blue-700 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
                 >

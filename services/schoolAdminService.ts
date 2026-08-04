@@ -1,13 +1,13 @@
-import { supabase } from './supabaseClient';
+import { supabase } from './supabaseClient.js';
 import type { SchoolRole } from '../types';
 import {
   normalizeCambridgeRetakeResult,
   type CambridgeRetakeResult,
-} from '../src/lib/cambridgeRetakeResult';
+} from '../src/lib/cambridgeRetakeResult.js';
 import {
   normalizeCambridgeIdentityLinkResult,
   type CambridgeIdentityLinkResult,
-} from '../src/lib/cambridgeIdentityLinkResult';
+} from '../src/lib/cambridgeIdentityLinkResult.js';
 
 // ============================================
 // School Admin Service — Patch J (RPC-backed)
@@ -49,6 +49,20 @@ export interface SchoolCapabilities {
   is_owner: boolean;
   can_administer: boolean;
   can_teach: boolean;
+}
+
+export type SchoolCapabilitiesResolution =
+  | { status: 'ready'; capabilities: SchoolCapabilities | null }
+  | { status: 'error'; capabilities: null; message: string };
+
+export interface SchoolCapabilitiesRpcClient {
+  rpc(
+    functionName: string,
+    params?: Record<string, unknown>,
+  ): PromiseLike<{
+    data: unknown;
+    error: { message?: string | null } | null;
+  }>;
 }
 
 export interface SchoolInfo {
@@ -170,21 +184,53 @@ export async function isSchoolAdmin(): Promise<boolean> {
   }
 }
 
-export async function getMySchoolCapabilities(schoolId?: string | null): Promise<SchoolCapabilities | null> {
+export async function resolveMySchoolCapabilities(
+  schoolId?: string | null,
+  client: SchoolCapabilitiesRpcClient = supabase as unknown as SchoolCapabilitiesRpcClient,
+): Promise<SchoolCapabilitiesResolution> {
   try {
-    const { data, error } = await supabase.rpc('school_admin_get_my_capabilities', { p_school_id: schoolId || null });
-    if (error || !data?.success) return null;
+    const { data, error } = await client.rpc('school_admin_get_my_capabilities', { p_school_id: schoolId || null });
+    if (error) {
+      return { status: 'error', capabilities: null, message: error.message || 'School access could not be verified.' };
+    }
+
+    const payload = data as Record<string, unknown> | null;
+    if (!payload || payload['success'] !== true) {
+      const reason = typeof payload?.['error'] === 'string' ? payload['error'].trim().toLowerCase() : '';
+      if (reason === 'no active school membership' || reason === 'not authenticated') {
+        return { status: 'ready', capabilities: null };
+      }
+      return { status: 'error', capabilities: null, message: 'School access could not be verified.' };
+    }
+
+    const role = payload['role'];
+    const resolvedSchoolId = payload['school_id'];
+    if (
+      typeof resolvedSchoolId !== 'string'
+      || !['student', 'teacher', 'school_admin'].includes(String(role))
+    ) {
+      return { status: 'error', capabilities: null, message: 'School access could not be verified.' };
+    }
+
     return {
-      school_id: data.school_id,
-      role: data.role as SchoolRole,
-      is_owner: Boolean(data.is_owner),
-      can_administer: Boolean(data.can_administer),
-      can_teach: Boolean(data.can_teach),
+      status: 'ready',
+      capabilities: {
+        school_id: resolvedSchoolId,
+        role: role as SchoolRole,
+        is_owner: Boolean(payload['is_owner']),
+        can_administer: Boolean(payload['can_administer']),
+        can_teach: Boolean(payload['can_teach']),
+      },
     };
   } catch (error) {
     console.error('Exception loading school capabilities:', error);
-    return null;
+    return { status: 'error', capabilities: null, message: 'School access could not be verified.' };
   }
+}
+
+export async function getMySchoolCapabilities(schoolId?: string | null): Promise<SchoolCapabilities | null> {
+  const resolution = await resolveMySchoolCapabilities(schoolId);
+  return resolution.status === 'ready' ? resolution.capabilities : null;
 }
 
 /**

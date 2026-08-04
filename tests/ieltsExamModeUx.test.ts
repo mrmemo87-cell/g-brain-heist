@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
+  canStartIeltsExamAttempt,
   formatIeltsCountdown,
   getIeltsAttemptOperationalLabel,
   getIeltsStudentExamSyncMessage,
@@ -21,12 +22,32 @@ test('IELTS exam lifecycle labels cover pilot states with human-friendly labels'
   assert.equal(resolveIeltsExamLifecycleMeta('archived', null, null, now).label, 'Archived');
 });
 
-test('IELTS lifecycle resolves live, paused, scheduled and ended states from time window', () => {
+test('IELTS lifecycle requires an explicit live status instead of promoting scheduled by time', () => {
   const now = Date.parse('2026-05-18T10:00:00.000Z');
-  assert.equal(resolveIeltsExamLifecycleState('scheduled', '2026-05-18T09:00:00.000Z', '2026-05-18T11:00:00.000Z', now), 'live_now');
+  assert.equal(resolveIeltsExamLifecycleState('scheduled', '2026-05-18T09:00:00.000Z', '2026-05-18T11:00:00.000Z', now), 'scheduled');
   assert.equal(resolveIeltsExamLifecycleState('paused', '2026-05-18T09:00:00.000Z', '2026-05-18T11:00:00.000Z', now), 'paused');
   assert.equal(resolveIeltsExamLifecycleState('scheduled', '2026-05-18T11:00:00.000Z', '2026-05-18T12:00:00.000Z', now), 'scheduled');
+  assert.equal(resolveIeltsExamLifecycleState('scheduled', '2026-05-18T08:00:00.000Z', '2026-05-18T09:59:59.000Z', now), 'ended');
+  assert.equal(resolveIeltsExamLifecycleState('live', '2026-05-18T09:00:00.000Z', '2026-05-18T11:00:00.000Z', now), 'live_now');
   assert.equal(resolveIeltsExamLifecycleState('live', '2026-05-18T08:00:00.000Z', '2026-05-18T09:59:59.000Z', now), 'ended');
+});
+
+test('IELTS student start eligibility requires the confirmed live event state', () => {
+  const ready = {
+    allowed: true,
+    assignmentId: 'assignment-1',
+    hasAttempt: false,
+    isSubmitted: false,
+    isBeforeStart: false,
+    isAfterExamWindow: false,
+    isPaused: false,
+  };
+
+  assert.equal(canStartIeltsExamAttempt({ ...ready, eventStatus: 'scheduled' }), false);
+  assert.equal(canStartIeltsExamAttempt({ ...ready, eventStatus: 'paused' }), false);
+  assert.equal(canStartIeltsExamAttempt({ ...ready, eventStatus: 'live' }), true);
+  assert.equal(canStartIeltsExamAttempt({ ...ready, eventStatus: 'live', allowed: false }), false);
+  assert.equal(canStartIeltsExamAttempt({ ...ready, eventStatus: 'live', hasAttempt: true }), false);
 });
 
 test('IELTS waiting countdown renders locally understandable durations', () => {
@@ -65,6 +86,8 @@ test('IELTS Exam Mode UI surfaces start-exam backend errors instead of silently 
   assert.match(source, /Start exam failed:/, 'start failure must include backend reason prefix');
   assert.match(source, /alert=\{error\}/, 'start card must render the captured failure message');
   assert.match(source, /if \(isStarting \|\| !whoami\?\.assignment_id\) return;/, 'start action must be retry-safe against double clicks');
+  assert.match(source, /canStartIeltsExamAttempt\(\{[\s\S]*allowed: whoami\?\.allowed,[\s\S]*eventStatus,/, 'student start UI must consume live-state eligibility');
+  assert.match(source, /Your invigilator must also launch the exam before you can begin\./, 'scheduled countdown must not promise that time alone opens the exam');
 });
 
 

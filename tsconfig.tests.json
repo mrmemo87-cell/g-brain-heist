@@ -26,6 +26,7 @@
     "services/ieltsExamModeUx.ts",
     "services/ieltsExamPayloadParser.ts",
     "services/ieltsExamAccessService.ts",
+    "services/ieltsExtraPracticeAccessService.ts",
     "services/ieltsPracticeAssignmentService.ts",
     "services/ieltsJourneyService.ts",
     "services/ieltsResultsService.ts",

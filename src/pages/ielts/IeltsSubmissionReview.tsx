@@ -13,6 +13,7 @@ import {
   type IeltsReviewSkill,
 } from '../../../services/ieltsTeacherReviewService';
 import { supabase } from '../../../services/supabaseClient';
+import { friendlyIeltsAdminError } from '../../lib/schoolAdminPresentation';
 import { useSchoolBranding } from '../../hooks/useSchoolBranding';
 import {
   createSchoolDocumentId,
@@ -57,11 +58,18 @@ const normalizeStoragePath = (audioRef: string): string | null => {
   }
 };
 
-const IeltsSubmissionReview: React.FC = () => {
+interface IeltsSubmissionReviewProps {
+  embedded?: boolean;
+  skillOverride?: IeltsReviewSkill;
+  attemptIdOverride?: string;
+  onBack?: () => void;
+}
+
+const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded = false, skillOverride, attemptIdOverride, onBack }) => {
   const navigate = useNavigate();
   const params = useParams<{ skill: string; attemptId: string }>();
-  const skill = (params.skill === 'speaking' ? 'speaking' : 'writing') as IeltsReviewSkill;
-  const attemptId = decodeURIComponent(params.attemptId ?? '');
+  const skill = skillOverride ?? ((params.skill === 'speaking' ? 'speaking' : 'writing') as IeltsReviewSkill);
+  const attemptId = attemptIdOverride ?? decodeURIComponent(params.attemptId ?? '');
   const rubricKeys = useMemo(() => skill === 'writing' ? writingRubricKeys : speakingRubricKeys, [skill]);
 
   const { data: detail, isLoading, error, refetch } = useQuery({
@@ -180,7 +188,7 @@ const IeltsSubmissionReview: React.FC = () => {
       setAiError(null);
     },
     onError: (err) => {
-      setAiError(err instanceof Error ? err.message : 'AI check failed.');
+      setAiError(friendlyIeltsAdminError(err, 'The AI check could not be completed. Please try again.'));
     },
   });
 
@@ -251,9 +259,9 @@ const IeltsSubmissionReview: React.FC = () => {
   };
 
   return (
-    <main style={{ minHeight: '100vh', background: '#f8fafc', padding: '2rem' }}>
+    <main data-testid={embedded ? 'embedded-ielts-submission-review' : 'ielts-submission-review'} style={{ minHeight: embedded ? undefined : '100vh', background: '#f8fafc', padding: '2rem' }}>
       <section style={{ maxWidth: '76rem', margin: '0 auto' }}>
-        <button onClick={() => navigate('/ielts/reviews')} style={{ border: 'none', background: 'transparent', color: '#2563eb', cursor: 'pointer', marginBottom: '1rem' }}>← Back to IELTS Review Queue</button>
+        <button onClick={() => onBack ? onBack() : navigate('/ielts/reviews')} style={{ border: 'none', background: 'transparent', color: '#2563eb', cursor: 'pointer', marginBottom: '1rem' }}>← Back to IELTS Review Queue</button>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap' }}>
           <div>
             <h1 style={{ margin: 0, color: '#0f172a' }}>{title}</h1>
@@ -262,7 +270,7 @@ const IeltsSubmissionReview: React.FC = () => {
           {detail ? <div style={{ color: '#475569' }}>Status: <strong>{detail.review_status}</strong>{detail.reviewed_at ? ` • Reviewed ${new Date(detail.reviewed_at).toLocaleString()}` : ''}</div> : null}
         </div>
 
-        {error ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: '1rem', borderRadius: '0.75rem' }}>{error instanceof Error ? error.message : 'Unable to load submission.'}</div> : null}
+        {error ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: '1rem', borderRadius: '0.75rem' }}>{friendlyIeltsAdminError(error, 'Unable to load the submission. Please try again.')}</div> : null}
         {isLoading ? <div style={{ color: '#475569' }}>Loading submission…</div> : null}
 
         {detail ? (
@@ -351,7 +359,7 @@ const IeltsSubmissionReview: React.FC = () => {
                 </label>
               ))}
 
-              {submitMutation.error ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: '0.75rem', borderRadius: '0.5rem', marginBottom: '0.75rem' }}>{submitMutation.error instanceof Error ? submitMutation.error.message : 'Review save failed.'}</div> : null}
+              {submitMutation.error ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: '0.75rem', borderRadius: '0.5rem', marginBottom: '0.75rem' }}>{friendlyIeltsAdminError(submitMutation.error, 'Unable to save the review. Please try again.')}</div> : null}
               {submitMutation.isSuccess ? <div style={{ background: '#dcfce7', color: '#166534', padding: '0.75rem', borderRadius: '0.5rem', marginBottom: '0.75rem' }}>Review saved.</div> : null}
 
               <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>

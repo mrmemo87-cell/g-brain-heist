@@ -5,6 +5,7 @@ import {
   type IeltsSchoolResultsResponse,
   type IeltsSchoolResultsStudentRow,
 } from '../../../services/ieltsResultsService';
+import { friendlyIeltsAdminError } from '../../../src/lib/schoolAdminPresentation';
 
 const formatNumber = (value?: number | null) => (typeof value === 'number' && Number.isFinite(value) ? value.toLocaleString() : '—');
 
@@ -50,7 +51,7 @@ const IeltsResultsTab: React.FC = () => {
       });
       setResults(response);
     } catch (loadError) {
-      const message = loadError instanceof Error ? loadError.message : 'Unable to load IELTS results.';
+      const message = friendlyIeltsAdminError(loadError, 'Unable to load IELTS results. Please try again.');
       setError(message);
       setResults(null);
     } finally {
@@ -65,8 +66,8 @@ const IeltsResultsTab: React.FC = () => {
   const summary = results?.summary;
   const rows = results?.students ?? [];
   const summaryCards = [
-    { label: 'Total students', value: formatNumber(summary?.total_students), detail: 'Students in the current school scope.' },
-    { label: 'Assigned practice', value: formatNumber(summary?.assigned_practice_count), detail: 'School-scoped practice rows assigned.' },
+    { label: 'Total students', value: formatNumber(summary?.total_students), detail: 'Students included in this school view.' },
+    { label: 'Assigned practice', value: formatNumber(summary?.assigned_practice_count), detail: 'Practice assignments given to students.' },
     { label: 'Completed practice', value: formatNumber(summary?.completed_practice_count), detail: 'Assigned practice marked completed.' },
     { label: 'Exam submissions', value: formatNumber(summary?.exam_submission_count), detail: 'Secure Exam Mode submissions.' },
     { label: 'Average estimated readiness', value: formatEstimate(summary?.average_estimated_overall), detail: 'Practice-derived readiness estimate; not a certified band score.' },
@@ -78,7 +79,7 @@ const IeltsResultsTab: React.FC = () => {
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-amber-300">IELTS Academy</p>
         <h3 className="mt-2 text-2xl font-bold text-white">IELTS Results</h3>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-amber-50/80">
-          Review school-scoped practice completion, Exam Mode submission counts, and Estimated readiness without exposing protected answers.
+          Review practice completion, controlled-exam submissions, and estimated readiness for this school.
         </p>
       </div>
 
@@ -95,7 +96,7 @@ const IeltsResultsTab: React.FC = () => {
               <option key={cls.id} value={cls.id}>{cls.class_name}</option>
             ))}
           </select>
-          <p className="mt-2 text-xs text-gray-500">{selectedClassName ? `Filtering ${selectedClassName}.` : 'Safe school-scoped class filter.'}</p>
+          <p className="mt-2 text-xs text-gray-500">{selectedClassName ? `Showing ${selectedClassName}.` : 'Showing every class you are authorised to view.'}</p>
         </label>
 
         <label className="rounded-xl border border-gray-700 bg-gray-900/80 p-4 text-sm text-gray-300">
@@ -110,12 +111,12 @@ const IeltsResultsTab: React.FC = () => {
               <option key={student.user_id} value={student.user_id}>{student.username || student.email || 'Unnamed student'}</option>
             ))}
           </select>
-          <p className="mt-2 text-xs text-gray-500">{selectedStudentName ? `Filtering ${selectedStudentName}.` : 'Safe school-scoped student filter.'}</p>
+          <p className="mt-2 text-xs text-gray-500">{selectedStudentName ? `Showing ${selectedStudentName}.` : 'Showing every student you are authorised to view.'}</p>
         </label>
 
         <div className="rounded-xl border border-gray-700 bg-gray-900/80 p-4 text-sm text-gray-300">
-          <span className="mb-2 block font-semibold text-white">Result source</span>
-          <p className="text-gray-400">Loaded only through the school results RPC. This view does not read raw practice content tables.</p>
+          <span className="mb-2 block font-semibold text-white">School results</span>
+          <p className="text-gray-400">Shows authorised IELTS results for students in this school.</p>
           <button
             type="button"
             onClick={() => void loadResults()}

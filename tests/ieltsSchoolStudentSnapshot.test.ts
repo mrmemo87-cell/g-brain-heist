@@ -53,7 +53,7 @@ test('school admin results table opens the progress modal from student names onl
   assert.match(dashboard, /rpcIeltsSchoolStudentSnapshot\(student\.student_id\)/);
   assert.match(dashboard, /data-testid="ielts-open-student-progress"/);
   assert.match(dashboard, /IeltsSchoolStudentProgressModal/);
-  assert.match(dashboard, /Boolean\(typedProfile\?\.is_admin\) \|\| role === 'school_admin' \|\| role === 'admin' \|\| role === 'superadmin'/);
+  assert.match(dashboard, /resolveIeltsDashboardMode\(\{[\s\S]*profile: typedProfile,[\s\S]*profileError,[\s\S]*capabilityResolution,[\s\S]*\}\)/, 'the component should consume the directly tested dashboard-mode decision');
 });
 
 
