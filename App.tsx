@@ -1,5 +1,5 @@
 import React, { Suspense, useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage, Announcement, Grade, Batch, StudentAssignmentTask, XpStatus } from './types';
+import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage, Announcement, Grade, Batch, StudentAssignmentTask, XpStatus, DailyStreakRewardReceipt } from './types';
 import * as GameService from './services/gameService';
 import { supabase } from './services/supabaseClient';
 import Header from './components/Header';
@@ -16,6 +16,7 @@ import NewsFeed from './components/NewsFeed';
 import CapTracker from './components/CapTracker';
 import Toast from './components/Toast';
 import LevelUpModal from './components/LevelUpModal';
+import StreakRewardModal from './components/StreakRewardModal';
 import { ToastContainer } from './components/ToastNotification';
 import BackButton from './components/BackButton';
 import { isSuperadmin } from './services/adminService';
@@ -154,6 +155,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [previousLevel, setPreviousLevel] = useState<number | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [helpInitialSection, setHelpInitialSection] = useState<'overview' | 'streak'>('overview');
+  const [streakRewardData, setStreakRewardData] = useState<DailyStreakRewardReceipt | null>(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [tutorialChecked, setTutorialChecked] = useState(false); // Track if we've checked tutorial status
   const tutorialCheckedRef = useRef(tutorialChecked);
@@ -173,6 +176,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [pendingQuestMissionId, setPendingQuestMissionId] = useState<string | null>(null);
   const attackAlertTimeoutRef = useRef<number | null>(null);
   const lastRewardedLevelRef = useRef<number | null>(null);
+  const shownStreakRewardRef = useRef<string | null>(null);
   const cachedDataLoadedRef = useRef(false);
   const { isLightMode: isLiteMode, toggleLightMode } = useLightMode();
   const [pendingClanRequests, setPendingClanRequests] = useState(0);
@@ -547,6 +551,17 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     }
     return aiHostService.init();
   }, [isPlayerMode, isTeacherRole, isSchoolAdminRole]);
+
+  useEffect(() => {
+    const receipt = profile?.daily_streak_reward;
+    if (!receipt?.claimed || (profile?.role ?? 'student') !== 'student') return;
+
+    const receiptKey = `${receipt.reward_date}:${receipt.streak}:${receipt.coins_awarded}`;
+    if (shownStreakRewardRef.current === receiptKey) return;
+
+    shownStreakRewardRef.current = receiptKey;
+    setStreakRewardData(GameService.consumeDailyStreakReward() ?? receipt);
+  }, [profile?.daily_streak_reward, profile?.role]);
 
   useEffect(() => {
     if (!isPlayerMode || isTeacherRole || isSchoolAdminRole) {
@@ -2238,7 +2253,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                         </article>
 
                         <section className="student-quick-stats" aria-label="Player stats">
-                          <div className="student-feed-card student-quick-stat"><span className="student-quick-stat__icon" aria-hidden>🔥</span><span><strong>Streak</strong><b>{profile?.streak || 0} days</b><small>Keep your rhythm going</small></span></div>
+                          <button type="button" onClick={() => { setHelpInitialSection('streak'); setShowHelp(true); }} aria-label={`Open streak rewards guide. Current streak: ${profile?.streak || 0} days`} className="student-feed-card student-quick-stat text-left transition hover:-translate-y-0.5 hover:border-orange-300/50"><span className="student-quick-stat__icon" aria-hidden>🔥</span><span><strong>Streak</strong><b>{profile?.streak || 0} days</b><small>Tap to view the reward ladder</small></span></button>
                           <div className="student-feed-card student-quick-stat"><span className="student-quick-stat__icon" aria-hidden>⚡</span><span><strong>Action points</strong><b>{profile?.ap_now || 0}/{profile?.ap_max || 0}</b><small>Ready for missions</small></span></div>
                         </section>
                         {renderCapsSection()}
@@ -2425,7 +2440,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               onLogout={onLogout}
               currentView={view}
               onBackToDashboard={() => handleViewChange('dashboard')}
-              onShowHelp={() => setShowHelp(true)}
+              onShowHelp={() => {
+                setHelpInitialSection('overview');
+                setShowHelp(true);
+              }}
+              onShowStreak={() => {
+                setHelpInitialSection('streak');
+                setShowHelp(true);
+              }}
               onNavigate={(targetView) => handleViewChange(targetView)}
               onNotificationAction={handleNotificationAction}
               liteMode={isLiteMode}
@@ -2495,6 +2517,16 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           ))}
         </div>
 
+        {/* Daily streak reward celebration */}
+        {streakRewardData && (
+          <StreakRewardModal
+            streak={streakRewardData.streak}
+            coinsAwarded={streakRewardData.coins_awarded}
+            coinBalance={streakRewardData.coins}
+            onClose={() => setStreakRewardData(null)}
+          />
+        )}
+
         {/* Level Up Modal */}
         {showLevelUpModal && levelUpData && (
           <LevelUpModal
@@ -2545,7 +2577,11 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         {/* Help Modal */}
         {showHelp && (
           <Suspense fallback={null}>
-          <HelpModal onClose={() => setShowHelp(false)} />
+          <HelpModal
+            initialSection={helpInitialSection}
+            currentStreak={profile?.streak}
+            onClose={() => setShowHelp(false)}
+          />
           </Suspense>
         )}
 

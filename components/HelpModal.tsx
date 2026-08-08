@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
+import StreakRewardGuide from './StreakRewardGuide';
 
 interface HelpModalProps {
   onClose: () => void;
   placement?: 'center' | 'header-bottom';
   headerOffsetPx?: number;
+  initialSection?: HelpSection;
+  currentStreak?: number;
 }
 
 type HelpSection = 
   | 'overview'
+  | 'streak'
   | 'quests'
   | 'cambridge'
   | 'rivalry'
@@ -24,8 +28,10 @@ const HelpModal: React.FC<HelpModalProps> = ({
   onClose,
   placement = 'center',
   headerOffsetPx = 80,
+  initialSection = 'overview',
+  currentStreak,
 }) => {
-  const [activeSection, setActiveSection] = useState<HelpSection>('overview');
+  const [activeSection, setActiveSection] = useState<HelpSection>(initialSection);
   const isHeaderAnchored = placement === 'header-bottom';
   const safeTopOffsetPx = Math.max(headerOffsetPx, 56);
   const modalTopPadding = isHeaderAnchored
@@ -40,6 +46,7 @@ const HelpModal: React.FC<HelpModalProps> = ({
 
   const sections: { id: HelpSection; icon: string; title: string }[] = [
     { id: 'overview', icon: '📖', title: 'Game Overview' },
+    { id: 'streak', icon: '🔥', title: 'Daily Streak Rewards' },
     { id: 'quests', icon: '📚', title: 'Quests & Questions' },
     { id: 'cambridge', icon: '🧪', title: 'Cambridge Tests' },
     { id: 'rivalry', icon: '🛰️', title: 'Rivalry Protocol' },
@@ -85,6 +92,8 @@ const HelpModal: React.FC<HelpModalProps> = ({
         </div>
       </div>
     ),
+
+    streak: <StreakRewardGuide currentStreak={currentStreak} />,
 
     quests: (
       <div className="space-y-3 sm:space-y-4">

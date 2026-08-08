@@ -40,6 +40,14 @@ export interface XpStatus {
   progress: number;
 }
 
+export interface DailyStreakRewardReceipt {
+  claimed: boolean;
+  reward_date: string;
+  streak: number;
+  coins_awarded: number;
+  coins: number;
+}
+
 export interface Profile {
   id: string;
   username: string;
@@ -64,6 +72,8 @@ export interface Profile {
   coins: number;
   gemstones: number;
   streak: number;
+  /** One-time server receipt used to show the daily streak celebration. */
+  daily_streak_reward?: DailyStreakRewardReceipt;
   pvp_score: number; // PvP score: +3 per win, +1 per loss
   total_score?: number;
   last_seen: string;

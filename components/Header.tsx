@@ -98,6 +98,7 @@ interface HeaderProps {
   currentView: string;
   onBackToDashboard?: () => void;
   onShowHelp?: () => void;
+  onShowStreak?: () => void;
   onNavigate?: (view: 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'raids' | 'raid_admin') => void;
   onNotificationAction?: (notification: Notification) => void;
   liteMode?: boolean;
@@ -109,7 +110,7 @@ interface HeaderProps {
   onOpenSchoolAdmin?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackToDashboard, onShowHelp, onNavigate, onNotificationAction, liteMode, onToggleLiteMode, onProfileAvatarChange, onProfileRefresh, isAdminMode, isSchoolAdmin, onOpenSchoolAdmin }) => {
+const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackToDashboard, onShowHelp, onShowStreak, onNavigate, onNotificationAction, liteMode, onToggleLiteMode, onProfileAvatarChange, onProfileRefresh, isAdminMode, isSchoolAdmin, onOpenSchoolAdmin }) => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -533,7 +534,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                   </span>
                 </div>
                 {/* Streak */}
-                <div className={`student-mobile-hud__chip ${
+                <button type="button" onClick={onShowStreak} aria-label={`Open streak rewards guide. Current streak: ${profile.streak || 0} days`} title="Open streak rewards" className={`student-mobile-hud__chip transition hover:border-orange-300/70 hover:bg-orange-500/20 ${
                   profile.streak >= 7 ? 'border-orange-500/50 bg-orange-500/15' : 'border-slate-700 bg-slate-800/40'
                 }`}>
                   {getStreakBadge(profile.streak) ? (
@@ -544,7 +545,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                   <span id="streak-hud" className={`font-mono text-xs font-bold ${profile.streak >= 7 ? 'text-orange-200' : 'text-white'}`}>
                     {profile.streak || 0}
                   </span>
-                </div>
+                </button>
               </div>
             )}
           </div>
@@ -717,7 +718,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                 </div>
 
                 {/* Streak */}
-                <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border backdrop-blur-sm ${
+                <button type="button" onClick={onShowStreak} aria-label={`Open streak rewards guide. Current streak: ${profile.streak || 0} days`} title="Open streak rewards" className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border backdrop-blur-sm transition hover:-translate-y-0.5 hover:border-orange-300/70 ${
                   profile.streak >= 7 
                     ? 'bg-gradient-to-br from-orange-600/30 to-red-600/30 border-orange-500/60' 
                     : 'bg-gradient-to-br from-gray-700/20 to-gray-600/20 border-gray-500/30'
@@ -726,7 +727,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                   <span id="streak-hud" className={`font-mono font-bold text-xs ${profile.streak >= 7 ? 'text-orange-300' : 'text-white'}`}>
                     {profile.streak || 0}
                   </span>
-                </div>
+                </button>
               </div>
             )}
           </div>
