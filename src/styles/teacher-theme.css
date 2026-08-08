@@ -457,11 +457,11 @@
 }
 
 .teacher-sidebar.is-collapsed .teacher-nav-btn::after {
-  content: attr(data-label);
+  content: none;
   position: absolute;
   left: calc(100% + .7rem);
   top: 50%;
-  z-index: 20;
+  z-index: 120;
   width: max-content;
   max-width: 14rem;
   transform: translate(.3rem, -50%);
