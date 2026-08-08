@@ -73,7 +73,7 @@ const IeltsExamMonitor = React.lazy(() => import('../src/pages/ielts/IeltsExamMo
 
 const SCHOOL_ADMIN_NAV_ITEMS: Array<{ id: MainAdminTab; icon: string; label: string; mobileLabel: string; description: string }> = [
   { id: 'dashboard', icon: '🏠', label: 'Overview', mobileLabel: 'Overview', description: 'School status and priorities' },
-  { id: 'members', icon: '👥', label: 'Students & Staff', mobileLabel: 'People', description: 'Members, roles and access' },
+  { id: 'members', icon: '👥', label: 'Staff & Students', mobileLabel: 'People', description: 'Members, roles and access' },
   { id: 'teachers', icon: '🎓', label: 'Teacher Assignments', mobileLabel: 'Teachers', description: 'Teaching responsibilities' },
   { id: 'classes', icon: '🏫', label: 'Classes & Registration', mobileLabel: 'Classes', description: 'Classes and registration' },
   { id: 'subjects', icon: '📚', label: 'Curriculum & Subjects', mobileLabel: 'Subjects', description: 'Subjects and curriculum' },
@@ -86,7 +86,6 @@ const SCHOOL_ADMIN_NAV_ITEMS: Array<{ id: MainAdminTab; icon: string; label: str
 ];
 
 const SCHOOL_ADMIN_PRIMARY_TAB_IDS = new Set<MainAdminTab>(['dashboard', 'members', 'classes', 'admissions']);
-
 const IELTS_TOOL_NAV_ITEMS: IeltsToolNavItem[] = [
   { id: 'ielts-exams', icon: '🧪', label: 'Exams', hint: 'Secure mock exams' },
   { id: 'ielts-practice', icon: '📝', label: 'Assignment Overview', hint: 'Assign & monitor' },
@@ -127,7 +126,10 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     if (id === 'ielts') return effectiveEntitlements?.modules.ielts === true;
     return true;
   }), [effectiveEntitlements]);
-  const visiblePrimaryNavItems = useMemo(() => visibleNavItems.filter(({ id }) => SCHOOL_ADMIN_PRIMARY_TAB_IDS.has(id)), [visibleNavItems]);
+  const visiblePrimaryNavItems = useMemo(
+    () => visibleNavItems.filter(({ id }) => SCHOOL_ADMIN_PRIMARY_TAB_IDS.has(id)),
+    [visibleNavItems],
+  );
 
   useEffect(() => {
     if (!effectiveEntitlements) return;
@@ -289,7 +291,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
   
   // Filters
   const [memberSearch, setMemberSearch] = useState('');
-  const [memberRoleFilter, setMemberRoleFilter] = useState<SchoolRole | ''>('');
+  const [memberRoleFilter, setMemberRoleFilter] = useState<SchoolRole | ''>('teacher');
   
   // Modals
   const [showMemberActionModal, setShowMemberActionModal] = useState(false);
@@ -438,13 +440,15 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       search: memberSearch || undefined,
       sortKey: memberSortKey,
       sortDirection: memberSortDirection,
-      limit: memberPageSize,
-      offset: (memberPage - 1) * memberPageSize,
+      // Placement and account filters are applied against the complete role/search
+      // result in the directory so class-linked staff and students paginate correctly.
+      limit: 10000,
+      offset: 0,
     });
     setMembers(memberList);
     setMembersTotal(total);
     setSelectedMemberIds(new Set());
-  }, [memberRoleFilter, memberSearch, memberPage, memberPageSize, memberSortKey, memberSortDirection]);
+  }, [memberRoleFilter, memberSearch, memberSortKey, memberSortDirection]);
 
   // Reload members when filters change
   useEffect(() => {
@@ -1053,7 +1057,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
 
     const gradeValue = classForm.grade_level.trim() ? Number(classForm.grade_level) : null;
     if (classForm.grade_level.trim() && Number.isNaN(gradeValue)) {
-      addToast('Grade level must be a number', 'error');
+      addToast('Academic year (grade) must be a number', 'error');
       return;
     }
 
@@ -1407,18 +1411,24 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     }
 
     if (bulkMemberAction === 'unban') {
+      const bannedMembers = selectedMembers.filter((member) => member.is_banned);
+      const alreadyActiveCount = selectedMembers.length - bannedMembers.length;
+      if (!bannedMembers.length) {
+        addToast(`All ${selectedMembers.length} selected account${selectedMembers.length === 1 ? ' is' : 's are'} already active and not banned.`, 'warning');
+        return;
+      }
       setConfirmDialog({
         title: 'Unban selected members',
-        description: `Unban ${selectedMembers.length} members? (${namesPreview}${moreCount})`,
+        description: `Unban ${bannedMembers.length} banned member${bannedMembers.length === 1 ? '' : 's'}?${alreadyActiveCount ? ` ${alreadyActiveCount} selected account${alreadyActiveCount === 1 ? ' is' : 's are'} already active and will be skipped.` : ''} (${namesPreview}${moreCount})`,
         confirmLabel: 'Unban members',
         cancelLabel: 'Cancel',
         onConfirm: async () => {
           setActionLoading(true);
-          for (const member of selectedMembers) {
+          for (const member of bannedMembers) {
             await SchoolAdminService.unbanMember(school.id, member.user_id);
           }
           setActionLoading(false);
-          addToast('Selected members unbanned', 'success');
+          addToast(`${bannedMembers.length} account${bannedMembers.length === 1 ? '' : 's'} unbanned${alreadyActiveCount ? `; ${alreadyActiveCount} already active` : ''}.`, 'success');
           await loadMembers(school.id);
           await refreshSchool(school.id);
         },
@@ -1447,24 +1457,6 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       return;
     }
 
-    if (bulkMemberAction.startsWith('role:')) {
-      const role = bulkMemberAction.replace('role:', '') as SchoolRole;
-      setConfirmDialog({
-        title: 'Change roles for selected members',
-        description: `Change ${selectedMembers.length} members to ${role.replace('_', ' ')}? (${namesPreview}${moreCount})`,
-        confirmLabel: 'Change roles',
-        cancelLabel: 'Cancel',
-        onConfirm: async () => {
-          setActionLoading(true);
-          for (const member of selectedMembers) {
-            await SchoolAdminService.updateMemberRole(school.id, member.user_id, role);
-          }
-          setActionLoading(false);
-          addToast('Roles updated for selected members', 'success');
-          await loadMembers(school.id);
-        },
-      });
-    }
   };
 
   const classById = classes.reduce<Record<string, SchoolClass>>((acc, cls) => {
@@ -1762,7 +1754,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       <aside className="school-admin-sidebar" aria-label="School administration sections">
         <p className="school-admin-nav-label">Administration</p>
       <nav className="school-admin-tabs" aria-label="School admin navigation">
-        {SCHOOL_ADMIN_NAV_ITEMS.map((tab) => visibleNavItems.some((visible) => visible.id === tab.id) ? (
+        {visibleNavItems.map((tab) => (
           <button
             key={tab.id}
             onClick={() => selectAdminTab(tab.id)}
@@ -1772,7 +1764,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
           >
             {tab.label}
           </button>
-        ) : null)}
+        ))}
       </nav>
       <div className="school-admin-security-note"><strong>Secure school record</strong><span>Changes are limited to authorised administrators.</span></div>
       </aside>
@@ -1787,7 +1779,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       {activeTab === 'billing' && <BillingTab />}
       {activeTab === 'settings' && <SettingsTab />}
       {activeTab === 'cambridge' && effectiveEntitlements?.modules.cambridge && <CambridgeTab />}
-      {activeTab === 'admissions' && <AdmissionHub onComplete={() => selectAdminTab('dashboard')} addToast={addToast} />}
+      {activeTab === 'admissions' && effectiveEntitlements?.modules.admissions && <AdmissionHub onComplete={() => selectAdminTab('dashboard')} addToast={addToast} />}
 
       {/* ─── IELTS Academy Hub ────────────────────────────────────── */}
       {activeTab === 'ielts' && effectiveEntitlements?.modules.ielts && (
