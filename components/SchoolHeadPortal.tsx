@@ -3,13 +3,17 @@ import type { ToastMessage } from '../types';
 import { listSchoolMembers, type SchoolMember } from '../services/schoolAdminService';
 import {
   getSchoolHeadSnapshot,
+  getSchoolHeadSetupChecklist,
   listSchoolGovernanceAudit,
   transferSchoolHeadOwnership,
+  updateSchoolHeadSetup,
   type SchoolGovernanceAuditEntry,
   type SchoolHeadDecision,
   type SchoolHeadSnapshot,
+  type SchoolHeadSetupChecklist,
   type SchoolHeadTab,
 } from '../services/schoolHeadService';
+import { getEntitlements, type EntitlementSet } from '../services/entitlementService';
 import { SchoolBrand } from '../src/components/SchoolBrand';
 import { createSchoolBrand } from '../src/lib/schoolBranding';
 import '../src/styles/school-head.css';
@@ -104,6 +108,10 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
   const [snapshot, setSnapshot] = useState<SchoolHeadSnapshot | null>(null);
   const [audit, setAudit] = useState<SchoolGovernanceAuditEntry[]>([]);
   const [schoolAdmins, setSchoolAdmins] = useState<SchoolMember[]>([]);
+  const [setupChecklist, setSetupChecklist] = useState<SchoolHeadSetupChecklist | null>(null);
+  const [moduleDraft, setModuleDraft] = useState<string[]>(['core']);
+  const [effectiveEntitlements, setEffectiveEntitlements] = useState<EntitlementSet | null>(null);
+  const [checklistBusy, setChecklistBusy] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -119,10 +127,12 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
     if (options.silent) setRefreshing(true); else setLoading(true);
     setError(null);
     try {
-      const [snapshotResult, auditResult, adminResult] = await Promise.allSettled([
+      const [snapshotResult, auditResult, adminResult, checklistResult, entitlementResult] = await Promise.allSettled([
         getSchoolHeadSnapshot(schoolId, periodDays),
         listSchoolGovernanceAudit(schoolId, { limit: 75 }),
         listSchoolMembers(schoolId, { role: 'school_admin', limit: 100 }),
+        getSchoolHeadSetupChecklist(schoolId),
+        getEntitlements(true),
       ]);
       if (snapshotResult.status === 'rejected') throw snapshotResult.reason;
       setSnapshot(snapshotResult.value);
@@ -130,6 +140,11 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
       setSchoolAdmins(adminResult.status === 'fulfilled'
         ? adminResult.value.members.filter((member) => !member.is_owner)
         : []);
+      if (checklistResult.status === 'fulfilled') {
+        setSetupChecklist(checklistResult.value);
+        setModuleDraft(checklistResult.value.requested_modules.length ? checklistResult.value.requested_modules : ['core']);
+      }
+      setEffectiveEntitlements(entitlementResult.status === 'fulfilled' ? entitlementResult.value : null);
     } catch (loadError) {
       const message = loadError instanceof Error ? loadError.message : 'Executive data could not be loaded.';
       setError(message);
@@ -191,6 +206,16 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
     openAdministration('dashboard');
   };
 
+  const updateChecklist = async (step: 'identity' | 'modules' | 'launch') => {
+    setChecklistBusy(step);
+    const result = await updateSchoolHeadSetup({ schoolId, step, requestedModules: step === 'modules' ? moduleDraft : undefined });
+    setChecklistBusy(null);
+    if (!result.success) { addToast(result.error || 'Checklist update failed.', 'error'); return; }
+    addToast(step === 'modules' ? 'Programme requirements saved for commercial review.' : 'School launch checklist updated.', 'success');
+    const next = await getSchoolHeadSetupChecklist(schoolId);
+    setSetupChecklist(next);
+  };
+
   if (loading) {
     return (
       <main className="school-head-portal school-head-loading" aria-busy="true">
@@ -228,6 +253,12 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
         </div>
       </section>
 
+      {setupChecklist && setupChecklist.steps.some((step) => !step.completed) && <section className="school-head-panel" aria-label="School launch checklist">
+        <div className="school-head-panel-heading"><div><p>First login setup</p><h3>Launch your school professionally</h3></div><span>{setupChecklist.steps.filter((step) => step.completed).length}/{setupChecklist.steps.length} complete</span></div>
+        <div className="school-head-priority-list">{setupChecklist.steps.map((step) => <button type="button" key={step.id} className={step.completed ? 'is-info' : 'is-warning'} disabled={checklistBusy !== null} onClick={() => step.id === 'identity' || step.id === 'launch' ? void updateChecklist(step.id) : step.id === 'modules' ? undefined : openAdministration(step.action_tab)}><span>{step.completed ? '✓' : '○'}</span><div><strong>{step.label}</strong><small>{step.completed ? 'Completed' : step.id === 'modules' ? 'Select below, then save' : 'Open the relevant administration section'}</small></div><b aria-hidden="true">{step.completed ? 'Done' : '→'}</b></button>)}</div>
+        <fieldset className="mt-4 rounded-xl border border-slate-200 p-4"><legend className="px-1 text-sm font-semibold">Required programmes</legend><div className="mt-2 flex flex-wrap gap-3">{['core','cambridge','ielts','writing','admissions'].map((moduleKey) => <label key={moduleKey} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={moduleDraft.includes(moduleKey)} disabled={moduleKey === 'core' || checklistBusy !== null} onChange={(event) => setModuleDraft((current) => event.target.checked ? [...current,moduleKey] : current.filter((item) => item !== moduleKey))} />{formatPlan(moduleKey)}</label>)}</div><button type="button" className="school-head-secondary-action" disabled={checklistBusy !== null} onClick={() => void updateChecklist('modules')}>{checklistBusy === 'modules' ? 'Saving…' : 'Save programme requirements'}</button><p className="mt-2 text-xs">This records what your school needs; it does not activate an optional programme until the agreement is verified.</p></fieldset>
+      </section>}
+
       <section className="school-head-metric-grid" aria-label="Executive school indicators">
         <MetricCard label="Students" value={snapshot.totals.students} note={`${snapshot.engagement.active_students_7d} active in 7 days`} tone={studentActivityRate >= 75 ? 'healthy' : studentActivityRate >= 50 ? 'monitor' : 'action'} />
         <MetricCard label="Teaching staff" value={snapshot.totals.teachers} note={`${snapshot.engagement.active_teachers_7d} active in 7 days`} tone={teacherActivityRate >= 75 ? 'healthy' : 'monitor'} />
@@ -261,7 +292,7 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
 
       <section className="school-head-panel school-head-program-strip">
         <div className="school-head-panel-heading"><div><p>Enabled intelligence</p><h3>Program pulse</h3></div><button type="button" onClick={() => selectTab('programs')}>Open programs</button></div>
-        <div><article><span>Cambridge</span><strong>{snapshot.programs.cambridge_attempts}</strong><small>assessment attempts in period</small></article><article><span>Writing Hub</span><strong>{snapshot.programs.writing_students}</strong><small>students with writing profiles</small></article><article><span>IELTS</span><strong>{snapshot.programs.ielts_students}</strong><small>school-linked learners</small></article><article><span>Admissions</span><strong>{snapshot.programs.admission_candidates}</strong><small>candidate records</small></article></div>
+        <div>{effectiveEntitlements?.modules.cambridge && <article><span>Cambridge</span><strong>{snapshot.programs.cambridge_attempts}</strong><small>assessment attempts in period</small></article>}{effectiveEntitlements?.modules.writing && <article><span>Writing Hub</span><strong>{snapshot.programs.writing_students}</strong><small>students with writing profiles</small></article>}{effectiveEntitlements?.modules.ielts && <article><span>IELTS</span><strong>{snapshot.programs.ielts_students}</strong><small>school-linked learners</small></article>}{effectiveEntitlements?.modules.admissions && <article><span>Admissions</span><strong>{snapshot.programs.admission_candidates}</strong><small>candidate records</small></article>}</div>
       </section>
     </div>
   );
@@ -315,22 +346,22 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
           <ul className="school-head-authority-list"><li><span>✓</span><div><strong>Appoint or remove delegated administrators</strong><small>Daily staff and class operations can be delegated.</small></div></li><li><span>✓</span><div><strong>Full subscription and value visibility</strong><small>Billing authority is not inherited by ordinary admins.</small></div></li><li><span>✓</span><div><strong>School-wide governance history</strong><small>Sensitive events remain visible and immutable to school users.</small></div></li><li><span>✓</span><div><strong>Protected ownership transfer</strong><small>Requires an eligible admin, exact confirmation and a reason.</small></div></li></ul>
         </section>
       </div>
-      <section className="school-head-operation-grid"><button type="button" onClick={() => openAdministration('members')}><span>People</span><strong>Staff & students</strong><small>Roles, access, moderation and member records.</small></button><button type="button" onClick={() => openAdministration('teachers')}><span>Coverage</span><strong>Teacher assignments</strong><small>Class, subject and teaching responsibility.</small></button><button type="button" onClick={() => openAdministration('classes')}><span>Structure</span><strong>Classes & registration</strong><small>Academic years, classes and student placement.</small></button><button type="button" onClick={() => openAdministration('subjects')}><span>Curriculum</span><strong>Subjects</strong><small>School curriculum and active subject records.</small></button></section>
+      <section className="school-head-operation-grid"><button type="button" onClick={() => openAdministration('members')}><span>People</span><strong>Students & staff</strong><small>Roles, access, moderation and member records.</small></button><button type="button" onClick={() => openAdministration('teachers')}><span>Coverage</span><strong>Teacher assignments</strong><small>Class, subject and teaching responsibility.</small></button><button type="button" onClick={() => openAdministration('classes')}><span>Structure</span><strong>Classes & registration</strong><small>Grades, classes and student placement.</small></button><button type="button" onClick={() => openAdministration('subjects')}><span>Curriculum</span><strong>Subjects</strong><small>School curriculum and active subject records.</small></button></section>
     </div>
   );
 
   const programCards = [
-    { name: 'Cambridge Assessments', metric: snapshot.programs.cambridge_attempts, label: `attempts in ${snapshot.period.days} days`, description: 'School-wide assessment performance, readiness and verified student results.', tab: 'cambridge' },
-    { name: 'Writing Hub', metric: snapshot.programs.writing_students, label: 'students with profiles', description: 'Writing growth, feedback coverage and recurring support needs.', tab: 'documents' },
-    { name: 'IELTS Programme', metric: snapshot.programs.ielts_students, label: 'school-linked learners', description: 'Exam participation, assignment progress, reviews and result intelligence.', tab: 'ielts' },
-    { name: 'Admission Hub', metric: snapshot.programs.admission_candidates, label: `${snapshot.admissions.pending_candidates} awaiting progress`, description: 'Candidates, diagnostics, placement evidence and admission workflow.', tab: 'admissions' },
-  ];
+    { module: 'cambridge', name: 'Cambridge Assessments', metric: snapshot.programs.cambridge_attempts, label: `attempts in ${snapshot.period.days} days`, description: 'School-wide assessment performance, readiness and verified student results.', tab: 'cambridge' },
+    { module: 'writing', name: 'Writing Hub', metric: snapshot.programs.writing_students, label: 'students with profiles', description: 'Writing growth, feedback coverage and recurring support needs.', tab: 'documents' },
+    { module: 'ielts', name: 'IELTS Programme', metric: snapshot.programs.ielts_students, label: 'school-linked learners', description: 'Exam participation, assignment progress, reviews and result intelligence.', tab: 'ielts' },
+    { module: 'admissions', name: 'Admission Hub', metric: snapshot.programs.admission_candidates, label: `${snapshot.admissions.pending_candidates} awaiting progress`, description: 'Candidates, diagnostics, placement evidence and admission workflow.', tab: 'admissions' },
+  ].filter((program) => effectiveEntitlements?.modules[program.module as 'cambridge' | 'writing' | 'ielts' | 'admissions']);
 
   const renderPrograms = () => (
     <div className="school-head-page">
       <section className="school-head-page-heading"><div><p className="school-head-kicker">Programs</p><h2>One executive view across Brain Heist</h2><p>Only active programme signals appear in your briefing. Operational tools remain with the teams responsible for delivery.</p></div></section>
       <section className="school-head-program-grid">{programCards.map((program) => <article key={program.name}><div><span>{program.name.split(' ').map((word) => word[0]).join('').slice(0, 2)}</span><b>School programme</b></div><strong>{program.metric}</strong><small>{program.label}</small><p>{program.description}</p><button type="button" onClick={() => openAdministration(program.tab)}>Open programme <span aria-hidden="true">→</span></button></article>)}</section>
-      <section className="school-head-panel school-head-admission-summary"><div className="school-head-panel-heading"><div><p>Admissions intelligence</p><h3>Candidate pipeline</h3></div></div><div><MetricCard label="Candidates" value={snapshot.admissions.total_candidates} note="All candidate records" /><MetricCard label="Awaiting progress" value={snapshot.admissions.pending_candidates} note="Active review stages" tone={snapshot.admissions.pending_candidates ? 'monitor' : 'healthy'} /><MetricCard label="Tests completed" value={snapshot.admissions.completed_attempts} note="Submitted diagnostic attempts" /><MetricCard label="Diagnostic average" value={formatPercent(snapshot.admissions.average)} note="Completed admission tests" /></div></section>
+      {effectiveEntitlements?.modules.admissions && <section className="school-head-panel school-head-admission-summary"><div className="school-head-panel-heading"><div><p>Admissions intelligence</p><h3>Candidate pipeline</h3></div></div><div><MetricCard label="Candidates" value={snapshot.admissions.total_candidates} note="All candidate records" /><MetricCard label="Awaiting progress" value={snapshot.admissions.pending_candidates} note="Active review stages" tone={snapshot.admissions.pending_candidates ? 'monitor' : 'healthy'} /><MetricCard label="Tests completed" value={snapshot.admissions.completed_attempts} note="Submitted diagnostic attempts" /><MetricCard label="Diagnostic average" value={formatPercent(snapshot.admissions.average)} note="Completed admission tests" /></div></section>}
     </div>
   );
 
