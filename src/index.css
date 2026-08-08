@@ -429,11 +429,11 @@ body.lite-mode [class*="border-gray-7"] {
   .student-dashboard-bottom-nav { display: none; }
   .student-dashboard-sidebar-toggle span:last-child { display: none; }
   .student-dashboard-nav-link::after {
-    content: attr(data-label);
+    content: none;
     position: absolute;
     left: calc(100% + 0.7rem);
     top: 50%;
-    z-index: 20;
+    z-index: 120;
     width: max-content;
     transform: translate(0.3rem, -50%);
     border: 1px solid rgba(51, 65, 85, 0.85);
