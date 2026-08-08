@@ -1025,7 +1025,12 @@ export interface StudentAssignmentTask {
 export interface TeacherAssignmentReportRow {
   student_id: string;
   student_name: string;
+  /** Assignment-time class snapshot. Kept as `batch` for API compatibility. */
   batch: Batch | null;
+  historical_batch?: string | null;
+  current_batch?: string | null;
+  current_class_id?: string | null;
+  current_placement_ambiguous?: boolean;
   score: number;
   correct: number;
   incorrect: number;
