@@ -9,6 +9,7 @@ import { createSchoolDocumentId, registerSchoolDocumentRecord, schoolDocumentFil
 
 // localStorage key prefix for persisted custom orders
 const CUSTOM_ORDER_STORAGE_KEY = 'brains_collective_report_custom_order';
+const EMPTY_ASSIGNED_CLASS_CODES: string[] = [];
 
 // ────────────────────────────────────────────────────────────────────────────
 // Types
@@ -17,6 +18,7 @@ const CUSTOM_ORDER_STORAGE_KEY = 'brains_collective_report_custom_order';
 interface CollectiveAssignmentReportProps {
   assignments: TeacherAssignmentSummary[];
   students?: StudentForAssignment[];
+  assignedClassCodes?: string[];
   onBack: () => void;
   onViewAssignment?: (assignment: TeacherAssignmentSummary) => void;
   school: { id?: string | null; name: string; logoUrl?: string | null };
@@ -63,6 +65,7 @@ interface StudentRow {
 const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
   assignments,
   students = [],
+  assignedClassCodes = EMPTY_ASSIGNED_CLASS_CODES,
   onBack,
   onViewAssignment,
   school,
@@ -247,9 +250,12 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
 
   // ── Unique batches for filter ────────────────────────────────────────────
   const uniqueBatches = useMemo(() => {
-    const b = new Set(assignments.map((assignment) => assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || 'Unspecified'));
-    return Array.from(b).sort();
-  }, [assignments]);
+    const batches = new Set(assignedClassCodes.filter(Boolean));
+    assignments.forEach((assignment) => {
+      batches.add(assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || 'Unspecified');
+    });
+    return Array.from(batches).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
+  }, [assignments, assignedClassCodes]);
 
   // ── Load saved custom order from localStorage ─────────────────────────
   useEffect(() => {
@@ -549,9 +555,9 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
     if (displayRows.length === 0) return null;
     const evidenceRows = displayRows.filter((row) => row.completedCount > 0);
     const evidence = evidenceRows.flatMap((row) => filteredAssignments.map((assignment) => row.scores[assignment.id]).filter((score): score is NonNullable<typeof score> => Boolean(score)));
-    const correct = evidence.reduce((total, score) => total + score.correct, 0);
-    const attempted = evidence.reduce((total, score) => total + score.correct + score.incorrect, 0);
-    const avgAcc = attempted ? Math.round((correct / attempted) * 100) : 0;
+    const avgAcc = evidence.length
+      ? Math.round(evidence.reduce((total, score) => total + score.accuracy, 0) / evidence.length)
+      : 0;
     const totalCompleted = displayRows.reduce((s, r) => s + r.completedCount, 0);
     const totalPossible = displayRows.length * filteredAssignments.length;
     const completionRate = totalPossible > 0 ? Math.round((totalCompleted / totalPossible) * 100) : 0;
@@ -784,7 +790,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
       {summaryStats && (
         <div className="collective-kpi-grid">
           <div className="teacher-card text-center py-4">
-            <div className="text-sm text-slate-500 mb-1">Average attainment <span title="Question-weighted accuracy across completed submissions" aria-label="Question-weighted accuracy across completed submissions">ⓘ</span></div>
+            <div className="text-sm text-slate-500 mb-1">Average attainment <span title="Average of the displayed completed assignment percentages" aria-label="Average of the displayed completed assignment percentages">ⓘ</span></div>
             <div className={`text-2xl font-bold ${!summaryStats.totalCompleted ? 'text-slate-400' : summaryStats.avgAcc >= 70 ? 'text-green-600' : summaryStats.avgAcc >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
               {summaryStats.totalCompleted ? `${summaryStats.avgAcc}%` : '—'}
             </div>
@@ -908,8 +914,17 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
         </div>
       ) : (
         <div className="teacher-card p-0 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
+          <div className="collective-results-table-wrap">
+            <table className="collective-results-table text-left text-sm">
+              <colgroup>
+                {isCustomMode && <col className="collective-results-col--drag" />}
+                <col className="collective-results-col--student" />
+                <col className="collective-results-col--class" />
+                {filteredAssignments.map((assignment) => <col key={assignment.id} />)}
+                <col className="collective-results-col--completion" />
+                <col className="collective-results-col--average" />
+                <col className="collective-results-col--status" />
+              </colgroup>
               <thead className="bg-slate-100 border-b border-slate-200 sticky top-0 z-10">
                 <tr>
                   {/* Drag handle column (visible only in custom mode) */}
@@ -920,13 +935,13 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
                   )}
                   {/* Fixed columns */}
                   <th
-                    className={`py-3 px-4 text-slate-700 font-semibold cursor-pointer hover:bg-slate-200 transition-colors select-none whitespace-nowrap bg-slate-100 z-20 min-w-[180px] ${isCustomMode ? '' : 'sticky left-0'}`}
+                    className={`collective-results-student-cell py-3 px-3 text-slate-700 font-semibold cursor-pointer hover:bg-slate-200 transition-colors select-none bg-slate-100 z-20 ${isCustomMode ? '' : 'sticky left-0'}`}
                     onClick={() => handleSort('name')}
                   >
                     Student {sortIndicator('name')}
                   </th>
                   <th
-                    className="py-3 px-4 text-slate-700 font-semibold cursor-pointer hover:bg-slate-200 transition-colors select-none whitespace-nowrap"
+                    className="collective-results-class-cell py-3 px-2 text-slate-700 font-semibold cursor-pointer hover:bg-slate-200 transition-colors select-none"
                     onClick={() => handleSort('batch')}
                   >
                     Class {sortIndicator('batch')}
@@ -936,29 +951,29 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
                   {filteredAssignments.map((a) => (
                     <th
                       key={a.id}
-                      className="py-2 px-3 text-slate-700 font-semibold cursor-pointer hover:bg-slate-200 transition-colors select-none text-center min-w-[110px]"
+                      className="collective-results-assignment-cell py-2 px-2 text-slate-700 font-semibold cursor-pointer hover:bg-slate-200 transition-colors select-none text-center"
                       onClick={() => handleSort({ assignmentId: a.id })}
                       title={`${a.subject_name} — ${a.title || a.topic_name}\nClass: ${a.batch ?? 'All'}\nClick to sort`}
                     >
                       <div className="flex flex-col items-center gap-0.5">
                         <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">{a.subject_name}</span>
-                        <span className="text-xs truncate max-w-[100px]">{a.title || a.topic_name}</span>
+                        <span className="collective-results-assignment-title text-xs" title={a.title || a.topic_name}>{a.title || a.topic_name}</span>
                         {sortIndicator({ assignmentId: a.id })}
                       </div>
                     </th>
                   ))}
 
-                  <th className="py-3 px-4 text-slate-700 font-semibold text-center whitespace-nowrap">Completion</th>
+                  <th className="collective-results-summary-cell py-3 px-2 text-slate-700 font-semibold text-center">Completion</th>
                   {/* Average column */}
                   <th
-                    className="py-3 px-4 text-slate-700 font-semibold cursor-pointer hover:bg-slate-200 transition-colors select-none text-center whitespace-nowrap bg-slate-200/60"
+                    className="collective-results-summary-cell py-3 px-2 text-slate-700 font-semibold cursor-pointer hover:bg-slate-200 transition-colors select-none text-center bg-slate-200/60"
                     onClick={() => handleSort('average')}
                   >
                     Average {sortIndicator('average')}
                   </th>
 
                   {/* Completion count */}
-                  <th className="py-3 px-4 text-slate-700 font-semibold text-center whitespace-nowrap">
+                  <th className="collective-results-summary-cell py-3 px-2 text-slate-700 font-semibold text-center">
                     Status
                   </th>
                 </tr>
@@ -1012,26 +1027,26 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
                       </td>
                     )}
                     {/* Name */}
-                    <td className={`py-3 px-4 font-medium text-slate-800 whitespace-nowrap bg-inherit z-10 ${isCustomMode ? '' : 'sticky left-0'}`}>
+                    <td className={`collective-results-student-cell py-3 px-3 font-medium text-slate-800 bg-inherit z-10 ${isCustomMode ? '' : 'sticky left-0'}`}>
                       {isCustomMode && <span className="text-purple-400 text-xs mr-2 font-mono">{i + 1}.</span>}
                       {row.studentName}
                     </td>
                     {/* Class */}
-                    <td className="py-3 px-4 text-slate-600 whitespace-nowrap">{row.batch}</td>
+                    <td className="collective-results-class-cell py-3 px-2 text-slate-600">{row.batch}</td>
 
                     {/* Scores */}
                     {filteredAssignments.map((a) => {
                       const s = row.scores[a.id];
                       if (!s) {
                         return (
-                          <td key={a.id} className="py-3 px-3 text-center">
+                          <td key={a.id} className="collective-results-assignment-cell py-3 px-2 text-center">
                           <span className="text-slate-400 text-xs" title="Not submitted" aria-label="Not submitted">Not submitted</span>
                           </td>
                         );
                       }
                       const val = `${s.accuracy}%`;
                       return (
-                        <td key={a.id} className="py-3 px-3 text-center">
+                        <td key={a.id} className="collective-results-assignment-cell py-3 px-2 text-center">
                           <span
                             className={`inline-block px-2 py-0.5 rounded-md text-xs font-bold border ${accuracyBg(s.accuracy)}`}
                             title={`Score: ${s.score} | Accuracy: ${s.accuracy}% | ✅ ${s.correct} ❌ ${s.incorrect}\nCompleted: ${new Date(s.completedAt).toLocaleString()}`}
@@ -1042,16 +1057,16 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
                       );
                     })}
 
-                    <td className="py-3 px-4 text-center text-slate-600 text-xs font-semibold">{row.completedCount}/{filteredAssignments.length}</td>
+                    <td className="collective-results-summary-cell py-3 px-2 text-center text-slate-600 text-xs font-semibold">{row.completedCount}/{filteredAssignments.length}</td>
                     {/* Average */}
-                    <td className="py-3 px-4 text-center bg-slate-50/50">
+                    <td className="collective-results-summary-cell py-3 px-2 text-center bg-slate-50/50">
                       <span className={`inline-block px-2 py-0.5 rounded-md text-xs font-bold ${row.completedCount ? accuracyColor(row.averageAccuracy) : 'text-slate-400 bg-slate-100'}`}>
                         {row.completedCount ? `${row.averageAccuracy}%` : '—'}
                       </span>
                     </td>
 
                     {/* Student status */}
-                    <td className="py-3 px-4 text-center text-slate-600 text-xs">
+                    <td className="collective-results-summary-cell py-3 px-2 text-center text-slate-600 text-xs">
                       <span className={`collective-status ${getStudentStatus(row).className}`}>{getStudentStatus(row).label}</span>
                     </td>
                   </tr>
