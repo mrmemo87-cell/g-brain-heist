@@ -50,6 +50,7 @@ import {
     BrainsMasterPurchaseResult,
     TaskClaimReward,
     XpStatus,
+    DailyStreakRewardReceipt,
 } from '../types.js';
 import * as RaidFeatureService from '../src/features/raids/raidService.js';
 import {
@@ -101,6 +102,38 @@ const formatLocalDateKey = (date: Date): string => {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+};
+
+let pendingDailyStreakReward: DailyStreakRewardReceipt | null = null;
+
+const recordDailyStreakForProfile = async (profile: Profile): Promise<void> => {
+  if ((profile.role ?? 'student') !== 'student') return;
+
+  const { data, error } = await supabase.rpc('rpc_record_daily_streak');
+  if (error) {
+    console.warn('[whoami] Daily streak reward could not be recorded:', error.message);
+    return;
+  }
+  if (!data) return;
+
+  const receipt: DailyStreakRewardReceipt = {
+    claimed: data.claimed === true,
+    reward_date: String(data.reward_date ?? formatLocalDateKey(new Date())),
+    streak: Number(data.streak ?? profile.streak ?? 0),
+    coins_awarded: Number(data.coins_awarded ?? 0),
+    coins: Number(data.coins ?? profile.coins ?? 0),
+  };
+
+  if (receipt.claimed) pendingDailyStreakReward = receipt;
+  profile.streak = receipt.streak;
+  profile.coins = receipt.coins;
+  profile.daily_streak_reward = pendingDailyStreakReward ?? receipt;
+};
+
+export const consumeDailyStreakReward = (): DailyStreakRewardReceipt | null => {
+  const receipt = pendingDailyStreakReward;
+  pendingDailyStreakReward = null;
+  return receipt;
 };
 
 type BootNonCriticalKey = 'tasks' | 'caps' | 'news' | 'assignment' | 'sessionStatus';
@@ -1478,6 +1511,8 @@ export const whoamiFast = async (): Promise<Profile> => {
     throw new Error(BAN_MESSAGE);
   }
 
+  const streakRewardPromise = recordDailyStreakForProfile(profile as Profile);
+
   if (profile.school_id) {
     const { data: schoolData } = await supabase
       .from('schools')
@@ -1489,6 +1524,8 @@ export const whoamiFast = async (): Promise<Profile> => {
       profile.school_logo_url = schoolData.logo_url;
     }
   }
+
+  await streakRewardPromise;
 
   // Presence must never delay the dashboard.
   void supabase.from('users').update({ last_seen: new Date().toISOString() }).eq('id', user.id);
@@ -1688,15 +1725,9 @@ export const whoami = async (): Promise<Profile> => {
       profile.last_ap_update = new Date().toISOString();
     }
     
-    // Daily streaks and their coin rewards are recorded atomically in the
-    // database, making repeated whoami calls safe and preventing double claims.
-    const { data: streakResult, error: streakError } = await supabase.rpc('rpc_record_daily_streak');
-    if (streakError) {
-      console.warn('[whoami] Daily streak reward could not be recorded:', streakError.message);
-    } else if (streakResult) {
-      profile.streak = Number(streakResult.streak ?? profile.streak ?? 0);
-      profile.coins = Number(streakResult.coins ?? profile.coins ?? 0);
-    }
+    // The database awards at most once per Bishkek calendar day. The one-time
+    // receipt is attached to the hydrated profile for the celebration modal.
+    await recordDailyStreakForProfile(profile as Profile);
   
     // Show the same temporary shield defense that combat actually uses. Firewall
     // bonuses are already permanent base-defense updates and must not be doubled.
