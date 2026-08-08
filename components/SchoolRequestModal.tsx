@@ -39,6 +39,15 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
   const [contactEmail, setContactEmail] = useState('');
   const [website, setWebsite] = useState('');
   const [notes, setNotes] = useState('');
+  const [decisionMakerName, setDecisionMakerName] = useState('');
+  const [decisionMakerTitle, setDecisionMakerTitle] = useState('');
+  const [decisionMakerPhone, setDecisionMakerPhone] = useState('');
+  const [estimatedStudents, setEstimatedStudents] = useState('');
+  const [estimatedTeachers, setEstimatedTeachers] = useState('');
+  const [requestedModules, setRequestedModules] = useState<Array<'core' | 'cambridge' | 'ielts' | 'writing' | 'admissions'>>(['core']);
+  const [preferredPaymentMethod, setPreferredPaymentMethod] = useState<'card' | 'cash' | 'bank_transfer' | 'invoice' | 'undecided'>('undecided');
+  const [billingContactEmail, setBillingContactEmail] = useState('');
+  const [authorityConfirmed, setAuthorityConfirmed] = useState(false);
   const [statusView, setStatusView] = useState(false);
   const [requestStatus, setRequestStatus] = useState<SchoolRequestService.SchoolRequestStatus>('pending');
   const [requestId, setRequestId] = useState<string | null>(null);
@@ -67,8 +76,11 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
       schoolName.trim().length > 2 &&
       city.trim().length > 1 &&
       country.trim().length > 1 &&
-      isContactEmailValid,
-    [schoolName, city, country, isContactEmailValid]
+      isContactEmailValid &&
+      decisionMakerName.trim().length > 2 &&
+      decisionMakerTitle.trim().length > 1 &&
+      authorityConfirmed,
+    [schoolName, city, country, isContactEmailValid, decisionMakerName, decisionMakerTitle, authorityConfirmed]
   );
 
   const resetForm = () => {
@@ -79,6 +91,15 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
     setContactEmail('');
     setWebsite('');
     setNotes('');
+    setDecisionMakerName('');
+    setDecisionMakerTitle('');
+    setDecisionMakerPhone('');
+    setEstimatedStudents('');
+    setEstimatedTeachers('');
+    setRequestedModules(['core']);
+    setPreferredPaymentMethod('undecided');
+    setBillingContactEmail('');
+    setAuthorityConfirmed(false);
     setSuggestions([]);
     setMessage(null);
     setError(null);
@@ -122,6 +143,15 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
       contactEmail: contactEmail.trim(),
       website: website.trim() || undefined,
       notes: notes.trim() || undefined,
+      decisionMakerName: decisionMakerName.trim(),
+      decisionMakerTitle: decisionMakerTitle.trim(),
+      decisionMakerPhone: decisionMakerPhone.trim() || undefined,
+      authorityConfirmed,
+      estimatedStudents: estimatedStudents ? Number(estimatedStudents) : null,
+      estimatedTeachers: estimatedTeachers ? Number(estimatedTeachers) : null,
+      requestedModules,
+      preferredPaymentMethod,
+      billingContactEmail: billingContactEmail.trim() || contactEmail.trim(),
       requesterRole,
     });
 
@@ -251,6 +281,7 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
     void supabase.auth.getUser().then(({ data }) => {
       if (data?.user?.email) {
         setContactEmail(data.user.email);
+        setBillingContactEmail((current) => current || data.user.email || '');
       }
     });
     return () => subscription.unsubscribe();
@@ -644,6 +675,62 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
                 placeholder="https://school.edu"
               />
             </div>
+            <div className="rounded-xl border border-cyan-400/20 bg-cyan-400/5 p-4">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-200">Authorised decision-maker</p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <label className="text-sm text-slate-200">Full name
+                  <input value={decisionMakerName} onChange={(event) => setDecisionMakerName(event.target.value)} className="mt-1 w-full rounded-lg border border-white/10 bg-black/40 p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="Owner, principal or director" required />
+                </label>
+                <label className="text-sm text-slate-200">Job title
+                  <input value={decisionMakerTitle} onChange={(event) => setDecisionMakerTitle(event.target.value)} className="mt-1 w-full rounded-lg border border-white/10 bg-black/40 p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="Principal" required />
+                </label>
+                <label className="text-sm text-slate-200">Phone (optional)
+                  <input type="tel" value={decisionMakerPhone} onChange={(event) => setDecisionMakerPhone(event.target.value)} className="mt-1 w-full rounded-lg border border-white/10 bg-black/40 p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="+996…" />
+                </label>
+                <label className="text-sm text-slate-200">Billing email
+                  <input type="email" value={billingContactEmail} onChange={(event) => setBillingContactEmail(event.target.value)} className="mt-1 w-full rounded-lg border border-white/10 bg-black/40 p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="billing@school.edu" />
+                </label>
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="text-sm text-slate-200">Estimated students
+                <input type="number" min="1" value={estimatedStudents} onChange={(event) => setEstimatedStudents(event.target.value)} className="mt-1 w-full rounded-lg border border-white/10 bg-black/40 p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="250" />
+              </label>
+              <label className="text-sm text-slate-200">Estimated teachers
+                <input type="number" min="1" value={estimatedTeachers} onChange={(event) => setEstimatedTeachers(event.target.value)} className="mt-1 w-full rounded-lg border border-white/10 bg-black/40 p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="25" />
+              </label>
+            </div>
+
+            <fieldset className="rounded-xl border border-white/10 bg-black/20 p-4">
+              <legend className="px-1 text-sm font-medium text-slate-200">Programmes your school needs</legend>
+              <p className="mt-1 text-xs text-slate-400">Core is included. Optional programmes are activated only when included in the school agreement.</p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                {([
+                  ['core', 'Brain Heist Core'], ['cambridge', 'Cambridge'], ['ielts', 'IELTS'], ['writing', 'Writing Hub'], ['admissions', 'Admission Hub'],
+                ] as const).map(([moduleKey, label]) => (
+                  <label key={moduleKey} className="flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm text-slate-200">
+                    <input type="checkbox" checked={requestedModules.includes(moduleKey)} disabled={moduleKey === 'core'} onChange={(event) => setRequestedModules((current) => event.target.checked ? [...current, moduleKey] : current.filter((item) => item !== moduleKey))} />
+                    {label}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            <label className="block text-sm text-slate-200">Preferred payment method
+              <select value={preferredPaymentMethod} onChange={(event) => setPreferredPaymentMethod(event.target.value as typeof preferredPaymentMethod)} className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950 p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                <option value="undecided">Not decided yet</option>
+                <option value="card">Card / Paddle</option>
+                <option value="cash">Cash</option>
+                <option value="bank_transfer">Bank transfer</option>
+                <option value="invoice">Invoice</option>
+              </select>
+            </label>
+
+            <label className="flex items-start gap-3 rounded-xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm leading-relaxed text-amber-50">
+              <input type="checkbox" checked={authorityConfirmed} onChange={(event) => setAuthorityConfirmed(event.target.checked)} className="mt-1" required />
+              <span>I confirm that I am the school owner, principal, director, or another authorised decision-maker permitted to register this school.</span>
+            </label>
             <div>
               <label className="text-sm font-medium text-slate-200">Notes (optional)</label>
               <textarea
