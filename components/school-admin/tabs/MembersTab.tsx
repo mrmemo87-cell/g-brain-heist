@@ -28,14 +28,19 @@ const MembersTab: React.FC = () => {
     selectedMemberIds, setActiveTab, setBulkMemberAction, setMemberPage, setMemberPageSize,
     setMemberRoleFilter, setMemberSearch, setModTargetId, setModTargetStatus, setSelectedClassId,
     setSelectedGrade, setSelectedMember, setSelectedStudentId, setShowMemberActionModal,
-    studentAssignments, teacherAssignments, toggleMemberSelection, toggleSelectAllMembers,
+    studentAssignments, students, teacherAssignments, toggleMemberSelection, toggleSelectAllMembers,
   } = useSchoolAdmin();
   const [academicYearFilter, setAcademicYearFilter] = React.useState('');
   const [classFilter, setClassFilter] = React.useState('');
   const [statusFilter, setStatusFilter] = React.useState<'all' | 'active' | 'restricted'>('all');
   const activePeopleTab: 'teacher' | 'student' = memberRoleFilter === 'student' ? 'student' : 'teacher';
   const administrators = Array.isArray(schoolAdmins) ? schoolAdmins : [];
-  const communityMembers = Array.isArray(members) ? members : [];
+  // Students come from the complete, independently loaded student directory rather than
+  // the server-filtered `members` result. This keeps fast typing / out-of-order RPC
+  // responses from dropping valid students while the local search is being refined.
+  const communityMembers = activePeopleTab === 'student'
+    ? (Array.isArray(students) ? students : [])
+    : (Array.isArray(members) ? members : []);
   const activeClasses = React.useMemo(() => (Array.isArray(classes) ? classes : []).filter((schoolClass: any) => schoolClass.is_active), [classes]);
   const academicYears = React.useMemo(() => Array.from(new Set(activeClasses.map((schoolClass: any) => Number(schoolClass.grade_level)).filter(Number.isFinite))).sort((a, b) => a - b), [activeClasses]);
   const classesForAcademicYear = React.useMemo(() => activeClasses.filter((schoolClass: any) => !academicYearFilter || String(schoolClass.grade_level) === academicYearFilter), [academicYearFilter, activeClasses]);
@@ -57,8 +62,16 @@ const MembersTab: React.FC = () => {
     };
   }, [activeClasses, getAssignedClass, getTeacherClassIds]);
 
+  const normalizedMemberSearch = memberSearch.trim().toLocaleLowerCase();
   const filteredPeople = React.useMemo(() => communityMembers.filter((member: any) => {
     if (member.role !== activePeopleTab) return false;
+    if (normalizedMemberSearch) {
+      const searchableIdentity = [member.full_name, member.username, member.email]
+        .filter((value): value is string => typeof value === 'string' && value.length > 0)
+        .join('\n')
+        .toLocaleLowerCase();
+      if (!searchableIdentity.includes(normalizedMemberSearch)) return false;
+    }
     if (statusFilter === 'active' && member.is_banned) return false;
     if (statusFilter === 'restricted' && !member.is_banned) return false;
     if (!academicYearFilter && !classFilter) return true;
@@ -71,11 +84,11 @@ const MembersTab: React.FC = () => {
     const teacherClassIds = getTeacherClassIds(member);
     if (classFilter) return teacherClassIds.has(classFilter);
     return activeClasses.some((schoolClass: any) => String(schoolClass.grade_level) === academicYearFilter && teacherClassIds.has(schoolClass.id));
-  }), [academicYearFilter, activeClasses, activePeopleTab, classFilter, communityMembers, getAssignedClass, getTeacherClassIds, statusFilter]);
+  }), [academicYearFilter, activeClasses, activePeopleTab, classFilter, communityMembers, getAssignedClass, getTeacherClassIds, normalizedMemberSearch, statusFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredPeople.length / memberPageSize));
   const visiblePeople = filteredPeople.slice((memberPage - 1) * memberPageSize, memberPage * memberPageSize);
-  React.useEffect(() => { setMemberPage(1); }, [academicYearFilter, classFilter, statusFilter, activePeopleTab, memberPageSize, setMemberPage]);
+  React.useEffect(() => { setMemberPage(1); }, [academicYearFilter, classFilter, statusFilter, activePeopleTab, memberPageSize, memberSearch, setMemberPage]);
   React.useEffect(() => { setMemberPage((page: number) => Math.min(page, totalPages)); }, [setMemberPage, totalPages]);
 
   const openMember = (member: any) => {
