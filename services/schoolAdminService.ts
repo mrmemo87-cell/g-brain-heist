@@ -1303,6 +1303,131 @@ export async function moveStudentToClassViaRPC(
   }
 }
 
+export interface ReviewedPlacementResult {
+  success: boolean;
+  code?: string;
+  error?: string;
+  message?: string;
+  historyId?: string;
+  classId?: string;
+  classCode?: string;
+  grade?: string | number | null;
+  batch?: string | null;
+  changed?: number;
+  skipped?: number;
+}
+
+export async function transferStudentPlacement(input: {
+  schoolId: string;
+  studentId: string;
+  expectedFromClassId: string | null;
+  toClassId: string;
+  reason: string;
+  effectiveDate: string;
+  exceptionId?: string | null;
+}): Promise<ReviewedPlacementResult> {
+  const { data, error } = await supabase.rpc('rpc_school_admin_transfer_student_placement', {
+    p_school_id: input.schoolId,
+    p_student_id: input.studentId,
+    p_expected_from_class_id: input.expectedFromClassId,
+    p_to_class_id: input.toClassId,
+    p_reason: input.reason,
+    p_effective_date: input.effectiveDate,
+    p_exception_id: input.exceptionId ?? null,
+  });
+  if (error) return { success: false, error: error.message };
+  return (data as ReviewedPlacementResult) ?? { success: false, error: 'No placement response was returned.' };
+}
+
+export async function unassignStudentPlacement(input: {
+  schoolId: string;
+  studentId: string;
+  expectedFromClassId: string;
+  reason: string;
+  effectiveDate: string;
+  exceptionId?: string | null;
+}): Promise<ReviewedPlacementResult> {
+  const { data, error } = await supabase.rpc('rpc_school_admin_unassign_student_placement', {
+    p_school_id: input.schoolId,
+    p_student_id: input.studentId,
+    p_expected_from_class_id: input.expectedFromClassId,
+    p_reason: input.reason,
+    p_effective_date: input.effectiveDate,
+    p_exception_id: input.exceptionId ?? null,
+  });
+  if (error) return { success: false, error: error.message };
+  return (data as ReviewedPlacementResult) ?? { success: false, error: 'No placement response was returned.' };
+}
+
+export async function bulkTransferStudentPlacements(input: {
+  schoolId: string;
+  studentIds: string[];
+  toClassId: string;
+  reason: string;
+  effectiveDate: string;
+}): Promise<ReviewedPlacementResult> {
+  const { data, error } = await supabase.rpc('rpc_school_admin_bulk_transfer_student_placements', {
+    p_school_id: input.schoolId,
+    p_student_ids: input.studentIds,
+    p_to_class_id: input.toClassId,
+    p_reason: input.reason,
+    p_effective_date: input.effectiveDate,
+  });
+  if (error) return { success: false, error: error.message };
+  return (data as ReviewedPlacementResult) ?? { success: false, error: 'No placement response was returned.' };
+}
+
+export interface PlacementException {
+  id: string;
+  studentUserId: string;
+  issueCode: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  status: 'open' | 'resolved';
+  observedClassId: string | null;
+  expectedClassId: string | null;
+  evidence: Record<string, unknown>;
+  openedAt: string;
+}
+
+export interface StudentPlacementReview {
+  error?: string;
+  studentUserId?: string;
+  displayName?: string;
+  currentClassId?: string | null;
+  currentClassCode?: string | null;
+  currentGrade?: string | number | null;
+  history?: Array<{
+    id: string;
+    eventType: string;
+    fromClassCode: string | null;
+    toClassCode: string | null;
+    reason: string;
+    effectiveDate: string;
+    recordedAt: string;
+  }>;
+}
+
+export async function refreshPlacementExceptions(schoolId: string): Promise<ReviewedPlacementResult> {
+  const { data, error } = await supabase.rpc('rpc_school_admin_refresh_placement_exceptions', { p_school_id: schoolId });
+  if (error) return { success: false, error: error.message };
+  return (data as ReviewedPlacementResult) ?? { success: true };
+}
+
+export async function listPlacementExceptions(schoolId: string): Promise<PlacementException[]> {
+  const { data, error } = await supabase.rpc('rpc_school_admin_list_placement_exceptions', { p_school_id: schoolId });
+  if (error) throw new Error(error.message);
+  return Array.isArray(data) ? data as PlacementException[] : [];
+}
+
+export async function getStudentPlacementReview(schoolId: string, studentId: string): Promise<StudentPlacementReview> {
+  const { data, error } = await supabase.rpc('rpc_school_admin_get_student_placement_review', {
+    p_school_id: schoolId,
+    p_student_id: studentId,
+  });
+  if (error) throw new Error(error.message);
+  return (data as StudentPlacementReview) ?? { error: 'student_not_found' };
+}
+
 // ============================================
 // Class Roster Management Functions
 // ============================================
