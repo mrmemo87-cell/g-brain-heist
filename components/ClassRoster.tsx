@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import * as SchoolAdminService from '../services/schoolAdminService';
 import type { ClassRosterStudent, ClassWithRosterInfo, ClassStatistics } from '../services/schoolAdminService';
 import { createSchoolDocumentId, escapeSchoolDocumentHtml, openSchoolDocumentPreview, schoolDocumentFileName } from '../src/lib/schoolDocument';
+import PlacementExceptionQueue from './school-admin/PlacementExceptionQueue';
 
 interface ClassRosterProps {
   schoolId: string;
@@ -20,6 +21,8 @@ interface ExpandedClass {
 }
 
 const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh, schoolName = 'Brains Heist', schoolLogoUrl }) => {
+  const now = new Date();
+  const localToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const [classes, setClasses] = useState<ClassWithRosterInfo[]>([]);
   const [expandedClasses, setExpandedClasses] = useState<Record<string, ExpandedClass>>({});
   const [unassignedStudents, setUnassignedStudents] = useState<ClassRosterStudent[]>([]);
@@ -32,6 +35,8 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [moveTargetClassId, setMoveTargetClassId] = useState('');
   const [studentToMove, setStudentToMove] = useState<{ student: ClassRosterStudent; fromClassId: string | null } | null>(null);
+  const [placementReason, setPlacementReason] = useState('Administrator-approved class placement');
+  const [placementEffectiveDate, setPlacementEffectiveDate] = useState(localToday);
   
   // Bulk action modal
   const [showBulkModal, setShowBulkModal] = useState(false);
@@ -131,11 +136,15 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
 
   // Remove student from class
   const handleRemoveStudent = async (classId: string, studentId: string, studentName: string) => {
-    if (!confirm(`Remove ${studentName} from this class?`)) return;
+    const reason = window.prompt(`Reason for removing ${studentName} from this class:`, 'Administrator-approved unassignment')?.trim();
+    if (!reason || reason.length < 3) return;
+    const effectiveDate = window.prompt('Effective date (YYYY-MM-DD):', localToday)?.trim();
+    if (!effectiveDate || !/^\d{4}-\d{2}-\d{2}$/.test(effectiveDate)) return;
+    if (!confirm(`Confirm this reviewed unassignment effective ${effectiveDate}?`)) return;
     
     setActionLoading(true);
     try {
-      const result = await SchoolAdminService.removeStudentFromClass(classId, studentId);
+      const result = await SchoolAdminService.unassignStudentPlacement({ schoolId, studentId, expectedFromClassId: classId, reason, effectiveDate });
       if (result.success) {
         addToast(`Removed ${studentName} from class`, 'success');
         // Reload both the class roster and unassigned students
@@ -163,6 +172,8 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
   const openMoveModal = (student: ClassRosterStudent, fromClassId: string | null) => {
     setStudentToMove({ student, fromClassId });
     setMoveTargetClassId('');
+    setPlacementReason(fromClassId ? 'Administrator-approved class transfer' : 'Administrator-approved initial placement');
+    setPlacementEffectiveDate(localToday);
     setShowMoveModal(true);
   };
 
@@ -172,11 +183,14 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
     
     setActionLoading(true);
     try {
-      const result = await SchoolAdminService.moveStudentBetweenClasses(
-        studentToMove.student.student_id,
-        studentToMove.fromClassId,
-        moveTargetClassId
-      );
+      const result = await SchoolAdminService.transferStudentPlacement({
+        schoolId,
+        studentId: studentToMove.student.student_id,
+        expectedFromClassId: studentToMove.fromClassId,
+        toClassId: moveTargetClassId,
+        reason: placementReason,
+        effectiveDate: placementEffectiveDate,
+      });
       
       if (result.success) {
         addToast(result.message || 'Student moved successfully', 'success');
@@ -209,13 +223,12 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
     try {
       let result;
       
-      if (bulkAction === 'add' && bulkTargetClassId) {
-        result = await SchoolAdminService.bulkAddStudentsToClass(bulkTargetClassId, studentIds);
+      if ((bulkAction === 'add' || bulkAction === 'move') && bulkTargetClassId) {
+        result = await SchoolAdminService.bulkTransferStudentPlacements({ schoolId, studentIds, toClassId: bulkTargetClassId, reason: placementReason, effectiveDate: placementEffectiveDate });
       } else if (bulkAction === 'remove' && bulkSourceClassId) {
-        result = await SchoolAdminService.bulkRemoveStudentsFromClass(bulkSourceClassId, studentIds);
-      } else if (bulkAction === 'move' && bulkTargetClassId) {
-        // Move is add to new (will need to handle source separately)
-        result = await SchoolAdminService.bulkAddStudentsToClass(bulkTargetClassId, studentIds);
+        const outcomes = await Promise.all(studentIds.map((studentId) => SchoolAdminService.unassignStudentPlacement({ schoolId, studentId, expectedFromClassId: bulkSourceClassId, reason: placementReason, effectiveDate: placementEffectiveDate })));
+        const changed = outcomes.filter((outcome) => outcome.success).length;
+        result = { success: true, message: `Reviewed unassignment saved for ${changed} students; ${outcomes.length - changed} require individual review.` };
       }
       
       if (result?.success) {
@@ -236,13 +249,18 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
 
   // Auto-enroll by grade
   const handleAutoEnroll = async (classId: string, classCode: string) => {
-    if (!confirm(`Auto-enroll all students matching this class's grade level to ${classCode}?`)) return;
+    const targetClass = classes.find((item) => item.class_id === classId);
+    const matching = unassignedStudents.filter((student) => String(student.grade) === String(targetClass?.grade_level)).map((student) => student.student_id);
+    if (matching.length === 0) { addToast('No unassigned students match this class year.', 'info'); return; }
+    const reason = window.prompt(`Reason for placing ${matching.length} students into ${classCode}:`, 'Administrator-approved year-group placement')?.trim();
+    if (!reason || reason.length < 3) return;
+    if (!confirm(`Confirm ${matching.length} reviewed placements effective ${localToday}?`)) return;
     
     setActionLoading(true);
     try {
-      const result = await SchoolAdminService.autoEnrollStudentsByGrade(classId);
+      const result = await SchoolAdminService.bulkTransferStudentPlacements({ schoolId, studentIds: matching, toClassId: classId, reason, effectiveDate: localToday });
       if (result.success) {
-        addToast(result.message || `Enrolled ${result.enrolled} students`, 'success');
+        addToast(result.message || `Reviewed placement saved for ${matching.length} students`, 'success');
         loadClasses();
         // Refresh expanded class if open
         if (expandedClasses[classId]) {
@@ -264,9 +282,11 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
 
   // Add unassigned student to class
   const handleAddUnassignedToClass = async (studentId: string, classId: string) => {
+    const reason = window.prompt('Placement reason:', 'Administrator-approved initial placement')?.trim();
+    if (!reason || reason.length < 3) return;
     setActionLoading(true);
     try {
-      const result = await SchoolAdminService.addStudentToClass(classId, studentId);
+      const result = await SchoolAdminService.transferStudentPlacement({ schoolId, studentId, expectedFromClassId: null, toClassId: classId, reason, effectiveDate: localToday });
       if (result.success) {
         addToast(result.message || 'Student added to class', 'success');
         loadClasses();
@@ -317,6 +337,7 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
 
   return (
     <div className="space-y-6">
+      <PlacementExceptionQueue schoolId={schoolId} classes={classes} addToast={addToast} onChanged={() => { void loadClasses(); setExpandedClasses({}); }} />
       {/* Header with actions */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div>
@@ -334,6 +355,8 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
               <button
                 onClick={() => {
                   setBulkAction('add');
+                  setPlacementReason('Administrator-approved bulk placement');
+                  setPlacementEffectiveDate(localToday);
                   setShowBulkModal(true);
                 }}
                 className="px-3 py-2 bg-green-600 hover:bg-green-500 rounded-lg text-sm font-medium transition-colors"
@@ -720,6 +743,12 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
                   </option>
                 ))}
             </select>
+            <label className="block text-sm text-gray-300 mb-3">Reason
+              <textarea value={placementReason} onChange={(event) => setPlacementReason(event.target.value)} className="mt-1 w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white" rows={2} />
+            </label>
+            <label className="block text-sm text-gray-300 mb-4">Effective date
+              <input type="date" value={placementEffectiveDate} onChange={(event) => setPlacementEffectiveDate(event.target.value)} className="mt-1 w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white" />
+            </label>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => {
@@ -732,7 +761,7 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
               </button>
               <button
                 onClick={handleMoveStudent}
-                disabled={!moveTargetClassId || actionLoading}
+                disabled={!moveTargetClassId || placementReason.trim().length < 3 || !placementEffectiveDate || actionLoading}
                 className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 rounded-lg transition-colors"
               >
                 {actionLoading ? 'Moving...' : 'Move Student'}
@@ -767,6 +796,12 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
                   </option>
                 ))}
             </select>
+            <label className="block text-sm text-gray-300 mb-3">Reason
+              <textarea value={placementReason} onChange={(event) => setPlacementReason(event.target.value)} className="mt-1 w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white" rows={2} />
+            </label>
+            <label className="block text-sm text-gray-300 mb-4">Effective date
+              <input type="date" value={placementEffectiveDate} onChange={(event) => setPlacementEffectiveDate(event.target.value)} className="mt-1 w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white" />
+            </label>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => {
@@ -778,7 +813,7 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
               </button>
               <button
                 onClick={handleBulkAction}
-                disabled={!bulkTargetClassId || actionLoading}
+                disabled={!bulkTargetClassId || placementReason.trim().length < 3 || !placementEffectiveDate || actionLoading}
                 className="px-4 py-2 bg-green-600 hover:bg-green-500 disabled:opacity-50 rounded-lg transition-colors"
               >
                 {actionLoading ? 'Processing...' : 'Add Students'}
