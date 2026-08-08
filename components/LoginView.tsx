@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
 import { GoogleIcon } from './icons';
+import LoginFooter from './LoginFooter';
 import * as AuthService from '../services/authService';
 import { consumeBanMessage } from '../services/banMessage';
 import { askVisitorAssistant } from '../services/visitorAssistantService';
@@ -257,6 +258,11 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
         setDemoSubmitError(null);
     };
 
+    const openDemoModal = () => {
+        resetDemoStatus();
+        setShowDemoModal(true);
+    };
+
     const closeDemoModal = () => {
         setShowDemoModal(false);
         setDemoSubmitting(false);
@@ -313,15 +319,11 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
 
     const openDemoFromAssistant = () => {
         setAssistantOpen(false);
-        resetDemoStatus();
-        setShowDemoModal(true);
+        openDemoModal();
     };
 
     const authCard = (
-        <div
-            ref={cardRef}
-            className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#081321]/90 p-5 shadow-[0_34px_110px_rgba(0,0,0,0.42),0_0_55px_rgba(34,211,238,0.08)] backdrop-blur-xl sm:p-8"
-        >
+        <div ref={cardRef} className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#081321]/90 p-5 shadow-[0_34px_110px_rgba(0,0,0,0.42),0_0_55px_rgba(34,211,238,0.08)] backdrop-blur-xl sm:p-8">
             <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-cyan-400/[0.08] blur-3xl" aria-hidden="true" />
             <div className="pointer-events-none absolute -bottom-20 -left-20 h-40 w-40 rounded-full bg-fuchsia-400/[0.06] blur-3xl" aria-hidden="true" />
 
@@ -334,23 +336,11 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     </div>
 
                     <div className="mb-7 grid grid-cols-2 border-b border-white/10" role="tablist" aria-label="Authentication mode">
-                        <button
-                            type="button"
-                            role="tab"
-                            aria-selected={mode === 'login'}
-                            onClick={() => switchMode('login')}
-                            className={`relative px-4 pb-3 text-sm font-bold transition-colors ${mode === 'login' ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
-                        >
+                        <button type="button" role="tab" aria-selected={mode === 'login'} onClick={() => switchMode('login')} className={`relative px-4 pb-3 text-sm font-bold transition-colors ${mode === 'login' ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}>
                             Sign in
                             {mode === 'login' && <span className="absolute inset-x-3 -bottom-px h-0.5 rounded-full bg-cyan-300 shadow-[0_0_14px_rgba(34,211,238,0.8)]" />}
                         </button>
-                        <button
-                            type="button"
-                            role="tab"
-                            aria-selected={mode === 'signup'}
-                            onClick={() => switchMode('signup')}
-                            className={`relative px-4 pb-3 text-sm font-bold transition-colors ${mode === 'signup' ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
-                        >
+                        <button type="button" role="tab" aria-selected={mode === 'signup'} onClick={() => switchMode('signup')} className={`relative px-4 pb-3 text-sm font-bold transition-colors ${mode === 'signup' ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}>
                             Sign up
                             {mode === 'signup' && <span className="absolute inset-x-3 -bottom-px h-0.5 rounded-full bg-cyan-300 shadow-[0_0_14px_rgba(34,211,238,0.8)]" />}
                         </button>
@@ -371,15 +361,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                 {mode === 'signup' && (
                     <label className="block text-sm font-semibold text-slate-300" htmlFor="username">
                         Username
-                        <input
-                            id="username"
-                            autoComplete="username"
-                            required
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            placeholder="ChooseYourName"
-                            className="mt-2 block h-14 w-full rounded-2xl border border-slate-600/70 bg-slate-800/70 px-4 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300 focus:ring-4 focus:ring-cyan-300/10"
-                        />
+                        <input id="username" autoComplete="username" required value={username} onChange={(e) => setUsername(e.target.value)} placeholder="ChooseYourName" className="mt-2 block h-14 w-full rounded-2xl border border-slate-600/70 bg-slate-800/70 px-4 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300 focus:ring-4 focus:ring-cyan-300/10" />
                     </label>
                 )}
 
@@ -387,17 +369,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     Email
                     <div className="relative mt-2">
                         <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" aria-hidden="true">✉</span>
-                        <input
-                            id="email"
-                            type="email"
-                            inputMode="email"
-                            autoComplete="email"
-                            required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="you@example.com"
-                            className="block h-14 w-full rounded-2xl border border-slate-600/70 bg-slate-800/70 pl-11 pr-4 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300 focus:ring-4 focus:ring-cyan-300/10"
-                        />
+                        <input id="email" type="email" inputMode="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="block h-14 w-full rounded-2xl border border-slate-600/70 bg-slate-800/70 pl-11 pr-4 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300 focus:ring-4 focus:ring-cyan-300/10" />
                     </div>
                 </label>
 
@@ -406,40 +378,15 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                         Password
                         <div className="relative mt-2">
                             <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" aria-hidden="true">▣</span>
-                            <input
-                                id="password"
-                                type={showPassword ? 'text' : 'password'}
-                                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                                required
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="••••••••"
-                                className="block h-14 w-full rounded-2xl border border-slate-600/70 bg-slate-800/70 pl-11 pr-12 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300 focus:ring-4 focus:ring-cyan-300/10"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword((visible) => !visible)}
-                                className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
-                                aria-label={showPassword ? 'Hide password' : 'Show password'}
-                            >
-                                {showPassword ? '◉' : '◎'}
-                            </button>
+                            <input id="password" type={showPassword ? 'text' : 'password'} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="block h-14 w-full rounded-2xl border border-slate-600/70 bg-slate-800/70 pl-11 pr-12 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300 focus:ring-4 focus:ring-cyan-300/10" />
+                            <button type="button" onClick={() => setShowPassword((visible) => !visible)} className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl text-slate-400 transition hover:bg-white/[0.05] hover:text-white" aria-label={showPassword ? 'Hide password' : 'Show password'}>{showPassword ? '◉' : '◎'}</button>
                         </div>
                     </label>
                 )}
 
-                {mode === 'login' && (
-                    <div className="flex justify-end">
-                        <button type="button" onClick={() => switchMode('reset')} className="text-xs font-semibold text-cyan-300 transition hover:text-cyan-200">Forgot password?</button>
-                    </div>
-                )}
+                {mode === 'login' && <div className="flex justify-end"><button type="button" onClick={() => switchMode('reset')} className="text-xs font-semibold text-cyan-300 transition hover:text-cyan-200">Forgot password?</button></div>}
 
-                <button
-                    ref={submitBtnRef}
-                    type="submit"
-                    disabled={isLoading || (mode === 'signup' && !username.trim())}
-                    className="group relative isolate flex h-14 w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-r from-cyan-300 via-cyan-400 to-teal-300 px-4 font-extrabold text-[#06101d] shadow-[0_12px_34px_rgba(34,211,238,0.22)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_44px_rgba(34,211,238,0.32)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0"
-                >
+                <button ref={submitBtnRef} type="submit" disabled={isLoading || (mode === 'signup' && !username.trim())} className="group relative isolate flex h-14 w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-r from-cyan-300 via-cyan-400 to-teal-300 px-4 font-extrabold text-[#06101d] shadow-[0_12px_34px_rgba(34,211,238,0.22)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_44px_rgba(34,211,238,0.32)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0">
                     <span ref={ctaShimmerRef} className="pointer-events-none absolute -inset-y-3 left-[-45%] z-10 w-[42%] -skew-x-12 bg-gradient-to-r from-transparent via-white/80 to-transparent mix-blend-screen" aria-hidden="true" />
                     {isLoading ? 'Working...' : mode === 'login' ? 'Sign in  →' : mode === 'signup' ? 'Create account  →' : 'Send reset link  →'}
                 </button>
@@ -447,26 +394,12 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
 
             {(mode === 'login' || mode === 'signup') && (
                 <>
-                    <div className="my-6 flex items-center gap-3 text-xs text-slate-500">
-                        <span className="h-px flex-1 bg-white/10" />
-                        <span>or continue with</span>
-                        <span className="h-px flex-1 bg-white/10" />
-                    </div>
-                    <button
-                        type="button"
-                        onClick={handleGoogleSignIn}
-                        disabled={isGoogleLoading}
-                        className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl border border-slate-200/90 bg-white px-4 font-bold text-slate-900 transition duration-200 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
-                    >
+                    <div className="my-6 flex items-center gap-3 text-xs text-slate-500"><span className="h-px flex-1 bg-white/10" /><span>or continue with</span><span className="h-px flex-1 bg-white/10" /></div>
+                    <button type="button" onClick={handleGoogleSignIn} disabled={isGoogleLoading} className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl border border-slate-200/90 bg-white px-4 font-bold text-slate-900 transition duration-200 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60">
                         <span className="flex h-6 w-6 items-center justify-center [&_svg]:h-5 [&_svg]:w-5"><GoogleIcon /></span>
                         {isGoogleLoading ? 'Connecting...' : 'Continue with Google'}
                     </button>
-                    <p className="mt-6 text-center text-sm text-slate-400">
-                        {mode === 'login' ? 'New to Brains Heist?' : 'Already have an account?'}{' '}
-                        <button type="button" onClick={() => switchMode(mode === 'login' ? 'signup' : 'login')} className="font-bold text-cyan-300 hover:text-cyan-200">
-                            {mode === 'login' ? 'Create account' : 'Sign in'}
-                        </button>
-                    </p>
+                    <p className="mt-6 text-center text-sm text-slate-400">{mode === 'login' ? 'New to Brains Heist?' : 'Already have an account?'}{' '}<button type="button" onClick={() => switchMode(mode === 'login' ? 'signup' : 'login')} className="font-bold text-cyan-300 hover:text-cyan-200">{mode === 'login' ? 'Create account' : 'Sign in'}</button></p>
                 </>
             )}
         </div>
@@ -486,44 +419,25 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                         <div ref={heroRef} className="mx-auto w-full max-w-2xl text-center lg:mx-0 lg:text-left">
                             <div ref={brandRef} className="mb-10 flex items-center justify-center gap-3 lg:justify-start">
                                 <img src="/logo.png" alt="Brains Heist" className="h-16 w-16 drop-shadow-[0_0_24px_rgba(34,211,238,0.35)]" />
-                                <div>
-                                    <div className="font-heading text-3xl font-black tracking-tight sm:text-[2.15rem]"><span className="text-white">Brains</span> <span className="bg-gradient-to-r from-cyan-300 via-teal-300 to-fuchsia-400 bg-clip-text text-transparent">Heist</span></div>
-                                    <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.33em] text-slate-500">Learn · Compete · Grow</div>
-                                </div>
+                                <div><div className="font-heading text-3xl font-black tracking-tight sm:text-[2.15rem]"><span className="text-white">Brains</span> <span className="bg-gradient-to-r from-cyan-300 via-teal-300 to-fuchsia-400 bg-clip-text text-transparent">Heist</span></div><div className="mt-1 text-[10px] font-bold uppercase tracking-[0.33em] text-slate-500">Learn · Compete · Grow</div></div>
                             </div>
 
-                            <h1 ref={headlineRef} className="font-heading text-5xl font-black leading-[1.02] tracking-[-0.035em] text-white sm:text-6xl lg:text-[4.2rem] xl:text-[4.65rem]">
-                                Where school<br />feels like a <span className="bg-gradient-to-r from-cyan-300 via-teal-300 to-fuchsia-400 bg-clip-text text-transparent">game.</span>
-                            </h1>
-
-                            <p ref={introRef} className="mx-auto mt-7 max-w-xl text-base leading-7 text-slate-300 sm:text-lg lg:mx-0">
-                                A gamified English &amp; Maths platform for schools — assessments, live classroom battles, progress tracking and meaningful reports.
-                            </p>
+                            <h1 ref={headlineRef} className="font-heading text-5xl font-black leading-[1.02] tracking-[-0.035em] text-white sm:text-6xl lg:text-[4.2rem] xl:text-[4.65rem]">Where school<br />feels like a <span className="bg-gradient-to-r from-cyan-300 via-teal-300 to-fuchsia-400 bg-clip-text text-transparent">game.</span></h1>
+                            <p ref={introRef} className="mx-auto mt-7 max-w-xl text-base leading-7 text-slate-300 sm:text-lg lg:mx-0">A gamified English &amp; Maths platform for schools — assessments, live classroom battles, progress tracking and meaningful reports.</p>
 
                             <div ref={benefitsRef} className="mx-auto mt-8 max-w-xl space-y-5 text-left lg:mx-0">
                                 {BENEFITS.map((benefit) => (
-                                    <div key={benefit.title} className="flex items-start gap-4">
-                                        <div className={benefit.accent === 'pink' ? '[&_span]:border-fuchsia-300/20 [&_span]:bg-fuchsia-300/[0.06] [&_span]:text-fuchsia-300' : ''}><BenefitMark type={benefit.icon} /></div>
-                                        <div>
-                                            <h2 className="text-[15px] font-bold text-slate-100 sm:text-base">{benefit.title}</h2>
-                                            <p className="mt-0.5 text-sm leading-relaxed text-slate-500">{benefit.description}</p>
-                                        </div>
-                                    </div>
+                                    <div key={benefit.title} className="flex items-start gap-4"><div className={benefit.accent === 'pink' ? '[&_span]:border-fuchsia-300/20 [&_span]:bg-fuchsia-300/[0.06] [&_span]:text-fuchsia-300' : ''}><BenefitMark type={benefit.icon} /></div><div><h2 className="text-[15px] font-bold text-slate-100 sm:text-base">{benefit.title}</h2><p className="mt-0.5 text-sm leading-relaxed text-slate-500">{benefit.description}</p></div></div>
                                 ))}
                             </div>
 
                             <div className="mt-9 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
                                 <button type="button" onClick={() => switchMode('signup')} className="inline-flex h-12 w-full items-center justify-center rounded-2xl bg-cyan-300 px-6 text-sm font-extrabold text-[#06101d] shadow-[0_12px_30px_rgba(34,211,238,0.2)] transition hover:-translate-y-0.5 hover:bg-cyan-200 sm:w-auto">Get started free →</button>
-                                <button type="button" onClick={() => { resetDemoStatus(); setShowDemoModal(true); }} className="inline-flex h-12 w-full items-center justify-center rounded-2xl border border-white/15 bg-white/[0.04] px-6 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:border-cyan-300/50 hover:bg-cyan-300/[0.06] sm:w-auto">Request demo</button>
+                                <button type="button" onClick={openDemoModal} className="inline-flex h-12 w-full items-center justify-center rounded-2xl border border-white/15 bg-white/[0.04] px-6 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:border-cyan-300/50 hover:bg-cyan-300/[0.06] sm:w-auto">Request demo</button>
                             </div>
 
-                            <div className="mt-5 flex justify-center lg:justify-start">
-                                <a href="/ielts" className="inline-flex items-center gap-2 text-sm text-slate-400 transition hover:text-cyan-300"><span aria-hidden="true">🎓</span> Preparing for IELTS? <span className="font-bold text-cyan-300">Explore IELTS Prime →</span></a>
-                            </div>
-
-                            <div className="mt-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 border-t border-white/[0.06] pt-5 text-xs text-slate-500 lg:justify-start">
-                                <span>🔒 Secure payments</span><span className="hidden text-slate-700 sm:inline">|</span><span>✓ Cancel anytime</span><span className="hidden text-slate-700 sm:inline">|</span><span>🏫 Built for schools</span>
-                            </div>
+                            <div className="mt-5 flex justify-center lg:justify-start"><a href="/ielts" className="inline-flex items-center gap-2 text-sm text-slate-400 transition hover:text-cyan-300"><span aria-hidden="true">🎓</span> Preparing for IELTS? <span className="font-bold text-cyan-300">Explore IELTS Prime →</span></a></div>
+                            <div className="mt-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 border-t border-white/[0.06] pt-5 text-xs text-slate-500 lg:justify-start"><span>🔒 Secure payments</span><span className="hidden text-slate-700 sm:inline">|</span><span>✓ Cancel anytime</span><span className="hidden text-slate-700 sm:inline">|</span><span>🏫 Built for schools</span></div>
                         </div>
 
                         <div className="mx-auto w-full max-w-[540px] lg:mx-0 lg:ml-auto">{authCard}</div>
@@ -532,46 +446,17 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
 
                 <section ref={howItWorksRef} className="border-t border-white/[0.05] px-4 py-20 sm:px-6 sm:py-24">
                     <div className="mx-auto max-w-6xl">
-                        <div data-reveal-heading className="mx-auto mb-12 max-w-2xl text-center">
-                            <p className="text-xs font-bold uppercase tracking-[0.28em] text-cyan-300/75">Simple setup</p>
-                            <h2 className="mt-3 font-heading text-3xl font-black tracking-tight text-white sm:text-4xl">From signup to real learning momentum.</h2>
-                            <p className="mt-4 text-sm leading-7 text-slate-500 sm:text-base">The same platform can handle admissions, classroom competition and progress reporting without making setup feel like a project.</p>
-                        </div>
-                        <div className="grid gap-5 md:grid-cols-3">
-                            {HOW_IT_WORKS.map((item) => (
-                                <article key={item.step} data-reveal className="group rounded-[1.6rem] border border-white/[0.08] bg-white/[0.025] p-6 backdrop-blur transition hover:-translate-y-1 hover:border-cyan-300/25 hover:bg-cyan-300/[0.035]">
-                                    <div className="text-xs font-black tracking-[0.22em] text-cyan-300/65">{item.step}</div>
-                                    <h3 className="mt-5 text-lg font-bold text-white">{item.title}</h3>
-                                    <p className="mt-3 text-sm leading-6 text-slate-500">{item.desc}</p>
-                                </article>
-                            ))}
-                        </div>
+                        <div data-reveal-heading className="mx-auto mb-12 max-w-2xl text-center"><p className="text-xs font-bold uppercase tracking-[0.28em] text-cyan-300/75">Simple setup</p><h2 className="mt-3 font-heading text-3xl font-black tracking-tight text-white sm:text-4xl">From signup to real learning momentum.</h2><p className="mt-4 text-sm leading-7 text-slate-500 sm:text-base">The same platform can handle admissions, classroom competition and progress reporting without making setup feel like a project.</p></div>
+                        <div className="grid gap-5 md:grid-cols-3">{HOW_IT_WORKS.map((item) => <article key={item.step} data-reveal className="group rounded-[1.6rem] border border-white/[0.08] bg-white/[0.025] p-6 backdrop-blur transition hover:-translate-y-1 hover:border-cyan-300/25 hover:bg-cyan-300/[0.035]"><div className="text-xs font-black tracking-[0.22em] text-cyan-300/65">{item.step}</div><h3 className="mt-5 text-lg font-bold text-white">{item.title}</h3><p className="mt-3 text-sm leading-6 text-slate-500">{item.desc}</p></article>)}</div>
                     </div>
                 </section>
 
                 <section ref={audienceRef} className="border-t border-white/[0.05] px-4 py-20 sm:px-6 sm:py-24">
                     <div className="mx-auto max-w-6xl">
-                        <div data-reveal-heading className="mb-12 text-center">
-                            <p className="text-xs font-bold uppercase tracking-[0.28em] text-fuchsia-300/70">One platform, two perspectives</p>
-                            <h2 className="mt-3 font-heading text-3xl font-black tracking-tight text-white sm:text-4xl">Useful for schools. Fun for students.</h2>
-                        </div>
+                        <div data-reveal-heading className="mb-12 text-center"><p className="text-xs font-bold uppercase tracking-[0.28em] text-fuchsia-300/70">One platform, two perspectives</p><h2 className="mt-3 font-heading text-3xl font-black tracking-tight text-white sm:text-4xl">Useful for schools. Fun for students.</h2></div>
                         <div className="grid gap-6 md:grid-cols-2">
-                            <article data-reveal className="rounded-[1.75rem] border border-white/[0.08] bg-gradient-to-br from-cyan-300/[0.055] to-transparent p-7 sm:p-8">
-                                <div className="text-2xl" aria-hidden="true">🏫</div>
-                                <h3 className="mt-5 text-xl font-extrabold text-white">For schools</h3>
-                                <ul className="mt-5 space-y-3 text-sm leading-6 text-slate-400">
-                                    <li>✓ Cambridge-aligned admission tests</li><li>✓ Live Lockdown class battle mode</li><li>✓ School analytics and placement reports</li><li>✓ Classes, batches and roster management</li>
-                                </ul>
-                                <a href="/pricing.html" target="_blank" rel="noopener noreferrer" className="mt-7 inline-flex text-sm font-bold text-cyan-300 hover:text-cyan-200">View pricing →</a>
-                            </article>
-                            <article data-reveal className="rounded-[1.75rem] border border-white/[0.08] bg-gradient-to-br from-fuchsia-300/[0.045] to-transparent p-7 sm:p-8">
-                                <div className="text-2xl" aria-hidden="true">🎮</div>
-                                <h3 className="mt-5 text-xl font-extrabold text-white">For students</h3>
-                                <ul className="mt-5 space-y-3 text-sm leading-6 text-slate-400">
-                                    <li>✓ Earn XP, coins and gems through quests</li><li>✓ Join clans and compete in PvP battles</li><li>✓ Track progress and skill levels</li><li>✓ Build a profile and customize rewards</li>
-                                </ul>
-                                <button type="button" onClick={() => switchMode('signup')} className="mt-7 inline-flex text-sm font-bold text-cyan-300 hover:text-cyan-200">Get started free →</button>
-                            </article>
+                            <article data-reveal className="rounded-[1.75rem] border border-white/[0.08] bg-gradient-to-br from-cyan-300/[0.055] to-transparent p-7 sm:p-8"><div className="text-2xl" aria-hidden="true">🏫</div><h3 className="mt-5 text-xl font-extrabold text-white">For schools</h3><ul className="mt-5 space-y-3 text-sm leading-6 text-slate-400"><li>✓ Cambridge-aligned admission tests</li><li>✓ Live Lockdown class battle mode</li><li>✓ School analytics and placement reports</li><li>✓ Classes, batches and roster management</li></ul><a href="/pricing.html" target="_blank" rel="noopener noreferrer" className="mt-7 inline-flex text-sm font-bold text-cyan-300 hover:text-cyan-200">View pricing →</a></article>
+                            <article data-reveal className="rounded-[1.75rem] border border-white/[0.08] bg-gradient-to-br from-fuchsia-300/[0.045] to-transparent p-7 sm:p-8"><div className="text-2xl" aria-hidden="true">🎮</div><h3 className="mt-5 text-xl font-extrabold text-white">For students</h3><ul className="mt-5 space-y-3 text-sm leading-6 text-slate-400"><li>✓ Earn XP, coins and gems through quests</li><li>✓ Join clans and compete in PvP battles</li><li>✓ Track progress and skill levels</li><li>✓ Build a profile and customize rewards</li></ul><button type="button" onClick={() => switchMode('signup')} className="mt-7 inline-flex text-sm font-bold text-cyan-300 hover:text-cyan-200">Get started free →</button></article>
                         </div>
                     </div>
                 </section>
@@ -580,42 +465,17 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
             {showDemoModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/80 px-4 py-6 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="demo-modal-title">
                     <div className="my-auto w-full max-w-2xl overflow-hidden rounded-[1.75rem] border border-cyan-300/25 bg-[#081321] shadow-[0_0_80px_rgba(34,211,238,0.14)]">
-                        <div className="flex items-start justify-between gap-4 border-b border-white/10 bg-gradient-to-br from-white/[0.06] via-cyan-400/[0.05] to-transparent p-5 sm:p-6">
-                            <div>
-                                <p className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-300">For schools &amp; teams</p>
-                                <h2 id="demo-modal-title" className="mt-2 text-2xl font-extrabold text-white">Request a Brains Heist demo</h2>
-                                <p className="mt-2 text-sm leading-relaxed text-slate-400">Tell us about your school and the team can prepare the right walkthrough.</p>
-                            </div>
-                            <button type="button" onClick={closeDemoModal} className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-lg text-slate-400 transition hover:border-white/20 hover:text-white" aria-label="Close demo form">×</button>
-                        </div>
+                        <div className="flex items-start justify-between gap-4 border-b border-white/10 bg-gradient-to-br from-white/[0.06] via-cyan-400/[0.05] to-transparent p-5 sm:p-6"><div><p className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-300">For schools &amp; teams</p><h2 id="demo-modal-title" className="mt-2 text-2xl font-extrabold text-white">Request a Brains Heist demo</h2><p className="mt-2 text-sm leading-relaxed text-slate-400">Tell us about your school and the team can prepare the right walkthrough.</p></div><button type="button" onClick={closeDemoModal} className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-lg text-slate-400 transition hover:border-white/20 hover:text-white" aria-label="Close demo form">×</button></div>
                         {demoSubmitted ? (
-                            <div className="p-6">
-                                <div className="rounded-2xl border border-emerald-300/30 bg-emerald-300/[0.07] p-5 text-emerald-50">
-                                    <div className="text-2xl">✓</div><h3 className="mt-3 text-xl font-bold text-white">Demo request received.</h3><p className="mt-2 text-sm text-emerald-50/80">The Brains Heist team can follow up using the email you provided.</p>
-                                </div>
-                                <div className="mt-5 flex justify-end"><button type="button" onClick={closeDemoModal} className="rounded-xl bg-cyan-300 px-5 py-2.5 text-sm font-bold text-[#06101d]">Done</button></div>
-                            </div>
+                            <div className="p-6"><div className="rounded-2xl border border-emerald-300/30 bg-emerald-300/[0.07] p-5 text-emerald-50"><div className="text-2xl">✓</div><h3 className="mt-3 text-xl font-bold text-white">Demo request received.</h3><p className="mt-2 text-sm text-emerald-50/80">The Brains Heist team can follow up using the email you provided.</p></div><div className="mt-5 flex justify-end"><button type="button" onClick={closeDemoModal} className="rounded-xl bg-cyan-300 px-5 py-2.5 text-sm font-bold text-[#06101d]">Done</button></div></div>
                         ) : (
                             <form onSubmit={handleDemoSubmit} className="grid gap-4 p-5 sm:grid-cols-2 sm:p-6">
                                 {[
                                     ['name', 'First name*', 'Ada'], ['email', 'Work email*', 'leader@school.edu'], ['school', 'School / company*', 'North Star Academy'], ['country', 'Country', 'United Kingdom'], ['studentCount', 'Approx. students', '450'], ['website', 'Website', 'school.example.com'],
                                 ].map(([key, label, placeholder]) => (
-                                    <label key={key} className="text-sm font-semibold text-slate-300">{label}
-                                        <input
-                                            required={key === 'name' || key === 'email' || key === 'school'}
-                                            type={key === 'email' ? 'email' : key === 'studentCount' ? 'number' : 'text'}
-                                            min={key === 'studentCount' ? 1 : undefined}
-                                            value={demoForm[key as keyof typeof demoForm]}
-                                            onChange={(e) => setDemoForm((form) => ({ ...form, [key]: e.target.value }))}
-                                            disabled={demoSubmitting}
-                                            placeholder={placeholder}
-                                            className="mt-2 w-full rounded-xl border border-white/10 bg-white/[0.05] p-3 text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-300 focus:ring-4 focus:ring-cyan-300/10 disabled:opacity-60"
-                                        />
-                                    </label>
+                                    <label key={key} className="text-sm font-semibold text-slate-300">{label}<input required={key === 'name' || key === 'email' || key === 'school'} type={key === 'email' ? 'email' : key === 'studentCount' ? 'number' : 'text'} min={key === 'studentCount' ? 1 : undefined} value={demoForm[key as keyof typeof demoForm]} onChange={(e) => setDemoForm((form) => ({ ...form, [key]: e.target.value }))} disabled={demoSubmitting} placeholder={placeholder} className="mt-2 w-full rounded-xl border border-white/10 bg-white/[0.05] p-3 text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-300 focus:ring-4 focus:ring-cyan-300/10 disabled:opacity-60" /></label>
                                 ))}
-                                <label className="text-sm font-semibold text-slate-300 sm:col-span-2">Notes
-                                    <textarea rows={4} value={demoForm.notes} onChange={(e) => setDemoForm((form) => ({ ...form, notes: e.target.value }))} disabled={demoSubmitting} placeholder="Admissions, reports, classroom battles, onboarding timeline..." className="mt-2 w-full rounded-xl border border-white/10 bg-white/[0.05] p-3 text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-300 focus:ring-4 focus:ring-cyan-300/10 disabled:opacity-60" />
-                                </label>
+                                <label className="text-sm font-semibold text-slate-300 sm:col-span-2">Notes<textarea rows={4} value={demoForm.notes} onChange={(e) => setDemoForm((form) => ({ ...form, notes: e.target.value }))} disabled={demoSubmitting} placeholder="Admissions, reports, classroom battles, onboarding timeline..." className="mt-2 w-full rounded-xl border border-white/10 bg-white/[0.05] p-3 text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-300 focus:ring-4 focus:ring-cyan-300/10 disabled:opacity-60" /></label>
                                 {demoSubmitError && <p className="rounded-xl border border-rose-300/30 bg-rose-300/[0.08] px-4 py-3 text-sm text-rose-100 sm:col-span-2">{demoSubmitError}</p>}
                                 <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between"><p className="text-xs leading-relaxed text-slate-500">By submitting, you agree that Brains Heist may contact you about your demo request.</p><button type="submit" disabled={demoSubmitting} className="rounded-xl bg-cyan-300 px-5 py-3 text-sm font-bold text-[#06101d] disabled:opacity-60">{demoSubmitting ? 'Sending...' : 'Send demo request'}</button></div>
                             </form>
@@ -627,15 +487,8 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
             <div className="fixed bottom-4 right-4 z-40 w-[calc(100%-2rem)] max-w-sm sm:bottom-5 sm:right-5">
                 {assistantOpen ? (
                     <div className="overflow-hidden rounded-[1.65rem] border border-white/15 bg-white text-slate-900 shadow-[0_28px_90px_rgba(0,0,0,0.34)]">
-                        <div className="flex items-center justify-between border-b border-slate-200 bg-gradient-to-r from-white via-cyan-50 to-teal-50 px-4 py-3.5">
-                            <div className="flex items-center gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-300 to-teal-300">🤖</div><div><p className="text-sm font-extrabold">Brains Assistant</p><p className="text-[11px] text-slate-500">Help with access, demos &amp; setup</p></div></div>
-                            <button type="button" onClick={() => setAssistantOpen(false)} className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Minimize Brains Assistant">×</button>
-                        </div>
-                        <div className="max-h-[18rem] space-y-3 overflow-y-auto bg-slate-50 px-4 py-4">
-                            {assistantMessages.map((message, index) => <div key={`${message.role}-${index}`} className={`flex ${message.role === 'agent' ? 'justify-start' : 'justify-end'}`}><div className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${message.role === 'agent' ? 'border border-slate-200 bg-white text-slate-700' : 'bg-gradient-to-br from-cyan-600 to-teal-500 text-white'}`}>{message.text}</div></div>)}
-                            {assistantLoading && <div className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500"><span className="h-2 w-2 animate-pulse rounded-full bg-cyan-500" />Thinking...</div>}
-                            {assistantError && <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{assistantError}</div>}
-                        </div>
+                        <div className="flex items-center justify-between border-b border-slate-200 bg-gradient-to-r from-white via-cyan-50 to-teal-50 px-4 py-3.5"><div className="flex items-center gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-300 to-teal-300">🤖</div><div><p className="text-sm font-extrabold">Brains Assistant</p><p className="text-[11px] text-slate-500">Help with access, demos &amp; setup</p></div></div><button type="button" onClick={() => setAssistantOpen(false)} className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Minimize Brains Assistant">×</button></div>
+                        <div className="max-h-[18rem] space-y-3 overflow-y-auto bg-slate-50 px-4 py-4">{assistantMessages.map((message, index) => <div key={`${message.role}-${index}`} className={`flex ${message.role === 'agent' ? 'justify-start' : 'justify-end'}`}><div className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${message.role === 'agent' ? 'border border-slate-200 bg-white text-slate-700' : 'bg-gradient-to-br from-cyan-600 to-teal-500 text-white'}`}>{message.text}</div></div>)}{assistantLoading && <div className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500"><span className="h-2 w-2 animate-pulse rounded-full bg-cyan-500" />Thinking...</div>}{assistantError && <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{assistantError}</div>}</div>
                         <div className="flex gap-2 overflow-x-auto border-t border-slate-200 px-4 py-3 text-[11px] font-bold"><button type="button" onClick={() => void submitAssistantPrompt('How much does Brains Heist cost for my school?')} className="whitespace-nowrap rounded-full border border-slate-200 px-3 py-1.5 hover:bg-cyan-50">Pricing</button><button type="button" onClick={openDemoFromAssistant} className="whitespace-nowrap rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-cyan-900">Request demo</button><button type="button" onClick={() => void submitAssistantPrompt('I need help signing in or setting up my Brains Heist account.')} className="whitespace-nowrap rounded-full border border-slate-200 px-3 py-1.5 hover:bg-cyan-50">Sign-in help</button></div>
                         <form onSubmit={(e) => { e.preventDefault(); void submitAssistantPrompt(assistantQuestion); }} className="flex gap-2 border-t border-slate-200 bg-white p-3"><input value={assistantQuestion} onChange={(e) => setAssistantQuestion(e.target.value)} disabled={assistantLoading} placeholder="Ask a question" className="min-w-0 flex-1 rounded-full border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100" /><button type="submit" disabled={assistantLoading} className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-950 text-white disabled:opacity-50" aria-label="Send assistant question">➤</button></form>
                     </div>
@@ -644,9 +497,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                 )}
             </div>
 
-            <footer className="relative z-10 border-t border-white/[0.05] px-4 py-8 text-sm text-slate-600 sm:px-6">
-                <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row"><div className="flex items-center gap-2"><img src="/logo.png" alt="" className="h-7 w-7 opacity-75" /><span>Brains Heist</span></div><div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2"><a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="hover:text-slate-300">Privacy</a><a href="/pricing.html" target="_blank" rel="noopener noreferrer" className="hover:text-slate-300">Pricing</a><button type="button" onClick={() => { resetDemoStatus(); setShowDemoModal(true); }} className="hover:text-slate-300">Request demo</button></div></div>
-            </footer>
+            <LoginFooter onRequestDemo={openDemoModal} />
         </div>
     );
 };
