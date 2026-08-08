@@ -75,12 +75,26 @@ test('School Head launch checklist and read-only delegated billing are present',
   assert.match(billing, /canManageBilling/);
 });
 
-test('solo role selection offers an immediate professional school application path', () => {
+test('first setup screen presents join, apply, and solo paths in that order', () => {
   const setupWizard = read('components/onboarding/SetupWizard.tsx');
-  assert.match(setupWizard, /path === 'individual'/);
-  assert.match(setupWizard, /Apply to add your school/);
-  assert.match(setupWizard, /Start school application/);
-  assert.match(setupWizard, /handleSchoolApplicationOpen/);
+  const pathSelection = setupWizard.slice(
+    setupWizard.indexOf('const renderPathSelection'),
+    setupWizard.indexOf('const renderInviteCodeStep'),
+  );
+  const roleSelection = setupWizard.slice(
+    setupWizard.indexOf('const renderRoleSelection'),
+    setupWizard.indexOf('const renderStudentDetails'),
+  );
+  const joinSchoolIndex = pathSelection.indexOf('Join a School');
+  const applyIndex = pathSelection.indexOf('Apply to add your school');
+  const continueSoloIndex = pathSelection.indexOf('Continue Solo');
+
+  assert.ok(joinSchoolIndex >= 0);
+  assert.ok(applyIndex > joinSchoolIndex);
+  assert.ok(continueSoloIndex > applyIndex);
+  assert.match(pathSelection, /onClick={handleSchoolApplicationOpen}/);
+  assert.match(pathSelection, /Start school application/);
+  assert.doesNotMatch(roleSelection, /Apply to add your school/);
   assert.match(setupWizard, /setRole\('teacher'\)/);
   assert.match(setupWizard, /setShowRequestModal\(true\)/);
 });
