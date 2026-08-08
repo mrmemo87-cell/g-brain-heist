@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient.js';
-import type { SchoolRole } from '../types';
+import type { SchoolAccountType, SchoolRole } from '../types';
 import {
   normalizeCambridgeRetakeResult,
   type CambridgeRetakeResult,
@@ -46,9 +46,14 @@ export interface SchoolMember {
 export interface SchoolCapabilities {
   school_id: string;
   role: SchoolRole;
+  account_type?: SchoolAccountType;
   is_owner: boolean;
   can_administer: boolean;
   can_teach: boolean;
+  can_manage_billing?: boolean;
+  can_manage_admins?: boolean;
+  can_transfer_ownership?: boolean;
+  can_view_governance?: boolean;
 }
 
 export type SchoolCapabilitiesResolution =
@@ -204,6 +209,7 @@ export async function resolveMySchoolCapabilities(
     }
 
     const role = payload['role'];
+    const accountType = payload['account_type'];
     const resolvedSchoolId = payload['school_id'];
     if (
       typeof resolvedSchoolId !== 'string'
@@ -217,9 +223,14 @@ export async function resolveMySchoolCapabilities(
       capabilities: {
         school_id: resolvedSchoolId,
         role: role as SchoolRole,
+        account_type: accountType === 'school_head' ? 'school_head' : role as SchoolRole,
         is_owner: Boolean(payload['is_owner']),
         can_administer: Boolean(payload['can_administer']),
         can_teach: Boolean(payload['can_teach']),
+        can_manage_billing: Boolean(payload['can_manage_billing'] ?? payload['is_owner']),
+        can_manage_admins: Boolean(payload['can_manage_admins'] ?? payload['is_owner']),
+        can_transfer_ownership: Boolean(payload['can_transfer_ownership'] ?? payload['is_owner']),
+        can_view_governance: Boolean(payload['can_view_governance'] ?? payload['is_owner']),
       },
     };
   } catch (error) {

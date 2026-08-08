@@ -29,6 +29,7 @@ export type TopicStatus = 'CRUSHED' | 'AVERAGE' | 'STRUGGLED';
 
 // Multi-tenant: School role within a specific school
 export type SchoolRole = 'student' | 'teacher' | 'school_admin';
+export type SchoolAccountType = SchoolRole | 'school_head';
 
 export interface XpStatus {
   level: number;
