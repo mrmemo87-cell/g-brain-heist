@@ -172,6 +172,22 @@ function getSupabaseFromAuth(authHeader: string) {
   );
 }
 
+async function requireSchoolHead(
+  admin: ReturnType<typeof getSupabaseAdmin>,
+  userId: string,
+): Promise<{ schoolId: string } | null> {
+  const { data, error } = await admin
+    .from("school_members")
+    .select("school_id")
+    .eq("user_id", userId)
+    .eq("role_in_school", "school_admin")
+    .eq("status", "active")
+    .eq("is_owner", true)
+    .maybeSingle();
+  if (error || !data?.school_id) return null;
+  return { schoolId: data.school_id };
+}
+
 function throwIfSupabaseError(error: any, message: string) {
   if (error) {
     throw new Error(`${message}: ${error.message || JSON.stringify(error)}`);
@@ -262,17 +278,12 @@ async function handleCreateCheckout(req: Request): Promise<Response> {
     return jsonResponse(500, { error: `Price not configured: ${priceKey}` });
   }
 
-  // Get user's school
+  // Billing authority belongs to the one active School Head, not every school admin.
   const admin = getSupabaseAdmin();
-  const { data: profile } = await admin
-    .from("users")
-    .select("school_id, username, full_name, role")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile?.school_id) {
-    return jsonResponse(400, {
-      error: "You must belong to a school to subscribe",
+  const head = await requireSchoolHead(admin, user.id);
+  if (!head) {
+    return jsonResponse(403, {
+      error: "Only the active School Head can change school billing.",
     });
   }
 
@@ -280,7 +291,7 @@ async function handleCreateCheckout(req: Request): Promise<Response> {
   const { data: existingSub } = await admin
     .from("billing_subscriptions")
     .select("id, status, provider")
-    .eq("school_id", profile.school_id)
+    .eq("school_id", head.schoolId)
     .in("status", ["active", "trialing"])
     .limit(1)
     .single();
@@ -295,9 +306,10 @@ async function handleCreateCheckout(req: Request): Promise<Response> {
 
   // Build custom_data for webhook passthrough
   const customData = {
-    school_id: profile.school_id,
+    school_id: head.schoolId,
     purchased_by: user.id,
     plan,
+    module_keys: ["core"],
   };
 
   // Create Paddle Checkout (Paddle Billing — transaction-based)
@@ -429,21 +441,16 @@ async function handleGetPortalUrl(req: Request): Promise<Response> {
   }
 
   const admin = getSupabaseAdmin();
-  const { data: profile } = await admin
-    .from("users")
-    .select("school_id")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile?.school_id) {
-    return jsonResponse(400, { error: "No school found" });
+  const head = await requireSchoolHead(admin, user.id);
+  if (!head) {
+    return jsonResponse(403, { error: "Only the active School Head can manage school billing." });
   }
 
   // Get active billing subscription
   const { data: sub } = await admin
     .from("billing_subscriptions")
     .select("management_url, update_payment_url, provider_subscription_id")
-    .eq("school_id", profile.school_id)
+    .eq("school_id", head.schoolId)
     .eq("provider", "paddle")
     .in("status", ["active", "trialing", "past_due", "paused"])
     .order("created_at", { ascending: false })
@@ -880,6 +887,7 @@ async function handleWebhook(req: Request): Promise<Response> {
           status,
           plan,
           billing_interval: billingInterval,
+          module_keys: Array.isArray(meta.module_keys) ? meta.module_keys : ["core"],
           price_id: currentPriceId,
           cancel_at_period_end: sub.scheduled_change?.action === "cancel" || false,
           management_url: mgmtUrls.update_payment_method || mgmtUrls.cancel || null,
@@ -915,6 +923,28 @@ async function handleWebhook(req: Request): Promise<Response> {
             .from("schools")
             .update({ school_plan: plan, trial_ends_at: null })
             .eq("id", school);
+
+          // New professional schools already have explicit module rows. Paddle
+          // activates Core only; optional programmes remain controlled by the
+          // signed agreement and platform billing workflow. Legacy schools with
+          // no explicit rows keep their compatibility behaviour.
+          const { count: explicitModuleCount } = await admin
+            .from("school_module_entitlements")
+            .select("id", { count: "exact", head: true })
+            .eq("school_id", school);
+          if ((explicitModuleCount || 0) > 0) {
+            await admin.from("school_module_entitlements").upsert({
+              school_id: school,
+              module_key: "core",
+              enabled: true,
+              source: "paddle",
+              starts_at: new Date().toISOString(),
+              ends_at: sub.current_billing_period?.ends_at || null,
+              configured_by: purchasedBy,
+              notes: "Core access activated by Paddle subscription",
+              updated_at: new Date().toISOString(),
+            }, { onConflict: "school_id,module_key" });
+          }
         }
 
         break;
