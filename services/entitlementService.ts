@@ -20,6 +20,8 @@ export interface Entitlement {
 
 export interface EntitlementSet {
   plan: string;
+  schoolId: string | null;
+  modules: Record<SchoolModuleKey, boolean>;
   entitlements: Record<string, Entitlement>;
   /** Check if a feature is enabled for the current plan */
   canUse: (featureKey: string) => boolean;
@@ -41,35 +43,42 @@ export async function getEntitlements(force = false): Promise<EntitlementSet> {
     return cachedEntitlements;
   }
 
-  // Get effective tier — now returns the actual plan name (free|core|standard|pro|…)
-  let effectivePlan = 'free';
-  try {
-    const { data: tierData } = await supabase.rpc('get_effective_tier');
-    effectivePlan = (tierData as string) || 'free';
-  } catch {
-    effectivePlan = 'free';
-  }
-
-  // Fetch entitlements for this plan
-  const { data: rows, error } = await supabase
-    .from('billing_entitlements')
-    .select('feature_key, enabled, limit_value')
-    .eq('plan', effectivePlan);
-
+  const { data, error } = await supabase.rpc('get_my_effective_entitlements');
+  const payload = data && typeof data === 'object' && !Array.isArray(data)
+    ? data as Record<string, unknown>
+    : {};
+  const effectivePlan = !error && payload['success'] === true && typeof payload['plan'] === 'string'
+    ? payload['plan']
+    : 'free';
+  const rawEntitlements = !error && payload['entitlements'] && typeof payload['entitlements'] === 'object'
+    ? payload['entitlements'] as Record<string, unknown>
+    : {};
+  const rawModules = !error && payload['modules'] && typeof payload['modules'] === 'object'
+    ? payload['modules'] as Record<string, unknown>
+    : {};
   const entitlements: Record<string, Entitlement> = {};
-
-  if (!error && rows) {
-    for (const row of rows) {
-      entitlements[row.feature_key] = {
-        feature_key: row.feature_key,
-        enabled: row.enabled,
-        limit_value: row.limit_value,
-      };
-    }
+  for (const [featureKey, value] of Object.entries(rawEntitlements)) {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) continue;
+    const row = value as Record<string, unknown>;
+    entitlements[featureKey] = {
+      feature_key: featureKey,
+      enabled: row['enabled'] === true,
+      limit_value: typeof row['limit_value'] === 'number' ? row['limit_value'] : null,
+    };
   }
+
+  const modules: Record<SchoolModuleKey, boolean> = {
+    core: rawModules['core'] === true,
+    cambridge: rawModules['cambridge'] === true,
+    ielts: rawModules['ielts'] === true,
+    writing: rawModules['writing'] === true,
+    admissions: rawModules['admissions'] === true,
+  };
 
   const result: EntitlementSet = {
     plan: effectivePlan,
+    schoolId: typeof payload['school_id'] === 'string' ? payload['school_id'] : null,
+    modules,
     entitlements,
     canUse: (featureKey: string) => {
       const ent = entitlements[featureKey];
@@ -132,7 +141,18 @@ export const FEATURE_KEYS = {
   QUESTION_BANK: 'question_bank',
   REPORTS: 'reports',
   ADMISSION_TESTS: 'admission_tests',
+  WRITING_HUB: 'writing_hub',
   CUSTOM_QUESTIONS: 'custom_questions',
 } as const;
 
 export type FeatureKey = typeof FEATURE_KEYS[keyof typeof FEATURE_KEYS];
+
+export const MODULE_KEYS = {
+  CORE: 'core',
+  CAMBRIDGE: 'cambridge',
+  IELTS: 'ielts',
+  WRITING: 'writing',
+  ADMISSIONS: 'admissions',
+} as const;
+
+export type SchoolModuleKey = typeof MODULE_KEYS[keyof typeof MODULE_KEYS];

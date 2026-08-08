@@ -39,6 +39,10 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
   const [error, setError] = useState<string | null>(null);
   const [schoolName, setSchoolName] = useState<string | null>(null);
   const [schoolId, setSchoolId] = useState<string | null>(null);
+  const [approvedClasses, setApprovedClasses] = useState<AuthService.ApprovedSignupClass[]>([]);
+  const [selectedClassId, setSelectedClassId] = useState('');
+  const [requestedClass, setRequestedClass] = useState('');
+  const [classesLoading, setClassesLoading] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
 
   useEffect(() => {
@@ -107,6 +111,11 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
 
       setSchoolName(result.school_name || 'School');
       setSchoolId(result.school_id || null);
+      setClassesLoading(true);
+      const classesResult = await AuthService.listApprovedSignupClasses(inviteCodeNormalized);
+      setClassesLoading(false);
+      setApprovedClasses(classesResult.success ? classesResult.classes : []);
+      setSelectedClassId('');
       setStep('role');
     } catch (err) {
       setError('Failed to validate invite code. Please try again.');
@@ -130,7 +139,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
   const handleSubmit = async (submittedRole?: 'student' | 'teacher') => {
     const finalRole = submittedRole || role;
     
-    if (finalRole === 'student' && (!grade || !batch)) {
+    if (finalRole === 'student' && !grade) {
       setError('Please select your grade and class');
       return;
     }
@@ -152,7 +161,9 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
             schoolId,
             finalRole,
             finalRole === 'student' ? (grade ?? undefined) : undefined,
-            finalRole === 'student' ? batch : undefined,
+            finalRole === 'student'
+              ? (approvedClasses.find((item) => item.id === selectedClassId)?.class_code as Batch | undefined) ?? 'N/A'
+              : undefined,
             username || undefined,
           );
 
@@ -162,11 +173,16 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
             return;
           }
 
-          if (finalRole === 'student' && grade && batch && batch !== 'N/A') {
-            const classEnrollmentResult = await AuthService.setupSchoolClassEnrollment(String(grade), String(batch));
+          if (finalRole === 'student' && grade && selectedClassId) {
+            const classEnrollmentResult = await AuthService.enrollInApprovedSchoolClass(selectedClassId);
             if (!classEnrollmentResult.success) {
-              console.error('Setup school class enrollment failed:', classEnrollmentResult.error);
+              setError(classEnrollmentResult.error || 'The selected class is no longer available. Please choose again.');
+              setStep('student_details');
+              return;
             }
+          } else if (finalRole === 'student' && grade) {
+            const placementResult = await AuthService.requestSchoolClassPlacement(String(grade), requestedClass);
+            if (!placementResult.success) console.error('Placement request failed:', placementResult.error);
           }
         } else {
           // Fallback: direct code join (legacy path)
@@ -202,11 +218,14 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
               console.error('Failed to update student details after joining school:', updateError);
             }
 
-            if (batch !== 'N/A') {
-              const classEnrollmentResult = await AuthService.setupSchoolClassEnrollment(String(grade), String(batch));
+            if (selectedClassId) {
+              const classEnrollmentResult = await AuthService.enrollInApprovedSchoolClass(selectedClassId);
               if (!classEnrollmentResult.success) {
                 console.error('Setup school class enrollment failed (legacy join):', classEnrollmentResult.error);
               }
+            } else {
+              const placementResult = await AuthService.requestSchoolClassPlacement(String(grade), requestedClass);
+              if (!placementResult.success) console.error('Placement request failed (legacy join):', placementResult.error);
             }
           } else if (finalRole !== 'student') {
             // Teachers (and other non-student roles) also need needs_setup cleared
@@ -580,9 +599,8 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
             onChange={(e) => {
               const newGrade = e.target.value ? (parseInt(e.target.value) as Grade) : null;
               setGrade(newGrade);
-              if (newGrade && !GRADE_TO_BATCH[newGrade].includes(batch)) {
-                setBatch('N/A');
-              }
+              setSelectedClassId('');
+              setBatch('N/A');
               setError(null);
             }}
             className="w-full bg-gray-800 border border-gray-600 rounded-lg p-4 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all"
@@ -597,31 +615,39 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
           </select>
         </label>
 
-        <label className="block">
-          <span className="text-sm font-medium text-gray-300 mb-2 block">Class / Batch *</span>
+        {path === 'school' ? <label className="block">
+          <span className="text-sm font-medium text-gray-300 mb-2 block">Approved class</span>
           <select
-            value={batch}
+            value={selectedClassId}
             onChange={(e) => {
-              setBatch(e.target.value as Batch);
+              setSelectedClassId(e.target.value);
               setError(null);
             }}
             className="w-full bg-gray-800 border border-gray-600 rounded-lg p-4 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all"
-            disabled={isLoading || !grade}
+            disabled={isLoading || classesLoading || !grade}
           >
-            {batchOptions.map((b) => (
-              <option key={b} value={b}>
-                {b}
-              </option>
+            <option value="">{classesLoading ? 'Loading approved classes…' : 'My class is not listed'}</option>
+            {approvedClasses.filter((item) => item.grade_level === String(grade)).map((item) => (
+              <option key={item.id} value={item.id}>{item.class_code}{item.class_name !== item.class_code ? ` · ${item.class_name}` : ''}</option>
             ))}
           </select>
           {!grade && (
             <p className="mt-1 text-xs text-gray-500">Select a grade first</p>
           )}
-        </label>
+          {grade && !selectedClassId && <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-400/10 p-3">
+            <p className="text-xs leading-relaxed text-amber-100">You can finish registration now. Your school administrator will see you in the Awaiting Placement queue.</p>
+            <input value={requestedClass} onChange={(event) => setRequestedClass(event.target.value)} placeholder="Optional: type your class name" className="mt-2 w-full rounded-lg border border-amber-300/30 bg-slate-900 p-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-300" />
+          </div>}
+        </label> : <label className="block">
+          <span className="text-sm font-medium text-gray-300 mb-2 block">Class / Batch *</span>
+          <select value={batch} onChange={(event) => setBatch(event.target.value as Batch)} className="w-full bg-gray-800 border border-gray-600 rounded-lg p-4 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400" disabled={isLoading || !grade}>
+            {batchOptions.map((item) => <option key={item} value={item}>{item}</option>)}
+          </select>
+        </label>}
 
         <button
           onClick={() => handleSubmit()}
-          disabled={!grade || !batch || fullName.trim().length < 5 || !fullName.trim().includes(' ') || isLoading}
+          disabled={!grade || fullName.trim().length < 5 || !fullName.trim().includes(' ') || isLoading}
           className="w-full py-4 rounded-lg font-bold text-lg bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:scale-100"
         >
           {isLoading ? 'Setting up...' : 'Complete Setup'}
@@ -709,6 +735,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
         <SchoolRequestModal
           isOpen={showRequestModal}
           onClose={() => setShowRequestModal(false)}
+          requesterRole={role}
         />
       )}
 

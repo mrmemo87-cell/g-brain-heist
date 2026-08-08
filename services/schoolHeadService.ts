@@ -88,6 +88,18 @@ export interface OwnershipTransferResult {
   new_head_user_id?: string;
 }
 
+export interface SchoolHeadSetupStep {
+  id: string;
+  label: string;
+  completed: boolean;
+  action_tab: string;
+}
+
+export interface SchoolHeadSetupChecklist {
+  requested_modules: string[];
+  steps: SchoolHeadSetupStep[];
+}
+
 const record = (value: unknown): Record<string, unknown> => (
   value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {}
 );
@@ -285,4 +297,30 @@ export async function transferSchoolHeadOwnership(input: {
     error: stringValue(payload['error']) || undefined,
     new_head_user_id: stringValue(payload['new_head_user_id']) || undefined,
   };
+}
+
+export async function getSchoolHeadSetupChecklist(schoolId: string): Promise<SchoolHeadSetupChecklist> {
+  const { data, error } = await supabase.rpc('school_head_get_setup_checklist', { p_school_id: schoolId });
+  if (error) throw new Error(error.message || 'School setup checklist could not be loaded.');
+  const payload = record(data);
+  if (payload['success'] !== true) throw new Error(stringValue(payload['error'], 'School setup checklist returned an invalid response.'));
+  return {
+    requested_modules: Array.isArray(payload['requested_modules']) ? payload['requested_modules'].filter((item): item is string => typeof item === 'string') : ['core'],
+    steps: Array.isArray(payload['steps']) ? payload['steps'].flatMap((item): SchoolHeadSetupStep[] => {
+      const step = record(item);
+      return stringValue(step['id']) ? [{ id: stringValue(step['id']), label: stringValue(step['label']), completed: step['completed'] === true, action_tab: stringValue(step['action_tab'], 'dashboard') }] : [];
+    }) : [],
+  };
+}
+
+export async function updateSchoolHeadSetup(input: { schoolId: string; step: 'identity' | 'modules' | 'launch'; completed?: boolean; requestedModules?: string[] }): Promise<{ success: boolean; error?: string }> {
+  const { data, error } = await supabase.rpc('school_head_update_setup', {
+    p_school_id: input.schoolId,
+    p_step: input.step,
+    p_completed: input.completed ?? true,
+    p_requested_modules: input.requestedModules ?? null,
+  });
+  if (error) return { success: false, error: error.message };
+  const payload = record(data);
+  return payload['success'] === true ? { success: true } : { success: false, error: stringValue(payload['error'], 'Checklist update failed.') };
 }

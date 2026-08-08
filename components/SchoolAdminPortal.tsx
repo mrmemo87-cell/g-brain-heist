@@ -43,6 +43,7 @@ import AdmissionHub from './AdmissionHub';
 import { SchoolBrand } from '../src/components/SchoolBrand';
 import { createSchoolBrand } from '../src/lib/schoolBranding';
 import { friendlySchoolAdminError } from '../src/lib/schoolAdminPresentation';
+import { getEntitlements, type EntitlementSet } from '../services/entitlementService';
 import { useSmartCollapsedNavigation } from '../src/hooks/useSmartCollapsedNavigation';
 import {
   buildSchoolAdminNavigationUrl,
@@ -85,8 +86,6 @@ const SCHOOL_ADMIN_NAV_ITEMS: Array<{ id: MainAdminTab; icon: string; label: str
 ];
 
 const SCHOOL_ADMIN_PRIMARY_TAB_IDS = new Set<MainAdminTab>(['dashboard', 'members', 'classes', 'admissions']);
-const SCHOOL_ADMIN_PRIMARY_NAV_ITEMS = SCHOOL_ADMIN_NAV_ITEMS.filter(({ id }) => SCHOOL_ADMIN_PRIMARY_TAB_IDS.has(id));
-
 const IELTS_TOOL_NAV_ITEMS: IeltsToolNavItem[] = [
   { id: 'ielts-exams', icon: '🧪', label: 'Exams', hint: 'Secure mock exams' },
   { id: 'ielts-practice', icon: '📝', label: 'Assignment Overview', hint: 'Assign & monitor' },
@@ -120,6 +119,25 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
   const [members, setMembers] = useState<SchoolMember[]>([]);
   const [schoolAdmins, setSchoolAdmins] = useState<SchoolMember[]>([]);
   const [currentCapabilities, setCurrentCapabilities] = useState<SchoolAdminService.SchoolCapabilities | null>(null);
+  const [effectiveEntitlements, setEffectiveEntitlements] = useState<EntitlementSet | null>(null);
+  const visibleNavItems = useMemo(() => SCHOOL_ADMIN_NAV_ITEMS.filter(({ id }) => {
+    if (id === 'admissions') return effectiveEntitlements?.modules.admissions === true;
+    if (id === 'cambridge') return effectiveEntitlements?.modules.cambridge === true;
+    if (id === 'ielts') return effectiveEntitlements?.modules.ielts === true;
+    return true;
+  }), [effectiveEntitlements]);
+  const visiblePrimaryNavItems = useMemo(
+    () => visibleNavItems.filter(({ id }) => SCHOOL_ADMIN_PRIMARY_TAB_IDS.has(id)),
+    [visibleNavItems],
+  );
+
+  useEffect(() => {
+    if (!effectiveEntitlements) return;
+    const blocked = (activeTab === 'admissions' && !effectiveEntitlements.modules.admissions)
+      || (activeTab === 'cambridge' && !effectiveEntitlements.modules.cambridge)
+      || (activeTab === 'ielts' && !effectiveEntitlements.modules.ielts);
+    if (blocked) setActiveTab('dashboard');
+  }, [activeTab, effectiveEntitlements]);
 
   const writeNavigationState = useCallback((next: {
     adminTab: MainAdminTab;
@@ -349,7 +367,12 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       setSettingsAllowTeacher(schoolData.school.allow_teacher_signup);
 
       setStats(schoolData.stats);
-      setCurrentCapabilities(await SchoolAdminService.getMySchoolCapabilities(schoolData.school.id));
+      const [capabilities, entitlements] = await Promise.all([
+        SchoolAdminService.getMySchoolCapabilities(schoolData.school.id),
+        getEntitlements(true),
+      ]);
+      setCurrentCapabilities(capabilities);
+      setEffectiveEntitlements(entitlements);
 
       // Load members
       await loadMembers(schoolData.school.id);
@@ -1731,7 +1754,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       <aside className="school-admin-sidebar" aria-label="School administration sections">
         <p className="school-admin-nav-label">Administration</p>
       <nav className="school-admin-tabs" aria-label="School admin navigation">
-        {SCHOOL_ADMIN_NAV_ITEMS.map((tab) => (
+        {SCHOOL_ADMIN_NAV_ITEMS.map((tab) => visibleNavItems.some((visible) => visible.id === tab.id) ? (
           <button
             key={tab.id}
             onClick={() => selectAdminTab(tab.id)}
@@ -1741,7 +1764,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
           >
             {tab.label}
           </button>
-        ))}
+        ) : null)}
       </nav>
       <div className="school-admin-security-note"><strong>Secure school record</strong><span>Changes are limited to authorised administrators.</span></div>
       </aside>
@@ -1755,11 +1778,11 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       {activeTab === 'documents' && <DocumentsTab />}
       {activeTab === 'billing' && <BillingTab />}
       {activeTab === 'settings' && <SettingsTab />}
-      {activeTab === 'cambridge' && <CambridgeTab />}
-      {activeTab === 'admissions' && <AdmissionHub onComplete={() => selectAdminTab('dashboard')} addToast={addToast} />}
+      {activeTab === 'cambridge' && effectiveEntitlements?.modules.cambridge && <CambridgeTab />}
+      {effectiveEntitlements?.modules.admissions && (activeTab === 'admissions' && <AdmissionHub onComplete={() => selectAdminTab('dashboard')} addToast={addToast} />)}
 
       {/* ─── IELTS Academy Hub ────────────────────────────────────── */}
-      {activeTab === 'ielts' && (
+      {activeTab === 'ielts' && effectiveEntitlements?.modules.ielts && (
         <div className="school-admin-themed-tab school-admin-ielts-tab space-y-5">
 
           {/* Banner */}
@@ -1877,7 +1900,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
         >
           <span aria-hidden="true" />
         </button>
-        {SCHOOL_ADMIN_PRIMARY_NAV_ITEMS.map((tab) => (
+        {visiblePrimaryNavItems.map((tab) => (
           <button
             key={tab.id}
             type="button"
@@ -1922,7 +1945,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
               <button type="button" onClick={() => setMobileAdminMenuOpen(false)} aria-label="Close school administration menu">×</button>
             </div>
             <div className="school-admin-mobile-menu-grid">
-              {SCHOOL_ADMIN_NAV_ITEMS.map((tab) => (
+              {visibleNavItems.map((tab) => (
                 <button
                   key={tab.id}
                   type="button"

@@ -22,6 +22,7 @@ import DashboardTab from './admin/tabs/DashboardTab';
 import UsersTab from './admin/tabs/UsersTab';
 import SchoolsTab from './admin/tabs/SchoolsTab';
 import ApplicationsTab from './admin/tabs/ApplicationsTab';
+import BillingAccessTab from './admin/tabs/BillingAccessTab';
 import GameTab from './admin/tabs/GameTab';
 import ClansTab from './admin/tabs/ClansTab';
 import AnalyticsTab from './admin/tabs/AnalyticsTab';
@@ -40,7 +41,7 @@ interface AdminPortalProps {
   addToast: (message: string, type: ToastMessage['type']) => void;
 }
 
-type AdminTab = 'dashboard' | 'users' | 'schools' | 'applications' | 'game' | 'clans' | 'analytics' | 'cambridge' | 'ielts' | 'system';
+type AdminTab = 'dashboard' | 'users' | 'schools' | 'applications' | 'billing' | 'game' | 'clans' | 'analytics' | 'cambridge' | 'ielts' | 'system';
 
 const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast }) => {
   const PAGE_SIZE = 50;
@@ -1864,7 +1865,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         {/* Tab Navigation - Epic Style */}
         <div className="admin-portal-tabs max-w-6xl mx-auto mb-6">
           <div className="admin-portal-tablist flex flex-wrap gap-2 justify-center" role="tablist" aria-label="Admin portal navigation">
-            {(['dashboard', 'users', 'schools', 'applications', 'game', 'clans', 'analytics', 'cambridge', 'ielts', 'system'] as AdminTab[]).map((tab) => (
+            {(['dashboard', 'users', 'schools', 'applications', 'billing', 'game', 'clans', 'analytics', 'cambridge', 'ielts', 'system'] as AdminTab[]).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -1896,6 +1897,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
           {activeTab === 'users' && <UsersTab />}
           {activeTab === 'schools' && <SchoolsTab />}
           {activeTab === 'applications' && <ApplicationsTab />}
+          {activeTab === 'billing' && <BillingAccessTab />}
           {activeTab === 'game' && <GameTab />}
           {activeTab === 'clans' && <ClansTab />}
           {activeTab === 'analytics' && <AnalyticsTab />}

@@ -32,6 +32,7 @@ import EmailVerificationGate from './components/EmailVerificationGate';
 import UpgradeModal from './components/UpgradeModal';
 import DashboardTourOverlay from './components/onboarding/DashboardTourOverlay';
 import { fetchEffectiveTier, isPro as isProTier, invalidateTierCache, fetchSchoolPlanDetails, type AccountTier } from './services/tierService';
+import { getEntitlements, type EntitlementSet } from './services/entitlementService';
 
 // Lazy-loaded: only fetched when the user actually opens these views/modals
 // Uses lazyRetry to auto-recover from stale deployment chunk errors
@@ -82,6 +83,7 @@ const GRADE_TO_BATCH: Record<Grade, Batch[]> = {
   12: ['12A', '12B', '12C', 'N/A'],
 };
 const DEFAULT_BATCH: Batch = 'N/A';
+const formatModuleName = (module: string) => ({ cambridge: 'Cambridge', ielts: 'IELTS', writing: 'Writing Hub', admissions: 'Admission Hub' }[module] || module);
 interface AppProps {
   onLogout: () => void;
 }
@@ -187,6 +189,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [sessionMissing, setSessionMissing] = useState(false);
   const [isInteractive, setIsInteractive] = useState(false);
   const [accountTier, setAccountTier] = useState<AccountTier>('free');
+  const [effectiveEntitlements, setEffectiveEntitlements] = useState<EntitlementSet | null>(null);
   const [isPilotPlan, setIsPilotPlan] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeFeatureLabel, setUpgradeFeatureLabel] = useState<string | undefined>(undefined);
@@ -226,6 +229,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const isPlayerMode = appMode === 'player';
   const hasSchool = Boolean(profile?.school_id);
   const isProUser = isProTier(accountTier);
+  const canUseSchoolModule = useCallback((module: 'cambridge' | 'ielts' | 'writing' | 'admissions') => (
+    Boolean(hasSchool && effectiveEntitlements?.modules[module])
+  ), [effectiveEntitlements, hasSchool]);
   const isTeacherRole = schoolCapabilities?.can_teach ?? profile?.role === 'teacher';
   const isSchoolAdminRole = isUserSchoolAdmin;
   const isSchoolHeadRole = Boolean(schoolCapabilities?.is_owner && schoolCapabilities.account_type === 'school_head');
@@ -317,6 +323,17 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }, []);
 
   useEffect(() => {
+    if (!profile?.id) { setEffectiveEntitlements(null); return; }
+    let cancelled = false;
+    void getEntitlements(true).then((entitlements) => {
+      if (!cancelled) setEffectiveEntitlements(entitlements);
+    }).catch(() => {
+      if (!cancelled) setEffectiveEntitlements(null);
+    });
+    return () => { cancelled = true; };
+  }, [profile?.id]);
+
+  useEffect(() => {
     if (!caps || !isPlayerMode) return;
 
     const now = new Date();
@@ -357,6 +374,11 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }, [addToast, caps, isPlayerMode]);
 
   const handleViewChange = (nextView: typeof view) => {
+    const gatedModule = nextView === 'cambridge' ? 'cambridge' : nextView === 'writing' ? 'writing' : nextView === 'ielts' ? 'ielts' : null;
+    if (gatedModule && hasSchool && !canUseSchoolModule(gatedModule)) {
+      addToast(`${formatModuleName(gatedModule)} is not included in your school's current agreement.`, 'info');
+      return;
+    }
     if (schoolCapabilities?.can_administer && schoolCapabilities.can_teach && (nextView === 'school_admin' || nextView === 'school_head' || nextView === 'teacher')) {
       localStorage.setItem(`school_workspace:${schoolCapabilities.school_id}`, nextView);
     }
@@ -2334,9 +2356,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
                     {studentDashboardTab === 'learn' && (
                       <div className="student-learning-grid">
-                        {isStudent && <article className="student-feed-card student-learning-card"><div className="student-learning-card__icon" aria-hidden>✍️</div><div className="student-learning-card__copy"><span className="student-learning-card__eyebrow">Writing coach</span><h2>Writing Hub</h2><p>Draft, repair, and improve with guided AI coaching.</p></div><button type="button" onMouseEnter={preloadWritingHub} onFocus={preloadWritingHub} onClick={() => handleViewChange('writing')} className="student-primary-button">Open Writing Hub <span aria-hidden>→</span></button></article>}
-                        <article className="student-feed-card student-learning-card"><div className="student-learning-card__icon" aria-hidden>🎯</div><div className="student-learning-card__copy"><span className="student-learning-card__eyebrow">Exam preparation</span><h2>IELTS Prep</h2><p>Focused preparation across reading, writing, listening, and speaking.</p></div><button type="button" disabled={!hasSchool} onClick={() => { window.location.href = '/ielts'; }} className="student-primary-button">{hasSchool ? 'Open IELTS Prep' : 'School access required'} <span aria-hidden>→</span></button></article>
-                        <article className="student-feed-card student-learning-card"><div className="student-learning-card__icon" aria-hidden>🧪</div><div className="student-learning-card__copy"><span className="student-learning-card__eyebrow">Subject practice</span><h2>Cambridge Tests</h2><p>Practice Cambridge reading, grammar, and science tests.</p></div><button type="button" disabled={!hasSchool} onClick={() => handleViewChange('cambridge')} className="student-primary-button">{hasSchool ? 'Open Cambridge Tests' : 'School access required'} <span aria-hidden>→</span></button></article>
+                        {isStudent && (!hasSchool || canUseSchoolModule('writing')) && <article className="student-feed-card student-learning-card"><div className="student-learning-card__icon" aria-hidden>✍️</div><div className="student-learning-card__copy"><span className="student-learning-card__eyebrow">Writing coach</span><h2>Writing Hub</h2><p>Draft, repair, and improve with guided AI coaching.</p></div><button type="button" onMouseEnter={preloadWritingHub} onFocus={preloadWritingHub} onClick={() => handleViewChange('writing')} className="student-primary-button">Open Writing Hub <span aria-hidden>→</span></button></article>}
+                        {canUseSchoolModule('ielts') && <article className="student-feed-card student-learning-card"><div className="student-learning-card__icon" aria-hidden>🎯</div><div className="student-learning-card__copy"><span className="student-learning-card__eyebrow">Exam preparation</span><h2>IELTS Prep</h2><p>Focused preparation across reading, writing, listening, and speaking.</p></div><button type="button" onClick={() => { window.location.href = '/ielts'; }} className="student-primary-button">Open IELTS Prep <span aria-hidden>→</span></button></article>}
+                        {canUseSchoolModule('cambridge') && <article className="student-feed-card student-learning-card"><div className="student-learning-card__icon" aria-hidden>🧪</div><div className="student-learning-card__copy"><span className="student-learning-card__eyebrow">Subject practice</span><h2>Cambridge Tests</h2><p>Practice Cambridge reading, grammar, and science tests.</p></div><button type="button" onClick={() => handleViewChange('cambridge')} className="student-primary-button">Open Cambridge Tests <span aria-hidden>→</span></button></article>}
                       </div>
                     )}
 
@@ -2347,8 +2369,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                         onGoToClan={() => dashboardNavigate('clan')} onOpenRivalry={() => handleViewChange('rivalry')}
                         onVisitInventory={() => handleViewChange('inventory')} onViewLeaderboard={() => dashboardNavigate('leaderboard')}
                         onViewAchievements={() => handleViewChange('achievements')} onOpenTournament={() => handleViewChange('tournament')}
-                        onOpenIeltsPrep={hasSchool ? () => { window.location.href = '/ielts'; } : undefined}
-                        onOpenCambridgeTests={hasSchool ? () => handleViewChange('cambridge') : undefined} onOpenLockdown={() => handleViewChange('lockdown')}
+                        onOpenIeltsPrep={canUseSchoolModule('ielts') ? () => { window.location.href = '/ielts'; } : undefined}
+                        onOpenCambridgeTests={canUseSchoolModule('cambridge') ? () => handleViewChange('cambridge') : undefined} onOpenLockdown={() => handleViewChange('lockdown')}
                         profile={profile!} isIndividual={!hasSchool} hasPendingAssignment={Boolean(activeAssignment)}
                         clanBadgeCount={pendingClanRequests + unreadClanChatMessages} schoolName={profile?.school_name} schoolLogoUrl={profile?.school_logo_url}
                         isPro={isProUser} isPilot={isPilotPlan} onUpgrade={(featureLabel) => { setUpgradeFeatureLabel(featureLabel); setShowUpgradeModal(true); }}

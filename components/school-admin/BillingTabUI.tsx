@@ -8,6 +8,7 @@ import {
 
 interface BillingTabProps {
   planDetails: SchoolPlanDetails | null;
+  canManageBilling: boolean;
   loading: boolean;
   billingAction: string | null;
   billingInterval: 'monthly' | 'yearly';
@@ -21,6 +22,7 @@ const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible
 
 const BillingTab: React.FC<BillingTabProps> = ({
   planDetails,
+  canManageBilling,
   loading,
   billingAction,
   billingInterval,
@@ -76,10 +78,10 @@ const BillingTab: React.FC<BillingTabProps> = ({
               {planLabel[plan] || plan}
             </h3>
             <p className="mt-1 max-w-2xl text-sm text-slate-600">
-              {isNone && 'Your school is using the free Lockdown mode. Start a pilot or subscribe to unlock everything.'}
-              {isPilot && isActive && `${trialDaysLeft} day${trialDaysLeft !== 1 ? 's' : ''} remaining. Subscribe to keep access after the trial.`}
+              {isNone && 'Your school is using the free Lockdown mode. The School Head can start a pilot or subscribe.'}
+              {isPilot && isActive && `${trialDaysLeft} day${trialDaysLeft !== 1 ? 's' : ''} remaining. Contracted programmes remain separate from Core access.`}
               {trialExpired && 'Your pilot trial has expired. Subscribe to restore full access.'}
-              {isPaid && 'All features are unlocked for your school.'}
+              {isPaid && 'Core access is active. Optional programmes depend on your school agreement.'}
             </p>
           </div>
           {planDetails.seats && (isPaid || (isPilot && isActive)) && (
@@ -93,7 +95,9 @@ const BillingTab: React.FC<BillingTabProps> = ({
         {planDetails.current_members > 0 && <p className="mt-3 text-xs text-slate-500">Current members: {planDetails.current_members}</p>}
       </section>
 
-      {isNone && (
+      {!canManageBilling && <section className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-950" role="status"><h3 className="font-semibold">Read-only billing access</h3><p className="mt-1">Only the School Head can start trials, purchase plans, or manage payment details. Ask your School Head when a subscription change is needed.</p></section>}
+
+      {isNone && canManageBilling && (
         <section className="rounded-xl border border-cyan-200 bg-cyan-50 p-5 shadow-sm">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -109,7 +113,7 @@ const BillingTab: React.FC<BillingTabProps> = ({
         </section>
       )}
 
-      {!isPaid && (
+      {!isPaid && canManageBilling && (
         <>
           <div className="billing-plan-heading flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -177,7 +181,7 @@ const BillingTab: React.FC<BillingTabProps> = ({
         </>
       )}
 
-      {isPaid && (
+      {isPaid && canManageBilling && (
         <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <h4 className="mb-2 font-semibold text-slate-900">Manage Subscription</h4>
           <p className="mb-3 text-sm text-slate-600">Update your payment method, change plans, or cancel via the Paddle customer portal.</p>
