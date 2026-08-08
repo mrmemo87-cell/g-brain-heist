@@ -1104,12 +1104,28 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     const enrolledClassId = classId;
 
     const previousClassId = studentAssignments[studentId] || null;
+    const reason = window.prompt('Placement reason (required for the school record):', previousClassId ? 'Administrator-approved class transfer' : 'Administrator-approved initial placement')?.trim();
+    if (!reason || reason.length < 3) {
+      addToast('Enter a clear placement reason before saving.', 'error');
+      return;
+    }
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const effectiveDate = window.prompt('Effective date (YYYY-MM-DD):', today)?.trim();
+    if (!effectiveDate || !/^\d{4}-\d{2}-\d{2}$/.test(effectiveDate)) {
+      addToast('Enter the effective date as YYYY-MM-DD.', 'error');
+      return;
+    }
+    if (!window.confirm(`Confirm this reviewed placement effective ${effectiveDate}?`)) return;
     setStudentSaving(true);
-    const result = await SchoolAdminService.moveStudentToClassViaRPC(
+    const result = await SchoolAdminService.transferStudentPlacement({
+      schoolId: school.id,
       studentId,
-      classId,
-      previousClassId
-    );
+      expectedFromClassId: previousClassId,
+      toClassId: classId,
+      reason,
+      effectiveDate,
+    });
     setStudentSaving(false);
 
     if (!result.success) {
@@ -1119,7 +1135,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
 
     const destinationClass = classes.find((schoolClass) => schoolClass.id === enrolledClassId);
     const authoritativeGrade = result.grade ?? destinationClass?.grade_level ?? null;
-    const authoritativeBatch = result.batch ?? destinationClass?.class_code ?? null;
+    const authoritativeBatch = result.batch ?? result.classCode ?? destinationClass?.class_code ?? null;
 
     addToast(result.message || 'Academic placement saved', 'success');
 
