@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useSmartCollapsedNavigation } from '../src/hooks/useSmartCollapsedNavigation';
+import CollapsedNavTooltip from './CollapsedNavTooltip';
 
 export type StudentDashboardDestination =
   | 'home'
@@ -125,6 +126,7 @@ const StudentDashboardNavigation: React.FC<StudentDashboardNavigationProps> = ({
   onNavigate,
 }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(getInitialSidebarCollapsed);
+  const [navTooltip, setNavTooltip] = useState<{ label: string; anchor: HTMLElement } | null>(null);
 
   useEffect(() => {
     const compactViewport = window.matchMedia(STUDENT_SIDEBAR_COMPACT_QUERY);
@@ -194,6 +196,10 @@ const StudentDashboardNavigation: React.FC<StudentDashboardNavigationProps> = ({
                 aria-label={destination.label}
                 title={sidebarCollapsed ? destination.label : undefined}
                 data-label={destination.label}
+                onMouseEnter={(event) => sidebarCollapsed && setNavTooltip({ label: destination.label, anchor: event.currentTarget })}
+                onMouseLeave={() => setNavTooltip(null)}
+                onFocus={(event) => sidebarCollapsed && setNavTooltip({ label: destination.label, anchor: event.currentTarget })}
+                onBlur={() => setNavTooltip(null)}
               >
                 <span className="student-dashboard-nav-icon" aria-hidden>{destination.icon}</span>
                 <span className="student-dashboard-nav-label">{destination.label}</span>
@@ -205,6 +211,7 @@ const StudentDashboardNavigation: React.FC<StudentDashboardNavigationProps> = ({
       </aside>
 
       {typeof document !== 'undefined' && createPortal(bottomNavigation, document.body)}
+      {navTooltip && <CollapsedNavTooltip label={navTooltip.label} anchor={navTooltip.anchor} />}
     </>
   );
 };
