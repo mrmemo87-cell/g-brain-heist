@@ -1754,7 +1754,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       <aside className="school-admin-sidebar" aria-label="School administration sections">
         <p className="school-admin-nav-label">Administration</p>
       <nav className="school-admin-tabs" aria-label="School admin navigation">
-        {visibleNavItems.map((tab) => (
+        {SCHOOL_ADMIN_NAV_ITEMS.map((tab) => visibleNavItems.some((visible) => visible.id === tab.id) ? (
           <button
             key={tab.id}
             onClick={() => selectAdminTab(tab.id)}
@@ -1764,7 +1764,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
           >
             {tab.label}
           </button>
-        ))}
+        ) : null)}
       </nav>
       <div className="school-admin-security-note"><strong>Secure school record</strong><span>Changes are limited to authorised administrators.</span></div>
       </aside>
@@ -1779,7 +1779,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       {activeTab === 'billing' && <BillingTab />}
       {activeTab === 'settings' && <SettingsTab />}
       {activeTab === 'cambridge' && effectiveEntitlements?.modules.cambridge && <CambridgeTab />}
-      {activeTab === 'admissions' && effectiveEntitlements?.modules.admissions && <AdmissionHub onComplete={() => selectAdminTab('dashboard')} addToast={addToast} />}
+      {effectiveEntitlements?.modules.admissions && (activeTab === 'admissions' && <AdmissionHub onComplete={() => selectAdminTab('dashboard')} addToast={addToast} />)}
 
       {/* ─── IELTS Academy Hub ────────────────────────────────────── */}
       {activeTab === 'ielts' && effectiveEntitlements?.modules.ielts && (
