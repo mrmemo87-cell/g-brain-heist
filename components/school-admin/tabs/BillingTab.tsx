@@ -11,12 +11,13 @@ import {
 
 const BillingTab: React.FC = () => {
   const {
-    addToast, billingAction, billingInterval, billingLoading, planDetails, setBillingAction, setBillingInterval, setBillingLoading, setPlanDetails,
+    addToast, billingAction, billingInterval, billingLoading, currentCapabilities, planDetails, setBillingAction, setBillingInterval, setBillingLoading, setPlanDetails,
   } = useSchoolAdmin();
 
   return (
     <div className="school-admin-themed-tab space-y-6"><section className="admin-section-heading"><div><p className="school-admin-eyebrow">Subscription</p><h2>Plan &amp; Billing</h2><p>Review your school plan, billing cycle and available platform capacity.</p></div></section><BillingTabUI
       planDetails={planDetails}
+      canManageBilling={Boolean(currentCapabilities?.can_manage_billing)}
       loading={billingLoading}
       billingAction={billingAction}
       billingInterval={billingInterval}
@@ -37,7 +38,7 @@ const BillingTab: React.FC = () => {
         try {
           const result = await startPilot();
           if (result.success) {
-            addToast('🚀 30-day pilot activated! All features unlocked.', 'success');
+            addToast('🚀 30-day Core pilot activated.', 'success');
             invalidateTierCache();
             const details = await fetchSchoolPlanDetails();
             setPlanDetails(details);
