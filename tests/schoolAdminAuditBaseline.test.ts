@@ -36,7 +36,7 @@ test('teacher desktop navigation remains persistent, accessible, and user-collap
 test('school administration features stay within one complete portal shell', () => {
   const expectedTabs = [
     ['dashboard', 'Overview'],
-    ['members', 'Students & Staff'],
+    ['members', 'Staff & Students'],
     ['teachers', 'Teacher Assignments'],
     ['classes', 'Classes & Registration'],
     ['subjects', 'Curriculum & Subjects'],

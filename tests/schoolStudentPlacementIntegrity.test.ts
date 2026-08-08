@@ -75,13 +75,15 @@ test('the portal sends class identity only and refreshes without an artificial r
   assert.match(enrollmentHandler, /listClassStudents/);
 });
 
-test('class selection is the only editable placement input across admin views', () => {
-  assert.match(memberModal, /readOnly aria-label="Year group \(set by class\)"/);
-  assert.match(memberModal, /setSelectedGrade\(selectedClass\?\.grade_level \?\? ''\)/);
+test('student management limits class selection to the chosen academic year', () => {
+  assert.match(memberModal, /aria-label="Academic year \(grade\)"/);
+  assert.match(memberModal, /classesForAcademicYear\.map/);
+  assert.match(memberModal, /setSelectedClassId\(''\)/);
   assert.match(memberModal, /disabled=\{studentSaving \|\| !selectedClassId\}/);
   assert.doesNotMatch(memberModal, /handleEnrollStudent\(selectedMember\.user_id, selectedClassId, selectedGrade\)/);
-  assert.match(studentsTab, /readOnly[\s\S]*aria-label="Year group \(set by class\)"/);
-  assert.match(studentsTab, /filter\(\(cls\) => cls\.is_active\)/);
-  assert.match(memberDirectory, /grade: assignedClass\?\.grade_level \?\? member\.grade/);
-  assert.match(memberDirectory, /batch: assignedClass\?\.class_code \?\? member\.batch/);
+  assert.match(studentsTab, /aria-label="Academic year \(grade\)"/);
+  assert.match(studentsTab, /classesForAcademicYear\.map/);
+  assert.match(studentsTab, /Select academic year first/);
+  assert.match(memberDirectory, /grade: assignedClass\?\.grade_level \?\? teacherClass\?\.grade_level \?\? member\.grade/);
+  assert.match(memberDirectory, /batch: assignedClass\?\.class_code \?\? teacherClass\?\.class_code \?\? member\.batch/);
 });

@@ -29,6 +29,7 @@ import {
 // ── Types ──
 
 type AdmTab = 'create' | 'overview' | 'pools' | 'blueprints' | 'forms' | 'candidates' | 'results' | 'audit';
+type CandidateSort = 'name' | 'academic_year' | 'status';
 
 interface AdmissionHubProps {
   onComplete: () => void;
@@ -475,6 +476,11 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   // Candidate search
   const [candSearch, setCandSearch] = useState('');
   const [candStatusFilter, setCandStatusFilter] = useState<string>('all');
+  const [candAcademicYearFilter, setCandAcademicYearFilter] = useState('all');
+  const [candidateSort, setCandidateSort] = useState<CandidateSort>('name');
+  const [candidateSortDirection, setCandidateSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [candidatePage, setCandidatePage] = useState(1);
+  const [candidatePageSize, setCandidatePageSize] = useState(10);
 
   // Share modal
   const [shareModalCandidate, setShareModalCandidate] = useState<AdmCandidate | null>(null);
@@ -1145,8 +1151,29 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
     if (candStatusFilter !== 'all') {
       list = list.filter(c => c.status === candStatusFilter);
     }
-    return list;
-  }, [candidates, candSearch, candStatusFilter]);
+    if (candAcademicYearFilter !== 'all') {
+      list = list.filter(c => String(c.applied_grade ?? '') === candAcademicYearFilter);
+    }
+    const direction = candidateSortDirection === 'asc' ? 1 : -1;
+    return list.slice().sort((left, right) => {
+      const values: Record<CandidateSort, [string, string]> = {
+        name: [left.full_name || '', right.full_name || ''],
+        academic_year: [String(left.applied_grade ?? ''), String(right.applied_grade ?? '')],
+        status: [left.status || '', right.status || ''],
+      };
+      return values[candidateSort][0].localeCompare(values[candidateSort][1], undefined, { numeric: true }) * direction;
+    });
+  }, [candidates, candSearch, candStatusFilter, candAcademicYearFilter, candidateSort, candidateSortDirection]);
+  const candidateAcademicYears = useMemo(() => Array.from(new Set(candidates.filter(c => c.applied_grade != null).map(c => Number(c.applied_grade)).filter(Number.isFinite))).sort((a, b) => a - b), [candidates]);
+  const candidateTotalPages = Math.max(1, Math.ceil(filteredCandidates.length / candidatePageSize));
+  const pagedCandidates = filteredCandidates.slice((candidatePage - 1) * candidatePageSize, candidatePage * candidatePageSize);
+  useEffect(() => { setCandidatePage(1); }, [candSearch, candStatusFilter, candAcademicYearFilter, candidateSort, candidateSortDirection, candidatePageSize]);
+  useEffect(() => { setCandidatePage(page => Math.min(page, candidateTotalPages)); }, [candidateTotalPages]);
+  const changeCandidateSort = (nextSort: CandidateSort) => {
+    if (candidateSort === nextSort) setCandidateSortDirection(current => current === 'asc' ? 'desc' : 'asc');
+    else { setCandidateSort(nextSort); setCandidateSortDirection('asc'); }
+  };
+  const candidateSortLabel = (label: string, sort: CandidateSort) => `${label}${candidateSort === sort ? (candidateSortDirection === 'asc' ? ' ↑' : ' ↓') : ''}`;
 
   const bandDistribution = useMemo(() => {
     const counts: Record<string, number> = { A: 0, B: 0, C: 0, D: 0, E: 0 };
@@ -1829,7 +1856,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 <span className="text-2xl">📋</span>
                 <div className="flex-1">
                   <h4 className="text-sm font-semibold text-slate-900 mb-1">Paste candidate list</h4>
-                  <p className="text-xs text-slate-600 mb-3">One candidate per line. Format: <span className="font-mono text-cyan-400">Name, Email, Phone, Grade</span> (comma or tab separated)</p>
+                  <p className="text-xs text-slate-600 mb-3">One candidate per line. Format: <span className="font-mono text-cyan-700">Name, Email, Phone, Academic year (grade)</span> (comma or tab separated)</p>
                   <textarea
                     className={`${inputClass} h-32 font-mono text-xs`}
                     value={bulkText}
@@ -1866,11 +1893,11 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   <input className={inputClass} value={candPhone} onChange={e => setCandPhone(e.target.value)} placeholder="+971 50 123 4567" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Applied Grade *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Applied academic year (grade) *</label>
                   <input type="number" className={inputClass} value={candAppliedGrade} onChange={e => setCandAppliedGrade(e.target.value)} placeholder="9" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Current Grade <span className="text-slate-500 font-normal">(optional)</span></label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Current academic year (grade) <span className="text-slate-500 font-normal">(optional)</span></label>
                   <input type="number" className={inputClass} value={candCurrentGrade} onChange={e => setCandCurrentGrade(e.target.value)} placeholder="7" />
                 </div>
                 <div>
@@ -1921,28 +1948,21 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
           {/* Search & Filter Bar */}
           {candidates.length > 0 && (
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="relative flex-1 min-w-[200px]">
+            <div className="admission-candidate-toolbar">
+              <div className="relative admission-candidate-search">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">🔍</span>
                 <input
                   className={`${inputClass} pl-9`}
                   value={candSearch}
                   onChange={e => setCandSearch(e.target.value)}
+                  aria-label="Search candidates by name or contact"
                   placeholder="Search by name or contact…"
                 />
               </div>
-              <select
-                className={`${inputClass} w-auto`}
-                value={candStatusFilter}
-                onChange={e => setCandStatusFilter(e.target.value)}
-              >
-                <option value="all">All Status</option>
-                <option value="registered">Registered</option>
-                <option value="testing">Testing</option>
-                <option value="completed">Completed</option>
-                <option value="placed">Placed</option>
-              </select>
-              <span className="text-xs text-slate-500">{filteredCandidates.length} of {candidates.length}</span>
+              <label><span>Academic year (grade)</span><select className={inputClass} value={candAcademicYearFilter} onChange={e => setCandAcademicYearFilter(e.target.value)}><option value="all">All academic years</option>{candidateAcademicYears.map(grade => <option key={grade} value={grade}>Grade {grade}</option>)}</select></label>
+              <label><span>Status</span><select className={inputClass} value={candStatusFilter} onChange={e => setCandStatusFilter(e.target.value)}><option value="all">All statuses</option><option value="registered">Registered</option><option value="testing">Testing</option><option value="completed">Completed</option><option value="placed">Placed</option></select></label>
+              <label><span>Rows</span><select className={inputClass} value={candidatePageSize} onChange={e => setCandidatePageSize(Number(e.target.value))}><option value={10}>10</option><option value={25}>25</option><option value={50}>50</option></select></label>
+              <span className="admission-candidate-count">{filteredCandidates.length} of {candidates.length}</span>
             </div>
           )}
 
@@ -1960,19 +1980,18 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
               tabIndex={0}
             >
               <table className="admission-candidate-table w-full text-sm">
+                <colgroup><col className="admission-candidate-col"/><col className="admission-academic-year-col"/><col className="admission-status-col"/><col className="admission-tests-col"/><col className="admission-actions-col"/></colgroup>
                 <thead>
                   <tr className="text-left text-xs text-slate-600 border-b border-slate-200">
-                    <th className="pb-2 pr-4">Name</th>
-                    <th className="pb-2 pr-4">Contact</th>
-                    <th className="pb-2 pr-4">Grade</th>
-                    <th className="pb-2 pr-4">Status</th>
-                    <th className="pb-2 pr-4">Send Test</th>
-                    <th className="pb-2 pr-4">View details</th>
-                    <th className="admission-delete-column" aria-label="Actions"></th>
+                    <th className="admission-candidate-sticky"><button type="button" className="admin-sort-button" onClick={() => changeCandidateSort('name')}>{candidateSortLabel('Candidate', 'name')}</button></th>
+                    <th><button type="button" className="admin-sort-button" onClick={() => changeCandidateSort('academic_year')}>{candidateSortLabel('Academic year (grade)', 'academic_year')}</button></th>
+                    <th><button type="button" className="admin-sort-button" onClick={() => changeCandidateSort('status')}>{candidateSortLabel('Status', 'status')}</button></th>
+                    <th>Admission tests</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800">
-                  {filteredCandidates.map((c) => {
+                  {pagedCandidates.map((c, candidateIndex) => {
                     const publishedForms = forms.filter(f => f.status === 'published' && !isFormCodeSubjectConflict(f, blueprints));
                     const gradeMatchingPublishedForms = publishedForms.filter(f => getFormGrade(f, blueprints) === c.applied_grade);
                     const matchingForms = AdmService.getCurrentAdmissionPackageForms(gradeMatchingPublishedForms, blueprints, c.applied_grade);
@@ -1982,19 +2001,14 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                     const attemptedFormIds = new Set(attempts.filter(a => a.candidate_id === c.id).map(a => a.form_id));
                     const historyForms = forms.filter(f => attemptedFormIds.has(f.id) && !matchingForms.some(pf => pf.id === f.id));
                     return (
-                      <tr key={c.id} className="admission-candidate-row text-slate-700 hover:bg-slate-100 transition">
-                        <td className="py-3 pr-4">
-                          <div className="font-medium text-slate-900">{c.full_name}</div>
-                          <div className="text-[10px] text-slate-500 mt-0.5">Candidate-specific links are private</div>
+                      <tr key={c.id} className={`admission-candidate-row text-slate-700 transition ${candidateIndex % 2 === 0 ? 'is-even' : 'is-odd'}`}>
+                        <td className="admission-candidate-sticky">
+                          <div className="admission-candidate-identity"><strong>{c.full_name}</strong>{c.email && <span>{c.email}</span>}{c.parent_phone && <span>{c.parent_phone}</span>}<small>Private candidate links</small></div>
                         </td>
-                        <td className="py-3 pr-4 text-xs">
-                          {c.email && <div>{c.email}</div>}
-                          {c.parent_phone && <div className="text-slate-500">{c.parent_phone}</div>}
-                          {!c.email && !c.parent_phone && <span className="text-slate-600">—</span>}
-                        </td>
-                        <td className="py-3 pr-4 text-xs">{c.applied_grade || '—'}</td>
-                        <td className="py-3 pr-4">
+                        <td><strong>Grade {c.applied_grade || '—'}</strong>{c.current_grade != null && <span className="admin-table-subline">Current: Grade {c.current_grade}</span>}</td>
+                        <td>
                           <div className="flex flex-col gap-1.5">
+                            <div className="flex items-center gap-2"><span className="text-[10px] font-semibold text-slate-600">Candidate</span>{statusPill(c.status)}</div>
                             {[...matchingForms, ...historyForms].slice(0, 3).map(f => {
                               const attempt = attempts.find(a => a.candidate_id === c.id && a.form_id === f.id);
                               return (
@@ -2008,21 +2022,21 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                             {matchingForms.length > 0 && <span className="text-[10px] text-emerald-700">Showing current Grade {c.applied_grade || '—'} admission package</span>}
                           </div>
                         </td>
-                        <td className="py-3 pr-4 min-w-[280px]">
-                          <div className="space-y-2">
+                        <td>
+                          <div className="admission-test-stack">
                             {assignableForms.length > 0 ? assignableForms.map(f => {
                               const link = AdmService.buildTestLink(window.location.origin, c.token, f.form_code);
                               const attempt = attempts.find(a => a.candidate_id === c.id && a.form_id === f.id);
                               const isOtherGrade = getFormGrade(f, blueprints) !== c.applied_grade;
                               return (
-                                <div key={f.id} className={`rounded-lg border p-2 ${isOtherGrade ? 'border-amber-600/40 bg-amber-950/20' : 'border-slate-200 bg-slate-50'}`}>
-                                  <div className="flex items-start justify-between gap-2">
-                                    <div>
+                                <div key={f.id} className={`admission-test-card ${isOtherGrade ? 'is-other-grade' : ''}`}>
+                                  <div className="admission-test-card-content">
+                                    <div className="admission-test-card-title">
                                       <div className="text-xs font-semibold text-slate-900">{getAdmissionFormTitle(f, blueprints)}</div>
                                       <div className="text-[10px] text-slate-600">Code <span className="font-mono">{f.form_code}</span> · {getAttemptLabel(attempt, true)}</div>
                                       {isOtherGrade && <div className="text-[10px] text-amber-700">Other grade — send only by exception</div>}
                                     </div>
-                                    <div className="flex items-center gap-1">
+                                    <div className="admission-test-actions">
                                       {isFinalAdmissionAttempt(attempt) ? (
                                         <>
                                           <button onClick={() => handleViewReport(attempt!.id)} className="text-xs px-2 py-1 rounded bg-blue-600/30 text-blue-700 hover:bg-blue-600/50 transition">View result</button>
@@ -2048,19 +2062,18 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                             )}
                           </div>
                         </td>
-                        <td className="py-3">
-                          <button onClick={() => setCandidateFileId(c.id)} className="text-xs px-2 py-1 rounded bg-amber-600/20 text-amber-700 hover:bg-amber-600/40 transition" title="View candidate details">View candidate</button>
-                        </td>
-                        <td className="admission-delete-column">
-                          <button onClick={() => handleDeleteCandidate(c.id)} className="school-admin-icon-button school-admin-icon-button--danger" title="Delete candidate" aria-label={`Delete ${c.full_name}`}>🗑</button>
+                        <td>
+                          <div className="admission-candidate-actions"><button onClick={() => setCandidateFileId(c.id)} className="admin-button-primary admin-button-small" title="View candidate details">View candidate</button><button onClick={() => handleDeleteCandidate(c.id)} className="admin-button-danger admin-button-small" title="Delete candidate" aria-label={`Delete ${c.full_name}`}>Delete</button></div>
                         </td>
                       </tr>
                     );
                   })}
+                  {!pagedCandidates.length && <tr><td colSpan={5}><div className="community-empty">No candidates match the current filters.</div></td></tr>}
                 </tbody>
               </table>
             </div>
           )}
+          {filteredCandidates.length > 0 && <footer className="community-pagination admission-candidate-pagination"><span>Page {candidatePage} of {candidateTotalPages} · {filteredCandidates.length} candidate{filteredCandidates.length === 1 ? '' : 's'}</span><div><button disabled={candidatePage === 1} onClick={() => setCandidatePage(page => Math.max(1, page - 1))}>Previous</button><button disabled={candidatePage >= candidateTotalPages} onClick={() => setCandidatePage(page => Math.min(candidateTotalPages, page + 1))}>Next</button></div></footer>}
         </section>
       )}
 
@@ -2582,8 +2595,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                     <p className="text-slate-900">{cand.parent_phone || '—'}</p>
                   </div>
                   <div>
-                    <span className="text-slate-500 text-xs">Applied Grade</span>
-                    <p className="text-slate-900">{cand.applied_grade || '—'}</p>
+                    <span className="text-slate-500 text-xs">Applied academic year (grade)</span>
+                    <p className="text-slate-900">{cand.applied_grade ? `Grade ${cand.applied_grade}` : '—'}</p>
                   </div>
                   <div>
                     <span className="text-slate-500 text-xs">Status</span>

@@ -1,12 +1,16 @@
 import React from 'react';
 import { useSchoolAdmin } from '../SchoolAdminContext';
-import * as SchoolAdminService from '../../../services/schoolAdminService';
-import { friendlySchoolAdminError } from '../../../src/lib/schoolAdminPresentation';
 
 const ClassesTab: React.FC = () => {
   const {
-    addToast, classForm, classSaving, classes, classesLoading, handleEditClass, handleSaveClass, loadAdminTools, school, setClassForm, setConfirmDialog, setConfirmReason,
+    classForm, classSaving, classes, classesLoading, handleEditClass, handleSaveClass, setClassForm,
   } = useSchoolAdmin();
+  const [academicYearFilter, setAcademicYearFilter] = React.useState('');
+  const academicYears = React.useMemo(() => Array.from(new Set([
+    ...Array.from({ length: 13 }, (_, index) => index + 1),
+    ...classes.map((schoolClass: any) => Number(schoolClass.grade_level)).filter(Number.isFinite),
+  ])).sort((a, b) => a - b), [classes]);
+  const visibleClasses = React.useMemo(() => classes.filter((schoolClass: any) => schoolClass.is_active && (!academicYearFilter || String(schoolClass.grade_level) === academicYearFilter)), [academicYearFilter, classes]);
 
   return (
     <div className="space-y-6">
@@ -34,26 +38,18 @@ const ClassesTab: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">Grade Level</label>
-            <input
-              type="number"
+            <label className="block text-sm font-medium text-gray-400 mb-1">Academic year (grade)</label>
+            <select
               value={classForm.grade_level}
               onChange={(e) => setClassForm((prev) => ({ ...prev, grade_level: e.target.value }))}
               className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
-              placeholder="9"
-            />
+            >
+              <option value="">Select academic year</option>
+              {academicYears.map((grade) => <option key={grade} value={grade}>Grade {grade}</option>)}
+            </select>
           </div>
         </div>
         <div className="flex items-center gap-4 px-6 pb-6">
-          <label className="flex items-center gap-2 text-sm text-gray-300">
-            <input
-              type="checkbox"
-              checked={classForm.is_active}
-              onChange={(e) => setClassForm((prev) => ({ ...prev, is_active: e.target.checked }))}
-              className="rounded border-gray-600 bg-gray-700 text-cyan-500 focus:ring-cyan-500"
-            />
-            Active
-          </label>
           <button
             onClick={handleSaveClass}
             disabled={classSaving}
@@ -74,8 +70,8 @@ const ClassesTab: React.FC = () => {
 
       <section className="admin-table-card">
         <div className="admin-card-heading">
-          <div><h3>Classes in school</h3><p>{classes.length} class records arranged by grade and code.</p></div>
-          {classesLoading && <span className="text-xs text-gray-500">Refreshing...</span>}
+          <div><h3>Classes in school</h3><p>{visibleClasses.length} active class records arranged by academic year and code.</p></div>
+          <div className="admin-assignment-filters"><label><span>Academic year (grade)</span><select aria-label="Filter classes by academic year (grade)" value={academicYearFilter} onChange={(event) => setAcademicYearFilter(event.target.value)}><option value="">All academic years</option>{academicYears.map((grade) => <option key={grade} value={grade}>Grade {grade}</option>)}</select></label>{classesLoading && <span className="text-xs text-gray-500">Refreshing...</span>}</div>
         </div>
         <div className="admin-table-scroll" role="region" aria-label="Classes table" tabIndex={0}>
           <table className="min-w-[640px] w-full">
@@ -83,24 +79,16 @@ const ClassesTab: React.FC = () => {
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Code</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Name</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Grade</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Academic year (grade)</th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-400">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
-              {classes.map((schoolClass) => (
+              {visibleClasses.map((schoolClass: any) => (
                 <tr key={schoolClass.id} className="hover:bg-gray-750">
                   <td className="px-4 py-3 text-sm text-white font-semibold">{schoolClass.class_code}</td>
                   <td className="px-4 py-3 text-sm text-gray-200">{schoolClass.class_name}</td>
-                  <td className="px-4 py-3 text-sm text-gray-400">
-                    {schoolClass.grade_level ? `Grade ${schoolClass.grade_level}` : '-'}
-                  </td>
-                  <td className="px-4 py-3 text-sm">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${schoolClass.is_active ? 'bg-green-500/20 text-green-300' : 'bg-gray-600/40 text-gray-300'}`}>
-                      {schoolClass.is_active ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-400">{schoolClass.grade_level ? `Grade ${schoolClass.grade_level}` : 'Not set'}</td>
                   <td className="px-4 py-3 text-right space-x-2">
                     <button
                       onClick={() => handleEditClass(schoolClass)}
@@ -108,40 +96,13 @@ const ClassesTab: React.FC = () => {
                     >
                       Edit
                     </button>
-                    {schoolClass.is_active && (
-                      <button
-                        onClick={() => {
-                          setConfirmReason('');
-                          setConfirmDialog({
-                            title: 'Archive Class',
-                            description: `Archive "${schoolClass.class_name}" (${schoolClass.class_code})? This will make it inactive. You can reactivate it later by editing.`,
-                            confirmLabel: 'Archive',
-                            cancelLabel: 'Cancel',
-                            isDestructive: true,
-                            onConfirm: async () => {
-                              if (!school) return;
-                              const result = await SchoolAdminService.archiveSchoolClass(school.id, schoolClass.id);
-                              if (result.success) {
-                                addToast('Class archived successfully', 'success');
-                                await loadAdminTools(school.id);
-                              } else {
-                                addToast(friendlySchoolAdminError(result.error, 'The class could not be archived. Please try again.'), 'error');
-                              }
-                            },
-                          });
-                        }}
-                        className="text-amber-400 hover:text-amber-300 text-sm"
-                      >
-                        Archive
-                      </button>
-                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        {classes.length === 0 && (
+        {visibleClasses.length === 0 && (
           <div className="p-8 text-center text-gray-400">No classes created yet.</div>
         )}
       </section>

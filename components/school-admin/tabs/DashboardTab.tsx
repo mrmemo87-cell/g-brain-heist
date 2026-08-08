@@ -99,9 +99,9 @@ const DashboardTab: React.FC = () => {
     </section>
 
     <section className="admin-action-grid">
-      <button onClick={() => setActiveTab('classes')}><span>01</span><strong>Classes &amp; registration</strong><small>Manage grades, classes and student placement.</small></button>
+      <button onClick={() => setActiveTab('classes')}><span>01</span><strong>Classes &amp; registration</strong><small>Manage academic years, classes and student placement.</small></button>
       <button onClick={() => setActiveTab('teachers')}><span>02</span><strong>Teacher assignments</strong><small>Connect every class, subject and teacher.</small></button>
-      <button onClick={() => setActiveTab('members')}><span>03</span><strong>Students &amp; staff</strong><small>Review people, access and account records.</small></button>
+      <button onClick={() => setActiveTab('members')}><span>03</span><strong>Staff &amp; students</strong><small>Review people, access and account records.</small></button>
     </section>
   </div>;
 };
