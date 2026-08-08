@@ -74,3 +74,13 @@ test('School Head launch checklist and read-only delegated billing are present',
   assert.match(billing, /Only the School Head can start trials, purchase plans, or manage payment details/);
   assert.match(billing, /canManageBilling/);
 });
+
+test('solo role selection offers an immediate professional school application path', () => {
+  const setupWizard = read('components/onboarding/SetupWizard.tsx');
+  assert.match(setupWizard, /path === 'individual'/);
+  assert.match(setupWizard, /Apply to add your school/);
+  assert.match(setupWizard, /Start school application/);
+  assert.match(setupWizard, /handleSchoolApplicationOpen/);
+  assert.match(setupWizard, /setRole\('teacher'\)/);
+  assert.match(setupWizard, /setShowRequestModal\(true\)/);
+});
