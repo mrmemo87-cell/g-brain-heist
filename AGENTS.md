@@ -36,6 +36,21 @@
 - Do not claim implementation is complete until the relevant repository changes are present and the available validation steps have been run or explicitly reported as unavailable.
 - When local execution is unavailable, use repository-level inspection and connector-backed verification rather than pretending tests were run.
 
+### Protected shared portal: `components/SchoolAdminPortal.tsx`
+
+`SchoolAdminPortal.tsx` is a high-churn integration shell. Never replace it from an older branch, cached copy, generated snapshot, or previously fetched version.
+
+When a task touches this file:
+
+1. Start from the current target-branch version (normally `main`).
+2. Apply the smallest possible patch. Do not rewrite the whole file for a local feature.
+3. Preserve unrelated current behavior, imports, navigation, admin polish, access guards, and tab integrations.
+4. Before finishing, inspect the complete diff for `components/SchoolAdminPortal.tsx`. Any unrelated deletion or reversion must be restored.
+5. Run `npm run guard:school-admin-portal` before typecheck/build/tests.
+6. If a protected portal contract is intentionally replaced, update `scripts/check-school-admin-portal-integrity.mjs` in the same change and document the replacement rather than simply deleting the guard.
+
+Multiple CI failures involving school-admin UI should be treated first as a possible stale-file overwrite, not as independent failures to patch one by one.
+
 ## Recovery behavior
 
 When starting from a fresh environment, use this order:
