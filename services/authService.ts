@@ -132,6 +132,35 @@ export interface SetupSchoolClassEnrollmentResult {
     error?: string;
 }
 
+export interface ApprovedSignupClass {
+    id: string;
+    class_code: string;
+    class_name: string;
+    grade_level: string | null;
+}
+
+export interface SignupResult {
+    success: true;
+    confirmationRequired: boolean;
+    email: string;
+    expiresAt: string | null;
+}
+
+export class EmailConfirmationRequiredError extends Error {
+    readonly email: string;
+
+    constructor(email: string) {
+        super('Confirm your email to finish signing in.');
+        this.name = 'EmailConfirmationRequiredError';
+        this.email = email;
+    }
+}
+
+export const isEmailConfirmationRequiredError = (error: unknown): error is EmailConfirmationRequiredError => (
+    error instanceof EmailConfirmationRequiredError
+    || (error instanceof Error && /email not confirmed|confirm your email/i.test(error.message))
+);
+
 export const login = async (email: string, password: string): Promise<{ success: boolean }> => {
     console.log(`Attempting login for ${email}`);
 
@@ -163,7 +192,10 @@ export const login = async (email: string, password: string): Promise<{ success:
         if (/fetch is aborted|aborted/i.test(error.message)) {
             throw new Error('Login request timed out. Please check your internet connection and try again.');
         }
-        throw new Error(error.message);
+        if (/email not confirmed/i.test(error.message)) {
+            throw new EmailConfirmationRequiredError(email.trim());
+        }
+        throw new Error(toAuthSafeErrorMessage(error));
     }
     
     if (data.user) {
@@ -213,7 +245,7 @@ export const signup = async (
     batch?: Batch,
     school?: string,
     schoolId?: string  // New: school UUID for multi-tenant
-): Promise<{ success: boolean }> => {
+): Promise<SignupResult> => {
     console.log(`Attempting signup for ${email} as ${role}`);
     
     // Sign up with Supabase Auth
@@ -239,6 +271,9 @@ export const signup = async (
     }
     
     if (data.user) {
+        if (Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+            throw new Error(EMAIL_ALREADY_REGISTERED_MESSAGE);
+        }
         console.log('User created:', data.user.id, 'Email:', data.user.email);
         
         // Profile will be created automatically by database trigger
@@ -253,7 +288,12 @@ export const signup = async (
             if (!sessionData.session) {
                 // No session means email confirmation required
                 console.log('Email confirmation required. Profile created, but school join will happen after confirmation.');
-                return { success: true };
+                return {
+                    success: true,
+                    confirmationRequired: true,
+                    email: data.user.email || email.trim(),
+                    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+                };
             }
             
             const bootstrapResult = await bootstrapProfile(
@@ -270,14 +310,42 @@ export const signup = async (
             }
             
             console.log('Signup successful with school join:', data.user.email);
-            return { success: true };
+            return { success: true, confirmationRequired: false, email: data.user.email || email.trim(), expiresAt: null };
         }
         
         console.log('Signup successful, profile will be created automatically:', data.user.email);
-        return { success: true };
+        return {
+            success: true,
+            confirmationRequired: !data.session,
+            email: data.user.email || email.trim(),
+            expiresAt: data.session ? null : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        };
     }
     
     throw new Error('Signup failed');
+};
+
+export const resendSignupConfirmation = async (email: string): Promise<void> => {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) throw new Error('Enter the email used to create the account.');
+    const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: normalizedEmail,
+        options: { emailRedirectTo: getAuthRedirectUrl() },
+    });
+    if (error) throw new Error(toAuthSafeErrorMessage(error));
+};
+
+export const verifySignupEmailCode = async (email: string, token: string): Promise<void> => {
+    const normalizedToken = token.replace(/\s+/g, '');
+    if (!/^\d{6}$/.test(normalizedToken)) throw new Error('Enter the six-digit code from your confirmation email.');
+    const { data, error } = await supabase.auth.verifyOtp({
+        email: email.trim().toLowerCase(),
+        token: normalizedToken,
+        type: 'signup',
+    });
+    if (error) throw new Error(toAuthSafeErrorMessage(error));
+    if (!data.session) throw new Error('Email confirmation did not create a session. Please request a new code.');
 };
 
 export const logout = async (): Promise<void> => {
@@ -640,6 +708,39 @@ export const setupSchoolClassEnrollment = async (
     }
 
     return (data as SetupSchoolClassEnrollmentResult) ?? { success: false, error: 'No response from enrollment RPC' };
+};
+
+export const listApprovedSignupClasses = async (
+    inviteCode: string
+): Promise<{ success: boolean; classes: ApprovedSignupClass[]; error?: string }> => {
+    const { data, error } = await supabase.rpc('list_school_signup_classes', {
+        p_invite_code: inviteCode.replace(/\s+/g, '').toUpperCase(),
+    });
+    if (error) return { success: false, classes: [], error: error.message };
+    if (!data?.success) return { success: false, classes: [], error: data?.error || 'Approved classes could not be loaded.' };
+    return { success: true, classes: Array.isArray(data.classes) ? data.classes : [] };
+};
+
+export const enrollInApprovedSchoolClass = async (
+    classId: string
+): Promise<SetupSchoolClassEnrollmentResult> => {
+    const { data, error } = await supabase.rpc('rpc_setup_approved_class_enrollment', {
+        p_class_id: classId,
+    });
+    if (error) return { success: false, error: error.message };
+    return (data as SetupSchoolClassEnrollmentResult) ?? { success: false, error: 'No response from approved-class enrollment.' };
+};
+
+export const requestSchoolClassPlacement = async (
+    gradeLevel: string,
+    requestedClass?: string
+): Promise<SetupSchoolClassEnrollmentResult> => {
+    const { data, error } = await supabase.rpc('rpc_request_school_class_placement', {
+        p_grade_level: gradeLevel,
+        p_requested_class: requestedClass?.trim() || null,
+    });
+    if (error) return { success: false, error: error.message };
+    return (data as SetupSchoolClassEnrollmentResult) ?? { success: false, error: 'No response from placement request.' };
 };
 
 /**
