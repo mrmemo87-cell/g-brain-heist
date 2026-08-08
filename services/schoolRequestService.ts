@@ -25,6 +25,15 @@ export interface SchoolRequestPayload {
   contactEmail?: string;
   website?: string;
   notes?: string;
+  decisionMakerName: string;
+  decisionMakerTitle: string;
+  decisionMakerPhone?: string;
+  authorityConfirmed: boolean;
+  estimatedStudents?: number | null;
+  estimatedTeachers?: number | null;
+  requestedModules: Array<'core' | 'cambridge' | 'ielts' | 'writing' | 'admissions'>;
+  preferredPaymentMethod: 'card' | 'cash' | 'bank_transfer' | 'invoice' | 'undecided';
+  billingContactEmail?: string;
   requesterRole: 'student' | 'teacher';
 }
 
@@ -37,6 +46,20 @@ export interface SchoolRequestRecord {
   created_at?: string | null;
   admin_notes?: string | null;
   approved_school_id?: string | null;
+  city?: string | null;
+  country?: string | null;
+  website?: string | null;
+  contact_email?: string | null;
+  notes?: string | null;
+  decision_maker_name?: string | null;
+  decision_maker_title?: string | null;
+  decision_maker_phone?: string | null;
+  applicant_authority_confirmed?: boolean;
+  estimated_students?: number | null;
+  estimated_teachers?: number | null;
+  requested_modules?: string[] | null;
+  preferred_payment_method?: string | null;
+  billing_contact_email?: string | null;
 }
 
 export interface SchoolRequestMessage {
@@ -117,8 +140,8 @@ export const requestSchool = async (payload: SchoolRequestPayload): Promise<Scho
 
   const trimmedName = payload.schoolName.trim();
 
-  const tryV2 = async () => {
-    const { data, error } = await supabase.rpc('request_school_v2', {
+  const tryV3 = async () => {
+    const { data, error } = await supabase.rpc('request_school_v3', {
       p_requested_name: trimmedName,
       p_requester_role: payload.requesterRole,
       p_city: payload.city,
@@ -126,6 +149,15 @@ export const requestSchool = async (payload: SchoolRequestPayload): Promise<Scho
       p_website: payload.website || null,
       p_contact_email: payload.contactEmail || null,
       p_notes: payload.notes || null,
+      p_decision_maker_name: payload.decisionMakerName,
+      p_decision_maker_title: payload.decisionMakerTitle,
+      p_decision_maker_phone: payload.decisionMakerPhone || null,
+      p_applicant_authority_confirmed: payload.authorityConfirmed,
+      p_estimated_students: payload.estimatedStudents ?? null,
+      p_estimated_teachers: payload.estimatedTeachers ?? null,
+      p_requested_modules: payload.requestedModules,
+      p_preferred_payment_method: payload.preferredPaymentMethod,
+      p_billing_contact_email: payload.billingContactEmail || payload.contactEmail || null,
     });
 
     if (error) {
@@ -135,27 +167,17 @@ export const requestSchool = async (payload: SchoolRequestPayload): Promise<Scho
     return { data };
   };
 
-  const v2Result = await tryV2();
-  if (!v2Result.error) {
-    return parseRequestResponse(v2Result.data);
+  const v3Result = await tryV3();
+  if (!v3Result.error) {
+    return parseRequestResponse(v3Result.data);
   }
-  const v2Message = v2Result.error?.message || '';
-  const v2Status = (v2Result.error as { status?: number } | null)?.status;
-  const isMissingV2 = v2Status === 404 || v2Message.includes('request_school_v2') || v2Result.error?.code === 'PGRST202';
-  if (!isMissingV2) {
-    return { success: false, error: v2Message || 'Unable to submit school request.' };
+  const v3Message = v3Result.error?.message || '';
+  const v3Status = (v3Result.error as { status?: number } | null)?.status;
+  const isMissingV3 = v3Status === 404 || v3Message.includes('request_school_v3') || v3Result.error?.code === 'PGRST202';
+  if (isMissingV3) {
+    return { success: false, error: 'Professional school registration is temporarily unavailable while the secure onboarding update completes. Please try again shortly.' };
   }
-
-  const { data, error } = await supabase.rpc('request_school', {
-    p_school_name: trimmedName,
-    p_requester_role: payload.requesterRole,
-  });
-
-  if (error) {
-    return { success: false, error: error.message || 'Unable to submit school request.' };
-  }
-
-  return parseRequestResponse(data);
+  return { success: false, error: v3Message || 'Unable to submit school request.' };
 };
 
 export const listSchoolRequests = async (
