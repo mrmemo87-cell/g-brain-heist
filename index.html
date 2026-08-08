@@ -22,6 +22,40 @@
 </head>
   <body>
     <div id="root"></div>
+    <script>
+      document.addEventListener('click', (event) => {
+        const trigger = event.target instanceof Element
+          ? event.target.closest('button, a')
+          : null;
+
+        if (!trigger || !trigger.textContent?.includes('Get started free')) return;
+
+        event.preventDefault();
+
+        const signUpTab = Array.from(document.querySelectorAll('[role="tab"]')).find(
+          (tab) => tab.textContent?.trim() === 'Sign up'
+        );
+
+        if (signUpTab instanceof HTMLElement) {
+          signUpTab.click();
+        }
+
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => {
+            const emailField = document.getElementById('email');
+            if (!(emailField instanceof HTMLElement)) return;
+
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            emailField.scrollIntoView({
+              behavior: reduceMotion ? 'auto' : 'smooth',
+              block: 'center',
+            });
+
+            window.setTimeout(() => emailField.focus({ preventScroll: true }), reduceMotion ? 0 : 450);
+          });
+        });
+      });
+    </script>
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>
