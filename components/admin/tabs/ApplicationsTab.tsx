@@ -207,6 +207,22 @@ const ApplicationsTab: React.FC = () => {
                 </span>
               </div>
 
+              <section className="mt-4 rounded-xl border border-cyan-400/20 bg-cyan-500/5 p-4" aria-label="Application details">
+                <div className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                  <div><p className="text-xs uppercase tracking-wide text-gray-500">Decision-maker</p><p className="mt-1 font-semibold text-white">{request.decision_maker_name || 'Not supplied'}</p><p className="text-gray-400">{request.decision_maker_title || 'Title not supplied'}</p></div>
+                  <div><p className="text-xs uppercase tracking-wide text-gray-500">Contact</p><p className="mt-1 text-white">{request.decision_maker_phone || request.contact_email || 'Not supplied'}</p><p className="text-gray-400">Billing: {request.billing_contact_email || request.contact_email || 'Not supplied'}</p></div>
+                  <div><p className="text-xs uppercase tracking-wide text-gray-500">Estimated rollout</p><p className="mt-1 text-white">{request.estimated_students ?? '—'} students</p><p className="text-gray-400">{request.estimated_teachers ?? '—'} teachers</p></div>
+                  <div><p className="text-xs uppercase tracking-wide text-gray-500">Commercial preference</p><p className="mt-1 font-semibold capitalize text-white">{(request.preferred_payment_method || 'undecided').replaceAll('_', ' ')}</p><p className="text-gray-400">{request.city || '—'}, {request.country || '—'}</p></div>
+                </div>
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  {(request.requested_modules?.length ? request.requested_modules : ['core']).map((moduleKey) => <span key={moduleKey} className="rounded-full border border-cyan-400/30 bg-black/30 px-3 py-1 text-xs font-semibold capitalize text-cyan-100">{moduleKey}</span>)}
+                  <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${request.applicant_authority_confirmed ? 'border-emerald-400/40 bg-emerald-500/10 text-emerald-100' : 'border-amber-400/40 bg-amber-500/10 text-amber-100'}`}>
+                    {request.applicant_authority_confirmed ? 'Authority declared' : 'Authority confirmation required'}
+                  </span>
+                </div>
+                {request.notes && <p className="mt-3 text-sm text-gray-300"><span className="font-semibold text-white">Applicant note:</span> {request.notes}</p>}
+              </section>
+
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <div>
                   <label className="text-xs text-gray-400">Admin notes / message</label>
@@ -242,7 +258,8 @@ const ApplicationsTab: React.FC = () => {
               <div className="mt-4 flex flex-wrap gap-2">
                 <button
                   onClick={() => handleSchoolRequestAction(request.id, 'approve')}
-                  disabled={isActionLoading}
+                  disabled={isActionLoading || !request.applicant_authority_confirmed}
+                  title={!request.applicant_authority_confirmed ? 'Ask the applicant to submit the authorised decision-maker declaration first.' : undefined}
                   className="rounded-lg border border-emerald-400/50 bg-emerald-500/20 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-emerald-500/30 disabled:opacity-60"
                 >
                   ✅ Approve
