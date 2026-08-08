@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
 import { GoogleIcon } from './icons';
@@ -7,44 +7,56 @@ import { consumeBanMessage } from '../services/banMessage';
 import { askVisitorAssistant } from '../services/visitorAssistantService';
 import { submitDemoRequest } from '../services/demoRequestService';
 
-/* ─── tiny inline icons (avoids new deps) ──────────────────────────────── */
-const CheckBadge = () => (
-    <svg className="w-5 h-5 shrink-0" style={{ color: 'var(--ion-blue)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-);
-const ShieldCheck = () => (
-    <svg className="w-4 h-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-    </svg>
-);
-
 interface LoginViewProps {
     onLogin: (email: string, pass: string) => Promise<void>;
 }
-
-/* ─── value props ──────────────────────────────────────────────────────── */
-const VALUE_BULLETS = [
-    'Admission Tests (English + Math) with Cambridge stage mapping',
-    'Lockdown Clan Territory mode for live class sessions',
-    'Reports for schools + parents (score + skill breakdown + placement band)',
-] as const;
-
-const TRUST_ITEMS = [
-    'Secure payments via Paddle (Merchant of Record)',
-    'Cancel anytime',
-    'Support response within 24–48 hours',
-] as const;
 
 type AssistantMessage = {
     role: 'agent' | 'visitor';
     text: string;
 };
 
+type BenefitIcon = 'target' | 'trophy' | 'chart';
+
+const BenefitMark: React.FC<{ type: BenefitIcon }> = ({ type }) => {
+    const path = type === 'target'
+        ? 'M12 3a9 9 0 109 9M12 7a5 5 0 105 5M12 11a1 1 0 101 1M16 8l5-5m0 0v4m0-4h-4'
+        : type === 'trophy'
+            ? 'M8 4h8v4a4 4 0 01-8 0V4zm0 2H5v1a4 4 0 004 4m7-5h3v1a4 4 0 01-4 4m-3 1v5m-4 3h8'
+            : 'M4 19V9m5 10V5m5 14v-7m5 7V3M3 21h18';
+
+    return (
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.06] text-cyan-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d={path} />
+            </svg>
+        </span>
+    );
+};
+
+const BENEFITS: Array<{ icon: BenefitIcon; title: string; description: string; accent?: 'pink' }> = [
+    {
+        icon: 'target',
+        title: 'Cambridge-aligned assessments',
+        description: 'Admission tests with stage mapping and skill-level insights.',
+    },
+    {
+        icon: 'trophy',
+        title: 'Classrooms students want to join',
+        description: 'Battles, XP, rankings and clan competition.',
+        accent: 'pink',
+    },
+    {
+        icon: 'chart',
+        title: 'Useful reports, not just scores',
+        description: 'See strengths, weaknesses and placement readiness.',
+    },
+];
+
 const HOW_IT_WORKS = [
-    { step: '1', title: 'Create your school', desc: 'Sign up and register your school in under 2 minutes.' },
-    { step: '2', title: 'Add students & classes', desc: 'Import rosters or invite students with a class code.' },
-    { step: '3', title: 'Run assessments & battles', desc: 'Launch tests, clan battles, and track real-time progress.' },
+    { step: '01', title: 'Create your school', desc: 'Start your workspace and choose the learning experience that fits your school.' },
+    { step: '02', title: 'Add students & classes', desc: 'Invite learners, organize classes and get everyone into the right place quickly.' },
+    { step: '03', title: 'Assess, compete, improve', desc: 'Run assessments and live modes, then use the reporting layer to act on results.' },
 ] as const;
 
 const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
@@ -52,15 +64,18 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [username, setUsername] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
     const [showDemoModal, setShowDemoModal] = useState(false);
     const [demoForm, setDemoForm] = useState({ name: '', email: '', school: '', country: '', studentCount: '', website: '', notes: '' });
     const [demoSubmitted, setDemoSubmitted] = useState(false);
     const [demoSubmitting, setDemoSubmitting] = useState(false);
     const [demoSubmitError, setDemoSubmitError] = useState<string | null>(null);
+
     const [assistantOpen, setAssistantOpen] = useState(false);
     const [assistantQuestion, setAssistantQuestion] = useState('');
     const [assistantLoading, setAssistantLoading] = useState(false);
@@ -68,30 +83,26 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     const [assistantMessages, setAssistantMessages] = useState<AssistantMessage[]>([
         {
             role: 'agent',
-            text: "Hi! I'm Brains Assistant, the Brains Heist AI assistant. Ask me anything about demos, pricing, onboarding, reports, class battles, or support.",
+            text: "Hi! I'm Brains Assistant. Need help signing in, choosing a plan, requesting a demo, or finding the right Brains Heist experience?",
         },
     ]);
 
-    // Refs for GSAP animations
-    const cardRef = useRef<HTMLDivElement>(null);
-    const logoRef = useRef<HTMLImageElement>(null);
-    const titleRef = useRef<HTMLHeadingElement>(null);
-    const subtitleRef = useRef<HTMLParagraphElement>(null);
-    const bulletsRef = useRef<HTMLUListElement>(null);
-    const submitBtnRef = useRef<HTMLButtonElement>(null);
-    const emailInputRef = useRef<HTMLInputElement>(null);
-    const passwordInputRef = useRef<HTMLInputElement>(null);
-    const usernameInputRef = useRef<HTMLInputElement>(null);
     const pageRef = useRef<HTMLDivElement>(null);
-    const heroColRef = useRef<HTMLDivElement>(null);
-    const howItWorksRef = useRef<HTMLElement>(null);
-    const audienceRef = useRef<HTMLElement>(null);
+    const heroRef = useRef<HTMLDivElement>(null);
+    const brandRef = useRef<HTMLDivElement>(null);
+    const headlineRef = useRef<HTMLHeadingElement>(null);
+    const introRef = useRef<HTMLParagraphElement>(null);
+    const benefitsRef = useRef<HTMLDivElement>(null);
+    const cardRef = useRef<HTMLDivElement>(null);
+    const submitBtnRef = useRef<HTMLButtonElement>(null);
+    const ctaShimmerRef = useRef<HTMLSpanElement>(null);
+    const heroGridRef = useRef<HTMLDivElement>(null);
+    const heroSweepRef = useRef<HTMLDivElement>(null);
     const orbOneRef = useRef<HTMLDivElement>(null);
     const orbTwoRef = useRef<HTMLDivElement>(null);
     const orbThreeRef = useRef<HTMLDivElement>(null);
-    const heroSweepRef = useRef<HTMLDivElement>(null);
-    const heroGridRef = useRef<HTMLDivElement>(null);
-    const ctaShimmerRef = useRef<HTMLSpanElement>(null);
+    const howItWorksRef = useRef<HTMLElement>(null);
+    const audienceRef = useRef<HTMLElement>(null);
 
     useEffect(() => {
         const persisted = consumeBanMessage();
@@ -101,283 +112,141 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
         }
     }, []);
 
-    // GSAP entrance animation
     useEffect(() => {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
         gsap.registerPlugin(ScrollTrigger);
 
         const ctx = gsap.context(() => {
-            // Only animate refs guaranteed to exist on initial render (login mode)
-            const hero = [cardRef, logoRef, titleRef, subtitleRef, bulletsRef].map(r => r.current).filter(Boolean);
-            const inputs = [emailInputRef, passwordInputRef].map(r => r.current).filter(Boolean);
-            const btn = submitBtnRef.current;
-            if (!hero.length) return;
+            const entrance = [brandRef.current, headlineRef.current, introRef.current, benefitsRef.current, cardRef.current].filter(Boolean);
+            gsap.set(entrance, { opacity: 0, y: 30, filter: 'blur(8px)' });
+            if (cardRef.current) gsap.set(cardRef.current, { y: 56, scale: 0.97 });
+            if (heroGridRef.current) gsap.set(heroGridRef.current, { opacity: 0.08 });
+            if (heroSweepRef.current) gsap.set(heroSweepRef.current, { opacity: 0, scaleX: 0, transformOrigin: '0% 50%' });
 
-            const heroHeading = titleRef.current;
-            const headingText = heroHeading?.dataset.text || 'Brains Heist';
+            const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+            tl.to(heroGridRef.current, { opacity: 0.24, duration: 0.6 }, 0)
+                .to(heroSweepRef.current, { opacity: 0.75, scaleX: 1, duration: 0.45 }, 0.05)
+                .to(heroSweepRef.current, { xPercent: 135, duration: 0.85, ease: 'power4.inOut' }, 0.35)
+                .to(heroSweepRef.current, { opacity: 0, duration: 0.2 }, 0.95)
+                .to(brandRef.current, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.7 }, 0.1)
+                .to(headlineRef.current, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.75 }, 0.25)
+                .to(introRef.current, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.65 }, 0.42)
+                .to(benefitsRef.current, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.65 }, 0.56)
+                .to(cardRef.current, { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)', duration: 0.9, ease: 'expo.out' }, 0.2);
 
-            gsap.set(hero, { opacity: 0 });
-            gsap.set(cardRef.current!, { y: 92, scale: 0.93, filter: 'blur(14px)' });
-            gsap.set(logoRef.current!, { scale: 0.52, y: -28, rotate: -18, filter: 'blur(7px)', transformOrigin: '50% 50%' });
-            gsap.set([titleRef.current!, subtitleRef.current!, bulletsRef.current!], { y: 38, filter: 'blur(8px)' });
-            if (inputs.length) gsap.set(inputs, { opacity: 0, y: 32, filter: 'blur(6px)' });
-            if (btn) gsap.set(btn, { opacity: 0, y: 24, filter: 'blur(5px)' });
-            if (heroSweepRef.current) gsap.set(heroSweepRef.current, { opacity: 0, scaleX: 0, xPercent: -20, transformOrigin: '0% 50%' });
-            if (heroGridRef.current) gsap.set(heroGridRef.current, { opacity: 0.1 });
-
-            if (heroHeading) {
-                heroHeading.textContent = '███████████';
-                gsap.set(heroHeading, { letterSpacing: '0.18em', textShadow: '0 0 36px rgba(34,211,238,0.28)' });
-            }
-
-            const tl = gsap.timeline();
-            tl.to(heroGridRef.current, { opacity: 0.34, duration: 0.5, ease: 'power2.out' }, 0)
-                .to(heroSweepRef.current, { opacity: 0.8, scaleX: 1, xPercent: 0, duration: 0.45, ease: 'power2.out' }, 0.05)
-                .to(heroSweepRef.current, { xPercent: 125, duration: 0.78, ease: 'power4.inOut' }, 0.4)
-                .to(heroSweepRef.current, { opacity: 0, duration: 0.24, ease: 'power1.out' }, 0.94)
-                .to(cardRef.current, { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)', duration: 1.12, ease: 'expo.out' }, 0.16)
-                .to(logoRef.current, { opacity: 1, scale: 1, y: 0, rotate: 0, filter: 'blur(0px)', duration: 1, ease: 'expo.out' }, 0.08)
-                .to(titleRef.current, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.75, ease: 'power3.out' }, 0.34)
-                .to(subtitleRef.current, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.65, ease: 'power3.out' }, 0.56)
-                .to(bulletsRef.current, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.64, ease: 'power3.out' }, 0.68);
-            if (inputs.length) {
-                tl.to(inputs, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.58, ease: 'power3.out', stagger: 0.09 }, 0.84);
-            }
-            if (btn) {
-                tl.to(btn, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.62, ease: 'power3.out' }, 1.03)
-                    .fromTo(btn, { boxShadow: '0 0 0px rgba(34,211,238,0)' }, { boxShadow: '0 0 38px rgba(34,211,238,0.65)', duration: 0.52, ease: 'power2.out' }, 1.09);
-            }
-
-            if (heroHeading) {
-                const glyphs = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@$%&*';
-                const reveal = { frame: 0 };
-                gsap.to(reveal, {
-                    frame: headingText.length + 7,
-                    duration: 1.1,
-                    ease: 'power2.out',
-                    delay: 0.38,
-                    onUpdate: () => {
-                        const settled = Math.floor(reveal.frame - 7);
-                        heroHeading.textContent = headingText
-                            .split('')
-                            .map((char, idx) => {
-                                if (char === ' ') return ' ';
-                                if (idx <= settled) return char;
-                                return glyphs[Math.floor(Math.random() * glyphs.length)];
-                            })
-                            .join('');
-                    },
-                    onComplete: () => {
-                        heroHeading.textContent = headingText;
-                        gsap.to(heroHeading, { letterSpacing: '0.04em', duration: 0.5, ease: 'power2.out' });
-                    },
+            if (submitBtnRef.current && ctaShimmerRef.current) {
+                gsap.set(ctaShimmerRef.current, { xPercent: -240, opacity: 0.18 });
+                gsap.to(ctaShimmerRef.current, {
+                    xPercent: 250,
+                    opacity: 0.8,
+                    duration: 1.7,
+                    repeat: -1,
+                    repeatDelay: 4.8,
+                    ease: 'power2.inOut',
+                    delay: 1.4,
                 });
-            }
-
-            if (btn && ctaShimmerRef.current && pageRef.current) {
-                gsap.set(btn, {
-                    boxShadow: '0 0 18px rgba(34,211,238,0.18), 0 0 34px rgba(34,211,238,0.08), inset 0 0 12px rgba(34,211,238,0.1)',
-                });
-                gsap.set(ctaShimmerRef.current, {
-                    xPercent: -220,
-                    opacity: 0.22,
-                    filter: 'blur(0px)',
-                    willChange: 'transform, opacity, filter',
-                });
-
-                const getResponsiveStart = () => {
-                    if (window.innerWidth >= 1024) return 'top 58%';
-                    if (window.innerWidth >= 640) return 'top 68%';
-                    return 'top 78%';
-                };
-
-                const getResponsiveEnd = () => {
-                    if (window.innerWidth >= 1024) return 'top 12%';
-                    if (window.innerWidth >= 640) return 'top 18%';
-                    return 'top 26%';
-                };
-
-                gsap.timeline({
-                    scrollTrigger: {
-                        trigger: btn,
-                        start: getResponsiveStart,
-                        end: getResponsiveEnd,
-                        scrub: 0.35,
-                        invalidateOnRefresh: true,
-                    },
-                })
-                    .to(ctaShimmerRef.current, {
-                        xPercent: 240,
-                        opacity: 0.86,
-                        filter: 'blur(0.2px)',
-                        ease: 'none',
-                    }, 0)
-                    .to(btn, {
-                        boxShadow: '0 0 30px rgba(34,211,238,0.38), 0 0 58px rgba(34,211,238,0.16), inset 0 0 20px rgba(34,211,238,0.2)',
-                        ease: 'none',
-                    }, 0);
             }
 
             [
-                heroColRef.current && gsap.to(heroColRef.current, {
-                    y: -14,
-                    duration: 5.8,
-                    ease: 'sine.inOut',
-                    repeat: -1,
-                    yoyo: true,
-                    delay: 1.1,
-                }),
-                logoRef.current && gsap.to(logoRef.current, {
-                    rotate: 4,
-                    scale: 1.06,
-                    filter: 'drop-shadow(0 0 24px rgba(44,246,200,0.62))',
-                    duration: 4.4,
-                    ease: 'sine.inOut',
-                    repeat: -1,
-                    yoyo: true,
-                    delay: 1.2,
-                }),
-                orbOneRef.current && gsap.to(orbOneRef.current, {
-                    xPercent: 18,
-                    yPercent: -18,
-                    opacity: 0.62,
-                    scale: 1.14,
-                    duration: 8,
-                    ease: 'sine.inOut',
-                    repeat: -1,
-                    yoyo: true,
-                }),
-                orbTwoRef.current && gsap.to(orbTwoRef.current, {
-                    xPercent: -16,
-                    yPercent: 14,
-                    opacity: 0.66,
-                    scale: 1.18,
-                    duration: 10,
-                    ease: 'sine.inOut',
-                    repeat: -1,
-                    yoyo: true,
-                }),
-                orbThreeRef.current && gsap.to(orbThreeRef.current, {
-                    xPercent: -12,
-                    yPercent: -12,
-                    opacity: 0.48,
-                    scale: 1.22,
-                    duration: 9.2,
-                    ease: 'sine.inOut',
-                    repeat: -1,
-                    yoyo: true,
-                }),
-                heroGridRef.current && gsap.to(heroGridRef.current, {
-                    backgroundPosition: '0px 58px',
-                    duration: 9,
-                    ease: 'sine.inOut',
-                    repeat: -1,
-                    yoyo: true,
-                }),
+                orbOneRef.current && gsap.to(orbOneRef.current, { xPercent: 16, yPercent: -12, scale: 1.12, duration: 8, repeat: -1, yoyo: true, ease: 'sine.inOut' }),
+                orbTwoRef.current && gsap.to(orbTwoRef.current, { xPercent: -14, yPercent: 16, scale: 1.16, duration: 10, repeat: -1, yoyo: true, ease: 'sine.inOut' }),
+                orbThreeRef.current && gsap.to(orbThreeRef.current, { xPercent: -10, yPercent: -12, scale: 1.2, duration: 9, repeat: -1, yoyo: true, ease: 'sine.inOut' }),
+                heroGridRef.current && gsap.to(heroGridRef.current, { backgroundPosition: '0px 72px', duration: 11, repeat: -1, yoyo: true, ease: 'sine.inOut' }),
+                heroRef.current && gsap.to(heroRef.current, { y: -8, duration: 6, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: 1.1 }),
             ].filter(Boolean);
 
             [howItWorksRef.current, audienceRef.current].filter(Boolean).forEach((section) => {
-                const revealItems = Array.from((section as HTMLElement).querySelectorAll<HTMLElement>('[data-reveal]'));
+                const items = Array.from((section as HTMLElement).querySelectorAll<HTMLElement>('[data-reveal]'));
                 const heading = (section as HTMLElement).querySelector<HTMLElement>('[data-reveal-heading]');
-                if (!revealItems.length) return;
-
-                if (heading) gsap.set(heading, { opacity: 0, y: 28, filter: 'blur(5px)' });
-                gsap.set(revealItems, { opacity: 0, y: 56, z: -60, rotateX: 10, filter: 'blur(8px)' });
+                gsap.set(items, { opacity: 0, y: 44, rotateX: 7, filter: 'blur(7px)' });
+                if (heading) gsap.set(heading, { opacity: 0, y: 24, filter: 'blur(5px)' });
 
                 const sectionTl = gsap.timeline({
                     scrollTrigger: {
                         trigger: section,
-                        start: 'top 78%',
+                        start: 'top 80%',
                         toggleActions: 'play none none reverse',
                     },
                 });
 
                 if (heading) {
-                    sectionTl.to(heading, {
-                        opacity: 1,
-                        y: 0,
-                        filter: 'blur(0px)',
-                        duration: 0.58,
-                        ease: 'power3.out',
-                    }, 0);
+                    sectionTl.to(heading, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.55, ease: 'power3.out' });
                 }
-
-                sectionTl.to(revealItems, {
+                sectionTl.to(items, {
                     opacity: 1,
                     y: 0,
-                    z: 0,
                     rotateX: 0,
                     filter: 'blur(0px)',
-                    duration: 0.78,
+                    duration: 0.72,
+                    stagger: 0.12,
                     ease: 'power3.out',
-                    stagger: 0.13,
-                }, heading ? 0.12 : 0)
-                    .fromTo(revealItems, {
-                        boxShadow: '0 0 0px rgba(34,211,238,0)',
-                    }, {
-                        boxShadow: '0 0 22px rgba(34,211,238,0.22)',
-                        duration: 0.45,
-                        stagger: 0.1,
-                        ease: 'power2.out',
-                    }, heading ? 0.24 : 0.1);
+                }, heading ? 0.12 : 0);
             });
-
         }, pageRef);
 
         return () => ctx.revert();
     }, []);
 
+    const switchMode = (next: 'login' | 'signup' | 'reset') => {
+        setMode(next);
+        setError(null);
+        setSuccess(null);
+    };
+
+    const friendlyError = (message?: string) => {
+        const normalized = (message || '').toLowerCase();
+        if (normalized.includes('invalid login') || normalized.includes('invalid credentials')) return "We couldn't sign you in. Check your email and password and try again.";
+        if (normalized.includes('email not confirmed')) return 'Please verify your email before signing in.';
+        if (normalized.includes('rate') || normalized.includes('too many')) return 'Too many attempts. Please wait a moment and try again.';
+        return message || 'Something went wrong. Please try again.';
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isLoading) return;
         setError(null);
         setSuccess(null);
         setIsLoading(true);
 
         try {
-            if (mode === 'reset') {
-                await AuthService.sendPasswordResetEmail(email);
-                setSuccess('Password reset email sent!');
-                setMode('login');
-            } else if (mode === 'signup') {
-                if (!username.trim()) {
-                    setError('Pick a codename!');
-                    return;
-                }
-                if (!email.trim()) {
-                    setError('Enter your email');
-                    return;
-                }
-                // Create account with minimal info - SetupWizard will complete the profile
-                await AuthService.signup(
-                    email.trim(),
-                    password,
-                    username.trim(),
-                    'student' // Default, will be changed in SetupWizard
-                );
-                // Show success and reload to trigger auth check
-                setSuccess('Account created! Loading your profile...');
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
-                return; // Don't set isLoading to false, keep loading state
-            } else {
-                await onLogin(email.trim(), password);
+            if (!email.trim()) {
+                setError('Enter your email address.');
+                return;
             }
+
+            if (mode === 'reset') {
+                await AuthService.sendPasswordResetEmail(email.trim());
+                setSuccess('Password reset email sent. Check your inbox.');
+                return;
+            }
+
+            if (mode === 'signup') {
+                if (!username.trim()) {
+                    setError('Choose a username to continue.');
+                    return;
+                }
+                await AuthService.signup(email.trim(), password, username.trim(), 'student');
+                setSuccess('Account created! Loading your profile...');
+                window.setTimeout(() => window.location.reload(), 1500);
+                return;
+            }
+
+            await onLogin(email.trim(), password);
         } catch (err: any) {
-            setError(err.message || 'Operation failed');
+            setError(friendlyError(err?.message));
         } finally {
             setIsLoading(false);
         }
     };
 
     const handleGoogleSignIn = async () => {
+        if (isGoogleLoading) return;
         setError(null);
         setIsGoogleLoading(true);
         try {
             await AuthService.loginWithGoogle();
         } catch (err: any) {
-            setError(err.message || 'Google sign-in failed');
+            setError(friendlyError(err?.message || 'Google sign-in failed.'));
         } finally {
             setIsGoogleLoading(false);
         }
@@ -397,7 +266,6 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     const handleDemoSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (demoSubmitting) return;
-
         setDemoSubmitting(true);
         setDemoSubmitted(false);
         setDemoSubmitError(null);
@@ -424,150 +292,145 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
         const trimmedQuestion = question.trim();
         if (!trimmedQuestion || assistantLoading) return;
 
-        const nextMessages: AssistantMessage[] = [
-            ...assistantMessages,
-            { role: 'visitor', text: trimmedQuestion },
-        ];
-
+        const nextMessages: AssistantMessage[] = [...assistantMessages, { role: 'visitor', text: trimmedQuestion }];
         setAssistantMessages(nextMessages);
         setAssistantQuestion('');
         setAssistantError(null);
         setAssistantLoading(true);
 
         try {
-            const { reply } = await askVisitorAssistant(
-                nextMessages.map((message) => ({
-                    role: message.role === 'agent' ? 'assistant' : 'visitor',
-                    text: message.text,
-                })),
-            );
+            const { reply } = await askVisitorAssistant(nextMessages.map((message) => ({
+                role: message.role === 'agent' ? 'assistant' : 'visitor',
+                text: message.text,
+            })));
             setAssistantMessages((messages) => [...messages, { role: 'agent', text: reply }]);
         } catch (err: any) {
-            setAssistantError(err?.message || 'Brains Assistant is having trouble connecting. Please try again or contact support@brainsheist.com.');
+            setAssistantError(err?.message || 'Brains Assistant is having trouble connecting. Please try again.');
         } finally {
             setAssistantLoading(false);
         }
     };
 
-    const handleAssistantAsk = (e: React.FormEvent) => {
-        e.preventDefault();
-        void submitAssistantPrompt(assistantQuestion);
-    };
-
     const openDemoFromAssistant = () => {
         setAssistantOpen(false);
-        setShowDemoModal(true);
         resetDemoStatus();
+        setShowDemoModal(true);
     };
 
-
-    /* ─── Auth form card (reused in both mobile & desktop) ─────────────── */
     const authCard = (
-        <div ref={cardRef} className="bg-ink-900/50 backdrop-blur-sm border border-white/10 rounded-2xl p-5 sm:p-8 shadow-xl">
-            {error && (
-                <div className="mb-4 rounded-md border border-red-500/60 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                    ⚠️ {error}
-                </div>
-            )}
-            {success && (
-                <div className="mb-4 rounded-md border border-green-500/60 bg-green-500/10 px-4 py-3 text-sm text-green-200">
-                    ✓ {success}
-                </div>
-            )}
+        <div
+            ref={cardRef}
+            className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#081321]/90 p-5 shadow-[0_34px_110px_rgba(0,0,0,0.42),0_0_55px_rgba(34,211,238,0.08)] backdrop-blur-xl sm:p-8"
+        >
+            <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-cyan-400/[0.08] blur-3xl" aria-hidden="true" />
+            <div className="pointer-events-none absolute -bottom-20 -left-20 h-40 w-40 rounded-full bg-fuchsia-400/[0.06] blur-3xl" aria-hidden="true" />
 
-            <div className="flex gap-4 mb-6">
-                <button
-                    onClick={() => setMode('login')}
-                    className={`flex-1 py-2 px-4 rounded-md font-semibold transition-all ${
-                        mode === 'login'
-                            ? 'bg-ion-blue text-ink-900'
-                            : 'text-gray-400 hover:text-white'
-                    }`}
-                >
-                    Sign in
-                </button>
-                <button
-                    onClick={() => setMode('signup')}
-                    className={`flex-1 py-2 px-4 rounded-md font-semibold transition-all ${
-                        mode === 'signup'
-                            ? 'bg-ion-blue text-ink-900'
-                            : 'text-gray-400 hover:text-white'
-                    }`}
-                >
-                    Sign up
-                </button>
-            </div>
+            {mode !== 'reset' ? (
+                <>
+                    <div className="mb-7">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-cyan-300/80">Brains Heist access</p>
+                        <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-white sm:text-[1.75rem]">{mode === 'login' ? 'Welcome back 👋' : 'Start your journey'}</h2>
+                        <p className="mt-2 text-sm leading-relaxed text-slate-400">{mode === 'login' ? 'Continue your Brains Heist journey.' : 'Create your account, then finish setup inside the platform.'}</p>
+                    </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-                {mode === 'reset' && (
-                    <div className="mb-4">
+                    <div className="mb-7 grid grid-cols-2 border-b border-white/10" role="tablist" aria-label="Authentication mode">
                         <button
                             type="button"
-                            onClick={() => setMode('login')}
-                            className="text-cyan-400 hover:text-cyan-300 text-sm"
+                            role="tab"
+                            aria-selected={mode === 'login'}
+                            onClick={() => switchMode('login')}
+                            className={`relative px-4 pb-3 text-sm font-bold transition-colors ${mode === 'login' ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
                         >
-                            ← Back to sign in
+                            Sign in
+                            {mode === 'login' && <span className="absolute inset-x-3 -bottom-px h-0.5 rounded-full bg-cyan-300 shadow-[0_0_14px_rgba(34,211,238,0.8)]" />}
                         </button>
-                        <h3 className="text-xl font-bold text-white mt-2">Reset Password</h3>
+                        <button
+                            type="button"
+                            role="tab"
+                            aria-selected={mode === 'signup'}
+                            onClick={() => switchMode('signup')}
+                            className={`relative px-4 pb-3 text-sm font-bold transition-colors ${mode === 'signup' ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
+                        >
+                            Sign up
+                            {mode === 'signup' && <span className="absolute inset-x-3 -bottom-px h-0.5 rounded-full bg-cyan-300 shadow-[0_0_14px_rgba(34,211,238,0.8)]" />}
+                        </button>
                     </div>
-                )}
+                </>
+            ) : (
+                <div className="mb-7">
+                    <button type="button" onClick={() => switchMode('login')} className="text-sm font-semibold text-cyan-300 transition hover:text-cyan-200">← Back to sign in</button>
+                    <h2 className="mt-4 text-2xl font-extrabold tracking-tight text-white">Reset your password</h2>
+                    <p className="mt-2 text-sm leading-relaxed text-slate-400">Enter the email associated with your Brains Heist account.</p>
+                </div>
+            )}
 
+            {error && <div role="alert" className="mb-5 rounded-2xl border border-rose-400/30 bg-rose-400/[0.08] px-4 py-3 text-sm leading-relaxed text-rose-100">{error}</div>}
+            {success && <div role="status" className="mb-5 rounded-2xl border border-emerald-400/30 bg-emerald-400/[0.08] px-4 py-3 text-sm leading-relaxed text-emerald-100">✓ {success}</div>}
+
+            <form onSubmit={handleSubmit} className="space-y-5">
                 {mode === 'signup' && (
-                    <div>
-                        <label htmlFor="username" className="block text-sm font-medium text-gray-300">Username</label>
+                    <label className="block text-sm font-semibold text-slate-300" htmlFor="username">
+                        Username
                         <input
-                            ref={usernameInputRef}
                             id="username"
-                            type="text"
+                            autoComplete="username"
                             required
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
                             placeholder="ChooseYourName"
+                            className="mt-2 block h-14 w-full rounded-2xl border border-slate-600/70 bg-slate-800/70 px-4 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300 focus:ring-4 focus:ring-cyan-300/10"
                         />
-                        <p className="mt-1 text-xs text-gray-400">You'll complete your profile in the next step</p>
-                    </div>
+                    </label>
                 )}
 
-                <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-300">Email</label>
-                    <input
-                        ref={emailInputRef}
-                        id="email"
-                        type="email"
-                        required
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
-                        placeholder="agent@bh.os"
-                    />
-                </div>
-
-                {mode !== 'reset' && (
-                    <div>
-                        <label htmlFor="password" className="block text-sm font-medium text-gray-300">Password</label>
+                <label className="block text-sm font-semibold text-slate-300" htmlFor="email">
+                    Email
+                    <div className="relative mt-2">
+                        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" aria-hidden="true">✉</span>
                         <input
-                            ref={passwordInputRef}
-                            id="password"
-                            type="password"
+                            id="email"
+                            type="email"
+                            inputMode="email"
+                            autoComplete="email"
                             required
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
-                            placeholder="••••••••"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="you@example.com"
+                            className="block h-14 w-full rounded-2xl border border-slate-600/70 bg-slate-800/70 pl-11 pr-4 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300 focus:ring-4 focus:ring-cyan-300/10"
                         />
                     </div>
+                </label>
+
+                {mode !== 'reset' && (
+                    <label className="block text-sm font-semibold text-slate-300" htmlFor="password">
+                        Password
+                        <div className="relative mt-2">
+                            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" aria-hidden="true">▣</span>
+                            <input
+                                id="password"
+                                type={showPassword ? 'text' : 'password'}
+                                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                                required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="••••••••"
+                                className="block h-14 w-full rounded-2xl border border-slate-600/70 bg-slate-800/70 pl-11 pr-12 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300 focus:ring-4 focus:ring-cyan-300/10"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword((visible) => !visible)}
+                                className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
+                                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                            >
+                                {showPassword ? '◉' : '◎'}
+                            </button>
+                        </div>
+                    </label>
                 )}
 
                 {mode === 'login' && (
                     <div className="flex justify-end">
-                        <button
-                            type="button"
-                            onClick={() => setMode('reset')}
-                            className="text-xs text-cyan-300 hover:text-cyan-200"
-                        >
-                            Forgot password?
-                        </button>
+                        <button type="button" onClick={() => switchMode('reset')} className="text-xs font-semibold text-cyan-300 transition hover:text-cyan-200">Forgot password?</button>
                     </div>
                 )}
 
@@ -575,493 +438,214 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     ref={submitBtnRef}
                     type="submit"
                     disabled={isLoading || (mode === 'signup' && !username.trim())}
-                    className="group relative isolate overflow-hidden w-full py-3 px-4 rounded-md font-bold transition-all bg-ion-blue text-ink-900 hover:bg-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="group relative isolate flex h-14 w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-r from-cyan-300 via-cyan-400 to-teal-300 px-4 font-extrabold text-[#06101d] shadow-[0_12px_34px_rgba(34,211,238,0.22)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_44px_rgba(34,211,238,0.32)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0"
                 >
-                    <span
-                        ref={ctaShimmerRef}
-                        className="pointer-events-none absolute -inset-y-2 left-[-45%] z-10 w-[55%] -skew-x-12 bg-gradient-to-r from-transparent via-white/95 via-50% to-transparent mix-blend-screen opacity-70"
-                        aria-hidden="true"
-                    />
-                    {isLoading ? 'Loading...' : mode === 'login' ? 'Sign in' : mode === 'signup' ? 'Create account' : 'Send reset link'}
+                    <span ref={ctaShimmerRef} className="pointer-events-none absolute -inset-y-3 left-[-45%] z-10 w-[42%] -skew-x-12 bg-gradient-to-r from-transparent via-white/80 to-transparent mix-blend-screen" aria-hidden="true" />
+                    {isLoading ? 'Working...' : mode === 'login' ? 'Sign in  →' : mode === 'signup' ? 'Create account  →' : 'Send reset link  →'}
                 </button>
             </form>
 
             {(mode === 'login' || mode === 'signup') && (
                 <>
-                    <div className="relative my-6">
-                        <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-gray-600"></div>
-                        </div>
-                        <div className="relative flex justify-center text-sm">
-                            <span className="px-2 bg-ink-900/50 text-gray-400">or</span>
-                        </div>
+                    <div className="my-6 flex items-center gap-3 text-xs text-slate-500">
+                        <span className="h-px flex-1 bg-white/10" />
+                        <span>or continue with</span>
+                        <span className="h-px flex-1 bg-white/10" />
                     </div>
-
                     <button
                         type="button"
                         onClick={handleGoogleSignIn}
                         disabled={isGoogleLoading}
-                        className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-md border-2 border-gray-600 hover:border-gray-500 text-white transition-all disabled:opacity-50"
+                        className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl border border-slate-200/90 bg-white px-4 font-bold text-slate-900 transition duration-200 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                        <GoogleIcon />
-                        {isGoogleLoading ? 'Loading...' : mode === 'signup' ? 'Sign up with Google' : 'Sign in with Google'}
+                        <span className="flex h-6 w-6 items-center justify-center [&_svg]:h-5 [&_svg]:w-5"><GoogleIcon /></span>
+                        {isGoogleLoading ? 'Connecting...' : 'Continue with Google'}
                     </button>
+                    <p className="mt-6 text-center text-sm text-slate-400">
+                        {mode === 'login' ? 'New to Brains Heist?' : 'Already have an account?'}{' '}
+                        <button type="button" onClick={() => switchMode(mode === 'login' ? 'signup' : 'login')} className="font-bold text-cyan-300 hover:text-cyan-200">
+                            {mode === 'login' ? 'Create account' : 'Sign in'}
+                        </button>
+                    </p>
                 </>
             )}
         </div>
     );
 
     return (
-        <div ref={pageRef} className="min-h-screen flex flex-col relative overflow-hidden">
-            <div
-                ref={heroGridRef}
-                className="pointer-events-none absolute inset-0 opacity-20"
-                style={{
-                    backgroundImage: 'linear-gradient(rgba(34,211,238,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(34,211,238,0.08) 1px, transparent 1px)',
-                    backgroundSize: '72px 72px',
-                    maskImage: 'radial-gradient(circle at 40% 22%, black, transparent 72%)',
-                    WebkitMaskImage: 'radial-gradient(circle at 40% 22%, black, transparent 72%)',
-                }}
-                aria-hidden="true"
-            />
+        <div ref={pageRef} className="relative min-h-screen overflow-hidden bg-[#030a14] text-white">
+            <div ref={heroGridRef} className="pointer-events-none fixed inset-0 z-0" style={{ backgroundImage: 'linear-gradient(rgba(34,211,238,0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(34,211,238,0.055) 1px, transparent 1px)', backgroundSize: '72px 72px', maskImage: 'radial-gradient(circle at 40% 18%, black, transparent 76%)', WebkitMaskImage: 'radial-gradient(circle at 40% 18%, black, transparent 76%)' }} aria-hidden="true" />
+            <div ref={heroSweepRef} className="pointer-events-none fixed left-[-22%] top-[13%] z-0 h-24 w-[65%] bg-gradient-to-r from-transparent via-cyan-300/60 to-transparent blur-2xl" aria-hidden="true" />
+            <div ref={orbOneRef} className="pointer-events-none fixed -left-28 -top-28 z-0 h-72 w-72 rounded-full bg-cyan-400/[0.12] blur-3xl" aria-hidden="true" />
+            <div ref={orbTwoRef} className="pointer-events-none fixed -right-28 top-1/3 z-0 h-80 w-80 rounded-full bg-teal-400/[0.09] blur-3xl" aria-hidden="true" />
+            <div ref={orbThreeRef} className="pointer-events-none fixed bottom-0 left-1/3 z-0 h-72 w-72 rounded-full bg-fuchsia-400/[0.07] blur-3xl" aria-hidden="true" />
 
-            <div
-                ref={heroSweepRef}
-                className="pointer-events-none absolute top-[16%] left-[-20%] h-24 w-[64%] bg-gradient-to-r from-transparent via-cyan-300/75 to-transparent blur-xl"
-                aria-hidden="true"
-            />
-
-            <div
-                ref={orbOneRef}
-                className="pointer-events-none absolute -top-28 -left-20 h-64 w-64 rounded-full bg-cyan-400/20 blur-3xl"
-                aria-hidden="true"
-            />
-            <div
-                ref={orbTwoRef}
-                className="pointer-events-none absolute top-1/3 -right-24 h-72 w-72 rounded-full bg-emerald-400/16 blur-3xl"
-                aria-hidden="true"
-            />
-            <div
-                ref={orbThreeRef}
-                className="pointer-events-none absolute bottom-16 left-1/4 h-56 w-56 rounded-full bg-violet-400/12 blur-3xl"
-                aria-hidden="true"
-            />
-            {/* ── HERO + AUTH (above the fold) ─────────────────────────────── */}
-            <section className="flex-1 flex items-center justify-center px-4 py-10 sm:py-16">
-                <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-
-                    {/* ── Left: hero / value props ──────────────────────────── */}
-                    <div ref={heroColRef} className="text-center lg:text-left order-1">
-                        <div className="flex items-center justify-center lg:justify-start gap-3 mb-5">
-                            <img
-                                ref={logoRef}
-                                src="/logo.png"
-                                alt="Brains Heist"
-                                className="w-14 h-14 sm:w-16 sm:h-16 drop-shadow-[0_0_18px_rgba(44,246,200,0.45)]"
-                            />
-                            <h1
-                                ref={titleRef}
-                                className="font-heading text-3xl sm:text-4xl font-bold tracking-wide"
-                                data-text="Brains Heist"
-                                style={{ color: 'var(--ion-blue)' }}
-                            >
-                                Brains Heist
-                            </h1>
-                        </div>
-
-                        <p
-                            ref={subtitleRef}
-                            className="text-lg sm:text-xl text-gray-200 leading-relaxed max-w-lg mx-auto lg:mx-0"
-                        >
-                            A gamified English &amp; Math platform for schools — assessments, leaderboards, and class battle modes.
-                        </p>
-
-                        {/* value bullets */}
-                        <ul
-                            ref={bulletsRef}
-                            className="mt-6 space-y-3 text-sm sm:text-base text-gray-300 max-w-lg mx-auto lg:mx-0"
-                            role="list"
-                        >
-                            {VALUE_BULLETS.map((b) => (
-                                <li key={b} className="flex items-start gap-2.5">
-                                    <CheckBadge />
-                                    <span>{b}</span>
-                                </li>
-                            ))}
-                        </ul>
-
-                        {/* trust strip */}
-                        <div className="mt-8 flex flex-wrap items-center justify-center lg:justify-start gap-x-5 gap-y-2 text-xs sm:text-sm text-gray-400">
-                            {TRUST_ITEMS.map((t) => (
-                                <span key={t} className="flex items-center gap-1.5">
-                                    <ShieldCheck />
-                                    {t}
-                                </span>
-                            ))}
-                        </div>
-
-                        {/* landing page CTAs */}
-                        <div className="mt-6 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
-                            <button
-                                type="button"
-                                onClick={() => setMode('signup')}
-                                className="inline-flex w-full sm:w-auto items-center justify-center rounded-full bg-ion-blue px-5 py-3 text-sm font-bold text-ink-900 shadow-[0_0_24px_rgba(34,211,238,0.28)] transition-all hover:bg-cyan-300"
-                            >
-                                Get started free
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => { resetDemoStatus(); setShowDemoModal(true); }}
-                                className="inline-flex w-full sm:w-auto items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm font-bold text-white transition-all hover:border-cyan-300 hover:bg-cyan-300/10"
-                            >
-                                Request demo
-                            </button>
-                        </div>
-
-                        {/* IELTS link */}
-                        <div className="mt-4 flex justify-center lg:justify-start">
-                            <a
-                                href="/ielts"
-                                className="inline-flex items-center gap-1 text-xs px-3 py-1.5 border border-emerald-500/40 rounded-full hover:bg-emerald-500/10 transition-colors"
-                                style={{ color: 'var(--ion-blue)' }}
-                            >
-                                📚 IELTS Preparation →
-                            </a>
-                        </div>
-                    </div>
-
-                    {/* ── Right: auth card ───────────────────────────────────── */}
-                    <div className="w-full max-w-md mx-auto lg:mx-0 lg:ml-auto order-2">
-                        {authCard}
-                    </div>
-
-                </div>
-            </section>
-
-            {/* ── HOW IT WORKS ─────────────────────────────────────────────── */}
-            <section ref={howItWorksRef} className="px-4 py-12 sm:py-16 border-t border-white/5">
-                <div className="max-w-4xl mx-auto text-center">
-                    <h2 data-reveal-heading className="font-heading text-2xl sm:text-3xl font-bold mb-8" style={{ color: 'var(--ion-blue)' }}>
-                        How it works
-                    </h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
-                        {HOW_IT_WORKS.map((item) => (
-                            <div
-                                key={item.step}
-                                className="relative bg-white/[0.03] border border-white/10 rounded-2xl p-6 backdrop-blur-sm"
-                                data-reveal
-                            >
-                                <span
-                                    className="inline-flex items-center justify-center w-10 h-10 rounded-full text-lg font-bold mb-4"
-                                    style={{ background: 'var(--ion-blue)', color: 'var(--ink-900)' }}
-                                >
-                                    {item.step}
-                                </span>
-                                <h3 className="text-white font-semibold text-base mb-1">{item.title}</h3>
-                                <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
+            <main className="relative z-10">
+                <section className="flex min-h-screen items-center px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+                    <div className="mx-auto grid w-full max-w-[1380px] grid-cols-1 items-center gap-12 lg:grid-cols-[1.08fr_0.92fr] lg:gap-20 xl:gap-24">
+                        <div ref={heroRef} className="mx-auto w-full max-w-2xl text-center lg:mx-0 lg:text-left">
+                            <div ref={brandRef} className="mb-10 flex items-center justify-center gap-3 lg:justify-start">
+                                <img src="/logo.png" alt="Brains Heist" className="h-16 w-16 drop-shadow-[0_0_24px_rgba(34,211,238,0.35)]" />
+                                <div>
+                                    <div className="font-heading text-3xl font-black tracking-tight sm:text-[2.15rem]"><span className="text-white">Brains</span> <span className="bg-gradient-to-r from-cyan-300 via-teal-300 to-fuchsia-400 bg-clip-text text-transparent">Heist</span></div>
+                                    <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.33em] text-slate-500">Learn · Compete · Grow</div>
+                                </div>
                             </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
 
-            {/* ── FOR SCHOOLS / FOR STUDENTS ────────────────────────────────── */}
-            <section ref={audienceRef} className="px-4 py-12 sm:py-16 border-t border-white/5">
-                <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 sm:p-8" data-reveal>
-                        <h3 className="font-heading text-lg font-bold text-white mb-2">🏫 For Schools</h3>
-                        <ul className="space-y-2 text-sm text-gray-300">
-                            <li>• Cambridge-aligned admission tests</li>
-                            <li>• Live Lockdown class battle mode</li>
-                            <li>• School-wide analytics &amp; placement reports</li>
-                            <li>• Manage classes, batches &amp; rosters</li>
-                        </ul>
-                        <a
-                            href="/pricing.html"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-block mt-4 text-sm font-medium hover:underline"
-                            style={{ color: 'var(--ion-blue)' }}
-                        >
-                            View pricing →
-                        </a>
+                            <h1 ref={headlineRef} className="font-heading text-5xl font-black leading-[1.02] tracking-[-0.035em] text-white sm:text-6xl lg:text-[4.2rem] xl:text-[4.65rem]">
+                                Where school<br />feels like a <span className="bg-gradient-to-r from-cyan-300 via-teal-300 to-fuchsia-400 bg-clip-text text-transparent">game.</span>
+                            </h1>
+
+                            <p ref={introRef} className="mx-auto mt-7 max-w-xl text-base leading-7 text-slate-300 sm:text-lg lg:mx-0">
+                                A gamified English &amp; Maths platform for schools — assessments, live classroom battles, progress tracking and meaningful reports.
+                            </p>
+
+                            <div ref={benefitsRef} className="mx-auto mt-8 max-w-xl space-y-5 text-left lg:mx-0">
+                                {BENEFITS.map((benefit) => (
+                                    <div key={benefit.title} className="flex items-start gap-4">
+                                        <div className={benefit.accent === 'pink' ? '[&_span]:border-fuchsia-300/20 [&_span]:bg-fuchsia-300/[0.06] [&_span]:text-fuchsia-300' : ''}><BenefitMark type={benefit.icon} /></div>
+                                        <div>
+                                            <h2 className="text-[15px] font-bold text-slate-100 sm:text-base">{benefit.title}</h2>
+                                            <p className="mt-0.5 text-sm leading-relaxed text-slate-500">{benefit.description}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="mt-9 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
+                                <button type="button" onClick={() => switchMode('signup')} className="inline-flex h-12 w-full items-center justify-center rounded-2xl bg-cyan-300 px-6 text-sm font-extrabold text-[#06101d] shadow-[0_12px_30px_rgba(34,211,238,0.2)] transition hover:-translate-y-0.5 hover:bg-cyan-200 sm:w-auto">Get started free →</button>
+                                <button type="button" onClick={() => { resetDemoStatus(); setShowDemoModal(true); }} className="inline-flex h-12 w-full items-center justify-center rounded-2xl border border-white/15 bg-white/[0.04] px-6 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:border-cyan-300/50 hover:bg-cyan-300/[0.06] sm:w-auto">Request demo</button>
+                            </div>
+
+                            <div className="mt-5 flex justify-center lg:justify-start">
+                                <a href="/ielts" className="inline-flex items-center gap-2 text-sm text-slate-400 transition hover:text-cyan-300"><span aria-hidden="true">🎓</span> Preparing for IELTS? <span className="font-bold text-cyan-300">Explore IELTS Prime →</span></a>
+                            </div>
+
+                            <div className="mt-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 border-t border-white/[0.06] pt-5 text-xs text-slate-500 lg:justify-start">
+                                <span>🔒 Secure payments</span><span className="hidden text-slate-700 sm:inline">|</span><span>✓ Cancel anytime</span><span className="hidden text-slate-700 sm:inline">|</span><span>🏫 Built for schools</span>
+                            </div>
+                        </div>
+
+                        <div className="mx-auto w-full max-w-[540px] lg:mx-0 lg:ml-auto">{authCard}</div>
                     </div>
-                    <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 sm:p-8" data-reveal>
-                        <h3 className="font-heading text-lg font-bold text-white mb-2">🎮 For Students</h3>
-                        <ul className="space-y-2 text-sm text-gray-300">
-                            <li>• Earn XP, coins &amp; gems through quests</li>
-                            <li>• Join clans and compete in PvP battles</li>
-                            <li>• Track your progress &amp; skill levels</li>
-                            <li>• Customize your avatar in the shop</li>
-                        </ul>
-                        <a
-                            href="/pricing.html"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-block mt-4 text-sm font-medium hover:underline"
-                            style={{ color: 'var(--ion-blue)' }}
-                        >
-                            Get started free →
-                        </a>
+                </section>
+
+                <section ref={howItWorksRef} className="border-t border-white/[0.05] px-4 py-20 sm:px-6 sm:py-24">
+                    <div className="mx-auto max-w-6xl">
+                        <div data-reveal-heading className="mx-auto mb-12 max-w-2xl text-center">
+                            <p className="text-xs font-bold uppercase tracking-[0.28em] text-cyan-300/75">Simple setup</p>
+                            <h2 className="mt-3 font-heading text-3xl font-black tracking-tight text-white sm:text-4xl">From signup to real learning momentum.</h2>
+                            <p className="mt-4 text-sm leading-7 text-slate-500 sm:text-base">The same platform can handle admissions, classroom competition and progress reporting without making setup feel like a project.</p>
+                        </div>
+                        <div className="grid gap-5 md:grid-cols-3">
+                            {HOW_IT_WORKS.map((item) => (
+                                <article key={item.step} data-reveal className="group rounded-[1.6rem] border border-white/[0.08] bg-white/[0.025] p-6 backdrop-blur transition hover:-translate-y-1 hover:border-cyan-300/25 hover:bg-cyan-300/[0.035]">
+                                    <div className="text-xs font-black tracking-[0.22em] text-cyan-300/65">{item.step}</div>
+                                    <h3 className="mt-5 text-lg font-bold text-white">{item.title}</h3>
+                                    <p className="mt-3 text-sm leading-6 text-slate-500">{item.desc}</p>
+                                </article>
+                            ))}
+                        </div>
                     </div>
-                </div>
-            </section>
+                </section>
+
+                <section ref={audienceRef} className="border-t border-white/[0.05] px-4 py-20 sm:px-6 sm:py-24">
+                    <div className="mx-auto max-w-6xl">
+                        <div data-reveal-heading className="mb-12 text-center">
+                            <p className="text-xs font-bold uppercase tracking-[0.28em] text-fuchsia-300/70">One platform, two perspectives</p>
+                            <h2 className="mt-3 font-heading text-3xl font-black tracking-tight text-white sm:text-4xl">Useful for schools. Fun for students.</h2>
+                        </div>
+                        <div className="grid gap-6 md:grid-cols-2">
+                            <article data-reveal className="rounded-[1.75rem] border border-white/[0.08] bg-gradient-to-br from-cyan-300/[0.055] to-transparent p-7 sm:p-8">
+                                <div className="text-2xl" aria-hidden="true">🏫</div>
+                                <h3 className="mt-5 text-xl font-extrabold text-white">For schools</h3>
+                                <ul className="mt-5 space-y-3 text-sm leading-6 text-slate-400">
+                                    <li>✓ Cambridge-aligned admission tests</li><li>✓ Live Lockdown class battle mode</li><li>✓ School analytics and placement reports</li><li>✓ Classes, batches and roster management</li>
+                                </ul>
+                                <a href="/pricing.html" target="_blank" rel="noopener noreferrer" className="mt-7 inline-flex text-sm font-bold text-cyan-300 hover:text-cyan-200">View pricing →</a>
+                            </article>
+                            <article data-reveal className="rounded-[1.75rem] border border-white/[0.08] bg-gradient-to-br from-fuchsia-300/[0.045] to-transparent p-7 sm:p-8">
+                                <div className="text-2xl" aria-hidden="true">🎮</div>
+                                <h3 className="mt-5 text-xl font-extrabold text-white">For students</h3>
+                                <ul className="mt-5 space-y-3 text-sm leading-6 text-slate-400">
+                                    <li>✓ Earn XP, coins and gems through quests</li><li>✓ Join clans and compete in PvP battles</li><li>✓ Track progress and skill levels</li><li>✓ Build a profile and customize rewards</li>
+                                </ul>
+                                <button type="button" onClick={() => switchMode('signup')} className="mt-7 inline-flex text-sm font-bold text-cyan-300 hover:text-cyan-200">Get started free →</button>
+                            </article>
+                        </div>
+                    </div>
+                </section>
+            </main>
 
             {showDemoModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/75 px-4 py-6 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="demo-modal-title">
-                    <div className="my-auto w-full max-w-2xl overflow-hidden rounded-3xl border border-cyan-300/30 bg-ink-900 shadow-[0_0_70px_rgba(34,211,238,0.2)]">
-                        <div className="flex items-start justify-between gap-4 border-b border-white/10 bg-gradient-to-br from-white/[0.08] via-cyan-400/[0.08] to-emerald-400/[0.05] p-5 sm:p-6">
+                <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/80 px-4 py-6 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="demo-modal-title">
+                    <div className="my-auto w-full max-w-2xl overflow-hidden rounded-[1.75rem] border border-cyan-300/25 bg-[#081321] shadow-[0_0_80px_rgba(34,211,238,0.14)]">
+                        <div className="flex items-start justify-between gap-4 border-b border-white/10 bg-gradient-to-br from-white/[0.06] via-cyan-400/[0.05] to-transparent p-5 sm:p-6">
                             <div>
                                 <p className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-300">For schools &amp; teams</p>
-                                <h2 id="demo-modal-title" className="mt-1 font-heading text-2xl font-bold text-white">Request a Brains Heist demo</h2>
-                                <p className="mt-2 max-w-xl text-sm leading-relaxed text-gray-300">Share a few details and the Brains Heist team will prepare the right walkthrough for your school.</p>
+                                <h2 id="demo-modal-title" className="mt-2 text-2xl font-extrabold text-white">Request a Brains Heist demo</h2>
+                                <p className="mt-2 text-sm leading-relaxed text-slate-400">Tell us about your school and the team can prepare the right walkthrough.</p>
                             </div>
-                            <button
-                                type="button"
-                                onClick={closeDemoModal}
-                                className="rounded-full border border-white/10 px-3 py-1 text-lg text-gray-300 transition-colors hover:border-red-300/60 hover:text-red-200"
-                                aria-label="Close demo form"
-                            >
-                                ×
-                            </button>
+                            <button type="button" onClick={closeDemoModal} className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-lg text-slate-400 transition hover:border-white/20 hover:text-white" aria-label="Close demo form">×</button>
                         </div>
                         {demoSubmitted ? (
-                            <div className="p-5 sm:p-6">
-                                <div className="rounded-2xl border border-emerald-300/40 bg-emerald-400/10 p-5 text-emerald-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-                                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-300/20 text-2xl ring-1 ring-emerald-200/30">✓</div>
-                                    <h3 className="font-heading text-xl font-bold text-white">Demo request received.</h3>
-                                    <p className="mt-2 text-sm leading-relaxed text-emerald-50/90">The Brains Heist team can follow up using the email you provided.</p>
+                            <div className="p-6">
+                                <div className="rounded-2xl border border-emerald-300/30 bg-emerald-300/[0.07] p-5 text-emerald-50">
+                                    <div className="text-2xl">✓</div><h3 className="mt-3 text-xl font-bold text-white">Demo request received.</h3><p className="mt-2 text-sm text-emerald-50/80">The Brains Heist team can follow up using the email you provided.</p>
                                 </div>
-                                <div className="mt-5 flex justify-end">
-                                    <button type="button" onClick={closeDemoModal} className="rounded-full bg-ion-blue px-6 py-3 text-sm font-bold text-ink-900 transition-all hover:bg-cyan-300">
-                                        Done
-                                    </button>
-                                </div>
+                                <div className="mt-5 flex justify-end"><button type="button" onClick={closeDemoModal} className="rounded-xl bg-cyan-300 px-5 py-2.5 text-sm font-bold text-[#06101d]">Done</button></div>
                             </div>
                         ) : (
                             <form onSubmit={handleDemoSubmit} className="grid gap-4 p-5 sm:grid-cols-2 sm:p-6">
-                                <label className="text-sm font-medium text-gray-300">
-                                    First name*
-                                    <input
-                                        required
-                                        value={demoForm.name}
-                                        onChange={(e) => setDemoForm((form) => ({ ...form, name: e.target.value }))}
-                                        disabled={demoSubmitting}
-                                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-500 transition focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-60"
-                                        placeholder="Ada"
-                                    />
+                                {[
+                                    ['name', 'First name*', 'Ada'], ['email', 'Work email*', 'leader@school.edu'], ['school', 'School / company*', 'North Star Academy'], ['country', 'Country', 'United Kingdom'], ['studentCount', 'Approx. students', '450'], ['website', 'Website', 'school.example.com'],
+                                ].map(([key, label, placeholder]) => (
+                                    <label key={key} className="text-sm font-semibold text-slate-300">{label}
+                                        <input
+                                            required={key === 'name' || key === 'email' || key === 'school'}
+                                            type={key === 'email' ? 'email' : key === 'studentCount' ? 'number' : 'text'}
+                                            min={key === 'studentCount' ? 1 : undefined}
+                                            value={demoForm[key as keyof typeof demoForm]}
+                                            onChange={(e) => setDemoForm((form) => ({ ...form, [key]: e.target.value }))}
+                                            disabled={demoSubmitting}
+                                            placeholder={placeholder}
+                                            className="mt-2 w-full rounded-xl border border-white/10 bg-white/[0.05] p-3 text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-300 focus:ring-4 focus:ring-cyan-300/10 disabled:opacity-60"
+                                        />
+                                    </label>
+                                ))}
+                                <label className="text-sm font-semibold text-slate-300 sm:col-span-2">Notes
+                                    <textarea rows={4} value={demoForm.notes} onChange={(e) => setDemoForm((form) => ({ ...form, notes: e.target.value }))} disabled={demoSubmitting} placeholder="Admissions, reports, classroom battles, onboarding timeline..." className="mt-2 w-full rounded-xl border border-white/10 bg-white/[0.05] p-3 text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-300 focus:ring-4 focus:ring-cyan-300/10 disabled:opacity-60" />
                                 </label>
-                                <label className="text-sm font-medium text-gray-300">
-                                    Work email*
-                                    <input
-                                        required
-                                        type="email"
-                                        value={demoForm.email}
-                                        onChange={(e) => setDemoForm((form) => ({ ...form, email: e.target.value }))}
-                                        disabled={demoSubmitting}
-                                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-500 transition focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-60"
-                                        placeholder="leader@school.edu"
-                                    />
-                                </label>
-                                <label className="text-sm font-medium text-gray-300">
-                                    School / company*
-                                    <input
-                                        required
-                                        value={demoForm.school}
-                                        onChange={(e) => setDemoForm((form) => ({ ...form, school: e.target.value }))}
-                                        disabled={demoSubmitting}
-                                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-500 transition focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-60"
-                                        placeholder="North Star Academy"
-                                    />
-                                </label>
-                                <label className="text-sm font-medium text-gray-300">
-                                    Country
-                                    <input
-                                        value={demoForm.country}
-                                        onChange={(e) => setDemoForm((form) => ({ ...form, country: e.target.value }))}
-                                        disabled={demoSubmitting}
-                                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-500 transition focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-60"
-                                        placeholder="United Kingdom"
-                                    />
-                                </label>
-                                <label className="text-sm font-medium text-gray-300">
-                                    Approx. students
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        inputMode="numeric"
-                                        value={demoForm.studentCount}
-                                        onChange={(e) => setDemoForm((form) => ({ ...form, studentCount: e.target.value }))}
-                                        disabled={demoSubmitting}
-                                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-500 transition focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-60"
-                                        placeholder="450"
-                                    />
-                                </label>
-                                <label className="text-sm font-medium text-gray-300">
-                                    Website
-                                    <input
-                                        value={demoForm.website}
-                                        onChange={(e) => setDemoForm((form) => ({ ...form, website: e.target.value }))}
-                                        disabled={demoSubmitting}
-                                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-500 transition focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-60"
-                                        placeholder="school.example.com"
-                                    />
-                                </label>
-                                <label className="text-sm font-medium text-gray-300 sm:col-span-2">
-                                    Notes
-                                    <textarea
-                                        value={demoForm.notes}
-                                        onChange={(e) => setDemoForm((form) => ({ ...form, notes: e.target.value }))}
-                                        disabled={demoSubmitting}
-                                        rows={4}
-                                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-500 transition focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-60"
-                                        placeholder="Cambridge stage mapping, admissions tests, reports, classroom battles, onboarding timeline..."
-                                    />
-                                </label>
-                                {demoSubmitError && (
-                                    <p className="rounded-xl border border-red-300/40 bg-red-400/10 px-4 py-3 text-sm leading-relaxed text-red-100 sm:col-span-2">
-                                        {demoSubmitError}
-                                    </p>
-                                )}
-                                <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
-                                    <p className="text-xs leading-relaxed text-gray-500">By submitting, you agree that Brains Heist may contact you about your demo request.</p>
-                                    <button type="submit" disabled={demoSubmitting} className="inline-flex items-center justify-center rounded-full bg-ion-blue px-6 py-3 text-sm font-bold text-ink-900 transition-all hover:bg-cyan-300 disabled:cursor-not-allowed disabled:bg-gray-500 disabled:text-gray-200">
-                                        {demoSubmitting ? 'Sending request...' : 'Send demo request'}
-                                    </button>
-                                </div>
+                                {demoSubmitError && <p className="rounded-xl border border-rose-300/30 bg-rose-300/[0.08] px-4 py-3 text-sm text-rose-100 sm:col-span-2">{demoSubmitError}</p>}
+                                <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between"><p className="text-xs leading-relaxed text-slate-500">By submitting, you agree that Brains Heist may contact you about your demo request.</p><button type="submit" disabled={demoSubmitting} className="rounded-xl bg-cyan-300 px-5 py-3 text-sm font-bold text-[#06101d] disabled:opacity-60">{demoSubmitting ? 'Sending...' : 'Send demo request'}</button></div>
                             </form>
                         )}
                     </div>
                 </div>
             )}
 
-            <div className="fixed bottom-4 right-4 z-40 w-[calc(100%-2rem)] max-w-sm sm:bottom-5 sm:right-5 sm:w-[calc(100%-2.5rem)]">
+            <div className="fixed bottom-4 right-4 z-40 w-[calc(100%-2rem)] max-w-sm sm:bottom-5 sm:right-5">
                 {assistantOpen ? (
-                    <div className="overflow-hidden rounded-[1.75rem] border border-white/25 bg-white/95 text-gray-900 shadow-[0_24px_80px_rgba(8,20,35,0.28)] ring-1 ring-gray-950/5 backdrop-blur-xl">
-                        <div className="flex items-center justify-between gap-3 border-b border-gray-200/70 bg-gradient-to-r from-white via-cyan-50/70 to-emerald-50/70 px-4 py-3.5">
-                            <div className="flex items-center gap-3">
-                                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-300 via-teal-300 to-emerald-300 text-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_10px_28px_rgba(20,184,166,0.28)] ring-1 ring-white/70">🤖</div>
-                                <div>
-                                    <p className="text-sm font-extrabold tracking-tight text-gray-950">Brains Assistant</p>
-                                    <p className="text-[11px] font-medium text-gray-500">AI admissions assistant</p>
-                                </div>
-                            </div>
-                            <button type="button" onClick={() => setAssistantOpen(false)} className="flex h-8 w-8 items-center justify-center rounded-full text-lg leading-none text-gray-400 transition hover:bg-white/80 hover:text-gray-700" aria-label="Minimize virtual assistant">×</button>
+                    <div className="overflow-hidden rounded-[1.65rem] border border-white/15 bg-white text-slate-900 shadow-[0_28px_90px_rgba(0,0,0,0.34)]">
+                        <div className="flex items-center justify-between border-b border-slate-200 bg-gradient-to-r from-white via-cyan-50 to-teal-50 px-4 py-3.5">
+                            <div className="flex items-center gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-300 to-teal-300">🤖</div><div><p className="text-sm font-extrabold">Brains Assistant</p><p className="text-[11px] text-slate-500">Help with access, demos &amp; setup</p></div></div>
+                            <button type="button" onClick={() => setAssistantOpen(false)} className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Minimize Brains Assistant">×</button>
                         </div>
-                        <div className="max-h-[18rem] space-y-4 overflow-y-auto bg-gradient-to-b from-gray-50/80 to-white px-4 py-5 sm:max-h-[19rem] sm:px-5">
-                            {assistantMessages.map((message, index) => (
-                                <div key={`${message.role}-${index}`} className={`flex ${message.role === 'agent' ? 'justify-start' : 'justify-end'}`}>
-                                    <div className={`max-w-[88%] whitespace-pre-line text-[14px] leading-relaxed shadow-sm ${message.role === 'agent' ? 'rounded-[1.35rem] rounded-tl-md border border-gray-200/80 bg-white/95 px-4 py-3.5 text-gray-700 shadow-[0_10px_30px_rgba(15,23,42,0.06)]' : 'rounded-[1.35rem] rounded-tr-md bg-gradient-to-br from-cyan-600 to-teal-500 px-4 py-3.5 font-medium text-white shadow-[0_12px_28px_rgba(8,145,178,0.22)]'}`}>
-                                        {message.text}
-                                    </div>
-                                </div>
-                            ))}
-                            {assistantLoading && (
-                                <div className="inline-flex max-w-[88%] items-center gap-2 rounded-[1.35rem] rounded-tl-md border border-gray-200/80 bg-white/90 px-4 py-3 text-[14px] leading-[1.58] text-gray-600 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-                                    <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.7)]" />
-                                    Brains Assistant is thinking...
-                                </div>
-                            )}
-                            {assistantError && (
-                                <div className="rounded-[1.35rem] border border-red-200 bg-red-50 px-4 py-3 text-[14px] leading-[1.58] text-red-700 shadow-sm">
-                                    {assistantError}
-                                </div>
-                            )}
+                        <div className="max-h-[18rem] space-y-3 overflow-y-auto bg-slate-50 px-4 py-4">
+                            {assistantMessages.map((message, index) => <div key={`${message.role}-${index}`} className={`flex ${message.role === 'agent' ? 'justify-start' : 'justify-end'}`}><div className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${message.role === 'agent' ? 'border border-slate-200 bg-white text-slate-700' : 'bg-gradient-to-br from-cyan-600 to-teal-500 text-white'}`}>{message.text}</div></div>)}
+                            {assistantLoading && <div className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500"><span className="h-2 w-2 animate-pulse rounded-full bg-cyan-500" />Thinking...</div>}
+                            {assistantError && <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{assistantError}</div>}
                         </div>
-                        <div className="overflow-x-auto border-t border-gray-200/80 bg-white px-4 py-3 sm:px-5">
-                            <div className="flex min-w-max gap-2 sm:min-w-0 sm:flex-wrap">
-                                <button type="button" onClick={() => void submitAssistantPrompt('How much does Brains Heist cost for my school?')} disabled={assistantLoading} className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-bold tracking-wide text-gray-700 shadow-sm transition hover:border-cyan-200 hover:bg-cyan-50 hover:text-cyan-800 disabled:cursor-not-allowed disabled:opacity-60">Ask about pricing</button>
-                                <button type="button" onClick={openDemoFromAssistant} className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-[11px] font-bold tracking-wide text-cyan-900 shadow-sm transition hover:border-cyan-300 hover:bg-cyan-100 hover:text-cyan-950">Request demo</button>
-                                <button type="button" onClick={() => void submitAssistantPrompt('I need help with my Brains Heist account or setup.')} disabled={assistantLoading} className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-bold tracking-wide text-gray-700 shadow-sm transition hover:border-cyan-200 hover:bg-cyan-50 hover:text-cyan-800 disabled:cursor-not-allowed disabled:opacity-60">Get support</button>
-                            </div>
-                        </div>
-                        <form onSubmit={handleAssistantAsk} className="flex items-center gap-2 border-t border-gray-200/80 bg-gray-50/80 p-3 sm:p-4">
-                            <input
-                                value={assistantQuestion}
-                                onChange={(e) => setAssistantQuestion(e.target.value)}
-                                disabled={assistantLoading}
-                                className="min-w-0 flex-1 rounded-full border border-gray-200 bg-white px-4 py-2.5 text-[14px] leading-relaxed shadow-inner outline-none transition placeholder:text-gray-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100 disabled:bg-gray-100 disabled:text-gray-400"
-                                placeholder="Ask a question"
-                            />
-                            <button type="submit" disabled={assistantLoading} className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-950 text-white shadow-[0_10px_22px_rgba(15,23,42,0.22)] transition hover:-translate-y-0.5 hover:bg-cyan-700 hover:shadow-[0_14px_28px_rgba(8,145,178,0.26)] disabled:cursor-not-allowed disabled:bg-gray-400 disabled:shadow-none" aria-label="Send assistant question">➤</button>
-                        </form>
-                        <p className="border-t border-gray-200/80 bg-white px-4 py-3.5 text-[11px] leading-relaxed text-gray-500 sm:px-5">
-                            Powered by AI for flexible visitor guidance. See our <a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="font-semibold text-gray-600 underline decoration-gray-300 underline-offset-2 hover:text-cyan-700">Privacy Policy</a> for data details.
-                        </p>
+                        <div className="flex gap-2 overflow-x-auto border-t border-slate-200 px-4 py-3 text-[11px] font-bold"><button type="button" onClick={() => void submitAssistantPrompt('How much does Brains Heist cost for my school?')} className="whitespace-nowrap rounded-full border border-slate-200 px-3 py-1.5 hover:bg-cyan-50">Pricing</button><button type="button" onClick={openDemoFromAssistant} className="whitespace-nowrap rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-cyan-900">Request demo</button><button type="button" onClick={() => void submitAssistantPrompt('I need help signing in or setting up my Brains Heist account.')} className="whitespace-nowrap rounded-full border border-slate-200 px-3 py-1.5 hover:bg-cyan-50">Sign-in help</button></div>
+                        <form onSubmit={(e) => { e.preventDefault(); void submitAssistantPrompt(assistantQuestion); }} className="flex gap-2 border-t border-slate-200 bg-white p-3"><input value={assistantQuestion} onChange={(e) => setAssistantQuestion(e.target.value)} disabled={assistantLoading} placeholder="Ask a question" className="min-w-0 flex-1 rounded-full border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100" /><button type="submit" disabled={assistantLoading} className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-950 text-white disabled:opacity-50" aria-label="Send assistant question">➤</button></form>
                     </div>
                 ) : (
-                    <button
-                        type="button"
-                        onClick={() => setAssistantOpen(true)}
-                        className="ml-auto flex items-center gap-2 rounded-full border border-cyan-300/40 bg-ink-900/95 px-4 py-3 text-sm font-bold text-white shadow-[0_0_28px_rgba(34,211,238,0.28)] backdrop-blur hover:bg-cyan-950"
-                    >
-                        <span className="text-lg">🤖</span> Brains Assistant
-                    </button>
+                    <button type="button" onClick={() => setAssistantOpen(true)} className="ml-auto flex items-center gap-2 rounded-full border border-cyan-300/30 bg-[#081321]/95 px-4 py-3 text-sm font-bold text-white shadow-[0_0_30px_rgba(34,211,238,0.18)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-cyan-300/50"><span className="relative text-lg">🤖<span className="absolute -right-1 -top-0.5 h-2 w-2 rounded-full bg-emerald-400" /></span> Brains Assistant</button>
                 )}
             </div>
 
-            {/* ── FOOTER ───────────────────────────────────────────────────── */}
-            <footer className="border-t border-white/5 px-4 py-8 sm:py-10">
-                <div className="max-w-5xl mx-auto">
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-sm">
-                        {/* Brand */}
-                        <div className="col-span-2 sm:col-span-1">
-                            <div className="flex items-center gap-2 mb-3">
-                                <img src="/logo.png" alt="" className="w-7 h-7" />
-                                <span className="font-heading font-bold text-white">Brains Heist</span>
-                            </div>
-                            <p className="text-gray-500 text-xs leading-relaxed">
-                                Gamified learning for English &amp; Math — built for schools, loved by students.
-                            </p>
-                        </div>
-
-                        {/* Legal */}
-                        <div>
-                            <h4 className="text-gray-400 font-semibold text-xs uppercase tracking-wider mb-3">Legal</h4>
-                            <ul className="space-y-2 text-gray-500">
-                                <li><a href="/terms.html" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">Terms of Service</a></li>
-                                <li><a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">Privacy Policy</a></li>
-                                <li><a href="/refund.html" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">Refund Policy</a></li>
-                            </ul>
-                        </div>
-
-                        {/* Resources */}
-                        <div>
-                            <h4 className="text-gray-400 font-semibold text-xs uppercase tracking-wider mb-3">Resources</h4>
-                            <ul className="space-y-2 text-gray-500">
-                                <li><a href="/pricing.html" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">Pricing</a></li>
-                                <li><a href="/contact.html" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">Contact Us</a></li>
-                                <li><a href="/ielts" className="hover:text-emerald-400 transition-colors">IELTS Prep</a></li>
-                            </ul>
-                        </div>
-
-                        {/* Contact */}
-                        <div>
-                            <h4 className="text-gray-400 font-semibold text-xs uppercase tracking-wider mb-3">Get in touch</h4>
-                            <ul className="space-y-2 text-gray-500 text-xs sm:text-sm">
-                                <li>
-                                    <a href="mailto:support@brainsheist.com" className="hover:text-emerald-400 transition-colors">
-                                        support@brainsheist.com
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="mailto:sales@brainsheist.com" className="hover:text-emerald-400 transition-colors">
-                                        sales@brainsheist.com
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    {/* Bottom bar */}
-                    <div className="mt-8 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-600">
-                        <span>© {new Date().getFullYear()} Brains Heist. All rights reserved.</span>
-                        <span className="flex items-center gap-1">
-                            <ShieldCheck />
-                            Payments secured by Paddle — Merchant of Record
-                        </span>
-                    </div>
-                </div>
+            <footer className="relative z-10 border-t border-white/[0.05] px-4 py-8 text-sm text-slate-600 sm:px-6">
+                <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row"><div className="flex items-center gap-2"><img src="/logo.png" alt="" className="h-7 w-7 opacity-75" /><span>Brains Heist</span></div><div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2"><a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="hover:text-slate-300">Privacy</a><a href="/pricing.html" target="_blank" rel="noopener noreferrer" className="hover:text-slate-300">Pricing</a><button type="button" onClick={() => { resetDemoStatus(); setShowDemoModal(true); }} className="hover:text-slate-300">Request demo</button></div></div>
             </footer>
         </div>
     );
