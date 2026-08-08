@@ -60,8 +60,10 @@ const HOW_IT_WORKS = [
     { step: '03', title: 'Assess, compete, improve', desc: 'Run assessments and live modes, then use the reporting layer to act on results.' },
 ] as const;
 
+const PENDING_CONFIRMATION_KEY = 'brains_heist_pending_confirmation_v1';
+
 const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
-    const [mode, setMode] = useState<'login' | 'signup' | 'reset'>('login');
+    const [mode, setMode] = useState<'login' | 'signup' | 'reset' | 'confirm'>('login');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [username, setUsername] = useState('');
@@ -70,6 +72,10 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+    const [pendingEmail, setPendingEmail] = useState('');
+    const [pendingExpiresAt, setPendingExpiresAt] = useState<string | null>(null);
+    const [confirmationCode, setConfirmationCode] = useState('');
+    const [resendLoading, setResendLoading] = useState(false);
 
     const [showDemoModal, setShowDemoModal] = useState(false);
     const [demoForm, setDemoForm] = useState({ name: '', email: '', school: '', country: '', studentCount: '', website: '', notes: '' });
@@ -110,6 +116,21 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
         if (persisted) {
             setMode('login');
             setError(persisted);
+        }
+    }, []);
+
+    useEffect(() => {
+        try {
+            const saved = JSON.parse(window.localStorage.getItem(PENDING_CONFIRMATION_KEY) || 'null') as { email?: string; expiresAt?: string } | null;
+            if (!saved?.email || !saved.expiresAt || new Date(saved.expiresAt).getTime() <= Date.now()) {
+                window.localStorage.removeItem(PENDING_CONFIRMATION_KEY);
+                return;
+            }
+            setPendingEmail(saved.email);
+            setPendingExpiresAt(saved.expiresAt);
+            setMode('confirm');
+        } catch {
+            window.localStorage.removeItem(PENDING_CONFIRMATION_KEY);
         }
     }, []);
 
@@ -210,6 +231,14 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
         setIsLoading(true);
 
         try {
+            if (mode === 'confirm') {
+                await AuthService.verifySignupEmailCode(pendingEmail, confirmationCode);
+                window.localStorage.removeItem(PENDING_CONFIRMATION_KEY);
+                setSuccess('Email confirmed. Opening your workspace…');
+                window.setTimeout(() => window.location.reload(), 700);
+                return;
+            }
+
             if (!email.trim()) {
                 setError('Enter your email address.');
                 return;
@@ -226,18 +255,65 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     setError('Choose a username to continue.');
                     return;
                 }
-                await AuthService.signup(email.trim(), password, username.trim(), 'student');
-                setSuccess('Account created! Loading your profile...');
-                window.setTimeout(() => window.location.reload(), 1500);
+                const signupResult = await AuthService.signup(email.trim(), password, username.trim(), 'student');
+                if (signupResult.confirmationRequired) {
+                    const expiresAt = signupResult.expiresAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+                    setPendingEmail(signupResult.email);
+                    setPendingExpiresAt(expiresAt);
+                    window.localStorage.setItem(PENDING_CONFIRMATION_KEY, JSON.stringify({
+                        email: signupResult.email,
+                        expiresAt,
+                    }));
+                    setConfirmationCode('');
+                    setMode('confirm');
+                    setSuccess('Account created. Confirm your email within seven days.');
+                    return;
+                }
+                setSuccess('Account created! Opening your profile…');
+                window.setTimeout(() => window.location.reload(), 700);
                 return;
             }
 
             await onLogin(email.trim(), password);
         } catch (err: any) {
-            setError(friendlyError(err?.message));
+            if (AuthService.isEmailConfirmationRequiredError(err)) {
+                const confirmationEmail = err.email || email.trim();
+                const expiresAt = pendingExpiresAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+                setPendingEmail(confirmationEmail);
+                setPendingExpiresAt(expiresAt);
+                window.localStorage.setItem(PENDING_CONFIRMATION_KEY, JSON.stringify({ email: confirmationEmail, expiresAt }));
+                setMode('confirm');
+                setError(null);
+                setSuccess('Your account is waiting for email confirmation.');
+            } else {
+                setError(friendlyError(err?.message));
+            }
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleResendConfirmation = async () => {
+        if (!pendingEmail || resendLoading) return;
+        setResendLoading(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            await AuthService.resendSignupConfirmation(pendingEmail);
+            setSuccess('A fresh confirmation email has been sent.');
+        } catch (err: any) {
+            setError(err?.message || 'Could not resend the confirmation email.');
+        } finally {
+            setResendLoading(false);
+        }
+    };
+
+    const switchFromConfirmation = (nextMode: 'login' | 'signup') => {
+        setMode(nextMode);
+        setError(null);
+        setSuccess(null);
+        setConfirmationCode('');
+        if (nextMode === 'signup') setEmail(pendingEmail);
     };
 
     const handleGoogleSignIn = async () => {
@@ -322,7 +398,61 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
         openDemoModal();
     };
 
-    const authCard = (
+    const authCard = mode === 'confirm' ? (
+        <div ref={cardRef} className="relative overflow-hidden rounded-[1.75rem] border border-cyan-300/25 bg-[#081321]/95 p-5 shadow-[0_34px_110px_rgba(0,0,0,0.42),0_0_55px_rgba(34,211,238,0.10)] backdrop-blur-xl sm:p-8">
+            <form onSubmit={handleSubmit} className="space-y-5" aria-labelledby="confirm-email-title">
+                <div className="rounded-2xl border border-cyan-400/30 bg-cyan-400/5 p-5 text-center">
+                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-300/40 bg-cyan-400/10 text-2xl" aria-hidden="true">✉</div>
+                    <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.24em] text-cyan-300/80">Secure account setup</p>
+                    <h2 id="confirm-email-title" className="mt-2 text-2xl font-extrabold text-white">Confirm your email</h2>
+                    <p className="mt-2 text-sm leading-relaxed text-slate-400">We sent a confirmation email to</p>
+                    <strong className="mt-1 block break-all text-cyan-200">{pendingEmail}</strong>
+                    <p className="mt-3 text-xs leading-relaxed text-amber-100/90">Your account stays reserved for seven days. Until confirmed, it cannot join a school or access school data.</p>
+                </div>
+
+                {error && <p className="rounded-xl border border-rose-300/30 bg-rose-300/[0.08] px-4 py-3 text-sm text-rose-100">{error}</p>}
+                {success && <p className="rounded-xl border border-emerald-300/30 bg-emerald-300/[0.08] px-4 py-3 text-sm text-emerald-100">{success}</p>}
+
+                <label className="block text-sm font-semibold text-slate-300" htmlFor="confirmation-code">
+                    Confirmation code <span className="font-normal text-slate-500">(if shown in your email)</span>
+                    <input
+                        id="confirmation-code"
+                        value={confirmationCode}
+                        onChange={(event) => setConfirmationCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
+                        inputMode="numeric"
+                        autoComplete="one-time-code"
+                        pattern="[0-9]{6}"
+                        maxLength={6}
+                        placeholder="000000"
+                        className="mt-2 block h-14 w-full rounded-2xl border border-slate-600/70 bg-slate-800/70 px-4 text-center font-mono text-2xl tracking-[0.45em] text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-300 focus:ring-4 focus:ring-cyan-300/10"
+                        aria-describedby="confirmation-expiry"
+                    />
+                </label>
+                <p id="confirmation-expiry" className="text-center text-xs text-slate-500">
+                    {pendingExpiresAt ? `Pending account expires ${new Date(pendingExpiresAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}.` : 'Confirm within seven days.'}
+                </p>
+
+                <button
+                    ref={submitBtnRef}
+                    type="submit"
+                    disabled={isLoading || confirmationCode.length !== 6}
+                    className="relative isolate flex h-14 w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-r from-cyan-300 via-cyan-400 to-teal-300 px-4 font-extrabold text-[#06101d] shadow-[0_12px_34px_rgba(34,211,238,0.22)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0"
+                >
+                    {isLoading ? 'Confirming…' : 'Confirm and continue'}
+                </button>
+
+                <div className="grid gap-2 sm:grid-cols-2">
+                    <button type="button" onClick={() => { window.location.href = 'mailto:'; }} className="rounded-xl border border-white/10 px-3 py-2.5 text-sm font-semibold text-slate-300 transition hover:border-cyan-300/40 hover:text-white">Open email app</button>
+                    <button type="button" onClick={() => void handleResendConfirmation()} disabled={resendLoading} className="rounded-xl border border-white/10 px-3 py-2.5 text-sm font-semibold text-slate-300 transition hover:border-cyan-300/40 hover:text-white disabled:opacity-50">{resendLoading ? 'Sending…' : 'Resend confirmation'}</button>
+                </div>
+                <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs">
+                    <button type="button" onClick={() => switchFromConfirmation('signup')} className="font-semibold text-cyan-300 hover:text-cyan-200">Change email</button>
+                    <button type="button" onClick={() => switchFromConfirmation('login')} className="text-slate-400 hover:text-white">Back to sign in</button>
+                    <button type="button" onClick={handleGoogleSignIn} disabled={isGoogleLoading} className="text-slate-400 hover:text-white disabled:opacity-50">Continue with Google</button>
+                </div>
+            </form>
+        </div>
+    ) : (
         <div ref={cardRef} className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#081321]/90 p-5 shadow-[0_34px_110px_rgba(0,0,0,0.42),0_0_55px_rgba(34,211,238,0.08)] backdrop-blur-xl sm:p-8">
             <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-cyan-400/[0.08] blur-3xl" aria-hidden="true" />
             <div className="pointer-events-none absolute -bottom-20 -left-20 h-40 w-40 rounded-full bg-fuchsia-400/[0.06] blur-3xl" aria-hidden="true" />
