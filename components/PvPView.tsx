@@ -401,6 +401,14 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, focusTargetUserId, onComplet
   };
 
   const handleAttack = async (target: RaidTarget) => {
+    // Cards normally block this, but focused/deep-linked targets and stale UI
+    // state can still call the handler. Keep a client guard in addition to the
+    // authoritative database cooldown.
+    if (isTargetOnCooldown(target)) {
+      addToast(`${target.username} is still protected by the 5-minute cooldown.`, 'info');
+      return;
+    }
+
     // Consume pilot quota if applicable
     const quota = await tryConsumePilotQuota('pvp_battles');
     if (!quota.proceed) {

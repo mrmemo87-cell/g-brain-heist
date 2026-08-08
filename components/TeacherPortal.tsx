@@ -8,6 +8,7 @@ import * as SchoolAdminService from '../services/schoolAdminService';
 import { supabase } from '../services/supabaseClient';
 import BackButton from './BackButton';
 import SettingsModal from './SettingsModal';
+import CollapsedNavTooltip from './CollapsedNavTooltip';
 const HelpModal = React.lazy(() => import('./HelpModal'));
 import { NotificationCenter } from './NotificationCenter';
 const DiagramBuilder = React.lazy(() => import('./geometry/DiagramBuilder'));
@@ -173,6 +174,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [topNavMenuOpen, setTopNavMenuOpen] = useState(false);
   const [mobileWorkspaceMenuOpen, setMobileWorkspaceMenuOpen] = useState(false);
   const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(getInitialSidebarCollapsed);
+  const [navTooltip, setNavTooltip] = useState<{ label: string; anchor: HTMLElement } | null>(null);
   const topNavRef = useRef<HTMLElement | null>(null);
   const topNavMenuRef = useRef<HTMLDivElement | null>(null);
   const [topNavHeight, setTopNavHeight] = useState(0);
@@ -8240,7 +8242,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     subjectName.trim().toLocaleLowerCase().includes('english'),
   );
   const canAccessWritingInsights =
-    profile.role === 'admin' || (profile.role === 'teacher' && teachesEnglish);
+    profile.role === 'admin' || teachesEnglish;
 
   const navTabs: Array<{ id: TeacherNavSection; label: string; icon: string; description: string; proOnly?: boolean; highlight?: boolean }> = [
     { id: 'dashboard', label: 'Dashboard', icon: '🏠', description: 'Overview & Quick Actions' },
@@ -8597,6 +8599,10 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                       aria-label={tab.label}
                       aria-current={primarySection === tab.id ? 'page' : undefined}
                       data-label={tab.label}
+                      onMouseEnter={(event) => desktopSidebarCollapsed && setNavTooltip({ label: tab.label, anchor: event.currentTarget })}
+                      onMouseLeave={() => setNavTooltip(null)}
+                      onFocus={(event) => desktopSidebarCollapsed && setNavTooltip({ label: tab.label, anchor: event.currentTarget })}
+                      onBlur={() => setNavTooltip(null)}
                     >
                       <span className="teacher-nav-icon">{tab.icon}</span>
                       <div className="teacher-nav-text">
@@ -8812,6 +8818,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         </div>,
         document.body
       )}
+      {navTooltip && <CollapsedNavTooltip label={navTooltip.label} anchor={navTooltip.anchor} />}
     </div>
   );
 };
