@@ -5,6 +5,9 @@ const StudentsTab: React.FC = () => {
   const {
     classById, classes, filteredStudents, handleEnrollStudent, pagedStudents, selectedClassId, selectedGrade, selectedStudentId, setSelectedClassId, setSelectedGrade, setSelectedStudentId, setStudentPage, setStudentPageSize, setStudentSearch, studentAssignments, studentPage, studentPageSize, studentSaving, studentSearch, studentTotalPages, students,
   } = useSchoolAdmin();
+  const activeClasses = React.useMemo(() => classes.filter((schoolClass) => schoolClass.is_active), [classes]);
+  const academicYears = React.useMemo(() => Array.from(new Set(activeClasses.map((schoolClass) => Number(schoolClass.grade_level)).filter(Number.isFinite))).sort((a, b) => a - b), [activeClasses]);
+  const classesForAcademicYear = React.useMemo(() => activeClasses.filter((schoolClass) => selectedGrade !== '' && String(schoolClass.grade_level) === String(selectedGrade)), [activeClasses, selectedGrade]);
 
   return (
     <div className="space-y-6">
@@ -35,18 +38,25 @@ const StudentsTab: React.FC = () => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">Year group</label>
-            <input
-              value={selectedGrade ? `Year ${selectedGrade}` : 'Set by selected class'}
-              readOnly
-              aria-label="Year group (set by class)"
+            <label className="block text-sm font-medium text-gray-400 mb-1">Academic year (grade)</label>
+            <select
+              value={selectedGrade}
+              onChange={(event) => {
+                setSelectedGrade(event.target.value ? Number(event.target.value) : '');
+                setSelectedClassId('');
+              }}
+              aria-label="Academic year (grade)"
               className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
-            />
+            >
+              <option value="">Select academic year</option>
+              {academicYears.map((grade) => <option key={grade} value={grade}>Grade {grade}</option>)}
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-1">Class</label>
             <select
               value={selectedClassId}
+              disabled={selectedGrade === ''}
               onChange={(e) => {
                 const classId = e.target.value;
                 const selectedClass = classes.find((schoolClass) => schoolClass.id === classId);
@@ -55,12 +65,10 @@ const StudentsTab: React.FC = () => {
               }}
               className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
             >
-              <option value="">Select class</option>
-              {classes
-                .filter((cls) => cls.is_active)
-                .map((cls) => (
+              <option value="">{selectedGrade === '' ? 'Select academic year first' : 'Select class'}</option>
+              {classesForAcademicYear.map((cls) => (
                   <option key={cls.id} value={cls.id}>
-                    {cls.class_code} — {cls.class_name} · Year {cls.grade_level ?? 'not set'}
+                    {cls.class_code} — {cls.class_name} · Grade {cls.grade_level ?? 'not set'}
                   </option>
                 ))}
             </select>
