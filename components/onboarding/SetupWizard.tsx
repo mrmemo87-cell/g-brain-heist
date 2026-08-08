@@ -421,6 +421,35 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
         </button>
 
         <button
+          type="button"
+          onClick={handleSchoolApplicationOpen}
+          disabled={isLoading}
+          className="group relative overflow-hidden rounded-xl border-2 border-amber-400/30 bg-gradient-to-br from-slate-900/90 to-slate-800/90 p-6 text-left transition-all duration-300 hover:border-amber-300 hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-400/0 to-amber-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-12 h-12 rounded-lg bg-amber-300/15 flex items-center justify-center text-2xl border border-amber-300/40">
+                🏛️
+              </div>
+              <h3 className="font-heading text-2xl font-bold text-white">Apply to add your school</h3>
+            </div>
+
+            <p className="text-gray-300 mb-4">
+              For school owners, principals, directors, and authorised decision-makers. No invite code needed.
+            </p>
+
+            <div className="flex items-center gap-2 text-amber-200 font-semibold">
+              <span>Start school application</span>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </div>
+          </div>
+        </button>
+
+        <button
           onClick={() => handlePathSelect('individual')}
           className="group relative overflow-hidden rounded-xl border-2 border-purple-500/30 bg-gradient-to-br from-slate-900/90 to-slate-800/90 p-6 text-left transition-all duration-300 hover:border-purple-400 hover:scale-[1.02] active:scale-[0.98]"
         >
@@ -565,36 +594,6 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
         </button>
       </div>
 
-      {path === 'individual' && (
-        <section
-          aria-labelledby="school-application-heading"
-          className="rounded-xl border border-amber-400/30 bg-gradient-to-br from-amber-400/10 to-cyan-400/5 p-5"
-        >
-          <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-amber-300/40 bg-amber-300/15 text-2xl">
-              🏛️
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200">Represent a school?</p>
-              <h3 id="school-application-heading" className="mt-1 font-heading text-xl font-bold text-white">
-                Apply to add your school
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-gray-300">
-                School owners, principals, directors, and authorised decision-makers can apply here—no invite code needed.
-              </p>
-              <button
-                type="button"
-                onClick={handleSchoolApplicationOpen}
-                disabled={isLoading}
-                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-amber-300/50 bg-amber-300/15 px-4 py-3 text-sm font-bold text-amber-100 transition hover:border-amber-200 hover:bg-amber-300/25 focus:outline-none focus:ring-2 focus:ring-amber-300 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-              >
-                Start school application
-                <span aria-hidden="true">→</span>
-              </button>
-            </div>
-          </div>
-        </section>
-      )}
 
       <button
         onClick={() => setStep(path === 'school' ? 'invite_code' : 'path')}
